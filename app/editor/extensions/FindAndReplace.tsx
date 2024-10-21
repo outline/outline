@@ -1,3 +1,4 @@
+import deburr from "lodash/deburr";
 import escapeRegExp from "lodash/escapeRegExp";
 import { observable } from "mobx";
 import { Node } from "prosemirror-model";
@@ -243,11 +244,11 @@ export default class FindAndReplaceExtension extends Extension {
     });
 
     mergedTextNodes.forEach(({ text = "", pos }) => {
-      const search = this.findRegExp;
-      let m;
-
       try {
-        while ((m = search.exec(text))) {
+        let m;
+        const search = this.findRegExp;
+
+        while ((m = search.exec(deburr(text)))) {
           if (m[0] === "") {
             break;
           }

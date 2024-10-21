@@ -133,16 +133,16 @@ function AppSidebar() {
             <Section>
               <SharedWithMe />
             </Section>
-            <Section auto>
+            <Section>
               <Collections />
             </Section>
+            {can.createDocument && (
+              <Section auto>
+                <ArchiveLink />
+              </Section>
+            )}
             <Section>
-              {can.createDocument && (
-                <>
-                  <ArchiveLink />
-                  <TrashLink />
-                </>
-              )}
+              {can.createDocument && <TrashLink />}
               <SidebarAction action={inviteUser} />
             </Section>
           </Scrollable>

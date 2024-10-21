@@ -1,8 +1,10 @@
 import {
+  ArchiveIcon,
   CollectionIcon,
   EditIcon,
   PadlockIcon,
   PlusIcon,
+  RestoreIcon,
   SearchIcon,
   ShapesIcon,
   StarredIcon,
@@ -10,11 +12,13 @@ import {
   UnstarredIcon,
 } from "outline-icons";
 import * as React from "react";
+import { toast } from "sonner";
 import stores from "~/stores";
 import Collection from "~/models/Collection";
 import { CollectionEdit } from "~/components/Collection/CollectionEdit";
 import { CollectionNew } from "~/components/Collection/CollectionNew";
 import CollectionDeleteDialog from "~/components/CollectionDeleteDialog";
+import ConfirmationDialog from "~/components/ConfirmationDialog";
 import DynamicCollectionIcon from "~/components/Icons/CollectionIcon";
 import SharePopover from "~/components/Sharing/Collection/SharePopover";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
@@ -129,9 +133,20 @@ export const searchInCollection = createAction({
   analyticsName: "Search collection",
   section: ActiveCollectionSection,
   icon: <SearchIcon />,
-  visible: ({ activeCollectionId }) =>
-    !!activeCollectionId &&
-    stores.policies.abilities(activeCollectionId).readDocument,
+  visible: ({ activeCollectionId }) => {
+    if (!activeCollectionId) {
+      return false;
+    }
+
+    const collection = stores.collections.get(activeCollectionId);
+
+    if (!collection?.isActive) {
+      return false;
+    }
+
+    return stores.policies.abilities(activeCollectionId).readDocument;
+  },
+
   perform: ({ activeCollectionId }) => {
     history.push(searchPath(undefined, { collectionId: activeCollectionId }));
   },
@@ -187,6 +202,72 @@ export const unstarCollection = createAction({
 
     const collection = stores.collections.get(activeCollectionId);
     await collection?.unstar();
+  },
+});
+
+export const archiveCollection = createAction({
+  name: ({ t }) => `${t("Archive")}…`,
+  analyticsName: "Archive collection",
+  section: CollectionSection,
+  icon: <ArchiveIcon />,
+  visible: ({ activeCollectionId, stores }) => {
+    if (!activeCollectionId) {
+      return false;
+    }
+    return !!stores.policies.abilities(activeCollectionId).archive;
+  },
+  perform: async ({ activeCollectionId, stores, t }) => {
+    const { dialogs, collections } = stores;
+    if (!activeCollectionId) {
+      return;
+    }
+    const collection = collections.get(activeCollectionId);
+    if (!collection) {
+      return;
+    }
+
+    dialogs.openModal({
+      title: t("Archive collection"),
+      content: (
+        <ConfirmationDialog
+          onSubmit={async () => {
+            await collection.archive();
+            toast.success(t("Collection archived"));
+          }}
+          submitText={t("Archive")}
+          savingText={`${t("Archiving")}…`}
+        >
+          {t(
+            "Archiving this collection will also archive all documents within it. Documents from the collection will no longer be visible in search results."
+          )}
+        </ConfirmationDialog>
+      ),
+    });
+  },
+});
+
+export const restoreCollection = createAction({
+  name: ({ t }) => t("Restore"),
+  analyticsName: "Restore collection",
+  section: CollectionSection,
+  icon: <RestoreIcon />,
+  visible: ({ activeCollectionId, stores }) => {
+    if (!activeCollectionId) {
+      return false;
+    }
+    return !!stores.policies.abilities(activeCollectionId).restore;
+  },
+  perform: async ({ activeCollectionId, stores, t }) => {
+    if (!activeCollectionId) {
+      return;
+    }
+    const collection = stores.collections.get(activeCollectionId);
+    if (!collection) {
+      return;
+    }
+
+    await collection.restore();
+    toast.success(t("Collection restored"));
   },
 });
 

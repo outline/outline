@@ -57,7 +57,9 @@ function Search(props: Props) {
   const recentSearchesRef = React.useRef<HTMLDivElement | null>(null);
 
   // filters
-  const query = decodeURIComponentSafe(routeMatch.params.term ?? "");
+  const query = decodeURIComponentSafe(
+    routeMatch.params.term ?? params.get("query") ?? ""
+  );
   const collectionId = params.get("collectionId") ?? undefined;
   const userId = params.get("userId") ?? undefined;
   const documentId = params.get("documentId") ?? undefined;
@@ -117,7 +119,12 @@ function Search(props: Props) {
   const updateLocation = (query: string) => {
     history.replace({
       pathname: searchPath(query),
-      search: location.search,
+      search: queryString.stringify(
+        { ...queryString.parse(location.search), query: undefined },
+        {
+          skipEmptyString: true,
+        }
+      ),
     });
   };
 
@@ -134,7 +141,7 @@ function Search(props: Props) {
     history.replace({
       pathname: location.pathname,
       search: queryString.stringify(
-        { ...queryString.parse(location.search), ...search },
+        { ...queryString.parse(location.search), query: undefined, ...search },
         {
           skipEmptyString: true,
         }
@@ -201,59 +208,68 @@ function Search(props: Props) {
         </div>
       )}
       <ResultsWrapper column auto>
-        <SearchInput
-          key={query ? "search" : "recent"}
-          ref={searchInputRef}
-          placeholder={`${
-            documentId
-              ? t("Search in document")
-              : collectionId
-              ? t("Search in collection")
-              : t("Search")
-          }…`}
-          onKeyDown={handleKeyDown}
-          defaultValue={query}
-        />
+        <form
+          method="GET"
+          action={searchPath()}
+          onSubmit={(ev) => ev.preventDefault()}
+        >
+          <SearchInput
+            name="query"
+            key={query ? "search" : "recent"}
+            ref={searchInputRef}
+            placeholder={`${
+              documentId
+                ? t("Search in document")
+                : collectionId
+                ? t("Search in collection")
+                : t("Search")
+            }…`}
+            onKeyDown={handleKeyDown}
+            defaultValue={query}
+          />
 
-        {(query || hasFilters) && (
-          <Filters>
-            {document && (
-              <DocumentFilter
-                document={document}
-                onClick={() => {
-                  handleFilterChange({ documentId: undefined });
-                }}
+          {(query || hasFilters) && (
+            <Filters>
+              {document && (
+                <DocumentFilter
+                  document={document}
+                  onClick={() => {
+                    handleFilterChange({ documentId: undefined });
+                  }}
+                />
+              )}
+              <DocumentTypeFilter
+                statusFilter={statusFilter}
+                onSelect={({ statusFilter }) =>
+                  handleFilterChange({ statusFilter })
+                }
               />
-            )}
-            <DocumentTypeFilter
-              statusFilter={statusFilter}
-              onSelect={({ statusFilter }) =>
-                handleFilterChange({ statusFilter })
-              }
-            />
-            <CollectionFilter
-              collectionId={collectionId}
-              onSelect={(collectionId) => handleFilterChange({ collectionId })}
-            />
-            <UserFilter
-              userId={userId}
-              onSelect={(userId) => handleFilterChange({ userId })}
-            />
-            <DateFilter
-              dateFilter={dateFilter}
-              onSelect={(dateFilter) => handleFilterChange({ dateFilter })}
-            />
-            <SearchTitlesFilter
-              width={26}
-              height={14}
-              label={t("Search titles only")}
-              onChange={(ev: React.ChangeEvent<HTMLInputElement>) => {
-                handleFilterChange({ titleFilter: ev.target.checked });
-              }}
-              checked={titleFilter}
-            />
-          </Filters>
-        )}
+              <CollectionFilter
+                collectionId={collectionId}
+                onSelect={(collectionId) =>
+                  handleFilterChange({ collectionId })
+                }
+              />
+              <UserFilter
+                userId={userId}
+                onSelect={(userId) => handleFilterChange({ userId })}
+              />
+              <DateFilter
+                dateFilter={dateFilter}
+                onSelect={(dateFilter) => handleFilterChange({ dateFilter })}
+              />
+              <SearchTitlesFilter
+                width={26}
+                height={14}
+                label={t("Search titles only")}
+                onChange={(ev: React.ChangeEvent<HTMLInputElement>) => {
+                  handleFilterChange({ titleFilter: ev.target.checked });
+                }}
+                checked={titleFilter}
+              />
+            </Filters>
+          )}
+        </form>
         {query ? (
           <>
             {error ? (

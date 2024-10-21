@@ -806,6 +806,85 @@ describe("#documents.list", () => {
     expect(body.data.length).toEqual(0);
   });
 
+  it("should return only archived documents in a collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+    });
+    const docs = await Promise.all([
+      buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: collection.id,
+      }),
+      buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: collection.id,
+      }),
+      buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: collection.id,
+      }),
+    ]);
+    await docs[0].archive(user);
+    const res = await server.post("/api/documents.list", {
+      body: {
+        token: user.getJwtToken(),
+        statusFilter: [StatusFilter.Archived],
+        collectionId: collection.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].id).toEqual(docs[0].id);
+  });
+
+  it("should return archived documents across all collections user has access to", async () => {
+    const user = await buildUser();
+    const collections = await Promise.all([
+      buildCollection({
+        teamId: user.teamId,
+      }),
+      buildCollection({
+        teamId: user.teamId,
+      }),
+    ]);
+    const docs = await Promise.all([
+      buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: collections[0].id,
+      }),
+      buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: collections[1].id,
+      }),
+      buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: collections[1].id,
+      }),
+    ]);
+    await Promise.all([docs[0].archive(user), docs[1].archive(user)]);
+    const res = await server.post("/api/documents.list", {
+      body: {
+        token: user.getJwtToken(),
+        statusFilter: [StatusFilter.Archived],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(2);
+    const docIds = body.data.map((doc: any) => doc.id);
+    expect(docIds).toContain(docs[0].id);
+    expect(docIds).toContain(docs[1].id);
+    expect(docIds).not.toContain(docs[2].id);
+  });
+
   it("should not return documents in private collections not a member of", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
@@ -2678,6 +2757,131 @@ describe("#documents.move", () => {
 });
 
 describe("#documents.restore", () => {
+  it("should correctly restore document from an archived collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const anotherCollection = await buildCollection({
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+
+    const archiveRes = await server.post("/api/collections.archive", {
+      body: {
+        token: user.getJwtToken(),
+        id: collection.id,
+      },
+    });
+
+    expect(archiveRes.status).toEqual(200);
+
+    // check if document is part of the correct collection's structure
+    await collection.reload();
+    expect(collection.archivedAt).not.toBe(null);
+    expect(collection.documentStructure).not.toBe(null);
+    expect(collection.documentStructure).toHaveLength(1);
+    expect(collection?.documentStructure?.[0].id).toBe(document.id);
+    expect(anotherCollection.documentStructure).toBeNull();
+
+    const res = await server.post("/api/documents.restore", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        collectionId: anotherCollection.id,
+      },
+    });
+
+    const [, , body] = await Promise.all([
+      collection.reload(),
+      anotherCollection.reload(),
+      res.json(),
+    ]);
+    expect(res.status).toEqual(200);
+    expect(body.data.deletedAt).toEqual(null);
+    expect(body.data.collectionId).toEqual(anotherCollection.id);
+
+    // re-check collection structure after restore
+    expect(collection.documentStructure).toHaveLength(0);
+    expect(anotherCollection.documentStructure).not.toBe(null);
+    expect(anotherCollection.documentStructure).toHaveLength(1);
+    expect(anotherCollection?.documentStructure?.[0].id).toBe(document.id);
+  });
+
+  it("should fail if attempting to restore document to an archived collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+
+    const archiveRes = await server.post("/api/collections.archive", {
+      body: {
+        token: user.getJwtToken(),
+        id: collection.id,
+      },
+    });
+
+    expect(archiveRes.status).toEqual(200);
+
+    const res = await server.post("/api/documents.restore", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual(
+      "Unable to restore, the collection may have been deleted or archived"
+    );
+  });
+
+  it("should fail if attempting to restore to a collection for which the user does not have access", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+
+    const archiveRes = await server.post("/api/collections.archive", {
+      body: {
+        token: user.getJwtToken(),
+        id: collection.id,
+      },
+    });
+
+    expect(archiveRes.status).toEqual(200);
+
+    const anotherCollection = await buildCollection();
+
+    const res = await server.post("/api/documents.restore", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        collectionId: anotherCollection.id,
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
   it("should require id", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -2788,13 +2992,58 @@ describe("#documents.restore", () => {
     });
     await document.destroy();
     await collection.destroy({ hooks: false });
+    // passing deleted collection's id
     const res = await server.post("/api/documents.restore", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        collectionId: collection.id,
+      },
+    });
+    // not passing collection's id
+    const anotherRes = await server.post("/api/documents.restore", {
       body: {
         token: user.getJwtToken(),
         id: document.id,
       },
     });
+    const body = await res.json();
+    const anotherBody = await anotherRes.json();
     expect(res.status).toEqual(400);
+    expect(body.message).toEqual(
+      "Unable to restore, the collection may have been deleted or archived"
+    );
+    expect(anotherRes.status).toEqual(400);
+    expect(anotherBody.message).toEqual(
+      "Unable to restore, the collection may have been deleted or archived"
+    );
+  });
+
+  it("should not allow restore of documents in archived collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    await document.destroy();
+    collection.archivedAt = new Date();
+    await collection.save();
+    const res = await server.post("/api/documents.restore", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        collectionId: collection.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual(
+      "Unable to restore, the collection may have been deleted or archived"
+    );
   });
 
   it("should not allow restore of trashed documents to collection user cannot access", async () => {

@@ -17,7 +17,7 @@ type RelationOptions<T = Model> = {
 
 type RelationProperties<T = Model> = {
   /** The name of the property on the model that stores the ID of the relation. */
-  idKey: string;
+  idKey: keyof T;
   /** A function that returns the class of the relation. */
   relationClassResolver: () => typeof Model;
   /** Options for the relation. */

@@ -33,7 +33,9 @@ export default function download(
     // reverse arguments, allowing download.bind(true, "text/xml", "export.xml") to act as a callback
     // @ts-expect-error this is weird code
     x = [x, m];
+    // @ts-expect-error this is weird code
     m = x[0];
+    // @ts-expect-error this is weird code
     x = x[1];
   }
 

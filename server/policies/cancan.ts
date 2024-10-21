@@ -112,7 +112,7 @@ export class CanCan {
    * and sent in API responses to allow clients to adjust which UI is displayed.
    */
   public serialize = (performer: Model, target: Model | null): Policy => {
-    const output = {};
+    const output: Record<string, boolean | string[]> = {};
     abilities.forEach((ability) => {
       if (
         performer instanceof ability.model &&
@@ -184,11 +184,14 @@ export class CanCan {
         (ability.action === "manage" || action === ability.action)
     );
 
-  private get = (obj: object, key: string) =>
+  private get = <T extends object>(obj: T, key: keyof T) =>
     "get" in obj && typeof obj.get === "function" ? obj.get(key) : obj[key];
 
-  private isPartiallyEqual = (target: object, obj: object) =>
-    Object.keys(obj).every((key) => this.get(target, key) === obj[key]);
+  private isPartiallyEqual = <T extends object>(target: T, obj: T) =>
+    Object.keys(obj).every(
+      // @ts-expect-error TODO
+      (key: keyof T) => this.get(target, key) === obj[key]
+    );
 
   private getConditionFn =
     (condition: object) => (performer: Model, target: Model) =>
@@ -204,6 +207,7 @@ export class CanCan {
     if (typeof value === "string") {
       return [value];
     }
+    // @ts-expect-error - TS doesn't know that value is iterable
     if (typeof value[Symbol.iterator] === "function") {
       // @ts-expect-error - TS doesn't know that value is iterable
       return [...value];

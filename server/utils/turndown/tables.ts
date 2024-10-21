@@ -10,7 +10,11 @@ const tableShouldBeSkippedCache = new WeakMap<HTMLTableElement, boolean>();
 
 function getAlignment(node: HTMLElement) {
   return node
-    ? (node.getAttribute("align") || node.style.textAlign || "").toLowerCase()
+    ? ((
+        node.getAttribute("align") ||
+        node.style.textAlign ||
+        ""
+      ).toLowerCase() as "left" | "right" | "center")
     : "";
 }
 

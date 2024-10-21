@@ -29,6 +29,8 @@ import {
   unstarCollection,
   searchInCollection,
   createTemplate,
+  archiveCollection,
+  restoreCollection,
 } from "~/actions/definitions/collections";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -151,6 +153,7 @@ function CollectionMenu({
   const canUserInTeam = usePolicy(team);
   const items: MenuItem[] = React.useMemo(
     () => [
+      actionToMenuItem(restoreCollection, context),
       actionToMenuItem(starCollection, context),
       actionToMenuItem(unstarCollection, context),
       {
@@ -224,6 +227,7 @@ function CollectionMenu({
         onClick: handleExport,
         icon: <ExportIcon />,
       },
+      actionToMenuItem(archiveCollection, context),
       actionToMenuItem(searchInCollection, context),
       {
         type: "separator",

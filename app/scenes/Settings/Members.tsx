@@ -62,7 +62,9 @@ function Members() {
           filter,
           role,
         });
-        setTotalPages(Math.ceil(response[PAGINATION_SYMBOL].total / limit));
+        if (response[PAGINATION_SYMBOL]) {
+          setTotalPages(Math.ceil(response[PAGINATION_SYMBOL].total / limit));
+        }
         setUserIds(response.map((u: User) => u.id));
       } finally {
         setIsLoading(false);

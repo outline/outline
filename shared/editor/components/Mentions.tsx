@@ -1,6 +1,5 @@
 import { DocumentIcon } from "outline-icons";
 import * as React from "react";
-import Icon from "~/components/Icon";
 import { cn } from "../styles/utils";
 import { ComponentProps } from "../types";
 import useStores from "./hooks/useStores";
@@ -38,7 +37,8 @@ export function MentionDocument(props: ComponentProps) {
       href={`/doc/${node.attrs.modelId}`}
     >
       {doc?.icon ? (
-        <Icon value={doc.icon} color={doc.color} size={18} />
+        // <Icon value={doc.icon} color={doc.color} size={18} />
+        doc.icon
       ) : (
         <DocumentIcon size={18} />
       )}{" "}

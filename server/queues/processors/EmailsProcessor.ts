@@ -87,6 +87,8 @@ export default class EmailsProcessor extends BaseProcessor {
           {
             to: notification.user.email,
             documentId: notification.documentId,
+            revisionId: notification.revisionId,
+            userId: notification.userId,
             teamUrl: notification.team.url,
             actorName: notification.actor.name,
           },

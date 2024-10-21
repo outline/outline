@@ -4,7 +4,6 @@ import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
 import { CollectionValidation } from "@shared/validations";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
@@ -30,6 +29,8 @@ type Props = {
   onDisclosureClick: (ev?: React.MouseEvent<HTMLButtonElement>) => void;
   activeDocument: Document | undefined;
   isDraggingAnyCollection?: boolean;
+  depth?: number;
+  onClick?: () => void;
 };
 
 const CollectionLink: React.FC<Props> = ({
@@ -37,13 +38,14 @@ const CollectionLink: React.FC<Props> = ({
   expanded,
   onDisclosureClick,
   isDraggingAnyCollection,
+  depth,
+  onClick,
 }: Props) => {
   const { dialogs, documents, collections } = useStores();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const [isEditing, setIsEditing] = React.useState(false);
   const can = usePolicy(collection);
   const { t } = useTranslation();
-  const history = useHistory();
   const sidebarContext = useSidebarContext();
   const editableTitleRef = React.useRef<RefHandle>(null);
 
@@ -52,9 +54,8 @@ const CollectionLink: React.FC<Props> = ({
       await collection.save({
         name,
       });
-      history.replace(collection.path, history.location.state);
     },
-    [collection, history]
+    [collection]
   );
 
   // Drop to re-parent document
@@ -115,6 +116,7 @@ const CollectionLink: React.FC<Props> = ({
     <Relative ref={drop}>
       <DropToImport collectionId={collection.id}>
         <SidebarLink
+          onClick={onClick}
           to={{
             pathname: collection.path,
             state: { sidebarContext },
@@ -140,7 +142,7 @@ const CollectionLink: React.FC<Props> = ({
             />
           }
           exact={false}
-          depth={0}
+          depth={depth ? depth : 0}
           menu={
             !isEditing &&
             !isDraggingAnyCollection && (

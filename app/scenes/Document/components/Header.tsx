@@ -41,7 +41,7 @@ import DocumentMenu from "~/menus/DocumentMenu";
 import NewChildDocumentMenu from "~/menus/NewChildDocumentMenu";
 import TableOfContentsMenu from "~/menus/TableOfContentsMenu";
 import TemplatesMenu from "~/menus/TemplatesMenu";
-import { metaDisplay } from "~/utils/keyboard";
+import { altDisplay, metaDisplay } from "~/utils/keyboard";
 import { documentEditPath } from "~/utils/routeHelpers";
 import ObservingBanner from "./ObservingBanner";
 import PublicBreadcrumb from "./PublicBreadcrumb";
@@ -124,7 +124,7 @@ function DocumentHeader({
           ? t("Show contents")
           : `${t("Show contents")} (${t("available when headings are added")})`
       }
-      shortcut="ctrl+alt+h"
+      shortcut={`ctrl+${altDisplay}+h`}
       delay={250}
       placement="bottom"
     >

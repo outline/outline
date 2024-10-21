@@ -522,6 +522,7 @@ describe("#comments.resolve", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
+    expect(body.data.updatedAt).toEqual(comment.updatedAt.toISOString());
     expect(body.data.resolvedAt).toBeTruthy();
     expect(body.data.resolvedById).toEqual(user.id);
     expect(body.data.resolvedBy.id).toEqual(user.id);
@@ -592,6 +593,7 @@ describe("#comments.unresolve", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
+    expect(body.data.updatedAt).toEqual(comment.updatedAt.toISOString());
     expect(body.data.resolvedAt).toEqual(null);
     expect(body.data.resolvedBy).toEqual(null);
     expect(body.data.resolvedById).toEqual(null);

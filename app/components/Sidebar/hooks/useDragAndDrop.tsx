@@ -149,6 +149,7 @@ export function useDragDocument(
         icon: icon ? <Icon value={icon} color={color} /> : undefined,
         collectionId: document?.collectionId || "",
       } as DragObject),
+    canDrag: () => !!document?.isActive,
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
@@ -245,6 +246,7 @@ export function useDropToReparentDocument(
       !!pathToNode &&
       !pathToNode.includes(monitor.getItem().id) &&
       item.id !== node.id &&
+      !!document?.isActive &&
       policies.abilities(node.id).update &&
       policies.abilities(item.id).move,
     hover: (_item, monitor) => {
@@ -297,6 +299,8 @@ export function useDropToReorderDocument(
   const { t } = useTranslation();
   const { documents, collections, dialogs, policies } = useStores();
 
+  const document = documents.get(node.id);
+
   return useDrop<
     DragObject,
     Promise<void>,
@@ -304,7 +308,11 @@ export function useDropToReorderDocument(
   >({
     accept: "document",
     canDrop: (item: DragObject) => {
-      if (item.id === node.id || !policies.abilities(item.id)?.move) {
+      if (
+        item.id === node.id ||
+        !policies.abilities(item.id)?.move ||
+        !document?.isActive
+      ) {
         return false;
       }
 
@@ -424,6 +432,47 @@ export function useDropToReorderUserMembership(getIndex?: () => string) {
     collect: (monitor) => ({
       isOverCursor: !!monitor.isOver(),
       isDragging: monitor.getItemType() === "userMembership",
+    }),
+  });
+}
+
+/**
+ * Hook for shared logic that allows dropping documents and collections onto archive section
+ */
+export function useDropToArchive() {
+  const accept = ["document", "collection"];
+  const { documents, collections, policies } = useStores();
+  const { t } = useTranslation();
+
+  return useDrop<
+    DragObject,
+    Promise<void>,
+    { isOverArchiveSection: boolean; isDragging: boolean }
+  >({
+    accept,
+    drop: async (item, monitor) => {
+      const type = monitor.getItemType();
+      let model;
+
+      if (type === "collection") {
+        model = collections.get(item.id);
+      } else {
+        model = documents.get(item.id);
+      }
+
+      if (model) {
+        await model.archive();
+        toast.success(
+          type === "collection"
+            ? t("Collection archived")
+            : t("Document archived")
+        );
+      }
+    },
+    canDrop: (item) => policies.abilities(item.id).archive,
+    collect: (monitor) => ({
+      isOverArchiveSection: !!monitor.isOver(),
+      isDragging: monitor.canDrop(),
     }),
   });
 }

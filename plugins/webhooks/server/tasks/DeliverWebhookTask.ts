@@ -161,6 +161,8 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "collections.delete":
       case "collections.move":
       case "collections.permission_changed":
+      case "collections.archive":
+      case "collections.restore":
         await this.handleCollectionEvent(subscription, event);
         return;
       case "collections.add_user":
@@ -690,7 +692,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
         "user-agent": `Outline-Webhooks${
           env.VERSION ? `/${env.VERSION.slice(0, 7)}` : ""
         }`,
-      };
+      } as Record<string, string>;
 
       const signature = subscription.signature(JSON.stringify(requestBody));
       if (signature) {

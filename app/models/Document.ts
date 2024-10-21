@@ -643,7 +643,9 @@ export default class Document extends ArchivableModel {
       nodes: extensionManager.nodes,
       marks: extensionManager.marks,
     });
-    const markdown = serializer.serialize(Node.fromJSON(schema, this.data));
+    const markdown = serializer.serialize(Node.fromJSON(schema, this.data), {
+      softBreak: true,
+    });
     return markdown;
   };
 

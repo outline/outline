@@ -13,7 +13,7 @@ export function getFromPath(obj: JSONValue, path: string): JSONValue {
     if (typeof obj !== "object") {
       throw new Error();
     }
-    const property = pathParts.shift() as string;
+    const property = pathParts.shift() as keyof JSONValue;
     obj = obj[property];
   }
   return obj;

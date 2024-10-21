@@ -59,13 +59,13 @@ type Token = {
 };
 
 type Segment = {
-  beforeTokens: Array<Token>;
-  afterTokens: Array<Token>;
+  beforeTokens: Token[];
+  afterTokens: Token[];
   beforeIndex: number;
   afterIndex: number;
 
-  beforeMap: object;
-  afterMap: object;
+  beforeMap: Record<string, number[]>;
+  afterMap: Record<string, number[]>;
 };
 
 type MatchT = {
@@ -232,7 +232,7 @@ function Match(
  *
  * @return {Array} The list of tokens.
  */
-function htmlToTokens(html: string): Array<Token> {
+function htmlToTokens(html: string): Token[] {
   let mode = "char";
   let currentWord = "";
   let currentAtomicTag = "";
@@ -364,7 +364,7 @@ function getKeyForToken(token: string): string {
  *
  * @return {Object} A mapping that can be used to search for tokens.
  */
-function createMap(tokens: Array<Token>): object {
+function createMap(tokens: Token[]) {
   return tokens.reduce(function (map, token, index) {
     if (map[token.key]) {
       map[token.key].push(index);
@@ -651,8 +651,8 @@ function getFullMatch(
  * @return {Segment} The segment object.
  */
 function createSegment(
-  beforeTokens: Array<Token>,
-  afterTokens: Array<Token>,
+  beforeTokens: Token[],
+  afterTokens: Token[],
   beforeIndex: number,
   afterIndex: number
 ): Segment {
@@ -759,8 +759,8 @@ function findMatchingBlocks(segment: Segment): Array<MatchT> {
  *      - {number} endInAfter The end of the range in the list of after tokens.
  */
 function calculateOperations(
-  beforeTokens: Array<Token>,
-  afterTokens: Array<Token>
+  beforeTokens: Token[],
+  afterTokens: Token[]
 ): Array<Operation> {
   if (!beforeTokens) {
     throw new Error("Missing beforeTokens");
@@ -902,8 +902,8 @@ function TokenWrapper(tokens: any) {
  *      and whether those tokens are wrappable or not. The result should be a string.
  */
 TokenWrapper.prototype.combine = function (
-  mapFn: (wrappable: boolean, tokens: Array<Token>) => void,
-  tagFn: (tokens: Array<Token>) => void
+  mapFn: (wrappable: boolean, tokens: Token[]) => void,
+  tagFn: (tokens: Token[]) => void
 ) {
   const notes = this.notes;
   const tokens = this.tokens.slice();
@@ -1069,7 +1069,8 @@ function renderOperations(
   return operations.reduce(function (rendering, op, index) {
     return (
       rendering +
-      OPS[op.action](
+      // @ts-expect-error TODO
+      OPS[op.action]?.(
         op,
         beforeTokens,
         afterTokens,

@@ -38,7 +38,7 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
     [FileOperationState.Error]: t("Failed"),
   };
 
-  const iconMapping = {
+  const iconMapping: Record<FileOperationState, React.JSX.Element> = {
     [FileOperationState.Creating]: <Spinner />,
     [FileOperationState.Uploading]: <Spinner />,
     [FileOperationState.Expired]: <ArchiveIcon color={theme.textTertiary} />,
@@ -46,8 +46,9 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
     [FileOperationState.Error]: <WarningIcon color={theme.danger} />,
   };
 
-  const formatMapping = {
+  const formatMapping: Record<FileOperationFormat, string> = {
     [FileOperationFormat.JSON]: "JSON",
+    [FileOperationFormat.Notion]: "Notion",
     [FileOperationFormat.MarkdownZip]: "Markdown",
     [FileOperationFormat.HTMLZip]: "HTML",
     [FileOperationFormat.PDF]: "PDF",

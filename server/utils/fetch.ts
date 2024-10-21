@@ -32,15 +32,11 @@ export default async function fetch(
   });
 
   if (!response.ok) {
-    const clone = response.clone();
-    const body = await clone.text();
-
     Logger.silly("http", `Network request failed`, {
       url,
       status: response.status,
       statusText: response.statusText,
       headers: response.headers.raw(),
-      body,
     });
   }
 

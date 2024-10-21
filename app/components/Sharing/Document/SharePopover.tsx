@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { DocumentPermission } from "@shared/types";
 import Document from "~/models/Document";
 import Group from "~/models/Group";
-import Share from "~/models/Share";
 import User from "~/models/User";
 import { Avatar, GroupAvatar, AvatarSize } from "~/components/Avatar";
 import NudeButton from "~/components/NudeButton";
@@ -32,26 +31,19 @@ import { AccessControlList } from "./AccessControlList";
 type Props = {
   /** The document to share. */
   document: Document;
-  /** The existing share model, if any. */
-  share: Share | null | undefined;
-  /** The existing share parent model, if any. */
-  sharedParent: Share | null | undefined;
   /** Callback fired when the popover requests to be closed. */
   onRequestClose: () => void;
   /** Whether the popover is visible. */
   visible: boolean;
 };
 
-function SharePopover({
-  document,
-  share,
-  sharedParent,
-  onRequestClose,
-  visible,
-}: Props) {
+function SharePopover({ document, onRequestClose, visible }: Props) {
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const can = usePolicy(document);
+  const { shares } = useStores();
+  const share = shares.getByDocumentId(document.id);
+  const sharedParent = shares.getByDocumentParents(document.id);
   const [hasRendered, setHasRendered] = React.useState(visible);
   const { users, userMemberships, groups, groupMemberships } = useStores();
   const [query, setQuery] = React.useState("");

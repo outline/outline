@@ -4,7 +4,6 @@ import chalk from "chalk";
 import isArray from "lodash/isArray";
 import isEmpty from "lodash/isEmpty";
 import isObject from "lodash/isObject";
-import isString from "lodash/isString";
 import winston from "winston";
 import env from "@server/env";
 import Metrics from "@server/logging/Metrics";
@@ -226,18 +225,12 @@ class Logger {
       return "[…]" as any as T;
     }
 
-    if (isString(input)) {
-      if (sensitiveFields.some((field) => input.includes(field))) {
-        return "[Filtered]" as any as T;
-      }
-    }
-
     if (isArray(input)) {
       return input.map((item) => this.sanitize(item, level + 1)) as any as T;
     }
 
     if (isObject(input)) {
-      const output = { ...input };
+      const output: Record<string, any> = { ...input };
 
       for (const key of Object.keys(output)) {
         if (isObject(output[key])) {
@@ -252,7 +245,7 @@ class Logger {
           output[key] = this.sanitize(output[key], level + 1);
         }
       }
-      return output;
+      return output as T;
     }
 
     return input;

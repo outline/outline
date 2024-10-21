@@ -97,7 +97,7 @@ router.use(compress());
 router.get("/locales/:lng.json", async (ctx) => {
   const { lng } = ctx.params;
 
-  if (!languages.includes(lng)) {
+  if (!languages.includes(lng as (typeof languages)[number])) {
     ctx.status = 404;
     return;
   }

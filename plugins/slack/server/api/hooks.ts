@@ -79,7 +79,10 @@ router.post(
       return;
     }
     // get content for unfurled links
-    const unfurls = {};
+    const unfurls: Record<
+      string,
+      { title: string; text: string; color?: string | undefined }
+    > = {};
 
     for (const link of event.links) {
       const documentId = parseDocumentSlug(link.url);
@@ -109,7 +112,7 @@ router.post(
             unfurls[link.url] = {
               title: doc.title,
               text: doc.getSummary(),
-              color: doc.collection?.color,
+              color: doc.collection?.color ?? undefined,
             };
           }
         }

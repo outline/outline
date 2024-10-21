@@ -2,9 +2,9 @@ import { Hook, PluginManager } from "@server/utils/PluginManager";
 import { requireDirectory } from "@server/utils/fs";
 import BaseProcessor from "./BaseProcessor";
 
-const processors = {};
+const processors: Record<string, typeof BaseProcessor> = {};
 
-requireDirectory<{ default: BaseProcessor }>(__dirname).forEach(
+requireDirectory<{ default: typeof BaseProcessor }>(__dirname).forEach(
   ([module, id]) => {
     if (id === "index") {
       return;

@@ -358,8 +358,6 @@ export const shareDocument = createAction({
     }
 
     const document = stores.documents.get(activeDocumentId);
-    const share = stores.shares.getByDocumentId(activeDocumentId);
-    const sharedParent = stores.shares.getByDocumentParents(activeDocumentId);
     if (!document) {
       return;
     }
@@ -370,8 +368,6 @@ export const shareDocument = createAction({
       content: (
         <SharePopover
           document={document}
-          share={share}
-          sharedParent={sharedParent}
           onRequestClose={stores.dialogs.closeAllModals}
           visible
         />

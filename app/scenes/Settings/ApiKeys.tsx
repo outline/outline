@@ -13,12 +13,14 @@ import Text from "~/components/Text";
 import { createApiKey } from "~/actions/definitions/apiKeys";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import ApiKeyListItem from "./components/ApiKeyListItem";
 
 function ApiKeys() {
   const team = useCurrentTeam();
+  const user = useCurrentUser();
   const { t } = useTranslation();
   const { apiKeys } = useStores();
   const can = usePolicy(team);
@@ -79,7 +81,8 @@ function ApiKeys() {
       </Text>
       <PaginatedList
         fetch={apiKeys.fetchPage}
-        items={apiKeys.orderedData}
+        items={apiKeys.personalApiKeys}
+        options={{ userId: user.id }}
         heading={<h2>{t("Personal keys")}</h2>}
         renderItem={(apiKey: ApiKey) => (
           <ApiKeyListItem
