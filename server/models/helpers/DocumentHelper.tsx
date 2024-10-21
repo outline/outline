@@ -1,9 +1,6 @@
-import {
-  updateYFragment,
-  yDocToProsemirrorJSON,
-} from "@getoutline/y-prosemirror";
 import { JSDOM } from "jsdom";
 import { Node } from "prosemirror-model";
+import { updateYFragment, yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
 import textBetween from "@shared/editor/lib/textBetween";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";

@@ -16,9 +16,12 @@ class ApiKey extends ParanoidModel {
   @observable
   expiresAt?: string;
 
-  /** An optional datetime that the API key was last used at. */
+  /** Timestamp that the API key was last used. */
   @observable
   lastActiveAt?: string;
+
+  /** The user ID that the API key belongs to. */
+  userId: string;
 
   /** The plain text value of the API key, only available on creation. */
   value: string;

@@ -393,6 +393,10 @@ width: 100%;
   h5 { font-size: 15px; }
   h6 { font-size: 15px; }
 
+  .ProseMirror-yjs-selection {
+    transition: background-color 500ms ease-in-out;
+  }
+
   .ProseMirror-yjs-cursor {
     position: relative;
     margin-left: -1px;

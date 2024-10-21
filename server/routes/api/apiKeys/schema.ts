@@ -12,6 +12,15 @@ export const APIKeysCreateSchema = BaseSchema.extend({
 
 export type APIKeysCreateReq = z.infer<typeof APIKeysCreateSchema>;
 
+export const APIKeysListSchema = BaseSchema.extend({
+  body: z.object({
+    /** The owner of the API key */
+    userId: z.string().uuid().optional(),
+  }),
+});
+
+export type APIKeysListReq = z.infer<typeof APIKeysListSchema>;
+
 export const APIKeysDeleteSchema = BaseSchema.extend({
   body: z.object({
     /** API Key Id */

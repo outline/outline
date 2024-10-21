@@ -293,7 +293,7 @@ router.post(
 
     comment.resolve(user);
     const changes = comment.changeset;
-    await comment.save({ transaction });
+    await comment.save({ transaction, silent: true });
 
     await Event.createFromContext(
       ctx,
@@ -340,7 +340,7 @@ router.post(
 
     comment.unresolve();
     const changes = comment.changeset;
-    await comment.save({ transaction });
+    await comment.save({ transaction, silent: true });
 
     await Event.createFromContext(
       ctx,

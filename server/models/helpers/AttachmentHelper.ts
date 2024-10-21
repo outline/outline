@@ -10,6 +10,8 @@ export enum Buckets {
 }
 
 export default class AttachmentHelper {
+  static maximumFileNameLength = 255;
+
   /**
    * Get the upload location for the given upload details
    *
@@ -31,7 +33,9 @@ export default class AttachmentHelper {
   }) {
     const bucket = acl === "public-read" ? Buckets.public : Buckets.uploads;
     const keyPrefix = `${bucket}/${userId}/${id}`;
-    return ValidateKey.sanitize(`${keyPrefix}/${name}`);
+    return ValidateKey.sanitize(
+      `${keyPrefix}/${name.slice(0, this.maximumFileNameLength)}`
+    );
   }
 
   /**

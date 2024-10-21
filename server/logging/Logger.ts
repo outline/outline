@@ -4,7 +4,6 @@ import chalk from "chalk";
 import isArray from "lodash/isArray";
 import isEmpty from "lodash/isEmpty";
 import isObject from "lodash/isObject";
-import isString from "lodash/isString";
 import winston from "winston";
 import env from "@server/env";
 import Metrics from "@server/logging/Metrics";
@@ -224,12 +223,6 @@ class Logger {
 
     if (level > 3) {
       return "[…]" as any as T;
-    }
-
-    if (isString(input)) {
-      if (sensitiveFields.some((field) => input.includes(field))) {
-        return "[Filtered]" as any as T;
-      }
     }
 
     if (isArray(input)) {
