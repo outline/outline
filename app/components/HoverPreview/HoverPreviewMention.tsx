@@ -24,7 +24,8 @@ const HoverPreviewMention = React.forwardRef(function _HoverPreviewMention(
               size={AvatarSize.XLarge}
             />
             <Flex column gap={2} justify="center">
-              <Title>{`${name}(${email})`}</Title>
+              <Title>{name}</Title>
+              {email && <Info>{email}</Info>}
               <Info>{lastActive}</Info>
             </Flex>
           </Flex>
