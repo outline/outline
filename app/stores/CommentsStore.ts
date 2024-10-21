@@ -2,8 +2,7 @@ import invariant from "invariant";
 import compact from "lodash/compact";
 import differenceBy from "lodash/differenceBy";
 import keyBy from "lodash/keyBy";
-import orderBy from "lodash/orderBy";
-import { action, computed } from "mobx";
+import { action } from "mobx";
 import Comment from "~/models/Comment";
 import { CommentSortOption, CommentSortType } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -34,7 +33,7 @@ export default class CommentsStore extends Store<Comment> {
    */
   threadsInDocument(
     documentId: string,
-    options: CommentSortOption = { type: CommentSortType.Chrono }
+    options: CommentSortOption = { type: CommentSortType.MostRecent }
   ) {
     const comments = this.filter(
       (comment: Comment) =>
@@ -44,7 +43,7 @@ export default class CommentsStore extends Store<Comment> {
           comment.createdById === this.rootStore.auth.currentUserId)
     );
 
-    if (options.type === CommentSortType.Chrono) {
+    if (options.type === CommentSortType.MostRecent) {
       return comments;
     }
 
@@ -66,7 +65,7 @@ export default class CommentsStore extends Store<Comment> {
    */
   resolvedThreadsInDocument(
     documentId: string,
-    options: CommentSortOption = { type: CommentSortType.Chrono }
+    options: CommentSortOption = { type: CommentSortType.MostRecent }
   ): Comment[] {
     return this.threadsInDocument(documentId, options).filter(
       (comment: Comment) => comment.isResolved === true
@@ -82,7 +81,7 @@ export default class CommentsStore extends Store<Comment> {
    */
   unresolvedThreadsInDocument(
     documentId: string,
-    options: CommentSortOption = { type: CommentSortType.Chrono }
+    options: CommentSortOption = { type: CommentSortType.MostRecent }
   ): Comment[] {
     return this.threadsInDocument(documentId, options).filter(
       (comment: Comment) => comment.isResolved !== true
@@ -161,10 +160,5 @@ export default class CommentsStore extends Store<Comment> {
     if (comment) {
       comment.typingUsers.set(userId, new Date());
     }
-  }
-
-  @computed
-  get orderedData(): Comment[] {
-    return orderBy(Array.from(this.data.values()), "createdAt", "asc");
   }
 }

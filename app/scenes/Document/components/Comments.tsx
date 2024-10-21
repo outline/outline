@@ -41,13 +41,13 @@ function Comments() {
   );
 
   const sortOption: CommentSortOption = user.getPreference(
-    UserPreference.SortCommentsByPosition
+    UserPreference.SortCommentsByOrderInDocument
   )
     ? {
-        type: CommentSortType.Position,
+        type: CommentSortType.OrderInDocument,
         referencedCommentIds: editor?.getComments().map((c) => c.id) ?? [],
       }
-    : { type: CommentSortType.Chrono };
+    : { type: CommentSortType.MostRecent };
 
   const viewingResolved = params.get("resolved") === "";
   const resolvedThreads = document

@@ -217,10 +217,10 @@ export type Properties<C> = {
 };
 
 export enum CommentSortType {
-  Chrono = "chronological",
-  Position = "position",
+  MostRecent = "most_recent",
+  OrderInDocument = "order_in_document",
 }
 
 export type CommentSortOption =
-  | { type: CommentSortType.Chrono }
-  | { type: CommentSortType.Position; referencedCommentIds: string[] };
+  | { type: CommentSortType.MostRecent }
+  | { type: CommentSortType.OrderInDocument; referencedCommentIds: string[] };

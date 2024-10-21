@@ -20,14 +20,14 @@ const CommentSortMenu = () => {
   const viewingResolved = params.get("resolved") === "";
   const value = viewingResolved
     ? "resolved"
-    : user.getPreference(UserPreference.SortCommentsByPosition)
-    ? CommentSortType.Position
-    : CommentSortType.Chrono;
+    : user.getPreference(UserPreference.SortCommentsByOrderInDocument)
+    ? CommentSortType.OrderInDocument
+    : CommentSortType.MostRecent;
 
   const handleSortTypeChange = (type: CommentSortType) => {
     user.setPreference(
-      UserPreference.SortCommentsByPosition,
-      type === CommentSortType.Position
+      UserPreference.SortCommentsByOrderInDocument,
+      type === CommentSortType.OrderInDocument
     );
     void user.save();
   };
@@ -67,8 +67,8 @@ const CommentSortMenu = () => {
       }}
       borderOnHover
       options={[
-        { value: CommentSortType.Chrono, label: t("Most recent") },
-        { value: CommentSortType.Position, label: t("Order in doc") },
+        { value: CommentSortType.MostRecent, label: t("Most recent") },
+        { value: CommentSortType.OrderInDocument, label: t("Order in doc") },
         {
           divider: true,
           value: "resolved",
