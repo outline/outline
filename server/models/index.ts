@@ -32,6 +32,8 @@ export { default as Notification } from "./Notification";
 
 export { default as Pin } from "./Pin";
 
+export { default as Reaction } from "./Reaction";
+
 export { default as Revision } from "./Revision";
 
 export { default as SearchQuery } from "./SearchQuery";

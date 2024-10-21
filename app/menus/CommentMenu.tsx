@@ -15,6 +15,7 @@ import {
   deleteCommentFactory,
   resolveCommentFactory,
   unresolveCommentFactory,
+  viewCommentReactionsFactory,
 } from "~/actions/definitions/comments";
 import useActionContext from "~/hooks/useActionContext";
 import usePolicy from "~/hooks/usePolicy";
@@ -88,6 +89,12 @@ function CommentMenu({
               unresolveCommentFactory({
                 comment,
                 onUnresolve: () => onUpdate({ resolved: false }),
+              }),
+              context
+            ),
+            actionToMenuItem(
+              viewCommentReactionsFactory({
+                comment,
               }),
               context
             ),
