@@ -565,7 +565,7 @@ iframe.embed {
   clear: initial;
 }
 
-.image-full-width {
+.${EditorStyleHelper.imageFullWidth} {
   width: initial;
   max-width: 100vw;
   clear: both;
