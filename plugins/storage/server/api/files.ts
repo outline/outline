@@ -90,6 +90,7 @@ router.get(
       contentType = attachment.contentType;
     }
 
+    ctx.set("Accept-Ranges", "bytes");
     ctx.set("Cache-Control", cacheHeader);
     ctx.set("Content-Type", contentType);
     ctx.attachment(fileName, {
@@ -104,6 +105,7 @@ router.get(
     const range = getByteRange(ctx, stats.size);
 
     if (range) {
+      ctx.status = 206;
       ctx.set("Content-Length", String(range.end - range.start + 1));
       ctx.set(
         "Content-Range",
