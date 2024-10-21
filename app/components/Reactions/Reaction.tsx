@@ -46,11 +46,13 @@ const useTooltipContent = ({
     return;
   }
 
+  const transformedEmoji = `:${getEmojiId(emoji)}:`;
+
   switch (reactedUsers.length) {
     case 1: {
       return t("{{ username }} reacted with {{ emoji }}", {
         username: active ? t("You") : reactedUsers[0].name,
-        emoji: `:${getEmojiId(emoji)}:`,
+        emoji: transformedEmoji,
       });
     }
 
@@ -65,52 +67,21 @@ const useTooltipContent = ({
         {
           firstUsername,
           secondUsername,
-          emoji: `:${getEmojiId(emoji)}:`,
-        }
-      );
-    }
-
-    case 3: {
-      const firstUsername = active ? t("You") : reactedUsers[0].name;
-
-      const otherUsers = active
-        ? reactedUsers.filter((user) => user.id !== currUser.id)
-        : reactedUsers.slice(1);
-
-      const secondUsername = otherUsers[0].name;
-      const thirdUsername = otherUsers[1].name;
-
-      return t(
-        "{{ firstUsername }}, {{ secondUsername }} and {{ thirdUsername }} reacted with {{ emoji }}",
-        {
-          firstUsername,
-          secondUsername,
-          thirdUsername,
-          emoji: `:${getEmojiId(emoji)}:`,
+          emoji: transformedEmoji,
         }
       );
     }
 
     default: {
       const firstUsername = active ? t("You") : reactedUsers[0].name;
-
-      const otherUsers = active
-        ? reactedUsers.filter((user) => user.id !== currUser.id)
-        : reactedUsers.slice(1);
-
-      const secondUsername = otherUsers[0].name;
-      const thirdUsername = otherUsers[1].name;
-
-      const count = reactedUsers.length - 3;
+      const count = reactedUsers.length - 1;
 
       return t(
-        "{{ firstUsername }}, {{ secondUsername }}, {{ thirdUsername }} and {{ count }} others reacted with {{ emoji }}",
+        "{{ firstUsername }} and {{ count }} others reacted with {{ emoji }}",
         {
           firstUsername,
-          secondUsername,
-          thirdUsername,
           count,
-          emoji: `:${getEmojiId(emoji)}:`,
+          emoji: transformedEmoji,
         }
       );
     }

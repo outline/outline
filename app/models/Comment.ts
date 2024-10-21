@@ -159,19 +159,19 @@ class Comment extends Model {
   @action
   public addReaction = async ({
     emoji,
-    userId,
+    user,
   }: {
     emoji: string;
-    userId: string;
+    user: User;
   }) => {
-    this.updateReaction({ type: "add", emoji, userId });
+    this.updateReaction({ type: "add", emoji, user });
     try {
       await client.post("/comments.add_reaction", {
         id: this.id,
         emoji,
       });
     } catch {
-      this.updateReaction({ type: "remove", emoji, userId });
+      this.updateReaction({ type: "remove", emoji, user });
     }
   };
 
@@ -187,19 +187,19 @@ class Comment extends Model {
   @action
   public removeReaction = async ({
     emoji,
-    userId,
+    user,
   }: {
     emoji: string;
-    userId: string;
+    user: User;
   }) => {
-    this.updateReaction({ type: "remove", emoji, userId });
+    this.updateReaction({ type: "remove", emoji, user });
     try {
       await client.post("/comments.remove_reaction", {
         id: this.id,
         emoji,
       });
     } catch {
-      this.updateReaction({ type: "add", emoji, userId });
+      this.updateReaction({ type: "add", emoji, user });
     }
   };
 
@@ -215,23 +215,25 @@ class Comment extends Model {
   public updateReaction = ({
     type,
     emoji,
-    userId,
+    user,
   }: {
     type: "add" | "remove";
     emoji: string;
-    userId: string;
+    user: User;
   }) => {
     const reaction = this.reactions.find((r) => r.emoji === emoji);
 
+    // Step 1: Update the reactions cache.
+
     if (type === "add") {
       if (!reaction) {
-        this.reactions.push({ emoji, userIds: [userId] });
+        this.reactions.push({ emoji, userIds: [user.id] });
       } else {
-        reaction.userIds = uniq([...reaction.userIds, userId]);
+        reaction.userIds = uniq([...reaction.userIds, user.id]);
       }
     } else {
       if (reaction) {
-        reaction.userIds = reaction.userIds.filter((id) => id !== userId);
+        reaction.userIds = reaction.userIds.filter((id) => id !== user.id);
       }
 
       if (reaction?.userIds.length === 0) {
@@ -240,18 +242,9 @@ class Comment extends Model {
         );
       }
     }
-  };
 
-  @action
-  updateReactedUser = ({
-    type,
-    emoji,
-    user,
-  }: {
-    type: "add" | "remove";
-    emoji: string;
-    user: User;
-  }) => {
+    // Step 2: Update the reacted users data.
+
     // No need to update when the data is not loaded.
     if (!this.reactedUsers) {
       return;
@@ -270,7 +263,7 @@ class Comment extends Model {
     if (type === "add") {
       if (!existingUsers) {
         this.reactedUsers.set(emoji, [reactedUser]);
-      } else {
+      } else if (!existingUsers.find((u) => u.id === reactedUser.id)) {
         existingUsers.push(reactedUser);
       }
     } else {

@@ -375,9 +375,14 @@ router.post(
     const comment = await Comment.findByPk(id, {
       transaction,
       rejectOnEmpty: true,
+      lock: {
+        level: transaction.LOCK.UPDATE,
+        of: Comment,
+      },
     });
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
+      transaction,
     });
 
     authorize(user, "comment", document);
@@ -428,9 +433,14 @@ router.post(
     const comment = await Comment.findByPk(id, {
       transaction,
       rejectOnEmpty: true,
+      lock: {
+        level: transaction.LOCK.UPDATE,
+        of: Comment,
+      },
     });
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
+      transaction,
     });
 
     authorize(user, "comment", document);

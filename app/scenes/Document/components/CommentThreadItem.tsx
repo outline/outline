@@ -119,14 +119,14 @@ function CommentThreadItem({
 
   const handleAddReaction = React.useCallback(
     async (emoji: string) => {
-      await comment.addReaction({ emoji, userId: user.id });
+      await comment.addReaction({ emoji, user });
     },
     [comment, user]
   );
 
   const handleRemoveReaction = React.useCallback(
     async (emoji: string) => {
-      await comment.removeReaction({ emoji, userId: user.id });
+      await comment.removeReaction({ emoji, user });
     },
     [comment, user]
   );
