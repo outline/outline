@@ -1,7 +1,10 @@
 import invariant from "invariant";
-import orderBy from "lodash/orderBy";
-import { action, computed } from "mobx";
+import compact from "lodash/compact";
+import differenceBy from "lodash/differenceBy";
+import keyBy from "lodash/keyBy";
+import { action } from "mobx";
 import Comment from "~/models/Comment";
+import { CommentSortOption, CommentSortType } from "~/types";
 import { client } from "~/utils/ApiClient";
 import RootStore from "./RootStore";
 import Store from "./base/Store";
@@ -28,14 +31,29 @@ export default class CommentsStore extends Store<Comment> {
    * @param documentId ID of the document to get comments for
    * @returns Array of comments
    */
-  threadsInDocument(documentId: string): Comment[] {
-    return this.filter(
+  threadsInDocument(
+    documentId: string,
+    options: CommentSortOption = { type: CommentSortType.MostRecent }
+  ) {
+    const comments = this.filter(
       (comment: Comment) =>
         comment.documentId === documentId &&
         !comment.parentCommentId &&
         (!comment.isNew ||
           comment.createdById === this.rootStore.auth.currentUserId)
     );
+
+    if (options.type === CommentSortType.MostRecent) {
+      return comments;
+    }
+
+    const commentsById = keyBy(comments, "id");
+    const referencedComments = compact(
+      options.referencedCommentIds.map((id) => commentsById[id])
+    );
+    const directComments = differenceBy(comments, referencedComments, "id");
+
+    return [...referencedComments, ...directComments];
   }
 
   /**
@@ -45,8 +63,11 @@ export default class CommentsStore extends Store<Comment> {
    * @param documentId ID of the document to get comments for
    * @returns Array of comments
    */
-  resolvedThreadsInDocument(documentId: string): Comment[] {
-    return this.threadsInDocument(documentId).filter(
+  resolvedThreadsInDocument(
+    documentId: string,
+    options: CommentSortOption = { type: CommentSortType.MostRecent }
+  ): Comment[] {
+    return this.threadsInDocument(documentId, options).filter(
       (comment: Comment) => comment.isResolved === true
     );
   }
@@ -58,8 +79,11 @@ export default class CommentsStore extends Store<Comment> {
    * @param documentId ID of the document to get comments for
    * @returns Array of comments
    */
-  unresolvedThreadsInDocument(documentId: string): Comment[] {
-    return this.threadsInDocument(documentId).filter(
+  unresolvedThreadsInDocument(
+    documentId: string,
+    options: CommentSortOption = { type: CommentSortType.MostRecent }
+  ): Comment[] {
+    return this.threadsInDocument(documentId, options).filter(
       (comment: Comment) => comment.isResolved !== true
     );
   }
@@ -136,10 +160,5 @@ export default class CommentsStore extends Store<Comment> {
     if (comment) {
       comment.typingUsers.set(userId, new Date());
     }
-  }
-
-  @computed
-  get orderedData(): Comment[] {
-    return orderBy(Array.from(this.data.values()), "createdAt", "asc");
   }
 }
