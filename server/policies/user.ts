@@ -1,7 +1,14 @@
 import { TeamPreference } from "@shared/types";
 import { User, Team } from "@server/models";
 import { allow } from "./cancan";
-import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
+import {
+  and,
+  isTeamAdmin,
+  isTeamMember,
+  isTeamModel,
+  isTeamMutable,
+  or,
+} from "./utils";
 
 allow(User, "read", User, isTeamModel);
 
@@ -27,6 +34,15 @@ allow(User, ["update", "readDetails", "listApiKeys"], User, (actor, user) =>
   or(
     //
     isTeamAdmin(actor, user),
+    actor.id === user?.id
+  )
+);
+
+allow(User, "readEmail", User, (actor, user) =>
+  or(
+    //
+    isTeamAdmin(actor, user),
+    isTeamMember(actor, user),
     actor.id === user?.id
   )
 );

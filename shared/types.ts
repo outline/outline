@@ -335,6 +335,8 @@ export type UnfurlResponse = {
     type: UnfurlResourceType.Mention;
     /** Mentioned user's name */
     name: string;
+    /** Mentioned user's email */
+    email: string | null;
     /** Mentioned user's avatar URL */
     avatarUrl: string | null;
     /** Used to create mentioned user's avatar if no avatar URL provided */

@@ -6,10 +6,13 @@ import { Document, User, View } from "@server/models";
 import { opts } from "@server/utils/i18n";
 import { GitHubUtils } from "plugins/github/shared/GitHubUtils";
 
-async function presentUnfurl(data: Record<string, any>) {
+async function presentUnfurl(
+  data: Record<string, any>,
+  options?: { includeEmail: boolean }
+) {
   switch (data.type) {
     case UnfurlResourceType.Mention:
-      return presentMention(data);
+      return presentMention(data, options);
     case UnfurlResourceType.Document:
       return presentDocument(data);
     case UnfurlResourceType.PR:
@@ -32,7 +35,8 @@ const presentOEmbed = (
 });
 
 const presentMention = async (
-  data: Record<string, any>
+  data: Record<string, any>,
+  options?: { includeEmail: boolean }
 ): Promise<UnfurlResponse[UnfurlResourceType.Mention]> => {
   const user: User = data.user;
   const document: Document = data.document;
@@ -43,6 +47,7 @@ const presentMention = async (
   return {
     type: UnfurlResourceType.Mention,
     name: user.name,
+    email: options && options.includeEmail ? user.email : null,
     avatarUrl: user.avatarUrl,
     color: user.color,
     lastActive: `${lastOnlineInfo} • ${lastViewedInfo}`,
