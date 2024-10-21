@@ -244,10 +244,10 @@ export default class FindAndReplaceExtension extends Extension {
     });
 
     mergedTextNodes.forEach(({ text = "", pos }) => {
-      const search = this.findRegExp;
-      let m;
-
       try {
+        let m;
+        const search = this.findRegExp;
+
         while ((m = search.exec(deburr(text)))) {
           if (m[0] === "") {
             break;
