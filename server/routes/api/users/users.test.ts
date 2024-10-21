@@ -18,6 +18,24 @@ afterAll(() => {
 });
 
 describe("#users.list", () => {
+  it("should return users whose emails match the query", async () => {
+    const user = await buildUser({
+      name: "John Doe",
+      email: "john.doe@example.com",
+    });
+
+    const res = await server.post("/api/users.list", {
+      body: {
+        query: "john.doe@e",
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].id).toEqual(user.id);
+  });
+
   it("should allow filtering by user name", async () => {
     const user = await buildUser({
       name: "Tèster",
