@@ -108,7 +108,11 @@ function getDecorations({
 
   blocks.forEach((block) => {
     let startPos = block.pos + 1;
-    const language = block.node.attrs.language;
+    const language = (
+      block.node.attrs.language === "mermaidjs"
+        ? "mermaid"
+        : block.node.attrs.language
+    ) as string;
     if (!language || language === "none" || !refractor.registered(language)) {
       return;
     }

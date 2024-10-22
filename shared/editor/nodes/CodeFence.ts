@@ -32,6 +32,8 @@ import kotlin from "refractor/lang/kotlin";
 import lisp from "refractor/lang/lisp";
 import lua from "refractor/lang/lua";
 import markup from "refractor/lang/markup";
+// @ts-expect-error type definition is missing, but package exists
+import mermaid from "refractor/lang/mermaid";
 import nginx from "refractor/lang/nginx";
 import nix from "refractor/lang/nix";
 import objectivec from "refractor/lang/objectivec";
@@ -109,6 +111,7 @@ const DEFAULT_LANGUAGE = "javascript";
   lisp,
   lua,
   markup,
+  mermaid,
   nginx,
   nix,
   objectivec,

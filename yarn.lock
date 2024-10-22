@@ -4972,10 +4972,10 @@
   resolved "https://registry.yarnpkg.com/@types/redis-info/-/redis-info-3.0.3.tgz#4963fa015a6b448d9c7e27d6cba96d5db7201550"
   integrity "sha1-SWP6AVprRI2cfifWy6ltXbcgFVA= sha512-VIkNy6JbYI/RLdbPHdm9JQvv6RVld2uE2/6Hdid38Qdq+zvDli2FTpImI8pC5zwp8xS8qVqfzlfyAub8xZEd5g=="
 
-"@types/refractor@^3.4.0":
-  version "3.4.0"
-  resolved "https://registry.yarnpkg.com/@types/refractor/-/refractor-3.4.0.tgz#7a8f982e100d3319ee0e8f93a088d093cd145a21"
-  integrity "sha1-eo+YLhANMxnuDo+ToIjQk80UWiE= sha512-ZVLDkJxBQgvulG7R+xzgsJVODJVr0hlpCiMnEcxeJwCIzCSUwCHrsuQmd9KGZm//ujeuV9WHiVGUawaZkLLJrQ=="
+"@types/refractor@^3.4.1":
+  version "3.4.1"
+  resolved "https://registry.yarnpkg.com/@types/refractor/-/refractor-3.4.1.tgz#8b109804f77b3da8fad543d3f575fef1ece8835a"
+  integrity sha512-wYuorIiCTSuvRT9srwt+taF6mH/ww+SyN2psM0sjef2qW+sS8GmshgDGTEDgWB1sTVGgYVE6EK7dBA2MxQxibg==
   dependencies:
     "@types/prismjs" "*"
 
