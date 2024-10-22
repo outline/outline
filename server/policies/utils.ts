@@ -11,8 +11,7 @@ export function and(...args: Args[]) {
 }
 
 export function or(...args: Args[]) {
-  const filtered = args.filter(Boolean);
-  return filtered.length > 0 ? filtered : false;
+  return args.find(Boolean) || false;
 }
 
 /**
