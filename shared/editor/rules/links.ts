@@ -1,5 +1,4 @@
-import MarkdownIt from "markdown-it";
-import Token from "markdown-it/lib/token";
+import MarkdownIt, { Token } from "markdown-it";
 import env from "../../env";
 
 function isParagraph(token: Token) {
@@ -72,7 +71,7 @@ export default function linksToNodes(md: MarkdownIt) {
 
             if (size?.includes("x")) {
               // convert to video
-              const token = new Token("video", "video", 0);
+              const token = new state.Token("video", "video", 0);
               token.attrSet("src", insideLink.attrGet("href") || "");
               token.attrSet("width", size.split("x")[0] || "0");
               token.attrSet("height", size.split("x")[1] || "0");
@@ -80,7 +79,7 @@ export default function linksToNodes(md: MarkdownIt) {
               tokens.splice(i - 1, 3, token);
             } else {
               // convert to attachment token
-              const token = new Token("attachment", "a", 0);
+              const token = new state.Token("attachment", "a", 0);
               token.attrSet("href", insideLink.attrGet("href") || "");
               token.attrSet("size", size || "0");
               token.attrSet("title", title);

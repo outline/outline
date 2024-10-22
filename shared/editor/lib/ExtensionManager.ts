@@ -1,4 +1,4 @@
-import { PluginSimple } from "markdown-it";
+import { Options, PluginSimple } from "markdown-it";
 import { observer } from "mobx-react";
 import { keymap } from "prosemirror-keymap";
 import { MarkdownParser } from "prosemirror-markdown";
@@ -136,7 +136,7 @@ export default class ExtensionManager {
     plugins,
   }: {
     schema: Schema;
-    rules?: markdownit.Options;
+    rules?: Options;
     plugins?: PluginSimple[];
   }): MarkdownParser {
     const tokens = this.extensions

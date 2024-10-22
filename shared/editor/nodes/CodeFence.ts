@@ -1,5 +1,5 @@
 import copy from "copy-to-clipboard";
-import Token from "markdown-it/lib/token";
+import { Token } from "markdown-it";
 import { textblockTypeInputRule } from "prosemirror-inputrules";
 import {
   NodeSpec,
