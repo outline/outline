@@ -2,6 +2,7 @@ import invariant from "invariant";
 import compact from "lodash/compact";
 import differenceBy from "lodash/differenceBy";
 import keyBy from "lodash/keyBy";
+import orderBy from "lodash/orderBy";
 import { action } from "mobx";
 import Comment from "~/models/Comment";
 import { CommentSortOption, CommentSortType } from "~/types";
@@ -108,9 +109,13 @@ export default class CommentsStore extends Store<Comment> {
    * @returns Array of comments
    */
   inThread(threadId: string): Comment[] {
-    return this.filter(
-      (comment: Comment) =>
-        comment.parentCommentId === threadId || comment.id === threadId
+    return orderBy(
+      this.filter(
+        (comment: Comment) =>
+          comment.parentCommentId === threadId || comment.id === threadId
+      ),
+      "createdAt",
+      "asc"
     );
   }
 
