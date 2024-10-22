@@ -1,5 +1,4 @@
-import MarkdownIt from "markdown-it";
-import Token from "markdown-it/lib/token";
+import MarkdownIt, { Token } from "markdown-it";
 import { EmbedDescriptor } from "../embeds";
 
 function isParagraph(token: Token) {
@@ -76,7 +75,7 @@ export default function linksToEmbeds(embeds: EmbedDescriptor[]) {
                 const { content } = current;
 
                 // convert to embed token
-                const token = new Token("embed", "iframe", 0);
+                const token = new state.Token("embed", "iframe", 0);
                 token.attrSet("href", content);
 
                 // delete the inline link – this makes the assumption that the
