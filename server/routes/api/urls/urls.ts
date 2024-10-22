@@ -10,7 +10,7 @@ import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import validate from "@server/middlewares/validate";
 import { Document, Share, Team, User } from "@server/models";
-import { authorize } from "@server/policies";
+import { authorize, can } from "@server/policies";
 import presentUnfurl from "@server/presenters/unfurl";
 import { APIContext, Unfurl } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
@@ -53,11 +53,14 @@ router.post(
       authorize(actor, "read", user);
       authorize(actor, "read", document);
 
-      ctx.body = await presentUnfurl({
-        type: UnfurlResourceType.Mention,
-        user,
-        document,
-      });
+      ctx.body = await presentUnfurl(
+        {
+          type: UnfurlResourceType.Mention,
+          user,
+          document,
+        },
+        { includeEmail: !!can(actor, "readEmail", user) }
+      );
       return;
     }
 

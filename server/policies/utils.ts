@@ -72,6 +72,17 @@ export function isTeamAdmin(
 }
 
 /**
+ * Check if the actor is a member of the team.
+ *
+ * @param actor The actor to check
+ * @param model The model to check
+ * @returns True if the actor is a member of the team the model belongs to
+ */
+export function isTeamMember(actor: User, model: Model | null | undefined) {
+  return !!and(isTeamModel(actor, model), actor.isMember);
+}
+
+/**
  * Check the actors team is mutable, meaning the team models can be modified.
  *
  * @param actor The actor to check
