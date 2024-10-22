@@ -3,7 +3,7 @@ import compact from "lodash/compact";
 import differenceBy from "lodash/differenceBy";
 import keyBy from "lodash/keyBy";
 import orderBy from "lodash/orderBy";
-import { action } from "mobx";
+import { action, computed } from "mobx";
 import Comment from "~/models/Comment";
 import { CommentSortOption, CommentSortType } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -109,13 +109,9 @@ export default class CommentsStore extends Store<Comment> {
    * @returns Array of comments
    */
   inThread(threadId: string): Comment[] {
-    return orderBy(
-      this.filter(
-        (comment: Comment) =>
-          comment.parentCommentId === threadId || comment.id === threadId
-      ),
-      "createdAt",
-      "asc"
+    return this.filter(
+      (comment: Comment) =>
+        comment.parentCommentId === threadId || comment.id === threadId
     );
   }
 
@@ -165,5 +161,10 @@ export default class CommentsStore extends Store<Comment> {
     if (comment) {
       comment.typingUsers.set(userId, new Date());
     }
+  }
+
+  @computed
+  get orderedData(): Comment[] {
+    return orderBy(Array.from(this.data.values()), "createdAt", "asc");
   }
 }
