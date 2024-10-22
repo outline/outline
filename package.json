@@ -182,7 +182,7 @@
     "prosemirror-schema-list": "^1.4.1",
     "prosemirror-state": "^1.4.3",
     "prosemirror-tables": "^1.4.0",
-    "prosemirror-transform": "^1.10.0",
+    "prosemirror-transform": "^1.10.2",
     "prosemirror-view": "^1.34.3",
     "query-string": "^7.1.3",
     "randomstring": "1.3.0",
