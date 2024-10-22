@@ -5080,10 +5080,10 @@
   resolved "https://registry.yarnpkg.com/@types/trusted-types/-/trusted-types-2.0.2.tgz#fc25ad9943bcac11cceb8168db4f275e0e72e756"
   integrity "sha1-/CWtmUO8rBHM64Fo208nXg5y51Y= sha512-F5DIZ36YVLE+PN+Zwws4kJogq47hNgX3Nx6WyDJ3kcplxyke3XIzB8uK5n/Lpm1HBsbGzd6nmGehL8cPekP+Tg=="
 
-"@types/turndown@^5.0.4":
-  version "5.0.4"
-  resolved "https://registry.yarnpkg.com/@types/turndown/-/turndown-5.0.4.tgz#61fcdda2e539a86b1d40cb3277505f22ca76f014"
-  integrity "sha1-YfzdouU5qGsdQMsyd1BfIsp28BQ= sha512-28GI33lCCkU4SGH1GvjDhFgOVr+Tym4PXGBIU1buJUa6xQolniPArtUT+kv42RR2N9MsMLInkr904Aq+ESHBJg=="
+"@types/turndown@^5.0.5":
+  version "5.0.5"
+  resolved "https://registry.yarnpkg.com/@types/turndown/-/turndown-5.0.5.tgz#614de24fc9ace4d8c0d9483ba81dc8c1976dd26f"
+  integrity sha512-TL2IgGgc7B5j78rIccBtlYAnkuv8nUQqhQc+DSYV5j9Be9XOcm/SKOVRuA47xAVI3680Tk9B1d8flK2GWT2+4w==
 
 "@types/unist@*":
   version "2.0.6"
