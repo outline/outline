@@ -4,22 +4,17 @@ import fetch from "./fetch";
 const dockerhubLink =
   "https://hub.docker.com/v2/repositories/outlinewiki/outline";
 
-export function getVersion(): string {
-  return version;
+function isFullReleaseVersion(versionName: string): boolean {
+  const releaseRegex = /^(version-)?\d+\.\d+\.\d+$/; // Matches "N.N.N" or "version-N.N.N" for dockerhub releases before v0.56.0"
+  return releaseRegex.test(versionName);
 }
 
-export async function getLatestVersion(): Promise<string> {
-  const response = await fetch(
-    dockerhubLink + "/tags?name=&ordering=last_updated&page_size=1"
-  );
-  const data = await response.json();
-  return data.results[0].name;
-}
-
-export async function getVersionsBehind(
-  currentVersion: string
-): Promise<number> {
+export async function getVersionInfo(currentVersion: string): Promise<{
+  latestVersion: string;
+  versionsBehind: number;
+}> {
   let allVersions: string[] = [];
+  let latestVersion: string | null = null;
   let nextUrl: string | null =
     dockerhubLink + "/tags?name=&ordering=last_updated&page_size=100";
 
@@ -28,22 +23,40 @@ export async function getVersionsBehind(
     const response = await fetch(nextUrl);
     const data = await response.json();
 
-    // Map the versions from the current page
-    const pageVersions = data.results.map((result: any) => result.name);
-    allVersions = allVersions.concat(pageVersions); // Append to the cumulative list of versions
+    // Map and filter the versions to keep only full releases
+    const pageVersions = data.results
+      .map((result: any) => result.name)
+      .filter(isFullReleaseVersion);
 
-    // Check if the current and latest versions are found
+    allVersions = allVersions.concat(pageVersions);
+
+    // Set the latest version if not already set
+    if (!latestVersion && pageVersions.length > 0) {
+      latestVersion = pageVersions[0];
+    }
+
+    // Check if the current version is found
     const currentIndex = allVersions.findIndex(
       (version: string) => version === currentVersion
     );
 
     if (currentIndex !== -1) {
-      return currentIndex;
+      const versionsBehind = currentIndex; // The number of versions behind
+      return {
+        latestVersion: latestVersion || currentVersion, // Fallback to current if no latest found
+        versionsBehind,
+      };
     }
 
-    // If there's a next page, update the nextUrl, otherwise exit loop
     nextUrl = data.next || null;
   }
 
-  return -1;
+  return {
+    latestVersion: latestVersion || currentVersion,
+    versionsBehind: -1, // Return -1 if current version is not found
+  };
+}
+
+export function getVersion(): string {
+  return version;
 }
