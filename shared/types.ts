@@ -168,6 +168,8 @@ export enum UserPreference {
   SeamlessEdit = "seamlessEdit",
   /** Whether documents should start in full-width mode. */
   FullWidthDocuments = "fullWidthDocuments",
+  /** Whether to sort the comments by their order in the document. */
+  SortCommentsByOrderInDocument = "sortCommentsByOrderInDocument",
 }
 
 export type UserPreferences = { [key in UserPreference]?: boolean };

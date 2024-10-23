@@ -12,6 +12,9 @@ class DocumentContext {
   editor?: Editor;
 
   @observable
+  isEditorInitialized: boolean = false;
+
+  @observable
   headings: Heading[] = [];
 
   @computed
@@ -29,6 +32,11 @@ class DocumentContext {
   setEditor = (editor: Editor) => {
     this.editor = editor;
     this.updateState();
+  };
+
+  @action
+  setEditorInitialized = (initialized: boolean) => {
+    this.isEditorInitialized = initialized;
   };
 
   @action

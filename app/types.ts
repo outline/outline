@@ -215,3 +215,12 @@ export type Properties<C> = {
     ? Property
     : never]?: C[Property];
 };
+
+export enum CommentSortType {
+  MostRecent = "most_recent",
+  OrderInDocument = "order_in_document",
+}
+
+export type CommentSortOption =
+  | { type: CommentSortType.MostRecent }
+  | { type: CommentSortType.OrderInDocument; referencedCommentIds: string[] };
