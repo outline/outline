@@ -109,6 +109,7 @@ function CommentForm({
           createdAt: new Date().toISOString(),
           documentId,
           data: draft,
+          reactions: [],
         },
         comments
       );

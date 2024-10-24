@@ -26,7 +26,7 @@ const SkinTonePicker = ({
   );
 
   const menu = useMenuState({
-    placement: "bottom",
+    placement: "bottom-end",
   });
 
   const handleSkinClick = React.useCallback(

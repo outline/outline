@@ -31,6 +31,7 @@ const ReactionPicker: React.FC<Props> = ({
   const popover = usePopoverState({
     modal: true,
     unstable_offset: [0, 0],
+    placement: "bottom-end",
   });
 
   const { width: windowWidth } = useWindowSize();

@@ -221,16 +221,25 @@ function CommentThreadItem({
             </Flex>
           )}
           {!!comment.reactions.length && (
-            <StyledReactionList
-              model={comment}
-              onAddReaction={handleAddReaction}
-              onRemoveReaction={handleRemoveReaction}
-            />
+            <ReactionListContainer gap={6} align="center">
+              <ReactionList
+                model={comment}
+                onAddReaction={handleAddReaction}
+                onRemoveReaction={handleRemoveReaction}
+              />
+              {!comment.isResolved && (
+                <StyledReactionPicker
+                  onSelect={handleAddReaction}
+                  onOpen={disableScroll}
+                  onClose={enableScroll}
+                />
+              )}
+            </ReactionListContainer>
           )}
         </Body>
         <EventBoundary>
           {!isEditing && (
-            <Actions dir={dir}>
+            <Actions gap={4} dir={dir}>
               {!comment.isResolved && (
                 <StyledReactionPicker
                   onSelect={handleAddReaction}
@@ -313,7 +322,7 @@ const Actions = styled(Flex)<{ dir?: "rtl" | "ltr" }>`
   }
 `;
 
-const StyledReactionList = styled(ReactionList)`
+const ReactionListContainer = styled(Flex)`
   margin-top: 6px;
 `;
 
