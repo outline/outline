@@ -32,8 +32,25 @@ function Comments() {
   const document = documents.getByUrl(match.params.documentSlug);
   const focusedComment = useFocusedComment();
   const can = usePolicy(document);
+  const readyToDisplay = Boolean(document && isEditorInitialized);
+  const scrollableRef = React.useRef<HTMLDivElement | null>(null);
+  const sortByOrder = user.getPreference(
+    UserPreference.SortCommentsByOrderInDocument
+  );
 
   useKeyDown("Escape", () => document && ui.collapseComments(document?.id));
+
+  // Scroll to most-recent comment on refresh and when switching sort setting.
+  React.useEffect(() => {
+    if (readyToDisplay && scrollableRef.current) {
+      if (!sortByOrder) {
+        scrollableRef.current.scrollTo({
+          top: scrollableRef.current.scrollHeight,
+          behavior: "smooth",
+        });
+      }
+    }
+  }, [sortByOrder, readyToDisplay]);
 
   const [draft, onSaveDraft] = usePersistedState<ProsemirrorData | undefined>(
     `draft-${document?.id}-new`,
@@ -54,13 +71,13 @@ function Comments() {
     ? comments.resolvedThreadsInDocument(document.id, sortOption)
     : [];
 
-  if (!document || !isEditorInitialized) {
+  if (!readyToDisplay) {
     return null;
   }
 
   const threads = viewingResolved
     ? resolvedThreads
-    : comments.unresolvedThreadsInDocument(document.id, sortOption);
+    : comments.unresolvedThreadsInDocument(document!.id, sortOption);
   const hasComments = threads.length > 0;
 
   return (
@@ -71,7 +88,7 @@ function Comments() {
           <CommentSortMenu />
         </Flex>
       }
-      onClose={() => ui.collapseComments(document?.id)}
+      onClose={() => ui.collapseComments(document!.id)}
       scrollable={false}
     >
       <Scrollable
@@ -79,6 +96,7 @@ function Comments() {
         bottomShadow={!focusedComment}
         hiddenScrollbars
         topShadow
+        ref={scrollableRef}
       >
         <Wrapper $hasComments={hasComments}>
           {hasComments ? (
@@ -86,7 +104,7 @@ function Comments() {
               <CommentThread
                 key={thread.id}
                 comment={thread}
-                document={document}
+                document={document!}
                 recessed={!!focusedComment && focusedComment.id !== thread.id}
                 focused={focusedComment?.id === thread.id}
               />
@@ -107,10 +125,10 @@ function Comments() {
           <NewCommentForm
             draft={draft}
             onSaveDraft={onSaveDraft}
-            documentId={document.id}
+            documentId={document!.id}
             placeholder={`${t("Add a comment")}…`}
             autoFocus={false}
-            dir={document.dir}
+            dir={document!.dir}
             animatePresence
             standalone
           />
