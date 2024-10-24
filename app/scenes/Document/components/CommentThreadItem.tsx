@@ -76,9 +76,9 @@ type Props = {
   /** Whether the user can reply in the thread */
   canReply: boolean;
   /** Callback when the comment has been deleted */
-  onDelete: () => void;
+  onDelete?: (id: string) => void;
   /** Callback when the comment has been updated */
-  onUpdate: (attrs: { resolved: boolean }) => void;
+  onUpdate?: (id: string, attrs: { resolved: boolean }) => void;
   /** Text to highlight at the top of the comment */
   highlightedText?: string;
 };
@@ -106,15 +106,29 @@ function CommentThreadItem({
   const [isEditing, setEditing, setReadOnly] = useBoolean();
   const formRef = React.useRef<HTMLFormElement>(null);
 
-  const handleChange = (value: (asString: boolean) => ProsemirrorData) => {
-    setData(value(false));
-  };
+  const handleUpdate = React.useCallback(
+    (attrs: { resolved: boolean }) => {
+      onUpdate?.(comment.id, attrs);
+    },
+    [comment.id, onUpdate]
+  );
 
-  const handleSave = () => {
+  const handleDelete = React.useCallback(() => {
+    onDelete?.(comment.id);
+  }, [comment.id, onDelete]);
+
+  const handleChange = React.useCallback(
+    (value: (asString: boolean) => ProsemirrorData) => {
+      setData(value(false));
+    },
+    []
+  );
+
+  const handleSave = React.useCallback(() => {
     formRef.current?.dispatchEvent(
       new Event("submit", { cancelable: true, bubbles: true })
     );
-  };
+  }, []);
 
   const handleSubmit = action(async (event: React.FormEvent) => {
     event.preventDefault();
@@ -202,8 +216,8 @@ function CommentThreadItem({
             <Menu
               comment={comment}
               onEdit={setEditing}
-              onDelete={onDelete}
-              onUpdate={onUpdate}
+              onDelete={handleDelete}
+              onUpdate={handleUpdate}
               dir={dir}
             />
           )}

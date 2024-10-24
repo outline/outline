@@ -193,6 +193,16 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     [childOffsetHeight]
   );
 
+  const handleInit = React.useCallback(
+    () => setEditorInitialized(true),
+    [setEditorInitialized]
+  );
+
+  const handleDestroy = React.useCallback(
+    () => setEditorInitialized(false),
+    [setEditorInitialized]
+  );
+
   return (
     <Flex auto column>
       <DocumentTitle
@@ -245,8 +255,8 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
             ? handleRemoveComment
             : undefined
         }
-        onInit={() => setEditorInitialized(true)}
-        onDestroy={() => setEditorInitialized(false)}
+        onInit={handleInit}
+        onDestroy={handleDestroy}
         onChange={updateDocState}
         extensions={extensions}
         editorStyle={editorStyle}

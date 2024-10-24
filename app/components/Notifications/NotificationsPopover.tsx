@@ -40,7 +40,11 @@ const NotificationsPopover: React.FC = ({ children }: Props) => {
         shrink
         flex
       >
-        <Notifications onRequestClose={popover.hide} ref={scrollableRef} />
+        <Notifications
+          onRequestClose={popover.hide}
+          isOpen={popover.visible}
+          ref={scrollableRef}
+        />
       </StyledPopover>
     </>
   );
