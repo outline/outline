@@ -3,12 +3,17 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { PopoverDisclosure, usePopoverState } from "reakit";
 import styled from "styled-components";
-import EmojiPanel from "~/components/IconPicker/components/EmojiPanel";
+import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
+import PlaceholderText from "~/components/PlaceholderText";
 import Popover from "~/components/Popover";
 import useMobile from "~/hooks/useMobile";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 import useWindowSize from "~/hooks/useWindowSize";
+
+const EmojiPanel = React.lazy(
+  () => import("~/components/IconPicker/components/EmojiPanel")
+);
 
 type Props = {
   /** Callback when an emoji is selected by the user. */
@@ -104,28 +109,62 @@ const ReactionPicker: React.FC<Props> = ({
           </PopoverButton>
         )}
       </PopoverDisclosure>
-      <Popover
-        {...popover}
-        ref={contentRef}
-        width={popoverWidth}
-        shrink
-        aria-label={t("Reaction picker")}
-        onClick={(e) => e.stopPropagation()}
-        hideOnClickOutside={false}
-      >
-        <ScrollableContainer>
-          <EmojiPanel
-            panelWidth={panelWidth}
-            query={query}
-            panelActive={true}
-            onEmojiChange={handleEmojiSelect}
-            onQueryChange={setQuery}
-          />
-        </ScrollableContainer>
-      </Popover>
+      {popover.visible && (
+        <Popover
+          {...popover}
+          ref={contentRef}
+          width={popoverWidth}
+          shrink
+          aria-label={t("Reaction picker")}
+          onClick={(e) => e.stopPropagation()}
+          hideOnClickOutside={false}
+        >
+          <React.Suspense fallback={<PlaceHolder />}>
+            <ScrollableContainer>
+              <EmojiPanel
+                panelWidth={panelWidth}
+                query={query}
+                panelActive={true}
+                onEmojiChange={handleEmojiSelect}
+                onQueryChange={setQuery}
+              />
+            </ScrollableContainer>
+          </React.Suspense>
+        </Popover>
+      )}
     </>
   );
 };
+
+const PlaceHolder = React.memo(
+  () => {
+    const EmojiRow = () => (
+      <Flex gap={8}>
+        {Array(8)
+          .fill(0)
+          .map((_, idx) => (
+            <PlaceholderText key={idx} height={32} width={32} />
+          ))}
+      </Flex>
+    );
+
+    return (
+      <Flex column gap={6} style={{ height: "250px", padding: "6px 12px" }}>
+        <Flex gap={8}>
+          <PlaceholderText height={32} minWidth={90} />
+          <PlaceholderText height={32} width={32} />
+        </Flex>
+        <PlaceholderText height={24} width={120} />
+        <EmojiRow />
+        <EmojiRow />
+        <PlaceholderText height={24} width={130} />
+        <EmojiRow />
+      </Flex>
+    );
+  },
+  () => true
+);
+PlaceHolder.displayName = "ReactionPickerPlaceholder";
 
 const ScrollableContainer = styled.div`
   height: 250px;
