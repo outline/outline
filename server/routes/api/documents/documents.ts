@@ -572,6 +572,7 @@ router.post(
       user,
       teamId: teamFromCtx?.id,
     });
+
     const isPublic = cannot(user, "read", document);
     const serializedDocument = await presentDocument(ctx, document, {
       isPublic,
@@ -685,6 +686,27 @@ router.post(
       pagination: { ...ctx.state.pagination, total },
       data: users.map((user) => presentUser(user)),
       policies: presentPolicies(actor, users),
+    };
+  }
+);
+
+router.post(
+  "documents.child_documents",
+  auth(),
+  validate(T.DocumentsChildrenSchema),
+  async (ctx: APIContext<T.DocumentsChildrenReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const document = await Document.findByPk(id, { userId: user.id });
+
+    authorize(user, "read", document);
+    invariant(document.collectionId, "document not part of a collection");
+
+    const collection = await Collection.findByPk(document.collectionId);
+    const documentTree = collection.getDocumentTree(document.id);
+
+    ctx.body = {
+      data: documentTree?.children,
     };
   }
 );
