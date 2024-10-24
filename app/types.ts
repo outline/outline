@@ -217,8 +217,8 @@ export type Properties<C> = {
 };
 
 export enum CommentSortType {
-  MostRecent = "most_recent",
-  OrderInDocument = "order_in_document",
+  MostRecent = "mostRecent",
+  OrderInDocument = "orderInDocument",
 }
 
 export type CommentSortOption =

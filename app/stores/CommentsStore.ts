@@ -3,6 +3,7 @@ import compact from "lodash/compact";
 import differenceBy from "lodash/differenceBy";
 import keyBy from "lodash/keyBy";
 import orderBy from "lodash/orderBy";
+import uniq from "lodash/uniq";
 import { action, computed } from "mobx";
 import Comment from "~/models/Comment";
 import { CommentSortOption, CommentSortType } from "~/types";
@@ -50,7 +51,7 @@ export default class CommentsStore extends Store<Comment> {
 
     const commentsById = keyBy(comments, "id");
     const referencedComments = compact(
-      options.referencedCommentIds.map((id) => commentsById[id])
+      uniq(options.referencedCommentIds.map((id) => commentsById[id]))
     );
     const directComments = differenceBy(comments, referencedComments, "id");
 
