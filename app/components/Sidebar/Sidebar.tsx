@@ -306,14 +306,10 @@ const Container = styled(Flex)<ContainerProps>`
       if (props.$hidden) {
         return "0";
       }
-      if (props.$isHovering) {
-        return "1";
-      }
       if (props.$isMobile) {
         return props.$mobileSidebarVisible ? "1" : "0";
-      } else {
-        return props.$collapsed ? "0" : "1";
       }
+      return "1";
     }};
   }
 
