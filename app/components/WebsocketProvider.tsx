@@ -27,6 +27,7 @@ import withStores from "~/components/withStores";
 import {
   PartialExcept,
   WebsocketCollectionUpdateIndexEvent,
+  WebsocketCommentReactionEvent,
   WebsocketEntitiesEvent,
   WebsocketEntityDeletedEvent,
 } from "~/types";
@@ -350,6 +351,30 @@ class WebsocketProvider extends React.Component<Props> {
     this.socket.on("comments.delete", (event: WebsocketEntityDeletedEvent) => {
       comments.remove(event.modelId);
     });
+
+    this.socket.on(
+      "comments.add_reaction",
+      (event: WebsocketCommentReactionEvent) => {
+        const comment = comments.get(event.commentId);
+        comment?.updateReaction({
+          type: "add",
+          emoji: event.emoji,
+          user: event.user,
+        });
+      }
+    );
+
+    this.socket.on(
+      "comments.remove_reaction",
+      (event: WebsocketCommentReactionEvent) => {
+        const comment = comments.get(event.commentId);
+        comment?.updateReaction({
+          type: "remove",
+          emoji: event.emoji,
+          user: event.user,
+        });
+      }
+    );
 
     this.socket.on("groups.create", (event: PartialExcept<Group, "id">) => {
       groups.add(event);

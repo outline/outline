@@ -9,6 +9,7 @@ import { useDocumentContext } from "~/components/DocumentContext";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
+import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useFocusedComment from "~/hooks/useFocusedComment";
 import useKeyDown from "~/hooks/useKeyDown";
@@ -29,6 +30,8 @@ function Comments() {
   const { t } = useTranslation();
   const match = useRouteMatch<{ documentSlug: string }>();
   const params = useQuery();
+  // We need to control scroll behaviour when reaction picker is opened / closed.
+  const [scrollable, enableScroll, disableScroll] = useBoolean(true);
   const document = documents.getByUrl(match.params.documentSlug);
   const focusedComment = useFocusedComment();
   const can = usePolicy(document);
@@ -79,6 +82,8 @@ function Comments() {
         bottomShadow={!focusedComment}
         hiddenScrollbars
         topShadow
+        overflow={scrollable ? "auto" : "hidden"}
+        style={{ overflowX: "hidden" }}
       >
         <Wrapper $hasComments={hasComments}>
           {hasComments ? (
@@ -89,6 +94,8 @@ function Comments() {
                 document={document}
                 recessed={!!focusedComment && focusedComment.id !== thread.id}
                 focused={focusedComment?.id === thread.id}
+                enableScroll={enableScroll}
+                disableScroll={disableScroll}
               />
             ))
           ) : (

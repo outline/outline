@@ -30,3 +30,10 @@ allow(User, ["update", "delete"], Comment, (actor, comment) =>
     or(actor.isAdmin, actor?.id === comment?.createdById)
   )
 );
+
+allow(
+  User,
+  ["readReaction", "addReaction", "removeReaction"],
+  Comment,
+  (actor, comment) => isTeamModel(actor, comment?.createdBy)
+);

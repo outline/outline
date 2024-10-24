@@ -150,6 +150,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
           documentId: props.id,
           createdAt: new Date(),
           createdById,
+          reactions: [],
         },
         comments
       );

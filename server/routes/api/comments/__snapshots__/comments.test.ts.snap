@@ -1,5 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`#comments.add_reaction should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
 exports[`#comments.create should require authentication 1`] = `
 {
   "error": "authentication_required",
@@ -19,6 +28,15 @@ exports[`#comments.info should require authentication 1`] = `
 `;
 
 exports[`#comments.list should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`#comments.remove_reaction should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",
