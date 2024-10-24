@@ -226,14 +226,16 @@ function CommentThreadItem({
                 model={comment}
                 onAddReaction={handleAddReaction}
                 onRemoveReaction={handleRemoveReaction}
+                picker={
+                  !comment.isResolved ? (
+                    <StyledReactionPicker
+                      onSelect={handleAddReaction}
+                      onOpen={disableScroll}
+                      onClose={enableScroll}
+                    />
+                  ) : undefined
+                }
               />
-              {!comment.isResolved && (
-                <StyledReactionPicker
-                  onSelect={handleAddReaction}
-                  onOpen={disableScroll}
-                  onClose={enableScroll}
-                />
-              )}
             </ReactionListContainer>
           )}
         </Body>
