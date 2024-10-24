@@ -1,14 +1,12 @@
 import { observer } from "mobx-react";
-import { transparentize } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
-import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
-import { depths, s } from "@shared/styles";
+import { s } from "@shared/styles";
 import { useDocumentContext } from "~/components/DocumentContext";
 import useWindowScrollPosition from "~/hooks/useWindowScrollPosition";
 import { decodeURIComponentSafe } from "~/utils/urls";
+import ContentsPositioner from "./ContentsPositioner";
 
 const HEADING_OFFSET = 20;
 
@@ -51,11 +49,11 @@ function Contents() {
   const { t } = useTranslation();
 
   if (headings.length === 0) {
-    return <StickyWrapper />;
+    return <ContentsPositioner />;
   }
 
   return (
-    <StickyWrapper>
+    <ContentsPositioner>
       <Heading>{t("Contents")}</Heading>
       <List>
         {headings
@@ -70,35 +68,9 @@ function Contents() {
             </ListItem>
           ))}
       </List>
-    </StickyWrapper>
+    </ContentsPositioner>
   );
 }
-
-const StickyWrapper = styled.div`
-  display: none;
-
-  position: sticky;
-  top: 90px;
-  max-height: calc(100vh - 90px);
-  width: ${EditorStyleHelper.tocWidth}px;
-
-  padding: 0 16px;
-  overflow-y: auto;
-  border-radius: 8px;
-
-  background: ${s("background")};
-  transition: ${s("backgroundTransition")};
-
-  @supports (backdrop-filter: blur(20px)) {
-    backdrop-filter: blur(20px);
-    background: ${(props) => transparentize(0.2, props.theme.background)};
-  }
-
-  ${breakpoint("tablet")`
-    display: block;
-    z-index: ${depths.toc};
-  `};
-`;
 
 const Heading = styled.h3`
   font-size: 13px;

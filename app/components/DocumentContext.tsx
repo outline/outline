@@ -17,6 +17,9 @@ class DocumentContext {
   @observable
   headings: Heading[] = [];
 
+  @observable
+  fullWidthElements: HTMLElement[] = [];
+
   @computed
   get hasHeadings() {
     return this.headings.length > 0;
@@ -43,6 +46,7 @@ class DocumentContext {
   updateState = () => {
     this.updateHeadings();
     this.updateTasks();
+    this.updateFullWidthElements();
   };
 
   private updateHeadings() {
@@ -61,6 +65,22 @@ class DocumentContext {
     const total = tasks.length ?? 0;
     const completed = tasks.filter((t) => t.completed).length ?? 0;
     this.document?.updateTasks(total, completed);
+  }
+
+  private updateFullWidthElements() {
+    const currFullWidthElements = this.editor?.getFullWidthElements() ?? [];
+
+    const newElems = currFullWidthElements.filter(
+      (elem) => !this.fullWidthElements.includes(elem)
+    );
+    const obsoleteElems = this.fullWidthElements.filter(
+      (elem) => !currFullWidthElements.includes(elem)
+    );
+    const hasChanged = newElems.length > 0 || obsoleteElems.length > 0;
+
+    if (hasChanged) {
+      this.fullWidthElements = currFullWidthElements;
+    }
   }
 }
 
