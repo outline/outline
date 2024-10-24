@@ -40,8 +40,8 @@ export default function Version() {
               <LilBadge>
                 {versionsBehind === 0
                   ? t("Up to date")
-                  : t(`{{ versionsBehind }} versions behind`, {
-                      versionsBehind,
+                  : t(`{{ releasesBehind }} versions behind`, {
+                      releasesBehind: versionsBehind,
                       count: versionsBehind,
                     })}
               </LilBadge>
