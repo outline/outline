@@ -2,41 +2,29 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Badge from "~/components/Badge";
-import { version } from "../../../../package.json";
+import { client } from "~/utils/ApiClient";
+import Logger from "~/utils/Logger";
+import { version as currentVersion } from "../../../../package.json";
 import SidebarLink from "./SidebarLink";
 
 export default function Version() {
-  const [releasesBehind, setReleasesBehind] = React.useState(-1);
+  const [versionsBehind, setVersionsBehind] = React.useState(-1);
   const { t } = useTranslation();
 
   React.useEffect(() => {
-    async function loadReleases() {
-      const res = await fetch(
-        "https://api.github.com/repos/outline/outline/releases"
-      );
-      const releases = await res.json();
-
-      if (Array.isArray(releases)) {
-        const everyNewRelease = releases
-          .map((release) => release.tag_name)
-          .findIndex((tagName) => tagName === `v${version}`);
-
-        const onlyFullNewRelease = releases
-          .filter((release) => !release.prerelease)
-          .map((release) => release.tag_name)
-          .findIndex((tagName) => tagName === `v${version}`);
-
-        const computedReleasesBehind = version.includes("pre")
-          ? everyNewRelease
-          : onlyFullNewRelease;
-
-        if (computedReleasesBehind >= 0) {
-          setReleasesBehind(computedReleasesBehind);
+    async function loadVersionInfo() {
+      try {
+        // Fetch version info from the server-side proxy
+        const res = await client.post("/installation.info");
+        if (res.data && res.data.versionsBehind >= 0) {
+          setVersionsBehind(res.data.versionsBehind);
         }
+      } catch (error) {
+        Logger.error("Failed to load version info", error);
       }
     }
 
-    void loadReleases();
+    void loadVersionInfo();
   }, []);
 
   return (
@@ -45,16 +33,16 @@ export default function Version() {
       href="https://github.com/outline/outline/releases"
       label={
         <>
-          v{version}
-          {releasesBehind >= 0 && (
+          v{currentVersion}
+          {versionsBehind >= 0 && (
             <>
               <br />
               <LilBadge>
-                {releasesBehind === 0
+                {versionsBehind === 0
                   ? t("Up to date")
                   : t(`{{ releasesBehind }} versions behind`, {
-                      releasesBehind,
-                      count: releasesBehind,
+                      releasesBehind: versionsBehind,
+                      count: versionsBehind,
                     })}
               </LilBadge>
             </>
