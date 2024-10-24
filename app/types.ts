@@ -225,4 +225,13 @@ export type Properties<C> = {
     : never]?: C[Property];
 };
 
+export enum CommentSortType {
+  MostRecent = "mostRecent",
+  OrderInDocument = "orderInDocument",
+}
+
+export type CommentSortOption =
+  | { type: CommentSortType.MostRecent }
+  | { type: CommentSortType.OrderInDocument; referencedCommentIds: string[] };
+
 export type ReactedUser = Omit<IAvatar, "id"> & { id: string; name: string };

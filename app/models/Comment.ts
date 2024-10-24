@@ -32,7 +32,7 @@ class Comment extends Model {
    * The Prosemirror data representing the comment content
    */
   @Field
-  @observable
+  @observable.shallow
   data: ProsemirrorData;
 
   /**

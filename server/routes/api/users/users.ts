@@ -124,11 +124,16 @@ router.post(
     if (query) {
       where = {
         ...where,
-        [Op.and]: [
-          Sequelize.literal(
-            `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
-          ),
-        ],
+        [Op.and]: {
+          [Op.or]: [
+            Sequelize.literal(
+              `unaccent(LOWER(email)) like unaccent(LOWER(:query))`
+            ),
+            Sequelize.literal(
+              `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
+            ),
+          ],
+        },
       };
     }
 
@@ -167,6 +172,7 @@ router.post(
       pagination: { ...ctx.state.pagination, total },
       data: users.map((user) =>
         presentUser(user, {
+          includeEmail: !!can(actor, "readEmail", user),
           includeDetails: !!can(actor, "readDetails", user),
         })
       ),

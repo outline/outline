@@ -1,5 +1,5 @@
 import { differenceInMilliseconds } from "date-fns";
-import { toJS } from "mobx";
+import { action } from "mobx";
 import { observer } from "mobx-react";
 import { darken } from "polished";
 import * as React from "react";
@@ -106,8 +106,7 @@ function CommentThreadItem({
 }: Props) {
   const { t } = useTranslation();
   const user = useCurrentUser();
-  const [forceRender, setForceRender] = React.useState(0);
-  const [data, setData] = React.useState(toJS(comment.data));
+  const [data, setData] = React.useState(comment.data);
   const showAuthor = firstOfAuthor;
   const showTime = useShowTime(comment.createdAt, previousCommentCreatedAt);
   const showEdited =
@@ -141,30 +140,23 @@ function CommentThreadItem({
     );
   };
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = action(async (event: React.FormEvent) => {
     event.preventDefault();
 
     try {
       setReadOnly();
-      await comment.save({
-        data,
-      });
+      comment.data = data;
+      await comment.save();
     } catch (error) {
       setEditing();
       toast.error(t("Error updating comment"));
     }
-  };
+  });
 
   const handleCancel = () => {
-    setData(toJS(comment.data));
+    setData(comment.data);
     setReadOnly();
-    setForceRender((i) => ++i);
   };
-
-  React.useEffect(() => {
-    setData(toJS(comment.data));
-    setForceRender((i) => ++i);
-  }, [comment.data]);
 
   return (
     <Flex gap={8} align="flex-start" reverse={dir === "rtl"}>
@@ -210,8 +202,9 @@ function CommentThreadItem({
         )}
         <Body ref={formRef} onSubmit={handleSubmit}>
           <StyledCommentEditor
-            key={`${forceRender}`}
+            key={String(isEditing)}
             readOnly={!isEditing}
+            value={comment.data}
             defaultValue={data}
             onChange={handleChange}
             onSave={handleSave}

@@ -11,8 +11,7 @@ export function and(...args: Args[]) {
 }
 
 export function or(...args: Args[]) {
-  const filtered = args.filter(Boolean);
-  return filtered.length > 0 ? filtered : false;
+  return args.find(Boolean) || false;
 }
 
 /**
@@ -70,6 +69,17 @@ export function isTeamAdmin(
   model: Model | null | undefined
 ): model is Model {
   return !!and(isTeamModel(actor, model), actor.isAdmin);
+}
+
+/**
+ * Check if the actor is a member of the team.
+ *
+ * @param actor The actor to check
+ * @param model The model to check
+ * @returns True if the actor is a member of the team the model belongs to
+ */
+export function isTeamMember(actor: User, model: Model | null | undefined) {
+  return !!and(isTeamModel(actor, model), actor.isMember);
 }
 
 /**
