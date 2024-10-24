@@ -98,7 +98,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       }
 
       // default search for anything that doesn't look like a URL
-      const results = await documents.searchTitles(term);
+      const results = await documents.searchTitles({ query: term });
 
       return sortBy(
         results.map(({ document }) => ({
