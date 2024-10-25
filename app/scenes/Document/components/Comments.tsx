@@ -35,6 +35,9 @@ function Comments() {
 
   const readyToDisplay = Boolean(document && isEditorInitialized);
   const scrollableRef = React.useRef<HTMLDivElement | null>(null);
+  const prevThreadCount = React.useRef(0);
+  const isAtBottom = React.useRef(true);
+  const [showJumpToRecentBtn, setShowJumpToRecentBtn] = React.useState(false);
 
   useKeyDown("Escape", () => document && ui.collapseComments(document?.id));
 
@@ -68,12 +71,40 @@ function Comments() {
     }
   };
 
+  const handleScroll = () => {
+    if (scrollableRef.current) {
+      const sh = scrollableRef.current.scrollHeight;
+      const st = scrollableRef.current.scrollTop;
+      const ch = scrollableRef.current.clientHeight;
+      isAtBottom.current = Math.abs(sh - (st + ch)) <= 1;
+
+      if (isAtBottom.current) {
+        setShowJumpToRecentBtn(false);
+      }
+    }
+  };
+
   React.useEffect(() => {
     // Handles: 1. on refresh 2. when switching sort setting
     if (readyToDisplay && sortOption.type === CommentSortType.MostRecent) {
       scrollToBottom();
     }
   }, [sortOption.type, readyToDisplay]);
+
+  React.useEffect(() => {
+    setShowJumpToRecentBtn(false);
+    if (sortOption.type === CommentSortType.MostRecent) {
+      const commentsAdded = threads.length > prevThreadCount.current;
+      if (commentsAdded) {
+        if (isAtBottom.current) {
+          scrollToBottom(); // Remain pinned to bottom on new comments
+        } else {
+          setShowJumpToRecentBtn(true);
+        }
+      }
+    }
+    prevThreadCount.current = threads.length;
+  }, [threads.length]);
 
   if (!readyToDisplay) {
     return null;
@@ -96,6 +127,7 @@ function Comments() {
         hiddenScrollbars
         topShadow
         ref={scrollableRef}
+        onScroll={handleScroll}
       >
         <Wrapper $hasComments={hasComments}>
           {hasComments ? (
@@ -116,6 +148,9 @@ function Comments() {
                   : t("No comments yet")}
               </PositionedEmpty>
             </NoComments>
+          )}
+          {showJumpToRecentBtn && (
+            <ScrollToRecent onClick={scrollToBottom}>↓</ScrollToRecent>
           )}
         </Wrapper>
       </Scrollable>
@@ -150,6 +185,29 @@ const NoComments = styled(Flex)`
 
 const Wrapper = styled.div<{ $hasComments: boolean }>`
   height: ${(props) => (props.$hasComments ? "auto" : "100%")};
+`;
+
+const ScrollToRecentSize = "32px";
+
+const ScrollToRecent = styled.div`
+  position: sticky;
+  bottom: 12px;
+  margin-top: -${ScrollToRecentSize};
+  width: ${ScrollToRecentSize};
+  height: ${ScrollToRecentSize};
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: ${(props) => props.theme.accent};
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0.7;
+
+  &:hover {
+    opacity: 1;
+  }
 `;
 
 const NewCommentForm = styled(CommentForm)<{ dir?: "ltr" | "rtl" }>`
