@@ -172,7 +172,7 @@ function SharedDocumentScene(props: Props) {
     }
   }
 
-  if (!response) {
+  if (!response?.sharedTree) {
     return <Loading location={props.location} />;
   }
 
