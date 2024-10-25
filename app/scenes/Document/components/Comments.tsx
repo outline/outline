@@ -50,18 +50,16 @@ function Comments() {
     : { type: CommentSortType.MostRecent };
 
   const viewingResolved = params.get("resolved") === "";
-  const resolvedThreads = document
+  const threads = !document
+    ? []
+    : viewingResolved
     ? comments.resolvedThreadsInDocument(document.id, sortOption)
-    : [];
+    : comments.unresolvedThreadsInDocument(document.id, sortOption);
+  const hasComments = threads.length > 0;
 
   if (!document || !isEditorInitialized) {
     return null;
   }
-
-  const threads = viewingResolved
-    ? resolvedThreads
-    : comments.unresolvedThreadsInDocument(document.id, sortOption);
-  const hasComments = threads.length > 0;
 
   return (
     <Sidebar
