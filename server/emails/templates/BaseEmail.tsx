@@ -10,7 +10,10 @@ import { NotificationMetadata } from "@server/types";
 import { getEmailMessageId } from "@server/utils/emails";
 
 export interface EmailProps {
+  /** The email address being sent to. */
   to: string | null;
+  /** The notification that triggered the email, if any. */
+  notification?: Notification;
 }
 
 export default abstract class BaseEmail<
@@ -88,10 +91,12 @@ export default abstract class BaseEmail<
       return;
     }
 
-    const data = { ...this.props, ...(bsResponse ?? ({} as S)) };
     const notification = this.metadata?.notificationId
-      ? await Notification.unscoped().findByPk(this.metadata?.notificationId)
+      ? await Notification.scope(["withActor", "withUser"]).findByPk(
+          this.metadata?.notificationId
+        )
       : undefined;
+    const data = { ...this.props, notification, ...(bsResponse ?? ({} as S)) };
 
     if (notification?.viewedAt) {
       Logger.info(
@@ -113,6 +118,7 @@ export default abstract class BaseEmail<
     try {
       await mailer.sendMail({
         to: this.props.to,
+        replyTo: this.replyTo?.(data),
         fromName: this.fromName?.(data),
         subject: this.subject(data),
         messageId,
@@ -168,6 +174,14 @@ export default abstract class BaseEmail<
    * @returns The preview text as a string
    */
   protected abstract preview(props: S & T): string;
+
+  /**
+   * Optionally returns a replyTo email to override the default.
+   *
+   * @param props Props in email constructor
+   * @returns An email address
+   */
+  protected abstract replyTo(props: S & T): string | undefined;
 
   /**
    * Returns a plain-text version of the email, this is the text that will be
