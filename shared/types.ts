@@ -264,6 +264,11 @@ export type CollectionSort = {
   direction: "asc" | "desc";
 };
 
+export enum NotificationSource {
+  Api = "api",
+  Websocket = "websocket",
+}
+
 export enum NotificationEventType {
   PublishDocument = "documents.publish",
   UpdateDocument = "documents.update",

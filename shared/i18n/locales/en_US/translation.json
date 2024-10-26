@@ -386,6 +386,8 @@
   "New name": "New name",
   "Name can't be empty": "Name can't be empty",
   "Your import completed": "Your import completed",
+  "{{ name }} added a comment": "{{ name }} added a comment",
+  "{{ name }} mentioned you in a comment": "{{ name }} mentioned you in a comment",
   "Previous match": "Previous match",
   "Next match": "Next match",
   "Find and replace": "Find and replace",

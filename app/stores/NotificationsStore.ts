@@ -2,6 +2,7 @@ import invariant from "invariant";
 import orderBy from "lodash/orderBy";
 import sortBy from "lodash/sortBy";
 import { action, computed, runInAction } from "mobx";
+import { NotificationSource } from "@shared/types";
 import Notification from "~/models/Notification";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -27,7 +28,10 @@ export default class NotificationsStore extends Store<Notification> {
 
       let models: Notification[] = [];
       runInAction("NotificationsStore#fetchPage", () => {
-        models = res.data.notifications.map(this.add);
+        // @ts-expect-error notification from server response
+        models = res.data.notifications.map((notification) =>
+          this.add({ ...notification, source: NotificationSource.Api })
+        );
         this.isLoaded = true;
       });
 
@@ -88,5 +92,13 @@ export default class NotificationsStore extends Store<Notification> {
         item.viewedAt ? 1 : -1;
       }
     );
+  }
+
+  /**
+   * Returns the latest notification, if available.
+   */
+  @computed
+  get latestNotification(): Notification | undefined {
+    return this.orderedData[0];
   }
 }

@@ -3,26 +3,30 @@ import * as React from "react";
 import { Toaster } from "sonner";
 import styled, { useTheme } from "styled-components";
 import useStores from "~/hooks/useStores";
+import WebsocketToasts from "./WebsocketToasts";
 
 function Toasts() {
   const { ui } = useStores();
   const theme = useTheme();
 
   return (
-    <StyledToaster
-      theme={ui.resolvedTheme as any}
-      closeButton
-      toastOptions={{
-        duration: 5000,
-        style: {
-          color: theme.toastText,
-          background: theme.toastBackground,
-          border: `1px solid ${theme.divider}`,
-          fontFamily: theme.fontFamily,
-          fontSize: "14px",
-        },
-      }}
-    />
+    <>
+      <StyledToaster
+        theme={ui.resolvedTheme as any}
+        closeButton
+        toastOptions={{
+          duration: 5000,
+          style: {
+            color: theme.toastText,
+            background: theme.toastBackground,
+            border: `1px solid ${theme.divider}`,
+            fontFamily: theme.fontFamily,
+            fontSize: "14px",
+          },
+        }}
+      />
+      <WebsocketToasts />
+    </>
   );
 }
 

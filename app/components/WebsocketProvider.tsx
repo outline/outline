@@ -6,7 +6,11 @@ import * as React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { io, Socket } from "socket.io-client";
 import { toast } from "sonner";
-import { FileOperationState, FileOperationType } from "@shared/types";
+import {
+  FileOperationState,
+  FileOperationType,
+  NotificationSource,
+} from "@shared/types";
 import RootStore from "~/stores/RootStore";
 import Collection from "~/models/Collection";
 import Comment from "~/models/Comment";
@@ -469,14 +473,14 @@ class WebsocketProvider extends React.Component<Props> {
     this.socket.on(
       "notifications.create",
       (event: PartialExcept<Notification, "id">) => {
-        notifications.add(event);
+        notifications.add({ ...event, source: NotificationSource.Websocket });
       }
     );
 
     this.socket.on(
       "notifications.update",
       (event: PartialExcept<Notification, "id">) => {
-        notifications.add(event);
+        notifications.add({ ...event, source: NotificationSource.Websocket });
       }
     );
 

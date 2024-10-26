@@ -1,6 +1,6 @@
 import { TFunction } from "i18next";
 import { action, computed, observable } from "mobx";
-import { NotificationEventType } from "@shared/types";
+import { NotificationEventType, NotificationSource } from "@shared/types";
 import {
   collectionPath,
   commentPath,
@@ -78,6 +78,11 @@ class Notification extends Model {
   event: NotificationEventType;
 
   /**
+   * The source of the notification.
+   */
+  source: NotificationSource;
+
+  /**
    * Mark the notification as read or unread
    *
    * @returns A promise that resolves when the notification has been saved.
@@ -146,6 +151,22 @@ class Notification extends Model {
       return this.collection?.name ?? "a collection";
     }
     return "Unknown";
+  }
+
+  /**
+   * Returns whether the notification is read by the user.
+   */
+  @computed
+  get isRead() {
+    return !!this.viewedAt;
+  }
+
+  /**
+   * Returns whether the notification is unread by the user.
+   */
+  @computed
+  get isUnread() {
+    return !this.isRead;
   }
 
   /**
