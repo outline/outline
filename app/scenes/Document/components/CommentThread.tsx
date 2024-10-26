@@ -80,6 +80,11 @@ function CommentThread({
   });
   const can = usePolicy(document);
 
+  const [draft, onSaveDraft] = usePersistedState<ProsemirrorData | undefined>(
+    `draft-${document.id}-${thread.id}`,
+    undefined
+  );
+
   const canReply = can.comment && !thread.isResolved;
 
   const highlightedCommentMarks = editor
@@ -103,6 +108,10 @@ function CommentThread({
       });
     }
   });
+
+  const handleSubmit = React.useCallback(() => {
+    editor?.updateComment(thread.id, { draft: false });
+  }, [editor, thread.id]);
 
   const handleClickThread = () => {
     history.replace({
@@ -167,11 +176,6 @@ function CommentThread({
     }
   }, [focused, focusedOnMount, thread.id]);
 
-  const [draft, onSaveDraft] = usePersistedState<ProsemirrorData | undefined>(
-    `draft-${document.id}-${thread.id}`,
-    undefined
-  );
-
   return (
     <Thread
       ref={topRef}
@@ -219,6 +223,7 @@ function CommentThread({
         {(focused || draft || commentsInThread.length === 0) && canReply && (
           <Fade timing={100}>
             <CommentForm
+              onSubmit={handleSubmit}
               onSaveDraft={onSaveDraft}
               draft={draft}
               documentId={document.id}

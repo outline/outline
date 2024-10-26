@@ -12,6 +12,7 @@ export type Props = {
   editorStyle?: React.CSSProperties;
   grow?: boolean;
   theme: DefaultTheme;
+  userId?: string;
 };
 
 export const fadeIn = keyframes`
@@ -885,7 +886,9 @@ h6 {
 }
 
 .${EditorStyleHelper.comment} {
-  &:not([data-resolved]) {
+  &:not([data-resolved]):not([data-draft]), &[data-draft][data-user-id="${
+    props.userId ?? ""
+  }"]  {
     border-bottom: 2px solid ${props.theme.commentMarkBackground};
     transition: background 100ms ease-in-out;
     border-radius: 2px;
