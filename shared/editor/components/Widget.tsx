@@ -104,7 +104,7 @@ const Wrapper = styled.a`
       &:active {
         cursor: pointer !important;
         text-decoration: none !important;
-        background: ${s("secondaryBackground")};
+        background: ${s("backgroundSecondary")};
 
         ${Children} {
           opacity: 1;

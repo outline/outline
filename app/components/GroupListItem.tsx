@@ -75,7 +75,7 @@ const Image = styled(Flex)`
   justify-content: center;
   width: 32px;
   height: 32px;
-  background: ${s("secondaryBackground")};
+  background: ${s("backgroundSecondary")};
   border-radius: 32px;
 `;
 

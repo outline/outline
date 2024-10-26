@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { darken, lighten } from "polished";
+import { transparentize } from "polished";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
@@ -120,8 +120,8 @@ const Reaction: React.FC<Props> = ({
     () => (
       <EmojiButton disabled={disabled} $active={active} onClick={handleClick}>
         <Flex gap={6} justify="center" align="center">
-          <Emoji size={13}>{reaction.emoji}</Emoji>
-          <Count weight="bold">{reaction.userIds.length}</Count>
+          <Emoji size={15}>{reaction.emoji}</Emoji>
+          <Count weight="xbold">{reaction.userIds.length}</Count>
         </Flex>
       </EmojiButton>
     ),
@@ -143,43 +143,32 @@ const EmojiButton = styled(NudeButton)<{
 }>`
   width: auto;
   height: 28px;
-  padding: 8px;
+  padding: 6px;
   border-radius: 12px;
-  border: 1px solid transparent;
   transition: ${s("backgroundTransition")};
-  cursor: ${({ disabled }) => disabled && "default"};
+  background: ${s("backgroundTertiary")};
+  pointer-events: ${({ disabled }) => disabled && "none"};
 
-  ${({ $active, disabled, theme }) =>
-    $active
-      ? theme.isDark
-        ? css`
-            background-color: ${darken(0.1, theme.accent)};
-            border-color: ${darken(0.08, theme.accent)};
+  &: ${hover} {
+    background: ${s("backgroundQuaternary")};
+  }
 
-            &: ${hover} {
-              background-color: ${!disabled && darken(0.2, theme.accent)};
-            }
-          `
-        : css`
-            background-color: ${lighten(0.38, theme.accent)};
-            border-color: ${lighten(0.34, theme.accent)};
+  ${(props) =>
+    props.$active &&
+    css`
+      background: ${transparentize(0.7, props.theme.accent)};
 
-            &: ${hover} {
-              background-color: ${!disabled && lighten(0.3, theme.accent)};
-            }
-          `
-      : css`
-          background-color: ${s("listItemHoverBackground")};
-          border-color: ${s("buttonNeutralBorder")};
-
-          &: ${hover} {
-            background-color: ${!disabled && s("buttonNeutralBackground")};
-          }
-        `}
+      &: ${hover} {
+        background: ${transparentize(0.5, props.theme.accent)};
+      }
+    `}
 `;
 
 const Count = styled(Text)`
   font-size: 11px;
+  color: ${s("buttonNeutralText")};
+  padding-right: 1px;
+  font-variant-numeric: tabular-nums;
 `;
 
 export default observer(Reaction);

@@ -232,6 +232,7 @@ function CommentThreadItem({
                       onSelect={handleAddReaction}
                       onOpen={disableScroll}
                       onClose={enableScroll}
+                      size={28}
                     />
                   ) : undefined
                 }
@@ -297,7 +298,7 @@ const StyledMenu = styled(CommentMenu)`
   color: ${s("textSecondary")};
 
   &: ${hover}, &[aria-expanded= "true"] {
-    background: ${s("sidebarActiveBackground")};
+    background: ${s("backgroundQuaternary")};
   }
 `;
 
@@ -305,7 +306,7 @@ const StyledReactionPicker = styled(ReactionPicker)`
   color: ${s("textSecondary")};
 
   &: ${hover}, &[aria-expanded= "true"] {
-    background: ${s("sidebarActiveBackground")};
+    background: ${s("backgroundQuaternary")};
   }
 `;
 
@@ -316,7 +317,7 @@ const Actions = styled(Flex)<{ dir?: "rtl" | "ltr" }>`
   top: 4px;
   opacity: 0;
   transition: opacity 100ms ease-in-out;
-  background: ${s("commentBackground")};
+  background: ${s("backgroundSecondary")};
   padding-left: 4px;
 
   &:has(${StyledReactionPicker}[aria-expanded="true"], ${StyledMenu}[aria-expanded="true"]) {
@@ -349,7 +350,7 @@ export const Bubble = styled(Flex)<{
   flex-grow: 1;
   font-size: 16px;
   color: ${s("text")};
-  background: ${s("commentBackground")};
+  background: ${s("backgroundSecondary")};
   min-width: 2em;
   margin-bottom: 1px;
   padding: 8px 12px;

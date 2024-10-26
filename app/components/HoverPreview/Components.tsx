@@ -61,7 +61,7 @@ export const Label = styled(Text).attrs({ size: "xsmall", weight: "bold" })<{
   color?: string;
 }>`
   background-color: ${(props) =>
-    props.color ?? props.theme.secondaryBackground};
+    props.color ?? props.theme.backgroundSecondary};
   color: ${(props) =>
     props.color ? getTextColor(props.color) : props.theme.text};
   width: fit-content;

@@ -8,7 +8,7 @@ type Props = {
 
 export default ({ children, ...rest }: Props) => {
   const style = {
-    border: `1.5px solid ${theme.secondaryBackground}`,
+    border: `1.5px solid ${theme.backgroundSecondary}`,
     borderRadius: "4px",
     padding: ".75em 1em",
     color: theme.text,

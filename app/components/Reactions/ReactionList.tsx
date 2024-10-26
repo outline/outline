@@ -4,6 +4,7 @@ import Comment from "~/models/Comment";
 import useHover from "~/hooks/useHover";
 import Logger from "~/utils/Logger";
 import Flex from "../Flex";
+import { ResizingHeightContainer } from "../ResizingHeightContainer";
 import Reaction from "./Reaction";
 
 type Props = {
@@ -48,20 +49,30 @@ const ReactionList: React.FC<Props> = ({
     }
   }, [hovered, model]);
 
+  const hasReactions = !!model.reactions.length;
+  const style = React.useMemo(() => {
+    if (hasReactions) {
+      return { minHeight: 28 };
+    }
+    return undefined;
+  }, [hasReactions]);
+
   return (
-    <Flex ref={listRef} className={className} align="center" gap={6} wrap>
-      {model.reactions.map((reaction) => (
-        <Reaction
-          key={reaction.emoji}
-          reaction={reaction}
-          reactedUsers={reactedUsers?.get(reaction.emoji) ?? []}
-          disabled={model.isResolved}
-          onAddReaction={onAddReaction}
-          onRemoveReaction={onRemoveReaction}
-        />
-      ))}
-      {picker}
-    </Flex>
+    <ResizingHeightContainer style={style}>
+      <Flex ref={listRef} className={className} align="center" gap={6} wrap>
+        {model.reactions.map((reaction) => (
+          <Reaction
+            key={reaction.emoji}
+            reaction={reaction}
+            reactedUsers={reactedUsers?.get(reaction.emoji) ?? []}
+            disabled={model.isResolved}
+            onAddReaction={onAddReaction}
+            onRemoveReaction={onRemoveReaction}
+          />
+        ))}
+        {picker}
+      </Flex>
+    </ResizingHeightContainer>
   );
 };
 

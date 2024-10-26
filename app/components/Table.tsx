@@ -253,7 +253,7 @@ const SortWrapper = styled(Flex)<{ $sortable: boolean }>`
 
   &:hover {
     background: ${(props) =>
-      props.$sortable ? props.theme.secondaryBackground : "none"};
+      props.$sortable ? props.theme.backgroundSecondary : "none"};
   }
 `;
 
