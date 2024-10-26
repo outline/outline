@@ -46,7 +46,7 @@ const WebsocketToasts = () => {
                       name: notification.actor?.name ?? t("Unknown"),
                     });
 
-              toast.success(content, {
+              toast.message(content, {
                 icon: (
                   <div style={{ marginTop: "7px" }}>
                     <CommentIcon size={AvatarSize.Toast} />
