@@ -176,14 +176,6 @@ export default abstract class BaseEmail<
   protected abstract preview(props: S & T): string;
 
   /**
-   * Optionally returns a replyTo email to override the default.
-   *
-   * @param props Props in email constructor
-   * @returns An email address
-   */
-  protected abstract replyTo(props: S & T): string | undefined;
-
-  /**
    * Returns a plain-text version of the email, this is the text that will be
    * shown if the email client does not support or want HTML.
    *
@@ -200,6 +192,14 @@ export default abstract class BaseEmail<
    * @returns A JSX element
    */
   protected abstract render(props: S & T): JSX.Element;
+
+  /**
+   * Optionally returns a replyTo email to override the default.
+   *
+   * @param props Props in email constructor
+   * @returns An email address
+   */
+  protected replyTo?(props: S & T): string | undefined;
 
   /**
    * Returns the unsubscribe URL for the email.
