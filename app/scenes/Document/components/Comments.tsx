@@ -72,11 +72,13 @@ function Comments() {
   };
 
   const handleScroll = () => {
+    const BUFFER_PX = 50;
+
     if (scrollableRef.current) {
       const sh = scrollableRef.current.scrollHeight;
       const st = scrollableRef.current.scrollTop;
       const ch = scrollableRef.current.clientHeight;
-      isAtBottom.current = Math.abs(sh - (st + ch)) <= 1;
+      isAtBottom.current = Math.abs(sh - (st + ch)) <= BUFFER_PX;
 
       if (isAtBottom.current) {
         setShowJumpToRecentBtn(false);
