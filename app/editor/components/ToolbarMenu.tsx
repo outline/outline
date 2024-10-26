@@ -126,13 +126,13 @@ function ToolbarMenu(props: Props) {
 
 const FlexibleWrapper = styled.div`
   color: ${s("textSecondary")};
+  overflow: hidden;
   display: flex;
   gap: 6px;
 
   ${breakpoint("mobile", "tablet")`
     justify-content: space-evenly;
     align-items: baseline;
-    overflow: hidden;
   `}
 `;
 

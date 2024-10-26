@@ -486,10 +486,9 @@ export class Editor extends React.PureComponent<
             (self.props.canComment && transactions.some(isEditingComment)))
         ) {
           self.handleChange();
-          // Wait for the first transaction to initialize the nodes.
-          // This is bound to happen always - New / empty document has a "paragraph" node in it.
-          self.handleEditorInit();
         }
+
+        self.handleEditorInit();
 
         self.calculateDir();
 

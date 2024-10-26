@@ -198,8 +198,8 @@ function CommentThread({
           <CommentThreadItem
             highlightedText={index === 0 ? highlightedText : undefined}
             comment={comment}
-            onDelete={() => editor?.removeComment(comment.id)}
-            onUpdate={(attrs) => editor?.updateComment(comment.id, attrs)}
+            onDelete={editor?.removeComment}
+            onUpdate={editor?.updateComment}
             key={comment.id}
             firstOfThread={index === 0}
             lastOfThread={index === commentsInThread.length - 1 && !draft}

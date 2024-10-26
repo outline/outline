@@ -217,15 +217,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
                   />
                 }
               >
-                <NotificationsPopover>
-                  {(rest: SidebarButtonProps) => (
-                    <SidebarButton
-                      {...rest}
-                      position="bottom"
-                      image={<NotificationIcon />}
-                    />
-                  )}
-                </NotificationsPopover>
+                <Notifications />
               </SidebarButton>
             )}
           </AccountMenu>
@@ -239,6 +231,14 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
     </>
   );
 });
+
+const Notifications = () => (
+  <NotificationsPopover>
+    {(rest: SidebarButtonProps) => (
+      <SidebarButton {...rest} position="bottom" image={<NotificationIcon />} />
+    )}
+  </NotificationsPopover>
+);
 
 const Backdrop = styled.a`
   animation: ${fadeIn} 250ms ease-in-out;
