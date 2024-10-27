@@ -169,22 +169,20 @@ export default abstract class BaseEmail<
     );
 
     const parsedFrom = addressparser(env.SMTP_FROM_EMAIL)[0];
+    const name = this.fromName?.(props);
 
     if (this.category === EmailMessageCategory.Authentication) {
       const domain = parsedFrom.address.split("@")[1];
       return {
-        name: parsedFrom.name,
+        name: name ?? parsedFrom.name,
         address: `noreply-${randomstring.generate(24)}@${domain}`,
       };
     }
 
-    const name = this.fromName?.(props);
-    return name
-      ? {
-          name,
-          address: parsedFrom.address,
-        }
-      : parsedFrom;
+    return {
+      name: name ?? parsedFrom.name,
+      address: parsedFrom.address,
+    };
   }
 
   private pixel(notification: Notification) {
