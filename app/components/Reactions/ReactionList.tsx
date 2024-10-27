@@ -1,7 +1,9 @@
+import compact from "lodash/compact";
 import { observer } from "mobx-react";
 import React from "react";
 import Comment from "~/models/Comment";
 import useHover from "~/hooks/useHover";
+import useStores from "~/hooks/useStores";
 import Logger from "~/utils/Logger";
 import Flex from "../Flex";
 import { ResizingHeightContainer } from "../ResizingHeightContainer";
@@ -27,8 +29,8 @@ const ReactionList: React.FC<Props> = ({
   className,
   picker,
 }) => {
+  const { users } = useStores();
   const listRef = React.useRef<HTMLDivElement>(null);
-  const { reactedUsers } = model;
 
   const hovered = useHover({
     ref: listRef,
@@ -60,16 +62,22 @@ const ReactionList: React.FC<Props> = ({
   return (
     <ResizingHeightContainer style={style}>
       <Flex ref={listRef} className={className} align="center" gap={6} wrap>
-        {model.reactions.map((reaction) => (
-          <Reaction
-            key={reaction.emoji}
-            reaction={reaction}
-            reactedUsers={reactedUsers?.get(reaction.emoji) ?? []}
-            disabled={model.isResolved}
-            onAddReaction={onAddReaction}
-            onRemoveReaction={onRemoveReaction}
-          />
-        ))}
+        {model.reactions.map((reaction) => {
+          const reactedUsers = compact(
+            reaction.userIds.map((id) => users.get(id))
+          );
+
+          return (
+            <Reaction
+              key={reaction.emoji}
+              reaction={reaction}
+              reactedUsers={reactedUsers}
+              disabled={model.isResolved}
+              onAddReaction={onAddReaction}
+              onRemoveReaction={onRemoveReaction}
+            />
+          );
+        })}
         {picker}
       </Flex>
     </ResizingHeightContainer>

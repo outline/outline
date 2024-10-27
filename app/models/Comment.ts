@@ -1,13 +1,11 @@
 import { subSeconds } from "date-fns";
 import invariant from "invariant";
-import remove from "lodash/remove";
 import uniq from "lodash/uniq";
 import { action, computed, observable } from "mobx";
 import { now } from "mobx-utils";
 import { Pagination } from "@shared/constants";
 import type { ProsemirrorData, ReactionSummary } from "@shared/types";
 import User from "~/models/User";
-import type { ReactedUser } from "~/types";
 import { client } from "~/utils/ApiClient";
 import Document from "./Document";
 import Model from "./base/Model";
@@ -99,12 +97,15 @@ class Comment extends Model {
   reactions: ReactionSummary[];
 
   /**
-   * Mapping of emoji to users who reacted to it.
-   *
-   * Note: This contains the detailed info about the reacted users.
+   * Denotes whether the user data for the active reactions are loaded.
    */
   @observable
-  reactedUsers?: Map<string, ReactedUser[]>;
+  reactedUsersLoaded: boolean = false;
+
+  /**
+   * Denotes whether there is an in-flight request for loading reacted users.
+   */
+  private reactedUsersLoading = false;
 
   /**
    * An array of users that are currently typing a reply in this comments thread.
@@ -243,44 +244,13 @@ class Comment extends Model {
       }
     }
 
-    // Step 2: Update the reacted users data.
-
-    // No need to update when the data is not loaded.
-    if (!this.reactedUsers) {
-      return;
-    }
-
-    const reactedUser: ReactedUser = {
-      id: user.id,
-      name: user.name,
-      initial: user.name ? user.name[0].toUpperCase() : "?",
-      color: user.color,
-      avatarUrl: user.avatarUrl,
-    };
-
-    const existingUsers = this.reactedUsers.get(emoji);
-
-    if (type === "add") {
-      if (!existingUsers) {
-        this.reactedUsers.set(emoji, [reactedUser]);
-      } else if (!existingUsers.find((u) => u.id === reactedUser.id)) {
-        existingUsers.push(reactedUser);
-      }
-    } else {
-      if (existingUsers) {
-        remove(existingUsers, (u) => u.id === reactedUser.id);
-      }
-
-      if (existingUsers?.length === 0) {
-        this.reactedUsers.delete(emoji);
-      }
-    }
+    // Step 2: Add the user to the store.
+    this.store.rootStore.users.add(user);
   };
 
   /**
-   * Load the `reactedUsers` data.
+   * Load the users for the active reactions.
    *
-   * This contains the detailed user info for each emoji.
    *
    * @param {Object} options - Options for loading the data.
    * @param {string} options.limit - Per request limit for pagination.
@@ -289,46 +259,43 @@ class Comment extends Model {
   loadReactedUsersData = async (
     { limit }: { limit: number } = { limit: Pagination.defaultLimit }
   ) => {
-    if (this.reactedUsers) {
+    if (this.reactedUsersLoading || this.reactedUsersLoaded) {
       return;
     }
 
-    this.reactedUsers = new Map();
+    this.reactedUsersLoading = true;
 
-    const fetchPage = async (offset: number = 0) => {
-      const res = await client.post("/reactions.list", {
-        commentId: this.id,
-        offset,
-        limit,
-      });
-      invariant(res?.data, "Data not available");
-
-      for (const reaction of res.data) {
-        const existingUsers = this.reactedUsers?.get(reaction.emoji) ?? [];
-        existingUsers.push({
-          id: reaction.user.id,
-          name: reaction.user.name,
-          initial: reaction.user.name
-            ? reaction.user.name[0].toUpperCase()
-            : "?",
-          color: reaction.user.color,
-          avatarUrl: reaction.user.avatarUrl,
+    try {
+      const fetchPage = async (offset: number = 0) => {
+        const res = await client.post("/reactions.list", {
+          commentId: this.id,
+          offset,
+          limit,
         });
-        this.reactedUsers?.set(reaction.emoji, existingUsers);
+
+        invariant(res?.data, "Data not available");
+        // @ts-expect-error reaction from server response
+        res.data.map((reaction) =>
+          this.store.rootStore.users.add(reaction.user)
+        );
+
+        return res.pagination;
+      };
+
+      const { total } = await fetchPage();
+
+      const pages = Math.ceil(total / limit);
+      const fetchPages = [];
+      for (let page = 1; page < pages; page++) {
+        fetchPages.push(fetchPage(page * limit));
       }
 
-      return res.pagination;
-    };
+      await Promise.all(fetchPages);
 
-    const { total } = await fetchPage();
-
-    const pages = Math.ceil(total / limit);
-    const fetchPages = [];
-    for (let page = 1; page < pages; page++) {
-      fetchPages.push(fetchPage(page * limit));
+      this.reactedUsersLoaded = true;
+    } finally {
+      this.reactedUsersLoading = false;
     }
-
-    await Promise.all(fetchPages);
   };
 }
 

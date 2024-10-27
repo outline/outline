@@ -14,13 +14,12 @@ import Text from "~/components/Text";
 import Tooltip from "~/components/Tooltip";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { hover } from "~/styles";
-import { ReactedUser } from "~/types";
 
 type Props = {
   /** Thin reaction data - contains the emoji & active user ids for this reaction. */
   reaction: ReactionSummary;
-  /** Data of the users who have reacted using this emoji. */
-  reactedUsers: ReactedUser[];
+  /** Users who reacted using this emoji. */
+  reactedUsers: User[];
   /** Whether the emoji button should be disabled (prevents add/remove events). */
   disabled: boolean;
   /** Callback when the user intends to add the reaction. */
@@ -35,7 +34,7 @@ const useTooltipContent = ({
   emoji,
   active,
 }: {
-  reactedUsers: Props["reactedUsers"];
+  reactedUsers: User[];
   currUser: User;
   emoji: string;
   active: boolean;

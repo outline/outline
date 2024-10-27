@@ -7,7 +7,6 @@ import {
   DocumentPermission,
 } from "@shared/types";
 import RootStore from "~/stores/RootStore";
-import { IAvatar } from "./components/Avatar";
 import { SidebarContextType } from "./components/Sidebar/components/SidebarContext";
 import Document from "./models/Document";
 import FileOperation from "./models/FileOperation";
@@ -233,5 +232,3 @@ export enum CommentSortType {
 export type CommentSortOption =
   | { type: CommentSortType.MostRecent }
   | { type: CommentSortType.OrderInDocument; referencedCommentIds: string[] };
-
-export type ReactedUser = Omit<IAvatar, "id"> & { id: string; name: string };
