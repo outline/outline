@@ -1,4 +1,4 @@
-import { CommentStatusFilter, ThinReaction } from "@shared/types";
+import { CommentStatusFilter, ReactionSummary } from "@shared/types";
 import { Reaction } from "@server/models";
 import {
   buildAdmin,
@@ -272,7 +272,7 @@ describe("#comments.list", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    const reactions: ThinReaction[] = [
+    const reactions: ReactionSummary[] = [
       { emoji: "😄", userIds: [user.id] },
       { emoji: "🙃", userIds: [user.id] },
     ];

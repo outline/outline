@@ -9,9 +9,7 @@ type Props = {
 };
 
 /**
- * Hook to detect if an element is hovered by the user.
- *
- * This signals only on the first time an element is hovered.
+ * Hook that will trigger the first time an element is hovered.
  *
  * @returns {boolean} hovered - Signals when an element is hovered by the user.
  */

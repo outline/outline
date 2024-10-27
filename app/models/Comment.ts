@@ -5,7 +5,7 @@ import uniq from "lodash/uniq";
 import { action, computed, observable } from "mobx";
 import { now } from "mobx-utils";
 import { Pagination } from "@shared/constants";
-import type { ProsemirrorData, ThinReaction } from "@shared/types";
+import type { ProsemirrorData, ReactionSummary } from "@shared/types";
 import User from "~/models/User";
 import type { ReactedUser } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -96,7 +96,7 @@ class Comment extends Model {
    * Note: This contains just the emoji with the associated user-ids.
    */
   @observable
-  reactions: ThinReaction[];
+  reactions: ReactionSummary[];
 
   /**
    * Mapping of emoji to users who reacted to it.

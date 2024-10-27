@@ -3,7 +3,7 @@ import { BaseSchema } from "../schema";
 
 export const ReactionsListSchema = BaseSchema.extend({
   body: z.object({
-    /** CommentId to list the reactions for. */
+    /** Id of the comment to list reactions for. */
     commentId: z.string().uuid(),
   }),
 });

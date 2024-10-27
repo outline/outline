@@ -303,7 +303,7 @@
   "Documents": "Documents",
   "{{ username }} reacted with {{ emoji }}": "{{ username }} reacted with {{ emoji }}",
   "{{ firstUsername }} and {{ secondUsername }} reacted with {{ emoji }}": "{{ firstUsername }} and {{ secondUsername }} reacted with {{ emoji }}",
-  "{{ firstUsername }} and {{ count }} others reacted with {{ emoji }}": "{{ firstUsername }} and {{ count }} others reacted with {{ emoji }}",
+  "{{ firstUsername }} and {{ count }} others reacted with {{ emoji }}": "{{ firstUsername }} and {{ count }} other reacted with {{ emoji }}",
   "{{ firstUsername }} and {{ count }} others reacted with {{ emoji }}_plural": "{{ firstUsername }} and {{ count }} others reacted with {{ emoji }}",
   "Reaction picker": "Reaction picker",
   "Could not load reactions": "Could not load reactions",

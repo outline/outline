@@ -138,5 +138,11 @@ export const search = ({
   });
 };
 
+/**
+ * Get am emoji's human-readable ID from its string.
+ *
+ * @param emoji - The string representation of the emoji.
+ * @returns The emoji id, if found.
+ */
 export const getEmojiId = (emoji: string): string | undefined =>
   searcher.search(emoji)[0]?.id;

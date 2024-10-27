@@ -4,7 +4,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
-import type { ThinReaction } from "@shared/types";
+import type { ReactionSummary } from "@shared/types";
 import { getEmojiId } from "@shared/utils/emoji";
 import User from "~/models/User";
 import { Emoji } from "~/components/Emoji";
@@ -18,7 +18,7 @@ import { ReactedUser } from "~/types";
 
 type Props = {
   /** Thin reaction data - contains the emoji & active user ids for this reaction. */
-  reaction: ThinReaction;
+  reaction: ReactionSummary;
   /** Data of the users who have reacted using this emoji. */
   reactedUsers: ReactedUser[];
   /** Whether the emoji button should be disabled (prevents add/remove events). */
