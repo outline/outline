@@ -71,7 +71,6 @@ export default class Comment extends Mark {
             if (
               isMarkActive(state.schema.marks.comment, {
                 resolved: false,
-                draft: true,
               })(state)
             ) {
               return false;
@@ -98,7 +97,6 @@ export default class Comment extends Mark {
           if (
             isMarkActive(state.schema.marks.comment, {
               resolved: false,
-              draft: true,
             })(state)
           ) {
             return false;
