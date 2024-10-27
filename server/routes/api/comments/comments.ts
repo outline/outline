@@ -447,7 +447,7 @@ router.post(
     authorize(user, "removeReaction", comment);
 
     const reaction = await Reaction.findOne({
-      where: { emoji, userId: user.id },
+      where: { emoji, userId: user.id, commentId: id },
       transaction,
     });
     authorize(user, "delete", reaction);

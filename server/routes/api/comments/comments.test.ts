@@ -1,5 +1,5 @@
 import { CommentStatusFilter, ReactionSummary } from "@shared/types";
-import { Reaction } from "@server/models";
+import { Comment, Reaction } from "@server/models";
 import {
   buildAdmin,
   buildCollection,
@@ -672,6 +672,52 @@ describe("#comments.add_reaction", () => {
 
     expect(res.status).toEqual(200);
     expect(body.success).toEqual(true);
+
+    const updatedComment = await Comment.findByPk(comment.id);
+    const addedReaction = await Reaction.findOne({
+      where: { commentId: comment.id, emoji: "😄", userId: user.id },
+    });
+
+    expect(updatedComment?.reactions).toEqual([
+      { emoji: "😄", userIds: [user.id] },
+    ]);
+    expect(addedReaction).toBeTruthy();
+  });
+
+  it("should add a reaction to a comment with existing reactions", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+      reactions: [{ emoji: "😄", userIds: ["test-user"] }],
+    });
+
+    const res = await server.post("/api/comments.add_reaction", {
+      body: {
+        token: user.getJwtToken(),
+        id: comment.id,
+        emoji: "😄",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.success).toEqual(true);
+
+    const updatedComment = await Comment.findByPk(comment.id);
+    const addedReaction = await Reaction.findOne({
+      where: { commentId: comment.id, emoji: "😄", userId: user.id },
+    });
+
+    expect(updatedComment?.reactions).toEqual([
+      { emoji: "😄", userIds: ["test-user", user.id] },
+    ]);
+    expect(addedReaction).toBeTruthy();
   });
 });
 
@@ -683,7 +729,7 @@ describe("#comments.remove_reaction", () => {
     expect(body).toMatchSnapshot();
   });
 
-  it("should add a reaction to a comment", async () => {
+  it("should remove a reaction from a comment", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const document = await buildDocument({
@@ -711,5 +757,54 @@ describe("#comments.remove_reaction", () => {
 
     expect(res.status).toEqual(200);
     expect(body.success).toEqual(true);
+
+    const updatedComment = await Comment.findByPk(comment.id);
+    const removedReaction = await Reaction.findOne({
+      where: { commentId: comment.id, emoji: "😄", userId: user.id },
+    });
+
+    expect(updatedComment?.reactions).toEqual([]);
+    expect(removedReaction).toBeNull();
+  });
+
+  it("should remove a reaction from a comment with existing reactions", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+      reactions: [{ emoji: "😄", userIds: ["test-user"] }],
+    });
+    await Reaction.create({
+      emoji: "😄",
+      commentId: comment.id,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/comments.remove_reaction", {
+      body: {
+        token: user.getJwtToken(),
+        id: comment.id,
+        emoji: "😄",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.success).toEqual(true);
+
+    const updatedComment = await Comment.findByPk(comment.id);
+    const removedReaction = await Reaction.findOne({
+      where: { commentId: comment.id, emoji: "😄", userId: user.id },
+    });
+
+    expect(updatedComment?.reactions).toEqual([
+      { emoji: "😄", userIds: ["test-user"] },
+    ]);
+    expect(removedReaction).toBeNull();
   });
 });
