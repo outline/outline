@@ -36,6 +36,8 @@ export default function init(
     path,
     serveClient: false,
     cookie: false,
+    pingInterval: 15000,
+    pingTimeout: 30000,
     cors: {
       origin: "*",
       methods: ["GET", "POST"],

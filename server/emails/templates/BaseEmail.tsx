@@ -1,6 +1,10 @@
+import addressparser from "addressparser";
 import Bull from "bull";
+import invariant from "invariant";
+import randomstring from "randomstring";
 import * as React from "react";
 import mailer from "@server/emails/mailer";
+import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
 import Notification from "@server/models/Notification";
@@ -8,6 +12,13 @@ import { taskQueue } from "@server/queues";
 import { TaskPriority } from "@server/queues/tasks/BaseTask";
 import { NotificationMetadata } from "@server/types";
 import { getEmailMessageId } from "@server/utils/emails";
+
+export enum EmailMessageCategory {
+  Authentication = "authentication",
+  Invitation = "invitation",
+  Notification = "notification",
+  Marketing = "marketing",
+}
 
 export interface EmailProps {
   to: string | null;
@@ -19,6 +30,9 @@ export default abstract class BaseEmail<
 > {
   private props: T;
   private metadata?: NotificationMetadata;
+
+  /** The message category for the email. */
+  protected abstract get category(): EmailMessageCategory;
 
   /**
    * Schedule this email type to be sent asyncronously by a worker.
@@ -113,7 +127,7 @@ export default abstract class BaseEmail<
     try {
       await mailer.sendMail({
         to: this.props.to,
-        fromName: this.fromName?.(data),
+        from: this.from(data),
         subject: this.subject(data),
         messageId,
         references,
@@ -146,6 +160,29 @@ export default abstract class BaseEmail<
         Logger.error(`Failed to update notification`, err, this.metadata);
       }
     }
+  }
+
+  private from(props: S & T) {
+    invariant(
+      env.SMTP_FROM_EMAIL,
+      "SMTP_FROM_EMAIL is required to send emails"
+    );
+
+    const parsedFrom = addressparser(env.SMTP_FROM_EMAIL)[0];
+    const name = this.fromName?.(props);
+
+    if (this.category === EmailMessageCategory.Authentication) {
+      const domain = parsedFrom.address.split("@")[1];
+      return {
+        name: name ?? parsedFrom.name,
+        address: `noreply-${randomstring.generate(24)}@${domain}`,
+      };
+    }
+
+    return {
+      name: name ?? parsedFrom.name,
+      address: parsedFrom.address,
+    };
   }
 
   private pixel(notification: Notification) {

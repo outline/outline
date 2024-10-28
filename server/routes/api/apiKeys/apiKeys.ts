@@ -1,10 +1,11 @@
 import Router from "koa-router";
+import { WhereOptions } from "sequelize";
 import { UserRole } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { ApiKey, Event } from "@server/models";
-import { authorize } from "@server/policies";
+import { ApiKey, Event, User } from "@server/models";
+import { authorize, cannot } from "@server/policies";
 import { presentApiKey } from "@server/presenters";
 import { APIContext, AuthenticationType } from "@server/types";
 import pagination from "../middlewares/pagination";
@@ -54,12 +55,40 @@ router.post(
   "apiKeys.list",
   auth({ role: UserRole.Member }),
   pagination(),
-  async (ctx: APIContext) => {
-    const { user } = ctx.state.auth;
+  validate(T.APIKeysListSchema),
+  async (ctx: APIContext<T.APIKeysListReq>) => {
+    const { userId } = ctx.input.body;
+    const actor = ctx.state.auth.user;
+
+    let where: WhereOptions<User> = {
+      teamId: actor.teamId,
+    };
+
+    if (cannot(actor, "listApiKeys", actor.team)) {
+      where = {
+        ...where,
+        id: actor.id,
+      };
+    }
+
+    if (userId) {
+      const user = await User.findByPk(userId);
+      authorize(actor, "listApiKeys", user);
+
+      where = {
+        ...where,
+        id: userId,
+      };
+    }
+
     const keys = await ApiKey.findAll({
-      where: {
-        userId: user.id,
-      },
+      include: [
+        {
+          model: User,
+          required: true,
+          where,
+        },
+      ],
       order: [["createdAt", "DESC"]],
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,

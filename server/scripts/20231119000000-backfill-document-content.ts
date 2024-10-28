@@ -1,6 +1,6 @@
 import "./bootstrap";
-import { yDocToProsemirrorJSON } from "@getoutline/y-prosemirror";
 import { Node } from "prosemirror-model";
+import { yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
 import { ProsemirrorData } from "@shared/types";
 import { parser, schema } from "@server/editor";

@@ -1,6 +1,6 @@
 import * as React from "react";
 import env from "@server/env";
-import BaseEmail, { EmailProps } from "./BaseEmail";
+import BaseEmail, { EmailMessageCategory, EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import EmailTemplate from "./components/EmailLayout";
@@ -22,6 +22,10 @@ type Props = EmailProps & {
  * haven't signed in after a few days.
  */
 export default class InviteReminderEmail extends BaseEmail<Props> {
+  protected get category() {
+    return EmailMessageCategory.Invitation;
+  }
+
   protected subject({ actorName, teamName }: Props) {
     return `Reminder: ${actorName} invited you to join ${teamName}’s workspace`;
   }

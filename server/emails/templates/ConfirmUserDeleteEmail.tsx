@@ -1,6 +1,6 @@
 import * as React from "react";
 import env from "@server/env";
-import BaseEmail, { EmailProps } from "./BaseEmail";
+import BaseEmail, { EmailMessageCategory, EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import CopyableCode from "./components/CopyableCode";
 import EmailTemplate from "./components/EmailLayout";
@@ -17,6 +17,10 @@ type Props = EmailProps & {
  * Email sent to a user when they request to delete their account.
  */
 export default class ConfirmUserDeleteEmail extends BaseEmail<Props> {
+  protected get category() {
+    return EmailMessageCategory.Notification;
+  }
+
   protected subject() {
     return `Your account deletion request`;
   }

@@ -90,7 +90,10 @@ async function findAvailableSubdomain(team: Team, requestedSubdomain: string) {
   let append = 0;
 
   for (;;) {
-    const existing = await Team.findOne({ where: { subdomain } });
+    const existing = await Team.findOne({
+      where: { subdomain },
+      paranoid: false,
+    });
 
     if (existing) {
       // subdomain was invalid or already used, try another

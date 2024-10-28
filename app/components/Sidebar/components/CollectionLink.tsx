@@ -112,6 +112,10 @@ const CollectionLink: React.FC<Props> = ({
     sidebarContext,
   });
 
+  const handleRename = React.useCallback(() => {
+    editableTitleRef.current?.setIsEditing(true);
+  }, [editableTitleRef]);
+
   return (
     <Relative ref={drop}>
       <DropToImport collectionId={collection.id}>
@@ -157,7 +161,7 @@ const CollectionLink: React.FC<Props> = ({
                 </NudeButton>
                 <CollectionMenu
                   collection={collection}
-                  onRename={() => editableTitleRef.current?.setIsEditing(true)}
+                  onRename={handleRename}
                   onOpen={handleMenuOpen}
                   onClose={handleMenuClose}
                 />

@@ -1,5 +1,5 @@
 import { differenceInMilliseconds } from "date-fns";
-import { toJS } from "mobx";
+import { action } from "mobx";
 import { observer } from "mobx-react";
 import { darken } from "polished";
 import * as React from "react";
@@ -76,9 +76,9 @@ type Props = {
   /** Whether the user can reply in the thread */
   canReply: boolean;
   /** Callback when the comment has been deleted */
-  onDelete: () => void;
+  onDelete?: (id: string) => void;
   /** Callback when the comment has been updated */
-  onUpdate: (attrs: { resolved: boolean }) => void;
+  onUpdate?: (id: string, attrs: { resolved: boolean }) => void;
   /** Text to highlight at the top of the comment */
   highlightedText?: string;
 };
@@ -96,8 +96,7 @@ function CommentThreadItem({
   highlightedText,
 }: Props) {
   const { t } = useTranslation();
-  const [forceRender, setForceRender] = React.useState(0);
-  const [data, setData] = React.useState(toJS(comment.data));
+  const [data, setData] = React.useState(comment.data);
   const showAuthor = firstOfAuthor;
   const showTime = useShowTime(comment.createdAt, previousCommentCreatedAt);
   const showEdited =
@@ -107,40 +106,47 @@ function CommentThreadItem({
   const [isEditing, setEditing, setReadOnly] = useBoolean();
   const formRef = React.useRef<HTMLFormElement>(null);
 
-  const handleChange = (value: (asString: boolean) => ProsemirrorData) => {
-    setData(value(false));
-  };
+  const handleUpdate = React.useCallback(
+    (attrs: { resolved: boolean }) => {
+      onUpdate?.(comment.id, attrs);
+    },
+    [comment.id, onUpdate]
+  );
 
-  const handleSave = () => {
+  const handleDelete = React.useCallback(() => {
+    onDelete?.(comment.id);
+  }, [comment.id, onDelete]);
+
+  const handleChange = React.useCallback(
+    (value: (asString: boolean) => ProsemirrorData) => {
+      setData(value(false));
+    },
+    []
+  );
+
+  const handleSave = React.useCallback(() => {
     formRef.current?.dispatchEvent(
       new Event("submit", { cancelable: true, bubbles: true })
     );
-  };
+  }, []);
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = action(async (event: React.FormEvent) => {
     event.preventDefault();
 
     try {
       setReadOnly();
-      await comment.save({
-        data,
-      });
+      comment.data = data;
+      await comment.save();
     } catch (error) {
       setEditing();
       toast.error(t("Error updating comment"));
     }
-  };
+  });
 
   const handleCancel = () => {
-    setData(toJS(comment.data));
+    setData(comment.data);
     setReadOnly();
-    setForceRender((i) => ++i);
   };
-
-  React.useEffect(() => {
-    setData(toJS(comment.data));
-    setForceRender((i) => ++i);
-  }, [comment.data]);
 
   return (
     <Flex gap={8} align="flex-start" reverse={dir === "rtl"}>
@@ -186,8 +192,9 @@ function CommentThreadItem({
         )}
         <Body ref={formRef} onSubmit={handleSubmit}>
           <StyledCommentEditor
-            key={`${forceRender}`}
+            key={String(isEditing)}
             readOnly={!isEditing}
+            value={comment.data}
             defaultValue={data}
             onChange={handleChange}
             onSave={handleSave}
@@ -209,8 +216,8 @@ function CommentThreadItem({
             <Menu
               comment={comment}
               onEdit={setEditing}
-              onDelete={onDelete}
-              onUpdate={onUpdate}
+              onDelete={handleDelete}
+              onUpdate={handleUpdate}
               dir={dir}
             />
           )}

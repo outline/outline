@@ -1,6 +1,8 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import styled from "styled-components";
 import { $Diff } from "utility-types";
+import { s } from "@shared/styles";
 import { CollectionPermission } from "@shared/types";
 import { EmptySelectValue } from "~/types";
 import InputSelect, { Props, Option, InputSelectRef } from "./InputSelect";
@@ -19,7 +21,7 @@ function InputSelectPermission(
   const { t } = useTranslation();
 
   return (
-    <InputSelect
+    <Select
       ref={ref}
       label={t("Permission")}
       options={[
@@ -44,5 +46,9 @@ function InputSelectPermission(
     />
   );
 }
+
+const Select = styled(InputSelect)`
+  color: ${s("textSecondary")};
+`;
 
 export default React.forwardRef(InputSelectPermission);

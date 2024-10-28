@@ -24,13 +24,15 @@ import NotificationListItem from "./NotificationListItem";
 type Props = {
   /** Callback when the notification panel wants to close. */
   onRequestClose: () => void;
+  /** Whether the panel is open or not. */
+  isOpen: boolean;
 };
 
 /**
  * A panel containing a list of notifications and controls to manage them.
  */
 function Notifications(
-  { onRequestClose }: Props,
+  { onRequestClose, isOpen }: Props,
   ref: React.RefObject<HTMLDivElement>
 ) {
   const context = useActionContext();
@@ -72,7 +74,7 @@ function Notifications(
             <PaginatedList
               fetch={notifications.fetchPage}
               options={{ archived: false }}
-              items={notifications.orderedData}
+              items={isOpen ? notifications.orderedData : undefined}
               renderItem={(item: Notification) => (
                 <NotificationListItem
                   key={item.id}

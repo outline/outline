@@ -1,3 +1,4 @@
+import { observer } from "mobx-react";
 import * as React from "react";
 import { basicExtensions, withComments } from "@shared/editor/nodes";
 import HardBreak from "@shared/editor/nodes/HardBreak";
@@ -36,4 +37,4 @@ const CommentEditor = (
   );
 };
 
-export default React.forwardRef(CommentEditor);
+export default observer(React.forwardRef(CommentEditor));

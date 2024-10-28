@@ -125,6 +125,7 @@ function HoverPreviewDesktop({ element, data, dataLoading, onClose }: Props) {
                 avatarUrl={data.avatarUrl}
                 color={data.color}
                 lastActive={data.lastActive}
+                email={data.email}
               />
             ) : data.type === UnfurlResourceType.Document ? (
               <HoverPreviewDocument

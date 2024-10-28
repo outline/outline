@@ -26,7 +26,7 @@ class Comment extends Model {
    * The Prosemirror data representing the comment content
    */
   @Field
-  @observable
+  @observable.shallow
   data: ProsemirrorData;
 
   /**
@@ -99,8 +99,8 @@ class Comment extends Model {
    * Whether the comment is resolved
    */
   @computed
-  public get isResolved() {
-    return !!this.resolvedAt;
+  public get isResolved(): boolean {
+    return !!this.resolvedAt || !!this.parentComment?.isResolved;
   }
 
   /**

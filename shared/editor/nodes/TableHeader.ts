@@ -1,4 +1,4 @@
-import Token from "markdown-it/lib/token";
+import { Token } from "markdown-it";
 import { NodeSpec } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
 import { DecorationSet, Decoration, EditorView } from "prosemirror-view";

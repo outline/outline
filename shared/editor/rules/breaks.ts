@@ -1,5 +1,4 @@
-import MarkdownIt from "markdown-it";
-import Token from "markdown-it/lib/token";
+import MarkdownIt, { Token } from "markdown-it";
 
 function isHardbreak(token: Token) {
   return (
@@ -32,19 +31,19 @@ export default function markdownBreakToParagraphs(md: MarkdownIt) {
         for (let j = 0; j < count; j++) {
           const isLast = j === count - 1;
 
-          token = new Token("paragraph_open", "p", 1);
+          token = new state.Token("paragraph_open", "p", 1);
           nodes.push(token);
 
-          const text = new Token("text", "", 0);
+          const text = new state.Token("text", "", 0);
           text.content = "";
 
-          token = new Token("inline", "", 0);
+          token = new state.Token("inline", "", 0);
           token.level = 1;
           token.children = isLast ? [text, ...children] : [text];
           token.content = "";
           nodes.push(token);
 
-          token = new Token("paragraph_close", "p", -1);
+          token = new state.Token("paragraph_close", "p", -1);
           nodes.push(token);
         }
 

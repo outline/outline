@@ -2,7 +2,7 @@ import * as React from "react";
 import { NotificationEventType } from "@shared/types";
 import env from "@server/env";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
-import BaseEmail, { EmailProps } from "./BaseEmail";
+import BaseEmail, { EmailMessageCategory, EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import EmailTemplate from "./components/EmailLayout";
@@ -30,6 +30,10 @@ export default class InviteAcceptedEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {
+  protected get category() {
+    return EmailMessageCategory.Notification;
+  }
+
   protected async beforeSend(props: InputProps) {
     return {
       unsubscribeUrl: this.unsubscribeUrl(props),

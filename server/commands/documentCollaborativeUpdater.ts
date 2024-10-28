@@ -1,7 +1,7 @@
-import { yDocToProsemirrorJSON } from "@getoutline/y-prosemirror";
 import isEqual from "fast-deep-equal";
 import uniq from "lodash/uniq";
 import { Node } from "prosemirror-model";
+import { yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
 import { ProsemirrorData } from "@shared/types";
 import { schema, serializer } from "@server/editor";

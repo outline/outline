@@ -75,7 +75,7 @@ function CommentMenu({
               title: `${t("Edit")}…`,
               icon: <EditIcon />,
               onClick: onEdit,
-              visible: can.update,
+              visible: can.update && !comment.isResolved,
             },
             actionToMenuItem(
               resolveCommentFactory({

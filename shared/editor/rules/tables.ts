@@ -1,5 +1,4 @@
 import MarkdownIt from "markdown-it";
-import Token from "markdown-it/lib/token";
 
 const BREAK_REGEX = /(?:^|[^\\])\\n/;
 
@@ -26,12 +25,12 @@ export default function markdownTables(md: MarkdownIt): void {
           // great, for now we are stuck checking the node type.
           if (breakParts.length > 1 && child.type !== "code_inline") {
             breakParts.forEach((part, index) => {
-              const token = new Token("text", "", 1);
+              const token = new state.Token("text", "", 1);
               token.content = part.trim();
               tokens[i].children?.push(token);
 
               if (index < breakParts.length - 1) {
-                const brToken = new Token("br", "br", 1);
+                const brToken = new state.Token("br", "br", 1);
                 tokens[i].children?.push(brToken);
               }
             });
@@ -55,7 +54,7 @@ export default function markdownTables(md: MarkdownIt): void {
       if (["th_open", "td_open"].includes(tokens[i].type)) {
         // markdown-it table parser does not return paragraphs inside the cells
         // but prosemirror requires them, so we add 'em in here.
-        tokens.splice(i + 1, 0, new Token("paragraph_open", "p", 1));
+        tokens.splice(i + 1, 0, new state.Token("paragraph_open", "p", 1));
 
         // markdown-it table parser stores alignment as html styles, convert
         // to a simple string here
@@ -67,7 +66,7 @@ export default function markdownTables(md: MarkdownIt): void {
       }
 
       if (["th_close", "td_close"].includes(tokens[i].type)) {
-        tokens.splice(i, 0, new Token("paragraph_close", "p", -1));
+        tokens.splice(i, 0, new state.Token("paragraph_close", "p", -1));
       }
     }
 
