@@ -776,6 +776,7 @@ class Document extends ArchivableModel<
       (doc) =>
         (!doc.collection?.isPrivate && !user?.isGuest) ||
         (doc.collection?.memberships.length || 0) > 0 ||
+        (doc.collection?.groupMemberships.length || 0) > 0 ||
         doc.memberships.length > 0 ||
         doc.groupMemberships.length > 0
     );
