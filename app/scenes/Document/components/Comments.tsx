@@ -33,7 +33,6 @@ function Comments() {
   const focusedComment = useFocusedComment();
   const can = usePolicy(document);
 
-  const readyToDisplay = Boolean(document && isEditorInitialized);
   const scrollableRef = React.useRef<HTMLDivElement | null>(null);
   const prevThreadCount = React.useRef(0);
   const isAtBottom = React.useRef(true);
@@ -88,10 +87,11 @@ function Comments() {
 
   React.useEffect(() => {
     // Handles: 1. on refresh 2. when switching sort setting
+    const readyToDisplay = Boolean(document && isEditorInitialized);
     if (readyToDisplay && sortOption.type === CommentSortType.MostRecent) {
       scrollToBottom();
     }
-  }, [sortOption.type, readyToDisplay]);
+  }, [sortOption.type, document, isEditorInitialized]);
 
   React.useEffect(() => {
     setShowJumpToRecentBtn(false);
@@ -108,7 +108,7 @@ function Comments() {
     prevThreadCount.current = threads.length;
   }, [threads.length]);
 
-  if (!readyToDisplay) {
+  if (!document || !isEditorInitialized) {
     return null;
   }
 
@@ -120,7 +120,7 @@ function Comments() {
           <CommentSortMenu />
         </Flex>
       }
-      onClose={() => ui.collapseComments(document!.id)}
+      onClose={() => ui.collapseComments(document?.id)}
       scrollable={false}
     >
       <Scrollable
@@ -137,7 +137,7 @@ function Comments() {
               <CommentThread
                 key={thread.id}
                 comment={thread}
-                document={document!}
+                document={document}
                 recessed={!!focusedComment && focusedComment.id !== thread.id}
                 focused={focusedComment?.id === thread.id}
               />
@@ -161,10 +161,10 @@ function Comments() {
           <NewCommentForm
             draft={draft}
             onSaveDraft={onSaveDraft}
-            documentId={document!.id}
+            documentId={document.id}
             placeholder={`${t("Add a comment")}…`}
             autoFocus={false}
-            dir={document!.dir}
+            dir={document.dir}
             animatePresence
             standalone
           />
