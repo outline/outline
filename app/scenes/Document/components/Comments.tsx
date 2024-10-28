@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { ProsemirrorData, UserPreference } from "@shared/types";
+import ButtonSmall from "~/components/ButtonSmall";
 import { useDocumentContext } from "~/components/DocumentContext";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
@@ -152,7 +153,9 @@ function Comments() {
             </NoComments>
           )}
           {showJumpToRecentBtn && (
-            <ScrollToRecent onClick={scrollToBottom}>↓</ScrollToRecent>
+            <JumpToRecent onClick={scrollToBottom}>
+              {t("New comments ↓")}
+            </JumpToRecent>
           )}
         </Wrapper>
       </Scrollable>
@@ -189,22 +192,11 @@ const Wrapper = styled.div<{ $hasComments: boolean }>`
   height: ${(props) => (props.$hasComments ? "auto" : "100%")};
 `;
 
-const ScrollToRecentSize = "32px";
-
-const ScrollToRecent = styled.div`
+const JumpToRecent = styled(ButtonSmall)`
   position: sticky;
   bottom: 12px;
-  margin-top: -${ScrollToRecentSize};
-  width: ${ScrollToRecentSize};
-  height: ${ScrollToRecentSize};
   left: 50%;
   transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: ${(props) => props.theme.accent};
-  border-radius: 50%;
-  cursor: pointer;
   opacity: 0.7;
 
   &:hover {
