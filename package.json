@@ -149,7 +149,7 @@
     "markdown-it": "^13.0.2",
     "markdown-it-container": "^3.0.0",
     "markdown-it-emoji": "^2.0.0",
-    "mermaid": "9.3.0",
+    "mermaid": "11.3.0",
     "mime-types": "^2.1.35",
     "mobx": "^4.15.4",
     "mobx-react": "^6.3.1",
@@ -367,5 +367,6 @@
     "qs": "6.9.7",
     "rollup": "^4.5.1"
   },
-  "version": "0.80.2"
+  "version": "0.80.2",
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

@@ -84,19 +84,19 @@ class MermaidRenderer {
         theme: isDark ? "dark" : "default",
         darkMode: isDark,
       });
-      mermaid.render(
-        `mermaid-diagram-${this.diagramId}`,
-        text,
-        (svgCode, bindFunctions) => {
+      mermaid.render(`mermaid-diagram-${this.diagramId}`, text, element).then(
+        ({ svg, bindFunctions }) => {
           this.currentTextContent = text;
           if (text) {
-            Cache.set(cacheKey, svgCode);
+            Cache.set(cacheKey, svg);
           }
           element.classList.remove("parse-error", "empty");
-          element.innerHTML = svgCode;
+          element.innerHTML = svg;
           bindFunctions?.(element);
         },
-        element
+        (error) => {
+          throw error;
+        }
       );
     } catch (error) {
       const isEmpty = block.node.textContent.trim().length === 0;
