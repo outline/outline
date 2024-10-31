@@ -130,6 +130,9 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
             }
 
             /** Guild Name */
+            /** Remove the url in the name of the Discord server (many Discords put it) **/
+            guild.name = guild.name.replace(/\b(?:https?:\/\/|www\.)[^\s]+(?:\.com|\.net|\.org|\.io|\.co|\.fr|\.de)\b/gi, '');
+            
             teamName = guild.name;
             subdomain = slugify(guild.name);
 
