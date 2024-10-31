@@ -171,6 +171,7 @@ class Event extends IdModel<
         actorId: user.id,
         teamId: user.teamId,
         ip: ctx.request.ip,
+        authType: ctx.state.auth.type,
       },
       options
     );
