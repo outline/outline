@@ -67,7 +67,7 @@ class Team extends ParanoidModel<
   Partial<InferCreationAttributes<Team>>
 > {
   @NotContainsUrl
-  @Length({ min: 2, max: 255, msg: "name must be between 2 to 255 characters" })
+  @Length({ min: 1, max: 255, msg: "name must be between 1 to 255 characters" })
   @Column
   name: string;
 

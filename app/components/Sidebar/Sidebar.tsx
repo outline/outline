@@ -94,6 +94,10 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
     }
   }, [ui, isSmallerThanMinimum, minWidth, width, setWidth]);
 
+  const handleBlur = React.useCallback(() => {
+    setHovering(false);
+  }, []);
+
   const handleMouseDown = React.useCallback(
     (event) => {
       event.preventDefault();
@@ -104,7 +108,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
     [width]
   );
 
-  const handlePointerMove = React.useCallback(() => {
+  const handlePointerActivity = React.useCallback(() => {
     if (ui.sidebarIsClosed) {
       setHovering(true);
       setPointerMoved(true);
@@ -153,7 +157,10 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
       document.body.style.cursor = "initial";
     }
 
+    window.addEventListener("blur", handleBlur);
+
     return () => {
+      window.removeEventListener("blur", handleBlur);
       document.removeEventListener("mousemove", handleDrag);
       document.removeEventListener("mouseup", handleStopDrag);
     };
@@ -193,7 +200,8 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
         $collapsed={collapsed}
         $isMobile={isMobile}
         className={className}
-        onPointerMove={handlePointerMove}
+        onPointerDown={handlePointerActivity}
+        onPointerMove={handlePointerActivity}
         onPointerLeave={handlePointerLeave}
         column
       >

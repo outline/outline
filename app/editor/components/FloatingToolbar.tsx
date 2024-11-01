@@ -7,6 +7,7 @@ import { isCode } from "@shared/editor/lib/isCode";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { depths, s } from "@shared/styles";
+import { HEADER_HEIGHT } from "~/components/Header";
 import { Portal } from "~/components/Portal";
 import useComponentSize from "~/hooks/useComponentSize";
 import useEventListener from "~/hooks/useEventListener";
@@ -168,9 +169,12 @@ function usePosition({
       centerOfSelection - menuWidth / 2
     )
   );
-  const top = Math.min(
-    window.innerHeight - menuHeight - margin,
-    Math.max(margin, selectionBounds.top - menuHeight)
+  const top = Math.max(
+    HEADER_HEIGHT,
+    Math.min(
+      window.innerHeight - menuHeight - margin,
+      Math.max(margin, selectionBounds.top - menuHeight)
+    )
   );
 
   // if the menu has been offset to not extend offscreen then we should adjust

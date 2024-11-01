@@ -1,34 +1,42 @@
 export default function isMarkdown(text: string): boolean {
+  let signals = 0;
+  const lines = text.split("\n").length;
+  const minConfidence = Math.min(3, Math.floor(lines / 5));
+
   // code-ish
   const fences = text.match(/^```/gm);
   if (fences && fences.length > 1) {
-    return true;
+    signals += fences.length;
   }
 
   // link-ish
-  if (text.match(/\[[^]+\]\(https?:\/\/\S+\)/gm)) {
-    return true;
+  const links = text.match(/\[[^]+\]\(https?:\/\/\S+\)/gm);
+  if (links) {
+    signals += links.length * 2;
   }
-  if (text.match(/\[[^]+\]\(\/\S+\)/gm)) {
-    return true;
+
+  const relativeLinks = text.match(/\[[^]+\]\(\/\S+\)/gm);
+  if (relativeLinks) {
+    signals += relativeLinks.length * 2;
   }
 
   // heading-ish
-  if (text.match(/^#{1,6}\s+\S+/gm)) {
-    return true;
+  const headings = text.match(/^#{1,6}\s+\S+/gm);
+  if (headings) {
+    signals += headings.length;
   }
 
   // list-ish
   const listItems = text.match(/^([-*]|\d+.)\s\S+/gm);
-  if (listItems && listItems.length > 1) {
-    return true;
+  if (listItems) {
+    signals += listItems.length;
   }
 
   // table header-ish
   const tables = text.match(/\|\s?[:-]+\s?\|/gm);
-  if (tables && tables.length > 1) {
-    return true;
+  if (tables) {
+    signals += tables.length;
   }
 
-  return false;
+  return signals > minConfidence;
 }
