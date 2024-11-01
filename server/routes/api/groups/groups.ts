@@ -209,13 +209,10 @@ router.post(
       };
     }
 
-    const groupUsers = await GroupUser.findAll({
+    const options = {
       where: {
         groupId: id,
       },
-      order: [["createdAt", "DESC"]],
-      offset: ctx.state.pagination.offset,
-      limit: ctx.state.pagination.limit,
       include: [
         {
           model: User,
@@ -224,10 +221,20 @@ router.post(
           required: true,
         },
       ],
-    });
+    };
+
+    const [total, groupUsers] = await Promise.all([
+      GroupUser.count(options),
+      GroupUser.findAll({
+        ...options,
+        order: [["createdAt", "DESC"]],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      }),
+    ]);
 
     ctx.body = {
-      pagination: ctx.state.pagination,
+      pagination: { ...ctx.state.pagination, total },
       data: {
         groupMemberships: groupUsers.map((groupUser) =>
           presentGroupUser(groupUser, { includeUser: true })
