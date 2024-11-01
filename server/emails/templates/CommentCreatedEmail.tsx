@@ -6,6 +6,7 @@ import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
+import { can } from "@server/policies";
 import BaseEmail, { EmailMessageCategory, EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
@@ -121,6 +122,15 @@ export default class CommentCreatedEmail extends BaseEmail<
 
   protected fromName({ actorName }: Props): string {
     return actorName;
+  }
+
+  protected replyTo({ notification }: Props) {
+    if (notification?.user && notification.actor?.email) {
+      if (can(notification.user, "readEmail", notification.actor)) {
+        return notification.actor.email;
+      }
+    }
+    return;
   }
 
   protected renderAsText({

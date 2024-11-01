@@ -21,7 +21,10 @@ export enum EmailMessageCategory {
 }
 
 export interface EmailProps {
+  /** The email address being sent to. */
   to: string | null;
+  /** The notification that triggered the email, if any. */
+  notification?: Notification;
 }
 
 export default abstract class BaseEmail<
@@ -102,10 +105,12 @@ export default abstract class BaseEmail<
       return;
     }
 
-    const data = { ...this.props, ...(bsResponse ?? ({} as S)) };
     const notification = this.metadata?.notificationId
-      ? await Notification.unscoped().findByPk(this.metadata?.notificationId)
+      ? await Notification.scope(["withActor", "withUser"]).findByPk(
+          this.metadata?.notificationId
+        )
       : undefined;
+    const data = { ...this.props, notification, ...(bsResponse ?? ({} as S)) };
 
     if (notification?.viewedAt) {
       Logger.info(
@@ -127,6 +132,7 @@ export default abstract class BaseEmail<
     try {
       await mailer.sendMail({
         to: this.props.to,
+        replyTo: this.replyTo?.(data),
         from: this.from(data),
         subject: this.subject(data),
         messageId,
@@ -223,6 +229,14 @@ export default abstract class BaseEmail<
    * @returns A JSX element
    */
   protected abstract render(props: S & T): JSX.Element;
+
+  /**
+   * Optionally returns a replyTo email to override the default.
+   *
+   * @param props Props in email constructor
+   * @returns An email address
+   */
+  protected replyTo?(props: S & T): string | undefined;
 
   /**
    * Returns the unsubscribe URL for the email.

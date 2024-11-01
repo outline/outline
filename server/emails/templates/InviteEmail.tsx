@@ -1,5 +1,6 @@
 import * as React from "react";
 import env from "@server/env";
+import { can } from "@server/policies";
 import BaseEmail, { EmailMessageCategory, EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
@@ -31,6 +32,15 @@ export default class InviteEmail extends BaseEmail<Props, Record<string, any>> {
 
   protected preview() {
     return `${env.APP_NAME} is a place for your team to build and share knowledge.`;
+  }
+
+  protected replyTo({ notification }: Props) {
+    if (notification?.user && notification.actor?.email) {
+      if (can(notification.user, "readEmail", notification.actor)) {
+        return notification.actor.email;
+      }
+    }
+    return;
   }
 
   protected renderAsText({
