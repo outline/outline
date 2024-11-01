@@ -1,5 +1,6 @@
 import { AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react";
+import { ArrowIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useRouteMatch } from "react-router-dom";
@@ -8,6 +9,7 @@ import { ProsemirrorData, UserPreference } from "@shared/types";
 import ButtonSmall from "~/components/ButtonSmall";
 import { useDocumentContext } from "~/components/DocumentContext";
 import Empty from "~/components/Empty";
+import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -107,7 +109,7 @@ function Comments() {
       }
     }
     prevThreadCount.current = threads.length;
-  }, [threads.length]);
+  }, [sortOption.type, threads.length]);
 
   if (!document || !isEditorInitialized) {
     return null;
@@ -153,9 +155,14 @@ function Comments() {
             </NoComments>
           )}
           {showJumpToRecentBtn && (
-            <JumpToRecent onClick={scrollToBottom}>
-              {t("New comments ↓")}
-            </JumpToRecent>
+            <Fade>
+              <JumpToRecent onClick={scrollToBottom}>
+                <Flex align="center">
+                  {t("New comments")}&nbsp;
+                  <ArrowDownIcon size={20} />
+                </Flex>
+              </JumpToRecent>
+            </Fade>
           )}
         </Wrapper>
       </Scrollable>
@@ -197,11 +204,17 @@ const JumpToRecent = styled(ButtonSmall)`
   bottom: 12px;
   left: 50%;
   transform: translateX(-50%);
-  opacity: 0.7;
+  opacity: 0.8;
+  border-radius: 12px;
+  padding: 0 4px;
 
   &:hover {
     opacity: 1;
   }
+`;
+
+const ArrowDownIcon = styled(ArrowIcon)`
+  transform: rotate(90deg);
 `;
 
 const NewCommentForm = styled(CommentForm)<{ dir?: "ltr" | "rtl" }>`
