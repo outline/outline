@@ -101,6 +101,10 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
   const handleMouseDown = React.useCallback(
     (event) => {
       event.preventDefault();
+      if (!document.hasFocus()) {
+        return;
+      }
+
       setOffset(event.pageX - width);
       setResizing(true);
       setAnimating(false);
@@ -110,7 +114,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
 
   const handlePointerActivity = React.useCallback(() => {
     if (ui.sidebarIsClosed) {
-      setHovering(true);
+      setHovering(document.hasFocus());
       setPointerMoved(true);
     }
   }, [ui.sidebarIsClosed]);
@@ -119,7 +123,10 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
     (ev) => {
       if (hasPointerMoved) {
         setHovering(
-          ev.pageX < width && ev.pageY < window.innerHeight && ev.pageY > 0
+          document.hasFocus() &&
+            ev.pageX < width &&
+            ev.pageY < window.innerHeight &&
+            ev.pageY > 0
         );
       }
     },
