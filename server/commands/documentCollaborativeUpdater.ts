@@ -8,6 +8,7 @@ import { schema, serializer } from "@server/editor";
 import Logger from "@server/logging/Logger";
 import { Document, Event } from "@server/models";
 import { sequelize } from "@server/storage/database";
+import { AuthenticationType } from "@server/types";
 
 type Props = {
   /** The document ID to update. */
@@ -89,6 +90,7 @@ export default async function documentCollaborativeUpdater({
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: lastModifiedById,
+      authType: AuthenticationType.APP,
       data: {
         multiplayer: true,
         title: document.title,

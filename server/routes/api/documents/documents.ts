@@ -848,37 +848,29 @@ router.post(
 
       // restore a previously deleted document
       await document.restoreTo(destCollectionId!, { transaction, user }); // destCollectionId is guaranteed to be defined here
-      await Event.createFromContext(
-        ctx,
-        {
-          name: "documents.restore",
-          documentId: document.id,
-          collectionId: document.collectionId,
-          data: {
-            title: document.title,
-          },
+      await Event.createFromContext(ctx, {
+        name: "documents.restore",
+        documentId: document.id,
+        collectionId: document.collectionId,
+        data: {
+          title: document.title,
         },
-        { transaction }
-      );
+      });
     } else if (document.archivedAt) {
       authorize(user, "unarchive", document);
       authorize(user, "updateDocument", destCollection);
 
       // restore a previously archived document
       await document.restoreTo(destCollectionId!, { transaction, user }); // destCollectionId is guaranteed to be defined here
-      await Event.createFromContext(
-        ctx,
-        {
-          name: "documents.unarchive",
-          documentId: document.id,
-          collectionId: document.collectionId,
-          data: {
-            title: document.title,
-            sourceCollectionId,
-          },
+      await Event.createFromContext(ctx, {
+        name: "documents.unarchive",
+        documentId: document.id,
+        collectionId: document.collectionId,
+        data: {
+          title: document.title,
+          sourceCollectionId,
         },
-        { transaction }
-      );
+      });
     } else if (revisionId) {
       // restore a document to a specific revision
       authorize(user, "update", document);
@@ -888,18 +880,14 @@ router.post(
       document.restoreFromRevision(revision);
       await document.save({ transaction });
 
-      await Event.createFromContext(
-        ctx,
-        {
-          name: "documents.restore",
-          documentId: document.id,
-          collectionId: document.collectionId,
-          data: {
-            title: document.title,
-          },
+      await Event.createFromContext(ctx, {
+        name: "documents.restore",
+        documentId: document.id,
+        collectionId: document.collectionId,
+        data: {
+          title: document.title,
         },
-        { transaction }
-      );
+      });
     } else {
       assertPresent(revisionId, "revisionId is required");
     }
@@ -1136,21 +1124,15 @@ router.post(
         transaction,
       }
     );
-    await Event.createFromContext(
-      ctx,
-      {
-        name: "documents.create",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        data: {
-          title: document.title,
-          template: true,
-        },
+    await Event.createFromContext(ctx, {
+      name: "documents.create",
+      documentId: document.id,
+      collectionId: document.collectionId,
+      data: {
+        title: document.title,
+        template: true,
       },
-      {
-        transaction,
-      }
-    );
+    });
 
     // reload to get all of the data needed to present (user, collection etc)
     const reloaded = await Document.findByPk(document.id, {
@@ -1387,18 +1369,14 @@ router.post(
     authorize(user, "archive", document);
 
     await document.archive(user, { transaction });
-    await Event.createFromContext(
-      ctx,
-      {
-        name: "documents.archive",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        data: {
-          title: document.title,
-        },
+    await Event.createFromContext(ctx, {
+      name: "documents.archive",
+      documentId: document.id,
+      collectionId: document.collectionId,
+      data: {
+        title: document.title,
       },
-      { transaction }
-    );
+    });
 
     ctx.body = {
       data: await presentDocument(ctx, document),
@@ -1756,23 +1734,17 @@ router.post(
       await membership.save({ transaction });
     }
 
-    await Event.createFromContext(
-      ctx,
-      {
-        name: "documents.add_user",
-        userId,
-        modelId: membership.id,
-        documentId: document.id,
-        data: {
-          title: document.title,
-          isNew,
-          permission: membership.permission,
-        },
+    await Event.createFromContext(ctx, {
+      name: "documents.add_user",
+      userId,
+      modelId: membership.id,
+      documentId: document.id,
+      data: {
+        title: document.title,
+        isNew,
+        permission: membership.permission,
       },
-      {
-        transaction,
-      }
-    );
+    });
 
     ctx.body = {
       data: {
@@ -1822,16 +1794,12 @@ router.post(
 
     await membership.destroy({ transaction });
 
-    await Event.createFromContext(
-      ctx,
-      {
-        name: "documents.remove_user",
-        userId,
-        modelId: membership.id,
-        documentId: document.id,
-      },
-      { transaction }
-    );
+    await Event.createFromContext(ctx, {
+      name: "documents.remove_user",
+      userId,
+      modelId: membership.id,
+      documentId: document.id,
+    });
 
     ctx.body = {
       success: true,
@@ -1885,21 +1853,17 @@ router.post(
       await membership.save({ transaction });
     }
 
-    await Event.createFromContext(
-      ctx,
-      {
-        name: "documents.add_group",
-        documentId: document.id,
-        modelId: groupId,
-        data: {
-          name: group.name,
-          isNew,
-          permission: membership.permission,
-          membershipId: membership.id,
-        },
+    await Event.createFromContext(ctx, {
+      name: "documents.add_group",
+      documentId: document.id,
+      modelId: groupId,
+      data: {
+        name: group.name,
+        isNew,
+        permission: membership.permission,
+        membershipId: membership.id,
       },
-      { transaction }
-    );
+    });
 
     ctx.body = {
       data: {
@@ -1945,19 +1909,15 @@ router.post(
 
     await membership.destroy({ transaction });
 
-    await Event.createFromContext(
-      ctx,
-      {
-        name: "documents.remove_group",
-        documentId: document.id,
-        modelId: groupId,
-        data: {
-          name: group.name,
-          membershipId: membership.id,
-        },
+    await Event.createFromContext(ctx, {
+      name: "documents.remove_group",
+      documentId: document.id,
+      modelId: groupId,
+      data: {
+        name: group.name,
+        membershipId: membership.id,
       },
-      { transaction }
-    );
+    });
 
     ctx.body = {
       success: true,

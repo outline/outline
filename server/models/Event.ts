@@ -64,7 +64,7 @@ class Event extends IdModel<
    * used for arbitrary data associated with the event.
    */
   @Column(DataType.JSONB)
-  changes?: Record<string, any> | null;
+  changes: Record<string, any> | null;
 
   // hooks
 
@@ -173,7 +173,10 @@ class Event extends IdModel<
         ip: ctx.request.ip,
         authType: ctx.state.auth.type,
       },
-      options
+      {
+        transaction: ctx.state.transaction,
+        ...options,
+      }
     );
   }
 }

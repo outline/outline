@@ -78,17 +78,13 @@ router.post(
       },
       { transaction }
     );
-    await Event.createFromContext(
-      ctx,
-      {
-        name: "attachments.create",
-        data: {
-          name,
-        },
-        modelId,
+    await Event.createFromContext(ctx, {
+      name: "attachments.create",
+      data: {
+        name,
       },
-      { transaction }
-    );
+      modelId,
+    });
 
     const presignedPost = await FileStorage.getPresignedPost(
       key,
@@ -123,22 +119,27 @@ router.post(
   "attachments.delete",
   auth(),
   validate(T.AttachmentDeleteSchema),
+  transaction(),
   async (ctx: APIContext<T.AttachmentDeleteReq>) => {
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
     const attachment = await Attachment.findByPk(id, {
       rejectOnEmpty: true,
+      lock: transaction.LOCK.UPDATE,
+      transaction,
     });
 
     if (attachment.documentId) {
       const document = await Document.findByPk(attachment.documentId, {
         userId: user.id,
+        transaction,
       });
       authorize(user, "update", document);
     }
 
     authorize(user, "delete", attachment);
-    await attachment.destroy();
+    await attachment.destroy({ transaction });
     await Event.createFromContext(ctx, {
       name: "attachments.delete",
     });
