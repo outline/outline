@@ -109,6 +109,7 @@ function CommentForm({
           createdAt: new Date().toISOString(),
           documentId,
           data: draft,
+          reactions: [],
         },
         comments
       );
@@ -144,6 +145,7 @@ function CommentForm({
         parentCommentId: thread?.id,
         documentId,
         data: draft,
+        reactions: [],
       },
       comments
     );

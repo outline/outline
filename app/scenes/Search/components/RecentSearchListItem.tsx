@@ -81,7 +81,7 @@ const RecentSearch = styled(Link)`
   &:focus,
   &:${hover} {
     color: ${s("text")};
-    background: ${s("secondaryBackground")};
+    background: ${s("backgroundSecondary")};
 
     ${RemoveButton} {
       opacity: 1;

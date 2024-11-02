@@ -192,7 +192,7 @@ const Wrapper = styled.a<{
   &:focus,
   &:focus-within {
     background: ${(props) =>
-      props.$hover ? props.theme.secondaryBackground : "inherit"};
+      props.$hover ? props.theme.backgroundSecondary : "inherit"};
   }
 
   cursor: ${(props) =>

@@ -137,3 +137,12 @@ export const search = ({
     return query === nlc ? -1 : nlc.startsWith(queryLowercase) ? 0 : 1;
   });
 };
+
+/**
+ * Get am emoji's human-readable ID from its string.
+ *
+ * @param emoji - The string representation of the emoji.
+ * @returns The emoji id, if found.
+ */
+export const getEmojiId = (emoji: string): string | undefined =>
+  searcher.search(emoji)[0]?.id;

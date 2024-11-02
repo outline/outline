@@ -1770,7 +1770,7 @@ table {
   &:focus {
     cursor: var(--pointer);
     color: ${props.theme.text};
-    background: ${props.theme.secondaryBackground};
+    background: ${props.theme.backgroundSecondary};
   }
 }
 

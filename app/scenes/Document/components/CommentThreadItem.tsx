@@ -16,9 +16,12 @@ import Comment from "~/models/Comment";
 import { Avatar } from "~/components/Avatar";
 import ButtonSmall from "~/components/ButtonSmall";
 import Flex from "~/components/Flex";
+import ReactionList from "~/components/Reactions/ReactionList";
+import ReactionPicker from "~/components/Reactions/ReactionPicker";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import useBoolean from "~/hooks/useBoolean";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import CommentMenu from "~/menus/CommentMenu";
 import { hover } from "~/styles";
 import CommentEditor from "./CommentEditor";
@@ -81,6 +84,10 @@ type Props = {
   onUpdate?: (id: string, attrs: { resolved: boolean }) => void;
   /** Text to highlight at the top of the comment */
   highlightedText?: string;
+  /** Enable scroll for the comments container */
+  enableScroll: () => void;
+  /** Disable scroll for the comments container */
+  disableScroll: () => void;
 };
 
 function CommentThreadItem({
@@ -94,8 +101,11 @@ function CommentThreadItem({
   onDelete,
   onUpdate,
   highlightedText,
+  enableScroll,
+  disableScroll,
 }: Props) {
   const { t } = useTranslation();
+  const user = useCurrentUser();
   const [data, setData] = React.useState(comment.data);
   const showAuthor = firstOfAuthor;
   const showTime = useShowTime(comment.createdAt, previousCommentCreatedAt);
@@ -105,6 +115,20 @@ function CommentThreadItem({
     !comment.isResolved;
   const [isEditing, setEditing, setReadOnly] = useBoolean();
   const formRef = React.useRef<HTMLFormElement>(null);
+
+  const handleAddReaction = React.useCallback(
+    async (emoji: string) => {
+      await comment.addReaction({ emoji, user });
+    },
+    [comment, user]
+  );
+
+  const handleRemoveReaction = React.useCallback(
+    async (emoji: string) => {
+      await comment.removeReaction({ emoji, user });
+    },
+    [comment, user]
+  );
 
   const handleUpdate = React.useCallback(
     (attrs: { resolved: boolean }) => {
@@ -210,16 +234,43 @@ function CommentThreadItem({
               </ButtonSmall>
             </Flex>
           )}
+          {!!comment.reactions.length && (
+            <ReactionListContainer gap={6} align="center">
+              <ReactionList
+                model={comment}
+                onAddReaction={handleAddReaction}
+                onRemoveReaction={handleRemoveReaction}
+                picker={
+                  !comment.isResolved ? (
+                    <StyledReactionPicker
+                      onSelect={handleAddReaction}
+                      onOpen={disableScroll}
+                      onClose={enableScroll}
+                      size={28}
+                    />
+                  ) : undefined
+                }
+              />
+            </ReactionListContainer>
+          )}
         </Body>
         <EventBoundary>
           {!isEditing && (
-            <Menu
-              comment={comment}
-              onEdit={setEditing}
-              onDelete={handleDelete}
-              onUpdate={handleUpdate}
-              dir={dir}
-            />
+            <Actions gap={4} dir={dir}>
+              {!comment.isResolved && (
+                <StyledReactionPicker
+                  onSelect={handleAddReaction}
+                  onOpen={disableScroll}
+                  onClose={enableScroll}
+                />
+              )}
+              <StyledMenu
+                comment={comment}
+                onEdit={setEditing}
+                onDelete={handleDelete}
+                onUpdate={handleUpdate}
+              />
+            </Actions>
           )}
         </EventBoundary>
       </Bubble>
@@ -257,19 +308,39 @@ const Body = styled.form`
   border-radius: 2px;
 `;
 
-const Menu = styled(CommentMenu)<{ dir?: "rtl" | "ltr" }>`
+const StyledMenu = styled(CommentMenu)`
+  color: ${s("textSecondary")};
+
+  &: ${hover}, &[aria-expanded= "true"] {
+    background: ${s("backgroundQuaternary")};
+  }
+`;
+
+const StyledReactionPicker = styled(ReactionPicker)`
+  color: ${s("textSecondary")};
+
+  &: ${hover}, &[aria-expanded= "true"] {
+    background: ${s("backgroundQuaternary")};
+  }
+`;
+
+const Actions = styled(Flex)<{ dir?: "rtl" | "ltr" }>`
   position: absolute;
   left: ${(props) => (props.dir !== "rtl" ? "auto" : "4px")};
   right: ${(props) => (props.dir === "rtl" ? "auto" : "4px")};
   top: 4px;
   opacity: 0;
   transition: opacity 100ms ease-in-out;
-  color: ${s("textSecondary")};
+  background: ${s("backgroundSecondary")};
+  padding-left: 4px;
 
-  &: ${hover}, &[aria-expanded= "true"] {
+  &:has(${StyledReactionPicker}[aria-expanded="true"], ${StyledMenu}[aria-expanded="true"]) {
     opacity: 1;
-    background: ${s("sidebarActiveBackground")};
   }
+`;
+
+const ReactionListContainer = styled(Flex)`
+  margin-top: 6px;
 `;
 
 const Meta = styled(Text)`
@@ -293,7 +364,7 @@ export const Bubble = styled(Flex)<{
   flex-grow: 1;
   font-size: 16px;
   color: ${s("text")};
-  background: ${s("commentBackground")};
+  background: ${s("backgroundSecondary")};
   min-width: 2em;
   margin-bottom: 1px;
   padding: 8px 12px;
@@ -317,7 +388,7 @@ export const Bubble = styled(Flex)<{
     margin-bottom: 0;
   }
 
-  &: ${hover} ${Menu} {
+  &: ${hover} ${Actions} {
     opacity: 1;
   }
 

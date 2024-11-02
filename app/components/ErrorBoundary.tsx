@@ -138,7 +138,7 @@ class ErrorBoundary extends React.Component<Props> {
 }
 
 const Pre = styled.pre`
-  background: ${s("secondaryBackground")};
+  background: ${s("backgroundSecondary")};
   padding: 16px;
   border-radius: 4px;
   font-size: 12px;

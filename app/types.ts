@@ -12,6 +12,7 @@ import Document from "./models/Document";
 import FileOperation from "./models/FileOperation";
 import Pin from "./models/Pin";
 import Star from "./models/Star";
+import User from "./models/User";
 import UserMembership from "./models/UserMembership";
 
 export type PartialExcept<T, K extends keyof T> = Partial<Omit<T, K>> &
@@ -188,6 +189,12 @@ export type WebsocketCollectionUpdateIndexEvent = {
   index: string;
 };
 
+export type WebsocketCommentReactionEvent = {
+  emoji: string;
+  commentId: string;
+  user: User;
+};
+
 export type WebsocketEvent =
   | PartialExcept<Pin, "id">
   | PartialExcept<Star, "id">
@@ -195,7 +202,8 @@ export type WebsocketEvent =
   | PartialExcept<UserMembership, "id">
   | WebsocketCollectionUpdateIndexEvent
   | WebsocketEntityDeletedEvent
-  | WebsocketEntitiesEvent;
+  | WebsocketEntitiesEvent
+  | WebsocketCommentReactionEvent;
 
 export type AwarenessChangeEvent = {
   states: { user?: { id: string }; cursor: any; scrollY: number | undefined }[];
