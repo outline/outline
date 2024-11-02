@@ -33,17 +33,13 @@ router.post(
       { transaction }
     );
 
-    await Event.createFromContext(
-      ctx,
-      {
-        name: "api_keys.create",
-        modelId: key.id,
-        data: {
-          name,
-        },
+    await Event.createFromContext(ctx, {
+      name: "api_keys.create",
+      modelId: key.id,
+      data: {
+        name,
       },
-      { transaction }
-    );
+    });
 
     ctx.body = {
       data: presentApiKey(key),
@@ -118,17 +114,13 @@ router.post(
     authorize(user, "delete", key);
 
     await key.destroy({ transaction });
-    await Event.createFromContext(
-      ctx,
-      {
-        name: "api_keys.delete",
-        modelId: key.id,
-        data: {
-          name: key.name,
-        },
+    await Event.createFromContext(ctx, {
+      name: "api_keys.delete",
+      modelId: key.id,
+      data: {
+        name: key.name,
       },
-      { transaction }
-    );
+    });
 
     ctx.body = {
       success: true,

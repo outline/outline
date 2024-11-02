@@ -173,7 +173,10 @@ class Event extends IdModel<
         ip: ctx.request.ip,
         authType: ctx.state.auth.type,
       },
-      options
+      {
+        transaction: ctx.state.transaction,
+        ...options,
+      }
     );
   }
 }
