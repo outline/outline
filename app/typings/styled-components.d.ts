@@ -91,6 +91,7 @@ declare module "styled-components" {
       purple: string;
       blue: string;
       marine: string;
+      dusk: string;
       green: string;
       yellow: string;
     };

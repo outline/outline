@@ -37,6 +37,7 @@ const defaultColors: Colors = {
     purple: "#9E5CF7",
     blue: "#3633FF",
     marine: "#2BC2FF",
+    dusk: "#2930FF",
     green: "#3ad984",
     yellow: "#F5BE31",
   },
