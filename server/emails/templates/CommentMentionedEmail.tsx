@@ -6,7 +6,8 @@ import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
-import BaseEmail, { EmailProps } from "./BaseEmail";
+import { can } from "@server/policies";
+import BaseEmail, { EmailMessageCategory, EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import Diff from "./components/Diff";
@@ -41,6 +42,10 @@ export default class CommentMentionedEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {
+  protected get category() {
+    return EmailMessageCategory.Notification;
+  }
+
   protected async beforeSend(props: InputProps) {
     const { documentId, commentId } = props;
     const document = await Document.unscoped().findByPk(documentId);
@@ -90,6 +95,15 @@ export default class CommentMentionedEmail extends BaseEmail<
       userId,
       NotificationEventType.MentionedInComment
     );
+  }
+
+  protected replyTo({ notification }: Props) {
+    if (notification?.user && notification.actor?.email) {
+      if (can(notification.user, "readEmail", notification.actor)) {
+        return notification.actor.email;
+      }
+    }
+    return;
   }
 
   protected subject({ document }: Props) {

@@ -5,7 +5,11 @@ import GroupUser from "~/models/GroupUser";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
 import RootStore from "./RootStore";
-import Store, { RPCAction } from "./base/Store";
+import Store, {
+  PaginatedResponse,
+  PAGINATION_SYMBOL,
+  RPCAction,
+} from "./base/Store";
 
 export default class GroupUsersStore extends Store<GroupUser> {
   actions = [RPCAction.Create, RPCAction.Delete];
@@ -17,20 +21,22 @@ export default class GroupUsersStore extends Store<GroupUser> {
   @action
   fetchPage = async (
     params: PaginationParams | undefined
-  ): Promise<GroupUser[]> => {
+  ): Promise<PaginatedResponse<GroupUser>> => {
     this.isFetching = true;
 
     try {
       const res = await client.post(`/groups.memberships`, params);
       invariant(res?.data, "Data not available");
 
-      let models: GroupUser[] = [];
+      let response: PaginatedResponse<GroupUser> = [];
       runInAction(`GroupUsersStore#fetchPage`, () => {
         res.data.users.forEach(this.rootStore.users.add);
-        models = res.data.groupMemberships.map(this.add);
+        response = res.data.groupMemberships.map(this.add);
         this.isLoaded = true;
       });
-      return models;
+
+      response[PAGINATION_SYMBOL] = res.pagination;
+      return response;
     } finally {
       this.isFetching = false;
     }

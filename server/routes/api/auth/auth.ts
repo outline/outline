@@ -169,19 +169,13 @@ router.post(
     const { user } = auth;
 
     await user.rotateJwtSecret({ transaction });
-    await Event.createFromContext(
-      ctx,
-      {
-        name: "users.signout",
-        userId: user.id,
-        data: {
-          name: user.name,
-        },
+    await Event.createFromContext(ctx, {
+      name: "users.signout",
+      userId: user.id,
+      data: {
+        name: user.name,
       },
-      {
-        transaction,
-      }
-    );
+    });
 
     ctx.cookies.set("accessToken", "", {
       sameSite: "lax",

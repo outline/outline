@@ -57,17 +57,13 @@ router.post(
       await authenticationProvider.disable({ transaction });
     }
 
-    await Event.createFromContext(
-      ctx,
-      {
-        name: "authenticationProviders.update",
-        data: {
-          enabled,
-        },
-        modelId: id,
+    await Event.createFromContext(ctx, {
+      name: "authenticationProviders.update",
+      data: {
+        enabled,
       },
-      { transaction }
-    );
+      modelId: id,
+    });
 
     ctx.body = {
       data: presentAuthenticationProvider(authenticationProvider),

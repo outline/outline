@@ -293,7 +293,7 @@ describe("#documents.info", () => {
       expect(body.data.document.id).toEqual(document.id);
       expect(body.data.document.createdBy).toEqual(undefined);
       expect(body.data.document.updatedBy).toEqual(undefined);
-      expect(body.data.sharedTree).toEqual(undefined);
+      expect(body.data.sharedTree).toEqual(null);
     });
     it("should not return details for nested documents", async () => {
       const user = await buildUser();

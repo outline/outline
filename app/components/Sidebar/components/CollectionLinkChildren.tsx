@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
+import { Waypoint } from "react-waypoint";
 import { toast } from "sonner";
 import styled from "styled-components";
 import Collection from "~/models/Collection";
@@ -34,11 +35,13 @@ function CollectionLinkChildren({
   expanded,
   prefetchDocument,
 }: Props) {
+  const pageSize = 250;
   const can = usePolicy(collection);
   const manualSort = collection.sort.field === "index";
   const { documents, dialogs, collections } = useStores();
   const { t } = useTranslation();
   const childDocuments = useCollectionDocuments(collection, documents.active);
+  const [showing, setShowing] = React.useState(pageSize);
 
   // Drop to reorder document
   const [{ isOverReorder, isDraggingAnyDocument }, dropToReorder] = useDrop({
@@ -83,6 +86,18 @@ function CollectionLinkChildren({
     }),
   });
 
+  React.useEffect(() => {
+    if (!expanded) {
+      setShowing(pageSize);
+    }
+  }, [expanded]);
+
+  const showMore = React.useCallback(() => {
+    if (childDocuments && childDocuments.length > showing) {
+      setShowing((value) => value + pageSize);
+    }
+  }, [childDocuments, showing]);
+
   return (
     <Folder expanded={expanded}>
       {isDraggingAnyDocument && can.createDocument && manualSort && (
@@ -98,7 +113,7 @@ function CollectionLinkChildren({
             <Loading />
           </ResizingHeightContainer>
         )}
-        {childDocuments?.map((node, index) => (
+        {childDocuments?.slice(0, showing).map((node, index) => (
           <DocumentLink
             key={node.id}
             node={node}
@@ -121,6 +136,7 @@ function CollectionLinkChildren({
             depth={2}
           />
         )}
+        <Waypoint key={showing} onEnter={showMore} fireOnRapidScroll />
       </DocumentsLoader>
     </Folder>
   );

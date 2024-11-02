@@ -1,6 +1,10 @@
+import addressparser from "addressparser";
 import Bull from "bull";
+import invariant from "invariant";
+import randomstring from "randomstring";
 import * as React from "react";
 import mailer from "@server/emails/mailer";
+import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
 import Notification from "@server/models/Notification";
@@ -9,8 +13,18 @@ import { TaskPriority } from "@server/queues/tasks/BaseTask";
 import { NotificationMetadata } from "@server/types";
 import { getEmailMessageId } from "@server/utils/emails";
 
+export enum EmailMessageCategory {
+  Authentication = "authentication",
+  Invitation = "invitation",
+  Notification = "notification",
+  Marketing = "marketing",
+}
+
 export interface EmailProps {
+  /** The email address being sent to. */
   to: string | null;
+  /** The notification that triggered the email, if any. */
+  notification?: Notification;
 }
 
 export default abstract class BaseEmail<
@@ -19,6 +33,9 @@ export default abstract class BaseEmail<
 > {
   private props: T;
   private metadata?: NotificationMetadata;
+
+  /** The message category for the email. */
+  protected abstract get category(): EmailMessageCategory;
 
   /**
    * Schedule this email type to be sent asyncronously by a worker.
@@ -88,10 +105,12 @@ export default abstract class BaseEmail<
       return;
     }
 
-    const data = { ...this.props, ...(bsResponse ?? ({} as S)) };
     const notification = this.metadata?.notificationId
-      ? await Notification.unscoped().findByPk(this.metadata?.notificationId)
+      ? await Notification.scope(["withActor", "withUser"]).findByPk(
+          this.metadata?.notificationId
+        )
       : undefined;
+    const data = { ...this.props, notification, ...(bsResponse ?? ({} as S)) };
 
     if (notification?.viewedAt) {
       Logger.info(
@@ -113,7 +132,8 @@ export default abstract class BaseEmail<
     try {
       await mailer.sendMail({
         to: this.props.to,
-        fromName: this.fromName?.(data),
+        replyTo: this.replyTo?.(data),
+        from: this.from(data),
         subject: this.subject(data),
         messageId,
         references,
@@ -146,6 +166,29 @@ export default abstract class BaseEmail<
         Logger.error(`Failed to update notification`, err, this.metadata);
       }
     }
+  }
+
+  private from(props: S & T) {
+    invariant(
+      env.SMTP_FROM_EMAIL,
+      "SMTP_FROM_EMAIL is required to send emails"
+    );
+
+    const parsedFrom = addressparser(env.SMTP_FROM_EMAIL)[0];
+    const name = this.fromName?.(props);
+
+    if (this.category === EmailMessageCategory.Authentication) {
+      const domain = parsedFrom.address.split("@")[1];
+      return {
+        name: name ?? parsedFrom.name,
+        address: `noreply-${randomstring.generate(24)}@${domain}`,
+      };
+    }
+
+    return {
+      name: name ?? parsedFrom.name,
+      address: parsedFrom.address,
+    };
   }
 
   private pixel(notification: Notification) {
@@ -186,6 +229,14 @@ export default abstract class BaseEmail<
    * @returns A JSX element
    */
   protected abstract render(props: S & T): JSX.Element;
+
+  /**
+   * Optionally returns a replyTo email to override the default.
+   *
+   * @param props Props in email constructor
+   * @returns An email address
+   */
+  protected replyTo?(props: S & T): string | undefined;
 
   /**
    * Returns the unsubscribe URL for the email.

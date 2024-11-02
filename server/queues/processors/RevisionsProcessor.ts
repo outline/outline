@@ -41,6 +41,7 @@ export default class RevisionsProcessor extends BaseProcessor {
           rejectOnEmpty: true,
         });
         await revisionCreator({
+          event,
           user,
           document,
         });

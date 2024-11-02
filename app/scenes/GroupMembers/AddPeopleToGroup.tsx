@@ -8,15 +8,18 @@ import User from "~/models/User";
 import Invite from "~/scenes/Invite";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import ButtonLink from "~/components/ButtonLink";
+import DelayedMount from "~/components/DelayedMount";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
+import PlaceholderList from "~/components/List/Placeholder";
 import Modal from "~/components/Modal";
 import PaginatedList from "~/components/PaginatedList";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
+import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import GroupMemberListItem from "./components/GroupMemberListItem";
 
@@ -72,6 +75,14 @@ function AddPeopleToGroup(props: Props) {
     }
   };
 
+  const { loading } = useRequest(
+    React.useCallback(
+      () => groupUsers.fetchAll({ id: group.id }),
+      [groupUsers, group]
+    ),
+    true
+  );
+
   return (
     <Flex column>
       <Text as="p" type="secondary">
@@ -99,24 +110,30 @@ function AddPeopleToGroup(props: Props) {
         autoFocus
         flex
       />
-      <PaginatedList
-        empty={
-          query ? (
-            <Empty>{t("No people matching your search")}</Empty>
-          ) : (
-            <Empty>{t("No people left to add")}</Empty>
-          )
-        }
-        items={users.notInGroup(group.id, query)}
-        fetch={query ? undefined : users.fetchPage}
-        renderItem={(item: User) => (
-          <GroupMemberListItem
-            key={item.id}
-            user={item}
-            onAdd={() => handleAddUser(item)}
-          />
-        )}
-      />
+      {loading ? (
+        <DelayedMount>
+          <PlaceholderList count={5} />
+        </DelayedMount>
+      ) : (
+        <PaginatedList
+          empty={
+            query ? (
+              <Empty>{t("No people matching your search")}</Empty>
+            ) : (
+              <Empty>{t("No people left to add")}</Empty>
+            )
+          }
+          items={users.notInGroup(group.id, query)}
+          fetch={query ? undefined : users.fetchPage}
+          renderItem={(item: User) => (
+            <GroupMemberListItem
+              key={item.id}
+              user={item}
+              onAdd={() => handleAddUser(item)}
+            />
+          )}
+        />
+      )}
       <Modal
         title={t("Invite people")}
         onRequestClose={handleInviteModalClose}

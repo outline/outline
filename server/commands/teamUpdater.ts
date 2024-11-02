@@ -6,7 +6,7 @@ import { Event, Team, TeamDomain, User } from "@server/models";
 
 type Props = {
   params: Partial<Omit<Team, "allowedDomains">> & { allowedDomains?: string[] };
-  ip?: string;
+  ip?: string | null;
   user: User;
   team: Team;
   transaction: Transaction;

@@ -237,15 +237,11 @@ router.post(
       }
     }
 
-    await Event.createFromContext(
-      ctx,
-      {
-        name: "users.update",
-        userId: user.id,
-        changes: user.changeset,
-      },
-      { transaction }
-    );
+    await Event.createFromContext(ctx, {
+      name: "users.update",
+      userId: user.id,
+      changes: user.changeset,
+    });
     await user.save({ transaction });
 
     ctx.body = {
@@ -348,20 +344,14 @@ async function updateRole(ctx: APIContext<T.UsersChangeRoleReq>) {
 
   await user.update({ role }, { transaction });
 
-  await Event.createFromContext(
-    ctx,
-    {
-      name,
-      userId,
-      data: {
-        name: user.name,
-        role,
-      },
+  await Event.createFromContext(ctx, {
+    name,
+    userId,
+    data: {
+      name: user.name,
+      role,
     },
-    {
-      transaction,
-    }
-  );
+  });
 
   const includeDetails = !!can(actor, "readDetails", user);
 
@@ -597,15 +587,11 @@ router.post(
     const { user } = ctx.state.auth;
     user.setNotificationEventType(eventType, true);
 
-    await Event.createFromContext(
-      ctx,
-      {
-        name: "users.update",
-        userId: user.id,
-        changes: user.changeset,
-      },
-      { transaction }
-    );
+    await Event.createFromContext(ctx, {
+      name: "users.update",
+      userId: user.id,
+      changes: user.changeset,
+    });
     await user.save({ transaction });
 
     ctx.body = {
@@ -625,15 +611,11 @@ router.post(
     const { user } = ctx.state.auth;
     user.setNotificationEventType(eventType, false);
 
-    await Event.createFromContext(
-      ctx,
-      {
-        name: "users.update",
-        userId: user.id,
-        changes: user.changeset,
-      },
-      { transaction }
-    );
+    await Event.createFromContext(ctx, {
+      name: "users.update",
+      userId: user.id,
+      changes: user.changeset,
+    });
     await user.save({ transaction });
 
     ctx.body = {

@@ -84,11 +84,12 @@ export interface APIContext<ReqT = BaseReq, ResT = BaseRes>
 type BaseEvent<T extends Model> = {
   teamId: string;
   actorId: string;
-  ip: string;
+  ip: string | null;
+  authType?: AuthenticationType | null;
   changes?: {
     attributes: Partial<InferAttributes<T>>;
     previous: Partial<InferAttributes<T>>;
-  };
+  } | null;
 };
 
 export type ApiKeyEvent = BaseEvent<ApiKey> & {
