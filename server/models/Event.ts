@@ -64,7 +64,7 @@ class Event extends IdModel<
    * used for arbitrary data associated with the event.
    */
   @Column(DataType.JSONB)
-  changes?: Record<string, any> | null;
+  changes: Record<string, any> | null;
 
   // hooks
 
