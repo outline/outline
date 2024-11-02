@@ -311,16 +311,34 @@ const Body = styled.form`
 const StyledMenu = styled(CommentMenu)`
   color: ${s("textSecondary")};
 
+  svg {
+    fill: currentColor;
+    opacity: 0.5;
+  }
+
   &: ${hover}, &[aria-expanded= "true"] {
     background: ${s("backgroundQuaternary")};
+
+    svg {
+      opacity: 0.75;
+    }
   }
 `;
 
 const StyledReactionPicker = styled(ReactionPicker)`
   color: ${s("textSecondary")};
 
+  svg {
+    fill: currentColor;
+    opacity: 0.5;
+  }
+
   &: ${hover}, &[aria-expanded= "true"] {
     background: ${s("backgroundQuaternary")};
+
+    svg {
+      opacity: 0.75;
+    }
   }
 `;
 

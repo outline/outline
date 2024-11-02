@@ -123,9 +123,9 @@ const ReactionPicker: React.FC<Props> = ({
               <EmojiPanel
                 panelWidth={panelWidth}
                 query={query}
-                panelActive={true}
                 onEmojiChange={handleEmojiSelect}
                 onQueryChange={setQuery}
+                panelActive
               />
             </ScrollableContainer>
           </React.Suspense>

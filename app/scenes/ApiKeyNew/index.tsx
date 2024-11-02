@@ -112,7 +112,7 @@ function ApiKeyNew({ onSubmit }: Props) {
             value={expiryType}
             options={expiryOptions}
             onChange={handleExpiryTypeChange}
-            skipBodyScroll={true}
+            skipBodyScroll
           />
           {expiryType === ExpiryType.Custom ? (
             <ExpiryDatePicker
