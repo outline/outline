@@ -710,19 +710,13 @@ router.post(
     }
 
     await collection.save({ transaction });
-    await Event.createFromContext(
-      ctx,
-      {
-        name: "collections.update",
-        collectionId: collection.id,
-        data: {
-          name,
-        },
+    await Event.createFromContext(ctx, {
+      name: "collections.update",
+      collectionId: collection.id,
+      data: {
+        name,
       },
-      {
-        transaction,
-      }
-    );
+    });
 
     if (privacyChanged || sharingChanged) {
       await Event.createFromContext(ctx, {

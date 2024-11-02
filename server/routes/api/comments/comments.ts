@@ -390,18 +390,14 @@ router.post(
     });
 
     if (created) {
-      await Event.createFromContext(
-        ctx,
-        {
-          name: "comments.add_reaction",
-          modelId: comment.id,
-          documentId: comment.documentId,
-          data: {
-            emoji,
-          },
+      await Event.createFromContext(ctx, {
+        name: "comments.add_reaction",
+        modelId: comment.id,
+        documentId: comment.documentId,
+        data: {
+          emoji,
         },
-        { transaction }
-      );
+      });
     }
 
     ctx.body = {
@@ -446,18 +442,14 @@ router.post(
 
     await reaction.destroy({ transaction });
 
-    await Event.createFromContext(
-      ctx,
-      {
-        name: "comments.remove_reaction",
-        modelId: comment.id,
-        documentId: comment.documentId,
-        data: {
-          emoji,
-        },
+    await Event.createFromContext(ctx, {
+      name: "comments.remove_reaction",
+      modelId: comment.id,
+      documentId: comment.documentId,
+      data: {
+        emoji,
       },
-      { transaction }
-    );
+    });
 
     ctx.body = {
       success: true,
