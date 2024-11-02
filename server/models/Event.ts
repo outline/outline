@@ -18,7 +18,7 @@ import {
   Length,
 } from "sequelize-typescript";
 import { globalEventQueue } from "../queues";
-import { APIContext } from "../types";
+import { APIContext, AuthenticationType } from "../types";
 import Collection from "./Collection";
 import Document from "./Document";
 import Team from "./Team";
@@ -36,9 +36,7 @@ class Event extends IdModel<
   @Column(DataType.UUID)
   modelId: string | null;
 
-  /**
-   * The name of the event.
-   */
+  /** The name of the event. */
   @Length({
     max: 255,
     msg: "name must be 255 characters or less",
@@ -46,12 +44,14 @@ class Event extends IdModel<
   @Column(DataType.STRING)
   name: string;
 
-  /**
-   * The originating IP address of the event.
-   */
+  /** The originating IP address of the event. */
   @IsIP
   @Column
   ip: string | null;
+
+  /** The type of authentication used to create the event. */
+  @Column(DataType.ENUM(...Object.values(AuthenticationType)))
+  authType: AuthenticationType | null;
 
   /**
    * Metadata associated with the event, previously used for storing some changed attributes.
@@ -171,6 +171,7 @@ class Event extends IdModel<
         actorId: user.id,
         teamId: user.teamId,
         ip: ctx.request.ip,
+        authType: ctx.state.auth.type,
       },
       options
     );
