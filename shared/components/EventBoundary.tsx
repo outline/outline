@@ -6,13 +6,13 @@ type Props = {
 };
 
 const EventBoundary: React.FC<Props> = ({ children, className }: Props) => {
-  const handleClick = React.useCallback((event: React.SyntheticEvent) => {
+  const handlePointerDown = React.useCallback((event: React.SyntheticEvent) => {
     event.preventDefault();
     event.stopPropagation();
   }, []);
 
   return (
-    <span onClick={handleClick} className={className}>
+    <span onPointerDown={handlePointerDown} className={className}>
       {children}
     </span>
   );

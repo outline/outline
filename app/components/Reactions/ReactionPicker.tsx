@@ -3,6 +3,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { PopoverDisclosure, usePopoverState } from "reakit";
 import styled from "styled-components";
+import EventBoundary from "@shared/components/EventBoundary";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import PlaceholderText from "~/components/PlaceholderText";
@@ -119,15 +120,16 @@ const ReactionPicker: React.FC<Props> = ({
       >
         {popover.visible && (
           <React.Suspense fallback={<Placeholder />}>
-            <ScrollableContainer>
+            <EventBoundary>
               <EmojiPanel
+                height={300}
                 panelWidth={panelWidth}
                 query={query}
                 onEmojiChange={handleEmojiSelect}
                 onQueryChange={setQuery}
                 panelActive
               />
-            </ScrollableContainer>
+            </EventBoundary>
           </React.Suspense>
         )}
       </Popover>
@@ -148,11 +150,6 @@ const Placeholder = React.memo(
   () => true
 );
 Placeholder.displayName = "ReactionPickerPlaceholder";
-
-const ScrollableContainer = styled.div`
-  height: 300px;
-  overflow-y: auto;
-`;
 
 const PopoverButton = styled(NudeButton)`
   border-radius: 50%;

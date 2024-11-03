@@ -100,7 +100,8 @@ function CommentThread({
   useOnClickOutside(topRef, (event) => {
     if (
       focused &&
-      !(event.target as HTMLElement).classList.contains("comment")
+      !(event.target as HTMLElement).classList.contains("comment") &&
+      event.defaultPrevented === false
     ) {
       history.replace({
         search: location.search,
