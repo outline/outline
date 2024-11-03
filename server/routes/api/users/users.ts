@@ -563,11 +563,8 @@ router.post(
       }
     }
 
-    await userDestroyer({
+    await userDestroyer(ctx, {
       user,
-      actor,
-      ip: ctx.request.ip,
-      transaction,
     });
 
     ctx.body = {
