@@ -1,7 +1,9 @@
 import { observer } from "mobx-react";
+import { CollectionIcon as SVGCollectionIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import FilterOptions from "~/components/FilterOptions";
+import CollectionIcon from "~/components/Icons/CollectionIcon";
 import useStores from "~/hooks/useStores";
 
 type Props = {
@@ -16,14 +18,16 @@ function CollectionFilter(props: Props) {
   const { collections } = useStores();
   const { onSelect, collectionId } = props;
   const options = React.useMemo(() => {
-    const collectionOptions = collections.orderedData.map((user) => ({
-      key: user.id,
-      label: user.name,
+    const collectionOptions = collections.orderedData.map((collection) => ({
+      key: collection.id,
+      label: collection.name,
+      icon: <CollectionIcon collection={collection} size={18} />,
     }));
     return [
       {
         key: "",
         label: t("Any collection"),
+        icon: <SVGCollectionIcon size={18} />,
       },
       ...collectionOptions,
     ];

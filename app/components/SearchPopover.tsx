@@ -55,7 +55,8 @@ function SearchPopover({ shareId, className }: Props) {
   const performSearch = React.useCallback(
     async ({ query, ...options }) => {
       if (query?.length > 0) {
-        const response = await documents.search(query, {
+        const response = await documents.search({
+          query,
           shareId,
           ...options,
         });

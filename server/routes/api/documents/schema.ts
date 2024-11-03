@@ -36,9 +36,30 @@ const DateFilterSchema = z.object({
     .optional(),
 });
 
-const SearchQuerySchema = z.object({
-  /** Query for search */
-  query: z.string().refine((v) => v.trim() !== ""),
+const BaseSearchSchema = DateFilterSchema.extend({
+  /** Filter results for team based on the collection */
+  collectionId: z.string().uuid().optional(),
+
+  /** Filter results based on user */
+  userId: z.string().uuid().optional(),
+
+  /** Filter results based on content within a document and it's children */
+  documentId: z.string().uuid().optional(),
+
+  /** Document statuses to include in results */
+  statusFilter: z.nativeEnum(StatusFilter).array().optional(),
+
+  /** Filter results for the team derived from shareId */
+  shareId: z
+    .string()
+    .refine((val) => isUUID(val) || UrlHelper.SHARE_URL_SLUG_REGEX.test(val))
+    .optional(),
+
+  /** Min words to be shown in the results snippets */
+  snippetMinWords: z.number().default(20),
+
+  /** Max words to be accomodated in the results snippets */
+  snippetMaxWords: z.number().default(30),
 });
 
 const BaseIdSchema = z.object({
@@ -153,34 +174,24 @@ export const DocumentsRestoreSchema = BaseSchema.extend({
 export type DocumentsRestoreReq = z.infer<typeof DocumentsRestoreSchema>;
 
 export const DocumentsSearchSchema = BaseSchema.extend({
-  body: SearchQuerySchema.merge(DateFilterSchema).extend({
-    /** Filter results for team based on the collection */
-    collectionId: z.string().uuid().optional(),
-
-    /** Filter results based on user */
-    userId: z.string().uuid().optional(),
-
-    /** Filter results based on content within a document and it's children */
-    documentId: z.string().uuid().optional(),
-
-    /** Document statuses to include in results */
-    statusFilter: z.nativeEnum(StatusFilter).array().optional(),
-
-    /** Filter results for the team derived from shareId */
-    shareId: z
-      .string()
-      .refine((val) => isUUID(val) || UrlHelper.SHARE_URL_SLUG_REGEX.test(val))
-      .optional(),
-
-    /** Min words to be shown in the results snippets */
-    snippetMinWords: z.number().default(20),
-
-    /** Max words to be accomodated in the results snippets */
-    snippetMaxWords: z.number().default(30),
+  body: BaseSearchSchema.extend({
+    /** Query for search */
+    query: z.string().optional(),
   }),
 });
 
 export type DocumentsSearchReq = z.infer<typeof DocumentsSearchSchema>;
+
+export const DocumentsSearchTitlesSchema = BaseSchema.extend({
+  body: BaseSearchSchema.extend({
+    /** Query for search */
+    query: z.string().refine((val) => val.trim() !== ""),
+  }),
+});
+
+export type DocumentsSearchTitlesReq = z.infer<
+  typeof DocumentsSearchTitlesSchema
+>;
 
 export const DocumentsDuplicateSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
