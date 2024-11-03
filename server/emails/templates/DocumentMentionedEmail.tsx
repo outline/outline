@@ -1,5 +1,6 @@
 import differenceBy from "lodash/differenceBy";
 import * as React from "react";
+import { TeamPreference } from "@shared/types";
 import { Day } from "@shared/utils/time";
 import { Document, Revision } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -50,6 +51,7 @@ export default class DocumentMentionedEmail extends BaseEmail<
 
     let currDoc: Document | Revision = document;
     let prevDoc: Revision | undefined;
+    const team = await document.$get("team");
 
     if (revisionId) {
       const revision = await Revision.findByPk(revisionId);
@@ -75,7 +77,10 @@ export default class DocumentMentionedEmail extends BaseEmail<
 
     let body: string | undefined;
 
-    if (firstNewMention) {
+    if (
+      firstNewMention &&
+      team?.getPreference(TeamPreference.PreviewsInEmails)
+    ) {
       const node = ProsemirrorHelper.getNodeForMentionEmail(
         DocumentHelper.toProsemirror(currDoc),
         firstNewMention

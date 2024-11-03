@@ -1,5 +1,5 @@
 import * as React from "react";
-import { NotificationEventType } from "@shared/types";
+import { NotificationEventType, TeamPreference } from "@shared/types";
 import { Day } from "@shared/utils/time";
 import { Collection, Comment, Document } from "@server/models";
 import HTMLHelper from "@server/models/helpers/HTMLHelper";
@@ -60,7 +60,10 @@ export default class CommentCreatedEmail extends BaseEmail<
       return false;
     }
 
-    const comment = await Comment.findByPk(commentId);
+    const [comment, team] = await Promise.all([
+      Comment.findByPk(commentId),
+      document.$get("team"),
+    ]);
     if (!comment) {
       return false;
     }
@@ -72,22 +75,25 @@ export default class CommentCreatedEmail extends BaseEmail<
     });
 
     let body;
-    let content = ProsemirrorHelper.toHTML(
-      ProsemirrorHelper.toProsemirror(comment.data),
-      {
-        centered: false,
+
+    if (team?.getPreference(TeamPreference.PreviewsInEmails)) {
+      let content = ProsemirrorHelper.toHTML(
+        ProsemirrorHelper.toProsemirror(comment.data),
+        {
+          centered: false,
+        }
+      );
+
+      content = await TextHelper.attachmentsToSignedUrls(
+        content,
+        document.teamId,
+        4 * Day.seconds
+      );
+
+      if (content) {
+        // inline all css so that it works in as many email providers as possible.
+        body = await HTMLHelper.inlineCSS(content);
       }
-    );
-
-    content = await TextHelper.attachmentsToSignedUrls(
-      content,
-      document.teamId,
-      4 * Day.seconds
-    );
-
-    if (content) {
-      // inline all css so that it works in as many email providers as possible.
-      body = await HTMLHelper.inlineCSS(content);
     }
 
     const isReply = !!comment.parentCommentId;

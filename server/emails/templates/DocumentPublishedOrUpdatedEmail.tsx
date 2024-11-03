@@ -1,5 +1,5 @@
 import * as React from "react";
-import { NotificationEventType } from "@shared/types";
+import { NotificationEventType, TeamPreference } from "@shared/types";
 import { Day } from "@shared/utils/time";
 import { Document, Collection, Revision } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -58,13 +58,16 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
       return false;
     }
 
-    const collection = await document.$get("collection");
+    const [collection, team] = await Promise.all([
+      document.$get("collection"),
+      document.$get("team"),
+    ]);
     if (!collection) {
       return false;
     }
 
     let body;
-    if (revisionId) {
+    if (revisionId && team?.getPreference(TeamPreference.PreviewsInEmails)) {
       // generate the diff html for the email
       const revision = await Revision.findByPk(revisionId);
 
