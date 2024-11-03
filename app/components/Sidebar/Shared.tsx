@@ -103,7 +103,6 @@ const ScrollContainer = styled(Scrollable)`
 `;
 
 const TopSection = styled(Flex)`
-  position: relative;
   padding: 8px;
   flex-shrink: 0;
 `;

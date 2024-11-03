@@ -171,7 +171,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
       document.removeEventListener("mousemove", handleDrag);
       document.removeEventListener("mouseup", handleStopDrag);
     };
-  }, [isResizing, handleDrag, handleStopDrag]);
+  }, [isResizing, handleDrag, handleBlur, handleStopDrag]);
 
   const handleReset = React.useCallback(() => {
     ui.setSidebarWidth(theme.sidebarWidth);
