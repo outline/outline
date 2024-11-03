@@ -31,10 +31,10 @@ export function setSelfHosted() {
   env.URL = sharedEnv.URL = `https://${faker.internet.domainName()}`;
 }
 
-export function withAPIContext(
+export function withAPIContext<T>(
   user: User,
-  fn: (ctx: APIContext) => unknown
-): Promise<unknown> {
+  fn: (ctx: APIContext) => T
+): Promise<T> {
   return sequelize.transaction(async (transaction: Transaction) => {
     const state = {
       auth: {

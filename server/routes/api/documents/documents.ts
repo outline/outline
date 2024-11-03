@@ -1205,7 +1205,7 @@ router.post(
       }
     }
 
-    document = await documentUpdater({
+    document = await documentUpdater(ctx, {
       document,
       user,
       ...input,
@@ -1213,8 +1213,6 @@ router.post(
       collectionId,
       insightsEnabled,
       editorVersion,
-      transaction,
-      ip: ctx.request.ip,
     });
 
     ctx.body = {
