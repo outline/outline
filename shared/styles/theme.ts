@@ -188,7 +188,7 @@ export const buildDarkTheme = (input: Partial<Colors>): DefaultTheme => {
     textDiffDeletedBackground: "rgba(248,81,73,0.15)",
     placeholder: "#596673",
     sidebarBackground: colors.veryDarkBlue,
-    sidebarActiveBackground: lighten(0.02, colors.almostBlack),
+    sidebarActiveBackground: lighten(0.09, colors.veryDarkBlue),
     sidebarControlHoverBackground: colors.white10,
     sidebarDraftBorder: darken("0.35", colors.slate),
     sidebarText: colors.slate,
@@ -196,12 +196,12 @@ export const buildDarkTheme = (input: Partial<Colors>): DefaultTheme => {
     shadow: "rgba(0, 0, 0, 0.6)",
 
     modalBackdrop: colors.black50,
-    modalBackground: "#1f2128",
+    modalBackground: "#181c25",
     modalShadow:
       "0 0 0 1px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.08)",
 
-    menuItemSelected: lighten(0.1, "#1f2128"),
-    menuBackground: "#1f2128",
+    menuItemSelected: lighten(0.09, "#181c25"),
+    menuBackground: "#181c25",
     menuShadow:
       "0 0 0 1px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.08)",
     divider: lighten(0.1, colors.almostBlack),
