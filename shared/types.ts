@@ -217,6 +217,8 @@ export enum TeamPreference {
   MembersCanCreateApiKey = "membersCanCreateApiKey",
   /** Whether members can delete their user account. */
   MembersCanDeleteAccount = "membersCanDeleteAccount",
+  /** Whether notification emails include document and comment content. */
+  PreviewsInEmails = "previewsInEmails",
   /** Whether users can comment on documents. */
   Commenting = "commenting",
   /** The custom theme for the team. */
@@ -232,6 +234,7 @@ export type TeamPreferences = {
   [TeamPreference.MembersCanInvite]?: boolean;
   [TeamPreference.MembersCanCreateApiKey]?: boolean;
   [TeamPreference.MembersCanDeleteAccount]?: boolean;
+  [TeamPreference.PreviewsInEmails]?: boolean;
   [TeamPreference.Commenting]?: boolean;
   [TeamPreference.CustomTheme]?: Partial<CustomTheme>;
   [TeamPreference.TocPosition]?: TOCPosition;

@@ -1,13 +1,20 @@
 import addressparser from "addressparser";
 import Bull from "bull";
 import invariant from "invariant";
+import { Node } from "prosemirror-model";
 import randomstring from "randomstring";
 import * as React from "react";
+import { TeamPreference } from "@shared/types";
+import { Day } from "@shared/utils/time";
 import mailer from "@server/emails/mailer";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
+import { Team } from "@server/models";
 import Notification from "@server/models/Notification";
+import HTMLHelper from "@server/models/helpers/HTMLHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import { TextHelper } from "@server/models/helpers/TextHelper";
 import { taskQueue } from "@server/queues";
 import { TaskPriority } from "@server/queues/tasks/BaseTask";
 import { NotificationMetadata } from "@server/types";
@@ -268,4 +275,35 @@ export default abstract class BaseEmail<
    * fromName hook allows overriding the "from" name of the email.
    */
   protected fromName?(props: T): string | undefined;
+
+  /**
+   * A HTML string to be rendered in the email from a ProseMirror node. The string
+   * will be inlined with CSS and have attachments converted to signed URLs.
+   *
+   * @param team The team the email is being sent to
+   * @param node The prosemirror node to render
+   * @returns The HTML content as a string, or undefined if team preference.
+   */
+  protected async htmlForData(team: Team, node: Node) {
+    if (!team?.getPreference(TeamPreference.PreviewsInEmails)) {
+      return undefined;
+    }
+
+    let content = ProsemirrorHelper.toHTML(node, {
+      centered: false,
+    });
+
+    content = await TextHelper.attachmentsToSignedUrls(
+      content,
+      team.id,
+      4 * Day.seconds
+    );
+
+    if (content) {
+      // inline all css so that it works in as many email providers as possible.
+      return await HTMLHelper.inlineCSS(content);
+    }
+
+    return;
+  }
 }

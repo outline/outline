@@ -1,11 +1,8 @@
 import * as React from "react";
 import { NotificationEventType } from "@shared/types";
-import { Day } from "@shared/utils/time";
 import { Collection, Comment, Document } from "@server/models";
-import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
-import { TextHelper } from "@server/models/helpers/TextHelper";
 import { can } from "@server/policies";
 import BaseEmail, { EmailMessageCategory, EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
@@ -60,8 +57,11 @@ export default class CommentCreatedEmail extends BaseEmail<
       return false;
     }
 
-    const comment = await Comment.findByPk(commentId);
-    if (!comment) {
+    const [comment, team] = await Promise.all([
+      Comment.findByPk(commentId),
+      document.$get("team"),
+    ]);
+    if (!comment || !team) {
       return false;
     }
 
@@ -71,25 +71,10 @@ export default class CommentCreatedEmail extends BaseEmail<
       order: [["createdAt", "ASC"]],
     });
 
-    let body;
-    let content = ProsemirrorHelper.toHTML(
-      ProsemirrorHelper.toProsemirror(comment.data),
-      {
-        centered: false,
-      }
+    const body = await this.htmlForData(
+      team,
+      ProsemirrorHelper.toProsemirror(comment.data)
     );
-
-    content = await TextHelper.attachmentsToSignedUrls(
-      content,
-      document.teamId,
-      4 * Day.seconds
-    );
-
-    if (content) {
-      // inline all css so that it works in as many email providers as possible.
-      body = await HTMLHelper.inlineCSS(content);
-    }
-
     const isReply = !!comment.parentCommentId;
     const isFirstComment = firstComment?.id === commentId;
 
