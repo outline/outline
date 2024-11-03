@@ -162,16 +162,19 @@ class Event extends IdModel<
   static createFromContext(
     ctx: APIContext,
     attributes: Omit<Partial<Event>, "ip" | "teamId" | "actorId"> = {},
+    defaultAttributes: Pick<Partial<Event>, "ip" | "teamId" | "actorId"> = {},
     options?: CreateOptions<InferAttributes<Event>>
   ) {
-    const { user } = ctx.state.auth;
+    const user = ctx.state.auth?.user;
+    const authType = ctx.state.auth?.type;
+
     return this.create(
       {
         ...attributes,
-        actorId: user.id,
-        teamId: user.teamId,
-        ip: ctx.request.ip,
-        authType: ctx.state.auth.type,
+        actorId: user?.id || defaultAttributes.actorId,
+        teamId: user?.teamId || defaultAttributes.teamId,
+        ip: ctx.request.ip || defaultAttributes.ip,
+        authType,
       },
       {
         transaction: ctx.state.transaction,

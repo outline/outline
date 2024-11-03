@@ -34,12 +34,19 @@ export default async function notificationUpdater(
   if (changed) {
     await notification.save({ transaction });
 
-    await Event.createFromContext(ctx, {
-      name: "notifications.update",
-      userId: notification.userId,
-      modelId: notification.id,
-      documentId: notification.documentId,
-    });
+    await Event.createFromContext(
+      ctx,
+      {
+        name: "notifications.update",
+        userId: notification.userId,
+        modelId: notification.id,
+        documentId: notification.documentId,
+      },
+      {
+        actorId: notification.userId,
+        teamId: notification.teamId,
+      }
+    );
   }
 
   return notification;
