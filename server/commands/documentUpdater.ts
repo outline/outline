@@ -117,7 +117,11 @@ export default async function documentUpdater(
 
     await Event.createFromContext(ctx, event);
   } else if (done) {
-    await Event.schedule(event);
+    await Event.schedule({
+      ...event,
+      actorId: user.id,
+      teamId: document.teamId,
+    });
   }
 
   if (document.title !== previousTitle) {
