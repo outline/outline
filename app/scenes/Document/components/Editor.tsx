@@ -4,8 +4,9 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
 import { useHistory, useRouteMatch } from "react-router-dom";
+import { UserPreferenceDefaults } from "@shared/constants";
 import { richExtensions, withComments } from "@shared/editor/nodes";
-import { TeamPreference } from "@shared/types";
+import { TeamPreference, UserPreference } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
@@ -79,10 +80,14 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   } = props;
   const can = usePolicy(document);
 
+  const enableSmartText =
+    user?.getPreference(UserPreference.EnableSmartText) ??
+    UserPreferenceDefaults.enableSmartText;
+
   const extensions = React.useMemo(
     () => [
       ...withComments(richExtensions),
-      SmartText,
+      ...(enableSmartText ? [SmartText] : []),
       PasteHandler,
       ClipboardTextSerializer,
       BlockMenuExtension,
@@ -94,7 +99,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       PreventTab,
       Keys,
     ],
-    []
+    [enableSmartText]
   );
 
   const iconColor = document.color ?? (last(colorPalette) as string);

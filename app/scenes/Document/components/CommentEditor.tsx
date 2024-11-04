@@ -1,7 +1,9 @@
 import { observer } from "mobx-react";
 import * as React from "react";
+import { UserPreferenceDefaults } from "@shared/constants";
 import { basicExtensions, withComments } from "@shared/editor/nodes";
 import HardBreak from "@shared/editor/nodes/HardBreak";
+import { UserPreference } from "@shared/types";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import type { Editor as SharedEditor } from "~/editor";
 import ClipboardTextSerializer from "~/editor/extensions/ClipboardTextSerializer";
@@ -18,12 +20,15 @@ const CommentEditor = (
   ref: React.RefObject<SharedEditor>
 ) => {
   const user = useCurrentUser({ rejectOnEmpty: false });
+  const enableSmartText =
+    user?.getPreference(UserPreference.EnableSmartText) ??
+    UserPreferenceDefaults.enableSmartText;
 
   const extensions = React.useMemo(
     () => [
       ...withComments(basicExtensions),
       HardBreak,
-      SmartText,
+      ...(enableSmartText ? [SmartText] : []),
       PasteHandler,
       ClipboardTextSerializer,
       EmojiMenuExtension,
@@ -32,7 +37,7 @@ const CommentEditor = (
       PreventTab,
       Keys,
     ],
-    []
+    [enableSmartText]
   );
 
   return (
