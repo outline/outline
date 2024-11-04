@@ -170,6 +170,8 @@ export enum UserPreference {
   FullWidthDocuments = "fullWidthDocuments",
   /** Whether to sort the comments by their order in the document. */
   SortCommentsByOrderInDocument = "sortCommentsByOrderInDocument",
+  /** Whether smart text replacements should be enabled. */
+  EnableSmartText = "enableSmartText",
 }
 
 export type UserPreferences = { [key in UserPreference]?: boolean };

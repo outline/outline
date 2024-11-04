@@ -961,6 +961,8 @@
   "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.": "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.",
   "Remember previous location": "Remember previous location",
   "Automatically return to the document you were last viewing when the app is re-opened.": "Automatically return to the document you were last viewing when the app is re-opened.",
+  "Smart text replacements": "Smart text replacements",
+  "Auto-format text by replacing shortcuts with symbols, dashes, smart quotes, and other typographical elements.": "Auto-format text by replacing shortcuts with symbols, dashes, smart quotes, and other typographical elements.",
   "You may delete your account at any time, note that this is unrecoverable": "You may delete your account at any time, note that this is unrecoverable",
   "Profile saved": "Profile saved",
   "Profile picture updated": "Profile picture updated",
