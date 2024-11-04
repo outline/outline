@@ -38,21 +38,6 @@ import MultiplayerEditor from "./AsyncMultiplayerEditor";
 import DocumentMeta from "./DocumentMeta";
 import DocumentTitle from "./DocumentTitle";
 
-const extensions = [
-  ...withComments(richExtensions),
-  SmartText,
-  PasteHandler,
-  ClipboardTextSerializer,
-  BlockMenuExtension,
-  EmojiMenuExtension,
-  MentionMenuExtension,
-  FindAndReplaceExtension,
-  HoverPreviewsExtension,
-  // Order these default key handlers last
-  PreventTab,
-  Keys,
-];
-
 type Props = Omit<EditorProps, "editorStyle"> & {
   onChangeTitle: (title: string) => void;
   onChangeIcon: (icon: string | null, color: string | null) => void;
@@ -93,6 +78,24 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     ...rest
   } = props;
   const can = usePolicy(document);
+
+  const extensions = React.useMemo(
+    () => [
+      ...withComments(richExtensions),
+      SmartText,
+      PasteHandler,
+      ClipboardTextSerializer,
+      BlockMenuExtension,
+      EmojiMenuExtension,
+      MentionMenuExtension,
+      FindAndReplaceExtension,
+      HoverPreviewsExtension,
+      // Order these default key handlers last
+      PreventTab,
+      Keys,
+    ],
+    []
+  );
 
   const iconColor = document.color ?? (last(colorPalette) as string);
   const childRef = React.useRef<HTMLDivElement>(null);

@@ -13,24 +13,27 @@ import PreventTab from "~/editor/extensions/PreventTab";
 import SmartText from "~/editor/extensions/SmartText";
 import useCurrentUser from "~/hooks/useCurrentUser";
 
-const extensions = [
-  ...withComments(basicExtensions),
-  HardBreak,
-  SmartText,
-  PasteHandler,
-  ClipboardTextSerializer,
-  EmojiMenuExtension,
-  MentionMenuExtension,
-  // Order these default key handlers last
-  PreventTab,
-  Keys,
-];
-
 const CommentEditor = (
   props: EditorProps,
   ref: React.RefObject<SharedEditor>
 ) => {
   const user = useCurrentUser({ rejectOnEmpty: false });
+
+  const extensions = React.useMemo(
+    () => [
+      ...withComments(basicExtensions),
+      HardBreak,
+      SmartText,
+      PasteHandler,
+      ClipboardTextSerializer,
+      EmojiMenuExtension,
+      MentionMenuExtension,
+      // Order these default key handlers last
+      PreventTab,
+      Keys,
+    ],
+    []
+  );
 
   return (
     <Editor extensions={extensions} userId={user?.id} {...props} ref={ref} />
