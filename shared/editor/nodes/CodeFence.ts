@@ -161,6 +161,7 @@ export default class CodeFence extends Node {
       attrs: {
         language: {
           default: DEFAULT_LANGUAGE,
+          validate: "string",
         },
       },
       content: "text*",

@@ -79,6 +79,7 @@ export default class Image extends SimpleImage {
       attrs: {
         src: {
           default: "",
+          validate: "string",
         },
         width: {
           default: undefined,
@@ -88,12 +89,15 @@ export default class Image extends SimpleImage {
         },
         alt: {
           default: null,
+          validate: "string|null",
         },
         layoutClass: {
           default: null,
+          validate: "string|null",
         },
         title: {
           default: null,
+          validate: "string|null",
         },
       },
       content: "text*",
