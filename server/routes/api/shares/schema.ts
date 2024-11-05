@@ -51,6 +51,7 @@ export const SharesUpdateSchema = BaseSchema.extend({
     id: z.string().uuid(),
     includeChildDocuments: z.boolean().optional(),
     published: z.boolean().optional(),
+    allowIndexing: z.boolean().optional(),
     urlId: z
       .string()
       .regex(UrlHelper.SHARE_URL_SLUG_REGEX, {
