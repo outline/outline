@@ -225,6 +225,12 @@ export default class AuthStore extends Store<Team> {
           });
         }
 
+        const currTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (data.user.timezone !== currTimezone) {
+          const user = this.rootStore.users.get(data.user.id)!;
+          void user.save({ timezone: currTimezone });
+        }
+
         // Redirect to the correct custom domain or team subdomain if needed
         // Occurs when the (sub)domain is changed in admin and the user hits an old url
         const { hostname, pathname } = window.location;

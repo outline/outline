@@ -184,6 +184,10 @@ class User extends ParanoidModel<
   language: keyof typeof locales | null;
 
   @AllowNull
+  @Column(DataType.STRING)
+  timezone: string | null;
+
+  @AllowNull
   @IsUrlOrRelativePath
   @Length({ max: 4096, msg: "avatarUrl must be less than 4096 characters" })
   @Column(DataType.STRING)

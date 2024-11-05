@@ -84,6 +84,7 @@ export const UsersUpdateSchema = BaseSchema.extend({
     avatarUrl: z.string().nullish(),
     language: zodEnumFromObjectKeys(locales).optional(),
     preferences: z.record(z.nativeEnum(UserPreference), z.boolean()).optional(),
+    timezone: z.string().optional(),
   }),
 });
 

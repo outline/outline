@@ -50,6 +50,10 @@ class User extends ParanoidModel {
   @observable
   notificationSettings: NotificationSettings;
 
+  @Field
+  @observable
+  timezone?: string;
+
   @observable
   email: string;
 
