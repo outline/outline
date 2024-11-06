@@ -961,6 +961,8 @@
   "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.": "启用时，文档为独立编辑模式。禁用时，文档在你拥有权限时始终可编辑。",
   "Remember previous location": "记住上一次的位置",
   "Automatically return to the document you were last viewing when the app is re-opened.": "重新打开应用程序时自动返回到你上次浏览的文档。",
+  "Smart text replacements": "Smart text replacements",
+  "Auto-format text by replacing shortcuts with symbols, dashes, smart quotes, and other typographical elements.": "Auto-format text by replacing shortcuts with symbols, dashes, smart quotes, and other typographical elements.",
   "You may delete your account at any time, note that this is unrecoverable": "你可以随时删除你的帐户，请注意这不可恢复",
   "Profile saved": "配置已保存",
   "Profile picture updated": "头像已更新",
