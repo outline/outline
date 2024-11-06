@@ -33,4 +33,5 @@ export const UserPreferenceDefaults: UserPreferences = {
   [UserPreference.UseCursorPointer]: true,
   [UserPreference.CodeBlockLineNumers]: true,
   [UserPreference.SortCommentsByOrderInDocument]: false,
+  [UserPreference.EnableSmartText]: true,
 };

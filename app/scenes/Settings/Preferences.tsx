@@ -153,7 +153,6 @@ function Preferences() {
         />
       </SettingRow>
       <SettingRow
-        border={false}
         name={UserPreference.RememberLastPath}
         label={t("Remember previous location")}
         description={t(
@@ -164,6 +163,21 @@ function Preferences() {
           id={UserPreference.RememberLastPath}
           name={UserPreference.RememberLastPath}
           checked={!!user.getPreference(UserPreference.RememberLastPath)}
+          onChange={handlePreferenceChange(false)}
+        />
+      </SettingRow>
+      <SettingRow
+        border={false}
+        name={UserPreference.EnableSmartText}
+        label={t("Smart text replacements")}
+        description={t(
+          "Auto-format text by replacing shortcuts with symbols, dashes, smart quotes, and other typographical elements."
+        )}
+      >
+        <Switch
+          id={UserPreference.EnableSmartText}
+          name={UserPreference.EnableSmartText}
+          checked={!!user.getPreference(UserPreference.EnableSmartText)}
           onChange={handlePreferenceChange(false)}
         />
       </SettingRow>

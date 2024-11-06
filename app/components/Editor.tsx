@@ -255,6 +255,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     <ErrorBoundary component="div" reloadOnChunkMissing>
       <>
         <LazyLoadedEditor
+          key={props.extensions?.length || 0}
           ref={mergeRefs([ref, localRef, handleRefChanged])}
           uploadFile={handleUploadFile}
           embeds={embeds}
