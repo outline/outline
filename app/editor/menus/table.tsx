@@ -1,4 +1,4 @@
-import { AlignFullWidthIcon, TrashIcon } from "outline-icons";
+import { AlignFullWidthIcon, DownloadIcon, TrashIcon } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import * as React from "react";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
@@ -31,6 +31,16 @@ export default function tableMenuItems(
       name: "deleteTable",
       tooltip: dictionary.deleteTable,
       icon: <TrashIcon />,
+    },
+    {
+      name: "separator",
+    },
+    {
+      name: "exportTable",
+      tooltip: dictionary.exportAsCSV,
+      label: "CSV",
+      attrs: { format: "csv", fileName: `${window.document.title}.csv` },
+      icon: <DownloadIcon />,
     },
   ];
 }

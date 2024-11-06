@@ -8,7 +8,7 @@ export default class MentionMenuExtension extends Suggestion {
   get defaultOptions() {
     return {
       // ported from https://github.com/tc39/proposal-regexp-unicode-property-escapes#unicode-aware-version-of-w
-      openRegex: /(?:^|\s|\()@([\p{L}\p{M}\d]+)?$/u,
+      openRegex: /(?:^|\s|\()@([\p{L}\p{M}\d\s{1}@\.]+)?$/u,
       closeRegex: /(?:^|\s|\()@(([\p{L}\p{M}\d]*\s{2})|(\s+[\p{L}\p{M}\d]+))$/u,
     };
   }

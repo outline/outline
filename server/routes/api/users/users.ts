@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import { Op, WhereOptions } from "sequelize";
+import { Op, Sequelize, WhereOptions } from "sequelize";
 import { UserPreference, UserRole } from "@shared/types";
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import { UserValidation } from "@shared/validations";
@@ -124,8 +124,15 @@ router.post(
     if (query) {
       where = {
         ...where,
-        name: {
-          [Op.iLike]: `%${query}%`,
+        [Op.and]: {
+          [Op.or]: [
+            Sequelize.literal(
+              `unaccent(LOWER(email)) like unaccent(LOWER(:query))`
+            ),
+            Sequelize.literal(
+              `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
+            ),
+          ],
         },
       };
     }
@@ -144,15 +151,20 @@ router.post(
       };
     }
 
+    const replacements = { query: `%${query}%` };
+
     const [users, total] = await Promise.all([
       User.findAll({
         where,
+        replacements,
         order: [[sort, direction]],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
       }),
       User.count({
         where,
+        // @ts-expect-error Types are incorrect for count
+        replacements,
       }),
     ]);
 
@@ -160,7 +172,8 @@ router.post(
       pagination: { ...ctx.state.pagination, total },
       data: users.map((user) =>
         presentUser(user, {
-          includeDetails: can(actor, "readDetails", user),
+          includeEmail: !!can(actor, "readEmail", user),
+          includeDetails: !!can(actor, "readDetails", user),
         })
       ),
       policies: presentPolicies(actor, users),
@@ -177,7 +190,7 @@ router.post(
     const actor = ctx.state.auth.user;
     const user = id ? await User.findByPk(id) : actor;
     authorize(actor, "read", user);
-    const includeDetails = can(actor, "readDetails", user);
+    const includeDetails = !!can(actor, "readDetails", user);
 
     ctx.body = {
       data: presentUser(user, {
@@ -207,7 +220,7 @@ router.post(
       });
     }
     authorize(actor, "update", user);
-    const includeDetails = can(actor, "readDetails", user);
+    const includeDetails = !!can(actor, "readDetails", user);
 
     if (name) {
       user.name = name;
@@ -224,15 +237,11 @@ router.post(
       }
     }
 
-    await Event.createFromContext(
-      ctx,
-      {
-        name: "users.update",
-        userId: user.id,
-        changes: user.changeset,
-      },
-      { transaction }
-    );
+    await Event.createFromContext(ctx, {
+      name: "users.update",
+      userId: user.id,
+      changes: user.changeset,
+    });
     await user.save({ transaction });
 
     ctx.body = {
@@ -335,22 +344,16 @@ async function updateRole(ctx: APIContext<T.UsersChangeRoleReq>) {
 
   await user.update({ role }, { transaction });
 
-  await Event.createFromContext(
-    ctx,
-    {
-      name,
-      userId,
-      data: {
-        name: user.name,
-        role,
-      },
+  await Event.createFromContext(ctx, {
+    name,
+    userId,
+    data: {
+      name: user.name,
+      role,
     },
-    {
-      transaction,
-    }
-  );
+  });
 
-  const includeDetails = can(actor, "readDetails", user);
+  const includeDetails = !!can(actor, "readDetails", user);
 
   ctx.body = {
     data: presentUser(user, {
@@ -382,7 +385,7 @@ router.post(
       ip: ctx.request.ip,
       transaction,
     });
-    const includeDetails = can(actor, "readDetails", user);
+    const includeDetails = !!can(actor, "readDetails", user);
 
     ctx.body = {
       data: presentUser(user, {
@@ -415,7 +418,7 @@ router.post(
       transaction,
       ip: ctx.request.ip,
     });
-    const includeDetails = can(actor, "readDetails", user);
+    const includeDetails = !!can(actor, "readDetails", user);
 
     ctx.body = {
       data: presentUser(user, {
@@ -560,11 +563,8 @@ router.post(
       }
     }
 
-    await userDestroyer({
+    await userDestroyer(ctx, {
       user,
-      actor,
-      ip: ctx.request.ip,
-      transaction,
     });
 
     ctx.body = {
@@ -584,15 +584,11 @@ router.post(
     const { user } = ctx.state.auth;
     user.setNotificationEventType(eventType, true);
 
-    await Event.createFromContext(
-      ctx,
-      {
-        name: "users.update",
-        userId: user.id,
-        changes: user.changeset,
-      },
-      { transaction }
-    );
+    await Event.createFromContext(ctx, {
+      name: "users.update",
+      userId: user.id,
+      changes: user.changeset,
+    });
     await user.save({ transaction });
 
     ctx.body = {
@@ -612,15 +608,11 @@ router.post(
     const { user } = ctx.state.auth;
     user.setNotificationEventType(eventType, false);
 
-    await Event.createFromContext(
-      ctx,
-      {
-        name: "users.update",
-        userId: user.id,
-        changes: user.changeset,
-      },
-      { transaction }
-    );
+    await Event.createFromContext(ctx, {
+      name: "users.update",
+      userId: user.id,
+      changes: user.changeset,
+    });
     await user.save({ transaction });
 
     ctx.body = {

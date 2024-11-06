@@ -82,6 +82,7 @@ const IconPicker = ({
     modal: true,
     unstable_offset: [0, 0],
   });
+  const { hide, show, visible } = popover;
   const tab = useTabState({ selectedId: defaultTab });
   const previouslyVisible = usePrevious(popover.visible);
 
@@ -96,12 +97,12 @@ const IconPicker = ({
 
   const handleIconChange = React.useCallback(
     (ic: string) => {
-      popover.hide();
+      hide();
       const icType = determineIconType(ic);
       const finalColor = icType === IconType.SVG ? chosenColor : null;
       onChange(ic, finalColor);
     },
-    [popover, onChange, chosenColor]
+    [hide, onChange, chosenColor]
   );
 
   const handleIconColorChange = React.useCallback(
@@ -118,32 +119,32 @@ const IconPicker = ({
   );
 
   const handleIconRemove = React.useCallback(() => {
-    popover.hide();
+    hide();
     onChange(null, null);
-  }, [popover, onChange]);
+  }, [hide, onChange]);
 
   const handlePopoverButtonClick = React.useCallback(
     (ev: React.MouseEvent) => {
       ev.stopPropagation();
-      if (popover.visible) {
-        popover.hide();
+      if (visible) {
+        hide();
       } else {
-        popover.show();
+        show();
       }
     },
-    [popover]
+    [hide, show, visible]
   );
 
   // Popover open effect
   React.useEffect(() => {
-    if (popover.visible && !previouslyVisible) {
+    if (visible && !previouslyVisible) {
       onOpen?.();
-    } else if (!popover.visible && previouslyVisible) {
+    } else if (!visible && previouslyVisible) {
       onClose?.();
       setQuery("");
       resetDefaultTab();
     }
-  }, [popover.visible, previouslyVisible, onOpen, onClose, resetDefaultTab]);
+  }, [visible, previouslyVisible, onOpen, onClose, resetDefaultTab]);
 
   // Custom click outside handling rather than using `hideOnClickOutside` from reakit so that we can
   // prevent event bubbling.
@@ -198,7 +199,7 @@ const IconPicker = ({
                 {...tab}
                 id={TAB_NAMES["Icon"]}
                 aria-label={t("Icons")}
-                active={tab.selectedId === TAB_NAMES["Icon"]}
+                $active={tab.selectedId === TAB_NAMES["Icon"]}
               >
                 {t("Icons")}
               </StyledTab>
@@ -206,7 +207,7 @@ const IconPicker = ({
                 {...tab}
                 id={TAB_NAMES["Emoji"]}
                 aria-label={t("Emojis")}
-                active={tab.selectedId === TAB_NAMES["Emoji"]}
+                $active={tab.selectedId === TAB_NAMES["Emoji"]}
               >
                 {t("Emojis")}
               </StyledTab>
@@ -273,7 +274,7 @@ const TabActionsWrapper = styled(Flex)`
   border-bottom: 1px solid ${s("inputBorder")};
 `;
 
-const StyledTab = styled(Tab)<{ active: boolean }>`
+const StyledTab = styled(Tab)<{ $active: boolean }>`
   position: relative;
   font-weight: 500;
   font-size: 14px;
@@ -282,15 +283,15 @@ const StyledTab = styled(Tab)<{ active: boolean }>`
   border: 0;
   padding: 8px 12px;
   user-select: none;
-  color: ${({ active }) => (active ? s("textSecondary") : s("textTertiary"))};
+  color: ${({ $active }) => ($active ? s("textSecondary") : s("textTertiary"))};
   transition: color 100ms ease-in-out;
 
   &: ${hover} {
     color: ${s("textSecondary")};
   }
 
-  ${({ active }) =>
-    active &&
+  ${({ $active }) =>
+    $active &&
     css`
       &:after {
         content: "";
@@ -309,4 +310,4 @@ const StyledTabPanel = styled(TabPanel)`
   overflow-y: auto;
 `;
 
-export default IconPicker;
+export default React.memo(IconPicker);

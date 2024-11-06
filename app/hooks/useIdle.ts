@@ -23,7 +23,7 @@ const activityEvents = [
  * @returns boolean if the user is idle
  */
 export default function useIdle(
-  timeToIdle: number = 3 * Minute,
+  timeToIdle: number = 3 * Minute.ms,
   events = activityEvents
 ) {
   const isMounted = useIsMounted();

@@ -37,6 +37,6 @@ export async function navigateToSubdomain(subdomain: string) {
     .trim()
     .replace(/^https?:\/\//, "");
   const host = `https://${normalizedSubdomain}.getoutline.com`;
-  await Desktop.bridge.addCustomHost(host);
+  await Desktop.bridge?.addCustomHost(host);
   window.location.href = host;
 }

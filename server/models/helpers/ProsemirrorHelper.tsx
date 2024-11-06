@@ -1,12 +1,13 @@
-import { prosemirrorToYDoc } from "@getoutline/y-prosemirror";
 import { JSDOM } from "jsdom";
 import compact from "lodash/compact";
 import flatten from "lodash/flatten";
+import isEqual from "lodash/isEqual";
 import uniq from "lodash/uniq";
 import { Node, DOMSerializer, Fragment, Mark } from "prosemirror-model";
 import * as React from "react";
 import { renderToString } from "react-dom/server";
 import styled, { ServerStyleSheet, ThemeProvider } from "styled-components";
+import { prosemirrorToYDoc } from "y-prosemirror";
 import * as Y from "yjs";
 import EditorContainer from "@shared/editor/components/Styles";
 import embeds from "@shared/editor/embeds";
@@ -37,7 +38,7 @@ export type HTMLOptions = {
   baseUrl?: string;
 };
 
-type MentionAttrs = {
+export type MentionAttrs = {
   type: string;
   label: string;
   modelId: string;
@@ -131,16 +132,29 @@ export class ProsemirrorHelper {
    * Returns an array of attributes of all mentions in the node.
    *
    * @param node The node to parse mentions from
+   * @param options Attributes to use for filtering mentions
    * @returns An array of mention attributes
    */
-  static parseMentions(doc: Node) {
+  static parseMentions(doc: Node, options?: Partial<MentionAttrs>) {
     const mentions: MentionAttrs[] = [];
 
-    doc.descendants((node: Node) => {
+    const isApplicableNode = (node: Node) => {
+      if (node.type.name !== "mention") {
+        return false;
+      }
+
       if (
-        node.type.name === "mention" &&
-        !mentions.some((m) => m.id === node.attrs.id)
+        (options?.type && options.type !== node.attrs.type) ||
+        (options?.modelId && options.modelId !== node.attrs.modelId)
       ) {
+        return false;
+      }
+
+      return !mentions.some((m) => m.id === node.attrs.id);
+    };
+
+    doc.descendants((node: Node) => {
+      if (isApplicableNode(node)) {
         mentions.push(node.attrs as MentionAttrs);
         return false;
       }
@@ -153,6 +167,79 @@ export class ProsemirrorHelper {
     });
 
     return mentions;
+  }
+
+  /**
+   * Find the nearest ancestor block node which contains the mention.
+   *
+   * @param doc The top-level doc node of a document / revision.
+   * @param mention The mention for which the ancestor node is needed.
+   * @returns A new top-level doc node with the ancestor node as the only child.
+   */
+  static getNodeForMentionEmail(doc: Node, mention: MentionAttrs) {
+    let blockNode: Node | undefined;
+    const potentialBlockNodes = [
+      "table",
+      "checkbox_list",
+      "heading",
+      "paragraph",
+    ];
+
+    const isNodeContainingMention = (node: Node) => {
+      let foundMention = false;
+
+      node.descendants((childNode: Node) => {
+        if (
+          childNode.type.name === "mention" &&
+          isEqual(childNode.attrs, mention)
+        ) {
+          foundMention = true;
+          return false;
+        }
+
+        // No need to traverse other descendants once we find the mention.
+        if (foundMention) {
+          return false;
+        }
+
+        return true;
+      });
+
+      return foundMention;
+    };
+
+    doc.descendants((node: Node) => {
+      // No need to traverse other descendants once we find the containing block node.
+      if (blockNode) {
+        return false;
+      }
+
+      if (potentialBlockNodes.includes(node.type.name)) {
+        if (isNodeContainingMention(node)) {
+          blockNode = node;
+        }
+        return false;
+      }
+
+      return true;
+    });
+
+    // Use the containing block node to maintain structure during serialization.
+    // Minify to include mentioned child only.
+    if (blockNode && !["heading", "paragraph"].includes(blockNode.type.name)) {
+      const children: Node[] = [];
+
+      blockNode.forEach((child: Node) => {
+        if (isNodeContainingMention(child)) {
+          children.push(child);
+        }
+      });
+
+      blockNode = blockNode.copy(Fragment.fromArray(children));
+    }
+
+    // Return a new top-level "doc" node to maintain structure during serialization.
+    return blockNode ? doc.copy(Fragment.fromArray([blockNode])) : undefined;
   }
 
   /**

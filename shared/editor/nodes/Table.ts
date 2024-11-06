@@ -17,6 +17,7 @@ import {
   addRowAndMoveSelection,
   setColumnAttr,
   createTable,
+  exportTable,
   sortTable,
   setTableAttr,
   deleteColSelection,
@@ -79,6 +80,7 @@ export default class Table extends Node {
       addRowAfter: () => addRowAfter,
       deleteRow: () => deleteRow,
       deleteTable: () => deleteTable,
+      exportTable,
       toggleHeaderColumn: () => toggleHeader("column"),
       toggleHeaderRow: () => toggleHeader("row"),
     };

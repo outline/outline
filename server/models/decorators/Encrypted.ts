@@ -51,15 +51,24 @@ export default function Encrypted(target: any, propertyKey: string) {
             err
           );
         }
-
         throw err;
       }
     },
     set(value: string | null) {
-      if (isNil(value)) {
-        this.setDataValue(propertyKey, value);
-      } else {
-        Reflect.getMetadata(key, this, propertyKey).set.call(this, value);
+      try {
+        if (isNil(value)) {
+          this.setDataValue(propertyKey, value);
+        } else {
+          Reflect.getMetadata(key, this, propertyKey).set.call(this, value);
+        }
+      } catch (err) {
+        if (err.message.includes("Invalid key length")) {
+          Logger.fatal(
+            `Failed to encrypt database column (${propertyKey}). The SECRET_KEY environment variable is not the correct length.`,
+            err
+          );
+        }
+        throw err;
       }
     },
   } as any;

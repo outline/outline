@@ -150,7 +150,7 @@ const Error = styled(Flex)`
   max-width: 100%;
   color: ${s("textTertiary")};
   font-size: 14px;
-  background: ${s("secondaryBackground")};
+  background: ${s("backgroundSecondary")};
   border-radius: 4px;
   min-width: 33vw;
   height: 80px;

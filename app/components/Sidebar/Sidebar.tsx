@@ -4,16 +4,17 @@ import { useLocation } from "react-router-dom";
 import styled, { css, useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
+import { Avatar } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useMenuContext from "~/hooks/useMenuContext";
+import useMobile from "~/hooks/useMobile";
 import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
 import AccountMenu from "~/menus/AccountMenu";
 import { fadeOnDesktopBackgrounded } from "~/styles";
 import { fadeIn } from "~/styles/animations";
 import Desktop from "~/utils/Desktop";
-import Avatar from "../Avatar";
 import NotificationIcon from "../Notifications/NotificationIcon";
 import NotificationsPopover from "../Notifications/NotificationsPopover";
 import ResizeBorder from "./components/ResizeBorder";
@@ -39,6 +40,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
   const previousLocation = usePrevious(location);
   const { isMenuOpen } = useMenuContext();
   const user = useCurrentUser({ rejectOnEmpty: false });
+  const isMobile = useMobile();
   const width = ui.sidebarWidth;
   const collapsed = ui.sidebarIsClosed && !isMenuOpen;
   const maxWidth = theme.sidebarMaxWidth;
@@ -92,9 +94,17 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
     }
   }, [ui, isSmallerThanMinimum, minWidth, width, setWidth]);
 
+  const handleBlur = React.useCallback(() => {
+    setHovering(false);
+  }, []);
+
   const handleMouseDown = React.useCallback(
     (event) => {
       event.preventDefault();
+      if (!document.hasFocus()) {
+        return;
+      }
+
       setOffset(event.pageX - width);
       setResizing(true);
       setAnimating(false);
@@ -102,9 +112,9 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
     [width]
   );
 
-  const handlePointerMove = React.useCallback(() => {
+  const handlePointerActivity = React.useCallback(() => {
     if (ui.sidebarIsClosed) {
-      setHovering(true);
+      setHovering(document.hasFocus());
       setPointerMoved(true);
     }
   }, [ui.sidebarIsClosed]);
@@ -113,7 +123,10 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
     (ev) => {
       if (hasPointerMoved) {
         setHovering(
-          ev.pageX < width && ev.pageY < window.innerHeight && ev.pageY > 0
+          document.hasFocus() &&
+            ev.pageX < width &&
+            ev.pageY < window.innerHeight &&
+            ev.pageY > 0
         );
       }
     },
@@ -151,11 +164,14 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
       document.body.style.cursor = "initial";
     }
 
+    window.addEventListener("blur", handleBlur);
+
     return () => {
+      window.removeEventListener("blur", handleBlur);
       document.removeEventListener("mousemove", handleDrag);
       document.removeEventListener("mouseup", handleStopDrag);
     };
-  }, [isResizing, handleDrag, handleStopDrag]);
+  }, [isResizing, handleDrag, handleBlur, handleStopDrag]);
 
   const handleReset = React.useCallback(() => {
     ui.setSidebarWidth(theme.sidebarWidth);
@@ -189,8 +205,10 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
         $isSmallerThanMinimum={isSmallerThanMinimum}
         $mobileSidebarVisible={ui.mobileSidebarVisible}
         $collapsed={collapsed}
+        $isMobile={isMobile}
         className={className}
-        onPointerMove={handlePointerMove}
+        onPointerDown={handlePointerActivity}
+        onPointerMove={handlePointerActivity}
         onPointerLeave={handlePointerLeave}
         column
       >
@@ -214,15 +232,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
                   />
                 }
               >
-                <NotificationsPopover>
-                  {(rest: SidebarButtonProps) => (
-                    <SidebarButton
-                      {...rest}
-                      position="bottom"
-                      image={<NotificationIcon />}
-                    />
-                  )}
-                </NotificationsPopover>
+                <Notifications />
               </SidebarButton>
             )}
           </AccountMenu>
@@ -236,6 +246,14 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
     </>
   );
 });
+
+const Notifications = () => (
+  <NotificationsPopover>
+    {(rest: SidebarButtonProps) => (
+      <SidebarButton {...rest} position="bottom" image={<NotificationIcon />} />
+    )}
+  </NotificationsPopover>
+);
 
 const Backdrop = styled.a`
   animation: ${fadeIn} 250ms ease-in-out;
@@ -256,6 +274,7 @@ type ContainerProps = {
   $isHovering: boolean;
   $collapsed: boolean;
   $hidden: boolean;
+  $isMobile: boolean;
 };
 
 const hoverStyles = (props: ContainerProps) => `
@@ -298,8 +317,19 @@ const Container = styled(Flex)<ContainerProps>`
 
   & > div {
     transition: opacity 150ms ease-in-out;
-    opacity: ${(props) =>
-      props.$hidden || (props.$collapsed && !props.$isHovering) ? "0" : "1"};
+    opacity: ${(props) => {
+      if (props.$hidden) {
+        return "0";
+      }
+      if (props.$isHovering) {
+        return "1";
+      }
+      if (props.$isMobile) {
+        return props.$mobileSidebarVisible ? "1" : "0";
+      } else {
+        return props.$collapsed ? "0" : "1";
+      }
+    }};
   }
 
   ${breakpoint("tablet")`

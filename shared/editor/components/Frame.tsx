@@ -155,7 +155,7 @@ const Bar = styled.div`
   display: flex;
   align-items: center;
   border-top: 1px solid ${(props) => props.theme.embedBorder};
-  background: ${s("secondaryBackground")};
+  background: ${s("backgroundSecondary")};
   color: ${s("textSecondary")};
   padding: 0 8px;
   border-bottom-left-radius: 6px;

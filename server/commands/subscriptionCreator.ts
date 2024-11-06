@@ -11,7 +11,7 @@ type Props = {
   /** Event to subscribe to */
   event: string;
   /** The IP address of the incoming request */
-  ip: string;
+  ip: string | null;
   /** Whether the subscription should be restored if it exists in a deleted state  */
   resubscribe?: boolean;
   transaction: Transaction;

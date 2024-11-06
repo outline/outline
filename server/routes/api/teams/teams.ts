@@ -1,4 +1,3 @@
-import invariant from "invariant";
 import Router from "koa-router";
 import { UserRole } from "@shared/types";
 import teamCreator from "@server/commands/teamCreator";
@@ -145,11 +144,6 @@ router.post(
         name: provider.name,
         providerId: provider.providerId,
       })
-    );
-
-    invariant(
-      authenticationProviders?.length,
-      "Team must have at least one authentication provider"
     );
 
     const team = await teamCreator({

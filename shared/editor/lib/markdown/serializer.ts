@@ -3,6 +3,8 @@
 // https://raw.githubusercontent.com/ProseMirror/prosemirror-markdown/master/src/to_markdown.js
 // forked for table support
 
+type Options = { tightLists?: boolean; softBreak?: boolean };
+
 // ::- A specification for serializing a ProseMirror document as
 // Markdown/CommonMark text.
 export class MarkdownSerializer {
@@ -50,7 +52,7 @@ export class MarkdownSerializer {
   // :: (Node, ?Object) → string
   // Serialize the content of the given node to
   // [CommonMark](http://commonmark.org/).
-  serialize(content, options?: { tightLists?: boolean }): string {
+  serialize(content, options?: Options): string {
     const state = new MarkdownSerializerState(this.nodes, this.marks, options);
     state.renderContent(content);
     return state.out;
@@ -66,6 +68,7 @@ export class MarkdownSerializerState {
   inTightList = false;
   closed = false;
   delim = "";
+  options: Options;
 
   constructor(nodes, marks, options) {
     this.nodes = nodes;

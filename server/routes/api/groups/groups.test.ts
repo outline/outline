@@ -153,7 +153,7 @@ describe("#groups.list", () => {
     expect(body.data.groupMemberships[0].groupId).toEqual(group.id);
     expect(body.data.groupMemberships[0].user.id).toEqual(user.id);
     expect(body.policies.length).toEqual(1);
-    expect(body.policies[0].abilities.read).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
   });
 
   it("should return groups when membership user is deleted", async () => {
@@ -188,7 +188,7 @@ describe("#groups.list", () => {
     expect(body.data.groupMemberships[0].groupId).toEqual(group.id);
     expect(body.data.groupMemberships[0].user.id).toEqual(me.id);
     expect(body.policies.length).toEqual(1);
-    expect(body.policies[0].abilities.read).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
   });
 
   it("should return groups only to which a given user has been added", async () => {

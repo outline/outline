@@ -14,6 +14,7 @@ import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import UserDelete from "../UserDelete";
 import SettingRow from "./components/SettingRow";
@@ -23,6 +24,7 @@ function Preferences() {
   const { ui, dialogs } = useStores();
   const user = useCurrentUser();
   const team = useCurrentTeam();
+  const can = usePolicy(user.id);
 
   const handlePreferenceChange =
     (inverted = false) =>
@@ -151,7 +153,6 @@ function Preferences() {
         />
       </SettingRow>
       <SettingRow
-        border={false}
         name={UserPreference.RememberLastPath}
         label={t("Remember previous location")}
         description={t(
@@ -165,21 +166,40 @@ function Preferences() {
           onChange={handlePreferenceChange(false)}
         />
       </SettingRow>
-
-      <Heading as="h2">{t("Danger")}</Heading>
       <SettingRow
-        name="delete"
-        label={t("Delete account")}
+        border={false}
+        name={UserPreference.EnableSmartText}
+        label={t("Smart text replacements")}
         description={t(
-          "You may delete your account at any time, note that this is unrecoverable"
+          "Auto-format text by replacing shortcuts with symbols, dashes, smart quotes, and other typographical elements."
         )}
       >
-        <span>
-          <Button onClick={showDeleteAccount} neutral>
-            {t("Delete account")}…
-          </Button>
-        </span>
+        <Switch
+          id={UserPreference.EnableSmartText}
+          name={UserPreference.EnableSmartText}
+          checked={!!user.getPreference(UserPreference.EnableSmartText)}
+          onChange={handlePreferenceChange(false)}
+        />
       </SettingRow>
+
+      {can.delete && (
+        <>
+          <Heading as="h2">{t("Danger")}</Heading>
+          <SettingRow
+            name="delete"
+            label={t("Delete account")}
+            description={t(
+              "You may delete your account at any time, note that this is unrecoverable"
+            )}
+          >
+            <span>
+              <Button onClick={showDeleteAccount} neutral>
+                {t("Delete account")}…
+              </Button>
+            </span>
+          </SettingRow>
+        </>
+      )}
     </Scene>
   );
 }

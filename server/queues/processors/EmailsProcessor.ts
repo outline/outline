@@ -60,7 +60,7 @@ export default class EmailsProcessor extends BaseProcessor {
           },
           { notificationId }
         ).schedule({
-          delay: Minute,
+          delay: Minute.ms,
         });
         return;
       }
@@ -76,7 +76,7 @@ export default class EmailsProcessor extends BaseProcessor {
           },
           { notificationId }
         ).schedule({
-          delay: Minute,
+          delay: Minute.ms,
         });
         return;
       }
@@ -87,6 +87,8 @@ export default class EmailsProcessor extends BaseProcessor {
           {
             to: notification.user.email,
             documentId: notification.documentId,
+            revisionId: notification.revisionId,
+            userId: notification.userId,
             teamUrl: notification.team.url,
             actorName: notification.actor.name,
           },
@@ -107,7 +109,7 @@ export default class EmailsProcessor extends BaseProcessor {
           },
           { notificationId: notification.id }
         ).schedule({
-          delay: Minute,
+          delay: Minute.ms,
         });
         return;
       }
@@ -122,7 +124,7 @@ export default class EmailsProcessor extends BaseProcessor {
           },
           { notificationId: notification.id }
         ).schedule({
-          delay: Minute,
+          delay: Minute.ms,
         });
         return;
       }
@@ -139,7 +141,7 @@ export default class EmailsProcessor extends BaseProcessor {
           },
           { notificationId: notification.id }
         ).schedule({
-          delay: Minute,
+          delay: Minute.ms,
         });
       }
     }

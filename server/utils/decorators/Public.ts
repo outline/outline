@@ -23,9 +23,9 @@ export class PublicEnvironmentRegister {
   static registerEnv(env: Environment) {
     process.nextTick(() => {
       const vars: string[] = Reflect.getMetadata(key, env) ?? [];
-      vars.forEach((key: string) => {
-        if (isUndefined(this.publicEnv[key])) {
-          this.publicEnv[key] = env[key];
+      vars.forEach((k: keyof Environment) => {
+        if (isUndefined(this.publicEnv[k])) {
+          this.publicEnv[k] = env[k];
         }
       });
     });

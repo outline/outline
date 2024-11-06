@@ -5,16 +5,16 @@ import { serialize } from "../policies";
 
 type Policy = {
   id: string;
-  abilities: Record<string, boolean>;
+  abilities: Record<string, boolean | string[]>;
 };
 
 function presentPolicy(
   user: User,
-  objects: (Parameters<typeof serialize>[1] | null)[]
+  models: (Parameters<typeof serialize>[1] | null)[]
 ): Policy[] {
-  return compact(objects).map((object) => ({
-    id: object.id,
-    abilities: serialize(user, object),
+  return compact(models).map((model) => ({
+    id: model.id,
+    abilities: serialize(user, model),
   }));
 }
 

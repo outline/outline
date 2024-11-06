@@ -1,8 +1,10 @@
 import { faker } from "@faker-js/faker";
 import isNil from "lodash/isNil";
 import isNull from "lodash/isNull";
+import { Node } from "prosemirror-model";
 import randomstring from "randomstring";
 import { InferCreationAttributes } from "sequelize";
+import { DeepPartial } from "utility-types";
 import { v4 as uuidv4 } from "uuid";
 import {
   CollectionPermission,
@@ -11,9 +13,11 @@ import {
   IntegrationService,
   IntegrationType,
   NotificationEventType,
+  ProsemirrorData,
+  ReactionSummary,
   UserRole,
 } from "@shared/types";
-import { parser } from "@server/editor";
+import { parser, schema } from "@server/editor";
 import {
   Share,
   Team,
@@ -167,6 +171,7 @@ export async function buildGuestUser(overrides: Partial<User> = {}) {
     name: faker.person.fullName(),
     createdAt: new Date("2018-01-01T00:00:00.000Z"),
     lastActiveAt: new Date("2018-01-01T00:00:00.000Z"),
+    role: UserRole.Guest,
     ...overrides,
   });
 }
@@ -282,6 +287,10 @@ export async function buildCollection(
       teamId: overrides.teamId,
     });
     overrides.userId = user.id;
+  }
+
+  if (overrides.archivedAt && !overrides.archivedById) {
+    overrides.archivedById = overrides.userId;
   }
 
   return Collection.create({
@@ -405,6 +414,7 @@ export async function buildComment(overrides: {
   documentId: string;
   parentCommentId?: string;
   resolvedById?: string;
+  reactions?: ReactionSummary[];
 }) {
   const comment = await Comment.create({
     resolvedById: overrides.resolvedById,
@@ -426,6 +436,7 @@ export async function buildComment(overrides: {
       ],
     },
     createdById: overrides.userId,
+    reactions: overrides.reactions,
   });
 
   return comment;
@@ -635,4 +646,11 @@ export async function buildPin(overrides: Partial<Pin> = {}): Promise<Pin> {
   }
 
   return Pin.create(overrides);
+}
+
+export function buildProseMirrorDoc(content: DeepPartial<ProsemirrorData>[]) {
+  return Node.fromJSON(schema, {
+    type: "doc",
+    content,
+  });
 }

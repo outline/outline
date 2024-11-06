@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import User from "~/models/User";
-import Avatar from "~/components/Avatar";
+import { Avatar } from "~/components/Avatar";
 import Badge from "~/components/Badge";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";

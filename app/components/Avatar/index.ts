@@ -1,6 +1,7 @@
-import Avatar from "./Avatar";
+import Avatar, { IAvatar, AvatarSize } from "./Avatar";
 import AvatarWithPresence from "./AvatarWithPresence";
+import { GroupAvatar } from "./GroupAvatar";
 
-export { AvatarWithPresence };
+export { Avatar, GroupAvatar, AvatarSize, AvatarWithPresence };
 
-export default Avatar;
+export type { IAvatar };

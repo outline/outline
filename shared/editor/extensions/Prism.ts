@@ -14,6 +14,7 @@ export const LANGUAGES = {
   cpp: "C++",
   csharp: "C#",
   css: "CSS",
+  docker: "Docker",
   elixir: "Elixir",
   erlang: "Erlang",
   go: "Go",
@@ -31,6 +32,7 @@ export const LANGUAGES = {
   lisp: "Lisp",
   lua: "Lua",
   mermaidjs: "Mermaid Diagram",
+  nginx: "Nginx",
   nix: "Nix",
   objectivec: "Objective-C",
   ocaml: "OCaml",
@@ -38,6 +40,7 @@ export const LANGUAGES = {
   php: "PHP",
   powershell: "Powershell",
   python: "Python",
+  r: "R",
   ruby: "Ruby",
   rust: "Rust",
   scala: "Scala",
@@ -105,7 +108,11 @@ function getDecorations({
 
   blocks.forEach((block) => {
     let startPos = block.pos + 1;
-    const language = block.node.attrs.language;
+    const language = (
+      block.node.attrs.language === "mermaidjs"
+        ? "mermaid"
+        : block.node.attrs.language
+    ) as string;
     if (!language || language === "none" || !refractor.registered(language)) {
       return;
     }

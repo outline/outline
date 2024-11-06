@@ -98,6 +98,11 @@ export function actionToKBar(
       )
     : [];
 
+  const sectionPriority =
+    typeof action.section !== "string" && "priority" in action.section
+      ? (action.section.priority as number) ?? 0
+      : 0;
+
   return [
     {
       id: action.id,
@@ -108,6 +113,7 @@ export function actionToKBar(
       keywords: action.keywords ?? "",
       shortcut: action.shortcut || [],
       icon: resolvedIcon,
+      priority: (1 + (action.priority ?? 0)) * (1 + (sectionPriority ?? 0)),
       perform: action.perform
         ? () => performAction(action, context)
         : undefined,

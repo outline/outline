@@ -1,7 +1,7 @@
+import { runInAction } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { toast } from "sonner";
-import Collection from "~/models/Collection";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
 import { CollectionForm, FormData } from "./CollectionForm";
@@ -17,8 +17,11 @@ export const CollectionNew = observer(function CollectionNew_({
   const handleSubmit = React.useCallback(
     async (data: FormData) => {
       try {
-        const collection = new Collection(data, collections);
-        await collection.save();
+        const collection = await collections.save(data);
+        // Avoid flash of loading state for the new collection, we know it's empty.
+        runInAction(() => {
+          collection.documents = [];
+        });
         onSubmit?.();
         history.push(collection.path);
       } catch (error) {

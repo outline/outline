@@ -59,6 +59,7 @@ const StyledMoreIcon = styled(MoreIcon)`
 `;
 
 const Container = styled(Flex)<{ $position: "top" | "bottom" }>`
+  overflow: hidden;
   padding-top: ${(props) =>
     props.$position === "top" && Desktop.hasInsetTitlebar() ? 36 : 0}px;
   ${draggableOnDesktop()}

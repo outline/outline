@@ -84,7 +84,7 @@ export default function formattingMenuItems(
     {
       tooltip: dictionary.mark,
       icon: highlight ? (
-        <CircleIcon color={highlight.mark.attrs.color} />
+        <CircleIcon color={highlight.mark.attrs.color || Highlight.colors[0]} />
       ) : (
         <HighlightIcon />
       ),

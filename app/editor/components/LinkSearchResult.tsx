@@ -1,5 +1,5 @@
 import * as React from "react";
-import scrollIntoView from "smooth-scroll-into-view-if-needed";
+import scrollIntoView from "scroll-into-view-if-needed";
 import styled, { css } from "styled-components";
 import { s, ellipsis } from "@shared/styles";
 
@@ -22,7 +22,7 @@ function LinkSearchResult({
   const ref = React.useCallback(
     (node: HTMLElement | null) => {
       if (selected && node) {
-        void scrollIntoView(node, {
+        scrollIntoView(node, {
           scrollMode: "if-needed",
           block: "center",
           boundary: (parent) =>

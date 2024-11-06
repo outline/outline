@@ -1,18 +1,17 @@
 import { buildUser, buildAdmin } from "@server/test/factories";
+import { withAPIContext } from "@server/test/support";
 import userDestroyer from "./userDestroyer";
 
 describe("userDestroyer", () => {
-  const ip = "127.0.0.1";
-
   it("should prevent last user from deleting account", async () => {
     const user = await buildUser();
     let error;
 
     try {
-      await userDestroyer({
-        user,
-        actor: user,
-        ip,
+      await withAPIContext(user, async (ctx) => {
+        await userDestroyer(ctx, {
+          user,
+        });
       });
     } catch (err) {
       error = err;
@@ -29,10 +28,10 @@ describe("userDestroyer", () => {
     let error;
 
     try {
-      await userDestroyer({
-        user,
-        actor: user,
-        ip,
+      await withAPIContext(user, async (ctx) => {
+        await userDestroyer(ctx, {
+          user,
+        });
       });
     } catch (err) {
       error = err;
@@ -49,10 +48,10 @@ describe("userDestroyer", () => {
     let error;
 
     try {
-      await userDestroyer({
-        user,
-        actor,
-        ip,
+      await withAPIContext(actor, async (ctx) => {
+        await userDestroyer(ctx, {
+          user,
+        });
       });
     } catch (err) {
       error = err;
@@ -70,10 +69,10 @@ describe("userDestroyer", () => {
     let error;
 
     try {
-      await userDestroyer({
-        user,
-        actor: user,
-        ip,
+      await withAPIContext(user, async (ctx) => {
+        await userDestroyer(ctx, {
+          user,
+        });
       });
     } catch (err) {
       error = err;

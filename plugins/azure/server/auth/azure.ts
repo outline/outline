@@ -69,9 +69,9 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
           );
         }
 
-        if (!organizationResponse) {
+        if (!organizationResponse?.value?.length) {
           throw MicrosoftGraphError(
-            "Unable to load organization info from Microsoft Graph API"
+            `Unable to load organization info from Microsoft Graph API: ${organizationResponse.error?.message}`
           );
         }
 

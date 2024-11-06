@@ -4,8 +4,9 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
 import { useHistory, useRouteMatch } from "react-router-dom";
+import { UserPreferenceDefaults } from "@shared/constants";
 import { richExtensions, withComments } from "@shared/editor/nodes";
-import { TeamPreference } from "@shared/types";
+import { TeamPreference, UserPreference } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
@@ -33,24 +34,10 @@ import {
   documentPath,
   matchDocumentHistory,
 } from "~/utils/routeHelpers";
+import { decodeURIComponentSafe } from "~/utils/urls";
 import MultiplayerEditor from "./AsyncMultiplayerEditor";
 import DocumentMeta from "./DocumentMeta";
 import DocumentTitle from "./DocumentTitle";
-
-const extensions = [
-  ...withComments(richExtensions),
-  SmartText,
-  PasteHandler,
-  ClipboardTextSerializer,
-  BlockMenuExtension,
-  EmojiMenuExtension,
-  MentionMenuExtension,
-  FindAndReplaceExtension,
-  HoverPreviewsExtension,
-  // Order these default key handlers last
-  PreventTab,
-  Keys,
-];
 
 type Props = Omit<EditorProps, "editorStyle"> & {
   onChangeTitle: (title: string) => void;
@@ -92,6 +79,28 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     ...rest
   } = props;
   const can = usePolicy(document);
+
+  const enableSmartText =
+    user?.getPreference(UserPreference.EnableSmartText) ??
+    UserPreferenceDefaults.enableSmartText;
+
+  const extensions = React.useMemo(
+    () => [
+      ...withComments(richExtensions),
+      ...(enableSmartText ? [SmartText] : []),
+      PasteHandler,
+      ClipboardTextSerializer,
+      BlockMenuExtension,
+      EmojiMenuExtension,
+      MentionMenuExtension,
+      FindAndReplaceExtension,
+      HoverPreviewsExtension,
+      // Order these default key handlers last
+      PreventTab,
+      Keys,
+    ],
+    [enableSmartText]
+  );
 
   const iconColor = document.color ?? (last(colorPalette) as string);
   const childRef = React.useRef<HTMLDivElement>(null);
@@ -149,6 +158,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
           documentId: props.id,
           createdAt: new Date(),
           createdById,
+          reactions: [],
         },
         comments
       );
@@ -174,9 +184,33 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     [comments]
   );
 
-  const { setEditor } = useDocumentContext();
+  const {
+    setEditor,
+    setEditorInitialized,
+    updateState: updateDocState,
+  } = useDocumentContext();
   const handleRefChanged = React.useCallback(setEditor, [setEditor]);
   const EditorComponent = multiplayer ? MultiplayerEditor : Editor;
+
+  const childOffsetHeight = childRef.current?.offsetHeight || 0;
+  const editorStyle = React.useMemo(
+    () => ({
+      padding: "0 32px",
+      margin: "0 -32px",
+      paddingBottom: `calc(50vh - ${childOffsetHeight}px)`,
+    }),
+    [childOffsetHeight]
+  );
+
+  const handleInit = React.useCallback(
+    () => setEditorInitialized(true),
+    [setEditorInitialized]
+  );
+
+  const handleDestroy = React.useCallback(
+    () => setEditorInitialized(false),
+    [setEditorInitialized]
+  );
 
   return (
     <Flex auto column>
@@ -214,7 +248,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         ref={mergeRefs([ref, handleRefChanged])}
         autoFocus={!!document.title && !props.defaultValue}
         placeholder={t("Type '/' to insert, or start writing…")}
-        scrollTo={decodeURIComponent(window.location.hash)}
+        scrollTo={decodeURIComponentSafe(window.location.hash)}
         readOnly={readOnly}
         shareId={shareId}
         userId={user?.id}
@@ -230,14 +264,11 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
             ? handleRemoveComment
             : undefined
         }
+        onInit={handleInit}
+        onDestroy={handleDestroy}
+        onChange={updateDocState}
         extensions={extensions}
-        editorStyle={{
-          padding: "0 32px",
-          margin: "0 -32px",
-          paddingBottom: `calc(50vh - ${
-            childRef.current?.offsetHeight || 0
-          }px)`,
-        }}
+        editorStyle={editorStyle}
         {...rest}
       />
       <div ref={childRef}>{children}</div>

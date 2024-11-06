@@ -1,4 +1,4 @@
-import Token from "markdown-it/lib/token";
+import { Token } from "markdown-it";
 import { wrappingInputRule } from "prosemirror-inputrules";
 import {
   NodeSpec,
@@ -20,6 +20,7 @@ export default class OrderedList extends Node {
       attrs: {
         order: {
           default: 1,
+          validate: "number",
         },
       },
       content: "list_item+",

@@ -4,7 +4,7 @@ import {
 } from "@getoutline/react-roving-tabindex";
 import { LocationDescriptor } from "history";
 import * as React from "react";
-import scrollIntoView from "smooth-scroll-into-view-if-needed";
+import scrollIntoView from "scroll-into-view-if-needed";
 import styled, { useTheme } from "styled-components";
 import { s, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
@@ -192,7 +192,7 @@ const Wrapper = styled.a<{
   &:focus,
   &:focus-within {
     background: ${(props) =>
-      props.$hover ? props.theme.secondaryBackground : "inherit"};
+      props.$hover ? props.theme.backgroundSecondary : "inherit"};
   }
 
   cursor: ${(props) =>

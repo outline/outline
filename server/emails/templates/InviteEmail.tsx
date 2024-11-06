@@ -1,6 +1,7 @@
 import * as React from "react";
 import env from "@server/env";
-import BaseEmail, { EmailProps } from "./BaseEmail";
+import { can } from "@server/policies";
+import BaseEmail, { EmailMessageCategory, EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import EmailTemplate from "./components/EmailLayout";
@@ -21,12 +22,25 @@ type Props = EmailProps & {
  * Email sent to an external user when an admin sends them an invite.
  */
 export default class InviteEmail extends BaseEmail<Props, Record<string, any>> {
+  protected get category() {
+    return EmailMessageCategory.Invitation;
+  }
+
   protected subject({ actorName, teamName }: Props) {
     return `${actorName} invited you to join ${teamName}’s workspace`;
   }
 
   protected preview() {
     return `${env.APP_NAME} is a place for your team to build and share knowledge.`;
+  }
+
+  protected replyTo({ notification }: Props) {
+    if (notification?.user && notification.actor?.email) {
+      if (can(notification.user, "readEmail", notification.actor)) {
+        return notification.actor.email;
+      }
+    }
+    return;
   }
 
   protected renderAsText({

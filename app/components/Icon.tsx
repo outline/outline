@@ -2,8 +2,6 @@ import { observer } from "mobx-react";
 import { getLuminance } from "polished";
 import * as React from "react";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
-import { randomElement } from "@shared/random";
 import { IconType } from "@shared/types";
 import { IconLibrary } from "@shared/utils/IconLibrary";
 import { colorPalette } from "@shared/utils/collections";
@@ -83,7 +81,7 @@ const SVGIcon = observer(
   }: Props) => {
     const { ui } = useStores();
 
-    let color = inputColor ?? randomElement(colorPalette);
+    let color = inputColor ?? colorPalette[0];
 
     // If the chosen icon color is very dark then we invert it in dark mode
     if (!forceColor) {
@@ -119,12 +117,7 @@ export const IconTitleWrapper = styled(Flex)<{ dir?: string }>`
   z-index: 1;
 
   ${(props: { dir?: string }) =>
-    props.dir === "rtl" ? "right: -40px" : "left: -40px"};
-
-  ${breakpoint("desktop")`
-    ${(props: { dir?: string }) =>
-      props.dir === "rtl" ? "right: -44px" : "left: -44px"};
-  `}
+    props.dir === "rtl" ? "right: -44px" : "left: -44px"};
 `;
 
 export default Icon;

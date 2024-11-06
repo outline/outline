@@ -3,14 +3,14 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
-import scrollIntoView from "smooth-scroll-into-view-if-needed";
+import scrollIntoView from "scroll-into-view-if-needed";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import { ProsemirrorData } from "@shared/types";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
-import Avatar from "~/components/Avatar";
+import { Avatar } from "~/components/Avatar";
 import { useDocumentContext } from "~/components/DocumentContext";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
@@ -36,12 +36,16 @@ type Props = {
   focused: boolean;
   /** Whether the thread is displayed in a recessed/backgrounded state */
   recessed: boolean;
+  /** Enable scroll for the comments container */
+  enableScroll: () => void;
+  /** Disable scroll for the comments container */
+  disableScroll: () => void;
 };
 
 function useTypingIndicator({
   document,
   comment,
-}: Omit<Props, "focused" | "recessed">): [undefined, () => void] {
+}: Pick<Props, "document" | "comment">): [undefined, () => void] {
   const socket = React.useContext(WebsocketContext);
 
   const setIsTyping = React.useMemo(
@@ -63,10 +67,14 @@ function CommentThread({
   document,
   recessed,
   focused,
+  enableScroll,
+  disableScroll,
 }: Props) {
+  const [focusedOnMount] = React.useState(focused);
   const { editor } = useDocumentContext();
   const { comments } = useStores();
   const topRef = React.useRef<HTMLDivElement>(null);
+  const replyRef = React.useRef<HTMLDivElement>(null);
   const user = useCurrentUser();
   const { t } = useTranslation();
   const history = useHistory();
@@ -77,6 +85,8 @@ function CommentThread({
     comment: thread,
   });
   const can = usePolicy(document);
+
+  const canReply = can.comment && !thread.isResolved;
 
   const highlightedCommentMarks = editor
     ?.getComments()
@@ -90,7 +100,8 @@ function CommentThread({
   useOnClickOutside(topRef, (event) => {
     if (
       focused &&
-      !(event.target as HTMLElement).classList.contains("comment")
+      !(event.target as HTMLElement).classList.contains("comment") &&
+      event.defaultPrevented === false
     ) {
       history.replace({
         search: location.search,
@@ -102,7 +113,8 @@ function CommentThread({
 
   const handleClickThread = () => {
     history.replace({
-      search: location.search,
+      // Clear any commentId from the URL when explicitly focusing a thread
+      search: thread.isResolved ? "resolved=" : "",
       pathname: location.pathname.replace(/\/history$/, ""),
       state: { commentId: thread.id },
     });
@@ -116,27 +128,35 @@ function CommentThread({
 
   React.useEffect(() => {
     if (focused) {
-      // If the thread is already visible, scroll it into view immediately,
-      // otherwise wait for the sidebar to appear.
-      const isThreadVisible =
-        (topRef.current?.getBoundingClientRect().left ?? 0) < window.innerWidth;
-
-      setTimeout(
-        () => {
+      if (focusedOnMount) {
+        setTimeout(() => {
           if (!topRef.current) {
             return;
           }
-          return scrollIntoView(topRef.current, {
+          scrollIntoView(topRef.current, {
             scrollMode: "if-needed",
-            behavior: "smooth",
-            block: "end",
+            behavior: "auto",
+            block: "nearest",
             boundary: (parent) =>
               // Prevents body and other parent elements from being scrolled
               parent.id !== "comments",
           });
-        },
-        isThreadVisible ? 0 : sidebarAppearDuration
-      );
+        }, sidebarAppearDuration);
+      } else {
+        setTimeout(() => {
+          if (!replyRef.current) {
+            return;
+          }
+          scrollIntoView(replyRef.current, {
+            scrollMode: "if-needed",
+            behavior: "smooth",
+            block: "center",
+            boundary: (parent) =>
+              // Prevents body and other parent elements from being scrolled
+              parent.id !== "comments",
+          });
+        }, 0);
+      }
 
       const getCommentMarkElement = () =>
         window.document?.getElementById(`comment-${thread.id}`);
@@ -152,7 +172,7 @@ function CommentThread({
         isMarkVisible ? 0 : sidebarAppearDuration
       );
     }
-  }, [focused, thread.id]);
+  }, [focused, focusedOnMount, thread.id]);
 
   const [draft, onSaveDraft] = usePersistedState<ProsemirrorData | undefined>(
     `draft-${document.id}-${thread.id}`,
@@ -179,8 +199,8 @@ function CommentThread({
           <CommentThreadItem
             highlightedText={index === 0 ? highlightedText : undefined}
             comment={comment}
-            onDelete={() => editor?.removeComment(comment.id)}
-            onUpdate={(attrs) => editor?.updateComment(comment.id, attrs)}
+            onDelete={editor?.removeComment}
+            onUpdate={editor?.updateComment}
             key={comment.id}
             firstOfThread={index === 0}
             lastOfThread={index === commentsInThread.length - 1 && !draft}
@@ -189,6 +209,8 @@ function CommentThread({
             lastOfAuthor={lastOfAuthor}
             previousCommentCreatedAt={commentsInThread[index - 1]?.createdAt}
             dir={document.dir}
+            enableScroll={enableScroll}
+            disableScroll={disableScroll}
           />
         );
       })}
@@ -202,8 +224,8 @@ function CommentThread({
           </Flex>
         ))}
 
-      <ResizingHeightContainer hideOverflow={false}>
-        {(focused || draft || commentsInThread.length === 0) && can.comment && (
+      <ResizingHeightContainer hideOverflow={false} ref={replyRef}>
+        {(focused || draft || commentsInThread.length === 0) && canReply && (
           <Fade timing={100}>
             <CommentForm
               onSaveDraft={onSaveDraft}
@@ -221,7 +243,7 @@ function CommentThread({
           </Fade>
         )}
       </ResizingHeightContainer>
-      {!focused && !recessed && !draft && can.comment && (
+      {!focused && !recessed && !draft && canReply && (
         <Reply onClick={() => setAutoFocus(true)}>{t("Reply")}…</Reply>
       )}
     </Thread>

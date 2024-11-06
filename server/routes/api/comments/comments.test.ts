@@ -1,4 +1,5 @@
-import { CommentStatusFilter } from "@shared/types";
+import { CommentStatusFilter, ReactionSummary } from "@shared/types";
+import { Comment, Reaction } from "@server/models";
 import {
   buildAdmin,
   buildCollection,
@@ -44,7 +45,7 @@ describe("#comments.info", () => {
     expect(body.data.id).toEqual(comment.id);
     expect(body.data.data).toEqual(comment.data);
     expect(body.policies.length).toEqual(1);
-    expect(body.policies[0].abilities.read).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
     expect(body.policies[0].abilities.update).toEqual(false);
     expect(body.policies[0].abilities.delete).toEqual(false);
   });
@@ -73,9 +74,9 @@ describe("#comments.info", () => {
     expect(body.data.id).toEqual(comment.id);
     expect(body.data.data).toEqual(comment.data);
     expect(body.policies.length).toEqual(1);
-    expect(body.policies[0].abilities.read).toEqual(true);
-    expect(body.policies[0].abilities.update).toEqual(true);
-    expect(body.policies[0].abilities.delete).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
+    expect(body.policies[0].abilities.update).toBeTruthy();
+    expect(body.policies[0].abilities.delete).toBeTruthy();
   });
 });
 
@@ -114,8 +115,8 @@ describe("#comments.list", () => {
     expect(body.data.length).toEqual(2);
     expect(body.data[1].id).toEqual(comment.id);
     expect(body.policies.length).toEqual(2);
-    expect(body.policies[0].abilities.read).toEqual(true);
-    expect(body.policies[1].abilities.read).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
+    expect(body.policies[1].abilities.read).toBeTruthy();
     expect(body.pagination.total).toEqual(2);
   });
 
@@ -147,7 +148,7 @@ describe("#comments.list", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(comment.id);
     expect(body.policies.length).toEqual(1);
-    expect(body.policies[0].abilities.read).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
     expect(body.pagination.total).toEqual(1);
   });
 
@@ -179,7 +180,7 @@ describe("#comments.list", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(childComment.id);
     expect(body.policies.length).toEqual(1);
-    expect(body.policies[0].abilities.read).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
     expect(body.pagination.total).toEqual(1);
   });
 
@@ -211,8 +212,8 @@ describe("#comments.list", () => {
     expect(body.data.length).toEqual(1);
     expect(body.data[0].id).toEqual(resolved.id);
     expect(body.policies.length).toEqual(1);
-    expect(body.policies[0].abilities.read).toEqual(true);
-    expect(body.policies[0].abilities.unresolve).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
+    expect(body.policies[0].abilities.unresolve).toBeTruthy();
     expect(body.policies[0].abilities.resolve).toEqual(false);
     expect(body.pagination.total).toEqual(1);
   });
@@ -259,9 +260,43 @@ describe("#comments.list", () => {
       [comment1.id, comment2.id].sort()
     );
     expect(body.policies.length).toEqual(2);
-    expect(body.policies[0].abilities.read).toEqual(true);
-    expect(body.policies[1].abilities.read).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
+    expect(body.policies[1].abilities.read).toBeTruthy();
     expect(body.pagination.total).toEqual(2);
+  });
+
+  it("should return reactions for a comment", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const reactions: ReactionSummary[] = [
+      { emoji: "😄", userIds: [user.id] },
+      { emoji: "🙃", userIds: [user.id] },
+    ];
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+      reactions,
+    });
+
+    const res = await server.post("/api/comments.list", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(comment.id);
+    expect(body.data[0].reactions).toEqual(reactions);
+    expect(body.policies.length).toEqual(1);
+    expect(body.policies[0].abilities.read).toBeTruthy();
+    expect(body.pagination.total).toEqual(1);
   });
 });
 
@@ -298,9 +333,9 @@ describe("#comments.create", () => {
     expect(res.status).toEqual(200);
     expect(body.data.data).toEqual(comment.data);
     expect(body.policies.length).toEqual(1);
-    expect(body.policies[0].abilities.read).toEqual(true);
-    expect(body.policies[0].abilities.update).toEqual(true);
-    expect(body.policies[0].abilities.delete).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
+    expect(body.policies[0].abilities.update).toBeTruthy();
+    expect(body.policies[0].abilities.delete).toBeTruthy();
   });
 
   it("should not allow empty comment data", async () => {
@@ -486,9 +521,9 @@ describe("#comments.update", () => {
     expect(res.status).toEqual(200);
     expect(body.data.data).toEqual(comment.data);
     expect(body.policies.length).toEqual(1);
-    expect(body.policies[0].abilities.read).toEqual(true);
-    expect(body.policies[0].abilities.update).toEqual(true);
-    expect(body.policies[0].abilities.delete).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
+    expect(body.policies[0].abilities.update).toBeTruthy();
+    expect(body.policies[0].abilities.delete).toBeTruthy();
   });
 });
 
@@ -522,14 +557,15 @@ describe("#comments.resolve", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
+    expect(body.data.updatedAt).toEqual(comment.updatedAt.toISOString());
     expect(body.data.resolvedAt).toBeTruthy();
     expect(body.data.resolvedById).toEqual(user.id);
     expect(body.data.resolvedBy.id).toEqual(user.id);
     expect(body.policies.length).toEqual(1);
-    expect(body.policies[0].abilities.read).toEqual(true);
-    expect(body.policies[0].abilities.update).toEqual(true);
-    expect(body.policies[0].abilities.delete).toEqual(true);
-    expect(body.policies[0].abilities.unresolve).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
+    expect(body.policies[0].abilities.update).toBeTruthy();
+    expect(body.policies[0].abilities.delete).toBeTruthy();
+    expect(body.policies[0].abilities.unresolve).toBeTruthy();
     expect(body.policies[0].abilities.resolve).toEqual(false);
   });
 
@@ -592,14 +628,183 @@ describe("#comments.unresolve", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
+    expect(body.data.updatedAt).toEqual(comment.updatedAt.toISOString());
     expect(body.data.resolvedAt).toEqual(null);
     expect(body.data.resolvedBy).toEqual(null);
     expect(body.data.resolvedById).toEqual(null);
     expect(body.policies.length).toEqual(1);
-    expect(body.policies[0].abilities.read).toEqual(true);
-    expect(body.policies[0].abilities.update).toEqual(true);
-    expect(body.policies[0].abilities.delete).toEqual(true);
-    expect(body.policies[0].abilities.resolve).toEqual(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
+    expect(body.policies[0].abilities.update).toBeTruthy();
+    expect(body.policies[0].abilities.delete).toBeTruthy();
+    expect(body.policies[0].abilities.resolve).toBeTruthy();
     expect(body.policies[0].abilities.unresolve).toEqual(false);
+  });
+});
+
+describe("#comments.add_reaction", () => {
+  it("should require authentication", async () => {
+    const res = await server.post("/api/comments.add_reaction");
+    const body = await res.json();
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it("should add a reaction to a comment", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+
+    const res = await server.post("/api/comments.add_reaction", {
+      body: {
+        token: user.getJwtToken(),
+        id: comment.id,
+        emoji: "😄",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.success).toEqual(true);
+
+    const updatedComment = await Comment.findByPk(comment.id);
+    const addedReaction = await Reaction.findOne({
+      where: { commentId: comment.id, emoji: "😄", userId: user.id },
+    });
+
+    expect(updatedComment?.reactions).toEqual([
+      { emoji: "😄", userIds: [user.id] },
+    ]);
+    expect(addedReaction).toBeTruthy();
+  });
+
+  it("should add a reaction to a comment with existing reactions", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+      reactions: [{ emoji: "😄", userIds: ["test-user"] }],
+    });
+
+    const res = await server.post("/api/comments.add_reaction", {
+      body: {
+        token: user.getJwtToken(),
+        id: comment.id,
+        emoji: "😄",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.success).toEqual(true);
+
+    const updatedComment = await Comment.findByPk(comment.id);
+    const addedReaction = await Reaction.findOne({
+      where: { commentId: comment.id, emoji: "😄", userId: user.id },
+    });
+
+    expect(updatedComment?.reactions).toEqual([
+      { emoji: "😄", userIds: ["test-user", user.id] },
+    ]);
+    expect(addedReaction).toBeTruthy();
+  });
+});
+
+describe("#comments.remove_reaction", () => {
+  it("should require authentication", async () => {
+    const res = await server.post("/api/comments.remove_reaction");
+    const body = await res.json();
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it("should remove a reaction from a comment", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+    await Reaction.create({
+      emoji: "😄",
+      commentId: comment.id,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/comments.remove_reaction", {
+      body: {
+        token: user.getJwtToken(),
+        id: comment.id,
+        emoji: "😄",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.success).toEqual(true);
+
+    const updatedComment = await Comment.findByPk(comment.id);
+    const removedReaction = await Reaction.findOne({
+      where: { commentId: comment.id, emoji: "😄", userId: user.id },
+    });
+
+    expect(updatedComment?.reactions).toEqual([]);
+    expect(removedReaction).toBeNull();
+  });
+
+  it("should remove a reaction from a comment with existing reactions", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+      reactions: [{ emoji: "😄", userIds: ["test-user"] }],
+    });
+    await Reaction.create({
+      emoji: "😄",
+      commentId: comment.id,
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/comments.remove_reaction", {
+      body: {
+        token: user.getJwtToken(),
+        id: comment.id,
+        emoji: "😄",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.success).toEqual(true);
+
+    const updatedComment = await Comment.findByPk(comment.id);
+    const removedReaction = await Reaction.findOne({
+      where: { commentId: comment.id, emoji: "😄", userId: user.id },
+    });
+
+    expect(updatedComment?.reactions).toEqual([
+      { emoji: "😄", userIds: ["test-user"] },
+    ]);
+    expect(removedReaction).toBeNull();
   });
 });

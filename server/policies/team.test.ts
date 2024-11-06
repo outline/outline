@@ -12,11 +12,11 @@ describe("policies/team", () => {
       teamId: team.id,
     });
     const abilities = serialize(user, team);
-    expect(abilities.read).toEqual(true);
+    expect(abilities.read).toBeTruthy();
     expect(abilities.createTeam).toEqual(false);
-    expect(abilities.createAttachment).toEqual(true);
-    expect(abilities.createCollection).toEqual(true);
-    expect(abilities.createTemplate).toEqual(true);
+    expect(abilities.createAttachment).toBeTruthy();
+    expect(abilities.createCollection).toBeTruthy();
+    expect(abilities.createTemplate).toBeTruthy();
     expect(abilities.createGroup).toEqual(false);
     expect(abilities.createIntegration).toEqual(false);
   });
@@ -29,13 +29,13 @@ describe("policies/team", () => {
       teamId: team.id,
     });
     const abilities = serialize(admin, team);
-    expect(abilities.read).toEqual(true);
+    expect(abilities.read).toBeTruthy();
     expect(abilities.createTeam).toEqual(false);
-    expect(abilities.createAttachment).toEqual(true);
-    expect(abilities.createCollection).toEqual(true);
-    expect(abilities.createTemplate).toEqual(true);
-    expect(abilities.createGroup).toEqual(true);
-    expect(abilities.createIntegration).toEqual(true);
+    expect(abilities.createAttachment).toBeTruthy();
+    expect(abilities.createCollection).toBeTruthy();
+    expect(abilities.createTemplate).toBeTruthy();
+    expect(abilities.createGroup).toBeTruthy();
+    expect(abilities.createIntegration).toBeTruthy();
   });
 
   it("should allow creation on hosted envs", async () => {
@@ -44,13 +44,13 @@ describe("policies/team", () => {
       teamId: team.id,
     });
     const abilities = serialize(admin, team);
-    expect(abilities.read).toEqual(true);
-    expect(abilities.createTeam).toEqual(true);
-    expect(abilities.createAttachment).toEqual(true);
-    expect(abilities.createCollection).toEqual(true);
-    expect(abilities.createTemplate).toEqual(true);
-    expect(abilities.createGroup).toEqual(true);
-    expect(abilities.createIntegration).toEqual(true);
+    expect(abilities.read).toBeTruthy();
+    expect(abilities.createTeam).toBeTruthy();
+    expect(abilities.createAttachment).toBeTruthy();
+    expect(abilities.createCollection).toBeTruthy();
+    expect(abilities.createTemplate).toBeTruthy();
+    expect(abilities.createGroup).toBeTruthy();
+    expect(abilities.createIntegration).toBeTruthy();
   });
 
   describe("read template", () => {

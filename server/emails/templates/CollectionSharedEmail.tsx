@@ -1,7 +1,7 @@
 import * as React from "react";
 import { CollectionPermission } from "@shared/types";
 import { Collection, UserMembership } from "@server/models";
-import BaseEmail, { EmailProps } from "./BaseEmail";
+import BaseEmail, { EmailMessageCategory, EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import EmailTemplate from "./components/EmailLayout";
@@ -29,6 +29,10 @@ export default class CollectionSharedEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {
+  protected get category() {
+    return EmailMessageCategory.Notification;
+  }
+
   protected async beforeSend({ userId, collectionId }: InputProps) {
     const collection = await Collection.findByPk(collectionId);
     if (!collection) {

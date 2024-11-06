@@ -17,7 +17,6 @@ import { findBlockNodes, NodeWithPos } from "../queries/findChildren";
 type MermaidState = {
   decorationSet: DecorationSet;
   isDark: boolean;
-  initialized: boolean;
 };
 
 class Cache {
@@ -36,6 +35,8 @@ class Cache {
   private static maxSize = 20;
   private static data: Map<string, string> = new Map();
 }
+
+let mermaid: typeof import("mermaid")["default"];
 
 type RendererFunc = (
   block: { node: Node; pos: number },
@@ -72,9 +73,16 @@ class MermaidRenderer {
     }
 
     try {
-      const { default: mermaid } = await import("mermaid");
-      mermaid.mermaidAPI.setConfig({
+      mermaid = mermaid ?? (await import("mermaid")).default;
+      mermaid.initialize({
+        startOnLoad: true,
+        // TODO: Make dynamic based on the width of the editor or remove in
+        // the future if Mermaid is able to handle this automatically.
+        gantt: { useWidth: 700 },
+        pie: { useWidth: 700 },
+        fontFamily: "inherit",
         theme: isDark ? "dark" : "default",
+        darkMode: isDark,
       });
       mermaid.render(
         `mermaid-diagram-${this.diagramId}`,
@@ -107,7 +115,7 @@ class MermaidRenderer {
     if (this._rendererFunc) {
       return this._rendererFunc;
     }
-    this._rendererFunc = debounce<RendererFunc>(this.renderImmediately, 500);
+    this._rendererFunc = debounce<RendererFunc>(this.renderImmediately, 250);
     return this.renderImmediately;
   }
 
@@ -164,24 +172,6 @@ function getNewState({
       item.node.type.name === name && item.node.attrs.language === "mermaidjs"
   );
 
-  let { initialized } = pluginState;
-  if (blocks.length > 0 && !initialized) {
-    void import("mermaid").then(({ default: mermaid }) => {
-      mermaid.initialize({
-        startOnLoad: true,
-        // TODO: Make dynamic based on the width of the editor or remove in
-        // the future if Mermaid is able to handle this automatically.
-        gantt: {
-          useWidth: 700,
-        },
-        theme: pluginState.isDark ? "dark" : "default",
-        fontFamily: "inherit",
-      });
-    });
-
-    initialized = true;
-  }
-
   blocks.forEach((block) => {
     const existingDecorations = pluginState.decorationSet.find(
       block.pos,
@@ -227,7 +217,6 @@ function getNewState({
   return {
     decorationSet: DecorationSet.create(doc, decorations),
     isDark: pluginState.isDark,
-    initialized,
   };
 }
 
@@ -245,7 +234,6 @@ export default function Mermaid({
         const pluginState: MermaidState = {
           decorationSet: DecorationSet.create(doc, []),
           isDark,
-          initialized: false,
         };
         return getNewState({
           doc,

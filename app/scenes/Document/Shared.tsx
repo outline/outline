@@ -12,6 +12,10 @@ import DocumentModel from "~/models/Document";
 import Error404 from "~/scenes/Error404";
 import ErrorOffline from "~/scenes/ErrorOffline";
 import ClickablePadding from "~/components/ClickablePadding";
+import {
+  DocumentContextProvider,
+  useDocumentContext,
+} from "~/components/DocumentContext";
 import Layout from "~/components/Layout";
 import Sidebar from "~/components/Sidebar/Shared";
 import { TeamContext } from "~/components/TeamContext";
@@ -104,7 +108,6 @@ function SharedDocumentScene(props: Props) {
     ? (searchParams.get("theme") as Theme)
     : undefined;
   const theme = useBuildTheme(response?.team?.customTheme, themeOverride);
-  const tocPosition = response?.team?.tocPosition ?? TOCPosition.Left;
 
   React.useEffect(() => {
     if (!user) {
@@ -169,7 +172,8 @@ function SharedDocumentScene(props: Props) {
     }
   }
 
-  if (!response) {
+  // Note: `sharedTree` will be null when `includeChildDocuments` = false
+  if (response?.sharedTree === undefined) {
     return <Loading location={props.location} />;
   }
 
@@ -183,31 +187,52 @@ function SharedDocumentScene(props: Props) {
       </Helmet>
       <TeamContext.Provider value={response.team}>
         <ThemeProvider theme={theme}>
-          <Layout
-            title={response.document?.title}
-            sidebar={
-              response.sharedTree?.children.length ? (
-                <Sidebar rootNode={response.sharedTree} shareId={shareId!} />
-              ) : undefined
-            }
-          >
-            {response.document && (
-              <Document
-                abilities={EMPTY_OBJECT}
-                document={response.document}
-                sharedTree={response.sharedTree}
-                shareId={shareId}
-                tocPosition={tocPosition}
-                readOnly
-              />
-            )}
-          </Layout>
-          <ClickablePadding minHeight="20vh" />
+          <DocumentContextProvider>
+            <Layout
+              title={response.document?.title}
+              sidebar={
+                response.sharedTree?.children.length ? (
+                  <Sidebar rootNode={response.sharedTree} shareId={shareId!} />
+                ) : undefined
+              }
+            >
+              <SharedDocument shareId={shareId} response={response} />
+            </Layout>
+            <ClickablePadding minHeight="20vh" />
+          </DocumentContextProvider>
         </ThemeProvider>
       </TeamContext.Provider>
     </>
   );
 }
+
+const SharedDocument = ({
+  shareId,
+  response,
+}: {
+  shareId?: string;
+  response: Response;
+}) => {
+  const { setDocument } = useDocumentContext();
+
+  if (!response.document) {
+    return null;
+  }
+
+  const tocPosition = response.team?.tocPosition ?? TOCPosition.Left;
+  setDocument(response.document);
+
+  return (
+    <Document
+      abilities={EMPTY_OBJECT}
+      document={response.document}
+      sharedTree={response.sharedTree}
+      shareId={shareId}
+      tocPosition={tocPosition}
+      readOnly
+    />
+  );
+};
 
 const Content = styled(Text)`
   color: ${s("textSecondary")};

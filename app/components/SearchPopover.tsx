@@ -9,7 +9,7 @@ import Empty from "~/components/Empty";
 import { Outline } from "~/components/Input";
 import InputSearch from "~/components/InputSearch";
 import Placeholder from "~/components/List/Placeholder";
-import PaginatedList, { PaginatedItem } from "~/components/PaginatedList";
+import PaginatedList from "~/components/PaginatedList";
 import Popover from "~/components/Popover";
 import { id as bodyContentId } from "~/components/SkipNavContent";
 import useKeyDown from "~/hooks/useKeyDown";
@@ -19,9 +19,10 @@ import SearchListItem from "./SearchListItem";
 
 interface Props extends React.HTMLAttributes<HTMLInputElement> {
   shareId: string;
+  className?: string;
 }
 
-function SearchPopover({ shareId }: Props) {
+function SearchPopover({ shareId, className }: Props) {
   const { t } = useTranslation();
   const { documents } = useStores();
   const focusRef = React.useRef<HTMLElement | null>(null);
@@ -36,11 +37,11 @@ function SearchPopover({ shareId }: Props) {
   const { show, hide } = popover;
 
   const [searchResults, setSearchResults] = React.useState<
-    PaginatedItem[] | undefined
+    SearchResult[] | undefined
   >();
   const [cachedQuery, setCachedQuery] = React.useState(query);
   const [cachedSearchResults, setCachedSearchResults] = React.useState<
-    PaginatedItem[] | undefined
+    SearchResult[] | undefined
   >(searchResults);
 
   React.useEffect(() => {
@@ -54,7 +55,8 @@ function SearchPopover({ shareId }: Props) {
   const performSearch = React.useCallback(
     async ({ query, ...options }) => {
       if (query?.length > 0) {
-        const response: PaginatedItem[] = await documents.search(query, {
+        const response = await documents.search({
+          query,
           shareId,
           ...options,
         });
@@ -186,6 +188,7 @@ function SearchPopover({ shareId }: Props) {
             onChange={handleSearchInputChange}
             onFocus={handleSearchInputFocus}
             onKeyDown={handleKeyDown}
+            className={className}
           />
         )}
       </PopoverDisclosure>

@@ -141,11 +141,9 @@ router.get(
     }
 
     if (!notification.viewedAt) {
-      await notificationUpdater({
+      await notificationUpdater(ctx, {
         notification,
         viewedAt: new Date(),
-        ip: ctx.request.ip,
-        transaction: ctx.state.transaction,
       });
     }
 
@@ -166,12 +164,10 @@ router.post(
     const notification = await Notification.findByPk(id);
     authorize(user, "update", notification);
 
-    await notificationUpdater({
+    await notificationUpdater(ctx, {
       notification,
       viewedAt,
       archivedAt,
-      ip: ctx.request.ip,
-      transaction: ctx.state.transaction,
     });
 
     ctx.body = {

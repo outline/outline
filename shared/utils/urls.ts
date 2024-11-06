@@ -36,8 +36,10 @@ export function isInternalUrl(href: string) {
   const domain = parseDomain(href);
 
   return (
-    outline.host === domain.host ||
-    (typeof window !== "undefined" && window.location.hostname === domain.host)
+    (outline.host === domain.host && outline.port === domain.port) ||
+    (typeof window !== "undefined" &&
+      window.location.hostname === domain.host &&
+      window.location.port === domain.port)
   );
 }
 

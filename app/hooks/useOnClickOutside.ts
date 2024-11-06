@@ -23,6 +23,6 @@ export default function useOnClickOutside(
     [ref, callback]
   );
 
-  useEventListener("mousedown", listener, window, options);
+  useEventListener("pointerdown", listener, window, options);
   useEventListener("touchstart", listener, window, options);
 }

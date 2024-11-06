@@ -18,11 +18,7 @@ import {
 import GridTemplate, { DataNode } from "./GridTemplate";
 import SkinTonePicker from "./SkinTonePicker";
 
-/**
- * This is needed as a constant for react-window.
- * Calculated from the heights of TabPanel and InputSearch.
- */
-const GRID_HEIGHT = 362;
+const GRID_HEIGHT = 410;
 
 const useEmojiState = () => {
   const [emojiSkinTone, setEmojiSkinTone] = usePersistedState<EmojiSkinTone>(
@@ -80,6 +76,7 @@ type Props = {
   panelWidth: number;
   query: string;
   panelActive: boolean;
+  height?: number;
   onEmojiChange: (emoji: string) => void;
   onQueryChange: (query: string) => void;
 };
@@ -90,6 +87,7 @@ const EmojiPanel = ({
   panelActive,
   onEmojiChange,
   onQueryChange,
+  height = GRID_HEIGHT,
 }: Props) => {
   const { t } = useTranslation();
 
@@ -159,7 +157,7 @@ const EmojiPanel = ({
       <GridTemplate
         ref={scrollableRef}
         width={panelWidth}
-        height={GRID_HEIGHT}
+        height={height - 48}
         data={templateData}
         onIconSelect={handleEmojiSelection}
       />

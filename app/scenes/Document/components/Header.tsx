@@ -20,10 +20,7 @@ import Badge from "~/components/Badge";
 import Button from "~/components/Button";
 import Collaborators from "~/components/Collaborators";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
-import {
-  useDocumentContext,
-  useEditingFocus,
-} from "~/components/DocumentContext";
+import { useDocumentContext } from "~/components/DocumentContext";
 import Flex from "~/components/Flex";
 import Header from "~/components/Header";
 import Icon from "~/components/Icon";
@@ -35,6 +32,7 @@ import { restoreRevision } from "~/actions/definitions/revisions";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useEditingFocus from "~/hooks/useEditingFocus";
 import useKeyDown from "~/hooks/useKeyDown";
 import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
@@ -43,7 +41,7 @@ import DocumentMenu from "~/menus/DocumentMenu";
 import NewChildDocumentMenu from "~/menus/NewChildDocumentMenu";
 import TableOfContentsMenu from "~/menus/TableOfContentsMenu";
 import TemplatesMenu from "~/menus/TemplatesMenu";
-import { metaDisplay } from "~/utils/keyboard";
+import { altDisplay, metaDisplay } from "~/utils/keyboard";
 import { documentEditPath } from "~/utils/routeHelpers";
 import ObservingBanner from "./ObservingBanner";
 import PublicBreadcrumb from "./PublicBreadcrumb";
@@ -51,7 +49,6 @@ import ShareButton from "./ShareButton";
 
 type Props = {
   document: Document;
-  documentHasHeadings: boolean;
   revision: Revision | undefined;
   sharedTree: NavigationNode | undefined;
   shareId: string | null | undefined;
@@ -67,16 +64,10 @@ type Props = {
     publish?: boolean;
     autosave?: boolean;
   }) => void;
-  headings: {
-    title: string;
-    level: number;
-    id: string;
-  }[];
 };
 
 function DocumentHeader({
   document,
-  documentHasHeadings,
   revision,
   shareId,
   isEditing,
@@ -88,7 +79,6 @@ function DocumentHeader({
   sharedTree,
   onSelectTemplate,
   onSave,
-  headings,
 }: Props) {
   const { t } = useTranslation();
   const { ui } = useStores();
@@ -100,6 +90,7 @@ function DocumentHeader({
   const isRevision = !!revision;
   const isEditingFocus = useEditingFocus();
   const { editor } = useDocumentContext();
+  const { hasHeadings } = useDocumentContext();
 
   // We cache this value for as long as the component is mounted so that if you
   // apply a template there is still the option to replace it until the user
@@ -129,11 +120,11 @@ function DocumentHeader({
       content={
         showContents
           ? t("Hide contents")
-          : documentHasHeadings
+          : hasHeadings
           ? t("Show contents")
           : `${t("Show contents")} (${t("available when headings are added")})`
       }
-      shortcut="ctrl+alt+h"
+      shortcut={`ctrl+${altDisplay}+h`}
       delay={250}
       placement="bottom"
     >
@@ -210,14 +201,14 @@ function DocumentHeader({
         hasSidebar={sharedTree && sharedTree.children?.length > 0}
         left={
           isMobile ? (
-            <TableOfContentsMenu headings={headings} />
+            <TableOfContentsMenu />
           ) : (
             <PublicBreadcrumb
               documentId={document.id}
               shareId={shareId}
               sharedTree={sharedTree}
             >
-              {documentHasHeadings ? toc : null}
+              {hasHeadings ? toc : null}
             </PublicBreadcrumb>
           )
         }
@@ -238,7 +229,7 @@ function DocumentHeader({
         hasSidebar
         left={
           isMobile ? (
-            <TableOfContentsMenu headings={headings} />
+            <TableOfContentsMenu />
           ) : (
             <DocumentBreadcrumb document={document}>
               {toc} <Star document={document} color={theme.textSecondary} />

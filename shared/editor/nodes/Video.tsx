@@ -1,4 +1,4 @@
-import Token from "markdown-it/lib/token";
+import { Token } from "markdown-it";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
 import { NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";

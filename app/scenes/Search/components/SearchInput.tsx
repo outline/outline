@@ -4,10 +4,10 @@ import styled, { useTheme } from "styled-components";
 import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
 
-type Props = React.HTMLAttributes<HTMLInputElement> & {
-  defaultValue?: string;
-  placeholder?: string;
-};
+interface Props extends React.HTMLAttributes<HTMLInputElement> {
+  name: string;
+  defaultValue: string;
+}
 
 function SearchInput(
   { defaultValue, ...rest }: Props,

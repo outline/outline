@@ -1,4 +1,3 @@
-import invariant from "invariant";
 import debounce from "lodash/debounce";
 import isEmpty from "lodash/isEmpty";
 import { observer } from "mobx-react";
@@ -17,8 +16,7 @@ import Input, { NativeInput } from "~/components/Input";
 import Switch from "~/components/Switch";
 import env from "~/env";
 import usePolicy from "~/hooks/usePolicy";
-import useStores from "~/hooks/useStores";
-import { AvatarSize } from "../../Avatar/Avatar";
+import { AvatarSize } from "../../Avatar";
 import CopyToClipboard from "../../CopyToClipboard";
 import NudeButton from "../../NudeButton";
 import { ResizingHeightContainer } from "../../ResizingHeightContainer";
@@ -39,7 +37,6 @@ type Props = {
 };
 
 function PublicAccess({ document, share, sharedParent }: Props) {
-  const { shares } = useStores();
   const { t } = useTranslation();
   const theme = useTheme();
   const [validationError, setValidationError] = React.useState("");
@@ -55,18 +52,15 @@ function PublicAccess({ document, share, sharedParent }: Props) {
 
   const handlePublishedChange = React.useCallback(
     async (event) => {
-      const share = shares.getByDocumentId(document.id);
-      invariant(share, "Share must exist");
-
       try {
-        await share.save({
+        await share?.save({
           published: event.currentTarget.checked,
         });
       } catch (err) {
         toast.error(err.message);
       }
     },
-    [document.id, shares]
+    [share]
   );
 
   const handleUrlChange = React.useMemo(
@@ -203,7 +197,7 @@ const StyledInfoIcon = styled(InfoIcon)`
 `;
 
 const Wrapper = styled.div`
-  margin-bottom: 8px;
+  padding-bottom: 8px;
 `;
 
 const DomainPrefix = styled.span`

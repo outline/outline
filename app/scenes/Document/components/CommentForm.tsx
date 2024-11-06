@@ -12,7 +12,7 @@ import { ProsemirrorData } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import { AttachmentValidation, CommentValidation } from "@shared/validations";
 import Comment from "~/models/Comment";
-import Avatar from "~/components/Avatar";
+import { Avatar } from "~/components/Avatar";
 import ButtonSmall from "~/components/ButtonSmall";
 import { useDocumentContext } from "~/components/DocumentContext";
 import Flex from "~/components/Flex";
@@ -109,6 +109,7 @@ function CommentForm({
           createdAt: new Date().toISOString(),
           documentId,
           data: draft,
+          reactions: [],
         },
         comments
       );
@@ -144,6 +145,7 @@ function CommentForm({
         parentCommentId: thread?.id,
         documentId,
         data: draft,
+        reactions: [],
       },
       comments
     );

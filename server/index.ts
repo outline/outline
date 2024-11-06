@@ -127,8 +127,8 @@ async function start(_id: number, disconnect: () => void) {
     }
 
     Logger.info("lifecycle", `Starting ${name} service`);
-    const init = services[name];
-    await init(app, server, env.SERVICES);
+    const init = services[name as keyof typeof services];
+    init(app, server as https.Server, env.SERVICES);
   }
 
   server.on("error", (err) => {

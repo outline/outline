@@ -1,13 +1,13 @@
 import path from "path";
 import fs from "fs-extra";
-import escapeRegExp from "lodash/escapeRegExp";
 import find from "lodash/find";
 import mime from "mime-types";
-import { Node } from "prosemirror-model";
+import { Fragment, Node } from "prosemirror-model";
 import { v4 as uuidv4 } from "uuid";
+import { ProsemirrorData } from "@shared/types";
 import { schema, serializer } from "@server/editor";
 import Logger from "@server/logging/Logger";
-import { FileOperation } from "@server/models";
+import { Attachment, FileOperation } from "@server/models";
 import {
   AttachmentJSONExport,
   CollectionJSONExport,
@@ -76,9 +76,10 @@ export default class ImportJSONTask extends ImportTask {
         output.documents.push({
           ...node,
           path: "",
-          // TODO: This is kind of temporary, we can import the document
-          // structure directly in the future.
+          // populate text to maintain consistency with existing data.
+          // moving forward, `data` field will be used.
           text: serializer.serialize(Node.fromJSON(schema, node.data)),
+          data: node.data,
           icon: node.icon ?? node.emoji,
           color: node.color,
           createdAt: node.createdAt ? new Date(node.createdAt) : undefined,
@@ -151,21 +152,81 @@ export default class ImportJSONTask extends ImportTask {
       }
     }
 
-    // Check all of the attachments we've created against urls in the text
-    // and replace them out with attachment redirect urls before continuing.
-    for (const document of output.documents) {
-      for (const attachment of output.attachments) {
-        const encodedPath = encodeURI(
-          `/api/attachments.redirect?id=${attachment.externalId}`
-        );
-
-        document.text = document.text.replace(
-          new RegExp(escapeRegExp(encodedPath), "g"),
-          `<<${attachment.id}>>`
-        );
-      }
+    // Check all of the attachments we've created against urls and
+    // replace them with the correct redirect urls before continuing.
+    if (output.attachments.length) {
+      this.replaceAttachmentURLs(output);
     }
 
     return output;
+  }
+
+  private replaceAttachmentURLs(output: StructuredImportData) {
+    const attachmentTypes = ["attachment", "image", "video"];
+    const urlRegex = /\/api\/attachments.redirect\?id=(.+)/;
+
+    const attachmentExternalIdMap = output.attachments.reduce(
+      (obj, attachment) => {
+        if (attachment.externalId) {
+          obj[attachment.externalId] = attachment;
+        }
+        return obj;
+      },
+      {} as Record<string, StructuredImportData["attachments"][number]>
+    );
+
+    const getRedirectPath = (existingPath?: string): string | undefined => {
+      if (!existingPath) {
+        return;
+      }
+
+      const match = existingPath.match(urlRegex);
+      if (!match) {
+        return existingPath;
+      }
+
+      const attachment = attachmentExternalIdMap[match[1]];
+      // maintain the existing behaviour of using existingPath when attachment id is not present.
+      return attachment
+        ? Attachment.getRedirectUrl(attachment.id)
+        : existingPath;
+    };
+
+    const transformAttachmentNode = (node: Node): Node => {
+      const json = node.toJSON() as ProsemirrorData;
+      const attrs = json.attrs ?? {};
+
+      if (node.type.name === "attachment") {
+        // attachment node uses 'href' attribute
+        attrs.href = getRedirectPath(attrs.href as string);
+      } else if (node.type.name === "image" || node.type.name === "video") {
+        // image & video nodes use 'src' attribute
+        attrs.src = getRedirectPath(attrs.src as string);
+      }
+
+      json.attrs = attrs;
+      return Node.fromJSON(schema, json);
+    };
+
+    const transformFragment = (fragment: Fragment): Fragment => {
+      const nodes: Node[] = [];
+
+      fragment.forEach((node) => {
+        nodes.push(
+          attachmentTypes.includes(node.type.name)
+            ? transformAttachmentNode(node)
+            : node.copy(transformFragment(node.content))
+        );
+      });
+
+      return Fragment.fromArray(nodes);
+    };
+
+    for (const document of output.documents) {
+      const node = Node.fromJSON(schema, document.data);
+      const transformedNode = node.copy(transformFragment(node.content));
+      document.data = transformedNode;
+      document.text = serializer.serialize(transformedNode);
+    }
   }
 }

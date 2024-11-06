@@ -65,6 +65,7 @@ class LinkEditor extends React.Component<Props, State> {
   initialValue = this.href;
   initialSelectionLength = this.props.to - this.props.from;
   resultsRef = React.createRef<HTMLDivElement>();
+  inputRef = React.createRef<HTMLInputElement>();
 
   state: State = {
     selectedIndex: -1,
@@ -91,7 +92,13 @@ class LinkEditor extends React.Component<Props, State> {
     return this.state.value.trim() || this.selectedText;
   }
 
+  componentDidMount(): void {
+    window.addEventListener("keydown", this.handleGlobalKeyDown);
+  }
+
   componentWillUnmount = () => {
+    window.removeEventListener("keydown", this.handleGlobalKeyDown);
+
     // If we discarded the changes then nothing to do
     if (this.discardInputValue) {
       return;
@@ -109,6 +116,12 @@ class LinkEditor extends React.Component<Props, State> {
     }
 
     this.save(href, href);
+  };
+
+  handleGlobalKeyDown = (event: KeyboardEvent): void => {
+    if (event.key === "k" && event.metaKey) {
+      this.inputRef.current?.select();
+    }
   };
 
   save = (href: string, title?: string): void => {
@@ -321,6 +334,7 @@ class LinkEditor extends React.Component<Props, State> {
     return (
       <Wrapper>
         <Input
+          ref={this.inputRef}
           value={value}
           placeholder={
             showCreateLink

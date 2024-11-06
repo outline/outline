@@ -407,6 +407,24 @@ export class Environment {
   );
 
   /**
+   * The maximum number of concurrent events processed per-worker. To get total
+   * concurrency you should multiply this by the number of workers.
+   */
+  @IsOptional()
+  @IsNumber()
+  public WORKER_CONCURRENCY_EVENTS =
+    this.toOptionalNumber(environment.WORKER_CONCURRENCY_EVENTS) ?? 10;
+
+  /**
+   * The maximum number of concurrent tasks processed per-worker. To get total
+   * concurrency you should multiply this by the number of workers.
+   */
+  @IsOptional()
+  @IsNumber()
+  public WORKER_CONCURRENCY_TASKS =
+    this.toOptionalNumber(environment.WORKER_CONCURRENCY_TASKS) ?? 10;
+
+  /**
    * A boolean switch to toggle the rate limiter at application web server.
    */
   @IsOptional()

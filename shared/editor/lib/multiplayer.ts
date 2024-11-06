@@ -1,5 +1,5 @@
-import { ySyncPluginKey } from "@getoutline/y-prosemirror";
 import { Transaction } from "prosemirror-state";
+import { ySyncPluginKey } from "y-prosemirror";
 
 /**
  * Checks if a transaction is a remote transaction

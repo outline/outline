@@ -41,7 +41,7 @@ async function presentDocument(
 
   const text =
     !asData || options?.includeText
-      ? DocumentHelper.toMarkdown(data)
+      ? document.text || DocumentHelper.toMarkdown(data)
       : undefined;
 
   const res: Record<string, any> = {
@@ -61,7 +61,6 @@ async function presentDocument(
     publishedAt: document.publishedAt,
     archivedAt: document.archivedAt,
     deletedAt: document.deletedAt,
-    teamId: document.teamId,
     collaboratorIds: [],
     revision: document.revisionCount,
     fullWidth: document.fullWidth,

@@ -140,7 +140,7 @@ const DocumentMeta: React.FC<Props> = ({
   }
 
   const nestedDocumentsCount = collection
-    ? collection.getDocumentChildren(document.id).length
+    ? collection.getChildrenForDocument(document.id).length
     : 0;
   const canShowProgressBar = isTasks && !isTemplate;
 

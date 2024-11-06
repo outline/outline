@@ -94,7 +94,7 @@ function AppSidebar() {
               </SidebarButton>
             )}
           </OrganizationMenu>
-          <Scrollable flex shadow>
+          <Overflow>
             <Section>
               <SidebarLink
                 to={homePath()}
@@ -117,7 +117,9 @@ function AppSidebar() {
                       {t("Drafts")}
                       {documents.totalDrafts > 0 ? (
                         <Drafts size="xsmall" type="tertiary">
-                          {documents.totalDrafts}
+                          {documents.totalDrafts > 25
+                            ? "25+"
+                            : documents.totalDrafts}
                         </Drafts>
                       ) : null}
                     </Flex>
@@ -125,22 +127,24 @@ function AppSidebar() {
                 />
               )}
             </Section>
+          </Overflow>
+          <Scrollable flex shadow>
             <Section>
               <Starred />
             </Section>
             <Section>
               <SharedWithMe />
             </Section>
-            <Section auto>
+            <Section>
               <Collections />
             </Section>
+            {can.createDocument && (
+              <Section auto>
+                <ArchiveLink />
+              </Section>
+            )}
             <Section>
-              {can.createDocument && (
-                <>
-                  <ArchiveLink />
-                  <TrashLink />
-                </>
-              )}
+              {can.createDocument && <TrashLink />}
               <SidebarAction action={inviteUser} />
             </Section>
           </Scrollable>
@@ -149,6 +153,11 @@ function AppSidebar() {
     </Sidebar>
   );
 }
+
+const Overflow = styled.div`
+  overflow: hidden;
+  flex-shrink: 0;
+`;
 
 const Drafts = styled(Text)`
   margin: 0 4px;

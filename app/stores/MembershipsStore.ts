@@ -5,7 +5,11 @@ import Membership from "~/models/Membership";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
 import RootStore from "./RootStore";
-import Store, { PAGINATION_SYMBOL, RPCAction } from "./base/Store";
+import Store, {
+  PAGINATION_SYMBOL,
+  PaginatedResponse,
+  RPCAction,
+} from "./base/Store";
 
 export default class MembershipsStore extends Store<Membership> {
   actions = [RPCAction.Create, RPCAction.Delete];
@@ -17,14 +21,14 @@ export default class MembershipsStore extends Store<Membership> {
   @action
   fetchPage = async (
     params: (PaginationParams & { id?: string }) | undefined
-  ): Promise<Membership[]> => {
+  ): Promise<PaginatedResponse<Membership>> => {
     this.isFetching = true;
 
     try {
       const res = await client.post(`/collections.memberships`, params);
       invariant(res?.data, "Data not available");
 
-      let response: Membership[] = [];
+      let response: PaginatedResponse<Membership> = [];
       runInAction(`MembershipsStore#fetchPage`, () => {
         res.data.users.forEach(this.rootStore.users.add);
         response = res.data.memberships.map(this.add);

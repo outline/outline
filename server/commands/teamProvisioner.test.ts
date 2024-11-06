@@ -128,7 +128,7 @@ describe("teamProvisioner", () => {
     });
   });
 
-  describe.skip("self hosted", () => {
+  describe("self hosted", () => {
     beforeEach(setSelfHosted);
 
     it("should allow creating first team", async () => {

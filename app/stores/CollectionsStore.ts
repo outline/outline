@@ -1,37 +1,19 @@
 import invariant from "invariant";
-import concat from "lodash/concat";
 import find from "lodash/find";
 import isEmpty from "lodash/isEmpty";
-import last from "lodash/last";
+import orderBy from "lodash/orderBy";
 import sortBy from "lodash/sortBy";
-import { computed, action } from "mobx";
+import { computed, action, runInAction } from "mobx";
 import {
   CollectionPermission,
+  CollectionStatusFilter,
   FileOperationFormat,
-  NavigationNode,
 } from "@shared/types";
 import Collection from "~/models/Collection";
-import { Properties } from "~/types";
+import { PaginationParams, Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
 import RootStore from "./RootStore";
 import Store from "./base/Store";
-
-enum DocumentPathItemType {
-  Collection = "collection",
-  Document = "document",
-}
-
-export type DocumentPathItem = {
-  type: DocumentPathItemType;
-  id: string;
-  collectionId: string;
-  title: string;
-  url: string;
-};
-
-export type DocumentPath = DocumentPathItem & {
-  path: DocumentPathItem[];
-};
 
 export default class CollectionsStore extends Store<Collection> {
   constructor(rootStore: RootStore) {
@@ -48,6 +30,11 @@ export default class CollectionsStore extends Store<Collection> {
     return this.rootStore.ui.activeCollectionId
       ? this.data.get(this.rootStore.ui.activeCollectionId)
       : undefined;
+  }
+
+  @computed
+  get allActive() {
+    return this.orderedData.filter((c) => c.isActive);
   }
 
   @computed
@@ -95,55 +82,6 @@ export default class CollectionsStore extends Store<Collection> {
     );
   }
 
-  /**
-   * List of paths to each of the documents, where paths are composed of id and title/name pairs
-   */
-  @computed
-  get pathsToDocuments(): DocumentPath[] {
-    const results: DocumentPathItem[][] = [];
-
-    const travelDocuments = (
-      documentList: NavigationNode[],
-      collectionId: string,
-      path: DocumentPathItem[]
-    ) =>
-      documentList.forEach((document: NavigationNode) => {
-        const { id, title, url } = document;
-        const node = {
-          type: DocumentPathItemType.Document,
-          id,
-          collectionId,
-          title,
-          url,
-        };
-        results.push(concat(path, node));
-        travelDocuments(document.children, collectionId, concat(path, [node]));
-      });
-
-    if (this.isLoaded) {
-      this.data.forEach((collection) => {
-        const { id, name, path } = collection;
-        const node = {
-          type: DocumentPathItemType.Collection,
-          id,
-          collectionId: id,
-          title: name,
-          url: path,
-        };
-        results.push([node]);
-
-        if (collection.documents) {
-          travelDocuments(collection.documents, id, [node]);
-        }
-      });
-    }
-
-    return results.map((result) => {
-      const tail = last(result) as DocumentPathItem;
-      return { ...tail, path: result };
-    });
-  }
-
   @action
   import = async (
     attachmentId: string,
@@ -169,6 +107,30 @@ export default class CollectionsStore extends Store<Collection> {
     }
   };
 
+  @action
+  archive = async (collection: Collection) => {
+    const res = await client.post("/collections.archive", {
+      id: collection.id,
+    });
+    runInAction("Collection#archive", () => {
+      invariant(res?.data, "Data should be available");
+      this.add(res.data);
+      this.addPolicies(res.policies);
+    });
+  };
+
+  @action
+  restore = async (collection: Collection) => {
+    const res = await client.post("/collections.restore", {
+      id: collection.id,
+    });
+    runInAction("Collection#restore", () => {
+      invariant(res?.data, "Data should be available");
+      this.add(res.data);
+      this.addPolicies(res.policies);
+    });
+  };
+
   async update(params: Properties<Collection>): Promise<Collection> {
     const result = await super.update(params);
 
@@ -191,6 +153,43 @@ export default class CollectionsStore extends Store<Collection> {
     return model;
   }
 
+  @action
+  fetchNamedPage = async (
+    request = "list",
+    options:
+      | (PaginationParams & { statusFilter: CollectionStatusFilter[] })
+      | undefined
+  ): Promise<Collection[]> => {
+    this.isFetching = true;
+
+    try {
+      const res = await client.post(`/collections.${request}`, options);
+      invariant(res?.data, "Collection list not available");
+      runInAction("CollectionsStore#fetchNamedPage", () => {
+        res.data.forEach(this.add);
+        this.addPolicies(res.policies);
+        this.isLoaded = true;
+      });
+      return res.data;
+    } finally {
+      this.isFetching = false;
+    }
+  };
+
+  @action
+  fetchArchived = async (options?: PaginationParams): Promise<Collection[]> =>
+    this.fetchNamedPage("list", {
+      ...options,
+      statusFilter: [CollectionStatusFilter.Archived],
+    });
+
+  @computed
+  get archived(): Collection[] {
+    return orderBy(this.orderedData, "archivedAt", "desc").filter(
+      (c) => c.isArchived && !c.isDeleted
+    );
+  }
+
   @computed
   get publicCollections() {
     return this.orderedData.filter(
@@ -209,24 +208,14 @@ export default class CollectionsStore extends Store<Collection> {
 
   unstar = async (collection: Collection) => {
     const star = this.rootStore.stars.orderedData.find(
-      (star) => star.collectionId === collection.id
+      (s) => s.collectionId === collection.id
     );
     await star?.delete();
   };
 
-  getPathForDocument(documentId: string): DocumentPath | undefined {
-    return this.pathsToDocuments.find((path) => path.id === documentId);
-  }
-
-  titleForDocument(documentPath: string): string | undefined {
-    const path = this.pathsToDocuments.find(
-      (path) => path.url === documentPath
-    );
-    if (path) {
-      return path.title;
-    }
-
-    return;
+  @computed
+  get navigationNodes() {
+    return this.orderedData.map((collection) => collection.asNavigationNode);
   }
 
   getByUrl(url: string): Collection | null | undefined {

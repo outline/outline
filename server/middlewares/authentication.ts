@@ -70,11 +70,7 @@ export default function auth(options: AuthenticationOptions = {}) {
         let apiKey;
 
         try {
-          apiKey = await ApiKey.findOne({
-            where: {
-              secret: token,
-            },
-          });
+          apiKey = await ApiKey.findByToken(token);
         } catch (err) {
           throw AuthenticationError("Invalid API key");
         }

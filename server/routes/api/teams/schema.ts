@@ -41,6 +41,10 @@ export const TeamsUpdateSchema = BaseSchema.extend({
         membersCanInvite: z.boolean().optional(),
         /** Whether members can create API keys. */
         membersCanCreateApiKey: z.boolean().optional(),
+        /** Whether members can delete their user account. */
+        membersCanDeleteAccount: z.boolean().optional(),
+        /** Whether notification emails include document and comment content. */
+        previewsInEmails: z.boolean().optional(),
         /** Whether commenting is enabled */
         commenting: z.boolean().optional(),
         /** The custom theme for the team. */

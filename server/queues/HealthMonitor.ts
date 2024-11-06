@@ -35,6 +35,6 @@ export default class HealthMonitor {
           }
         );
       }
-    }, 30 * Second);
+    }, 30 * Second.ms);
   }
 }

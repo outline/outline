@@ -9,7 +9,7 @@ import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
 import * as Tracing from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
-import { Collection, User } from "@server/models";
+import { Collection, Group, User } from "@server/models";
 import { can } from "@server/policies";
 import Redis from "@server/storage/redis";
 import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
@@ -35,6 +35,8 @@ export default function init(
     path,
     serveClient: false,
     cookie: false,
+    pingInterval: 15000,
+    pingTimeout: 30000,
     cors: {
       origin: "*",
       methods: ["GET", "POST"],
@@ -161,14 +163,16 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
   // and user so we can send authenticated events
   const rooms = [`team-${user.teamId}`, `user-${user.id}`];
 
-  // the rooms associated with collections this user
-  // has access to on connection. New collection subscriptions
-  // are managed from the client as needed through the 'join' event
-  const collectionIds: string[] = await user.collectionIds();
+  // the rooms associated with collections this user has access to on
+  // connection. New collection and group subscriptions are managed
+  // from the client as needed through the 'join' event.
+  const [collectionIds, groupIds] = await Promise.all([
+    user.collectionIds(),
+    user.groupIds(),
+  ]);
 
-  collectionIds.forEach((collectionId) =>
-    rooms.push(`collection-${collectionId}`)
-  );
+  collectionIds.forEach((colId) => rooms.push(`collection-${colId}`));
+  groupIds.forEach((groupId) => rooms.push(`group-${groupId}`));
 
   // allow the client to request to join rooms
   socket.on("join", async (event) => {
@@ -181,7 +185,15 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
 
       if (can(user, "read", collection)) {
         await socket.join(`collection-${event.collectionId}`);
-        Metrics.increment("websockets.collections.join");
+      }
+    }
+    if (event.groupId) {
+      const group = await Group.scope({
+        method: ["withMembership", user.id],
+      }).findByPk(event.groupId);
+
+      if (can(user, "read", group)) {
+        await socket.join(`group-${event.groupId}`);
       }
     }
   });
@@ -190,7 +202,9 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
   socket.on("leave", async (event) => {
     if (event.collectionId) {
       await socket.leave(`collection-${event.collectionId}`);
-      Metrics.increment("websockets.collections.leave");
+    }
+    if (event.groupId) {
+      await socket.leave(`group-${event.groupId}`);
     }
   });
 

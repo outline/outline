@@ -38,7 +38,7 @@ import Mark from "@shared/editor/marks/Mark";
 import { basicExtensions as extensions } from "@shared/editor/nodes";
 import Node from "@shared/editor/nodes/Node";
 import ReactNode from "@shared/editor/nodes/ReactNode";
-import { EventType } from "@shared/editor/types";
+import { ComponentProps, EventType } from "@shared/editor/types";
 import { ProsemirrorData, UserPreferences } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import EventEmitter from "@shared/utils/events";
@@ -50,6 +50,7 @@ import ComponentView from "./components/ComponentView";
 import EditorContext from "./components/EditorContext";
 import { SearchResult } from "./components/LinkEditor";
 import LinkToolbar from "./components/LinkToolbar";
+import { NodeViewRenderer } from "./components/NodeViewRenderer";
 import SelectionToolbar from "./components/SelectionToolbar";
 import WithTheme from "./components/WithTheme";
 
@@ -90,6 +91,10 @@ export type Props = {
   scrollTo?: string;
   /** Callback for handling uploaded images, should return the url of uploaded file */
   uploadFile?: (file: File) => Promise<string>;
+  /** Callback when prosemirror nodes are initialized on document mount. */
+  onInit?: () => void;
+  /** Callback when prosemirror nodes are destroyed on document unmount. */
+  onDestroy?: () => void;
   /** Callback when editor is blurred, as native input */
   onBlur?: () => void;
   /** Callback when editor is focused, as native input */
@@ -175,6 +180,7 @@ export class Editor extends React.PureComponent<
     linkToolbarOpen: false,
   };
 
+  isInitialized = false;
   isBlurred = true;
   extensions: ExtensionManager;
   elementRef = React.createRef<HTMLDivElement>();
@@ -192,6 +198,7 @@ export class Editor extends React.PureComponent<
   };
 
   widgets: { [name: string]: (props: WidgetProps) => React.ReactElement };
+  renderers: Set<NodeViewRenderer<ComponentProps>> = new Set();
   nodes: { [name: string]: NodeSpec };
   marks: { [name: string]: MarkSpec };
   commands: Record<string, CommandFactory>;
@@ -281,6 +288,7 @@ export class Editor extends React.PureComponent<
     window.removeEventListener("theme-changed", this.dispatchThemeChanged);
     this.view?.destroy();
     this.mutationObserver?.disconnect();
+    this.handleEditorDestroy();
   }
 
   private init() {
@@ -480,6 +488,8 @@ export class Editor extends React.PureComponent<
           self.handleChange();
         }
 
+        self.handleEditorInit();
+
         self.calculateDir();
 
         // Because Prosemirror and React are not linked we must tell React that
@@ -624,7 +634,8 @@ export class Editor extends React.PureComponent<
    *
    * @returns A list of headings in the document
    */
-  public getHeadings = () => ProsemirrorHelper.getHeadings(this.view.state.doc);
+  public getHeadings = () =>
+    ProsemirrorHelper.getHeadings(this.view.state.doc, this.schema);
 
   /**
    * Return the images in the current editor.
@@ -737,6 +748,22 @@ export class Editor extends React.PureComponent<
     );
   };
 
+  private handleEditorInit = () => {
+    if (!this.props.onInit || this.isInitialized) {
+      return;
+    }
+
+    this.props.onInit();
+    this.isInitialized = true;
+  };
+
+  private handleEditorDestroy = () => {
+    if (!this.props.onDestroy) {
+      return;
+    }
+    this.props.onDestroy();
+  };
+
   private handleEditorBlur = () => {
     this.setState({ isEditorFocused: false });
     return false;
@@ -765,6 +792,9 @@ export class Editor extends React.PureComponent<
   };
 
   private handleOpenLinkToolbar = () => {
+    if (this.state.selectionToolbarOpen) {
+      return;
+    }
     this.setState((state) => ({
       ...state,
       linkToolbarOpen: true,
@@ -834,6 +864,7 @@ export class Editor extends React.PureComponent<
               Object.values(this.widgets).map((Widget, index) => (
                 <Widget key={String(index)} rtl={isRTL} readOnly={readOnly} />
               ))}
+            {Array.from(this.renderers).map((view) => view.content)}
           </Flex>
         </EditorContext.Provider>
       </PortalContext.Provider>

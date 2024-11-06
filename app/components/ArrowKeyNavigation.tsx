@@ -19,7 +19,7 @@ function ArrowKeyNavigation(
           return;
         }
 
-        if (ev.key === "Escape") {
+        if (ev.key === "Escape" || ev.key === "Backspace") {
           ev.preventDefault();
           onEscape(ev);
         }

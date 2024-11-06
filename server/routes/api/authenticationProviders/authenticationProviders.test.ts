@@ -1,8 +1,10 @@
 import { v4 as uuidv4 } from "uuid";
 import { buildUser, buildAdmin, buildTeam } from "@server/test/factories";
-import { getTestServer } from "@server/test/support";
+import { getTestServer, setSelfHosted } from "@server/test/support";
 
 const server = getTestServer();
+
+beforeEach(setSelfHosted);
 
 describe("#authenticationProviders.info", () => {
   it("should return auth provider", async () => {
@@ -22,8 +24,8 @@ describe("#authenticationProviders.info", () => {
     expect(body.data.name).toBe("slack");
     expect(body.data.isEnabled).toBe(true);
     expect(body.data.isConnected).toBe(true);
-    expect(body.policies[0].abilities.read).toBe(true);
-    expect(body.policies[0].abilities.update).toBe(true);
+    expect(body.policies[0].abilities.read).toBeTruthy();
+    expect(body.policies[0].abilities.update).toBeTruthy();
   });
 
   it("should require authorization", async () => {

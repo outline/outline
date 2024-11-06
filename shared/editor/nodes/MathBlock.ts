@@ -41,10 +41,10 @@ export default class MathBlock extends Node {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
-    state.write("$$$\n");
+    state.write("$$\n");
     state.text(node.textContent, false);
     state.ensureNewLine();
-    state.write("$$$");
+    state.write("$$");
     state.closeBlock(node);
   }
 

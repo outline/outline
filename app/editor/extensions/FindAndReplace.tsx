@@ -1,10 +1,11 @@
+import deburr from "lodash/deburr";
 import escapeRegExp from "lodash/escapeRegExp";
 import { observable } from "mobx";
 import { Node } from "prosemirror-model";
 import { Command, Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
-import scrollIntoView from "smooth-scroll-into-view-if-needed";
+import scrollIntoView from "scroll-into-view-if-needed";
 import Extension, { WidgetProps } from "@shared/editor/lib/Extension";
 import FindAndReplace from "../components/FindAndReplace";
 
@@ -184,7 +185,7 @@ export default class FindAndReplaceExtension extends Extension {
         `.${this.options.resultCurrentClassName}`
       );
       if (element) {
-        void scrollIntoView(element, {
+        scrollIntoView(element, {
           scrollMode: "if-needed",
           block: "center",
         });
@@ -243,11 +244,11 @@ export default class FindAndReplaceExtension extends Extension {
     });
 
     mergedTextNodes.forEach(({ text = "", pos }) => {
-      const search = this.findRegExp;
-      let m;
-
       try {
-        while ((m = search.exec(text))) {
+        let m;
+        const search = this.findRegExp;
+
+        while ((m = search.exec(deburr(text)))) {
           if (m[0] === "") {
             break;
           }

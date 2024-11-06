@@ -1,4 +1,4 @@
-import { PluginSimple } from "markdown-it";
+import { Options, PluginSimple } from "markdown-it";
 import { observer } from "mobx-react";
 import { keymap } from "prosemirror-keymap";
 import { MarkdownParser } from "prosemirror-markdown";
@@ -136,7 +136,7 @@ export default class ExtensionManager {
     plugins,
   }: {
     schema: Schema;
-    rules?: markdownit.Options;
+    rules?: Options;
     plugins?: PluginSimple[];
   }): MarkdownParser {
     const tokens = this.extensions
@@ -186,6 +186,7 @@ export default class ExtensionManager {
       .map((extension) =>
         ["node", "mark"].includes(extension.type)
           ? extension.keys({
+              // @ts-expect-error TODO
               type: schema[`${extension.type}s`][extension.name],
               schema,
             })
@@ -206,6 +207,7 @@ export default class ExtensionManager {
       .filter((extension) => extension.inputRules)
       .map((extension) =>
         extension.inputRules({
+          // @ts-expect-error TODO
           type: schema[`${extension.type}s`][extension.name],
           schema,
         })
@@ -222,13 +224,14 @@ export default class ExtensionManager {
       .filter((extension) => extension.commands)
       .reduce((allCommands, extension) => {
         const { name, type } = extension;
-        const commands = {};
+        const commands: Record<string, CommandFactory> = {};
 
         // @ts-expect-error FIXME
         const value = extension.commands({
           schema,
           ...(["node", "mark"].includes(type)
             ? {
+                // @ts-expect-error TODO
                 type: schema[`${type}s`][name],
               }
             : {}),
@@ -239,12 +242,12 @@ export default class ExtensionManager {
           attrs: Record<string, Primitive>
         ) => {
           if (!view.editable && !extension.allowInReadOnly) {
-            return false;
+            return;
           }
           if (extension.focusAfterExecution) {
             view.focus();
           }
-          return callback(attrs)(view.state, view.dispatch, view);
+          return callback(attrs)?.(view.state, view.dispatch, view);
         };
 
         const handle = (_name: string, _value: CommandFactory) => {
@@ -252,8 +255,8 @@ export default class ExtensionManager {
             commands[_name] = (attrs: Record<string, Primitive>) =>
               _value.forEach((callback) => apply(callback, attrs));
           } else if (typeof _value === "function") {
-            commands[_name] = (attrs: Record<string, Primitive>) =>
-              apply(_value, attrs);
+            commands[_name] = ((attrs: Record<string, Primitive>) =>
+              apply(_value, attrs)) as CommandFactory;
           }
         };
 

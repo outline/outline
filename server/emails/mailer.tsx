@@ -1,5 +1,4 @@
-import addressparser from "addressparser";
-import invariant from "invariant";
+import { EmailAddress } from "addressparser";
 import nodemailer, { Transporter } from "nodemailer";
 import SMTPTransport from "nodemailer/lib/smtp-transport";
 import Oy from "oy-vey";
@@ -12,8 +11,10 @@ const useTestEmailService = env.isDevelopment && !env.SMTP_USERNAME;
 
 type SendMailOptions = {
   to: string;
-  fromName?: string;
+  from?: EmailAddress | string;
   replyTo?: string;
+  messageId?: string;
+  references?: string[];
   subject: string;
   previewText?: string;
   text: string;
@@ -113,6 +114,11 @@ export class Mailer {
   `;
   };
 
+  /**
+   *
+   * @param data Email headers and body
+   * @returns Message ID header from SMTP server
+   */
   sendMail = async (data: SendMailOptions): Promise<void> => {
     const { transporter } = this;
 
@@ -136,22 +142,13 @@ export class Mailer {
     try {
       Logger.info("email", `Sending email "${data.subject}" to ${data.to}`);
 
-      invariant(
-        env.SMTP_FROM_EMAIL,
-        "SMTP_FROM_EMAIL is required to send emails"
-      );
-
-      const from = addressparser(env.SMTP_FROM_EMAIL)[0];
-
       const info = await transporter.sendMail({
-        from: data.fromName
-          ? {
-              name: data.fromName,
-              address: from.address,
-            }
-          : env.SMTP_FROM_EMAIL,
+        from: data.from ?? env.SMTP_FROM_EMAIL,
         replyTo: data.replyTo ?? env.SMTP_REPLY_EMAIL ?? env.SMTP_FROM_EMAIL,
         to: data.to,
+        messageId: data.messageId,
+        references: data.references,
+        inReplyTo: data.references?.at(-1),
         subject: data.subject,
         html,
         text: data.text,

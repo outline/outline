@@ -14,5 +14,6 @@ export default function present(comment: Comment) {
     resolvedById: comment.resolvedById,
     createdAt: comment.createdAt,
     updatedAt: comment.updatedAt,
+    reactions: comment.reactions ?? [],
   };
 }

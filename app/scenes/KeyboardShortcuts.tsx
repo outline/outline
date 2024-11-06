@@ -197,6 +197,23 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
+                <Key symbol>{metaDisplay}</Key> + <Key symbol>⇧</Key> +{" "}
+                <Key>c</Key>
+              </>
+            ),
+            label: t("Code"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key symbol>{metaDisplay}</Key> + <Key>Ctrl</Key> + <Key>h</Key>
+              </>
+            ),
+            label: t("Highlight"),
+          },
+          {
+            shortcut: (
+              <>
                 <Key symbol>{metaDisplay}</Key> + <Key>i</Key>
               </>
             ),
@@ -205,10 +222,10 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key symbol>{metaDisplay}</Key> + <Key>u</Key>
+                <Key symbol>{metaDisplay}</Key> + <Key>k</Key>
               </>
             ),
-            label: t("Underline"),
+            label: t("Link"),
           },
           {
             shortcut: (
@@ -221,10 +238,10 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key symbol>{metaDisplay}</Key> + <Key>k</Key>
+                <Key symbol>{metaDisplay}</Key> + <Key>u</Key>
               </>
             ),
-            label: t("Link"),
+            label: t("Underline"),
           },
           {
             shortcut: (
@@ -271,6 +288,14 @@ function KeyboardShortcuts() {
               </>
             ),
             label: t("Ordered list"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key symbol>{metaDisplay}</Key> + <Key>Enter</Key>
+              </>
+            ),
+            label: t("Toggle task list item"),
           },
           {
             shortcut: <Key>{t("Tab")}</Key>,

@@ -15,6 +15,7 @@ import {
   deleteCommentFactory,
   resolveCommentFactory,
   unresolveCommentFactory,
+  viewCommentReactionsFactory,
 } from "~/actions/definitions/comments";
 import useActionContext from "~/hooks/useActionContext";
 import usePolicy from "~/hooks/usePolicy";
@@ -66,47 +67,55 @@ function CommentMenu({
           {...menu}
         />
       </EventBoundary>
-      <ContextMenu {...menu} aria-label={t("Comment options")}>
-        <Template
-          {...menu}
-          items={[
-            {
-              type: "button",
-              title: `${t("Edit")}…`,
-              icon: <EditIcon />,
-              onClick: onEdit,
-              visible: can.update,
-            },
-            actionToMenuItem(
-              resolveCommentFactory({
-                comment,
-                onResolve: () => onUpdate({ resolved: true }),
-              }),
-              context
-            ),
-            actionToMenuItem(
-              unresolveCommentFactory({
-                comment,
-                onUnresolve: () => onUpdate({ resolved: false }),
-              }),
-              context
-            ),
-            {
-              type: "button",
-              icon: <CopyIcon />,
-              title: t("Copy link"),
-              onClick: handleCopyLink,
-            },
-            {
-              type: "separator",
-            },
-            actionToMenuItem(
-              deleteCommentFactory({ comment, onDelete }),
-              context
-            ),
-          ]}
-        />
-      </ContextMenu>
+      {menu.visible && (
+        <ContextMenu {...menu} aria-label={t("Comment options")}>
+          <Template
+            {...menu}
+            items={[
+              {
+                type: "button",
+                title: `${t("Edit")}…`,
+                icon: <EditIcon />,
+                onClick: onEdit,
+                visible: can.update && !comment.isResolved,
+              },
+              actionToMenuItem(
+                resolveCommentFactory({
+                  comment,
+                  onResolve: () => onUpdate({ resolved: true }),
+                }),
+                context
+              ),
+              actionToMenuItem(
+                unresolveCommentFactory({
+                  comment,
+                  onUnresolve: () => onUpdate({ resolved: false }),
+                }),
+                context
+              ),
+              actionToMenuItem(
+                viewCommentReactionsFactory({
+                  comment,
+                }),
+                context
+              ),
+              {
+                type: "button",
+                icon: <CopyIcon />,
+                title: t("Copy link"),
+                onClick: handleCopyLink,
+              },
+              {
+                type: "separator",
+              },
+              actionToMenuItem(
+                deleteCommentFactory({ comment, onDelete }),
+                context
+              ),
+            ]}
+          />
+        </ContextMenu>
+      )}
     </>
   );
 }

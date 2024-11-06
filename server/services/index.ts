@@ -12,4 +12,4 @@ export default {
   web,
   worker,
   cron,
-};
+} as const;

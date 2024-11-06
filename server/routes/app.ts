@@ -84,7 +84,10 @@ export const renderApp = async (
   const page = await readIndexFile();
   const environment = `
     <script nonce="${ctx.state.cspNonce}">
-      window.env = ${JSON.stringify(presentEnv(env, options))};
+      window.env = ${JSON.stringify(presentEnv(env, options)).replace(
+        /</g,
+        "\\u003c"
+      )};
     </script>
   `;
 

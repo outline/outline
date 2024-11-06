@@ -1,4 +1,4 @@
-import Token from "markdown-it/lib/token";
+import { Token } from "markdown-it";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
 import { Command } from "prosemirror-state";
 import * as React from "react";
@@ -87,7 +87,7 @@ export default class Embed extends Node {
     return [embedsRule(this.options.embeds)];
   }
 
-  component(props: ComponentProps) {
+  component = (props: ComponentProps) => {
     const { embeds, embedsDisabled } = this.editor.props;
 
     return (
@@ -97,7 +97,7 @@ export default class Embed extends Node {
         embedsDisabled={embedsDisabled}
       />
     );
-  }
+  };
 
   commands({ type }: { type: NodeType }) {
     return (attrs: Record<string, Primitive>): Command =>

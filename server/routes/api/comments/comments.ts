@@ -9,7 +9,7 @@ import { feature } from "@server/middlewares/feature";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Document, Comment, Collection, Event } from "@server/models";
+import { Document, Comment, Collection, Event, Reaction } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentComment, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
@@ -293,18 +293,14 @@ router.post(
 
     comment.resolve(user);
     const changes = comment.changeset;
-    await comment.save({ transaction });
+    await comment.save({ transaction, silent: true });
 
-    await Event.createFromContext(
-      ctx,
-      {
-        name: "comments.update",
-        modelId: comment.id,
-        documentId: comment.documentId,
-        changes,
-      },
-      { transaction }
-    );
+    await Event.createFromContext(ctx, {
+      name: "comments.update",
+      modelId: comment.id,
+      documentId: comment.documentId,
+      changes,
+    });
 
     ctx.body = {
       data: presentComment(comment),
@@ -340,22 +336,123 @@ router.post(
 
     comment.unresolve();
     const changes = comment.changeset;
-    await comment.save({ transaction });
+    await comment.save({ transaction, silent: true });
 
-    await Event.createFromContext(
-      ctx,
-      {
-        name: "comments.update",
-        modelId: comment.id,
-        documentId: comment.documentId,
-        changes,
-      },
-      { transaction }
-    );
+    await Event.createFromContext(ctx, {
+      name: "comments.update",
+      modelId: comment.id,
+      documentId: comment.documentId,
+      changes,
+    });
 
     ctx.body = {
       data: presentComment(comment),
       policies: presentPolicies(user, [comment]),
+    };
+  }
+);
+
+router.post(
+  "comments.add_reaction",
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
+  auth(),
+  feature(TeamPreference.Commenting),
+  validate(T.CommentsReactionSchema),
+  transaction(),
+  async (ctx: APIContext<T.CommentsReactionReq>) => {
+    const { id, emoji } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    const comment = await Comment.findByPk(id, {
+      transaction,
+      rejectOnEmpty: true,
+      lock: {
+        level: transaction.LOCK.UPDATE,
+        of: Comment,
+      },
+    });
+    const document = await Document.findByPk(comment.documentId, {
+      userId: user.id,
+      transaction,
+    });
+
+    authorize(user, "comment", document);
+    authorize(user, "addReaction", comment);
+
+    const [, created] = await Reaction.findOrCreate({
+      where: {
+        emoji,
+        userId: user.id,
+        commentId: id,
+      },
+      transaction,
+    });
+
+    if (created) {
+      await Event.createFromContext(ctx, {
+        name: "comments.add_reaction",
+        modelId: comment.id,
+        documentId: comment.documentId,
+        data: {
+          emoji,
+        },
+      });
+    }
+
+    ctx.body = {
+      success: true,
+    };
+  }
+);
+
+router.post(
+  "comments.remove_reaction",
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
+  auth(),
+  feature(TeamPreference.Commenting),
+  validate(T.CommentsReactionSchema),
+  transaction(),
+  async (ctx: APIContext<T.CommentsReactionReq>) => {
+    const { id, emoji } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    const comment = await Comment.findByPk(id, {
+      transaction,
+      rejectOnEmpty: true,
+      lock: {
+        level: transaction.LOCK.UPDATE,
+        of: Comment,
+      },
+    });
+    const document = await Document.findByPk(comment.documentId, {
+      userId: user.id,
+      transaction,
+    });
+
+    authorize(user, "comment", document);
+    authorize(user, "removeReaction", comment);
+
+    const reaction = await Reaction.findOne({
+      where: { emoji, userId: user.id, commentId: id },
+      transaction,
+    });
+    authorize(user, "delete", reaction);
+
+    await reaction.destroy({ transaction });
+
+    await Event.createFromContext(ctx, {
+      name: "comments.remove_reaction",
+      modelId: comment.id,
+      documentId: comment.documentId,
+      data: {
+        emoji,
+      },
+    });
+
+    ctx.body = {
+      success: true,
     };
   }
 );
