@@ -961,6 +961,8 @@
   "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.": "有効にすると、ドキュメントは編集のできない閲覧モードで開かれます。編集をするには、画面上部の編集ボタンを押す必要があります。\n無効にすると、許可がある場合は常に編集できる状態で開かれます。",
   "Remember previous location": "前回開いていた場所を記憶する",
   "Automatically return to the document you were last viewing when the app is re-opened.": "アプリを再度開いたときに、最後に表示していたドキュメントを自動的に表示します。",
+  "Smart text replacements": "Smart text replacements",
+  "Auto-format text by replacing shortcuts with symbols, dashes, smart quotes, and other typographical elements.": "Auto-format text by replacing shortcuts with symbols, dashes, smart quotes, and other typographical elements.",
   "You may delete your account at any time, note that this is unrecoverable": "アカウントはいつでも削除することができます。これは取り返しのつかないことです。",
   "Profile saved": "プロフィールを保存しました",
   "Profile picture updated": "プロフィール画像の更新に成功しました",
