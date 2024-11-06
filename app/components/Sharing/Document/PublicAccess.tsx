@@ -196,7 +196,7 @@ function PublicAccess({ document, share, sharedParent }: Props) {
                 {t("Search engine indexing")}&nbsp;
                 <Tooltip
                   content={t(
-                    "Disable this setting to discourage search engines from indexing the page."
+                    "Disable this setting to discourage search engines from indexing the page"
                   )}
                 >
                   <QuestionMarkIcon size={18} />
