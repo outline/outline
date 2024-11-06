@@ -961,6 +961,8 @@
   "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.": "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.",
   "Remember previous location": "Ghi nhớ vị trí trước đó",
   "Automatically return to the document you were last viewing when the app is re-opened.": "Tự động quay lại tài liệu bạn xem lần cuối khi mở lại ứng dụng.",
+  "Smart text replacements": "Smart text replacements",
+  "Auto-format text by replacing shortcuts with symbols, dashes, smart quotes, and other typographical elements.": "Auto-format text by replacing shortcuts with symbols, dashes, smart quotes, and other typographical elements.",
   "You may delete your account at any time, note that this is unrecoverable": "Bạn có thể xóa tài khoản của mình bất kỳ lúc nào, lưu ý rằng điều này không thể khôi phục được",
   "Profile saved": "Hồ sơ đã lưu",
   "Profile picture updated": "Đã cập nhật ảnh hồ sơ",
