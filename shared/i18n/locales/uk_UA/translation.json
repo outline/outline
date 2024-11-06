@@ -961,6 +961,8 @@
   "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.": "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.",
   "Remember previous location": "Запам'ятати попереднє місце розташування",
   "Automatically return to the document you were last viewing when the app is re-opened.": "Автоматично повертатись до документа, який ви переглядали, коли програма буде знову відкрита.",
+  "Smart text replacements": "Smart text replacements",
+  "Auto-format text by replacing shortcuts with symbols, dashes, smart quotes, and other typographical elements.": "Auto-format text by replacing shortcuts with symbols, dashes, smart quotes, and other typographical elements.",
   "You may delete your account at any time, note that this is unrecoverable": "Ви можете видалити свій обліковий запис у будь-який час, зауважте, що це невиправно",
   "Profile saved": "Профіль збережено",
   "Profile picture updated": "Зображення профілю оновлено",
