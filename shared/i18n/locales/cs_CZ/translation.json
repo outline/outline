@@ -961,6 +961,8 @@
   "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.": "Pokud je povoleno, dokumenty mají samostatný režim úprav. Pokud je zakázáno, dokumenty jsou vždy upravitelné, pokud máte oprávnění.",
   "Remember previous location": "Zapamatovat předchozí umístění",
   "Automatically return to the document you were last viewing when the app is re-opened.": "Automaticky se vracet k dokumentu, který jste si naposledy prohlédli před ukončením aplikace.",
+  "Smart text replacements": "Smart text replacements",
+  "Auto-format text by replacing shortcuts with symbols, dashes, smart quotes, and other typographical elements.": "Auto-format text by replacing shortcuts with symbols, dashes, smart quotes, and other typographical elements.",
   "You may delete your account at any time, note that this is unrecoverable": "Účet můžete kdykoliv odstranit, tento krok je neobnovitelný",
   "Profile saved": "Profil uložen",
   "Profile picture updated": "Profilový obrázek byl úspěšně aktualizován",
