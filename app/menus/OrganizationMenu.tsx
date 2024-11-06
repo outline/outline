@@ -4,7 +4,10 @@ import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
 import ContextMenu from "~/components/ContextMenu";
 import Template from "~/components/ContextMenu/Template";
-import { navigateToSettings, logout } from "~/actions/definitions/navigation";
+import {
+  navigateToWorkspaceSettings,
+  logout,
+} from "~/actions/definitions/navigation";
 import {
   createTeam,
   createTeamsList,
@@ -45,7 +48,7 @@ const OrganizationMenu: React.FC = ({ children }: Props) => {
       createTeam,
       desktopLoginTeam,
       separator(),
-      navigateToSettings,
+      navigateToWorkspaceSettings,
       logout,
     ],
     [context]
