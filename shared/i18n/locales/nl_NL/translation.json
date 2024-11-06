@@ -961,6 +961,8 @@
   "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.": "Indien ingeschakeld, hebben documenten een aparte bewerkingsmodus. Indien uitgeschakeld, kunnen documenten altijd worden bewerkt als je daarvoor toestemming hebt.",
   "Remember previous location": "Onthoud vorige locatie",
   "Automatically return to the document you were last viewing when the app is re-opened.": "Automatisch terugkeren naar het document dat je het laatst hebt bekeken als de app opnieuw wordt geopend.",
+  "Smart text replacements": "Smart text replacements",
+  "Auto-format text by replacing shortcuts with symbols, dashes, smart quotes, and other typographical elements.": "Auto-format text by replacing shortcuts with symbols, dashes, smart quotes, and other typographical elements.",
   "You may delete your account at any time, note that this is unrecoverable": "Je kan jouw account op ieder moment verwijderen. Let op: je account kan niet hersteld worden.",
   "Profile saved": "Wijzigingen opgeslagen",
   "Profile picture updated": "Profielfoto gewijzigd",
