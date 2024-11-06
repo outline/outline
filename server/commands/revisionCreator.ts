@@ -24,7 +24,7 @@ export default async function revisionCreator({
         teamId: document.teamId,
         actorId: user.id,
         createdAt: document.updatedAt,
-        ip: event.ip,
+        ip: event.ip ?? user.lastActiveIp,
         authType: event.authType,
       },
       {
