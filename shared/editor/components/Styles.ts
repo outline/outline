@@ -855,7 +855,7 @@ h6 {
 
   &.collapsed {
     svg {
-      transform: rotate("-90deg");
+      transform: rotate(-90deg);
       pointer-events: none;
     }
     transition-delay: 0.1s;
