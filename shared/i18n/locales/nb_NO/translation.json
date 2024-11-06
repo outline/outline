@@ -961,6 +961,8 @@
   "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.": "Når aktivert, har dokumenter en separat redigeringsmodus. Når deaktivert, er dokumenter alltid redigerbare når du har tillatelse.",
   "Remember previous location": "Husk tidligere plassering",
   "Automatically return to the document you were last viewing when the app is re-opened.": "Gå automatisk tilbake til dokumentet du sist så på når appen åpnes på nytt.",
+  "Smart text replacements": "Smart text replacements",
+  "Auto-format text by replacing shortcuts with symbols, dashes, smart quotes, and other typographical elements.": "Auto-format text by replacing shortcuts with symbols, dashes, smart quotes, and other typographical elements.",
   "You may delete your account at any time, note that this is unrecoverable": "Du kan slette kontoen din når som helst, merk at dette er uopprettelig",
   "Profile saved": "Profil lagret",
   "Profile picture updated": "Profilbilde oppdatert",
