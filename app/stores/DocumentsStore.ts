@@ -63,6 +63,7 @@ export default class DocumentsStore extends Store<Document> {
     ".md",
     ".doc",
     ".docx",
+    "text/csv",
     "text/markdown",
     "text/plain",
     "text/html",
