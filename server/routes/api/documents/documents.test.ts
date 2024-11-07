@@ -2907,13 +2907,19 @@ describe("#documents.restore", () => {
     expect(body.message).toEqual("collectionId: Invalid uuid");
   });
 
-  it("should allow restore of trashed documents", async () => {
+  it("should allow restore of trashed drafts of a collection", async () => {
     const user = await buildUser();
-    const document = await buildDocument({
+    const collection = await buildCollection({
       userId: user.id,
       teamId: user.teamId,
     });
+    const document = await buildDraftDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
     await document.destroy();
+
     const res = await server.post("/api/documents.restore", {
       body: {
         token: user.getJwtToken(),
@@ -2921,17 +2927,46 @@ describe("#documents.restore", () => {
       },
     });
     const body = await res.json();
+
     expect(res.status).toEqual(200);
     expect(body.data.deletedAt).toEqual(null);
+    expect(body.data.collectionId).toEqual(collection.id);
   });
 
-  it("should allow restore of trashed drafts without collection", async () => {
+  it("should allow restore of trashed drafts with collectionId", async () => {
     const user = await buildUser();
-    const document = await buildDraftDocument({
+    const collection = await buildCollection({
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.delete(user);
+    const document = await buildDraftDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: null,
+    });
+    await document.destroy();
+
+    const res = await server.post("/api/documents.restore", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        collectionId: collection.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.deletedAt).toEqual(null);
+    expect(body.data.collectionId).toEqual(collection.id);
+  });
+
+  it("should allow restore of trashed documents", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    await document.destroy();
     const res = await server.post("/api/documents.restore", {
       body: {
         token: user.getJwtToken(),
@@ -2967,7 +3002,41 @@ describe("#documents.restore", () => {
     expect(body.data.collectionId).toEqual(collection.id);
   });
 
-  it("should not allow restore of documents in deleted collection", async () => {
+  it("should allow restore of documents from a deleted collection", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const anotherCollection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: team.id,
+    });
+    await document.delete(user);
+    await collection.destroy({ hooks: false });
+
+    const res = await server.post("/api/documents.restore", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        collectionId: anotherCollection.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.deletedAt).toEqual(null);
+    expect(body.data.archivedAt).toEqual(null);
+    expect(body.data.collectionId).toEqual(anotherCollection.id);
+  });
+
+  it("should not allow restore of documents to a deleted collection", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
     const collection = await buildCollection({
@@ -2979,9 +3048,9 @@ describe("#documents.restore", () => {
       collectionId: collection.id,
       teamId: team.id,
     });
-    await document.destroy();
+    await document.delete(user);
     await collection.destroy({ hooks: false });
-    // passing deleted collection's id
+
     const res = await server.post("/api/documents.restore", {
       body: {
         token: user.getJwtToken(),
@@ -2989,26 +3058,15 @@ describe("#documents.restore", () => {
         collectionId: collection.id,
       },
     });
-    // not passing collection's id
-    const anotherRes = await server.post("/api/documents.restore", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-      },
-    });
     const body = await res.json();
-    const anotherBody = await anotherRes.json();
+
     expect(res.status).toEqual(400);
     expect(body.message).toEqual(
       "Unable to restore, the collection may have been deleted or archived"
     );
-    expect(anotherRes.status).toEqual(400);
-    expect(anotherBody.message).toEqual(
-      "Unable to restore, the collection may have been deleted or archived"
-    );
   });
 
-  it("should not allow restore of documents in archived collection", async () => {
+  it("should not allow restore of documents to an archived collection", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
       teamId: user.teamId,
@@ -3021,6 +3079,7 @@ describe("#documents.restore", () => {
     await document.destroy();
     collection.archivedAt = new Date();
     await collection.save();
+
     const res = await server.post("/api/documents.restore", {
       body: {
         token: user.getJwtToken(),
@@ -3029,6 +3088,7 @@ describe("#documents.restore", () => {
       },
     });
     const body = await res.json();
+
     expect(res.status).toEqual(400);
     expect(body.message).toEqual(
       "Unable to restore, the collection may have been deleted or archived"
