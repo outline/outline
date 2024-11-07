@@ -15,3 +15,16 @@ export const zodIconType = () =>
     z.string().regex(emojiRegex()),
     zodEnumFromObjectKeys(IconLibrary.mapping),
   ]);
+
+export const zodTimezone = () =>
+  z.string().refine(
+    (timezone) => {
+      try {
+        Intl.DateTimeFormat(undefined, { timeZone: timezone });
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    { message: "invalid timezone" }
+  );

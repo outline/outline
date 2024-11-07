@@ -702,6 +702,19 @@ describe("#users.update", () => {
     expect(body.data.preferences.rememberLastPath).toBe(true);
   });
 
+  it("should update user timezone", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/users.update", {
+      body: {
+        token: user.getJwtToken(),
+        timezone: "Asia/Calcutta",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.timezone).toEqual("Asia/Calcutta");
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/users.update");
     const body = await res.json();
