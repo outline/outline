@@ -4,9 +4,8 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
 import { useHistory, useRouteMatch } from "react-router-dom";
-import { UserPreferenceDefaults } from "@shared/constants";
 import { richExtensions, withComments } from "@shared/editor/nodes";
-import { TeamPreference, UserPreference } from "@shared/types";
+import { TeamPreference } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
@@ -38,6 +37,21 @@ import { decodeURIComponentSafe } from "~/utils/urls";
 import MultiplayerEditor from "./AsyncMultiplayerEditor";
 import DocumentMeta from "./DocumentMeta";
 import DocumentTitle from "./DocumentTitle";
+
+const extensions = [
+  ...withComments(richExtensions),
+  SmartText,
+  PasteHandler,
+  ClipboardTextSerializer,
+  BlockMenuExtension,
+  EmojiMenuExtension,
+  MentionMenuExtension,
+  FindAndReplaceExtension,
+  HoverPreviewsExtension,
+  // Order these default key handlers last
+  PreventTab,
+  Keys,
+];
 
 type Props = Omit<EditorProps, "editorStyle"> & {
   onChangeTitle: (title: string) => void;
@@ -79,29 +93,6 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     ...rest
   } = props;
   const can = usePolicy(document);
-
-  const enableSmartText =
-    user?.getPreference(UserPreference.EnableSmartText) ??
-    UserPreferenceDefaults.enableSmartText;
-
-  const extensions = React.useMemo(
-    () => [
-      ...withComments(richExtensions),
-      ...(enableSmartText ? [SmartText] : []),
-      PasteHandler,
-      ClipboardTextSerializer,
-      BlockMenuExtension,
-      EmojiMenuExtension,
-      MentionMenuExtension,
-      FindAndReplaceExtension,
-      HoverPreviewsExtension,
-      // Order these default key handlers last
-      PreventTab,
-      Keys,
-    ],
-    [enableSmartText]
-  );
-
   const iconColor = document.color ?? (last(colorPalette) as string);
   const childRef = React.useRef<HTMLDivElement>(null);
   const focusAtStart = React.useCallback(() => {
