@@ -407,6 +407,8 @@ function DocumentMenu({
       } catch (err) {
         toast.error(err.message);
         throw err;
+      } finally {
+        ev.target.value = "";
       }
     },
     [history, collection, documents, document.id]
