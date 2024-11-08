@@ -218,11 +218,11 @@ function DataLoader({ match, children }: Props) {
     );
   }
 
-  const readOnly =
-    !isEditing || !can.update || document.isArchived || !!revisionId;
+  const canEdit = can.update && !document.isArchived && !revisionId;
+  const readOnly = !isEditing || !canEdit;
 
   return (
-    <React.Fragment key={readOnly ? "readOnly" : ""}>
+    <React.Fragment key={canEdit ? "edit" : "read"}>
       {children({
         document,
         revision,
