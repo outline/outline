@@ -2,7 +2,7 @@ import { parse } from "@fast-csv/parse";
 import escapeRegExp from "lodash/escapeRegExp";
 import { simpleParser } from "mailparser";
 import mammoth from "mammoth";
-import { FileImportError, FileImportError } from "@server/errors";
+import { FileImportError } from "@server/errors";
 import { trace, traceFunction } from "@server/logging/tracing";
 import turndownService from "@server/utils/turndown";
 
