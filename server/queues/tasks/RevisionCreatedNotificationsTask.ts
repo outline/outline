@@ -60,7 +60,7 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
           event: NotificationEventType.MentionedInDocument,
           userId: recipient.id,
           revisionId: event.modelId,
-          actorId: document.updatedBy.id,
+          actorId: mention.actorId,
           teamId: document.teamId,
           documentId: document.id,
         });
