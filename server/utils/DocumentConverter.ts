@@ -74,7 +74,7 @@ export class DocumentConverter {
     return turndownService.turndown(content);
   }
 
-  public static csvToMarkdown(content: Buffer | string) {
+  public static csvToMarkdown(content: Buffer | string): Promise<string> {
     return new Promise((resolve, reject) => {
       const text = this.fileToMarkdown(content).trim();
       const firstLine = text.split("\n")[0];
