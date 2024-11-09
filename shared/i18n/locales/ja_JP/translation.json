@@ -350,6 +350,8 @@
   "Anyone with the link can access because the parent document, <2>{{documentTitle}}</2>, is shared": "親ドキュメント <2>{{documentTitle}}</2> が共有されているため、リンクを持っている人は誰でもアクセスできます",
   "Allow anyone with the link to access": "リンクを持っている誰もがアクセス可能",
   "Publish to internet": "インターネットに公開する",
+  "Search engine indexing": "Search engine indexing",
+  "Disable this setting to discourage search engines from indexing the page": "Disable this setting to discourage search engines from indexing the page",
   "Nested documents are not shared on the web. Toggle sharing to enable access, this will be the default behavior in the future": "子ドキュメントは Web で共有されません\nアクセスを有効にするためには共有を切り替えてください\nこれは今後のデフォルトとなります",
   "{{ userName }} was added to the document": "{{ userName }} をドキュメントに追加しました",
   "{{ count }} people added to the document": "{{ count }} 人をドキュメントに追加しました",
