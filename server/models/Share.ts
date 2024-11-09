@@ -184,6 +184,10 @@ class Share extends IdModel<
   @Column(DataType.UUID)
   documentId: string;
 
+  @Default(true)
+  @Column
+  allowIndexing: boolean;
+
   revoke(userId: string) {
     this.revokedAt = new Date();
     this.revokedById = userId;

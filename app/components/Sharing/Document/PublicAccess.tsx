@@ -1,12 +1,13 @@
 import debounce from "lodash/debounce";
 import isEmpty from "lodash/isEmpty";
 import { observer } from "mobx-react";
-import { CopyIcon, GlobeIcon, InfoIcon } from "outline-icons";
+import { CopyIcon, GlobeIcon, InfoIcon, QuestionMarkIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import styled, { useTheme } from "styled-components";
+import Flex from "@shared/components/Flex";
 import Squircle from "@shared/components/Squircle";
 import { s } from "@shared/styles";
 import { UrlHelper } from "@shared/utils/UrlHelper";
@@ -49,6 +50,19 @@ function PublicAccess({ document, share, sharedParent }: Props) {
   React.useEffect(() => {
     setUrlId(share?.urlId);
   }, [share?.urlId]);
+
+  const handleIndexingChanged = React.useCallback(
+    async (event) => {
+      try {
+        await share?.save({
+          allowIndexing: event.currentTarget.checked,
+        });
+      } catch (err) {
+        toast.error(err.message);
+      }
+    },
+    [share]
+  );
 
   const handlePublishedChange = React.useCallback(
     async (event) => {
@@ -174,6 +188,32 @@ function PublicAccess({ document, share, sharedParent }: Props) {
             {copyButton}
           </ShareLinkInput>
         ) : null}
+
+        {share?.published && (
+          <ListItem
+            title={
+              <Flex>
+                {t("Search engine indexing")}&nbsp;
+                <Tooltip
+                  content={t(
+                    "Disable this setting to discourage search engines from indexing the page"
+                  )}
+                >
+                  <QuestionMarkIcon size={18} />
+                </Tooltip>
+              </Flex>
+            }
+            actions={
+              <Switch
+                aria-label={t("Search engine indexing")}
+                checked={share?.allowIndexing ?? false}
+                onChange={handleIndexingChanged}
+                width={26}
+                height={14}
+              />
+            }
+          />
+        )}
 
         {share?.published && !share.includeChildDocuments ? (
           <Text as="p" type="tertiary" size="xsmall">

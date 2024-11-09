@@ -55,6 +55,10 @@ class Share extends Model {
   @observable
   url: string;
 
+  @Field
+  @observable
+  allowIndexing: boolean;
+
   /** The user that shared the document. */
   @Relation(() => User, { onDelete: "null" })
   createdBy: User;
