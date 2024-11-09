@@ -1133,17 +1133,23 @@ export const leaveDocument = createAction({
 
     return !!membership;
   },
-  perform: async ({ t, currentUserId, activeDocumentId, stores }) => {
+  perform: async ({ t, location, currentUserId, activeDocumentId, stores }) => {
     if (!activeDocumentId) {
       return;
     }
 
+    const document = stores.documents.get(activeDocumentId);
+
     try {
+      if (document && location.pathname.startsWith(document.path)) {
+        history.push(homePath());
+      }
+
       await stores.userMemberships.delete({
         documentId: activeDocumentId,
         userId: currentUserId,
       } as UserMembership);
-      history.push(homePath());
+
       toast.success(t("You have left the shared document"));
     } catch (err) {
       toast.error(t("Could not leave document"));
