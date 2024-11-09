@@ -28,6 +28,7 @@ import {
   EyeIcon,
   PadlockIcon,
   GlobeIcon,
+  LogoutIcon,
 } from "outline-icons";
 import * as React from "react";
 import { toast } from "sonner";
@@ -37,6 +38,7 @@ import {
   NavigationNode,
 } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
+import UserMembership from "~/models/UserMembership";
 import DocumentDelete from "~/scenes/DocumentDelete";
 import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
@@ -1119,6 +1121,42 @@ export const toggleViewerInsights = createAction({
   },
 });
 
+export const leaveDocument = createAction({
+  name: ({ t }) => t("Leave document"),
+  analyticsName: "Leave document",
+  section: ActiveDocumentSection,
+  icon: <LogoutIcon />,
+  visible: ({ currentUserId, activeDocumentId, stores }) => {
+    const membership = stores.userMemberships.orderedData.find(
+      (m) => m.documentId === activeDocumentId && m.userId === currentUserId
+    );
+
+    return !!membership;
+  },
+  perform: async ({ t, location, currentUserId, activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+
+    try {
+      if (document && location.pathname.startsWith(document.path)) {
+        history.push(homePath());
+      }
+
+      await stores.userMemberships.delete({
+        documentId: activeDocumentId,
+        userId: currentUserId,
+      } as UserMembership);
+
+      toast.success(t("You have left the shared document"));
+    } catch (err) {
+      toast.error(t("Could not leave document"));
+    }
+  },
+});
+
 export const rootDocumentActions = [
   openDocument,
   archiveDocument,
@@ -1137,6 +1175,7 @@ export const rootDocumentActions = [
   subscribeDocument,
   unsubscribeDocument,
   duplicateDocument,
+  leaveDocument,
   moveTemplateToWorkspace,
   moveDocumentToCollection,
   openRandomDocument,
