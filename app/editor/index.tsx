@@ -690,7 +690,10 @@ export class Editor extends React.PureComponent<
    * @param commentId The id of the comment to remove
    * @param attrs The attributes to update
    */
-  public updateComment = (commentId: string, attrs: { resolved: boolean }) => {
+  public updateComment = (
+    commentId: string,
+    attrs: { resolved?: boolean; draft?: boolean }
+  ) => {
     const { state, dispatch } = this.view;
     const tr = state.tr;
 
