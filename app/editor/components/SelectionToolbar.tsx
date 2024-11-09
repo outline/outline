@@ -216,8 +216,7 @@ export default function SelectionToolbar(props: Props) {
   const colIndex = getColumnIndex(state);
   const rowIndex = getRowIndex(state);
   const isTableSelection = colIndex !== undefined && rowIndex !== undefined;
-  const link = isMarkActive(state.schema.marks.link)(state);
-  const range = getMarkRange(selection.$from, state.schema.marks.link);
+  const link = getMarkRange(selection.$from, state.schema.marks.link);
   const isImageSelection =
     selection instanceof NodeSelection && selection.node.type.name === "image";
   const isAttachmentSelection =
@@ -266,7 +265,8 @@ export default function SelectionToolbar(props: Props) {
     return null;
   }
 
-  const showLinkToolbar = link && range;
+  const showLinkToolbar =
+    link && link.from === selection.from && link.to === selection.to;
 
   return (
     <FloatingToolbar
@@ -276,12 +276,12 @@ export default function SelectionToolbar(props: Props) {
     >
       {showLinkToolbar ? (
         <LinkEditor
-          key={`${range.from}-${range.to}`}
+          key={`${link.from}-${link.to}`}
           dictionary={dictionary}
           view={view}
-          mark={range.mark}
-          from={range.from}
-          to={range.to}
+          mark={link.mark}
+          from={link.from}
+          to={link.to}
           onClickLink={props.onClickLink}
           onSearchLink={props.onSearchLink}
           onCreateLink={onCreateLink ? handleOnCreateLink : undefined}
