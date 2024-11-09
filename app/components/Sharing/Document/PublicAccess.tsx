@@ -167,6 +167,32 @@ function PublicAccess({ document, share, sharedParent }: Props) {
       />
 
       <ResizingHeightContainer>
+        {share?.published && (
+          <ListItem
+            title={
+              <Text type="tertiary" as={Flex}>
+                {t("Search engine indexing")}&nbsp;
+                <Tooltip
+                  content={t(
+                    "Disable this setting to discourage search engines from indexing the page"
+                  )}
+                >
+                  <QuestionMarkIcon size={18} />
+                </Tooltip>
+              </Text>
+            }
+            actions={
+              <Switch
+                aria-label={t("Search engine indexing")}
+                checked={share?.allowIndexing ?? false}
+                onChange={handleIndexingChanged}
+                width={26}
+                height={14}
+              />
+            }
+          />
+        )}
+
         {sharedParent?.published ? (
           <ShareLinkInput type="text" disabled defaultValue={shareUrl}>
             {copyButton}
@@ -188,32 +214,6 @@ function PublicAccess({ document, share, sharedParent }: Props) {
             {copyButton}
           </ShareLinkInput>
         ) : null}
-
-        {share?.published && (
-          <ListItem
-            title={
-              <Flex>
-                {t("Search engine indexing")}&nbsp;
-                <Tooltip
-                  content={t(
-                    "Disable this setting to discourage search engines from indexing the page"
-                  )}
-                >
-                  <QuestionMarkIcon size={18} />
-                </Tooltip>
-              </Flex>
-            }
-            actions={
-              <Switch
-                aria-label={t("Search engine indexing")}
-                checked={share?.allowIndexing ?? false}
-                onChange={handleIndexingChanged}
-                width={26}
-                height={14}
-              />
-            }
-          />
-        )}
 
         {share?.published && !share.includeChildDocuments ? (
           <Text as="p" type="tertiary" size="xsmall">
