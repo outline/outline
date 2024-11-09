@@ -350,6 +350,8 @@
   "Anyone with the link can access because the parent document, <2>{{documentTitle}}</2>, is shared": "Alle med koblingen har tilgang fordi det overordnede dokumentet, <2>{{documentTitle}}</2>, deles",
   "Allow anyone with the link to access": "Tillat alle med lenken å få tilgang til",
   "Publish to internet": "Publiser til internett",
+  "Search engine indexing": "Search engine indexing",
+  "Disable this setting to discourage search engines from indexing the page": "Disable this setting to discourage search engines from indexing the page",
   "Nested documents are not shared on the web. Toggle sharing to enable access, this will be the default behavior in the future": "Underdokumenter deles ikke på nettet. Aktiver deling for å tillate tilgang, dette vil være standard oppførsel i fremtiden",
   "{{ userName }} was added to the document": "{{ userName }} ble lagt til i dokumentet",
   "{{ count }} people added to the document": "{{ count }} person er lagt til i dokumentet",
