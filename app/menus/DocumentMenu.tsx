@@ -47,6 +47,7 @@ import {
   shareDocument,
   copyDocument,
   searchInDocument,
+  leaveDocument,
   moveTemplate,
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
@@ -298,6 +299,7 @@ const MenuContent: React.FC<MenuContentProps> = ({
           },
           actionToMenuItem(deleteDocument, context),
           actionToMenuItem(permanentlyDeleteDocument, context),
+          actionToMenuItem(leaveDocument, context),
         ]}
       />
       {(showDisplayOptions || showToggleEmbeds) && can.update && (
