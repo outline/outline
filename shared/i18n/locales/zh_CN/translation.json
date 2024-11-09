@@ -350,6 +350,8 @@
   "Anyone with the link can access because the parent document, <2>{{documentTitle}}</2>, is shared": "知道该链接的任何人都可以访问，因为父级文档 <2>{{documentTitle}}</2> 已共享",
   "Allow anyone with the link to access": "允许所有知道链接的人访问",
   "Publish to internet": "发布到互联网",
+  "Search engine indexing": "Search engine indexing",
+  "Disable this setting to discourage search engines from indexing the page": "Disable this setting to discourage search engines from indexing the page",
   "Nested documents are not shared on the web. Toggle sharing to enable access, this will be the default behavior in the future": "嵌套文档不会在网页上共享。切换共享以启用访问，这将是未来的默认行为。",
   "{{ userName }} was added to the document": "{{ userName }} 已被添加到此文档",
   "{{ count }} people added to the document": "{{ count }} 个人被添加到此文档",
