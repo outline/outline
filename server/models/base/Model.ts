@@ -17,7 +17,7 @@ import {
   AfterCreate,
   AfterDestroy,
   AfterUpdate,
-  BeforeSave,
+  BeforeCreate,
   Model as SequelizeModel,
 } from "sequelize-typescript";
 import Logger from "@server/logging/Logger";
@@ -37,6 +37,7 @@ class Model<
    * This is the same as calling `set` and then calling `save`.
    */
   public updateWithCtx(ctx: APIContext, keys: Partial<TModelAttributes>) {
+    this.cacheChangeset();
     return this.update(keys, ctx.context as InstanceUpdateOptions);
   }
 
@@ -59,9 +60,9 @@ class Model<
     return this.create(values, ctx.context as CreateOptions);
   }
 
-  @BeforeSave
-  static async cacheChangeset<T extends Model>(model: T) {
-    model.previousChangeset = model.changeset;
+  @BeforeCreate
+  static async beforeCreateEvent<T extends Model>(model: T) {
+    model.cacheChangeset();
   }
 
   @AfterCreate
@@ -249,6 +250,13 @@ class Model<
       attributes,
       previous: previousAttributes,
     };
+  }
+
+  /**
+   * Cache the current changeset for later use.
+   */
+  protected cacheChangeset() {
+    this.previousChangeset = this.changeset;
   }
 
   /**
