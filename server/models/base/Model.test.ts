@@ -51,6 +51,7 @@ describe("Model", () => {
       expect(document.changeset.previous.collaboratorIds).toEqual(prev);
     });
   });
+
   describe("batch load", () => {
     it("should return data in batches", async () => {
       const team = await buildTeam();

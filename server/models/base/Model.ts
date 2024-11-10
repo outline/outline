@@ -159,7 +159,8 @@ class Model<
             : model instanceof models.team
             ? model.id
             : context.auth?.user.teamId,
-        actorId: context.auth?.user.id,
+        actorId: context.auth?.user?.id,
+        authType: context.auth?.type,
         ip: context.ip,
         changes: model.previousChangeset,
       },
