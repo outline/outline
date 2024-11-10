@@ -53,8 +53,6 @@ class FileOperation extends ParanoidModel<
 > {
   static eventNamespace = "fileOperations";
 
-  static eventData = ["type", "format"];
-
   @Column(DataType.ENUM(...Object.values(FileOperationType)))
   type: FileOperationType;
 

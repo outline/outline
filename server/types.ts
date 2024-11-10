@@ -85,6 +85,7 @@ export interface APIContext<ReqT = BaseReq, ResT = BaseRes>
     transaction?: Transaction;
     auth: Authentication;
     ip?: string;
+    skipEvents?: boolean;
   };
 }
 

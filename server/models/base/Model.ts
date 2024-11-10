@@ -6,6 +6,7 @@ import pick from "lodash/pick";
 import {
   CreateOptions,
   CreationAttributes,
+  DataTypes,
   FindOptions,
   InstanceDestroyOptions,
   InstanceUpdateOptions,
@@ -16,24 +17,21 @@ import {
   AfterCreate,
   AfterDestroy,
   AfterUpdate,
+  BeforeSave,
   Model as SequelizeModel,
 } from "sequelize-typescript";
 import Logger from "@server/logging/Logger";
 import { Replace, APIContext } from "@server/types";
+import { getChangsetSkipped } from "../decorators/Changeset";
 
 class Model<
   TModelAttributes extends {} = any,
   TCreationAttributes extends {} = TModelAttributes
 > extends SequelizeModel<TModelAttributes, TCreationAttributes> {
   /**
-   * The namespace to use for events, if none is provided the table name is used.
+   * The namespace to use for events, if none is provided an event will not be created.
    */
   static eventNamespace: string | undefined;
-
-  /**
-   * The properties to include in the event data when this model is mutated.
-   */
-  static eventData: string[] = [];
 
   /**
    * This is the same as calling `set` and then calling `save`.
@@ -59,6 +57,11 @@ class Model<
     values?: CreationAttributes<M>
   ) {
     return this.create(values, ctx.context as CreateOptions);
+  }
+
+  @BeforeSave
+  static async cacheChangeset<T extends Model>(model: T) {
+    model.previousChangeset = model.changeset;
   }
 
   @AfterCreate
@@ -95,10 +98,13 @@ class Model<
   protected static async insertEvent<T extends Model>(
     name: string,
     model: T,
-    context: APIContext["context"]
+    context: APIContext["context"] & InstanceUpdateOptions
   ) {
-    // If no eventData is defined, don't create an event
-    if (this.eventData.length === 0) {
+    const namespace = this.eventNamespace;
+    const models = this.sequelize!.models;
+
+    // If no namespace is defined, don't create an event
+    if (!namespace || context.silent) {
       return;
     }
 
@@ -113,9 +119,6 @@ class Model<
         modelId: model.id,
       });
     }
-
-    const models = this.sequelize!.models;
-    const namespace = this.eventNamespace || this.tableName;
 
     return models.event.create(
       {
@@ -147,7 +150,7 @@ class Model<
             : context.auth?.user.teamId,
         actorId: context.auth?.user.id,
         ip: context.ip,
-        data: pick(model, this.eventData),
+        changes: model.previousChangeset,
       },
       {
         transaction: context.transaction,
@@ -182,7 +185,7 @@ class Model<
   }
 
   /**
-   * Returns the attributes that have changed since the last save and their previous values.
+   * Returns a representation of the attributes that have changed since the last save and their previous values.
    *
    * @returns An object with `attributes` and `previousAttributes` keys.
    */
@@ -201,9 +204,21 @@ class Model<
       };
     }
 
+    const virtualFields = (this.constructor as typeof Model).virtualFields;
+    const blobFields = (this.constructor as typeof Model).blobFields;
+    const skippedFields = getChangsetSkipped(this);
+
     for (const change of changes) {
       const previous = this.previous(change);
       const current = this.getDataValue(change);
+
+      if (
+        virtualFields.includes(String(change)) ||
+        blobFields.includes(String(change)) ||
+        skippedFields.includes(String(change))
+      ) {
+        continue;
+      }
 
       if (
         isObject(previous) &&
@@ -235,6 +250,31 @@ class Model<
       previous: previousAttributes,
     };
   }
+
+  /**
+   * Returns the virtual fields for this model.
+   */
+  protected static get virtualFields() {
+    const attrs = this.rawAttributes;
+    return Object.keys(attrs).filter(
+      (attr) => attrs[attr].type instanceof DataTypes.VIRTUAL
+    );
+  }
+
+  /**
+   * Returns the blob fields for this model.
+   */
+  protected static get blobFields() {
+    const attrs = this.rawAttributes;
+    return Object.keys(attrs).filter(
+      (attr) => attrs[attr].type instanceof DataTypes.BLOB
+    );
+  }
+
+  private previousChangeset: NonAttribute<{
+    attributes: Partial<TModelAttributes>;
+    previous: Partial<TModelAttributes>;
+  }> | null;
 }
 
 export default Model;
