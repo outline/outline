@@ -1,3 +1,4 @@
+import { parse } from "@fast-csv/parse";
 import escapeRegExp from "lodash/escapeRegExp";
 import { simpleParser } from "mailparser";
 import mammoth from "mammoth";
@@ -30,6 +31,8 @@ export class DocumentConverter {
       case "text/plain":
       case "text/markdown":
         return this.fileToMarkdown(content);
+      case "text/csv":
+        return this.csvToMarkdown(content);
       default:
         break;
     }
@@ -71,7 +74,49 @@ export class DocumentConverter {
     return turndownService.turndown(content);
   }
 
-  public static async fileToMarkdown(content: Buffer | string) {
+  public static csvToMarkdown(content: Buffer | string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const text = this.fileToMarkdown(content).trim();
+      const firstLine = text.split("\n")[0];
+
+      // Determine the separator used in the CSV file based on number of occurrences of each separator on first line
+      const delimiter = [";", ",", "\t"].reduce(
+        (acc, separator) => {
+          const count = (
+            firstLine.match(new RegExp(escapeRegExp(separator), "g")) || []
+          ).length;
+          return count > acc.count ? { count, separator } : acc;
+        },
+        { count: 0, separator: "," }
+      ).separator;
+
+      const lines: string[][] = [];
+      const stream = parse({ delimiter })
+        .on("error", (error) => {
+          reject(
+            FileImportError(`There was an error parsing the CSV file: ${error}`)
+          );
+        })
+        .on("data", (row) => lines.push(row))
+        .on("end", () => {
+          const headers = lines[0];
+          const table = lines
+            .slice(1)
+            .map((cells) => `| ${cells.join(" | ")} |`)
+            .join("\n");
+
+          const headerLine = `| ${headers.join(" | ")} |`;
+          const separatorLine = `| ${headers.map(() => "---").join(" | ")} |`;
+
+          resolve(`${headerLine}\n${separatorLine}\n${table}\n`);
+        });
+
+      stream.write(text);
+      stream.end();
+    });
+  }
+
+  public static fileToMarkdown(content: Buffer | string) {
     if (content instanceof Buffer) {
       content = content.toString("utf8");
     }

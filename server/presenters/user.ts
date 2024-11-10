@@ -21,6 +21,7 @@ type UserPresentation = {
   language?: string;
   preferences?: UserPreferences | null;
   notificationSettings?: NotificationSettings;
+  timezone?: string | null;
 };
 
 export default function presentUser(
@@ -37,6 +38,7 @@ export default function presentUser(
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
     lastActiveAt: user.lastActiveAt,
+    timezone: user.timezone,
   };
 
   if (options.includeDetails) {

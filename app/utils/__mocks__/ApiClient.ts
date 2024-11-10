@@ -1,6 +1,11 @@
 /* eslint-disable */
-export default {
-  client: {
-    post: jest.fn(() => Promise.resolve)
-  }
+export const client =  {
+  post: jest.fn(() => Promise.resolve({
+    data: {
+      user: {},
+      team: {},
+      groups: [],
+      groupUsers: [],
+    }
+  }))
 };

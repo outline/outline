@@ -30,19 +30,23 @@ export default class SmartText extends Extension {
   }
 
   inputRules() {
-    return [
-      rightArrow,
-      emdash,
-      oneHalf,
-      threeQuarters,
-      copyright,
-      registered,
-      trademarked,
-      ellipsis,
-      openDoubleQuote,
-      closeDoubleQuote,
-      openSingleQuote,
-      closeSingleQuote,
-    ];
+    if (this.options.userPreferences?.enableSmartText ?? true) {
+      return [
+        rightArrow,
+        emdash,
+        oneHalf,
+        threeQuarters,
+        copyright,
+        registered,
+        trademarked,
+        ellipsis,
+        openDoubleQuote,
+        closeDoubleQuote,
+        openSingleQuote,
+        closeSingleQuote,
+      ];
+    }
+
+    return [];
   }
 }

@@ -209,7 +209,8 @@ router.post(
   async (ctx: APIContext<T.UsersUpdateReq>) => {
     const { auth, transaction } = ctx.state;
     const actor = auth.user;
-    const { id, name, avatarUrl, language, preferences } = ctx.input.body;
+    const { id, name, avatarUrl, language, preferences, timezone } =
+      ctx.input.body;
 
     let user: User | null = actor;
     if (id) {
@@ -235,6 +236,9 @@ router.post(
       for (const key of Object.keys(preferences) as Array<UserPreference>) {
         user.setPreference(key, preferences[key] as boolean);
       }
+    }
+    if (timezone) {
+      user.timezone = timezone;
     }
 
     await Event.createFromContext(ctx, {

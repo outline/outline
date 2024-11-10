@@ -124,6 +124,8 @@ function CollectionMenu({
       } catch (err) {
         toast.error(err.message);
         throw err;
+      } finally {
+        ev.target.value = "";
       }
     },
     [history, collection.id, documents]

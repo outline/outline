@@ -27,4 +27,28 @@ describe("DetachDraftsFromCollectionTask", () => {
     expect(draft?.deletedAt).toBe(null);
     expect(draft?.collectionId).toBe(null);
   });
+
+  it("should detach drafts from archived collection", async () => {
+    const collection = await buildCollection({ archivedAt: new Date() });
+    const document = await buildDocument({
+      title: "test",
+      collectionId: collection.id,
+      publishedAt: null,
+      createdById: collection.createdById,
+      teamId: collection.teamId,
+    });
+
+    const task = new DetachDraftsFromCollectionTask();
+    await task.perform({
+      collectionId: collection.id,
+      ip,
+      actorId: collection.createdById,
+    });
+
+    const draft = await Document.findByPk(document.id);
+    expect(draft).not.toBe(null);
+    expect(draft?.archivedAt).toBe(null);
+    expect(draft?.deletedAt).toBe(null);
+    expect(draft?.collectionId).toBe(null);
+  });
 });

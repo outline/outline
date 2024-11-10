@@ -214,7 +214,6 @@ export default function formattingMenuItems(
       name: "link",
       tooltip: dictionary.createLink,
       icon: <LinkIcon />,
-      active: isMarkActive(schema.marks.link),
       attrs: { href: "" },
       visible: !isCodeBlock && (!isMobile || !isEmpty),
     },

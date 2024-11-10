@@ -819,7 +819,7 @@ router.post(
     const srcCollection = sourceCollectionId
       ? await Collection.scope({
           method: ["withMembership", user.id],
-        }).findByPk(sourceCollectionId)
+        }).findByPk(sourceCollectionId, { paranoid: false })
       : undefined;
 
     const destCollection = destCollectionId
@@ -834,7 +834,8 @@ router.post(
       );
     }
 
-    if (sourceCollectionId !== destCollectionId) {
+    // Skip this for drafts of a deleted collection as they won't have sourceCollectionId
+    if (sourceCollectionId && sourceCollectionId !== destCollectionId) {
       authorize(user, "updateDocument", srcCollection);
       await srcCollection?.removeDocumentInStructure(document, {
         save: true,

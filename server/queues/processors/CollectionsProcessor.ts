@@ -5,8 +5,11 @@ import { Event as TEvent, CollectionEvent } from "@server/types";
 import DetachDraftsFromCollectionTask from "../tasks/DetachDraftsFromCollectionTask";
 import BaseProcessor from "./BaseProcessor";
 
-export default class CollectionDeletedProcessor extends BaseProcessor {
-  static applicableEvents: TEvent["name"][] = ["collections.delete"];
+export default class CollectionsProcessor extends BaseProcessor {
+  static applicableEvents: TEvent["name"][] = [
+    "collections.delete",
+    "collections.archive",
+  ];
 
   async perform(event: CollectionEvent) {
     await DetachDraftsFromCollectionTask.schedule({

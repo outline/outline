@@ -46,7 +46,7 @@ export const ImageZoom = ({ caption, children }: Props) => {
   return (
     <React.Suspense fallback={fallback}>
       <Styles />
-      <EventBoundary>
+      <EventBoundary captureEvents="click">
         <Zoom zoomMargin={EditorStyleHelper.padding} ZoomContent={ZoomContent}>
           <div>{children}</div>
         </Zoom>

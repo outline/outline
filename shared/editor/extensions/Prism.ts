@@ -208,9 +208,13 @@ export default function Prism({
         const codeBlockChanged =
           transaction.docChanged && [nodeName, previousNodeName].includes(name);
 
+        // @ts-expect-error accessing private field.
+        const isPaste = transaction.meta?.paste;
+
         if (
           !highlighted ||
           codeBlockChanged ||
+          isPaste ||
           isRemoteTransaction(transaction)
         ) {
           highlighted = true;
