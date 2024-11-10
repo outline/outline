@@ -12,7 +12,7 @@ import {
   InstanceUpdateOptions,
   ModelStatic,
   NonAttribute,
-  InstanceSaveOptions,
+  SaveOptions,
 } from "sequelize";
 import {
   AfterCreate,
@@ -40,7 +40,7 @@ class Model<
    */
   public saveWithCtx(ctx: APIContext) {
     this.cacheChangeset();
-    return this.save(ctx.context as InstanceSaveOptions);
+    return this.save(ctx.context as SaveOptions);
   }
 
   /**
