@@ -22,17 +22,45 @@ export default class ImportNotionTask extends ImportTask {
 
     // New Notion exports have a single folder with the name of the export, we must skip this
     // folder and go directly to the children.
+    let parsed;
     if (
       tree.children.length === 1 &&
       tree.children[0].children.find((child) => child.title === "index")
     ) {
-      return this.parseFileTree(
+      parsed = await this.parseFileTree(
         fileOperation,
         tree.children[0].children.filter((child) => child.title !== "index")
       );
+    } else {
+      parsed = await this.parseFileTree(fileOperation, tree.children);
     }
 
-    return this.parseFileTree(fileOperation, tree.children);
+    if (parsed.documents.length === 0 && parsed.collections.length === 1) {
+      const collection = parsed.collections[0];
+      const collectionId = uuidv4();
+      if (collection.description) {
+        parsed.documents.push({
+          title: collection.name,
+          icon: collection.icon,
+          color: collection.color,
+          path: "",
+          text: String(collection.description),
+          id: collection.id,
+          externalId: collection.externalId,
+          mimeType: "text/html",
+          collectionId,
+        });
+      }
+
+      collection.name = "Notion";
+      collection.icon = undefined;
+      collection.color = undefined;
+      collection.externalId = undefined;
+      collection.description = undefined;
+      collection.id = collectionId;
+    }
+
+    return parsed;
   }
 
   /**
