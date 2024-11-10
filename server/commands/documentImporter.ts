@@ -64,7 +64,7 @@ async function documentImporter({
   // Remove any closed and immediately reopened formatting marks
   text = text.replace(/\*\*\*\*/gi, "").replace(/____/gi, "");
 
-  text = await TextHelper.replaceImagesWithAttachments(text, user, ctx);
+  text = await TextHelper.replaceImagesWithAttachments(ctx, text, user);
 
   // Sanity check – text cannot possibly be longer than state so if it is, we can short-circuit here
   if (text.length > DocumentValidation.maxStateLength) {

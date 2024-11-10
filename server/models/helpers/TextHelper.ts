@@ -83,16 +83,15 @@ export class TextHelper {
    * Replaces remote and base64 encoded images in the given text with attachment
    * urls and uploads the images to the storage provider.
    *
+   * @param ctx The API context
    * @param markdown The text to replace the images in
    * @param user The user context
-   * @param ip The IP address of the user
-   * @param transaction The transaction to use for the database operations
    * @returns The text with the images replaced
    */
   static async replaceImagesWithAttachments(
+    ctx: APIContext,
     markdown: string,
-    user: User,
-    ctx: APIContext
+    user: User
   ) {
     let output = markdown;
     const images = parseImages(markdown);

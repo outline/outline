@@ -173,7 +173,7 @@ router.post(
     });
     authorize(user, "read", attachment);
 
-    const fileOperation = await FileOperation.createWithCtx(ctx, {
+    await FileOperation.createWithCtx(ctx, {
       type: FileOperationType.Import,
       state: FileOperationState.Creating,
       format,
@@ -183,14 +183,6 @@ router.post(
       teamId: user.teamId,
       options: {
         permission,
-      },
-    });
-
-    await Event.createFromContext(ctx, {
-      name: "fileOperations.create",
-      modelId: fileOperation.id,
-      data: {
-        type: FileOperationType.Import,
       },
     });
 

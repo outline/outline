@@ -1628,7 +1628,7 @@ router.post(
 
     const document = await documentCreator({
       title,
-      text: await TextHelper.replaceImagesWithAttachments(text, user, ctx),
+      text: await TextHelper.replaceImagesWithAttachments(ctx, text, user),
       icon,
       color,
       createdAt,
