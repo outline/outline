@@ -12,6 +12,7 @@ import {
   InstanceUpdateOptions,
   ModelStatic,
   NonAttribute,
+  InstanceSaveOptions,
 } from "sequelize";
 import {
   AfterCreate,
@@ -29,9 +30,18 @@ class Model<
   TCreationAttributes extends {} = TModelAttributes
 > extends SequelizeModel<TModelAttributes, TCreationAttributes> {
   /**
-   * The namespace to use for events, if none is provided an event will not be created.
+   * The namespace to use for events, if none is provided an event will not be created
+   * during the migration period. In the future this may default to the table name.
    */
   static eventNamespace: string | undefined;
+
+  /**
+   * Validates this instance, and if the validation passes, persists it to the database.
+   */
+  public saveWithCtx(ctx: APIContext) {
+    this.cacheChangeset();
+    return this.save(ctx.context as InstanceSaveOptions);
+  }
 
   /**
    * This is the same as calling `set` and then calling `save`.
