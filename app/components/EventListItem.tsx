@@ -27,7 +27,7 @@ import { documentHistoryPath } from "~/utils/routeHelpers";
 
 type Props = {
   document: Document;
-  event: Event;
+  event: Event<Document>;
   latest?: boolean;
 };
 
