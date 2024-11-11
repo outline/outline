@@ -13,7 +13,7 @@ export default function presentEvent(event: Event, isAdmin = false) {
     documentId: event.documentId,
     createdAt: event.createdAt,
     data: event.data,
-    changes: event.changes,
+    changes: event.changes || undefined,
     actor: presentUser(event.actor),
   };
 

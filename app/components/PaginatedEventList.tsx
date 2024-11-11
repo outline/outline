@@ -6,9 +6,11 @@ import PaginatedList from "~/components/PaginatedList";
 import EventListItem from "./EventListItem";
 
 type Props = {
-  events: Event[];
+  events: Event<Document>[];
   document: Document;
-  fetch: (options: Record<string, any> | undefined) => Promise<Event[]>;
+  fetch: (
+    options: Record<string, any> | undefined
+  ) => Promise<Event<Document>[]>;
   options?: Record<string, any>;
   heading?: React.ReactNode;
   empty?: React.ReactNode;
@@ -30,7 +32,7 @@ const PaginatedEventList = React.memo<Props>(function PaginatedEventList({
       heading={heading}
       fetch={fetch}
       options={options}
-      renderItem={(item: Event, index) => (
+      renderItem={(item: Event<Document>, index) => (
         <EventListItem
           key={item.id}
           event={item}

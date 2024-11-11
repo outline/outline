@@ -1,21 +1,29 @@
+import Collection from "./Collection";
+import Document from "./Document";
 import User from "./User";
 import Model from "./base/Model";
 import Relation from "./decorators/Relation";
 
-class Event extends Model {
+class Event<T extends Model> extends Model {
   static modelName = "Event";
 
   id: string;
 
   name: string;
 
-  modelId: string | null | undefined;
+  modelId: string | undefined;
 
   actorIpAddress: string | null | undefined;
 
-  documentId: string;
+  @Relation(() => Document)
+  document: Document;
 
-  collectionId: string | null | undefined;
+  documentId: string | undefined;
+
+  @Relation(() => Collection)
+  collection: Collection;
+
+  collectionId: string | undefined;
 
   @Relation(() => User)
   user: User;
@@ -27,13 +35,12 @@ class Event extends Model {
 
   actorId: string;
 
-  data: {
-    name: string;
-    email: string;
-    title: string;
-    published: boolean;
-    templateId: string;
-  };
+  data: Partial<T> | null;
+
+  changes: {
+    attributes: Partial<T>;
+    previous: Partial<T>;
+  } | null;
 }
 
 export default Event;
