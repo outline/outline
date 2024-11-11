@@ -1,6 +1,7 @@
 import { faker } from "@faker-js/faker";
 import { Transaction } from "sequelize";
 import sharedEnv from "@shared/env";
+import { createContext } from "@server/context";
 import env from "@server/env";
 import { User } from "@server/models";
 import onerror from "@server/onerror";
@@ -45,6 +46,7 @@ export function withAPIContext<T>(
       transaction,
     };
     return fn({
+      ...createContext(user, transaction),
       state,
       request: {
         ip: faker.internet.ip(),

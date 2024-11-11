@@ -1,6 +1,7 @@
 import fractionalIndex from "fractional-index";
-import { Sequelize, Transaction, WhereOptions } from "sequelize";
-import { Star, User, Event } from "@server/models";
+import { Sequelize, WhereOptions } from "sequelize";
+import { Star, User } from "@server/models";
+import { APIContext } from "@server/types";
 
 type Props = {
   /** The user creating the star */
@@ -11,9 +12,8 @@ type Props = {
   collectionId?: string;
   /** The sorted index for the star in the sidebar If no index is provided then it will be at the end */
   index?: string;
-  /** The IP address of the user creating the star */
-  ip: string;
-  transaction: Transaction;
+  /** The request context */
+  ctx: APIContext;
 };
 
 /**
@@ -27,8 +27,7 @@ export default async function starCreator({
   user,
   documentId,
   collectionId,
-  ip,
-  transaction,
+  ctx,
   ...rest
 }: Props): Promise<Star> {
   let { index } = rest;
@@ -47,14 +46,14 @@ export default async function starCreator({
         Sequelize.literal('"star"."index" collate "C"'),
         ["updatedAt", "DESC"],
       ],
-      transaction,
+      transaction: ctx.state.transaction,
     });
 
     // create a star at the beginning of the list
     index = fractionalIndex(null, stars.length ? stars[0].index : null);
   }
 
-  const [star, isCreated] = await Star.findOrCreate({
+  const [star] = await Star.findOrCreateWithCtx(ctx, {
     where: documentId
       ? {
           userId: user.id,
@@ -67,24 +66,7 @@ export default async function starCreator({
     defaults: {
       index,
     },
-    transaction,
   });
-
-  if (isCreated) {
-    await Event.create(
-      {
-        name: "stars.create",
-        teamId: user.teamId,
-        modelId: star.id,
-        userId: user.id,
-        actorId: user.id,
-        documentId,
-        collectionId,
-        ip,
-      },
-      { transaction }
-    );
-  }
 
   return star;
 }
