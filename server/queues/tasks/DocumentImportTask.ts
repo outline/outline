@@ -1,6 +1,7 @@
 import { SourceMetadata } from "@shared/types";
 import documentCreator from "@server/commands/documentCreator";
 import documentImporter from "@server/commands/documentImporter";
+import { createContext } from "@server/context";
 import { User } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import FileStorage from "@server/storage/files";
@@ -48,8 +49,7 @@ export default class DocumentImportTask extends BaseTask<Props> {
           fileName: sourceMetadata.fileName,
           mimeType: sourceMetadata.mimeType,
           content,
-          ip,
-          transaction,
+          ctx: createContext(user, transaction, ip),
         });
 
         return documentCreator({
@@ -62,8 +62,7 @@ export default class DocumentImportTask extends BaseTask<Props> {
           collectionId,
           parentDocumentId,
           user,
-          ip,
-          transaction,
+          ctx: createContext(user, transaction, ip),
         });
       });
       return { documentId: document.id };

@@ -1,13 +1,13 @@
 import emojiRegex from "emoji-regex";
 import escapeRegExp from "lodash/escapeRegExp";
 import truncate from "lodash/truncate";
-import { Transaction } from "sequelize";
 import parseTitle from "@shared/utils/parseTitle";
 import { DocumentValidation } from "@shared/validations";
 import { traceFunction } from "@server/logging/tracing";
 import { User } from "@server/models";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
+import { APIContext } from "@server/types";
 import { DocumentConverter } from "@server/utils/DocumentConverter";
 import { InvalidRequestError } from "../errors";
 
@@ -16,8 +16,7 @@ type Props = {
   mimeType: string;
   fileName: string;
   content: Buffer | string;
-  ip?: string;
-  transaction?: Transaction;
+  ctx: APIContext;
 };
 
 async function documentImporter({
@@ -25,8 +24,7 @@ async function documentImporter({
   fileName,
   content,
   user,
-  ip,
-  transaction,
+  ctx,
 }: Props): Promise<{
   icon?: string;
   text: string;
@@ -66,12 +64,7 @@ async function documentImporter({
   // Remove any closed and immediately reopened formatting marks
   text = text.replace(/\*\*\*\*/gi, "").replace(/____/gi, "");
 
-  text = await TextHelper.replaceImagesWithAttachments(
-    text,
-    user,
-    ip,
-    transaction
-  );
+  text = await TextHelper.replaceImagesWithAttachments(ctx, text, user);
 
   // Sanity check – text cannot possibly be longer than state so if it is, we can short-circuit here
   if (text.length > DocumentValidation.maxStateLength) {

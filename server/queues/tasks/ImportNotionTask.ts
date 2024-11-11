@@ -5,8 +5,10 @@ import escapeRegExp from "lodash/escapeRegExp";
 import mime from "mime-types";
 import { v4 as uuidv4 } from "uuid";
 import documentImporter from "@server/commands/documentImporter";
+import { createContext } from "@server/context";
 import Logger from "@server/logging/Logger";
 import { FileOperation, User } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import ImportHelper, { FileTreeNode } from "@server/utils/ImportHelper";
 import ImportTask, { StructuredImportData } from "./ImportTask";
 
@@ -124,16 +126,19 @@ export default class ImportNotionTask extends ImportTask {
 
           Logger.debug("task", `Processing ${name} as ${mimeType}`);
 
-          const { title, icon, text } = await documentImporter({
-            mimeType: mimeType || "text/markdown",
-            fileName: name,
-            content:
-              child.children.length > 0
-                ? ""
-                : await fs.readFile(child.path, "utf8"),
-            user,
-            ip: user.lastActiveIp || undefined,
-          });
+          const { title, icon, text } = await sequelize.transaction(
+            async (transaction) =>
+              documentImporter({
+                mimeType: mimeType || "text/markdown",
+                fileName: name,
+                content:
+                  child.children.length > 0
+                    ? ""
+                    : await fs.readFile(child.path, "utf8"),
+                user,
+                ctx: createContext(user, transaction),
+              })
+          );
 
           const existingDocumentIndex = output.documents.findIndex(
             (doc) => doc.externalId === externalId
@@ -246,13 +251,15 @@ export default class ImportNotionTask extends ImportTask {
         mimeType === "text/plain" ||
         mimeType === "text/html"
       ) {
-        const { text } = await documentImporter({
-          mimeType,
-          fileName: name,
-          content: await fs.readFile(node.path, "utf8"),
-          user,
-          ip: user.lastActiveIp || undefined,
-        });
+        const { text } = await sequelize.transaction(async (transaction) =>
+          documentImporter({
+            mimeType,
+            fileName: name,
+            content: await fs.readFile(node.path, "utf8"),
+            user,
+            ctx: createContext(user, transaction),
+          })
+        );
 
         description = text;
       } else if (node.children.length > 0) {

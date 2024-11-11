@@ -1,4 +1,3 @@
-import { Transaction } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
 import {
   FileOperationFormat,
@@ -6,8 +5,9 @@ import {
   FileOperationState,
 } from "@shared/types";
 import { traceFunction } from "@server/logging/tracing";
-import { Collection, Event, Team, User, FileOperation } from "@server/models";
+import { Collection, Team, User, FileOperation } from "@server/models";
 import { Buckets } from "@server/models/helpers/AttachmentHelper";
+import { type APIContext } from "@server/types";
 
 type Props = {
   collection?: Collection;
@@ -15,8 +15,7 @@ type Props = {
   user: User;
   format?: FileOperationFormat;
   includeAttachments?: boolean;
-  ip: string;
-  transaction: Transaction;
+  ctx: APIContext;
 };
 
 function getKeyForFileOp(
@@ -35,8 +34,7 @@ async function collectionExporter({
   user,
   format = FileOperationFormat.MarkdownZip,
   includeAttachments = true,
-  ip,
-  transaction,
+  ctx,
 }: Props) {
   const collectionId = collection?.id;
   const key = getKeyForFileOp(
@@ -44,43 +42,20 @@ async function collectionExporter({
     format,
     collection?.name || team.name
   );
-  const fileOperation = await FileOperation.create(
-    {
-      type: FileOperationType.Export,
-      state: FileOperationState.Creating,
-      format,
-      key,
-      url: null,
-      size: 0,
-      collectionId,
-      userId: user.id,
-      teamId: user.teamId,
-      options: {
-        includeAttachments,
-      },
+  const fileOperation = await FileOperation.createWithCtx(ctx, {
+    type: FileOperationType.Export,
+    state: FileOperationState.Creating,
+    format,
+    key,
+    url: null,
+    size: 0,
+    collectionId,
+    options: {
+      includeAttachments,
     },
-    {
-      transaction,
-    }
-  );
-
-  await Event.create(
-    {
-      name: "fileOperations.create",
-      teamId: user.teamId,
-      actorId: user.id,
-      modelId: fileOperation.id,
-      collectionId,
-      ip,
-      data: {
-        type: FileOperationType.Export,
-        format,
-      },
-    },
-    {
-      transaction,
-    }
-  );
+    userId: user.id,
+    teamId: user.teamId,
+  });
 
   fileOperation.user = user;
 
