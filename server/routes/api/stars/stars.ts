@@ -1,8 +1,6 @@
 import Router from "koa-router";
 import { Sequelize } from "sequelize";
 import starCreator from "@server/commands/starCreator";
-import starDestroyer from "@server/commands/starDestroyer";
-import starUpdater from "@server/commands/starUpdater";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
@@ -46,12 +44,11 @@ router.post(
     }
 
     const star = await starCreator({
+      ctx,
       user,
       documentId,
       collectionId,
-      ip: ctx.request.ip,
       index,
-      transaction,
     });
 
     ctx.body = {
@@ -130,19 +127,13 @@ router.post(
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
-    let star = await Star.findByPk(id, {
+    const star = await Star.findByPk(id, {
       transaction,
       lock: transaction.LOCK.UPDATE,
     });
     authorize(user, "update", star);
 
-    star = await starUpdater({
-      user,
-      star,
-      ip: ctx.request.ip,
-      index,
-      transaction,
-    });
+    await star.updateWithCtx(ctx, { index });
 
     ctx.body = {
       data: presentStar(star),
@@ -167,7 +158,7 @@ router.post(
     });
     authorize(user, "delete", star);
 
-    await starDestroyer({ user, star, ip: ctx.request.ip, transaction });
+    await star.destroyWithCtx(ctx);
 
     ctx.body = {
       success: true,

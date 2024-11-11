@@ -4,10 +4,12 @@ import isArray from "lodash/isArray";
 import isObject from "lodash/isObject";
 import pick from "lodash/pick";
 import {
+  Attributes,
   CreateOptions,
   CreationAttributes,
   DataTypes,
   FindOptions,
+  FindOrCreateOptions,
   InstanceDestroyOptions,
   InstanceUpdateOptions,
   ModelStatic,
@@ -18,6 +20,7 @@ import {
   AfterCreate,
   AfterDestroy,
   AfterUpdate,
+  AfterUpsert,
   BeforeCreate,
   Model as SequelizeModel,
 } from "sequelize-typescript";
@@ -47,8 +50,9 @@ class Model<
    * This is the same as calling `set` and then calling `save`.
    */
   public updateWithCtx(ctx: APIContext, keys: Partial<TModelAttributes>) {
+    this.set(keys);
     this.cacheChangeset();
-    return this.update(keys, ctx.context as InstanceUpdateOptions);
+    return this.save(ctx.context as SaveOptions);
   }
 
   /**
@@ -57,6 +61,21 @@ class Model<
    */
   public destroyWithCtx(ctx: APIContext) {
     return this.destroy(ctx.context as InstanceDestroyOptions);
+  }
+
+  /**
+   * Find a row that matches the query, or build and save the row if none is found
+   * The successful result of the promise will be (instance, created) - Make sure to use `.then(([...]))`
+   */
+  public static findOrCreateWithCtx<M extends Model>(
+    this: ModelStatic<M>,
+    ctx: APIContext,
+    options: FindOrCreateOptions<Attributes<M>, CreationAttributes<M>>
+  ) {
+    return this.findOrCreate({
+      ...options,
+      ...ctx.context,
+    });
   }
 
   /**
@@ -77,6 +96,14 @@ class Model<
 
   @AfterCreate
   static async afterCreateEvent<T extends Model>(
+    model: T,
+    context: APIContext["context"]
+  ) {
+    await this.insertEvent("create", model, context);
+  }
+
+  @AfterUpsert
+  static async afterUpsertEvent<T extends Model>(
     model: T,
     context: APIContext["context"]
   ) {
@@ -267,7 +294,14 @@ class Model<
    * Cache the current changeset for later use.
    */
   protected cacheChangeset() {
-    this.previousChangeset = this.changeset;
+    const previous = this.changeset;
+
+    if (
+      Object.keys(previous.attributes).length > 0 ||
+      Object.keys(previous.previous).length > 0
+    ) {
+      this.previousChangeset = previous;
+    }
   }
 
   /**
