@@ -34,7 +34,7 @@ export default class ErrorTimedOutFileOperationsTask extends BaseTask<Props> {
       fileOperations.map(async (fileOperation) => {
         fileOperation.state = FileOperationState.Error;
         fileOperation.error = "Timed out";
-        await fileOperation.save();
+        await fileOperation.save({ hooks: false });
       })
     );
     Logger.info("task", `Updated ${fileOperations.length} file operations`);

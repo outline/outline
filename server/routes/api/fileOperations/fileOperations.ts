@@ -1,7 +1,6 @@
 import Router from "koa-router";
 import { WhereOptions } from "sequelize";
 import { UserRole } from "@shared/types";
-import fileOperationDeleter from "@server/commands/fileOperationDeleter";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
@@ -116,15 +115,11 @@ router.post(
     const fileOperation = await FileOperation.unscoped().findByPk(id, {
       rejectOnEmpty: true,
       transaction,
+      lock: transaction.LOCK.UPDATE,
     });
     authorize(user, "delete", fileOperation);
 
-    await fileOperationDeleter({
-      fileOperation,
-      user,
-      ip: ctx.request.ip,
-      transaction,
-    });
+    await fileOperation.destroyWithCtx(ctx);
 
     ctx.body = {
       success: true,

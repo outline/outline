@@ -49,8 +49,8 @@ export type AuthenticationResult = AccountProvisionerResult & {
 
 export type Authentication = {
   user: User;
-  token: string;
-  type: AuthenticationType;
+  token?: string;
+  type?: AuthenticationType;
 };
 
 export type Pagination = {
@@ -77,8 +77,15 @@ export interface APIContext<ReqT = BaseReq, ResT = BaseRes>
     DefaultContext & IRouterParamContext<AppState>,
     ResT
   > {
-  /** Typed and validated version of request, consisting of validated body, query, etc */
+  /** Typed and validated version of request, consisting of validated body, query, etc. */
   input: ReqT;
+
+  /** The current request's context, which is passed to database mutations. */
+  context: {
+    transaction?: Transaction;
+    auth: Authentication;
+    ip?: string;
+  };
 }
 
 type BaseEvent<T extends Model> = {

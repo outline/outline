@@ -51,6 +51,8 @@ class FileOperation extends ParanoidModel<
   InferAttributes<FileOperation>,
   Partial<InferCreationAttributes<FileOperation>>
 > {
+  static eventNamespace = "fileOperations";
+
   @Column(DataType.ENUM(...Object.values(FileOperationType)))
   type: FileOperationType;
 

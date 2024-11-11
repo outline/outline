@@ -157,12 +157,17 @@ export default abstract class ExportTask extends BaseTask<Props> {
     fileOperation: FileOperation,
     options: Partial<FileOperation> & { error?: Error }
   ) {
-    await fileOperation.update({
-      ...options,
-      error: options.error
-        ? truncate(options.error.message, { length: 255 })
-        : undefined,
-    });
+    await fileOperation.update(
+      {
+        ...options,
+        error: options.error
+          ? truncate(options.error.message, { length: 255 })
+          : undefined,
+      },
+      {
+        hooks: false,
+      }
+    );
 
     await Event.schedule({
       name: "fileOperations.update",

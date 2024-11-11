@@ -55,6 +55,7 @@ class Event extends IdModel<
 
   /**
    * Metadata associated with the event, previously used for storing some changed attributes.
+   * Note that the `data` column will be visible to the client and API requests.
    */
   @Column(DataType.JSONB)
   data: Record<string, any> | null;

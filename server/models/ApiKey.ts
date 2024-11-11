@@ -17,6 +17,7 @@ import {
 import { ApiKeyValidation } from "@shared/validations";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
+import { SkipChangeset } from "./decorators/Changeset";
 import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
 
@@ -27,6 +28,8 @@ class ApiKey extends ParanoidModel<
   Partial<InferCreationAttributes<ApiKey>>
 > {
   static prefix = "ol_api_";
+
+  static eventNamespace = "api_keys";
 
   @Length({
     min: ApiKeyValidation.minNameLength,
@@ -48,10 +51,12 @@ class ApiKey extends ParanoidModel<
   /** The hashed value of the API key */
   @Unique
   @Column
+  @SkipChangeset
   hash: string;
 
   /** The last 4 characters of the API key */
   @Column
+  @SkipChangeset
   last4: string;
 
   @IsDate

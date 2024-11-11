@@ -26,6 +26,7 @@ import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
+import { SkipChangeset } from "./decorators/Changeset";
 import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
 
@@ -35,6 +36,8 @@ class Attachment extends IdModel<
   InferAttributes<Attachment>,
   Partial<InferCreationAttributes<Attachment>>
 > {
+  static eventNamespace = "attachments";
+
   @Length({
     max: 4096,
     msg: "key must be 4096 characters or less",
@@ -59,6 +62,7 @@ class Attachment extends IdModel<
   acl: string;
 
   @Column
+  @SkipChangeset
   lastAccessedAt: Date | null;
 
   @Column
