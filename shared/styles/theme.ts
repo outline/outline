@@ -59,7 +59,7 @@ const buildBaseTheme = (input: Partial<Colors>) => {
 
   return {
     fontFamily:
-      "-apple-system, BlinkMacSystemFont, Inter, 'Segoe UI', Roboto, Oxygen, sans-serif",
+      "-apple-system, BlinkMacSystemFont, Lexend, 'Segoe UI', Roboto, Oxygen, sans-serif",
     fontFamilyMono:
       "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace",
     fontFamilyEmoji:
