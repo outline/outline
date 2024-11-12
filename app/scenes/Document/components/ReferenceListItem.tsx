@@ -61,6 +61,8 @@ function ReferenceListItem({
 }: Props) {
   const { icon, color } = document;
   const isEmoji = determineIconType(icon) === IconType.Emoji;
+  const title =
+    document instanceof Document ? document.titleWithDefault : document.title;
 
   return (
     <DocumentLink
@@ -81,9 +83,7 @@ function ReferenceListItem({
         ) : (
           <DocumentIcon />
         )}
-        <Title>
-          {isEmoji ? document.title.replace(icon!, "") : document.title}
-        </Title>
+        <Title>{isEmoji ? title.replace(icon!, "") : title}</Title>
       </Content>
     </DocumentLink>
   );
