@@ -159,7 +159,10 @@ ${resizeObserverScript(ctx)}
     const pinterestJs = "https://assets.pinterest.com/js/pinit.js";
     const csp = ctx.response.get("Content-Security-Policy");
 
-    const isProfile = parsed.pathname.split("/").filter(Boolean).length === 1;
+    const pathParts = parsed.pathname.split("/").filter(Boolean);
+    const isProfile =
+      pathParts.length === 1 ||
+      (pathParts.length === 2 && pathParts[1].startsWith("_"));
     const pinType = isProfile ? "embedUser" : "embedBoard";
 
     ctx.set(
