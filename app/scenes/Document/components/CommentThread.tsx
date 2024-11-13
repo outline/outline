@@ -40,6 +40,10 @@ type Props = {
   enableScroll: () => void;
   /** Disable scroll for the comments container */
   disableScroll: () => void;
+  /** Number of replies before collapsing */
+  collapseThreshold?: number;
+  /** Number of replies to display when collapsed */
+  collapseNumDisplayed?: number;
 };
 
 function useTypingIndicator({
@@ -69,6 +73,8 @@ function CommentThread({
   focused,
   enableScroll,
   disableScroll,
+  collapseThreshold = 5,
+  collapseNumDisplayed = 3,
 }: Props) {
   const [focusedOnMount] = React.useState(focused);
   const { editor } = useDocumentContext();
@@ -102,6 +108,17 @@ function CommentThread({
     .inThread(thread.id)
     .filter((comment) => !comment.isNew);
 
+  const [collapse, setCollapse] = React.useState(() => {
+    const numReplies = commentsInThread.length - 1;
+    if (numReplies >= collapseThreshold) {
+      return {
+        begin: 1,
+        final: commentsInThread.length - collapseNumDisplayed - 1,
+      };
+    }
+    return null;
+  });
+
   useOnClickOutside(topRef, (event) => {
     if (
       focused &&
@@ -127,6 +144,11 @@ function CommentThread({
       pathname: location.pathname.replace(/\/history$/, ""),
       state: { commentId: thread.id },
     });
+  };
+
+  const handleClickExpand = (ev: React.SyntheticEvent) => {
+    ev.stopPropagation();
+    setCollapse(null);
   };
 
   React.useEffect(() => {
@@ -192,8 +214,22 @@ function CommentThread({
       onClick={handleClickThread}
     >
       {commentsInThread.map((comment, index) => {
+        if (collapse !== null) {
+          if (index === collapse.begin) {
+            const count = collapse.final - collapse.begin + 1;
+            return (
+              <ShowMore onClick={handleClickExpand} key="show-more">
+                {t("Show {{ count }} reply", { count })}
+              </ShowMore>
+            );
+          } else if (index > collapse.begin && index <= collapse.final) {
+            return null;
+          }
+        }
+
         const firstOfAuthor =
           index === 0 ||
+          (collapse && index === collapse.final + 1) ||
           comment.createdById !== commentsInThread[index - 1].createdById;
         const lastOfAuthor =
           index === commentsInThread.length - 1 ||
@@ -274,6 +310,17 @@ const Reply = styled.button`
   ${breakpoint("tablet")`
     opacity: 0;
   `}
+`;
+
+const ShowMore = styled.div`
+  position: relative;
+  left: 32px;
+  margin: 4px;
+  padding: 4px 8px;
+  font-size: 13px;
+  color: ${s("textTertiary")};
+  cursor: var(--pointer);
+  border-left: 2px dashed ${s("placeholder")};
 `;
 
 const Thread = styled.div<{
