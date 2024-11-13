@@ -65,6 +65,7 @@ class ApiKey extends ParanoidModel<
 
   @IsDate
   @Column
+  @SkipChangeset
   lastActiveAt: Date | null;
 
   // hooks
@@ -153,7 +154,7 @@ class ApiKey extends ParanoidModel<
       this.lastActiveAt = new Date();
     }
 
-    return this.save();
+    return this.save({ silent: true });
   };
 }
 
