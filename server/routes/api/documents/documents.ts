@@ -11,7 +11,12 @@ import uniq from "lodash/uniq";
 import mime from "mime-types";
 import { Op, ScopeOptions, Sequelize, WhereOptions } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
-import { StatusFilter, TeamPreference, UserRole } from "@shared/types";
+import {
+  CollectionPermission,
+  StatusFilter,
+  TeamPreference,
+  UserRole,
+} from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
 import documentCreator from "@server/commands/documentCreator";
@@ -453,7 +458,6 @@ router.post(
   async (ctx: APIContext<T.DocumentsViewedReq>) => {
     const { sort, direction } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const collectionIds = await user.collectionIds();
     const userId = user.id;
     const views = await View.findAll({
       where: {
@@ -467,9 +471,6 @@ router.post(
             { method: ["withMembership", userId] },
           ]),
           required: true,
-          where: {
-            collectionId: collectionIds,
-          },
           include: [
             {
               model: Collection.scope({
@@ -483,14 +484,34 @@ router.post(
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
     });
-    const documents = views.map((view) => {
-      const document = view.document;
-      document.views = [view];
-      return document;
-    });
+
+    const isActiveCollection = (c: Collection | null) =>
+      c &&
+      c.teamId === user.teamId &&
+      ((!user.isGuest &&
+        Object.values(CollectionPermission).includes(
+          c.permission as CollectionPermission
+        )) ||
+        c.memberships.length > 0 ||
+        c.groupMemberships.length > 0);
+
+    const documents = views
+      .map((view) => {
+        const document = view.document;
+        document.views = [view];
+        return document;
+      })
+      .filter(
+        (document) =>
+          isActiveCollection(document.collection) ||
+          document.memberships.length > 0 ||
+          document.groupMemberships.length > 0
+      );
+
     const data = await Promise.all(
       documents.map((document) => presentDocument(ctx, document))
     );
+
     const policies = presentPolicies(user, documents);
 
     ctx.body = {
