@@ -119,7 +119,19 @@ allow(User, "publish", Document, (actor, document) =>
   )
 );
 
-allow(User, ["manageUsers", "duplicate"], Document, (actor, document) =>
+allow(User, "manageUsers", Document, (actor, document) =>
+  and(
+    !document?.template,
+    can(actor, "update", document),
+    or(
+      includesMembership(document, [DocumentPermission.Admin]),
+      can(actor, "updateDocument", document?.collection),
+      !!document?.isDraft && actor.id === document?.createdById
+    )
+  )
+);
+
+allow(User, "duplicate", Document, (actor, document) =>
   and(
     can(actor, "update", document),
     or(
