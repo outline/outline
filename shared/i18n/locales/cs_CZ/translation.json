@@ -790,7 +790,7 @@
   "This workspace has been suspended. Please contact support to restore access.": "Tento pracovní prostor byl pozastaven. Prosím kontaktujte podporu pro obnovení přístupu.",
   "Authentication failed – this login method was disabled by a team admin.": "Ověření se nezdařilo – tento způsob přihlášení byl zakázán správcem týmu.",
   "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.": "Pracovní prostor, ke kterému se pokoušíte připojit, vyžaduje před vytvořením účtu pozvánku.<1></1> Požádejte správce pracovního prostoru o pozvánku a zkuste to znovu.",
-  "Sorry, your domain is not allowed. Please try again with an allowed workspace domain.": "Litujeme, vaše doména není povolena. Zkuste to znovu s povolenou doménou pracovního prostoru.",
+  "Sorry, an unknown error occurred.": "Sorry, an unknown error occurred.",
   "Login": "Přihlášení",
   "Error": "Chyba",
   "Failed to load configuration.": "Nepodařilo se načíst konfiguraci.",
