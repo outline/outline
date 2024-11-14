@@ -151,5 +151,100 @@ ${resizeObserverScript(ctx)}
     return;
   }
 
+  if (
+    parsed.host.endsWith("pinterest.com") &&
+    parsed.protocol === "https:" &&
+    ctx.path === "/embeds/pinterest"
+  ) {
+    const pinterestJs = "https://assets.pinterest.com/js/pinit.js";
+    const csp = ctx.response.get("Content-Security-Policy");
+
+    const pathParts = parsed.pathname.split("/").filter(Boolean);
+    const isProfile =
+      pathParts.length === 1 ||
+      (pathParts.length === 2 && pathParts[1].startsWith("_"));
+    const pinType = isProfile ? "embedUser" : "embedBoard";
+
+    ctx.set(
+      "Content-Security-Policy",
+      csp
+        .replace(
+          "script-src",
+          "script-src assets.pinterest.com widgets.pinterest.com"
+        )
+        .replace(
+          "style-src",
+          "style-src assets.pinterest.com widgets.pinterest.com"
+        )
+    );
+    ctx.set("X-Frame-Options", "sameorigin");
+
+    ctx.type = "html";
+    ctx.body = `
+<html>
+<head>
+<style>
+  html, body, iframe { 
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100px;
+  }
+  .pinterest-container {
+    width: 100%;
+    max-width: 100vw;
+    display: flex;
+    justify-content: center;
+  }
+
+  .pinterest-container > span {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .pinterest-container iframe {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  span[class*="_bd"] {
+    height: 100% !important;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .pinterest-container > span {
+      border-color: rgb(35, 38, 41) !important;
+      background-color: rgb(22, 25, 28) !important;
+    }
+    
+    [class$="_pinner"],
+    [class$="_board"] {
+      color: #e6e6e6 !important;
+    }
+    [class$="_button"] {
+      border-color: rgb(38, 42, 50) !important;
+      background-color: rgba(3, 58, 120, 0.1) !important; 
+    }
+  }
+</style>
+<base target="_parent">
+${iframeCheckScript(ctx)}
+</head>
+<body>
+<div class="pinterest-container">
+  <a 
+    data-pin-do="${pinType}" 
+    data-pin-board-width="100%"
+    href="${url}"
+    style="width:100%;max-width:none;"
+  ></a>
+</div>
+<script type="text/javascript" async defer src="${pinterestJs}"></script>
+${resizeObserverScript(ctx)}
+</body>
+</html>`;
+    return;
+  }
+
   return next();
 };
