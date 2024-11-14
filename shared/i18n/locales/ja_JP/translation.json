@@ -790,7 +790,7 @@
   "This workspace has been suspended. Please contact support to restore access.": "このワークスペースは凍結されています。アクセスを復元するにはサポートにお問い合わせください。",
   "Authentication failed – this login method was disabled by a team admin.": "認証に失敗しました – このログイン方法はチーム管理者によって無効化されています。",
   "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.": "アカウントを作成するには、参加しようとしているワークスペースの招待が必要です。 <1></1>ワークスペース管理者に招待をリクエストしてから、もう一度お試しください。",
-  "Sorry, your domain is not allowed. Please try again with an allowed workspace domain.": "あなたのドメインは許可されていません。許可されたワークスペースのドメインでもう一度やり直してください。",
+  "Sorry, an unknown error occurred.": "Sorry, an unknown error occurred.",
   "Login": "ログイン",
   "Error": "エラー",
   "Failed to load configuration.": "構成の読み込みに失敗しました",
