@@ -35,6 +35,10 @@ this is code
   ).toBe(true);
 });
 
+test("returns true for latex fence", () => {
+  expect(isMarkdown(`\$\$i\$\$`)).toBe(true);
+});
+
 test("returns false for non-closed fence", () => {
   expect(
     isMarkdown(`\`\`\`
