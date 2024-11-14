@@ -143,7 +143,7 @@ export class Mailer {
       Logger.info("email", `Sending email "${data.subject}" to ${data.to}`);
 
       const info = await transporter.sendMail({
-        from: data.from ?? env.SMTP_FROM_EMAIL,
+        from: env.isCloudHosted && data.from ? data.from : env.SMTP_FROM_EMAIL,
         replyTo: data.replyTo ?? env.SMTP_REPLY_EMAIL ?? env.SMTP_FROM_EMAIL,
         to: data.to,
         messageId: data.messageId,
