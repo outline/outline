@@ -790,7 +790,7 @@
   "This workspace has been suspended. Please contact support to restore access.": "Toegang tot deze workspace is geblokkeerd. Neem contact op met support om toegang te herstellen.",
   "Authentication failed – this login method was disabled by a team admin.": "Verificatie mislukt - deze inlogmethode is uitgeschakeld door een teambeheerder.",
   "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.": "De werkruimte die u probeert toe te treden vereist een uitnodiging voordat u een account kunt aanmaken. <1></1>Vraag een uitnodiging aan van uw werkruimte beheerder en probeer het opnieuw.",
-  "Sorry, your domain is not allowed. Please try again with an allowed workspace domain.": "Sorry, uw domein is niet toegestaan. Probeer het opnieuw met een toegestaan werkruimte domein.",
+  "Sorry, an unknown error occurred.": "Sorry, an unknown error occurred.",
   "Login": "Inloggen",
   "Error": "Foutmelding",
   "Failed to load configuration.": "Laden van configuratiebestand mislukt.",
