@@ -790,7 +790,7 @@
   "This workspace has been suspended. Please contact support to restore access.": "此工作区已暂停。 请联系支持人员以恢复访问权限。",
   "Authentication failed – this login method was disabled by a team admin.": "身份验证失败 – 此登录方式已被团队管理员禁用。",
   "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.": "你正在尝试加入的工作区需要邀请才能创建账户。<1></1>请向你的工作区管理员申请邀请并重试。",
-  "Sorry, your domain is not allowed. Please try again with an allowed workspace domain.": "抱歉，你的域不被允许。请使用允许的工作区域重试。",
+  "Sorry, an unknown error occurred.": "Sorry, an unknown error occurred.",
   "Login": "登录",
   "Error": "加载失败",
   "Failed to load configuration.": "配置文件加载失败。",
