@@ -790,7 +790,7 @@
   "This workspace has been suspended. Please contact support to restore access.": "Cet espace de travail a été suspendu. Veuillez contacter le support afin de le réactiver.",
   "Authentication failed – this login method was disabled by a team admin.": "Échec de l'authentification - cette méthode de connexion a été désactivée par un administrateur d'équipe.",
   "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.": "L'espace de travail que vous essayez de rejoindre nécessite une invitation avant de pouvoir créer un compte.<1></1> Veuillez demander une invitation à l'administrateur de votre espace de travail et réessayer.",
-  "Sorry, your domain is not allowed. Please try again with an allowed workspace domain.": "Désolé, votre domaine n'est pas autorisé. Veuillez réessayer avec un domaine d'espace de travail autorisé.",
+  "Sorry, an unknown error occurred.": "Sorry, an unknown error occurred.",
   "Login": "Identification",
   "Error": "Erreur",
   "Failed to load configuration.": "Échec du chargement de la configuration.",
