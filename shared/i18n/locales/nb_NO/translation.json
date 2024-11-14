@@ -790,7 +790,7 @@
   "This workspace has been suspended. Please contact support to restore access.": "Dette arbeidsområdet har blitt suspendert. Vennligst kontakt støtte for å gjenopprette tilgangen.",
   "Authentication failed – this login method was disabled by a team admin.": "Autentisering mislyktes – denne innloggingsmetoden ble deaktivert av en teamadministrator.",
   "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.": "Arbeidsområdet du prøver å bli med krever en invitasjon før du kan opprette en konto.<1></1>Vennligst be om en invitasjon fra din arbeidsområdeadministrator og prøv igjen.",
-  "Sorry, your domain is not allowed. Please try again with an allowed workspace domain.": "Beklager, domenet ditt er ikke tillatt. Vennligst prøv igjen med et tillatt arbeidsområdedomene.",
+  "Sorry, an unknown error occurred.": "Sorry, an unknown error occurred.",
   "Login": "Logg inn",
   "Error": "Feil",
   "Failed to load configuration.": "Kunne ikke laste konfigurasjonen.",
