@@ -790,7 +790,7 @@
   "This workspace has been suspended. Please contact support to restore access.": "This workspace has been suspended. Please contact support to restore access.",
   "Authentication failed – this login method was disabled by a team admin.": "Otentikasi gagal – metode masuk ini dinonaktifkan oleh admin tim.",
   "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.": "Workspace yang ingin Anda masuki memerlukan undangan sebelum Anda dapat membuat akun.<1></1> Harap minta undangan dari admin workspace Anda dan coba lagi.",
-  "Sorry, your domain is not allowed. Please try again with an allowed workspace domain.": "Maaf, domain Anda tidak diizinkan. Coba lagi dengan domain workspace yang diizinkan.",
+  "Sorry, an unknown error occurred.": "Sorry, an unknown error occurred.",
   "Login": "Masuk",
   "Error": "Kesalahan",
   "Failed to load configuration.": "Gagal memuat konfigurasi.",
