@@ -790,7 +790,7 @@
   "This workspace has been suspended. Please contact support to restore access.": "This workspace has been suspended. Please contact support to restore access.",
   "Authentication failed – this login method was disabled by a team admin.": "Помилка аутентифікації - цей метод входу був відключений адміністратором команди.",
   "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.": "Робоче середовище, до якого ви намагаєтеся приєднатися, потребує запрошення перед тим, як створити обліковий запис. <1></1>, будь ласка, запитайте запрошення від адміністратора робочого середовища та спробуйте ще раз.",
-  "Sorry, your domain is not allowed. Please try again with an allowed workspace domain.": "На жаль, ваш домен не допускається. Будь ласка, спробуйте ще раз із дозволеним робочим доменом.",
+  "Sorry, an unknown error occurred.": "Sorry, an unknown error occurred.",
   "Login": "Логін",
   "Error": "Помилка",
   "Failed to load configuration.": "Не вдалося завантажити налаштування.",
