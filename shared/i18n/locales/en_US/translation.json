@@ -790,7 +790,7 @@
   "This workspace has been suspended. Please contact support to restore access.": "This workspace has been suspended. Please contact support to restore access.",
   "Authentication failed – this login method was disabled by a team admin.": "Authentication failed – this login method was disabled by a team admin.",
   "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.": "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.",
-  "Sorry, your domain is not allowed. Please try again with an allowed workspace domain.": "Sorry, your domain is not allowed. Please try again with an allowed workspace domain.",
+  "Sorry, an unknown error occurred.": "Sorry, an unknown error occurred.",
   "Login": "Login",
   "Error": "Error",
   "Failed to load configuration.": "Failed to load configuration.",
