@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import { GroupIcon } from "outline-icons";
 import * as React from "react";
 import Group from "~/models/Group";
+import { useLocationState } from "../hooks/useLocationState";
 import Folder from "./Folder";
 import Relative from "./Relative";
 import SharedWithMeLink from "./SharedWithMeLink";
@@ -14,12 +15,21 @@ type Props = {
 };
 
 const GroupLink: React.FC<Props> = ({ group }) => {
-  const [expanded, setExpanded] = React.useState(false);
+  const locationSidebarContext = useLocationState();
+  const [expanded, setExpanded] = React.useState(
+    locationSidebarContext === group.id
+  );
 
   const handleDisclosureClick = React.useCallback((ev) => {
     ev?.preventDefault();
     setExpanded((e) => !e);
   }, []);
+
+  React.useEffect(() => {
+    if (locationSidebarContext === group.id) {
+      setExpanded(true);
+    }
+  }, [group.id, locationSidebarContext, setExpanded]);
 
   return (
     <Relative>

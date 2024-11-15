@@ -78,6 +78,19 @@ function DocumentListItem(
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
   const canStar = !document.isArchived && !document.isTemplate;
 
+  const membershipType = document.membershipType;
+
+  let sidebarContext: string | undefined = "collections";
+
+  if (membershipType === "direct") {
+    sidebarContext = "shared";
+  } else if (membershipType === "group") {
+    const group = user.groupsWithDocumentMemberships.find(
+      (g) => !!g.documentMemberships.find((m) => m.documentId === document.id)
+    );
+    sidebarContext = group?.id;
+  }
+
   return (
     <DocumentLink
       ref={itemRef}
@@ -89,7 +102,7 @@ function DocumentListItem(
         pathname: documentPath(document),
         state: {
           title: document.titleWithDefault,
-          sidebarContext: document.collection ? "collections" : undefined,
+          sidebarContext,
         },
       }}
       {...rest}

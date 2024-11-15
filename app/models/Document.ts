@@ -429,6 +429,20 @@ export default class Document extends ArchivableModel {
     return this.title || i18n.t("Untitled");
   }
 
+  @computed
+  get membershipType(): "collection" | "direct" | "group" {
+    if (this.collection) {
+      return "collection";
+    }
+
+    const hasDocumentMembership =
+      this.store.rootStore.auth.user?.documentMemberships.find(
+        (m) => m.documentId === this.id
+      ) ?? false;
+
+    return hasDocumentMembership ? "direct" : "group";
+  }
+
   @action
   updateTasks(total: number, completed: number) {
     if (total !== this.tasks.total || completed !== this.tasks.completed) {
