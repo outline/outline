@@ -3036,6 +3036,92 @@ describe("#documents.restore", () => {
     expect(body.data.collectionId).toEqual(anotherCollection.id);
   });
 
+  it("should allow restore of collection templates", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const template = await buildDocument({
+      template: true,
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: team.id,
+    });
+    await template.delete(user);
+
+    const res = await server.post("/api/documents.restore", {
+      body: {
+        token: user.getJwtToken(),
+        id: template.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.deletedAt).toEqual(null);
+    expect(body.data.collectionId).toEqual(collection.id);
+  });
+
+  it("should allow restore of templates from a deleted collection", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const anotherCollection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const template = await buildDocument({
+      template: true,
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: team.id,
+    });
+    await template.delete(user);
+    await collection.destroy({ hooks: false });
+
+    const res = await server.post("/api/documents.restore", {
+      body: {
+        token: user.getJwtToken(),
+        id: template.id,
+        collectionId: anotherCollection.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.deletedAt).toEqual(null);
+    expect(body.data.collectionId).toEqual(anotherCollection.id);
+  });
+
+  it("should allow restore of workspace templates", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const template = await buildDocument({
+      template: true,
+      userId: user.id,
+      teamId: team.id,
+      collectionId: null,
+    });
+    await template.delete(user);
+
+    const res = await server.post("/api/documents.restore", {
+      body: {
+        token: user.getJwtToken(),
+        id: template.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.deletedAt).toEqual(null);
+    expect(body.data.collectionId).toEqual(null);
+  });
+
   it("should not allow restore of documents to a deleted collection", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
