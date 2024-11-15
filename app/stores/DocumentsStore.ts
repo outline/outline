@@ -369,6 +369,10 @@ export default class DocumentsStore extends Store<Document> {
     this.fetchNamedPage("list", { ...options, template: true });
 
   @action
+  fetchAllTemplates = async (options?: PaginationParams): Promise<Document[]> =>
+    this.fetchAll({ ...options, template: true });
+
+  @action
   fetchAlphabetical = async (options?: PaginationParams): Promise<Document[]> =>
     this.fetchNamedPage("list", {
       sort: "title",
