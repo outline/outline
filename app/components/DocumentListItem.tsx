@@ -89,6 +89,7 @@ function DocumentListItem(
         pathname: documentPath(document),
         state: {
           title: document.titleWithDefault,
+          sidebarContext: document.collection ? "collections" : undefined,
         },
       }}
       {...rest}
