@@ -24,6 +24,11 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { hover } from "~/styles";
 import { documentPath } from "~/utils/routeHelpers";
+import {
+  groupSidebarContext,
+  SidebarContextType,
+  starredSidebarContext,
+} from "./Sidebar/components/SidebarContext";
 
 type Props = {
   document: Document;
@@ -80,15 +85,19 @@ function DocumentListItem(
 
   const membershipType = document.membershipType;
 
-  let sidebarContext: string | undefined = "collections";
+  let sidebarContext: SidebarContextType = "collections";
 
-  if (membershipType === "direct") {
+  if (document.isStarred) {
+    sidebarContext = starredSidebarContext(document.id);
+  } else if (document.collection?.isStarred) {
+    sidebarContext = starredSidebarContext(document.collectionId!);
+  } else if (membershipType === "direct") {
     sidebarContext = "shared";
   } else if (membershipType === "group") {
     const group = user.groupsWithDocumentMemberships.find(
       (g) => !!g.documentMemberships.find((m) => m.documentId === document.id)
     );
-    sidebarContext = group?.id;
+    sidebarContext = groupSidebarContext(group?.id ?? "");
   }
 
   return (

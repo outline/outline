@@ -6,7 +6,7 @@ import { useLocationState } from "../hooks/useLocationState";
 import Folder from "./Folder";
 import Relative from "./Relative";
 import SharedWithMeLink from "./SharedWithMeLink";
-import SidebarContext from "./SidebarContext";
+import SidebarContext, { groupSidebarContext } from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
 
 type Props = {
@@ -16,8 +16,9 @@ type Props = {
 
 const GroupLink: React.FC<Props> = ({ group }) => {
   const locationSidebarContext = useLocationState();
+  const sidebarContext = groupSidebarContext(group.id);
   const [expanded, setExpanded] = React.useState(
-    locationSidebarContext === group.id
+    locationSidebarContext === sidebarContext
   );
 
   const handleDisclosureClick = React.useCallback((ev) => {
@@ -26,10 +27,10 @@ const GroupLink: React.FC<Props> = ({ group }) => {
   }, []);
 
   React.useEffect(() => {
-    if (locationSidebarContext === group.id) {
+    if (locationSidebarContext === sidebarContext) {
       setExpanded(true);
     }
-  }, [group.id, locationSidebarContext, setExpanded]);
+  }, [sidebarContext, locationSidebarContext, setExpanded]);
 
   return (
     <Relative>
@@ -40,7 +41,7 @@ const GroupLink: React.FC<Props> = ({ group }) => {
         onClick={handleDisclosureClick}
         depth={0}
       />
-      <SidebarContext.Provider value={group.id}>
+      <SidebarContext.Provider value={sidebarContext}>
         <Folder expanded={expanded}>
           {group.documentMemberships.map((membership) => (
             <SharedWithMeLink
