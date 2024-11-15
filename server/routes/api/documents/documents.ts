@@ -828,13 +828,14 @@ router.post(
         }).findByPk(destCollectionId)
       : undefined;
 
-    if (!destCollection?.isActive) {
+    // In case of workspace templates, both source and destination collections are undefined.
+    if (!document.isWorkspaceTemplate && !destCollection?.isActive) {
       throw ValidationError(
         "Unable to restore, the collection may have been deleted or archived"
       );
     }
 
-    // Skip this for drafts of a deleted collection as they won't have sourceCollectionId
+    // Skip this for workspace templates and drafts of a deleted collection as they won't have sourceCollectionId.
     if (sourceCollectionId && sourceCollectionId !== destCollectionId) {
       authorize(user, "updateDocument", srcCollection);
       await srcCollection?.removeDocumentInStructure(document, {
@@ -843,7 +844,19 @@ router.post(
       });
     }
 
-    if (document.deletedAt) {
+    if (document.deletedAt && document.isWorkspaceTemplate) {
+      authorize(user, "restore", document);
+
+      await document.restore({ transaction });
+      await Event.createFromContext(ctx, {
+        name: "documents.restore",
+        documentId: document.id,
+        collectionId: document.collectionId,
+        data: {
+          title: document.title,
+        },
+      });
+    } else if (document.deletedAt) {
       authorize(user, "restore", document);
       authorize(user, "updateDocument", destCollection);
 
