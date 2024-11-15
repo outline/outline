@@ -11,7 +11,7 @@ const useTemplatesAction = () => {
   const { documents } = useStores();
 
   React.useEffect(() => {
-    void documents.fetchTemplates();
+    void documents.fetchAllTemplates();
   }, [documents]);
 
   const actions = React.useMemo(
