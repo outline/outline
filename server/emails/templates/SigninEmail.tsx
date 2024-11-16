@@ -2,7 +2,7 @@ import * as React from "react";
 import { Client } from "@shared/types";
 import env from "@server/env";
 import logger from "@server/logging/Logger";
-import BaseEmail, { EmailProps } from "./BaseEmail";
+import BaseEmail, { EmailMessageCategory, EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import EmailTemplate from "./components/EmailLayout";
@@ -21,6 +21,10 @@ type Props = EmailProps & {
  * Email sent to a user when they request a magic sign-in link.
  */
 export default class SigninEmail extends BaseEmail<Props, Record<string, any>> {
+  protected get category() {
+    return EmailMessageCategory.Authentication;
+  }
+
   protected subject() {
     return "Magic signin link";
   }

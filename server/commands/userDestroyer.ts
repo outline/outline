@@ -1,24 +1,24 @@
-import { Op, Transaction } from "sequelize";
+import { Op } from "sequelize";
 import { UserRole } from "@shared/types";
 import { Event, User } from "@server/models";
+import { APIContext } from "@server/types";
 import { ValidationError } from "../errors";
 
-export default async function userDestroyer({
-  user,
-  actor,
-  ip,
-  transaction,
-}: {
-  user: User;
-  actor: User;
-  ip: string;
-  transaction?: Transaction;
-}) {
+export default async function userDestroyer(
+  ctx: APIContext,
+  {
+    user,
+  }: {
+    user: User;
+  }
+) {
+  const { transaction } = ctx.state;
   const { teamId } = user;
   const usersCount = await User.count({
     where: {
       teamId,
     },
+    transaction,
   });
 
   if (usersCount === 1) {
@@ -36,6 +36,7 @@ export default async function userDestroyer({
           [Op.ne]: user.id,
         },
       },
+      transaction,
     });
 
     if (otherAdminsCount === 0) {
@@ -45,21 +46,13 @@ export default async function userDestroyer({
     }
   }
 
-  await Event.create(
-    {
-      name: "users.delete",
-      actorId: actor.id,
-      userId: user.id,
-      teamId,
-      data: {
-        name: user.name,
-      },
-      ip,
+  await Event.createFromContext(ctx, {
+    name: "users.delete",
+    userId: user.id,
+    data: {
+      name: user.name,
     },
-    {
-      transaction,
-    }
-  );
+  });
 
   return user.destroy({
     transaction,

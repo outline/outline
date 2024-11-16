@@ -27,6 +27,8 @@ import { Bubble } from "./CommentThreadItem";
 import { HighlightedText } from "./HighlightText";
 
 type Props = {
+  /** Callback when the form is submitted. */
+  onSubmit?: () => void;
   /** Callback when the draft should be saved. */
   onSaveDraft: (data: ProsemirrorData | undefined) => void;
   /** A draft comment for this thread. */
@@ -59,6 +61,7 @@ function CommentForm({
   documentId,
   thread,
   draft,
+  onSubmit,
   onSaveDraft,
   onTyping,
   onFocus,
@@ -109,6 +112,7 @@ function CommentForm({
           createdAt: new Date().toISOString(),
           documentId,
           data: draft,
+          reactions: [],
         },
         comments
       );
@@ -118,6 +122,7 @@ function CommentForm({
         documentId,
         data: draft,
       })
+      .then(() => onSubmit?.())
       .catch(() => {
         comment.isNew = true;
         toast.error(t("Error creating comment"));
@@ -144,6 +149,7 @@ function CommentForm({
         parentCommentId: thread?.id,
         documentId,
         data: draft,
+        reactions: [],
       },
       comments
     );
@@ -151,11 +157,14 @@ function CommentForm({
     comment.id = uuidv4();
     comments.add(comment);
 
-    comment.save().catch(() => {
-      comments.remove(comment.id);
-      comment.isNew = true;
-      toast.error(t("Error creating comment"));
-    });
+    comment
+      .save()
+      .then(() => onSubmit?.())
+      .catch(() => {
+        comments.remove(comment.id);
+        comment.isNew = true;
+        toast.error(t("Error creating comment"));
+      });
 
     // optimistically update the comment model
     comment.isNew = false;

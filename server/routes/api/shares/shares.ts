@@ -230,7 +230,8 @@ router.post(
   auth(),
   validate(T.SharesUpdateSchema),
   async (ctx: APIContext<T.SharesUpdateReq>) => {
-    const { id, includeChildDocuments, published, urlId } = ctx.input.body;
+    const { id, includeChildDocuments, published, urlId, allowIndexing } =
+      ctx.input.body;
 
     const { user } = ctx.state.auth;
     authorize(user, "share", user.team);
@@ -255,6 +256,10 @@ router.post(
 
     if (!isUndefined(urlId)) {
       share.urlId = urlId;
+    }
+
+    if (allowIndexing !== undefined) {
+      share.allowIndexing = allowIndexing;
     }
 
     await share.save();

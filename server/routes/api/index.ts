@@ -20,12 +20,14 @@ import events from "./events";
 import fileOperationsRoute from "./fileOperations";
 import groupMemberships from "./groupMemberships";
 import groups from "./groups";
+import installation from "./installation";
 import integrations from "./integrations";
 import apiResponse from "./middlewares/apiResponse";
 import apiTracer from "./middlewares/apiTracer";
 import editor from "./middlewares/editor";
 import notifications from "./notifications";
 import pins from "./pins";
+import reactions from "./reactions";
 import revisions from "./revisions";
 import searches from "./searches";
 import shares from "./shares";
@@ -90,6 +92,11 @@ router.use("/", groupMemberships.routes());
 router.use("/", fileOperationsRoute.routes());
 router.use("/", urls.routes());
 router.use("/", userMemberships.routes());
+router.use("/", reactions.routes());
+
+if (!env.isCloudHosted) {
+  router.use("/", installation.routes());
+}
 
 if (env.isDevelopment) {
   router.use("/", developer.routes());

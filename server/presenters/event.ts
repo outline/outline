@@ -13,10 +13,12 @@ export default function presentEvent(event: Event, isAdmin = false) {
     documentId: event.documentId,
     createdAt: event.createdAt,
     data: event.data,
+    changes: event.changes || undefined,
     actor: presentUser(event.actor),
   };
 
   if (!isAdmin) {
+    delete data.changes;
     delete data.actorIpAddress;
   }
 

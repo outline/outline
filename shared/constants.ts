@@ -21,6 +21,7 @@ export const TeamPreferenceDefaults: TeamPreferences = {
   [TeamPreference.MembersCanInvite]: false,
   [TeamPreference.MembersCanCreateApiKey]: true,
   [TeamPreference.MembersCanDeleteAccount]: true,
+  [TeamPreference.PreviewsInEmails]: true,
   [TeamPreference.PublicBranding]: false,
   [TeamPreference.Commenting]: true,
   [TeamPreference.CustomTheme]: undefined,
@@ -31,4 +32,6 @@ export const UserPreferenceDefaults: UserPreferences = {
   [UserPreference.RememberLastPath]: true,
   [UserPreference.UseCursorPointer]: true,
   [UserPreference.CodeBlockLineNumers]: true,
+  [UserPreference.SortCommentsByOrderInDocument]: false,
+  [UserPreference.EnableSmartText]: true,
 };

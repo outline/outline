@@ -169,6 +169,10 @@ export enum UserPreference {
   SeamlessEdit = "seamlessEdit",
   /** Whether documents should start in full-width mode. */
   FullWidthDocuments = "fullWidthDocuments",
+  /** Whether to sort the comments by their order in the document. */
+  SortCommentsByOrderInDocument = "sortCommentsByOrderInDocument",
+  /** Whether smart text replacements should be enabled. */
+  EnableSmartText = "enableSmartText",
 }
 
 export type UserPreferences = { [key in UserPreference]?: boolean };
@@ -216,6 +220,8 @@ export enum TeamPreference {
   MembersCanCreateApiKey = "membersCanCreateApiKey",
   /** Whether members can delete their user account. */
   MembersCanDeleteAccount = "membersCanDeleteAccount",
+  /** Whether notification emails include document and comment content. */
+  PreviewsInEmails = "previewsInEmails",
   /** Whether users can comment on documents. */
   Commenting = "commenting",
   /** The custom theme for the team. */
@@ -231,6 +237,7 @@ export type TeamPreferences = {
   [TeamPreference.MembersCanInvite]?: boolean;
   [TeamPreference.MembersCanCreateApiKey]?: boolean;
   [TeamPreference.MembersCanDeleteAccount]?: boolean;
+  [TeamPreference.PreviewsInEmails]?: boolean;
   [TeamPreference.Commenting]?: boolean;
   [TeamPreference.CustomTheme]?: Partial<CustomTheme>;
   [TeamPreference.TocPosition]?: TOCPosition;
@@ -336,6 +343,8 @@ export type UnfurlResponse = {
     type: UnfurlResourceType.Mention;
     /** Mentioned user's name */
     name: string;
+    /** Mentioned user's email */
+    email: string | null;
     /** Mentioned user's avatar URL */
     avatarUrl: string | null;
     /** Used to create mentioned user's avatar if no avatar URL provided */
@@ -466,4 +475,9 @@ export type EmojiVariants = {
   [EmojiSkinTone.Medium]?: Emoji;
   [EmojiSkinTone.MediumDark]?: Emoji;
   [EmojiSkinTone.Dark]?: Emoji;
+};
+
+export type ReactionSummary = {
+  emoji: string;
+  userIds: string[];
 };

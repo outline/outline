@@ -1,6 +1,6 @@
-import { Transaction } from "sequelize";
 import { Event, Document, User } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import { APIContext } from "@server/types";
 
 type Props = {
   /** The user updating the document */
@@ -31,10 +31,6 @@ type Props = {
   publish?: boolean;
   /** The ID of the collection to publish the document to */
   collectionId?: string | null;
-  /** The IP address of the user creating the document */
-  ip: string;
-  /** The database transaction to run within */
-  transaction: Transaction;
 };
 
 /**
@@ -44,24 +40,26 @@ type Props = {
  * @param Props The properties of the document to update
  * @returns Document The updated document
  */
-export default async function documentUpdater({
-  user,
-  document,
-  title,
-  icon,
-  color,
-  text,
-  editorVersion,
-  templateId,
-  fullWidth,
-  insightsEnabled,
-  append,
-  publish,
-  collectionId,
-  done,
-  transaction,
-  ip,
-}: Props): Promise<Document> {
+export default async function documentUpdater(
+  ctx: APIContext,
+  {
+    user,
+    document,
+    title,
+    icon,
+    color,
+    text,
+    editorVersion,
+    templateId,
+    fullWidth,
+    insightsEnabled,
+    append,
+    publish,
+    collectionId,
+    done,
+  }: Props
+): Promise<Document> {
+  const { transaction } = ctx.state;
   const previousTitle = document.title;
   const cId = collectionId || document.collectionId;
 
@@ -96,13 +94,10 @@ export default async function documentUpdater({
     name: "documents.update",
     documentId: document.id,
     collectionId: cId,
-    teamId: document.teamId,
-    actorId: user.id,
     data: {
       done,
       title: document.title,
     },
-    ip,
   };
 
   if (publish && (document.template || cId)) {
@@ -111,21 +106,22 @@ export default async function documentUpdater({
     }
     await document.publish(user, cId, { transaction });
 
-    await Event.create(
-      {
-        ...event,
-        name: "documents.publish",
-      },
-      { transaction }
-    );
+    await Event.createFromContext(ctx, {
+      ...event,
+      name: "documents.publish",
+    });
   } else if (changed) {
     document.lastModifiedById = user.id;
     document.updatedBy = user;
     await document.save({ transaction });
 
-    await Event.create(event, { transaction });
+    await Event.createFromContext(ctx, event);
   } else if (done) {
-    await Event.schedule(event);
+    await Event.schedule({
+      ...event,
+      actorId: user.id,
+      teamId: document.teamId,
+    });
   }
 
   if (document.title !== previousTitle) {
@@ -139,7 +135,7 @@ export default async function documentUpdater({
         previousTitle,
         title: document.title,
       },
-      ip,
+      ip: ctx.request.ip,
     });
   }
 

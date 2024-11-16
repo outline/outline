@@ -91,6 +91,15 @@ export const navigateToSettings = createAction({
   perform: () => history.push(settingsPath()),
 });
 
+export const navigateToWorkspaceSettings = createAction({
+  name: ({ t }) => t("Settings"),
+  analyticsName: "Navigate to workspace settings",
+  section: NavigationSection,
+  icon: <SettingsIcon />,
+  visible: () => stores.policies.abilities(stores.auth.team?.id || "").update,
+  perform: () => history.push(settingsPath("details")),
+});
+
 export const navigateToProfileSettings = createAction({
   name: ({ t }) => t("Profile"),
   analyticsName: "Navigate to profile settings",

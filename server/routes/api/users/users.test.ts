@@ -18,6 +18,24 @@ afterAll(() => {
 });
 
 describe("#users.list", () => {
+  it("should return users whose emails match the query", async () => {
+    const user = await buildUser({
+      name: "John Doe",
+      email: "john.doe@example.com",
+    });
+
+    const res = await server.post("/api/users.list", {
+      body: {
+        query: "john.doe@e",
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].id).toEqual(user.id);
+  });
+
   it("should allow filtering by user name", async () => {
     const user = await buildUser({
       name: "Tèster",
@@ -189,20 +207,142 @@ describe("#users.list", () => {
     expect(body.data[0].id).toEqual(user.id);
   });
 
-  it("should require admin for detailed info", async () => {
+  it("should restrict guest from viewing other user's email", async () => {
     const team = await buildTeam();
-    await buildAdmin({ teamId: team.id });
-    const user = await buildUser({ teamId: team.id });
+    await buildUser({ teamId: team.id });
+    const guest = await buildUser({ teamId: team.id, role: UserRole.Guest });
     const res = await server.post("/api/users.list", {
       body: {
-        token: user.getJwtToken(),
+        token: guest.getJwtToken(),
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(2);
+    expect(body.data).toHaveLength(2);
     expect(body.data[0].email).toEqual(undefined);
-    expect(body.data[1].email).toEqual(user.email);
+    expect(body.data[1].email).toEqual(guest.email);
+  });
+
+  it("should restrict viewer from viewing other user's email", async () => {
+    const team = await buildTeam();
+    await buildUser({ teamId: team.id });
+    const viewer = await buildUser({ teamId: team.id, role: UserRole.Viewer });
+    const res = await server.post("/api/users.list", {
+      body: {
+        token: viewer.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(2);
+    expect(body.data[0].email).toEqual(undefined);
+    expect(body.data[1].email).toEqual(viewer.email);
+  });
+
+  it("should allow member to view other user's email", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const member = await buildUser({ teamId: team.id, role: UserRole.Member });
+    const res = await server.post("/api/users.list", {
+      body: {
+        token: member.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(2);
+    expect(body.data[0].email).toEqual(user.email);
+    expect(body.data[1].email).toEqual(member.email);
+  });
+
+  it("should restrict guest from viewing other user's details", async () => {
+    const team = await buildTeam();
+    await buildUser({ teamId: team.id });
+    const guest = await buildUser({ teamId: team.id, role: UserRole.Guest });
+    const res = await server.post("/api/users.list", {
+      body: {
+        token: guest.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(2);
+    expect(body.data[0].language).toEqual(undefined);
+    expect(body.data[0].preferences).toEqual(undefined);
+    expect(body.data[0].notificationSettings).toEqual(undefined);
+    expect(body.data[1].language).toEqual(guest.language);
+    expect(body.data[1].preferences).toEqual(guest.preferences);
+    expect(body.data[1].notificationSettings).toEqual(
+      guest.notificationSettings
+    );
+  });
+
+  it("should restrict viewer from viewing other user's details", async () => {
+    const team = await buildTeam();
+    await buildUser({ teamId: team.id });
+    const viewer = await buildUser({ teamId: team.id, role: UserRole.Viewer });
+    const res = await server.post("/api/users.list", {
+      body: {
+        token: viewer.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(2);
+    expect(body.data[0].language).toEqual(undefined);
+    expect(body.data[0].preferences).toEqual(undefined);
+    expect(body.data[0].notificationSettings).toEqual(undefined);
+    expect(body.data[1].language).toEqual(viewer.language);
+    expect(body.data[1].preferences).toEqual(viewer.preferences);
+    expect(body.data[1].notificationSettings).toEqual(
+      viewer.notificationSettings
+    );
+  });
+
+  it("should restrict member from viewing other user's details", async () => {
+    const team = await buildTeam();
+    await buildUser({ teamId: team.id });
+    const member = await buildUser({ teamId: team.id, role: UserRole.Member });
+    const res = await server.post("/api/users.list", {
+      body: {
+        token: member.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(2);
+    expect(body.data[0].language).toEqual(undefined);
+    expect(body.data[0].preferences).toEqual(undefined);
+    expect(body.data[0].notificationSettings).toEqual(undefined);
+    expect(body.data[1].language).toEqual(member.language);
+    expect(body.data[1].preferences).toEqual(member.preferences);
+    expect(body.data[1].notificationSettings).toEqual(
+      member.notificationSettings
+    );
+  });
+
+  it("should allow admin to view other user's details", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+    const res = await server.post("/api/users.list", {
+      body: {
+        token: admin.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(2);
+    expect(body.data[0].language).toEqual(user.language);
+    expect(body.data[0].preferences).toEqual(user.preferences);
+    expect(body.data[0].notificationSettings).toEqual(
+      user.notificationSettings
+    );
+    expect(body.data[1].language).toEqual(admin.language);
+    expect(body.data[1].preferences).toEqual(admin.preferences);
+    expect(body.data[1].notificationSettings).toEqual(
+      admin.notificationSettings
+    );
   });
 });
 
@@ -560,6 +700,19 @@ describe("#users.update", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.preferences.rememberLastPath).toBe(true);
+  });
+
+  it("should update user timezone", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/users.update", {
+      body: {
+        token: user.getJwtToken(),
+        timezone: "Asia/Calcutta",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.timezone).toEqual("Asia/Calcutta");
   });
 
   it("should require authentication", async () => {

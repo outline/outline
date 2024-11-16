@@ -1,6 +1,6 @@
 import { exitCode } from "prosemirror-commands";
 import { Command, TextSelection } from "prosemirror-state";
-import { findStartOfLine } from "../queries/findStartOfLine";
+import { findNextNewline, findPreviousNewline } from "../queries/findNewlines";
 import { isInCode } from "../queries/isInCode";
 
 const newline = "\n";
@@ -22,21 +22,10 @@ export const moveToPreviousNewline: Command = (state, dispatch) => {
     return false;
   }
 
-  // The easiest way to find the previous newline is to reverse the string and
-  // perform a forward seach as if looking for the next newline.
-  const beginningOfNode = $pos.pos - $pos.parentOffset;
-  const startOfLine = $pos.parent.textContent
-    .split("")
-    .reverse()
-    .join("")
-    .indexOf(newline, $pos.parent.nodeSize - $pos.parentOffset - 2);
-  const pos =
-    startOfLine === -1
-      ? beginningOfNode
-      : beginningOfNode + ($pos.parent.nodeSize - startOfLine - 2);
-
   dispatch?.(
-    state.tr.setSelection(TextSelection.create(state.doc, pos)).scrollIntoView()
+    state.tr
+      .setSelection(TextSelection.create(state.doc, findPreviousNewline($pos)))
+      .scrollIntoView()
   );
 
   return true;
@@ -58,16 +47,10 @@ export const moveToNextNewline: Command = (state, dispatch) => {
     return false;
   }
 
-  // find next newline or end of node
-  const beginningOfNode = $pos.pos - $pos.parentOffset;
-  const endOfLine = $pos.parent.textContent.indexOf(newline, $pos.parentOffset);
-  const pos =
-    endOfLine === -1
-      ? beginningOfNode + $pos.parent.nodeSize - 2
-      : beginningOfNode + endOfLine;
-
   dispatch?.(
-    state.tr.setSelection(TextSelection.create(state.doc, pos)).scrollIntoView()
+    state.tr
+      .setSelection(TextSelection.create(state.doc, findNextNewline($pos)))
+      .scrollIntoView()
   );
 
   return true;
@@ -124,7 +107,7 @@ export const indentInCode: Command = (state, dispatch) => {
 
   if (dispatch) {
     let line = 1;
-    tr.insertText(spaces, findStartOfLine($from, tr.doc));
+    tr.insertText(spaces, findPreviousNewline($from));
 
     // Find all newlines in the selection and insert spaces before them.
     let index = from + 1;
@@ -169,7 +152,7 @@ export const outdentInCode: Command = (state, dispatch) => {
     let index = to - 1;
     let totalSpacesRemoved = 0;
     let spacesRemovedOnFirstLine = 0;
-    const startOfFirstLine = findStartOfLine($from, tr.doc);
+    const startOfFirstLine = findPreviousNewline($from);
 
     while (index >= startOfFirstLine - line * tabSize) {
       const newLineBefore =

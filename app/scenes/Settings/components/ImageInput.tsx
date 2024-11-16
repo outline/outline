@@ -47,7 +47,7 @@ const ImageBox = styled(Flex)`
   position: relative;
   font-size: 14px;
   border-radius: 8px;
-  box-shadow: 0 0 0 1px ${s("secondaryBackground")};
+  box-shadow: 0 0 0 1px ${s("backgroundSecondary")};
   background: ${s("background")};
   overflow: hidden;
 

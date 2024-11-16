@@ -27,6 +27,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useFocusedComment from "~/hooks/useFocusedComment";
 import usePolicy from "~/hooks/usePolicy";
+import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import {
   documentHistoryPath,
@@ -81,6 +82,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const user = useCurrentUser({ rejectOnEmpty: false });
   const team = useCurrentTeam({ rejectOnEmpty: false });
   const history = useHistory();
+  const params = useQuery();
   const {
     document,
     onChangeTitle,
@@ -93,7 +95,6 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     ...rest
   } = props;
   const can = usePolicy(document);
-
   const iconColor = document.color ?? (last(colorPalette) as string);
   const childRef = React.useRef<HTMLDivElement>(null);
   const focusAtStart = React.useCallback(() => {
@@ -104,9 +105,20 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
 
   React.useEffect(() => {
     if (focusedComment) {
+      const viewingResolved = params.get("resolved") === "";
+      if (
+        (focusedComment.isResolved && !viewingResolved) ||
+        (!focusedComment.isResolved && viewingResolved)
+      ) {
+        history.replace({
+          search: focusedComment.isResolved ? "resolved=" : "",
+          pathname: location.pathname,
+          state: { commentId: focusedComment.id },
+        });
+      }
       ui.expandComments(document.id);
     }
-  }, [focusedComment, ui, document.id]);
+  }, [focusedComment, ui, document.id, history, params]);
 
   // Save document when blurring title, but delay so that if clicking on a
   // button this is allowed to execute first.
@@ -150,6 +162,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
           documentId: props.id,
           createdAt: new Date(),
           createdById,
+          reactions: [],
         },
         comments
       );
@@ -175,7 +188,11 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     [comments]
   );
 
-  const { setEditor, updateState: updateDocState } = useDocumentContext();
+  const {
+    setEditor,
+    setEditorInitialized,
+    updateState: updateDocState,
+  } = useDocumentContext();
   const handleRefChanged = React.useCallback(setEditor, [setEditor]);
   const EditorComponent = multiplayer ? MultiplayerEditor : Editor;
 
@@ -187,6 +204,16 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       paddingBottom: `calc(50vh - ${childOffsetHeight}px)`,
     }),
     [childOffsetHeight]
+  );
+
+  const handleInit = React.useCallback(
+    () => setEditorInitialized(true),
+    [setEditorInitialized]
+  );
+
+  const handleDestroy = React.useCallback(
+    () => setEditorInitialized(false),
+    [setEditorInitialized]
   );
 
   return (
@@ -241,6 +268,8 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
             ? handleRemoveComment
             : undefined
         }
+        onInit={handleInit}
+        onDestroy={handleDestroy}
         onChange={updateDocState}
         extensions={extensions}
         editorStyle={editorStyle}

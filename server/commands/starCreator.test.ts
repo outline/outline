@@ -1,24 +1,21 @@
 import { Star, Event } from "@server/models";
-import { sequelize } from "@server/storage/database";
 import { buildDocument, buildUser } from "@server/test/factories";
+import { withAPIContext } from "@server/test/support";
 import starCreator from "./starCreator";
 
 describe("starCreator", () => {
-  const ip = "127.0.0.1";
-
-  it("should create star", async () => {
+  it("should create star for document", async () => {
     const user = await buildUser();
     const document = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
     });
 
-    const star = await sequelize.transaction(async (transaction) =>
+    const star = await withAPIContext(user, (ctx) =>
       starCreator({
+        ctx,
         documentId: document.id,
         user,
-        ip,
-        transaction,
       })
     );
 
@@ -45,12 +42,11 @@ describe("starCreator", () => {
       index: "P",
     });
 
-    const star = await sequelize.transaction(async (transaction) =>
+    const star = await withAPIContext(user, (ctx) =>
       starCreator({
+        ctx,
         documentId: document.id,
         user,
-        ip,
-        transaction,
       })
     );
 

@@ -1,4 +1,5 @@
 import passport from "@outlinewiki/koa-passport";
+import { isURL } from "class-validator";
 import type {
   RESTGetAPICurrentUserGuildsResult,
   RESTGetAPICurrentUserResult,
@@ -129,9 +130,18 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
               }
             }
 
-            /** Guild Name */
             teamName = guild.name;
             subdomain = slugify(guild.name);
+
+            /** If the guild name is a URL, use the subdomain instead – we do not allow URLs in names. */
+            if (
+              isURL(teamName, {
+                require_host: false,
+                require_protocol: false,
+              })
+            ) {
+              teamName = subdomain;
+            }
 
             /** Fetch the user's member object in the server for nickname and roles */
             const guildMember: RESTGetCurrentUserGuildMemberResult =

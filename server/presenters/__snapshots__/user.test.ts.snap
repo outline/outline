@@ -10,6 +10,7 @@ exports[`presents a user 1`] = `
   "lastActiveAt": undefined,
   "name": "Test User",
   "role": "member",
+  "timezone": undefined,
   "updatedAt": undefined,
 }
 `;
@@ -24,6 +25,7 @@ exports[`presents a user without slack data 1`] = `
   "lastActiveAt": undefined,
   "name": "Test User",
   "role": "member",
+  "timezone": undefined,
   "updatedAt": undefined,
 }
 `;

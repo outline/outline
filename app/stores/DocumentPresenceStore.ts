@@ -68,12 +68,16 @@ export default class PresenceStore {
 
   @action
   private update(documentId: string, userId: string, isEditing: boolean) {
-    const existing = this.data.get(documentId) || new Map();
-    existing.set(userId, {
-      isEditing,
-      userId,
-    });
-    this.data.set(documentId, existing);
+    const presence = this.data.get(documentId) || new Map();
+    const existing = presence.get(userId);
+
+    if (!existing || existing.isEditing !== isEditing) {
+      presence.set(userId, {
+        isEditing,
+        userId,
+      });
+      this.data.set(documentId, presence);
+    }
   }
 
   public get(documentId: string): DocumentPresence | null | undefined {

@@ -120,30 +120,33 @@ function Table({
       <Anchor ref={topRef} />
       <InnerTable {...getTableProps()}>
         <thead>
-          {headerGroups.map((headerGroup) => (
-            <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
-              {headerGroup.headers.map((column) => (
-                <Head
-                  {...column.getHeaderProps(column.getSortByToggleProps())}
-                  key={column.id}
-                >
-                  <SortWrapper
-                    align="center"
-                    $sortable={!column.disableSortBy}
-                    gap={4}
+          {headerGroups.map((headerGroup) => {
+            const groupProps = headerGroup.getHeaderGroupProps();
+            return (
+              <tr {...groupProps} key={groupProps.key}>
+                {headerGroup.headers.map((column) => (
+                  <Head
+                    {...column.getHeaderProps(column.getSortByToggleProps())}
+                    key={column.id}
                   >
-                    {column.render("Header")}
-                    {column.isSorted &&
-                      (column.isSortedDesc ? (
-                        <DescSortIcon />
-                      ) : (
-                        <AscSortIcon />
-                      ))}
-                  </SortWrapper>
-                </Head>
-              ))}
-            </tr>
-          ))}
+                    <SortWrapper
+                      align="center"
+                      $sortable={!column.disableSortBy}
+                      gap={4}
+                    >
+                      {column.render("Header")}
+                      {column.isSorted &&
+                        (column.isSortedDesc ? (
+                          <DescSortIcon />
+                        ) : (
+                          <AscSortIcon />
+                        ))}
+                    </SortWrapper>
+                  </Head>
+                ))}
+              </tr>
+            );
+          })}
         </thead>
         <tbody {...getTableBodyProps()}>
           {rows.map((row) => {
@@ -253,7 +256,7 @@ const SortWrapper = styled(Flex)<{ $sortable: boolean }>`
 
   &:hover {
     background: ${(props) =>
-      props.$sortable ? props.theme.secondaryBackground : "none"};
+      props.$sortable ? props.theme.backgroundSecondary : "none"};
   }
 `;
 

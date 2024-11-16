@@ -19,9 +19,10 @@ import SearchListItem from "./SearchListItem";
 
 interface Props extends React.HTMLAttributes<HTMLInputElement> {
   shareId: string;
+  className?: string;
 }
 
-function SearchPopover({ shareId }: Props) {
+function SearchPopover({ shareId, className }: Props) {
   const { t } = useTranslation();
   const { documents } = useStores();
   const focusRef = React.useRef<HTMLElement | null>(null);
@@ -54,7 +55,8 @@ function SearchPopover({ shareId }: Props) {
   const performSearch = React.useCallback(
     async ({ query, ...options }) => {
       if (query?.length > 0) {
-        const response = await documents.search(query, {
+        const response = await documents.search({
+          query,
           shareId,
           ...options,
         });
@@ -186,6 +188,7 @@ function SearchPopover({ shareId }: Props) {
             onChange={handleSearchInputChange}
             onFocus={handleSearchInputFocus}
             onKeyDown={handleKeyDown}
+            className={className}
           />
         )}
       </PopoverDisclosure>

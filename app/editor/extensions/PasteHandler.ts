@@ -90,14 +90,8 @@ export default class PasteHandler extends Extension {
             },
           },
           handlePaste: (view, event: ClipboardEvent) => {
-            // Do nothing if the document isn't currently editable
-            if (!view.editable) {
-              return false;
-            }
-
-            // Default behavior if there is nothing on the clipboard or were
-            // special pasting with no formatting (Shift held)
-            if (!event.clipboardData || this.shiftKey) {
+            // Do nothing if the document isn't currently editable or there is no clipboard data
+            if (!view.editable || !event.clipboardData) {
               return false;
             }
 
@@ -137,76 +131,6 @@ export default class PasteHandler extends Extension {
               return true;
             }
 
-            // Check if the clipboard contents can be parsed as a single url
-            if (isUrl(text)) {
-              // If there is selected text then we want to wrap it in a link to the url
-              if (!state.selection.empty) {
-                toggleMark(this.editor.schema.marks.link, { href: text })(
-                  state,
-                  dispatch
-                );
-                return true;
-              }
-
-              // Is this link embeddable? Create an embed!
-              const { embeds } = this.editor.props;
-              if (
-                embeds &&
-                this.editor.commands.embed &&
-                !isInCode(state) &&
-                !isInList(state)
-              ) {
-                for (const embed of embeds) {
-                  if (!embed.matchOnInput) {
-                    continue;
-                  }
-                  const matches = embed.matcher(text);
-                  if (matches) {
-                    this.editor.commands.embed({
-                      href: text,
-                    });
-                    return true;
-                  }
-                }
-              }
-
-              // Is the link a link to a document? If so, we can grab the title and insert it.
-              if (isDocumentUrl(text)) {
-                const slug = parseDocumentSlug(text);
-
-                if (slug) {
-                  void stores.documents
-                    .fetch(slug)
-                    .then((document) => {
-                      if (view.isDestroyed) {
-                        return;
-                      }
-                      if (document) {
-                        const { hash } = new URL(text);
-
-                        const hasEmoji =
-                          determineIconType(document.icon) === IconType.Emoji;
-
-                        const title = `${hasEmoji ? document.icon + " " : ""}${
-                          document.titleWithDefault
-                        }`;
-                        insertLink(`${document.path}${hash}`, title);
-                      }
-                    })
-                    .catch(() => {
-                      if (view.isDestroyed) {
-                        return;
-                      }
-                      insertLink(text);
-                    });
-                }
-              } else {
-                insertLink(text);
-              }
-
-              return true;
-            }
-
             // Because VSCode is an especially popular editor that places metadata
             // on the clipboard, we can parse it to find out what kind of content
             // was pasted.
@@ -215,52 +139,129 @@ export default class PasteHandler extends Extension {
             const supportsCodeBlock = !!state.schema.nodes.code_block;
             const supportsCodeMark = !!state.schema.marks.code_inline;
 
-            if (pasteCodeLanguage && pasteCodeLanguage !== "markdown") {
-              if (text.includes("\n") && supportsCodeBlock) {
-                event.preventDefault();
-                view.dispatch(
-                  state.tr
-                    .replaceSelectionWith(
-                      state.schema.nodes.code_block.create({
-                        language: Object.keys(LANGUAGES).includes(
-                          vscodeMeta.mode
-                        )
-                          ? vscodeMeta.mode
-                          : null,
+            if (!this.shiftKey) {
+              // Check if the clipboard contents can be parsed as a single url
+              if (isUrl(text)) {
+                // If there is selected text then we want to wrap it in a link to the url
+                if (!state.selection.empty) {
+                  toggleMark(this.editor.schema.marks.link, { href: text })(
+                    state,
+                    dispatch
+                  );
+                  return true;
+                }
+
+                // Is this link embeddable? Create an embed!
+                const { embeds } = this.editor.props;
+                if (
+                  embeds &&
+                  this.editor.commands.embed &&
+                  !isInCode(state) &&
+                  !isInList(state)
+                ) {
+                  for (const embed of embeds) {
+                    if (!embed.matchOnInput) {
+                      continue;
+                    }
+                    const matches = embed.matcher(text);
+                    if (matches) {
+                      this.editor.commands.embed({
+                        href: text,
+                      });
+                      return true;
+                    }
+                  }
+                }
+
+                // Is the link a link to a document? If so, we can grab the title and insert it.
+                if (isDocumentUrl(text)) {
+                  const slug = parseDocumentSlug(text);
+
+                  if (slug) {
+                    void stores.documents
+                      .fetch(slug)
+                      .then((document) => {
+                        if (view.isDestroyed) {
+                          return;
+                        }
+                        if (document) {
+                          const { hash } = new URL(text);
+
+                          const hasEmoji =
+                            determineIconType(document.icon) === IconType.Emoji;
+
+                          const title = `${
+                            hasEmoji ? document.icon + " " : ""
+                          }${document.titleWithDefault}`;
+                          insertLink(`${document.path}${hash}`, title);
+                        }
                       })
-                    )
-                    .insertText(text)
-                );
+                      .catch(() => {
+                        if (view.isDestroyed) {
+                          return;
+                        }
+                        insertLink(text);
+                      });
+                  }
+                } else {
+                  insertLink(text);
+                }
+
                 return true;
               }
 
-              if (supportsCodeMark) {
-                event.preventDefault();
-                view.dispatch(
-                  state.tr
-                    .insertText(text, state.selection.from, state.selection.to)
-                    .addMark(
-                      state.selection.from,
-                      state.selection.to + text.length,
-                      state.schema.marks.code_inline.create()
-                    )
-                );
-                return true;
-              }
-            }
+              if (pasteCodeLanguage && pasteCodeLanguage !== "markdown") {
+                if (text.includes("\n") && supportsCodeBlock) {
+                  event.preventDefault();
+                  view.dispatch(
+                    state.tr
+                      .replaceSelectionWith(
+                        state.schema.nodes.code_block.create({
+                          language: Object.keys(LANGUAGES).includes(
+                            vscodeMeta.mode
+                          )
+                            ? vscodeMeta.mode
+                            : null,
+                        })
+                      )
+                      .insertText(text)
+                  );
+                  return true;
+                }
 
-            // If the HTML on the clipboard is from Prosemirror then the best
-            // compatability is to just use the HTML parser, regardless of
-            // whether it "looks" like Markdown, see: outline/outline#2416
-            if (html?.includes("data-pm-slice")) {
-              return false;
+                if (supportsCodeMark) {
+                  event.preventDefault();
+                  view.dispatch(
+                    state.tr
+                      .insertText(
+                        text,
+                        state.selection.from,
+                        state.selection.to
+                      )
+                      .addMark(
+                        state.selection.from,
+                        state.selection.to + text.length,
+                        state.schema.marks.code_inline.create()
+                      )
+                  );
+                  return true;
+                }
+              }
+
+              // If the HTML on the clipboard is from Prosemirror then the best
+              // compatability is to just use the HTML parser, regardless of
+              // whether it "looks" like Markdown, see: outline/outline#2416
+              if (html?.includes("data-pm-slice")) {
+                return false;
+              }
             }
 
             // If the text on the clipboard looks like Markdown OR there is no
             // html on the clipboard then try to parse content as Markdown
             if (
               (isMarkdown(text) && !isDropboxPaper(html)) ||
-              pasteCodeLanguage === "markdown"
+              pasteCodeLanguage === "markdown" ||
+              this.shiftKey
             ) {
               event.preventDefault();
 

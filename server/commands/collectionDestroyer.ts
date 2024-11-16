@@ -9,7 +9,7 @@ type Props = {
   /** The database transaction to use */
   transaction: Transaction;
   /** The IP address of the current request */
-  ip: string;
+  ip: string | null;
 };
 
 export default async function collectionDestroyer({

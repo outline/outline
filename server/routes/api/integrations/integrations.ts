@@ -163,14 +163,10 @@ router.post(
 
     await integration.destroy({ transaction });
 
-    await Event.createFromContext(
-      ctx,
-      {
-        name: "integrations.delete",
-        modelId: integration.id,
-      },
-      { transaction }
-    );
+    await Event.createFromContext(ctx, {
+      name: "integrations.delete",
+      modelId: integration.id,
+    });
 
     ctx.body = {
       success: true,

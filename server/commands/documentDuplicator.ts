@@ -1,7 +1,8 @@
-import { Transaction, Op } from "sequelize";
+import { Op } from "sequelize";
 import { User, Collection, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import { APIContext } from "@server/types";
 import documentCreator from "./documentCreator";
 
 type Props = {
@@ -19,10 +20,8 @@ type Props = {
   publish?: boolean;
   /** Whether to duplicate child documents */
   recursive?: boolean;
-  /** The database transaction to use for the creation */
-  transaction?: Transaction;
-  /** The IP address of the request */
-  ip: string;
+  /** The request context */
+  ctx: APIContext;
 };
 
 export default async function documentDuplicator({
@@ -33,16 +32,14 @@ export default async function documentDuplicator({
   title,
   publish,
   recursive,
-  transaction,
-  ip,
+  ctx,
 }: Props): Promise<Document[]> {
   const newDocuments: Document[] = [];
   const sharedProperties = {
     user,
     collectionId: collection?.id,
     publish: publish ?? !!document.publishedAt,
-    ip,
-    transaction,
+    ctx,
   };
 
   const duplicated = await documentCreator({
@@ -76,9 +73,7 @@ export default async function documentDuplicator({
               [Op.eq]: null,
             },
       },
-      {
-        transaction,
-      }
+      ctx
     );
 
     for (const childDocument of childDocuments) {

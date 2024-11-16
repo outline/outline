@@ -108,7 +108,11 @@ function getDecorations({
 
   blocks.forEach((block) => {
     let startPos = block.pos + 1;
-    const language = block.node.attrs.language;
+    const language = (
+      block.node.attrs.language === "mermaidjs"
+        ? "mermaid"
+        : block.node.attrs.language
+    ) as string;
     if (!language || language === "none" || !refractor.registered(language)) {
       return;
     }
@@ -204,9 +208,13 @@ export default function Prism({
         const codeBlockChanged =
           transaction.docChanged && [nodeName, previousNodeName].includes(name);
 
+        // @ts-expect-error accessing private field.
+        const isPaste = transaction.meta?.paste;
+
         if (
           !highlighted ||
           codeBlockChanged ||
+          isPaste ||
           isRemoteTransaction(transaction)
         ) {
           highlighted = true;

@@ -1,14 +1,15 @@
 import { Document, User, Event, Revision } from "@server/models";
 import { sequelize } from "@server/storage/database";
+import { DocumentEvent, RevisionEvent } from "@server/types";
 
 export default async function revisionCreator({
+  event,
   document,
   user,
-  ip,
 }: {
+  event: DocumentEvent | RevisionEvent;
   document: Document;
   user: User;
-  ip?: string;
 }) {
   return sequelize.transaction(async (transaction) => {
     const revision = await Revision.createFromDocument(document, {
@@ -23,7 +24,8 @@ export default async function revisionCreator({
         teamId: document.teamId,
         actorId: user.id,
         createdAt: document.updatedAt,
-        ip: ip || user.lastActiveIp,
+        ip: event.ip ?? user.lastActiveIp,
+        authType: event.authType,
       },
       {
         transaction,

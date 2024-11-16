@@ -18,7 +18,7 @@ import {
   Length,
 } from "sequelize-typescript";
 import { globalEventQueue } from "../queues";
-import { APIContext } from "../types";
+import { APIContext, AuthenticationType } from "../types";
 import Collection from "./Collection";
 import Document from "./Document";
 import Team from "./Team";
@@ -36,9 +36,7 @@ class Event extends IdModel<
   @Column(DataType.UUID)
   modelId: string | null;
 
-  /**
-   * The name of the event.
-   */
+  /** The name of the event. */
   @Length({
     max: 255,
     msg: "name must be 255 characters or less",
@@ -46,15 +44,18 @@ class Event extends IdModel<
   @Column(DataType.STRING)
   name: string;
 
-  /**
-   * The originating IP address of the event.
-   */
+  /** The originating IP address of the event. */
   @IsIP
   @Column
   ip: string | null;
 
+  /** The type of authentication used to create the event. */
+  @Column(DataType.ENUM(...Object.values(AuthenticationType)))
+  authType: AuthenticationType | null;
+
   /**
    * Metadata associated with the event, previously used for storing some changed attributes.
+   * Note that the `data` column will be visible to the client and API requests.
    */
   @Column(DataType.JSONB)
   data: Record<string, any> | null;
@@ -64,7 +65,7 @@ class Event extends IdModel<
    * used for arbitrary data associated with the event.
    */
   @Column(DataType.JSONB)
-  changes?: Record<string, any> | null;
+  changes: Record<string, any> | null;
 
   // hooks
 
@@ -162,17 +163,24 @@ class Event extends IdModel<
   static createFromContext(
     ctx: APIContext,
     attributes: Omit<Partial<Event>, "ip" | "teamId" | "actorId"> = {},
+    defaultAttributes: Pick<Partial<Event>, "ip" | "teamId" | "actorId"> = {},
     options?: CreateOptions<InferAttributes<Event>>
   ) {
-    const { user } = ctx.state.auth;
+    const user = ctx.state.auth?.user;
+    const authType = ctx.state.auth?.type;
+
     return this.create(
       {
         ...attributes,
-        actorId: user.id,
-        teamId: user.teamId,
-        ip: ctx.request.ip,
+        actorId: user?.id || defaultAttributes.actorId,
+        teamId: user?.teamId || defaultAttributes.teamId,
+        ip: ctx.request.ip || defaultAttributes.ip,
+        authType,
       },
-      options
+      {
+        transaction: ctx.state.transaction,
+        ...options,
+      }
     );
   }
 }

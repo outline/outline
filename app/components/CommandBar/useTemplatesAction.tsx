@@ -2,7 +2,11 @@ import { NewDocumentIcon, ShapesIcon } from "outline-icons";
 import * as React from "react";
 import Icon from "~/components/Icon";
 import { createAction } from "~/actions";
-import { DocumentSection } from "~/actions/sections";
+import {
+  ActiveCollectionSection,
+  DocumentSection,
+  TeamSection,
+} from "~/actions/sections";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
 import { newDocumentPath } from "~/utils/routeHelpers";
@@ -11,26 +15,42 @@ const useTemplatesAction = () => {
   const { documents } = useStores();
 
   React.useEffect(() => {
-    void documents.fetchTemplates();
+    void documents.fetchAllTemplates();
   }, [documents]);
 
   const actions = React.useMemo(
     () =>
-      documents.templatesAlphabetical.map((item) =>
+      documents.templatesAlphabetical.map((template) =>
         createAction({
-          name: item.titleWithDefault,
+          name: template.titleWithDefault,
           analyticsName: "New document",
-          section: DocumentSection,
-          icon: item.icon ? (
-            <Icon value={item.icon} color={item.color ?? undefined} />
+          section: template.isWorkspaceTemplate
+            ? TeamSection
+            : ActiveCollectionSection,
+          icon: template.icon ? (
+            <Icon value={template.icon} color={template.color ?? undefined} />
           ) : (
             <NewDocumentIcon />
           ),
           keywords: "create",
+          visible: ({ currentTeamId, activeCollectionId, stores }) => {
+            if (activeCollectionId) {
+              return (
+                stores.policies.abilities(activeCollectionId).createDocument &&
+                (template.collectionId === activeCollectionId ||
+                  template.isWorkspaceTemplate)
+              );
+            }
+            return (
+              !!currentTeamId &&
+              stores.policies.abilities(currentTeamId).createDocument &&
+              template.isWorkspaceTemplate
+            );
+          },
           perform: ({ activeCollectionId, sidebarContext }) =>
             history.push(
-              newDocumentPath(item.collectionId ?? activeCollectionId, {
-                templateId: item.id,
+              newDocumentPath(template.collectionId ?? activeCollectionId, {
+                templateId: template.id,
               }),
               {
                 sidebarContext,
@@ -49,9 +69,15 @@ const useTemplatesAction = () => {
         placeholder: ({ t }) => t("Choose a template"),
         section: DocumentSection,
         icon: <ShapesIcon />,
-        visible: ({ currentTeamId, stores }) =>
-          !!currentTeamId &&
-          stores.policies.abilities(currentTeamId).createDocument,
+        visible: ({ currentTeamId, activeCollectionId, stores }) => {
+          if (activeCollectionId) {
+            return stores.policies.abilities(activeCollectionId).createDocument;
+          }
+          return (
+            !!currentTeamId &&
+            stores.policies.abilities(currentTeamId).createDocument
+          );
+        },
         children: () => actions,
       }),
     [actions]

@@ -11,10 +11,11 @@ export default function readOnlyMenuItems(
   dictionary: Dictionary
 ): MenuItem[] {
   const { schema } = state;
+  const isEmpty = state.selection.empty;
 
   return [
     {
-      visible: canUpdate,
+      visible: canUpdate && !isEmpty,
       name: "comment",
       tooltip: dictionary.comment,
       label: dictionary.comment,

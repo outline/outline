@@ -36,12 +36,16 @@ type Props = {
   focused: boolean;
   /** Whether the thread is displayed in a recessed/backgrounded state */
   recessed: boolean;
+  /** Enable scroll for the comments container */
+  enableScroll: () => void;
+  /** Disable scroll for the comments container */
+  disableScroll: () => void;
 };
 
 function useTypingIndicator({
   document,
   comment,
-}: Omit<Props, "focused" | "recessed">): [undefined, () => void] {
+}: Pick<Props, "document" | "comment">): [undefined, () => void] {
   const socket = React.useContext(WebsocketContext);
 
   const setIsTyping = React.useMemo(
@@ -63,6 +67,8 @@ function CommentThread({
   document,
   recessed,
   focused,
+  enableScroll,
+  disableScroll,
 }: Props) {
   const [focusedOnMount] = React.useState(focused);
   const { editor } = useDocumentContext();
@@ -80,6 +86,11 @@ function CommentThread({
   });
   const can = usePolicy(document);
 
+  const [draft, onSaveDraft] = usePersistedState<ProsemirrorData | undefined>(
+    `draft-${document.id}-${thread.id}`,
+    undefined
+  );
+
   const canReply = can.comment && !thread.isResolved;
 
   const highlightedCommentMarks = editor
@@ -94,7 +105,8 @@ function CommentThread({
   useOnClickOutside(topRef, (event) => {
     if (
       focused &&
-      !(event.target as HTMLElement).classList.contains("comment")
+      !(event.target as HTMLElement).classList.contains("comment") &&
+      event.defaultPrevented === false
     ) {
       history.replace({
         search: location.search,
@@ -103,6 +115,10 @@ function CommentThread({
       });
     }
   });
+
+  const handleSubmit = React.useCallback(() => {
+    editor?.updateComment(thread.id, { draft: false });
+  }, [editor, thread.id]);
 
   const handleClickThread = () => {
     history.replace({
@@ -167,11 +183,6 @@ function CommentThread({
     }
   }, [focused, focusedOnMount, thread.id]);
 
-  const [draft, onSaveDraft] = usePersistedState<ProsemirrorData | undefined>(
-    `draft-${document.id}-${thread.id}`,
-    undefined
-  );
-
   return (
     <Thread
       ref={topRef}
@@ -192,8 +203,8 @@ function CommentThread({
           <CommentThreadItem
             highlightedText={index === 0 ? highlightedText : undefined}
             comment={comment}
-            onDelete={() => editor?.removeComment(comment.id)}
-            onUpdate={(attrs) => editor?.updateComment(comment.id, attrs)}
+            onDelete={editor?.removeComment}
+            onUpdate={editor?.updateComment}
             key={comment.id}
             firstOfThread={index === 0}
             lastOfThread={index === commentsInThread.length - 1 && !draft}
@@ -202,6 +213,8 @@ function CommentThread({
             lastOfAuthor={lastOfAuthor}
             previousCommentCreatedAt={commentsInThread[index - 1]?.createdAt}
             dir={document.dir}
+            enableScroll={enableScroll}
+            disableScroll={disableScroll}
           />
         );
       })}
@@ -219,6 +232,7 @@ function CommentThread({
         {(focused || draft || commentsInThread.length === 0) && canReply && (
           <Fade timing={100}>
             <CommentForm
+              onSubmit={handleSubmit}
               onSaveDraft={onSaveDraft}
               draft={draft}
               documentId={document.id}

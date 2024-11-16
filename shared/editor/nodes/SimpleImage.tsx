@@ -1,4 +1,4 @@
-import Token from "markdown-it/lib/token";
+import { Token } from "markdown-it";
 import { InputRule } from "prosemirror-inputrules";
 import { Node as ProsemirrorNode, NodeSpec, NodeType } from "prosemirror-model";
 import { TextSelection, NodeSelection, Command } from "prosemirror-state";
@@ -85,11 +85,39 @@ export default class SimpleImage extends Node {
       const $pos = view.state.doc.resolve(getPos());
       const transaction = view.state.tr.setSelection(new NodeSelection($pos));
       view.dispatch(transaction);
+      view.focus();
     };
 
   component = (props: ComponentProps) => (
     <ImageComponent {...props} onClick={this.handleSelect(props)} />
   );
+
+  keys(): Record<string, Command> {
+    return {
+      Enter: (state, dispatch) => {
+        const { selection } = state;
+        if (
+          selection instanceof NodeSelection &&
+          selection.node?.type.name === this.name
+        ) {
+          const tr = state.tr;
+          if (dispatch) {
+            dispatch(
+              tr
+                .insert(selection.to, state.schema.nodes.paragraph.create({}))
+                .setSelection(
+                  TextSelection.near(tr.doc.resolve(selection.to + 2), 1)
+                )
+                .scrollIntoView()
+            );
+          }
+          return true;
+        }
+
+        return false;
+      },
+    };
+  }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     state.write(

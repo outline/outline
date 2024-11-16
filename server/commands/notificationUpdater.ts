@@ -1,6 +1,6 @@
 import isUndefined from "lodash/isUndefined";
-import { Transaction } from "sequelize";
 import { Event, Notification } from "@server/models";
+import { APIContext } from "@server/types";
 
 type Props = {
   /** Notification to be updated */
@@ -9,25 +9,21 @@ type Props = {
   viewedAt?: Date | null;
   /** Time at which notification was archived */
   archivedAt?: Date | null;
-  /** The IP address of the user updating the notification */
-  ip: string;
-  /** The database transaction to run within */
-  transaction: Transaction;
 };
 
 /**
  * This command updates notification properties.
  *
+ * @param ctx The originating request context
  * @param Props The properties of the notification to update
  * @returns Notification The updated notification
  */
-export default async function notificationUpdater({
-  notification,
-  viewedAt,
-  archivedAt,
-  ip,
-  transaction,
-}: Props): Promise<Notification> {
+export default async function notificationUpdater(
+  ctx: APIContext,
+  { notification, viewedAt, archivedAt }: Props
+): Promise<Notification> {
+  const { transaction } = ctx.state;
+
   if (!isUndefined(viewedAt)) {
     notification.viewedAt = viewedAt;
   }
@@ -38,17 +34,18 @@ export default async function notificationUpdater({
   if (changed) {
     await notification.save({ transaction });
 
-    await Event.create(
+    await Event.createFromContext(
+      ctx,
       {
         name: "notifications.update",
         userId: notification.userId,
         modelId: notification.id,
-        teamId: notification.teamId,
         documentId: notification.documentId,
-        actorId: notification.actorId,
-        ip,
       },
-      { transaction }
+      {
+        actorId: notification.userId,
+        teamId: notification.teamId,
+      }
     );
   }
 

@@ -1,5 +1,5 @@
 import { differenceInMilliseconds } from "date-fns";
-import { toJS } from "mobx";
+import { action } from "mobx";
 import { observer } from "mobx-react";
 import { darken } from "polished";
 import * as React from "react";
@@ -16,9 +16,12 @@ import Comment from "~/models/Comment";
 import { Avatar } from "~/components/Avatar";
 import ButtonSmall from "~/components/ButtonSmall";
 import Flex from "~/components/Flex";
+import ReactionList from "~/components/Reactions/ReactionList";
+import ReactionPicker from "~/components/Reactions/ReactionPicker";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import useBoolean from "~/hooks/useBoolean";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import CommentMenu from "~/menus/CommentMenu";
 import { hover } from "~/styles";
 import CommentEditor from "./CommentEditor";
@@ -76,11 +79,15 @@ type Props = {
   /** Whether the user can reply in the thread */
   canReply: boolean;
   /** Callback when the comment has been deleted */
-  onDelete: () => void;
+  onDelete?: (id: string) => void;
   /** Callback when the comment has been updated */
-  onUpdate: (attrs: { resolved: boolean }) => void;
+  onUpdate?: (id: string, attrs: { resolved: boolean }) => void;
   /** Text to highlight at the top of the comment */
   highlightedText?: string;
+  /** Enable scroll for the comments container */
+  enableScroll: () => void;
+  /** Disable scroll for the comments container */
+  disableScroll: () => void;
 };
 
 function CommentThreadItem({
@@ -94,10 +101,12 @@ function CommentThreadItem({
   onDelete,
   onUpdate,
   highlightedText,
+  enableScroll,
+  disableScroll,
 }: Props) {
   const { t } = useTranslation();
-  const [forceRender, setForceRender] = React.useState(0);
-  const [data, setData] = React.useState(toJS(comment.data));
+  const user = useCurrentUser();
+  const [data, setData] = React.useState(comment.data);
   const showAuthor = firstOfAuthor;
   const showTime = useShowTime(comment.createdAt, previousCommentCreatedAt);
   const showEdited =
@@ -107,40 +116,61 @@ function CommentThreadItem({
   const [isEditing, setEditing, setReadOnly] = useBoolean();
   const formRef = React.useRef<HTMLFormElement>(null);
 
-  const handleChange = (value: (asString: boolean) => ProsemirrorData) => {
-    setData(value(false));
-  };
+  const handleAddReaction = React.useCallback(
+    async (emoji: string) => {
+      await comment.addReaction({ emoji, user });
+    },
+    [comment, user]
+  );
 
-  const handleSave = () => {
+  const handleRemoveReaction = React.useCallback(
+    async (emoji: string) => {
+      await comment.removeReaction({ emoji, user });
+    },
+    [comment, user]
+  );
+
+  const handleUpdate = React.useCallback(
+    (attrs: { resolved: boolean }) => {
+      onUpdate?.(comment.id, attrs);
+    },
+    [comment.id, onUpdate]
+  );
+
+  const handleDelete = React.useCallback(() => {
+    onDelete?.(comment.id);
+  }, [comment.id, onDelete]);
+
+  const handleChange = React.useCallback(
+    (value: (asString: boolean) => ProsemirrorData) => {
+      setData(value(false));
+    },
+    []
+  );
+
+  const handleSave = React.useCallback(() => {
     formRef.current?.dispatchEvent(
       new Event("submit", { cancelable: true, bubbles: true })
     );
-  };
+  }, []);
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = action(async (event: React.FormEvent) => {
     event.preventDefault();
 
     try {
       setReadOnly();
-      await comment.save({
-        data,
-      });
+      comment.data = data;
+      await comment.save();
     } catch (error) {
       setEditing();
       toast.error(t("Error updating comment"));
     }
-  };
+  });
 
   const handleCancel = () => {
-    setData(toJS(comment.data));
+    setData(comment.data);
     setReadOnly();
-    setForceRender((i) => ++i);
   };
-
-  React.useEffect(() => {
-    setData(toJS(comment.data));
-    setForceRender((i) => ++i);
-  }, [comment.data]);
 
   return (
     <Flex gap={8} align="flex-start" reverse={dir === "rtl"}>
@@ -186,8 +216,9 @@ function CommentThreadItem({
         )}
         <Body ref={formRef} onSubmit={handleSubmit}>
           <StyledCommentEditor
-            key={`${forceRender}`}
+            key={String(isEditing)}
             readOnly={!isEditing}
+            value={comment.data}
             defaultValue={data}
             onChange={handleChange}
             onSave={handleSave}
@@ -203,16 +234,43 @@ function CommentThreadItem({
               </ButtonSmall>
             </Flex>
           )}
+          {!!comment.reactions.length && (
+            <ReactionListContainer gap={6} align="center">
+              <ReactionList
+                model={comment}
+                onAddReaction={handleAddReaction}
+                onRemoveReaction={handleRemoveReaction}
+                picker={
+                  !comment.isResolved ? (
+                    <StyledReactionPicker
+                      onSelect={handleAddReaction}
+                      onOpen={disableScroll}
+                      onClose={enableScroll}
+                      size={28}
+                    />
+                  ) : undefined
+                }
+              />
+            </ReactionListContainer>
+          )}
         </Body>
         <EventBoundary>
           {!isEditing && (
-            <Menu
-              comment={comment}
-              onEdit={setEditing}
-              onDelete={onDelete}
-              onUpdate={onUpdate}
-              dir={dir}
-            />
+            <Actions gap={4} dir={dir}>
+              {!comment.isResolved && (
+                <StyledReactionPicker
+                  onSelect={handleAddReaction}
+                  onOpen={disableScroll}
+                  onClose={enableScroll}
+                />
+              )}
+              <StyledMenu
+                comment={comment}
+                onEdit={setEditing}
+                onDelete={handleDelete}
+                onUpdate={handleUpdate}
+              />
+            </Actions>
           )}
         </EventBoundary>
       </Bubble>
@@ -250,19 +308,57 @@ const Body = styled.form`
   border-radius: 2px;
 `;
 
-const Menu = styled(CommentMenu)<{ dir?: "rtl" | "ltr" }>`
+const StyledMenu = styled(CommentMenu)`
+  color: ${s("textSecondary")};
+
+  svg {
+    fill: currentColor;
+    opacity: 0.5;
+  }
+
+  &: ${hover}, &[aria-expanded= "true"] {
+    background: ${s("backgroundQuaternary")};
+
+    svg {
+      opacity: 0.75;
+    }
+  }
+`;
+
+const StyledReactionPicker = styled(ReactionPicker)`
+  color: ${s("textSecondary")};
+
+  svg {
+    fill: currentColor;
+    opacity: 0.5;
+  }
+
+  &: ${hover}, &[aria-expanded= "true"] {
+    background: ${s("backgroundQuaternary")};
+
+    svg {
+      opacity: 0.75;
+    }
+  }
+`;
+
+const Actions = styled(Flex)<{ dir?: "rtl" | "ltr" }>`
   position: absolute;
   left: ${(props) => (props.dir !== "rtl" ? "auto" : "4px")};
   right: ${(props) => (props.dir === "rtl" ? "auto" : "4px")};
   top: 4px;
   opacity: 0;
   transition: opacity 100ms ease-in-out;
-  color: ${s("textSecondary")};
+  background: ${s("backgroundSecondary")};
+  padding-left: 4px;
 
-  &: ${hover}, &[aria-expanded= "true"] {
+  &:has(${StyledReactionPicker}[aria-expanded="true"], ${StyledMenu}[aria-expanded="true"]) {
     opacity: 1;
-    background: ${s("sidebarActiveBackground")};
   }
+`;
+
+const ReactionListContainer = styled(Flex)`
+  margin-top: 6px;
 `;
 
 const Meta = styled(Text)`
@@ -286,7 +382,7 @@ export const Bubble = styled(Flex)<{
   flex-grow: 1;
   font-size: 16px;
   color: ${s("text")};
-  background: ${s("commentBackground")};
+  background: ${s("backgroundSecondary")};
   min-width: 2em;
   margin-bottom: 1px;
   padding: 8px 12px;
@@ -310,7 +406,7 @@ export const Bubble = styled(Flex)<{
     margin-bottom: 0;
   }
 
-  &: ${hover} ${Menu} {
+  &: ${hover} ${Actions} {
     opacity: 1;
   }
 

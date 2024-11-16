@@ -155,6 +155,16 @@ export default function auth(options: AuthenticationOptions = {}) {
       }
     }
 
+    Object.defineProperty(ctx, "context", {
+      get() {
+        return {
+          auth: ctx.state.auth,
+          transaction: ctx.state.transaction,
+          ip: ctx.request.ip,
+        };
+      },
+    });
+
     return next();
   };
 }

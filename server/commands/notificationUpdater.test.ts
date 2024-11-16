@@ -1,17 +1,15 @@
 import { NotificationEventType } from "@shared/types";
 import { Event } from "@server/models";
-import { sequelize } from "@server/storage/database";
 import {
   buildUser,
   buildNotification,
   buildDocument,
   buildCollection,
 } from "@server/test/factories";
+import { withAPIContext } from "@server/test/support";
 import notificationUpdater from "./notificationUpdater";
 
 describe("notificationUpdater", () => {
-  const ip = "127.0.0.1";
-
   it("should mark the notification as viewed", async () => {
     const user = await buildUser();
     const actor = await buildUser({
@@ -38,12 +36,10 @@ describe("notificationUpdater", () => {
     expect(notification.archivedAt).toBe(null);
     expect(notification.viewedAt).toBe(null);
 
-    await sequelize.transaction(async (transaction) =>
-      notificationUpdater({
+    await withAPIContext(user, (ctx) =>
+      notificationUpdater(ctx, {
         notification,
         viewedAt: new Date(),
-        ip,
-        transaction,
       })
     );
     const event = await Event.findLatest({
@@ -83,12 +79,10 @@ describe("notificationUpdater", () => {
     expect(notification.archivedAt).toBe(null);
     expect(notification.viewedAt).not.toBe(null);
 
-    await sequelize.transaction(async (transaction) =>
-      notificationUpdater({
+    await withAPIContext(user, (ctx) =>
+      notificationUpdater(ctx, {
         notification,
         viewedAt: null,
-        ip,
-        transaction,
       })
     );
     const event = await Event.findLatest({
@@ -127,12 +121,10 @@ describe("notificationUpdater", () => {
     expect(notification.archivedAt).toBe(null);
     expect(notification.viewedAt).toBe(null);
 
-    await sequelize.transaction(async (transaction) =>
-      notificationUpdater({
+    await withAPIContext(user, (ctx) =>
+      notificationUpdater(ctx, {
         notification,
         archivedAt: new Date(),
-        ip,
-        transaction,
       })
     );
     const event = await Event.findLatest({
@@ -172,12 +164,10 @@ describe("notificationUpdater", () => {
     expect(notification.archivedAt).not.toBe(null);
     expect(notification.viewedAt).toBe(null);
 
-    await sequelize.transaction(async (transaction) =>
-      notificationUpdater({
+    await withAPIContext(user, (ctx) =>
+      notificationUpdater(ctx, {
         notification,
         archivedAt: null,
-        ip,
-        transaction,
       })
     );
     const event = await Event.findLatest({

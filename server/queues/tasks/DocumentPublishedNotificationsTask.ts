@@ -40,7 +40,7 @@ export default class DocumentPublishedNotificationsTask extends BaseTask<Documen
         await Notification.create({
           event: NotificationEventType.MentionedInDocument,
           userId: recipient.id,
-          actorId: document.updatedBy.id,
+          actorId: mention.actorId,
           teamId: document.teamId,
           documentId: document.id,
         });

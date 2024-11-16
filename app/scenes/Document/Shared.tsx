@@ -172,7 +172,8 @@ function SharedDocumentScene(props: Props) {
     }
   }
 
-  if (!response) {
+  // Note: `sharedTree` will be null when `includeChildDocuments` = false
+  if (response?.sharedTree === undefined) {
     return <Loading location={props.location} />;
   }
 

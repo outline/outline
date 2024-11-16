@@ -226,7 +226,7 @@ const Input = styled.div`
   }
 
   &[data-editing="true"] {
-    background: ${s("secondaryBackground")};
+    background: ${s("backgroundSecondary")};
   }
 
   .block-menu-trigger,

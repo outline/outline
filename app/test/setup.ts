@@ -8,3 +8,5 @@ initI18n();
 global.localStorage = localStorage;
 
 require("jest-fetch-mock").enableMocks();
+
+jest.mock("~/utils/ApiClient");

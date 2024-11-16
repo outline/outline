@@ -29,6 +29,16 @@ export const ImageZoom = ({ caption, children }: Props) => {
     </span>
   );
 
+  const ZoomContent = React.useMemo(
+    () =>
+      function ZoomContentComponent(
+        props: Omit<React.ComponentProps<typeof Lightbox>, "caption">
+      ) {
+        return <Lightbox caption={caption} {...props} />;
+      },
+    [caption]
+  );
+
   if (!isActivated) {
     return fallback;
   }
@@ -36,11 +46,8 @@ export const ImageZoom = ({ caption, children }: Props) => {
   return (
     <React.Suspense fallback={fallback}>
       <Styles />
-      <EventBoundary>
-        <Zoom
-          zoomMargin={EditorStyleHelper.padding}
-          ZoomContent={(props) => <Lightbox caption={caption} {...props} />}
-        >
+      <EventBoundary captureEvents="click">
+        <Zoom zoomMargin={EditorStyleHelper.padding} ZoomContent={ZoomContent}>
           <div>{children}</div>
         </Zoom>
       </EventBoundary>
@@ -82,9 +89,6 @@ const Caption = styled("figcaption")<{ $loaded: boolean }>`
 `;
 
 const Styles = createGlobalStyle`
-  [data-rmiz] {
-    position: relative;
-  }
   [data-rmiz-ghost] {
     position: absolute;
     pointer-events: none;

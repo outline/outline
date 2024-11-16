@@ -38,6 +38,7 @@ export default class Heading extends Node {
       attrs: {
         level: {
           default: 1,
+          validate: "number",
         },
         collapsed: {
           default: undefined,

@@ -282,6 +282,7 @@ describe("#fileOperations.delete", () => {
     expect(
       await Event.count({
         where: {
+          name: "fileOperations.delete",
           teamId: team.id,
         },
       })

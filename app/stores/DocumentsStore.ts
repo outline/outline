@@ -33,6 +33,7 @@ type FetchPageParams = PaginationParams & {
 };
 
 export type SearchParams = {
+  query?: string;
   offset?: number;
   limit?: number;
   dateFilter?: DateFilter;
@@ -62,6 +63,7 @@ export default class DocumentsStore extends Store<Document> {
     ".md",
     ".doc",
     ".docx",
+    "text/csv",
     "text/markdown",
     "text/plain",
     "text/html",
@@ -367,6 +369,10 @@ export default class DocumentsStore extends Store<Document> {
     this.fetchNamedPage("list", { ...options, template: true });
 
   @action
+  fetchAllTemplates = async (options?: PaginationParams): Promise<Document[]> =>
+    this.fetchAll({ ...options, template: true });
+
+  @action
   fetchAlphabetical = async (options?: PaginationParams): Promise<Document[]> =>
     this.fetchNamedPage("list", {
       sort: "title",
@@ -412,14 +418,10 @@ export default class DocumentsStore extends Store<Document> {
     this.fetchNamedPage("list", options);
 
   @action
-  searchTitles = async (
-    query: string,
-    options?: SearchParams
-  ): Promise<SearchResult[]> => {
+  searchTitles = async (options?: SearchParams): Promise<SearchResult[]> => {
     const compactedOptions = omitBy(options, (o) => !o);
     const res = await client.post("/documents.search_titles", {
       ...compactedOptions,
-      query,
     });
     invariant(res?.data, "Search response should be available");
 
@@ -447,14 +449,10 @@ export default class DocumentsStore extends Store<Document> {
   };
 
   @action
-  search = async (
-    query: string,
-    options: SearchParams
-  ): Promise<SearchResult[]> => {
+  search = async (options: SearchParams): Promise<SearchResult[]> => {
     const compactedOptions = omitBy(options, (o) => !o);
     const res = await client.post("/documents.search", {
       ...compactedOptions,
-      query,
     });
     invariant(res?.data, "Search response should be available");
 

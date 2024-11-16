@@ -138,7 +138,7 @@ const DropzoneContainer = styled.div<{
 }>`
   background: ${(props) =>
     props.$isDragActive
-      ? props.theme.secondaryBackground
+      ? props.theme.backgroundSecondary
       : props.theme.background};
   border-radius: 8px;
   border: 1px dashed ${s("divider")};
@@ -149,7 +149,7 @@ const DropzoneContainer = styled.div<{
   opacity: ${(props) => (props.$disabled ? 0.5 : 1)};
 
   &:hover {
-    background: ${s("secondaryBackground")};
+    background: ${s("backgroundSecondary")};
   }
 `;
 
