@@ -10,7 +10,7 @@ defaults: &defaults
         POSTGRES_USER: postgres
         POSTGRES_PASSWORD: password
         POSTGRES_DB: circle_test
-  resource_class: large
+  resource_class: xlarge
   environment:
     NODE_ENV: test
     DATABASE_URL: postgres://postgres:password@localhost:5432/circle_test
