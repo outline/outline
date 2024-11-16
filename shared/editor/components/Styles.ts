@@ -1309,11 +1309,8 @@ mark {
   }
 }
 
-/* Hide code without display none so toolbar can still be positioned against it */
 .ProseMirror[contenteditable="false"] .code-block[data-language=mermaidjs] {
-  height: ${props.staticHTML ? "auto" : "0"};
-  margin: -0.5em 0;
-  overflow: hidden;
+  display: none;
 }
 
 .code-block.with-line-numbers {
