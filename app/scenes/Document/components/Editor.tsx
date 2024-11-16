@@ -27,6 +27,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useFocusedComment from "~/hooks/useFocusedComment";
 import usePolicy from "~/hooks/usePolicy";
+import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import {
   documentHistoryPath,
@@ -81,6 +82,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const user = useCurrentUser({ rejectOnEmpty: false });
   const team = useCurrentTeam({ rejectOnEmpty: false });
   const history = useHistory();
+  const params = useQuery();
   const {
     document,
     onChangeTitle,
@@ -103,9 +105,20 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
 
   React.useEffect(() => {
     if (focusedComment) {
+      const viewingResolved = params.get("resolved") === "";
+      if (
+        (focusedComment.isResolved && !viewingResolved) ||
+        (!focusedComment.isResolved && viewingResolved)
+      ) {
+        history.replace({
+          search: focusedComment.isResolved ? "resolved=" : "",
+          pathname: location.pathname,
+          state: { commentId: focusedComment.id },
+        });
+      }
       ui.expandComments(document.id);
     }
-  }, [focusedComment, ui, document.id]);
+  }, [focusedComment, ui, document.id, history, params]);
 
   // Save document when blurring title, but delay so that if clicking on a
   // button this is allowed to execute first.
