@@ -73,6 +73,7 @@ jobs:
     <<: *defaults
     parallelism: 3
     docker:
+      - image: cimg/node:20.10
       - image: cimg/redis:5.0
       - image: cimg/postgres:14.2
         environment:
