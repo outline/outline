@@ -254,7 +254,8 @@ export default class Document extends ArchivableModel {
 
   @computed
   get path(): string {
-    const prefix = this.template ? settingsPath("templates") : "/doc";
+    const prefix =
+      this.template && !this.isDeleted ? settingsPath("templates") : "/doc";
 
     if (!this.title) {
       return `${prefix}/untitled-${this.urlId}`;
