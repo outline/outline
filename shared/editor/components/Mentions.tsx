@@ -1,8 +1,9 @@
-import { DocumentIcon } from "outline-icons";
+import { DocumentIcon, EmailIcon } from "outline-icons";
 import * as React from "react";
+import Icon from "../../components/Icon";
+import useStores from "../../hooks/useStores";
 import { cn } from "../styles/utils";
 import { ComponentProps } from "../types";
-import useStores from "./hooks/useStores";
 
 export function MentionUser(props: ComponentProps) {
   const { isSelected, node } = props;
@@ -17,7 +18,8 @@ export function MentionUser(props: ComponentProps) {
         mention: true,
       })}
     >
-      @{user?.name || node.attrs.label}
+      <EmailIcon size={18} />
+      {user?.name || node.attrs.label}
     </span>
   );
 }
@@ -37,11 +39,10 @@ export function MentionDocument(props: ComponentProps) {
       href={`/doc/${node.attrs.modelId}`}
     >
       {doc?.icon ? (
-        // <Icon value={doc.icon} color={doc.color} size={18} />
-        doc.icon
+        <Icon value={doc?.icon} color={doc?.color} size={18} />
       ) : (
         <DocumentIcon size={18} />
-      )}{" "}
+      )}
       {doc?.title || node.attrs.label}
     </a>
   );

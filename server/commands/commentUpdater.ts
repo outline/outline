@@ -1,5 +1,5 @@
 import { Transaction } from "sequelize";
-import { ProsemirrorData } from "@shared/types";
+import { MentionType, ProsemirrorData } from "@shared/types";
 import { Event, Comment, User } from "@server/models";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 
@@ -33,7 +33,7 @@ export default async function commentUpdater({
 }: Props): Promise<Comment> {
   const mentionIdsBefore = ProsemirrorHelper.parseMentions(
     ProsemirrorHelper.toProsemirror(comment.data),
-    "user"
+    { type: MentionType.User }
   ).map((mention) => mention.id);
 
   if (resolvedBy !== undefined) {
@@ -45,7 +45,7 @@ export default async function commentUpdater({
 
   const mentionsAfter = ProsemirrorHelper.parseMentions(
     ProsemirrorHelper.toProsemirror(comment.data),
-    "user"
+    { type: MentionType.User }
   );
 
   const newMentionIds = mentionsAfter

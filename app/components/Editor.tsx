@@ -7,6 +7,7 @@ import { TextSelection } from "prosemirror-state";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import { Optional } from "utility-types";
+import Icon from "@shared/components/Icon";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import { AttachmentPreset } from "@shared/types";
 import { dateLocale, dateToRelative } from "@shared/utils/date";
@@ -27,7 +28,6 @@ import { NotFoundError } from "~/utils/errors";
 import { uploadFile } from "~/utils/files";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import DocumentBreadcrumb from "./DocumentBreadcrumb";
-import Icon from "./Icon";
 
 const LazyLoadedEditor = lazyWithRetry(() => import("~/editor"));
 

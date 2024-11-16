@@ -13,7 +13,7 @@ import EditorContainer from "@shared/editor/components/Styles";
 import embeds from "@shared/editor/embeds";
 import GlobalStyles from "@shared/styles/globals";
 import light from "@shared/styles/theme";
-import { ProsemirrorData } from "@shared/types";
+import { MentionType, ProsemirrorData } from "@shared/types";
 import { attachmentRedirectRegex } from "@shared/utils/ProsemirrorHelper";
 import { isRTL } from "@shared/utils/rtl";
 import { isInternalUrl } from "@shared/utils/urls";
@@ -39,7 +39,7 @@ export type HTMLOptions = {
 };
 
 export type MentionAttrs = {
-  type: string;
+  type: MentionType;
   label: string;
   modelId: string;
   actorId: string | undefined;

@@ -1,4 +1,4 @@
-import { NotificationEventType } from "@shared/types";
+import { MentionType, NotificationEventType } from "@shared/types";
 import { Comment, Document, Notification, User } from "@server/models";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { CommentEvent, CommentUpdateEvent } from "@server/types";
@@ -26,7 +26,7 @@ export default class CommentUpdatedNotificationsTask extends BaseTask<CommentEve
 
     const mentions = ProsemirrorHelper.parseMentions(
       ProsemirrorHelper.toProsemirror(comment.data),
-      "user"
+      { type: MentionType.User }
     ).filter((mention) => newMentionIds.includes(mention.id));
     const userIdsMentioned: string[] = [];
 

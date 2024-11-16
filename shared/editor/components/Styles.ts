@@ -290,11 +290,16 @@ width: 100%;
   padding-bottom: 2px;
   padding-top: 1px;
   padding-left: 4px;
-  padding-right: 4px;
+  padding-right: 6px;
   font-weight: 500;
   font-size: 0.9em;
   cursor: default;
   text-decoration: none;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  vertical-align: bottom;
 
   &.mention-user::before {
     content: "@";
