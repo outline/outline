@@ -82,7 +82,7 @@ class MermaidRenderer {
     document.body.appendChild(renderElement);
 
     try {
-      mermaid = mermaid ?? (await import("mermaid")).default;
+      mermaid ??= (await import("mermaid")).default;
       mermaid.initialize({
         startOnLoad: true,
         // TODO: Make dynamic based on the width of the editor or remove in
@@ -93,25 +93,25 @@ class MermaidRenderer {
         theme: isDark ? "dark" : "default",
         darkMode: isDark,
       });
-      mermaid
-        .render(`mermaid-diagram-${this.diagramId}`, text, renderElement)
-        .then(
-          ({ svg, bindFunctions }) => {
-            this.currentTextContent = text;
-            if (text) {
-              Cache.set(cacheKey, svg);
-            }
-            element.classList.remove("parse-error", "empty");
-            element.innerHTML = svg;
-            bindFunctions?.(element);
-            renderElement.remove();
-          },
-          (error) => {
-            throw error;
-          }
-        );
+
+      const { svg, bindFunctions } = await mermaid.render(
+        `mermaid-diagram-${this.diagramId}`,
+        text,
+        // If the element is not visible we use an off-screen element to render the diagram
+        element.offsetParent === null ? renderElement : element
+      );
+      this.currentTextContent = text;
+
+      // Cache the rendered SVG so we won't need to calculate it again in the same session
+      if (text) {
+        Cache.set(cacheKey, svg);
+      }
+      element.classList.remove("parse-error", "empty");
+      element.innerHTML = svg;
+
+      // Allow the user to interact with the diagram
+      bindFunctions?.(element);
     } catch (error) {
-      renderElement.remove();
       const isEmpty = block.node.textContent.trim().length === 0;
 
       if (isEmpty) {
@@ -121,6 +121,8 @@ class MermaidRenderer {
         element.innerText = error;
         element.classList.add("parse-error");
       }
+    } finally {
+      renderElement.remove();
     }
   };
 
