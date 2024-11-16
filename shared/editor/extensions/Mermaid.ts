@@ -72,6 +72,14 @@ class MermaidRenderer {
       return;
     }
 
+    // Create a temporary element that will render the diagram off-screen. This is necessary
+    // as Mermaid will error if the element is not visible, such as if the heading is collapsed
+    const renderElement = document.createElement("div");
+    renderElement.style.position = "absolute";
+    renderElement.style.left = "-9999px";
+    renderElement.style.top = "-9999px";
+    document.body.appendChild(renderElement);
+
     try {
       mermaid = mermaid ?? (await import("mermaid")).default;
       mermaid.initialize({
@@ -95,10 +103,12 @@ class MermaidRenderer {
           element.classList.remove("parse-error", "empty");
           element.innerHTML = svgCode;
           bindFunctions?.(element);
+          renderElement.remove();
         },
-        element
+        renderElement
       );
     } catch (error) {
+      renderElement.remove();
       const isEmpty = block.node.textContent.trim().length === 0;
 
       if (isEmpty) {
