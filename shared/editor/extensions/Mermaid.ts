@@ -1,6 +1,7 @@
 import debounce from "lodash/debounce";
 import last from "lodash/last";
 import sortBy from "lodash/sortBy";
+import type MermaidUnsafe from "mermaid";
 import { Node } from "prosemirror-model";
 import {
   Plugin,
@@ -36,7 +37,7 @@ class Cache {
   private static data: Map<string, string> = new Map();
 }
 
-let mermaid: typeof import("mermaid")["default"];
+let mermaid: typeof MermaidUnsafe;
 
 type RendererFunc = (
   block: { node: Node; pos: number },
@@ -92,21 +93,23 @@ class MermaidRenderer {
         theme: isDark ? "dark" : "default",
         darkMode: isDark,
       });
-      mermaid.render(
-        `mermaid-diagram-${this.diagramId}`,
-        text,
-        (svgCode, bindFunctions) => {
-          this.currentTextContent = text;
-          if (text) {
-            Cache.set(cacheKey, svgCode);
+      mermaid
+        .render(`mermaid-diagram-${this.diagramId}`, text, renderElement)
+        .then(
+          ({ svg, bindFunctions }) => {
+            this.currentTextContent = text;
+            if (text) {
+              Cache.set(cacheKey, svg);
+            }
+            element.classList.remove("parse-error", "empty");
+            element.innerHTML = svg;
+            bindFunctions?.(element);
+            renderElement.remove();
+          },
+          (error) => {
+            throw error;
           }
-          element.classList.remove("parse-error", "empty");
-          element.innerHTML = svgCode;
-          bindFunctions?.(element);
-          renderElement.remove();
-        },
-        renderElement
-      );
+        );
     } catch (error) {
       renderElement.remove();
       const isEmpty = block.node.textContent.trim().length === 0;
