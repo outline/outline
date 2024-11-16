@@ -287,8 +287,8 @@ width: 100%;
 .mention {
   background: ${props.theme.mentionBackground};
   border-radius: 8px;
-  padding-bottom: 2px;
   padding-top: 1px;
+  padding-bottom: 1px;
   padding-left: 4px;
   padding-right: 6px;
   font-weight: 500;

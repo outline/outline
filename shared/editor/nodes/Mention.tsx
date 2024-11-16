@@ -44,7 +44,7 @@ export default class Mention extends Extension {
       atom: true,
       parseDOM: [
         {
-          tag: `span.${this.name}`,
+          tag: `.${this.name}`,
           preserveWhitespace: "full",
           getAttrs: (dom: HTMLElement) => {
             const type = dom.dataset.type;
@@ -64,10 +64,14 @@ export default class Mention extends Extension {
         },
       ],
       toDOM: (node) => [
-        "span",
+        node.attrs.type === MentionType.User ? "span" : "a",
         {
           class: `${node.type.name} use-hover-preview`,
           id: node.attrs.id,
+          href:
+            node.attrs.type === MentionType.User
+              ? undefined
+              : `/doc/${node.attrs.modelId}`,
           "data-type": node.attrs.type,
           "data-id": node.attrs.modelId,
           "data-actorId": node.attrs.actorId,
