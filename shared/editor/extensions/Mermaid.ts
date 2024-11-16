@@ -1,6 +1,7 @@
 import debounce from "lodash/debounce";
 import last from "lodash/last";
 import sortBy from "lodash/sortBy";
+import type MermaidUnsafe from "mermaid";
 import { Node } from "prosemirror-model";
 import {
   Plugin,
@@ -36,7 +37,7 @@ class Cache {
   private static data: Map<string, string> = new Map();
 }
 
-let mermaid: typeof import("mermaid")["default"];
+let mermaid: typeof MermaidUnsafe;
 
 type RendererFunc = (
   block: { node: Node; pos: number },
