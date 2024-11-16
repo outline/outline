@@ -4,12 +4,6 @@ defaults: &defaults
   working_directory: ~/outline
   docker:
     - image: cimg/node:20.10
-    - image: cimg/redis:5.0
-    - image: cimg/postgres:14.2
-      environment:
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: password
-        POSTGRES_DB: circle_test
   resource_class: large
   environment:
     NODE_ENV: test
@@ -78,6 +72,14 @@ jobs:
   test-server:
     <<: *defaults
     parallelism: 3
+    docker:
+      - image: cimg/node:20.10
+      - image: cimg/redis:5.0
+      - image: cimg/postgres:14.2
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: circle_test
     steps:
       - checkout
       - restore_cache:
