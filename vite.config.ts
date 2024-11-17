@@ -159,7 +159,7 @@ export default () =>
     build: {
       outDir: "./build/app",
       manifest: true,
-      sourcemap: true,
+      sourcemap: process.env.CI ? false : "hidden",
       minify: "terser",
       // Prevent asset inling as it does not conform to CSP rules
       assetsInlineLimit: 0,
