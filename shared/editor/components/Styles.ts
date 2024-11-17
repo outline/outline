@@ -1310,7 +1310,9 @@ mark {
 }
 
 .ProseMirror[contenteditable="false"] .code-block[data-language=mermaidjs] {
-  display: none;
+    height: 0;
+    overflow: hidden;
+    margin: -0.5em 0 0 0;
 }
 
 .code-block.with-line-numbers {
