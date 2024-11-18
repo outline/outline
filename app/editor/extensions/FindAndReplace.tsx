@@ -248,14 +248,19 @@ export default class FindAndReplaceExtension extends Extension {
         let m;
         const search = this.findRegExp;
 
-        while ((m = search.exec(deburr(text)))) {
+        // We construct a string with the text stripped of diacritics plus the original text for
+        // search  allowing to search for diacritics-insensitive matches easily.
+        while ((m = search.exec(deburr(text) + text))) {
           if (m[0] === "") {
             break;
           }
 
+          // Reconstruct the correct match position
+          const i = m.index > text.length ? m.index - text.length : m.index;
+
           this.results.push({
-            from: pos + m.index,
-            to: pos + m.index + m[0].length,
+            from: pos + i,
+            to: pos + i + m[0].length,
           });
         }
       } catch (e) {
