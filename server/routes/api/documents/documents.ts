@@ -11,12 +11,7 @@ import uniq from "lodash/uniq";
 import mime from "mime-types";
 import { Op, ScopeOptions, Sequelize, WhereOptions } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
-import {
-  CollectionPermission,
-  StatusFilter,
-  TeamPreference,
-  UserRole,
-} from "@shared/types";
+import { StatusFilter, TeamPreference, UserRole } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
 import documentCreator from "@server/commands/documentCreator";
@@ -458,24 +453,68 @@ router.post(
   async (ctx: APIContext<T.DocumentsViewedReq>) => {
     const { sort, direction } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const collectionIds = await user.collectionIds();
     const userId = user.id;
-    const views = await View.findAll({
+
+    // (1) Pre-filter: userId + permissions
+    const unrevokedViews = await View.findAll({
+      attributes: ["id"],
       where: {
-        userId,
+        [Op.and]: [
+          { userId },
+          {
+            [Op.or]: [
+              { "$document.collectionId$": collectionIds },
+              { "$document.memberships.userId$": userId },
+              { "$document.groupMemberships.group.groupUsers.userId$": userId },
+            ],
+          },
+        ],
       },
-      order: [[sort, direction]],
       include: [
         {
-          model: Document.scope([
-            "withDrafts",
-            { method: ["withMembership", userId] },
-          ]),
+          // NOTE: The `where` above only works if we re-define the `include` here
+          // by hand (i.e. not using existing scopes in Document). Not sure why.
+          model: Document,
           required: true,
           include: [
             {
-              model: Collection.scope({
-                method: ["withMembership", userId],
-              }),
+              association: "memberships",
+              required: false,
+            },
+            {
+              association: "groupMemberships",
+              required: false,
+              include: [
+                {
+                  model: Group,
+                  as: "group",
+                  required: true,
+                  include: [
+                    {
+                      model: GroupUser,
+                      as: "groupUsers",
+                      required: true,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    // (2) Paginate
+    const views = await View.findAll({
+      where: { id: unrevokedViews.map((x) => x.id) },
+      order: [[sort, direction]],
+      include: [
+        {
+          model: Document.scope(["withDrafts", "withAllMemberships"]),
+          include: [
+            {
+              model: Collection.scope(["withAllMemberships"]),
               as: "collection",
             },
           ],
@@ -485,28 +524,11 @@ router.post(
       limit: ctx.state.pagination.limit,
     });
 
-    const isActiveCollection = (c: Collection | null) =>
-      c &&
-      c.teamId === user.teamId &&
-      ((!user.isGuest &&
-        Object.values(CollectionPermission).includes(
-          c.permission as CollectionPermission
-        )) ||
-        c.memberships.length > 0 ||
-        c.groupMemberships.length > 0);
-
-    const documents = views
-      .map((view) => {
-        const document = view.document;
-        document.views = [view];
-        return document;
-      })
-      .filter(
-        (document) =>
-          isActiveCollection(document.collection) ||
-          document.memberships.length > 0 ||
-          document.groupMemberships.length > 0
-      );
+    const documents = views.map((view) => {
+      const document = view.document;
+      document.views = [view];
+      return document;
+    });
 
     const data = await Promise.all(
       documents.map((document) => presentDocument(ctx, document))
