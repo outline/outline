@@ -127,7 +127,7 @@ function Invite({ onSubmit }: Props) {
           <Trans>{{ collectionCount }} collections</Trans>
         </strong>
       </Tooltip>
-      .
+      .{" "}
     </span>
   ) : undefined;
 
