@@ -308,6 +308,7 @@
   "{{ firstUsername }} and {{ secondUsername }} reacted with {{ emoji }}": "{{ firstUsername }} and {{ secondUsername }} reacted with {{ emoji }}",
   "{{ firstUsername }} and {{ count }} others reacted with {{ emoji }}": "{{ firstUsername }} and {{ count }} other reacted with {{ emoji }}",
   "{{ firstUsername }} and {{ count }} others reacted with {{ emoji }}_plural": "{{ firstUsername }} and {{ count }} others reacted with {{ emoji }}",
+  "Add reaction": "Add reaction",
   "Reaction picker": "Reaction picker",
   "Could not load reactions": "Could not load reactions",
   "Reaction": "Reaction",
