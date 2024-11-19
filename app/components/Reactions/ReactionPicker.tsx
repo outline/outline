@@ -2,7 +2,6 @@ import { ReactionIcon } from "outline-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { PopoverDisclosure, usePopoverState } from "reakit";
-import styled from "styled-components";
 import EventBoundary from "@shared/components/EventBoundary";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
@@ -11,6 +10,7 @@ import Popover from "~/components/Popover";
 import useMobile from "~/hooks/useMobile";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 import useWindowSize from "~/hooks/useWindowSize";
+import Tooltip from "../Tooltip";
 
 const EmojiPanel = React.lazy(
   () => import("~/components/IconPicker/components/EmojiPanel")
@@ -98,15 +98,22 @@ const ReactionPicker: React.FC<Props> = ({
     <>
       <PopoverDisclosure {...popover}>
         {(props) => (
-          <PopoverButton
-            {...props}
-            aria-label={t("Reaction picker")}
-            className={className}
-            onClick={handlePopoverButtonClick}
-            size={size}
+          <Tooltip
+            content={t("Add reaction")}
+            placement="top"
+            delay={500}
+            hideOnClick
           >
-            <ReactionIcon size={22} />
-          </PopoverButton>
+            <NudeButton
+              {...props}
+              aria-label={t("Reaction picker")}
+              className={className}
+              onClick={handlePopoverButtonClick}
+              size={size}
+            >
+              <ReactionIcon size={22} />
+            </NudeButton>
+          </Tooltip>
         )}
       </PopoverDisclosure>
       <Popover
@@ -150,9 +157,5 @@ const Placeholder = React.memo(
   () => true
 );
 Placeholder.displayName = "ReactionPickerPlaceholder";
-
-const PopoverButton = styled(NudeButton)`
-  border-radius: 50%;
-`;
 
 export default ReactionPicker;
