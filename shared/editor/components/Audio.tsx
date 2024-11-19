@@ -13,9 +13,7 @@ export default function Audio(props: Props) {
 
   return (
     <div contentEditable={false} ref={ref}>
-      <AudioWrapper
-        className={isSelected ? "ProseMirror-selectednode" : ""}
-      >
+      <AudioWrapper className={isSelected ? "ProseMirror-selectednode" : ""}>
         <StyledAudio
           src={sanitizeUrl(node.attrs.src)}
           title={node.attrs.title}

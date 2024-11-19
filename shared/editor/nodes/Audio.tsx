@@ -5,8 +5,8 @@ import * as React from "react";
 import { Primitive } from "utility-types";
 import { sanitizeUrl } from "../../utils/urls";
 import toggleWrap from "../commands/toggleWrap";
-import Caption from "../components/Caption";
 import AudioComponent from "../components/Audio";
+import Caption from "../components/Caption";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import attachmentsRule from "../rules/links";
 import { ComponentProps } from "../types";
@@ -141,9 +141,7 @@ export default class Audio extends Node {
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     state.ensureNewLine();
-    state.write(
-      `[${node.attrs.title}](${node.attrs.src})\n\n`
-    );
+    state.write(`[${node.attrs.title}](${node.attrs.src})\n\n`);
     state.ensureNewLine();
   }
 
