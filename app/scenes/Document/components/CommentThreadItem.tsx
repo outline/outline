@@ -22,6 +22,7 @@ import ReactionList from "~/components/Reactions/ReactionList";
 import ReactionPicker from "~/components/Reactions/ReactionPicker";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
+import Tooltip from "~/components/Tooltip";
 import { resolveCommentFactory } from "~/actions/definitions/comments";
 import useActionContext from "~/hooks/useActionContext";
 import useBoolean from "~/hooks/useBoolean";
@@ -110,7 +111,6 @@ function CommentThreadItem({
 }: Props) {
   const { t } = useTranslation();
   const user = useCurrentUser();
-  const context = useActionContext();
   const [data, setData] = React.useState(comment.data);
   const showAuthor = firstOfAuthor;
   const showTime = useShowTime(comment.createdAt, previousCommentCreatedAt);
@@ -265,17 +265,7 @@ function CommentThreadItem({
           {!isEditing && (
             <Actions gap={4} dir={dir}>
               {firstOfThread && (
-                <Action
-                  as={NudeButton}
-                  context={context}
-                  action={resolveCommentFactory({
-                    comment,
-                    onResolve: () => handleUpdate({ resolved: true }),
-                  })}
-                  rounded
-                >
-                  <DoneIcon size={22} outline />
-                </Action>
+                <ResolveButton onUpdate={handleUpdate} comment={comment} />
               )}
               {!comment.isResolved && (
                 <Action
@@ -300,6 +290,38 @@ function CommentThreadItem({
     </Flex>
   );
 }
+
+const ResolveButton = ({
+  comment,
+  onUpdate,
+}: {
+  comment: Comment;
+  onUpdate: (attrs: { resolved: boolean }) => void;
+}) => {
+  const context = useActionContext();
+  const { t } = useTranslation();
+
+  return (
+    <Tooltip
+      content={t("Mark as resolved")}
+      placement="top"
+      delay={500}
+      hideOnClick
+    >
+      <Action
+        as={NudeButton}
+        context={context}
+        action={resolveCommentFactory({
+          comment,
+          onResolve: () => onUpdate({ resolved: true }),
+        })}
+        rounded
+      >
+        <DoneIcon size={22} outline />
+      </Action>
+    </Tooltip>
+  );
+};
 
 const StyledCommentEditor = styled(CommentEditor)`
   ${(props) =>
