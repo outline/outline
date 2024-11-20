@@ -52,7 +52,7 @@ function PeopleTable({ canManage, ...rest }: Props) {
           ),
         },
         {
-          id: "isAdmin",
+          id: "role",
           Header: t("Role"),
           accessor: "rank",
           Cell: observer(({ row }: { row: { original: User } }) => (
