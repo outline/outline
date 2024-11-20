@@ -26,35 +26,36 @@ export class CacheHelper {
   ): Promise<T | undefined> {
     let cache = await this.getData<T>(key);
 
-    // Nothing in the cache, acquire a lock to prevent multiple writes
-    if (!cache) {
-      let lock;
-      const lockKey = `lock:${key}`;
-      try {
-        try {
-          lock = await MutexLock.lock.acquire(
-            [lockKey],
-            MutexLock.defaultLockTimeout
-          );
-        } catch (err) {
-          Logger.error(`Could not acquire lock for ${key}`, err);
-        }
-        cache = await this.getData<T>(key);
-        if (cache) {
-          return cache;
-        }
-
-        // Get the data from the callback and save it in cache
-        const value = await callback();
-        if (value) {
-          await this.setData<T>(key, value, expiry);
-        }
-        return value;
-      } finally {
-        await lock?.release();
-      }
+    if (cache) {
+      return cache;
     }
-    return cache;
+
+    // Nothing in the cache, acquire a lock to prevent multiple writes
+    let lock;
+    const lockKey = `lock:${key}`;
+    try {
+      try {
+        lock = await MutexLock.lock.acquire(
+          [lockKey],
+          MutexLock.defaultLockTimeout
+        );
+      } catch (err) {
+        Logger.error(`Could not acquire lock for ${key}`, err);
+      }
+      cache = await this.getData<T>(key);
+      if (cache) {
+        return cache;
+      }
+
+      // Get the data from the callback and save it in cache
+      const value = await callback();
+      if (value) {
+        await this.setData<T>(key, value, expiry);
+      }
+      return value;
+    } finally {
+      await lock?.release();
+    }
   }
 
   /**
