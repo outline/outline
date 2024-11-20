@@ -51,6 +51,15 @@ export default abstract class BaseEmail<
    * @returns A promise that resolves once the email is placed on the task queue
    */
   public schedule(options?: Bull.JobOptions) {
+    // No-op to schedule emails if SMTP is not configured
+    if (!env.SMTP_FROM_EMAIL) {
+      Logger.info(
+        "email",
+        `Email ${this.constructor.name} not sent due to missing SMTP configuration`
+      );
+      return;
+    }
+
     const templateName = this.constructor.name;
 
     Metrics.increment("email.scheduled", {
