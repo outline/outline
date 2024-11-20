@@ -7,6 +7,7 @@ import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import SubscriptionHelper from "@server/models/helpers/SubscriptionHelper";
 import { can } from "@server/policies";
+import { CacheHelper } from "@server/utils/CacheHelper";
 import BaseEmail, { EmailMessageCategory, EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
@@ -68,21 +69,28 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
 
     let body;
     if (revisionId && team?.getPreference(TeamPreference.PreviewsInEmails)) {
-      // generate the diff html for the email
-      const revision = await Revision.findByPk(revisionId);
+      body = await CacheHelper.getDataOrSet<string>(
+        `diff:${revisionId}`,
+        async () => {
+          // generate the diff html for the email
+          const revision = await Revision.findByPk(revisionId);
 
-      if (revision) {
-        const before = await revision.before();
-        const content = await DocumentHelper.toEmailDiff(before, revision, {
-          includeTitle: false,
-          centered: false,
-          signedUrls: 4 * Day.seconds,
-          baseUrl: props.teamUrl,
-        });
+          if (revision) {
+            const before = await revision.before();
+            const content = await DocumentHelper.toEmailDiff(before, revision, {
+              includeTitle: false,
+              centered: false,
+              signedUrls: 4 * Day.seconds,
+              baseUrl: props.teamUrl,
+            });
 
-        // inline all css so that it works in as many email providers as possible.
-        body = content ? await HTMLHelper.inlineCSS(content) : undefined;
-      }
+            // inline all css so that it works in as many email providers as possible.
+            return content ? await HTMLHelper.inlineCSS(content) : undefined;
+          }
+          return;
+        },
+        30
+      );
     }
 
     return {
