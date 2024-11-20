@@ -31,10 +31,14 @@ export class CacheHelper {
       let lock;
       const lockKey = `lock:${key}`;
       try {
-        lock = await MutexLock.lock.acquire(
-          [lockKey],
-          MutexLock.defaultLockTimeout
-        );
+        try {
+          lock = await MutexLock.lock.acquire(
+            [lockKey],
+            MutexLock.defaultLockTimeout
+          );
+        } catch (err) {
+          Logger.error(`Could not acquire lock for ${key}`, err);
+        }
         cache = await this.getData<T>(key);
         if (cache) {
           return cache;
