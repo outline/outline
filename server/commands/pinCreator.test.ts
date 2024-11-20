@@ -1,10 +1,9 @@
 import { Event } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
+import { withAPIContext } from "@server/test/support";
 import pinCreator from "./pinCreator";
 
 describe("pinCreator", () => {
-  const ip = "127.0.0.1";
-
   it("should create pin to home", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -12,11 +11,13 @@ describe("pinCreator", () => {
       teamId: user.teamId,
     });
 
-    const pin = await pinCreator({
-      documentId: document.id,
-      user,
-      ip,
-    });
+    const pin = await withAPIContext(user, (ctx) =>
+      pinCreator({
+        ctx,
+        user,
+        documentId: document.id,
+      })
+    );
 
     const event = await Event.findLatest({
       teamId: user.teamId,
@@ -36,12 +37,14 @@ describe("pinCreator", () => {
       teamId: user.teamId,
     });
 
-    const pin = await pinCreator({
-      documentId: document.id,
-      collectionId: document.collectionId,
-      user,
-      ip,
-    });
+    const pin = await withAPIContext(user, (ctx) =>
+      pinCreator({
+        ctx,
+        user,
+        documentId: document.id,
+        collectionId: document.collectionId,
+      })
+    );
 
     const event = await Event.findLatest({
       teamId: user.teamId,
