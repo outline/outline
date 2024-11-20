@@ -10,8 +10,9 @@ import { s } from "@shared/styles";
 import { ProsemirrorData } from "@shared/types";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
-import { Avatar } from "~/components/Avatar";
+import { Avatar, AvatarSize } from "~/components/Avatar";
 import { useDocumentContext } from "~/components/DocumentContext";
+import Facepile from "~/components/Facepile";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
@@ -151,6 +152,31 @@ function CommentThread({
     setCollapse(null);
   };
 
+  const renderShowMore = (collapse: { begin: number; final: number }) => {
+    const count = collapse.final - collapse.begin + 1;
+    const createdBy = commentsInThread
+      .slice(collapse.begin, collapse.final + 1)
+      .map((c) => c.createdBy);
+    const users = Array.from(new Set(createdBy));
+    const limit = 3;
+    const overflow = users.length - limit;
+
+    return (
+      <ShowMore onClick={handleClickExpand} key="show-more">
+        {t("Show {{ count }} reply", { count })}
+        <Facepile
+          users={users}
+          limit={limit}
+          overflow={overflow}
+          size={AvatarSize.Medium}
+          renderAvatar={(item) => (
+            <Avatar size={AvatarSize.Medium} model={item} />
+          )}
+        />
+      </ShowMore>
+    );
+  };
+
   React.useEffect(() => {
     if (!focused && autoFocus) {
       setAutoFocus(false);
@@ -216,12 +242,7 @@ function CommentThread({
       {commentsInThread.map((comment, index) => {
         if (collapse !== null) {
           if (index === collapse.begin) {
-            const count = collapse.final - collapse.begin + 1;
-            return (
-              <ShowMore onClick={handleClickExpand} key="show-more">
-                {t("Show {{ count }} reply", { count })}
-              </ShowMore>
-            );
+            return renderShowMore(collapse);
           } else if (index > collapse.begin && index <= collapse.final) {
             return null;
           }
@@ -312,15 +333,22 @@ const Reply = styled.button`
   `}
 `;
 
-const ShowMore = styled.div`
-  position: relative;
-  left: 32px;
-  margin: 4px;
-  padding: 4px 8px;
-  font-size: 13px;
+const ShowMore = styled.div<{ $dir?: "rtl" | "ltr" }>`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1px;
+  margin-left: ${(props) => (props.$dir === "rtl" ? 0 : 32)}px;
+  margin-right: ${(props) => (props.$dir !== "rtl" ? 0 : 32)}px;
+  padding: 8px 12px;
   color: ${s("textTertiary")};
+  background: ${s("backgroundTertiary")};
   cursor: var(--pointer);
-  border-left: 2px dashed ${s("placeholder")};
+  font-size: 13px;
+
+  * {
+    border-color: ${s("backgroundTertiary")};
+  }
 `;
 
 const Thread = styled.div<{
