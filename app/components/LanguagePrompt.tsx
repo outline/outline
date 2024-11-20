@@ -47,14 +47,16 @@ export default function LanguagePrompt() {
           <br />
           <Link
             onClick={async () => {
-              ui.setLanguagePromptDismissed();
+              ui.set({ languagePromptDismissed: true });
               await user.save({ language });
             }}
           >
             {t("Change Language")}
           </Link>{" "}
           &middot;{" "}
-          <Link onClick={ui.setLanguagePromptDismissed}>{t("Dismiss")}</Link>
+          <Link onClick={() => ui.set({ languagePromptDismissed: true })}>
+            {t("Dismiss")}
+          </Link>
         </span>
       </Flex>
     </Wrapper>
