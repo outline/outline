@@ -4075,7 +4075,7 @@
     "@smithy/util-stream" "^3.3.1"
     tslib "^2.6.2"
 
-"@smithy/types@^3.3.0", "@smithy/types@^3.7.0", "@smithy/types@^3.7.1":
+"@smithy/types@^3.7.0", "@smithy/types@^3.7.1":
   version "3.7.1"
   resolved "https://registry.yarnpkg.com/@smithy/types/-/types-3.7.1.tgz#4af54c4e28351e9101996785a33f2fdbf93debe7"
   integrity sha512-XKLcLXZY7sUQgvvWyeaL/qwNPp6V3dWcUjqrQKjSb+tzYiCy340R/c64LV5j+Tnb2GhmunEX0eou+L+m2hJNYA==
@@ -11906,7 +11906,7 @@ node-abort-controller@^1.1.0:
   resolved "https://registry.yarnpkg.com/node-abort-controller/-/node-abort-controller-1.2.1.tgz#1eddb57eb8fea734198b11b28857596dc6165708"
   integrity "sha1-Ht21frj+pzQZixGyiFdZbcYWVwg= sha512-79PYeJuj6S9+yOHirR0JBLFOgjB6sQCir10uN6xRx25iD+ZD4ULqgRn3MwWBRaQGB0vEgReJzWwJo42T1R6YbQ=="
 
-node-abort-controller@^3.1.1:
+node-abort-controller@^3.0.1, node-abort-controller@^3.1.1:
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/node-abort-controller/-/node-abort-controller-3.1.1.tgz#a94377e964a9a37ac3976d848cb5c765833b8548"
   integrity "sha1-qUN36WSpo3rDl22EjLXHZYM7hUg= sha512-AGK2yQKIjRuqnc6VkX2Xj5d+QW8xZ87pa1UK6yA6ouUyuxfHuMP6umE5QK7UmTeOAymo+Zx1Fxiuw9rVx8taHQ=="
@@ -13478,6 +13478,13 @@ redis@^3.0.0:
     redis-commands "^1.7.0"
     redis-errors "^1.2.0"
     redis-parser "^3.0.0"
+
+redlock@^5.0.0-beta.2:
+  version "5.0.0-beta.2"
+  resolved "https://registry.yarnpkg.com/redlock/-/redlock-5.0.0-beta.2.tgz#a629c07e07d001c0fdd9f2efa614144c4416fe44"
+  integrity sha512-2RDWXg5jgRptDrB1w9O/JgSZC0j7y4SlaXnor93H/UJm/QyDiFgBKNtrh0TI6oCXqYSaSoXxFh6Sd3VtYfhRXw==
+  dependencies:
+    node-abort-controller "^3.0.1"
 
 redux@^4.2.0:
   version "4.2.0"
