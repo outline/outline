@@ -39,6 +39,7 @@ function DocumentCard(props: Props) {
   const { collections } = useStores();
   const theme = useTheme();
   const { document, pin, canUpdatePin, isDraggable } = props;
+  const pinnedToHome = React.useRef(!pin?.collectionId).current;
   const collection = document.collectionId
     ? collections.get(document.collectionId)
     : undefined;
@@ -122,13 +123,13 @@ function DocumentCard(props: Props) {
               <Squircle
                 color={
                   collection?.color ??
-                  (!pin?.collectionId ? theme.slateLight : theme.slateDark)
+                  (pinnedToHome ? theme.slateLight : theme.slateDark)
                 }
               >
                 {collection?.icon &&
                 collection?.icon !== "letter" &&
                 collection?.icon !== "collection" &&
-                !pin?.collectionId ? (
+                pinnedToHome ? (
                   <CollectionIcon collection={collection} color="white" />
                 ) : (
                   <DocumentIcon color="white" />
