@@ -13,6 +13,8 @@ type Props = {
 };
 
 /**
+ * @deprecated use pin.destroyWithCtx instead. This will be removed once document routes migrate to auto event insertion using APIContext.
+ *
  * This command destroys a document pin. This just removes the pin itself and
  * does not touch the document
  *

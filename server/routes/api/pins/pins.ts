@@ -1,9 +1,8 @@
 import Router from "koa-router";
-import { Sequelize, Op } from "sequelize";
+import { Sequelize, Op, Transaction } from "sequelize";
 import pinCreator from "@server/commands/pinCreator";
-import pinDestroyer from "@server/commands/pinDestroyer";
-import pinUpdater from "@server/commands/pinUpdater";
 import auth from "@server/middlewares/authentication";
+import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Collection, Document, Pin } from "@server/models";
 import { authorize } from "@server/policies";
@@ -22,18 +21,21 @@ router.post(
   "pins.create",
   auth(),
   validate(T.PinsCreateSchema),
+  transaction(),
   async (ctx: APIContext<T.PinsCreateReq>) => {
     const { documentId, collectionId, index } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
     const document = await Document.findByPk(documentId, {
       userId: user.id,
+      transaction,
     });
     authorize(user, "read", document);
 
     if (collectionId) {
       const collection = await Collection.scope({
         method: ["withMembership", user.id],
-      }).findByPk(collectionId);
+      }).findByPk(collectionId, { transaction });
       authorize(user, "update", collection);
       authorize(user, "pin", document);
     } else {
@@ -41,10 +43,10 @@ router.post(
     }
 
     const pin = await pinCreator({
+      ctx,
       user,
       documentId,
       collectionId,
-      ip: ctx.request.ip,
       index,
     });
 
@@ -108,13 +110,20 @@ router.post(
   "pins.update",
   auth(),
   validate(T.PinsUpdateSchema),
+  transaction(),
   async (ctx: APIContext<T.PinsUpdateReq>) => {
     const { id, index } = ctx.input.body;
     const { user } = ctx.state.auth;
-    let pin = await Pin.findByPk(id, { rejectOnEmpty: true });
+    const { transaction } = ctx.state;
+    const pin = await Pin.findByPk(id, {
+      transaction,
+      lock: Transaction.LOCK.UPDATE,
+      rejectOnEmpty: true,
+    });
 
     const document = await Document.findByPk(pin.documentId, {
       userId: user.id,
+      transaction,
     });
 
     if (pin.collectionId) {
@@ -123,12 +132,7 @@ router.post(
       authorize(user, "update", pin);
     }
 
-    pin = await pinUpdater({
-      user,
-      pin,
-      ip: ctx.request.ip,
-      index,
-    });
+    await pin.updateWithCtx(ctx, { index });
 
     ctx.body = {
       data: presentPin(pin),
@@ -141,14 +145,21 @@ router.post(
   "pins.delete",
   auth(),
   validate(T.PinsDeleteSchema),
+  transaction(),
   async (ctx: APIContext<T.PinsDeleteReq>) => {
     const { id } = ctx.input.body;
+    const { transaction } = ctx.state;
 
     const { user } = ctx.state.auth;
-    const pin = await Pin.findByPk(id, { rejectOnEmpty: true });
+    const pin = await Pin.findByPk(id, {
+      transaction,
+      lock: Transaction.LOCK.UPDATE,
+      rejectOnEmpty: true,
+    });
 
     const document = await Document.findByPk(pin.documentId, {
       userId: user.id,
+      transaction,
     });
 
     if (pin.collectionId) {
@@ -157,7 +168,7 @@ router.post(
       authorize(user, "delete", pin);
     }
 
-    await pinDestroyer({ user, pin, ip: ctx.request.ip });
+    await pin.destroyWithCtx(ctx);
 
     ctx.body = {
       success: true,
