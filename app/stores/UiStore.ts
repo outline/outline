@@ -142,9 +142,9 @@ class UiStore {
     startViewTransition(() => {
       flushSync(() => {
         this.theme = theme;
+        this.persist();
       });
     });
-    this.persist();
   };
 
   @action
