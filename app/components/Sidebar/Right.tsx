@@ -32,13 +32,13 @@ function Right({ children, border, className }: Props) {
         Math.min(window.innerWidth - event.pageX, maxWidth),
         minWidth
       );
-      ui.setRightSidebarWidth(width);
+      ui.set({ sidebarRightWidth: width });
     },
     [minWidth, maxWidth, ui]
   );
 
   const handleReset = React.useCallback(() => {
-    ui.setRightSidebarWidth(theme.sidebarRightWidth);
+    ui.set({ sidebarRightWidth: theme.sidebarRightWidth });
   }, [ui, theme.sidebarRightWidth]);
 
   const handleStopDrag = React.useCallback(() => {
