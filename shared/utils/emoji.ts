@@ -14,20 +14,11 @@ init({ data: RawData });
 // Data has the pre-processed "search" terms.
 const TypedData = Data as EmojiMartData;
 
-const flagEmojiIds =
-  TypedData.categories
-    .filter(({ id }) => id === EmojiCategory.Flags.toLowerCase())
-    .map(({ emojis }) => emojis)[0] ?? [];
-
 const Categories = TypedData.categories.filter(
   ({ id }) => isMacEnv || capitalize(id) !== EmojiCategory.Flags
 );
 
-const Emojis = Object.fromEntries(
-  Object.entries(TypedData.emojis).filter(
-    ([id]) => isMacEnv || !flagEmojiIds.includes(id)
-  )
-);
+const Emojis = Object.fromEntries(Object.entries(TypedData.emojis));
 
 const searcher = new FuzzySearch(Object.values(Emojis), ["search"], {
   caseSensitive: false,
