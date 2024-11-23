@@ -92,6 +92,10 @@ export default class FindAndReplaceExtension extends Extension {
 
   public replace(replace: string): Command {
     return (state, dispatch) => {
+      // Redo the search to ensure we have the latest results, the document may
+      // have changed underneath us since the last search.
+      this.search(state.doc);
+
       const result = this.results[this.currentResultIndex];
 
       if (!result) {
@@ -106,7 +110,12 @@ export default class FindAndReplaceExtension extends Extension {
   }
 
   public replaceAll(replace: string): Command {
-    return ({ tr }, dispatch) => {
+    return (state, dispatch) => {
+      // Redo the search to ensure we have the latest results, the document may
+      // have changed underneath us since the last search.
+      this.search(state.doc);
+
+      const tr = state.tr;
       let offset: number | undefined;
 
       if (!this.results.length) {
@@ -256,12 +265,17 @@ export default class FindAndReplaceExtension extends Extension {
           }
 
           // Reconstruct the correct match position
-          const i = m.index > text.length ? m.index - text.length : m.index;
+          const i = m.index >= text.length ? m.index - text.length : m.index;
+          const from = pos + i;
+          const to = from + m[0].length;
 
-          this.results.push({
-            from: pos + i,
-            to: pos + i + m[0].length,
-          });
+          // Check if already exists in results, possible due to duplicated
+          // search string on L257
+          if (this.results.some((r) => r.from === from && r.to === to)) {
+            continue;
+          }
+
+          this.results.push({ from, to });
         }
       } catch (e) {
         // Invalid RegExp
