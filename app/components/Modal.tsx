@@ -174,7 +174,6 @@ const Fullscreen = styled.div<FullscreenProps>`
   justify-content: center;
   align-items: flex-start;
   background: ${s("background")};
-  transition: ${s("backgroundTransition")};
   outline: none;
 
   ${breakpoint("tablet")`
@@ -265,7 +264,6 @@ const Small = styled.div`
   justify-content: center;
   align-items: flex-start;
   background: ${s("modalBackground")};
-  transition: ${s("backgroundTransition")};
   box-shadow: ${s("modalShadow")};
   border-radius: 8px;
   outline: none;
