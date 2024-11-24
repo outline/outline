@@ -67,7 +67,6 @@ const buildBaseTheme = (input: Partial<Colors>) => {
     fontWeightRegular: 400,
     fontWeightMedium: 500,
     fontWeightBold: 600,
-    backgroundTransition: "background 100ms ease-in-out",
     accentText: colors.white,
     selected: colors.accent,
     textHighlight: "#FDEA9B",

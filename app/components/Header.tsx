@@ -130,7 +130,6 @@ const Wrapper = styled(Flex)<WrapperProps>`
       `};
 
   padding: 12px;
-  transition: all 100ms ease-out;
   transform: translate3d(0, 0, 0);
   min-height: ${HEADER_HEIGHT}px;
   justify-content: flex-start;

@@ -298,9 +298,8 @@ const Container = styled(Flex)<ContainerProps>`
   width: 100%;
   background: ${s("sidebarBackground")};
   transition: box-shadow 150ms ease-in-out, transform 150ms ease-out,
-    ${s("backgroundTransition")}
-      ${(props: ContainerProps) =>
-        props.$isAnimating ? `,width ${ANIMATION_MS}ms ease-out` : ""};
+    ${(props: ContainerProps) =>
+      props.$isAnimating ? `,width ${ANIMATION_MS}ms ease-out` : ""};
   transform: translateX(
     ${(props) => (props.$mobileSidebarVisible ? 0 : "-100%")}
   );

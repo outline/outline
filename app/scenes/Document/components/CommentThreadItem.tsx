@@ -419,7 +419,7 @@ export const Bubble = styled(Flex)<{
   min-width: 2em;
   margin-bottom: 1px;
   padding: 8px 12px;
-  transition: color 100ms ease-out, ${s("backgroundTransition")};
+  transition: color 100ms ease-out, background 100ms ease-out;
 
   ${({ $lastOfThread, $canReply }) =>
     $lastOfThread &&

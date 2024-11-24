@@ -94,7 +94,6 @@ const Scene = styled.div`
   align-items: flex-start;
   width: 350px;
   background: ${s("background")};
-  transition: ${s("backgroundTransition")};
   border-radius: 8px;
   outline: none;
   opacity: 0;

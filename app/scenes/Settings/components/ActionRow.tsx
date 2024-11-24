@@ -12,7 +12,6 @@ export const ActionRow = styled.div`
   margin: 0 -50vw;
 
   background: ${s("background")};
-  transition: ${s("backgroundTransition")};
 
   @supports (backdrop-filter: blur(20px)) {
     backdrop-filter: blur(20px);

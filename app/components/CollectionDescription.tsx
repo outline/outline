@@ -201,7 +201,6 @@ const Input = styled.div`
   margin: -8px;
   padding: 8px;
   border-radius: 8px;
-  transition: ${s("backgroundTransition")};
 
   &:after {
     content: "";

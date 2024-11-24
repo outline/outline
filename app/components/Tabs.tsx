@@ -45,7 +45,6 @@ const Sticky = styled.div`
   margin: 0 -8px;
   padding: 0 8px;
   background: ${s("background")};
-  transition: ${s("backgroundTransition")};
   z-index: 1;
 `;
 
