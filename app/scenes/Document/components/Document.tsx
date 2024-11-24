@@ -215,13 +215,15 @@ class DocumentScene extends React.Component<Props> {
 
   onUndoRedo = (event: KeyboardEvent) => {
     if (isModKey(event)) {
+      event.preventDefault();
+
       if (event.shiftKey) {
-        if (this.editor.current?.redo()) {
-          event.preventDefault();
+        if (!this.props.readOnly) {
+          this.editor.current?.commands.redo();
         }
       } else {
-        if (this.editor.current?.undo()) {
-          event.preventDefault();
+        if (!this.props.readOnly) {
+          this.editor.current?.commands.undo();
         }
       }
     }
