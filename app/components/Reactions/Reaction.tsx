@@ -144,7 +144,6 @@ const EmojiButton = styled(NudeButton)<{
   height: 28px;
   padding: 6px;
   border-radius: 12px;
-  transition: ${s("backgroundTransition")};
   background: ${s("backgroundTertiary")};
   pointer-events: ${({ disabled }) => disabled && "none"};
 

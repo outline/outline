@@ -105,7 +105,6 @@ const Button = styled(Flex)<{
   &:hover,
   &[aria-expanded="true"] {
     color: ${s("sidebarText")};
-    transition: background 100ms ease-in-out;
     background: ${s("sidebarActiveBackground")};
   }
 

@@ -312,7 +312,6 @@ const Head = styled.th`
   padding: 6px 6px 0;
   border-bottom: 1px solid ${s("divider")};
   background: ${s("background")};
-  transition: ${s("backgroundTransition")};
   font-size: 14px;
   color: ${s("textSecondary")};
   font-weight: 500;
