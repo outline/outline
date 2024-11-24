@@ -145,14 +145,13 @@ export default class S3Storage extends BaseStorage {
     const params = {
       Bucket: this.getBucket(),
       Key: key,
-      Expires: expiresIn,
     };
 
     if (isDocker) {
       return `${this.getPublicEndpoint()}/${key}`;
     } else {
       const command = new GetObjectCommand(params);
-      const url = await getSignedUrl(this.client, command);
+      const url = await getSignedUrl(this.client, command, { expiresIn });
 
       if (env.AWS_S3_ACCELERATE_URL) {
         return url.replace(
