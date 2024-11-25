@@ -10,8 +10,9 @@ import { s } from "@shared/styles";
 import { ProsemirrorData } from "@shared/types";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
-import { Avatar } from "~/components/Avatar";
+import { Avatar, AvatarSize } from "~/components/Avatar";
 import { useDocumentContext } from "~/components/DocumentContext";
+import Facepile from "~/components/Facepile";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
@@ -40,6 +41,10 @@ type Props = {
   enableScroll: () => void;
   /** Disable scroll for the comments container */
   disableScroll: () => void;
+  /** Number of replies before collapsing */
+  collapseThreshold?: number;
+  /** Number of replies to display when collapsed */
+  collapseNumDisplayed?: number;
 };
 
 function useTypingIndicator({
@@ -69,6 +74,8 @@ function CommentThread({
   focused,
   enableScroll,
   disableScroll,
+  collapseThreshold = 5,
+  collapseNumDisplayed = 3,
 }: Props) {
   const [focusedOnMount] = React.useState(focused);
   const { editor } = useDocumentContext();
@@ -102,6 +109,17 @@ function CommentThread({
     .inThread(thread.id)
     .filter((comment) => !comment.isNew);
 
+  const [collapse, setCollapse] = React.useState(() => {
+    const numReplies = commentsInThread.length - 1;
+    if (numReplies >= collapseThreshold) {
+      return {
+        begin: 1,
+        final: commentsInThread.length - collapseNumDisplayed - 1,
+      };
+    }
+    return null;
+  });
+
   useOnClickOutside(topRef, (event) => {
     if (
       focused &&
@@ -127,6 +145,36 @@ function CommentThread({
       pathname: location.pathname.replace(/\/history$/, ""),
       state: { commentId: thread.id },
     });
+  };
+
+  const handleClickExpand = (ev: React.SyntheticEvent) => {
+    ev.stopPropagation();
+    setCollapse(null);
+  };
+
+  const renderShowMore = (collapse: { begin: number; final: number }) => {
+    const count = collapse.final - collapse.begin + 1;
+    const createdBy = commentsInThread
+      .slice(collapse.begin, collapse.final + 1)
+      .map((c) => c.createdBy);
+    const users = Array.from(new Set(createdBy));
+    const limit = 3;
+    const overflow = users.length - limit;
+
+    return (
+      <ShowMore onClick={handleClickExpand} key="show-more">
+        {t("Show {{ count }} reply", { count })}
+        <Facepile
+          users={users}
+          limit={limit}
+          overflow={overflow}
+          size={AvatarSize.Medium}
+          renderAvatar={(item) => (
+            <Avatar size={AvatarSize.Medium} model={item} />
+          )}
+        />
+      </ShowMore>
+    );
   };
 
   React.useEffect(() => {
@@ -192,8 +240,17 @@ function CommentThread({
       onClick={handleClickThread}
     >
       {commentsInThread.map((comment, index) => {
+        if (collapse !== null) {
+          if (index === collapse.begin) {
+            return renderShowMore(collapse);
+          } else if (index > collapse.begin && index <= collapse.final) {
+            return null;
+          }
+        }
+
         const firstOfAuthor =
           index === 0 ||
+          (collapse && index === collapse.final + 1) ||
           comment.createdById !== commentsInThread[index - 1].createdById;
         const lastOfAuthor =
           index === commentsInThread.length - 1 ||
@@ -274,6 +331,24 @@ const Reply = styled.button`
   ${breakpoint("tablet")`
     opacity: 0;
   `}
+`;
+
+const ShowMore = styled.div<{ $dir?: "rtl" | "ltr" }>`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1px;
+  margin-left: ${(props) => (props.$dir === "rtl" ? 0 : 32)}px;
+  margin-right: ${(props) => (props.$dir !== "rtl" ? 0 : 32)}px;
+  padding: 8px 12px;
+  color: ${s("textTertiary")};
+  background: ${s("backgroundTertiary")};
+  cursor: var(--pointer);
+  font-size: 13px;
+
+  * {
+    border-color: ${s("backgroundTertiary")};
+  }
 `;
 
 const Thread = styled.div<{
