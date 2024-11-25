@@ -1,17 +1,28 @@
 import { history, undo, redo } from "prosemirror-history";
 import { undoInputRule } from "prosemirror-inputrules";
-import Extension from "../lib/Extension";
+import { Command } from "prosemirror-state";
+import Extension, { CommandFactory } from "../lib/Extension";
 
 export default class History extends Extension {
   get name() {
     return "history";
   }
 
-  keys() {
+  commands(): Record<string, CommandFactory> {
     return {
-      "Mod-z": undo,
-      "Mod-y": redo,
-      "Shift-Mod-z": redo,
+      undo: () => undo,
+      redo: () => redo,
+    };
+  }
+
+  keys(): Record<string, Command> {
+    return {
+      "Mod-z": (state, dispatch) =>
+        this.editor.commands.undo()(state, dispatch),
+      "Mod-y": (state, dispatch) =>
+        this.editor.commands.redo()(state, dispatch),
+      "Shift-Mod-z": (state, dispatch) =>
+        this.editor.commands.redo()(state, dispatch),
       Backspace: undoInputRule,
     };
   }
