@@ -1,5 +1,6 @@
 import throttle from "lodash/throttle";
 import { observer } from "mobx-react";
+import { darken } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
@@ -342,12 +343,17 @@ const ShowMore = styled.div<{ $dir?: "rtl" | "ltr" }>`
   margin-right: ${(props) => (props.$dir !== "rtl" ? 0 : 32)}px;
   padding: 8px 12px;
   color: ${s("textTertiary")};
-  background: ${s("backgroundTertiary")};
+  background: ${(props) => darken(0.015, props.theme.backgroundSecondary)};
   cursor: var(--pointer);
   font-size: 13px;
 
+  &: ${hover} {
+    color: ${s("textSecondary")};
+    background: ${s("backgroundTertiary")};
+  }
+
   * {
-    border-color: ${s("backgroundTertiary")};
+    border-color: ${(props) => darken(0.015, props.theme.backgroundSecondary)};
   }
 `;
 
