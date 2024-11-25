@@ -602,6 +602,8 @@
   "Most recent": "Most recent",
   "Order in doc": "Order in doc",
   "Resolved": "Resolved",
+  "Show {{ count }} reply": "Show {{ count }} reply",
+  "Show {{ count }} reply_plural": "Show {{ count }} replies",
   "Error updating comment": "Terjadi kesalahan ketika memperbarui komentar",
   "Document restored": "Dokumen dipulihkan",
   "Images are still uploading.\nAre you sure you want to discard them?": "Gambar masih diunggah.\nApa Anda yakin ingin membatalkannya?",
