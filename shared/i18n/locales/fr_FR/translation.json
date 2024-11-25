@@ -602,6 +602,8 @@
   "Most recent": "Plus récent",
   "Order in doc": "Ordre dans le document",
   "Resolved": "Résolu",
+  "Show {{ count }} reply": "Show {{ count }} reply",
+  "Show {{ count }} reply_plural": "Show {{ count }} replies",
   "Error updating comment": "Erreur lors de la mise à jour du commentaire",
   "Document restored": "Document restauré",
   "Images are still uploading.\nAre you sure you want to discard them?": "Des images sont toujours en cours de téléchargement.\nÊtes-vous sûr de vouloir les supprimer ?",
