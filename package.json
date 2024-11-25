@@ -50,7 +50,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "3.693.0",
     "@aws-sdk/lib-storage": "3.693.0",
-    "@aws-sdk/s3-presigned-post": "3.693.0",
+    "@aws-sdk/s3-presigned-post": "3.699.0",
     "@aws-sdk/s3-request-presigner": "3.693.0",
     "@aws-sdk/signature-v4-crt": "^3.693.0",
     "@babel/core": "^7.24.7",
