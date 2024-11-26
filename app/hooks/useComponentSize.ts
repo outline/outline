@@ -6,10 +6,7 @@ export default function useComponentSize(
   width: number;
   height: number;
 } {
-  const [size, setSize] = useState({
-    width: ref.current?.clientWidth || 0,
-    height: ref.current?.clientHeight || 0,
-  });
+  const [size, setSize] = useState({ width: 0, height: 0 });
 
   useLayoutEffect(() => {
     const sizeObserver = new ResizeObserver((entries) => {
@@ -24,6 +21,10 @@ export default function useComponentSize(
     });
 
     if (ref.current) {
+      setSize({
+        width: ref.current?.clientWidth,
+        height: ref.current?.clientHeight,
+      });
       sizeObserver.observe(ref.current);
     }
 

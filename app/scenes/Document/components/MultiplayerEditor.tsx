@@ -273,6 +273,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     <>
       {showCache && (
         <Editor
+          editorStyle={props.editorStyle}
           embedsDisabled={props.embedsDisabled}
           defaultValue={props.defaultValue}
           extensions={props.extensions}
@@ -290,8 +291,8 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
         style={
           showCache
             ? {
+                height: 0,
                 opacity: 0,
-                pointerEvents: "none",
               }
             : undefined
         }
