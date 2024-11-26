@@ -31,11 +31,13 @@ function References({ document }: Props) {
     : [];
   const showBacklinks = !!backlinks.length;
   const showChildDocuments = !!children.length;
+  const shouldFade = React.useRef(!showBacklinks && !showChildDocuments);
   const isBacklinksTab = location.hash === "#backlinks" || !showChildDocuments;
   const height = Math.max(backlinks.length, children.length) * 40;
+  const Component = shouldFade.current ? Fade : React.Fragment;
 
   return showBacklinks || showChildDocuments ? (
-    <Fade>
+    <Component>
       <Tabs>
         {showChildDocuments && (
           <Tab to="#children" isActive={() => !isBacklinksTab}>
@@ -80,7 +82,7 @@ function References({ document }: Props) {
           </List>
         )}
       </Content>
-    </Fade>
+    </Component>
   ) : null;
 }
 
