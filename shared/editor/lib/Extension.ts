@@ -71,7 +71,7 @@ export default class Extension {
   keys(_options: {
     type?: NodeType | MarkType;
     schema: Schema;
-  }): Record<string, Command> {
+  }): Record<string, Command | CommandFactory> {
     return {};
   }
 
