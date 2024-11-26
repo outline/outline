@@ -48,13 +48,20 @@ function StarredLink({ star }: Props) {
 
   React.useEffect(() => {
     if (
+      star.documentId === ui.activeDocumentId &&
+      sidebarContext === locationSidebarContext
+    ) {
+      setExpanded(true);
+    } else if (
       star.collectionId === ui.activeCollectionId &&
       sidebarContext === locationSidebarContext
     ) {
       setExpanded(true);
     }
   }, [
+    star.documentId,
     star.collectionId,
+    ui.activeDocumentId,
     ui.activeCollectionId,
     sidebarContext,
     locationSidebarContext,

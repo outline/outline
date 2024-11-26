@@ -154,7 +154,7 @@ const NavLink = ({
     <Link
       key={isActive ? "active" : "inactive"}
       ref={linkRef}
-      onPointerDown={handleClick}
+      onClick={handleClick}
       onKeyDown={(event) => {
         if (["Enter", " "].includes(event.key)) {
           navigateTo();
