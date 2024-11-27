@@ -44,7 +44,7 @@ function Comments() {
   const isAtBottom = React.useRef(true);
   const [showJumpToRecentBtn, setShowJumpToRecentBtn] = React.useState(false);
 
-  useKeyDown("Escape", () => document && ui.collapseComments(document?.id));
+  useKeyDown("Escape", () => document && ui.set({ commentsExpanded: false }));
 
   const [draft, onSaveDraft] = usePersistedState<ProsemirrorData | undefined>(
     `draft-${document?.id}-new`,
@@ -126,7 +126,7 @@ function Comments() {
           <CommentSortMenu />
         </Flex>
       }
-      onClose={() => ui.collapseComments(document?.id)}
+      onClose={() => ui.set({ commentsExpanded: false })}
       scrollable={false}
     >
       <Scrollable
