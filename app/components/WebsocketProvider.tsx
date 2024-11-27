@@ -529,13 +529,6 @@ class WebsocketProvider extends React.Component<Props> {
       stars.remove(event.modelId);
     });
 
-    this.socket.on(
-      "user.typing",
-      (event: { userId: string; documentId: string; commentId: string }) => {
-        comments.setTyping(event);
-      }
-    );
-
     this.socket.on("collections.add_user", async (event: Membership) => {
       memberships.add(event);
       await collections.fetch(event.collectionId, {

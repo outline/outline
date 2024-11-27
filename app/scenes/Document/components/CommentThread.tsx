@@ -1,4 +1,3 @@
-import throttle from "lodash/throttle";
 import { observer } from "mobx-react";
 import { darken } from "polished";
 import * as React from "react";
@@ -15,11 +14,7 @@ import { Avatar, AvatarSize } from "~/components/Avatar";
 import { useDocumentContext } from "~/components/DocumentContext";
 import Facepile from "~/components/Facepile";
 import Fade from "~/components/Fade";
-import Flex from "~/components/Flex";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
-import Typing from "~/components/Typing";
-import { WebsocketContext } from "~/components/WebsocketProvider";
-import useCurrentUser from "~/hooks/useCurrentUser";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 import usePersistedState from "~/hooks/usePersistedState";
 import usePolicy from "~/hooks/usePolicy";
@@ -48,26 +43,6 @@ type Props = {
   collapseNumDisplayed?: number;
 };
 
-function useTypingIndicator({
-  document,
-  comment,
-}: Pick<Props, "document" | "comment">): [undefined, () => void] {
-  const socket = React.useContext(WebsocketContext);
-
-  const setIsTyping = React.useMemo(
-    () =>
-      throttle(() => {
-        socket?.emit("typing", {
-          documentId: document.id,
-          commentId: comment.id,
-        });
-      }, 500),
-    [socket, document.id, comment.id]
-  );
-
-  return [undefined, setIsTyping];
-}
-
 function CommentThread({
   comment: thread,
   document,
@@ -83,15 +58,11 @@ function CommentThread({
   const { comments } = useStores();
   const topRef = React.useRef<HTMLDivElement>(null);
   const replyRef = React.useRef<HTMLDivElement>(null);
-  const user = useCurrentUser();
   const { t } = useTranslation();
   const history = useHistory();
   const location = useLocation();
   const [autoFocus, setAutoFocus] = React.useState(thread.isNew);
-  const [, setIsTyping] = useTypingIndicator({
-    document,
-    comment: thread,
-  });
+
   const can = usePolicy(document);
 
   const [draft, onSaveDraft] = usePersistedState<ProsemirrorData | undefined>(
@@ -277,15 +248,6 @@ function CommentThread({
         );
       })}
 
-      {thread.currentlyTypingUsers
-        .filter((typing) => typing.id !== user.id)
-        .map((typing) => (
-          <Flex gap={8} key={typing.id}>
-            <Avatar model={typing} size={24} />
-            <Typing />
-          </Flex>
-        ))}
-
       <ResizingHeightContainer hideOverflow={false} ref={replyRef}>
         {(focused || draft || commentsInThread.length === 0) && canReply && (
           <Fade timing={100}>
@@ -295,7 +257,6 @@ function CommentThread({
               draft={draft}
               documentId={document.id}
               thread={thread}
-              onTyping={setIsTyping}
               standalone={commentsInThread.length === 0}
               dir={document.dir}
               autoFocus={autoFocus}
