@@ -142,6 +142,9 @@ class Team extends ParanoidModel<
   @Column
   memberCollectionCreate: boolean;
 
+  @Column
+  approximateTotalAttachmentsSize: number;
+
   @Default(true)
   @Column
   memberTeamCreate: boolean;
