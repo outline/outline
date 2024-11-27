@@ -21,23 +21,27 @@ export default class UpdateTeamsAttachmentsSizeTask extends BaseTask<Props> {
 
     // Find unique attachment teamIds created in the last day, update only
     // those teams' approximate attachment sizes
-    const rows = await Attachment.findAll({
-      attributes: [
-        [sequelize.fn("DISTINCT", sequelize.col("teamId")), "teamId"],
-      ],
-      where: {
-        createdAt: {
-          [Op.gt]: subDays(new Date(), 1),
+    await Attachment.findAllInBatches<Attachment>(
+      {
+        attributes: [
+          [sequelize.fn("DISTINCT", sequelize.col("teamId")), "teamId"],
+        ],
+        where: {
+          createdAt: {
+            [Op.gt]: subDays(new Date(), 1),
+          },
         },
+        batchLimit: 100,
+        raw: true,
       },
-      limit,
-      raw: true,
-    });
-    const teamIds = rows.map((row) => row.teamId);
+      async (rows) => {
+        const teamIds = rows.map((row) => row.teamId);
 
-    for (const teamId of teamIds) {
-      await UpdateTeamAttachmentsSizeTask.schedule({ teamId });
-    }
+        for (const teamId of teamIds) {
+          await UpdateTeamAttachmentsSizeTask.schedule({ teamId });
+        }
+      }
+    );
   }
 
   public get options() {
