@@ -7,7 +7,7 @@ import { getCookieDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { Event, Collection, View } from "@server/models";
-import { AuthenticationResult } from "@server/types";
+import { AuthenticationResult, AuthenticationType } from "@server/types";
 
 /**
  * Parse and return the details from the "sessions" cookie in the request, if
@@ -68,6 +68,7 @@ export async function signIn(
     actorId: user.id,
     userId: user.id,
     teamId: team.id,
+    authType: AuthenticationType.APP,
     data: {
       name: user.name,
       service,
