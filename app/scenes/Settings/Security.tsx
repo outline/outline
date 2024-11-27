@@ -221,9 +221,6 @@ function Security() {
       )}
 
       {!data.inviteRequired && (
-        <DomainManagement onSuccess={showSuccessMessage} />
-      )}
-      {!data.inviteRequired && (
         <SettingRow
           label={t("Default role")}
           name="defaultUserRole"
@@ -251,6 +248,8 @@ function Security() {
           />
         </SettingRow>
       )}
+
+      <DomainManagement onSuccess={showSuccessMessage} />
 
       <h2>{t("Behavior")}</h2>
       <SettingRow

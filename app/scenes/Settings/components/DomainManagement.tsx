@@ -5,7 +5,6 @@ import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
 import Button from "~/components/Button";
-import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import NudeButton from "~/components/NudeButton";
@@ -110,29 +109,25 @@ function DomainManagement({ onSuccess }: Props) {
       <Flex justify="space-between" gap={4} style={{ flexWrap: "wrap" }}>
         {!allowedDomains.length ||
         allowedDomains[allowedDomains.length - 1] !== "" ? (
-          <Fade>
-            <Button type="button" onClick={handleAddDomain} neutral>
-              {allowedDomains.length ? (
-                <Trans>Add another</Trans>
-              ) : (
-                <Trans>Add a domain</Trans>
-              )}
-            </Button>
-          </Fade>
+          <Button type="button" onClick={handleAddDomain} neutral>
+            {allowedDomains.length ? (
+              <Trans>Add another</Trans>
+            ) : (
+              <Trans>Add a domain</Trans>
+            )}
+          </Button>
         ) : (
           <span />
         )}
 
         {showSaveChanges && (
-          <Fade>
-            <Button
-              type="button"
-              onClick={handleSaveDomains}
-              disabled={team.isSaving}
-            >
-              <Trans>Save changes</Trans>
-            </Button>
-          </Fade>
+          <Button
+            type="button"
+            onClick={handleSaveDomains}
+            disabled={team.isSaving}
+          >
+            <Trans>Save changes</Trans>
+          </Button>
         )}
       </Flex>
     </SettingRow>
