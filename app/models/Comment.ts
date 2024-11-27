@@ -22,10 +22,6 @@ class Comment extends Model {
   @observable
   typingUsers: Map<string, Date> = new Map();
 
-  @Field
-  @observable
-  id: string;
-
   /**
    * The Prosemirror data representing the comment content
    */
