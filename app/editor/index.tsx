@@ -4,7 +4,6 @@ import { darken, transparentize } from "polished";
 import { baseKeymap } from "prosemirror-commands";
 import { dropCursor } from "prosemirror-dropcursor";
 import { gapCursor } from "prosemirror-gapcursor";
-import { redo, undo } from "prosemirror-history";
 import { inputRules, InputRule } from "prosemirror-inputrules";
 import { keymap } from "prosemirror-keymap";
 import { MarkdownParser } from "prosemirror-markdown";
@@ -607,20 +606,6 @@ export class Editor extends React.PureComponent<
       files,
       this.props
     );
-
-  /**
-   * Undo the last change in the editor.
-   *
-   * @returns True if the undo was successful
-   */
-  public undo = () => undo(this.view.state, this.view.dispatch, this.view);
-
-  /**
-   * Redo the last change in the editor.
-   *
-   * @returns True if the change was successful
-   */
-  public redo = () => redo(this.view.state, this.view.dispatch, this.view);
 
   /**
    * Returns true if the trimmed content of the editor is an empty string.
