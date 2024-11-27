@@ -412,7 +412,8 @@ class DocumentScene extends React.Component<Props> {
       (team && team.documentEmbeds === false) || document.embedsDisabled;
 
     const showContents =
-      ui.tocVisible === true || (isShare && ui.tocVisible !== false);
+      (ui.tocVisible === true && !document.isTemplate) ||
+      (isShare && ui.tocVisible !== false);
     const tocPos =
       tocPosition ??
       ((team?.getPreference(TeamPreference.TocPosition) as TOCPosition) ||
@@ -567,6 +568,7 @@ class DocumentScene extends React.Component<Props> {
                         )}
                         {!isShare && !revision && (
                           <>
+                            <p>test</p>
                             <MarkAsViewed document={document} />
                             <ReferencesWrapper>
                               <References document={document} />
