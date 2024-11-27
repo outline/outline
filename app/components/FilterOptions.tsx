@@ -229,7 +229,7 @@ const SearchInput = styled(Input)`
   ${Outline} {
     border: none;
     border-radius: 0;
-    border-bottom: 1px solid ${s("inputBorder")};
+    border-bottom: 1px solid rgb(34 40 52);
     background: ${s("menuBackground")};
   }
 

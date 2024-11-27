@@ -262,22 +262,6 @@ export const Position = styled.div`
     transition-property: outline-width;
     transition-duration: 0;
     outline: none;
-
-    &:after {
-      content: "";
-      position: absolute;
-      top: 1px;
-      left: 1px;
-      right: 1px;
-      bottom: 1px;
-      pointer-events: none;
-      border-radius: 4px;
-
-      outline-color: ${s("accent")};
-      outline-width: initial;
-      outline-offset: -1px;
-      outline-style: solid;
-    }
   }
 
   /*
