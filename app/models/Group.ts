@@ -8,10 +8,6 @@ class Group extends Model {
 
   @Field
   @observable
-  id: string;
-
-  @Field
-  @observable
   name: string;
 
   @observable

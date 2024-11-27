@@ -18,10 +18,6 @@ import Relation from "./decorators/Relation";
 class Notification extends Model {
   static modelName = "Notification";
 
-  @Field
-  @observable
-  id: string;
-
   /**
    * The date the notification was marked as read.
    */
