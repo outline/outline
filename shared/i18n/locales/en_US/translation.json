@@ -228,6 +228,7 @@
   "Currently viewing": "Currently viewing",
   "Viewed {{ timeAgo }}": "Viewed {{ timeAgo }}",
   "Copy of {{ documentName }}": "Copy of {{ documentName }}",
+  "Destination": "Destination",
   "Title": "Title",
   "Include nested documents": "Include nested documents",
   "Module failed to load": "Module failed to load",
