@@ -13,6 +13,7 @@ type Props = {
 export default class UpdateTeamAttachmentsSizeTask extends BaseTask<Props> {
   public async perform(props: Props) {
     const sizeInBytes = await Attachment.getTotalSizeForTeam(props.teamId);
+    const sizeInMb = sizeInBytes / 1024 / 1024;
 
     await sequelize.transaction(async (transaction) => {
       const team = await Team.findByPk(props.teamId, {
@@ -22,7 +23,7 @@ export default class UpdateTeamAttachmentsSizeTask extends BaseTask<Props> {
 
       if (sizeInBytes) {
         await team.update(
-          { approximateTotalAttachmentsSize: sizeInBytes },
+          { approximateTotalAttachmentsSize: sizeInMb },
           { transaction }
         );
       }

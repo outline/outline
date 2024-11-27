@@ -142,9 +142,6 @@ class Team extends ParanoidModel<
   @Column
   memberCollectionCreate: boolean;
 
-  @Column
-  approximateTotalAttachmentsSize: number;
-
   @Default(true)
   @Column
   memberTeamCreate: boolean;
@@ -153,6 +150,10 @@ class Team extends ParanoidModel<
   @IsIn([[UserRole.Viewer, UserRole.Member]])
   @Column(DataType.STRING)
   defaultUserRole: UserRole;
+
+  /** Approximate size in MB of all attachments in the team. */
+  @Column
+  approximateTotalAttachmentsSize: number;
 
   @AllowNull
   @Column(DataType.JSONB)
