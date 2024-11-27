@@ -75,7 +75,7 @@ class UiStore {
   sidebarCollapsed = false;
 
   @observable
-  commentsExpanded: string[] = [];
+  commentsExpanded = false;
 
   @observable
   sidebarIsResizing = false;
@@ -99,7 +99,7 @@ class UiStore {
     this.sidebarRightWidth =
       data.sidebarRightWidth || defaultTheme.sidebarRightWidth;
     this.tocVisible = data.tocVisible;
-    this.commentsExpanded = data.commentsExpanded || [];
+    this.commentsExpanded = !!data.commentsExpanded;
     this.theme = data.theme || Theme.System;
 
     // system theme listeners
@@ -218,28 +218,8 @@ class UiStore {
   };
 
   @action
-  collapseComments = (documentId: string) => {
-    this.commentsExpanded = this.commentsExpanded.filter(
-      (id) => id !== documentId
-    );
-    this.persist();
-  };
-
-  @action
-  expandComments = (documentId: string) => {
-    if (!this.commentsExpanded.includes(documentId)) {
-      this.commentsExpanded.push(documentId);
-    }
-    this.persist();
-  };
-
-  @action
-  toggleComments = (documentId: string) => {
-    if (this.commentsExpanded.includes(documentId)) {
-      this.collapseComments(documentId);
-    } else {
-      this.expandComments(documentId);
-    }
+  toggleComments = () => {
+    this.set({ commentsExpanded: !this.commentsExpanded });
   };
 
   @action

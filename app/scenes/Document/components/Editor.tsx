@@ -116,7 +116,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
           state: { commentId: focusedComment.id },
         });
       }
-      ui.expandComments(document.id);
+      ui.set({ commentsExpanded: true });
     }
   }, [focusedComment, ui, document.id, history, params]);
 
