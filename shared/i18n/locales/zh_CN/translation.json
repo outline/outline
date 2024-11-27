@@ -600,7 +600,7 @@
   "New comments": "新建评论",
   "Sort comments": "排序评论",
   "Most recent": "最近的",
-  "Order in doc": "Order in doc",
+  "Order in doc": "按文档中的顺序排序",
   "Resolved": "已解决",
   "Show {{ count }} reply": "显示 {{ count }} 回复",
   "Show {{ count }} reply_plural": "显示 {{ count }} 回复",
