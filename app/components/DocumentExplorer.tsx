@@ -31,15 +31,15 @@ import { ancestors, descendants } from "~/utils/tree";
 type Props = {
   /** Action taken upon submission of selected item, could be publish, move etc. */
   onSubmit: () => void;
-
   /** A side-effect of item selection */
   onSelect: (item: NavigationNode | null) => void;
-
   /** Items to be shown in explorer */
   items: NavigationNode[];
+  /** Optional additional class name */
+  className?: string;
 };
 
-function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
+function DocumentExplorer({ onSubmit, onSelect, items, className }: Props) {
   const isMobile = useMobile();
   const { collections, documents } = useStores();
   const { t } = useTranslation();
@@ -363,7 +363,7 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
   });
 
   return (
-    <Container tabIndex={-1} onKeyDown={handleKeyDown}>
+    <Container tabIndex={-1} onKeyDown={handleKeyDown} className={className}>
       <ListSearch
         ref={inputSearchRef}
         onChange={handleSearch}
@@ -412,7 +412,7 @@ const FlexContainer = styled(Flex)`
   justify-content: center;
 `;
 
-const ListSearch = styled(InputSearch)`
+export const ListSearch = styled(InputSearch)`
   ${Outline} {
     border-radius: 16px;
   }
@@ -421,7 +421,7 @@ const ListSearch = styled(InputSearch)`
   padding-right: 24px;
 `;
 
-const ListContainer = styled.div`
+export const ListContainer = styled.div`
   height: 65vh;
 
   ${breakpoint("tablet")`
