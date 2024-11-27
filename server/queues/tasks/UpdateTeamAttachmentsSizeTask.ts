@@ -1,5 +1,4 @@
 import { Attachment, Team } from "@server/models";
-import { sequelize } from "@server/storage/database";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {
@@ -11,22 +10,16 @@ type Props = {
  * A task that updates the team stats.
  */
 export default class UpdateTeamAttachmentsSizeTask extends BaseTask<Props> {
-  public async perform(props: Props) {
-    const sizeInBytes = await Attachment.getTotalSizeForTeam(props.teamId);
+  public async perform({ teamId }: Props) {
+    const sizeInBytes = await Attachment.getTotalSizeForTeam(teamId);
+    if (!sizeInBytes) {
+      return;
+    }
 
-    await sequelize.transaction(async (transaction) => {
-      const team = await Team.findByPk(props.teamId, {
-        rejectOnEmpty: true,
-        lock: transaction.LOCK.UPDATE,
-      });
-
-      if (sizeInBytes) {
-        await team.update(
-          { approximateTotalAttachmentsSize: sizeInBytes },
-          { transaction }
-        );
-      }
-    });
+    await Team.update(
+      { approximateTotalAttachmentsSize: sizeInBytes },
+      { where: { id: teamId } }
+    );
   }
 
   public get options() {
