@@ -35,11 +35,19 @@ type Props = {
   onSelect: (item: NavigationNode | null) => void;
   /** Items to be shown in explorer */
   items: NavigationNode[];
+  /** Automatically expand to and select item with the given id */
+  initialSelectionId?: string;
   /** Optional additional class name */
   className?: string;
 };
 
-function DocumentExplorer({ onSubmit, onSelect, items, className }: Props) {
+function DocumentExplorer({
+  onSubmit,
+  onSelect,
+  items,
+  initialSelectionId,
+  className,
+}: Props) {
   const isMobile = useMobile();
   const { collections, documents } = useStores();
   const { t } = useTranslation();
@@ -47,12 +55,26 @@ function DocumentExplorer({ onSubmit, onSelect, items, className }: Props) {
 
   const [searchTerm, setSearchTerm] = React.useState<string>();
   const [selectedNode, selectNode] = React.useState<NavigationNode | null>(
-    null
+    () => {
+      const node =
+        initialSelectionId &&
+        items.find((item) => item.id === initialSelectionId);
+      return node || null;
+    }
   );
   const [initialScrollOffset, setInitialScrollOffset] =
     React.useState<number>(0);
   const [activeNode, setActiveNode] = React.useState<number>(0);
-  const [expandedNodes, setExpandedNodes] = React.useState<string[]>([]);
+  const [expandedNodes, setExpandedNodes] = React.useState<string[]>(() => {
+    if (initialSelectionId) {
+      const node = items.find((item) => item.id === initialSelectionId);
+      if (node) {
+        return ancestors(node).map((node) => node.id);
+      }
+    }
+    return [];
+  });
+
   const [itemRefs, setItemRefs] = React.useState<
     React.RefObject<HTMLSpanElement>[]
   >([]);
@@ -93,6 +115,15 @@ function DocumentExplorer({ onSubmit, onSelect, items, className }: Props) {
   React.useEffect(() => {
     onSelect(selectedNode);
   }, [selectedNode, onSelect]);
+
+  React.useEffect(() => {
+    if (initialSelectionId && selectedNode && listRef) {
+      const index = nodes.findIndex((node) => node.id === selectedNode.id);
+      if (index > 0) {
+        setTimeout(() => listRef.current?.scrollToItem(index, "center"), 50);
+      }
+    }
+  }, []);
 
   function getNodes() {
     function includeDescendants(item: NavigationNode): NavigationNode[] {

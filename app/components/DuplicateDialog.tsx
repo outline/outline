@@ -99,6 +99,9 @@ function DuplicateDialog({ document, onSubmit }: Props) {
         items={items}
         onSubmit={noOp}
         onSelect={selectPath}
+        initialSelectionId={
+          document.parentDocumentId || document.collectionId || ""
+        }
       />
       <Input
         autoFocus
