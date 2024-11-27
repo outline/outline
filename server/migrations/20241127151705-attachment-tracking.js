@@ -4,7 +4,7 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.addColumn("teams", "approximateTotalAttachmentsSize", {
-      type: Sequelize.INTEGER,
+      type: Sequelize.BIGINT,
       defaultValue: 0,
     });
   },

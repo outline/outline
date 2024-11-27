@@ -25,6 +25,7 @@ import {
   AfterUpdate,
   BeforeUpdate,
   BeforeCreate,
+  IsNumeric,
 } from "sequelize-typescript";
 import { TeamPreferenceDefaults } from "@shared/constants";
 import { TeamPreference, TeamPreferences, UserRole } from "@shared/types";
@@ -151,8 +152,9 @@ class Team extends ParanoidModel<
   @Column(DataType.STRING)
   defaultUserRole: UserRole;
 
-  /** Approximate size in MB of all attachments in the team. */
-  @Column
+  /** Approximate size in bytes of all attachments in the team. */
+  @IsNumeric
+  @Column(DataType.BIGINT)
   approximateTotalAttachmentsSize: number;
 
   @AllowNull
