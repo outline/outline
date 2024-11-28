@@ -25,7 +25,7 @@ type Props = {
   onSubmit: (documents: Document[]) => void;
 };
 
-function DuplicateDialog({ document, onSubmit }: Props) {
+function DocumentCopy({ document, onSubmit }: Props) {
   const { t } = useTranslation();
   const { policies } = useStores();
   const collectionTrees = useCollectionTrees();
@@ -156,4 +156,4 @@ const StyledDocumentExplorer = styled(DocumentExplorer)`
   }
 `;
 
-export default observer(DuplicateDialog);
+export default observer(DocumentCopy);
