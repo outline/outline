@@ -1,16 +1,17 @@
 import flatten from "lodash/flatten";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
+import { toast } from "sonner";
+import styled from "styled-components";
 import { NavigationNode } from "@shared/types";
-import { DocumentValidation } from "@shared/validations";
 import Document from "~/models/Document";
-import ConfirmationDialog from "~/components/ConfirmationDialog";
+import { FlexContainer, Footer, StyledText } from "~/scenes/DocumentMove";
+import Button from "~/components/Button";
 import DocumentExplorer from "~/components/DocumentExplorer";
 import useCollectionTrees from "~/hooks/useCollectionTrees";
 import useStores from "~/hooks/useStores";
 import { flattenTree } from "~/utils/tree";
-import Input, { LabelText } from "./Input";
 import Switch from "./Switch";
 import Text from "./Text";
 
@@ -29,8 +30,9 @@ function DocumentCopy({ document, onSubmit }: Props) {
   });
   const [publish, setPublish] = React.useState<boolean>(!!document.publishedAt);
   const [recursive, setRecursive] = React.useState<boolean>(true);
-  const [title, setTitle] = React.useState<string>(defaultTitle);
-  const [path, selectPath] = React.useState<NavigationNode | null>(null);
+  const [selectedPath, selectPath] = React.useState<NavigationNode | null>(
+    null
+  );
 
   const items = React.useMemo(() => {
     const nodes = flatten(collectionTrees.map(flattenTree)).filter((node) =>
@@ -47,8 +49,6 @@ function DocumentCopy({ document, onSubmit }: Props) {
     return nodes;
   }, [policies, collectionTrees, document.isTemplate]);
 
-  const noOp = () => {};
-
   const handlePublishChange = React.useCallback(
     (ev: React.ChangeEvent<HTMLInputElement>) => {
       setPublish(ev.target.checked);
@@ -63,78 +63,92 @@ function DocumentCopy({ document, onSubmit }: Props) {
     []
   );
 
-  const handleTitleChange = React.useCallback(
-    (ev: React.ChangeEvent<HTMLInputElement>) => {
-      setTitle(ev.target.value);
-    },
-    []
-  );
+  const copy = async () => {
+    if (!selectedPath) {
+      toast.message(t("Select a location to copy"));
+      return;
+    }
 
-  const handleSubmit = async () => {
-    if (path) {
+    try {
       const result = await document.duplicate({
         publish,
         recursive,
-        title,
-        collectionId: path.collectionId,
-        ...(path.type === "document" ? { parentDocumentId: path.id } : {}),
+        title: defaultTitle,
+        collectionId: selectedPath.collectionId,
+        ...(selectedPath.type === "document"
+          ? { parentDocumentId: selectedPath.id }
+          : {}),
       });
+
+      toast.success(t("Document copied"));
       onSubmit(result);
+    } catch (err) {
+      toast.error(t("Couldn’t copy the document, try again?"));
     }
   };
 
   return (
-    <ConfirmationDialog
-      onSubmit={handleSubmit}
-      submitText={t("Duplicate")}
-      disabled={!path}
-    >
-      <LabelText>{t("Destination")}</LabelText>
+    <FlexContainer column>
       <DocumentExplorer
         items={items}
-        onSubmit={noOp}
+        onSubmit={copy}
         onSelect={selectPath}
         initialSelectionId={
           document.parentDocumentId || document.collectionId || ""
         }
       />
-      <Input
-        autoFocus
-        autoSelect
-        name="title"
-        label={t("Title")}
-        onChange={handleTitleChange}
-        maxLength={DocumentValidation.maxTitleLength}
-        defaultValue={defaultTitle}
-      />
-      {!document.isTemplate && (
-        <>
-          {document.collectionId && (
-            <Text size="small">
-              <Switch
-                name="publish"
-                label={t("Publish")}
-                labelPosition="right"
-                checked={publish}
-                onChange={handlePublishChange}
-              />
-            </Text>
+      <OptionsContainer>
+        {!document.isTemplate && (
+          <>
+            {document.collectionId && (
+              <Text size="small">
+                <Switch
+                  name="publish"
+                  label={t("Publish")}
+                  labelPosition="right"
+                  checked={publish}
+                  onChange={handlePublishChange}
+                />
+              </Text>
+            )}
+            {document.publishedAt && document.childDocuments.length > 0 && (
+              <Text size="small">
+                <Switch
+                  name="recursive"
+                  label={t("Include nested documents")}
+                  labelPosition="right"
+                  checked={recursive}
+                  onChange={handleRecursiveChange}
+                />
+              </Text>
+            )}
+          </>
+        )}
+      </OptionsContainer>
+      <Footer justify="space-between" align="center" gap={8}>
+        <StyledText type="secondary">
+          {selectedPath ? (
+            <Trans
+              defaults="Copy to <em>{{ location }}</em>"
+              values={{ location: selectedPath.title }}
+              components={{ em: <strong /> }}
+            />
+          ) : (
+            t("Select a location to copy")
           )}
-          {document.publishedAt && document.childDocuments.length > 0 && (
-            <Text size="small">
-              <Switch
-                name="recursive"
-                label={t("Include nested documents")}
-                labelPosition="right"
-                checked={recursive}
-                onChange={handleRecursiveChange}
-              />
-            </Text>
-          )}
-        </>
-      )}
-    </ConfirmationDialog>
+        </StyledText>
+        <Button disabled={!selectedPath} onClick={copy}>
+          {t("Copy")}
+        </Button>
+      </Footer>
+    </FlexContainer>
   );
 }
+
+const OptionsContainer = styled.div`
+  margin: 16px 0 8px 0;
+  padding-left: 24px;
+  padding-right: 24px;
+`;
 
 export default observer(DocumentCopy);
