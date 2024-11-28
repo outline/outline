@@ -2,16 +2,11 @@ import flatten from "lodash/flatten";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import { NavigationNode } from "@shared/types";
 import { DocumentValidation } from "@shared/validations";
 import Document from "~/models/Document";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
-import DocumentExplorer, {
-  ListContainer,
-  ListSearch,
-} from "~/components/DocumentExplorer";
+import DocumentExplorer from "~/components/DocumentExplorer";
 import useCollectionTrees from "~/hooks/useCollectionTrees";
 import useStores from "~/hooks/useStores";
 import { flattenTree } from "~/utils/tree";
@@ -95,7 +90,7 @@ function DocumentCopy({ document, onSubmit }: Props) {
       disabled={!path}
     >
       <LabelText>{t("Destination")}</LabelText>
-      <StyledDocumentExplorer
+      <DocumentExplorer
         items={items}
         onSubmit={noOp}
         onSelect={selectPath}
@@ -141,19 +136,5 @@ function DocumentCopy({ document, onSubmit }: Props) {
     </ConfirmationDialog>
   );
 }
-
-const StyledDocumentExplorer = styled(DocumentExplorer)`
-  ${ListSearch} {
-    padding: 0;
-  }
-
-  ${ListContainer} {
-    // Reduce height to make room for title input
-    height: 40vh;
-    ${breakpoint("tablet")`
-      height: 20vh;
-    `}
-  }
-`;
 
 export default observer(DocumentCopy);

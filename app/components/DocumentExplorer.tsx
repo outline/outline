@@ -37,8 +37,6 @@ type Props = {
   items: NavigationNode[];
   /** Automatically expand to and select item with the given id */
   initialSelectionId?: string;
-  /** Optional additional class name */
-  className?: string;
 };
 
 function DocumentExplorer({
@@ -46,7 +44,6 @@ function DocumentExplorer({
   onSelect,
   items,
   initialSelectionId,
-  className,
 }: Props) {
   const isMobile = useMobile();
   const { collections, documents } = useStores();
@@ -394,7 +391,7 @@ function DocumentExplorer({
   });
 
   return (
-    <Container tabIndex={-1} onKeyDown={handleKeyDown} className={className}>
+    <Container tabIndex={-1} onKeyDown={handleKeyDown}>
       <ListSearch
         ref={inputSearchRef}
         onChange={handleSearch}
@@ -443,7 +440,7 @@ const FlexContainer = styled(Flex)`
   justify-content: center;
 `;
 
-export const ListSearch = styled(InputSearch)`
+const ListSearch = styled(InputSearch)`
   ${Outline} {
     border-radius: 16px;
   }
@@ -452,7 +449,7 @@ export const ListSearch = styled(InputSearch)`
   padding-right: 24px;
 `;
 
-export const ListContainer = styled.div`
+const ListContainer = styled.div`
   height: 65vh;
 
   ${breakpoint("tablet")`
