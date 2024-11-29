@@ -568,7 +568,6 @@ class DocumentScene extends React.Component<Props> {
                         )}
                         {!isShare && !revision && (
                           <>
-                            <p>test</p>
                             <MarkAsViewed document={document} />
                             <ReferencesWrapper>
                               <References document={document} />
