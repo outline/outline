@@ -2246,6 +2246,28 @@ describe("#documents.archived", () => {
     expect(body.data.length).toEqual(1);
   });
 
+  it("should return detached archived documents when containing collection is deleted", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({ teamId: user.teamId });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+
+    await collection.destroy({ hooks: false });
+    await document.update({ archivedAt: new Date(), collectionId: null });
+
+    const res = await server.post("/api/documents.archived", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toHaveLength(1);
+  });
+
   it("should not return deleted documents", async () => {
     const user = await buildUser();
     const document = await buildDocument({

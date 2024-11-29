@@ -343,7 +343,11 @@ router.post(
       const collectionIds = await user.collectionIds();
       where = {
         ...where,
-        collectionId: collectionIds,
+        collectionId: can(user, "readDocument", user.team)
+          ? {
+              [Op.or]: [{ [Op.in]: collectionIds }, { [Op.is]: null }],
+            }
+          : collectionIds,
       };
     }
 
