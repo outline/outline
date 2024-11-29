@@ -11,7 +11,7 @@ const useTestEmailService = env.isDevelopment && !env.SMTP_USERNAME;
 
 type SendMailOptions = {
   to: string;
-  from?: EmailAddress | string;
+  from: EmailAddress;
   replyTo?: string;
   messageId?: string;
   references?: string[];
@@ -143,7 +143,7 @@ export class Mailer {
       Logger.info("email", `Sending email "${data.subject}" to ${data.to}`);
 
       const info = await transporter.sendMail({
-        from: env.isCloudHosted && data.from ? data.from : env.SMTP_FROM_EMAIL,
+        from: data.from,
         replyTo: data.replyTo ?? env.SMTP_REPLY_EMAIL ?? env.SMTP_FROM_EMAIL,
         to: data.to,
         messageId: data.messageId,
