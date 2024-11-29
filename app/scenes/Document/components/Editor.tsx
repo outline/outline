@@ -114,7 +114,10 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         history.replace({
           search: focusedComment.isResolved ? "resolved=" : "",
           pathname: location.pathname,
-          state: { commentId: focusedComment.id },
+          state: {
+            ...(location.state as Record<string, unknown>),
+            commentId: focusedComment.id,
+          },
         });
       }
       ui.set({ commentsExpanded: true });
@@ -172,10 +175,10 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
 
       history.replace({
         pathname: window.location.pathname.replace(/\/history$/, ""),
-        state: { commentId },
+        state: { ...(location.state as Record<string, unknown>), commentId },
       });
     },
-    [comments, user?.id, props.id, history]
+    [comments, user?.id, props.id, history, location]
   );
 
   // Soft delete the Comment model when associated mark is totally removed.
