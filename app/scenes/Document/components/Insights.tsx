@@ -38,7 +38,10 @@ function Insights() {
 
   const onCloseInsights = () => {
     if (document) {
-      history.push(documentPath(document));
+      history.push({
+        pathname: documentPath(document),
+        state: history.location.state,
+      });
     }
   };
 

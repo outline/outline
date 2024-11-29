@@ -388,7 +388,10 @@ class DocumentScene extends React.Component<Props> {
 
   goBack = () => {
     if (!this.props.readOnly) {
-      this.props.history.push(this.props.document.url);
+      this.props.history.push({
+        pathname: this.props.document.url,
+        state: this.props.location.state,
+      });
     }
   };
 

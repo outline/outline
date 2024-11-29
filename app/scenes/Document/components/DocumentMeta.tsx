@@ -10,6 +10,7 @@ import Document from "~/models/Document";
 import Revision from "~/models/Revision";
 import DocumentMeta from "~/components/DocumentMeta";
 import Fade from "~/components/Fade";
+import { useLocationState } from "~/components/Sidebar/hooks/useLocationState";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -27,6 +28,7 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
   const { views, comments, ui } = useStores();
   const { t } = useTranslation();
   const match = useRouteMatch();
+  const locationSidebarContext = useLocationState();
   const team = useCurrentTeam();
   const documentViews = useObserver(() => views.inDocument(document.id));
   const totalViewers = documentViews.length;
@@ -45,7 +47,10 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
         <>
           &nbsp;•&nbsp;
           <CommentLink
-            to={documentPath(document)}
+            to={{
+              pathname: documentPath(document),
+              state: { sidebarContext: locationSidebarContext },
+            }}
             onClick={() => ui.toggleComments(document.id)}
           >
             <CommentIcon size={18} />
@@ -62,9 +67,13 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
         <Wrapper>
           &nbsp;•&nbsp;
           <Link
-            to={
-              match.url === insightsPath ? documentPath(document) : insightsPath
-            }
+            to={{
+              pathname:
+                match.url === insightsPath
+                  ? documentPath(document)
+                  : insightsPath,
+              state: { sidebarContext: locationSidebarContext },
+            }}
           >
             {t("Viewed by")}{" "}
             {onlyYou

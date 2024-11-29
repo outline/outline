@@ -55,7 +55,10 @@ export const resolveCommentFactory = ({
 
       history.replace({
         ...history.location,
-        state: null,
+        state: {
+          ...(history.location.state as Record<string, unknown>),
+          commentId: undefined,
+        },
       });
 
       onResolve();
@@ -83,7 +86,10 @@ export const unresolveCommentFactory = ({
 
       history.replace({
         ...history.location,
-        state: null,
+        state: {
+          ...(history.location.state as Record<string, unknown>),
+          commentId: undefined,
+        },
       });
 
       onUnresolve();

@@ -39,6 +39,7 @@ const CommentSortMenu = () => {
         resolved: "",
       }),
       pathname: location.pathname,
+      state: location.state,
     });
   };
 
@@ -49,6 +50,7 @@ const CommentSortMenu = () => {
         resolved: undefined,
       }),
       pathname: location.pathname,
+      state: location.state,
     });
   };
 

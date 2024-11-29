@@ -13,6 +13,7 @@ import { RefHandle } from "~/components/ContentEditable";
 import { useDocumentContext } from "~/components/DocumentContext";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
+import { useLocationState } from "~/components/Sidebar/hooks/useLocationState";
 import BlockMenuExtension from "~/editor/extensions/BlockMenu";
 import ClipboardTextSerializer from "~/editor/extensions/ClipboardTextSerializer";
 import EmojiMenuExtension from "~/editor/extensions/EmojiMenu";
@@ -81,6 +82,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const user = useCurrentUser({ rejectOnEmpty: false });
   const team = useCurrentTeam({ rejectOnEmpty: false });
   const history = useHistory();
+  const locationSidebarContext = useLocationState();
   const {
     document,
     onChangeTitle,
@@ -130,10 +132,10 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     (commentId: string) => {
       history.replace({
         pathname: window.location.pathname.replace(/\/history$/, ""),
-        state: { commentId },
+        state: { commentId, sidebarContext: locationSidebarContext },
       });
     },
-    [history]
+    [history, locationSidebarContext]
   );
 
   // Create a Comment model in local store when a comment mark is created, this
@@ -225,11 +227,13 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       {!shareId && (
         <DocumentMeta
           document={document}
-          to={
-            match.path === matchDocumentHistory
-              ? documentPath(document)
-              : documentHistoryPath(document)
-          }
+          to={{
+            pathname:
+              match.path === matchDocumentHistory
+                ? documentPath(document)
+                : documentHistoryPath(document),
+            state: { sidebarContext: locationSidebarContext },
+          }}
           rtl={
             titleRef.current?.getComputedDirection() === "rtl" ? true : false
           }

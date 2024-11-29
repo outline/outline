@@ -66,7 +66,10 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
       );
       to = {
         pathname: documentHistoryPath(document, event.modelId || "latest"),
-        state: { retainScrollPosition: true },
+        state: {
+          ...(location.state as Record<string, unknown>),
+          retainScrollPosition: true,
+        },
       };
       break;
 

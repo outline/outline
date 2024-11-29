@@ -28,7 +28,10 @@ function History() {
 
   const onCloseHistory = () => {
     if (document) {
-      history.push(documentPath(document));
+      history.push({
+        pathname: documentPath(document),
+        state: history.location.state,
+      });
     } else {
       history.goBack();
     }
