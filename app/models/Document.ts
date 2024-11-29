@@ -430,7 +430,7 @@ export default class Document extends ArchivableModel {
   }
 
   @computed
-  get membershipType(): "collection" | "direct" | "group" {
+  get membershipType(): "collection" | "document" | "group" {
     if (this.collection) {
       return "collection";
     }
@@ -440,7 +440,7 @@ export default class Document extends ArchivableModel {
         (m) => m.documentId === this.id
       ) ?? false;
 
-    return hasDocumentMembership ? "direct" : "group";
+    return hasDocumentMembership ? "document" : "group";
   }
 
   @action
