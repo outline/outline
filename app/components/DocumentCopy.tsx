@@ -25,9 +25,6 @@ function DocumentCopy({ document, onSubmit }: Props) {
   const { t } = useTranslation();
   const { policies } = useStores();
   const collectionTrees = useCollectionTrees();
-  const defaultTitle = t(`Copy of {{ documentName }}`, {
-    documentName: document.title,
-  });
   const [publish, setPublish] = React.useState<boolean>(!!document.publishedAt);
   const [recursive, setRecursive] = React.useState<boolean>(true);
   const [selectedPath, selectPath] = React.useState<NavigationNode | null>(
@@ -73,7 +70,7 @@ function DocumentCopy({ document, onSubmit }: Props) {
       const result = await document.duplicate({
         publish,
         recursive,
-        title: defaultTitle,
+        title: document.title,
         collectionId: selectedPath.collectionId,
         ...(selectedPath.type === "document"
           ? { parentDocumentId: selectedPath.id }
@@ -93,9 +90,7 @@ function DocumentCopy({ document, onSubmit }: Props) {
         items={items}
         onSubmit={copy}
         onSelect={selectPath}
-        initialSelectionId={
-          document.parentDocumentId || document.collectionId || ""
-        }
+        defaultValue={document.parentDocumentId || document.collectionId || ""}
       />
       <OptionsContainer>
         {!document.isTemplate && (

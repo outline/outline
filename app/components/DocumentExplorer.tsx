@@ -36,15 +36,10 @@ type Props = {
   /** Items to be shown in explorer */
   items: NavigationNode[];
   /** Automatically expand to and select item with the given id */
-  initialSelectionId?: string;
+  defaultValue?: string;
 };
 
-function DocumentExplorer({
-  onSubmit,
-  onSelect,
-  items,
-  initialSelectionId,
-}: Props) {
+function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
   const isMobile = useMobile();
   const { collections, documents } = useStores();
   const { t } = useTranslation();
@@ -54,8 +49,7 @@ function DocumentExplorer({
   const [selectedNode, selectNode] = React.useState<NavigationNode | null>(
     () => {
       const node =
-        initialSelectionId &&
-        items.find((item) => item.id === initialSelectionId);
+        defaultValue && items.find((item) => item.id === defaultValue);
       return node || null;
     }
   );
@@ -63,8 +57,8 @@ function DocumentExplorer({
     React.useState<number>(0);
   const [activeNode, setActiveNode] = React.useState<number>(0);
   const [expandedNodes, setExpandedNodes] = React.useState<string[]>(() => {
-    if (initialSelectionId) {
-      const node = items.find((item) => item.id === initialSelectionId);
+    if (defaultValue) {
+      const node = items.find((item) => item.id === defaultValue);
       if (node) {
         return ancestors(node).map((node) => node.id);
       }
@@ -114,7 +108,7 @@ function DocumentExplorer({
   }, [selectedNode, onSelect]);
 
   React.useEffect(() => {
-    if (initialSelectionId && selectedNode && listRef) {
+    if (defaultValue && selectedNode && listRef) {
       const index = nodes.findIndex((node) => node.id === selectedNode.id);
       if (index > 0) {
         setTimeout(() => listRef.current?.scrollToItem(index, "center"), 50);
