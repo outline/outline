@@ -10,7 +10,7 @@ type Props = {
   ip: string;
 };
 
-export default class DetachDraftsFromCollectionTask extends BaseTask<Props> {
+export default class DetachDocumentsFromCollectionTask extends BaseTask<Props> {
   async perform(props: Props) {
     const [collection, actor] = await Promise.all([
       Collection.findByPk(props.collectionId, {

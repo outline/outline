@@ -1,8 +1,8 @@
 import { Document } from "@server/models";
 import { buildCollection, buildDocument } from "@server/test/factories";
-import DetachDraftsFromCollectionTask from "./DetachDraftsFromCollectionTask";
+import DetachDocumentsFromCollectionTask from "./DetachDocumentsFromCollectionTask";
 
-describe("DetachDraftsFromCollectionTask", () => {
+describe("DetachDocumentsFromCollectionTask", () => {
   const ip = "127.0.0.1";
   it("should detach drafts from deleted collection", async () => {
     const collection = await buildCollection();
@@ -15,7 +15,7 @@ describe("DetachDraftsFromCollectionTask", () => {
     });
     await collection.destroy({ hooks: false });
 
-    const task = new DetachDraftsFromCollectionTask();
+    const task = new DetachDocumentsFromCollectionTask();
     await task.perform({
       collectionId: collection.id,
       ip,
@@ -38,7 +38,7 @@ describe("DetachDraftsFromCollectionTask", () => {
       teamId: collection.teamId,
     });
 
-    const task = new DetachDraftsFromCollectionTask();
+    const task = new DetachDocumentsFromCollectionTask();
     await task.perform({
       collectionId: collection.id,
       ip,
