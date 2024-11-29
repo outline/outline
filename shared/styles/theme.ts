@@ -67,7 +67,6 @@ const buildBaseTheme = (input: Partial<Colors>) => {
     fontWeightRegular: 400,
     fontWeightMedium: 500,
     fontWeightBold: 600,
-    backgroundTransition: "background 100ms ease-in-out",
     accentText: colors.white,
     selected: colors.accent,
     textHighlight: "#FDEA9B",
@@ -203,7 +202,7 @@ export const buildDarkTheme = (input: Partial<Colors>): DefaultTheme => {
     menuItemSelected: lighten(0.09, "#181c25"),
     menuBackground: "#181c25",
     menuShadow:
-      "0 0 0 1px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.08)",
+      "0 0 0 1px rgb(34 40 52), 0 8px 16px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.08)",
     divider: lighten(0.1, colors.almostBlack),
     titleBarDivider: darken(0.4, colors.slate),
     inputBorder: colors.slateDark,

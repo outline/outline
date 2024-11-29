@@ -103,6 +103,10 @@ function DocumentHeader({
     });
   }, [onSave]);
 
+  const handleToggle = React.useCallback(() => {
+    ui.set({ tocVisible: !ui.tocVisible });
+  }, [ui]);
+
   const context = useActionContext({
     activeDocumentId: document?.id,
   });
@@ -113,7 +117,8 @@ function DocumentHeader({
   const canToggleEmbeds = team?.documentEmbeds;
   const isShare = !!shareId;
   const showContents =
-    ui.tocVisible === true || (isShare && ui.tocVisible !== false);
+    (ui.tocVisible === true && !document.isTemplate) ||
+    (isShare && ui.tocVisible !== false);
 
   const toc = (
     <Tooltip
@@ -129,7 +134,7 @@ function DocumentHeader({
       placement="bottom"
     >
       <Button
-        onClick={showContents ? ui.hideTableOfContents : ui.showTableOfContents}
+        onClick={handleToggle}
         icon={<TableOfContentsIcon />}
         borderOnHover
         neutral
@@ -180,7 +185,7 @@ function DocumentHeader({
 
   useKeyDown(
     (event) => event.ctrlKey && event.altKey && event.key === "˙",
-    ui.tocVisible ? ui.hideTableOfContents : ui.showTableOfContents,
+    handleToggle,
     {
       allowInInput: true,
     }
@@ -232,7 +237,11 @@ function DocumentHeader({
             <TableOfContentsMenu />
           ) : (
             <DocumentBreadcrumb document={document}>
-              {toc} <Star document={document} color={theme.textSecondary} />
+              {document.isTemplate ? null : (
+                <>
+                  {toc} <Star document={document} color={theme.textSecondary} />
+                </>
+              )}
             </DocumentBreadcrumb>
           )
         }

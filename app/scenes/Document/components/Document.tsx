@@ -215,13 +215,15 @@ class DocumentScene extends React.Component<Props> {
 
   onUndoRedo = (event: KeyboardEvent) => {
     if (isModKey(event)) {
+      event.preventDefault();
+
       if (event.shiftKey) {
-        if (this.editor.current?.redo()) {
-          event.preventDefault();
+        if (!this.props.readOnly) {
+          this.editor.current?.commands.redo();
         }
       } else {
-        if (this.editor.current?.undo()) {
-          event.preventDefault();
+        if (!this.props.readOnly) {
+          this.editor.current?.commands.undo();
         }
       }
     }
@@ -413,7 +415,8 @@ class DocumentScene extends React.Component<Props> {
       (team && team.documentEmbeds === false) || document.embedsDisabled;
 
     const showContents =
-      ui.tocVisible === true || (isShare && ui.tocVisible !== false);
+      (ui.tocVisible === true && !document.isTemplate) ||
+      (isShare && ui.tocVisible !== false);
     const tocPos =
       tocPosition ??
       ((team?.getPreference(TeamPreference.TocPosition) as TOCPosition) ||
@@ -568,6 +571,7 @@ class DocumentScene extends React.Component<Props> {
                         )}
                         {!isShare && !revision && (
                           <>
+                            <p>test</p>
                             <MarkAsViewed document={document} />
                             <ReferencesWrapper>
                               <References document={document} />
@@ -698,7 +702,6 @@ const Footer = styled.div`
 const Background = styled(Container)`
   position: relative;
   background: ${s("background")};
-  transition: ${s("backgroundTransition")};
 `;
 
 const ReferencesWrapper = styled.div`

@@ -1,6 +1,7 @@
 import { differenceInMilliseconds } from "date-fns";
 import { action } from "mobx";
 import { observer } from "mobx-react";
+import { DoneIcon } from "outline-icons";
 import { darken } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -16,10 +17,14 @@ import Comment from "~/models/Comment";
 import { Avatar } from "~/components/Avatar";
 import ButtonSmall from "~/components/ButtonSmall";
 import Flex from "~/components/Flex";
+import NudeButton from "~/components/NudeButton";
 import ReactionList from "~/components/Reactions/ReactionList";
 import ReactionPicker from "~/components/Reactions/ReactionPicker";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
+import Tooltip from "~/components/Tooltip";
+import { resolveCommentFactory } from "~/actions/definitions/comments";
+import useActionContext from "~/hooks/useActionContext";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import CommentMenu from "~/menus/CommentMenu";
@@ -242,11 +247,13 @@ function CommentThreadItem({
                 onRemoveReaction={handleRemoveReaction}
                 picker={
                   !comment.isResolved ? (
-                    <StyledReactionPicker
+                    <Action
+                      as={ReactionPicker}
                       onSelect={handleAddReaction}
                       onOpen={disableScroll}
                       onClose={enableScroll}
                       size={28}
+                      rounded
                     />
                   ) : undefined
                 }
@@ -257,14 +264,20 @@ function CommentThreadItem({
         <EventBoundary>
           {!isEditing && (
             <Actions gap={4} dir={dir}>
+              {firstOfThread && (
+                <ResolveButton onUpdate={handleUpdate} comment={comment} />
+              )}
               {!comment.isResolved && (
-                <StyledReactionPicker
+                <Action
+                  as={ReactionPicker}
                   onSelect={handleAddReaction}
                   onOpen={disableScroll}
                   onClose={enableScroll}
+                  rounded
                 />
               )}
-              <StyledMenu
+              <Action
+                as={CommentMenu}
                 comment={comment}
                 onEdit={setEditing}
                 onDelete={handleDelete}
@@ -277,6 +290,38 @@ function CommentThreadItem({
     </Flex>
   );
 }
+
+const ResolveButton = ({
+  comment,
+  onUpdate,
+}: {
+  comment: Comment;
+  onUpdate: (attrs: { resolved: boolean }) => void;
+}) => {
+  const context = useActionContext();
+  const { t } = useTranslation();
+
+  return (
+    <Tooltip
+      content={t("Mark as resolved")}
+      placement="top"
+      delay={500}
+      hideOnClick
+    >
+      <Action
+        as={NudeButton}
+        context={context}
+        action={resolveCommentFactory({
+          comment,
+          onResolve: () => onUpdate({ resolved: true }),
+        })}
+        rounded
+      >
+        <DoneIcon size={22} outline />
+      </Action>
+    </Tooltip>
+  );
+};
 
 const StyledCommentEditor = styled(CommentEditor)`
   ${(props) =>
@@ -308,25 +353,13 @@ const Body = styled.form`
   border-radius: 2px;
 `;
 
-const StyledMenu = styled(CommentMenu)`
+const Action = styled.span<{ rounded?: boolean }>`
   color: ${s("textSecondary")};
-
-  svg {
-    fill: currentColor;
-    opacity: 0.5;
-  }
-
-  &: ${hover}, &[aria-expanded= "true"] {
-    background: ${s("backgroundQuaternary")};
-
-    svg {
-      opacity: 0.75;
-    }
-  }
-`;
-
-const StyledReactionPicker = styled(ReactionPicker)`
-  color: ${s("textSecondary")};
+  ${(props) =>
+    props.rounded &&
+    css`
+      border-radius: 50%;
+    `}
 
   svg {
     fill: currentColor;
@@ -352,7 +385,7 @@ const Actions = styled(Flex)<{ dir?: "rtl" | "ltr" }>`
   background: ${s("backgroundSecondary")};
   padding-left: 4px;
 
-  &:has(${StyledReactionPicker}[aria-expanded="true"], ${StyledMenu}[aria-expanded="true"]) {
+  &:has(${Action}[aria-expanded="true"]) {
     opacity: 1;
   }
 `;
@@ -386,7 +419,7 @@ export const Bubble = styled(Flex)<{
   min-width: 2em;
   margin-bottom: 1px;
   padding: 8px 12px;
-  transition: color 100ms ease-out, ${s("backgroundTransition")};
+  transition: color 100ms ease-out, background 100ms ease-out;
 
   ${({ $lastOfThread, $canReply }) =>
     $lastOfThread &&

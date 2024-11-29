@@ -94,7 +94,7 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
     !showHistory &&
     can.comment &&
     ui.activeDocumentId &&
-    ui.commentsExpanded.includes(ui.activeDocumentId) &&
+    ui.commentsExpanded &&
     team.getPreference(TeamPreference.Commenting);
 
   const sidebarRight = (

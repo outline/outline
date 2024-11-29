@@ -852,6 +852,8 @@ export default class WebsocketsProcessor {
         channels.push(
           ...this.getCollectionEventChannels(event, document.collection)
         );
+      } else if (document.isWorkspaceTemplate) {
+        channels.push(`team-${document.teamId}`);
       } else {
         channels.push(`collection-${document.collectionId}`);
       }

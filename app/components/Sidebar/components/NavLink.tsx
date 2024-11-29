@@ -112,8 +112,9 @@ const NavLink = ({
       !rest.target &&
       !event.altKey &&
       !event.metaKey &&
-      !event.ctrlKey,
-    [rest.target]
+      !event.ctrlKey &&
+      !isActive,
+    [rest.target, isActive]
   );
 
   const navigateTo = React.useCallback(() => {
@@ -153,14 +154,13 @@ const NavLink = ({
     <Link
       key={isActive ? "active" : "inactive"}
       ref={linkRef}
-      // onMouseDown={handleClick}
+      onClick={handleClick}
       onKeyDown={(event) => {
         if (["Enter", " "].includes(event.key)) {
           navigateTo();
           event.currentTarget?.blur();
         }
       }}
-      onClick={handleClick}
       aria-current={(isActive && ariaCurrent) || undefined}
       className={className}
       style={style}

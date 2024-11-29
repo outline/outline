@@ -2,10 +2,12 @@ import fractionalIndex from "fractional-index";
 import { Sequelize, Op, WhereOptions } from "sequelize";
 import { PinValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
-import { Pin, User, Event } from "@server/models";
-import { sequelize } from "@server/storage/database";
+import { Pin, User } from "@server/models";
+import { APIContext } from "@server/types";
 
 type Props = {
+  /** The request context */
+  ctx: APIContext;
   /** The user creating the pin */
   user: User;
   /** The document to pin */
@@ -14,8 +16,6 @@ type Props = {
   collectionId?: string | null;
   /** The index to pin the document at. If no index is provided then it will be pinned to the end of the collection */
   index?: string;
-  /** The IP address of the user creating the pin */
-  ip: string;
 };
 
 /**
@@ -26,10 +26,10 @@ type Props = {
  * @returns Pin The pin that was created
  */
 export default async function pinCreator({
+  ctx,
   user,
   documentId,
   collectionId,
-  ip,
   ...rest
 }: Props): Promise<Pin> {
   let { index } = rest;
@@ -62,38 +62,13 @@ export default async function pinCreator({
     index = fractionalIndex(pins.length ? pins[0].index : null, null);
   }
 
-  const transaction = await sequelize.transaction();
-  let pin;
-
-  try {
-    pin = await Pin.create(
-      {
-        createdById: user.id,
-        teamId: user.teamId,
-        collectionId,
-        documentId,
-        index,
-      },
-      { transaction }
-    );
-
-    await Event.create(
-      {
-        name: "pins.create",
-        modelId: pin.id,
-        teamId: user.teamId,
-        actorId: user.id,
-        documentId,
-        collectionId,
-        ip,
-      },
-      { transaction }
-    );
-    await transaction.commit();
-  } catch (err) {
-    await transaction.rollback();
-    throw err;
-  }
+  const pin = await Pin.createWithCtx(ctx, {
+    createdById: user.id,
+    teamId: user.teamId,
+    collectionId,
+    documentId,
+    index,
+  });
 
   return pin;
 }

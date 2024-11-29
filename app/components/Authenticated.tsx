@@ -5,6 +5,7 @@ import { Redirect } from "react-router-dom";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import { changeLanguage } from "~/utils/language";
+import { logoutPath } from "~/utils/routeHelpers";
 import LoadingIndicator from "./LoadingIndicator";
 
 type Props = {
@@ -32,7 +33,7 @@ const Authenticated = ({ children }: Props) => {
   }
 
   void auth.logout(true);
-  return <Redirect to="/" />;
+  return <Redirect to={logoutPath()} />;
 };
 
 export default observer(Authenticated);

@@ -31,7 +31,7 @@ export default function useAutoRefresh() {
         return;
       }
       if (isReloaded) {
-        Logger.error("lifecycle", new Error("Attempted to reload twice"));
+        Logger.warn("Attempted to reload twice");
         return;
       }
 

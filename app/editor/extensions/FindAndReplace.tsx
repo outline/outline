@@ -92,6 +92,10 @@ export default class FindAndReplaceExtension extends Extension {
 
   public replace(replace: string): Command {
     return (state, dispatch) => {
+      // Redo the search to ensure we have the latest results, the document may
+      // have changed underneath us since the last search.
+      this.search(state.doc);
+
       const result = this.results[this.currentResultIndex];
 
       if (!result) {
@@ -106,7 +110,12 @@ export default class FindAndReplaceExtension extends Extension {
   }
 
   public replaceAll(replace: string): Command {
-    return ({ tr }, dispatch) => {
+    return (state, dispatch) => {
+      // Redo the search to ensure we have the latest results, the document may
+      // have changed underneath us since the last search.
+      this.search(state.doc);
+
+      const tr = state.tr;
       let offset: number | undefined;
 
       if (!this.results.length) {
@@ -248,15 +257,25 @@ export default class FindAndReplaceExtension extends Extension {
         let m;
         const search = this.findRegExp;
 
-        while ((m = search.exec(deburr(text)))) {
+        // We construct a string with the text stripped of diacritics plus the original text for
+        // search  allowing to search for diacritics-insensitive matches easily.
+        while ((m = search.exec(deburr(text) + text))) {
           if (m[0] === "") {
             break;
           }
 
-          this.results.push({
-            from: pos + m.index,
-            to: pos + m.index + m[0].length,
-          });
+          // Reconstruct the correct match position
+          const i = m.index >= text.length ? m.index - text.length : m.index;
+          const from = pos + i;
+          const to = from + m[0].length;
+
+          // Check if already exists in results, possible due to duplicated
+          // search string on L257
+          if (this.results.some((r) => r.from === from && r.to === to)) {
+            continue;
+          }
+
+          this.results.push({ from, to });
         }
       } catch (e) {
         // Invalid RegExp

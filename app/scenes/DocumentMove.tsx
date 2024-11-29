@@ -28,12 +28,24 @@ function DocumentMove({ document }: Props) {
   );
 
   const items = React.useMemo(() => {
+    // Recursively filter out the document itself and its existing parent doc, if any.
+    const filterSourceDocument = (node: NavigationNode): NavigationNode => ({
+      ...node,
+      children: node.children
+        ?.filter(
+          (c) => c.id !== document.id && c.id !== document.parentDocumentId
+        )
+        .map(filterSourceDocument),
+    });
+
     // Filter out the document itself and its existing parent doc, if any.
     const nodes = flatten(collectionTrees.map(flattenTree))
       .filter(
         (node) =>
           node.id !== document.id && node.id !== document.parentDocumentId
       )
+      .map(filterSourceDocument)
+      // Filter out collections that we don't have permission to create documents in.
       .filter((node) =>
         node.collectionId
           ? policies.get(node.collectionId)?.abilities.createDocument

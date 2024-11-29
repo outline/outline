@@ -5,9 +5,7 @@ import { Command, Plugin } from "prosemirror-state";
 import { Primitive } from "utility-types";
 import type { Editor } from "../../../app/editor";
 
-export type CommandFactory = (
-  attrs?: Record<string, Primitive>
-) => Command | void;
+export type CommandFactory = (attrs?: Record<string, Primitive>) => Command;
 
 export type WidgetProps = { rtl: boolean; readOnly: boolean | undefined };
 
@@ -73,7 +71,7 @@ export default class Extension {
   keys(_options: {
     type?: NodeType | MarkType;
     schema: Schema;
-  }): Record<string, Command> {
+  }): Record<string, Command | CommandFactory> {
     return {};
   }
 

@@ -76,7 +76,6 @@ const Layout = React.forwardRef(function Layout_(
 
 const Container = styled(Flex)`
   background: ${s("background")};
-  transition: ${s("backgroundTransition")};
   position: relative;
   width: 100%;
   min-height: 100%;

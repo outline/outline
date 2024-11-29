@@ -1,6 +1,7 @@
 import debounce from "lodash/debounce";
 import last from "lodash/last";
 import sortBy from "lodash/sortBy";
+import type MermaidUnsafe from "mermaid";
 import { Node } from "prosemirror-model";
 import {
   Plugin,
@@ -36,7 +37,7 @@ class Cache {
   private static data: Map<string, string> = new Map();
 }
 
-let mermaid: typeof import("mermaid")["default"];
+let mermaid: typeof MermaidUnsafe;
 
 type RendererFunc = (
   block: { node: Node; pos: number },
@@ -72,8 +73,16 @@ class MermaidRenderer {
       return;
     }
 
+    // Create a temporary element that will render the diagram off-screen. This is necessary
+    // as Mermaid will error if the element is not visible, such as if the heading is collapsed
+    const renderElement = document.createElement("div");
+    renderElement.style.position = "absolute";
+    renderElement.style.left = "-9999px";
+    renderElement.style.top = "-9999px";
+    document.body.appendChild(renderElement);
+
     try {
-      mermaid = mermaid ?? (await import("mermaid")).default;
+      mermaid ??= (await import("mermaid")).default;
       mermaid.initialize({
         startOnLoad: true,
         // TODO: Make dynamic based on the width of the editor or remove in
@@ -84,20 +93,24 @@ class MermaidRenderer {
         theme: isDark ? "dark" : "default",
         darkMode: isDark,
       });
-      mermaid.render(
+
+      const { svg, bindFunctions } = await mermaid.render(
         `mermaid-diagram-${this.diagramId}`,
         text,
-        (svgCode, bindFunctions) => {
-          this.currentTextContent = text;
-          if (text) {
-            Cache.set(cacheKey, svgCode);
-          }
-          element.classList.remove("parse-error", "empty");
-          element.innerHTML = svgCode;
-          bindFunctions?.(element);
-        },
-        element
+        // If the element is not visible we use an off-screen element to render the diagram
+        element.offsetParent === null ? renderElement : element
       );
+      this.currentTextContent = text;
+
+      // Cache the rendered SVG so we won't need to calculate it again in the same session
+      if (text) {
+        Cache.set(cacheKey, svg);
+      }
+      element.classList.remove("parse-error", "empty");
+      element.innerHTML = svg;
+
+      // Allow the user to interact with the diagram
+      bindFunctions?.(element);
     } catch (error) {
       const isEmpty = block.node.textContent.trim().length === 0;
 
@@ -108,6 +121,8 @@ class MermaidRenderer {
         element.innerText = error;
         element.classList.add("parse-error");
       }
+    } finally {
+      renderElement.remove();
     }
   };
 

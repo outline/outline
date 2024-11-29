@@ -1,8 +1,6 @@
-import { subSeconds } from "date-fns";
 import invariant from "invariant";
 import uniq from "lodash/uniq";
 import { action, computed, observable } from "mobx";
-import { now } from "mobx-utils";
 import { Pagination } from "@shared/constants";
 import type { ProsemirrorData, ReactionSummary } from "@shared/types";
 import User from "~/models/User";
@@ -14,17 +12,6 @@ import Relation from "./decorators/Relation";
 
 class Comment extends Model {
   static modelName = "Comment";
-
-  /**
-   * Map to keep track of which users are currently typing a reply in this
-   * comments thread.
-   */
-  @observable
-  typingUsers: Map<string, Date> = new Map();
-
-  @Field
-  @observable
-  id: string;
 
   /**
    * The Prosemirror data representing the comment content
@@ -106,17 +93,6 @@ class Comment extends Model {
    * Denotes whether there is an in-flight request for loading reacted users.
    */
   private reactedUsersLoading = false;
-
-  /**
-   * An array of users that are currently typing a reply in this comments thread.
-   */
-  @computed
-  public get currentlyTypingUsers(): User[] {
-    return Array.from(this.typingUsers.entries())
-      .filter(([, lastReceivedDate]) => lastReceivedDate > subSeconds(now(), 3))
-      .map(([userId]) => this.store.rootStore.users.get(userId))
-      .filter(Boolean) as User[];
-  }
 
   /**
    * Whether the comment is resolved

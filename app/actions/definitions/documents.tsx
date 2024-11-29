@@ -131,11 +131,30 @@ export const createDocumentFromTemplate = createAction({
   section: DocumentSection,
   icon: <NewDocumentIcon />,
   keywords: "create",
-  visible: ({ currentTeamId, activeDocumentId, stores }) =>
-    !!currentTeamId &&
-    !!activeDocumentId &&
-    !!stores.documents.get(activeDocumentId)?.template &&
-    stores.policies.abilities(currentTeamId).createDocument,
+  visible: ({
+    currentTeamId,
+    activeCollectionId,
+    activeDocumentId,
+    stores,
+  }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+
+    if (
+      !currentTeamId ||
+      !document?.isTemplate ||
+      !!document?.isDraft ||
+      !!document?.isDeleted
+    ) {
+      return false;
+    }
+
+    if (activeCollectionId) {
+      return stores.policies.abilities(activeCollectionId).createDocument;
+    }
+    return stores.policies.abilities(currentTeamId).createDocument;
+  },
   perform: ({ activeCollectionId, activeDocumentId, sidebarContext }) =>
     history.push(
       newDocumentPath(activeCollectionId, { templateId: activeDocumentId }),
@@ -1035,7 +1054,7 @@ export const openDocumentComments = createAction({
       return;
     }
 
-    stores.ui.toggleComments(activeDocumentId);
+    stores.ui.toggleComments();
   },
 });
 

@@ -87,7 +87,6 @@ const StickyWrapper = styled.div`
   border-radius: 8px;
 
   background: ${s("background")};
-  transition: ${s("backgroundTransition")};
 
   @supports (backdrop-filter: blur(20px)) {
     backdrop-filter: blur(20px);

@@ -50,7 +50,7 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
               pathname: documentPath(document),
               state: location.state,
             }}
-            onClick={() => ui.toggleComments(document.id)}
+            onClick={() => ui.toggleComments()}
           >
             <CommentIcon size={18} />
             {commentsCount

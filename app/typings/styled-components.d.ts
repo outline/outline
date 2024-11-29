@@ -124,7 +124,6 @@ declare module "styled-components" {
     backgroundSecondary: string;
     backgroundTertiary: string;
     backgroundQuaternary: string;
-    backgroundTransition: string;
     accent: string;
     accentText: string;
     link: string;

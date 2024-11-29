@@ -701,7 +701,10 @@ img.ProseMirror-separator {
 }
 
 .heading-name:first-child,
-.heading-name:first-child + .ProseMirror-yjs-cursor {
+// Edge case where multiplayer cursor is between start of cell and heading
+.heading-name:first-child + .ProseMirror-yjs-cursor,
+// Edge case where table grips are between start of cell and heading
+.heading-name:first-child + [role=button] + [role=button] {
   & + h1,
   & + h2,
   & + h3,
@@ -1065,11 +1068,11 @@ a:hover {
 
 ul,
 ol {
-  margin: 0 0.1em 0 -26px;
+  margin: 0 0.1em 0 ${props.staticHTML ? "0" : "-26px"};
   padding: 0 0 0 48px;
 
   &:dir(rtl) {
-    margin: 0 -26px 0 0.1em;
+    margin: 0 ${props.staticHTML ? "0" : "-26px"} 0 0.1em;
     padding: 0 48px 0 0;
   }
 }
@@ -1300,20 +1303,19 @@ mark {
 
   // Hide code without display none so toolbar can still be positioned against it
   &:not(.code-active) {
-    height: ${props.staticHTML ? "auto" : "0"};
+    height: ${props.staticHTML || props.readOnly ? "auto" : "0"};
     margin: -0.75em 0;
     overflow: hidden;
 
     // Allows the margin to collapse correctly by moving div out of the flow
-    position: ${props.staticHTML ? "relative" : "absolute"};
+    position: ${props.staticHTML || props.readOnly ? "relative" : "absolute"};
   }
 }
 
-/* Hide code without display none so toolbar can still be positioned against it */
 .ProseMirror[contenteditable="false"] .code-block[data-language=mermaidjs] {
-  height: ${props.staticHTML ? "auto" : "0"};
-  margin: -0.5em 0;
-  overflow: hidden;
+    height: 0;
+    overflow: hidden;
+    margin: -0.5em 0 0 0;
 }
 
 .code-block.with-line-numbers {

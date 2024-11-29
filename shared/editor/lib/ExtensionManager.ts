@@ -251,13 +251,13 @@ export default class ExtensionManager {
         };
 
         const handle = (_name: string, _value: CommandFactory) => {
-          if (Array.isArray(_value)) {
-            commands[_name] = (attrs: Record<string, Primitive>) =>
-              _value.forEach((callback) => apply(callback, attrs));
-          } else if (typeof _value === "function") {
-            commands[_name] = ((attrs: Record<string, Primitive>) =>
-              apply(_value, attrs)) as CommandFactory;
-          }
+          const values: CommandFactory[] = Array.isArray(_value)
+            ? _value
+            : [_value];
+
+          // @ts-expect-error FIXME
+          commands[_name] = (attrs: Record<string, Primitive>) =>
+            values.forEach((callback) => apply(callback, attrs));
         };
 
         if (typeof value === "object") {

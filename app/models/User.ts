@@ -24,10 +24,6 @@ class User extends ParanoidModel {
 
   @Field
   @observable
-  id: string;
-
-  @Field
-  @observable
   avatarUrl: string;
 
   @Field
