@@ -18,7 +18,7 @@ type Props = {
   document: Document | NavigationNode;
   anchor?: string;
   showCollection?: boolean;
-  sidebarContext: SidebarContextType;
+  sidebarContext?: SidebarContextType;
 };
 
 const DocumentLink = styled(Link)`
