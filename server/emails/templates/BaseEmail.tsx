@@ -196,6 +196,7 @@ export default abstract class BaseEmail<
     return {
       name: this.fromName?.(props) ?? parsedFrom.name,
       address:
+        env.isCloudHosted &&
         this.category === EmailMessageCategory.Authentication
           ? `noreply-${randomstring.generate(24)}@${domain}`
           : parsedFrom.address,
