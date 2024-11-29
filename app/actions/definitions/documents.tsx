@@ -45,7 +45,7 @@ import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
 import DocumentPublish from "~/scenes/DocumentPublish";
 import DeleteDocumentsInTrash from "~/scenes/Trash/components/DeleteDocumentsInTrash";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
-import DuplicateDialog from "~/components/DuplicateDialog";
+import DocumentCopy from "~/components/DocumentCopy";
 import Icon from "~/components/Icon";
 import MarkdownIcon from "~/components/Icons/MarkdownIcon";
 import SharePopover from "~/components/Sharing/Document";
@@ -562,7 +562,7 @@ export const duplicateDocument = createAction({
     stores.dialogs.openModal({
       title: t("Copy document"),
       content: (
-        <DuplicateDialog
+        <DocumentCopy
           document={document}
           onSubmit={(response) => {
             stores.dialogs.closeAllModals();
