@@ -44,7 +44,7 @@ export const determineSidebarContext = ({
 
   if (membershipType === "document") {
     return "shared";
-  } else if (membershipType === "group" && user) {
+  } else if (membershipType === "group") {
     const group = user.groupsWithDocumentMemberships.find(
       (g) => !!g.documentMemberships.find((m) => m.documentId === document.id)
     );

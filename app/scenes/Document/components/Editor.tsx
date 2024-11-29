@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
-import { useHistory, useRouteMatch } from "react-router-dom";
+import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
 import { richExtensions, withComments } from "@shared/editor/nodes";
 import { TeamPreference } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
@@ -13,7 +13,6 @@ import { RefHandle } from "~/components/ContentEditable";
 import { useDocumentContext } from "~/components/DocumentContext";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
-import { useLocationState } from "~/components/Sidebar/hooks/useLocationState";
 import BlockMenuExtension from "~/editor/extensions/BlockMenu";
 import ClipboardTextSerializer from "~/editor/extensions/ClipboardTextSerializer";
 import EmojiMenuExtension from "~/editor/extensions/EmojiMenu";
@@ -82,7 +81,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const user = useCurrentUser({ rejectOnEmpty: false });
   const team = useCurrentTeam({ rejectOnEmpty: false });
   const history = useHistory();
-  const locationSidebarContext = useLocationState();
+  const location = useLocation();
   const {
     document,
     onChangeTitle,
@@ -132,10 +131,10 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     (commentId: string) => {
       history.replace({
         pathname: window.location.pathname.replace(/\/history$/, ""),
-        state: { commentId, sidebarContext: locationSidebarContext },
+        state: { ...(location.state as Record<string, unknown>), commentId },
       });
     },
-    [history, locationSidebarContext]
+    [history, location]
   );
 
   // Create a Comment model in local store when a comment mark is created, this
@@ -232,7 +231,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
               match.path === matchDocumentHistory
                 ? documentPath(document)
                 : documentHistoryPath(document),
-            state: { sidebarContext: locationSidebarContext },
+            state: location.state,
           }}
           rtl={
             titleRef.current?.getComputedDirection() === "rtl" ? true : false
