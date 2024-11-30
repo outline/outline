@@ -7,6 +7,16 @@ import BaseTask, { TaskPriority } from "./BaseTask";
 
 export default class CommentUpdatedNotificationsTask extends BaseTask<CommentEvent> {
   public async perform(event: CommentUpdateEvent) {
+    const isResolving =
+      event.changes?.previous?.resolvedAt === null &&
+      event.changes?.attributes?.resolvedAt !== null;
+
+    return isResolving
+      ? await this.handleResolvedComment(event)
+      : await this.handleMentionedComment(event);
+  }
+
+  private async handleMentionedComment(event: CommentUpdateEvent) {
     const newMentionIds = event.data?.newMentionIds;
     if (!newMentionIds) {
       return;
@@ -56,6 +66,10 @@ export default class CommentUpdatedNotificationsTask extends BaseTask<CommentEve
         userIdsMentioned.push(mention.modelId);
       }
     }
+  }
+
+  private async handleResolvedComment(/* event: CommentUpdateEvent */) {
+    // TODO
   }
 
   public get options() {
