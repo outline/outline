@@ -18,7 +18,9 @@ export const AttachmentsCreateSchema = BaseSchema.extend({
     contentType: z.string().optional().default("application/octet-stream"),
 
     /** Attachment type */
-    preset: z.nativeEnum(AttachmentPreset),
+    preset: z
+      .nativeEnum(AttachmentPreset)
+      .default(AttachmentPreset.DocumentAttachment),
   }),
 });
 
