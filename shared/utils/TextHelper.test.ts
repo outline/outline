@@ -19,13 +19,13 @@ describe("TextHelper", () => {
     it("should replace {time} with current time", async () => {
       const result = TextHelper.replaceTemplateVariables("Hello {time}", user);
 
-      expect(result).toBe("Hello 12 00 AM");
+      expect(result).toBe("Hello 12:00 AM");
     });
 
     it("should replace {date} with current date", async () => {
       const result = TextHelper.replaceTemplateVariables("Hello {date}", user);
 
-      expect(result).toBe("Hello January 1 2021");
+      expect(result).toBe("Hello January 1, 2021");
     });
   });
 });
