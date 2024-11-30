@@ -2,6 +2,7 @@ import { Node, Schema } from "prosemirror-model";
 import headingToSlug from "../editor/lib/headingToSlug";
 import textBetween from "../editor/lib/textBetween";
 import { ProsemirrorData } from "../types";
+import { TextHelper } from "./TextHelper";
 
 export type Heading = {
   /* The heading in plain text */
@@ -27,6 +28,11 @@ export type Task = {
   /* Whether the task is completed or not */
   completed: boolean;
 };
+
+interface User {
+  name: string;
+  language: string | null;
+}
 
 export const attachmentRedirectRegex =
   /\/api\/attachments\.redirect\?id=(?<id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi;
@@ -306,5 +312,28 @@ export class ProsemirrorHelper {
       }
     });
     return headings;
+  }
+
+  /**
+   * Replaces all template variables in the node.
+   *
+   * @param data The ProsemirrorData object to replace variables in
+   * @param user The user to use for replacing variables
+   * @returns The content with variables replaced
+   */
+  static replaceTemplateVariables(data: ProsemirrorData, user: User) {
+    function replace(node: ProsemirrorData) {
+      if (node.type === "text" && node.text) {
+        node.text = TextHelper.replaceTemplateVariables(node.text, user);
+      }
+
+      if (node.content) {
+        node.content.forEach(replace);
+      }
+
+      return node;
+    }
+
+    return replace(data);
   }
 }

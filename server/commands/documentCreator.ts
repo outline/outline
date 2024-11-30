@@ -1,8 +1,8 @@
 import { Optional } from "utility-types";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { TextHelper } from "@shared/utils/TextHelper";
 import { Document, Event, User } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
-import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
-import { TextHelper } from "@server/models/helpers/TextHelper";
 import { APIContext } from "@server/types";
 
 type Props = Optional<

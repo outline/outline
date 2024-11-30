@@ -3,6 +3,7 @@ import { DocumentIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
+import { TextHelper } from "@shared/utils/TextHelper";
 import Document from "~/models/Document";
 import Button from "~/components/Button";
 import ContextMenu from "~/components/ContextMenu";
@@ -11,7 +12,6 @@ import Icon from "~/components/Icon";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import { MenuItem } from "~/types";
-import { replaceTitleVariables } from "~/utils/date";
 
 type Props = {
   document: Document;
@@ -29,7 +29,7 @@ function TemplatesMenu({ onSelectTemplate, document }: Props) {
   const templateToMenuItem = React.useCallback(
     (tmpl: Document): MenuItem => ({
       type: "button",
-      title: replaceTitleVariables(tmpl.titleWithDefault, user),
+      title: TextHelper.replaceTemplateVariables(tmpl.titleWithDefault, user),
       icon: tmpl.icon ? (
         <Icon value={tmpl.icon} color={tmpl.color ?? undefined} />
       ) : (
