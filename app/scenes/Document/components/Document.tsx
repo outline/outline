@@ -26,6 +26,7 @@ import {
   TeamPreference,
 } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { TextHelper } from "@shared/utils/TextHelper";
 import { parseDomain } from "@shared/utils/domains";
 import { determineIconType } from "@shared/utils/icon";
 import RootStore from "~/stores/RootStore";
@@ -44,7 +45,6 @@ import withStores from "~/components/withStores";
 import type { Editor as TEditor } from "~/editor";
 import { SearchResult } from "~/editor/components/LinkEditor";
 import { client } from "~/utils/ApiClient";
-import { replaceTitleVariables } from "~/utils/date";
 import { emojiToUrl } from "~/utils/emoji";
 import { isModKey } from "~/utils/keyboard";
 
@@ -151,7 +151,13 @@ class DocumentScene extends React.Component<Props> {
     }
 
     const { view, schema } = editorRef;
-    const doc = Node.fromJSON(schema, template.data);
+    const doc = Node.fromJSON(
+      schema,
+      ProsemirrorHelper.replaceTemplateVariables(
+        template.data,
+        this.props.auth.user!
+      )
+    );
 
     if (doc) {
       view.dispatch(
@@ -168,9 +174,9 @@ class DocumentScene extends React.Component<Props> {
     }
 
     if (!this.title) {
-      const title = replaceTitleVariables(
+      const title = TextHelper.replaceTemplateVariables(
         template.title,
-        this.props.auth.user || undefined
+        this.props.auth.user!
       );
       this.title = title;
       this.props.document.title = title;

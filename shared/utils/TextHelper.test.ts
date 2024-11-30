@@ -1,4 +1,3 @@
-import { buildUser } from "@server/test/factories";
 import { TextHelper } from "./TextHelper";
 
 describe("TextHelper", () => {
@@ -12,15 +11,18 @@ describe("TextHelper", () => {
   });
 
   describe("replaceTemplateVariables", () => {
+    const user = {
+      name: "John Doe",
+      language: "en",
+    };
+
     it("should replace {time} with current time", async () => {
-      const user = await buildUser();
       const result = TextHelper.replaceTemplateVariables("Hello {time}", user);
 
       expect(result).toBe("Hello 12 00 AM");
     });
 
     it("should replace {date} with current date", async () => {
-      const user = await buildUser();
       const result = TextHelper.replaceTemplateVariables("Hello {date}", user);
 
       expect(result).toBe("Hello January 1 2021");

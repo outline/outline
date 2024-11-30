@@ -1,13 +1,6 @@
 import chunk from "lodash/chunk";
 import escapeRegExp from "lodash/escapeRegExp";
-import startCase from "lodash/startCase";
 import { AttachmentPreset } from "@shared/types";
-import {
-  getCurrentDateAsString,
-  getCurrentDateTimeAsString,
-  getCurrentTimeAsString,
-  unicodeCLDRtoBCP47,
-} from "@shared/utils/date";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import env from "@server/env";
 import { trace } from "@server/logging/tracing";
@@ -19,25 +12,6 @@ import parseImages from "@server/utils/parseImages";
 
 @trace()
 export class TextHelper {
-  /**
-   * Replaces template variables in the given text with the current date and time.
-   *
-   * @param text The text to replace the variables in
-   * @param user The user to get the language/locale from
-   * @returns The text with the variables replaced
-   */
-  static replaceTemplateVariables(text: string, user: User) {
-    const locales = user.language
-      ? unicodeCLDRtoBCP47(user.language)
-      : undefined;
-
-    return text
-      .replace(/{date}/g, startCase(getCurrentDateAsString(locales)))
-      .replace(/{time}/g, startCase(getCurrentTimeAsString(locales)))
-      .replace(/{datetime}/g, startCase(getCurrentDateTimeAsString(locales)))
-      .replace(/{author}/g, user.name);
-  }
-
   /**
    * Converts attachment urls in documents to signed equivalents that allow
    * direct access without a session cookie
