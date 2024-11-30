@@ -53,6 +53,7 @@ export default class CommentUpdatedNotificationsTask extends BaseTask<CommentEve
           documentId: document.id,
           commentId: comment.id,
         });
+        userIdsMentioned.push(mention.modelId);
       }
     }
   }
