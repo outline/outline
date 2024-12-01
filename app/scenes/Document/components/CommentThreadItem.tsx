@@ -264,17 +264,19 @@ function CommentThreadItem({
         <EventBoundary>
           {!isEditing && (
             <Actions gap={4} dir={dir}>
-              {firstOfThread && (
-                <ResolveButton onUpdate={handleUpdate} comment={comment} />
-              )}
               {!comment.isResolved && (
-                <Action
-                  as={ReactionPicker}
-                  onSelect={handleAddReaction}
-                  onOpen={disableScroll}
-                  onClose={enableScroll}
-                  rounded
-                />
+                <>
+                  {firstOfThread && (
+                    <ResolveButton onUpdate={handleUpdate} comment={comment} />
+                  )}
+                  <Action
+                    as={ReactionPicker}
+                    onSelect={handleAddReaction}
+                    onOpen={disableScroll}
+                    onClose={enableScroll}
+                    rounded
+                  />
+                </>
               )}
               <Action
                 as={CommentMenu}
