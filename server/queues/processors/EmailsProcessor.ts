@@ -143,6 +143,11 @@ export default class EmailsProcessor extends BaseProcessor {
         ).schedule({
           delay: Minute.ms,
         });
+        return;
+      }
+
+      case NotificationEventType.ResolveComment: {
+        // @TODO
       }
     }
   }
