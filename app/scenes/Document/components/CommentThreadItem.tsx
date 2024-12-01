@@ -27,6 +27,7 @@ import { resolveCommentFactory } from "~/actions/definitions/comments";
 import useActionContext from "~/hooks/useActionContext";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useQuery from "~/hooks/useQuery";
 import CommentMenu from "~/menus/CommentMenu";
 import { hover } from "~/styles";
 import CommentEditor from "./CommentEditor";
@@ -300,8 +301,10 @@ const ResolveButton = ({
 }) => {
   const context = useActionContext();
   const { t } = useTranslation();
+  const params = useQuery();
+  const viewingResolved = params.get("resolved") === "";
 
-  return (
+  return !viewingResolved ? (
     <Tooltip
       content={t("Mark as resolved")}
       placement="top"
@@ -320,7 +323,7 @@ const ResolveButton = ({
         <DoneIcon size={22} outline />
       </Action>
     </Tooltip>
-  );
+  ) : null;
 };
 
 const StyledCommentEditor = styled(CommentEditor)`
