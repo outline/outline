@@ -351,7 +351,7 @@
     "nodemon": "^3.1.7",
     "postinstall-postinstall": "^2.1.0",
     "prettier": "^2.8.8",
-    "react-refresh": "^0.14.0",
+    "react-refresh": "^0.14.2",
     "rimraf": "^2.5.4",
     "rollup-plugin-webpack-stats": "^0.4.1",
     "terser": "^5.36.0",
