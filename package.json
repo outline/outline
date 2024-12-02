@@ -253,7 +253,7 @@
   },
   "devDependencies": {
     "@babel/cli": "^7.25.9",
-    "@babel/preset-typescript": "^7.24.1",
+    "@babel/preset-typescript": "^7.26.0",
     "@faker-js/faker": "^8.4.1",
     "@relative-ci/agent": "^4.2.13",
     "@testing-library/react": "^12.0.0",
