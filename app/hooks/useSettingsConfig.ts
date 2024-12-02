@@ -28,6 +28,7 @@ import useCurrentTeam from "./useCurrentTeam";
 import useCurrentUser from "./useCurrentUser";
 import usePolicy from "./usePolicy";
 
+const ApiKeys = lazy(() => import("~/scenes/Settings/ApiKeys"));
 const PersonalApiKeys = lazy(() => import("~/scenes/Settings/PersonalApiKeys"));
 const Details = lazy(() => import("~/scenes/Settings/Details"));
 const Export = lazy(() => import("~/scenes/Settings/Export"));
@@ -87,10 +88,10 @@ const useSettingsConfig = () => {
         icon: EmailIcon,
       },
       {
-        name: t("API"),
+        name: t("API Keys"),
         path: settingsPath("personal-api-keys"),
         component: PersonalApiKeys,
-        enabled: can.createApiKey,
+        enabled: can.createApiKey && !can.listApiKeys,
         group: t("Account"),
         icon: CodeIcon,
       },
@@ -142,6 +143,14 @@ const useSettingsConfig = () => {
         enabled: can.readTemplate,
         group: t("Workspace"),
         icon: ShapesIcon,
+      },
+      {
+        name: t("API Keys"),
+        path: settingsPath("api-keys"),
+        component: ApiKeys,
+        enabled: can.listApiKeys,
+        group: t("Workspace"),
+        icon: CodeIcon,
       },
       {
         name: t("Shared Links"),
