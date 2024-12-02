@@ -18,7 +18,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import ApiKeyListItem from "./components/ApiKeyListItem";
 
-function ApiKeys() {
+function PersonalApiKeys() {
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const { t } = useTranslation();
@@ -97,4 +97,4 @@ function ApiKeys() {
   );
 }
 
-export default observer(ApiKeys);
+export default observer(PersonalApiKeys);

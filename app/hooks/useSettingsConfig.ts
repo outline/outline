@@ -28,7 +28,7 @@ import useCurrentTeam from "./useCurrentTeam";
 import useCurrentUser from "./useCurrentUser";
 import usePolicy from "./usePolicy";
 
-const ApiKeys = lazy(() => import("~/scenes/Settings/ApiKeys"));
+const PersonalApiKeys = lazy(() => import("~/scenes/Settings/PersonalApiKeys"));
 const Details = lazy(() => import("~/scenes/Settings/Details"));
 const Export = lazy(() => import("~/scenes/Settings/Export"));
 const Features = lazy(() => import("~/scenes/Settings/Features"));
@@ -88,8 +88,8 @@ const useSettingsConfig = () => {
       },
       {
         name: t("API"),
-        path: settingsPath("tokens"),
-        component: ApiKeys,
+        path: settingsPath("personal-api-keys"),
+        component: PersonalApiKeys,
         enabled: can.createApiKey,
         group: t("Account"),
         icon: CodeIcon,
