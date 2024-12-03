@@ -56,9 +56,11 @@ export default class Link extends Mark {
       attrs: {
         href: {
           default: "",
+          validate: "string",
         },
         title: {
           default: null,
+          validate: "string|null",
         },
       },
       inclusive: false,

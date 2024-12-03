@@ -24,6 +24,7 @@ export default class Highlight extends Mark {
       attrs: {
         color: {
           default: null,
+          validate: "string|null",
         },
       },
       parseDOM: [

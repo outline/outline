@@ -21,9 +21,11 @@ export default class Comment extends Mark {
         userId: {},
         resolved: {
           default: false,
+          validate: "boolean",
         },
         draft: {
           default: false,
+          validate: "boolean",
         },
       },
       inclusive: false,
