@@ -1,7 +1,13 @@
 import { TeamPreference } from "@shared/types";
 import { ApiKey, User, Team } from "@server/models";
 import { allow } from "./cancan";
-import { and, isOwner, isTeamModel, isTeamMutable } from "./utils";
+import {
+  and,
+  isCloudHosted,
+  isOwner,
+  isTeamModel,
+  isTeamMutable,
+} from "./utils";
 
 allow(User, "createApiKey", Team, (actor, team) =>
   and(
@@ -18,6 +24,7 @@ allow(User, "createApiKey", Team, (actor, team) =>
 allow(User, "listApiKeys", Team, (actor, team) =>
   and(
     //
+    isCloudHosted(),
     isTeamModel(actor, team),
     actor.isAdmin
   )
