@@ -71,7 +71,7 @@ function Notifications() {
       icon: <DoneIcon />,
       title: t("Resolved"),
       description: t(
-        "Receive a notification when someone resolves a comment you created or were involved in"
+        "Receive a notification when a comment thread you were involved in is resolved"
       ),
     },
     {

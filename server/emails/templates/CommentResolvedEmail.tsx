@@ -92,11 +92,11 @@ export default class CommentResolvedEmail extends BaseEmail<
   }
 
   protected subject({ document }: Props) {
-    return `Resolved a comment in “${document.title}”`;
+    return `Resolved a comment thread in “${document.title}”`;
   }
 
   protected preview({ actorName }: Props): string {
-    return `${actorName} resolved a comment you were involved in`;
+    return `${actorName} resolved a comment thread`;
   }
 
   protected fromName({ actorName }: Props): string {
@@ -110,7 +110,7 @@ export default class CommentResolvedEmail extends BaseEmail<
     commentId,
     collection,
   }: Props): string {
-    const t1 = `${actorName} resolved a comment on "${document.title}"`;
+    const t1 = `${actorName} resolved a comment thread on "${document.title}"`;
     const t2 = collection.name ? ` in the ${collection.name} collection` : "";
     const t3 = `Open Thread: ${teamUrl}${document.url}?commentId=${commentId}`;
     return `${t1}${t2}.\n\n${t3}`;
