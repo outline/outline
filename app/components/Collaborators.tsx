@@ -18,7 +18,7 @@ import useStores from "~/hooks/useStores";
 type Props = {
   /** The document to display live collaborators for */
   document: Document;
-  /** The maximum number of collaborators to display, defaults to 8 */
+  /** The maximum number of collaborators to display, defaults to 6 */
   limit?: number;
 };
 
