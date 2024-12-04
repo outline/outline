@@ -57,11 +57,10 @@ function useCategory(document: Document): MenuInternalLink | null {
   return null;
 }
 
-const DocumentBreadcrumb: React.FC<Props> = ({
-  document,
-  children,
-  onlyText,
-}: Props) => {
+function DocumentBreadcrumb(
+  { document, children, onlyText }: Props,
+  ref: React.RefObject<HTMLDivElement> | null
+) {
   const { collections } = useStores();
   const { t } = useTranslation();
   const category = useCategory(document);
@@ -140,11 +139,11 @@ const DocumentBreadcrumb: React.FC<Props> = ({
   }
 
   return (
-    <Breadcrumb items={items} highlightFirstItem>
+    <Breadcrumb items={items} ref={ref} highlightFirstItem>
       {children}
     </Breadcrumb>
   );
-};
+}
 
 const StyledIcon = styled(Icon)`
   margin-right: 2px;
@@ -160,4 +159,4 @@ const SmallSlash = styled(GoToIcon)`
   opacity: 0.5;
 `;
 
-export default observer(DocumentBreadcrumb);
+export default observer(React.forwardRef(DocumentBreadcrumb));

@@ -128,7 +128,7 @@ const Sidebar = styled(m.div)<{
   max-width: 80%;
   border-left: 1px solid ${s("divider")};
   transition: border-left 100ms ease-in-out;
-  z-index: 1;
+  z-index: ${depths.sidebar};
 
   ${breakpoint("mobile", "tablet")`
     display: flex;

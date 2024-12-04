@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { DocumentIcon } from "outline-icons";
+import { DocumentIcon, ShapesIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
@@ -14,11 +14,15 @@ import useStores from "~/hooks/useStores";
 import { MenuItem } from "~/types";
 
 type Props = {
+  /** The document to which the templates will be applied */
   document: Document;
+  /** Whether to render the button as a compact icon */
+  isCompact?: boolean;
+  /** Callback to handle when a template is selected */
   onSelectTemplate: (template: Document) => void;
 };
 
-function TemplatesMenu({ onSelectTemplate, document }: Props) {
+function TemplatesMenu({ isCompact, onSelectTemplate, document }: Props) {
   const menu = useMenuState({
     modal: true,
   });
@@ -79,8 +83,13 @@ function TemplatesMenu({ onSelectTemplate, document }: Props) {
     <>
       <MenuButton {...menu}>
         {(props) => (
-          <Button {...props} disclosure neutral>
-            {t("Templates")}
+          <Button
+            {...props}
+            icon={isCompact ? <ShapesIcon /> : undefined}
+            disclosure={!isCompact}
+            neutral
+          >
+            {isCompact ? undefined : t("Templates")}
           </Button>
         )}
       </MenuButton>

@@ -30,6 +30,7 @@ import { publishDocument } from "~/actions/definitions/documents";
 import { navigateToTemplateSettings } from "~/actions/definitions/navigation";
 import { restoreRevision } from "~/actions/definitions/revisions";
 import useActionContext from "~/hooks/useActionContext";
+import useComponentSize from "~/hooks/useComponentSize";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useEditingFocus from "~/hooks/useEditingFocus";
@@ -86,11 +87,13 @@ function DocumentHeader({
   const team = useCurrentTeam({ rejectOnEmpty: false });
   const user = useCurrentUser({ rejectOnEmpty: false });
   const { resolvedTheme } = ui;
-  const isMobile = useMobile();
+  const isMobileMedia = useMobile();
   const isRevision = !!revision;
   const isEditingFocus = useEditingFocus();
-  const { editor } = useDocumentContext();
-  const { hasHeadings } = useDocumentContext();
+  const { hasHeadings, editor } = useDocumentContext();
+  const ref = React.useRef<HTMLDivElement | null>(null);
+  const size = useComponentSize(ref);
+  const isMobile = isMobileMedia || size.width < 700;
 
   // We cache this value for as long as the component is mounted so that if you
   // apply a template there is still the option to replace it until the user
@@ -230,6 +233,7 @@ function DocumentHeader({
   return (
     <>
       <StyledHeader
+        ref={ref}
         $hidden={isEditingFocus}
         hasSidebar
         left={
@@ -254,7 +258,7 @@ function DocumentHeader({
             {document.isArchived && <Badge>{t("Archived")}</Badge>}
           </Flex>
         }
-        actions={
+        actions={({ isCompact }) => (
           <>
             <ObservingBanner />
 
@@ -262,11 +266,15 @@ function DocumentHeader({
               <Status>{t("Saving")}…</Status>
             )}
             {!isDeleted && !isRevision && can.listViews && (
-              <Collaborators document={document} />
+              <Collaborators
+                document={document}
+                limit={isCompact ? 3 : undefined}
+              />
             )}
             {(isEditing || !user?.separateEditMode) && !isTemplate && isNew && (
               <Action>
                 <TemplatesMenu
+                  isCompact={isCompact}
                   document={document}
                   onSelectTemplate={onSelectTemplate}
                 />
@@ -306,6 +314,7 @@ function DocumentHeader({
             {can.update &&
               can.createChildDocument &&
               !isRevision &&
+              !isCompact &&
               !isMobile && (
                 <Action>
                   <NewChildDocumentMenu
@@ -377,7 +386,7 @@ function DocumentHeader({
               />
             </Action>
           </>
-        }
+        )}
       />
     </>
   );
