@@ -91,59 +91,44 @@ export default class CommentUpdatedNotificationsTask extends BaseTask<CommentEve
       return;
     }
 
-    const send = async (userId: string) => {
-      await Notification.create({
-        event: NotificationEventType.ResolveComment,
-        userId,
-        actorId: event.actorId,
-        teamId: document.teamId,
-        documentId: document.id,
-        commentId: event.modelId,
-      });
-    };
-
     const userIdsNotified: string[] = [];
 
     // Don't notify resolver
     userIdsNotified.push(event.actorId);
 
-    // Notify: (1) commenter (2) all repliers (3) all mentioned in the thread
     for (const item of commentsAndReplies) {
-      if (!userIdsNotified.includes(item.createdById)) {
-        // -- author (comment or reply)
-        const user = await User.findByPk(item.createdById);
+      // Mentions:
+      const proseCommentData = ProsemirrorHelper.toProsemirror(item.data);
+      const mentions = ProsemirrorHelper.parseMentions(proseCommentData);
+      const userIds = mentions.map((mention) => mention.modelId);
+
+      // Comment author:
+      userIds.push(item.createdById);
+
+      for (const userId of userIds) {
+        if (userIdsNotified.includes(userId)) {
+          continue;
+        }
+
+        const user = await User.findByPk(userId);
 
         if (
+          event.actorId &&
           user &&
           user.id !== event.actorId &&
           user.subscribedToEventType(NotificationEventType.ResolveComment) &&
           (await canUserAccessDocument(user, document.id))
         ) {
-          await send(user.id);
-          userIdsNotified.push(user.id);
-        }
-      }
+          await Notification.create({
+            event: NotificationEventType.ResolveComment,
+            userId: user.id,
+            actorId: event.actorId,
+            teamId: document.teamId,
+            documentId: document.id,
+            commentId: event.modelId,
+          });
 
-      // -- mentions
-      const proseCommentData = ProsemirrorHelper.toProsemirror(item.data);
-      const mentions = ProsemirrorHelper.parseMentions(proseCommentData);
-
-      for (const mention of mentions) {
-        if (userIdsNotified.includes(mention.modelId)) {
-          continue;
-        }
-
-        const user = await User.findByPk(mention.modelId);
-
-        if (
-          mention.actorId &&
-          user &&
-          user.id !== mention.actorId &&
-          user.subscribedToEventType(NotificationEventType.ResolveComment) &&
-          (await canUserAccessDocument(user, document.id))
-        ) {
-          await send(user.id);
-          userIdsNotified.push(mention.modelId);
+          userIdsNotified.push(userId);
         }
       }
     }
