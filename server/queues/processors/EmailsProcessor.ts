@@ -4,6 +4,7 @@ import CollectionCreatedEmail from "@server/emails/templates/CollectionCreatedEm
 import CollectionSharedEmail from "@server/emails/templates/CollectionSharedEmail";
 import CommentCreatedEmail from "@server/emails/templates/CommentCreatedEmail";
 import CommentMentionedEmail from "@server/emails/templates/CommentMentionedEmail";
+import CommentResolvedEmail from "@server/emails/templates/CommentResolvedEmail";
 import DocumentMentionedEmail from "@server/emails/templates/DocumentMentionedEmail";
 import DocumentPublishedOrUpdatedEmail from "@server/emails/templates/DocumentPublishedOrUpdatedEmail";
 import DocumentSharedEmail from "@server/emails/templates/DocumentSharedEmail";
@@ -131,6 +132,23 @@ export default class EmailsProcessor extends BaseProcessor {
 
       case NotificationEventType.CreateComment: {
         await new CommentCreatedEmail(
+          {
+            to: notification.user.email,
+            userId: notification.userId,
+            documentId: notification.documentId,
+            teamUrl: notification.team.url,
+            actorName: notification.actor.name,
+            commentId: notification.commentId,
+          },
+          { notificationId: notification.id }
+        ).schedule({
+          delay: Minute.ms,
+        });
+        return;
+      }
+
+      case NotificationEventType.ResolveComment: {
+        await new CommentResolvedEmail(
           {
             to: notification.user.email,
             userId: notification.userId,

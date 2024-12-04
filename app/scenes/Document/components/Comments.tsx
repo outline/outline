@@ -94,14 +94,18 @@ function Comments() {
   React.useEffect(() => {
     // Handles: 1. on refresh 2. when switching sort setting
     const readyToDisplay = Boolean(document && isEditorInitialized);
-    if (readyToDisplay && sortOption.type === CommentSortType.MostRecent) {
+    if (
+      readyToDisplay &&
+      sortOption.type === CommentSortType.MostRecent &&
+      !viewingResolved
+    ) {
       scrollToBottom();
     }
-  }, [sortOption.type, document, isEditorInitialized]);
+  }, [sortOption.type, document, isEditorInitialized, viewingResolved]);
 
   React.useEffect(() => {
     setShowJumpToRecentBtn(false);
-    if (sortOption.type === CommentSortType.MostRecent) {
+    if (sortOption.type === CommentSortType.MostRecent && !viewingResolved) {
       const commentsAdded = threads.length > prevThreadCount.current;
       if (commentsAdded) {
         if (isAtBottom.current) {
@@ -112,7 +116,7 @@ function Comments() {
       }
     }
     prevThreadCount.current = threads.length;
-  }, [sortOption.type, threads.length]);
+  }, [sortOption.type, threads.length, viewingResolved]);
 
   if (!document || !isEditorInitialized) {
     return null;

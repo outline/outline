@@ -6,6 +6,7 @@ import {
   CollectionIcon,
   CommentIcon,
   DocumentIcon,
+  DoneIcon,
   EditIcon,
   EmailIcon,
   PublishIcon,
@@ -63,6 +64,14 @@ function Notifications() {
       title: t("Mentioned"),
       description: t(
         "Receive a notification when someone mentions you in a document or comment"
+      ),
+    },
+    {
+      event: NotificationEventType.ResolveComment,
+      icon: <DoneIcon />,
+      title: t("Resolved"),
+      description: t(
+        "Receive a notification when a comment thread you were involved in is resolved"
       ),
     },
     {
