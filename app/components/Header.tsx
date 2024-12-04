@@ -61,8 +61,8 @@ function Header(
     });
   }, []);
 
-  const setBreadcrumbRef = React.useCallback((node: HTMLDivElement) => {
-    breadcrumbsRef.current = node.firstElementChild as HTMLDivElement;
+  const setBreadcrumbRef = React.useCallback((node: HTMLDivElement | null) => {
+    breadcrumbsRef.current = node?.firstElementChild as HTMLDivElement;
   }, []);
 
   const size = useComponentSize(internalRef);
