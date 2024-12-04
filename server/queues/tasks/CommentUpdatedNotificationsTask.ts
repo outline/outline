@@ -113,9 +113,7 @@ export default class CommentUpdatedNotificationsTask extends BaseTask<CommentEve
         const user = await User.findByPk(userId);
 
         if (
-          event.actorId &&
           user &&
-          user.id !== event.actorId &&
           user.subscribedToEventType(NotificationEventType.ResolveComment) &&
           (await canUserAccessDocument(user, document.id))
         ) {
