@@ -18,6 +18,8 @@ import useStores from "~/hooks/useStores";
 type Props = {
   /** The document to display live collaborators for */
   document: Document;
+  /** The maximum number of collaborators to display, defaults to 6 */
+  limit?: number;
 };
 
 /**
@@ -25,6 +27,7 @@ type Props = {
  * and presence status.
  */
 function Collaborators(props: Props) {
+  const { limit = 6 } = props;
   const { t } = useTranslation();
   const user = useCurrentUser();
   const currentUserId = user?.id;
@@ -75,8 +78,6 @@ function Collaborators(props: Props) {
     placement: "bottom-end",
   });
 
-  const limit = 8;
-
   return (
     <>
       <PopoverDisclosure {...popover}>
@@ -88,6 +89,7 @@ function Collaborators(props: Props) {
           >
             <Facepile
               limit={limit}
+              overflow={collaborators.length - limit}
               users={collaborators}
               renderAvatar={(collaborator) => {
                 const isPresent = presentIds.includes(collaborator.id);
