@@ -230,6 +230,9 @@ export default class S3Storage extends BaseStorage {
     if (env.AWS_S3_UPLOAD_BUCKET_NAME) {
       const url = new URL(env.AWS_S3_UPLOAD_BUCKET_URL);
       if (url.hostname.startsWith(env.AWS_S3_UPLOAD_BUCKET_NAME + ".")) {
+        Logger.warn(
+          "AWS_S3_UPLOAD_BUCKET_URL contains the bucket name, this configuration combination will always point to AWS.\nRename your bucket or hostname if not using AWS S3.\nSee: https://github.com/outline/outline/issues/8025"
+        );
         return undefined;
       }
     }

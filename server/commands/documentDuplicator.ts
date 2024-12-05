@@ -43,7 +43,7 @@ export default async function documentDuplicator({
   };
 
   const duplicated = await documentCreator({
-    parentDocumentId: parentDocumentId ?? document.parentDocumentId,
+    parentDocumentId,
     icon: document.icon,
     color: document.color,
     template: document.template,

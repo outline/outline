@@ -52,6 +52,8 @@ const mathStyle = (props: Props) => css`
     font-size: 0.95em;
     font-family: ${props.theme.fontFamilyMono};
     cursor: auto;
+    white-space: pre-wrap;
+    overflow-x: auto;
   }
 
   .math-node.empty-math .math-render::before {
