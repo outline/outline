@@ -25,10 +25,18 @@ import { altDisplay, isModKey, metaDisplay } from "~/utils/keyboard";
 import { useEditor } from "./EditorContext";
 
 type Props = {
+  /** Whether the find and replace popover is open */
   open: boolean;
+  /** Callback when the find and replace popover is opened */
   onOpen: () => void;
+  /** Callback when the find and replace popover is closed */
   onClose: () => void;
+  /** Whether the editor is in read-only mode */
   readOnly?: boolean;
+  /** The current highlighted index in the search results */
+  currentIndex: number;
+  /** The total number of search results */
+  totalResults: number;
 };
 
 export default function FindAndReplace({
@@ -36,6 +44,8 @@ export default function FindAndReplace({
   open,
   onOpen,
   onClose,
+  currentIndex,
+  totalResults,
 }: Props) {
   const editor = useEditor();
   const finalFocusRef = React.useRef<HTMLElement>(
@@ -270,6 +280,7 @@ export default function FindAndReplace({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [popover.visible]);
 
+  const disabled = totalResults === 0;
   const navigation = (
     <>
       <Tooltip
@@ -278,7 +289,10 @@ export default function FindAndReplace({
         delay={500}
         placement="bottom"
       >
-        <ButtonLarge onClick={() => editor.commands.prevSearchMatch()}>
+        <ButtonLarge
+          disabled={disabled}
+          onClick={() => editor.commands.prevSearchMatch()}
+        >
           <CaretUpIcon />
         </ButtonLarge>
       </Tooltip>
@@ -288,7 +302,10 @@ export default function FindAndReplace({
         delay={500}
         placement="bottom"
       >
-        <ButtonLarge onClick={() => editor.commands.nextSearchMatch()}>
+        <ButtonLarge
+          disabled={disabled}
+          onClick={() => editor.commands.nextSearchMatch()}
+        >
           <CaretDownIcon />
         </ButtonLarge>
       </Tooltip>
@@ -306,7 +323,7 @@ export default function FindAndReplace({
         width={420}
       >
         <Content column>
-          <Flex gap={8}>
+          <Flex gap={4}>
             <StyledInput
               ref={inputRef}
               maxLength={255}
@@ -354,6 +371,9 @@ export default function FindAndReplace({
                 </ButtonLarge>
               </Tooltip>
             )}
+            <Results>
+              {totalResults > 0 ? currentIndex + 1 : 0} / {totalResults}
+            </Results>
           </Flex>
           <ResizingHeightContainer>
             {showReplace && !readOnly && (
@@ -367,10 +387,10 @@ export default function FindAndReplace({
                   onRequestSubmit={handleReplaceAll}
                   onChange={(ev) => setReplaceTerm(ev.currentTarget.value)}
                 />
-                <Button onClick={handleReplace} neutral>
+                <Button onClick={handleReplace} disabled={disabled} neutral>
                   {t("Replace")}
                 </Button>
-                <Button onClick={handleReplaceAll} neutral>
+                <Button onClick={handleReplaceAll} disabled={disabled} neutral>
                   {t("Replace all")}
                 </Button>
               </Flex>
@@ -396,6 +416,12 @@ const ButtonSmall = styled(NudeButton)`
   &[aria-expanded="true"] {
     background: ${s("sidebarControlHoverBackground")};
   }
+
+  &:disabled {
+    color: ${s("textTertiary")};
+    background: none;
+    cursor: default;
+  }
 `;
 
 const ButtonLarge = styled(ButtonSmall)`
@@ -407,4 +433,16 @@ const Content = styled(Flex)`
   padding: 8px 0;
   margin-bottom: -16px;
   position: static;
+`;
+
+const Results = styled.span`
+  color: ${s("textSecondary")};
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 32px;
+  min-width: 32px;
+  letter-spacing: -0.5px;
+  text-align: right;
+  user-select: none;
 `;

@@ -332,6 +332,8 @@ export default class FindAndReplaceExtension extends Extension {
 
   public widget = ({ readOnly }: WidgetProps) => (
     <FindAndReplace
+      currentIndex={this.currentResultIndex}
+      totalResults={this.results.length}
       readOnly={readOnly}
       open={this.open}
       onOpen={() => {
@@ -346,7 +348,11 @@ export default class FindAndReplaceExtension extends Extension {
   @observable
   private open = false;
 
+  @observable
   private results: { from: number; to: number }[] = [];
+
+  @observable
   private currentResultIndex = 0;
+
   private searchTerm = "";
 }
