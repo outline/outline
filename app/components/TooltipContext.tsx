@@ -11,9 +11,10 @@ export function useTooltipContext() {
 
 type Props = {
   children: React.ReactNode;
+  tippyProps?: TippyProps;
 };
 
-export function TooltipProvider({ children }: Props) {
+export function TooltipProvider({ children, tippyProps }: Props) {
   const [source, target] = useSingleton();
 
   return (
@@ -25,6 +26,7 @@ export function TooltipProvider({ children }: Props) {
         singleton={source}
         duration={[200, 150]}
         inertia
+        {...tippyProps}
       />
       <TooltipContext.Provider value={target}>
         {children}
