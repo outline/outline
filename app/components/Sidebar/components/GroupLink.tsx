@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import { GroupIcon } from "outline-icons";
 import * as React from "react";
 import Group from "~/models/Group";
-import { useLocationState } from "../hooks/useLocationState";
+import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import Folder from "./Folder";
 import Relative from "./Relative";
 import SharedWithMeLink from "./SharedWithMeLink";
@@ -15,7 +15,7 @@ type Props = {
 };
 
 const GroupLink: React.FC<Props> = ({ group }) => {
-  const locationSidebarContext = useLocationState();
+  const locationSidebarContext = useLocationSidebarContext();
   const sidebarContext = groupSidebarContext(group.id);
   const [expanded, setExpanded] = React.useState(
     locationSidebarContext === sidebarContext

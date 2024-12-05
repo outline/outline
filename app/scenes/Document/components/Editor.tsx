@@ -13,7 +13,6 @@ import { RefHandle } from "~/components/ContentEditable";
 import { useDocumentContext } from "~/components/DocumentContext";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
-import { useLocationState } from "~/components/Sidebar/hooks/useLocationState";
 import BlockMenuExtension from "~/editor/extensions/BlockMenu";
 import ClipboardTextSerializer from "~/editor/extensions/ClipboardTextSerializer";
 import EmojiMenuExtension from "~/editor/extensions/EmojiMenu";
@@ -27,6 +26,7 @@ import SmartText from "~/editor/extensions/SmartText";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useFocusedComment from "~/hooks/useFocusedComment";
+import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
@@ -83,7 +83,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const user = useCurrentUser({ rejectOnEmpty: false });
   const team = useCurrentTeam({ rejectOnEmpty: false });
   const history = useHistory();
-  const sidebarContext = useLocationState();
+  const sidebarContext = useLocationSidebarContext();
   const params = useQuery();
   const {
     document,

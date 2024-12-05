@@ -19,12 +19,12 @@ import Event from "~/models/Event";
 import { Avatar } from "~/components/Avatar";
 import Item, { Actions, Props as ItemProps } from "~/components/List/Item";
 import Time from "~/components/Time";
+import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
 import RevisionMenu from "~/menus/RevisionMenu";
 import { hover } from "~/styles";
 import Logger from "~/utils/Logger";
 import { documentHistoryPath } from "~/utils/routeHelpers";
-import { useLocationState } from "./Sidebar/hooks/useLocationState";
 
 type Props = {
   document: Document;
@@ -36,7 +36,7 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
   const { t } = useTranslation();
   const { revisions } = useStores();
   const location = useLocation();
-  const sidebarContext = useLocationState();
+  const sidebarContext = useLocationSidebarContext();
   const opts = {
     userName: event.actor.name,
   };

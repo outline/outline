@@ -6,10 +6,10 @@ import styled from "styled-components";
 import Document from "~/models/Document";
 import Fade from "~/components/Fade";
 import { determineSidebarContext } from "~/components/Sidebar/components/SidebarContext";
-import { useLocationState } from "~/components/Sidebar/hooks/useLocationState";
 import Tab from "~/components/Tab";
 import Tabs from "~/components/Tabs";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
 import ReferenceListItem from "./ReferenceListItem";
 
@@ -21,7 +21,7 @@ function References({ document }: Props) {
   const { collections, documents } = useStores();
   const user = useCurrentUser();
   const location = useLocation();
-  const locationSidebarContext = useLocationState();
+  const locationSidebarContext = useLocationSidebarContext();
 
   React.useEffect(() => {
     void documents.fetchBacklinks(document.id);

@@ -10,8 +10,8 @@ import Document from "~/models/Document";
 import Revision from "~/models/Revision";
 import DocumentMeta from "~/components/DocumentMeta";
 import Fade from "~/components/Fade";
-import { useLocationState } from "~/components/Sidebar/hooks/useLocationState";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { documentPath, documentInsightsPath } from "~/utils/routeHelpers";
@@ -28,7 +28,7 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
   const { views, comments, ui } = useStores();
   const { t } = useTranslation();
   const match = useRouteMatch();
-  const sidebarContext = useLocationState();
+  const sidebarContext = useLocationSidebarContext();
   const team = useCurrentTeam();
   const documentViews = useObserver(() => views.inDocument(document.id));
   const totalViewers = documentViews.length;

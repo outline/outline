@@ -9,6 +9,7 @@ import GroupMembership from "~/models/GroupMembership";
 import UserMembership from "~/models/UserMembership";
 import Fade from "~/components/Fade";
 import useBoolean from "~/hooks/useBoolean";
+import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
 import {
@@ -16,7 +17,6 @@ import {
   useDropToReorderUserMembership,
   useDropToReparentDocument,
 } from "../hooks/useDragAndDrop";
-import { useLocationState } from "../hooks/useLocationState";
 import { useSidebarLabelAndIcon } from "../hooks/useSidebarLabelAndIcon";
 import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
@@ -36,7 +36,7 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const { documentId } = membership;
   const isActiveDocument = documentId === ui.activeDocumentId;
-  const locationSidebarContext = useLocationState();
+  const locationSidebarContext = useLocationSidebarContext();
   const sidebarContext = useSidebarContext();
   const document = documentId ? documents.get(documentId) : undefined;
 

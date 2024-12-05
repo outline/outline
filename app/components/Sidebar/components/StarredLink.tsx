@@ -8,6 +8,7 @@ import styled, { useTheme } from "styled-components";
 import Star from "~/models/Star";
 import Fade from "~/components/Fade";
 import useBoolean from "~/hooks/useBoolean";
+import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
 import {
@@ -15,7 +16,6 @@ import {
   useDropToCreateStar,
   useDropToReorderStar,
 } from "../hooks/useDragAndDrop";
-import { useLocationState } from "../hooks/useLocationState";
 import { useSidebarLabelAndIcon } from "../hooks/useSidebarLabelAndIcon";
 import CollectionLink from "./CollectionLink";
 import CollectionLinkChildren from "./CollectionLinkChildren";
@@ -39,7 +39,7 @@ function StarredLink({ star }: Props) {
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const { documentId, collectionId } = star;
   const collection = collections.get(collectionId);
-  const locationSidebarContext = useLocationState();
+  const locationSidebarContext = useLocationSidebarContext();
   const sidebarContext = starredSidebarContext(
     star.documentId ?? star.collectionId
   );

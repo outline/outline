@@ -15,7 +15,7 @@ import { useDocumentContext } from "~/components/DocumentContext";
 import Facepile from "~/components/Facepile";
 import Fade from "~/components/Fade";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
-import { useLocationState } from "~/components/Sidebar/hooks/useLocationState";
+import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 import usePersistedState from "~/hooks/usePersistedState";
 import usePolicy from "~/hooks/usePolicy";
@@ -62,7 +62,7 @@ function CommentThread({
   const { t } = useTranslation();
   const history = useHistory();
   const location = useLocation();
-  const sidebarContext = useLocationState();
+  const sidebarContext = useLocationSidebarContext();
   const [autoFocus, setAutoFocus] = React.useState(thread.isNew);
 
   const can = usePolicy(document);

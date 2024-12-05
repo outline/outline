@@ -24,7 +24,6 @@ import { useDocumentContext } from "~/components/DocumentContext";
 import Flex from "~/components/Flex";
 import Header from "~/components/Header";
 import Icon from "~/components/Icon";
-import { useLocationState } from "~/components/Sidebar/hooks/useLocationState";
 import Star from "~/components/Star";
 import Tooltip from "~/components/Tooltip";
 import { publishDocument } from "~/actions/definitions/documents";
@@ -35,6 +34,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useEditingFocus from "~/hooks/useEditingFocus";
 import useKeyDown from "~/hooks/useKeyDown";
+import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -92,7 +92,7 @@ function DocumentHeader({
   const isEditingFocus = useEditingFocus();
   const { editor } = useDocumentContext();
   const { hasHeadings } = useDocumentContext();
-  const sidebarContext = useLocationState();
+  const sidebarContext = useLocationSidebarContext();
 
   // We cache this value for as long as the component is mounted so that if you
   // apply a template there is still the option to replace it until the user
