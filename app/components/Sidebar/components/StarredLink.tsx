@@ -40,35 +40,29 @@ function StarredLink({ star }: Props) {
   const { documentId, collectionId } = star;
   const collection = collections.get(collectionId);
   const locationSidebarContext = useLocationState();
-  const starType = star.documentId ? "document" : "collection";
   const sidebarContext = starredSidebarContext(
-    starType === "document" ? star.documentId! : star.collectionId
+    star.documentId ?? star.collectionId
   );
   const [expanded, setExpanded] = useState(
-    (starType === "document"
+    (star.documentId
       ? star.documentId === ui.activeDocumentId
       : star.collectionId === ui.activeCollectionId) &&
       sidebarContext === locationSidebarContext
   );
 
   React.useEffect(() => {
-    if (starType === "document") {
-      if (
-        star.documentId === ui.activeDocumentId &&
-        sidebarContext === locationSidebarContext
-      ) {
-        setExpanded(true);
-      }
-    } else {
-      if (
-        star.collectionId === ui.activeCollectionId &&
-        sidebarContext === locationSidebarContext
-      ) {
-        setExpanded(true);
-      }
+    if (
+      star.documentId === ui.activeDocumentId &&
+      sidebarContext === locationSidebarContext
+    ) {
+      setExpanded(true);
+    } else if (
+      star.collectionId === ui.activeCollectionId &&
+      sidebarContext === locationSidebarContext
+    ) {
+      setExpanded(true);
     }
   }, [
-    starType,
     star.documentId,
     star.collectionId,
     ui.activeDocumentId,
