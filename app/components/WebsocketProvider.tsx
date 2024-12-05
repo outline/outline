@@ -426,6 +426,7 @@ class WebsocketProvider extends React.Component<Props> {
         const collectionId = event.modelId;
         const collection = collections.get(collectionId);
         const deletedAt = new Date().toISOString();
+        const user = currentUserId ? users.get(currentUserId) : undefined;
 
         // All non-deleted documents including drafts and archived.
         const nonDeletedDocuments = uniqBy(
@@ -436,9 +437,16 @@ class WebsocketProvider extends React.Component<Props> {
           "id"
         );
         nonDeletedDocuments.forEach((doc) => {
-          // Detach drafts and archived documents when an unarchived collection is deleted; otherwise detach drafts only.
-          if (doc.isDraft || (doc.isArchived && !collection?.isArchived)) {
+          // Detach drafts when a collection is deleted.
+          if (doc.isDraft) {
             doc.collectionId = null;
+          } else if (doc.isArchived && !collection?.isArchived) {
+            // Detach archived documents when an unarchived collection is deleted when the user is an admin (or) doc owner. Otherwise, remove it from the store.
+            if (!!user?.isAdmin || doc.createdBy?.id === currentUserId) {
+              doc.collectionId = null;
+            } else {
+              documents.remove(doc.id);
+            }
           } else {
             doc.deletedAt = deletedAt;
           }

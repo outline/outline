@@ -50,7 +50,11 @@ allow(User, "createTemplate", Team, (actor, team) =>
   )
 );
 
-allow(User, ["readTemplate", "readDocument"], Team, (actor, team) =>
+allow(User, "readDocument", Team, (actor, team) =>
+  and(actor.isAdmin, isTeamModel(actor, team))
+);
+
+allow(User, "readTemplate", Team, (actor, team) =>
   and(!actor.isViewer, isTeamModel(actor, team))
 );
 
