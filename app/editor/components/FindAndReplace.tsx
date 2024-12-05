@@ -280,6 +280,7 @@ export default function FindAndReplace({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [popover.visible]);
 
+  const disabled = totalResults === 0;
   const navigation = (
     <>
       <Tooltip
@@ -289,7 +290,7 @@ export default function FindAndReplace({
         placement="bottom"
       >
         <ButtonLarge
-          disabled={totalResults === 0}
+          disabled={disabled}
           onClick={() => editor.commands.prevSearchMatch()}
         >
           <CaretUpIcon />
@@ -302,7 +303,7 @@ export default function FindAndReplace({
         placement="bottom"
       >
         <ButtonLarge
-          disabled={totalResults === 0}
+          disabled={disabled}
           onClick={() => editor.commands.nextSearchMatch()}
         >
           <CaretDownIcon />
@@ -386,10 +387,10 @@ export default function FindAndReplace({
                   onRequestSubmit={handleReplaceAll}
                   onChange={(ev) => setReplaceTerm(ev.currentTarget.value)}
                 />
-                <Button onClick={handleReplace} neutral>
+                <Button onClick={handleReplace} disabled={disabled} neutral>
                   {t("Replace")}
                 </Button>
-                <Button onClick={handleReplaceAll} neutral>
+                <Button onClick={handleReplaceAll} disabled={disabled} neutral>
                   {t("Replace all")}
                 </Button>
               </Flex>
