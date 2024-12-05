@@ -278,7 +278,7 @@ function InnerDocumentLink(
                   !isDraggingAnyDocument ? (
                     <Fade>
                       {can.createChildDocument && (
-                        <Tooltip content={t("New doc")} delay={500}>
+                        <Tooltip content={t("New doc")}>
                           <NudeButton
                             type={undefined}
                             aria-label={t("New nested document")}

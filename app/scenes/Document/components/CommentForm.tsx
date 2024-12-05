@@ -316,7 +316,7 @@ function CommentForm({
                   {t("Cancel")}
                 </ButtonSmall>
               </Flex>
-              <Tooltip delay={500} content={t("Upload image")} placement="top">
+              <Tooltip content={t("Upload image")} placement="top">
                 <NudeButton onClick={handleImageUpload}>
                   <ImageIcon color={theme.textTertiary} />
                 </NudeButton>

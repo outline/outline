@@ -1,3 +1,4 @@
+import { useSingleton } from "@tippyjs/react";
 import * as React from "react";
 import { useMenuState } from "reakit";
 import { MenuButton } from "reakit/Menu";
@@ -76,6 +77,7 @@ function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
 }
 
 function ToolbarMenu(props: Props) {
+  const [source, target] = useSingleton();
   const { commands, view } = useEditor();
   const { items } = props;
   const { state } = view;
@@ -103,6 +105,7 @@ function ToolbarMenu(props: Props) {
 
         return (
           <Tooltip
+            singleton={index === 0 ? source : target}
             content={item.label === item.tooltip ? undefined : item.tooltip}
             key={index}
           >

@@ -60,7 +60,7 @@ function Notifications(
           </Text>
           <Flex gap={8}>
             {notifications.approximateUnreadCount > 0 && (
-              <Tooltip delay={500} content={t("Mark all as read")}>
+              <Tooltip content={t("Mark all as read")}>
                 <Button action={markNotificationsAsRead} context={context}>
                   <MarkAsReadIcon />
                 </Button>

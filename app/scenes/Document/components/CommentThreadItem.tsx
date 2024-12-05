@@ -197,21 +197,12 @@ function CommentThreadItem({
             {showAuthor && <em>{comment.createdBy.name}</em>}
             {showAuthor && showTime && <> &middot; </>}
             {showTime && (
-              <Time
-                dateTime={comment.createdAt}
-                tooltipDelay={500}
-                addSuffix
-                shorten
-              />
+              <Time dateTime={comment.createdAt} addSuffix shorten />
             )}
             {showEdited && (
               <>
                 {" "}
-                (
-                <Time dateTime={comment.updatedAt} tooltipDelay={500}>
-                  {t("edited")}
-                </Time>
-                )
+                (<Time dateTime={comment.updatedAt}>{t("edited")}</Time>)
               </>
             )}
           </Meta>
@@ -304,12 +295,7 @@ const ResolveButton = ({
   const { t } = useTranslation();
 
   return (
-    <Tooltip
-      content={t("Mark as resolved")}
-      placement="top"
-      delay={500}
-      hideOnClick
-    >
+    <Tooltip content={t("Mark as resolved")} placement="top" hideOnClick>
       <Action
         as={NudeButton}
         context={context}

@@ -111,11 +111,7 @@ function DocumentListItem(
             <Badge yellow>{t("New")}</Badge>
           )}
           {document.isDraft && showDraft && (
-            <Tooltip
-              content={t("Only visible to you")}
-              delay={500}
-              placement="top"
-            >
+            <Tooltip content={t("Only visible to you")} placement="top">
               <Badge>{t("Draft")}</Badge>
             </Tooltip>
           )}

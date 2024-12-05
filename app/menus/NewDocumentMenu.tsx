@@ -19,12 +19,7 @@ function NewDocumentMenu() {
   }
 
   return (
-    <Tooltip
-      content={t("New document")}
-      shortcut="n"
-      delay={500}
-      placement="bottom"
-    >
+    <Tooltip content={t("New document")} shortcut="n" placement="bottom">
       <Button as={Link} to={newDocumentPath()} icon={<PlusIcon />}>
         {t("New doc")}
       </Button>
