@@ -34,7 +34,10 @@ allow(User, "read", Document, (actor, document) =>
       and(
         !!document?.isArchived,
         !document?.collectionId,
-        or(actor.id === document?.createdById, actor.isAdmin)
+        or(
+          actor.id === document?.createdById,
+          can(actor, "readDocument", actor.team)
+        )
       )
     )
   )
@@ -261,7 +264,10 @@ allow(User, "unarchive", Document, (actor, document) =>
       // Archived documents can be detached when the containing collection is deleted
       and(
         !document?.collectionId,
-        or(actor.id === document?.createdById, actor.isAdmin)
+        or(
+          actor.id === document?.createdById,
+          can(actor, "updateDocument", actor.team)
+        )
       )
     )
   )

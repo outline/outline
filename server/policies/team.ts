@@ -58,7 +58,7 @@ allow(User, "readTemplate", Team, (actor, team) =>
   and(!actor.isViewer, isTeamModel(actor, team))
 );
 
-allow(User, "updateTemplate", Team, (actor, team) =>
+allow(User, ["updateDocument", "updateTemplate"], Team, (actor, team) =>
   and(
     //
     actor.isAdmin,
