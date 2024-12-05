@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
-import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
+import { useHistory, useRouteMatch } from "react-router-dom";
 import { richExtensions, withComments } from "@shared/editor/nodes";
 import { TeamPreference } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
@@ -13,6 +13,7 @@ import { RefHandle } from "~/components/ContentEditable";
 import { useDocumentContext } from "~/components/DocumentContext";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
+import { useLocationState } from "~/components/Sidebar/hooks/useLocationState";
 import BlockMenuExtension from "~/editor/extensions/BlockMenu";
 import ClipboardTextSerializer from "~/editor/extensions/ClipboardTextSerializer";
 import EmojiMenuExtension from "~/editor/extensions/EmojiMenu";
@@ -82,7 +83,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const user = useCurrentUser({ rejectOnEmpty: false });
   const team = useCurrentTeam({ rejectOnEmpty: false });
   const history = useHistory();
-  const location = useLocation();
+  const sidebarContext = useLocationState();
   const params = useQuery();
   const {
     document,
@@ -115,14 +116,14 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
           search: focusedComment.isResolved ? "resolved=" : "",
           pathname: location.pathname,
           state: {
-            ...(location.state as Record<string, unknown>),
             commentId: focusedComment.id,
+            sidebarContext,
           },
         });
       }
       ui.set({ commentsExpanded: true });
     }
-  }, [focusedComment, ui, document.id, history, location, params]);
+  }, [focusedComment, ui, document.id, history, params, sidebarContext]);
 
   // Save document when blurring title, but delay so that if clicking on a
   // button this is allowed to execute first.
@@ -147,10 +148,10 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     (commentId: string) => {
       history.replace({
         pathname: window.location.pathname.replace(/\/history$/, ""),
-        state: { ...(location.state as Record<string, unknown>), commentId },
+        state: { commentId, sidebarContext },
       });
     },
-    [history, location]
+    [history, sidebarContext]
   );
 
   // Create a Comment model in local store when a comment mark is created, this
@@ -175,10 +176,10 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
 
       history.replace({
         pathname: window.location.pathname.replace(/\/history$/, ""),
-        state: { ...(location.state as Record<string, unknown>), commentId },
+        state: { commentId, sidebarContext },
       });
     },
-    [comments, user?.id, props.id, history, location]
+    [comments, user?.id, props.id, history, sidebarContext]
   );
 
   // Soft delete the Comment model when associated mark is totally removed.
@@ -247,7 +248,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
               match.path === matchDocumentHistory
                 ? documentPath(document)
                 : documentHistoryPath(document),
-            state: location.state,
+            state: { sidebarContext },
           }}
           rtl={
             titleRef.current?.getComputedDirection() === "rtl" ? true : false

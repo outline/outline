@@ -13,6 +13,7 @@ import DocumentViews from "~/components/DocumentViews";
 import Flex from "~/components/Flex";
 import ListItem from "~/components/List/Item";
 import PaginatedList from "~/components/PaginatedList";
+import { useLocationState } from "~/components/Sidebar/hooks/useLocationState";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import useKeyDown from "~/hooks/useKeyDown";
@@ -28,6 +29,7 @@ function Insights() {
   const { t } = useTranslation();
   const match = useRouteMatch<{ documentSlug: string }>();
   const history = useHistory();
+  const sidebarContext = useLocationState();
   const selectedText = useTextSelection();
   const document = documents.getByUrl(match.params.documentSlug);
   const { editor } = useDocumentContext();
@@ -40,7 +42,7 @@ function Insights() {
     if (document) {
       history.push({
         pathname: documentPath(document),
-        state: history.location.state,
+        state: { sidebarContext },
       });
     }
   };

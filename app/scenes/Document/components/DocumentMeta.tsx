@@ -3,13 +3,14 @@ import { observer, useObserver } from "mobx-react";
 import { CommentIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useLocation, useRouteMatch } from "react-router-dom";
+import { Link, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { TeamPreference } from "@shared/types";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
 import DocumentMeta from "~/components/DocumentMeta";
 import Fade from "~/components/Fade";
+import { useLocationState } from "~/components/Sidebar/hooks/useLocationState";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -27,7 +28,7 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
   const { views, comments, ui } = useStores();
   const { t } = useTranslation();
   const match = useRouteMatch();
-  const location = useLocation();
+  const sidebarContext = useLocationState();
   const team = useCurrentTeam();
   const documentViews = useObserver(() => views.inDocument(document.id));
   const totalViewers = documentViews.length;
@@ -48,7 +49,7 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
           <CommentLink
             to={{
               pathname: documentPath(document),
-              state: location.state,
+              state: { sidebarContext },
             }}
             onClick={() => ui.toggleComments()}
           >
@@ -71,7 +72,7 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
                 match.url === insightsPath
                   ? documentPath(document)
                   : insightsPath,
-              state: location.state,
+              state: { sidebarContext },
             }}
           >
             {t("Viewed by")}{" "}

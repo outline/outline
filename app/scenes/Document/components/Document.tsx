@@ -40,6 +40,7 @@ import LoadingIndicator from "~/components/LoadingIndicator";
 import PageTitle from "~/components/PageTitle";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
+import { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
 import withStores from "~/components/withStores";
 import type { Editor as TEditor } from "~/editor";
 import { SearchResult } from "~/editor/components/LinkEditor";
@@ -77,6 +78,7 @@ type LocationState = {
   title?: string;
   restore?: boolean;
   revisionId?: string;
+  sidebarContext?: SidebarContextType;
 };
 
 type Props = WithTranslation &
@@ -246,7 +248,10 @@ class DocumentScene extends React.Component<Props> {
       const { document, abilities } = this.props;
 
       if (abilities.update) {
-        this.props.history.push(documentEditPath(document));
+        this.props.history.push({
+          pathname: documentEditPath(document),
+          state: { sidebarContext: this.props.location.state?.sidebarContext },
+        });
       }
     } else if (this.editor.current?.isBlurred) {
       ev.preventDefault();
@@ -265,9 +270,15 @@ class DocumentScene extends React.Component<Props> {
     const { document, location } = this.props;
 
     if (location.pathname.endsWith("history")) {
-      this.props.history.push(document.url);
+      this.props.history.push({
+        pathname: document.url,
+        state: { sidebarContext: this.props.location.state?.sidebarContext },
+      });
     } else {
-      this.props.history.push(documentHistoryPath(document));
+      this.props.history.push({
+        pathname: documentHistoryPath(document),
+        state: { sidebarContext: this.props.location.state?.sidebarContext },
+      });
     }
   };
 
@@ -333,10 +344,16 @@ class DocumentScene extends React.Component<Props> {
       this.isEditorDirty = false;
 
       if (options.done) {
-        this.props.history.push(savedDocument.url);
+        this.props.history.push({
+          pathname: savedDocument.url,
+          state: { sidebarContext: this.props.location.state?.sidebarContext },
+        });
         this.props.ui.setActiveDocument(savedDocument);
       } else if (document.isNew) {
-        this.props.history.push(documentEditPath(savedDocument));
+        this.props.history.push({
+          pathname: documentEditPath(savedDocument),
+          state: { sidebarContext: this.props.location.state?.sidebarContext },
+        });
         this.props.ui.setActiveDocument(savedDocument);
       }
     } catch (err) {
@@ -392,7 +409,7 @@ class DocumentScene extends React.Component<Props> {
     if (!this.props.readOnly) {
       this.props.history.push({
         pathname: this.props.document.url,
-        state: this.props.location.state,
+        state: { sidebarContext: this.props.location.state?.sidebarContext },
       });
     }
   };

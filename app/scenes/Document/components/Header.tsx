@@ -24,6 +24,7 @@ import { useDocumentContext } from "~/components/DocumentContext";
 import Flex from "~/components/Flex";
 import Header from "~/components/Header";
 import Icon from "~/components/Icon";
+import { useLocationState } from "~/components/Sidebar/hooks/useLocationState";
 import Star from "~/components/Star";
 import Tooltip from "~/components/Tooltip";
 import { publishDocument } from "~/actions/definitions/documents";
@@ -91,6 +92,7 @@ function DocumentHeader({
   const isEditingFocus = useEditingFocus();
   const { editor } = useDocumentContext();
   const { hasHeadings } = useDocumentContext();
+  const sidebarContext = useLocationState();
 
   // We cache this value for as long as the component is mounted so that if you
   // apply a template there is still the option to replace it until the user
@@ -154,7 +156,10 @@ function DocumentHeader({
         <Button
           as={Link}
           icon={<EditIcon />}
-          to={documentEditPath(document)}
+          to={{
+            pathname: documentEditPath(document),
+            state: { sidebarContext },
+          }}
           neutral
         >
           {isMobile ? null : t("Edit")}

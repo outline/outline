@@ -8,6 +8,7 @@ import Document from "~/models/Document";
 import Event from "~/models/Event";
 import Empty from "~/components/Empty";
 import PaginatedEventList from "~/components/PaginatedEventList";
+import { useLocationState } from "~/components/Sidebar/hooks/useLocationState";
 import useKeyDown from "~/hooks/useKeyDown";
 import useStores from "~/hooks/useStores";
 import { documentPath } from "~/utils/routeHelpers";
@@ -20,6 +21,7 @@ function History() {
   const { t } = useTranslation();
   const match = useRouteMatch<{ documentSlug: string }>();
   const history = useHistory();
+  const sidebarContext = useLocationState();
   const document = documents.getByUrl(match.params.documentSlug);
 
   const eventsInDocument = document
@@ -30,7 +32,7 @@ function History() {
     if (document) {
       history.push({
         pathname: documentPath(document),
-        state: history.location.state,
+        state: { sidebarContext },
       });
     } else {
       history.goBack();

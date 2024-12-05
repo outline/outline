@@ -6,6 +6,7 @@ import styled from "styled-components";
 import { s } from "@shared/styles";
 import { UserPreference } from "@shared/types";
 import InputSelect from "~/components/InputSelect";
+import { useLocationState } from "~/components/Sidebar/hooks/useLocationState";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useQuery from "~/hooks/useQuery";
 import { CommentSortType } from "~/types";
@@ -13,6 +14,7 @@ import { CommentSortType } from "~/types";
 const CommentSortMenu = () => {
   const { t } = useTranslation();
   const location = useLocation();
+  const sidebarContext = useLocationState();
   const history = useHistory();
   const user = useCurrentUser();
   const params = useQuery();
@@ -39,7 +41,7 @@ const CommentSortMenu = () => {
         resolved: "",
       }),
       pathname: location.pathname,
-      state: location.state,
+      state: { sidebarContext },
     });
   };
 
@@ -50,7 +52,7 @@ const CommentSortMenu = () => {
         resolved: undefined,
       }),
       pathname: location.pathname,
-      state: location.state,
+      state: { sidebarContext },
     });
   };
 

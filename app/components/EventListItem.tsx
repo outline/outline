@@ -24,6 +24,7 @@ import RevisionMenu from "~/menus/RevisionMenu";
 import { hover } from "~/styles";
 import Logger from "~/utils/Logger";
 import { documentHistoryPath } from "~/utils/routeHelpers";
+import { useLocationState } from "./Sidebar/hooks/useLocationState";
 
 type Props = {
   document: Document;
@@ -35,6 +36,7 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
   const { t } = useTranslation();
   const { revisions } = useStores();
   const location = useLocation();
+  const sidebarContext = useLocationState();
   const opts = {
     userName: event.actor.name,
   };
@@ -67,7 +69,7 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
       to = {
         pathname: documentHistoryPath(document, event.modelId || "latest"),
         state: {
-          ...(location.state as Record<string, unknown>),
+          sidebarContext,
           retainScrollPosition: true,
         },
       };
