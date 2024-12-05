@@ -40,23 +40,27 @@ export default class Emoji extends Extension {
         {
           tag: "strong.emoji",
           preserveWhitespace: "full",
-          getAttrs: (dom: HTMLElement) => ({
-            "data-name": dom.dataset.name,
-          }),
+          getAttrs: (dom: HTMLElement) =>
+            dom.dataset.name
+              ? {
+                  "data-name": dom.dataset.name,
+                }
+              : false,
         },
       ],
       toDOM: (node) => {
-        if (getEmojiFromName(node.attrs["data-name"])) {
+        const name = node.attrs["data-name"];
+        if (name && getEmojiFromName(name)) {
           return [
             "strong",
             {
-              class: `emoji ${node.attrs["data-name"]}`,
-              "data-name": node.attrs["data-name"],
+              class: `emoji ${name}`,
+              "data-name": name,
             },
-            getEmojiFromName(node.attrs["data-name"]),
+            getEmojiFromName(name),
           ];
         }
-        return ["strong", { class: "emoji" }, `:${node.attrs["data-name"]}:`];
+        return ["strong", { class: "emoji" }, `:${name}:`];
       },
       toPlainText: (node) => getEmojiFromName(node.attrs["data-name"]),
     };

@@ -32,9 +32,9 @@ type BeforeSend = {
 type Props = InputProps & BeforeSend;
 
 /**
- * Email sent to a user when they are mentioned in a comment.
+ * Email sent to a user when a comment they are involved in was resolved.
  */
-export default class CommentMentionedEmail extends BaseEmail<
+export default class CommentResolvedEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {
@@ -78,7 +78,7 @@ export default class CommentMentionedEmail extends BaseEmail<
   protected unsubscribeUrl({ userId }: InputProps) {
     return NotificationSettingsHelper.unsubscribeUrl(
       userId,
-      NotificationEventType.MentionedInComment
+      NotificationEventType.ResolveComment
     );
   }
 
@@ -92,11 +92,11 @@ export default class CommentMentionedEmail extends BaseEmail<
   }
 
   protected subject({ document }: Props) {
-    return `Mentioned you in “${document.title}”`;
+    return `Resolved a comment thread in “${document.title}”`;
   }
 
   protected preview({ actorName }: Props): string {
-    return `${actorName} mentioned you in a thread`;
+    return `${actorName} resolved a comment thread`;
   }
 
   protected fromName({ actorName }: Props): string {
@@ -110,13 +110,10 @@ export default class CommentMentionedEmail extends BaseEmail<
     commentId,
     collection,
   }: Props): string {
-    return `
-${actorName} mentioned you in a comment on "${document.title}"${
-      collection.name ? `in the ${collection.name} collection` : ""
-    }.
-
-Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
-`;
+    const t1 = `${actorName} resolved a comment thread on "${document.title}"`;
+    const t2 = collection.name ? ` in the ${collection.name} collection` : "";
+    const t3 = `Open Thread: ${teamUrl}${document.url}?commentId=${commentId}`;
+    return `${t1}${t2}.\n\n${t3}`;
   }
 
   protected render(props: Props) {
@@ -141,7 +138,7 @@ Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
         <Body>
           <Heading>{document.title}</Heading>
           <p>
-            {actorName} mentioned you in a comment on{" "}
+            {actorName} resolved a comment on{" "}
             <a href={threadLink}>{document.title}</a>{" "}
             {collection.name ? `in the ${collection.name} collection` : ""}.
           </p>

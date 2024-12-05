@@ -21,9 +21,7 @@ import { schema, parser } from "@server/editor";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import Attachment from "@server/models/Attachment";
-import User from "@server/models/User";
 import FileStorage from "@server/storage/files";
-import { TextHelper } from "./TextHelper";
 
 export type HTMLOptions = {
   /** A title, if it should be included */
@@ -262,29 +260,6 @@ export class ProsemirrorHelper {
       return node;
     }
     return removeMarksInner(json);
-  }
-
-  /**
-   * Replaces all template variables in the node.
-   *
-   * @param data The ProsemirrorData object to replace variables in
-   * @param user The user to use for replacing variables
-   * @returns The content with variables replaced
-   */
-  static replaceTemplateVariables(data: ProsemirrorData, user: User) {
-    function replace(node: ProsemirrorData) {
-      if (node.type === "text" && node.text) {
-        node.text = TextHelper.replaceTemplateVariables(node.text, user);
-      }
-
-      if (node.content) {
-        node.content.forEach(replace);
-      }
-
-      return node;
-    }
-
-    return replace(data);
   }
 
   static async replaceInternalUrls(

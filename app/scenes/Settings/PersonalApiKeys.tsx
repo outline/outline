@@ -12,12 +12,14 @@ import Text from "~/components/Text";
 import { createApiKey } from "~/actions/definitions/apiKeys";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import ApiKeyListItem from "./components/ApiKeyListItem";
 
-function ApiKeys() {
+function PersonalApiKeys() {
   const team = useCurrentTeam();
+  const user = useCurrentUser();
   const { t } = useTranslation();
   const { apiKeys } = useStores();
   const can = usePolicy(team);
@@ -42,11 +44,12 @@ function ApiKeys() {
         </>
       }
     >
-      <Heading>{t("API Keys")}</Heading>
+      <Heading>{t("API")}</Heading>
       <Text as="p" type="secondary">
         <Trans
-          defaults="API keys can be used to authenticate with the API and programatically control
-          your workspace's data. For more details see the <em>developer documentation</em>."
+          defaults="Create personal API keys to authenticate with the API and programatically control
+          your workspace's data. API keys have the same permissions as your user account.
+          For more details see the <em>developer documentation</em>."
           components={{
             em: (
               <a
@@ -60,8 +63,9 @@ function ApiKeys() {
       </Text>
       <PaginatedList
         fetch={apiKeys.fetchPage}
-        items={apiKeys.orderedData}
-        heading={<h2>{t("All")}</h2>}
+        items={apiKeys.personalApiKeys}
+        options={{ userId: user.id }}
+        heading={<h2>{t("Personal keys")}</h2>}
         renderItem={(apiKey: ApiKey) => (
           <ApiKeyListItem key={apiKey.id} apiKey={apiKey} />
         )}
@@ -70,4 +74,4 @@ function ApiKeys() {
   );
 }
 
-export default observer(ApiKeys);
+export default observer(PersonalApiKeys);

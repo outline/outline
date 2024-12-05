@@ -36,7 +36,10 @@ export default class Video extends Node {
         height: {
           default: null,
         },
-        title: {},
+        title: {
+          default: null,
+          validate: "string|null",
+        },
       },
       group: "block",
       selectable: true,
