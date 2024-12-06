@@ -1,7 +1,6 @@
 import Tippy, { TippyProps } from "@tippyjs/react";
 import * as React from "react";
 import styled, { createGlobalStyle } from "styled-components";
-import { roundArrow } from "tippy.js";
 import { s } from "@shared/styles";
 import useMobile from "~/hooks/useMobile";
 import { useTooltipContext } from "./TooltipContext";
@@ -32,16 +31,7 @@ function Tooltip({ shortcut, content: tooltip, delay = 500, ...rest }: Props) {
   }
 
   return (
-    <Tippy
-      arrow={roundArrow}
-      animation="shift-away"
-      content={content}
-      delay={delay}
-      singleton={singleton}
-      duration={[200, 150]}
-      inertia
-      {...rest}
-    />
+    <Tippy content={content} delay={delay} singleton={singleton} {...rest} />
   );
 }
 
