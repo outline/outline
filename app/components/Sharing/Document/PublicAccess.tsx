@@ -119,7 +119,7 @@ function PublicAccess({ document, share, sharedParent }: Props) {
     : share?.url ?? "";
 
   const copyButton = (
-    <Tooltip content={t("Copy public link")} delay={500} placement="top">
+    <Tooltip content={t("Copy public link")} placement="top">
       <CopyToClipboard text={shareUrl} onCopy={handleCopied}>
         <NudeButton type="button" disabled={!share} style={{ marginRight: 3 }}>
           <CopyIcon color={theme.placeholder} size={18} />

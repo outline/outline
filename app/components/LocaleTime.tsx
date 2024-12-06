@@ -23,7 +23,6 @@ function eachMinute(fn: () => void) {
 export type Props = {
   children?: React.ReactNode;
   dateTime: string;
-  tooltipDelay?: number;
   addSuffix?: boolean;
   shorten?: boolean;
   relative?: boolean;
@@ -37,7 +36,6 @@ const LocaleTime: React.FC<Props> = ({
   shorten,
   format,
   relative,
-  tooltipDelay,
 }: Props) => {
   const userLocale = useUserLocale();
   const dateFormatLong: Record<string, string> = {
@@ -82,7 +80,7 @@ const LocaleTime: React.FC<Props> = ({
         });
 
   return (
-    <Tooltip content={tooltipContent} delay={tooltipDelay} placement="bottom">
+    <Tooltip content={tooltipContent} placement="bottom">
       <time dateTime={dateTime}>{children || content}</time>
     </Tooltip>
   );

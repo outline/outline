@@ -128,7 +128,7 @@ const Reaction: React.FC<Props> = ({
   );
 
   return tooltipContent ? (
-    <Tooltip content={tooltipContent} delay={250} placement="bottom">
+    <Tooltip content={tooltipContent} placement="bottom">
       {DisplayedEmoji}
     </Tooltip>
   ) : (

@@ -140,7 +140,6 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
       title={
         <Time
           dateTime={event.createdAt}
-          tooltipDelay={500}
           format={{
             en_US: "MMM do, h:mm a",
             fr_FR: "'Le 'd MMMM 'à' H:mm",

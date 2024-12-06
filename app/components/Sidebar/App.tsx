@@ -80,7 +80,6 @@ function AppSidebar() {
                 <Tooltip
                   content={t("Toggle sidebar")}
                   shortcut={`${metaDisplay}+.`}
-                  delay={500}
                 >
                   <ToggleButton
                     position="bottom"

@@ -286,7 +286,6 @@ export default function FindAndReplace({
       <Tooltip
         content={t("Previous match")}
         shortcut="shift+enter"
-        delay={500}
         placement="bottom"
       >
         <ButtonLarge
@@ -296,12 +295,7 @@ export default function FindAndReplace({
           <CaretUpIcon />
         </ButtonLarge>
       </Tooltip>
-      <Tooltip
-        content={t("Next match")}
-        shortcut="enter"
-        delay={500}
-        placement="bottom"
-      >
+      <Tooltip content={t("Next match")} shortcut="enter" placement="bottom">
         <ButtonLarge
           disabled={disabled}
           onClick={() => editor.commands.nextSearchMatch()}
@@ -336,7 +330,6 @@ export default function FindAndReplace({
                 <Tooltip
                   content={t("Match case")}
                   shortcut={`${altDisplay}+${metaDisplay}+c`}
-                  delay={500}
                   placement="bottom"
                 >
                   <ButtonSmall onClick={handleCaseSensitive}>
@@ -348,7 +341,6 @@ export default function FindAndReplace({
                 <Tooltip
                   content={t("Enable regex")}
                   shortcut={`${altDisplay}+${metaDisplay}+r`}
-                  delay={500}
                   placement="bottom"
                 >
                   <ButtonSmall onClick={handleRegex}>
@@ -361,11 +353,7 @@ export default function FindAndReplace({
             </StyledInput>
             {navigation}
             {!readOnly && (
-              <Tooltip
-                content={t("Replace options")}
-                delay={500}
-                placement="bottom"
-              >
+              <Tooltip content={t("Replace options")} placement="bottom">
                 <ButtonLarge onClick={handleMore}>
                   <ReplaceIcon color={theme.textSecondary} />
                 </ButtonLarge>

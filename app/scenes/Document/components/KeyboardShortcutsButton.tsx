@@ -23,7 +23,7 @@ function KeyboardShortcutsButton() {
   };
 
   return (
-    <Tooltip content={t("Keyboard shortcuts")} shortcut="?" delay={500}>
+    <Tooltip content={t("Keyboard shortcuts")} shortcut="?">
       <Button onClick={handleOpenKeyboardShortcuts} $hidden={isEditingFocus}>
         <KeyboardIcon />
       </Button>

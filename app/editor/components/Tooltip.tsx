@@ -8,8 +8,18 @@ type Props = {
   children?: React.ReactNode;
 };
 
-const WrappedTooltip: React.FC<Props> = ({ children, content }: Props) => (
-  <Tooltip offset={[0, 16]} delay={150} content={content} placement="top">
+const WrappedTooltip: React.FC<Props> = ({
+  children,
+  content,
+  ...rest
+}: Props) => (
+  <Tooltip
+    offset={[0, 16]}
+    delay={150}
+    content={content}
+    placement="top"
+    {...rest}
+  >
     <TooltipContent>{children}</TooltipContent>
   </Tooltip>
 );

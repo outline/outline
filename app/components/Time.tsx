@@ -22,7 +22,7 @@ function Time({ onClick, ...props }: Props) {
           <time dateTime={props.dateTime}>{props.children || content}</time>
         }
       >
-        <LocaleTime tooltipDelay={250} {...props} />
+        <LocaleTime {...props} />
       </React.Suspense>
     </span>
   );

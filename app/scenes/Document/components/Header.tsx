@@ -133,7 +133,6 @@ function DocumentHeader({
           : `${t("Show contents")} (${t("available when headings are added")})`
       }
       shortcut={`ctrl+${altDisplay}+h`}
-      delay={250}
       placement="bottom"
     >
       <Button
@@ -151,7 +150,6 @@ function DocumentHeader({
           noun: document.noun,
         })}
         shortcut="e"
-        delay={500}
         placement="bottom"
       >
         <Button
@@ -171,7 +169,6 @@ function DocumentHeader({
         content={
           resolvedTheme === "light" ? t("Switch to dark") : t("Switch to light")
         }
-        delay={500}
         placement="bottom"
       >
         <Button
@@ -290,7 +287,6 @@ function DocumentHeader({
                 <Tooltip
                   content={t("Save")}
                   shortcut={`${metaDisplay}+enter`}
-                  delay={500}
                   placement="bottom"
                 >
                   <Button
@@ -323,7 +319,6 @@ function DocumentHeader({
                       <Tooltip
                         content={t("New document")}
                         shortcut="n"
-                        delay={500}
                         placement="bottom"
                       >
                         <Button icon={<PlusIcon />} {...props} neutral>
@@ -336,11 +331,7 @@ function DocumentHeader({
               )}
             {revision && revision.createdAt !== document.updatedAt && (
               <Action>
-                <Tooltip
-                  content={t("Restore version")}
-                  delay={500}
-                  placement="bottom"
-                >
+                <Tooltip content={t("Restore version")} placement="bottom">
                   <Button
                     action={restoreRevision}
                     context={context}

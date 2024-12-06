@@ -144,12 +144,7 @@ function DocumentCard(props: Props) {
               </Heading>
               <DocumentMeta size="xsmall">
                 <Clock size={18} />
-                <Time
-                  dateTime={document.updatedAt}
-                  tooltipDelay={500}
-                  addSuffix
-                  shorten
-                />
+                <Time dateTime={document.updatedAt} addSuffix shorten />
               </DocumentMeta>
             </div>
           </Content>
