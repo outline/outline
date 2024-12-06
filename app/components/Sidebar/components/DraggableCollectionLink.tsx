@@ -7,8 +7,8 @@ import styled from "styled-components";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
+import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
-import { useLocationState } from "../hooks/useLocationState";
 import CollectionLink from "./CollectionLink";
 import CollectionLinkChildren from "./CollectionLinkChildren";
 import DropCursor from "./DropCursor";
@@ -29,7 +29,7 @@ function DraggableCollectionLink({
   prefetchDocument,
   belowCollection,
 }: Props) {
-  const locationSidebarContext = useLocationState();
+  const locationSidebarContext = useLocationSidebarContext();
   const sidebarContext = useSidebarContext();
   const { ui, policies, collections } = useStores();
   const [expanded, setExpanded] = React.useState(

@@ -16,6 +16,7 @@ import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import Relative from "./Relative";
 import SidebarAction from "./SidebarAction";
+import SidebarContext from "./SidebarContext";
 import { DragObject } from "./SidebarLink";
 
 function Collections() {
@@ -49,38 +50,40 @@ function Collections() {
   });
 
   return (
-    <Flex column>
-      <Header id="collections" title={t("Collections")}>
-        <Relative>
-          <PaginatedList
-            options={params}
-            aria-label={t("Collections")}
-            items={collections.allActive}
-            loading={<PlaceholderCollections />}
-            heading={
-              isDraggingAnyCollection ? (
-                <DropCursor
-                  isActiveDrop={isCollectionDropping}
-                  innerRef={dropToReorderCollection}
-                  position="top"
+    <SidebarContext.Provider value="collections">
+      <Flex column>
+        <Header id="collections" title={t("Collections")}>
+          <Relative>
+            <PaginatedList
+              options={params}
+              aria-label={t("Collections")}
+              items={collections.allActive}
+              loading={<PlaceholderCollections />}
+              heading={
+                isDraggingAnyCollection ? (
+                  <DropCursor
+                    isActiveDrop={isCollectionDropping}
+                    innerRef={dropToReorderCollection}
+                    position="top"
+                  />
+                ) : undefined
+              }
+              renderError={(props) => <StyledError {...props} />}
+              renderItem={(item: Collection, index) => (
+                <DraggableCollectionLink
+                  key={item.id}
+                  collection={item}
+                  activeDocument={documents.active}
+                  prefetchDocument={documents.prefetchDocument}
+                  belowCollection={orderedCollections[index + 1]}
                 />
-              ) : undefined
-            }
-            renderError={(props) => <StyledError {...props} />}
-            renderItem={(item: Collection, index) => (
-              <DraggableCollectionLink
-                key={item.id}
-                collection={item}
-                activeDocument={documents.active}
-                prefetchDocument={documents.prefetchDocument}
-                belowCollection={orderedCollections[index + 1]}
-              />
-            )}
-          />
-          <SidebarAction action={createCollection} depth={0} />
-        </Relative>
-      </Header>
-    </Flex>
+              )}
+            />
+            <SidebarAction action={createCollection} depth={0} />
+          </Relative>
+        </Header>
+      </Flex>
+    </SidebarContext.Provider>
   );
 }
 

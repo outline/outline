@@ -21,9 +21,11 @@ import StarButton, { AnimatedStar } from "~/components/Star";
 import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { hover } from "~/styles";
 import { documentPath } from "~/utils/routeHelpers";
+import { determineSidebarContext } from "./Sidebar/components/SidebarContext";
 
 type Props = {
   document: Document;
@@ -50,6 +52,7 @@ function DocumentListItem(
 ) {
   const { t } = useTranslation();
   const user = useCurrentUser();
+  const locationSidebarContext = useLocationSidebarContext();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
 
   let itemRef: React.Ref<HTMLAnchorElement> =
@@ -78,6 +81,12 @@ function DocumentListItem(
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
   const canStar = !document.isArchived && !document.isTemplate;
 
+  const sidebarContext = determineSidebarContext({
+    document,
+    user,
+    currentContext: locationSidebarContext,
+  });
+
   return (
     <DocumentLink
       ref={itemRef}
@@ -89,6 +98,7 @@ function DocumentListItem(
         pathname: documentPath(document),
         state: {
           title: document.titleWithDefault,
+          sidebarContext,
         },
       }}
       {...rest}

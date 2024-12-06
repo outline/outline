@@ -9,6 +9,7 @@ import Event from "~/models/Event";
 import Empty from "~/components/Empty";
 import PaginatedEventList from "~/components/PaginatedEventList";
 import useKeyDown from "~/hooks/useKeyDown";
+import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
 import { documentPath } from "~/utils/routeHelpers";
 import Sidebar from "./SidebarLayout";
@@ -20,6 +21,7 @@ function History() {
   const { t } = useTranslation();
   const match = useRouteMatch<{ documentSlug: string }>();
   const history = useHistory();
+  const sidebarContext = useLocationSidebarContext();
   const document = documents.getByUrl(match.params.documentSlug);
 
   const eventsInDocument = document
@@ -28,7 +30,10 @@ function History() {
 
   const onCloseHistory = () => {
     if (document) {
-      history.push(documentPath(document));
+      history.push({
+        pathname: documentPath(document),
+        state: { sidebarContext },
+      });
     } else {
       history.goBack();
     }

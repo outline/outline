@@ -15,7 +15,6 @@ import DropCursor from "./DropCursor";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import Relative from "./Relative";
-import SidebarContext from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
 import StarredLink from "./StarredLink";
 
@@ -42,48 +41,46 @@ function Starred() {
   }
 
   return (
-    <SidebarContext.Provider value="starred">
-      <Flex column>
-        <Header id="starred" title={t("Starred")}>
-          <Relative>
-            {reorderStarProps.isDragging && (
-              <DropCursor
-                isActiveDrop={reorderStarProps.isOverCursor}
-                innerRef={dropToReorder}
-                position="top"
-              />
-            )}
-            {createStarProps.isDragging && (
-              <DropCursor
-                isActiveDrop={createStarProps.isOverCursor}
-                innerRef={dropToStarRef}
-                position="top"
-              />
-            )}
-            {stars.orderedData
-              .slice(0, page * STARRED_PAGINATION_LIMIT)
-              .map((star) => (
-                <StarredLink key={star.id} star={star} />
-              ))}
-            {!end && (
-              <SidebarLink
-                onClick={next}
-                label={`${t("Show more")}…`}
-                disabled={stars.isFetching}
-                depth={0}
-              />
-            )}
-            {loading && (
-              <Flex column>
-                <DelayedMount>
-                  <PlaceholderCollections />
-                </DelayedMount>
-              </Flex>
-            )}
-          </Relative>
-        </Header>
-      </Flex>
-    </SidebarContext.Provider>
+    <Flex column>
+      <Header id="starred" title={t("Starred")}>
+        <Relative>
+          {reorderStarProps.isDragging && (
+            <DropCursor
+              isActiveDrop={reorderStarProps.isOverCursor}
+              innerRef={dropToReorder}
+              position="top"
+            />
+          )}
+          {createStarProps.isDragging && (
+            <DropCursor
+              isActiveDrop={createStarProps.isOverCursor}
+              innerRef={dropToStarRef}
+              position="top"
+            />
+          )}
+          {stars.orderedData
+            .slice(0, page * STARRED_PAGINATION_LIMIT)
+            .map((star) => (
+              <StarredLink key={star.id} star={star} />
+            ))}
+          {!end && (
+            <SidebarLink
+              onClick={next}
+              label={`${t("Show more")}…`}
+              disabled={stars.isFetching}
+              depth={0}
+            />
+          )}
+          {loading && (
+            <Flex column>
+              <DelayedMount>
+                <PlaceholderCollections />
+              </DelayedMount>
+            </Flex>
+          )}
+        </Relative>
+      </Header>
+    </Flex>
   );
 }
 

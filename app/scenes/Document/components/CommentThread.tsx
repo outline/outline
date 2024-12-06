@@ -15,6 +15,7 @@ import { useDocumentContext } from "~/components/DocumentContext";
 import Facepile from "~/components/Facepile";
 import Fade from "~/components/Fade";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
+import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 import usePersistedState from "~/hooks/usePersistedState";
 import usePolicy from "~/hooks/usePolicy";
@@ -61,6 +62,7 @@ function CommentThread({
   const { t } = useTranslation();
   const history = useHistory();
   const location = useLocation();
+  const sidebarContext = useLocationSidebarContext();
   const [autoFocus, setAutoFocus] = React.useState(thread.isNew);
 
   const can = usePolicy(document);
@@ -101,7 +103,10 @@ function CommentThread({
       history.replace({
         search: location.search,
         pathname: location.pathname,
-        state: { commentId: undefined },
+        state: {
+          commentId: undefined,
+          sidebarContext,
+        },
       });
     }
   });
@@ -115,7 +120,10 @@ function CommentThread({
       // Clear any commentId from the URL when explicitly focusing a thread
       search: thread.isResolved ? "resolved=" : "",
       pathname: location.pathname.replace(/\/history$/, ""),
-      state: { commentId: thread.id },
+      state: {
+        commentId: thread.id,
+        sidebarContext,
+      },
     });
   };
 
