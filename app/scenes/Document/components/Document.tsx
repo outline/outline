@@ -59,7 +59,6 @@ import Contents from "./Contents";
 import Editor from "./Editor";
 import Header from "./Header";
 import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
-import MarkAsViewed from "./MarkAsViewed";
 import { MeasuredContainer } from "./MeasuredContainer";
 import Notices from "./Notices";
 import PublicReferences from "./PublicReferences";
@@ -583,7 +582,7 @@ class DocumentScene extends React.Component<Props> {
                         canUpdate={abilities.update}
                         canComment={abilities.comment}
                       >
-                        {shareId && (
+                        {shareId ? (
                           <ReferencesWrapper>
                             <PublicReferences
                               shareId={shareId}
@@ -591,15 +590,11 @@ class DocumentScene extends React.Component<Props> {
                               sharedTree={this.props.sharedTree}
                             />
                           </ReferencesWrapper>
-                        )}
-                        {!isShare && !revision && (
-                          <>
-                            <MarkAsViewed document={document} />
-                            <ReferencesWrapper>
-                              <References document={document} />
-                            </ReferencesWrapper>
-                          </>
-                        )}
+                        ) : !revision ? (
+                          <ReferencesWrapper>
+                            <References document={document} />
+                          </ReferencesWrapper>
+                        ) : null}
                       </Editor>
                     </MeasuredContainer>
                   </>

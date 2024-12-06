@@ -23,6 +23,7 @@ import {
 import history from "~/utils/history";
 import { matchDocumentEdit, settingsPath } from "~/utils/routeHelpers";
 import Loading from "./Loading";
+import MarkAsViewed from "./MarkAsViewed";
 
 type Params = {
   /** The document urlId + slugified title  */
@@ -222,16 +223,19 @@ function DataLoader({ match, children }: Props) {
   const readOnly = !isEditing || !canEdit;
 
   return (
-    <React.Fragment key={canEdit ? "edit" : "read"}>
-      {children({
-        document,
-        revision,
-        abilities: can,
-        readOnly,
-        onCreateLink,
-        sharedTree,
-      })}
-    </React.Fragment>
+    <>
+      {!shareId && !revision && <MarkAsViewed document={document} />}
+      <React.Fragment key={canEdit ? "edit" : "read"}>
+        {children({
+          document,
+          revision,
+          abilities: can,
+          readOnly,
+          onCreateLink,
+          sharedTree,
+        })}
+      </React.Fragment>
+    </>
   );
 }
 
