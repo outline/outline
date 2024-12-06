@@ -40,18 +40,18 @@ export const determineSidebarContext = ({
       : starredSidebarContext(document.collectionId!);
   }
 
-  const membershipType = document.membershipType;
-
-  if (membershipType === "document") {
+  if (document.collection) {
+    return "collections";
+  } else if (
+    user.documentMemberships.find((m) => m.documentId === document.id)
+  ) {
     return "shared";
-  } else if (membershipType === "group") {
+  } else {
     const group = user.groupsWithDocumentMemberships.find(
       (g) => !!g.documentMemberships.find((m) => m.documentId === document.id)
     );
     return groupSidebarContext(group?.id ?? "");
   }
-
-  return "collections";
 };
 
 export default SidebarContext;
