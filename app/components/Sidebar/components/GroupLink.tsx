@@ -2,10 +2,11 @@ import { observer } from "mobx-react";
 import { GroupIcon } from "outline-icons";
 import * as React from "react";
 import Group from "~/models/Group";
+import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import Folder from "./Folder";
 import Relative from "./Relative";
 import SharedWithMeLink from "./SharedWithMeLink";
-import SidebarContext from "./SidebarContext";
+import SidebarContext, { groupSidebarContext } from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
 
 type Props = {
@@ -14,12 +15,22 @@ type Props = {
 };
 
 const GroupLink: React.FC<Props> = ({ group }) => {
-  const [expanded, setExpanded] = React.useState(false);
+  const locationSidebarContext = useLocationSidebarContext();
+  const sidebarContext = groupSidebarContext(group.id);
+  const [expanded, setExpanded] = React.useState(
+    locationSidebarContext === sidebarContext
+  );
 
   const handleDisclosureClick = React.useCallback((ev) => {
     ev?.preventDefault();
     setExpanded((e) => !e);
   }, []);
+
+  React.useEffect(() => {
+    if (locationSidebarContext === sidebarContext) {
+      setExpanded(true);
+    }
+  }, [sidebarContext, locationSidebarContext, setExpanded]);
 
   return (
     <Relative>
@@ -30,7 +41,7 @@ const GroupLink: React.FC<Props> = ({ group }) => {
         onClick={handleDisclosureClick}
         depth={0}
       />
-      <SidebarContext.Provider value={group.id}>
+      <SidebarContext.Provider value={sidebarContext}>
         <Folder expanded={expanded}>
           {group.documentMemberships.map((membership) => (
             <SharedWithMeLink

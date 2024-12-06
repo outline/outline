@@ -53,9 +53,13 @@ export const resolveCommentFactory = ({
     perform: async ({ t }) => {
       await comment.resolve();
 
+      const locationState = history.location.state as Record<string, unknown>;
       history.replace({
         ...history.location,
-        state: null,
+        state: {
+          sidebarContext: locationState["sidebarContext"],
+          commentId: undefined,
+        },
       });
 
       onResolve();
@@ -81,9 +85,13 @@ export const unresolveCommentFactory = ({
     perform: async () => {
       await comment.unresolve();
 
+      const locationState = history.location.state as Record<string, unknown>;
       history.replace({
         ...history.location,
-        state: null,
+        state: {
+          sidebarContext: locationState["sidebarContext"],
+          commentId: undefined,
+        },
       });
 
       onUnresolve();
