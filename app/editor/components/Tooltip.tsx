@@ -1,12 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-import Tooltip from "~/components/Tooltip";
-
-type Props = {
-  /** The content to display in the tooltip. */
-  content?: string;
-  children?: React.ReactNode;
-};
+import Tooltip, { Props } from "~/components/Tooltip";
 
 const WrappedTooltip: React.FC<Props> = ({
   children,

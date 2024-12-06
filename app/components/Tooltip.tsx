@@ -1,4 +1,5 @@
 import Tippy, { TippyProps } from "@tippyjs/react";
+import { transparentize } from "polished";
 import * as React from "react";
 import styled, { createGlobalStyle } from "styled-components";
 import { s } from "@shared/styles";
@@ -25,7 +26,18 @@ function Tooltip({ shortcut, content: tooltip, delay = 500, ...rest }: Props) {
   if (shortcut) {
     content = (
       <>
-        {tooltip} &middot; <Shortcut>{shortcut}</Shortcut>
+        {tooltip}{" "}
+        {typeof shortcut === "string" ? (
+          shortcut
+            .split("+")
+            .map((key) => (
+              <Shortcut key={key}>
+                {key.length === 1 ? key.toUpperCase() : key}
+              </Shortcut>
+            ))
+        ) : (
+          <Shortcut>{shortcut}</Shortcut>
+        )}
       </>
     );
   }
@@ -37,16 +49,17 @@ function Tooltip({ shortcut, content: tooltip, delay = 500, ...rest }: Props) {
 
 const Shortcut = styled.kbd`
   position: relative;
-  top: -2px;
+  top: -1px;
 
+  margin-left: 2px;
   display: inline-block;
   padding: 2px 4px;
-  font: 10px "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier,
-    monospace;
+  font-size: 12px;
+  font-family: ${s("fontFamilyMono")};
   line-height: 10px;
-  color: ${s("tooltipBackground")};
+  color: ${s("tooltipText")};
+  border: 1px solid ${(props) => transparentize(0.75, props.theme.tooltipText)};
   vertical-align: middle;
-  background-color: ${s("tooltipText")};
   border-radius: 3px;
 `;
 
