@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import { usePopoverState } from "reakit/Popover";
 import styled, { useTheme } from "styled-components";
 import { depths, s } from "@shared/styles";
+import { altDisplay, isModKey, metaDisplay } from "@shared/utils/keyboard";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
@@ -21,7 +22,6 @@ import Tooltip from "~/components/Tooltip";
 import useKeyDown from "~/hooks/useKeyDown";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 import Desktop from "~/utils/Desktop";
-import { altDisplay, isModKey, metaDisplay } from "~/utils/keyboard";
 import { useEditor } from "./EditorContext";
 
 type Props = {
