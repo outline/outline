@@ -52,11 +52,7 @@ function NotificationListItem({ notification, onNavigate }: Props) {
             <Text weight="bold">{notification.subject}</Text>
           </Text>
           <Text type="tertiary" size="xsmall">
-            <Time
-              dateTime={notification.createdAt}
-              tooltipDelay={1000}
-              addSuffix
-            />{" "}
+            <Time dateTime={notification.createdAt} addSuffix />{" "}
             {collection && <>&middot; {collection.name}</>}
           </Text>
           {notification.comment && (

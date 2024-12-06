@@ -1,9 +1,9 @@
 import Tippy, { TippyProps } from "@tippyjs/react";
 import * as React from "react";
 import styled, { createGlobalStyle } from "styled-components";
-import { roundArrow } from "tippy.js";
 import { s } from "@shared/styles";
 import useMobile from "~/hooks/useMobile";
+import { useTooltipContext } from "./TooltipContext";
 
 export type Props = Omit<TippyProps, "content" | "theme"> & {
   /** The content to display in the tooltip. */
@@ -12,8 +12,9 @@ export type Props = Omit<TippyProps, "content" | "theme"> & {
   shortcut?: React.ReactNode;
 };
 
-function Tooltip({ shortcut, content: tooltip, delay = 50, ...rest }: Props) {
+function Tooltip({ shortcut, content: tooltip, delay = 500, ...rest }: Props) {
   const isMobile = useMobile();
+  const singleton = useTooltipContext();
 
   let content = <>{tooltip}</>;
 
@@ -30,15 +31,7 @@ function Tooltip({ shortcut, content: tooltip, delay = 50, ...rest }: Props) {
   }
 
   return (
-    <Tippy
-      arrow={roundArrow}
-      animation="shift-away"
-      content={content}
-      delay={delay}
-      duration={[200, 150]}
-      inertia
-      {...rest}
-    />
+    <Tippy content={content} delay={delay} singleton={singleton} {...rest} />
   );
 }
 
@@ -132,7 +125,7 @@ export const TooltipStyles = createGlobalStyle`
       padding:5px 9px;
       z-index:1
   }
- 
+
   /* Arrow Styles */
   .tippy-box[data-placement^=top]>.tippy-svg-arrow{
     bottom:0

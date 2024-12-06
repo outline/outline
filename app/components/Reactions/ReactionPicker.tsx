@@ -98,12 +98,7 @@ const ReactionPicker: React.FC<Props> = ({
     <>
       <PopoverDisclosure {...popover}>
         {(props) => (
-          <Tooltip
-            content={t("Add reaction")}
-            placement="top"
-            delay={500}
-            hideOnClick
-          >
+          <Tooltip content={t("Add reaction")} placement="top" hideOnClick>
             <NudeButton
               {...props}
               aria-label={t("Reaction picker")}

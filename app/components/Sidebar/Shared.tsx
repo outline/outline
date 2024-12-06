@@ -81,11 +81,7 @@ const ToggleSidebar = () => {
   const { ui } = useStores();
 
   return (
-    <Tooltip
-      content={t("Toggle sidebar")}
-      shortcut={`${metaDisplay}+.`}
-      delay={500}
-    >
+    <Tooltip content={t("Toggle sidebar")} shortcut={`${metaDisplay}+.`}>
       <ToggleButton
         position="bottom"
         image={<SidebarIcon />}
