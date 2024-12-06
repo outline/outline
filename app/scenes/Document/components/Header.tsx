@@ -134,7 +134,7 @@ function DocumentHeader({
           ? t("Show contents")
           : `${t("Show contents")} (${t("available when headings are added")})`
       }
-      shortcut={`ctrl+${altDisplay}+h`}
+      shortcut={`Ctrl+${altDisplay}+h`}
       placement="bottom"
     >
       <Button
