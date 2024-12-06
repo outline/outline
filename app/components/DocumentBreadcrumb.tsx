@@ -8,15 +8,11 @@ import Document from "~/models/Document";
 import Breadcrumb from "~/components/Breadcrumb";
 import Icon from "~/components/Icon";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
+import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { MenuInternalLink } from "~/types";
-import {
-  archivePath,
-  collectionPath,
-  settingsPath,
-  trashPath,
-} from "~/utils/routeHelpers";
+import { archivePath, settingsPath, trashPath } from "~/utils/routeHelpers";
 
 type Props = {
   children?: React.ReactNode;
@@ -64,6 +60,7 @@ function DocumentBreadcrumb(
   const { collections } = useStores();
   const { t } = useTranslation();
   const category = useCategory(document);
+  const sidebarContext = useLocationSidebarContext();
   const collection = document.collectionId
     ? collections.get(document.collectionId)
     : undefined;
@@ -80,7 +77,10 @@ function DocumentBreadcrumb(
       type: "route",
       title: collection.name,
       icon: <CollectionIcon collection={collection} expanded />,
-      to: collectionPath(collection.path),
+      to: {
+        pathname: collection.path,
+        state: { sidebarContext },
+      },
     };
   } else if (document.isCollectionDeleted) {
     collectionNode = {
@@ -114,11 +114,14 @@ function DocumentBreadcrumb(
         ) : (
           node.title
         ),
-        to: node.url,
+        to: {
+          pathname: node.url,
+          state: { sidebarContext },
+        },
       });
     });
     return output;
-  }, [path, category, collectionNode]);
+  }, [path, category, sidebarContext, collectionNode]);
 
   if (!collections.isLoaded) {
     return null;
