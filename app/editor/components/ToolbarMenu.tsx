@@ -108,8 +108,9 @@ function ToolbarMenu(props: Props) {
 
           return (
             <Tooltip
-              content={item.label === item.tooltip ? undefined : item.tooltip}
               key={index}
+              shortcut={item.shortcut}
+              content={item.label === item.tooltip ? undefined : item.tooltip}
             >
               {item.children ? (
                 <ToolbarDropdown active={isActive && !item.label} item={item} />

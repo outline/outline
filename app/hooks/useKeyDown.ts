@@ -1,6 +1,6 @@
 import * as React from "react";
+import { isModKey } from "@shared/utils/keyboard";
 import isTextInput from "~/utils/isTextInput";
-import { isModKey } from "~/utils/keyboard";
 
 type Callback = (event: KeyboardEvent) => void;
 

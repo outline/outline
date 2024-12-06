@@ -15,6 +15,7 @@ import {
   getCurrentDateTimeAsString,
   getCurrentTimeAsString,
 } from "@shared/utils/date";
+import { isModKey } from "@shared/utils/keyboard";
 import { DocumentValidation } from "@shared/validations";
 import ContentEditable, { RefHandle } from "~/components/ContentEditable";
 import { useDocumentContext } from "~/components/DocumentContext";
@@ -22,7 +23,6 @@ import Icon, { IconTitleWrapper } from "~/components/Icon";
 import { PopoverButton } from "~/components/IconPicker/components/PopoverButton";
 import useBoolean from "~/hooks/useBoolean";
 import usePolicy from "~/hooks/usePolicy";
-import { isModKey } from "~/utils/keyboard";
 
 const IconPicker = React.lazy(() => import("~/components/IconPicker"));
 

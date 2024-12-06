@@ -3,10 +3,10 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { isMac } from "@shared/utils/browser";
+import { metaDisplay, altDisplay } from "@shared/utils/keyboard";
 import Flex from "~/components/Flex";
 import InputSearch from "~/components/InputSearch";
 import Key from "~/components/Key";
-import { metaDisplay, altDisplay } from "~/utils/keyboard";
 
 function KeyboardShortcuts() {
   const { t } = useTranslation();

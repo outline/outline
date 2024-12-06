@@ -15,6 +15,7 @@ import scrollIntoView from "scroll-into-view-if-needed";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { NavigationNode } from "@shared/types";
+import { isModKey } from "@shared/utils/keyboard";
 import DocumentExplorerNode from "~/components/DocumentExplorerNode";
 import DocumentExplorerSearchResult from "~/components/DocumentExplorerSearchResult";
 import Flex from "~/components/Flex";
@@ -25,7 +26,6 @@ import InputSearch from "~/components/InputSearch";
 import Text from "~/components/Text";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
-import { isModKey } from "~/utils/keyboard";
 import { ancestors, descendants } from "~/utils/tree";
 
 type Props = {

@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import { NavigationNode } from "@shared/types";
+import { altDisplay, metaDisplay } from "@shared/utils/keyboard";
 import { Theme } from "~/stores/UiStore";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
@@ -43,7 +44,6 @@ import DocumentMenu from "~/menus/DocumentMenu";
 import NewChildDocumentMenu from "~/menus/NewChildDocumentMenu";
 import TableOfContentsMenu from "~/menus/TableOfContentsMenu";
 import TemplatesMenu from "~/menus/TemplatesMenu";
-import { altDisplay, metaDisplay } from "~/utils/keyboard";
 import { documentEditPath } from "~/utils/routeHelpers";
 import ObservingBanner from "./ObservingBanner";
 import PublicBreadcrumb from "./PublicBreadcrumb";
@@ -134,7 +134,7 @@ function DocumentHeader({
           ? t("Show contents")
           : `${t("Show contents")} (${t("available when headings are added")})`
       }
-      shortcut={`ctrl+${altDisplay}+h`}
+      shortcut={`Ctrl+${altDisplay}+h`}
       placement="bottom"
     >
       <Button
