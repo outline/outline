@@ -136,14 +136,14 @@ type MenuContentProps = {
   showToggleEmbeds?: boolean;
 };
 
-const MenuContent: React.FC<MenuContentProps> = ({
+const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
   onOpen,
   onClose,
   onFindAndReplace,
   onRename,
   showDisplayOptions,
   showToggleEmbeds,
-}) => {
+}) {
   const user = useCurrentUser();
   const { model: document, menuState } = useMenuContext<Document>();
   const can = usePolicy(document);
@@ -348,7 +348,7 @@ const MenuContent: React.FC<MenuContentProps> = ({
       )}
     </ContextMenu>
   ) : null;
-};
+});
 
 function DocumentMenu({
   document,
