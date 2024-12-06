@@ -16,6 +16,7 @@ import PaginatedList from "~/components/PaginatedList";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import useKeyDown from "~/hooks/useKeyDown";
+import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useTextSelection from "~/hooks/useTextSelection";
@@ -28,6 +29,7 @@ function Insights() {
   const { t } = useTranslation();
   const match = useRouteMatch<{ documentSlug: string }>();
   const history = useHistory();
+  const sidebarContext = useLocationSidebarContext();
   const selectedText = useTextSelection();
   const document = documents.getByUrl(match.params.documentSlug);
   const { editor } = useDocumentContext();
@@ -38,7 +40,10 @@ function Insights() {
 
   const onCloseInsights = () => {
     if (document) {
-      history.push(documentPath(document));
+      history.push({
+        pathname: documentPath(document),
+        state: { sidebarContext },
+      });
     }
   };
 

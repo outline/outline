@@ -35,6 +35,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useEditingFocus from "~/hooks/useEditingFocus";
 import useKeyDown from "~/hooks/useKeyDown";
+import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -91,6 +92,7 @@ function DocumentHeader({
   const isRevision = !!revision;
   const isEditingFocus = useEditingFocus();
   const { hasHeadings, editor } = useDocumentContext();
+  const sidebarContext = useLocationSidebarContext();
   const ref = React.useRef<HTMLDivElement | null>(null);
   const size = useComponentSize(ref);
   const isMobile = isMobileMedia || size.width < 700;
@@ -155,7 +157,10 @@ function DocumentHeader({
         <Button
           as={Link}
           icon={<EditIcon />}
-          to={documentEditPath(document)}
+          to={{
+            pathname: documentEditPath(document),
+            state: { sidebarContext },
+          }}
           neutral
         >
           {isMobile ? null : t("Edit")}
