@@ -19,12 +19,22 @@ export default function markInputRule(
 ): InputRule {
   return new InputRule(
     regexp,
-    (state: EditorState, match: string[], start: number, end: number) => {
+    (
+      state: EditorState,
+      match: RegExpMatchArray,
+      start: number,
+      end: number
+    ) => {
       const attrs = getAttrs instanceof Function ? getAttrs(match) : getAttrs;
       const { tr } = state;
-      const captureGroup = match[match.length - 1];
+      const captureGroup = match.groups?.text ?? match[match.length - 1];
       const fullMatch = match[0];
-      const startSpaces = fullMatch.search(/\S/);
+
+      console.log({
+        match,
+        fullMatch,
+        captureGroup,
+      });
 
       if (captureGroup) {
         const matchStart = start + fullMatch.indexOf(captureGroup);
@@ -43,14 +53,28 @@ export default function markInputRule(
           tr.delete(textEnd, end);
         }
         if (textStart > start) {
-          tr.delete(start + startSpaces, textStart);
+          tr.delete(start, textStart);
         }
-        end = start + startSpaces + captureGroup.length;
+        end = start + captureGroup.length;
       }
 
-      tr.addMark(start + startSpaces, end, markType.create(attrs));
+      tr.addMark(start, end, markType.create(attrs));
       tr.removeStoredMark(markType);
       return tr;
     }
+  );
+}
+
+export function markInputRuleForCharacter(
+  character: string,
+  markType: MarkType,
+  getAttrs?: (match: string[]) => Record<string, unknown>
+): InputRule {
+  return markInputRule(
+    new RegExp(
+      `(?:^|[\\s\\[\\{\\(])(${character}((?<text>[^${character}]+))${character})$`
+    ),
+    markType,
+    getAttrs
   );
 }
