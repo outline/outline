@@ -1,6 +1,6 @@
 import { toggleMark } from "prosemirror-commands";
 import { MarkSpec, MarkType } from "prosemirror-model";
-import markInputRule from "../lib/markInputRule";
+import { markInputRuleForPattern } from "../lib/markInputRule";
 import underlinesRule from "../rules/underlines";
 import Mark from "./Mark";
 
@@ -32,7 +32,7 @@ export default class Underline extends Mark {
   }
 
   inputRules({ type }: { type: MarkType }) {
-    return [markInputRule(/(?:__)([^_]+)(?:__)$/, type)];
+    return [markInputRuleForPattern("__", type)];
   }
 
   keys({ type }: { type: MarkType }) {

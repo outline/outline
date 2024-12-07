@@ -9,7 +9,7 @@ import {
 } from "prosemirror-model";
 import { Plugin, TextSelection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-import markInputRule from "../lib/markInputRule";
+import { markInputRuleForPattern } from "../lib/markInputRule";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { isInCode } from "../queries/isInCode";
 import Mark from "./Mark";
@@ -28,7 +28,7 @@ export default class Code extends Mark {
   }
 
   inputRules({ type }: { type: MarkType }) {
-    return [markInputRule(/(?:^|\s)((?:`)((?:[^`]+))(?:`))$/, type)];
+    return [markInputRuleForPattern("`", type)];
   }
 
   keys({ type }: { type: MarkType }) {
