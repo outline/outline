@@ -10,13 +10,23 @@ import { fadeAndScaleIn } from "~/styles/animations";
 
 type Props = PopoverProps & {
   children: React.ReactNode;
+  /** The width of the popover, defaults to 380px. */
   width?: number;
+  /** The minimum width of the popover, use instead of width if contents adjusts size. */
+  minWidth?: number;
+  /** Shrink the padding of the popover */
   shrink?: boolean;
+  /** Make the popover flex */
   flex?: boolean;
+  /** The tab index of the popover */
   tabIndex?: number;
+  /** Whether the popover should be scrollable, defaults to true. */
   scrollable?: boolean;
+  /** The position of the popover on mobile, defaults to "top". */
   mobilePosition?: "top" | "bottom";
+  /** Function to show the popover */
   show: () => void;
+  /** Function to hide the popover */
   hide: () => void;
 };
 
@@ -25,6 +35,7 @@ const Popover = (
     children,
     shrink,
     width = 380,
+    minWidth,
     scrollable = true,
     flex,
     mobilePosition,
@@ -71,6 +82,7 @@ const Popover = (
         ref={ref}
         $shrink={shrink}
         $width={width}
+        $minWidth={minWidth}
         $scrollable={scrollable}
         $flex={flex}
       >
@@ -83,6 +95,7 @@ const Popover = (
 type ContentsProps = {
   $shrink?: boolean;
   $width?: number;
+  $minWidth?: number;
   $flex?: boolean;
   $scrollable: boolean;
   $mobilePosition?: "top" | "bottom";
@@ -101,7 +114,8 @@ const Contents = styled.div<ContentsProps>`
   padding: ${(props) => (props.$shrink ? "6px 0" : "12px 24px")};
   max-height: 75vh;
   box-shadow: ${s("menuShadow")};
-  width: ${(props) => props.$width}px;
+  ${(props) => props.$width && `width: ${props.$width}px`};
+  ${(props) => props.$minWidth && `min-width: ${props.$minWidth}px`};
 
   ${(props) =>
     props.$scrollable

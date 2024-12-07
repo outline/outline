@@ -314,7 +314,8 @@ export default function FindAndReplace({
         style={style}
         aria-label={t("Find and replace")}
         scrollable={false}
-        width={420}
+        minWidth={420}
+        width={0}
       >
         <Content column>
           <Flex gap={4}>
