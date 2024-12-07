@@ -17,6 +17,7 @@ import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import { draggableOnDesktop, fadeOnDesktopBackgrounded } from "~/styles";
 import Desktop from "~/utils/Desktop";
+import { TooltipProvider } from "./TooltipContext";
 
 export const HEADER_HEIGHT = 64;
 
@@ -71,38 +72,40 @@ function Header(
   const isCompact = size.width < 1000 || breadcrumbMakesCompact;
 
   return (
-    <Wrapper
-      ref={mergeRefs([ref, internalRef])}
-      align="center"
-      shrink={false}
-      className={className}
-      $passThrough={passThrough}
-      $insetTitleAdjust={ui.sidebarIsClosed && Desktop.hasInsetTitlebar()}
-    >
-      {left || hasMobileSidebar ? (
-        <Breadcrumbs ref={setBreadcrumbRef}>
-          {hasMobileSidebar && (
-            <MobileMenuButton
-              onClick={ui.toggleMobileSidebar}
-              icon={<MenuIcon />}
-              neutral
-            />
-          )}
-          {left}
-        </Breadcrumbs>
-      ) : null}
+    <TooltipProvider>
+      <Wrapper
+        ref={mergeRefs([ref, internalRef])}
+        align="center"
+        shrink={false}
+        className={className}
+        $passThrough={passThrough}
+        $insetTitleAdjust={ui.sidebarIsClosed && Desktop.hasInsetTitlebar()}
+      >
+        {left || hasMobileSidebar ? (
+          <Breadcrumbs ref={setBreadcrumbRef}>
+            {hasMobileSidebar && (
+              <MobileMenuButton
+                onClick={ui.toggleMobileSidebar}
+                icon={<MenuIcon />}
+                neutral
+              />
+            )}
+            {left}
+          </Breadcrumbs>
+        ) : null}
 
-      {isScrolled && !isCompact ? (
-        <Title onClick={handleClickTitle}>
-          <Fade>{title}</Fade>
-        </Title>
-      ) : (
-        <div />
-      )}
-      <Actions align="center" justify="flex-end">
-        {typeof actions === "function" ? actions({ isCompact }) : actions}
-      </Actions>
-    </Wrapper>
+        {isScrolled && !isCompact ? (
+          <Title onClick={handleClickTitle}>
+            <Fade>{title}</Fade>
+          </Title>
+        ) : (
+          <div />
+        )}
+        <Actions align="center" justify="flex-end">
+          {typeof actions === "function" ? actions({ isCompact }) : actions}
+        </Actions>
+      </Wrapper>
+    </TooltipProvider>
   );
 }
 
