@@ -13,6 +13,21 @@ export function cdnPath(path: string): string {
 }
 
 /**
+ * Extracts the file name from a given url.
+ *
+ * @param url The url to extract the file name from.
+ * @returns The file name.
+ */
+export function fileNameFromUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    return parsed.pathname.split("/").pop();
+  } catch (err) {
+    return;
+  }
+}
+
+/**
  * Returns true if the given string is a link to inside the application.
  *
  * @param url The url to check.
@@ -146,6 +161,12 @@ export function sanitizeUrl(url: string | null | undefined) {
   return url;
 }
 
+/**
+ * Returns a regex to match the given url.
+ *
+ * @param url The url to create a regex for.
+ * @returns A regex to match the url.
+ */
 export function urlRegex(url: string | null | undefined): RegExp | undefined {
   if (!url || !isUrl(url)) {
     return undefined;

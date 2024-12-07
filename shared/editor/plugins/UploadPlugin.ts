@@ -1,7 +1,7 @@
 import { extension } from "mime-types";
 import { Plugin } from "prosemirror-state";
 import { getDataTransferFiles, getDataTransferImage } from "../../utils/files";
-import { isInternalUrl } from "../../utils/urls";
+import { fileNameFromUrl, isInternalUrl } from "../../utils/urls";
 import insertFiles, { Options } from "../commands/insertFiles";
 
 export class UploadPlugin extends Plugin {
@@ -73,18 +73,20 @@ export class UploadPlugin extends Plugin {
               void fetch(imageSrc)
                 .then((response) => response.blob())
                 .then((blob) => {
+                  const fileName = fileNameFromUrl(imageSrc) ?? "pasted-image";
+                  const ext = extension(blob.type) ?? "png";
+                  const name = fileName.endsWith(`.${ext}`)
+                    ? fileName
+                    : `${fileName}.${ext}`;
+
                   void insertFiles(
                     view,
                     event,
                     result.pos,
                     [
-                      new File(
-                        [blob],
-                        `pasted-image.${extension(blob.type) ?? "png"}`,
-                        {
-                          type: blob.type,
-                        }
-                      ),
+                      new File([blob], name, {
+                        type: blob.type,
+                      }),
                     ],
                     options
                   );
