@@ -5,7 +5,7 @@ import { EditorState } from "prosemirror-state";
 import { getMarksBetween } from "../queries/getMarksBetween";
 
 /**
- * A factory function for creating Prosemirror plugins that automatically apply a mark to text
+ * A factory function for creating a Prosemirror InputRule that automatically apply a mark to text
  * that matches a given regular expression.
  *
  * Assumes the mark is not already applied, and that the regex includes two named capture groups:
@@ -69,8 +69,8 @@ export default function markInputRule(
 }
 
 /**
- * A factory function for creating Prosemirror plugins that automatically apply a mark to text
- * is surrounded by a given pattern.
+ * A factory function for creating a Prosemirror InputRule that automatically applies a mark to
+ * text that is surrounded by a given pattern.
  *
  * @param pattern The pattern to match.
  * @param markType The mark type to apply.
