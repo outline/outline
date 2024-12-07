@@ -35,11 +35,17 @@ export function getDataTransferImage(
 ) {
   const dt =
     event instanceof ClipboardEvent ? event.clipboardData : event.dataTransfer;
-  const html = dt?.getData("text/html");
-  return html
-    ? new DOMParser().parseFromString(html, "text/html").querySelector("img")
-        ?.src
-    : dt?.getData("url");
+  const untrustedHTML = dt?.getData("text/html");
+
+  try {
+    return untrustedHTML
+      ? new DOMParser()
+          .parseFromString(untrustedHTML, "text/html")
+          .querySelector("img")?.src
+      : dt?.getData("url");
+  } catch (e) {
+    return;
+  }
 }
 
 /**
