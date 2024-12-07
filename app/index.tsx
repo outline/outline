@@ -20,7 +20,6 @@ import { initI18n } from "~/utils/i18n";
 import Desktop from "./components/DesktopEventHandler";
 import LazyPolyfill from "./components/LazyPolyfills";
 import PageScroll from "./components/PageScroll";
-import { TooltipProvider } from "./components/TooltipContext";
 import Routes from "./routes";
 import Logger from "./utils/Logger";
 import { PluginManager } from "./utils/PluginManager";
@@ -56,23 +55,21 @@ if (element) {
             <Theme>
               <ErrorBoundary showTitle>
                 <KBarProvider actions={[]} options={commandBarOptions}>
-                  <TooltipProvider>
-                    <LazyPolyfill>
-                      <LazyMotion features={loadFeatures}>
-                        <Router history={history}>
-                          <PageScroll>
-                            <PageTheme />
-                            <ScrollToTop>
-                              <Routes />
-                            </ScrollToTop>
-                            <Toasts />
-                            <Dialogs />
-                            <Desktop />
-                          </PageScroll>
-                        </Router>
-                      </LazyMotion>
-                    </LazyPolyfill>
-                  </TooltipProvider>
+                  <LazyPolyfill>
+                    <LazyMotion features={loadFeatures}>
+                      <Router history={history}>
+                        <PageScroll>
+                          <PageTheme />
+                          <ScrollToTop>
+                            <Routes />
+                          </ScrollToTop>
+                          <Toasts />
+                          <Dialogs />
+                          <Desktop />
+                        </PageScroll>
+                      </Router>
+                    </LazyMotion>
+                  </LazyPolyfill>
                 </KBarProvider>
               </ErrorBoundary>
             </Theme>

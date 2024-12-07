@@ -17,6 +17,7 @@ import { fadeIn } from "~/styles/animations";
 import Desktop from "~/utils/Desktop";
 import NotificationIcon from "../Notifications/NotificationIcon";
 import NotificationsPopover from "../Notifications/NotificationsPopover";
+import { TooltipProvider } from "../TooltipContext";
 import ResizeBorder from "./components/ResizeBorder";
 import SidebarButton, { SidebarButtonProps } from "./components/SidebarButton";
 import ToggleButton from "./components/ToggleButton";
@@ -194,7 +195,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
   );
 
   return (
-    <>
+    <TooltipProvider>
       <Container
         ref={ref}
         style={style}
@@ -242,7 +243,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
         />
       </Container>
       {ui.mobileSidebarVisible && <Backdrop onClick={ui.toggleMobileSidebar} />}
-    </>
+    </TooltipProvider>
   );
 });
 

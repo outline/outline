@@ -11,9 +11,13 @@ export function useTooltipContext() {
 
 type Props = {
   children: React.ReactNode;
+  /** Props to pass to the Tippy component */
   tippyProps?: TippyProps;
 };
 
+/**
+ * Wrap a collection of tooltips in a provider to allow them to share the same singleton instance.
+ */
 export function TooltipProvider({ children, tippyProps }: Props) {
   const [source, target] = useSingleton();
 
