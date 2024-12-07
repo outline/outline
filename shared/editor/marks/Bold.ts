@@ -1,7 +1,7 @@
 import { toggleMark } from "prosemirror-commands";
 import { InputRule } from "prosemirror-inputrules";
 import { MarkSpec, MarkType } from "prosemirror-model";
-import markInputRule from "../lib/markInputRule";
+import { markInputRuleForPattern } from "../lib/markInputRule";
 import Mark from "./Mark";
 
 const heavyWeightRegex = /^(bold(er)?|[5-9]\d{2,})$/;
@@ -33,7 +33,7 @@ export default class Bold extends Mark {
   }
 
   inputRules({ type }: { type: MarkType }): InputRule[] {
-    return [markInputRule(/(?:\*\*)([^*]+)(?:\*\*)$/, type)];
+    return [markInputRuleForPattern("**", type)];
   }
 
   keys({ type }: { type: MarkType }) {

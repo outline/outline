@@ -1,7 +1,7 @@
 import { rgba } from "polished";
 import { toggleMark } from "prosemirror-commands";
 import { MarkSpec, MarkType } from "prosemirror-model";
-import markInputRule from "../lib/markInputRule";
+import { markInputRuleForPattern } from "../lib/markInputRule";
 import markRule from "../rules/mark";
 import Mark from "./Mark";
 
@@ -53,7 +53,7 @@ export default class Highlight extends Mark {
   }
 
   inputRules({ type }: { type: MarkType }) {
-    return [markInputRule(/(?:==)([^=]+)(?:==)$/, type)];
+    return [markInputRuleForPattern("==", type)];
   }
 
   keys({ type }: { type: MarkType }) {
