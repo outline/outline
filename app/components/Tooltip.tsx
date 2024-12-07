@@ -12,6 +12,8 @@ export type Props = Omit<TippyProps, "content" | "theme"> & {
   content?: React.ReactChild | React.ReactChild[];
   /** A keyboard shortcut to display next to the content */
   shortcut?: React.ReactNode;
+  /** Whether to show the shortcut on a new line */
+  shortcutOnNewline?: boolean;
 };
 
 /**
@@ -21,7 +23,13 @@ export type Props = Omit<TippyProps, "content" | "theme"> & {
  * Wrap this component in a TooltipProvider to allow multiple tooltips to share the same
  * singleton instance (delay, animation, etc).
  */
-function Tooltip({ shortcut, content: tooltip, delay = 500, ...rest }: Props) {
+function Tooltip({
+  shortcut,
+  shortcutOnNewline,
+  content: tooltip,
+  delay = 500,
+  ...rest
+}: Props) {
   const isMobile = useMobile();
   const singleton = useTooltipContext();
 
@@ -34,7 +42,8 @@ function Tooltip({ shortcut, content: tooltip, delay = 500, ...rest }: Props) {
   if (shortcut) {
     content = (
       <>
-        {tooltip}{" "}
+        {tooltip}
+        {shortcutOnNewline ? <br /> : " "}
         {typeof shortcut === "string" ? (
           shortcut
             .split("+")
