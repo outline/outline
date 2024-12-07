@@ -12,6 +12,7 @@ const WrappedTooltip: React.FC<Props> = ({
     delay={150}
     content={content}
     placement="top"
+    shortcutOnNewline
     {...rest}
   >
     <TooltipContent>{children}</TooltipContent>

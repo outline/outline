@@ -252,6 +252,7 @@ export default function formattingMenuItems(
       name: "copyToClipboard",
       icon: <CopyIcon />,
       tooltip: dictionary.copy,
+      shortcut: `${metaDisplay}+C`,
       visible: isCode && !isCodeBlock && (!isMobile || !isEmpty),
     },
   ];
