@@ -1,6 +1,6 @@
 import { extension } from "mime-types";
 import { Plugin } from "prosemirror-state";
-import { getDataTransferFiles } from "../../utils/files";
+import { getDataTransferFiles, getDataTransferImage } from "../../utils/files";
 import { isInternalUrl } from "../../utils/urls";
 import insertFiles, { Options } from "../commands/insertFiles";
 
@@ -19,12 +19,7 @@ export class UploadPlugin extends Plugin {
             }
 
             // check if we actually pasted any files
-            const files = Array.prototype.slice
-              .call(event.clipboardData.items)
-              .filter((dt: DataTransferItem) => dt.kind !== "string")
-              .map((dt: DataTransferItem) => dt.getAsFile())
-              .filter(Boolean);
-
+            const files = getDataTransferFiles(event);
             if (files.length === 0) {
               return false;
             }
@@ -37,7 +32,7 @@ export class UploadPlugin extends Plugin {
             // Fallback to default paste behavior if the clipboard contains HTML
             // Even if there is an image, it's likely to be a screenshot from eg
             // Microsoft Suite / Apple Numbers – and not the original content.
-            if (html.length && !html.includes("<img")) {
+            if (html.length && !getDataTransferImage(event)) {
               return false;
             }
 
@@ -64,19 +59,13 @@ export class UploadPlugin extends Plugin {
               return false;
             }
 
-            // filter to only include image files
             const files = getDataTransferFiles(event);
             if (files.length) {
               void insertFiles(view, event, result.pos, files, options);
               return true;
             }
 
-            const html = event.dataTransfer?.getData("text/html");
-            const imageSrc = html
-              ? new DOMParser()
-                  .parseFromString(html, "text/html")
-                  .querySelector("img")?.src
-              : event.dataTransfer?.getData("url");
+            const imageSrc = getDataTransferImage(event);
             if (imageSrc && !isInternalUrl(imageSrc)) {
               event.stopPropagation();
               event.preventDefault();
