@@ -1,6 +1,6 @@
 import { toggleMark } from "prosemirror-commands";
 import { MarkSpec, MarkType } from "prosemirror-model";
-import markInputRule from "../lib/markInputRule";
+import { markInputRuleForPattern } from "../lib/markInputRule";
 import Mark from "./Mark";
 
 export default class Strikethrough extends Mark {
@@ -36,7 +36,7 @@ export default class Strikethrough extends Mark {
   }
 
   inputRules({ type }: { type: MarkType }) {
-    return [markInputRule(/~([^~]+)~$/, type)];
+    return [markInputRuleForPattern("~", type)];
   }
 
   toMarkdown() {
