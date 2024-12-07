@@ -294,7 +294,7 @@ export default class CodeFence extends Node {
               if (
                 $from.sameParent($to) &&
                 event.detail === 3 &&
-                isInCode(view.state)
+                isInCode(view.state, { onlyBlock: true })
               ) {
                 dispatch?.(
                   state.tr
