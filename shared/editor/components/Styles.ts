@@ -116,7 +116,7 @@ const mathStyle = (props: Props) => css`
     background: ${props.theme.codeBackground};
     padding: 0.75em 1em;
     font-family: ${props.theme.fontFamilyMono};
-    font-size: 80%;
+    font-size: 90%;
   }
 
   math-block.empty-math {
@@ -1263,11 +1263,12 @@ code {
   padding: 3px 4px;
   color: ${props.theme.codeString};
   font-family: ${props.theme.fontFamilyMono};
-  font-size: 80%;
+  font-size: 90%;
 }
 
 mark {
   border-radius: 1px;
+  padding: 2px 0;
   color: ${props.theme.text};
 
   a {
