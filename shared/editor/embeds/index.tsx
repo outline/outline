@@ -404,11 +404,11 @@ const embeds: EmbedDescriptor[] = [
     transformMatch: (matches: RegExpMatchArray) => {
       const input = matches.input ?? matches[0];
 
-      if (input.includes("style=singlePage")) {
+      if (input.includes("style=singlePage") || input.includes("embed=true")) {
         return input;
       }
 
-      return input.replace(/(\?embed=true)?$/, "?embed=true");
+      return `${input}${input.includes("?")?"&embed=true":"?embed=true"}`
     },
     icon: <Img src="/images/grist.png" alt="Grist" />,
   }),
