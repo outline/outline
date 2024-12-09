@@ -714,6 +714,7 @@ router.post(
       content = await DocumentHelper.toHTML(document, {
         centered: true,
         includeMermaid: true,
+        includeToc: true,
       });
     } else if (accept?.includes("application/pdf")) {
       throw IncorrectEditionError(

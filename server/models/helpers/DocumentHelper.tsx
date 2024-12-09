@@ -21,6 +21,8 @@ type HTMLOptions = {
   includeStyles?: boolean;
   /** Whether to include the Mermaid script in the generated HTML (defaults to false) */
   includeMermaid?: boolean;
+  /** Whether to include a table of contents in the generated HTML (defaults to false) */
+  includeToc?: boolean;
   /** Whether to include styles to center diff (defaults to true) */
   centered?: boolean;
   /**
@@ -189,6 +191,7 @@ export class DocumentHelper {
       title: options?.includeTitle !== false ? document.title : undefined,
       includeStyles: options?.includeStyles,
       includeMermaid: options?.includeMermaid,
+      includeToc: options?.includeToc,
       centered: options?.centered,
       baseUrl: options?.baseUrl,
     });

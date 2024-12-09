@@ -30,6 +30,8 @@ export type HTMLOptions = {
   includeStyles?: boolean;
   /** Whether to include mermaidjs scripts in the generated HTML (defaults to false) */
   includeMermaid?: boolean;
+  /** Whether to include table of contents (defaults to false) */
+  includeToc?: boolean;
   /** Whether to include styles to center diff (defaults to true) */
   centered?: boolean;
   /** The base URL to use for relative links */
@@ -444,6 +446,22 @@ export class ProsemirrorHelper {
     const children = (
       <>
         {options?.title && <h1 dir={rtl ? "rtl" : "ltr"}>{options.title}</h1>}
+        {options?.includeToc && (
+          <>
+            <details id="toc">
+              <summary
+                style={{
+                  cursor: "pointer",
+                  fontStyle: "italic",
+                  fontWeight: "bold",
+                }}
+              >
+                Contents
+              </summary>
+            </details>
+            <hr />
+          </>
+        )}
         {options?.includeStyles !== false ? (
           <EditorContainer dir={rtl ? "rtl" : "ltr"} rtl={rtl} staticHTML>
             {content}
@@ -505,6 +523,55 @@ export class ProsemirrorHelper {
       for (const el of elements) {
         if ("href" in el && (el.href as string).startsWith("/")) {
           el.href = new URL(el.href as string, options.baseUrl).toString();
+        }
+      }
+    }
+
+    // Inject table-of-contents
+    if (options?.includeToc) {
+      const toc = doc.getElementById("toc");
+      if (toc) {
+        const headings = Array.from(
+          dom.window.document.querySelectorAll("h1, h2, h3, h4")
+        );
+
+        // Discard first h1 which is usually the document title
+        if (
+          headings[0]?.tagName === "H1" &&
+          headings[0].textContent === options.title
+        ) {
+          headings.shift();
+        }
+
+        const minLevel = headings.reduce(
+          (memo, heading) => Math.min(memo, parseInt(heading.tagName.slice(1))),
+          Infinity
+        );
+
+        const generateAnchor = (index: number, text: string) => {
+          const sanitized = text
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/(^-|-$)/g, "");
+          return `${index}-${sanitized}`;
+        };
+
+        for (let i = 0; i < headings.length; ++i) {
+          const heading = headings[i];
+          const level = parseInt(heading.tagName.slice(1)) - minLevel;
+          const anchor = generateAnchor(i, heading?.textContent || "");
+
+          // Update original heading with anchor
+          heading.setAttribute("id", anchor);
+
+          // Create a link in the TOC
+          const link = doc.createElement("a");
+          link.textContent = heading.textContent;
+          link.href = `#${anchor}`;
+          const listItem = doc.createElement("li");
+          listItem.setAttribute("style", `margin-left: ${level * 30}px;`);
+          listItem.appendChild(link);
+          toc.appendChild(listItem);
         }
       }
     }
