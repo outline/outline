@@ -404,11 +404,20 @@ const embeds: EmbedDescriptor[] = [
     transformMatch: (matches: RegExpMatchArray) => {
       const input = matches.input ?? matches[0];
 
-      if (input.includes("style=singlePage")) {
-        return input;
+      try {
+        const url = new URL(input);
+        const params = new URLSearchParams(url.search);
+        if (params.has("embed") || params.get("style") === "singlePage") {
+          return input;
+        }
+
+        params.append("embed", "true");
+        return `${url.origin}${url.pathname}?${params.toString()}`;
+      } catch (e) {
+        //
       }
 
-      return input.replace(/(\?embed=true)?$/, "?embed=true");
+      return input;
     },
     icon: <Img src="/images/grist.png" alt="Grist" />,
   }),
