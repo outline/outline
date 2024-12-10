@@ -171,15 +171,19 @@ export default async function loadDocument({
         throw AuthorizationError();
       }
 
-      const childDocumentIds =
-        (await share.document?.findAllChildDocumentIds({
-          archivedAt: {
-            [Op.is]: null,
-          },
-        })) ?? [];
+      // If the document is not a direct child of the shared document then we
+      // need to check if it is nested within the shared document somewhere.
+      if (document.parentDocumentId !== share.documentId) {
+        const childDocumentIds =
+          (await share.document?.findAllChildDocumentIds({
+            archivedAt: {
+              [Op.is]: null,
+            },
+          })) ?? [];
 
-      if (!childDocumentIds.includes(document.id)) {
-        throw AuthorizationError();
+        if (!childDocumentIds.includes(document.id)) {
+          throw AuthorizationError();
+        }
       }
     }
 
