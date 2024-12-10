@@ -88,9 +88,9 @@ export class ProsemirrorHelper {
       if (node.content) {
         const contentAsArray =
           node.content instanceof Fragment
-            ? // @ts-expect-error content
-              node.content.content
+            ? node.content.content
             : node.content;
+        // @ts-expect-error content
         node.content = Fragment.fromArray(contentAsArray.map(urlsToEmbeds));
       }
 
