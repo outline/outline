@@ -41,3 +41,23 @@ export const ResizeRight = styled(ResizeLeft)`
     right: 8px;
   }
 `;
+
+export const ResizeBottom = styled(ResizeLeft)`
+  cursor: ns-resize;
+  left: 0;
+  right: 0;
+  top: initial;
+  bottom: 8px;
+  width: auto;
+  height: 8px;
+
+  &:after {
+    left: 50%;
+    bottom: 8px;
+    transform: translateX(-50%);
+    width: 15%;
+    height: 6px;
+    min-width: 20px;
+    min-height: 0;
+  }
+`;
