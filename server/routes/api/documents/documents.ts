@@ -573,12 +573,13 @@ router.post(
       teamId: teamFromCtx?.id,
     });
     const isPublic = cannot(user, "read", document);
-    const serializedDocument = await presentDocument(ctx, document, {
-      isPublic,
-      shareId,
-    });
-
-    const team = await document.$get("team");
+    const [serializedDocument, team] = await Promise.all([
+      presentDocument(ctx, document, {
+        isPublic,
+        shareId,
+      }),
+      teamFromCtx?.id === document.teamId ? teamFromCtx : document.$get("team"),
+    ]);
 
     // Passing apiVersion=2 has a single effect, to change the response payload to
     // include top level keys for document, sharedTree, and team.
