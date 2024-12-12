@@ -24,7 +24,7 @@ type InputProps = EmailProps & {
 
 type BeforeSend = {
   document: Document;
-  collection: Collection;
+  collection: Collection | null;
   body: string | undefined;
   isFirstComment: boolean;
   isReply: boolean;

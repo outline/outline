@@ -31,7 +31,7 @@ type InputProps = EmailProps & {
 
 type BeforeSend = {
   document: Document;
-  collection: Collection;
+  collection: Collection | null;
   unsubscribeUrl: string;
   body: string | undefined;
 };
