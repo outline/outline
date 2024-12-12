@@ -112,7 +112,6 @@ export default class Table extends Node {
       // Note: Important to register columnResizing before tableEditing
       columnResizing({
         View: TableView,
-        lastColumnResizable: false,
       }),
       tableEditing(),
       new FixTablesPlugin(),
