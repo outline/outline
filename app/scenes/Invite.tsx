@@ -180,10 +180,13 @@ function Invite({ onSubmit }: Props) {
             />{" "}
             {collectionAccessNote}
             {can.update && (
-              <Trans>
-                As an admin you can also{" "}
-                <Link to="/settings/security">enable email sign-in</Link>.
-              </Trans>
+              <>
+                {" "}
+                <Trans>
+                  As an admin you can also{" "}
+                  <Link to="/settings/security">enable email sign-in</Link>.
+                </Trans>{" "}
+              </>
             )}
           </Text>
         )}
