@@ -1,11 +1,12 @@
 import emojiRegex from "emoji-regex";
+import { unescape } from "./markdown";
 
 export default function parseTitle(text = "") {
   const regex = emojiRegex();
 
   // find and extract title
   const firstLine = text.trim().split(/\r?\n/)[0];
-  const title = firstLine.replace(/^#/, "").trim();
+  const title = unescape(firstLine.replace(/^#/, "").trim());
 
   // find and extract first emoji
   const matches = regex.exec(title);
