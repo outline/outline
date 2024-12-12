@@ -47,8 +47,8 @@ function Tooltip({
         {typeof shortcut === "string" ? (
           shortcut
             .split("+")
-            .map((key) => (
-              <Shortcut key={key}>
+            .map((key, i) => (
+              <Shortcut key={`${key}${i}`}>
                 {key.length === 1 ? key.toUpperCase() : key}
               </Shortcut>
             ))
