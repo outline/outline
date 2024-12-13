@@ -31,7 +31,7 @@ type InputProps = EmailProps & {
 
 type BeforeSend = {
   document: Document;
-  collection: Collection;
+  collection: Collection | null;
   unsubscribeUrl: string;
   body: string | undefined;
 };
@@ -63,9 +63,6 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
       document.$get("collection"),
       document.$get("team"),
     ]);
-    if (!collection) {
-      return false;
-    }
 
     let body;
     if (revisionId && team?.getPreference(TeamPreference.PreviewsInEmails)) {
@@ -149,7 +146,9 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
     return `
 "${document.title}" ${eventName}
 
-${actorName} ${eventName} the document "${document.title}", in the ${collection.name} collection.
+${actorName} ${eventName} the document "${document.title}"${
+      collection?.name ? `, in the ${collection.name} collection` : ""
+    }.
 
 Open Document: ${teamUrl}${document.url}
 `;
@@ -181,8 +180,9 @@ Open Document: ${teamUrl}${document.url}
           </Heading>
           <p>
             {actorName} {eventName} the document{" "}
-            <a href={documentLink}>{document.title}</a>, in the{" "}
-            {collection.name} collection.
+            <a href={documentLink}>{document.title}</a>
+            {collection?.name ? <>, in the {collection.name} collection</> : ""}
+            .
           </p>
           {body && (
             <>

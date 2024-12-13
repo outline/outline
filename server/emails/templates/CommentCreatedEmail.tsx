@@ -24,7 +24,7 @@ type InputProps = EmailProps & {
 
 type BeforeSend = {
   document: Document;
-  collection: Collection;
+  collection: Collection | null;
   body: string | undefined;
   isFirstComment: boolean;
   isReply: boolean;
@@ -52,14 +52,10 @@ export default class CommentCreatedEmail extends BaseEmail<
       return false;
     }
 
-    const collection = await document.$get("collection");
-    if (!collection) {
-      return false;
-    }
-
-    const [comment, team] = await Promise.all([
+    const [comment, team, collection] = await Promise.all([
       Comment.findByPk(commentId),
       document.$get("team"),
+      document.$get("collection"),
     ]);
     if (!comment || !team) {
       return false;
@@ -129,7 +125,7 @@ export default class CommentCreatedEmail extends BaseEmail<
     return `
 ${actorName} ${isReply ? "replied to a thread in" : "commented on"} "${
       document.title
-    }"${collection.name ? `in the ${collection.name} collection` : ""}.
+    }"${collection?.name ? `in the ${collection.name} collection` : ""}.
 
 Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
 `;
@@ -160,7 +156,7 @@ Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
           <p>
             {actorName} {isReply ? "replied to a thread in" : "commented on"}{" "}
             <a href={threadLink}>{document.title}</a>{" "}
-            {collection.name ? `in the ${collection.name} collection` : ""}.
+            {collection?.name ? `in the ${collection.name} collection` : ""}.
           </p>
           {body && (
             <>
