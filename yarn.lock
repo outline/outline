@@ -2706,10 +2706,10 @@
     "@types/yargs" "^17.0.8"
     chalk "^4.0.0"
 
-"@joplin/turndown-plugin-gfm@^1.0.49":
-  version "1.0.49"
-  resolved "https://registry.yarnpkg.com/@joplin/turndown-plugin-gfm/-/turndown-plugin-gfm-1.0.49.tgz#b38e7da2b98621641c474a59e9b48b6ee4009aaf"
-  integrity "sha1-s459ormGIWQcR0pZ6bSLbuQAmq8= sha512-4bCIa2JcD1T3wglOM1bWJ0TFVKl2g5t3NODoHQJyu2tq++9zTgk5rmonFpMbGHEn0DryTrqZc2I1nkfJSd8dKQ=="
+"@joplin/turndown-plugin-gfm@^1.0.60":
+  version "1.0.60"
+  resolved "https://registry.yarnpkg.com/@joplin/turndown-plugin-gfm/-/turndown-plugin-gfm-1.0.60.tgz#da73763db763501661d445252cc0d3eea1952f8b"
+  integrity sha512-IOknlpgVpu7HAqxiYJW+8yC53rzyx9gg2B/TswJRP3avLJd+B1C7E64zvieiSFHUQB1uA4c1+sHogdsVEWJS5g==
 
 "@jridgewell/gen-mapping@^0.1.0":
   version "0.1.1"
