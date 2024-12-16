@@ -105,3 +105,33 @@ export async function getUserForEmailSigninToken(token: string): Promise<User> {
 
   return user;
 }
+
+export async function getDetailsForEmailUpdateToken(
+  token: string
+): Promise<{ user: User; email: string }> {
+  const payload = getJWTPayload(token);
+
+  if (payload.type !== "email-update") {
+    throw AuthenticationError("Invalid token");
+  }
+
+  // check the token is within it's expiration time
+  if (payload.createdAt) {
+    if (new Date(payload.createdAt) < subMinutes(new Date(), 10)) {
+      throw AuthenticationError("Expired token");
+    }
+  }
+
+  const email = payload.email;
+  const user = await User.scope("withTeam").findByPk(payload.id, {
+    rejectOnEmpty: true,
+  });
+
+  try {
+    JWT.verify(token, user.jwtSecret);
+  } catch (err) {
+    throw AuthenticationError("Invalid token");
+  }
+
+  return { user, email };
+}

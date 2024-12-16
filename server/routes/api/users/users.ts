@@ -2,11 +2,13 @@ import Router from "koa-router";
 import { Op, Sequelize, WhereOptions } from "sequelize";
 import { UserPreference, UserRole } from "@shared/types";
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
+import { settingsPath } from "@shared/utils/routeHelpers";
 import { UserValidation } from "@shared/validations";
 import userDestroyer from "@server/commands/userDestroyer";
 import userInviter from "@server/commands/userInviter";
 import userSuspender from "@server/commands/userSuspender";
 import userUnsuspender from "@server/commands/userUnsuspender";
+import ConfirmUpdateEmail from "@server/emails/templates/ConfirmUpdateEmail";
 import ConfirmUserDeleteEmail from "@server/emails/templates/ConfirmUserDeleteEmail";
 import InviteEmail from "@server/emails/templates/InviteEmail";
 import env from "@server/env";
@@ -23,6 +25,7 @@ import { presentUser, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { safeEqual } from "@server/utils/crypto";
+import { getDetailsForEmailUpdateToken } from "@server/utils/jwt";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -198,6 +201,72 @@ router.post(
       }),
       policies: presentPolicies(actor, [user]),
     };
+  }
+);
+
+router.post(
+  "users.updateEmail",
+  rateLimiter(RateLimiterStrategy.FivePerHour),
+  auth(),
+  validate(T.UsersUpdateEmailSchema),
+  async (ctx: APIContext<T.UsersUpdateEmailReq>) => {
+    const actor = ctx.state.auth.user;
+    const email = ctx.input.body.email.trim().toLowerCase();
+
+    authorize(actor, "update", actor);
+
+    // Check if email already exists in workspace
+    if (await User.findByEmail(ctx, email)) {
+      throw ValidationError("User with email already exists");
+    }
+
+    await new ConfirmUpdateEmail({
+      to: email,
+      token: actor.getEmailUpdateToken(email),
+    }).schedule();
+
+    ctx.body = {
+      success: true,
+    };
+  }
+);
+
+router.get(
+  "users.updateEmail",
+  rateLimiter(RateLimiterStrategy.FivePerHour),
+  auth(),
+  transaction(),
+  async (ctx: APIContext<T.UsersUpdateEmailConfirmReq>) => {
+    const { token, follow } = ctx.input.query;
+
+    // The link in the email does not include the follow query param, this
+    // is to help prevent anti-virus, and email clients from pre-fetching the link
+    // and spending the token before the user clicks on it. Instead we redirect
+    // to the same URL with the follow query param added from the client side.
+    if (!follow) {
+      return ctx.redirectOnClient(ctx.request.href + "&follow=true");
+    }
+    let user: User;
+    let email: string;
+
+    try {
+      const res = await getDetailsForEmailUpdateToken(token as string);
+      user = res.user;
+      email = res.email;
+    } catch (err) {
+      ctx.redirect(`/?notice=expired-token`);
+      return;
+    }
+
+    // Check if email already exists in workspace
+    if (await User.findByEmail(ctx, email)) {
+      // TODO: Redirect to error?
+      throw ValidationError("User with email already exists");
+    }
+
+    await user.updateWithCtx(ctx, { email });
+
+    ctx.redirect(settingsPath("profile"));
   }
 );
 
