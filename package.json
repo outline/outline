@@ -245,7 +245,7 @@
     "winston": "^3.13.0",
     "ws": "^7.5.10",
     "y-indexeddb": "^9.0.11",
-    "y-prosemirror": "^1.2.12",
+    "y-prosemirror": "^1.2.15",
     "y-protocols": "^1.0.6",
     "yauzl": "^2.10.0",
     "yjs": "^13.6.1",
