@@ -9,6 +9,7 @@ import {
   Comment,
   View,
 } from "@server/models";
+import { can } from "@server/policies";
 
 export default class NotificationHelper {
   /**
@@ -161,17 +162,18 @@ export default class NotificationHelper {
     const filtered = [];
 
     for (const recipient of recipients) {
-      const collectionIds = await recipient.collectionIds();
+      if (!recipient.email || recipient.isSuspended) {
+        continue;
+      }
 
       // Check the recipient has access to the collection this document is in. Just
       // because they are subscribed doesn't mean they still have access to read
       // the document.
-      if (
-        recipient.email &&
-        !recipient.isSuspended &&
-        document.collectionId &&
-        collectionIds.includes(document.collectionId)
-      ) {
+      const doc = await Document.findByPk(document.id, {
+        userId: recipient.id,
+      });
+
+      if (can(recipient, "read", doc)) {
         filtered.push(recipient);
       }
     }
