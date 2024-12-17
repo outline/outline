@@ -7,6 +7,7 @@ import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Input from "~/components/Input";
 import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
+import Text from "./Text";
 
 type Props = {
   user: User;
@@ -160,12 +161,12 @@ export function UserChangeEmailDialog({ user, onSubmit }: Props) {
       savingText={`${t("Saving")}…`}
       disabled={!email || email === user.email}
     >
-      <Trans>
-        <p>
+      <Text as="p">
+        <Trans>
           You will receive an email to verify your new address. It must be
           unique in the workspace.
-        </p>
-      </Trans>
+        </Trans>
+      </Text>
       <Input
         type="email"
         name="email"

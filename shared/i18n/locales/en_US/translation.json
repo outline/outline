@@ -403,7 +403,7 @@
   "New name": "New name",
   "Name can't be empty": "Name can't be empty",
   "Check your email to verify the new address.": "Check your email to verify the new address.",
-  "<0>You will receive an email to verify your new address. It must be unique in the workspace.</0>": "<0>You will receive an email to verify your new address. It must be unique in the workspace.</0>",
+  "You will receive an email to verify your new address. It must be unique in the workspace.": "You will receive an email to verify your new address. It must be unique in the workspace.",
   "New email": "New email",
   "Email can't be empty": "Email can't be empty",
   "Your import completed": "Your import completed",

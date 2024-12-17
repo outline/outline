@@ -212,13 +212,14 @@ router.post(
   async (ctx: APIContext<T.UsersUpdateEmailReq>) => {
     const { user: actor } = ctx.state.auth;
     const { id } = ctx.input.body;
+    const { team } = actor;
     const user = id ? await User.findByPk(id) : actor;
     const email = ctx.input.body.email.trim().toLowerCase();
 
     authorize(actor, "update", user);
 
     // Check if email domain is allowed
-    if (!(await actor.team.isDomainAllowed(email))) {
+    if (!(await team.isDomainAllowed(email))) {
       throw DomainNotAllowedError();
     }
 
@@ -230,6 +231,7 @@ router.post(
     await new ConfirmUpdateEmail({
       to: email,
       code: user.getEmailUpdateToken(email),
+      teamUrl: team.url,
     }).schedule();
 
     ctx.body = {
