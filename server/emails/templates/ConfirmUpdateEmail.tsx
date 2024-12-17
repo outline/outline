@@ -10,7 +10,7 @@ import Header from "./components/Header";
 import Heading from "./components/Heading";
 
 type Props = EmailProps & {
-  token: string;
+  code: string;
 };
 
 /**
@@ -29,17 +29,17 @@ export default class ConfirmUpdateEmail extends BaseEmail<Props> {
     return `Here’s your email change confirmation.`;
   }
 
-  protected renderAsText({ token }: Props): string {
+  protected renderAsText({ code }: Props): string {
     return `
 You requested to update your ${env.APP_NAME} account email. Please
 follow the link below to confirm the change.
 
-  ${this.updateLink(token)}
+  ${this.updateLink(code)}
 
   `;
   }
 
-  protected render({ token }: Props) {
+  protected render({ code }: Props) {
     return (
       <EmailTemplate previewText={this.preview()}>
         <Header />
@@ -52,7 +52,7 @@ follow the link below to confirm the change.
           </p>
           <EmptySpace height={5} />
           <p>
-            <Button href={this.updateLink(token)}>Confirm Change</Button>
+            <Button href={this.updateLink(code)}>Confirm Change</Button>
           </p>
         </Body>
 
@@ -61,7 +61,7 @@ follow the link below to confirm the change.
     );
   }
 
-  private updateLink(token: string): string {
-    return `${env.URL}/api/users.updateEmail?token=${token}`;
+  private updateLink(code: string): string {
+    return `${env.URL}/api/users.updateEmail?code=${code}`;
   }
 }

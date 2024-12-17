@@ -1,10 +1,5 @@
 import { z } from "zod";
-import {
-  Client,
-  NotificationEventType,
-  UserPreference,
-  UserRole,
-} from "@shared/types";
+import { NotificationEventType, UserPreference, UserRole } from "@shared/types";
 import { locales } from "@shared/utils/date";
 import User from "@server/models/User";
 import { zodEnumFromObjectKeys, zodTimezone } from "@server/utils/zod";
@@ -115,7 +110,7 @@ export type UsersUpdateEmailReq = z.infer<typeof UsersUpdateEmailSchema>;
 
 export const UsersUpdateEmailConfirmSchema = BaseSchema.extend({
   query: z.object({
-    token: z.string(),
+    code: z.string(),
     follow: z.string().default(""),
   }),
 });

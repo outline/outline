@@ -206,14 +206,18 @@ router.post(
 
 router.post(
   "users.updateEmail",
-  rateLimiter(RateLimiterStrategy.FivePerHour),
+  // rateLimiter(RateLimiterStrategy.TenPerHour),
   auth(),
   validate(T.UsersUpdateEmailSchema),
   async (ctx: APIContext<T.UsersUpdateEmailReq>) => {
-    const actor = ctx.state.auth.user;
+    const { user: actor } = ctx.state.auth;
+    const { id } = ctx.input.body;
+    const user = id ? await User.findByPk(id) : actor;
     const email = ctx.input.body.email.trim().toLowerCase();
 
-    authorize(actor, "update", actor);
+    // TODO: Check domain restrictions
+
+    authorize(actor, "update", user);
 
     // Check if email already exists in workspace
     if (await User.findByEmail(ctx, email)) {
@@ -222,7 +226,7 @@ router.post(
 
     await new ConfirmUpdateEmail({
       to: email,
-      token: actor.getEmailUpdateToken(email),
+      code: user.getEmailUpdateToken(email),
     }).schedule();
 
     ctx.body = {
@@ -233,11 +237,13 @@ router.post(
 
 router.get(
   "users.updateEmail",
-  rateLimiter(RateLimiterStrategy.FivePerHour),
+  // rateLimiter(RateLimiterStrategy.TenPerHour),
   auth(),
   transaction(),
+  validate(T.UsersUpdateEmailConfirmSchema),
   async (ctx: APIContext<T.UsersUpdateEmailConfirmReq>) => {
-    const { token, follow } = ctx.input.query;
+    const { transaction } = ctx.state;
+    const { code, follow } = ctx.input.query;
 
     // The link in the email does not include the follow query param, this
     // is to help prevent anti-virus, and email clients from pre-fetching the link
@@ -250,7 +256,10 @@ router.get(
     let email: string;
 
     try {
-      const res = await getDetailsForEmailUpdateToken(token as string);
+      const res = await getDetailsForEmailUpdateToken(code as string, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
       user = res.user;
       email = res.email;
     } catch (err) {
@@ -258,15 +267,24 @@ router.get(
       return;
     }
 
+    const { user: actor } = ctx.state.auth;
+    authorize(actor, "update", user);
+
     // Check if email already exists in workspace
     if (await User.findByEmail(ctx, email)) {
       // TODO: Redirect to error?
       throw ValidationError("User with email already exists");
     }
 
-    await user.updateWithCtx(ctx, { email });
+    user.email = email;
+    await Event.createFromContext(ctx, {
+      name: "users.update",
+      userId: user.id,
+      changes: user.changeset,
+    });
+    await user.save({ transaction });
 
-    ctx.redirect(settingsPath("profile"));
+    ctx.redirect(settingsPath());
   }
 );
 

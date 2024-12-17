@@ -1,5 +1,6 @@
 import { subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
+import { FindOptions } from "sequelize";
 import { Team, User } from "@server/models";
 import { AuthenticationError } from "../errors";
 
@@ -107,7 +108,8 @@ export async function getUserForEmailSigninToken(token: string): Promise<User> {
 }
 
 export async function getDetailsForEmailUpdateToken(
-  token: string
+  token: string,
+  options: FindOptions<User> = {}
 ): Promise<{ user: User; email: string }> {
   const payload = getJWTPayload(token);
 
@@ -123,8 +125,9 @@ export async function getDetailsForEmailUpdateToken(
   }
 
   const email = payload.email;
-  const user = await User.scope("withTeam").findByPk(payload.id, {
+  const user = await User.findByPk(payload.id, {
     rejectOnEmpty: true,
+    ...options,
   });
 
   try {

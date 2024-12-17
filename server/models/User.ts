@@ -48,6 +48,7 @@ import { stringToColor } from "@shared/utils/color";
 import { locales } from "@shared/utils/date";
 import env from "@server/env";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
+import { APIContext } from "@server/types";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { ValidationError } from "../errors";
 import Attachment from "./Attachment";
@@ -63,8 +64,6 @@ import Fix from "./decorators/Fix";
 import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
-import { WhereOptions } from "sequelize";
-import { APIContext } from "@server/types";
 
 /**
  * Flags that are available for setting on the user.
@@ -725,10 +724,7 @@ class User extends ParanoidModel<
     }
   };
 
-  static findByEmail = async function (
-    ctx: APIContext,
-    email: string,
-  ) {
+  static findByEmail = async function (ctx: APIContext, email: string) {
     return this.findOne({
       where: {
         teamId: ctx.context.auth.user.teamId,

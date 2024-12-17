@@ -1,10 +1,12 @@
 import * as React from "react";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { UserRole } from "@shared/types";
 import User from "~/models/User";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Input from "~/components/Input";
 import useStores from "~/hooks/useStores";
+import { client } from "~/utils/ApiClient";
 
 type Props = {
   user: User;
@@ -123,6 +125,55 @@ export function UserChangeNameDialog({ user, onSubmit }: Props) {
         onChange={handleChange}
         error={!name ? t("Name can't be empty") : undefined}
         value={name}
+        required
+        flex
+      />
+    </ConfirmationDialog>
+  );
+}
+
+export function UserChangeEmailDialog({ user, onSubmit }: Props) {
+  const { t } = useTranslation();
+  const [email, setEmail] = React.useState<string>(user.email);
+  const [error, setError] = React.useState<string | undefined>();
+
+  const handleSubmit = async () => {
+    try {
+      await client.post(`/users.updateEmail`, { id: user.id, email });
+      onSubmit();
+      toast.info(t("Check your email to verify the new address."));
+      return true;
+    } catch (err) {
+      setError(err.message);
+      return false;
+    }
+  };
+
+  const handleChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(ev.target.value);
+  };
+
+  return (
+    <ConfirmationDialog
+      onSubmit={handleSubmit}
+      submitText={t("Save")}
+      savingText={`${t("Saving")}…`}
+      disabled={!email || email === user.email}
+    >
+      <Trans>
+        <p>
+          You will receive an email to verify your new address. It must be
+          unique in the workspace.
+        </p>
+      </Trans>
+      <Input
+        type="email"
+        name="email"
+        label={t("New email")}
+        onChange={handleChange}
+        error={!email ? t("Email can't be empty") : error}
+        value={email}
+        autoSelect
         required
         flex
       />
