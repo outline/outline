@@ -12,7 +12,7 @@ import ConfirmUpdateEmail from "@server/emails/templates/ConfirmUpdateEmail";
 import ConfirmUserDeleteEmail from "@server/emails/templates/ConfirmUserDeleteEmail";
 import InviteEmail from "@server/emails/templates/InviteEmail";
 import env from "@server/env";
-import { ValidationError } from "@server/errors";
+import { DomainNotAllowedError, ValidationError } from "@server/errors";
 import logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -206,7 +206,7 @@ router.post(
 
 router.post(
   "users.updateEmail",
-  // rateLimiter(RateLimiterStrategy.TenPerHour),
+  rateLimiter(RateLimiterStrategy.TenPerHour),
   auth(),
   validate(T.UsersUpdateEmailSchema),
   async (ctx: APIContext<T.UsersUpdateEmailReq>) => {
@@ -215,9 +215,12 @@ router.post(
     const user = id ? await User.findByPk(id) : actor;
     const email = ctx.input.body.email.trim().toLowerCase();
 
-    // TODO: Check domain restrictions
-
     authorize(actor, "update", user);
+
+    // Check if email domain is allowed
+    if (!(await actor.team.isDomainAllowed(email))) {
+      throw DomainNotAllowedError();
+    }
 
     // Check if email already exists in workspace
     if (await User.findByEmail(ctx, email)) {
@@ -237,7 +240,7 @@ router.post(
 
 router.get(
   "users.updateEmail",
-  // rateLimiter(RateLimiterStrategy.TenPerHour),
+  rateLimiter(RateLimiterStrategy.TenPerHour),
   auth(),
   transaction(),
   validate(T.UsersUpdateEmailConfirmSchema),
@@ -270,9 +273,13 @@ router.get(
     const { user: actor } = ctx.state.auth;
     authorize(actor, "update", user);
 
+    // Check if email domain is allowed
+    if (!(await actor.team.isDomainAllowed(email))) {
+      throw DomainNotAllowedError();
+    }
+
     // Check if email already exists in workspace
     if (await User.findByEmail(ctx, email)) {
-      // TODO: Redirect to error?
       throw ValidationError("User with email already exists");
     }
 

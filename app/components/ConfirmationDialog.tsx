@@ -9,7 +9,7 @@ import useStores from "~/hooks/useStores";
 
 type Props = {
   /** Callback when the dialog is submitted. Return false to prevent closing. */
-  onSubmit: () => Promise<boolean> | void;
+  onSubmit: () => Promise<void | boolean> | void;
   /** Text to display on the submit button */
   submitText?: string;
   /** Text to display while the form is saving */
