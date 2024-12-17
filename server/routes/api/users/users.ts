@@ -210,6 +210,10 @@ router.post(
   auth(),
   validate(T.UsersUpdateEmailSchema),
   async (ctx: APIContext<T.UsersUpdateEmailReq>) => {
+    if (!emailEnabled) {
+      throw ValidationError("Email support is not setup for this instance");
+    }
+
     const { user: actor } = ctx.state.auth;
     const { id } = ctx.input.body;
     const { team } = actor;
@@ -247,6 +251,10 @@ router.get(
   transaction(),
   validate(T.UsersUpdateEmailConfirmSchema),
   async (ctx: APIContext<T.UsersUpdateEmailConfirmReq>) => {
+    if (!emailEnabled) {
+      throw ValidationError("Email support is not setup for this instance");
+    }
+
     const { transaction } = ctx.state;
     const { code, follow } = ctx.input.query;
 
@@ -614,15 +622,17 @@ router.post(
   rateLimiter(RateLimiterStrategy.FivePerHour),
   auth(),
   async (ctx: APIContext) => {
+    if (!emailEnabled) {
+      throw ValidationError("Email support is not setup for this instance");
+    }
+
     const { user } = ctx.state.auth;
     authorize(user, "delete", user);
 
-    if (emailEnabled) {
-      await new ConfirmUserDeleteEmail({
-        to: user.email,
-        deleteConfirmationCode: user.deleteConfirmationCode,
-      }).schedule();
-    }
+    await new ConfirmUserDeleteEmail({
+      to: user.email,
+      deleteConfirmationCode: user.deleteConfirmationCode,
+    }).schedule();
 
     ctx.body = {
       success: true,
