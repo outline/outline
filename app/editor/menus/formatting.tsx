@@ -241,7 +241,11 @@ export default function formattingMenuItems(
       shortcut: `${metaDisplay}+⌥+M`,
       icon: <CommentIcon />,
       label: isCodeBlock ? dictionary.comment : undefined,
-      active: isMarkActive(schema.marks.comment, { resolved: false }),
+      active: isMarkActive(
+        schema.marks.comment,
+        { resolved: false },
+        { exact: true }
+      ),
       visible: !isMobile || !isEmpty,
     },
     {

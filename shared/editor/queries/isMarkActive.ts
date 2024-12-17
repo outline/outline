@@ -3,15 +3,21 @@ import { EditorState } from "prosemirror-state";
 import { Primitive } from "utility-types";
 import { getMarksBetween } from "./getMarksBetween";
 
+type Options = {
+  /** Only return match if the range and attrs is exact */
+  exact?: boolean;
+};
+
 /**
  * Checks if a mark is active in the current selection or not.
  *
  * @param type The mark type to check.
  * @param attrs The attributes to check.
+ * @param options The options to use.
  * @returns A function that checks if a mark is active in the current selection or not.
  */
 export const isMarkActive =
-  (type: MarkType, attrs?: Record<string, Primitive>) =>
+  (type: MarkType, attrs?: Record<string, Primitive>, options?: Options) =>
   (state: EditorState): boolean => {
     if (!type) {
       return false;
@@ -25,12 +31,16 @@ export const isMarkActive =
     if (!hasMark) {
       return false;
     }
-    if (attrs) {
+    if (attrs || options) {
       const results = getMarksBetween(from, to, state);
       return results.some(
-        ({ mark }) =>
+        ({ mark, start, end }) =>
           mark.type === type &&
-          Object.keys(attrs).every((key) => mark.attrs[key] === attrs[key])
+          (!attrs ||
+            Object.keys(attrs).every(
+              (key) => mark.attrs[key] === attrs[key]
+            )) &&
+          (!options?.exact || (start === from && end === to))
       );
     }
 
