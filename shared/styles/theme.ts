@@ -8,7 +8,7 @@ const defaultColors: Colors = {
   lightBlack: "#2F3336",
   almostWhite: "#E6E6E6",
   veryDarkBlue: "#08090C",
-  slate: "#9BA6B2",
+  slate: "#66778F",
   slateLight: "#DAE1E9",
   slateDark: "#394351",
   smoke: "#F4F7FA",
