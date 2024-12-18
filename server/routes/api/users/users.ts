@@ -12,7 +12,7 @@ import ConfirmUpdateEmail from "@server/emails/templates/ConfirmUpdateEmail";
 import ConfirmUserDeleteEmail from "@server/emails/templates/ConfirmUserDeleteEmail";
 import InviteEmail from "@server/emails/templates/InviteEmail";
 import env from "@server/env";
-import { DomainNotAllowedError, ValidationError } from "@server/errors";
+import { ValidationError } from "@server/errors";
 import logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -224,7 +224,7 @@ router.post(
 
     // Check if email domain is allowed
     if (!(await team.isDomainAllowed(email))) {
-      throw DomainNotAllowedError();
+      throw ValidationError("The domain is not allowed for this workspace");
     }
 
     // Check if email already exists in workspace
@@ -285,7 +285,7 @@ router.get(
 
     // Check if email domain is allowed
     if (!(await actor.team.isDomainAllowed(email))) {
-      throw DomainNotAllowedError();
+      throw ValidationError("The domain is not allowed for this workspace");
     }
 
     // Check if email already exists in workspace
