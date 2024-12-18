@@ -71,3 +71,12 @@ exports[`#users.update should require authentication 1`] = `
   "status": 401,
 }
 `;
+
+exports[`#users.updateEmail post should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
