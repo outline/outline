@@ -4,7 +4,7 @@
  *
  * @param callback The callback to call inside the view transition.
  */
-export const startViewTransition = (callback: UpdateCallback) => {
+export const startViewTransition = (callback: ViewTransitionUpdateCallback) => {
   if (self.document.startViewTransition) {
     self.document.startViewTransition(callback);
   } else {
