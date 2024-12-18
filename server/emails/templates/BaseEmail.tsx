@@ -55,7 +55,7 @@ export default abstract class BaseEmail<
     if (!env.SMTP_FROM_EMAIL) {
       Logger.info(
         "email",
-        `Email ${this.constructor.name} not sent due to missing SMTP configuration`
+        `Email ${this.constructor.name} not sent due to missing SMTP_FROM_EMAIL configuration`
       );
       return;
     }
