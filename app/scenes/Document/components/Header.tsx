@@ -199,6 +199,7 @@ function DocumentHeader({
   if (shareId) {
     return (
       <StyledHeader
+        ref={ref}
         $hidden={isEditingFocus}
         title={
           <Flex gap={4}>
