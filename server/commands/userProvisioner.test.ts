@@ -437,7 +437,7 @@ describe("userProvisioner", () => {
     }
 
     expect(error && error.toString()).toContain(
-      "The domain is not allowed for this team"
+      "The domain is not allowed for this workspace"
     );
   });
 });
