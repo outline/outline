@@ -89,7 +89,11 @@ export function UserSuspendDialog({ user, onSubmit }: Props) {
   };
 
   return (
-    <ConfirmationDialog onSubmit={handleSubmit} savingText={`${t("Saving")}…`}>
+    <ConfirmationDialog
+      onSubmit={handleSubmit}
+      savingText={`${t("Saving")}…`}
+      danger
+    >
       {t(
         "Are you sure you want to suspend {{ userName }}? Suspended users will be prevented from logging in.",
         {
@@ -127,6 +131,7 @@ export function UserChangeNameDialog({ user, onSubmit }: Props) {
         onChange={handleChange}
         error={!name ? t("Name can't be empty") : undefined}
         value={name}
+        autoSelect
         required
         flex
       />

@@ -167,6 +167,7 @@ function UserMenu({ user }: Props) {
             {
               type: "button",
               title: `${t("Suspend user")}…`,
+              dangerous: true,
               onClick: handleSuspend,
               visible: !user.isInvited && !user.isSuspended,
             },
