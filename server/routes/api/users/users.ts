@@ -234,6 +234,7 @@ router.post(
 
     await new ConfirmUpdateEmail({
       to: email,
+      previous: user.email,
       code: user.getEmailUpdateToken(email),
       teamUrl: team.url,
     }).schedule();

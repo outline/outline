@@ -11,6 +11,7 @@ import Heading from "./components/Heading";
 
 type Props = EmailProps & {
   code: string;
+  previous: string;
   teamUrl: string;
 };
 
@@ -30,17 +31,16 @@ export default class ConfirmUpdateEmail extends BaseEmail<Props> {
     return `Here’s your email change confirmation.`;
   }
 
-  protected renderAsText({ teamUrl, code, to }: Props): string {
+  protected renderAsText({ teamUrl, code, previous, to }: Props): string {
     return `
 You requested to update your ${env.APP_NAME} account email. Please
-follow the link below to confirm the change to ${to}.
+follow the link below to confirm the change from ${previous} to ${to}.
 
   ${this.updateLink(teamUrl, code)}
-
   `;
   }
 
-  protected render({ teamUrl, code, to }: Props) {
+  protected render({ teamUrl, code, previous, to }: Props) {
     return (
       <EmailTemplate previewText={this.preview()}>
         <Header />
@@ -49,7 +49,8 @@ follow the link below to confirm the change to ${to}.
           <Heading>Your email update request</Heading>
           <p>
             You requested to update your {env.APP_NAME} account email. Please
-            click below to confirm the change to <strong>{to}</strong>.
+            click below to confirm the change from {previous} to{" "}
+            <strong>{to}</strong>.
           </p>
           <EmptySpace height={5} />
           <p>
