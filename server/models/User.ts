@@ -48,6 +48,7 @@ import { stringToColor } from "@shared/utils/color";
 import { locales } from "@shared/utils/date";
 import env from "@server/env";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
+import { APIContext } from "@server/types";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { ValidationError } from "../errors";
 import Attachment from "./Attachment";
@@ -582,6 +583,24 @@ class User extends ParanoidModel<
     );
 
   /**
+   * Returns a temporary token that can be used to update the users
+   * email address.
+   *
+   * @param email The new email address
+   * @returns The token
+   */
+  getEmailUpdateToken = (email: string) =>
+    JWT.sign(
+      {
+        id: this.id,
+        createdAt: new Date().toISOString(),
+        email,
+        type: "email-update",
+      },
+      this.jwtSecret
+    );
+
+  /**
    * Returns a list of teams that have a user matching this user's email.
    *
    * @returns A promise resolving to a list of teams
@@ -703,6 +722,16 @@ class User extends ParanoidModel<
         });
       }
     }
+  };
+
+  static findByEmail = async function (ctx: APIContext, email: string) {
+    return this.findOne({
+      where: {
+        teamId: ctx.context.auth.user.teamId,
+        email: email.trim().toLowerCase(),
+      },
+      ...ctx.context,
+    });
   };
 
   static getCounts = async function (teamId: string) {
