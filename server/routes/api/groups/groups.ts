@@ -110,18 +110,19 @@ router.post(
 
 router.post(
   "groups.create",
-  rateLimiter(RateLimiterStrategy.TenPerHour),
+  rateLimiter(RateLimiterStrategy.TenPerMinute),
   auth(),
   validate(T.GroupsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.GroupsCreateReq>) => {
-    const { name } = ctx.input.body;
+    const { name, externalId } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
     authorize(user, "createGroup", user.team);
 
     const group = await groupCreator({
       name,
+      externalId,
       actor: user,
       ip: ctx.request.ip,
       transaction,
@@ -140,7 +141,7 @@ router.post(
   validate(T.GroupsUpdateSchema),
   transaction(),
   async (ctx: APIContext<T.GroupsUpdateReq>) => {
-    const { id, name } = ctx.input.body;
+    const { id, name, externalId } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
@@ -150,6 +151,7 @@ router.post(
     group = await groupUpdater({
       group,
       name,
+      externalId,
       actor: user,
       ip: ctx.request.ip,
       transaction,

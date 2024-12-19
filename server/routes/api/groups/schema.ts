@@ -45,6 +45,8 @@ export const GroupsCreateSchema = z.object({
   body: z.object({
     /** Group name */
     name: z.string(),
+    /** Optionally link this group to an external source. */
+    externalId: z.string().optional(),
   }),
 });
 
@@ -53,7 +55,9 @@ export type GroupsCreateReq = z.infer<typeof GroupsCreateSchema>;
 export const GroupsUpdateSchema = z.object({
   body: BaseIdSchema.extend({
     /** Group name */
-    name: z.string(),
+    name: z.string().optional(),
+    /** Optionally link this group to an external source. */
+    externalId: z.string().optional(),
   }),
 });
 
