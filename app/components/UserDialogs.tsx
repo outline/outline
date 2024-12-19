@@ -5,6 +5,7 @@ import { UserRole } from "@shared/types";
 import User from "~/models/User";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Input from "~/components/Input";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
 import Text from "./Text";
@@ -135,6 +136,7 @@ export function UserChangeNameDialog({ user, onSubmit }: Props) {
 
 export function UserChangeEmailDialog({ user, onSubmit }: Props) {
   const { t } = useTranslation();
+  const actor = useCurrentUser();
   const [email, setEmail] = React.useState<string>(user.email);
   const [error, setError] = React.useState<string | undefined>();
 
@@ -142,7 +144,11 @@ export function UserChangeEmailDialog({ user, onSubmit }: Props) {
     try {
       await client.post(`/users.updateEmail`, { id: user.id, email });
       onSubmit();
-      toast.info(t("Check your email to verify the new address."));
+      toast.info(
+        actor.id === user.id
+          ? t("Check your email to verify the new address.")
+          : t("The email will be changed once verified.")
+      );
       return true;
     } catch (err) {
       setError(err.message);
@@ -162,10 +168,17 @@ export function UserChangeEmailDialog({ user, onSubmit }: Props) {
       disabled={!email || email === user.email}
     >
       <Text as="p">
-        <Trans>
-          You will receive an email to verify your new address. It must be
-          unique in the workspace.
-        </Trans>
+        {actor.id === user.id ? (
+          <Trans>
+            You will receive an email to verify your new address. It must be
+            unique in the workspace.
+          </Trans>
+        ) : (
+          <Trans>
+            A confirmation email will be sent to the new address before it is
+            changed.
+          </Trans>
+        )}
       </Text>
       <Input
         type="email"
