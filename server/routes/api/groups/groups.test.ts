@@ -282,6 +282,23 @@ describe("#groups.list", () => {
     expect(body.data.groups.length).toEqual(1);
     expect(body.data.groups[0].id).toEqual(group.id);
   });
+
+  it("should allow to find a group by its externalId", async () => {
+    const user = await buildUser();
+    const group = await buildGroup({ teamId: user.teamId, externalId: "123" });
+    await buildGroup({ teamId: user.teamId });
+
+    const res = await server.post("/api/groups.list", {
+      body: {
+        externalId: "123",
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.groups.length).toEqual(1);
+    expect(body.data.groups[0].id).toEqual(group.id);
+  });
 });
 
 describe("#groups.info", () => {

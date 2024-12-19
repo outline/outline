@@ -13,7 +13,6 @@ export const GroupsListSchema = z.object({
       .string()
       .optional()
       .transform((val) => (val !== "ASC" ? "DESC" : val)),
-
     /** Groups sorting column */
     sort: z
       .string()
@@ -21,13 +20,12 @@ export const GroupsListSchema = z.object({
         message: "Invalid sort parameter",
       })
       .default("updatedAt"),
-
     /** Only list groups where this user is a member */
     userId: z.string().uuid().optional(),
-
+    /** Find group matching externalId */
+    externalId: z.string().optional(),
     /** @deprecated Find group with matching name */
     name: z.string().optional(),
-
     /** Find group matching query */
     query: z.string().optional(),
   }),
