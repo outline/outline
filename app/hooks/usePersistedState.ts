@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Primitive } from "utility-types";
 import Storage from "@shared/utils/Storage";
+import { isBrowser } from "@shared/utils/browser";
 import Logger from "~/utils/Logger";
 import useEventListener from "./useEventListener";
 
@@ -41,7 +42,7 @@ export default function usePersistedState<T extends Primitive | object>(
   options?: Options
 ): [T, (value: T) => void] {
   const [storedValue, setStoredValue] = React.useState(() => {
-    if (typeof window === "undefined") {
+    if (!isBrowser) {
       return defaultValue;
     }
     return Storage.get(key) ?? defaultValue;

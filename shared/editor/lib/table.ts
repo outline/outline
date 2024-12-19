@@ -1,5 +1,6 @@
 import { Attrs, Node } from "prosemirror-model";
 import { MutableAttrs } from "prosemirror-tables";
+import { isBrowser } from "../../utils/browser";
 import { TableLayout } from "../types";
 
 export interface TableAttrs {
@@ -57,11 +58,17 @@ export function setCellAttrs(node: Node): Attrs {
   if (node.attrs.rowspan !== 1) {
     attrs.rowspan = node.attrs.rowspan;
   }
-  if (node.attrs.colwidth) {
-    attrs["data-colwidth"] = node.attrs.colwidth.join(",");
-  }
   if (node.attrs.alignment) {
-    attrs.style = `text-align: ${node.attrs.alignment}`;
+    attrs.style = `text-align: ${node.attrs.alignment};`;
   }
+  if (node.attrs.colwidth) {
+    if (isBrowser) {
+      attrs["data-colwidth"] = node.attrs.colwidth.join(",");
+    } else {
+      attrs.style =
+        (attrs.style ?? "") + `min-width: ${node.attrs.colwidth}px;`;
+    }
+  }
+
   return attrs;
 }
