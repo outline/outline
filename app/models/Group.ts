@@ -10,7 +10,6 @@ class Group extends Model {
   @observable
   name: string;
 
-  @Field
   @observable
   externalId: string | undefined;
 
