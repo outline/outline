@@ -13,10 +13,10 @@ import Flex from "~/components/Flex";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
-import MentionMenuItem from "./MentionMenuItem";
 import SuggestionsMenu, {
   Props as SuggestionsMenuProps,
 } from "./SuggestionsMenu";
+import SuggestionsMenuItem from "./SuggestionsMenuItem";
 
 interface MentionItem extends MenuItem {
   name: string;
@@ -122,11 +122,10 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
       search={search}
       onSelect={handleSelect}
       renderMenuItem={(item, _index, options) => (
-        <MentionMenuItem
+        <SuggestionsMenuItem
           onClick={options.onClick}
           selected={options.selected}
           title={item.title}
-          label={item.attrs.label}
           icon={
             <Flex
               align="center"

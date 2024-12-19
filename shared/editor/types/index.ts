@@ -19,6 +19,7 @@ export type MenuItem = {
   icon?: React.ReactElement;
   name?: string;
   title?: string;
+  subtitle?: string;
   shortcut?: string;
   keywords?: string;
   tooltip?: string;

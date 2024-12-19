@@ -109,6 +109,8 @@ const Title = styled.div`
   ${ellipsis()}
   flex-grow: 1;
   display: flex;
+  align-items: center;
+  gap: 8px;
 `;
 
 type MenuAnchorProps = {
