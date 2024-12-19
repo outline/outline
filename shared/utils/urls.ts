@@ -121,7 +121,12 @@ export const creatingUrlPrefix = "creating#";
  * @returns True if the url is external, false otherwise.
  */
 export function isExternalUrl(url: string) {
-  return !!url && !isInternalUrl(url) && !url.startsWith(creatingUrlPrefix);
+  return (
+    !!url &&
+    !isInternalUrl(url) &&
+    !url.startsWith(creatingUrlPrefix) &&
+    (!env.CDN_URL || !url.startsWith(env.CDN_URL))
+  );
 }
 
 /**
