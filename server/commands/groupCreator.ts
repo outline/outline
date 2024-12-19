@@ -3,6 +3,7 @@ import { Event, Group, type User } from "@server/models";
 
 type Props = {
   name: string;
+  externalId: string | undefined;
   actor: User;
   ip: string;
   transaction?: Transaction;
@@ -10,6 +11,7 @@ type Props = {
 
 export default async function groupCreator({
   name,
+  externalId,
   actor,
   ip,
   transaction,
@@ -17,6 +19,7 @@ export default async function groupCreator({
   const group = await Group.create(
     {
       name,
+      externalId,
       teamId: actor.teamId,
       createdById: actor.id,
     },
