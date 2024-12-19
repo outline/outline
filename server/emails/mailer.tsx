@@ -125,7 +125,18 @@ export class Mailer {
     if (!transporter) {
       Logger.info(
         "email",
-        `Attempted to send email "${data.subject}" to ${data.to} but no transport configured.`
+        [
+          `Attempted to send email but no transport configured.`,
+          ``,
+          `--------------`,
+          `From:      ${data.from.address}`,
+          `To:        ${data.to}`,
+          `Subject:   ${data.subject}`,
+          `Preview:   ${data.previewText}`,
+          `--------------`,
+          ``,
+          data.text,
+        ].join("\n")
       );
       return;
     }
