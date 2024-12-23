@@ -62,7 +62,14 @@ export default class Emoji extends Extension {
         }
         return ["strong", { class: "emoji" }, `:${name}:`];
       },
-      toPlainText: (node) => getEmojiFromName(node.attrs["data-name"]),
+      toPlainText: (node) => {
+        const name = node.attrs["data-name"];
+    if (!name) {
+        console.error("Missing data-name attribute on node:", node);
+        return "";
+    }
+    return getEmojiFromName(name);
+  },
     };
   }
 
