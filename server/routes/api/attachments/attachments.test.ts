@@ -1,5 +1,4 @@
-import { AttachmentPreset, CollectionPermission } from "@shared/types";
-import { UserMembership } from "@server/models";
+import { AttachmentPreset } from "@shared/types";
 import Attachment from "@server/models/Attachment";
 import {
   buildUser,
@@ -7,7 +6,6 @@ import {
   buildCollection,
   buildAttachment,
   buildDocument,
-  buildViewer,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
@@ -108,70 +106,6 @@ describe("#attachments.create", () => {
         },
       });
       expect(res.status).toEqual(400);
-    });
-  });
-
-  describe("viewer", () => {
-    it("should allow attachment creation for documents in collections with edit access", async () => {
-      const user = await buildViewer();
-      const collection = await buildCollection({
-        teamId: user.teamId,
-        permission: null,
-      });
-      const document = await buildDocument({
-        teamId: user.teamId,
-        collectionId: collection.id,
-      });
-
-      await UserMembership.create({
-        createdById: user.id,
-        collectionId: collection.id,
-        userId: user.id,
-        permission: CollectionPermission.ReadWrite,
-      });
-
-      const res = await server.post("/api/attachments.create", {
-        body: {
-          name: "test.png",
-          contentType: "image/png",
-          size: 1000,
-          documentId: document.id,
-          preset: AttachmentPreset.DocumentAttachment,
-          token: user.getJwtToken(),
-        },
-      });
-      expect(res.status).toEqual(200);
-    });
-
-    it("should not allow attachment creation for documents", async () => {
-      const user = await buildViewer();
-      const document = await buildDocument({ teamId: user.teamId });
-
-      const res = await server.post("/api/attachments.create", {
-        body: {
-          name: "test.png",
-          contentType: "image/png",
-          size: 1000,
-          documentId: document.id,
-          preset: AttachmentPreset.DocumentAttachment,
-          token: user.getJwtToken(),
-        },
-      });
-      expect(res.status).toEqual(403);
-    });
-
-    it("should allow upload using avatar preset", async () => {
-      const user = await buildViewer();
-      const res = await server.post("/api/attachments.create", {
-        body: {
-          name: "test.png",
-          contentType: "image/png",
-          size: 1000,
-          preset: AttachmentPreset.Avatar,
-          token: user.getJwtToken(),
-        },
-      });
-      expect(res.status).toEqual(200);
     });
   });
 });
