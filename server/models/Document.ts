@@ -10,7 +10,6 @@ import type {
   SaveOptions,
 } from "sequelize";
 import {
-  Sequelize,
   Transaction,
   Op,
   FindOptions,
@@ -101,6 +100,9 @@ type AdditionalFindOptions = {
       },
     },
   },
+  attributes: {
+    exclude: ["state"],
+  },
 }))
 @Scopes(() => ({
   withCollectionPermissions: (userId: string, paranoid = true) => ({
@@ -117,11 +119,6 @@ type AdditionalFindOptions = {
       },
     ],
   }),
-  withoutState: {
-    attributes: {
-      exclude: ["state"],
-    },
-  },
   withCollection: {
     include: [
       {
@@ -129,17 +126,6 @@ type AdditionalFindOptions = {
         as: "collection",
       },
     ],
-  },
-  withStateIsEmpty: {
-    attributes: {
-      exclude: ["state"],
-      include: [
-        [
-          Sequelize.literal(`CASE WHEN state IS NULL THEN true ELSE false END`),
-          "stateIsEmpty",
-        ],
-      ],
-    },
   },
   withState: {
     attributes: {
@@ -1150,30 +1136,27 @@ class Document extends ArchivableModel<
     // Checking if the record is new is a performance optimization – new docs cannot have children
     const childDocuments = this.isNewRecord
       ? []
-      : await (this.constructor as typeof Document)
-          .unscoped()
-          .scope("withoutState")
-          .findAll({
-            where: options?.includeArchived
-              ? {
-                  teamId: this.teamId,
-                  parentDocumentId: this.id,
-                  publishedAt: {
-                    [Op.ne]: null,
-                  },
-                }
-              : {
-                  teamId: this.teamId,
-                  parentDocumentId: this.id,
-                  publishedAt: {
-                    [Op.ne]: null,
-                  },
-                  archivedAt: {
-                    [Op.is]: null,
-                  },
+      : await (this.constructor as typeof Document).unscoped().findAll({
+          where: options?.includeArchived
+            ? {
+                teamId: this.teamId,
+                parentDocumentId: this.id,
+                publishedAt: {
+                  [Op.ne]: null,
                 },
-            transaction: options?.transaction,
-          });
+              }
+            : {
+                teamId: this.teamId,
+                parentDocumentId: this.id,
+                publishedAt: {
+                  [Op.ne]: null,
+                },
+                archivedAt: {
+                  [Op.is]: null,
+                },
+              },
+          transaction: options?.transaction,
+        });
 
     const children = await Promise.all(
       childDocuments.map((child) => child.toNavigationNode(options))
