@@ -1,6 +1,6 @@
 import invariant from "invariant";
 import filter from "lodash/filter";
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, UserRole } from "@shared/types";
 import { Collection, User, Team } from "@server/models";
 import { allow, can } from "./cancan";
 import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
@@ -41,7 +41,11 @@ allow(User, "read", Collection, (user, collection) => {
   }
 
   if (collection.isPrivate || user.isGuest) {
-    return includesMembership(collection, Object.values(CollectionPermission));
+    return includesMembership(
+      user,
+      collection,
+      Object.values(CollectionPermission)
+    );
   }
 
   return true;
@@ -58,6 +62,7 @@ allow(
 
     if (collection.isPrivate || user.isGuest) {
       return includesMembership(
+        user,
         collection,
         Object.values(CollectionPermission)
       );
@@ -96,7 +101,7 @@ allow(User, "share", Collection, (user, collection) => {
     collection.permission !== CollectionPermission.ReadWrite ||
     user.isViewer
   ) {
-    return includesMembership(collection, [
+    return includesMembership(user, collection, [
       CollectionPermission.ReadWrite,
       CollectionPermission.Admin,
     ]);
@@ -119,7 +124,7 @@ allow(User, "updateDocument", Collection, (user, collection) => {
     user.isViewer ||
     user.isGuest
   ) {
-    return includesMembership(collection, [
+    return includesMembership(user, collection, [
       CollectionPermission.ReadWrite,
       CollectionPermission.Admin,
     ]);
@@ -151,7 +156,7 @@ allow(
       user.isViewer ||
       user.isGuest
     ) {
-      return includesMembership(collection, [
+      return includesMembership(user, collection, [
         CollectionPermission.ReadWrite,
         CollectionPermission.Admin,
       ]);
@@ -167,7 +172,7 @@ allow(User, ["update", "archive"], Collection, (user, collection) =>
     !!collection?.isActive,
     or(
       isTeamAdmin(user, collection),
-      includesMembership(collection, [CollectionPermission.Admin])
+      includesMembership(user, collection, [CollectionPermission.Admin])
     )
   )
 );
@@ -178,7 +183,7 @@ allow(User, "delete", Collection, (user, collection) =>
     !collection?.deletedAt,
     or(
       isTeamAdmin(user, collection),
-      includesMembership(collection, [CollectionPermission.Admin])
+      includesMembership(user, collection, [CollectionPermission.Admin])
     )
   )
 );
@@ -189,12 +194,13 @@ allow(User, "restore", Collection, (user, collection) =>
     !collection?.isActive,
     or(
       isTeamAdmin(user, collection),
-      includesMembership(collection, [CollectionPermission.Admin])
+      includesMembership(user, collection, [CollectionPermission.Admin])
     )
   )
 );
 
 function includesMembership(
+  user: User,
   collection: Collection | null,
   permissions: CollectionPermission[]
 ) {
@@ -211,10 +217,28 @@ function includesMembership(
     "Development: collection groupMemberships not preloaded, did you forget `withMembership` scope?"
   );
 
-  const membershipIds = filter(
-    [...collection.memberships, ...collection.groupMemberships],
-    (m) => permissions.includes(m.permission as CollectionPermission)
-  ).map((m) => m.id);
+  const userMemberships = filter(collection.memberships, (m) =>
+    permissions.includes(m.permission as CollectionPermission)
+  );
+
+  // Is a non-read permission included in the permissions list
+  const isNonRead =
+    permissions.filter((p) => p !== CollectionPermission.Read).length > 0;
+
+  const groupMemberships = filter(collection.groupMemberships, (m) => {
+    // If the user is a viewer and the permission is non-read provided through a group membership
+    // they can't access. If the permission is provided through a user membership it is allowed
+    // for backwards compatability.
+    if (isNonRead && user.role === UserRole.Viewer) {
+      return false;
+    }
+
+    return permissions.includes(m.permission as CollectionPermission);
+  });
+
+  const membershipIds = [...userMemberships, ...groupMemberships].map(
+    (m) => m.id
+  );
 
   return membershipIds.length > 0 ? membershipIds : false;
 }
