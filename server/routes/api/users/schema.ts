@@ -99,6 +99,26 @@ export const UsersDeleteSchema = BaseSchema.extend({
 
 export type UsersDeleteSchemaReq = z.infer<typeof UsersDeleteSchema>;
 
+export const UsersUpdateEmailSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid().optional(),
+    email: z.string().email(),
+  }),
+});
+
+export type UsersUpdateEmailReq = z.infer<typeof UsersUpdateEmailSchema>;
+
+export const UsersUpdateEmailConfirmSchema = BaseSchema.extend({
+  query: z.object({
+    code: z.string(),
+    follow: z.string().default(""),
+  }),
+});
+
+export type UsersUpdateEmailConfirmReq = z.infer<
+  typeof UsersUpdateEmailConfirmSchema
+>;
+
 export const UsersInfoSchema = BaseSchema.extend({
   body: z.object({
     id: z.string().uuid().optional(),
