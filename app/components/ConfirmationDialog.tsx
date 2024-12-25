@@ -8,8 +8,8 @@ import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 
 type Props = {
-  /** Callback when the dialog is submitted */
-  onSubmit: () => Promise<void> | void;
+  /** Callback when the dialog is submitted. Return false to prevent closing. */
+  onSubmit: () => Promise<void | boolean> | void;
   /** Text to display on the submit button */
   submitText?: string;
   /** Text to display while the form is saving */
@@ -38,7 +38,10 @@ const ConfirmationDialog: React.FC<Props> = ({
       ev.preventDefault();
       setIsSaving(true);
       try {
-        await onSubmit();
+        const res = await onSubmit();
+        if (res === false) {
+          return;
+        }
         dialogs.closeAllModals();
       } catch (err) {
         toast.error(err.message);

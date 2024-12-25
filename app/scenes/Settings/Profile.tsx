@@ -8,14 +8,18 @@ import Heading from "~/components/Heading";
 import Input from "~/components/Input";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
+import { UserChangeEmailDialog } from "~/components/UserDialogs";
+import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useStores from "~/hooks/useStores";
 import ImageInput from "./components/ImageInput";
 import SettingRow from "./components/SettingRow";
 
 const Profile = () => {
   const user = useCurrentUser();
+  const { dialogs } = useStores();
   const form = React.useRef<HTMLFormElement>(null);
-  const [name, setName] = React.useState<string>(user.name || "");
+  const [name, setName] = React.useState<string>(user.name);
   const { t } = useTranslation();
 
   const handleSubmit = async (ev: React.SyntheticEvent) => {
@@ -27,6 +31,15 @@ const Profile = () => {
     } catch (err) {
       toast.error(err.message);
     }
+  };
+
+  const handleChangeEmail = () => {
+    dialogs.openModal({
+      title: t("Change email"),
+      content: (
+        <UserChangeEmailDialog user={user} onSubmit={dialogs.closeAllModals} />
+      ),
+    });
   };
 
   const handleNameChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,6 +93,17 @@ const Profile = () => {
             required
           />
         </SettingRow>
+
+        {env.EMAIL_ENABLED && (
+          <SettingRow label={t("Email address")} name="email">
+            <Input
+              type="email"
+              value={user.email}
+              readOnly
+              onClick={handleChangeEmail}
+            />
+          </SettingRow>
+        )}
 
         <Button type="submit" disabled={isSaving || !isValid}>
           {isSaving ? `${t("Saving")}…` : t("Save")}

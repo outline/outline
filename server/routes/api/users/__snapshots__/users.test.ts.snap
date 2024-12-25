@@ -71,3 +71,30 @@ exports[`#users.update should require authentication 1`] = `
   "status": 401,
 }
 `;
+
+exports[`#users.updateEmail post should fail if email not in allowed domains 1`] = `
+{
+  "error": "validation_error",
+  "message": "The domain is not allowed for this workspace",
+  "ok": false,
+  "status": 400,
+}
+`;
+
+exports[`#users.updateEmail post should fail if email not unique in workspace 1`] = `
+{
+  "error": "validation_error",
+  "message": "User with email already exists",
+  "ok": false,
+  "status": 400,
+}
+`;
+
+exports[`#users.updateEmail post should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;

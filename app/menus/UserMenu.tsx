@@ -11,6 +11,7 @@ import Template from "~/components/ContextMenu/Template";
 import {
   UserSuspendDialog,
   UserChangeNameDialog,
+  UserChangeEmailDialog,
 } from "~/components/UserDialogs";
 import { actionToMenuItem } from "~/actions";
 import {
@@ -43,6 +44,22 @@ function UserMenu({ user }: Props) {
         title: t("Change name"),
         content: (
           <UserChangeNameDialog user={user} onSubmit={dialogs.closeAllModals} />
+        ),
+      });
+    },
+    [dialogs, t, user]
+  );
+
+  const handleChangeEmail = React.useCallback(
+    (ev: React.SyntheticEvent) => {
+      ev.preventDefault();
+      dialogs.openModal({
+        title: t("Change email"),
+        content: (
+          <UserChangeEmailDialog
+            user={user}
+            onSubmit={dialogs.closeAllModals}
+          />
         ),
       });
     },
@@ -117,7 +134,13 @@ function UserMenu({ user }: Props) {
               type: "button",
               title: `${t("Change name")}…`,
               onClick: handleChangeName,
-              visible: can.update && user.role !== "admin",
+              visible: can.update,
+            },
+            {
+              type: "button",
+              title: `${t("Change email")}…`,
+              onClick: handleChangeEmail,
+              visible: can.update,
             },
             {
               type: "button",
@@ -144,6 +167,7 @@ function UserMenu({ user }: Props) {
             {
               type: "button",
               title: `${t("Suspend user")}…`,
+              dangerous: true,
               onClick: handleSuspend,
               visible: !user.isInvited && !user.isSuspended,
             },
