@@ -28,18 +28,20 @@ export default async function documentCollaborativeUpdater({
   isLastConnection,
 }: Props) {
   return sequelize.transaction(async (transaction) => {
-    const document = await Document.unscoped().findOne({
-      where: {
-        id: documentId,
-      },
-      transaction,
-      lock: {
-        of: Document,
-        level: transaction.LOCK.UPDATE,
-      },
-      rejectOnEmpty: true,
-      paranoid: false,
-    });
+    const document = await Document.unscoped()
+      .scope("withoutState")
+      .findOne({
+        where: {
+          id: documentId,
+        },
+        transaction,
+        lock: {
+          of: Document,
+          level: transaction.LOCK.UPDATE,
+        },
+        rejectOnEmpty: true,
+        paranoid: false,
+      });
 
     const state = Y.encodeStateAsUpdate(ydoc);
     const content = yDocToProsemirrorJSON(ydoc, "default") as ProsemirrorData;

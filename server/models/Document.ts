@@ -119,6 +119,11 @@ type AdditionalFindOptions = {
       },
     ],
   }),
+  withoutState: {
+    attributes: {
+      exclude: ["state"],
+    },
+  },
   withCollection: {
     include: [
       {
