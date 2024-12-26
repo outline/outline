@@ -197,6 +197,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
   return (
     <TooltipProvider>
       <Container
+        id="sidebar"
         ref={ref}
         style={style}
         $hidden={hidden}
