@@ -183,7 +183,6 @@ export default class SearchHelper {
     ];
 
     return Document.scope([
-      "withoutState",
       "withDrafts",
       {
         method: ["withViews", user.id],
@@ -246,7 +245,6 @@ export default class SearchHelper {
       // Final query to get associated document data
       const [documents, count] = await Promise.all([
         Document.scope([
-          "withState",
           "withDrafts",
           {
             method: ["withViews", user.id],
