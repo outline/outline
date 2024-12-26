@@ -65,6 +65,9 @@ class Group extends ParanoidModel<
   @Column
   name: string;
 
+  @Column
+  externalId: string;
+
   static filterByMember(userId: string | undefined) {
     return userId
       ? this.scope({ method: ["withMembership", userId] })
