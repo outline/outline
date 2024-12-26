@@ -248,38 +248,29 @@ This is a new paragraph.
 
       // Strip all formatting
       expect(text).toEqual(`This is a test paragraph
-
 A new link
-
 list item 1
-
 This is a new paragraph.
-
 This is a placeholder
-
 this is a highlight
-
 checklist item 1
-
 checklist item 2
-
 checklist item 3
-
 checklist item 4
-
 checklist item 5
-
 This
-
 Is
-
 Table
-
 Multiple
+
 
 Lines
 
+
 In a cell
+
+
+
 
 `);
     });
