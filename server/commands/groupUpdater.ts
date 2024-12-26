@@ -3,7 +3,8 @@ import { Event, type Group, type User } from "@server/models";
 
 type Props = {
   group: Group;
-  name: string;
+  name: string | undefined;
+  externalId: string | undefined;
   actor: User;
   ip: string;
   transaction?: Transaction;
@@ -12,11 +13,17 @@ type Props = {
 export default async function groupUpdater({
   group,
   name,
+  externalId,
   actor,
   ip,
   transaction,
 }: Props): Promise<Group> {
-  group.name = name;
+  if (name) {
+    group.name = name;
+  }
+  if (externalId) {
+    group.externalId = externalId;
+  }
 
   if (group.changed()) {
     await group.save({ transaction });
