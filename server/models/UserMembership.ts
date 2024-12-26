@@ -256,13 +256,15 @@ class UserMembership extends IdModel<
       transaction,
     });
 
-    const document = await Document.unscoped().findOne({
-      attributes: ["id"],
-      where: {
-        id: model.documentId,
-      },
-      transaction,
-    });
+    const document = await Document.unscoped()
+      .scope("withoutState")
+      .findOne({
+        attributes: ["id"],
+        where: {
+          id: model.documentId,
+        },
+        transaction,
+      });
     if (!document) {
       return;
     }
