@@ -1,10 +1,13 @@
-const SSR = typeof window === "undefined";
+/**
+ * Returns true if we're running in the browser.
+ */
+export const isBrowser = typeof window !== "undefined";
 
 /**
  * Returns true if the client is a touch device.
  */
 export function isTouchDevice(): boolean {
-  if (SSR) {
+  if (!isBrowser) {
     return false;
   }
   return window.matchMedia?.("(hover: none) and (pointer: coarse)")?.matches;
@@ -14,7 +17,7 @@ export function isTouchDevice(): boolean {
  * Returns true if the client is running on a Mac.
  */
 export function isMac(): boolean {
-  if (SSR) {
+  if (!isBrowser) {
     return false;
   }
   return window.navigator.platform === "MacIntel";
@@ -24,7 +27,7 @@ export function isMac(): boolean {
  * Returns true if the client is running on Windows.
  */
 export function isWindows(): boolean {
-  if (SSR) {
+  if (!isBrowser) {
     return false;
   }
   return window.navigator.platform === "Win32";
