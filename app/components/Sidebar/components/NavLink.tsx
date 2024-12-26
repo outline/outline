@@ -93,15 +93,11 @@ const NavLink = ({
 
   React.useLayoutEffect(() => {
     if (isActive && linkRef.current && scrollIntoViewIfNeeded !== false) {
-      // If the page has an anchor hash then this means we're linking to an
-      // anchor in the document – smooth scrolling the sidebar may the scrolling
-      // to the anchor of the document so we must avoid it.
-      if (!window.location.hash) {
-        scrollIntoView(linkRef.current, {
-          scrollMode: "if-needed",
-          behavior: "auto",
-        });
-      }
+      scrollIntoView(linkRef.current, {
+        scrollMode: "if-needed",
+        behavior: "auto",
+        boundary: (parent) => parent.id !== "sidebar",
+      });
     }
   }, [linkRef, scrollIntoViewIfNeeded, isActive]);
 
