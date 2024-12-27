@@ -6,6 +6,7 @@ type Props = {
   children?: React.ReactNode;
   maxWidth?: string;
   withStickyHeader?: boolean;
+  shrink?: boolean;
 };
 
 const Container = styled.div<Props>`
@@ -15,7 +16,11 @@ const Container = styled.div<Props>`
 
   ${breakpoint("tablet")`
     padding: ${(props: Props) =>
-      props.withStickyHeader ? "4px 44px 60px" : "60px 44px"};
+      props.shrink
+        ? "4px 44px"
+        : props.withStickyHeader
+        ? "4px 44px 60px"
+        : "60px 44px"};
   `};
 `;
 

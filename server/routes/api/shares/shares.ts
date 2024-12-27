@@ -152,7 +152,28 @@ router.post(
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
       }),
-      Share.count({ where }),
+      Share.count({
+        where,
+        include: [
+          {
+            model: Document,
+            required: true,
+            paranoid: true,
+            as: "document",
+            where: {
+              collectionId: collectionIds,
+            },
+            include: [
+              {
+                model: Collection.scope({
+                  method: ["withMembership", user.id],
+                }),
+                as: "collection",
+              },
+            ],
+          },
+        ],
+      }),
     ]);
 
     ctx.body = {
