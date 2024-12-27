@@ -13,6 +13,7 @@ import Group from "~/models/Group";
 import User from "~/models/User";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import { Avatar, GroupAvatar, AvatarSize, IAvatar } from "~/components/Avatar";
+import Badge from "~/components/Badge";
 import Empty from "~/components/Empty";
 import Placeholder from "~/components/List/Placeholder";
 import Scrollable from "~/components/Scrollable";
@@ -154,11 +155,12 @@ export const Suggestions = observer(
       }
       return {
         title: suggestion.name,
-        subtitle: suggestion.email
-          ? suggestion.email
-          : suggestion.isViewer
-          ? t("Viewer")
-          : t("Editor"),
+        subtitle: (
+          <>
+            {suggestion.email ? `${suggestion.email} ` : ""}
+            {suggestion.isViewer && <Badge>{t("Viewer")}</Badge>}
+          </>
+        ),
         image: (
           <Avatar
             model={suggestion}
