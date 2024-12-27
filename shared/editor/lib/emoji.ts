@@ -33,7 +33,7 @@ export const nameToEmoji: Record<string, string> = Object.values(
  * @returns The emoji character
  */
 export const getEmojiFromName = (name: string) =>
-  nameToEmoji[name.replace(/:/g, "")];
+  nameToEmoji[name.replace(/:/g, "")] ?? "?";
 
 /**
  * Get the emoji shortcode for a given emoji character.

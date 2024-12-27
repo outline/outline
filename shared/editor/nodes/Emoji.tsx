@@ -24,11 +24,9 @@ export default class Emoji extends Extension {
   get schema(): NodeSpec {
     return {
       attrs: {
-        style: {
-          default: "",
-        },
         "data-name": {
-          default: undefined,
+          default: "grey_question",
+          validate: "string",
         },
       },
       inline: true,
@@ -50,17 +48,15 @@ export default class Emoji extends Extension {
       ],
       toDOM: (node) => {
         const name = node.attrs["data-name"];
-        if (name && getEmojiFromName(name)) {
-          return [
-            "strong",
-            {
-              class: `emoji ${name}`,
-              "data-name": name,
-            },
-            getEmojiFromName(name),
-          ];
-        }
-        return ["strong", { class: "emoji" }, `:${name}:`];
+
+        return [
+          "strong",
+          {
+            class: `emoji ${name}`,
+            "data-name": name,
+          },
+          getEmojiFromName(name),
+        ];
       },
       toPlainText: (node) => getEmojiFromName(node.attrs["data-name"]),
     };
