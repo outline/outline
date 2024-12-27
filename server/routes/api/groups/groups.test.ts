@@ -318,6 +318,23 @@ describe("#groups.info", () => {
     expect(body.data.id).toEqual(group.id);
   });
 
+  it("should return group with externalId", async () => {
+    const user = await buildAdmin();
+    const group = await buildGroup({
+      teamId: user.teamId,
+      externalId: "456",
+    });
+    const res = await server.post("/api/groups.info", {
+      body: {
+        token: user.getJwtToken(),
+        externalId: "456",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(group.id);
+  });
+
   it("should return group if member", async () => {
     const user = await buildUser();
     const group = await buildGroup({
@@ -339,7 +356,7 @@ describe("#groups.info", () => {
     expect(body.data.id).toEqual(group.id);
   });
 
-  it("should still return group if non-member, non-admin", async () => {
+  it("should return group if non-member, non-admin", async () => {
     const user = await buildUser();
     const group = await buildGroup({
       teamId: user.teamId,
