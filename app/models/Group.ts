@@ -11,6 +11,9 @@ class Group extends Model {
   name: string;
 
   @observable
+  externalId: string | undefined;
+
+  @observable
   memberCount: number;
 
   /**

@@ -2,11 +2,13 @@ import Router from "koa-router";
 import { Op, Sequelize, WhereOptions } from "sequelize";
 import { UserPreference, UserRole } from "@shared/types";
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
+import { settingsPath } from "@shared/utils/routeHelpers";
 import { UserValidation } from "@shared/validations";
 import userDestroyer from "@server/commands/userDestroyer";
 import userInviter from "@server/commands/userInviter";
 import userSuspender from "@server/commands/userSuspender";
 import userUnsuspender from "@server/commands/userUnsuspender";
+import ConfirmUpdateEmail from "@server/emails/templates/ConfirmUpdateEmail";
 import ConfirmUserDeleteEmail from "@server/emails/templates/ConfirmUserDeleteEmail";
 import InviteEmail from "@server/emails/templates/InviteEmail";
 import env from "@server/env";
@@ -23,6 +25,7 @@ import { presentUser, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { safeEqual } from "@server/utils/crypto";
+import { getDetailsForEmailUpdateToken } from "@server/utils/jwt";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -198,6 +201,108 @@ router.post(
       }),
       policies: presentPolicies(actor, [user]),
     };
+  }
+);
+
+router.post(
+  "users.updateEmail",
+  rateLimiter(RateLimiterStrategy.TenPerHour),
+  auth(),
+  validate(T.UsersUpdateEmailSchema),
+  async (ctx: APIContext<T.UsersUpdateEmailReq>) => {
+    if (!emailEnabled) {
+      throw ValidationError("Email support is not setup for this instance");
+    }
+
+    const { user: actor } = ctx.state.auth;
+    const { id } = ctx.input.body;
+    const { team } = actor;
+    const user = id ? await User.findByPk(id) : actor;
+    const email = ctx.input.body.email.trim().toLowerCase();
+
+    authorize(actor, "update", user);
+
+    // Check if email domain is allowed
+    if (!(await team.isDomainAllowed(email))) {
+      throw ValidationError("The domain is not allowed for this workspace");
+    }
+
+    // Check if email already exists in workspace
+    if (await User.findByEmail(ctx, email)) {
+      throw ValidationError("User with email already exists");
+    }
+
+    await new ConfirmUpdateEmail({
+      to: email,
+      previous: user.email,
+      code: user.getEmailUpdateToken(email),
+      teamUrl: team.url,
+    }).schedule();
+
+    ctx.body = {
+      success: true,
+    };
+  }
+);
+
+router.get(
+  "users.updateEmail",
+  rateLimiter(RateLimiterStrategy.TenPerHour),
+  auth(),
+  transaction(),
+  validate(T.UsersUpdateEmailConfirmSchema),
+  async (ctx: APIContext<T.UsersUpdateEmailConfirmReq>) => {
+    if (!emailEnabled) {
+      throw ValidationError("Email support is not setup for this instance");
+    }
+
+    const { transaction } = ctx.state;
+    const { code, follow } = ctx.input.query;
+
+    // The link in the email does not include the follow query param, this
+    // is to help prevent anti-virus, and email clients from pre-fetching the link
+    // and spending the token before the user clicks on it. Instead we redirect
+    // to the same URL with the follow query param added from the client side.
+    if (!follow) {
+      return ctx.redirectOnClient(ctx.request.href + "&follow=true");
+    }
+    let user: User;
+    let email: string;
+
+    try {
+      const res = await getDetailsForEmailUpdateToken(code as string, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+      user = res.user;
+      email = res.email;
+    } catch (err) {
+      ctx.redirect(`/?notice=expired-token`);
+      return;
+    }
+
+    const { user: actor } = ctx.state.auth;
+    authorize(actor, "update", user);
+
+    // Check if email domain is allowed
+    if (!(await actor.team.isDomainAllowed(email))) {
+      throw ValidationError("The domain is not allowed for this workspace");
+    }
+
+    // Check if email already exists in workspace
+    if (await User.findByEmail(ctx, email)) {
+      throw ValidationError("User with email already exists");
+    }
+
+    user.email = email;
+    await Event.createFromContext(ctx, {
+      name: "users.update",
+      userId: user.id,
+      changes: user.changeset,
+    });
+    await user.save({ transaction });
+
+    ctx.redirect(settingsPath());
   }
 );
 
@@ -518,15 +623,17 @@ router.post(
   rateLimiter(RateLimiterStrategy.FivePerHour),
   auth(),
   async (ctx: APIContext) => {
+    if (!emailEnabled) {
+      throw ValidationError("Email support is not setup for this instance");
+    }
+
     const { user } = ctx.state.auth;
     authorize(user, "delete", user);
 
-    if (emailEnabled) {
-      await new ConfirmUserDeleteEmail({
-        to: user.email,
-        deleteConfirmationCode: user.deleteConfirmationCode,
-      }).schedule();
-    }
+    await new ConfirmUserDeleteEmail({
+      to: user.email,
+      deleteConfirmationCode: user.deleteConfirmationCode,
+    }).schedule();
 
     ctx.body = {
       success: true,

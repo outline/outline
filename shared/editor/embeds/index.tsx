@@ -178,11 +178,21 @@ const embeds: EmbedDescriptor[] = [
   new EmbedDescriptor({
     title: "Canva",
     keywords: "design",
-    regexMatch: [
-      /^https:\/\/(?:www\.)?canva\.com\/design\/([a-zA-Z0-9_]*)\/(.*)$/,
-    ],
-    transformMatch: (matches: RegExpMatchArray) =>
-      `https://www.canva.com/design/${matches[1]}/view?embed`,
+    regexMatch: [/^https:\/\/(?:www\.)?canva\.com\/design\/([\/a-zA-Z0-9_]*)$/],
+    transformMatch: (matches: RegExpMatchArray) => {
+      const input = matches.input ?? matches[0];
+
+      try {
+        const url = new URL(input);
+        const params = new URLSearchParams(url.search);
+        params.append("embed", "");
+        return `${url.origin}${url.pathname}?${params.toString()}`;
+      } catch (e) {
+        //
+      }
+
+      return input;
+    },
     icon: <Img src="/images/canva.png" alt="Canva" />,
   }),
   new EmbedDescriptor({
