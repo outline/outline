@@ -1,5 +1,6 @@
 import escapeRegExp from "lodash/escapeRegExp";
 import env from "../env";
+import { isBrowser } from "./browser";
 import { parseDomain } from "./domains";
 
 /**
@@ -44,15 +45,14 @@ export function isInternalUrl(href: string) {
     return true;
   }
 
-  const outline =
-    typeof window !== "undefined"
-      ? parseDomain(window.location.href)
-      : parseDomain(env.URL);
+  const outline = isBrowser
+    ? parseDomain(window.location.href)
+    : parseDomain(env.URL);
   const domain = parseDomain(href);
 
   return (
     (outline.host === domain.host && outline.port === domain.port) ||
-    (typeof window !== "undefined" &&
+    (isBrowser &&
       window.location.hostname === domain.host &&
       window.location.port === domain.port)
   );
@@ -121,7 +121,12 @@ export const creatingUrlPrefix = "creating#";
  * @returns True if the url is external, false otherwise.
  */
 export function isExternalUrl(url: string) {
-  return !!url && !isInternalUrl(url) && !url.startsWith(creatingUrlPrefix);
+  return (
+    !!url &&
+    !isInternalUrl(url) &&
+    !url.startsWith(creatingUrlPrefix) &&
+    (!env.CDN_URL || !url.startsWith(env.CDN_URL))
+  );
 }
 
 /**

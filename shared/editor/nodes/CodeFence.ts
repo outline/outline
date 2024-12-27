@@ -41,6 +41,7 @@ import ocaml from "refractor/lang/ocaml";
 import perl from "refractor/lang/perl";
 import php from "refractor/lang/php";
 import powershell from "refractor/lang/powershell";
+import protobuf from "refractor/lang/protobuf";
 import python from "refractor/lang/python";
 import r from "refractor/lang/r";
 import ruby from "refractor/lang/ruby";
@@ -121,6 +122,7 @@ const DEFAULT_LANGUAGE = "javascript";
   php,
   python,
   powershell,
+  protobuf,
   r,
   ruby,
   rust,

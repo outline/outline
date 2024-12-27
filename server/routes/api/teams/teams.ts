@@ -68,16 +68,18 @@ router.post(
   rateLimiter(RateLimiterStrategy.FivePerHour),
   auth(),
   async (ctx: APIContext) => {
+    if (!emailEnabled) {
+      throw ValidationError("Email support is not setup for this instance");
+    }
+
     const { user } = ctx.state.auth;
     const { team } = user;
     authorize(user, "delete", team);
 
-    if (emailEnabled) {
-      await new ConfirmTeamDeleteEmail({
-        to: user.email,
-        deleteConfirmationCode: team.getDeleteConfirmationCode(user),
-      }).schedule();
-    }
+    await new ConfirmTeamDeleteEmail({
+      to: user.email,
+      deleteConfirmationCode: team.getDeleteConfirmationCode(user),
+    }).schedule();
 
     ctx.body = {
       success: true,
