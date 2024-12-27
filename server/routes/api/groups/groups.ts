@@ -102,10 +102,14 @@ router.post(
   auth(),
   validate(T.GroupsInfoSchema),
   async (ctx: APIContext<T.GroupsInfoReq>) => {
-    const { id } = ctx.input.body;
+    const { id, externalId } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    const group = await Group.findByPk(id);
+    const group = id
+      ? await Group.findByPk(id)
+      : externalId
+      ? await Group.findOne({ where: { externalId } })
+      : null;
     authorize(user, "read", group);
 
     ctx.body = {
