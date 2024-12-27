@@ -101,11 +101,6 @@ export default class Embed extends Node {
       const { view } = this.editor;
       const { tr } = view.state;
 
-      console.log({
-        width,
-        height,
-      });
-
       const pos = getPos();
       const transaction = tr
         .setNodeMarkup(pos, undefined, {
@@ -120,8 +115,6 @@ export default class Embed extends Node {
 
   component = (props: ComponentProps) => {
     const { embeds, embedsDisabled } = this.editor.props;
-
-    console.log(props.node);
 
     return (
       <EmbedComponent
