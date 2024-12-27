@@ -139,7 +139,6 @@ const FrameWrapper = styled.div`
   border-radius: 8px;
   user-select: none;
   max-width: 100%;
-  overflow: hidden;
 
   transition-property: width, max-height;
   transition-duration: 150ms;

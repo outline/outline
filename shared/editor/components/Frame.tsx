@@ -121,13 +121,13 @@ const Rounded = styled.div<{
 }>`
   border: 1px solid
     ${(props) => (props.$border ? props.theme.embedBorder : "transparent")};
-  border-radius: ${(props) => (props.$showBottomBar ? "6px 6px 0 0" : "6px")};
+  border-radius: 6px;
   overflow: hidden;
 
   ${(props) =>
     props.$showBottomBar &&
     `
-    margin-bottom: 28px;
+    padding-bottom: 28px;
   `}
 `;
 
@@ -159,10 +159,6 @@ const Bar = styled.div`
   border-bottom-right-radius: 6px;
   user-select: none;
   height: 28px;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
 `;
 
 export default React.forwardRef<HTMLIFrameElement, Props>((props, ref) => (
