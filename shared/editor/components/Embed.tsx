@@ -18,7 +18,7 @@ type Props = ComponentProps & {
 const Embed = (props: Props) => {
   const ref = React.useRef<HTMLIFrameElement>(null);
   const { node, isEditable, onChangeSize } = props;
-  const naturalWidth = "100%";
+  const naturalWidth = 1000;
   const naturalHeight = 400;
   const isResizable = !!onChangeSize;
 
@@ -35,17 +35,18 @@ const Embed = (props: Props) => {
   );
 
   React.useEffect(() => {
-    if (node.attrs.width && node.attrs.width !== width) {
+    if (node.attrs.height && node.attrs.height !== height) {
       setSize({
         width: node.attrs.width,
         height: node.attrs.height,
       });
     }
-  }, [node.attrs.width]);
+  }, [node.attrs.height]);
 
   const style: React.CSSProperties = {
     width: width || "100%",
     height: height || 400,
+    maxWidth: "100%",
     pointerEvents: dragging ? "none" : "all",
   };
 
@@ -64,67 +65,69 @@ const Embed = (props: Props) => {
   );
 };
 
-const InnerEmbed = React.forwardRef(function InnerEmbed_(
-  { isEditable, isSelected, theme, node, embeds, embedsDisabled, style }: Props,
-  ref
-) {
-  const cache = React.useMemo(
-    () => getMatchingEmbed(embeds, node.attrs.href),
-    [embeds, node.attrs.href]
-  );
+const InnerEmbed = React.forwardRef<HTMLIFrameElement, Props>(
+  function InnerEmbed_(
+    { isEditable, isSelected, theme, node, embeds, embedsDisabled, style },
+    ref
+  ) {
+    const cache = React.useMemo(
+      () => getMatchingEmbed(embeds, node.attrs.href),
+      [embeds, node.attrs.href]
+    );
 
-  if (!cache) {
+    if (!cache) {
+      return null;
+    }
+
+    const { embed, matches } = cache;
+
+    if (embedsDisabled) {
+      return (
+        <DisabledEmbed
+          href={node.attrs.href}
+          embed={embed}
+          isEditable={isEditable}
+          isSelected={isSelected}
+          theme={theme}
+        />
+      );
+    }
+
+    if (embed.transformMatch) {
+      const src = embed.transformMatch(matches);
+      return (
+        <Frame
+          ref={ref}
+          src={src}
+          style={style}
+          isSelected={isSelected}
+          canonicalUrl={embed.hideToolbar ? undefined : node.attrs.href}
+          title={embed.title}
+          referrerPolicy="origin"
+          border
+        />
+      );
+    }
+
+    if ("component" in embed) {
+      return (
+        // @ts-expect-error Component type
+        <embed.component
+          ref={ref}
+          attrs={node.attrs}
+          style={style}
+          matches={matches}
+          isEditable={isEditable}
+          isSelected={isSelected}
+          embed={embed}
+          theme={theme}
+        />
+      );
+    }
+
     return null;
   }
-
-  const { embed, matches } = cache;
-
-  if (embedsDisabled) {
-    return (
-      <DisabledEmbed
-        href={node.attrs.href}
-        embed={embed}
-        isEditable={isEditable}
-        isSelected={isSelected}
-        theme={theme}
-      />
-    );
-  }
-
-  if (embed.transformMatch) {
-    const src = embed.transformMatch(matches);
-    return (
-      <Frame
-        ref={ref}
-        src={src}
-        style={style}
-        isSelected={isSelected}
-        canonicalUrl={embed.hideToolbar ? undefined : node.attrs.href}
-        title={embed.title}
-        referrerPolicy="origin"
-        border
-      />
-    );
-  }
-
-  if ("component" in embed) {
-    return (
-      // @ts-expect-error Component type
-      <embed.component
-        ref={ref}
-        attrs={node.attrs}
-        style={style}
-        matches={matches}
-        isEditable={isEditable}
-        isSelected={isSelected}
-        embed={embed}
-        theme={theme}
-      />
-    );
-  }
-
-  return null;
-});
+);
 
 const FrameWrapper = styled.div`
   line-height: 0;

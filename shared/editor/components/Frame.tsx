@@ -7,7 +7,7 @@ import { Optional } from "utility-types";
 import { s } from "../../styles";
 import { sanitizeUrl } from "../../utils/urls";
 
-type Props = Omit<Optional<HTMLIFrameElement>, "children"> & {
+type Props = Omit<Optional<HTMLIFrameElement>, "children" | "style"> & {
   /** The URL to load in the iframe */
   src?: string;
   /** Whether to display a border, defaults to true */

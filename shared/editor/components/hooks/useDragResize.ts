@@ -68,7 +68,7 @@ export default function useDragResize(props: Params): ReturnValue {
       diffY = event.pageY - offset;
     }
 
-    if (diffX) {
+    if (diffX && sizeAtDragStart.width) {
       const gridWidth = (props.gridSnap / 100) * maxWidth;
       const newWidth = sizeAtDragStart.width + diffX * 2;
       const widthOnGrid = Math.round(newWidth / gridWidth) * gridWidth;
@@ -88,18 +88,10 @@ export default function useDragResize(props: Params): ReturnValue {
       });
     }
 
-    if (diffY) {
+    if (diffY && sizeAtDragStart.height) {
       const gridHeight = (props.gridSnap / 100) * maxWidth;
       const newHeight = sizeAtDragStart.height + diffY;
       const heightOnGrid = Math.round(newHeight / gridHeight) * gridHeight;
-
-      console.log({
-        newHeight,
-        heightOnGrid,
-        gridHeight,
-        diffY,
-        sizeAtDragStart,
-      });
 
       setSize((state) => ({
         ...state,
