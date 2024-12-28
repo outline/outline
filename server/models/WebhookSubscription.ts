@@ -44,6 +44,8 @@ class WebhookSubscription extends ParanoidModel<
   InferAttributes<WebhookSubscription>,
   Partial<InferCreationAttributes<WebhookSubscription>>
 > {
+  static eventNamespace = "webhookSubscriptions";
+
   @NotEmpty
   @Length({ max: 255, msg: "Webhook name be less than 255 characters" })
   @Column
