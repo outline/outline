@@ -30,6 +30,11 @@ import Logger from "@server/logging/Logger";
 import { Replace, APIContext } from "@server/types";
 import { getChangsetSkipped } from "../decorators/Changeset";
 
+type EventOverride = {
+  name?: string;
+  data?: Record<string, unknown>;
+};
+
 class Model<
   TModelAttributes extends {} = any,
   TCreationAttributes extends {} = TModelAttributes
@@ -45,25 +50,20 @@ class Model<
    */
   public saveWithCtx<M extends Model>(
     ctx: APIContext,
-    eventData?: Record<string, unknown>,
-    options?: SaveOptions<Attributes<M>>
+    options?: SaveOptions<Attributes<M>>,
+    eventOverride?: EventOverride
   ) {
     this.cacheChangeset();
-    this.eventData = eventData;
-    return this.save({ ...options, ...ctx.context });
+    this.eventOverride = eventOverride;
+    return this.save({ ...options, ...ctx.context } as SaveOptions);
   }
 
   /**
    * This is the same as calling `set` and then calling `save`.
    */
-  public updateWithCtx(
-    ctx: APIContext,
-    keys: Partial<TModelAttributes>,
-    eventData?: Record<string, unknown>
-  ) {
+  public updateWithCtx(ctx: APIContext, keys: Partial<TModelAttributes>) {
     this.set(keys);
     this.cacheChangeset();
-    this.eventData = eventData;
     return this.save(ctx.context as SaveOptions);
   }
 
@@ -71,8 +71,11 @@ class Model<
    * Destroy the row corresponding to this instance. Depending on your setting for paranoid, the row will
    * either be completely deleted, or have its deletedAt timestamp set to the current time.
    */
-  public destroyWithCtx(ctx: APIContext) {
-    return this.destroy(ctx.context as InstanceDestroyOptions);
+  public destroyWithCtx(ctx: APIContext, options?: InstanceDestroyOptions) {
+    return this.destroy({
+      ...options,
+      ...ctx.context,
+    } as InstanceDestroyOptions);
   }
 
   /**
@@ -187,7 +190,7 @@ class Model<
 
     return models.event.create(
       {
-        name: `${namespace}.${name}`,
+        name: `${namespace}.${model.eventOverride?.name ?? name}`,
         modelId: model.id,
         collectionId:
           "collectionId" in model
@@ -217,7 +220,7 @@ class Model<
         authType: context.auth?.type,
         ip: context.ip,
         changes: model.previousChangeset,
-        data: model.eventData,
+        data: model.eventOverride?.data,
       },
       {
         transaction: context.transaction,
@@ -357,7 +360,7 @@ class Model<
     previous: Partial<TModelAttributes>;
   }> | null;
 
-  private eventData?: Record<string, unknown>;
+  private eventOverride?: EventOverride;
 }
 
 export default Model;

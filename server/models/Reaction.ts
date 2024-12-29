@@ -1,8 +1,12 @@
+import cloneDeep from "lodash/cloneDeep";
 import uniq from "lodash/uniq";
 import {
+  Attributes,
+  CreationAttributes,
+  FindOrCreateOptions,
   InferAttributes,
   InferCreationAttributes,
-  type SaveOptions,
+  InstanceDestroyOptions,
 } from "sequelize";
 import {
   AfterCreate,
@@ -13,6 +17,7 @@ import {
   ForeignKey,
   Table,
 } from "sequelize-typescript";
+import { APIContext } from "@server/types";
 import Comment from "./Comment";
 import User from "./User";
 import IdModel from "./base/IdModel";
@@ -51,9 +56,10 @@ class Reaction extends IdModel<
   @AfterCreate
   public static async addReactionToCommentCache(
     model: Reaction,
-    options: SaveOptions<Reaction>
+    ctx: APIContext["context"] &
+      FindOrCreateOptions<Attributes<Reaction>, CreationAttributes<Reaction>>
   ) {
-    const { transaction } = options;
+    const { transaction } = ctx;
 
     const lock = transaction
       ? {
@@ -71,7 +77,7 @@ class Reaction extends IdModel<
       return;
     }
 
-    const reactions = comment.reactions ?? [];
+    const reactions = cloneDeep(comment.reactions) ?? [];
     const reaction = reactions.find((r) => r.emoji === model.emoji);
 
     if (!reaction) {
@@ -81,16 +87,28 @@ class Reaction extends IdModel<
     }
 
     comment.reactions = reactions;
-    comment.changed("reactions", true);
-    await comment.save({ fields: ["reactions"], transaction, silent: true });
+
+    // Pass only the fields needed in APIContext; otherwise sequelize props will be overwritten.
+    const context = {
+      context: { auth: ctx.auth, ip: ctx.ip, transaction: ctx.transaction },
+    } as APIContext;
+
+    await comment.saveWithCtx(
+      context,
+      {
+        fields: ["reactions"],
+        silent: true,
+      },
+      { name: "add_reaction", data: { emoji: model.emoji } }
+    );
   }
 
   @AfterDestroy
   public static async removeReactionFromCommentCache(
     model: Reaction,
-    options: SaveOptions<Reaction>
+    ctx: APIContext["context"] & InstanceDestroyOptions
   ) {
-    const { transaction } = options;
+    const { transaction } = ctx;
 
     const lock = transaction
       ? {
@@ -108,7 +126,7 @@ class Reaction extends IdModel<
       return;
     }
 
-    let reactions = comment.reactions ?? [];
+    let reactions = cloneDeep(comment.reactions) ?? [];
     const reaction = reactions.find((r) => r.emoji === model.emoji);
 
     if (reaction) {
@@ -120,8 +138,20 @@ class Reaction extends IdModel<
     }
 
     comment.reactions = reactions;
-    comment.changed("reactions", true);
-    await comment.save({ fields: ["reactions"], transaction, silent: true });
+
+    // Pass only the fields needed in APIContext; otherwise sequelize props will be overwritten.
+    const context = {
+      context: { auth: ctx.auth, ip: ctx.ip, transaction: ctx.transaction },
+    } as APIContext;
+
+    await comment.saveWithCtx(
+      context,
+      {
+        fields: ["reactions"],
+        silent: true,
+      },
+      { name: "remove_reaction", data: { emoji: model.emoji } }
+    );
   }
 }
 
