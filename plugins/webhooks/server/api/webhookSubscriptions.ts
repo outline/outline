@@ -45,7 +45,7 @@ router.post(
   validate(T.WebhookSubscriptionsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.WebhookSubscriptionsCreateReq>) => {
-    const { name, url, secret } = ctx.input.body;
+    const { name, url, secret, events } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     authorize(user, "createWebhookSubscription", user.team);
@@ -53,7 +53,7 @@ router.post(
     const webhookSubscription = await WebhookSubscription.createWithCtx(ctx, {
       name,
       url,
-      events: compact(ctx.input.body.events),
+      events: compact(events),
       enabled: true,
       secret: isEmpty(secret) ? undefined : secret,
       createdById: user.id,
@@ -98,7 +98,7 @@ router.post(
   validate(T.WebhookSubscriptionsUpdateSchema),
   transaction(),
   async (ctx: APIContext<T.WebhookSubscriptionsUpdateReq>) => {
-    const { id, name, url, secret } = ctx.input.body;
+    const { id, name, url, secret, events } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
@@ -113,7 +113,7 @@ router.post(
     webhookSubscription = await webhookSubscription.updateWithCtx(ctx, {
       name,
       url,
-      events: compact(ctx.input.body.events),
+      events: compact(events),
       enabled: true,
       secret: isEmpty(secret) ? undefined : secret,
     });
