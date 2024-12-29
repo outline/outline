@@ -102,7 +102,7 @@ router.post(
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
-    let webhookSubscription = await WebhookSubscription.findByPk(id, {
+    const webhookSubscription = await WebhookSubscription.findByPk(id, {
       rejectOnEmpty: true,
       lock: transaction.LOCK.UPDATE,
       transaction,
@@ -110,7 +110,7 @@ router.post(
 
     authorize(user, "update", webhookSubscription);
 
-    webhookSubscription = await webhookSubscription.updateWithCtx(ctx, {
+    await webhookSubscription.updateWithCtx(ctx, {
       name,
       url,
       events: compact(events),
