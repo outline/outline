@@ -305,15 +305,7 @@ router.post(
     authorize(user, "update", document);
 
     comment.resolve(user);
-    const changes = comment.changeset;
-    await comment.save({ transaction, silent: true });
-
-    await Event.createFromContext(ctx, {
-      name: "comments.update",
-      modelId: comment.id,
-      documentId: comment.documentId,
-      changes,
-    });
+    await comment.saveWithCtx(ctx, undefined, { silent: true });
 
     ctx.body = {
       data: presentComment(comment),
@@ -348,15 +340,7 @@ router.post(
     authorize(user, "update", document);
 
     comment.unresolve();
-    const changes = comment.changeset;
-    await comment.save({ transaction, silent: true });
-
-    await Event.createFromContext(ctx, {
-      name: "comments.update",
-      modelId: comment.id,
-      documentId: comment.documentId,
-      changes,
-    });
+    await comment.saveWithCtx(ctx, undefined, { silent: true });
 
     ctx.body = {
       data: presentComment(comment),

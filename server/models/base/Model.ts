@@ -43,10 +43,14 @@ class Model<
   /**
    * Validates this instance, and if the validation passes, persists it to the database.
    */
-  public saveWithCtx(ctx: APIContext, eventData?: Record<string, unknown>) {
+  public saveWithCtx<M extends Model>(
+    ctx: APIContext,
+    eventData?: Record<string, unknown>,
+    options?: SaveOptions<Attributes<M>>
+  ) {
     this.cacheChangeset();
     this.eventData = eventData;
-    return this.save(ctx.context as SaveOptions);
+    return this.save({ ...options, ...ctx.context });
   }
 
   /**
@@ -165,7 +169,7 @@ class Model<
     const models = this.sequelize!.models;
 
     // If no namespace is defined, don't create an event
-    if (!namespace || context.silent) {
+    if (!namespace) {
       return;
     }
 
