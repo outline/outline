@@ -43,17 +43,23 @@ class Model<
   /**
    * Validates this instance, and if the validation passes, persists it to the database.
    */
-  public saveWithCtx(ctx: APIContext) {
+  public saveWithCtx(ctx: APIContext, eventData?: Record<string, unknown>) {
     this.cacheChangeset();
+    this.eventData = eventData;
     return this.save(ctx.context as SaveOptions);
   }
 
   /**
    * This is the same as calling `set` and then calling `save`.
    */
-  public updateWithCtx(ctx: APIContext, keys: Partial<TModelAttributes>) {
+  public updateWithCtx(
+    ctx: APIContext,
+    keys: Partial<TModelAttributes>,
+    eventData?: Record<string, unknown>
+  ) {
     this.set(keys);
     this.cacheChangeset();
+    this.eventData = eventData;
     return this.save(ctx.context as SaveOptions);
   }
 
@@ -207,6 +213,7 @@ class Model<
         authType: context.auth?.type,
         ip: context.ip,
         changes: model.previousChangeset,
+        data: model.eventData,
       },
       {
         transaction: context.transaction,
@@ -345,6 +352,8 @@ class Model<
     attributes: Partial<TModelAttributes>;
     previous: Partial<TModelAttributes>;
   }> | null;
+
+  private eventData?: Record<string, unknown>;
 }
 
 export default Model;

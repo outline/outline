@@ -1,15 +1,14 @@
 import Router from "koa-router";
+import difference from "lodash/difference";
 import { FindOptions, Op, WhereOptions } from "sequelize";
 import { CommentStatusFilter, TeamPreference } from "@shared/types";
-import commentCreator from "@server/commands/commentCreator";
-import commentDestroyer from "@server/commands/commentDestroyer";
-import commentUpdater from "@server/commands/commentUpdater";
 import auth from "@server/middlewares/authentication";
 import { feature } from "@server/middlewares/feature";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Document, Comment, Collection, Event, Reaction } from "@server/models";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { authorize } from "@server/policies";
 import { presentComment, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
@@ -37,15 +36,15 @@ router.post(
     });
     authorize(user, "comment", document);
 
-    const comment = await commentCreator({
+    const comment = await Comment.createWithCtx(ctx, {
       id,
       data,
-      parentCommentId,
+      createdById: user.id,
       documentId,
-      user,
-      ip: ctx.request.ip,
-      transaction,
+      parentCommentId,
     });
+
+    comment.createdBy = user;
 
     ctx.body = {
       data: presentComment(comment),
@@ -213,16 +212,25 @@ router.post(
       userId: user.id,
       transaction,
     });
-    authorize(user, "comment", document);
     authorize(user, "update", comment);
+    authorize(user, "comment", document);
 
-    await commentUpdater({
-      user,
-      comment,
-      data,
-      ip: ctx.request.ip,
-      transaction,
-    });
+    let newMentionIds: string[] = [];
+
+    if (data !== undefined) {
+      const existingMentionIds = ProsemirrorHelper.parseMentions(
+        ProsemirrorHelper.toProsemirror(comment.data)
+      ).map((mention) => mention.id);
+      const updatedMentionIds = ProsemirrorHelper.parseMentions(
+        ProsemirrorHelper.toProsemirror(data)
+      ).map((mention) => mention.id);
+
+      newMentionIds = difference(updatedMentionIds, existingMentionIds);
+      comment.data = data;
+    }
+
+    comment.document = document;
+    await comment.saveWithCtx(ctx, { newMentionIds });
 
     ctx.body = {
       data: presentComment(comment),
@@ -248,17 +256,22 @@ router.post(
     });
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
-      transaction,
     });
-    authorize(user, "comment", document);
     authorize(user, "delete", comment);
+    authorize(user, "comment", document);
 
-    await commentDestroyer({
-      user,
-      comment,
-      ip: ctx.request.ip,
+    // Delete child comments.
+    const childComments = await Comment.findAll({
+      where: { parentCommentId: comment.id },
       transaction,
     });
+    await Promise.all(
+      childComments.map((childComment) =>
+        childComment.destroy({ transaction, hooks: false })
+      )
+    );
+
+    await comment.destroyWithCtx(ctx);
 
     ctx.body = {
       success: true,

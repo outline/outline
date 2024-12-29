@@ -40,6 +40,8 @@ class Comment extends ParanoidModel<
   InferAttributes<Comment>,
   Partial<InferCreationAttributes<Comment>>
 > {
+  static eventNamespace = "comments";
+
   @TextLength({
     max: CommentValidation.maxLength,
     msg: `Comment must be less than ${CommentValidation.maxLength} characters`,
