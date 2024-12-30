@@ -28,6 +28,10 @@ import Logger from "@server/logging/Logger";
 import { Replace, APIContext } from "@server/types";
 import { getChangsetSkipped } from "../decorators/Changeset";
 
+export type EventOverride = {
+  name?: string;
+};
+
 class Model<
   TModelAttributes extends {} = any,
   TCreationAttributes extends {} = TModelAttributes
@@ -41,7 +45,8 @@ class Model<
   /**
    * Validates this instance, and if the validation passes, persists it to the database.
    */
-  public saveWithCtx(ctx: APIContext) {
+  public saveWithCtx(ctx: APIContext, eventOverride?: EventOverride) {
+    this.eventOverride = eventOverride;
     this.cacheChangeset();
     return this.save(ctx.context as SaveOptions);
   }
@@ -160,7 +165,7 @@ class Model<
 
     return models.event.create(
       {
-        name: `${namespace}.${name}`,
+        name: `${namespace}.${model.eventOverride?.name ?? name}`,
         modelId: model.id,
         collectionId:
           "collectionId" in model
@@ -328,6 +333,8 @@ class Model<
     attributes: Partial<TModelAttributes>;
     previous: Partial<TModelAttributes>;
   }> | null;
+
+  private eventOverride?: EventOverride;
 }
 
 export default Model;
