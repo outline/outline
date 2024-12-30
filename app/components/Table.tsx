@@ -24,6 +24,7 @@ import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import PlaceholderText from "~/components/PlaceholderText";
 import usePrevious from "~/hooks/usePrevious";
+import useWindowSize from "~/hooks/useWindowSize";
 
 type DataColumn<TData> = {
   type: "data";
@@ -66,7 +67,9 @@ function Table<TData>({
   rowHeight,
 }: Props<TData>) {
   const { t } = useTranslation();
-  const containerRef = React.useRef(null);
+  const { height } = useWindowSize();
+  const [containerHeight, setContainerHeight] = React.useState<number>(0);
+  const containerRef = React.useRef<HTMLDivElement>(null);
 
   const columnHelper = React.useMemo(() => createColumnHelper<TData>(), []);
   const observedColumns = React.useMemo(
@@ -134,12 +137,18 @@ function Table<TData>({
     overscan: 5,
   });
 
+  React.useLayoutEffect(() => {
+    if (containerRef.current) {
+      setContainerHeight(height - containerRef.current.offsetTop);
+    }
+  }, [height]);
+
   React.useEffect(() => {
     rowVirtualizer.scrollToOffset?.(0, { behavior: "smooth" });
   }, [sortChanged, rowVirtualizer]);
 
   return (
-    <Container ref={containerRef} $empty={isEmpty}>
+    <Container ref={containerRef} $height={containerHeight} $empty={isEmpty}>
       <InnerTable>
         <thead
           style={{
@@ -268,9 +277,9 @@ const AscSortIcon = styled(DescSortIcon)`
   transform: rotate(180deg);
 `;
 
-const Container = styled.div<{ $empty: boolean }>`
+const Container = styled.div<{ $height: number; $empty: boolean }>`
   overflow: auto;
-  height: ${({ $empty }) => !$empty && "max(700px, 70vh)"};
+  height: ${({ $height, $empty }) => !$empty && `${$height}px`};
   width: 100%;
   margin-top: 16px;
 `;

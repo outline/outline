@@ -17,7 +17,7 @@ const Container = styled.div<Props>`
   ${breakpoint("tablet")`
     padding: ${(props: Props) =>
       props.shrink
-        ? "4px 44px"
+        ? "0px 44px"
         : props.withStickyHeader
         ? "4px 44px 60px"
         : "60px 44px"};
