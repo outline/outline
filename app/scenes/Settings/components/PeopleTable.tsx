@@ -15,20 +15,13 @@ import Time from "~/components/Time";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import UserMenu from "~/menus/UserMenu";
 
-type Props = Omit<TableProps<User>, "columns" | "rowHeight" | "gridColumns"> & {
+type Props = Omit<TableProps<User>, "columns" | "rowHeight"> & {
   canManage: boolean;
 };
 
 export function PeopleTable({ canManage, ...rest }: Props) {
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
-
-  const gridColumns = React.useMemo(() => {
-    if (canManage) {
-      return "4fr 4fr 2fr 2fr 0.5fr"; // all columns will be displayed.
-    }
-    return "4fr 2fr 2fr"; // email and action won't be displayed.
-  }, [canManage]);
 
   const columns = React.useMemo<TableColumn<User>[]>(
     () =>
@@ -44,6 +37,7 @@ export function PeopleTable({ canManage, ...rest }: Props) {
               {currentUser.id === user.id && `(${t("You")})`}
             </Flex>
           ),
+          width: "4fr",
         },
         canManage
           ? {
@@ -52,6 +46,7 @@ export function PeopleTable({ canManage, ...rest }: Props) {
               header: t("Email"),
               accessor: (user) => user.email,
               component: (user) => <>{user.email}</>,
+              width: "4fr",
             }
           : undefined,
         {
@@ -63,6 +58,7 @@ export function PeopleTable({ canManage, ...rest }: Props) {
             user.lastActiveAt ? (
               <Time dateTime={user.lastActiveAt} addSuffix />
             ) : null,
+          width: "2fr",
         },
         {
           type: "data",
@@ -84,6 +80,7 @@ export function PeopleTable({ canManage, ...rest }: Props) {
               {user.isSuspended && <Badge>{t("Suspended")}</Badge>}
             </Badges>
           ),
+          width: "2fr",
         },
         canManage
           ? {
@@ -91,20 +88,14 @@ export function PeopleTable({ canManage, ...rest }: Props) {
               id: "action",
               component: (user) =>
                 currentUser.id !== user.id ? <UserMenu user={user} /> : null,
+              width: "50px",
             }
           : undefined,
       ]),
     [t, currentUser, canManage]
   );
 
-  return (
-    <SortableTable
-      columns={columns}
-      rowHeight={60}
-      gridColumns={gridColumns}
-      {...rest}
-    />
-  );
+  return <SortableTable columns={columns} rowHeight={60} {...rest} />;
 }
 
 const Badges = styled(Flex)`

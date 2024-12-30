@@ -40,6 +40,7 @@ type ActionColumn = {
 export type Column<TData> = {
   id: string;
   component: (data: TData) => React.ReactNode;
+  width: string;
 } & (DataColumn<TData> | ActionColumn);
 
 export type Props<TData> = {
@@ -53,7 +54,6 @@ export type Props<TData> = {
     fetchNext?: () => void;
   };
   rowHeight: number;
-  gridColumns: string;
 };
 
 function Table<TData>({
@@ -64,30 +64,38 @@ function Table<TData>({
   loading,
   page,
   rowHeight,
-  gridColumns,
 }: Props<TData>) {
   const { t } = useTranslation();
   const containerRef = React.useRef(null);
 
-  const columnHelper = createColumnHelper<TData>();
-  const observedColumns = columns.map((column) => {
-    const cell = ({ row }: CellContext<TData, unknown>) => (
-      <ObservedCell data={row.original} render={column.component} />
-    );
+  const columnHelper = React.useMemo(() => createColumnHelper<TData>(), []);
+  const observedColumns = React.useMemo(
+    () =>
+      columns.map((column) => {
+        const cell = ({ row }: CellContext<TData, unknown>) => (
+          <ObservedCell data={row.original} render={column.component} />
+        );
 
-    return column.type === "data"
-      ? columnHelper.accessor(column.accessor, {
-          id: column.id,
-          header: column.header,
-          enableSorting: column.sortable ?? true,
-          cell,
-        })
-      : columnHelper.display({
-          id: column.id,
-          header: column.header ?? "",
-          cell,
-        });
-  });
+        return column.type === "data"
+          ? columnHelper.accessor(column.accessor, {
+              id: column.id,
+              header: column.header,
+              enableSorting: column.sortable ?? true,
+              cell,
+            })
+          : columnHelper.display({
+              id: column.id,
+              header: column.header ?? "",
+              cell,
+            });
+      }),
+    [columns, columnHelper]
+  );
+
+  const gridColumns = React.useMemo(
+    () => columns.map((column) => column.width).join(" "),
+    [columns]
+  );
 
   const handleChangeSort = React.useCallback(
     (sortState: SortingState) => {

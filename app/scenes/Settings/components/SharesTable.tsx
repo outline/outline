@@ -15,10 +15,7 @@ import useUserLocale from "~/hooks/useUserLocale";
 import ShareMenu from "~/menus/ShareMenu";
 import { formatNumber } from "~/utils/language";
 
-type Props = Omit<
-  TableProps<Share>,
-  "columns" | "rowHeight" | "gridColumns"
-> & {
+type Props = Omit<TableProps<Share>, "columns" | "rowHeight"> & {
   canManage: boolean;
 };
 
@@ -26,18 +23,6 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
   const { t } = useTranslation();
   const language = useUserLocale();
   const hasDomain = data.some((share) => share.domain);
-
-  const gridColumns = React.useMemo(() => {
-    if (canManage && hasDomain) {
-      return "4fr 2fr 2fr 2fr 1.5fr 1fr 0.5fr"; // all columns will be displayed.
-    } else if (canManage && !hasDomain) {
-      return "4fr 2fr 2fr 2fr 1fr 0.5fr"; // domain won't be displayed.
-    } else if (!canManage && hasDomain) {
-      return "4fr 2fr 2fr 2fr 1.5fr 1fr"; // action won't be displayed.
-    } else {
-      return "4fr 2fr 2fr 2fr 1fr"; // domain and action won't be displayed.
-    }
-  }, [canManage, hasDomain]);
 
   const columns = React.useMemo<TableColumn<Share>[]>(
     () =>
@@ -49,6 +34,7 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
           accessor: (share) => share.documentTitle,
           sortable: false,
           component: (share) => <>{share.documentTitle}</>,
+          width: "4fr",
         },
         {
           type: "data",
@@ -66,6 +52,7 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
               )}
             </Flex>
           ),
+          width: "2fr",
         },
         {
           type: "data",
@@ -76,6 +63,7 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
             share.createdAt ? (
               <Time dateTime={share.createdAt} addSuffix />
             ) : null,
+          width: "2fr",
         },
         {
           type: "data",
@@ -86,6 +74,7 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
             share.lastAccessedAt ? (
               <Time dateTime={share.lastAccessedAt} addSuffix />
             ) : null,
+          width: "2fr",
         },
         hasDomain
           ? {
@@ -95,6 +84,7 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
               accessor: (share) => share.domain,
               sortable: false,
               component: (share) => <>{share.domain}</>,
+              width: "1.5fr",
             }
           : undefined,
         {
@@ -109,6 +99,7 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
                 : share.views}
             </>
           ),
+          width: "150px",
         },
         canManage
           ? {
@@ -119,6 +110,7 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
                   <ShareMenu share={share} />
                 </Flex>
               ),
+              width: "50px",
             }
           : undefined,
       ]),
@@ -126,12 +118,6 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
   );
 
   return (
-    <SortableTable
-      data={data}
-      columns={columns}
-      rowHeight={50}
-      gridColumns={gridColumns}
-      {...rest}
-    />
+    <SortableTable data={data} columns={columns} rowHeight={50} {...rest} />
   );
 }
