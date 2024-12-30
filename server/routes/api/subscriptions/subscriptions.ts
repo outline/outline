@@ -2,7 +2,6 @@ import Router from "koa-router";
 import { Transaction } from "sequelize";
 import { QueryNotices } from "@shared/types";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
-import subscriptionDestroyer from "@server/commands/subscriptionDestroyer";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -12,7 +11,7 @@ import { Subscription, Document, User } from "@server/models";
 import SubscriptionHelper from "@server/models/helpers/SubscriptionHelper";
 import { authorize } from "@server/policies";
 import { presentSubscription } from "@server/presenters";
-import { APIContext } from "@server/types";
+import { APIContext, AuthenticationType } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -84,8 +83,8 @@ router.post(
   validate(T.SubscriptionsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.SubscriptionsCreateReq>) => {
-    const { auth, transaction } = ctx.state;
-    const { user } = auth;
+    const { transaction } = ctx.state;
+    const { user } = ctx.state.auth;
     const { documentId, event } = ctx.input.body;
 
     const document = await Document.findByPk(documentId, {
@@ -96,11 +95,9 @@ router.post(
     authorize(user, "subscribe", document);
 
     const subscription = await subscriptionCreator({
-      user,
+      ctx,
       documentId: document.id,
       event,
-      ip: ctx.request.ip,
-      transaction,
     });
 
     ctx.body = {
@@ -146,7 +143,13 @@ router.get(
 
     authorize(user, "delete", subscription);
 
-    await subscription.destroy({ transaction });
+    ctx.context = {
+      auth: { user, type: AuthenticationType.API },
+      transaction,
+      ip: ctx.request.ip,
+    };
+
+    await subscription.destroyWithCtx(ctx);
 
     ctx.redirect(
       `${user.team.url}/home?notice=${QueryNotices.UnsubscribeDocument}`
@@ -160,8 +163,8 @@ router.post(
   validate(T.SubscriptionsDeleteSchema),
   transaction(),
   async (ctx: APIContext<T.SubscriptionsDeleteReq>) => {
-    const { auth, transaction } = ctx.state;
-    const { user } = auth;
+    const { transaction } = ctx.state;
+    const { user } = ctx.state.auth;
     const { id } = ctx.input.body;
 
     const subscription = await Subscription.findByPk(id, {
@@ -171,12 +174,7 @@ router.post(
 
     authorize(user, "delete", subscription);
 
-    await subscriptionDestroyer({
-      user,
-      subscription,
-      ip: ctx.request.ip,
-      transaction,
-    });
+    await subscription.destroyWithCtx(ctx);
 
     ctx.body = {
       success: true,

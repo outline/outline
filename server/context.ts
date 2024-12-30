@@ -9,8 +9,8 @@ export function createContext({
   transaction,
 }: {
   user: User;
-  authType?: AuthenticationType;
-  ip?: string;
+  authType?: AuthenticationType | null;
+  ip?: string | null;
   transaction?: Transaction;
 }) {
   return {
