@@ -2,6 +2,7 @@ import Router from "koa-router";
 import { Transaction } from "sequelize";
 import { QueryNotices } from "@shared/types";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
+import { createContext } from "@server/context";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -11,7 +12,7 @@ import { Subscription, Document, User } from "@server/models";
 import SubscriptionHelper from "@server/models/helpers/SubscriptionHelper";
 import { authorize } from "@server/policies";
 import { presentSubscription } from "@server/presenters";
-import { APIContext, AuthenticationType } from "@server/types";
+import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -143,11 +144,11 @@ router.get(
 
     authorize(user, "delete", subscription);
 
-    ctx.context = {
-      auth: { user, type: AuthenticationType.API },
-      transaction,
+    ctx.context = createContext({
+      user,
       ip: ctx.request.ip,
-    };
+      transaction,
+    }).context;
 
     await subscription.destroyWithCtx(ctx);
 
