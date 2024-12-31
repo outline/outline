@@ -26,7 +26,6 @@ import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
-import { EventOverride } from "./base/Model";
 import Fix from "./decorators/Fix";
 import IsFQDN from "./validators/IsFQDN";
 import Length from "./validators/Length";
@@ -192,11 +191,11 @@ class Share extends IdModel<
   @Column
   allowIndexing: boolean;
 
-  revoke(ctx: APIContext, eventOverride?: EventOverride) {
+  revoke(ctx: APIContext) {
     const { user } = ctx.context.auth;
     this.revokedAt = new Date();
     this.revokedById = user.id;
-    return this.saveWithCtx(ctx, eventOverride);
+    return this.saveWithCtx(ctx, { name: "revoke" });
   }
 }
 

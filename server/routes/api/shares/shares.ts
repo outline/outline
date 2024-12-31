@@ -275,7 +275,7 @@ router.post(
 
     authorize(user, "revoke", share);
 
-    await share.revoke(ctx, { name: "revoke" });
+    await share.revoke(ctx);
 
     ctx.body = {
       success: true,
