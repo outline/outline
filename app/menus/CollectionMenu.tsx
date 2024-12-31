@@ -123,7 +123,6 @@ function CollectionMenu({
         history.push(document.url);
       } catch (err) {
         toast.error(err.message);
-        throw err;
       } finally {
         ev.target.value = "";
       }
