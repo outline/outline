@@ -144,13 +144,13 @@ router.get(
 
     authorize(user, "delete", subscription);
 
-    ctx.context = createContext({
-      user,
-      ip: ctx.request.ip,
-      transaction,
-    }).context;
-
-    await subscription.destroyWithCtx(ctx);
+    await subscription.destroyWithCtx(
+      createContext({
+        user,
+        ip: ctx.request.ip,
+        transaction,
+      })
+    );
 
     ctx.redirect(
       `${user.team.url}/home?notice=${QueryNotices.UnsubscribeDocument}`
