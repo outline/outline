@@ -79,8 +79,8 @@ const Caption = styled("figcaption")<{ $loaded: boolean }>`
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  margin-bottom: 4px;
-  font-size: 15px;
+  margin-bottom: 8px;
+  font-size: 14px;
   opacity: ${(props) => (props.$loaded ? 1 : 0)};
   transition: opacity 250ms;
 

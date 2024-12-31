@@ -292,6 +292,7 @@ export default class Image extends SimpleImage {
       onChangeSize={this.handleChangeSize(props)}
     >
       <Caption
+        width={props.node.attrs.width}
         onBlur={this.handleCaptionBlur(props)}
         onKeyDown={this.handleCaptionKeyDown(props)}
         isSelected={props.isSelected}

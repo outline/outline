@@ -45,12 +45,16 @@ export default function useImportDocument(
         }
 
         for (const file of files) {
-          const doc = await documents.import(file, documentId, cId, {
-            publish: true,
-          });
+          try {
+            const doc = await documents.import(file, documentId, cId, {
+              publish: true,
+            });
 
-          if (redirect) {
-            history.push(documentPath(doc));
+            if (redirect) {
+              history.push(documentPath(doc));
+            }
+          } catch (err) {
+            toast.error(err.message);
           }
         }
       } catch (err) {

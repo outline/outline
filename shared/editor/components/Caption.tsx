@@ -12,6 +12,8 @@ type Props = {
   isSelected: boolean;
   /** Placeholder text to display when the caption is empty */
   placeholder: string;
+  /** Width of the caption */
+  width: number;
   /** Additional CSS styles to apply to the caption */
   style?: React.CSSProperties;
   children: React.ReactNode;
@@ -20,7 +22,7 @@ type Props = {
 /**
  * A component that renders a caption for an image or video.
  */
-function Caption({ placeholder, children, isSelected, ...rest }: Props) {
+function Caption({ placeholder, children, isSelected, width, ...rest }: Props) {
   const handlePaste = (event: React.ClipboardEvent<HTMLParagraphElement>) => {
     event.preventDefault();
     const text = event.clipboardData.getData("text/plain");
@@ -34,6 +36,7 @@ function Caption({ placeholder, children, isSelected, ...rest }: Props) {
 
   return (
     <Content
+      $width={width}
       $isSelected={isSelected}
       onMouseDown={handleMouseDown}
       onPaste={handlePaste}
@@ -50,7 +53,7 @@ function Caption({ placeholder, children, isSelected, ...rest }: Props) {
   );
 }
 
-const Content = styled.p<{ $isSelected: boolean }>`
+const Content = styled.p<{ $width: number; $isSelected: boolean }>`
   border: 0;
   display: block;
   font-style: italic;
@@ -64,8 +67,10 @@ const Content = styled.p<{ $isSelected: boolean }>`
   background: none;
   resize: none;
   user-select: text;
-  margin: 0 !important;
+  margin: 0 auto !important;
   cursor: text;
+  width: ${(props) => props.$width}px;
+  min-width: 200px;
 
   ${breakpoint("tablet")`
     font-size: 13px;

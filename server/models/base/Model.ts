@@ -11,6 +11,7 @@ import {
   FindOptions,
   FindOrCreateOptions,
   InstanceDestroyOptions,
+  InstanceRestoreOptions,
   InstanceUpdateOptions,
   ModelStatic,
   NonAttribute,
@@ -19,6 +20,7 @@ import {
 import {
   AfterCreate,
   AfterDestroy,
+  AfterRestore,
   AfterUpdate,
   AfterUpsert,
   BeforeCreate,
@@ -66,6 +68,13 @@ class Model<
    */
   public destroyWithCtx(ctx: APIContext) {
     return this.destroy(ctx.context as InstanceDestroyOptions);
+  }
+
+  /**
+   * Restore the row corresponding to this instance. Only available for paranoid models.
+   */
+  public restoreWithCtx(ctx: APIContext) {
+    return this.restore(ctx.context as InstanceRestoreOptions);
   }
 
   /**
@@ -129,6 +138,14 @@ class Model<
     context: APIContext["context"]
   ) {
     await this.insertEvent("delete", model, context);
+  }
+
+  @AfterRestore
+  static async afterRestoreEvent<T extends Model>(
+    model: T,
+    context: APIContext["context"]
+  ) {
+    await this.insertEvent("create", model, context);
   }
 
   /**

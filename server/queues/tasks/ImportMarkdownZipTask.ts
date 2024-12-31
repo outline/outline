@@ -94,7 +94,7 @@ export default class ImportMarkdownZipTask extends ImportTask {
                     ? ""
                     : await fs.readFile(child.path, "utf8"),
                 user,
-                ctx: createContext(user, transaction),
+                ctx: createContext({ user, transaction }),
               })
           );
 
