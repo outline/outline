@@ -1,4 +1,5 @@
 import subscriptionCreator from "@server/commands/subscriptionCreator";
+import { createContext } from "@server/context";
 import { User } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import { DocumentUserEvent, Event } from "@server/types";
@@ -15,12 +16,15 @@ export default class DocumentUserAddedProcessor extends BaseProcessor {
 
     await sequelize.transaction(async (transaction) => {
       await subscriptionCreator({
-        user,
+        ctx: createContext({
+          user,
+          authType: event.authType,
+          ip: event.ip,
+          transaction,
+        }),
         documentId: event.documentId,
         event: "documents.update",
         resubscribe: false,
-        transaction,
-        ip: event.ip,
       });
     });
   }

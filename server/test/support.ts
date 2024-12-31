@@ -46,7 +46,7 @@ export function withAPIContext<T>(
       transaction,
     };
     return fn({
-      ...createContext(user, transaction),
+      ...createContext({ user, transaction }),
       state,
       request: {
         ip: faker.internet.ip(),

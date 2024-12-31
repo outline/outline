@@ -49,7 +49,7 @@ export default class DocumentImportTask extends BaseTask<Props> {
           fileName: sourceMetadata.fileName,
           mimeType: sourceMetadata.mimeType,
           content,
-          ctx: createContext(user, transaction, ip),
+          ctx: createContext({ user, transaction, ip }),
         });
 
         return documentCreator({
@@ -62,7 +62,7 @@ export default class DocumentImportTask extends BaseTask<Props> {
           collectionId,
           parentDocumentId,
           user,
-          ctx: createContext(user, transaction, ip),
+          ctx: createContext({ user, transaction, ip }),
         });
       });
       return { documentId: document.id };

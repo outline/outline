@@ -136,7 +136,7 @@ export default class ImportNotionTask extends ImportTask {
                     ? ""
                     : await fs.readFile(child.path, "utf8"),
                 user,
-                ctx: createContext(user, transaction),
+                ctx: createContext({ user, transaction }),
               })
           );
 
@@ -257,7 +257,7 @@ export default class ImportNotionTask extends ImportTask {
             fileName: name,
             content: await fs.readFile(node.path, "utf8"),
             user,
-            ctx: createContext(user, transaction),
+            ctx: createContext({ user, transaction }),
           })
         );
 

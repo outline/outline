@@ -16,7 +16,7 @@ describe("documentDuplicator", () => {
         document: original,
         collection: original.collection,
         user,
-        ctx: createContext(user, transaction),
+        ctx: createContext({ user, transaction }),
       })
     );
 
@@ -42,7 +42,7 @@ describe("documentDuplicator", () => {
         collection: original.collection,
         title: "New title",
         user,
-        ctx: createContext(user, transaction),
+        ctx: createContext({ user, transaction }),
       })
     );
 
@@ -75,7 +75,7 @@ describe("documentDuplicator", () => {
         collection: original.collection,
         user,
         recursive: true,
-        ctx: createContext(user, transaction),
+        ctx: createContext({ user, transaction }),
       })
     );
 
@@ -95,7 +95,7 @@ describe("documentDuplicator", () => {
         collection: original.collection,
         publish: false,
         user,
-        ctx: createContext(user, transaction),
+        ctx: createContext({ user, transaction }),
       })
     );
 
