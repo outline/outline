@@ -5,12 +5,14 @@ import { s } from "../../styles";
 import { stringToColor } from "../../utils/color";
 
 type Props = {
-  title: string;
+  /** The title of the file */
+  title?: string;
+  /** The size of the icon */
   size?: number;
 };
 
 export default function FileExtension(props: Props) {
-  const parts = props.title.split(".");
+  const parts = (props.title ?? "Unknown").split(".");
   const extension = parts.length > 1 ? parts.pop() : undefined;
 
   return (
