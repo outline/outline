@@ -6,6 +6,7 @@ import {
   StatusFilter,
   UserRole,
 } from "@shared/types";
+import { createContext } from "@server/context";
 import {
   Document,
   View,
@@ -416,7 +417,7 @@ describe("#documents.info", () => {
       teamId: document.teamId,
       userId: user.id,
     });
-    await share.revoke(user.id);
+    await share.revoke(createContext({ user }));
     const res = await server.post("/api/documents.info", {
       body: {
         shareId: share.id,
