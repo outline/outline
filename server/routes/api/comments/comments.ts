@@ -229,7 +229,6 @@ router.post(
       comment.data = data;
     }
 
-    comment.document = document;
     await comment.saveWithCtx(ctx, undefined, { data: { newMentionIds } });
 
     ctx.body = {

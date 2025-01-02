@@ -71,11 +71,8 @@ class Model<
    * Destroy the row corresponding to this instance. Depending on your setting for paranoid, the row will
    * either be completely deleted, or have its deletedAt timestamp set to the current time.
    */
-  public destroyWithCtx(ctx: APIContext, options?: InstanceDestroyOptions) {
-    return this.destroy({
-      ...options,
-      ...ctx.context,
-    } as InstanceDestroyOptions);
+  public destroyWithCtx(ctx: APIContext) {
+    return this.destroy(ctx.context as InstanceDestroyOptions);
   }
 
   /**
