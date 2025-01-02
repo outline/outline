@@ -19,19 +19,23 @@ const CommentSortMenu = () => {
   const user = useCurrentUser();
   const params = useQuery();
 
-  const viewingResolved = params.get("resolved") === "";
-  const value = viewingResolved
-    ? "resolved"
-    : user.getPreference(UserPreference.SortCommentsByOrderInDocument)
+  const preferredSortType = user.getPreference(
+    UserPreference.SortCommentsByOrderInDocument
+  )
     ? CommentSortType.OrderInDocument
     : CommentSortType.MostRecent;
 
+  const viewingResolved = params.get("resolved") === "";
+  const value = viewingResolved ? "resolved" : preferredSortType;
+
   const handleSortTypeChange = (type: CommentSortType) => {
-    user.setPreference(
-      UserPreference.SortCommentsByOrderInDocument,
-      type === CommentSortType.OrderInDocument
-    );
-    void user.save();
+    if (type !== preferredSortType) {
+      user.setPreference(
+        UserPreference.SortCommentsByOrderInDocument,
+        type === CommentSortType.OrderInDocument
+      );
+      void user.save();
+    }
   };
 
   const showResolved = () => {
