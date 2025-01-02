@@ -1,6 +1,6 @@
 import { Token } from "markdown-it";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
-import { Command } from "prosemirror-state";
+import { Command, NodeSelection } from "prosemirror-state";
 import * as React from "react";
 import { Primitive } from "utility-types";
 import { sanitizeUrl } from "../../utils/urls";
@@ -23,7 +23,15 @@ export default class Embed extends Node {
       group: "block",
       atom: true,
       attrs: {
-        href: {},
+        href: {
+          validate: "string",
+        },
+        width: {
+          default: null,
+        },
+        height: {
+          default: null,
+        },
       },
       parseDOM: [
         {
@@ -87,6 +95,24 @@ export default class Embed extends Node {
     return [embedsRule(this.options.embeds)];
   }
 
+  handleChangeSize =
+    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    ({ width, height }: { width: number; height?: number }) => {
+      const { view } = this.editor;
+      const { tr } = view.state;
+
+      const pos = getPos();
+      const transaction = tr
+        .setNodeMarkup(pos, undefined, {
+          ...node.attrs,
+          width,
+          height,
+        })
+        .setMeta("addToHistory", true);
+      const $pos = transaction.doc.resolve(getPos());
+      view.dispatch(transaction.setSelection(new NodeSelection($pos)));
+    };
+
   component = (props: ComponentProps) => {
     const { embeds, embedsDisabled } = this.editor.props;
 
@@ -95,6 +121,7 @@ export default class Embed extends Node {
         {...props}
         embeds={embeds}
         embedsDisabled={embedsDisabled}
+        onChangeSize={this.handleChangeSize(props)}
       />
     );
   };

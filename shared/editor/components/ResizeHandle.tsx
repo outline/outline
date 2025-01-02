@@ -5,8 +5,8 @@ export const ResizeLeft = styled.div<{ $dragging: boolean }>`
   cursor: ew-resize;
   position: absolute;
   left: -4px;
-  top: 0;
-  bottom: 0;
+  top: 30%;
+  bottom: 30%;
   width: 8px;
   user-select: none;
   opacity: ${(props) => (props.$dragging ? 1 : 0)};
@@ -19,7 +19,7 @@ export const ResizeLeft = styled.div<{ $dragging: boolean }>`
     top: 50%;
     transform: translateY(-50%);
     width: 6px;
-    height: 15%;
+    height: 25%;
     min-height: 20px;
     border-radius: 4px;
     background: ${s("menuBackground")};
@@ -39,5 +39,25 @@ export const ResizeRight = styled(ResizeLeft)`
   &:after {
     left: initial;
     right: 8px;
+  }
+`;
+
+export const ResizeBottom = styled(ResizeLeft)`
+  cursor: ns-resize;
+  left: 30%;
+  right: 30%;
+  top: initial;
+  bottom: 8px;
+  width: auto;
+  height: 8px;
+
+  &:after {
+    left: 50%;
+    bottom: 8px;
+    transform: translateX(-50%);
+    width: 25%;
+    height: 6px;
+    min-width: 20px;
+    min-height: 0;
   }
 `;
