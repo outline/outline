@@ -60,6 +60,8 @@ class Group extends ParanoidModel<
   InferAttributes<Group>,
   Partial<InferCreationAttributes<Group>>
 > {
+  static eventNamespace = "groups";
+
   @Length({ min: 0, max: 255, msg: "name must be be 255 characters or less" })
   @NotContainsUrl
   @Column

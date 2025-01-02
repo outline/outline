@@ -81,6 +81,7 @@ describe("#groups.update", () => {
       });
       const events = await Event.findAll({
         where: {
+          name: "groups.update",
           teamId: user.teamId,
         },
       });
@@ -101,6 +102,7 @@ describe("#groups.update", () => {
       });
       const events = await Event.findAll({
         where: {
+          name: "groups.update",
           teamId: user.teamId,
         },
       });
