@@ -355,7 +355,7 @@ describe("read document", () => {
 });
 
 describe("read_write document", () => {
-  for (const role of Object.values(UserRole)) {
+  for (const role of [UserRole.Guest, UserRole.Admin, UserRole.Member]) {
     it(`should allow write permissions for ${role}`, async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id, role });
@@ -394,7 +394,7 @@ describe("read_write document", () => {
 });
 
 describe("manage document", () => {
-  for (const role of Object.values(UserRole)) {
+  for (const role of [UserRole.Guest, UserRole.Admin, UserRole.Member]) {
     it(`should allow write permissions, user management, and sub-document creation for ${role}`, async () => {
       const team = await buildTeam();
       const user = await buildUser({

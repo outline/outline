@@ -18,8 +18,14 @@ import {
   AfterCreate,
   AfterUpdate,
   Length,
+  BeforeCreate,
 } from "sequelize-typescript";
-import { CollectionPermission, DocumentPermission } from "@shared/types";
+import {
+  CollectionPermission,
+  DocumentPermission,
+  UserRole,
+} from "@shared/types";
+import { ValidationError } from "@server/errors";
 import Collection from "./Collection";
 import Document from "./Document";
 import User from "./User";
@@ -196,6 +202,30 @@ class UserMembership extends IdModel<
   }
 
   // hooks
+
+  @BeforeCreate
+  static async checkViewerPermission(
+    model: UserMembership,
+    options: SaveOptions<UserMembership>
+  ) {
+    if (
+      model.permission === DocumentPermission.Read ||
+      model.permission === CollectionPermission.Read ||
+      model.sourceId
+    ) {
+      return;
+    }
+
+    const user = await User.findByPk(model.userId, {
+      transaction: options.transaction,
+    });
+
+    if (user?.role === UserRole.Viewer) {
+      throw ValidationError(
+        "Users with `viewer` role can not be given write permissions"
+      );
+    }
+  }
 
   @AfterCreate
   static async createSourcedMemberships(

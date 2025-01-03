@@ -294,7 +294,7 @@ describe("member", () => {
 });
 
 describe("viewer", () => {
-  describe("read_write permission", () => {
+  describe("read permission", () => {
     it("should allow read permissions for viewer", async () => {
       const team = await buildTeam();
       const user = await buildUser({
@@ -303,7 +303,7 @@ describe("viewer", () => {
       });
       const collection = await buildCollection({
         teamId: team.id,
-        permission: CollectionPermission.ReadWrite,
+        permission: CollectionPermission.Read,
       });
       const abilities = serialize(user, collection);
       expect(abilities.read).toBeTruthy();
@@ -328,38 +328,8 @@ describe("viewer", () => {
         createdById: user.id,
         collectionId: collection.id,
         userId: user.id,
-        permission: CollectionPermission.ReadWrite,
-      });
-      // reload to get membership
-      const reloaded = await Collection.scope({
-        method: ["withMembership", user.id],
-      }).findByPk(collection.id);
-      const abilities = serialize(user, reloaded);
-      expect(abilities.read).toBeTruthy();
-      expect(abilities.readDocument).toBeTruthy();
-      expect(abilities.share).toBeTruthy();
-      expect(abilities.update).toEqual(false);
-      expect(abilities.archive).toEqual(false);
-    });
-  });
-
-  describe("read permission", () => {
-    it("should allow override with read_write membership permission", async () => {
-      const team = await buildTeam();
-      const user = await buildUser({
-        role: UserRole.Viewer,
-        teamId: team.id,
-      });
-      const collection = await buildCollection({
-        teamId: team.id,
         permission: CollectionPermission.Read,
       });
-      await UserMembership.create({
-        createdById: user.id,
-        collectionId: collection.id,
-        userId: user.id,
-        permission: CollectionPermission.ReadWrite,
-      });
       // reload to get membership
       const reloaded = await Collection.scope({
         method: ["withMembership", user.id],
@@ -367,8 +337,7 @@ describe("viewer", () => {
       const abilities = serialize(user, reloaded);
       expect(abilities.read).toBeTruthy();
       expect(abilities.readDocument).toBeTruthy();
-      expect(abilities.createDocument).toBeTruthy();
-      expect(abilities.share).toBeTruthy();
+      expect(abilities.share).toEqual(false);
       expect(abilities.update).toEqual(false);
       expect(abilities.archive).toEqual(false);
     });
@@ -406,7 +375,7 @@ describe("viewer", () => {
         createdById: user.id,
         collectionId: collection.id,
         userId: user.id,
-        permission: CollectionPermission.ReadWrite,
+        permission: CollectionPermission.Read,
       });
       // reload to get membership
       const reloaded = await Collection.scope({
@@ -415,8 +384,8 @@ describe("viewer", () => {
       const abilities = serialize(user, reloaded);
       expect(abilities.read).toBeTruthy();
       expect(abilities.readDocument).toBeTruthy();
-      expect(abilities.createDocument).toBeTruthy();
-      expect(abilities.share).toBeTruthy();
+      expect(abilities.createDocument).toEqual(false);
+      expect(abilities.share).toEqual(false);
       expect(abilities.update).toEqual(false);
       expect(abilities.archive).toEqual(false);
     });
