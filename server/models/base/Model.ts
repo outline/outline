@@ -30,8 +30,9 @@ import Logger from "@server/logging/Logger";
 import { Replace, APIContext } from "@server/types";
 import { getChangsetSkipped } from "../decorators/Changeset";
 
-export type EventOverride = {
+type EventOverride = {
   name?: string;
+  data?: Record<string, unknown>;
 };
 
 class Model<
@@ -47,10 +48,14 @@ class Model<
   /**
    * Validates this instance, and if the validation passes, persists it to the database.
    */
-  public saveWithCtx(ctx: APIContext, eventOverride?: EventOverride) {
+  public saveWithCtx<M extends Model>(
+    ctx: APIContext,
+    options?: SaveOptions<Attributes<M>>,
+    eventOverride?: EventOverride
+  ) {
     this.eventOverride = eventOverride;
     this.cacheChangeset();
-    return this.save(ctx.context as SaveOptions);
+    return this.save({ ...options, ...ctx.context } as SaveOptions);
   }
 
   /**
@@ -164,7 +169,7 @@ class Model<
     const models = this.sequelize!.models;
 
     // If no namespace is defined, don't create an event
-    if (!namespace || context.silent) {
+    if (!namespace) {
       return;
     }
 
@@ -212,6 +217,7 @@ class Model<
         authType: context.auth?.type,
         ip: context.ip,
         changes: model.previousChangeset,
+        data: model.eventOverride?.data,
       },
       {
         transaction: context.transaction,
