@@ -53,8 +53,8 @@ class Model<
     options?: SaveOptions<Attributes<M>>,
     eventOverride?: EventOverride
   ) {
-    this.cacheChangeset();
     this.eventOverride = eventOverride;
+    this.cacheChangeset();
     return this.save({ ...options, ...ctx.context } as SaveOptions);
   }
 
