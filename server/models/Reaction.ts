@@ -17,6 +17,7 @@ import {
   ForeignKey,
   Table,
 } from "sequelize-typescript";
+import { createContext } from "@server/context";
 import { APIContext } from "@server/types";
 import Comment from "./Comment";
 import User from "./User";
@@ -89,9 +90,11 @@ class Reaction extends IdModel<
     comment.reactions = reactions;
 
     // Pass only the fields needed in APIContext; otherwise sequelize props will be overwritten.
-    const context = {
-      context: { auth: ctx.auth, ip: ctx.ip, transaction: ctx.transaction },
-    } as APIContext;
+    const context = createContext({
+      user: ctx.auth.user,
+      authType: ctx.auth.type,
+      ...ctx,
+    });
 
     await comment.saveWithCtx(
       context,
@@ -140,9 +143,11 @@ class Reaction extends IdModel<
     comment.reactions = reactions;
 
     // Pass only the fields needed in APIContext; otherwise sequelize props will be overwritten.
-    const context = {
-      context: { auth: ctx.auth, ip: ctx.ip, transaction: ctx.transaction },
-    } as APIContext;
+    const context = createContext({
+      user: ctx.auth.user,
+      authType: ctx.auth.type,
+      ...ctx,
+    });
 
     await comment.saveWithCtx(
       context,

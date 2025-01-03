@@ -1,5 +1,9 @@
 import { Node } from "prosemirror-model";
-import { InferAttributes, InferCreationAttributes } from "sequelize";
+import {
+  InferAttributes,
+  InferCreationAttributes,
+  InstanceDestroyOptions,
+} from "sequelize";
 import {
   DataType,
   BelongsTo,
@@ -8,12 +12,14 @@ import {
   Table,
   Length,
   DefaultScope,
+  AfterDestroy,
 } from "sequelize-typescript";
 import type { ProsemirrorData, ReactionSummary } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { CommentValidation } from "@shared/validations";
 import { schema } from "@server/editor";
 import { ValidationError } from "@server/errors";
+import { APIContext } from "@server/types";
 import Document from "./Document";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
@@ -137,6 +143,35 @@ class Comment extends ParanoidModel<
   public toPlainText() {
     const node = Node.fromJSON(schema, this.data);
     return ProsemirrorHelper.toPlainText(node, schema);
+  }
+
+  // hooks
+
+  @AfterDestroy
+  public static async deleteChildComments(
+    model: Comment,
+    ctx: APIContext["context"] & InstanceDestroyOptions
+  ) {
+    const { transaction } = ctx;
+
+    const lock = transaction
+      ? {
+          level: transaction.LOCK.UPDATE,
+          of: this,
+        }
+      : undefined;
+
+    const childComments = await this.findAll({
+      where: { parentCommentId: model.id },
+      transaction,
+      lock,
+    });
+
+    await Promise.all(
+      childComments.map((childComment) =>
+        childComment.destroy({ transaction, hooks: false })
+      )
+    );
   }
 }
 

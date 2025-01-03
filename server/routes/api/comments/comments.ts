@@ -263,21 +263,6 @@ router.post(
     authorize(user, "delete", comment);
     authorize(user, "comment", document);
 
-    // Delete child comments.
-    const childComments = await Comment.findAll({
-      where: { parentCommentId: comment.id },
-      transaction,
-      lock: {
-        level: transaction.LOCK.UPDATE,
-        of: Comment,
-      },
-    });
-    await Promise.all(
-      childComments.map((childComment) =>
-        childComment.destroy({ transaction, hooks: false })
-      )
-    );
-
     await comment.destroyWithCtx(ctx);
 
     ctx.body = {
