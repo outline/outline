@@ -5,6 +5,7 @@ import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import Share from "~/models/Share";
 import { Avatar } from "~/components/Avatar";
 import Flex from "~/components/Flex";
+import { HEADER_HEIGHT } from "~/components/Header";
 import {
   type Props as TableProps,
   SortableTable,
@@ -14,6 +15,8 @@ import Time from "~/components/Time";
 import useUserLocale from "~/hooks/useUserLocale";
 import ShareMenu from "~/menus/ShareMenu";
 import { formatNumber } from "~/utils/language";
+
+const ROW_HEIGHT = 50;
 
 type Props = Omit<TableProps<Share>, "columns" | "rowHeight"> & {
   canManage: boolean;
@@ -118,6 +121,12 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
   );
 
   return (
-    <SortableTable data={data} columns={columns} rowHeight={50} {...rest} />
+    <SortableTable
+      data={data}
+      columns={columns}
+      rowHeight={ROW_HEIGHT}
+      stickyOffset={HEADER_HEIGHT}
+      {...rest}
+    />
   );
 }

@@ -10,7 +10,7 @@ import {
   AccessorFn,
   CellContext,
 } from "@tanstack/react-table";
-import { useVirtualizer } from "@tanstack/react-virtual";
+import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { observer } from "mobx-react";
 import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
@@ -24,7 +24,8 @@ import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import PlaceholderText from "~/components/PlaceholderText";
 import usePrevious from "~/hooks/usePrevious";
-import useWindowSize from "~/hooks/useWindowSize";
+
+const HEADER_HEIGHT = 40;
 
 type DataColumn<TData> = {
   type: "data";
@@ -55,6 +56,7 @@ export type Props<TData> = {
     fetchNext?: () => void;
   };
   rowHeight: number;
+  stickyOffset?: number;
 };
 
 function Table<TData>({
@@ -65,11 +67,12 @@ function Table<TData>({
   loading,
   page,
   rowHeight,
+  stickyOffset = 0,
 }: Props<TData>) {
   const { t } = useTranslation();
-  const { height } = useWindowSize();
-  const [containerHeight, setContainerHeight] = React.useState<number>(0);
-  const containerRef = React.useRef<HTMLDivElement>(null);
+  const virtualContainerRef = React.useRef<HTMLDivElement>(null);
+  const [virtualContainerTop, setVirtualContainerTop] =
+    React.useState<number>();
 
   const columnHelper = React.useMemo(() => createColumnHelper<TData>(), []);
   const observedColumns = React.useMemo(
@@ -130,37 +133,46 @@ function Table<TData>({
 
   const { rows } = table.getRowModel();
 
-  const rowVirtualizer = useVirtualizer({
+  const rowVirtualizer = useWindowVirtualizer({
     count: rows.length,
     estimateSize: () => rowHeight,
-    getScrollElement: () => containerRef.current,
+    scrollMargin: virtualContainerTop,
     overscan: 5,
   });
 
-  React.useLayoutEffect(() => {
-    if (containerRef.current) {
-      setContainerHeight(height - containerRef.current.offsetTop);
-    }
-  }, [height]);
-
   React.useEffect(() => {
-    rowVirtualizer.scrollToOffset?.(0, { behavior: "smooth" });
-  }, [sortChanged, rowVirtualizer]);
+    if (!sortChanged || !virtualContainerTop) {
+      return;
+    }
+
+    const scrollThreshold =
+      virtualContainerTop - (stickyOffset + HEADER_HEIGHT);
+    const reset = window.scrollY > scrollThreshold;
+
+    if (reset) {
+      rowVirtualizer.scrollToOffset(scrollThreshold, {
+        behavior: "smooth",
+      });
+    }
+  }, [rowVirtualizer, sortChanged, virtualContainerTop, stickyOffset]);
+
+  React.useLayoutEffect(() => {
+    if (virtualContainerRef.current) {
+      // determine the scrollable virtual container offsetTop on mount
+      setVirtualContainerTop(
+        virtualContainerRef.current.getBoundingClientRect().top
+      );
+    }
+  }, []);
 
   return (
-    <Container ref={containerRef} $height={containerHeight} $empty={isEmpty}>
-      <InnerTable>
-        <thead
-          style={{
-            position: "sticky",
-            top: 0,
-            zIndex: 1,
-          }}
-        >
+    <>
+      <InnerTable role="table">
+        <THead role="rowgroup" $topPos={stickyOffset}>
           {table.getHeaderGroups().map((headerGroup) => (
-            <Row key={headerGroup.id} $columns={gridColumns}>
+            <TR role="row" key={headerGroup.id} $columns={gridColumns}>
               {headerGroup.headers.map((header) => (
-                <Head key={header.id}>
+                <TH role="columnheader" key={header.id}>
                   <SortWrapper
                     align="center"
                     gap={4}
@@ -179,40 +191,42 @@ function Table<TData>({
                       <div />
                     )}
                   </SortWrapper>
-                </Head>
+                </TH>
               ))}
-            </Row>
+            </TR>
           ))}
-        </thead>
+        </THead>
 
-        <tbody
-          style={{
-            position: "relative",
-            height: `${rowVirtualizer.getTotalSize()}px`,
-          }}
+        <TBody
+          ref={virtualContainerRef}
+          role="rowgroup"
+          $height={rowVirtualizer.getTotalSize()}
         >
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
             const row = rows[virtualRow.index] as TRow<TData>;
             return (
-              <Row
+              <TR
+                role="row"
                 key={row.id}
                 data-index={virtualRow.index}
                 style={{
                   position: "absolute",
-                  transform: `translateY(${virtualRow.start}px)`,
+                  transform: `translateY(${
+                    virtualRow.start - rowVirtualizer.options.scrollMargin
+                  }px)`,
                   height: `${virtualRow.size}px`,
                 }}
                 $columns={gridColumns}
               >
                 {row.getAllCells().map((cell) => (
-                  <Cell key={cell.id}>
+                  <TD role="cell" key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </Cell>
+                  </TD>
                 ))}
-              </Row>
+              </TR>
             );
           })}
-        </tbody>
+        </TBody>
         {showPlaceholder && (
           <Placeholder columns={columns.length} gridColumns={gridColumns} />
         )}
@@ -225,7 +239,7 @@ function Table<TData>({
         />
       )}
       {isEmpty && <Empty>{t("No results")}</Empty>}
-    </Container>
+    </>
   );
 }
 
@@ -250,17 +264,17 @@ function Placeholder({
 }) {
   return (
     <DelayedMount>
-      <tbody>
+      <TBody $height={150}>
         {new Array(rows).fill(1).map((_r, row) => (
-          <Row key={row} $columns={gridColumns}>
+          <TR key={row} $columns={gridColumns}>
             {new Array(columns).fill(1).map((_c, col) => (
-              <Cell key={col}>
+              <TD key={col}>
                 <PlaceholderText minWidth={25} maxWidth={75} />
-              </Cell>
+              </TD>
             ))}
-          </Row>
+          </TR>
         ))}
-      </tbody>
+      </TBody>
     </DelayedMount>
   );
 }
@@ -275,18 +289,6 @@ const DescSortIcon = styled(CollapsedIcon)`
 
 const AscSortIcon = styled(DescSortIcon)`
   transform: rotate(180deg);
-`;
-
-const Container = styled.div<{ $height: number; $empty: boolean }>`
-  overflow: auto;
-  height: ${({ $height, $empty }) => !$empty && `${$height}px`};
-  width: 100%;
-  margin-top: 16px;
-`;
-
-const InnerTable = styled.table`
-  width: 100%;
-  border-collapse: collapse;
 `;
 
 const SortWrapper = styled(Flex)<{ $sortable: boolean }>`
@@ -305,7 +307,53 @@ const SortWrapper = styled(Flex)<{ $sortable: boolean }>`
   }
 `;
 
-const Cell = styled.td`
+const InnerTable = styled.div`
+  width: 100%;
+`;
+
+const THead = styled.div<{ $topPos: number }>`
+  position: sticky;
+  top: ${({ $topPos }) => `${$topPos}px`};
+  height: ${HEADER_HEIGHT}px;
+  z-index: 1;
+  font-size: 14px;
+  color: ${s("textSecondary")};
+  font-weight: 500;
+
+  border-bottom: 1px solid ${s("divider")};
+  background: ${s("background")};
+`;
+
+const TBody = styled.div<{ $height: number }>`
+  position: relative;
+  height: ${({ $height }) => `${$height}px`};
+`;
+
+const TR = styled.div<{ $columns: string }>`
+  width: 100%;
+  display: grid;
+  grid-template-columns: ${({ $columns }) => `${$columns}`};
+  align-items: center;
+  border-bottom: 1px solid ${s("divider")};
+
+  &:last-child {
+    border-bottom: 0;
+  }
+`;
+
+const TH = styled.span`
+  padding: 6px 6px 2px;
+
+  &:first-child {
+    padding-left: 0;
+  }
+
+  &:last-child {
+    padding-right: 0;
+  }
+`;
+
+const TD = styled.span`
   padding: 10px 6px;
   font-size: 14px;
   text-wrap: wrap;
@@ -314,6 +362,11 @@ const Cell = styled.td`
   &:first-child {
     font-size: 15px;
     font-weight: 500;
+    padding-left: 0;
+  }
+
+  &:last-child {
+    padding-right: 0;
   }
 
   &.actions,
@@ -333,46 +386,6 @@ const Cell = styled.td`
     &[aria-expanded="true"] {
       background: ${s("sidebarControlHoverBackground")};
     }
-  }
-`;
-
-const Row = styled.tr<{ $columns: string }>`
-  width: 100%;
-  display: grid;
-  grid-template-columns: ${({ $columns }) => `${$columns}`};
-  align-items: center;
-  border-bottom: 1px solid ${s("divider")};
-
-  ${Cell} {
-    &:first-child {
-      padding-left: 0;
-    }
-    &:last-child {
-      padding-right: 0;
-    }
-  }
-  &:last-child {
-    border-bottom: 0;
-  }
-`;
-
-const Head = styled.th`
-  height: 100%;
-  text-align: left;
-  padding: 6px 6px 2px;
-  border-bottom: 1px solid ${s("divider")};
-  background: ${s("background")};
-  font-size: 14px;
-  color: ${s("textSecondary")};
-  font-weight: 500;
-  z-index: 1;
-
-  :first-child {
-    padding-left: 0;
-  }
-
-  :last-child {
-    padding-right: 0;
   }
 `;
 

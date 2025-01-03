@@ -6,11 +6,13 @@ import { Trans, useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
+import { depths, s } from "@shared/styles";
 import UsersStore from "~/stores/UsersStore";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
+import { HEADER_HEIGHT } from "~/components/Header";
 import Heading from "~/components/Heading";
 import InputSearch from "~/components/InputSearch";
 import Scene from "~/components/Scene";
@@ -146,7 +148,7 @@ function Members() {
           {{ signinMethods: team.signinMethods }} but haven’t signed in yet.
         </Trans>
       </Text>
-      <Flex gap={8}>
+      <StickyFilters gap={8}>
         <InputSearch
           short
           value={query}
@@ -161,7 +163,7 @@ function Members() {
           activeKey={reqParams.role ?? ""}
           onSelect={handleRoleFilter}
         />
-      </Flex>
+      </StickyFilters>
       <Fade>
         <PeopleTable
           data={data ?? []}
@@ -207,6 +209,14 @@ function getFilteredUsers({
     ? filteredUsers.filter((user) => user.role === role)
     : filteredUsers;
 }
+
+const StickyFilters = styled(Flex)`
+  height: 40px;
+  position: sticky;
+  top: ${HEADER_HEIGHT}px;
+  z-index: ${depths.menu};
+  background: ${s("background")};
+`;
 
 const LargeUserStatusFilter = styled(UserStatusFilter)`
   height: 32px;
