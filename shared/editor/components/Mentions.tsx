@@ -1,3 +1,4 @@
+import { observer } from "mobx-react";
 import { DocumentIcon, EmailIcon } from "outline-icons";
 import * as React from "react";
 import Icon from "../../components/Icon";
@@ -5,7 +6,9 @@ import useStores from "../../hooks/useStores";
 import { cn } from "../styles/utils";
 import { ComponentProps } from "../types";
 
-export function MentionUser(props: ComponentProps) {
+export const MentionUser = observer(function MentionUser_(
+  props: ComponentProps
+) {
   const { isSelected, node } = props;
   const { users } = useStores();
   const user = users.get(node.attrs.modelId);
@@ -22,9 +25,11 @@ export function MentionUser(props: ComponentProps) {
       {user?.name || node.attrs.label}
     </span>
   );
-}
+});
 
-export function MentionDocument(props: ComponentProps) {
+export const MentionDocument = observer(function MentionDocument_(
+  props: ComponentProps
+) {
   const { isSelected, node } = props;
   const { documents } = useStores();
   const doc = documents.get(node.attrs.modelId);
@@ -46,4 +51,4 @@ export function MentionDocument(props: ComponentProps) {
       {doc?.title || node.attrs.label}
     </a>
   );
-}
+});
