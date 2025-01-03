@@ -49,8 +49,6 @@ type Props = {
   highlightedText?: string;
   /** The text direction of the editor */
   dir?: "rtl" | "ltr";
-  /** Callback when the user is typing in the editor */
-  onTyping?: () => void;
   /** Callback when the editor is focused */
   onFocus?: () => void;
   /** Callback when the editor is blurred */
@@ -63,7 +61,6 @@ function CommentForm({
   draft,
   onSubmit,
   onSaveDraft,
-  onTyping,
   onFocus,
   onBlur,
   autoFocus,
@@ -182,7 +179,6 @@ function CommentForm({
   ) => {
     const text = value(true, true);
     onSaveDraft(text ? value(false, true) : undefined);
-    onTyping?.();
   };
 
   const handleSave = () => {
@@ -320,7 +316,7 @@ function CommentForm({
                   {t("Cancel")}
                 </ButtonSmall>
               </Flex>
-              <Tooltip delay={500} content={t("Upload image")} placement="top">
+              <Tooltip content={t("Upload image")} placement="top">
                 <NudeButton onClick={handleImageUpload}>
                   <ImageIcon color={theme.textTertiary} />
                 </NudeButton>

@@ -12,11 +12,13 @@ describe("#groups.create", () => {
       body: {
         token: user.getJwtToken(),
         name,
+        externalId: "123",
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.name).toEqual(name);
+    expect(body.data.externalId).toEqual("123");
   });
 });
 
@@ -67,16 +69,19 @@ describe("#groups.update", () => {
         teamId: user.teamId,
       });
     });
+
     it("allows admin to edit a group", async () => {
       const res = await server.post("/api/groups.update", {
         body: {
           token: user.getJwtToken(),
           id: group.id,
           name: "Test",
+          externalId: "123",
         },
       });
       const events = await Event.findAll({
         where: {
+          name: "groups.update",
           teamId: user.teamId,
         },
       });
@@ -84,7 +89,9 @@ describe("#groups.update", () => {
       const body = await res.json();
       expect(res.status).toEqual(200);
       expect(body.data.name).toBe("Test");
+      expect(body.data.externalId).toBe("123");
     });
+
     it("does not create an event if the update is a noop", async () => {
       const res = await server.post("/api/groups.update", {
         body: {
@@ -95,6 +102,7 @@ describe("#groups.update", () => {
       });
       const events = await Event.findAll({
         where: {
+          name: "groups.update",
           teamId: user.teamId,
         },
       });
@@ -103,6 +111,7 @@ describe("#groups.update", () => {
       expect(res.status).toEqual(200);
       expect(body.data.name).toBe(group.name);
     });
+
     it("fails with validation error when name already taken", async () => {
       await buildGroup({
         teamId: user.teamId,
@@ -275,6 +284,23 @@ describe("#groups.list", () => {
     expect(body.data.groups.length).toEqual(1);
     expect(body.data.groups[0].id).toEqual(group.id);
   });
+
+  it("should allow to find a group by its externalId", async () => {
+    const user = await buildUser();
+    const group = await buildGroup({ teamId: user.teamId, externalId: "123" });
+    await buildGroup({ teamId: user.teamId });
+
+    const res = await server.post("/api/groups.list", {
+      body: {
+        externalId: "123",
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.groups.length).toEqual(1);
+    expect(body.data.groups[0].id).toEqual(group.id);
+  });
 });
 
 describe("#groups.info", () => {
@@ -287,6 +313,23 @@ describe("#groups.info", () => {
       body: {
         token: user.getJwtToken(),
         id: group.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(group.id);
+  });
+
+  it("should return group with externalId", async () => {
+    const user = await buildAdmin();
+    const group = await buildGroup({
+      teamId: user.teamId,
+      externalId: "456",
+    });
+    const res = await server.post("/api/groups.info", {
+      body: {
+        token: user.getJwtToken(),
+        externalId: "456",
       },
     });
     const body = await res.json();
@@ -315,7 +358,7 @@ describe("#groups.info", () => {
     expect(body.data.id).toEqual(group.id);
   });
 
-  it("should still return group if non-member, non-admin", async () => {
+  it("should return group if non-member, non-admin", async () => {
     const user = await buildUser();
     const group = await buildGroup({
       teamId: user.teamId,

@@ -65,10 +65,6 @@ export default class Document extends ArchivableModel {
 
   store: DocumentsStore;
 
-  @Field
-  @observable
-  id: string;
-
   @observable.shallow
   data: ProsemirrorData;
 
@@ -577,6 +573,8 @@ export default class Document extends ArchivableModel {
     title?: string;
     publish?: boolean;
     recursive?: boolean;
+    collectionId?: string | null;
+    parentDocumentId?: string;
   }) => this.store.duplicate(this, options);
 
   /**

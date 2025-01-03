@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import { usePopoverState } from "reakit/Popover";
 import styled, { useTheme } from "styled-components";
 import { depths, s } from "@shared/styles";
+import { altDisplay, isModKey, metaDisplay } from "@shared/utils/keyboard";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
@@ -21,14 +22,21 @@ import Tooltip from "~/components/Tooltip";
 import useKeyDown from "~/hooks/useKeyDown";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 import Desktop from "~/utils/Desktop";
-import { altDisplay, isModKey, metaDisplay } from "~/utils/keyboard";
 import { useEditor } from "./EditorContext";
 
 type Props = {
+  /** Whether the find and replace popover is open */
   open: boolean;
+  /** Callback when the find and replace popover is opened */
   onOpen: () => void;
+  /** Callback when the find and replace popover is closed */
   onClose: () => void;
+  /** Whether the editor is in read-only mode */
   readOnly?: boolean;
+  /** The current highlighted index in the search results */
+  currentIndex: number;
+  /** The total number of search results */
+  totalResults: number;
 };
 
 export default function FindAndReplace({
@@ -36,6 +44,8 @@ export default function FindAndReplace({
   open,
   onOpen,
   onClose,
+  currentIndex,
+  totalResults,
 }: Props) {
   const editor = useEditor();
   const finalFocusRef = React.useRef<HTMLElement>(
@@ -270,25 +280,26 @@ export default function FindAndReplace({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [popover.visible]);
 
+  const disabled = totalResults === 0;
   const navigation = (
     <>
       <Tooltip
         content={t("Previous match")}
         shortcut="shift+enter"
-        delay={500}
         placement="bottom"
       >
-        <ButtonLarge onClick={() => editor.commands.prevSearchMatch()}>
+        <ButtonLarge
+          disabled={disabled}
+          onClick={() => editor.commands.prevSearchMatch()}
+        >
           <CaretUpIcon />
         </ButtonLarge>
       </Tooltip>
-      <Tooltip
-        content={t("Next match")}
-        shortcut="enter"
-        delay={500}
-        placement="bottom"
-      >
-        <ButtonLarge onClick={() => editor.commands.nextSearchMatch()}>
+      <Tooltip content={t("Next match")} shortcut="enter" placement="bottom">
+        <ButtonLarge
+          disabled={disabled}
+          onClick={() => editor.commands.nextSearchMatch()}
+        >
           <CaretDownIcon />
         </ButtonLarge>
       </Tooltip>
@@ -303,10 +314,11 @@ export default function FindAndReplace({
         style={style}
         aria-label={t("Find and replace")}
         scrollable={false}
-        width={420}
+        minWidth={420}
+        width={0}
       >
         <Content column>
-          <Flex gap={8}>
+          <Flex gap={4}>
             <StyledInput
               ref={inputRef}
               maxLength={255}
@@ -319,7 +331,6 @@ export default function FindAndReplace({
                 <Tooltip
                   content={t("Match case")}
                   shortcut={`${altDisplay}+${metaDisplay}+c`}
-                  delay={500}
                   placement="bottom"
                 >
                   <ButtonSmall onClick={handleCaseSensitive}>
@@ -331,7 +342,6 @@ export default function FindAndReplace({
                 <Tooltip
                   content={t("Enable regex")}
                   shortcut={`${altDisplay}+${metaDisplay}+r`}
-                  delay={500}
                   placement="bottom"
                 >
                   <ButtonSmall onClick={handleRegex}>
@@ -344,16 +354,15 @@ export default function FindAndReplace({
             </StyledInput>
             {navigation}
             {!readOnly && (
-              <Tooltip
-                content={t("Replace options")}
-                delay={500}
-                placement="bottom"
-              >
+              <Tooltip content={t("Replace options")} placement="bottom">
                 <ButtonLarge onClick={handleMore}>
                   <ReplaceIcon color={theme.textSecondary} />
                 </ButtonLarge>
               </Tooltip>
             )}
+            <Results>
+              {totalResults > 0 ? currentIndex + 1 : 0} / {totalResults}
+            </Results>
           </Flex>
           <ResizingHeightContainer>
             {showReplace && !readOnly && (
@@ -367,10 +376,10 @@ export default function FindAndReplace({
                   onRequestSubmit={handleReplaceAll}
                   onChange={(ev) => setReplaceTerm(ev.currentTarget.value)}
                 />
-                <Button onClick={handleReplace} neutral>
+                <Button onClick={handleReplace} disabled={disabled} neutral>
                   {t("Replace")}
                 </Button>
-                <Button onClick={handleReplaceAll} neutral>
+                <Button onClick={handleReplaceAll} disabled={disabled} neutral>
                   {t("Replace all")}
                 </Button>
               </Flex>
@@ -396,6 +405,12 @@ const ButtonSmall = styled(NudeButton)`
   &[aria-expanded="true"] {
     background: ${s("sidebarControlHoverBackground")};
   }
+
+  &:disabled {
+    color: ${s("textTertiary")};
+    background: none;
+    cursor: default;
+  }
 `;
 
 const ButtonLarge = styled(ButtonSmall)`
@@ -407,4 +422,16 @@ const Content = styled(Flex)`
   padding: 8px 0;
   margin-bottom: -16px;
   position: static;
+`;
+
+const Results = styled.span`
+  color: ${s("textSecondary")};
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 32px;
+  min-width: 32px;
+  letter-spacing: -0.5px;
+  text-align: right;
+  user-select: none;
 `;

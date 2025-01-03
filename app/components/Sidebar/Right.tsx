@@ -32,13 +32,13 @@ function Right({ children, border, className }: Props) {
         Math.min(window.innerWidth - event.pageX, maxWidth),
         minWidth
       );
-      ui.setRightSidebarWidth(width);
+      ui.set({ sidebarRightWidth: width });
     },
     [minWidth, maxWidth, ui]
   );
 
   const handleReset = React.useCallback(() => {
-    ui.setRightSidebarWidth(theme.sidebarRightWidth);
+    ui.set({ sidebarRightWidth: theme.sidebarRightWidth });
   }, [ui, theme.sidebarRightWidth]);
 
   const handleStopDrag = React.useCallback(() => {
@@ -128,7 +128,7 @@ const Sidebar = styled(m.div)<{
   max-width: 80%;
   border-left: 1px solid ${s("divider")};
   transition: border-left 100ms ease-in-out;
-  z-index: 1;
+  z-index: ${depths.sidebar};
 
   ${breakpoint("mobile", "tablet")`
     display: flex;

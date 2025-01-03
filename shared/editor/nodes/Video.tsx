@@ -36,7 +36,10 @@ export default class Video extends Node {
         height: {
           default: null,
         },
-        title: {},
+        title: {
+          default: null,
+          validate: "string|null",
+        },
       },
       group: "block",
       selectable: true,
@@ -158,6 +161,7 @@ export default class Video extends Node {
   component = (props: ComponentProps) => (
     <VideoComponent {...props} onChangeSize={this.handleChangeSize(props)}>
       <Caption
+        width={props.node.attrs.width}
         onBlur={this.handleCaptionBlur(props)}
         onKeyDown={this.handleCaptionKeyDown(props)}
         isSelected={props.isSelected}

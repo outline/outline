@@ -23,7 +23,7 @@ describe("documentImporter", () => {
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         fileName,
         content,
-        ctx: createContext(user, transaction),
+        ctx: createContext({ user, transaction }),
       })
     );
     const attachments = await Attachment.count({
@@ -49,7 +49,7 @@ describe("documentImporter", () => {
         mimeType: "application/octet-stream",
         fileName,
         content,
-        ctx: createContext(user, transaction),
+        ctx: createContext({ user, transaction }),
       })
     );
     const attachments = await Attachment.count({
@@ -78,7 +78,7 @@ describe("documentImporter", () => {
           mimeType: "application/octet-stream",
           fileName,
           content,
-          ctx: createContext(user, transaction),
+          ctx: createContext({ user, transaction }),
         })
       );
     } catch (err) {
@@ -100,7 +100,7 @@ describe("documentImporter", () => {
         mimeType: "application/octet-stream",
         fileName,
         content,
-        ctx: createContext(user, transaction),
+        ctx: createContext({ user, transaction }),
       })
     );
     const attachments = await Attachment.count({
@@ -127,7 +127,7 @@ describe("documentImporter", () => {
         mimeType: "text/html",
         fileName,
         content,
-        ctx: createContext(user, transaction),
+        ctx: createContext({ user, transaction }),
       })
     );
     expect(response.text).toContain("Text paragraph");
@@ -146,7 +146,7 @@ describe("documentImporter", () => {
         mimeType: "application/msword",
         fileName,
         content,
-        ctx: createContext(user, transaction),
+        ctx: createContext({ user, transaction }),
       })
     );
 
@@ -167,7 +167,7 @@ describe("documentImporter", () => {
         mimeType: "text/plain",
         fileName,
         content,
-        ctx: createContext(user, transaction),
+        ctx: createContext({ user, transaction }),
       })
     );
     expect(response.text).toContain("This is a test paragraph");
@@ -184,7 +184,7 @@ describe("documentImporter", () => {
         mimeType: "text/plain",
         fileName,
         content,
-        ctx: createContext(user, transaction),
+        ctx: createContext({ user, transaction }),
       })
     );
 
@@ -205,7 +205,7 @@ describe("documentImporter", () => {
         mimeType: "application/lol",
         fileName,
         content,
-        ctx: createContext(user, transaction),
+        ctx: createContext({ user, transaction }),
       })
     );
     expect(response.text).toContain("This is a test paragraph");
@@ -227,7 +227,7 @@ describe("documentImporter", () => {
           mimeType: "executable/zip",
           fileName,
           content,
-          ctx: createContext(user, transaction),
+          ctx: createContext({ user, transaction }),
         })
       );
     } catch (err) {
@@ -257,7 +257,7 @@ describe("documentImporter", () => {
         mimeType: "text/html",
         fileName,
         content,
-        ctx: createContext(user, transaction),
+        ctx: createContext({ user, transaction }),
       })
     );
     expect(response.text).toEqual("\\$100");
@@ -283,7 +283,7 @@ describe("documentImporter", () => {
         mimeType: "text/html",
         fileName,
         content,
-        ctx: createContext(user, transaction),
+        ctx: createContext({ user, transaction }),
       })
     );
     expect(response.text).toEqual("`echo $foo`");
@@ -309,7 +309,7 @@ describe("documentImporter", () => {
         mimeType: "text/html",
         fileName,
         content,
-        ctx: createContext(user, transaction),
+        ctx: createContext({ user, transaction }),
       })
     );
     expect(response.text).toEqual("```\necho $foo\n```");

@@ -6,6 +6,7 @@ import {
   CollectionIcon,
   CommentIcon,
   DocumentIcon,
+  DoneIcon,
   EditIcon,
   EmailIcon,
   PublishIcon,
@@ -18,19 +19,22 @@ import { toast } from "sonner";
 import { NotificationEventType } from "@shared/types";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
-import Input from "~/components/Input";
 import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import env from "~/env";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import usePolicy from "~/hooks/usePolicy";
 import isCloudHosted from "~/utils/isCloudHosted";
 import SettingRow from "./components/SettingRow";
 
 function Notifications() {
   const user = useCurrentUser();
+  const team = useCurrentTeam();
   const { t } = useTranslation();
+  const can = usePolicy(team.id);
 
   const options = [
     {
@@ -63,6 +67,14 @@ function Notifications() {
       title: t("Mentioned"),
       description: t(
         "Receive a notification when someone mentions you in a document or comment"
+      ),
+    },
+    {
+      event: NotificationEventType.ResolveComment,
+      icon: <DoneIcon />,
+      title: t("Resolved"),
+      description: t(
+        "Receive a notification when a comment thread you were involved in is resolved"
       ),
     },
     {
@@ -152,17 +164,7 @@ function Notifications() {
         <Trans>Manage when and where you receive email notifications.</Trans>
       </Text>
 
-      {env.EMAIL_ENABLED ? (
-        <SettingRow
-          label={t("Email address")}
-          name="email"
-          description={t(
-            "Your email address should be updated in your SSO provider."
-          )}
-        >
-          <Input type="email" value={user.email} readOnly />
-        </SettingRow>
-      ) : (
+      {env.EMAIL_ENABLED && can.manage && (
         <Notice>
           <Trans>
             The email integration is currently disabled. Please set the

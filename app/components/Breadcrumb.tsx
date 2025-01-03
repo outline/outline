@@ -8,18 +8,16 @@ import BreadcrumbMenu from "~/menus/BreadcrumbMenu";
 import { undraggableOnDesktop } from "~/styles";
 import { MenuInternalLink } from "~/types";
 
-type Props = {
+type Props = React.PropsWithChildren<{
   items: MenuInternalLink[];
   max?: number;
   highlightFirstItem?: boolean;
-};
+}>;
 
-function Breadcrumb({
-  items,
-  highlightFirstItem,
-  children,
-  max = 2,
-}: React.PropsWithChildren<Props>) {
+function Breadcrumb(
+  { items, highlightFirstItem, children, max = 2 }: Props,
+  ref: React.RefObject<HTMLDivElement> | null
+) {
   const totalItems = items.length;
   const topLevelItems: MenuInternalLink[] = [...items];
   let overflowItems;
@@ -37,9 +35,13 @@ function Breadcrumb({
   }
 
   return (
-    <Flex justify="flex-start" align="center">
+    <Flex justify="flex-start" align="center" ref={ref}>
       {topLevelItems.map((item, index) => (
-        <React.Fragment key={String(item.to) || index}>
+        <React.Fragment
+          key={
+            (typeof item.to === "string" ? item.to : item.to.pathname) || index
+          }
+        >
           {item.icon}
           {item.to ? (
             <Item
@@ -67,6 +69,8 @@ const Slash = styled(GoToIcon)`
 
 const Item = styled(Link)<{ $highlight: boolean; $withIcon: boolean }>`
   ${ellipsis()}
+  ${undraggableOnDesktop()}
+
   display: flex;
   flex-shrink: 1;
   min-width: 0;
@@ -76,7 +80,6 @@ const Item = styled(Link)<{ $highlight: boolean; $withIcon: boolean }>`
   height: 24px;
   font-weight: ${(props) => (props.$highlight ? "500" : "inherit")};
   margin-left: ${(props) => (props.$withIcon ? "4px" : "0")};
-  ${undraggableOnDesktop()}
 
   svg {
     flex-shrink: 0;
@@ -87,4 +90,4 @@ const Item = styled(Link)<{ $highlight: boolean; $withIcon: boolean }>`
   }
 `;
 
-export default Breadcrumb;
+export default React.forwardRef<HTMLDivElement, Props>(Breadcrumb);

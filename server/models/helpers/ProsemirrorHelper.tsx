@@ -21,9 +21,7 @@ import { schema, parser } from "@server/editor";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import Attachment from "@server/models/Attachment";
-import User from "@server/models/User";
 import FileStorage from "@server/storage/files";
-import { TextHelper } from "./TextHelper";
 
 export type HTMLOptions = {
   /** A title, if it should be included */
@@ -69,7 +67,6 @@ export class ProsemirrorHelper {
     //  the server we need to mimic this behavior.
     function urlsToEmbeds(node: Node): Node {
       if (node.type.name === "paragraph") {
-        // @ts-expect-error content
         for (const textNode of node.content.content) {
           for (const embed of embeds) {
             if (
@@ -91,8 +88,7 @@ export class ProsemirrorHelper {
       if (node.content) {
         const contentAsArray =
           node.content instanceof Fragment
-            ? // @ts-expect-error content
-              node.content.content
+            ? node.content.content
             : node.content;
         // @ts-expect-error content
         node.content = Fragment.fromArray(contentAsArray.map(urlsToEmbeds));
@@ -262,29 +258,6 @@ export class ProsemirrorHelper {
       return node;
     }
     return removeMarksInner(json);
-  }
-
-  /**
-   * Replaces all template variables in the node.
-   *
-   * @param data The ProsemirrorData object to replace variables in
-   * @param user The user to use for replacing variables
-   * @returns The content with variables replaced
-   */
-  static replaceTemplateVariables(data: ProsemirrorData, user: User) {
-    function replace(node: ProsemirrorData) {
-      if (node.type === "text" && node.text) {
-        node.text = TextHelper.replaceTemplateVariables(node.text, user);
-      }
-
-      if (node.content) {
-        node.content.forEach(replace);
-      }
-
-      return node;
-    }
-
-    return replace(data);
   }
 
   static async replaceInternalUrls(
@@ -558,7 +531,7 @@ export class ProsemirrorHelper {
       // Inject Mermaid script
       if (mermaidElements.length) {
         element.innerHTML = `
-          import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@9/dist/mermaid.esm.min.mjs';
+          import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
           mermaid.initialize({
             startOnLoad: true,
             fontFamily: "inherit",

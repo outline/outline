@@ -13,6 +13,7 @@ import { Link } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import Icon from "@shared/components/Icon";
 import { NavigationNode } from "@shared/types";
+import { altDisplay, metaDisplay } from "@shared/utils/keyboard";
 import { Theme } from "~/stores/UiStore";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
@@ -30,10 +31,12 @@ import { publishDocument } from "~/actions/definitions/documents";
 import { navigateToTemplateSettings } from "~/actions/definitions/navigation";
 import { restoreRevision } from "~/actions/definitions/revisions";
 import useActionContext from "~/hooks/useActionContext";
+import useComponentSize from "~/hooks/useComponentSize";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useEditingFocus from "~/hooks/useEditingFocus";
 import useKeyDown from "~/hooks/useKeyDown";
+import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -41,7 +44,6 @@ import DocumentMenu from "~/menus/DocumentMenu";
 import NewChildDocumentMenu from "~/menus/NewChildDocumentMenu";
 import TableOfContentsMenu from "~/menus/TableOfContentsMenu";
 import TemplatesMenu from "~/menus/TemplatesMenu";
-import { altDisplay, metaDisplay } from "~/utils/keyboard";
 import { documentEditPath } from "~/utils/routeHelpers";
 import ObservingBanner from "./ObservingBanner";
 import PublicBreadcrumb from "./PublicBreadcrumb";
@@ -86,11 +88,14 @@ function DocumentHeader({
   const team = useCurrentTeam({ rejectOnEmpty: false });
   const user = useCurrentUser({ rejectOnEmpty: false });
   const { resolvedTheme } = ui;
-  const isMobile = useMobile();
+  const isMobileMedia = useMobile();
   const isRevision = !!revision;
   const isEditingFocus = useEditingFocus();
-  const { editor } = useDocumentContext();
-  const { hasHeadings } = useDocumentContext();
+  const { hasHeadings, editor } = useDocumentContext();
+  const sidebarContext = useLocationSidebarContext();
+  const ref = React.useRef<HTMLDivElement | null>(null);
+  const size = useComponentSize(ref);
+  const isMobile = isMobileMedia || size.width < 700;
 
   // We cache this value for as long as the component is mounted so that if you
   // apply a template there is still the option to replace it until the user
@@ -103,6 +108,10 @@ function DocumentHeader({
     });
   }, [onSave]);
 
+  const handleToggle = React.useCallback(() => {
+    ui.set({ tocVisible: !ui.tocVisible });
+  }, [ui]);
+
   const context = useActionContext({
     activeDocumentId: document?.id,
   });
@@ -113,7 +122,8 @@ function DocumentHeader({
   const canToggleEmbeds = team?.documentEmbeds;
   const isShare = !!shareId;
   const showContents =
-    ui.tocVisible === true || (isShare && ui.tocVisible !== false);
+    (ui.tocVisible === true && !document.isTemplate) ||
+    (isShare && ui.tocVisible !== false);
 
   const toc = (
     <Tooltip
@@ -124,12 +134,11 @@ function DocumentHeader({
           ? t("Show contents")
           : `${t("Show contents")} (${t("available when headings are added")})`
       }
-      shortcut={`ctrl+${altDisplay}+h`}
-      delay={250}
+      shortcut={`Ctrl+${altDisplay}+h`}
       placement="bottom"
     >
       <Button
-        onClick={showContents ? ui.hideTableOfContents : ui.showTableOfContents}
+        onClick={handleToggle}
         icon={<TableOfContentsIcon />}
         borderOnHover
         neutral
@@ -143,13 +152,15 @@ function DocumentHeader({
           noun: document.noun,
         })}
         shortcut="e"
-        delay={500}
         placement="bottom"
       >
         <Button
           as={Link}
           icon={<EditIcon />}
-          to={documentEditPath(document)}
+          to={{
+            pathname: documentEditPath(document),
+            state: { sidebarContext },
+          }}
           neutral
         >
           {isMobile ? null : t("Edit")}
@@ -163,7 +174,6 @@ function DocumentHeader({
         content={
           resolvedTheme === "light" ? t("Switch to dark") : t("Switch to light")
         }
-        delay={500}
         placement="bottom"
       >
         <Button
@@ -180,7 +190,7 @@ function DocumentHeader({
 
   useKeyDown(
     (event) => event.ctrlKey && event.altKey && event.key === "˙",
-    ui.tocVisible ? ui.hideTableOfContents : ui.showTableOfContents,
+    handleToggle,
     {
       allowInInput: true,
     }
@@ -189,6 +199,7 @@ function DocumentHeader({
   if (shareId) {
     return (
       <StyledHeader
+        ref={ref}
         $hidden={isEditingFocus}
         title={
           <Flex gap={4}>
@@ -225,6 +236,7 @@ function DocumentHeader({
   return (
     <>
       <StyledHeader
+        ref={ref}
         $hidden={isEditingFocus}
         hasSidebar
         left={
@@ -232,7 +244,11 @@ function DocumentHeader({
             <TableOfContentsMenu />
           ) : (
             <DocumentBreadcrumb document={document}>
-              {toc} <Star document={document} color={theme.textSecondary} />
+              {document.isTemplate ? null : (
+                <>
+                  {toc} <Star document={document} color={theme.textSecondary} />
+                </>
+              )}
             </DocumentBreadcrumb>
           )
         }
@@ -245,7 +261,7 @@ function DocumentHeader({
             {document.isArchived && <Badge>{t("Archived")}</Badge>}
           </Flex>
         }
-        actions={
+        actions={({ isCompact }) => (
           <>
             <ObservingBanner />
 
@@ -253,11 +269,15 @@ function DocumentHeader({
               <Status>{t("Saving")}…</Status>
             )}
             {!isDeleted && !isRevision && can.listViews && (
-              <Collaborators document={document} />
+              <Collaborators
+                document={document}
+                limit={isCompact ? 3 : undefined}
+              />
             )}
             {(isEditing || !user?.separateEditMode) && !isTemplate && isNew && (
               <Action>
                 <TemplatesMenu
+                  isCompact={isCompact}
                   document={document}
                   onSelectTemplate={onSelectTemplate}
                 />
@@ -273,7 +293,6 @@ function DocumentHeader({
                 <Tooltip
                   content={t("Save")}
                   shortcut={`${metaDisplay}+enter`}
-                  delay={500}
                   placement="bottom"
                 >
                   <Button
@@ -297,6 +316,7 @@ function DocumentHeader({
             {can.update &&
               can.createChildDocument &&
               !isRevision &&
+              !isCompact &&
               !isMobile && (
                 <Action>
                   <NewChildDocumentMenu
@@ -305,7 +325,6 @@ function DocumentHeader({
                       <Tooltip
                         content={t("New document")}
                         shortcut="n"
-                        delay={500}
                         placement="bottom"
                       >
                         <Button icon={<PlusIcon />} {...props} neutral>
@@ -318,11 +337,7 @@ function DocumentHeader({
               )}
             {revision && revision.createdAt !== document.updatedAt && (
               <Action>
-                <Tooltip
-                  content={t("Restore version")}
-                  delay={500}
-                  placement="bottom"
-                >
+                <Tooltip content={t("Restore version")} placement="bottom">
                   <Button
                     action={restoreRevision}
                     context={context}
@@ -368,7 +383,7 @@ function DocumentHeader({
               />
             </Action>
           </>
-        }
+        )}
       />
     </>
   );

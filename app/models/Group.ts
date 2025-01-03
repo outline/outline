@@ -8,11 +8,10 @@ class Group extends Model {
 
   @Field
   @observable
-  id: string;
-
-  @Field
-  @observable
   name: string;
+
+  @observable
+  externalId: string | undefined;
 
   @observable
   memberCount: number;

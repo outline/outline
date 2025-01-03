@@ -1,10 +1,10 @@
-import { CrossIcon, DownloadIcon } from "outline-icons";
+import { CrossIcon, DownloadIcon, GlobeIcon } from "outline-icons";
 import type { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";
 import Flex from "../../components/Flex";
 import { s } from "../../styles";
-import { sanitizeUrl } from "../../utils/urls";
+import { isExternalUrl, sanitizeUrl } from "../../utils/urls";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { ComponentProps } from "../types";
 import { ImageZoom } from "./ImageZoom";
@@ -57,6 +57,12 @@ const Image = (props: Props) => {
     }
   }, [node.attrs.width]);
 
+  const sanitizedSrc = sanitizeUrl(src);
+
+  const handleOpen = React.useCallback(() => {
+    window.open(sanitizedSrc, "_blank");
+  }, [sanitizedSrc]);
+
   const widthStyle = isFullWidth
     ? { width: "var(--container-width)" }
     : { width: width || "auto" };
@@ -70,9 +76,16 @@ const Image = (props: Props) => {
         style={widthStyle}
       >
         {!dragging && width > 60 && isDownloadable && (
-          <Button onClick={props.onDownload}>
-            <DownloadIcon />
-          </Button>
+          <Actions>
+            {isExternalUrl(src) && (
+              <Button onClick={handleOpen}>
+                <GlobeIcon />
+              </Button>
+            )}
+            <Button onClick={props.onDownload}>
+              <DownloadIcon />
+            </Button>
+          </Actions>
         )}
         {error ? (
           <Error style={widthStyle} className={EditorStyleHelper.imageHandle}>
@@ -85,8 +98,9 @@ const Image = (props: Props) => {
               style={{
                 ...widthStyle,
                 display: loaded ? "block" : "none",
+                pointerEvents: dragging ? "none" : "all",
               }}
-              src={sanitizeUrl(src) ?? ""}
+              src={sanitizedSrc}
               onError={() => {
                 setError(true);
                 setLoaded(true);
@@ -159,10 +173,22 @@ const Error = styled(Flex)`
   user-select: none;
 `;
 
-const Button = styled.button`
+const Actions = styled.div`
+  display: flex;
+  align-items: center;
   position: absolute;
+  gap: 1px;
   top: 8px;
   right: 8px;
+  opacity: 0;
+  transition: opacity 150ms ease-in-out;
+
+  &:hover {
+    opacity: 1;
+  }
+`;
+
+const Button = styled.button`
   border: 0;
   margin: 0;
   padding: 0;
@@ -172,9 +198,18 @@ const Button = styled.button`
   width: 24px;
   height: 24px;
   display: inline-block;
-  cursor: var(--pointer);
-  opacity: 0;
+  cursor: var(--pointer) !important;
   transition: opacity 150ms ease-in-out;
+
+  &:first-child:not(:last-child) {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  &:last-child:not(:first-child) {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
 
   &:active {
     transform: scale(0.98);
@@ -182,7 +217,6 @@ const Button = styled.button`
 
   &:hover {
     color: ${s("text")};
-    opacity: 1;
   }
 `;
 
@@ -204,7 +238,7 @@ const ImageWrapper = styled.div<{ isFullWidth: boolean }>`
   }
 
   &:hover {
-    ${Button} {
+    ${Actions} {
       opacity: 0.9;
     }
 

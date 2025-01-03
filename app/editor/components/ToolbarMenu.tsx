@@ -1,3 +1,4 @@
+import { TippyProps } from "@tippyjs/react";
 import * as React from "react";
 import { useMenuState } from "reakit";
 import { MenuButton } from "reakit/Menu";
@@ -7,6 +8,7 @@ import { MenuItem } from "@shared/editor/types";
 import { s } from "@shared/styles";
 import ContextMenu from "~/components/ContextMenu";
 import Template from "~/components/ContextMenu/Template";
+import { TooltipProvider } from "~/components/TooltipContext";
 import { MenuItem as TMenuItem } from "~/types";
 import { useEditor } from "./EditorContext";
 import ToolbarButton from "./ToolbarButton";
@@ -75,6 +77,8 @@ function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
   );
 }
 
+const tippyProps = { placement: "top" } as TippyProps;
+
 function ToolbarMenu(props: Props) {
   const { commands, view } = useEditor();
   const { items } = props;
@@ -91,36 +95,39 @@ function ToolbarMenu(props: Props) {
   };
 
   return (
-    <FlexibleWrapper>
-      {items.map((item, index) => {
-        if (item.name === "separator" && item.visible !== false) {
-          return <ToolbarSeparator key={index} />;
-        }
-        if (item.visible === false || !item.icon) {
-          return null;
-        }
-        const isActive = item.active ? item.active(state) : false;
+    <TooltipProvider tippyProps={tippyProps}>
+      <FlexibleWrapper>
+        {items.map((item, index) => {
+          if (item.name === "separator" && item.visible !== false) {
+            return <ToolbarSeparator key={index} />;
+          }
+          if (item.visible === false || !item.icon) {
+            return null;
+          }
+          const isActive = item.active ? item.active(state) : false;
 
-        return (
-          <Tooltip
-            content={item.label === item.tooltip ? undefined : item.tooltip}
-            key={index}
-          >
-            {item.children ? (
-              <ToolbarDropdown active={isActive && !item.label} item={item} />
-            ) : (
-              <ToolbarButton
-                onClick={handleClick(item)}
-                active={isActive && !item.label}
-              >
-                {item.label && <Label>{item.label}</Label>}
-                {item.icon}
-              </ToolbarButton>
-            )}
-          </Tooltip>
-        );
-      })}
-    </FlexibleWrapper>
+          return (
+            <Tooltip
+              key={index}
+              shortcut={item.shortcut}
+              content={item.label === item.tooltip ? undefined : item.tooltip}
+            >
+              {item.children ? (
+                <ToolbarDropdown active={isActive && !item.label} item={item} />
+              ) : (
+                <ToolbarButton
+                  onClick={handleClick(item)}
+                  active={isActive && !item.label}
+                >
+                  {item.label && <Label>{item.label}</Label>}
+                  {item.icon}
+                </ToolbarButton>
+              )}
+            </Tooltip>
+          );
+        })}
+      </FlexibleWrapper>
+    </TooltipProvider>
   );
 }
 

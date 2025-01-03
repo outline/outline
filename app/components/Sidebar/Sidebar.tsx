@@ -17,6 +17,7 @@ import { fadeIn } from "~/styles/animations";
 import Desktop from "~/utils/Desktop";
 import NotificationIcon from "../Notifications/NotificationIcon";
 import NotificationsPopover from "../Notifications/NotificationsPopover";
+import { TooltipProvider } from "../TooltipContext";
 import ResizeBorder from "./components/ResizeBorder";
 import SidebarButton, { SidebarButtonProps } from "./components/SidebarButton";
 import ToggleButton from "./components/ToggleButton";
@@ -46,7 +47,6 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
   const maxWidth = theme.sidebarMaxWidth;
   const minWidth = theme.sidebarMinWidth + 16; // padding
 
-  const setWidth = ui.setSidebarWidth;
   const [offset, setOffset] = React.useState(0);
   const [isHovering, setHovering] = React.useState(false);
   const [isAnimating, setAnimating] = React.useState(false);
@@ -62,13 +62,13 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
       const width = Math.min(event.pageX - offset, maxWidth);
       const isSmallerThanCollapsePoint = width < minWidth / 2;
 
-      if (isSmallerThanCollapsePoint) {
-        setWidth(theme.sidebarCollapsedWidth);
-      } else {
-        setWidth(width);
-      }
+      ui.set({
+        sidebarWidth: isSmallerThanCollapsePoint
+          ? theme.sidebarCollapsedWidth
+          : width,
+      });
     },
-    [theme, offset, minWidth, maxWidth, setWidth]
+    [ui, theme, offset, minWidth, maxWidth]
   );
 
   const handleStopDrag = React.useCallback(() => {
@@ -86,13 +86,13 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
         setCollapsing(true);
         ui.collapseSidebar();
       } else {
-        setWidth(minWidth);
+        ui.set({ sidebarWidth: minWidth });
         setAnimating(true);
       }
     } else {
-      setWidth(width);
+      ui.set({ sidebarWidth: width });
     }
-  }, [ui, isSmallerThanMinimum, minWidth, width, setWidth]);
+  }, [ui, isSmallerThanMinimum, minWidth, width]);
 
   const handleBlur = React.useCallback(() => {
     setHovering(false);
@@ -149,11 +149,11 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
   React.useEffect(() => {
     if (isCollapsing) {
       setTimeout(() => {
-        setWidth(minWidth);
+        ui.set({ sidebarWidth: minWidth });
         setCollapsing(false);
       }, ANIMATION_MS);
     }
-  }, [setWidth, minWidth, isCollapsing]);
+  }, [ui, minWidth, isCollapsing]);
 
   React.useEffect(() => {
     if (isResizing) {
@@ -174,7 +174,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
   }, [isResizing, handleDrag, handleBlur, handleStopDrag]);
 
   const handleReset = React.useCallback(() => {
-    ui.setSidebarWidth(theme.sidebarWidth);
+    ui.set({ sidebarWidth: theme.sidebarWidth });
   }, [ui, theme.sidebarWidth]);
 
   React.useEffect(() => {
@@ -195,8 +195,9 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
   );
 
   return (
-    <>
+    <TooltipProvider>
       <Container
+        id="sidebar"
         ref={ref}
         style={style}
         $hidden={hidden}
@@ -243,7 +244,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
         />
       </Container>
       {ui.mobileSidebarVisible && <Backdrop onClick={ui.toggleMobileSidebar} />}
-    </>
+    </TooltipProvider>
   );
 });
 
@@ -299,9 +300,8 @@ const Container = styled(Flex)<ContainerProps>`
   width: 100%;
   background: ${s("sidebarBackground")};
   transition: box-shadow 150ms ease-in-out, transform 150ms ease-out,
-    ${s("backgroundTransition")}
-      ${(props: ContainerProps) =>
-        props.$isAnimating ? `,width ${ANIMATION_MS}ms ease-out` : ""};
+    ${(props: ContainerProps) =>
+      props.$isAnimating ? `,width ${ANIMATION_MS}ms ease-out` : ""};
   transform: translateX(
     ${(props) => (props.$mobileSidebarVisible ? 0 : "-100%")}
   );

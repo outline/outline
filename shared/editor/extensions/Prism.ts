@@ -39,6 +39,7 @@ export const LANGUAGES = {
   perl: "Perl",
   php: "PHP",
   powershell: "Powershell",
+  protobuf: "Protobuf",
   python: "Python",
   r: "R",
   ruby: "Ruby",

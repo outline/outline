@@ -1,10 +1,14 @@
 import * as React from "react";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { UserRole } from "@shared/types";
 import User from "~/models/User";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Input from "~/components/Input";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
+import { client } from "~/utils/ApiClient";
+import Text from "./Text";
 
 type Props = {
   user: User;
@@ -85,7 +89,11 @@ export function UserSuspendDialog({ user, onSubmit }: Props) {
   };
 
   return (
-    <ConfirmationDialog onSubmit={handleSubmit} savingText={`${t("Saving")}…`}>
+    <ConfirmationDialog
+      onSubmit={handleSubmit}
+      savingText={`${t("Saving")}…`}
+      danger
+    >
       {t(
         "Are you sure you want to suspend {{ userName }}? Suspended users will be prevented from logging in.",
         {
@@ -123,6 +131,68 @@ export function UserChangeNameDialog({ user, onSubmit }: Props) {
         onChange={handleChange}
         error={!name ? t("Name can't be empty") : undefined}
         value={name}
+        autoSelect
+        required
+        flex
+      />
+    </ConfirmationDialog>
+  );
+}
+
+export function UserChangeEmailDialog({ user, onSubmit }: Props) {
+  const { t } = useTranslation();
+  const actor = useCurrentUser();
+  const [email, setEmail] = React.useState<string>(user.email);
+  const [error, setError] = React.useState<string | undefined>();
+
+  const handleSubmit = async () => {
+    try {
+      await client.post(`/users.updateEmail`, { id: user.id, email });
+      onSubmit();
+      toast.info(
+        actor.id === user.id
+          ? t("Check your email to verify the new address.")
+          : t("The email will be changed once verified.")
+      );
+      return true;
+    } catch (err) {
+      setError(err.message);
+      return false;
+    }
+  };
+
+  const handleChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(ev.target.value);
+  };
+
+  return (
+    <ConfirmationDialog
+      onSubmit={handleSubmit}
+      submitText={t("Save")}
+      savingText={`${t("Saving")}…`}
+      disabled={!email || email === user.email}
+    >
+      <Text as="p">
+        {actor.id === user.id ? (
+          <Trans>
+            You will receive an email to verify your new address. It must be
+            unique in the workspace.
+          </Trans>
+        ) : (
+          <Trans>
+            A confirmation email will be sent to the new address before it is
+            changed.
+          </Trans>
+        )}
+      </Text>
+      <Input
+        type="email"
+        name="email"
+        label={t("New email")}
+        onChange={handleChange}
+        error={!email ? t("Email can't be empty") : error}
+        value={email}
+        autoSelect
         required
         flex
       />

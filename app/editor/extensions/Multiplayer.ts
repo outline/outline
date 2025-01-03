@@ -1,5 +1,4 @@
 import isEqual from "lodash/isEqual";
-import { keymap } from "prosemirror-keymap";
 import {
   ySyncPlugin,
   yCursorPlugin,
@@ -104,11 +103,13 @@ export default class Multiplayer extends Extension {
         selectionBuilder,
       }),
       yUndoPlugin(),
-      keymap({
-        "Mod-z": undo,
-        "Mod-y": redo,
-        "Mod-Shift-z": redo,
-      }),
     ];
+  }
+
+  commands() {
+    return {
+      undo: () => undo,
+      redo: () => redo,
+    };
   }
 }

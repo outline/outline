@@ -1,4 +1,4 @@
-import { action, autorun, computed, observable } from "mobx";
+import { action, computed, observable } from "mobx";
 import { flushSync } from "react-dom";
 import { light as defaultTheme } from "@shared/styles/theme";
 import Storage from "@shared/utils/Storage";
@@ -23,15 +23,16 @@ export enum SystemTheme {
   Dark = "dark",
 }
 
-type PersistedData = {
-  languagePromptDismissed: boolean | undefined;
-  theme: Theme;
-  sidebarCollapsed: boolean;
-  sidebarWidth: number;
-  sidebarRightWidth: number;
-  tocVisible: boolean | undefined;
-  commentsExpanded: string[];
-};
+type PersistedData = Pick<
+  UiStore,
+  | "languagePromptDismissed"
+  | "commentsExpanded"
+  | "theme"
+  | "sidebarWidth"
+  | "sidebarRightWidth"
+  | "sidebarCollapsed"
+  | "tocVisible"
+>;
 
 class UiStore {
   // has the user seen the prompt to change the UI language and actioned it
@@ -74,7 +75,7 @@ class UiStore {
   sidebarCollapsed = false;
 
   @observable
-  commentsExpanded: string[] = [];
+  commentsExpanded = false;
 
   @observable
   sidebarIsResizing = false;
@@ -98,7 +99,7 @@ class UiStore {
     this.sidebarRightWidth =
       data.sidebarRightWidth || defaultTheme.sidebarRightWidth;
     this.tocVisible = data.tocVisible;
-    this.commentsExpanded = data.commentsExpanded || [];
+    this.commentsExpanded = !!data.commentsExpanded;
     this.theme = data.theme || Theme.System;
 
     // system theme listeners
@@ -134,10 +135,6 @@ class UiStore {
         this.tocVisible = newData.tocVisible;
       }
     });
-
-    autorun(() => {
-      Storage.set(UI_STORE, this.asJson);
-    });
   }
 
   @action
@@ -145,14 +142,9 @@ class UiStore {
     startViewTransition(() => {
       flushSync(() => {
         this.theme = theme;
+        this.persist();
       });
     });
-    Storage.set("theme", this.theme);
-  };
-
-  @action
-  setLanguagePromptDismissed = () => {
-    this.languagePromptDismissed = true;
   };
 
   @action
@@ -206,63 +198,34 @@ class UiStore {
   };
 
   @action
-  setSidebarWidth = (width: number): void => {
-    this.sidebarWidth = width;
-  };
-
-  @action
-  setRightSidebarWidth = (width: number): void => {
-    this.sidebarRightWidth = width;
-  };
-
-  @action
   collapseSidebar = () => {
-    this.sidebarCollapsed = true;
+    this.set({ sidebarCollapsed: true });
   };
 
   @action
   expandSidebar = () => {
     sidebarHidden = false;
-    this.sidebarCollapsed = false;
+    this.set({ sidebarCollapsed: false });
   };
 
   @action
-  collapseComments = (documentId: string) => {
-    this.commentsExpanded = this.commentsExpanded.filter(
-      (id) => id !== documentId
-    );
-  };
-
-  @action
-  expandComments = (documentId: string) => {
-    if (!this.commentsExpanded.includes(documentId)) {
-      this.commentsExpanded.push(documentId);
+  set = (data: Partial<PersistedData>) => {
+    for (const key in data) {
+      // @ts-expect-error doesn't understand PersistedData is subset of keys
+      this[key] = data[key];
     }
+    this.persist();
   };
 
   @action
-  toggleComments = (documentId: string) => {
-    if (this.commentsExpanded.includes(documentId)) {
-      this.collapseComments(documentId);
-    } else {
-      this.expandComments(documentId);
-    }
+  toggleComments = () => {
+    this.set({ commentsExpanded: !this.commentsExpanded });
   };
 
   @action
   toggleCollapsedSidebar = () => {
     sidebarHidden = false;
-    this.sidebarCollapsed = !this.sidebarCollapsed;
-  };
-
-  @action
-  showTableOfContents = () => {
-    this.tocVisible = true;
-  };
-
-  @action
-  hideTableOfContents = () => {
-    this.tocVisible = false;
+    this.set({ sidebarCollapsed: !this.sidebarCollapsed });
   };
 
   @action
@@ -324,6 +287,10 @@ class UiStore {
       theme: this.theme,
     };
   }
+
+  private persist = () => {
+    Storage.set(UI_STORE, this.asJson);
+  };
 }
 
 export default UiStore;

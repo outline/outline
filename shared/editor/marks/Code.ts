@@ -7,32 +7,12 @@ import {
   Mark as ProsemirrorMark,
   Slice,
 } from "prosemirror-model";
-import { Plugin } from "prosemirror-state";
+import { Plugin, TextSelection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-import markInputRule from "../lib/markInputRule";
+import { markInputRuleForPattern } from "../lib/markInputRule";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { isInCode } from "../queries/isInCode";
 import Mark from "./Mark";
-
-function backticksFor(node: ProsemirrorNode, side: -1 | 1) {
-  const ticks = /`+/g;
-  let match: RegExpMatchArray | null;
-  let len = 0;
-
-  if (node.isText) {
-    while ((match = ticks.exec(node.text || ""))) {
-      len = Math.max(len, match[0].length);
-    }
-  }
-
-  let result = len > 0 && side > 0 ? " `" : "`";
-  for (let i = 0; i < len; i++) {
-    result += "`";
-  }
-  if (len > 0 && side < 0) {
-    result += " ";
-  }
-  return result;
-}
 
 export default class Code extends Mark {
   get name() {
@@ -48,7 +28,7 @@ export default class Code extends Mark {
   }
 
   inputRules({ type }: { type: MarkType }) {
-    return [markInputRule(/(?:^|\s)((?:`)((?:[^`]+))(?:`))$/, type)];
+    return [markInputRuleForPattern("`", type)];
   }
 
   keys({ type }: { type: MarkType }) {
@@ -140,12 +120,55 @@ export default class Code extends Mark {
 
             return false;
           },
+
+          // Triple clicking inside of an inline code mark will select the entire
+          // code mark.
+          handleTripleClickOn: (view: EditorView, pos: number) => {
+            const { state } = view;
+            const inCodeMark = isInCode(state, { onlyMark: true });
+
+            if (inCodeMark) {
+              const $pos = state.doc.resolve(pos);
+              const before = $pos.nodeBefore?.nodeSize ?? 0;
+              const after = $pos.nodeAfter?.nodeSize ?? 0;
+              const $from = state.doc.resolve(pos - before);
+              const $to = state.doc.resolve(pos + after);
+
+              view.dispatch(
+                state.tr.setSelection(TextSelection.between($from, $to))
+              );
+              return true;
+            }
+
+            return false;
+          },
         },
       }),
     ];
   }
 
   toMarkdown() {
+    function backticksFor(node: ProsemirrorNode, side: -1 | 1) {
+      const ticks = /`+/g;
+      let match: RegExpMatchArray | null;
+      let len = 0;
+
+      if (node.isText) {
+        while ((match = ticks.exec(node.text || ""))) {
+          len = Math.max(len, match[0].length);
+        }
+      }
+
+      let result = len > 0 && side > 0 ? " `" : "`";
+      for (let i = 0; i < len; i++) {
+        result += "`";
+      }
+      if (len > 0 && side < 0) {
+        result += " ";
+      }
+      return result;
+    }
+
     return {
       open(
         _state: MarkdownSerializerState,

@@ -56,9 +56,11 @@ export default class Link extends Mark {
       attrs: {
         href: {
           default: "",
+          validate: "string",
         },
         title: {
           default: null,
+          validate: "string|null",
         },
       },
       inclusive: false,
@@ -183,11 +185,10 @@ export default class Link extends Mark {
               return false;
             }
 
-            if (target.matches(".component-attachment *")) {
-              return false;
-            }
-
-            if (target.role === "button") {
+            if (
+              target.role === "button" ||
+              target.matches(".component-attachment *")
+            ) {
               return false;
             }
 
@@ -233,7 +234,10 @@ export default class Link extends Mark {
               return false;
             }
 
-            if (event.target.matches(".component-attachment *")) {
+            if (
+              event.target.role === "button" ||
+              event.target.matches(".component-attachment *")
+            ) {
               return false;
             }
 

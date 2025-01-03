@@ -10,10 +10,6 @@ class Team extends Model {
 
   @Field
   @observable
-  id: string;
-
-  @Field
-  @observable
   name: string;
 
   @Field

@@ -1,4 +1,7 @@
+import { faker } from "@faker-js/faker";
 import { TeamPreference, UserRole } from "@shared/types";
+import ConfirmUpdateEmail from "@server/emails/templates/ConfirmUpdateEmail";
+import { TeamDomain } from "@server/models";
 import {
   buildTeam,
   buildAdmin,
@@ -720,6 +723,85 @@ describe("#users.update", () => {
     const body = await res.json();
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
+  });
+});
+
+describe("#users.updateEmail", () => {
+  describe("post", () => {
+    it("should trigger verification email", async () => {
+      const spy = jest.spyOn(ConfirmUpdateEmail.prototype, "schedule");
+      const user = await buildUser();
+      const res = await server.post("/api/users.updateEmail", {
+        body: {
+          token: user.getJwtToken(),
+          email: faker.internet.email(),
+        },
+      });
+      const body = await res.json();
+
+      expect(res.status).toEqual(200);
+      expect(body.success).toEqual(true);
+      expect(spy).toHaveBeenCalled();
+      spy.mockRestore();
+    });
+
+    it("should fail if email not in allowed domains", async () => {
+      const user = await buildUser();
+
+      await TeamDomain.create({
+        teamId: user.teamId,
+        name: "example.com",
+        createdById: user.id,
+      });
+
+      const res = await server.post("/api/users.updateEmail", {
+        body: {
+          token: user.getJwtToken(),
+          email: faker.internet.email(),
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(400);
+      expect(body).toMatchSnapshot();
+    });
+
+    it("should fail if email not unique in workspace", async () => {
+      const user = await buildUser();
+      const email = faker.internet.email().toLowerCase();
+      await buildUser({ teamId: user.teamId, email });
+
+      const res = await server.post("/api/users.updateEmail", {
+        body: {
+          token: user.getJwtToken(),
+          email,
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(400);
+      expect(body).toMatchSnapshot();
+    });
+
+    it("should require authentication", async () => {
+      const res = await server.post("/api/users.updateEmail");
+      const body = await res.json();
+      expect(res.status).toEqual(401);
+      expect(body).toMatchSnapshot();
+    });
+  });
+
+  describe("get", () => {
+    it("should update email", async () => {
+      const user = await buildUser();
+      const email = faker.internet.email();
+      await server.get(
+        `/api/users.updateEmail?token=${user.getJwtToken()}&code=${user.getEmailUpdateToken(
+          email
+        )}&follow=true`
+      );
+
+      await user.reload();
+      expect(user.email).toEqual(email);
+    });
   });
 });
 

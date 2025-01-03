@@ -19,6 +19,7 @@ import Event from "~/models/Event";
 import { Avatar } from "~/components/Avatar";
 import Item, { Actions, Props as ItemProps } from "~/components/List/Item";
 import Time from "~/components/Time";
+import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
 import RevisionMenu from "~/menus/RevisionMenu";
 import { hover } from "~/styles";
@@ -35,6 +36,7 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
   const { t } = useTranslation();
   const { revisions } = useStores();
   const location = useLocation();
+  const sidebarContext = useLocationSidebarContext();
   const opts = {
     userName: event.actor.name,
   };
@@ -66,7 +68,10 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
       );
       to = {
         pathname: documentHistoryPath(document, event.modelId || "latest"),
-        state: { retainScrollPosition: true },
+        state: {
+          sidebarContext,
+          retainScrollPosition: true,
+        },
       };
       break;
 
@@ -140,7 +145,6 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
       title={
         <Time
           dateTime={event.createdAt}
-          tooltipDelay={500}
           format={{
             en_US: "MMM do, h:mm a",
             fr_FR: "'Le 'd MMMM 'à' H:mm",

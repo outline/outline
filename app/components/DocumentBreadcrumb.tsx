@@ -8,15 +8,11 @@ import type { NavigationNode } from "@shared/types";
 import Document from "~/models/Document";
 import Breadcrumb from "~/components/Breadcrumb";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
+import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { MenuInternalLink } from "~/types";
-import {
-  archivePath,
-  collectionPath,
-  settingsPath,
-  trashPath,
-} from "~/utils/routeHelpers";
+import { archivePath, settingsPath, trashPath } from "~/utils/routeHelpers";
 
 type Props = {
   children?: React.ReactNode;
@@ -57,14 +53,14 @@ function useCategory(document: Document): MenuInternalLink | null {
   return null;
 }
 
-const DocumentBreadcrumb: React.FC<Props> = ({
-  document,
-  children,
-  onlyText,
-}: Props) => {
+function DocumentBreadcrumb(
+  { document, children, onlyText }: Props,
+  ref: React.RefObject<HTMLDivElement> | null
+) {
   const { collections } = useStores();
   const { t } = useTranslation();
   const category = useCategory(document);
+  const sidebarContext = useLocationSidebarContext();
   const collection = document.collectionId
     ? collections.get(document.collectionId)
     : undefined;
@@ -81,7 +77,10 @@ const DocumentBreadcrumb: React.FC<Props> = ({
       type: "route",
       title: collection.name,
       icon: <CollectionIcon collection={collection} expanded />,
-      to: collectionPath(collection.path),
+      to: {
+        pathname: collection.path,
+        state: { sidebarContext },
+      },
     };
   } else if (document.isCollectionDeleted) {
     collectionNode = {
@@ -115,11 +114,14 @@ const DocumentBreadcrumb: React.FC<Props> = ({
         ) : (
           node.title
         ),
-        to: node.url,
+        to: {
+          pathname: node.url,
+          state: { sidebarContext },
+        },
       });
     });
     return output;
-  }, [path, category, collectionNode]);
+  }, [path, category, sidebarContext, collectionNode]);
 
   if (!collections.isLoaded) {
     return null;
@@ -140,11 +142,11 @@ const DocumentBreadcrumb: React.FC<Props> = ({
   }
 
   return (
-    <Breadcrumb items={items} highlightFirstItem>
+    <Breadcrumb items={items} ref={ref} highlightFirstItem>
       {children}
     </Breadcrumb>
   );
-};
+}
 
 const StyledIcon = styled(Icon)`
   margin-right: 2px;
@@ -160,4 +162,4 @@ const SmallSlash = styled(GoToIcon)`
   opacity: 0.5;
 `;
 
-export default observer(DocumentBreadcrumb);
+export default observer(React.forwardRef(DocumentBreadcrumb));

@@ -18,10 +18,6 @@ import Relation from "./decorators/Relation";
 class Notification extends Model {
   static modelName = "Notification";
 
-  @Field
-  @observable
-  id: string;
-
   /**
    * The date the notification was marked as read.
    */
@@ -123,6 +119,8 @@ class Notification extends Model {
         return t("mentioned you in");
       case NotificationEventType.CreateComment:
         return t("left a comment on");
+      case NotificationEventType.ResolveComment:
+        return t("resolved a comment on");
       case NotificationEventType.AddUserToDocument:
         return t("shared");
       case NotificationEventType.AddUserToCollection:
@@ -174,6 +172,7 @@ class Notification extends Model {
         return this.document?.path;
       }
       case NotificationEventType.MentionedInComment:
+      case NotificationEventType.ResolveComment:
       case NotificationEventType.CreateComment: {
         return this.document && this.comment
           ? commentPath(this.document, this.comment)

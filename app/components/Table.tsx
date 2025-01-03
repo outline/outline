@@ -253,6 +253,7 @@ const SortWrapper = styled(Flex)<{ $sortable: boolean }>`
   white-space: nowrap;
   margin: 0 -4px;
   padding: 0 4px;
+  cursor: ${(props) => (props.$sortable ? `var(--pointer)` : "")};
 
   &:hover {
     background: ${(props) =>
@@ -309,15 +310,13 @@ const Row = styled.tr`
 
 const Head = styled.th`
   text-align: left;
-  padding: 6px 6px 0;
+  padding: 6px 6px 2px;
   border-bottom: 1px solid ${s("divider")};
   background: ${s("background")};
-  transition: ${s("backgroundTransition")};
   font-size: 14px;
   color: ${s("textSecondary")};
   font-weight: 500;
   z-index: 1;
-  cursor: var(--pointer) !important;
 
   :first-child {
     padding-left: 0;

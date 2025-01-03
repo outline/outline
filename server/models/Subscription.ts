@@ -28,6 +28,8 @@ class Subscription extends ParanoidModel<
   InferAttributes<Subscription>,
   Partial<InferCreationAttributes<Subscription>>
 > {
+  static eventNamespace = "subscriptions";
+
   @BelongsTo(() => User, "userId")
   user: User;
 

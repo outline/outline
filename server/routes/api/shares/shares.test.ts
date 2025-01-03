@@ -1,4 +1,5 @@
 import { CollectionPermission } from "@shared/types";
+import { createContext } from "@server/context";
 import { UserMembership, Share } from "@server/models";
 import {
   buildUser,
@@ -67,7 +68,7 @@ describe("#shares.list", () => {
       teamId: user.teamId,
       userId: user.id,
     });
-    await share.revoke(user.id);
+    await share.revoke(createContext({ user }));
     const res = await server.post("/api/shares.list", {
       body: {
         token: user.getJwtToken(),
@@ -340,7 +341,7 @@ describe("#shares.create", () => {
       teamId: user.teamId,
       userId: user.id,
     });
-    await share.revoke(user.id);
+    await share.revoke(createContext({ user }));
     const res = await server.post("/api/shares.create", {
       body: {
         token: user.getJwtToken(),

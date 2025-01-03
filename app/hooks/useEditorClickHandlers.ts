@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useHistory } from "react-router-dom";
+import { isModKey } from "@shared/utils/keyboard";
 import { isInternalUrl } from "@shared/utils/urls";
-import { isModKey } from "~/utils/keyboard";
 import { sharedDocumentPath } from "~/utils/routeHelpers";
 import { isHash } from "~/utils/urls";
 
@@ -56,7 +56,7 @@ export default function useEditorClickHandlers({ shareId }: Params) {
         }
 
         if (!isModKey(event) && !event.shiftKey) {
-          history.push(navigateTo);
+          history.push(navigateTo, { sidebarContext: "collections" }); // optimistic preference of "collections"
         } else {
           window.open(navigateTo, "_blank");
         }

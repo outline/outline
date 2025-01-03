@@ -5,12 +5,12 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
+import { metaDisplay } from "@shared/utils/keyboard";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import useSettingsConfig from "~/hooks/useSettingsConfig";
 import useStores from "~/hooks/useStores";
 import isCloudHosted from "~/utils/isCloudHosted";
-import { metaDisplay } from "~/utils/keyboard";
 import { settingsPath } from "~/utils/routeHelpers";
 import Tooltip from "../Tooltip";
 import Sidebar from "./Sidebar";
@@ -42,11 +42,7 @@ function SettingsSidebar() {
         image={<StyledBackIcon />}
         onClick={returnToApp}
       >
-        <Tooltip
-          content={t("Toggle sidebar")}
-          shortcut={`${metaDisplay}+.`}
-          delay={500}
-        >
+        <Tooltip content={t("Toggle sidebar")} shortcut={`${metaDisplay}+.`}>
           <ToggleButton
             position="bottom"
             image={<SidebarIcon />}

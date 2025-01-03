@@ -44,7 +44,7 @@ function Comments() {
   const isAtBottom = React.useRef(true);
   const [showJumpToRecentBtn, setShowJumpToRecentBtn] = React.useState(false);
 
-  useKeyDown("Escape", () => document && ui.collapseComments(document?.id));
+  useKeyDown("Escape", () => document && ui.set({ commentsExpanded: false }));
 
   const [draft, onSaveDraft] = usePersistedState<ProsemirrorData | undefined>(
     `draft-${document?.id}-new`,
@@ -94,14 +94,18 @@ function Comments() {
   React.useEffect(() => {
     // Handles: 1. on refresh 2. when switching sort setting
     const readyToDisplay = Boolean(document && isEditorInitialized);
-    if (readyToDisplay && sortOption.type === CommentSortType.MostRecent) {
+    if (
+      readyToDisplay &&
+      sortOption.type === CommentSortType.MostRecent &&
+      !viewingResolved
+    ) {
       scrollToBottom();
     }
-  }, [sortOption.type, document, isEditorInitialized]);
+  }, [sortOption.type, document, isEditorInitialized, viewingResolved]);
 
   React.useEffect(() => {
     setShowJumpToRecentBtn(false);
-    if (sortOption.type === CommentSortType.MostRecent) {
+    if (sortOption.type === CommentSortType.MostRecent && !viewingResolved) {
       const commentsAdded = threads.length > prevThreadCount.current;
       if (commentsAdded) {
         if (isAtBottom.current) {
@@ -112,7 +116,7 @@ function Comments() {
       }
     }
     prevThreadCount.current = threads.length;
-  }, [sortOption.type, threads.length]);
+  }, [sortOption.type, threads.length, viewingResolved]);
 
   if (!document || !isEditorInitialized) {
     return null;
@@ -126,7 +130,7 @@ function Comments() {
           <CommentSortMenu />
         </Flex>
       }
-      onClose={() => ui.collapseComments(document?.id)}
+      onClose={() => ui.set({ commentsExpanded: false })}
       scrollable={false}
     >
       <Scrollable

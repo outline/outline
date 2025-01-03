@@ -16,14 +16,18 @@ export default class Comment extends Mark {
 
   get schema(): MarkSpec {
     return {
+      // Allow multiple comments to overlap
+      excludes: "",
       attrs: {
         id: {},
         userId: {},
         resolved: {
           default: false,
+          validate: "boolean",
         },
         draft: {
           default: false,
+          validate: "boolean",
         },
       },
       inclusive: false,
@@ -95,9 +99,13 @@ export default class Comment extends Mark {
     return this.options.onCreateCommentMark
       ? (): Command => (state, dispatch) => {
           if (
-            isMarkActive(state.schema.marks.comment, {
-              resolved: false,
-            })(state)
+            isMarkActive(
+              state.schema.marks.comment,
+              {
+                resolved: false,
+              },
+              { exact: true }
+            )(state)
           ) {
             return false;
           }

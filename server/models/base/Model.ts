@@ -11,6 +11,7 @@ import {
   FindOptions,
   FindOrCreateOptions,
   InstanceDestroyOptions,
+  InstanceRestoreOptions,
   InstanceUpdateOptions,
   ModelStatic,
   NonAttribute,
@@ -19,6 +20,7 @@ import {
 import {
   AfterCreate,
   AfterDestroy,
+  AfterRestore,
   AfterUpdate,
   AfterUpsert,
   BeforeCreate,
@@ -27,6 +29,10 @@ import {
 import Logger from "@server/logging/Logger";
 import { Replace, APIContext } from "@server/types";
 import { getChangsetSkipped } from "../decorators/Changeset";
+
+export type EventOverride = {
+  name?: string;
+};
 
 class Model<
   TModelAttributes extends {} = any,
@@ -41,7 +47,8 @@ class Model<
   /**
    * Validates this instance, and if the validation passes, persists it to the database.
    */
-  public saveWithCtx(ctx: APIContext) {
+  public saveWithCtx(ctx: APIContext, eventOverride?: EventOverride) {
+    this.eventOverride = eventOverride;
     this.cacheChangeset();
     return this.save(ctx.context as SaveOptions);
   }
@@ -61,6 +68,13 @@ class Model<
    */
   public destroyWithCtx(ctx: APIContext) {
     return this.destroy(ctx.context as InstanceDestroyOptions);
+  }
+
+  /**
+   * Restore the row corresponding to this instance. Only available for paranoid models.
+   */
+  public restoreWithCtx(ctx: APIContext) {
+    return this.restore(ctx.context as InstanceRestoreOptions);
   }
 
   /**
@@ -126,6 +140,14 @@ class Model<
     await this.insertEvent("delete", model, context);
   }
 
+  @AfterRestore
+  static async afterRestoreEvent<T extends Model>(
+    model: T,
+    context: APIContext["context"]
+  ) {
+    await this.insertEvent("create", model, context);
+  }
+
   /**
    * Insert an event into the database recording a mutation to this model.
    *
@@ -160,7 +182,7 @@ class Model<
 
     return models.event.create(
       {
-        name: `${namespace}.${name}`,
+        name: `${namespace}.${model.eventOverride?.name ?? name}`,
         modelId: model.id,
         collectionId:
           "collectionId" in model
@@ -328,6 +350,8 @@ class Model<
     attributes: Partial<TModelAttributes>;
     previous: Partial<TModelAttributes>;
   }> | null;
+
+  private eventOverride?: EventOverride;
 }
 
 export default Model;

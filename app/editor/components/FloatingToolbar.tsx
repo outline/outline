@@ -131,13 +131,15 @@ function usePosition({
 
   // Images need their own positioning to get the toolbar in the center
   if (isImageSelection) {
-    const element = view.nodeDOM(selection.from) as HTMLElement;
+    const element = view.nodeDOM(selection.from);
 
     // Images are wrapped which impacts positioning - need to get the element
     // specifically tagged as the handle
-    const imageElement = element.getElementsByClassName(
-      EditorStyleHelper.imageHandle
-    )[0];
+    const imageElement = element
+      ? (element as HTMLElement).getElementsByClassName(
+          EditorStyleHelper.imageHandle
+        )[0]
+      : undefined;
     if (imageElement) {
       const { left, top, width } = imageElement.getBoundingClientRect();
 

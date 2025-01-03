@@ -25,10 +25,13 @@ import {
   AfterUpdate,
   BeforeUpdate,
   BeforeCreate,
+  IsNumeric,
 } from "sequelize-typescript";
+import { isEmail } from "validator";
 import { TeamPreferenceDefaults } from "@shared/constants";
 import { TeamPreference, TeamPreferences, UserRole } from "@shared/types";
 import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
+import { parseEmail } from "@shared/utils/email";
 import env from "@server/env";
 import { ValidationError } from "@server/errors";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
@@ -150,6 +153,11 @@ class Team extends ParanoidModel<
   @IsIn([[UserRole.Viewer, UserRole.Member]])
   @Column(DataType.STRING)
   defaultUserRole: UserRole;
+
+  /** Approximate size in bytes of all attachments in the team. */
+  @IsNumeric
+  @Column(DataType.BIGINT)
+  approximateTotalAttachmentsSize: number;
 
   @AllowNull
   @Column(DataType.JSONB)
@@ -287,14 +295,20 @@ class Team extends ParanoidModel<
    * Find whether the passed domain can be used to sign-in to this team. Note
    * that this method always returns true if no domain restrictions are set.
    *
-   * @param domain The domain to check
+   * @param domainOrEmail The domain or email to check
    * @returns True if the domain is allowed to sign-in to this team
    */
   public isDomainAllowed = async function (
     this: Team,
-    domain: string
+    domainOrEmail: string
   ): Promise<boolean> {
     const allowedDomains = (await this.$get("allowedDomains")) || [];
+
+    let domain = domainOrEmail;
+    if (isEmail(domainOrEmail)) {
+      const parsed = parseEmail(domainOrEmail);
+      domain = parsed.domain;
+    }
 
     return (
       allowedDomains.length === 0 ||

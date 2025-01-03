@@ -52,6 +52,8 @@ const mathStyle = (props: Props) => css`
     font-size: 0.95em;
     font-family: ${props.theme.fontFamilyMono};
     cursor: auto;
+    white-space: pre-wrap;
+    overflow-x: auto;
   }
 
   .math-node.empty-math .math-render::before {
@@ -114,7 +116,7 @@ const mathStyle = (props: Props) => css`
     background: ${props.theme.codeBackground};
     padding: 0.75em 1em;
     font-family: ${props.theme.fontFamilyMono};
-    font-size: 80%;
+    font-size: 90%;
   }
 
   math-block.empty-math {
@@ -711,7 +713,10 @@ img.ProseMirror-separator {
 }
 
 .heading-name:first-child,
-.heading-name:first-child + .ProseMirror-yjs-cursor {
+// Edge case where multiplayer cursor is between start of cell and heading
+.heading-name:first-child + .ProseMirror-yjs-cursor,
+// Edge case where table grips are between start of cell and heading
+.heading-name:first-child + [role=button] + [role=button] {
   & + h1,
   & + h2,
   & + h3,
@@ -1075,11 +1080,11 @@ a:hover {
 
 ul,
 ol {
-  margin: 0 0.1em 0 -26px;
+  margin: 0 0.1em 0 ${props.staticHTML ? "0" : "-26px"};
   padding: 0 0 0 48px;
 
   &:dir(rtl) {
-    margin: 0 -26px 0 0.1em;
+    margin: 0 ${props.staticHTML ? "0" : "-26px"} 0 0.1em;
     padding: 0 48px 0 0;
   }
 }
@@ -1268,11 +1273,12 @@ code {
   padding: 3px 4px;
   color: ${props.theme.codeString};
   font-family: ${props.theme.fontFamilyMono};
-  font-size: 80%;
+  font-size: 90%;
 }
 
 mark {
   border-radius: 1px;
+  padding: 2px 0;
   color: ${props.theme.text};
 
   a {
@@ -1320,7 +1326,9 @@ mark {
 }
 
 .ProseMirror[contenteditable="false"] .code-block[data-language=mermaidjs] {
-  display: none;
+    height: 0;
+    overflow: hidden;
+    margin: -0.5em 0 0 0;
 }
 
 .code-block.with-line-numbers {

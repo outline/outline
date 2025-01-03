@@ -4,6 +4,7 @@ import { Helmet } from "react-helmet-async";
 import styled, { DefaultTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
+import { isModKey } from "@shared/utils/keyboard";
 import Flex from "~/components/Flex";
 import { LoadingIndicatorBar } from "~/components/LoadingIndicator";
 import SkipNavContent from "~/components/SkipNavContent";
@@ -13,7 +14,6 @@ import useAutoRefresh from "~/hooks/useAutoRefresh";
 import useKeyDown from "~/hooks/useKeyDown";
 import { MenuProvider } from "~/hooks/useMenuContext";
 import useStores from "~/hooks/useStores";
-import { isModKey } from "~/utils/keyboard";
 
 type Props = {
   children?: React.ReactNode;
@@ -76,7 +76,6 @@ const Layout = React.forwardRef(function Layout_(
 
 const Container = styled(Flex)`
   background: ${s("background")};
-  transition: ${s("backgroundTransition")};
   position: relative;
   width: 100%;
   min-height: 100%;

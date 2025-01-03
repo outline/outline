@@ -150,20 +150,6 @@ export default class CommentsStore extends Store<Comment> {
     return this.data.get(res.data.id) as Comment;
   };
 
-  @action
-  setTyping({
-    commentId,
-    userId,
-  }: {
-    commentId: string;
-    userId: string;
-  }): void {
-    const comment = this.get(commentId);
-    if (comment) {
-      comment.typingUsers.set(userId, new Date());
-    }
-  }
-
   @computed
   get orderedData(): Comment[] {
     return orderBy(Array.from(this.data.values()), "createdAt", "asc");

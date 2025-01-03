@@ -9,6 +9,7 @@ import { IconType, NavigationNode } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import Document from "~/models/Document";
 import Flex from "~/components/Flex";
+import { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
 import { hover } from "~/styles";
 import { sharedDocumentPath } from "~/utils/routeHelpers";
 
@@ -17,6 +18,7 @@ type Props = {
   document: Document | NavigationNode;
   anchor?: string;
   showCollection?: boolean;
+  sidebarContext?: SidebarContextType;
 };
 
 const DocumentLink = styled(Link)`
@@ -57,6 +59,7 @@ function ReferenceListItem({
   showCollection,
   anchor,
   shareId,
+  sidebarContext,
   ...rest
 }: Props) {
   const { icon, color } = document;
@@ -73,6 +76,7 @@ function ReferenceListItem({
         hash: anchor ? `d-${anchor}` : undefined,
         state: {
           title: document.title,
+          sidebarContext,
         },
       }}
       {...rest}

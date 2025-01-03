@@ -1,8 +1,8 @@
+import { createContext } from "@server/context";
 import { Subscription, Event } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import { buildDocument, buildUser } from "@server/test/factories";
 import subscriptionCreator from "./subscriptionCreator";
-import subscriptionDestroyer from "./subscriptionDestroyer";
 
 describe("subscriptionCreator", () => {
   const ip = "127.0.0.1";
@@ -18,11 +18,9 @@ describe("subscriptionCreator", () => {
 
     const subscription = await sequelize.transaction(async (transaction) =>
       subscriptionCreator({
-        user,
+        ctx: createContext({ user, transaction, ip }),
         documentId: document.id,
         event: subscribedEvent,
-        ip,
-        transaction,
       })
     );
 
@@ -57,11 +55,9 @@ describe("subscriptionCreator", () => {
 
     const subscription1 = await sequelize.transaction(async (transaction) =>
       subscriptionCreator({
-        user,
+        ctx: createContext({ user, transaction, ip }),
         documentId: document.id,
         event: subscribedEvent,
-        ip,
-        transaction,
       })
     );
 
@@ -92,21 +88,14 @@ describe("subscriptionCreator", () => {
 
     const subscription0 = await sequelize.transaction(async (transaction) =>
       subscriptionCreator({
-        user,
+        ctx: createContext({ user, transaction, ip }),
         documentId: document.id,
         event: subscribedEvent,
-        ip,
-        transaction,
       })
     );
 
     await sequelize.transaction(async (transaction) =>
-      subscriptionDestroyer({
-        user,
-        subscription: subscription0,
-        ip,
-        transaction,
-      })
+      subscription0.destroyWithCtx(createContext({ user, transaction, ip }))
     );
 
     expect(subscription0.id).toBeDefined();
@@ -116,11 +105,9 @@ describe("subscriptionCreator", () => {
 
     const subscription1 = await sequelize.transaction(async (transaction) =>
       subscriptionCreator({
-        user,
+        ctx: createContext({ user, transaction, ip }),
         documentId: document.id,
         event: subscribedEvent,
-        ip,
-        transaction,
       })
     );
 
@@ -153,21 +140,17 @@ describe("subscriptionCreator", () => {
 
     const subscription0 = await sequelize.transaction(async (transaction) =>
       subscriptionCreator({
-        user,
+        ctx: createContext({ user, transaction, ip }),
         documentId: document.id,
         event: subscribedEvent,
-        ip,
-        transaction,
       })
     );
 
     const subscription1 = await sequelize.transaction(async (transaction) =>
       subscriptionCreator({
-        user,
+        ctx: createContext({ user, transaction, ip }),
         documentId: document.id,
         event: subscribedEvent,
-        ip,
-        transaction,
       })
     );
 
@@ -198,21 +181,14 @@ describe("subscriptionCreator", () => {
 
     const subscription0 = await sequelize.transaction(async (transaction) =>
       subscriptionCreator({
-        user,
+        ctx: createContext({ user, transaction, ip }),
         documentId: document.id,
         event: subscribedEvent,
-        ip,
-        transaction,
       })
     );
 
     await sequelize.transaction(async (transaction) =>
-      subscriptionDestroyer({
-        user,
-        subscription: subscription0,
-        ip,
-        transaction,
-      })
+      subscription0.destroyWithCtx(createContext({ user, transaction, ip }))
     );
 
     expect(subscription0.id).toBeDefined();
@@ -222,11 +198,9 @@ describe("subscriptionCreator", () => {
 
     const subscription1 = await sequelize.transaction(async (transaction) =>
       subscriptionCreator({
-        user,
+        ctx: createContext({ user, transaction, ip }),
         documentId: document.id,
         event: subscribedEvent,
-        ip,
-        transaction,
       })
     );
 
@@ -265,11 +239,9 @@ describe("subscriptionCreator", () => {
 
     const subscription0 = await sequelize.transaction(async (transaction) =>
       subscriptionCreator({
-        user,
+        ctx: createContext({ user, transaction, ip }),
         documentId: document.id,
         event: subscribedEvent,
-        ip,
-        transaction,
       })
     );
 

@@ -7,29 +7,35 @@ import { s } from "@shared/styles";
 import { UserPreference } from "@shared/types";
 import InputSelect from "~/components/InputSelect";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useQuery from "~/hooks/useQuery";
 import { CommentSortType } from "~/types";
 
 const CommentSortMenu = () => {
   const { t } = useTranslation();
   const location = useLocation();
+  const sidebarContext = useLocationSidebarContext();
   const history = useHistory();
   const user = useCurrentUser();
   const params = useQuery();
 
-  const viewingResolved = params.get("resolved") === "";
-  const value = viewingResolved
-    ? "resolved"
-    : user.getPreference(UserPreference.SortCommentsByOrderInDocument)
+  const preferredSortType = user.getPreference(
+    UserPreference.SortCommentsByOrderInDocument
+  )
     ? CommentSortType.OrderInDocument
     : CommentSortType.MostRecent;
 
+  const viewingResolved = params.get("resolved") === "";
+  const value = viewingResolved ? "resolved" : preferredSortType;
+
   const handleSortTypeChange = (type: CommentSortType) => {
-    user.setPreference(
-      UserPreference.SortCommentsByOrderInDocument,
-      type === CommentSortType.OrderInDocument
-    );
-    void user.save();
+    if (type !== preferredSortType) {
+      user.setPreference(
+        UserPreference.SortCommentsByOrderInDocument,
+        type === CommentSortType.OrderInDocument
+      );
+      void user.save();
+    }
   };
 
   const showResolved = () => {
@@ -39,6 +45,7 @@ const CommentSortMenu = () => {
         resolved: "",
       }),
       pathname: location.pathname,
+      state: { sidebarContext },
     });
   };
 
@@ -49,6 +56,7 @@ const CommentSortMenu = () => {
         resolved: undefined,
       }),
       pathname: location.pathname,
+      state: { sidebarContext },
     });
   };
 

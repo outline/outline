@@ -31,7 +31,6 @@ const Actions = styled(Flex)`
   left: 0;
   border-radius: 3px;
   background: ${s("background")};
-  transition: ${s("backgroundTransition")};
   padding: 12px;
   backdrop-filter: blur(20px);
 

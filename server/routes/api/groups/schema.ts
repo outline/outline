@@ -13,7 +13,6 @@ export const GroupsListSchema = z.object({
       .string()
       .optional()
       .transform((val) => (val !== "ASC" ? "DESC" : val)),
-
     /** Groups sorting column */
     sort: z
       .string()
@@ -21,13 +20,12 @@ export const GroupsListSchema = z.object({
         message: "Invalid sort parameter",
       })
       .default("updatedAt"),
-
     /** Only list groups where this user is a member */
     userId: z.string().uuid().optional(),
-
+    /** Find group matching externalId */
+    externalId: z.string().optional(),
     /** @deprecated Find group with matching name */
     name: z.string().optional(),
-
     /** Find group matching query */
     query: z.string().optional(),
   }),
@@ -36,7 +34,12 @@ export const GroupsListSchema = z.object({
 export type GroupsListReq = z.infer<typeof GroupsListSchema>;
 
 export const GroupsInfoSchema = z.object({
-  body: BaseIdSchema,
+  body: z.object({
+    /** Group Id */
+    id: z.string().uuid().optional(),
+    /** External source. */
+    externalId: z.string().optional(),
+  }),
 });
 
 export type GroupsInfoReq = z.infer<typeof GroupsInfoSchema>;
@@ -45,6 +48,8 @@ export const GroupsCreateSchema = z.object({
   body: z.object({
     /** Group name */
     name: z.string(),
+    /** Optionally link this group to an external source. */
+    externalId: z.string().optional(),
   }),
 });
 
@@ -53,7 +58,9 @@ export type GroupsCreateReq = z.infer<typeof GroupsCreateSchema>;
 export const GroupsUpdateSchema = z.object({
   body: BaseIdSchema.extend({
     /** Group name */
-    name: z.string(),
+    name: z.string().optional(),
+    /** Optionally link this group to an external source. */
+    externalId: z.string().optional(),
   }),
 });
 
