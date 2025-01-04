@@ -96,6 +96,7 @@ async function teamPermanentDeleter(team: Team) {
             userId: userIds,
           },
           force: true,
+          hooks: false,
           transaction,
         });
         await Event.destroy({
