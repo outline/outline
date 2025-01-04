@@ -184,6 +184,7 @@ async function teamPermanentDeleter(team: Team) {
         teamId,
       },
       force: true,
+      hooks: false,
       transaction,
     });
     await team.destroy({
