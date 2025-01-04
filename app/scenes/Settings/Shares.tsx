@@ -56,7 +56,7 @@ function Shares() {
   }, [t, error]);
 
   return (
-    <Scene title={t("Shared Links")} icon={<GlobeIcon />} wide shrink>
+    <Scene title={t("Shared Links")} icon={<GlobeIcon />} wide>
       <Heading>{t("Shared Links")}</Heading>
 
       {can.update && !canShareDocuments && (

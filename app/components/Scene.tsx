@@ -21,8 +21,6 @@ type Props = {
   wide?: boolean;
   /** The content of the scene */
   children?: React.ReactNode;
-  /** Whether to shrink padding */
-  shrink?: boolean;
 };
 
 const Scene: React.FC<Props> = ({
@@ -34,7 +32,6 @@ const Scene: React.FC<Props> = ({
   children,
   centered,
   wide,
-  shrink,
 }: Props) => (
   <FillWidth>
     <PageTitle title={textTitle || title} />
@@ -53,11 +50,7 @@ const Scene: React.FC<Props> = ({
       left={left}
     />
     {centered !== false ? (
-      <CenteredContent
-        maxWidth={wide ? "100vw" : undefined}
-        withStickyHeader
-        shrink={shrink}
-      >
+      <CenteredContent maxWidth={wide ? "100vw" : undefined} withStickyHeader>
         {children}
       </CenteredContent>
     ) : (

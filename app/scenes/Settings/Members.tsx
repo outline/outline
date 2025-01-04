@@ -138,7 +138,6 @@ function Members() {
         </>
       }
       wide
-      shrink
     >
       <Heading>{t("Members")}</Heading>
       <Text as="p" type="secondary">
@@ -214,7 +213,7 @@ const StickyFilters = styled(Flex)`
   height: 40px;
   position: sticky;
   top: ${HEADER_HEIGHT}px;
-  z-index: ${depths.menu};
+  z-index: ${depths.header};
   background: ${s("background")};
 `;
 
