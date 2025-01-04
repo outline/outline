@@ -47,7 +47,6 @@ const UserStatusFilter = ({ activeKey, onSelect, ...rest }: Props) => {
       selectedKeys={[activeKey]}
       onSelect={onSelect}
       defaultLabel={t("Active")}
-      modalMenu={false}
       {...rest}
     />
   );

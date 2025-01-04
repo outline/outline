@@ -29,7 +29,6 @@ type Props = {
   showFilter?: boolean;
   fetchQuery?: (options: FetchPageParams) => Promise<PaginatedItem[]>;
   fetchQueryOptions?: Record<string, string>;
-  modalMenu?: boolean;
 };
 
 const FilterOptions = ({
@@ -42,13 +41,12 @@ const FilterOptions = ({
   showFilter,
   fetchQuery,
   fetchQueryOptions,
-  modalMenu,
 }: Props) => {
   const { t } = useTranslation();
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const listRef = React.useRef<HTMLDivElement | null>(null);
   const menu = useMenuState({
-    modal: modalMenu ?? true,
+    modal: false,
   });
   const selectedItems = options.filter((option) =>
     selectedKeys.includes(option.key)

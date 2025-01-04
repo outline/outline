@@ -42,7 +42,6 @@ const UserRoleFilter = ({ activeKey, onSelect, ...rest }: Props) => {
       selectedKeys={[activeKey]}
       onSelect={onSelect}
       defaultLabel={t("All roles")}
-      modalMenu={false}
       {...rest}
     />
   );
