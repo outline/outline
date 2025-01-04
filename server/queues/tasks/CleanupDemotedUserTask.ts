@@ -48,7 +48,7 @@ export default class CleanupDemotedUserTask extends BaseTask<Props> {
           lock: transaction.LOCK.UPDATE,
         });
         await Promise.all(
-          apiKeys.map((apiKey) => apiKey.destroy({ transaction }))
+          apiKeys.map((apiKey) => apiKey.destroy({ hooks: false, transaction }))
         );
         Logger.info(
           "task",
