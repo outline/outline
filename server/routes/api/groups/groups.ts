@@ -1,8 +1,6 @@
 import Router from "koa-router";
 import { Op, WhereOptions } from "sequelize";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
-import groupUserCreator from "@server/commands/groupUserCreator";
-import groupUserDestroyer from "@server/commands/groupUserDestroyer";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -263,13 +261,17 @@ router.post(
     const group = await Group.findByPk(id, { transaction });
     authorize(actor, "update", group);
 
-    const groupUser = await groupUserCreator({
-      group,
-      user,
-      actor,
-      ip: ctx.request.ip,
-      transaction,
+    const [groupUser] = await GroupUser.findOrCreateWithCtx(ctx, {
+      where: {
+        groupId: group.id,
+        userId: user.id,
+      },
+      defaults: {
+        createdById: actor.id,
+      },
     });
+
+    groupUser.user = user;
 
     ctx.body = {
       data: {
@@ -297,13 +299,16 @@ router.post(
     const user = await User.findByPk(userId, { transaction });
     authorize(actor, "read", user);
 
-    await groupUserDestroyer({
-      group,
-      user,
-      actor,
-      ip: ctx.request.ip,
+    const groupUser = await GroupUser.unscoped().findOne({
+      where: {
+        groupId: group.id,
+        userId: user.id,
+      },
       transaction,
+      lock: transaction.LOCK.UPDATE,
     });
+
+    await groupUser?.destroyWithCtx(ctx);
 
     ctx.body = {
       data: {
