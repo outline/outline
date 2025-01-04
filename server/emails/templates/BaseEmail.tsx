@@ -18,7 +18,6 @@ import { TextHelper } from "@server/models/helpers/TextHelper";
 import { taskQueue } from "@server/queues";
 import { TaskPriority } from "@server/queues/tasks/BaseTask";
 import { NotificationMetadata } from "@server/types";
-import { getEmailMessageId } from "@server/utils/emails";
 
 export enum EmailMessageCategory {
   Authentication = "authentication",
@@ -138,11 +137,11 @@ export default abstract class BaseEmail<
     }
 
     const messageId = notification
-      ? getEmailMessageId(notification.id)
+      ? Notification.emailMessageId(notification.id)
       : undefined;
 
     const references = notification
-      ? await Notification.emailReferences(notification)
+      ? Notification.emailReferences(notification)
       : undefined;
 
     try {
