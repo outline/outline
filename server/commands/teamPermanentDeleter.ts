@@ -147,6 +147,7 @@ async function teamPermanentDeleter(team: Team) {
         teamId,
       },
       force: true,
+      hooks: false,
       transaction,
     });
     await Group.unscoped().destroy({
