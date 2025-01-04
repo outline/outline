@@ -19,7 +19,7 @@ export default class DeleteAttachmentTask extends BaseTask<Props> {
       return;
     }
 
-    await attachment.destroy();
+    await attachment.destroy({ hooks: false });
   }
 
   public get options() {
