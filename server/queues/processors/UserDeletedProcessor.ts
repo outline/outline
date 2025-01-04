@@ -51,6 +51,7 @@ export default class UserDeletedProcessor extends BaseProcessor {
         where: {
           userId: event.userId,
         },
+        hooks: false,
         transaction,
       });
     });
