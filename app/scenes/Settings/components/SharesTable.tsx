@@ -1,108 +1,132 @@
-import { observer } from "mobx-react";
+import compact from "lodash/compact";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import Share from "~/models/Share";
 import { Avatar } from "~/components/Avatar";
 import Flex from "~/components/Flex";
-import TableFromParams from "~/components/TableFromParams";
+import { HEADER_HEIGHT } from "~/components/Header";
+import {
+  type Props as TableProps,
+  SortableTable,
+} from "~/components/SortableTable";
+import { type Column as TableColumn } from "~/components/Table";
 import Time from "~/components/Time";
 import useUserLocale from "~/hooks/useUserLocale";
 import ShareMenu from "~/menus/ShareMenu";
 import { formatNumber } from "~/utils/language";
 
-type Props = Omit<React.ComponentProps<typeof TableFromParams>, "columns"> & {
-  data: Share[];
+const ROW_HEIGHT = 50;
+
+type Props = Omit<TableProps<Share>, "columns" | "rowHeight"> & {
   canManage: boolean;
 };
 
-function SharesTable({ canManage, data, ...rest }: Props) {
+export function SharesTable({ data, canManage, ...rest }: Props) {
   const { t } = useTranslation();
   const language = useUserLocale();
   const hasDomain = data.some((share) => share.domain);
 
-  const columns = React.useMemo(
+  const columns = React.useMemo<TableColumn<Share>[]>(
     () =>
-      [
+      compact<TableColumn<Share>>([
         {
-          id: "documentTitle",
-          Header: t("Document"),
-          accessor: "documentTitle",
-          disableSortBy: true,
-          Cell: observer(({ value }: { value: string }) => <>{value}</>),
+          type: "data",
+          id: "title",
+          header: t("Document"),
+          accessor: (share) => share.documentTitle,
+          sortable: false,
+          component: (share) => <>{share.documentTitle}</>,
+          width: "4fr",
         },
         {
-          id: "who",
-          Header: t("Shared by"),
-          accessor: "createdById",
-          disableSortBy: true,
-          Cell: observer(
-            ({ row }: { value: string; row: { original: Share } }) => (
-              <Flex align="center" gap={4}>
-                {row.original.createdBy && (
-                  <Avatar model={row.original.createdBy} />
-                )}
-                {row.original.createdBy.name}
-              </Flex>
-            )
+          type: "data",
+          id: "createdBy",
+          header: t("Shared by"),
+          accessor: (share) => share.createdBy,
+          sortable: false,
+          component: (share) => (
+            <Flex align="center" gap={4}>
+              {share.createdBy && (
+                <>
+                  <Avatar model={share.createdBy} />
+                  {share.createdBy.name}
+                </>
+              )}
+            </Flex>
           ),
+          width: "2fr",
         },
         {
+          type: "data",
           id: "createdAt",
-          Header: t("Date shared"),
-          accessor: "createdAt",
-          Cell: observer(({ value }: { value: string }) =>
-            value ? <Time dateTime={value} addSuffix /> : null
-          ),
+          header: t("Date shared"),
+          accessor: (share) => share.createdAt,
+          component: (share) =>
+            share.createdAt ? (
+              <Time dateTime={share.createdAt} addSuffix />
+            ) : null,
+          width: "2fr",
         },
         {
+          type: "data",
           id: "lastAccessedAt",
-          Header: t("Last accessed"),
-          accessor: "lastAccessedAt",
-          Cell: observer(({ value }: { value: string }) =>
-            value ? <Time dateTime={value} addSuffix /> : null
-          ),
+          header: t("Last accessed"),
+          accessor: (share) => share.lastAccessedAt,
+          component: (share) =>
+            share.lastAccessedAt ? (
+              <Time dateTime={share.lastAccessedAt} addSuffix />
+            ) : null,
+          width: "2fr",
         },
         hasDomain
           ? {
+              type: "data",
               id: "domain",
-              Header: t("Domain"),
-              accessor: "domain",
-              disableSortBy: true,
+              header: t("Domain"),
+              accessor: (share) => share.domain,
+              sortable: false,
+              component: (share) => <>{share.domain}</>,
+              width: "1.5fr",
             }
           : undefined,
         {
+          type: "data",
           id: "views",
-          Header: t("Views"),
-          accessor: "views",
-          Cell: observer(({ value }: { value: number }) => (
+          header: t("Views"),
+          accessor: (share) => share.views,
+          component: (share) => (
             <>
               {language
-                ? formatNumber(value, unicodeCLDRtoBCP47(language))
-                : value}
+                ? formatNumber(share.views, unicodeCLDRtoBCP47(language))
+                : share.views}
             </>
-          )),
+          ),
+          width: "150px",
         },
         canManage
           ? {
-              Header: " ",
-              accessor: "id",
-              className: "actions",
-              disableSortBy: true,
-              Cell: observer(
-                ({ row }: { value: string; row: { original: Share } }) => (
-                  <Flex align="center">
-                    <ShareMenu share={row.original} />
-                  </Flex>
-                )
+              type: "action",
+              id: "action",
+              component: (share) => (
+                <Flex align="center">
+                  <ShareMenu share={share} />
+                </Flex>
               ),
+              width: "50px",
             }
           : undefined,
-      ].filter((i) => i),
-    [t, hasDomain, canManage]
+      ]),
+    [t, language, hasDomain, canManage]
   );
 
-  return <TableFromParams columns={columns} data={data} {...rest} />;
+  return (
+    <SortableTable
+      data={data}
+      columns={columns}
+      rowHeight={ROW_HEIGHT}
+      stickyOffset={HEADER_HEIGHT}
+      {...rest}
+    />
+  );
 }
-
-export default SharesTable;
