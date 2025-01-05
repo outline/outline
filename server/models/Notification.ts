@@ -239,9 +239,9 @@ class Notification extends Model<
    * @param notification Notification for which to determine the reference id.
    * @returns Reference id as an array.
    */
-  public static emailReferences(
+  public static async emailReferences(
     notification: Notification
-  ): string[] | undefined {
+  ): Promise<string[] | undefined> {
     let name: string | undefined;
 
     switch (notification.event) {
@@ -253,9 +253,11 @@ class Notification extends Model<
       case NotificationEventType.MentionedInComment:
         name = `${notification.documentId}-mentions`;
         break;
-      case NotificationEventType.CreateComment:
-        name = `${notification.documentId}-comments`;
+      case NotificationEventType.CreateComment: {
+        const comment = await Comment.findByPk(notification.commentId);
+        name = `${comment?.parentCommentId ?? comment?.id}-comments`;
         break;
+      }
     }
 
     return name ? [this.emailMessageId(name)] : undefined;

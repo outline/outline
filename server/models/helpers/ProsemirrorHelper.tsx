@@ -549,4 +549,29 @@ export class ProsemirrorHelper {
 
     return dom.serialize();
   }
+
+  static getTextContent(
+    doc: Node,
+    options?: { includeMentions: boolean }
+  ): string {
+    const includeMentions = options?.includeMentions ?? true;
+
+    const content: string[] = [];
+
+    doc.descendants((node) => {
+      if (node.type.name === "text") {
+        content.push(node.text ?? "");
+        return false;
+      }
+
+      if (node.type.name === "mention" && includeMentions) {
+        content.push(`@${node.attrs.label}`);
+        return false;
+      }
+
+      return true;
+    });
+
+    return content.join(" ");
+  }
 }

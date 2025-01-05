@@ -1,5 +1,10 @@
 import { NotificationEventType } from "@shared/types";
-import { buildDocument, buildNotification } from "@server/test/factories";
+import {
+  buildComment,
+  buildDocument,
+  buildNotification,
+  buildUser,
+} from "@server/test/factories";
 import Notification from "./Notification";
 
 describe("Notification", () => {
@@ -8,7 +13,7 @@ describe("Notification", () => {
       const notification = await buildNotification({
         event: NotificationEventType.AddUserToDocument,
       });
-      const references = Notification.emailReferences(notification);
+      const references = await Notification.emailReferences(notification);
       expect(references).toBeUndefined();
     });
 
@@ -20,7 +25,7 @@ describe("Notification", () => {
           documentId: document.id,
         });
 
-        const references = Notification.emailReferences(notification);
+        const references = await Notification.emailReferences(notification);
 
         const expectedReference = Notification.emailMessageId(
           `${document.id}-updates`
@@ -35,7 +40,7 @@ describe("Notification", () => {
           documentId: document.id,
         });
 
-        const references = Notification.emailReferences(notification);
+        const references = await Notification.emailReferences(notification);
 
         const expectedReference = Notification.emailMessageId(
           `${document.id}-updates`
@@ -52,7 +57,7 @@ describe("Notification", () => {
           documentId: document.id,
         });
 
-        const references = Notification.emailReferences(notification);
+        const references = await Notification.emailReferences(notification);
 
         const expectedReference = Notification.emailMessageId(
           `${document.id}-mentions`
@@ -68,7 +73,7 @@ describe("Notification", () => {
           documentId: document.id,
         });
 
-        const references = Notification.emailReferences(notification);
+        const references = await Notification.emailReferences(notification);
 
         const expectedReference = Notification.emailMessageId(
           `${document.id}-mentions`
@@ -78,20 +83,59 @@ describe("Notification", () => {
       });
     });
 
-    it("should return comment reference", async () => {
-      const document = await buildDocument();
-      const notification = await buildNotification({
-        event: NotificationEventType.CreateComment,
-        documentId: document.id,
+    describe("should return comment reference", () => {
+      it("first comment in a thread", async () => {
+        const user = await buildUser();
+        const document = await buildDocument({
+          userId: user.id,
+          teamId: user.teamId,
+        });
+        const comment = await buildComment({
+          documentId: document.id,
+          userId: user.id,
+        });
+        const notification = await buildNotification({
+          event: NotificationEventType.CreateComment,
+          commentId: comment.id,
+        });
+
+        const references = await Notification.emailReferences(notification);
+
+        const expectedReference = Notification.emailMessageId(
+          `${comment.id}-comments`
+        );
+        expect(references?.length).toBe(1);
+        expect(references![0]).toBe(expectedReference);
       });
 
-      const references = Notification.emailReferences(notification);
+      it("child comments in a thread", async () => {
+        const user = await buildUser();
+        const document = await buildDocument({
+          userId: user.id,
+          teamId: user.teamId,
+        });
+        const parentComment = await buildComment({
+          documentId: document.id,
+          userId: user.id,
+        });
+        const childComment = await buildComment({
+          documentId: document.id,
+          userId: user.id,
+          parentCommentId: parentComment.id,
+        });
+        const notification = await buildNotification({
+          event: NotificationEventType.CreateComment,
+          commentId: childComment.id,
+        });
 
-      const expectedReference = Notification.emailMessageId(
-        `${document.id}-comments`
-      );
-      expect(references?.length).toBe(1);
-      expect(references![0]).toBe(expectedReference);
+        const references = await Notification.emailReferences(notification);
+
+        const expectedReference = Notification.emailMessageId(
+          `${parentComment.id}-comments`
+        );
+        expect(references?.length).toBe(1);
+        expect(references![0]).toBe(expectedReference);
+      });
     });
   });
 });
