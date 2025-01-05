@@ -1,4 +1,4 @@
-import { observer } from "mobx-react";
+import compact from "lodash/compact";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -6,94 +6,110 @@ import User from "~/models/User";
 import { Avatar } from "~/components/Avatar";
 import Badge from "~/components/Badge";
 import Flex from "~/components/Flex";
-import TableFromParams from "~/components/TableFromParams";
+import { HEADER_HEIGHT } from "~/components/Header";
+import {
+  type Props as TableProps,
+  SortableTable,
+} from "~/components/SortableTable";
+import { type Column as TableColumn } from "~/components/Table";
 import Time from "~/components/Time";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import UserMenu from "~/menus/UserMenu";
 
-type Props = Omit<React.ComponentProps<typeof TableFromParams>, "columns"> & {
-  data: User[];
+const ROW_HEIGHT = 60;
+const STICKY_OFFSET = HEADER_HEIGHT + 40; // filter height
+
+type Props = Omit<TableProps<User>, "columns" | "rowHeight"> & {
   canManage: boolean;
 };
 
-function PeopleTable({ canManage, ...rest }: Props) {
+export function PeopleTable({ canManage, ...rest }: Props) {
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
-  const columns = React.useMemo(
+
+  const columns = React.useMemo<TableColumn<User>[]>(
     () =>
-      [
+      compact<TableColumn<User>>([
         {
+          type: "data",
           id: "name",
-          Header: t("Name"),
-          accessor: "name",
-          Cell: observer(
-            ({ value, row }: { value: string; row: { original: User } }) => (
-              <Flex align="center" gap={8}>
-                <Avatar model={row.original} size={32} /> {value}{" "}
-                {currentUser.id === row.original.id && `(${t("You")})`}
-              </Flex>
-            )
+          header: t("Name"),
+          accessor: (user) => user.name,
+          component: (user) => (
+            <Flex align="center" gap={8}>
+              <Avatar model={user} size={32} /> {user.name}{" "}
+              {currentUser.id === user.id && `(${t("You")})`}
+            </Flex>
           ),
+          width: "4fr",
         },
         canManage
           ? {
+              type: "data",
               id: "email",
-              Header: t("Email"),
-              accessor: "email",
-              Cell: observer(({ value }: { value: string }) => <>{value}</>),
+              header: t("Email"),
+              accessor: (user) => user.email,
+              component: (user) => <>{user.email}</>,
+              width: "4fr",
             }
           : undefined,
         {
+          type: "data",
           id: "lastActiveAt",
-          Header: t("Last active"),
-          accessor: "lastActiveAt",
-          Cell: observer(({ value }: { value: string }) =>
-            value ? <Time dateTime={value} addSuffix /> : null
-          ),
+          header: t("Last active"),
+          accessor: (user) => user.lastActiveAt,
+          component: (user) =>
+            user.lastActiveAt ? (
+              <Time dateTime={user.lastActiveAt} addSuffix />
+            ) : null,
+          width: "2fr",
         },
         {
+          type: "data",
           id: "role",
-          Header: t("Role"),
-          accessor: "rank",
-          Cell: observer(({ row }: { row: { original: User } }) => (
-            <Badges>
-              {!row.original.lastActiveAt && <Badge>{t("Invited")}</Badge>}
-              {row.original.isAdmin ? (
+          header: t("Role"),
+          accessor: (user) => user.role,
+          component: (user) => (
+            <Badges wrap>
+              {!user.lastActiveAt && <Badge>{t("Invited")}</Badge>}
+              {user.isAdmin ? (
                 <Badge primary>{t("Admin")}</Badge>
-              ) : row.original.isViewer ? (
+              ) : user.isViewer ? (
                 <Badge>{t("Viewer")}</Badge>
-              ) : row.original.isGuest ? (
+              ) : user.isGuest ? (
                 <Badge yellow>{t("Guest")}</Badge>
               ) : (
                 <Badge>{t("Editor")}</Badge>
               )}
-              {row.original.isSuspended && <Badge>{t("Suspended")}</Badge>}
+              {user.isSuspended && <Badge>{t("Suspended")}</Badge>}
             </Badges>
-          )),
+          ),
+          width: "2fr",
         },
         canManage
           ? {
-              Header: " ",
-              accessor: "id",
-              className: "actions",
-              disableSortBy: true,
-              Cell: observer(
-                ({ row, value }: { value: string; row: { original: User } }) =>
-                  currentUser.id !== value ? (
-                    <UserMenu user={row.original} />
-                  ) : null
-              ),
+              type: "action",
+              id: "action",
+              component: (user) =>
+                currentUser.id !== user.id ? <UserMenu user={user} /> : null,
+              width: "50px",
             }
           : undefined,
-      ].filter((i) => i),
-    [t, canManage, currentUser]
+      ]),
+    [t, currentUser, canManage]
   );
 
-  return <TableFromParams columns={columns} {...rest} />;
+  return (
+    <SortableTable
+      columns={columns}
+      rowHeight={ROW_HEIGHT}
+      stickyOffset={STICKY_OFFSET}
+      {...rest}
+    />
+  );
 }
 
-const Badges = styled.div`
+const Badges = styled(Flex)`
   margin-left: -10px;
+  row-gap: 4px;
 `;
-
-export default observer(PeopleTable);

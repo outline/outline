@@ -1,15 +1,18 @@
-import sortBy from "lodash/sortBy";
+import { ColumnSort } from "@tanstack/react-table";
 import { observer } from "mobx-react";
 import { PlusIcon, UserIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
+import { toast } from "sonner";
 import styled from "styled-components";
-import { PAGINATION_SYMBOL } from "~/stores/base/Store";
-import User from "~/models/User";
+import { depths, s } from "@shared/styles";
+import UsersStore from "~/stores/UsersStore";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
+import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
+import { HEADER_HEIGHT } from "~/components/Header";
 import Heading from "~/components/Heading";
 import InputSearch from "~/components/InputSearch";
 import Scene from "~/components/Scene";
@@ -21,11 +24,13 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
-import PeopleTable from "./components/PeopleTable";
+import { useTableRequest } from "~/hooks/useTableRequest";
+import { PeopleTable } from "./components/PeopleTable";
 import UserRoleFilter from "./components/UserRoleFilter";
 import UserStatusFilter from "./components/UserStatusFilter";
 
 function Members() {
+  const appName = env.APP_NAME;
   const location = useLocation();
   const history = useHistory();
   const team = useCurrentTeam();
@@ -33,83 +38,46 @@ function Members() {
   const { users } = useStores();
   const { t } = useTranslation();
   const params = useQuery();
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [data, setData] = React.useState<User[]>([]);
-  const [totalPages, setTotalPages] = React.useState(0);
-  const [userIds, setUserIds] = React.useState<string[]>([]);
   const can = usePolicy(team);
-  const query = params.get("query") || undefined;
-  const filter = params.get("filter") || undefined;
-  const role = params.get("role") || undefined;
-  const sort = params.get("sort") || "name";
-  const direction = (params.get("direction") || "asc").toUpperCase() as
-    | "ASC"
-    | "DESC";
-  const page = parseInt(params.get("page") || "0", 10);
-  const limit = 25;
+  const [query, setQuery] = React.useState("");
 
-  React.useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
+  const reqParams = React.useMemo(
+    () => ({
+      query: params.get("query") || undefined,
+      filter: params.get("filter") || undefined,
+      role: params.get("role") || undefined,
+      sort: params.get("sort") || "name",
+      direction: (params.get("direction") || "asc").toUpperCase() as
+        | "ASC"
+        | "DESC",
+    }),
+    [params]
+  );
 
-      try {
-        const response = await users.fetchPage({
-          offset: page * limit,
-          limit,
-          sort,
-          direction,
-          query,
-          filter,
-          role,
-        });
-        if (response[PAGINATION_SYMBOL]) {
-          setTotalPages(Math.ceil(response[PAGINATION_SYMBOL].total / limit));
-        }
-        setUserIds(response.map((u: User) => u.id));
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const sort: ColumnSort = React.useMemo(
+    () => ({
+      id: reqParams.sort,
+      desc: reqParams.direction === "DESC",
+    }),
+    [reqParams.sort, reqParams.direction]
+  );
 
-    void fetchData();
-  }, [query, sort, filter, role, page, direction, users]);
+  const { data, error, loading, next } = useTableRequest({
+    data: getFilteredUsers({
+      users,
+      filter: reqParams.filter,
+      role: reqParams.role,
+    }),
+    reqFn: users.fetchPage,
+    reqParams,
+  });
 
-  React.useEffect(() => {
-    let filtered = users.orderedData;
-
-    if (!filter) {
-      filtered = users.active.filter((u) => userIds.includes(u.id));
-    } else if (filter === "all") {
-      filtered = users.orderedData.filter((u) => userIds.includes(u.id));
-    } else if (filter === "suspended") {
-      filtered = users.suspended.filter((u) => userIds.includes(u.id));
-    } else if (filter === "invited") {
-      filtered = users.invited.filter((u) => userIds.includes(u.id));
-    }
-
-    if (role) {
-      filtered = filtered.filter((u) => u.role === role);
-    }
-
-    // sort the resulting data by the original order from the server
-    setData(sortBy(filtered, (item) => userIds.indexOf(item.id)));
-  }, [
-    filter,
-    role,
-    users.active,
-    users.orderedData,
-    users.suspended,
-    users.invited,
-    userIds,
-  ]);
-
-  const handleStatusFilter = React.useCallback(
-    (f) => {
-      if (f) {
-        params.set("filter", f);
-        params.delete("page");
+  const updateParams = React.useCallback(
+    (name: string, value: string) => {
+      if (value) {
+        params.set(name, value);
       } else {
-        params.delete("filter");
+        params.delete(name);
       }
 
       history.replace({
@@ -118,45 +86,33 @@ function Members() {
       });
     },
     [params, history, location.pathname]
+  );
+
+  const handleStatusFilter = React.useCallback(
+    (status) => updateParams("filter", status),
+    [updateParams]
   );
 
   const handleRoleFilter = React.useCallback(
-    (r) => {
-      if (r) {
-        params.set("role", r);
-        params.delete("page");
-      } else {
-        params.delete("role");
-      }
-
-      history.replace({
-        pathname: location.pathname,
-        search: params.toString(),
-      });
-    },
-    [params, history, location.pathname]
+    (role) => updateParams("role", role),
+    [updateParams]
   );
 
-  const handleSearch = React.useCallback(
-    (event) => {
-      const { value } = event.target;
+  const handleSearch = React.useCallback((event) => {
+    const { value } = event.target;
+    setQuery(value);
+  }, []);
 
-      if (value) {
-        params.set("query", event.target.value);
-        params.delete("page");
-      } else {
-        params.delete("query");
-      }
+  React.useEffect(() => {
+    if (error) {
+      toast.error(t("Could not load members"));
+    }
+  }, [t, error]);
 
-      history.replace({
-        pathname: location.pathname,
-        search: params.toString(),
-      });
-    },
-    [params, history, location.pathname]
-  );
-
-  const appName = env.APP_NAME;
+  React.useEffect(() => {
+    const timeout = setTimeout(() => updateParams("query", query), 250);
+    return () => clearTimeout(timeout);
+  }, [query, updateParams]);
 
   return (
     <Scene
@@ -191,34 +147,75 @@ function Members() {
           {{ signinMethods: team.signinMethods }} but haven’t signed in yet.
         </Trans>
       </Text>
-      <Flex gap={8}>
+      <StickyFilters gap={8}>
         <InputSearch
           short
-          value={query ?? ""}
+          value={query}
           placeholder={`${t("Filter")}…`}
           onChange={handleSearch}
         />
         <LargeUserStatusFilter
-          activeKey={filter ?? ""}
+          activeKey={reqParams.filter ?? ""}
           onSelect={handleStatusFilter}
         />
         <LargeUserRoleFilter
-          activeKey={role ?? ""}
+          activeKey={reqParams.role ?? ""}
           onSelect={handleRoleFilter}
         />
-      </Flex>
-      <PeopleTable
-        data={data}
-        canManage={can.update}
-        isLoading={isLoading}
-        page={page}
-        pageSize={limit}
-        totalPages={totalPages}
-        defaultSortDirection="ASC"
-      />
+      </StickyFilters>
+      <Fade>
+        <PeopleTable
+          data={data ?? []}
+          sort={sort}
+          canManage={can.update}
+          loading={loading}
+          page={{
+            hasNext: !!next,
+            fetchNext: next,
+          }}
+        />
+      </Fade>
     </Scene>
   );
 }
+
+function getFilteredUsers({
+  users,
+  filter,
+  role,
+}: {
+  users: UsersStore;
+  filter?: string;
+  role?: string;
+}) {
+  let filteredUsers;
+
+  switch (filter) {
+    case "all":
+      filteredUsers = users.orderedData;
+      break;
+    case "suspended":
+      filteredUsers = users.suspended;
+      break;
+    case "invited":
+      filteredUsers = users.invited;
+      break;
+    default:
+      filteredUsers = users.active;
+  }
+
+  return role
+    ? filteredUsers.filter((user) => user.role === role)
+    : filteredUsers;
+}
+
+const StickyFilters = styled(Flex)`
+  height: 40px;
+  position: sticky;
+  top: ${HEADER_HEIGHT}px;
+  z-index: ${depths.header};
+  background: ${s("background")};
+`;
 
 const LargeUserStatusFilter = styled(UserStatusFilter)`
   height: 32px;

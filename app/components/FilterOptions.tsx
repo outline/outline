@@ -46,7 +46,7 @@ const FilterOptions = ({
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const listRef = React.useRef<HTMLDivElement | null>(null);
   const menu = useMenuState({
-    modal: true,
+    modal: false,
   });
   const selectedItems = options.filter((option) =>
     selectedKeys.includes(option.key)
