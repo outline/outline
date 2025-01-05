@@ -94,10 +94,8 @@ export default class CommentCreatedEmail extends BaseEmail<
   }
 
   protected subject({ comment, parentComment, document }: Props) {
-    const commentText = ProsemirrorHelper.getTextContent(
-      DocumentHelper.toProsemirror(
-        parentComment ? parentComment.data : comment.data
-      )
+    const commentText = DocumentHelper.toPlainText(
+      parentComment?.data ?? comment.data
     );
     const trimmedText =
       commentText.length <= MAX_SUBJECT_CONTENT
