@@ -34,7 +34,7 @@ type EventOptions = EventOverrideOptions & {
   /**
    * Whether to publish event to the job queue. Defaults to true when using any `withCtx` methods.
    */
-  publish: boolean;
+  create: boolean;
 };
 
 export type HookContext = APIContext["context"] & { event?: EventOptions };
@@ -57,7 +57,7 @@ class Model<
       ...ctx.context,
       event: {
         ...eventOpts,
-        publish: true,
+        create: true,
       },
     };
     this.cacheChangeset();
@@ -76,7 +76,7 @@ class Model<
       ...ctx.context,
       event: {
         ...eventOpts,
-        publish: true,
+        create: true,
       },
     };
     this.set(keys);
@@ -93,7 +93,7 @@ class Model<
       ...ctx.context,
       event: {
         ...eventOpts,
-        publish: true,
+        create: true,
       },
     };
     return this.destroy(hookContext);
@@ -107,7 +107,7 @@ class Model<
       ...ctx.context,
       event: {
         ...eventOpts,
-        publish: true,
+        create: true,
       },
     };
     return this.restore(hookContext);
@@ -127,7 +127,7 @@ class Model<
       ...ctx.context,
       event: {
         ...eventOpts,
-        publish: true,
+        create: true,
       },
     };
     return this.findOrCreate({
@@ -149,7 +149,7 @@ class Model<
       ...ctx.context,
       event: {
         ...eventOpts,
-        publish: true,
+        create: true,
       },
     };
     return this.create(values, hookContext);
@@ -216,7 +216,7 @@ class Model<
     const models = this.sequelize!.models;
 
     // If no namespace is defined, don't create an event
-    if (!namespace || !context.event?.publish) {
+    if (!namespace || !context.event?.create) {
       return;
     }
 
