@@ -1,3 +1,4 @@
+import uniq from "lodash/uniq";
 import { Op } from "sequelize";
 import { NotificationEventType } from "@shared/types";
 import Logger from "@server/logging/Logger";
@@ -10,6 +11,7 @@ import {
   View,
 } from "@server/models";
 import { can } from "@server/policies";
+import { ProsemirrorHelper } from "./ProsemirrorHelper";
 
 export default class NotificationHelper {
   /**
@@ -67,7 +69,7 @@ export default class NotificationHelper {
 
     if (recipients.length > 0 && comment.parentCommentId) {
       const contextComments = await Comment.findAll({
-        attributes: ["createdById"],
+        attributes: ["createdById", "data"],
         where: {
           [Op.or]: [
             { id: comment.parentCommentId },
@@ -76,7 +78,19 @@ export default class NotificationHelper {
         },
       });
 
-      const userIdsInThread = contextComments.map((c) => c.createdById);
+      const createdUserIdsInThread = contextComments.map((c) => c.createdById);
+      const mentionedUserIdsInThread = contextComments
+        .flatMap((c) =>
+          ProsemirrorHelper.parseMentions(
+            ProsemirrorHelper.toProsemirror(c.data)
+          )
+        )
+        .map((mention) => mention.modelId);
+
+      const userIdsInThread = uniq([
+        ...createdUserIdsInThread,
+        ...mentionedUserIdsInThread,
+      ]);
       recipients = recipients.filter((r) => userIdsInThread.includes(r.id));
     }
 
