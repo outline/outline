@@ -1,6 +1,6 @@
 import { DeepPartial } from "utility-types";
 import { ProsemirrorData } from "@shared/types";
-import { buildProseMirrorDoc } from "@server/test/factories";
+import { buildCommentMark, buildProseMirrorDoc } from "@server/test/factories";
 import { MentionAttrs, ProsemirrorHelper } from "./ProsemirrorHelper";
 
 describe("ProseMirrorHelper", () => {
@@ -318,6 +318,60 @@ describe("ProseMirrorHelper", () => {
       );
 
       expect(newDoc).toBeUndefined();
+    });
+  });
+
+  describe("getAnchorTextForComment", () => {
+    it("should return the anchor text for the comment", async () => {
+      const commentId = "test-comment-id";
+      const anchorText = "anchor text";
+      const commentMark = buildCommentMark({ id: commentId });
+
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: anchorText,
+              marks: [commentMark],
+            },
+          ],
+        },
+      ]);
+
+      const returnedAnchorText = ProsemirrorHelper.getAnchorTextForComment(
+        doc,
+        commentId
+      );
+
+      expect(returnedAnchorText).toEqual(anchorText);
+    });
+
+    it("should return undefined when no comment mark matches the provided comment", async () => {
+      const commentId = "test-comment-id";
+      const anchorText = "anchor text";
+      const commentMark = buildCommentMark({ id: "random-comment-id" });
+
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: anchorText,
+              marks: [commentMark],
+            },
+          ],
+        },
+      ]);
+
+      const returnedAnchorText = ProsemirrorHelper.getAnchorTextForComment(
+        doc,
+        commentId
+      );
+
+      expect(returnedAnchorText).toBeUndefined();
     });
   });
 });

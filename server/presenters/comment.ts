@@ -1,7 +1,7 @@
 import { Comment } from "@server/models";
 import presentUser from "./user";
 
-export default function present(comment: Comment) {
+export default function present(comment: Comment, anchorText?: string) {
   return {
     id: comment.id,
     data: comment.data,
@@ -15,5 +15,6 @@ export default function present(comment: Comment) {
     createdAt: comment.createdAt,
     updatedAt: comment.updatedAt,
     reactions: comment.reactions ?? [],
+    anchorText,
   };
 }

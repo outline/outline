@@ -549,4 +549,30 @@ export class ProsemirrorHelper {
 
     return dom.serialize();
   }
+
+  static getAnchorTextForComment(doc: Node, commentId: string) {
+    let textNode: Node | undefined;
+
+    doc.descendants((node) => {
+      if (textNode) {
+        return false;
+      }
+
+      if (node.type.name !== "text") {
+        return true;
+      }
+
+      const commentMark = node.marks.find(
+        (mark) => mark.type.name === "comment" && mark.attrs.id === commentId
+      );
+
+      if (commentMark) {
+        textNode = node;
+      }
+
+      return true;
+    });
+
+    return textNode?.text;
+  }
 }

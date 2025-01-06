@@ -654,3 +654,23 @@ export function buildProseMirrorDoc(content: DeepPartial<ProsemirrorData>[]) {
     content,
   });
 }
+
+export function buildCommentMark(overrides: {
+  id?: string;
+  userId?: string;
+  draft?: boolean;
+  resolved?: boolean;
+}) {
+  if (!overrides.id) {
+    overrides.id = randomstring.generate(10);
+  }
+
+  if (!overrides.userId) {
+    overrides.userId = randomstring.generate(10);
+  }
+
+  return {
+    type: "comment",
+    attrs: overrides,
+  };
+}
