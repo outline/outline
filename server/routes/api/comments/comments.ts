@@ -10,8 +10,6 @@ import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Document, Comment, Collection, Event, Reaction } from "@server/models";
-import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
-import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { authorize } from "@server/policies";
 import { presentComment, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
@@ -74,17 +72,10 @@ router.post(
     authorize(user, "read", comment);
     authorize(user, "read", document);
 
-    let anchorText: string | undefined;
-
-    if (includeAnchorText) {
-      anchorText = ProsemirrorHelper.getAnchorTextForComment(
-        DocumentHelper.toProsemirror(document),
-        comment.id
-      );
-    }
+    comment.document = document;
 
     ctx.body = {
-      data: presentComment(comment, anchorText),
+      data: presentComment(comment, { includeAnchorText }),
       policies: presentPolicies(user, [comment]),
     };
   }
@@ -195,23 +186,10 @@ router.post(
       ]);
     }
 
-    // comment-id to respective anchor text
-    let anchorTexts: Record<string, string | undefined> = {};
-
-    if (includeAnchorText) {
-      anchorTexts = comments.reduce((obj, comment) => {
-        obj[comment.id] = ProsemirrorHelper.getAnchorTextForComment(
-          DocumentHelper.toProsemirror(comment.document),
-          comment.id
-        );
-        return obj;
-      }, {} as Record<string, string | undefined>);
-    }
-
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
       data: comments.map((comment) =>
-        presentComment(comment, anchorTexts[comment.id])
+        presentComment(comment, { includeAnchorText })
       ),
       policies: presentPolicies(user, comments),
     };
