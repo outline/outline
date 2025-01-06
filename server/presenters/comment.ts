@@ -1,6 +1,6 @@
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { Comment } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
-import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import presentUser from "./user";
 
 type Options = {
@@ -15,8 +15,11 @@ export default function present(
   let anchorText: string | undefined;
 
   if (includeAnchorText && comment.document) {
+    const commentMarks = ProsemirrorHelper.getComments(
+      DocumentHelper.toProsemirror(comment.document)
+    );
     anchorText = ProsemirrorHelper.getAnchorTextForComment(
-      DocumentHelper.toProsemirror(comment.document),
+      commentMarks,
       comment.id
     );
   }
