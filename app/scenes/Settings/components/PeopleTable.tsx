@@ -77,7 +77,7 @@ export function PeopleTable({ canManage, ...rest }: Props) {
               ) : user.isViewer ? (
                 <Badge>{t("Viewer")}</Badge>
               ) : user.isGuest ? (
-                <Badge yellow>{t("Guest")}</Badge>
+                <Badge>{t("Guest")}</Badge>
               ) : (
                 <Badge>{t("Editor")}</Badge>
               )}
