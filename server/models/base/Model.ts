@@ -5,17 +5,12 @@ import isObject from "lodash/isObject";
 import pick from "lodash/pick";
 import {
   Attributes,
-  CreateOptions,
   CreationAttributes,
   DataTypes,
   FindOptions,
   FindOrCreateOptions,
-  InstanceDestroyOptions,
-  InstanceRestoreOptions,
-  InstanceUpdateOptions,
   ModelStatic,
   NonAttribute,
-  SaveOptions,
 } from "sequelize";
 import {
   AfterCreate,
@@ -30,9 +25,17 @@ import Logger from "@server/logging/Logger";
 import { Replace, APIContext } from "@server/types";
 import { getChangsetSkipped } from "../decorators/Changeset";
 
-export type EventOverride = {
+type EventOverrideOptions = {
+  /** Override the default event name. */
   name?: string;
 };
+
+type EventOptions = EventOverrideOptions & {
+  /** Whether to publish event to the job queue. */
+  publish: boolean;
+};
+
+export type HookContext = APIContext["context"] & { event?: EventOptions };
 
 class Model<
   TModelAttributes extends {} = any,
@@ -47,34 +50,68 @@ class Model<
   /**
    * Validates this instance, and if the validation passes, persists it to the database.
    */
-  public saveWithCtx(ctx: APIContext, eventOverride?: EventOverride) {
-    this.eventOverride = eventOverride;
+  public saveWithCtx(
+    ctx: APIContext,
+    eventOverrideOpts?: EventOverrideOptions
+  ) {
+    const hookContext: HookContext = {
+      ...ctx.context,
+      event: {
+        ...eventOverrideOpts,
+        publish: true,
+      },
+    };
     this.cacheChangeset();
-    return this.save(ctx.context as SaveOptions);
+    return this.save(hookContext);
   }
 
   /**
    * This is the same as calling `set` and then calling `save`.
    */
-  public updateWithCtx(ctx: APIContext, keys: Partial<TModelAttributes>) {
+  public updateWithCtx(
+    ctx: APIContext,
+    keys: Partial<TModelAttributes>,
+    eventOverrideOpts?: EventOverrideOptions
+  ) {
+    const hookContext: HookContext = {
+      ...ctx.context,
+      event: {
+        ...eventOverrideOpts,
+        publish: true,
+      },
+    };
     this.set(keys);
     this.cacheChangeset();
-    return this.save(ctx.context as SaveOptions);
+    return this.save(hookContext);
   }
 
   /**
    * Destroy the row corresponding to this instance. Depending on your setting for paranoid, the row will
    * either be completely deleted, or have its deletedAt timestamp set to the current time.
    */
-  public destroyWithCtx(ctx: APIContext) {
-    return this.destroy(ctx.context as InstanceDestroyOptions);
+  public destroyWithCtx(ctx: APIContext, eventOverrideOpts?: EventOptions) {
+    const hookContext: HookContext = {
+      ...ctx.context,
+      event: {
+        ...eventOverrideOpts,
+        publish: true,
+      },
+    };
+    return this.destroy(hookContext);
   }
 
   /**
    * Restore the row corresponding to this instance. Only available for paranoid models.
    */
-  public restoreWithCtx(ctx: APIContext) {
-    return this.restore(ctx.context as InstanceRestoreOptions);
+  public restoreWithCtx(ctx: APIContext, eventOverrideOpts?: EventOptions) {
+    const hookContext: HookContext = {
+      ...ctx.context,
+      event: {
+        ...eventOverrideOpts,
+        publish: true,
+      },
+    };
+    return this.restore(hookContext);
   }
 
   /**
@@ -84,11 +121,19 @@ class Model<
   public static findOrCreateWithCtx<M extends Model>(
     this: ModelStatic<M>,
     ctx: APIContext,
-    options: FindOrCreateOptions<Attributes<M>, CreationAttributes<M>>
+    options: FindOrCreateOptions<Attributes<M>, CreationAttributes<M>>,
+    eventOverrideOpts?: EventOptions
   ) {
+    const hookContext: HookContext = {
+      ...ctx.context,
+      event: {
+        ...eventOverrideOpts,
+        publish: true,
+      },
+    };
     return this.findOrCreate({
       ...options,
-      ...ctx.context,
+      ...hookContext,
     });
   }
 
@@ -98,9 +143,17 @@ class Model<
   public static createWithCtx<M extends Model>(
     this: ModelStatic<M>,
     ctx: APIContext,
-    values?: CreationAttributes<M>
+    values?: CreationAttributes<M>,
+    eventOverrideOpts?: EventOptions
   ) {
-    return this.create(values, ctx.context as CreateOptions);
+    const hookContext: HookContext = {
+      ...ctx.context,
+      event: {
+        ...eventOverrideOpts,
+        publish: true,
+      },
+    };
+    return this.create(values, hookContext);
   }
 
   @BeforeCreate
@@ -111,7 +164,7 @@ class Model<
   @AfterCreate
   static async afterCreateEvent<T extends Model>(
     model: T,
-    context: APIContext["context"]
+    context: HookContext
   ) {
     await this.insertEvent("create", model, context);
   }
@@ -119,7 +172,7 @@ class Model<
   @AfterUpsert
   static async afterUpsertEvent<T extends Model>(
     model: T,
-    context: APIContext["context"]
+    context: HookContext
   ) {
     await this.insertEvent("create", model, context);
   }
@@ -127,7 +180,7 @@ class Model<
   @AfterUpdate
   static async afterUpdateEvent<T extends Model>(
     model: T,
-    context: APIContext["context"]
+    context: HookContext
   ) {
     await this.insertEvent("update", model, context);
   }
@@ -135,7 +188,7 @@ class Model<
   @AfterDestroy
   static async afterDestroyEvent<T extends Model>(
     model: T,
-    context: APIContext["context"]
+    context: HookContext
   ) {
     await this.insertEvent("delete", model, context);
   }
@@ -143,7 +196,7 @@ class Model<
   @AfterRestore
   static async afterRestoreEvent<T extends Model>(
     model: T,
-    context: APIContext["context"]
+    context: HookContext
   ) {
     await this.insertEvent("create", model, context);
   }
@@ -158,13 +211,13 @@ class Model<
   protected static async insertEvent<T extends Model>(
     name: string,
     model: T,
-    context: APIContext["context"] & InstanceUpdateOptions
+    context: HookContext
   ) {
     const namespace = this.eventNamespace;
     const models = this.sequelize!.models;
 
     // If no namespace is defined, don't create an event
-    if (!namespace || context.silent) {
+    if (!namespace || !context.event?.publish) {
       return;
     }
 
@@ -182,7 +235,7 @@ class Model<
 
     return models.event.create(
       {
-        name: `${namespace}.${model.eventOverride?.name ?? name}`,
+        name: `${namespace}.${context.event.name ?? name}`,
         modelId: "modelId" in model ? model.modelId : model.id,
         collectionId:
           "collectionId" in model
@@ -350,8 +403,6 @@ class Model<
     attributes: Partial<TModelAttributes>;
     previous: Partial<TModelAttributes>;
   }> | null;
-
-  private eventOverride?: EventOverride;
 }
 
 export default Model;
