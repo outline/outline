@@ -32,7 +32,6 @@ export default class ApiKeyCleanupProcessor extends BaseProcessor {
         where: {
           userId: userIds,
         },
-        hooks: false,
       });
 
       Logger.info(

@@ -89,7 +89,6 @@ async function teamPermanentDeleter(team: Team) {
             userId: userIds,
           },
           force: true,
-          hooks: false,
           transaction,
         });
         await ApiKey.destroy({
@@ -97,7 +96,6 @@ async function teamPermanentDeleter(team: Team) {
             userId: userIds,
           },
           force: true,
-          hooks: false,
           transaction,
         });
         await Event.destroy({
@@ -147,7 +145,6 @@ async function teamPermanentDeleter(team: Team) {
         teamId,
       },
       force: true,
-      hooks: false,
       transaction,
     });
     await Group.unscoped().destroy({
@@ -155,7 +152,6 @@ async function teamPermanentDeleter(team: Team) {
         teamId,
       },
       force: true,
-      hooks: false,
       transaction,
     });
     await Integration.destroy({
@@ -184,7 +180,6 @@ async function teamPermanentDeleter(team: Team) {
         teamId,
       },
       force: true,
-      hooks: false,
       transaction,
     });
     await team.destroy({

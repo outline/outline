@@ -20,7 +20,6 @@ export default class UserDeletedProcessor extends BaseProcessor {
           userId: event.userId,
         },
         transaction,
-        hooks: false,
       });
       await UserAuthentication.destroy({
         where: {
@@ -38,21 +37,18 @@ export default class UserDeletedProcessor extends BaseProcessor {
         where: {
           userId: event.userId,
         },
-        hooks: false,
         transaction,
       });
       await ApiKey.destroy({
         where: {
           userId: event.userId,
         },
-        hooks: false,
         transaction,
       });
       await Star.destroy({
         where: {
           userId: event.userId,
         },
-        hooks: false,
         transaction,
       });
     });

@@ -20,9 +20,7 @@ export default class CleanupExpiredAttachmentsTask extends BaseTask<Props> {
       },
       limit,
     });
-    await Promise.all(
-      attachments.map((attachment) => attachment.destroy({ hooks: false }))
-    );
+    await Promise.all(attachments.map((attachment) => attachment.destroy()));
     Logger.info("task", `Removed ${attachments.length} attachments`);
   }
 
