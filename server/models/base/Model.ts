@@ -31,7 +31,9 @@ type EventOverrideOptions = {
 };
 
 type EventOptions = EventOverrideOptions & {
-  /** Whether to publish event to the job queue. */
+  /**
+   * Whether to publish event to the job queue. Defaults to true when using any `withCtx` methods.
+   */
   publish: boolean;
 };
 
@@ -50,14 +52,11 @@ class Model<
   /**
    * Validates this instance, and if the validation passes, persists it to the database.
    */
-  public saveWithCtx(
-    ctx: APIContext,
-    eventOverrideOpts?: EventOverrideOptions
-  ) {
+  public saveWithCtx(ctx: APIContext, eventOpts?: EventOverrideOptions) {
     const hookContext: HookContext = {
       ...ctx.context,
       event: {
-        ...eventOverrideOpts,
+        ...eventOpts,
         publish: true,
       },
     };
@@ -71,12 +70,12 @@ class Model<
   public updateWithCtx(
     ctx: APIContext,
     keys: Partial<TModelAttributes>,
-    eventOverrideOpts?: EventOverrideOptions
+    eventOpts?: EventOverrideOptions
   ) {
     const hookContext: HookContext = {
       ...ctx.context,
       event: {
-        ...eventOverrideOpts,
+        ...eventOpts,
         publish: true,
       },
     };
@@ -89,11 +88,11 @@ class Model<
    * Destroy the row corresponding to this instance. Depending on your setting for paranoid, the row will
    * either be completely deleted, or have its deletedAt timestamp set to the current time.
    */
-  public destroyWithCtx(ctx: APIContext, eventOverrideOpts?: EventOptions) {
+  public destroyWithCtx(ctx: APIContext, eventOpts?: EventOverrideOptions) {
     const hookContext: HookContext = {
       ...ctx.context,
       event: {
-        ...eventOverrideOpts,
+        ...eventOpts,
         publish: true,
       },
     };
@@ -103,11 +102,11 @@ class Model<
   /**
    * Restore the row corresponding to this instance. Only available for paranoid models.
    */
-  public restoreWithCtx(ctx: APIContext, eventOverrideOpts?: EventOptions) {
+  public restoreWithCtx(ctx: APIContext, eventOpts?: EventOverrideOptions) {
     const hookContext: HookContext = {
       ...ctx.context,
       event: {
-        ...eventOverrideOpts,
+        ...eventOpts,
         publish: true,
       },
     };
@@ -122,12 +121,12 @@ class Model<
     this: ModelStatic<M>,
     ctx: APIContext,
     options: FindOrCreateOptions<Attributes<M>, CreationAttributes<M>>,
-    eventOverrideOpts?: EventOptions
+    eventOpts?: EventOverrideOptions
   ) {
     const hookContext: HookContext = {
       ...ctx.context,
       event: {
-        ...eventOverrideOpts,
+        ...eventOpts,
         publish: true,
       },
     };
@@ -144,12 +143,12 @@ class Model<
     this: ModelStatic<M>,
     ctx: APIContext,
     values?: CreationAttributes<M>,
-    eventOverrideOpts?: EventOptions
+    eventOpts?: EventOverrideOptions
   ) {
     const hookContext: HookContext = {
       ...ctx.context,
       event: {
-        ...eventOverrideOpts,
+        ...eventOpts,
         publish: true,
       },
     };
