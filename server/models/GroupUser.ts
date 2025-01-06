@@ -7,7 +7,10 @@ import {
   Table,
   DataType,
   Scopes,
+  AfterCreate,
+  AfterDestroy,
 } from "sequelize-typescript";
+import { APIContext } from "@server/types";
 import Group from "./Group";
 import User from "./User";
 import Model from "./base/Model";
@@ -62,6 +65,28 @@ class GroupUser extends Model<
   @ForeignKey(() => User)
   @Column(DataType.UUID)
   createdById: string;
+
+  get modelId() {
+    return this.groupId;
+  }
+
+  // hooks
+
+  @AfterCreate
+  public static async publishAddUserEvent(
+    model: GroupUser,
+    context: APIContext["context"]
+  ) {
+    await Group.insertEvent("add_user", model, context);
+  }
+
+  @AfterDestroy
+  public static async publishRemoveUserEvent(
+    model: GroupUser,
+    context: APIContext["context"]
+  ) {
+    await Group.insertEvent("remove_user", model, context);
+  }
 }
 
 export default GroupUser;

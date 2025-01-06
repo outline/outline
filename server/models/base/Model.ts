@@ -183,7 +183,7 @@ class Model<
     return models.event.create(
       {
         name: `${namespace}.${model.eventOverride?.name ?? name}`,
-        modelId: model.id,
+        modelId: "modelId" in model ? model.modelId : model.id,
         collectionId:
           "collectionId" in model
             ? model.collectionId
