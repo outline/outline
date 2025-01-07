@@ -713,10 +713,10 @@
     "@smithy/types" "^3.7.0"
     tslib "^2.6.2"
 
-"@babel/cli@^7.25.9":
-  version "7.25.9"
-  resolved "https://registry.yarnpkg.com/@babel/cli/-/cli-7.25.9.tgz#51036166fd0e9cfb26eee1b9ddc264a0d6d5f843"
-  integrity sha512-I+02IfrTiSanpxJBlZQYb18qCxB6c2Ih371cVpfgIrPQrjAYkf45XxomTJOG8JBWX5GY35/+TmhCMdJ4ZPkL8Q==
+"@babel/cli@^7.26.4":
+  version "7.26.4"
+  resolved "https://registry.yarnpkg.com/@babel/cli/-/cli-7.26.4.tgz#4101ff8ee5de8447a6c395397a97921056411d20"
+  integrity sha512-+mORf3ezU3p3qr+82WvJSnQNE1GAYeoCfEv4fik6B5/2cvKZ75AX8oawWQdXtM9MmndooQj15Jr9kelRFWsuRw==
   dependencies:
     "@jridgewell/trace-mapping" "^0.3.25"
     commander "^6.2.0"
