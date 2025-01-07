@@ -5263,10 +5263,10 @@
   dependencies:
     "@types/prismjs" "*"
 
-"@types/resolve-path@^1.4.2":
-  version "1.4.2"
-  resolved "https://registry.yarnpkg.com/@types/resolve-path/-/resolve-path-1.4.2.tgz#ee7c6f17693f793c6e2cf45bd6c3d73afb295bc2"
-  integrity "sha1-7nxvF2k/eTxuLPRb1sPXOvspW8I= sha512-tAt9lBclaYmgg4GErwNWM6rG3FkA1lNckmujXJ9hqWDUKhBzTrccKwAYzMK8ScaT2Rxf2m2OXOdeVxXrOlqq9A=="
+"@types/resolve-path@^1.4.3":
+  version "1.4.3"
+  resolved "https://registry.yarnpkg.com/@types/resolve-path/-/resolve-path-1.4.3.tgz#f9be1f6eb6e5d3b1532f8987dcba9e490e2e0efd"
+  integrity sha512-6mMvIPfQhbOOvntC6GbLqlEZP9fmkhqICNDbdCj2BbhaF7hoYuTiDiW63mOYtUQ9+E+b4ahyuqY1N0uVMxDH9w==
 
 "@types/resolve@1.20.2":
   version "1.20.2"

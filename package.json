@@ -309,7 +309,7 @@
     "@types/readable-stream": "^4.0.18",
     "@types/redis-info": "^3.0.3",
     "@types/refractor": "^3.4.1",
-    "@types/resolve-path": "^1.4.2",
+    "@types/resolve-path": "^1.4.3",
     "@types/semver": "^7.5.8",
     "@types/sequelize": "^4.28.20",
     "@types/slug": "^5.0.7",
