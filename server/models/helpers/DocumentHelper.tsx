@@ -132,10 +132,10 @@ export class DocumentHelper {
    * Returns the document as plain text. This method uses the
    * collaborative state if available, otherwise it falls back to Markdown.
    *
-   * @param document The document or revision to convert
+   * @param document The document or revision or prosemirror data to convert
    * @returns The document content as plain text without formatting.
    */
-  static toPlainText(document: Document | Revision) {
+  static toPlainText(document: Document | Revision | ProsemirrorData) {
     const node = DocumentHelper.toProsemirror(document);
 
     return textBetween(node, 0, node.content.size, this.textSerializers);
