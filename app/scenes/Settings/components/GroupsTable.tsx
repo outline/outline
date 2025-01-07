@@ -74,9 +74,7 @@ export function GroupsTable(props: Props) {
           ? {
               type: "action",
               id: "action",
-              component: (group) => (
-                <GroupMenu group={group} onMembers={() => {}} />
-              ),
+              component: (group) => <GroupMenu group={group} />,
               width: "50px",
             }
           : undefined,

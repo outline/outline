@@ -7,6 +7,7 @@ import Group from "~/models/Group";
 import {
   DeleteGroupDialog,
   EditGroupDialog,
+  ViewGroupMembersDialog,
 } from "~/scenes/Settings/components/GroupDialogs";
 import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
@@ -16,16 +17,23 @@ import useStores from "~/hooks/useStores";
 
 type Props = {
   group: Group;
-  onMembers: () => void;
 };
 
-function GroupMenu({ group, onMembers }: Props) {
+function GroupMenu({ group }: Props) {
   const { t } = useTranslation();
   const { dialogs } = useStores();
   const menu = useMenuState({
     modal: true,
   });
   const can = usePolicy(group);
+
+  const handleViewMembers = React.useCallback(() => {
+    dialogs.openModal({
+      title: t("Group members"),
+      content: <ViewGroupMembersDialog group={group} />,
+      fullscreen: true,
+    });
+  }, [t, group, dialogs]);
 
   const handleEditGroup = React.useCallback(() => {
     dialogs.openModal({
@@ -56,7 +64,7 @@ function GroupMenu({ group, onMembers }: Props) {
               type: "button",
               title: `${t("Members")}…`,
               icon: <GroupIcon />,
-              onClick: onMembers,
+              onClick: handleViewMembers,
               visible: !!(group && can.read),
             },
             {

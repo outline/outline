@@ -1,17 +1,138 @@
+import debounce from "lodash/debounce";
+import { observer } from "mobx-react";
+import { PlusIcon } from "outline-icons";
 import React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { v4 as uuidv4 } from "uuid";
 import Group from "~/models/Group";
+import User from "~/models/User";
+import GroupMemberListItem from "~/scenes/GroupMembers/components/GroupMemberListItem";
+import Invite from "~/scenes/Invite";
+import { Avatar, AvatarSize } from "~/components/Avatar";
 import Button from "~/components/Button";
+import ButtonLink from "~/components/ButtonLink";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
+import DelayedMount from "~/components/DelayedMount";
+import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
+import PlaceholderList from "~/components/List/Placeholder";
+import PaginatedList from "~/components/PaginatedList";
+import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
+import useRequest from "~/hooks/useRequest";
+import useStores from "~/hooks/useStores";
 
 type Props = {
   group: Group;
   onSubmit: () => void;
 };
+
+export const ViewGroupMembersDialog = observer(function ({
+  group,
+}: Pick<Props, "group">) {
+  const { dialogs, users, groupUsers } = useStores();
+  const { t } = useTranslation();
+  const can = usePolicy(group);
+
+  const handleAddPeople = React.useCallback(() => {
+    dialogs.openModal({
+      title: t(`Add people to {{groupName}}`, {
+        groupName: group.name,
+      }),
+      content: <AddPeopleToGroupDialog group={group} />,
+      fullscreen: true,
+    });
+  }, [t, group, dialogs]);
+
+  const handleRemoveUser = React.useCallback(
+    async (user: User) => {
+      try {
+        await groupUsers.delete({
+          groupId: group.id,
+          userId: user.id,
+        });
+        toast.success(
+          t(`{{userName}} was removed from the group`, {
+            userName: user.name,
+          }),
+          {
+            icon: <Avatar model={user} size={AvatarSize.Toast} />,
+          }
+        );
+      } catch (err) {
+        toast.error(t("Could not remove user"));
+      }
+    },
+    [t, groupUsers, group.id]
+  );
+
+  return (
+    <Flex column>
+      {can.update ? (
+        <>
+          <Text as="p" type="secondary">
+            <Trans
+              defaults="Add and remove members to the <em>{{groupName}}</em> group. Members of the group will have access to any collections this group has been added to."
+              values={{
+                groupName: group.name,
+              }}
+              components={{
+                em: <strong />,
+              }}
+            />
+          </Text>
+          {can.update && (
+            <span>
+              <Button
+                type="button"
+                onClick={handleAddPeople}
+                icon={<PlusIcon />}
+                neutral
+              >
+                {t("Add people")}…
+              </Button>
+            </span>
+          )}
+        </>
+      ) : (
+        <Text as="p" type="secondary">
+          <Trans
+            defaults="Listing members of the <em>{{groupName}}</em> group."
+            values={{
+              groupName: group.name,
+            }}
+            components={{
+              em: <strong />,
+            }}
+          />
+        </Text>
+      )}
+
+      <Subheading>
+        <Trans>Members</Trans>
+      </Subheading>
+      <PaginatedList
+        items={users.inGroup(group.id)}
+        fetch={groupUsers.fetchPage}
+        options={{
+          id: group.id,
+        }}
+        empty={<Empty>{t("This group has no members.")}</Empty>}
+        renderItem={(user: User) => (
+          <GroupMemberListItem
+            key={user.id}
+            user={user}
+            onRemove={can.update ? () => handleRemoveUser(user) : undefined}
+          />
+        )}
+      />
+    </Flex>
+  );
+});
 
 export function EditGroupDialog({ group, onSubmit }: Props) {
   const { t } = useTranslation();
@@ -97,3 +218,121 @@ export function DeleteGroupDialog({ group, onSubmit }: Props) {
     </ConfirmationDialog>
   );
 }
+
+const AddPeopleToGroupDialog = observer(function ({
+  group,
+}: Pick<Props, "group">) {
+  const { dialogs, users, groupUsers } = useStores();
+  const { t } = useTranslation();
+  const team = useCurrentTeam();
+  const can = usePolicy(team);
+  const [query, setQuery] = React.useState("");
+
+  const debouncedFetch = React.useMemo(
+    () => debounce((q) => users.fetchPage({ query: q }), 250),
+    [users]
+  );
+
+  const handleFilter = React.useCallback(
+    (ev: React.ChangeEvent<HTMLInputElement>) => {
+      const updatedQuery = ev.target.value;
+      setQuery(updatedQuery);
+      void debouncedFetch(updatedQuery);
+    },
+    [debouncedFetch]
+  );
+
+  const handleAddUser = React.useCallback(
+    async (user: User) => {
+      try {
+        await groupUsers.create({
+          groupId: group.id,
+          userId: user.id,
+        });
+
+        toast.success(
+          t(`{{userName}} was added to the group`, {
+            userName: user.name,
+          }),
+          {
+            icon: <Avatar model={user} size={AvatarSize.Toast} />,
+          }
+        );
+      } catch (err) {
+        toast.error(t("Could not add user"));
+      }
+    },
+    [t, groupUsers, group.id]
+  );
+
+  const handleInvitePeople = React.useCallback(() => {
+    const id = uuidv4();
+    dialogs.openModal({
+      id,
+      title: t("Invite people"),
+      content: <Invite onSubmit={() => dialogs.closeModal(id)} />,
+    });
+  }, [t, dialogs]);
+
+  const { loading } = useRequest(
+    React.useCallback(
+      () => groupUsers.fetchAll({ id: group.id }),
+      [groupUsers, group]
+    ),
+    true
+  );
+
+  return (
+    <Flex column>
+      <Text as="p" type="secondary">
+        {t(
+          "Add members below to give them access to the group. Need to add someone who’s not yet a member?"
+        )}{" "}
+        {can.inviteUser ? (
+          <ButtonLink onClick={handleInvitePeople}>
+            {t("Invite them to {{teamName}}", {
+              teamName: team.name,
+            })}
+          </ButtonLink>
+        ) : (
+          t("Ask an admin to invite them first")
+        )}
+        .
+      </Text>
+      <Input
+        type="search"
+        placeholder={`${t("Search by name")}…`}
+        value={query}
+        onChange={handleFilter}
+        label={t("Search people")}
+        labelHidden
+        autoFocus
+        flex
+      />
+      {loading ? (
+        <DelayedMount>
+          <PlaceholderList count={5} />
+        </DelayedMount>
+      ) : (
+        <PaginatedList
+          empty={
+            query ? (
+              <Empty>{t("No people matching your search")}</Empty>
+            ) : (
+              <Empty>{t("No people left to add")}</Empty>
+            )
+          }
+          items={users.notInGroup(group.id, query)}
+          fetch={query ? undefined : users.fetchPage}
+          renderItem={(item: User) => (
+            <GroupMemberListItem
+              key={item.id}
+              user={item}
+              onAdd={() => handleAddUser(item)}
+            />
+          )}
+        />
+      )}
+    </Flex>
+  );
+});
