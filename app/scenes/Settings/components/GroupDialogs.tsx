@@ -3,6 +3,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import Group from "~/models/Group";
 import Button from "~/components/Button";
+import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import Text from "~/components/Text";
@@ -66,5 +67,33 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
         {isSaving ? `${t("Saving")}…` : t("Save")}
       </Button>
     </form>
+  );
+}
+
+export function DeleteGroupDialog({ group, onSubmit }: Props) {
+  const { t } = useTranslation();
+
+  const handleSubmit = async () => {
+    await group.delete();
+    onSubmit();
+  };
+
+  return (
+    <ConfirmationDialog
+      onSubmit={handleSubmit}
+      submitText={t("I’m sure – Delete")}
+      savingText={`${t("Deleting")}…`}
+      danger
+    >
+      <Trans
+        defaults="Are you sure about that? Deleting the <em>{{groupName}}</em> group will cause its members to lose access to collections and documents that it is associated with."
+        values={{
+          groupName: group.name,
+        }}
+        components={{
+          em: <strong />,
+        }}
+      />
+    </ConfirmationDialog>
   );
 }

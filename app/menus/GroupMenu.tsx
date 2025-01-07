@@ -4,13 +4,13 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuState } from "reakit/Menu";
 import Group from "~/models/Group";
-import GroupDelete from "~/scenes/GroupDelete";
-import GroupEdit from "~/scenes/GroupEdit";
-import { EditGroupDialog } from "~/scenes/Settings/components/GroupDialogs";
+import {
+  DeleteGroupDialog,
+  EditGroupDialog,
+} from "~/scenes/Settings/components/GroupDialogs";
 import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import Template from "~/components/ContextMenu/Template";
-import Modal from "~/components/Modal";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 
@@ -25,8 +25,6 @@ function GroupMenu({ group, onMembers }: Props) {
   const menu = useMenuState({
     modal: true,
   });
-  const [editModalOpen, setEditModalOpen] = React.useState(false);
-  const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
   const can = usePolicy(group);
 
   const handleEditGroup = React.useCallback(() => {
@@ -38,22 +36,17 @@ function GroupMenu({ group, onMembers }: Props) {
     });
   }, [t, group, dialogs]);
 
+  const handleDeleteGroup = React.useCallback(() => {
+    dialogs.openModal({
+      title: t("Delete group"),
+      content: (
+        <DeleteGroupDialog group={group} onSubmit={dialogs.closeAllModals} />
+      ),
+    });
+  }, [t, group, dialogs]);
+
   return (
     <>
-      <Modal
-        title={t("Edit group")}
-        onRequestClose={() => setEditModalOpen(false)}
-        isOpen={editModalOpen}
-      >
-        <GroupEdit group={group} onSubmit={() => setEditModalOpen(false)} />
-      </Modal>
-      <Modal
-        title={t("Delete group")}
-        onRequestClose={() => setDeleteModalOpen(false)}
-        isOpen={deleteModalOpen}
-      >
-        <GroupDelete group={group} onSubmit={() => setDeleteModalOpen(false)} />
-      </Modal>
       <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
       <ContextMenu {...menu} aria-label={t("Group options")}>
         <Template
@@ -81,7 +74,7 @@ function GroupMenu({ group, onMembers }: Props) {
               title: `${t("Delete")}…`,
               icon: <TrashIcon />,
               dangerous: true,
-              onClick: () => setDeleteModalOpen(true),
+              onClick: handleDeleteGroup,
               visible: !!(group && can.delete),
             },
           ]}
