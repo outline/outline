@@ -31,6 +31,71 @@ type Props = {
   onSubmit: () => void;
 };
 
+export function CreateGroupDialog() {
+  const { dialogs, groups } = useStores();
+  const { t } = useTranslation();
+  const [name, setName] = React.useState<string | undefined>();
+  const [isSaving, setIsSaving] = React.useState(false);
+
+  const handleSubmit = React.useCallback(
+    async (ev: React.SyntheticEvent) => {
+      ev.preventDefault();
+      setIsSaving(true);
+
+      const group = new Group(
+        {
+          name,
+        },
+        groups
+      );
+
+      try {
+        await group.save();
+        dialogs.openModal({
+          title: t("Group members"),
+          content: <ViewGroupMembersDialog group={group} />,
+          fullscreen: true,
+        });
+      } catch (err) {
+        toast.error(err.message);
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [t, dialogs, groups, name]
+  );
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <Text as="p" type="secondary">
+        <Trans>
+          Groups are for organizing your team. They work best when centered
+          around a function or a responsibility — Support or Engineering for
+          example.
+        </Trans>
+      </Text>
+      <Flex>
+        <Input
+          type="text"
+          label="Name"
+          onChange={(e) => setName(e.target.value)}
+          value={name}
+          required
+          autoFocus
+          flex
+        />
+      </Flex>
+      <Text as="p" type="secondary">
+        <Trans>You’ll be able to add people to the group next.</Trans>
+      </Text>
+
+      <Button type="submit" disabled={isSaving || !name}>
+        {isSaving ? `${t("Creating")}…` : t("Continue")}
+      </Button>
+    </form>
+  );
+}
+
 export const ViewGroupMembersDialog = observer(function ({
   group,
 }: Pick<Props, "group">) {

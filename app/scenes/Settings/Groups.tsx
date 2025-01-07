@@ -7,7 +7,6 @@ import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
-import GroupNew from "~/scenes/GroupNew";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import Fade from "~/components/Fade";
@@ -15,28 +14,25 @@ import Flex from "~/components/Flex";
 import { HEADER_HEIGHT } from "~/components/Header";
 import Heading from "~/components/Heading";
 import InputSearch from "~/components/InputSearch";
-import Modal from "~/components/Modal";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
-import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
+import { CreateGroupDialog } from "./components/GroupDialogs";
 import { GroupsTable } from "./components/GroupsTable";
 
 function Groups() {
   const { t } = useTranslation();
-  const { groups } = useStores();
+  const { dialogs, groups } = useStores();
   const team = useCurrentTeam();
   const can = usePolicy(team);
   const history = useHistory();
   const location = useLocation();
   const params = useQuery();
   const [query, setQuery] = React.useState("");
-  const [newGroupModalOpen, handleNewGroupModalOpen, handleNewGroupModalClose] =
-    useBoolean();
 
   const reqParams = React.useMemo(
     () => ({
@@ -84,6 +80,13 @@ function Groups() {
     setQuery(value);
   }, []);
 
+  const handleNewGroup = React.useCallback(() => {
+    dialogs.openModal({
+      title: t("Create a group"),
+      content: <CreateGroupDialog />,
+    });
+  }, [t, dialogs]);
+
   React.useEffect(() => {
     if (error) {
       toast.error(t("Could not load groups"));
@@ -105,7 +108,7 @@ function Groups() {
             <Action>
               <Button
                 type="button"
-                onClick={handleNewGroupModalOpen}
+                onClick={handleNewGroup}
                 icon={<PlusIcon />}
               >
                 {`${t("New group")}…`}
@@ -140,14 +143,6 @@ function Groups() {
           }}
         />
       </Fade>
-
-      <Modal
-        title={t("Create a group")}
-        onRequestClose={handleNewGroupModalClose}
-        isOpen={newGroupModalOpen}
-      >
-        <GroupNew onSubmit={handleNewGroupModalClose} />
-      </Modal>
     </Scene>
   );
 }
