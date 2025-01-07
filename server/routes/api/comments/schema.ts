@@ -65,13 +65,18 @@ export const CommentsListSchema = BaseSchema.extend({
     parentCommentId: z.string().uuid().optional(),
     /** Comment statuses to include in results */
     statusFilter: z.nativeEnum(CommentStatusFilter).array().optional(),
+    /** Whether to include anchor text, if it exists */
+    includeAnchorText: z.boolean().optional(),
   }),
 });
 
 export type CommentsListReq = z.infer<typeof CommentsListSchema>;
 
 export const CommentsInfoSchema = z.object({
-  body: BaseIdSchema,
+  body: BaseIdSchema.extend({
+    /** Whether to include anchor text, if it exists */
+    includeAnchorText: z.boolean().optional(),
+  }),
 });
 
 export type CommentsInfoReq = z.infer<typeof CommentsInfoSchema>;
