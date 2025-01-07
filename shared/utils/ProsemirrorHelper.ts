@@ -205,6 +205,24 @@ export class ProsemirrorHelper {
   }
 
   /**
+   * Builds the consolidated anchor text for the given comment-id.
+   *
+   * @param marks all available comment marks in a document.
+   * @param commentId the comment-id to build the anchor text.
+   * @returns consolidated anchor text.
+   */
+  static getAnchorTextForComment(
+    marks: CommentMark[],
+    commentId: string
+  ): string | undefined {
+    const anchorTexts = marks
+      .filter((mark) => mark.id === commentId)
+      .map((mark) => mark.text);
+
+    return anchorTexts.length ? anchorTexts.join("") : undefined;
+  }
+
+  /**
    * Iterates through the document to find all of the images.
    *
    * @param doc Prosemirror document node
