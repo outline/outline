@@ -6,11 +6,13 @@ import { useMenuState } from "reakit/Menu";
 import Group from "~/models/Group";
 import GroupDelete from "~/scenes/GroupDelete";
 import GroupEdit from "~/scenes/GroupEdit";
+import { EditGroupDialog } from "~/scenes/Settings/components/GroupDialogs";
 import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import Template from "~/components/ContextMenu/Template";
 import Modal from "~/components/Modal";
 import usePolicy from "~/hooks/usePolicy";
+import useStores from "~/hooks/useStores";
 
 type Props = {
   group: Group;
@@ -19,12 +21,22 @@ type Props = {
 
 function GroupMenu({ group, onMembers }: Props) {
   const { t } = useTranslation();
+  const { dialogs } = useStores();
   const menu = useMenuState({
     modal: true,
   });
   const [editModalOpen, setEditModalOpen] = React.useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
   const can = usePolicy(group);
+
+  const handleEditGroup = React.useCallback(() => {
+    dialogs.openModal({
+      title: t("Edit group"),
+      content: (
+        <EditGroupDialog group={group} onSubmit={dialogs.closeAllModals} />
+      ),
+    });
+  }, [t, group, dialogs]);
 
   return (
     <>
@@ -61,7 +73,7 @@ function GroupMenu({ group, onMembers }: Props) {
               type: "button",
               title: `${t("Edit")}…`,
               icon: <EditIcon />,
-              onClick: () => setEditModalOpen(true),
+              onClick: handleEditGroup,
               visible: !!(group && can.update),
             },
             {
