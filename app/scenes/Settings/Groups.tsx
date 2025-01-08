@@ -55,6 +55,7 @@ function Groups() {
 
   const { data, error, loading, next } = useTableRequest({
     data: groups.orderedData,
+    sort,
     reqFn: groups.fetchPage,
     reqParams,
   });

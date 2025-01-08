@@ -69,6 +69,7 @@ export function GroupsTable(props: Props) {
             );
           },
           width: "1fr",
+          sortable: false,
         },
         !currentUser.isGuest
           ? {
