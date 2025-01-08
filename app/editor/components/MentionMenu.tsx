@@ -9,6 +9,8 @@ import Icon from "@shared/components/Icon";
 import { MenuItem } from "@shared/editor/types";
 import { MentionType } from "@shared/types";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
+import Document from "~/models/Document";
+import User from "~/models/User";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import useRequest from "~/hooks/useRequest";
@@ -42,15 +44,21 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
   const { auth, documents, users } = useStores();
   const location = useLocation();
   const documentId = parseDocumentSlug(location.pathname);
-  const { data, loading, request } = useRequest(
-    React.useCallback(
-      () =>
-        documentId
-          ? users.fetchPage({ id: documentId, query: search })
-          : Promise.resolve([]),
-      [users, documentId, search]
-    )
+  const { data, loading, request } = useRequest<{
+    documents: Document[];
+    users: User[];
+  }>(
+    React.useCallback(async () => {
+      const res = await client.post("/suggestions.mention", { query: search });
+
+      return {
+        documents: res.data.documents.map(documents.add),
+        users: res.data.users.map(users.add),
+      };
+    }, [search, documents, users])
   );
+
+  console.log(data);
 
   React.useEffect(() => {
     if (isActive) {
@@ -60,7 +68,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
 
   React.useEffect(() => {
     if (data && !loading) {
-      const items = data
+      const items = data.users
         .map((user) => ({
           name: "mention",
           icon: (
@@ -88,7 +96,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
           },
         }))
         .concat(
-          documents.orderedData.map((doc) => ({
+          data.documents.map((doc) => ({
             name: "mention",
             icon: doc.icon ? (
               <Icon value={doc.icon} color={doc.color ?? undefined} />

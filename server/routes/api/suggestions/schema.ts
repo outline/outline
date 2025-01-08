@@ -3,7 +3,7 @@ import { BaseSchema } from "../schema";
 
 export const SuggestionsListSchema = BaseSchema.extend({
   body: z.object({
-    query: z.string(),
+    query: z.string().optional(),
   }),
 });
 
