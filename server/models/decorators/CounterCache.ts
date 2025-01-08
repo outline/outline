@@ -1,9 +1,11 @@
 import isNil from "lodash/isNil";
-import { InferAttributes } from "sequelize";
+import { InferAttributes, Transactionable } from "sequelize";
 import { ModelClassGetter } from "sequelize-typescript";
 import env from "@server/env";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import type Model from "../base/Model";
+
+const key = Symbol("count");
 
 type RelationOptions = {
   /** Reference name used in cache key. */
@@ -32,32 +34,58 @@ export function CounterCache<
     const modelClass = classResolver() as typeof Model;
     const cacheKeyPrefix = `count:${target.constructor.name}:${options.as}`;
 
+    if (!Reflect.hasMetadata(key, target)) {
+      Reflect.defineMetadata(key, {}, target);
+    }
+
+    const recalculateCache = async (
+      model: InstanceType<T>,
+      { transaction }: Transactionable
+    ) => {
+      const foreignKeyValue = model[
+        options.foreignKey as keyof typeof model
+      ] as string;
+      const cacheKey = `${cacheKeyPrefix}:${foreignKeyValue}`;
+
+      const count = await modelClass.count({
+        where: {
+          [options.foreignKey]: foreignKeyValue,
+        },
+        transaction,
+      });
+
+      const counter: Record<string, number> = Reflect.getMetadata(key, target);
+      counter[foreignKeyValue] = count;
+
+      if (transaction) {
+        // 'findOrCreate' creates a new transaction always, with the transaction from the middleware as its parent.
+        // We want to use the parent transaction, otherwise the 'afterCommit' hook will never fire in this case.
+        // See: https://github.com/sequelize/sequelize/issues/17452
+        (transaction?.parent || transaction).afterCommit(
+          () => void CacheHelper.setData(cacheKey, count)
+        );
+        return;
+      }
+
+      void CacheHelper.setData(cacheKey, count);
+    };
+
     // Add hooks after model is added to the sequelize instance
     setImmediate(() => {
-      const recalculateCache =
-        (offset: number) => async (model: InstanceType<T>) => {
-          const cacheKey = `${cacheKeyPrefix}:${
-            model[options.foreignKey as keyof typeof model]
-          }`;
-
-          const count = await modelClass.count({
-            where: {
-              [options.foreignKey]:
-                model[options.foreignKey as keyof typeof model],
-            },
-          });
-          await CacheHelper.setData(cacheKey, count + offset);
-        };
-
-      // Because the transaction is not complete until after the response is sent, we need to
-      // offset the count by 1 to account for the record. TODO: Need to find a better way to handle
-      // this as a rollback would not decrement the count.
-      modelClass.addHook("afterCreate", recalculateCache(1));
-      modelClass.addHook("afterDestroy", recalculateCache(-1));
+      modelClass.addHook("afterCreate", recalculateCache);
+      modelClass.addHook("afterDestroy", recalculateCache);
     });
 
     return {
       get() {
+        const counter: Record<string, number> = Reflect.getMetadata(
+          key,
+          target
+        );
+        if (counter[this.id]) {
+          return counter[this.id];
+        }
+
         const cacheKey = `${cacheKeyPrefix}:${this.id}`;
 
         return CacheHelper.getData<number>(cacheKey).then((value) => {
