@@ -45,6 +45,7 @@ function Shares() {
 
   const { data, error, loading, next } = useTableRequest({
     data: shares.orderedData,
+    sort,
     reqFn: shares.fetchPage,
     reqParams,
   });

@@ -7,7 +7,7 @@ import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
-import UsersStore from "~/stores/UsersStore";
+import UsersStore, { queriedUsers } from "~/stores/UsersStore";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import Fade from "~/components/Fade";
@@ -44,7 +44,7 @@ function Members() {
   const reqParams = React.useMemo(
     () => ({
       query: params.get("query") || undefined,
-      filter: params.get("filter") || undefined,
+      filter: params.get("filter") || "active",
       role: params.get("role") || undefined,
       sort: params.get("sort") || "name",
       direction: (params.get("direction") || "asc").toUpperCase() as
@@ -65,9 +65,11 @@ function Members() {
   const { data, error, loading, next } = useTableRequest({
     data: getFilteredUsers({
       users,
+      query: reqParams.query,
       filter: reqParams.filter,
       role: reqParams.role,
     }),
+    sort,
     reqFn: users.fetchPage,
     reqParams,
   });
@@ -181,10 +183,12 @@ function Members() {
 
 function getFilteredUsers({
   users,
+  query,
   filter,
   role,
 }: {
   users: UsersStore;
+  query?: string;
   filter?: string;
   role?: string;
 }) {
@@ -204,9 +208,15 @@ function getFilteredUsers({
       filteredUsers = users.active;
   }
 
-  return role
-    ? filteredUsers.filter((user) => user.role === role)
-    : filteredUsers;
+  if (role) {
+    filteredUsers = filteredUsers.filter((user) => user.role === role);
+  }
+
+  if (query) {
+    filteredUsers = queriedUsers(filteredUsers, query);
+  }
+
+  return filteredUsers;
 }
 
 const StickyFilters = styled(Flex)`
