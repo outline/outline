@@ -545,6 +545,7 @@ router.post(
   validate(T.UsersInviteSchema),
   async (ctx: APIContext<T.UsersInviteReq>) => {
     const { invites } = ctx.input.body;
+    const actor = ctx.state.auth.user;
 
     if (invites.length > UserValidation.maxInvitesPerRequest) {
       throw ValidationError(
@@ -565,7 +566,9 @@ router.post(
     ctx.body = {
       data: {
         sent: response.sent,
-        users: response.users.map((user) => presentUser(user)),
+        users: response.users.map((user) =>
+          presentUser(user, { includeEmail: !!can(actor, "readEmail", user) })
+        ),
       },
     };
   }
