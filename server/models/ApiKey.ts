@@ -154,7 +154,7 @@ class ApiKey extends ParanoidModel<
       this.lastActiveAt = new Date();
     }
 
-    return this.save({ silent: true, hooks: false });
+    return this.save({ silent: true });
   };
 }
 

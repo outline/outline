@@ -157,7 +157,6 @@ const handleAttachmentsRedirect = async (
     },
     {
       silent: true,
-      hooks: false,
     }
   );
 

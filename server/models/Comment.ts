@@ -1,9 +1,5 @@
 import { Node } from "prosemirror-model";
-import {
-  InferAttributes,
-  InferCreationAttributes,
-  InstanceDestroyOptions,
-} from "sequelize";
+import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   DataType,
   BelongsTo,
@@ -19,9 +15,9 @@ import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { CommentValidation } from "@shared/validations";
 import { schema } from "@server/editor";
 import { ValidationError } from "@server/errors";
-import { APIContext } from "@server/types";
 import Document from "./Document";
 import User from "./User";
+import { type HookContext } from "./base/Model";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 import TextLength from "./validators/TextLength";
@@ -148,10 +144,7 @@ class Comment extends ParanoidModel<
   // hooks
 
   @AfterDestroy
-  public static async deleteChildComments(
-    model: Comment,
-    ctx: APIContext["context"] & InstanceDestroyOptions
-  ) {
+  public static async deleteChildComments(model: Comment, ctx: HookContext) {
     const { transaction } = ctx;
 
     const lock = transaction
@@ -168,9 +161,7 @@ class Comment extends ParanoidModel<
     });
 
     await Promise.all(
-      childComments.map((childComment) =>
-        childComment.destroy({ transaction, hooks: false })
-      )
+      childComments.map((childComment) => childComment.destroy({ transaction }))
     );
   }
 }
