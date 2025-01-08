@@ -44,7 +44,7 @@ function Members() {
   const reqParams = React.useMemo(
     () => ({
       query: params.get("query") || undefined,
-      filter: params.get("filter") || undefined,
+      filter: params.get("filter") || "active",
       role: params.get("role") || undefined,
       sort: params.get("sort") || "name",
       direction: (params.get("direction") || "asc").toUpperCase() as
