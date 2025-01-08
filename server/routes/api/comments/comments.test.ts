@@ -1,9 +1,14 @@
-import { CommentStatusFilter, ReactionSummary } from "@shared/types";
+import {
+  CommentStatusFilter,
+  ProsemirrorData,
+  ReactionSummary,
+} from "@shared/types";
 import { Comment, Reaction } from "@server/models";
 import {
   buildAdmin,
   buildCollection,
   buildComment,
+  buildCommentMark,
   buildDocument,
   buildResolvedComment,
   buildTeam,
@@ -78,6 +83,92 @@ describe("#comments.info", () => {
     expect(body.policies[0].abilities.update).toBeTruthy();
     expect(body.policies[0].abilities.delete).toBeTruthy();
   });
+
+  it("should return anchor text for an anchored comment", async () => {
+    const anchorText = "anchor text";
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+    const content = {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: anchorText,
+              marks: [buildCommentMark({ id: comment.id, userId: user.id })],
+            },
+          ],
+        },
+      ],
+    } as ProsemirrorData;
+    await document.update({ content });
+
+    const res = await server.post("/api/comments.info", {
+      body: {
+        token: user.getJwtToken(),
+        id: comment.id,
+        includeAnchorText: true,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(comment.id);
+    expect(body.data.anchorText).toEqual(anchorText);
+  });
+
+  it("should not return anchor text for a non-anchored comment", async () => {
+    const anchorText = "anchor text";
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const comment = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+    const content = {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: anchorText,
+              marks: [buildCommentMark({ userId: user.id })],
+            },
+          ],
+        },
+      ],
+    } as ProsemirrorData;
+    await document.update({ content });
+
+    const res = await server.post("/api/comments.info", {
+      body: {
+        token: user.getJwtToken(),
+        id: comment.id,
+        includeAnchorText: true,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(comment.id);
+    expect(body.data.anchorText).toBeUndefined();
+  });
 });
 
 describe("#comments.list", () => {
@@ -118,6 +209,58 @@ describe("#comments.list", () => {
     expect(body.policies[0].abilities.read).toBeTruthy();
     expect(body.policies[1].abilities.read).toBeTruthy();
     expect(body.pagination.total).toEqual(2);
+  });
+
+  it("should return anchor texts for comments in a document", async () => {
+    const anchorText = "anchor text";
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const commentOne = await buildComment({
+      userId: user.id,
+      documentId: document.id,
+    });
+    const commentTwo = await buildResolvedComment(user, {
+      userId: user.id,
+      documentId: document.id,
+    });
+    const content = {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: anchorText,
+              marks: [buildCommentMark({ id: commentOne.id, userId: user.id })],
+            },
+          ],
+        },
+      ],
+    } as ProsemirrorData;
+    await document.update({ content });
+
+    const res = await server.post("/api/comments.list", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        includeAnchorText: true,
+        sort: "createdAt",
+        direction: "ASC",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(2);
+    expect(body.data[0].id).toEqual(commentOne.id);
+    expect(body.data[1].id).toEqual(commentTwo.id);
+    expect(body.data[0].anchorText).toEqual(anchorText);
+    expect(body.data[1].anchorText).toBeUndefined();
   });
 
   it("should return unresolved comments for a collection", async () => {
