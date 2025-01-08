@@ -38,7 +38,7 @@ export default async function userSuspender({
       userId: user.id,
     },
     transaction,
-    hooks: false,
+    individualHooks: true,
   });
   await Event.create(
     {

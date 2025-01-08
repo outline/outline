@@ -82,6 +82,7 @@ export function CounterCache<
           key,
           target
         );
+
         if (counter[this.id]) {
           return counter[this.id];
         }
