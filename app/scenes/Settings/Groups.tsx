@@ -1,4 +1,5 @@
 import { ColumnSort } from "@tanstack/react-table";
+import deburr from "lodash/deburr";
 import { observer } from "mobx-react";
 import { PlusIcon, GroupIcon } from "outline-icons";
 import * as React from "react";
@@ -7,6 +8,7 @@ import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
+import Group from "~/models/Group";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import Fade from "~/components/Fade";
@@ -23,6 +25,17 @@ import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
 import { CreateGroupDialog } from "./components/GroupDialogs";
 import { GroupsTable } from "./components/GroupsTable";
+
+function getFilteredGroups(groups: Group[], query?: string) {
+  if (!query?.length) {
+    return groups;
+  }
+
+  const normalizedQuery = deburr(query.toLocaleLowerCase());
+  return groups.filter((group) =>
+    deburr(group.name).toLocaleLowerCase().includes(normalizedQuery)
+  );
+}
 
 function Groups() {
   const { t } = useTranslation();
@@ -54,7 +67,7 @@ function Groups() {
   );
 
   const { data, error, loading, next } = useTableRequest({
-    data: groups.orderedData,
+    data: getFilteredGroups(groups.orderedData, reqParams.query),
     sort,
     reqFn: groups.fetchPage,
     reqParams,
