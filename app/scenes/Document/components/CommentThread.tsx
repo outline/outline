@@ -8,6 +8,7 @@ import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import { ProsemirrorData } from "@shared/types";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 import { Avatar, AvatarSize } from "~/components/Avatar";
@@ -74,10 +75,10 @@ function CommentThread({
 
   const canReply = can.comment && !thread.isResolved;
 
-  const highlightedCommentMarks = editor
-    ?.getComments()
-    .filter((comment) => comment.id === thread.id);
-  const highlightedText = highlightedCommentMarks?.map((c) => c.text).join("");
+  const highlightedText = ProsemirrorHelper.getAnchorTextForComment(
+    editor?.getComments() ?? [],
+    thread.id
+  );
 
   const commentsInThread = comments
     .inThread(thread.id)

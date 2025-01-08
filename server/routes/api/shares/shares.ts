@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import isUndefined from "lodash/isUndefined";
-import { Op, WhereOptions } from "sequelize";
+import { FindOptions, Op, WhereOptions } from "sequelize";
 import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
@@ -117,43 +117,47 @@ router.post(
 
     const collectionIds = await user.collectionIds();
 
+    const options: FindOptions = {
+      where,
+      include: [
+        {
+          model: Document,
+          required: true,
+          paranoid: true,
+          as: "document",
+          where: {
+            collectionId: collectionIds,
+          },
+          include: [
+            {
+              model: Collection.scope({
+                method: ["withMembership", user.id],
+              }),
+              as: "collection",
+            },
+          ],
+        },
+        {
+          model: User,
+          required: true,
+          as: "user",
+        },
+        {
+          model: Team,
+          required: true,
+          as: "team",
+        },
+      ],
+    };
+
     const [shares, total] = await Promise.all([
       Share.findAll({
-        where,
+        ...options,
         order: [[sort, direction]],
-        include: [
-          {
-            model: Document,
-            required: true,
-            paranoid: true,
-            as: "document",
-            where: {
-              collectionId: collectionIds,
-            },
-            include: [
-              {
-                model: Collection.scope({
-                  method: ["withMembership", user.id],
-                }),
-                as: "collection",
-              },
-            ],
-          },
-          {
-            model: User,
-            required: true,
-            as: "user",
-          },
-          {
-            model: Team,
-            required: true,
-            as: "team",
-          },
-        ],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
       }),
-      Share.count({ where }),
+      Share.count(options),
     ]);
 
     ctx.body = {

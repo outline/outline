@@ -46,7 +46,7 @@ const FilterOptions = ({
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const listRef = React.useRef<HTMLDivElement | null>(null);
   const menu = useMenuState({
-    modal: true,
+    modal: false,
   });
   const selectedItems = options.filter((option) =>
     selectedKeys.includes(option.key)
@@ -229,7 +229,7 @@ const SearchInput = styled(Input)`
   ${Outline} {
     border: none;
     border-radius: 0;
-    border-bottom: 1px solid rgb(34 40 52);
+    border-bottom: 1px solid ${s("divider")};
     background: ${s("menuBackground")};
   }
 

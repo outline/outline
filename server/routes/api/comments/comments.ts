@@ -59,7 +59,7 @@ router.post(
   feature(TeamPreference.Commenting),
   validate(T.CommentsInfoSchema),
   async (ctx: APIContext<T.CommentsInfoReq>) => {
-    const { id } = ctx.input.body;
+    const { id, includeAnchorText } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const comment = await Comment.findByPk(id, {
@@ -71,8 +71,10 @@ router.post(
     authorize(user, "read", comment);
     authorize(user, "read", document);
 
+    comment.document = document;
+
     ctx.body = {
-      data: presentComment(comment),
+      data: presentComment(comment, { includeAnchorText }),
       policies: presentPolicies(user, [comment]),
     };
   }
@@ -92,6 +94,7 @@ router.post(
       parentCommentId,
       statusFilter,
       collectionId,
+      includeAnchorText,
     } = ctx.input.body;
     const { user } = ctx.state.auth;
     const statusQuery = [];
@@ -134,6 +137,7 @@ router.post(
         Comment.findAll(params),
         Comment.count({ where }),
       ]);
+      comments.forEach((comment) => (comment.document = document));
     } else if (collectionId) {
       const collection = await Collection.findByPk(collectionId);
       authorize(user, "read", collection);
@@ -183,7 +187,9 @@ router.post(
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
-      data: comments.map(presentComment),
+      data: comments.map((comment) =>
+        presentComment(comment, { includeAnchorText })
+      ),
       policies: presentPolicies(user, comments),
     };
   }

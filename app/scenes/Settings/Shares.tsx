@@ -1,11 +1,10 @@
-import sortBy from "lodash/sortBy";
+import { ColumnSort } from "@tanstack/react-table";
 import { observer } from "mobx-react";
 import { GlobeIcon, WarningIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
-import { PAGINATION_SYMBOL } from "~/stores/base/Store";
-import Share from "~/models/Share";
+import { toast } from "sonner";
 import Fade from "~/components/Fade";
 import Heading from "~/components/Heading";
 import Notice from "~/components/Notice";
@@ -15,7 +14,8 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
-import SharesTable from "./components/SharesTable";
+import { useTableRequest } from "~/hooks/useTableRequest";
+import { SharesTable } from "./components/SharesTable";
 
 function Shares() {
   const team = useCurrentTeam();
@@ -23,51 +23,38 @@ function Shares() {
   const { shares, auth } = useStores();
   const canShareDocuments = auth.team && auth.team.sharing;
   const can = usePolicy(team);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [data, setData] = React.useState<Share[]>([]);
-  const [totalPages, setTotalPages] = React.useState(0);
-  const [shareIds, setShareIds] = React.useState<string[]>([]);
   const params = useQuery();
-  const query = params.get("query") || "";
-  const sort = params.get("sort") || "createdAt";
-  const direction = (params.get("direction") || "desc").toUpperCase() as
-    | "ASC"
-    | "DESC";
-  const page = parseInt(params.get("page") || "0", 10);
-  const limit = 25;
+
+  const reqParams = React.useMemo(
+    () => ({
+      sort: params.get("sort") || "createdAt",
+      direction: (params.get("direction") || "desc").toUpperCase() as
+        | "ASC"
+        | "DESC",
+    }),
+    [params]
+  );
+
+  const sort: ColumnSort = React.useMemo(
+    () => ({
+      id: reqParams.sort,
+      desc: reqParams.direction === "DESC",
+    }),
+    [reqParams.sort, reqParams.direction]
+  );
+
+  const { data, error, loading, next } = useTableRequest({
+    data: shares.orderedData,
+    sort,
+    reqFn: shares.fetchPage,
+    reqParams,
+  });
 
   React.useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-
-      try {
-        const response = await shares.fetchPage({
-          offset: page * limit,
-          limit,
-          sort,
-          direction,
-        });
-        if (response[PAGINATION_SYMBOL]) {
-          setTotalPages(Math.ceil(response[PAGINATION_SYMBOL].total / limit));
-        }
-        setShareIds(response.map((u: Share) => u.id));
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    void fetchData();
-  }, [query, sort, page, direction, shares]);
-
-  React.useEffect(() => {
-    // sort the resulting data by the original order from the server
-    setData(
-      sortBy(
-        shares.orderedData.filter((item) => shareIds.includes(item.id)),
-        (item) => shareIds.indexOf(item.id)
-      )
-    );
-  }, [shares.orderedData, shareIds]);
+    if (error) {
+      toast.error(t("Could not load shares"));
+    }
+  }, [t, error]);
 
   return (
     <Scene title={t("Shared Links")} icon={<GlobeIcon />} wide>
@@ -96,16 +83,17 @@ function Shares() {
         </Trans>
       </Text>
 
-      {data.length ? (
+      {data?.length ? (
         <Fade>
           <SharesTable
-            data={data}
+            data={data ?? []}
+            sort={sort}
             canManage={can.update}
-            isLoading={isLoading}
-            page={page}
-            pageSize={limit}
-            totalPages={totalPages}
-            defaultSortDirection="ASC"
+            loading={loading}
+            page={{
+              hasNext: !!next,
+              fetchNext: next,
+            }}
           />
         </Fade>
       ) : null}

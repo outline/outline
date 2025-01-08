@@ -208,7 +208,7 @@ export default class UsersStore extends Store<User> {
   };
 }
 
-function queriedUsers(users: User[], query?: string) {
+export function queriedUsers(users: User[], query?: string) {
   const normalizedQuery = deburr((query || "").toLocaleLowerCase());
 
   return normalizedQuery
