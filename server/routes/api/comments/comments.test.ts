@@ -883,11 +883,14 @@ describe("#comments.remove_reaction", () => {
       userId: user.id,
       documentId: document.id,
     });
-    await Reaction.create({
-      emoji: "😄",
-      commentId: comment.id,
-      userId: user.id,
-    });
+    await Reaction.create(
+      {
+        emoji: "😄",
+        commentId: comment.id,
+        userId: user.id,
+      },
+      { hooks: false }
+    );
 
     const res = await server.post("/api/comments.remove_reaction", {
       body: {
@@ -922,11 +925,14 @@ describe("#comments.remove_reaction", () => {
       documentId: document.id,
       reactions: [{ emoji: "😄", userIds: ["test-user"] }],
     });
-    await Reaction.create({
-      emoji: "😄",
-      commentId: comment.id,
-      userId: user.id,
-    });
+    await Reaction.create(
+      {
+        emoji: "😄",
+        commentId: comment.id,
+        userId: user.id,
+      },
+      { hooks: false }
+    );
 
     const res = await server.post("/api/comments.remove_reaction", {
       body: {

@@ -1,15 +1,14 @@
 import Router from "koa-router";
+import difference from "lodash/difference";
 import { FindOptions, Op, WhereOptions } from "sequelize";
 import { CommentStatusFilter, TeamPreference } from "@shared/types";
-import commentCreator from "@server/commands/commentCreator";
-import commentDestroyer from "@server/commands/commentDestroyer";
-import commentUpdater from "@server/commands/commentUpdater";
 import auth from "@server/middlewares/authentication";
 import { feature } from "@server/middlewares/feature";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Document, Comment, Collection, Event, Reaction } from "@server/models";
+import { Document, Comment, Collection, Reaction } from "@server/models";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { authorize } from "@server/policies";
 import { presentComment, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
@@ -37,15 +36,15 @@ router.post(
     });
     authorize(user, "comment", document);
 
-    const comment = await commentCreator({
+    const comment = await Comment.createWithCtx(ctx, {
       id,
       data,
-      parentCommentId,
+      createdById: user.id,
       documentId,
-      user,
-      ip: ctx.request.ip,
-      transaction,
+      parentCommentId,
     });
+
+    comment.createdBy = user;
 
     ctx.body = {
       data: presentComment(comment),
@@ -219,16 +218,24 @@ router.post(
       userId: user.id,
       transaction,
     });
-    authorize(user, "comment", document);
     authorize(user, "update", comment);
+    authorize(user, "comment", document);
 
-    await commentUpdater({
-      user,
-      comment,
-      data,
-      ip: ctx.request.ip,
-      transaction,
-    });
+    let newMentionIds: string[] = [];
+
+    if (data !== undefined) {
+      const existingMentionIds = ProsemirrorHelper.parseMentions(
+        ProsemirrorHelper.toProsemirror(comment.data)
+      ).map((mention) => mention.id);
+      const updatedMentionIds = ProsemirrorHelper.parseMentions(
+        ProsemirrorHelper.toProsemirror(data)
+      ).map((mention) => mention.id);
+
+      newMentionIds = difference(updatedMentionIds, existingMentionIds);
+      comment.data = data;
+    }
+
+    await comment.saveWithCtx(ctx, undefined, { data: { newMentionIds } });
 
     ctx.body = {
       data: presentComment(comment),
@@ -251,20 +258,18 @@ router.post(
     const comment = await Comment.findByPk(id, {
       transaction,
       rejectOnEmpty: true,
+      lock: {
+        level: transaction.LOCK.UPDATE,
+        of: Comment,
+      },
     });
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
-      transaction,
     });
-    authorize(user, "comment", document);
     authorize(user, "delete", comment);
+    authorize(user, "comment", document);
 
-    await commentDestroyer({
-      user,
-      comment,
-      ip: ctx.request.ip,
-      transaction,
-    });
+    await comment.destroyWithCtx(ctx);
 
     ctx.body = {
       success: true,
@@ -298,15 +303,7 @@ router.post(
     authorize(user, "update", document);
 
     comment.resolve(user);
-    const changes = comment.changeset;
-    await comment.save({ transaction, silent: true });
-
-    await Event.createFromContext(ctx, {
-      name: "comments.update",
-      modelId: comment.id,
-      documentId: comment.documentId,
-      changes,
-    });
+    await comment.saveWithCtx(ctx, { silent: true });
 
     ctx.body = {
       data: presentComment(comment),
@@ -341,15 +338,7 @@ router.post(
     authorize(user, "update", document);
 
     comment.unresolve();
-    const changes = comment.changeset;
-    await comment.save({ transaction, silent: true });
-
-    await Event.createFromContext(ctx, {
-      name: "comments.update",
-      modelId: comment.id,
-      documentId: comment.documentId,
-      changes,
-    });
+    await comment.saveWithCtx(ctx, { silent: true });
 
     ctx.body = {
       data: presentComment(comment),
@@ -386,25 +375,13 @@ router.post(
     authorize(user, "comment", document);
     authorize(user, "addReaction", comment);
 
-    const [, created] = await Reaction.findOrCreate({
+    await Reaction.findOrCreateWithCtx(ctx, {
       where: {
         emoji,
         userId: user.id,
         commentId: id,
       },
-      transaction,
     });
-
-    if (created) {
-      await Event.createFromContext(ctx, {
-        name: "comments.add_reaction",
-        modelId: comment.id,
-        documentId: comment.documentId,
-        data: {
-          emoji,
-        },
-      });
-    }
 
     ctx.body = {
       success: true,
@@ -446,16 +423,7 @@ router.post(
     });
     authorize(user, "delete", reaction);
 
-    await reaction.destroy({ transaction });
-
-    await Event.createFromContext(ctx, {
-      name: "comments.remove_reaction",
-      modelId: comment.id,
-      documentId: comment.documentId,
-      data: {
-        emoji,
-      },
-    });
+    await reaction.destroyWithCtx(ctx);
 
     ctx.body = {
       success: true,
