@@ -11,7 +11,8 @@ import { depths, s } from "@shared/styles";
 import Group from "~/models/Group";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
-import Fade from "~/components/Fade";
+import DelayedMount from "~/components/DelayedMount";
+import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
 import { HEADER_HEIGHT } from "~/components/Header";
 import Heading from "~/components/Heading";
@@ -72,6 +73,8 @@ function Groups() {
     reqFn: groups.fetchPage,
     reqParams,
   });
+
+  const isEmpty = !loading && !data?.length;
 
   const updateQuery = React.useCallback(
     (value: string) => {
@@ -139,24 +142,30 @@ function Groups() {
           Groups can be used to organize and manage the people on your team.
         </Trans>
       </Text>
-      <StickyFilter>
-        <InputSearch
-          value={query}
-          placeholder={`${t("Filter")}…`}
-          onChange={handleSearch}
-        />
-      </StickyFilter>
-      <Fade>
-        <GroupsTable
-          data={data ?? []}
-          sort={sort}
-          loading={loading}
-          page={{
-            hasNext: !!next,
-            fetchNext: next,
-          }}
-        />
-      </Fade>
+      <DelayedMount>
+        {isEmpty ? (
+          <Empty>{t("No groups have been created yet")}</Empty>
+        ) : (
+          <>
+            <StickyFilter>
+              <InputSearch
+                value={query}
+                placeholder={`${t("Filter")}…`}
+                onChange={handleSearch}
+              />
+            </StickyFilter>
+            <GroupsTable
+              data={data ?? []}
+              sort={sort}
+              loading={loading}
+              page={{
+                hasNext: !!next,
+                fetchNext: next,
+              }}
+            />
+          </>
+        )}
+      </DelayedMount>
     </Scene>
   );
 }
