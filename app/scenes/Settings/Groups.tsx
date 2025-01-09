@@ -75,7 +75,7 @@ function Groups() {
     reqParams,
   });
 
-  const isEmpty = !loading && !data?.length;
+  const isEmpty = !loading && !groups.orderedData.length;
 
   const updateQuery = React.useCallback(
     (value: string) => {
