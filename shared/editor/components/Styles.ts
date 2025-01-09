@@ -296,7 +296,7 @@ width: 100%;
   font-weight: 500;
   font-size: 0.9em;
   cursor: default;
-  text-decoration: none;
+  text-decoration: none !important;
 
   display: inline-flex;
   align-items: center;
@@ -304,7 +304,6 @@ width: 100%;
   vertical-align: bottom;
 
   &:hover {
-    text-decoration: none;
     cursor: default;
   }
 
