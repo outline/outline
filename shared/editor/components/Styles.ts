@@ -303,6 +303,11 @@ width: 100%;
   gap: 4px;
   vertical-align: bottom;
 
+  &:hover {
+    text-decoration: none;
+    cursor: default;
+  }
+
   &.mention-user::before {
     content: "@";
   }

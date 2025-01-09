@@ -35,17 +35,20 @@ router.post(
           suspendedAt: {
             [Op.eq]: null,
           },
-          [Op.and]: {
-            [Op.or]: [
-              Sequelize.literal(
-                `unaccent(LOWER(email)) like unaccent(LOWER(:query))`
-              ),
-              Sequelize.literal(
-                `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
-              ),
-            ],
-          },
+          [Op.and]: query
+            ? {
+                [Op.or]: [
+                  Sequelize.literal(
+                    `unaccent(LOWER(email)) like unaccent(LOWER(:query))`
+                  ),
+                  Sequelize.literal(
+                    `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
+                  ),
+                ],
+              }
+            : {},
         },
+        order: [["name", "ASC"]],
         replacements: { query: `%${query}%` },
         offset,
         limit,

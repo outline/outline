@@ -46,6 +46,7 @@ export default class Mention extends Extension {
         {
           tag: `.${this.name}`,
           preserveWhitespace: "full",
+          priority: 100,
           getAttrs: (dom: HTMLElement) => {
             const type = dom.dataset.type;
             const modelId = dom.dataset.id;
