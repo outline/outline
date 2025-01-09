@@ -11,6 +11,7 @@ import {
   FindOrCreateOptions,
   ModelStatic,
   NonAttribute,
+  SaveOptions,
 } from "sequelize";
 import {
   AfterCreate,
@@ -28,6 +29,8 @@ import { getChangsetSkipped } from "../decorators/Changeset";
 type EventOverrideOptions = {
   /** Override the default event name. */
   name?: string;
+  /** Additional data to publish in the event. */
+  data?: Record<string, unknown>;
 };
 
 type EventOptions = EventOverrideOptions & {
@@ -52,7 +55,11 @@ class Model<
   /**
    * Validates this instance, and if the validation passes, persists it to the database.
    */
-  public saveWithCtx(ctx: APIContext, eventOpts?: EventOverrideOptions) {
+  public saveWithCtx<M extends Model>(
+    ctx: APIContext,
+    options?: SaveOptions<Attributes<M>>,
+    eventOpts?: EventOverrideOptions
+  ) {
     const hookContext: HookContext = {
       ...ctx.context,
       event: {
@@ -61,7 +68,7 @@ class Model<
       },
     };
     this.cacheChangeset();
-    return this.save(hookContext);
+    return this.save({ ...options, ...hookContext });
   }
 
   /**
@@ -264,6 +271,7 @@ class Model<
         authType: context.auth?.type,
         ip: context.ip,
         changes: model.previousChangeset,
+        data: context.event.data,
       },
       {
         transaction: context.transaction,
