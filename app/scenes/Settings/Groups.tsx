@@ -13,6 +13,7 @@ import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import DelayedMount from "~/components/DelayedMount";
 import Empty from "~/components/Empty";
+import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import { HEADER_HEIGHT } from "~/components/Header";
 import Heading from "~/components/Heading";
@@ -146,7 +147,7 @@ function Groups() {
         {isEmpty ? (
           <Empty>{t("No groups have been created yet")}</Empty>
         ) : (
-          <>
+          <Fade>
             <StickyFilter>
               <InputSearch
                 value={query}
@@ -163,7 +164,7 @@ function Groups() {
                 fetchNext: next,
               }}
             />
-          </>
+          </Fade>
         )}
       </DelayedMount>
     </Scene>
