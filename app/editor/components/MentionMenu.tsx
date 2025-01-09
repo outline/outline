@@ -58,8 +58,6 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
     }, [search, documents, users])
   );
 
-  console.log(data);
-
   React.useEffect(() => {
     if (isActive) {
       void request();
@@ -118,7 +116,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
       setItems(items);
       setLoaded(true);
     }
-  }, [auth.currentUserId, loading, data]);
+  }, [t, auth.currentUserId, loading, data]);
 
   const handleSelect = React.useCallback(
     async (item: MentionItem) => {
