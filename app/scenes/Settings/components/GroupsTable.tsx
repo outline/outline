@@ -16,7 +16,10 @@ import {
 import { type Column as TableColumn } from "~/components/Table";
 import Text from "~/components/Text";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useStores from "~/hooks/useStores";
 import GroupMenu from "~/menus/GroupMenu";
+import { hover } from "~/styles";
+import { ViewGroupMembersDialog } from "./GroupDialogs";
 
 const ROW_HEIGHT = 60;
 const STICKY_OFFSET = HEADER_HEIGHT + 40; // filter height
@@ -25,7 +28,19 @@ type Props = Omit<TableProps<Group>, "columns" | "rowHeight">;
 
 export function GroupsTable(props: Props) {
   const { t } = useTranslation();
+  const { dialogs } = useStores();
   const currentUser = useCurrentUser();
+
+  const handleViewMembers = React.useCallback(
+    (group: Group) => {
+      dialogs.openModal({
+        title: t("Group members"),
+        content: <ViewGroupMembersDialog group={group} />,
+        fullscreen: true,
+      });
+    },
+    [t, dialogs]
+  );
 
   const columns = React.useMemo<TableColumn<Group>[]>(
     () =>
@@ -41,7 +56,9 @@ export function GroupsTable(props: Props) {
                 <GroupIcon size={24} />
               </Image>
               <Flex column>
-                <Text>{group.name}</Text>
+                <Title onClick={() => handleViewMembers(group)}>
+                  {group.name}
+                </Title>
                 <Text type="tertiary" size="small">
                   <Trans
                     defaults="{{ count }} member"
@@ -80,7 +97,7 @@ export function GroupsTable(props: Props) {
             }
           : undefined,
       ]),
-    [t, currentUser]
+    [t, currentUser, handleViewMembers]
   );
 
   return (
@@ -100,4 +117,11 @@ const Image = styled(Flex)`
   height: 32px;
   background: ${s("backgroundSecondary")};
   border-radius: 32px;
+`;
+
+const Title = styled.span`
+  &: ${hover} {
+    text-decoration: underline;
+    cursor: var(--pointer);
+  }
 `;
