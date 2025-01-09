@@ -7,9 +7,9 @@ import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import Group from "~/models/Group";
 import User from "~/models/User";
-import GroupMemberListItem from "~/scenes/GroupMembers/components/GroupMemberListItem";
 import Invite from "~/scenes/Invite";
 import { Avatar, AvatarSize } from "~/components/Avatar";
+import Badge from "~/components/Badge";
 import Button from "~/components/Button";
 import ButtonLink from "~/components/ButtonLink";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
@@ -19,12 +19,15 @@ import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import PlaceholderList from "~/components/List/Placeholder";
 import PaginatedList from "~/components/PaginatedList";
+import { ListItem } from "~/components/Sharing/components/ListItem";
 import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
+import Time from "~/components/Time";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
+import GroupMemberMenu from "~/menus/GroupMemberMenu";
 
 type Props = {
   group: Group;
@@ -399,5 +402,49 @@ const AddPeopleToGroupDialog = observer(function ({
         />
       )}
     </Flex>
+  );
+});
+
+type GroupMemberListItemProps = {
+  user: User;
+  onAdd?: () => Promise<void>;
+  onRemove?: () => Promise<void>;
+};
+
+const GroupMemberListItem = observer(function ({
+  user,
+  onRemove,
+  onAdd,
+}: GroupMemberListItemProps) {
+  const { t } = useTranslation();
+
+  return (
+    <ListItem
+      title={user.name}
+      subtitle={
+        <>
+          {user.lastActiveAt ? (
+            <Trans>
+              Active <Time dateTime={user.lastActiveAt} /> ago
+            </Trans>
+          ) : (
+            t("Never signed in")
+          )}
+          {user.isInvited && <Badge>{t("Invited")}</Badge>}
+          {user.isAdmin && <Badge primary={user.isAdmin}>{t("Admin")}</Badge>}
+        </>
+      }
+      image={<Avatar model={user} size={32} />}
+      actions={
+        <Flex align="center">
+          {onRemove && <GroupMemberMenu onRemove={onRemove} />}
+          {onAdd && (
+            <Button onClick={onAdd} neutral>
+              {t("Add")}
+            </Button>
+          )}
+        </Flex>
+      }
+    />
   );
 });
