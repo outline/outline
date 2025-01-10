@@ -24,7 +24,7 @@ import getTableColMenuItems from "../menus/tableCol";
 import getTableRowMenuItems from "../menus/tableRow";
 import { useEditor } from "./EditorContext";
 import FloatingToolbar from "./FloatingToolbar";
-import LinkEditor, { SearchResult } from "./LinkEditor";
+import LinkEditor from "./LinkEditor";
 import ToolbarMenu from "./ToolbarMenu";
 
 type Props = {
@@ -35,7 +35,6 @@ type Props = {
   canUpdate?: boolean;
   onOpen: () => void;
   onClose: () => void;
-  onSearchLink?: (term: string) => Promise<SearchResult[]>;
   onClickLink: (
     href: string,
     event: MouseEvent | React.MouseEvent<HTMLButtonElement>

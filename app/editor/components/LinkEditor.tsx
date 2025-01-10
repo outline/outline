@@ -13,13 +13,6 @@ import Input from "./Input";
 import ToolbarButton from "./ToolbarButton";
 import Tooltip from "./Tooltip";
 
-export type SearchResult = {
-  title: string;
-  subtitle?: React.ReactNode;
-  icon?: React.ReactNode;
-  url: string;
-};
-
 type Props = {
   mark?: Mark;
   from: number;

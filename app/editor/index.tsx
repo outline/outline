@@ -47,7 +47,6 @@ import { Dictionary } from "~/hooks/useDictionary";
 import Logger from "~/utils/Logger";
 import ComponentView from "./components/ComponentView";
 import EditorContext from "./components/EditorContext";
-import { SearchResult } from "./components/LinkEditor";
 import { NodeViewRenderer } from "./components/NodeViewRenderer";
 import SelectionToolbar from "./components/SelectionToolbar";
 import WithTheme from "./components/WithTheme";
@@ -115,8 +114,6 @@ export type Props = {
   onFileUploadStop?: () => void;
   /** Callback when a link is created, should return url to created document */
   onCreateLink?: (title: string) => Promise<string>;
-  /** Callback when user searches for documents from link insert interface */
-  onSearchLink?: (term: string) => Promise<SearchResult[]>;
   /** Callback when user clicks on any link in the document */
   onClickLink: (
     href: string,
@@ -805,7 +802,6 @@ export class Editor extends React.PureComponent<
                 isTemplate={this.props.template === true}
                 onOpen={this.handleOpenSelectionToolbar}
                 onClose={this.handleCloseSelectionToolbar}
-                onSearchLink={this.props.onSearchLink}
                 onClickLink={this.props.onClickLink}
                 onCreateLink={this.props.onCreateLink}
               />

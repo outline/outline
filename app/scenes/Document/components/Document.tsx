@@ -45,7 +45,6 @@ import RegisterKeyDown from "~/components/RegisterKeyDown";
 import { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
 import withStores from "~/components/withStores";
 import type { Editor as TEditor } from "~/editor";
-import { SearchResult } from "~/editor/components/LinkEditor";
 import { client } from "~/utils/ApiClient";
 import { emojiToUrl } from "~/utils/emoji";
 
@@ -91,7 +90,6 @@ type Props = WithTranslation &
     shareId?: string;
     tocPosition?: TOCPosition;
     onCreateLink?: (title: string, nested?: boolean) => Promise<string>;
-    onSearchLink?: (term: string) => Promise<SearchResult[]>;
   };
 
 @observer
@@ -571,7 +569,6 @@ class DocumentScene extends React.Component<Props> {
                         onSynced={this.onSynced}
                         onFileUploadStart={this.onFileUploadStart}
                         onFileUploadStop={this.onFileUploadStop}
-                        onSearchLink={this.props.onSearchLink}
                         onCreateLink={this.props.onCreateLink}
                         onChangeTitle={this.handleChangeTitle}
                         onChangeIcon={this.handleChangeIcon}
