@@ -1,7 +1,6 @@
 import some from "lodash/some";
 import { EditorState, NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
-import createAndInsertLink from "@shared/editor/commands/createAndInsertLink";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { getMarkRange } from "@shared/editor/queries/getMarkRange";
 import { isInCode } from "@shared/editor/queries/isInCode";
@@ -9,7 +8,6 @@ import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import { getColumnIndex, getRowIndex } from "@shared/editor/queries/table";
 import { MenuItem } from "@shared/editor/types";
-import { creatingUrlPrefix } from "@shared/utils/urls";
 import useBoolean from "~/hooks/useBoolean";
 import useDictionary from "~/hooks/useDictionary";
 import useEventListener from "~/hooks/useEventListener";
@@ -149,40 +147,6 @@ export default function SelectionToolbar(props: Props) {
     };
   }, [isActive, previousIsActive, readOnly, view]);
 
-  const handleOnCreateLink = async (
-    title: string,
-    nested?: boolean
-  ): Promise<void> => {
-    const { onCreateLink } = props;
-
-    if (!onCreateLink) {
-      return;
-    }
-
-    const { dispatch, state } = view;
-    const { from, to } = state.selection;
-    if (from === to) {
-      // Do not display a selection toolbar for collapsed selections
-      return;
-    }
-
-    const href = `${creatingUrlPrefix}${title}…`;
-    const markType = state.schema.marks.link;
-
-    // Insert a placeholder link
-    dispatch(
-      view.state.tr
-        .removeMark(from, to, markType)
-        .addMark(from, to, markType.create({ href }))
-    );
-
-    return createAndInsertLink(view, title, href, {
-      nested,
-      onCreateLink,
-      dictionary,
-    });
-  };
-
   const handleOnSelectLink = ({
     href,
     from,
@@ -283,8 +247,6 @@ export default function SelectionToolbar(props: Props) {
           from={link.from}
           to={link.to}
           onClickLink={props.onClickLink}
-          onSearchLink={props.onSearchLink}
-          onCreateLink={onCreateLink ? handleOnCreateLink : undefined}
           onSelectLink={handleOnSelectLink}
         />
       ) : (
