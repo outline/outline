@@ -10,10 +10,9 @@ import {
   AfterCreate,
   AfterDestroy,
 } from "sequelize-typescript";
-import { APIContext } from "@server/types";
 import Group from "./Group";
 import User from "./User";
-import Model from "./base/Model";
+import Model, { type HookContext } from "./base/Model";
 import Fix from "./decorators/Fix";
 
 @DefaultScope(() => ({
@@ -75,7 +74,7 @@ class GroupUser extends Model<
   @AfterCreate
   public static async publishAddUserEvent(
     model: GroupUser,
-    context: APIContext["context"]
+    context: HookContext
   ) {
     await Group.insertEvent("add_user", model, context);
   }
@@ -83,7 +82,7 @@ class GroupUser extends Model<
   @AfterDestroy
   public static async publishRemoveUserEvent(
     model: GroupUser,
-    context: APIContext["context"]
+    context: HookContext
   ) {
     await Group.insertEvent("remove_user", model, context);
   }

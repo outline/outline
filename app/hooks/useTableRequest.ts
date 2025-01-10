@@ -1,4 +1,5 @@
-import sortBy from "lodash/sortBy";
+import { ColumnSort } from "@tanstack/react-table";
+import orderBy from "lodash/orderBy";
 import React from "react";
 import {
   FetchPageParams,
@@ -12,6 +13,7 @@ const PAGE_SIZE = 25;
 
 type Props<T> = {
   data: T[];
+  sort: ColumnSort;
   reqFn: (params: FetchPageParams) => Promise<PaginatedResponse<T>>;
   reqParams: Omit<FetchPageParams, "offset" | "limit">;
 };
@@ -25,13 +27,14 @@ type Response<T> = {
 
 export function useTableRequest<T extends { id: string }>({
   data,
+  sort,
   reqFn,
   reqParams,
 }: Props<T>): Response<T> {
-  const [dataIds, setDataIds] = React.useState<string[]>();
   const [total, setTotal] = React.useState<number>();
   const [offset, setOffset] = React.useState({ value: INITIAL_OFFSET });
   const prevParamsRef = React.useRef(reqParams);
+  const sortRef = React.useRef<ColumnSort>(sort);
 
   const fetchPage = React.useCallback(
     () => reqFn({ ...reqParams, offset: offset.value, limit: PAGE_SIZE }),
@@ -48,6 +51,15 @@ export function useTableRequest<T extends { id: string }>({
     []
   );
 
+  const sortedData = data
+    ? orderBy(data, sortRef.current.id, sortRef.current.desc ? "desc" : "asc")
+    : undefined;
+
+  const next =
+    !loading && total && sortedData && sortedData.length < total
+      ? nextPage
+      : undefined;
+
   React.useEffect(() => {
     if (prevParamsRef.current !== reqParams) {
       prevParamsRef.current = reqParams;
@@ -63,14 +75,7 @@ export function useTableRequest<T extends { id: string }>({
         return;
       }
 
-      const ids = response.map((item) => item.id);
-
-      if (offset.value === INITIAL_OFFSET) {
-        setDataIds(response.map((item) => item.id));
-      } else {
-        setDataIds((prev) => (prev ?? []).concat(ids));
-      }
-
+      sortRef.current = sort; // Change sort once we receive a response from server - avoids flicker with stale data.
       setTotal(response[PAGINATION_SYMBOL]?.total);
     };
 
@@ -79,22 +84,10 @@ export function useTableRequest<T extends { id: string }>({
     return () => {
       ignore = true;
     };
-  }, [reqParams, offset, request]);
-
-  const filteredData = dataIds
-    ? sortBy(
-        data.filter((item) => dataIds.includes(item.id)),
-        (item) => dataIds.indexOf(item.id)
-      )
-    : undefined;
-
-  const next =
-    !loading && dataIds && total && dataIds.length < total
-      ? nextPage
-      : undefined;
+  }, [sort, reqParams, offset, request]);
 
   return {
-    data: filteredData,
+    data: sortedData,
     error,
     loading,
     next,

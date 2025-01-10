@@ -8,6 +8,7 @@ import {
   Table,
   Length,
   DefaultScope,
+  AfterDestroy,
 } from "sequelize-typescript";
 import type { ProsemirrorData, ReactionSummary } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
@@ -16,6 +17,7 @@ import { schema } from "@server/editor";
 import { ValidationError } from "@server/errors";
 import Document from "./Document";
 import User from "./User";
+import { type HookContext } from "./base/Model";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 import TextLength from "./validators/TextLength";
@@ -40,6 +42,8 @@ class Comment extends ParanoidModel<
   InferAttributes<Comment>,
   Partial<InferCreationAttributes<Comment>>
 > {
+  static eventNamespace = "comments";
+
   @TextLength({
     max: CommentValidation.maxLength,
     msg: `Comment must be less than ${CommentValidation.maxLength} characters`,
@@ -135,6 +139,30 @@ class Comment extends ParanoidModel<
   public toPlainText() {
     const node = Node.fromJSON(schema, this.data);
     return ProsemirrorHelper.toPlainText(node, schema);
+  }
+
+  // hooks
+
+  @AfterDestroy
+  public static async deleteChildComments(model: Comment, ctx: HookContext) {
+    const { transaction } = ctx;
+
+    const lock = transaction
+      ? {
+          level: transaction.LOCK.UPDATE,
+          of: this,
+        }
+      : undefined;
+
+    const childComments = await this.findAll({
+      where: { parentCommentId: model.id },
+      transaction,
+      lock,
+    });
+
+    await Promise.all(
+      childComments.map((childComment) => childComment.destroy({ transaction }))
+    );
   }
 }
 

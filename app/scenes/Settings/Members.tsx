@@ -6,13 +6,10 @@ import { Trans, useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
-import { depths, s } from "@shared/styles";
-import UsersStore from "~/stores/UsersStore";
+import UsersStore, { queriedUsers } from "~/stores/UsersStore";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import Fade from "~/components/Fade";
-import Flex from "~/components/Flex";
-import { HEADER_HEIGHT } from "~/components/Header";
 import Heading from "~/components/Heading";
 import InputSearch from "~/components/InputSearch";
 import Scene from "~/components/Scene";
@@ -26,6 +23,7 @@ import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
 import { PeopleTable } from "./components/PeopleTable";
+import { StickyFilters } from "./components/StickyFilters";
 import UserRoleFilter from "./components/UserRoleFilter";
 import UserStatusFilter from "./components/UserStatusFilter";
 
@@ -44,7 +42,7 @@ function Members() {
   const reqParams = React.useMemo(
     () => ({
       query: params.get("query") || undefined,
-      filter: params.get("filter") || undefined,
+      filter: params.get("filter") || "active",
       role: params.get("role") || undefined,
       sort: params.get("sort") || "name",
       direction: (params.get("direction") || "asc").toUpperCase() as
@@ -65,9 +63,11 @@ function Members() {
   const { data, error, loading, next } = useTableRequest({
     data: getFilteredUsers({
       users,
+      query: reqParams.query,
       filter: reqParams.filter,
       role: reqParams.role,
     }),
+    sort,
     reqFn: users.fetchPage,
     reqParams,
   });
@@ -181,10 +181,12 @@ function Members() {
 
 function getFilteredUsers({
   users,
+  query,
   filter,
   role,
 }: {
   users: UsersStore;
+  query?: string;
   filter?: string;
   role?: string;
 }) {
@@ -204,18 +206,16 @@ function getFilteredUsers({
       filteredUsers = users.active;
   }
 
-  return role
-    ? filteredUsers.filter((user) => user.role === role)
-    : filteredUsers;
-}
+  if (role) {
+    filteredUsers = filteredUsers.filter((user) => user.role === role);
+  }
 
-const StickyFilters = styled(Flex)`
-  height: 40px;
-  position: sticky;
-  top: ${HEADER_HEIGHT}px;
-  z-index: ${depths.header};
-  background: ${s("background")};
-`;
+  if (query) {
+    filteredUsers = queriedUsers(filteredUsers, query);
+  }
+
+  return filteredUsers;
+}
 
 const LargeUserStatusFilter = styled(UserStatusFilter)`
   height: 32px;

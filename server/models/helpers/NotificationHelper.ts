@@ -1,6 +1,6 @@
 import uniq from "lodash/uniq";
 import { Op } from "sequelize";
-import { NotificationEventType } from "@shared/types";
+import { NotificationEventType, MentionType } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import {
   User,
@@ -82,7 +82,8 @@ export default class NotificationHelper {
       const mentionedUserIdsInThread = contextComments
         .flatMap((c) =>
           ProsemirrorHelper.parseMentions(
-            ProsemirrorHelper.toProsemirror(c.data)
+            ProsemirrorHelper.toProsemirror(c.data),
+            { type: MentionType.User }
           )
         )
         .map((mention) => mention.modelId);

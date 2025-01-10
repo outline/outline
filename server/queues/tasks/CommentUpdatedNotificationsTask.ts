@@ -100,7 +100,9 @@ export default class CommentUpdatedNotificationsTask extends BaseTask<CommentEve
     for (const item of commentsAndReplies) {
       // Mentions:
       const proseCommentData = ProsemirrorHelper.toProsemirror(item.data);
-      const mentions = ProsemirrorHelper.parseMentions(proseCommentData);
+      const mentions = ProsemirrorHelper.parseMentions(proseCommentData, {
+        type: MentionType.User,
+      });
       const userIds = mentions.map((mention) => mention.modelId);
 
       // Comment author:

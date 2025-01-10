@@ -15,9 +15,10 @@ import { type Column as TableColumn } from "~/components/Table";
 import Time from "~/components/Time";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import UserMenu from "~/menus/UserMenu";
+import { FILTER_HEIGHT } from "./StickyFilters";
 
 const ROW_HEIGHT = 60;
-const STICKY_OFFSET = HEADER_HEIGHT + 40; // filter height
+const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
 
 type Props = Omit<TableProps<User>, "columns" | "rowHeight"> & {
   canManage: boolean;
