@@ -6,13 +6,10 @@ import { Trans, useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import styled from "styled-components";
-import { depths, s } from "@shared/styles";
 import UsersStore, { queriedUsers } from "~/stores/UsersStore";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import Fade from "~/components/Fade";
-import Flex from "~/components/Flex";
-import { HEADER_HEIGHT } from "~/components/Header";
 import Heading from "~/components/Heading";
 import InputSearch from "~/components/InputSearch";
 import Scene from "~/components/Scene";
@@ -26,6 +23,7 @@ import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
 import { PeopleTable } from "./components/PeopleTable";
+import { StickyFilters } from "./components/StickyFilters";
 import UserRoleFilter from "./components/UserRoleFilter";
 import UserStatusFilter from "./components/UserStatusFilter";
 
@@ -218,14 +216,6 @@ function getFilteredUsers({
 
   return filteredUsers;
 }
-
-const StickyFilters = styled(Flex)`
-  height: 40px;
-  position: sticky;
-  top: ${HEADER_HEIGHT}px;
-  z-index: ${depths.header};
-  background: ${s("background")};
-`;
 
 const LargeUserStatusFilter = styled(UserStatusFilter)`
   height: 32px;
