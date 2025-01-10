@@ -9,7 +9,6 @@ import { toast } from "sonner";
 import Group from "~/models/Group";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
-import DelayedMount from "~/components/DelayedMount";
 import Empty from "~/components/Empty";
 import Heading from "~/components/Heading";
 import InputSearch from "~/components/InputSearch";
@@ -139,30 +138,28 @@ function Groups() {
           Groups can be used to organize and manage the people on your team.
         </Trans>
       </Text>
-      <DelayedMount>
-        {isEmpty ? (
-          <Empty>{t("No groups have been created yet")}</Empty>
-        ) : (
-          <>
-            <StickyFilters>
-              <InputSearch
-                value={query}
-                placeholder={`${t("Filter")}…`}
-                onChange={handleSearch}
-              />
-            </StickyFilters>
-            <GroupsTable
-              data={data ?? []}
-              sort={sort}
-              loading={loading}
-              page={{
-                hasNext: !!next,
-                fetchNext: next,
-              }}
+      {isEmpty ? (
+        <Empty>{t("No groups have been created yet")}</Empty>
+      ) : (
+        <>
+          <StickyFilters>
+            <InputSearch
+              value={query}
+              placeholder={`${t("Filter")}…`}
+              onChange={handleSearch}
             />
-          </>
-        )}
-      </DelayedMount>
+          </StickyFilters>
+          <GroupsTable
+            data={data ?? []}
+            sort={sort}
+            loading={loading}
+            page={{
+              hasNext: !!next,
+              fetchNext: next,
+            }}
+          />
+        </>
+      )}
     </Scene>
   );
 }

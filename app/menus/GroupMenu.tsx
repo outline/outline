@@ -85,6 +85,16 @@ function GroupMenu({ group }: Props) {
               onClick: handleDeleteGroup,
               visible: !!(group && can.delete),
             },
+            {
+              type: "separator",
+            },
+            {
+              type: "link",
+              href: "",
+              title: group.externalId,
+              disabled: true,
+              visible: !!group.externalId,
+            },
           ]}
         />
       </ContextMenu>
