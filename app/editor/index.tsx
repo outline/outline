@@ -256,7 +256,6 @@ export class Editor extends React.PureComponent<
     if (
       !this.isBlurred &&
       !this.state.isEditorFocused &&
-      !this.state.linkToolbarOpen &&
       !this.state.selectionToolbarOpen
     ) {
       this.isBlurred = true;

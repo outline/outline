@@ -23,7 +23,6 @@ import SuggestionsMenu, {
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
 
 interface MentionItem extends MenuItem {
-  appendSpace: boolean;
   attrs: {
     id: string;
     type: MentionType;
@@ -68,53 +67,59 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
   React.useEffect(() => {
     if (data && !loading) {
       const items = data.users
-        .map((user) => ({
-          name: "mention",
-          icon: (
-            <Flex
-              align="center"
-              justify="center"
-              style={{ width: 24, height: 24 }}
-            >
-              <Avatar
-                model={user}
-                showBorder={false}
-                alt={t("Profile picture")}
-                size={AvatarSize.Small}
-              />
-            </Flex>
-          ),
-          title: user.name,
-          section: UserSection,
-          appendSpace: true,
-          attrs: {
-            id: v4(),
-            type: MentionType.User,
-            modelId: user.id,
-            actorId: auth.currentUserId ?? undefined,
-            label: user.name,
-          },
-        }))
+        .map(
+          (user) =>
+            ({
+              name: "mention",
+              icon: (
+                <Flex
+                  align="center"
+                  justify="center"
+                  style={{ width: 24, height: 24 }}
+                >
+                  <Avatar
+                    model={user}
+                    showBorder={false}
+                    alt={t("Profile picture")}
+                    size={AvatarSize.Small}
+                  />
+                </Flex>
+              ),
+              title: user.name,
+              section: UserSection,
+              appendSpace: true,
+              attrs: {
+                id: v4(),
+                type: MentionType.User,
+                modelId: user.id,
+                actorId: auth.currentUserId ?? undefined,
+                label: user.name,
+              },
+            } as MentionItem)
+        )
         .concat(
-          data.documents.map((doc) => ({
-            name: "mention",
-            icon: doc.icon ? (
-              <Icon value={doc.icon} color={doc.color ?? undefined} />
-            ) : (
-              <DocumentIcon />
-            ),
-            title: doc.title,
-            subtitle: doc.collection?.name,
-            section: DocumentsSection,
-            appendSpace: true,
-            attrs: {
-              id: v4(),
-              type: MentionType.Document,
-              modelId: doc.id,
-              actorId: auth.currentUserId ?? undefined,
-              label: doc.title,
-            },
-          }))
+          data.documents.map(
+            (doc) =>
+              ({
+                name: "mention",
+                icon: doc.icon ? (
+                  <Icon value={doc.icon} color={doc.color ?? undefined} />
+                ) : (
+                  <DocumentIcon />
+                ),
+                title: doc.title,
+                subtitle: doc.collection?.name,
+                section: DocumentsSection,
+                appendSpace: true,
+                attrs: {
+                  id: v4(),
+                  type: MentionType.Document,
+                  modelId: doc.id,
+                  actorId: auth.currentUserId ?? undefined,
+                  label: doc.title,
+                },
+              } as MentionItem)
+          )
         )
         .concat([
           {
@@ -132,13 +137,13 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
               actorId: auth.currentUserId ?? undefined,
               label: search,
             },
-          },
+          } as MentionItem,
         ]);
 
       setItems(items);
       setLoaded(true);
     }
-  }, [t, auth.currentUserId, loading, data]);
+  }, [t, auth.currentUserId, loading, search, data]);
 
   const handleSelect = React.useCallback(
     async (item: MentionItem) => {
