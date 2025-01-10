@@ -869,6 +869,7 @@
   "Search people": "Search people",
   "No people matching your search": "No people matching your search",
   "No people left to add": "No people left to add",
+  "Date created": "Date created",
   "Upload": "Upload",
   "How does this work?": "How does this work?",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>.": "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>.",

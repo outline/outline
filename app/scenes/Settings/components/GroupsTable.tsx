@@ -15,6 +15,7 @@ import {
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
 import Text from "~/components/Text";
+import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
 import GroupMenu from "~/menus/GroupMenu";
 import { hover } from "~/styles";
@@ -86,6 +87,17 @@ export function GroupsTable(props: Props) {
           },
           width: "1fr",
           sortable: false,
+        },
+        {
+          type: "data",
+          id: "createdAt",
+          header: t("Date created"),
+          accessor: (group) => group.createdAt,
+          component: (group) =>
+            group.createdAt ? (
+              <Time dateTime={group.createdAt} addSuffix />
+            ) : null,
+          width: "1fr",
         },
         {
           type: "action",
