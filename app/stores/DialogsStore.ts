@@ -44,12 +44,14 @@ export default class DialogsStore {
   };
 
   openModal = ({
+    id,
     title,
     content,
     fullscreen,
     replace,
     style,
   }: {
+    id?: string;
     title: string;
     fullscreen?: boolean;
     content: React.ReactNode;
@@ -58,13 +60,11 @@ export default class DialogsStore {
   }) => {
     setTimeout(
       action(() => {
-        const id = uuidv4();
-
         if (replace) {
           this.modalStack.clear();
         }
 
-        this.modalStack.set(id, {
+        this.modalStack.set(id ?? uuidv4(), {
           title,
           content,
           fullscreen,
