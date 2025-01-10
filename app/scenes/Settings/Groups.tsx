@@ -6,15 +6,11 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
-import styled from "styled-components";
-import { depths, s } from "@shared/styles";
 import Group from "~/models/Group";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import DelayedMount from "~/components/DelayedMount";
 import Empty from "~/components/Empty";
-import Flex from "~/components/Flex";
-import { HEADER_HEIGHT } from "~/components/Header";
 import Heading from "~/components/Heading";
 import InputSearch from "~/components/InputSearch";
 import Scene from "~/components/Scene";
@@ -26,6 +22,7 @@ import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
 import { CreateGroupDialog } from "./components/GroupDialogs";
 import { GroupsTable } from "./components/GroupsTable";
+import { StickyFilters } from "./components/StickyFilters";
 
 function getFilteredGroups(groups: Group[], query?: string) {
   if (!query?.length) {
@@ -147,13 +144,13 @@ function Groups() {
           <Empty>{t("No groups have been created yet")}</Empty>
         ) : (
           <>
-            <StickyFilter>
+            <StickyFilters>
               <InputSearch
                 value={query}
                 placeholder={`${t("Filter")}…`}
                 onChange={handleSearch}
               />
-            </StickyFilter>
+            </StickyFilters>
             <GroupsTable
               data={data ?? []}
               sort={sort}
@@ -169,13 +166,5 @@ function Groups() {
     </Scene>
   );
 }
-
-const StickyFilter = styled(Flex)`
-  height: 40px;
-  position: sticky;
-  top: ${HEADER_HEIGHT}px;
-  z-index: ${depths.header};
-  background: ${s("background")};
-`;
 
 export default observer(Groups);

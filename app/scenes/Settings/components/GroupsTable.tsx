@@ -19,9 +19,10 @@ import useStores from "~/hooks/useStores";
 import GroupMenu from "~/menus/GroupMenu";
 import { hover } from "~/styles";
 import { ViewGroupMembersDialog } from "./GroupDialogs";
+import { FILTER_HEIGHT } from "./StickyFilters";
 
 const ROW_HEIGHT = 60;
-const STICKY_OFFSET = HEADER_HEIGHT + 40; // filter height
+const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
 
 type Props = Omit<TableProps<Group>, "columns" | "rowHeight">;
 
