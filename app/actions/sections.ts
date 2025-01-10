@@ -13,6 +13,8 @@ export const DeveloperSection = ({ t }: ActionContext) => t("Debug");
 
 export const DocumentSection = ({ t }: ActionContext) => t("Document");
 
+export const DocumentsSection = ({ t }: ActionContext) => t("Documents");
+
 export const ActiveDocumentSection = ({ t, stores }: ActionContext) => {
   const activeDocument = stores.documents.active;
   return `${t("Document")} · ${activeDocument?.titleWithDefault}`;

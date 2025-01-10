@@ -37,7 +37,7 @@ import Mark from "@shared/editor/marks/Mark";
 import { basicExtensions as extensions } from "@shared/editor/nodes";
 import Node from "@shared/editor/nodes/Node";
 import ReactNode from "@shared/editor/nodes/ReactNode";
-import { ComponentProps, EventType } from "@shared/editor/types";
+import { ComponentProps } from "@shared/editor/types";
 import { ProsemirrorData, UserPreferences } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import EventEmitter from "@shared/utils/events";
@@ -48,7 +48,6 @@ import Logger from "~/utils/Logger";
 import ComponentView from "./components/ComponentView";
 import EditorContext from "./components/EditorContext";
 import { SearchResult } from "./components/LinkEditor";
-import LinkToolbar from "./components/LinkToolbar";
 import { NodeViewRenderer } from "./components/NodeViewRenderer";
 import SelectionToolbar from "./components/SelectionToolbar";
 import WithTheme from "./components/WithTheme";
@@ -145,8 +144,6 @@ type State = {
   isEditorFocused: boolean;
   /** If the toolbar for a text selection is visible */
   selectionToolbarOpen: boolean;
-  /** If the insert link toolbar is visible */
-  linkToolbarOpen: boolean;
 };
 
 /**
@@ -176,7 +173,6 @@ export class Editor extends React.PureComponent<
     isRTL: false,
     isEditorFocused: false,
     selectionToolbarOpen: false,
-    linkToolbarOpen: false,
   };
 
   isInitialized = false;
@@ -204,11 +200,6 @@ export class Editor extends React.PureComponent<
   rulePlugins: PluginSimple[];
   events = new EventEmitter();
   mutationObserver?: MutationObserver;
-
-  public constructor(props: Props & ThemeProps<DefaultTheme>) {
-    super(props);
-    this.events.on(EventType.LinkToolbarOpen, this.handleOpenLinkToolbar);
-  }
 
   /**
    * We use componentDidMount instead of constructor as the init method requires
@@ -274,9 +265,7 @@ export class Editor extends React.PureComponent<
 
     if (
       this.isBlurred &&
-      (this.state.isEditorFocused ||
-        this.state.linkToolbarOpen ||
-        this.state.selectionToolbarOpen)
+      (this.state.isEditorFocused || this.state.selectionToolbarOpen)
     ) {
       this.isBlurred = false;
       this.props.onFocus?.();
@@ -779,23 +768,6 @@ export class Editor extends React.PureComponent<
     }));
   };
 
-  private handleOpenLinkToolbar = () => {
-    if (this.state.selectionToolbarOpen) {
-      return;
-    }
-    this.setState((state) => ({
-      ...state,
-      linkToolbarOpen: true,
-    }));
-  };
-
-  private handleCloseLinkToolbar = () => {
-    this.setState((state) => ({
-      ...state,
-      linkToolbarOpen: false,
-    }));
-  };
-
   public render() {
     const { dir, readOnly, canUpdate, grow, style, className, onKeyDown } =
       this.props;
@@ -837,15 +809,6 @@ export class Editor extends React.PureComponent<
                 onSearchLink={this.props.onSearchLink}
                 onClickLink={this.props.onClickLink}
                 onCreateLink={this.props.onCreateLink}
-              />
-            )}
-            {!readOnly && this.view && this.marks.link && (
-              <LinkToolbar
-                isActive={this.state.linkToolbarOpen}
-                onCreateLink={this.props.onCreateLink}
-                onSearchLink={this.props.onSearchLink}
-                onClickLink={this.props.onClickLink}
-                onClose={this.handleCloseLinkToolbar}
               />
             )}
             {this.widgets &&

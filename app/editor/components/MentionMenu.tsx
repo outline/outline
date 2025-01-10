@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { DocumentIcon } from "outline-icons";
+import { DocumentIcon, PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
@@ -13,7 +13,7 @@ import Document from "~/models/Document";
 import User from "~/models/User";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Flex from "~/components/Flex";
-import { DocumentSection, UserSection } from "~/actions/sections";
+import { DocumentsSection, UserSection } from "~/actions/sections";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
@@ -105,7 +105,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
             ),
             title: doc.title,
             subtitle: doc.collection?.name,
-            section: DocumentSection,
+            section: DocumentsSection,
             appendSpace: true,
             attrs: {
               id: v4(),
@@ -115,7 +115,25 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
               label: doc.title,
             },
           }))
-        );
+        )
+        .concat([
+          {
+            name: "mention",
+            icon: <PlusIcon />,
+            title: search?.trim(),
+            section: DocumentsSection,
+            subtitle: t("Create a new doc"),
+            visible: !!search,
+            appendSpace: true,
+            attrs: {
+              id: v4(),
+              type: MentionType.Document,
+              modelId: v4(),
+              actorId: auth.currentUserId ?? undefined,
+              label: search,
+            },
+          },
+        ]);
 
       setItems(items);
       setLoaded(true);

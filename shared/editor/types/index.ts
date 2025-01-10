@@ -8,10 +8,6 @@ import { Primitive } from "utility-types";
 
 export type PlainTextSerializer = (node: ProsemirrorNode) => string;
 
-export enum EventType {
-  LinkToolbarOpen = "linkMenuOpen",
-}
-
 export enum TableLayout {
   fullWidth = "full-width",
 }
