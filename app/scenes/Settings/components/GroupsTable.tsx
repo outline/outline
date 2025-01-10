@@ -15,7 +15,6 @@ import {
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
 import Text from "~/components/Text";
-import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import GroupMenu from "~/menus/GroupMenu";
 import { hover } from "~/styles";
@@ -29,7 +28,6 @@ type Props = Omit<TableProps<Group>, "columns" | "rowHeight">;
 export function GroupsTable(props: Props) {
   const { t } = useTranslation();
   const { dialogs } = useStores();
-  const currentUser = useCurrentUser();
 
   const handleViewMembers = React.useCallback(
     (group: Group) => {
@@ -88,16 +86,14 @@ export function GroupsTable(props: Props) {
           width: "1fr",
           sortable: false,
         },
-        !currentUser.isGuest
-          ? {
-              type: "action",
-              id: "action",
-              component: (group) => <GroupMenu group={group} />,
-              width: "50px",
-            }
-          : undefined,
+        {
+          type: "action",
+          id: "action",
+          component: (group) => <GroupMenu group={group} />,
+          width: "50px",
+        },
       ]),
-    [t, currentUser, handleViewMembers]
+    [t, handleViewMembers]
   );
 
   return (
