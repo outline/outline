@@ -13,6 +13,7 @@ import Document from "~/models/Document";
 import User from "~/models/User";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Flex from "~/components/Flex";
+import { DocumentSection, UserSection } from "~/actions/sections";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
@@ -84,6 +85,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
             </Flex>
           ),
           title: user.name,
+          section: UserSection,
           appendSpace: true,
           attrs: {
             id: v4(),
@@ -102,6 +104,8 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
               <DocumentIcon />
             ),
             title: doc.title,
+            subtitle: doc.collection?.name,
+            section: DocumentSection,
             appendSpace: true,
             attrs: {
               id: v4(),
@@ -166,6 +170,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
         <SuggestionsMenuItem
           onClick={options.onClick}
           selected={options.selected}
+          subtitle={item.subtitle}
           title={item.title}
           icon={item.icon}
         />

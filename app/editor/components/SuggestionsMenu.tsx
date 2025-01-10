@@ -1,7 +1,8 @@
 import commandScore from "command-score";
 import capitalize from "lodash/capitalize";
+import orderBy from "lodash/orderBy";
 import * as React from "react";
-import { Trans } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import { toast } from "sonner";
 import styled from "styled-components";
@@ -13,6 +14,7 @@ import { MenuItem } from "@shared/editor/types";
 import { depths, s } from "@shared/styles";
 import { getEventFiles } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
+import Header from "~/components/ContextMenu/Header";
 import { Portal } from "~/components/Portal";
 import Scrollable from "~/components/Scrollable";
 import useDictionary from "~/hooks/useDictionary";
@@ -80,6 +82,7 @@ export type Props<T extends MenuItem = MenuItem> = {
 function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   const { view, commands } = useEditor();
   const dictionary = useDictionary();
+  const { t } = useTranslation();
   const hasActivated = React.useRef(false);
   const pointerRef = React.useRef<{ clientX: number; clientY: number }>({
     clientX: 0,
@@ -445,18 +448,20 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     });
 
     return filterExcessSeparators(
-      filtered
-        .map((item) => ({
+      orderBy(
+        filtered.map((item) => ({
           item,
+          section: "section" in item ? item.section?.({ t }) : "default",
           score:
             searchInput && item.title
               ? commandScore(item.title, searchInput)
               : 0,
-        }))
-        .sort((a, b) => b.score - a.score)
-        .map(({ item }) => item)
+        })),
+        ["section", "score"],
+        ["asc", "desc"]
+      ).map(({ item }) => item)
     );
-  }, [commands, props]);
+  }, [t, commands, props]);
 
   React.useEffect(() => {
     const handleMouseDown = (event: MouseEvent) => {
@@ -555,6 +560,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
   const { isActive, uploadFile } = props;
   const items = filtered;
+  let previousHeading: string | undefined;
 
   return (
     <Portal>
@@ -614,18 +620,29 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                     }
                   };
 
-                  return (
-                    <ListItem
-                      key={index}
-                      onPointerMove={handlePointerMove}
-                      onPointerDown={handlePointerDown}
-                    >
-                      {props.renderMenuItem(item as any, index, {
-                        selected: index === selectedIndex,
-                        onClick: () => handleClickItem(item),
-                      })}
-                    </ListItem>
+                  const currentHeading =
+                    "section" in item ? item.section?.({ t }) : undefined;
+
+                  const response = (
+                    <>
+                      {currentHeading !== previousHeading && (
+                        <Header key={currentHeading}>{currentHeading}</Header>
+                      )}
+                      <ListItem
+                        key={index}
+                        onPointerMove={handlePointerMove}
+                        onPointerDown={handlePointerDown}
+                      >
+                        {props.renderMenuItem(item as any, index, {
+                          selected: index === selectedIndex,
+                          onClick: () => handleClickItem(item),
+                        })}
+                      </ListItem>
+                    </>
                   );
+
+                  previousHeading = currentHeading;
+                  return response;
                 })}
                 {items.length === 0 && (
                   <ListItem>
