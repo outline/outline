@@ -45,6 +45,7 @@ import RegisterKeyDown from "~/components/RegisterKeyDown";
 import { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
 import withStores from "~/components/withStores";
 import type { Editor as TEditor } from "~/editor";
+import { Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { emojiToUrl } from "~/utils/emoji";
 
@@ -89,7 +90,10 @@ type Props = WithTranslation &
     readOnly: boolean;
     shareId?: string;
     tocPosition?: TOCPosition;
-    onCreateLink?: (title: string, nested?: boolean) => Promise<string>;
+    onCreateLink?: (
+      params: Properties<Document>,
+      nested?: boolean
+    ) => Promise<string>;
   };
 
 @observer

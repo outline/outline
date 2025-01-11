@@ -80,7 +80,7 @@ export type Props<T extends MenuItem = MenuItem> = {
 };
 
 function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
-  const { view, commands } = useEditor();
+  const { view, commands, props: editorProps } = useEditor();
   const dictionary = useDictionary();
   const { t } = useTranslation();
   const hasActivated = React.useRef(false);
@@ -253,6 +253,16 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       props.onSelect?.(item);
 
       switch (item.name) {
+        case "link":
+          insertNode({
+            ...item,
+            name: "mention",
+          });
+          void editorProps.onCreateLink?.({
+            title: item.attrs.label,
+            id: item.attrs.modelId,
+          });
+          return;
         case "image":
           return triggerFilePick(
             AttachmentValidation.imageContentTypes.join(", ")

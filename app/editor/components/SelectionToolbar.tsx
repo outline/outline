@@ -39,7 +39,6 @@ type Props = {
     href: string,
     event: MouseEvent | React.MouseEvent<HTMLButtonElement>
   ) => void;
-  onCreateLink?: (title: string) => Promise<string>;
 };
 
 function useIsActive(state: EditorState) {
@@ -166,8 +165,7 @@ export default function SelectionToolbar(props: Props) {
     );
   };
 
-  const { onCreateLink, isTemplate, rtl, canComment, canUpdate, ...rest } =
-    props;
+  const { isTemplate, rtl, canComment, canUpdate, ...rest } = props;
   const { state } = view;
   const { selection } = state;
   const isDividerSelection = isNodeActive(state.schema.nodes.hr)(state);

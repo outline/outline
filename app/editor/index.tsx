@@ -113,7 +113,7 @@ export type Props = {
   /** Callback when a file upload ends */
   onFileUploadStop?: () => void;
   /** Callback when a link is created, should return url to created document */
-  onCreateLink?: (title: string) => Promise<string>;
+  onCreateLink?: (opts: { title: string; id?: string }) => Promise<string>;
   /** Callback when user clicks on any link in the document */
   onClickLink: (
     href: string,
@@ -803,7 +803,6 @@ export class Editor extends React.PureComponent<
                 onOpen={this.handleOpenSelectionToolbar}
                 onClose={this.handleCloseSelectionToolbar}
                 onClickLink={this.props.onClickLink}
-                onCreateLink={this.props.onCreateLink}
               />
             )}
             {this.widgets &&

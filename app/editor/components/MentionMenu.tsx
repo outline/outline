@@ -42,6 +42,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
   const [items, setItems] = React.useState<MentionItem[]>([]);
   const { t } = useTranslation();
   const { auth, documents, users } = useStores();
+  const actorId = auth.currentUserId;
   const location = useLocation();
   const documentId = parseDocumentSlug(location.pathname);
   const { data, loading, request } = useRequest<{
@@ -65,7 +66,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
   }, [request, isActive]);
 
   React.useEffect(() => {
-    if (data && !loading) {
+    if (data && actorId && !loading) {
       const items = data.users
         .map(
           (user) =>
@@ -92,7 +93,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
                 id: v4(),
                 type: MentionType.User,
                 modelId: user.id,
-                actorId: auth.currentUserId ?? undefined,
+                actorId,
                 label: user.name,
               },
             } as MentionItem)
@@ -115,7 +116,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
                   id: v4(),
                   type: MentionType.Document,
                   modelId: doc.id,
-                  actorId: auth.currentUserId ?? undefined,
+                  actorId,
                   label: doc.title,
                 },
               } as MentionItem)
@@ -123,7 +124,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
         )
         .concat([
           {
-            name: "mention",
+            name: "link",
             icon: <PlusIcon />,
             title: search?.trim(),
             section: DocumentsSection,
@@ -134,7 +135,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
               id: v4(),
               type: MentionType.Document,
               modelId: v4(),
-              actorId: auth.currentUserId ?? undefined,
+              actorId,
               label: search,
             },
           } as MentionItem,
