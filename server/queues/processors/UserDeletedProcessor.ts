@@ -20,6 +20,7 @@ export default class UserDeletedProcessor extends BaseProcessor {
           userId: event.userId,
         },
         transaction,
+        individualHooks: true,
       });
       await UserAuthentication.destroy({
         where: {
