@@ -15,6 +15,7 @@ import GlobalStyles from "@shared/styles/globals";
 import light from "@shared/styles/theme";
 import { MentionType, ProsemirrorData } from "@shared/types";
 import { attachmentRedirectRegex } from "@shared/utils/ProsemirrorHelper";
+import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isRTL } from "@shared/utils/rtl";
 import { isInternalUrl } from "@shared/utils/urls";
 import { schema, parser } from "@server/editor";
@@ -163,6 +164,50 @@ export class ProsemirrorHelper {
     });
 
     return mentions;
+  }
+
+  /**
+   * Returns an array of document IDs referenced through links or mentions in the node.
+   *
+   * @param node The node to parse document IDs from
+   * @returns An array of document IDs
+   */
+  static parseDocumentIds(doc: Node) {
+    const identifiers: string[] = [];
+
+    doc.descendants((node: Node) => {
+      if (
+        node.type.name === "mention" &&
+        node.attrs.type === MentionType.Document &&
+        !identifiers.includes(node.attrs.modelId)
+      ) {
+        identifiers.push(node.attrs.modelId);
+        return true;
+      }
+
+      if (node.type.name === "text") {
+        // get marks for text nodes
+        node.marks.forEach((mark) => {
+          // any of the marks identifiers?
+          if (mark.type.name === "link") {
+            const slug = parseDocumentSlug(mark.attrs.href);
+
+            // don't return the same link more than once
+            if (slug && !identifiers.includes(slug)) {
+              identifiers.push(slug);
+            }
+          }
+        });
+      }
+
+      if (!node.content.size) {
+        return false;
+      }
+
+      return true;
+    });
+
+    return identifiers;
   }
 
   /**
