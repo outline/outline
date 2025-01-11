@@ -48,7 +48,7 @@ type Children = (options: {
   abilities: Record<string, boolean>;
   readOnly: boolean;
   onCreateLink: (
-    opts: { title: string; id?: string },
+    params: Properties<Document>,
     nested?: boolean
   ) => Promise<string>;
   sharedTree: NavigationNode | undefined;

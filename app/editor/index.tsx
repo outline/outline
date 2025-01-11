@@ -41,9 +41,11 @@ import { ComponentProps } from "@shared/editor/types";
 import { ProsemirrorData, UserPreferences } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import EventEmitter from "@shared/utils/events";
+import Document from "~/models/Document";
 import Flex from "~/components/Flex";
 import { PortalContext } from "~/components/Portal";
 import { Dictionary } from "~/hooks/useDictionary";
+import { Properties } from "~/types";
 import Logger from "~/utils/Logger";
 import ComponentView from "./components/ComponentView";
 import EditorContext from "./components/EditorContext";
@@ -113,7 +115,7 @@ export type Props = {
   /** Callback when a file upload ends */
   onFileUploadStop?: () => void;
   /** Callback when a link is created, should return url to created document */
-  onCreateLink?: (opts: { title: string; id?: string }) => Promise<string>;
+  onCreateLink?: (params: Properties<Document>) => Promise<string>;
   /** Callback when user clicks on any link in the document */
   onClickLink: (
     href: string,
