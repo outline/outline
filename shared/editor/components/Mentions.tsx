@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import { DocumentIcon, EmailIcon } from "outline-icons";
 import * as React from "react";
+import { Link } from "react-router-dom";
 import Icon from "../../components/Icon";
 import useStores from "../../hooks/useStores";
 import { cn } from "../styles/utils";
@@ -35,13 +36,13 @@ export const MentionDocument = observer(function MentionDocument_(
   const doc = documents.get(node.attrs.modelId);
 
   return (
-    <a
+    <Link
       className={cn({
         "ProseMirror-selectednode": isSelected,
         "use-hover-preview": true,
         mention: true,
       })}
-      href={`/doc/${node.attrs.modelId}`}
+      to={doc?.path ?? `/doc/${node.attrs.modelId}`}
     >
       {doc?.icon ? (
         <Icon value={doc?.icon} color={doc?.color} size={18} />
@@ -49,6 +50,6 @@ export const MentionDocument = observer(function MentionDocument_(
         <DocumentIcon size={18} />
       )}
       {doc?.title || node.attrs.label}
-    </a>
+    </Link>
   );
 });
