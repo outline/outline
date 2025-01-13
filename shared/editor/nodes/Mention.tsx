@@ -8,6 +8,7 @@ import {
 import { Command, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import { Primitive } from "utility-types";
+import env from "../../env";
 import { MentionType } from "../../types";
 import { MentionDocument, MentionUser } from "../components/Mentions";
 import Extension from "../lib/Extension";
@@ -80,7 +81,10 @@ export default class Mention extends Extension {
         },
         String(node.attrs.label),
       ],
-      toPlainText: (node) => `@${node.attrs.label}`,
+      toPlainText: (node) =>
+        node.attrs.type === MentionType.User
+          ? `@${node.attrs.label}`
+          : `${env.URL}/doc/${node.attrs.modelId}`,
     };
   }
 
