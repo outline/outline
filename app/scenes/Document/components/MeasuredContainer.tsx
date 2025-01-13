@@ -1,5 +1,5 @@
 import * as React from "react";
-import useComponentSize from "@shared/editor/components/hooks/useComponentSize";
+import useComponentSize from "@shared/hooks/useComponentSize";
 
 export const MeasuredContainer = <T extends React.ElementType>({
   as: As,

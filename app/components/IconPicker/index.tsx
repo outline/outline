@@ -10,12 +10,12 @@ import {
   useTabState,
 } from "reakit";
 import styled, { css } from "styled-components";
+import Icon from "@shared/components/Icon";
 import { s } from "@shared/styles";
 import theme from "@shared/styles/theme";
 import { IconType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import Flex from "~/components/Flex";
-import Icon from "~/components/Icon";
 import NudeButton from "~/components/NudeButton";
 import Popover from "~/components/Popover";
 import useMobile from "~/hooks/useMobile";

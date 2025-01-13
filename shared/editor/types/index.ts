@@ -1,3 +1,4 @@
+import { TFunction } from "i18next";
 import { Node as ProsemirrorNode } from "prosemirror-model";
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
@@ -7,18 +8,17 @@ import { Primitive } from "utility-types";
 
 export type PlainTextSerializer = (node: ProsemirrorNode) => string;
 
-export enum EventType {
-  LinkToolbarOpen = "linkMenuOpen",
-}
-
 export enum TableLayout {
   fullWidth = "full-width",
 }
+
+type Section = ({ t }: { t: TFunction }) => string;
 
 export type MenuItem = {
   icon?: React.ReactElement;
   name?: string;
   title?: string;
+  section?: Section;
   subtitle?: string;
   shortcut?: string;
   keywords?: string;

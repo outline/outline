@@ -2,13 +2,13 @@ import { observer } from "mobx-react";
 import { getLuminance } from "polished";
 import * as React from "react";
 import styled from "styled-components";
-import { IconType } from "@shared/types";
-import { IconLibrary } from "@shared/utils/IconLibrary";
-import { colorPalette } from "@shared/utils/collections";
-import { determineIconType } from "@shared/utils/icon";
-import EmojiIcon from "~/components/Icons/EmojiIcon";
-import useStores from "~/hooks/useStores";
-import Logger from "~/utils/Logger";
+import useStores from "../hooks/useStores";
+import { IconType } from "../types";
+import { IconLibrary } from "../utils/IconLibrary";
+import { colorPalette } from "../utils/collections";
+import { determineIconType } from "../utils/icon";
+import EmojiIcon from "./EmojiIcon";
+// import Logger from "~/utils/Logger";
 import Flex from "./Flex";
 
 export type Props = {
@@ -40,9 +40,9 @@ const Icon = ({
   const iconType = determineIconType(icon);
 
   if (!iconType) {
-    Logger.warn("Failed to determine icon type", {
-      icon,
-    });
+    // Logger.warn("Failed to determine icon type", {
+    //   icon,
+    // });
     return null;
   }
 
@@ -62,9 +62,9 @@ const Icon = ({
 
     return <EmojiIcon emoji={icon} size={size} className={className} />;
   } catch (err) {
-    Logger.warn("Failed to render icon", {
-      icon,
-    });
+    // Logger.warn("Failed to render icon", {
+    //   icon,
+    // });
   }
 
   return null;
@@ -80,7 +80,6 @@ const SVGIcon = observer(
     forceColor,
   }: Props) => {
     const { ui } = useStores();
-
     let color = inputColor ?? colorPalette[0];
 
     // If the chosen icon color is very dark then we invert it in dark mode

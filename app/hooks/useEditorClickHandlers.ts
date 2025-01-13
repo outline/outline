@@ -1,9 +1,10 @@
 import * as React from "react";
 import { useHistory } from "react-router-dom";
 import { isModKey } from "@shared/utils/keyboard";
-import { isInternalUrl } from "@shared/utils/urls";
+import { isDocumentUrl, isInternalUrl } from "@shared/utils/urls";
 import { sharedDocumentPath } from "~/utils/routeHelpers";
 import { isHash } from "~/utils/urls";
+import useStores from "./useStores";
 
 type Params = {
   /** The share ID of the document being viewed, if any */
@@ -12,8 +13,9 @@ type Params = {
 
 export default function useEditorClickHandlers({ shareId }: Params) {
   const history = useHistory();
+  const { documents } = useStores();
   const handleClickLink = React.useCallback(
-    (href: string, event: MouseEvent) => {
+    (href: string, event?: MouseEvent) => {
       // on page hash
       if (isHash(href)) {
         window.location.href = href;
@@ -49,13 +51,20 @@ export default function useEditorClickHandlers({ shareId }: Params) {
           navigateTo = sharedDocumentPath(shareId, navigateTo);
         }
 
+        if (isDocumentUrl(navigateTo)) {
+          const document = documents.getByUrl(navigateTo);
+          if (document) {
+            navigateTo = document.path;
+          }
+        }
+
         // If we're navigating to a share link from a non-share link then open it in a new tab
         if (!shareId && navigateTo.startsWith("/s/")) {
           window.open(href, "_blank");
           return;
         }
 
-        if (!isModKey(event) && !event.shiftKey) {
+        if (!event || (!isModKey(event) && !event.shiftKey)) {
           history.push(navigateTo, { sidebarContext: "collections" }); // optimistic preference of "collections"
         } else {
           window.open(navigateTo, "_blank");

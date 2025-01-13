@@ -39,7 +39,7 @@ export default function useDictionary() {
       em: t("Italic"),
       embedInvalidLink: t("Sorry, that link won’t work for this embed type"),
       file: t("File attachment"),
-      findOrCreateDoc: `${t("Paste a link, search, or create")}…`,
+      enterLink: `${t("Enter a link")}…`,
       h1: t("Big heading"),
       h2: t("Medium heading"),
       h3: t("Small heading"),
