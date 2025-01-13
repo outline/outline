@@ -277,7 +277,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           insertNode(item);
       }
     },
-    [insertNode]
+    [editorProps, props, insertNode]
   );
 
   const close = React.useCallback(() => {
@@ -462,13 +462,14 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         filtered.map((item) => ({
           item,
           section: "section" in item ? item.section?.({ t }) : "default",
+          priority: "priority" in item ? item.priority : 0,
           score:
             searchInput && item.title
               ? commandScore(item.title, searchInput)
               : 0,
         })),
-        ["section", "score"],
-        ["asc", "desc"]
+        ["section", "priority", "score"],
+        ["asc", "desc", "desc"]
       ).map(({ item }) => item)
     );
   }, [t, commands, props]);

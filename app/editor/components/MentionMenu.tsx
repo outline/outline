@@ -130,6 +130,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
             section: DocumentsSection,
             subtitle: t("Create a new doc"),
             visible: !!search,
+            priority: -1,
             appendSpace: true,
             attrs: {
               id: v4(),
@@ -144,7 +145,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
       setItems(items);
       setLoaded(true);
     }
-  }, [t, auth.currentUserId, loading, search, data]);
+  }, [t, actorId, loading, search, data]);
 
   const handleSelect = React.useCallback(
     async (item: MentionItem) => {

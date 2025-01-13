@@ -25,6 +25,8 @@ export type MenuItem = {
   tooltip?: string;
   label?: string;
   dangerous?: boolean;
+  /** Higher number is higher in results, default is 0. */
+  priority?: number;
   children?: MenuItem[];
   defaultHidden?: boolean;
   attrs?:
