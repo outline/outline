@@ -5,7 +5,7 @@ import {
   NodeType,
   Schema,
 } from "prosemirror-model";
-import { Command, TextSelection } from "prosemirror-state";
+import { Command, NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import { Primitive } from "utility-types";
 import env from "../../env";
@@ -101,6 +101,28 @@ export default class Mention extends Extension {
 
   get rulePlugins() {
     return [mentionRule];
+  }
+
+  keys(): Record<string, Command> {
+    return {
+      Enter: (state) => {
+        const { selection } = state;
+        if (selection instanceof NodeSelection) {
+          const { from } = selection;
+          const node = state.doc.nodeAt(from);
+          if (
+            node &&
+            node.type.name === "mention" &&
+            node.attrs.type === MentionType.Document
+          ) {
+            const { modelId } = node.attrs;
+            this.editor.props.onClickLink?.(`/doc/${modelId}`);
+            return true;
+          }
+        }
+        return false;
+      },
+    };
   }
 
   commands({ type }: { type: NodeType; schema: Schema }) {

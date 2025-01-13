@@ -119,7 +119,7 @@ export type Props = {
   /** Callback when user clicks on any link in the document */
   onClickLink: (
     href: string,
-    event: MouseEvent | React.MouseEvent<HTMLButtonElement>
+    event?: MouseEvent | React.MouseEvent<HTMLButtonElement>
   ) => void;
   /** Callback when user presses any key with document focused */
   onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void;

@@ -825,7 +825,10 @@ export default class DocumentsStore extends Store<Document> {
   };
 
   getByUrl = (url = ""): Document | undefined =>
-    find(this.orderedData, (doc) => url.endsWith(doc.urlId));
+    find(
+      this.orderedData,
+      (doc) => url.endsWith(doc.urlId) || url.endsWith(doc.id)
+    );
 
   getCollectionForDocument(document: Document) {
     return document.collectionId
