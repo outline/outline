@@ -34,6 +34,13 @@ export const MentionDocument = observer(function MentionDocument_(
   const { isSelected, node } = props;
   const { documents } = useStores();
   const doc = documents.get(node.attrs.modelId);
+  const modelId = node.attrs.modelId;
+
+  React.useEffect(() => {
+    if (modelId) {
+      void documents.prefetchDocument(modelId);
+    }
+  }, [modelId, documents]);
 
   return (
     <Link
