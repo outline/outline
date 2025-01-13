@@ -1,8 +1,11 @@
+import { action, observable } from "mobx";
 import { toggleMark } from "prosemirror-commands";
 import { Slice } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
+import * as React from "react";
 import { LANGUAGES } from "@shared/editor/extensions/Prism";
-import Extension from "@shared/editor/lib/Extension";
+
+import Extension, { WidgetProps } from "@shared/editor/lib/Extension";
 import isMarkdown from "@shared/editor/lib/isMarkdown";
 import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
 import { isInCode } from "@shared/editor/queries/isInCode";
@@ -12,7 +15,7 @@ import { determineIconType } from "@shared/utils/icon";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isDocumentUrl, isUrl } from "@shared/utils/urls";
 import stores from "~/stores";
-
+import PasteMenu from "../components/PasteMenu";
 /**
  * Checks if the HTML string is likely coming from Dropbox Paper.
  *
@@ -60,6 +63,16 @@ function parseSingleIframeSrc(html: string) {
 }
 
 export default class PasteHandler extends Extension {
+  state: {
+    open: boolean;
+    query: string;
+    pasteData: Record<string, any>;
+  } = observable({
+    open: false,
+    query: "",
+    pasteData: {},
+  });
+
   get name() {
     return "paste-handler";
   }
@@ -106,23 +119,6 @@ export default class PasteHandler extends Extension {
             const html = event.clipboardData.getData("text/html");
             const vscode = event.clipboardData.getData("vscode-editor-data");
 
-            function insertLink(href: string, title?: string) {
-              // If it's not an embed and there is no text selected – just go ahead and insert the
-              // link directly
-              const transaction = view.state.tr
-                .insertText(
-                  title ?? href,
-                  state.selection.from,
-                  state.selection.to
-                )
-                .addMark(
-                  state.selection.from,
-                  state.selection.to + (title ?? href).length,
-                  state.schema.marks.link.create({ href })
-                );
-              view.dispatch(transaction);
-            }
-
             // If the users selection is currently in a code block then paste
             // as plain text, ignore all formatting and HTML content.
             if (isInCode(state)) {
@@ -152,6 +148,7 @@ export default class PasteHandler extends Extension {
                 }
 
                 // Is this link embeddable? Create an embed!
+
                 const { embeds } = this.editor.props;
                 if (
                   embeds &&
@@ -165,9 +162,8 @@ export default class PasteHandler extends Extension {
                     }
                     const matches = embed.matcher(text);
                     if (matches) {
-                      this.editor.commands.embed({
-                        href: text,
-                      });
+                      this.insertLink(text);
+                      this.showPasteMenu(text);
                       return true;
                     }
                   }
@@ -193,18 +189,19 @@ export default class PasteHandler extends Extension {
                           const title = `${
                             hasEmoji ? document.icon + " " : ""
                           }${document.titleWithDefault}`;
-                          insertLink(`${document.path}${hash}`, title);
+                          this.insertLink(`${document.path}${hash}`, title);
                         }
                       })
                       .catch(() => {
                         if (view.isDestroyed) {
                           return;
                         }
-                        insertLink(text);
+                        this.insertLink(text);
                       });
                   }
                 } else {
-                  insertLink(text);
+                  this.insertLink(text);
+                  this.showPasteMenu(text);
                 }
 
                 return true;
@@ -310,6 +307,89 @@ export default class PasteHandler extends Extension {
     ];
   }
 
-  /** Tracks whether the Shift key is currently held down */
   private shiftKey = false;
+
+  private showPasteMenu(text: string) {
+    action(() => {
+      this.state.pasteData.text = text;
+      this.state.open = true;
+    })();
+  }
+
+  private hidePasteMenu() {
+    action(() => {
+      this.state.pasteData.text = "";
+      this.state.open = false;
+    })();
+  }
+
+  private insertLink(href: string, title?: string) {
+    const { view } = this.editor;
+    const { state } = view;
+
+    const transaction = view.state.tr
+      .insertText(title ?? href, state.selection.from, state.selection.to)
+      .addMark(
+        state.selection.from,
+        state.selection.to + (title ?? href).length,
+        state.schema.marks.link.create({ href })
+      );
+    view.dispatch(transaction);
+  }
+
+  private replaceOldLink(href: string) {
+    const { view } = this.editor;
+    const { state } = view;
+    const preLen = href.length;
+
+    const transaction = view.state.tr.delete(
+      state.selection.from - preLen,
+      state.selection.to
+    );
+
+    view.dispatch(transaction);
+  }
+
+  keys() {
+    return {
+      Backspace: () => {
+        this.hidePasteMenu();
+        return false;
+      },
+      "Mod-z": () => {
+        this.hidePasteMenu();
+        return false;
+      },
+    };
+  }
+
+  widget = ({ rtl }: WidgetProps) => (
+    <PasteMenu
+      rtl={rtl}
+      isActive={this.state.open}
+      search={this.state.query}
+      onClose={() => {
+        this.hidePasteMenu();
+      }}
+      onSelect={(item) => {
+        switch (item.title) {
+          case "URL":
+            this.hidePasteMenu();
+
+            break;
+          case "Embed":
+            this.replaceOldLink(this.state.pasteData.text);
+
+            this.editor.commands.embed({
+              href: this.state.pasteData.text,
+            });
+            this.hidePasteMenu();
+
+            break;
+          default:
+            break;
+        }
+      }}
+    />
+  );
 }
