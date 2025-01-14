@@ -83,7 +83,7 @@
     "@outlinewiki/koa-passport": "^4.2.1",
     "@outlinewiki/passport-azure-ad-oauth2": "^0.1.0",
     "@renderlesskit/react": "^0.11.0",
-    "@sentry/node": "^7.119.0",
+    "@sentry/node": "^7.120.3",
     "@sentry/react": "^7.119.0",
     "@tanstack/react-table": "^8.20.5",
     "@tanstack/react-virtual": "^3.10.9",
