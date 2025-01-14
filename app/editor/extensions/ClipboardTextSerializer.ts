@@ -1,6 +1,7 @@
 import { Plugin, PluginKey } from "prosemirror-state";
 import Extension from "@shared/editor/lib/Extension";
 import textBetween from "@shared/editor/lib/textBetween";
+import { getTextSerializers } from "@shared/editor/lib/textSerializers";
 
 /**
  * A plugin that allows overriding the default behavior of the editor to allow
@@ -13,11 +14,7 @@ export default class ClipboardTextSerializer extends Extension {
   }
 
   get plugins() {
-    const textSerializers = Object.fromEntries(
-      Object.entries(this.editor.schema.nodes)
-        .filter(([, node]) => node.spec.toPlainText)
-        .map(([name, node]) => [name, node.spec.toPlainText])
-    );
+    const textSerializers = getTextSerializers(this.editor.schema);
 
     return [
       new Plugin({
