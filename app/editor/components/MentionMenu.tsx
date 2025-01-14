@@ -1,3 +1,4 @@
+import { isEmail } from "class-validator";
 import { observer } from "mobx-react";
 import { DocumentIcon, PlusIcon } from "outline-icons";
 import * as React from "react";
@@ -129,7 +130,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
             title: search?.trim(),
             section: DocumentsSection,
             subtitle: t("Create a new doc"),
-            visible: !!search,
+            visible: !!search && !isEmail(search),
             priority: -1,
             appendSpace: true,
             attrs: {

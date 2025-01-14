@@ -427,6 +427,10 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         return true;
       }
 
+      if (item.visible === false) {
+        return false;
+      }
+
       // Some extensions may be disabled, remove corresponding menu items
       if (
         item.name &&
