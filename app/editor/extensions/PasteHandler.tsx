@@ -9,7 +9,6 @@ import Extension, { WidgetProps } from "@shared/editor/lib/Extension";
 import isMarkdown from "@shared/editor/lib/isMarkdown";
 import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
 import { isInCode } from "@shared/editor/queries/isInCode";
-import { isInList } from "@shared/editor/queries/isInList";
 import { IconType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
@@ -145,28 +144,6 @@ export default class PasteHandler extends Extension {
                     dispatch
                   );
                   return true;
-                }
-
-                // Is this link embeddable? Create an embed!
-
-                const { embeds } = this.editor.props;
-                if (
-                  embeds &&
-                  this.editor.commands.embed &&
-                  !isInCode(state) &&
-                  !isInList(state)
-                ) {
-                  for (const embed of embeds) {
-                    if (!embed.matchOnInput) {
-                      continue;
-                    }
-                    const matches = embed.matcher(text);
-                    if (matches) {
-                      this.insertLink(text);
-                      this.showPasteMenu(text);
-                      return true;
-                    }
-                  }
                 }
 
                 // Is the link a link to a document? If so, we can grab the title and insert it.
@@ -366,18 +343,19 @@ export default class PasteHandler extends Extension {
   widget = ({ rtl }: WidgetProps) => (
     <PasteMenu
       rtl={rtl}
+      trigger=""
       isActive={this.state.open}
       search={this.state.query}
       onClose={() => {
         this.hidePasteMenu();
       }}
       onSelect={(item) => {
-        switch (item.title) {
-          case "URL":
+        switch (item.name) {
+          case "link":
             this.hidePasteMenu();
 
             break;
-          case "Embed":
+          case "embed":
             this.replaceOldLink(this.state.pasteData.text);
 
             this.editor.commands.embed({

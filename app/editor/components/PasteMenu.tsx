@@ -1,30 +1,32 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import SuggestionsMenu, {
   Props as SuggestionsMenuProps,
 } from "./SuggestionsMenu";
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
 
-type Props = Omit<
-  SuggestionsMenuProps,
-  "renderMenuItem" | "items" | "embeds" | "trigger"
->;
+type Props = Omit<SuggestionsMenuProps, "renderMenuItem" | "items" | "embeds">;
 
 const PasteMenu = (props: Props) => {
-  const items = [
-    {
-      name: "link",
-      title: "URL",
-    },
-    {
-      name: "embed",
-      title: "Embed",
-    },
-  ];
+  const { t } = useTranslation();
+
+  const items = React.useMemo(
+    () => [
+      {
+        name: "link",
+        title: t("URL"),
+      },
+      {
+        name: "embed",
+        title: t("Embed"),
+      },
+    ],
+    [t]
+  );
 
   return (
     <SuggestionsMenu
       {...props}
-      trigger=""
       filterable={false}
       renderMenuItem={(item, _index, options) => (
         <SuggestionsMenuItem
