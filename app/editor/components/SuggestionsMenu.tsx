@@ -473,7 +473,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
               : 0,
         })),
         ["section", "priority", "score"],
-        ["asc", "desc", "desc"]
+        ["desc", "desc", "desc"]
       ).map(({ item }) => item)
     );
   }, [t, commands, props]);

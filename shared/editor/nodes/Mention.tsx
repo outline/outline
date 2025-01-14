@@ -73,7 +73,7 @@ export default class Mention extends Extension {
           href:
             node.attrs.type === MentionType.User
               ? undefined
-              : `/doc/${node.attrs.modelId}`,
+              : `${env.URL}/doc/${node.attrs.modelId}`,
           "data-type": node.attrs.type,
           "data-id": node.attrs.modelId,
           "data-actorId": node.attrs.actorId,
@@ -84,7 +84,7 @@ export default class Mention extends Extension {
       toPlainText: (node) =>
         node.attrs.type === MentionType.User
           ? `@${node.attrs.label}`
-          : `${env.URL}/doc/${node.attrs.modelId}`,
+          : node.attrs.label,
     };
   }
 
