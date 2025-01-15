@@ -54,6 +54,8 @@ export default abstract class Store<T extends Model> {
   @observable
   isLoaded = false;
 
+  requests: Map<string, Promise<any>> = new Map();
+
   model: typeof Model;
 
   modelName: string;
@@ -302,27 +304,43 @@ export default abstract class Store<T extends Model> {
     if (item && !options.force) {
       return item;
     }
+
+    if (this.requests.has(id)) {
+      return this.requests.get(id);
+    }
+
     this.isFetching = true;
 
-    try {
-      const res = await client.post(`/${this.apiEndpoint}.info`, {
-        id,
-      });
+    const promise = new Promise<T>((resolve, reject) => {
+      client
+        .post(`/${this.apiEndpoint}.info`, {
+          id,
+        })
+        .then((res) =>
+          runInAction(`info#${this.modelName}`, () => {
+            invariant(res?.data, "Data should be available");
+            this.addPolicies(res.policies);
+            resolve(this.add(accessor(res)));
+          })
+        )
+        .catch((err) => {
+          if (
+            err instanceof AuthorizationError ||
+            err instanceof NotFoundError
+          ) {
+            this.remove(id);
+          }
 
-      return runInAction(`info#${this.modelName}`, () => {
-        invariant(res?.data, "Data should be available");
-        this.addPolicies(res.policies);
-        return this.add(accessor(res));
-      });
-    } catch (err) {
-      if (err instanceof AuthorizationError || err instanceof NotFoundError) {
-        this.remove(id);
-      }
+          reject(err);
+        })
+        .finally(() => {
+          this.requests.delete(id);
+          this.isFetching = false;
+        });
+    });
 
-      throw err;
-    } finally {
-      this.isFetching = false;
-    }
+    this.requests.set(id, promise);
+    return promise;
   }
 
   @action

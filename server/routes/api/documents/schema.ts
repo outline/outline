@@ -327,6 +327,9 @@ export type DocumentsImportReq = z.infer<typeof DocumentsImportSchema>;
 
 export const DocumentsCreateSchema = BaseSchema.extend({
   body: z.object({
+    /** Id of the document to be created */
+    id: z.string().uuid().optional(),
+
     /** Document title */
     title: z.string().default(""),
 

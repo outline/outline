@@ -5,11 +5,16 @@ import {
   NodeType,
   Schema,
 } from "prosemirror-model";
-import { Command, TextSelection } from "prosemirror-state";
+import { Command, NodeSelection, TextSelection } from "prosemirror-state";
+import * as React from "react";
 import { Primitive } from "utility-types";
+import env from "../../env";
+import { MentionType } from "../../types";
+import { MentionDocument, MentionUser } from "../components/Mentions";
 import Extension from "../lib/Extension";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import mentionRule from "../rules/mention";
+import { ComponentProps } from "../types";
 
 export default class Mention extends Extension {
   get type() {
@@ -40,8 +45,9 @@ export default class Mention extends Extension {
       atom: true,
       parseDOM: [
         {
-          tag: `span.${this.name}`,
+          tag: `.${this.name}`,
           preserveWhitespace: "full",
+          priority: 100,
           getAttrs: (dom: HTMLElement) => {
             const type = dom.dataset.type;
             const modelId = dom.dataset.id;
@@ -60,10 +66,14 @@ export default class Mention extends Extension {
         },
       ],
       toDOM: (node) => [
-        "span",
+        node.attrs.type === MentionType.User ? "span" : "a",
         {
           class: `${node.type.name} use-hover-preview`,
           id: node.attrs.id,
+          href:
+            node.attrs.type === MentionType.User
+              ? undefined
+              : `${env.URL}/doc/${node.attrs.modelId}`,
           "data-type": node.attrs.type,
           "data-id": node.attrs.modelId,
           "data-actorId": node.attrs.actorId,
@@ -71,12 +81,48 @@ export default class Mention extends Extension {
         },
         String(node.attrs.label),
       ],
-      toPlainText: (node) => `@${node.attrs.label}`,
+      toPlainText: (node) =>
+        node.attrs.type === MentionType.User
+          ? `@${node.attrs.label}`
+          : node.attrs.label,
     };
   }
 
+  component = (props: ComponentProps) => {
+    switch (props.node.attrs.type) {
+      case MentionType.User:
+        return <MentionUser {...props} />;
+      case MentionType.Document:
+        return <MentionDocument {...props} />;
+      default:
+        return null;
+    }
+  };
+
   get rulePlugins() {
     return [mentionRule];
+  }
+
+  keys(): Record<string, Command> {
+    return {
+      Enter: (state) => {
+        const { selection } = state;
+        if (selection instanceof NodeSelection) {
+          const { from } = selection;
+          const node = state.doc.nodeAt(from);
+          if (
+            node &&
+            node.type.name === "mention" &&
+            node.attrs.type === MentionType.Document
+          ) {
+            const { modelId } = node.attrs;
+            this.editor.props.onClickLink?.(`/doc/${modelId}`);
+            return true;
+          }
+        }
+        return false;
+      },
+    };
   }
 
   commands({ type }: { type: NodeType; schema: Schema }) {

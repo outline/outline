@@ -56,7 +56,7 @@ function SuggestionsMenuItem({
       icon={icon}
     >
       {title}
-      {subtitle && <Subtitle $active={selected}>{subtitle}</Subtitle>}
+      {subtitle && <Subtitle $active={selected}>&middot; {subtitle}</Subtitle>}
       {shortcut && <Shortcut $active={selected}>{shortcut}</Shortcut>}
     </MenuItem>
   );

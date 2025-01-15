@@ -235,6 +235,17 @@ export class DocumentHelper {
   }
 
   /**
+   * Parse a list of document IDs contained in a document or revision
+   *
+   * @param document Document or Revision
+   * @returns An array of identifiers in passed document or revision
+   */
+  static parseDocumentIds(document: Document | Revision) {
+    const node = DocumentHelper.toProsemirror(document);
+    return ProsemirrorHelper.parseDocumentIds(node);
+  }
+
+  /**
    * Generates a HTML diff between documents or revisions.
    *
    * @param before The before document

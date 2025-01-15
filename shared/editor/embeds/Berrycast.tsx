@@ -1,6 +1,6 @@
 import * as React from "react";
+import useComponentSize from "../../hooks/useComponentSize";
 import Frame from "../components/Frame";
-import useComponentSize from "../components/hooks/useComponentSize";
 import { EmbedProps as Props } from ".";
 
 export default function Berrycast({ matches, ...props }: Props) {

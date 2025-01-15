@@ -25,6 +25,7 @@ import useBuildTheme from "~/hooks/useBuildTheme";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { usePostLoginPath } from "~/hooks/useLastVisitedPath";
 import useStores from "~/hooks/useStores";
+import { client } from "~/utils/ApiClient";
 import { AuthorizationError, OfflineError } from "~/utils/errors";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { changeLanguage, detectLanguage } from "~/utils/language";
@@ -108,6 +109,16 @@ function SharedDocumentScene(props: Props) {
     ? (searchParams.get("theme") as Theme)
     : undefined;
   const theme = useBuildTheme(response?.team?.customTheme, themeOverride);
+
+  React.useEffect(() => {
+    if (shareId) {
+      client.setShareId(shareId);
+    }
+
+    return () => {
+      client.setShareId(undefined);
+    };
+  }, [shareId]);
 
   React.useEffect(() => {
     if (!user) {

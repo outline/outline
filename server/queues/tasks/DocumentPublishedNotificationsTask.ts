@@ -1,4 +1,4 @@
-import { NotificationEventType } from "@shared/types";
+import { MentionType, NotificationEventType } from "@shared/types";
 import { createSubscriptionsForDocument } from "@server/commands/subscriptionCreator";
 import { Document, Notification, User } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -19,7 +19,9 @@ export default class DocumentPublishedNotificationsTask extends BaseTask<Documen
     await createSubscriptionsForDocument(document, event);
 
     // Send notifications to mentioned users first
-    const mentions = DocumentHelper.parseMentions(document);
+    const mentions = DocumentHelper.parseMentions(document, {
+      type: MentionType.User,
+    });
     const userIdsMentioned: string[] = [];
 
     for (const mention of mentions) {

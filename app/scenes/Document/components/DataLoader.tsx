@@ -14,6 +14,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import { Properties } from "~/types";
 import Logger from "~/utils/Logger";
 import {
   NotFoundError,
@@ -46,7 +47,10 @@ type Children = (options: {
   revision: Revision | undefined;
   abilities: Record<string, boolean>;
   readOnly: boolean;
-  onCreateLink: (title: string, nested?: boolean) => Promise<string>;
+  onCreateLink: (
+    params: Properties<Document>,
+    nested?: boolean
+  ) => Promise<string>;
   sharedTree: NavigationNode | undefined;
 }) => React.ReactNode;
 
@@ -143,7 +147,7 @@ function DataLoader({ match, children }: Props) {
   }, [document?.id, document?.isDeleted, revisionId, views]);
 
   const onCreateLink = React.useCallback(
-    async (title: string, nested?: boolean) => {
+    async (params: Properties<Document>, nested?: boolean) => {
       if (!document) {
         throw new Error("Document not loaded yet");
       }
@@ -152,8 +156,8 @@ function DataLoader({ match, children }: Props) {
         {
           collectionId: nested ? undefined : document.collectionId,
           parentDocumentId: nested ? document.id : document.parentDocumentId,
-          title,
           data: ProsemirrorHelper.getEmptyDocument(),
+          ...params,
         },
         {
           publish: document.isDraft ? undefined : true,
