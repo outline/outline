@@ -73,9 +73,7 @@ export default class ImportJSONTask extends ImportTask {
     ) {
       Object.values(documents).forEach((node) => {
         const id = uuidv4();
-        // Using unshift instead of push to maintain the correct order of documents
-        // because addDocumentToStructure uses index 0 for insertion, reversing the order
-        output.documents.unshift({
+        output.documents.push({
           ...node,
           path: "",
           // populate text to maintain consistency with existing data.
