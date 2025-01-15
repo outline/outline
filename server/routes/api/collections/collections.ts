@@ -235,8 +235,6 @@ router.post(
 
     ctx.body = {
       data: {
-        // `collectionGroupMemberships` retained for backwards compatibility – remove after version v0.79.0
-        collectionGroupMemberships: groupMemberships,
         groupMemberships,
       },
     };
@@ -343,8 +341,6 @@ router.post(
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
       data: {
-        // `collectionGroupMemberships` retained for backwards compatibility – remove after version v0.79.0
-        collectionGroupMemberships: groupMemberships,
         groupMemberships,
         groups: await Promise.all(
           memberships.map((membership) => presentGroup(membership.group))
