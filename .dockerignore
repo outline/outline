@@ -1,3 +1,6 @@
+.dockerignore
+Dockerfile
+
 __mocks__
 .git
 .vscode
