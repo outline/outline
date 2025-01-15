@@ -273,9 +273,7 @@ router.post(
       ctx.throw(400, "This Group is not a part of the collection");
     }
 
-    await membership.destroyWithCtx(ctx, {
-      data: { membershipId: membership.id },
-    });
+    await membership.destroyWithCtx(ctx);
 
     ctx.body = {
       success: true,
