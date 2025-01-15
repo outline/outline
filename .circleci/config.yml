@@ -15,7 +15,6 @@ executors:
   docker-publisher:
     environment:
       IMAGE_NAME: outlinewiki/outline
-      BASE_IMAGE_NAME: outlinewiki/outline-base
     docker:
       - image: circleci/buildpack-deps:stretch
 
@@ -131,14 +130,8 @@ jobs:
             docker buildx inspect --builder docker-multiarch --bootstrap
             docker buildx use docker-multiarch
       - run:
-          name: Build base image
-          command: docker build -f Dockerfile.base -t $BASE_IMAGE_NAME:latest --load .
-      - run:
           name: Login to Docker Hub
           command: echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-      - run:
-          name: Publish base Docker Image to Docker Hub
-          command: docker push $BASE_IMAGE_NAME:latest
       - run:
           name: Build and push Docker image
           command: |
