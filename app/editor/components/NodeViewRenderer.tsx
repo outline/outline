@@ -25,4 +25,9 @@ export class NodeViewRenderer<T extends object> {
       this.props = props;
     }
   }
+
+  @action
+  public setProp<K extends keyof T>(key: K, value: T[K]) {
+    this.props[key] = value;
+  }
 }
