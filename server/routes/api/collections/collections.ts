@@ -211,31 +211,25 @@ router.post(
     authorize(user, "update", collection);
     authorize(user, "read", group);
 
-    const [membership] = await GroupMembership.findOrCreate({
-      where: {
-        collectionId: id,
-        groupId,
-      },
-      defaults: {
-        permission,
-        createdById: user.id,
-      },
-      transaction,
-      lock: transaction.LOCK.UPDATE,
-    });
+    const [membership, created] = await GroupMembership.findOrCreateWithCtx(
+      ctx,
+      {
+        where: {
+          collectionId: id,
+          groupId,
+        },
+        defaults: {
+          permission,
+          createdById: user.id,
+        },
+        lock: transaction.LOCK.UPDATE,
+      }
+    );
 
-    membership.permission = permission;
-    await membership.save({ transaction });
-
-    await Event.createFromContext(ctx, {
-      name: "collections.add_group",
-      collectionId: collection.id,
-      modelId: groupId,
-      data: {
-        name: group.name,
-        membershipId: membership.id,
-      },
-    });
+    if (!created) {
+      membership.permission = permission;
+      await membership.saveWithCtx(ctx);
+    }
 
     const groupMemberships = [presentGroupMembership(membership)];
 
@@ -281,21 +275,8 @@ router.post(
       ctx.throw(400, "This Group is not a part of the collection");
     }
 
-    await GroupMembership.destroy({
-      where: {
-        collectionId: id,
-        groupId,
-      },
-      transaction,
-    });
-    await Event.createFromContext(ctx, {
-      name: "collections.remove_group",
-      collectionId: collection.id,
-      modelId: groupId,
-      data: {
-        name: group.name,
-        membershipId: membership.id,
-      },
+    await membership.destroyWithCtx(ctx, {
+      data: { membershipId: membership.id },
     });
 
     ctx.body = {
