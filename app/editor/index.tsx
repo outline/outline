@@ -794,7 +794,7 @@ export class Editor extends React.PureComponent<
   };
 
   public render() {
-    const { dir, readOnly, canUpdate, grow, style, className, onKeyDown } =
+    const { readOnly, canUpdate, grow, style, className, onKeyDown } =
       this.props;
     const { isRTL } = this.state;
 
@@ -811,7 +811,6 @@ export class Editor extends React.PureComponent<
             column
           >
             <EditorContainer
-              dir={dir}
               rtl={isRTL}
               grow={grow}
               readOnly={readOnly}
