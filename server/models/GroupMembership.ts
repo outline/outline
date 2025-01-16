@@ -25,6 +25,7 @@ import Collection from "./Collection";
 import Document from "./Document";
 import Group from "./Group";
 import User from "./User";
+import { type HookContext } from "./base/Model";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 
@@ -123,6 +124,10 @@ class GroupMembership extends ParanoidModel<
   @Column(DataType.UUID)
   createdById: string;
 
+  get modelId() {
+    return this.groupId;
+  }
+
   // static methods
 
   /**
@@ -203,6 +208,25 @@ class GroupMembership extends ParanoidModel<
     return this.recreateSourcedMemberships(model, options);
   }
 
+  @AfterCreate
+  static async publishAddGroupEventAfterCreate(
+    model: GroupMembership,
+    context: HookContext
+  ) {
+    const data = { membershipId: model.id, isNew: true };
+
+    const ctxWithData = {
+      ...context,
+      event: { ...context.event, data },
+    } as HookContext;
+
+    if (model.collectionId) {
+      await Collection.insertEvent("add_group", model, ctxWithData);
+    } else {
+      await Document.insertEvent("add_group", model, ctxWithData);
+    }
+  }
+
   @AfterUpdate
   static async updateSourcedMemberships(
     model: GroupMembership,
@@ -230,6 +254,25 @@ class GroupMembership extends ParanoidModel<
     }
   }
 
+  @AfterUpdate
+  static async publishAddGroupEventAfterUpdate(
+    model: GroupMembership,
+    context: HookContext
+  ) {
+    const data = { membershipId: model.id, isNew: false };
+
+    const ctxWithData = {
+      ...context,
+      event: { ...context.event, data },
+    } as HookContext;
+
+    if (model.collectionId) {
+      await Collection.insertEvent("add_group", model, ctxWithData);
+    } else {
+      await Document.insertEvent("add_group", model, ctxWithData);
+    }
+  }
+
   @AfterDestroy
   static async destroySourcedMemberships(
     model: GroupMembership,
@@ -247,6 +290,25 @@ class GroupMembership extends ParanoidModel<
       },
       transaction,
     });
+  }
+
+  @AfterDestroy
+  static async publishRemoveGroupEvent(
+    model: GroupMembership,
+    context: HookContext
+  ) {
+    const data = { membershipId: model.id };
+
+    const ctxWithData = {
+      ...context,
+      event: { ...context.event, data },
+    } as HookContext;
+
+    if (model.collectionId) {
+      await Collection.insertEvent("remove_group", model, ctxWithData);
+    } else {
+      await Document.insertEvent("remove_group", model, ctxWithData);
+    }
   }
 
   /**
