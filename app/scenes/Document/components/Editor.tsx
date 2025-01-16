@@ -221,6 +221,8 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     [setEditorInitialized]
   );
 
+  const direction = titleRef.current?.getComputedDirection();
+
   return (
     <Flex auto column>
       <DocumentTitle
@@ -250,9 +252,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
                 : documentHistoryPath(document),
             state: { sidebarContext },
           }}
-          rtl={
-            titleRef.current?.getComputedDirection() === "rtl" ? true : false
-          }
+          rtl={direction === "rtl"}
         />
       )}
       <EditorComponent

@@ -774,7 +774,7 @@ h6:not(.placeholder)::before {
   border: 0;
   margin: 0;
   padding: 0;
-  text-align: left;
+  text-align: start;
   font-weight: 500;
   font-family: ${props.theme.fontFamilyMono};
   font-size: 14px;
@@ -1102,6 +1102,12 @@ ul li,
 ol li {
   position: relative;
   white-space: initial;
+  text-align: start;
+  direction: ${props.rtl ? "rtl" : "ltr"};
+
+  &:has(p:dir(rtl)) {
+    direction: rtl;
+  }
 
   p {
     white-space: pre-wrap;
@@ -1187,42 +1193,46 @@ ul.checkbox_list > li {
   }
 }
 
-ul.checkbox_list li .checkbox {
-  display: inline-block;
-  cursor: var(--pointer);
-  pointer-events: ${
-    props.readOnly && !props.readOnlyWriteCheckboxes ? "none" : "initial"
-  };
-  opacity: ${props.readOnly && !props.readOnlyWriteCheckboxes ? 0.75 : 1};
-  width: 14px;
-  height: 14px;
-  position: relative;
-  top: 1px;
-  transition: transform 100ms ease-in-out;
-  opacity: .8;
-  margin: 0 0.5em 0 0;
+ul.checkbox_list li {
+  .checkbox {
+    display: inline-block;
+    cursor: var(--pointer);
+    pointer-events: ${
+      props.readOnly && !props.readOnlyWriteCheckboxes ? "none" : "initial"
+    };
+    opacity: ${props.readOnly && !props.readOnlyWriteCheckboxes ? 0.75 : 1};
+    width: 14px;
+    height: 14px;
+    position: relative;
+    top: 1px;
+    transition: transform 100ms ease-in-out;
+    opacity: .8;
+    margin: 0 0.5em 0 0;
 
-  &:dir(rtl) {
-    margin: 0 0 0 0.5em;
+    background-image: ${`url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M3 0C1.34315 0 0 1.34315 0 3V11C0 12.6569 1.34315 14 3 14H11C12.6569 14 14 12.6569 14 11V3C14 1.34315 12.6569 0 11 0H3ZM3 2C2.44772 2 2 2.44772 2 3V11C2 11.5523 2.44772 12 3 12H11C11.5523 12 12 11.5523 12 11V3C12 2.44772 11.5523 2 11 2H3Z' fill='${props.theme.text.replace(
+      "#",
+      "%23"
+    )}' /%3E%3C/svg%3E%0A");`}
+
+    &[aria-checked=true] {
+        opacity: 1;
+        background-image: ${`url(
+            "data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M3 0C1.34315 0 0 1.34315 0 3V11C0 12.6569 1.34315 14 3 14H11C12.6569 14 14 12.6569 14 11V3C14 1.34315 12.6569 0 11 0H3ZM4.26825 5.85982L5.95873 7.88839L9.70003 2.9C10.0314 2.45817 10.6582 2.36863 11.1 2.7C11.5419 3.03137 11.6314 3.65817 11.3 4.1L6.80002 10.1C6.41275 10.6164 5.64501 10.636 5.2318 10.1402L2.7318 7.14018C2.37824 6.71591 2.43556 6.08534 2.85984 5.73178C3.28412 5.37821 3.91468 5.43554 4.26825 5.85982Z' fill='${props.theme.accent.replace(
+              "#",
+              "%23"
+            )}' /%3E%3C/svg%3E%0A"
+        )`};
+    }
+
+    &:active {
+        transform: scale(0.9);
+    }
   }
 
-  background-image: ${`url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M3 0C1.34315 0 0 1.34315 0 3V11C0 12.6569 1.34315 14 3 14H11C12.6569 14 14 12.6569 14 11V3C14 1.34315 12.6569 0 11 0H3ZM3 2C2.44772 2 2 2.44772 2 3V11C2 11.5523 2.44772 12 3 12H11C11.5523 12 12 11.5523 12 11V3C12 2.44772 11.5523 2 11 2H3Z' fill='${props.theme.text.replace(
-    "#",
-    "%23"
-  )}' /%3E%3C/svg%3E%0A");`}
-
-  &[aria-checked=true] {
-    opacity: 1;
-    background-image: ${`url(
-        "data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M3 0C1.34315 0 0 1.34315 0 3V11C0 12.6569 1.34315 14 3 14H11C12.6569 14 14 12.6569 14 11V3C14 1.34315 12.6569 0 11 0H3ZM4.26825 5.85982L5.95873 7.88839L9.70003 2.9C10.0314 2.45817 10.6582 2.36863 11.1 2.7C11.5419 3.03137 11.6314 3.65817 11.3 4.1L6.80002 10.1C6.41275 10.6164 5.64501 10.636 5.2318 10.1402L2.7318 7.14018C2.37824 6.71591 2.43556 6.08534 2.85984 5.73178C3.28412 5.37821 3.91468 5.43554 4.26825 5.85982Z' fill='${props.theme.accent.replace(
-          "#",
-          "%23"
-        )}' /%3E%3C/svg%3E%0A"
-      )`};
-  }
-
-  &:active {
-    transform: scale(0.9);
+  &:has(p:dir(rtl)) {
+    .checkbox {
+      margin: 0 0 0 0.5em;
+    }
   }
 }
 
@@ -1435,13 +1445,9 @@ table {
     border: 1px solid ${props.theme.divider};
     position: relative;
     padding: 4px 8px;
-    text-align: left;
+    text-align: start;
     min-width: 100px;
     font-weight: normal;
-
-    &:dir(rtl) {
-      text-align: right;
-    }
   }
 
   th {
@@ -1602,7 +1608,7 @@ table {
       cursor: var(--pointer);
       position: absolute;
       top: -16px;
-      ${props.rtl ? "right" : "left"}: 0;
+      left: 0;
       width: 100%;
       height: 12px;
       background: ${props.theme.divider};
@@ -1613,12 +1619,12 @@ table {
       background: ${props.theme.text};
     }
     &.first::after {
-      border-top-${props.rtl ? "right" : "left"}-radius: 3px;
-      border-bottom-${props.rtl ? "right" : "left"}-radius: 3px;
+      border-top-left-radius: 3px;
+      border-bottom-left-radius: 3px;
     }
     &.last::after {
-      border-top-${props.rtl ? "left" : "right"}-radius: 3px;
-      border-bottom-${props.rtl ? "left" : "right"}-radius: 3px;
+      border-top-right-radius: 3px;
+      border-bottom-right-radius: 3px;
     }
     &.selected::after {
       background: ${props.theme.tableSelected};
@@ -1630,7 +1636,7 @@ table {
       content: "";
       cursor: var(--pointer);
       position: absolute;
-      ${props.rtl ? "right" : "left"}: -16px;
+      left: -16px;
       top: 0;
       height: 100%;
       width: 12px;
@@ -1666,7 +1672,7 @@ table {
       border: 2px solid ${props.theme.background};
       position: absolute;
       top: -18px;
-      ${props.rtl ? "right" : "left"}: -18px;
+      left: -18px;
       display: ${props.readOnly ? "none" : "block"};
       z-index: 10;
     }
@@ -1730,7 +1736,7 @@ table {
   position: absolute;
   top: 1px;
   bottom: 0;
-  ${props.rtl ? "right" : "left"}: -1em;
+  left: -1em;
   width: 32px;
   z-index: 20;
   transition: box-shadow 250ms ease-in-out;
