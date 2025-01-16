@@ -47,8 +47,7 @@ class Model<
   TCreationAttributes extends {} = TModelAttributes
 > extends SequelizeModel<TModelAttributes, TCreationAttributes> {
   /**
-   * The namespace to use for events, if none is provided an event will not be created
-   * during the migration period. In the future this may default to the table name.
+   * The namespace to use for events - defaults to the table name if none is provided.
    */
   static eventNamespace: string | undefined;
 
@@ -219,11 +218,10 @@ class Model<
     model: T,
     context: HookContext
   ) {
-    const namespace = this.eventNamespace;
+    const namespace = this.eventNamespace ?? this.tableName;
     const models = this.sequelize!.models;
 
-    // If no namespace is defined, don't create an event
-    if (!namespace || !context.event?.create) {
+    if (!context.event?.create) {
       return;
     }
 
