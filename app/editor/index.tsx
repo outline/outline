@@ -1,5 +1,6 @@
 /* global File Promise */
 import { PluginSimple } from "markdown-it";
+import { Observer } from "mobx-react";
 import { darken, transparentize } from "polished";
 import { baseKeymap } from "prosemirror-commands";
 import { dropCursor } from "prosemirror-dropcursor";
@@ -247,6 +248,12 @@ export class Editor extends React.PureComponent<
         ...this.view.props,
         editable: () => !this.props.readOnly,
       });
+
+      // NodeView will not automatically render when editable changes so we must trigger an update
+      // manually, see: https://discuss.prosemirror.net/t/re-render-custom-nodeview-when-view-editable-changes/6441
+      Array.from(this.renderers).forEach((view) =>
+        view.setProp("isEditable", !this.props.readOnly)
+      );
     }
 
     if (this.props.scrollTo && this.props.scrollTo !== prevProps.scrollTo) {
@@ -848,7 +855,11 @@ export class Editor extends React.PureComponent<
               Object.values(this.widgets).map((Widget, index) => (
                 <Widget key={String(index)} rtl={isRTL} readOnly={readOnly} />
               ))}
-            {Array.from(this.renderers).map((view) => view.content)}
+            <Observer>
+              {() => (
+                <>{Array.from(this.renderers).map((view) => view.content)}</>
+              )}
+            </Observer>
           </Flex>
         </EditorContext.Provider>
       </PortalContext.Provider>
