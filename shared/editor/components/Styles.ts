@@ -1073,6 +1073,10 @@ ol {
   margin: 0 0.1em 0 ${props.staticHTML ? "0" : "-26px"};
   padding: 0 0 0 48px;
 
+  &:has(p:dir(rtl)) {
+    direction: rtl;
+  }
+
   &:dir(rtl) {
     margin: 0 ${props.staticHTML ? "0" : "-26px"} 0 0.1em;
     padding: 0 48px 0 0;
@@ -1087,27 +1091,11 @@ ol ol ol {
   list-style: lower-roman;
 }
 
-ul.checkbox_list {
-  padding: 0;
-  margin-left: -24px;
-  margin-right: 0;
-
-  &:dir(rtl) {
-    margin-left: 0;
-    margin-right: -24px;
-  }
-}
-
 ul li,
 ol li {
   position: relative;
   white-space: initial;
   text-align: start;
-  direction: ${props.rtl ? "rtl" : "ltr"};
-
-  &:has(p:dir(rtl)) {
-    direction: rtl;
-  }
 
   p {
     white-space: pre-wrap;
@@ -1118,15 +1106,26 @@ ol li {
   }
 }
 
-ul.checkbox_list > li {
-  display: flex;
-  list-style: none;
-  padding-left: 24px;
-  padding-right: 0;
+ul.checkbox_list {
+  padding: 0;
+  margin-left: -24px;
+  margin-right: 0;
 
-  &:dir(rtl) {
-    padding-left: 0;
-    padding-right: 24px;
+  & > li {
+    display: flex;
+    list-style: none;
+    padding-left: 24px;
+    padding-right: 0;
+  }
+
+  &:has(p:dir(rtl)) {
+    margin-left: 0;
+    margin-right: -24px;
+
+    & > li {
+      padding-left: 0;
+      padding-right: 24px;
+    }
   }
 }
 
@@ -1193,7 +1192,7 @@ ul.checkbox_list > li {
   }
 }
 
-ul.checkbox_list li {
+ul.checkbox_list {
   .checkbox {
     display: inline-block;
     cursor: var(--pointer);
@@ -1225,7 +1224,7 @@ ul.checkbox_list li {
     }
 
     &:active {
-        transform: scale(0.9);
+      transform: scale(0.9);
     }
   }
 
