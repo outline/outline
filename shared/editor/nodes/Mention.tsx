@@ -5,9 +5,15 @@ import {
   NodeType,
   Schema,
 } from "prosemirror-model";
-import { Command, NodeSelection, TextSelection } from "prosemirror-state";
+import {
+  Command,
+  NodeSelection,
+  Plugin,
+  TextSelection,
+} from "prosemirror-state";
 import * as React from "react";
 import { Primitive } from "utility-types";
+import { v4 as uuidv4 } from "uuid";
 import env from "../../env";
 import { MentionType } from "../../types";
 import { MentionDocument, MentionUser } from "../components/Mentions";
@@ -57,7 +63,7 @@ export default class Mention extends Extension {
             return {
               type,
               modelId,
-              actorId: dom.dataset.actorId,
+              actorId: dom.dataset.actorid,
               label: dom.innerText,
               id: dom.id,
             };
@@ -75,7 +81,7 @@ export default class Mention extends Extension {
               : `${env.URL}/doc/${node.attrs.modelId}`,
           "data-type": node.attrs.type,
           "data-id": node.attrs.modelId,
-          "data-actorId": node.attrs.actorId,
+          "data-actorid": node.attrs.actorId,
           "data-url": `mention://${node.attrs.id}/${node.attrs.type}/${node.attrs.modelId}`,
         },
         String(node.attrs.label),
@@ -100,6 +106,38 @@ export default class Mention extends Extension {
 
   get rulePlugins() {
     return [mentionRule];
+  }
+
+  get plugins() {
+    return [
+      // Ensure mentions have unique IDs
+      new Plugin({
+        appendTransaction: (_transactions, _oldState, newState) => {
+          const tr = newState.tr;
+          const existingIds = new Set();
+          let modified = false;
+
+          tr.doc.descendants((node, pos) => {
+            let nodeId = node.attrs.id;
+            if (
+              node.type.name === this.name &&
+              (!nodeId || existingIds.has(nodeId))
+            ) {
+              nodeId = uuidv4();
+              modified = true;
+              tr.setNodeAttribute(pos, "id", nodeId);
+            }
+            existingIds.add(nodeId);
+          });
+
+          if (modified) {
+            return tr;
+          }
+
+          return null;
+        },
+      }),
+    ];
   }
 
   keys(): Record<string, Command> {
