@@ -1,5 +1,6 @@
 import { observer } from "mobx-react";
 import { DocumentIcon, EmailIcon } from "outline-icons";
+import { Node } from "prosemirror-model";
 import * as React from "react";
 import { Link } from "react-router-dom";
 import Icon from "../../components/Icon";
@@ -7,19 +8,25 @@ import useStores from "../../hooks/useStores";
 import { cn } from "../styles/utils";
 import { ComponentProps } from "../types";
 
+const getAttributesFromNode = (node: Node) => {
+  const spec = node.type.spec.toDOM?.(node) as any as Record<string, string>[];
+  const { class: className, ...attrs } = spec[1];
+  return { className, ...attrs };
+};
+
 export const MentionUser = observer(function MentionUser_(
   props: ComponentProps
 ) {
   const { isSelected, node } = props;
   const { users } = useStores();
   const user = users.get(node.attrs.modelId);
+  const { className, ...attrs } = getAttributesFromNode(node);
 
   return (
     <span
-      className={cn({
+      {...attrs}
+      className={cn(className, {
         "ProseMirror-selectednode": isSelected,
-        "use-hover-preview": true,
-        mention: true,
       })}
     >
       <EmailIcon size={18} />
@@ -35,6 +42,7 @@ export const MentionDocument = observer(function MentionDocument_(
   const { documents } = useStores();
   const doc = documents.get(node.attrs.modelId);
   const modelId = node.attrs.modelId;
+  const { className, ...attrs } = getAttributesFromNode(node);
 
   React.useEffect(() => {
     if (modelId) {
@@ -44,10 +52,9 @@ export const MentionDocument = observer(function MentionDocument_(
 
   return (
     <Link
-      className={cn({
+      {...attrs}
+      className={cn(className, {
         "ProseMirror-selectednode": isSelected,
-        "use-hover-preview": true,
-        mention: true,
       })}
       to={doc?.path ?? `/doc/${node.attrs.modelId}`}
     >
