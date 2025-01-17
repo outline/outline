@@ -65,11 +65,11 @@ export default class PasteHandler extends Extension {
   state: {
     open: boolean;
     query: string;
-    pasteData: Record<string, any>;
+    pastedText: string;
   } = observable({
     open: false,
     query: "",
-    pasteData: {},
+    pastedText: "",
   });
 
   get name() {
@@ -288,14 +288,14 @@ export default class PasteHandler extends Extension {
 
   private showPasteMenu(text: string) {
     action(() => {
-      this.state.pasteData.text = text;
+      this.state.pastedText = text;
       this.state.open = true;
     })();
   }
 
   private hidePasteMenu() {
     action(() => {
-      this.state.pasteData.text = "";
+      this.state.pastedText = "";
       this.state.open = false;
     })();
   }
@@ -344,6 +344,8 @@ export default class PasteHandler extends Extension {
     <PasteMenu
       rtl={rtl}
       trigger=""
+      embeds={this.editor.props.embeds}
+      pastedText={this.state.pastedText}
       isActive={this.state.open}
       search={this.state.query}
       onClose={() => {
@@ -356,10 +358,10 @@ export default class PasteHandler extends Extension {
 
             break;
           case "embed":
-            this.replaceOldLink(this.state.pasteData.text);
+            this.replaceOldLink(this.state.pastedText);
 
             this.editor.commands.embed({
-              href: this.state.pasteData.text,
+              href: this.state.pastedText,
             });
             this.hidePasteMenu();
 

@@ -16,7 +16,7 @@ export enum TableLayout {
 }
 
 export type MenuItem = {
-  icon?: React.ReactElement;
+  icon?: React.ReactNode;
   name?: string;
   title?: string;
   subtitle?: string;
