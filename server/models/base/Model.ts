@@ -19,7 +19,7 @@ import {
   AfterRestore,
   AfterUpdate,
   AfterUpsert,
-  BeforeCreate,
+  BeforeSave,
   Model as SequelizeModel,
 } from "sequelize-typescript";
 import Logger from "@server/logging/Logger";
@@ -66,7 +66,6 @@ class Model<
         create: true,
       },
     };
-    this.cacheChangeset();
     return this.save({ ...options, ...hookContext });
   }
 
@@ -86,7 +85,6 @@ class Model<
       },
     };
     this.set(keys);
-    this.cacheChangeset();
     return this.save(hookContext);
   }
 
@@ -161,8 +159,8 @@ class Model<
     return this.create(values, hookContext);
   }
 
-  @BeforeCreate
-  static async beforeCreateEvent<T extends Model>(model: T) {
+  @BeforeSave
+  static async beforeSaveEvent<T extends Model>(model: T) {
     model.cacheChangeset();
   }
 
