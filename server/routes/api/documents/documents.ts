@@ -1839,20 +1839,18 @@ router.post(
     authorize(user, "update", document);
     authorize(user, "read", group);
 
-    const [membership, created] = await GroupMembership.findOrCreateWithCtx(
-      ctx,
-      {
-        where: {
-          documentId: id,
-          groupId,
-        },
-        defaults: {
-          permission: permission || user.defaultDocumentPermission,
-          createdById: user.id,
-        },
-        lock: transaction.LOCK.UPDATE,
-      }
-    );
+    const [membership, created] = await GroupMembership.findOrCreate({
+      where: {
+        documentId: id,
+        groupId,
+      },
+      defaults: {
+        permission: permission || user.defaultDocumentPermission,
+        createdById: user.id,
+      },
+      lock: transaction.LOCK.UPDATE,
+      ...ctx.context,
+    });
 
     if (!created && permission) {
       membership.permission = permission;
@@ -1860,7 +1858,7 @@ router.post(
       // disconnect from the source if the permission is manually updated
       membership.sourceId = null;
 
-      await membership.saveWithCtx(ctx);
+      await membership.save(ctx.context);
     }
 
     ctx.body = {
@@ -1905,7 +1903,7 @@ router.post(
       rejectOnEmpty: true,
     });
 
-    await membership.destroyWithCtx(ctx);
+    await membership.destroy(ctx.context);
 
     ctx.body = {
       success: true,
