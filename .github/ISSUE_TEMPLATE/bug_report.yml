@@ -1,6 +1,5 @@
 name: Bug report
 description: File a bug to help us improve
-title: ""
 labels: ["bug"]
 body:
 - type: checkboxes
@@ -12,7 +11,7 @@ body:
       required: true
 - type: checkboxes
   attributes:
-    label:
+    label: This is not related to configuring Outline
     description: I understand that questions related to configuring self-hosted Outline should be asked in the [community forum](https://github.com/outline/outline/discussions/categories/self-hosting).
     options:
     - label: The issue is not related to self-hosting config
