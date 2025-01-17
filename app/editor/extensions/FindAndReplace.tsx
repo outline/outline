@@ -177,7 +177,7 @@ export default class FindAndReplaceExtension extends Extension {
   private goToMatch(direction: number): Command {
     return (state, dispatch) => {
       if (direction > 0) {
-        if (this.currentResultIndex === this.results.length - 1) {
+        if (this.currentResultIndex >= this.results.length - 1) {
           this.currentResultIndex = 0;
         } else {
           this.currentResultIndex += 1;

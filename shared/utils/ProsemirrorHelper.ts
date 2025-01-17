@@ -1,6 +1,7 @@
 import { Node, Schema } from "prosemirror-model";
 import headingToSlug from "../editor/lib/headingToSlug";
 import textBetween from "../editor/lib/textBetween";
+import { getTextSerializers } from "../editor/lib/textSerializers";
 import { ProsemirrorData } from "../types";
 import { TextHelper } from "./TextHelper";
 
@@ -90,12 +91,7 @@ export class ProsemirrorHelper {
    * @returns The document content as plain text without formatting.
    */
   static toPlainText(root: Node, schema: Schema) {
-    const textSerializers = Object.fromEntries(
-      Object.entries(schema.nodes)
-        .filter(([, node]) => node.spec.toPlainText)
-        .map(([name, node]) => [name, node.spec.toPlainText])
-    );
-
+    const textSerializers = getTextSerializers(schema);
     return textBetween(root, 0, root.content.size, textSerializers);
   }
 
@@ -153,11 +149,7 @@ export class ProsemirrorHelper {
       return !doc || doc.textContent.trim() === "";
     }
 
-    const textSerializers = Object.fromEntries(
-      Object.entries(schema.nodes)
-        .filter(([, node]) => node.spec.toPlainText)
-        .map(([name, node]) => [name, node.spec.toPlainText])
-    );
+    const textSerializers = getTextSerializers(schema);
 
     let empty = true;
     doc.descendants((child: Node) => {

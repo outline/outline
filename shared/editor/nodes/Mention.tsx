@@ -39,7 +39,6 @@ export default class Mention extends Extension {
         },
       },
       inline: true,
-      content: "text*",
       marks: "",
       group: "inline",
       atom: true,

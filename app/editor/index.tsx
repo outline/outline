@@ -1,5 +1,6 @@
 /* global File Promise */
 import { PluginSimple } from "markdown-it";
+import { Observer } from "mobx-react";
 import { darken, transparentize } from "polished";
 import { baseKeymap } from "prosemirror-commands";
 import { dropCursor } from "prosemirror-dropcursor";
@@ -33,6 +34,7 @@ import Extension, {
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
 import textBetween from "@shared/editor/lib/textBetween";
+import { getTextSerializers } from "@shared/editor/lib/textSerializers";
 import Mark from "@shared/editor/marks/Mark";
 import { basicExtensions as extensions } from "@shared/editor/nodes";
 import Node from "@shared/editor/nodes/Node";
@@ -236,6 +238,12 @@ export class Editor extends React.PureComponent<
         ...this.view.props,
         editable: () => !this.props.readOnly,
       });
+
+      // NodeView will not automatically render when editable changes so we must trigger an update
+      // manually, see: https://discuss.prosemirror.net/t/re-render-custom-nodeview-when-view-editable-changes/6441
+      Array.from(this.renderers).forEach((view) =>
+        view.setProp("isEditable", !this.props.readOnly)
+      );
     }
 
     if (this.props.scrollTo && this.props.scrollTo !== prevProps.scrollTo) {
@@ -700,11 +708,7 @@ export class Editor extends React.PureComponent<
    */
   public getPlainText = () => {
     const { doc } = this.view.state;
-    const textSerializers = Object.fromEntries(
-      Object.entries(this.schema.nodes)
-        .filter(([, node]) => node.spec.toPlainText)
-        .map(([name, node]) => [name, node.spec.toPlainText])
-    );
+    const textSerializers = getTextSerializers(this.schema);
 
     return textBetween(doc, 0, doc.content.size, textSerializers);
   };
@@ -767,7 +771,7 @@ export class Editor extends React.PureComponent<
   };
 
   public render() {
-    const { dir, readOnly, canUpdate, grow, style, className, onKeyDown } =
+    const { readOnly, canUpdate, grow, style, className, onKeyDown } =
       this.props;
     const { isRTL } = this.state;
 
@@ -784,7 +788,6 @@ export class Editor extends React.PureComponent<
             column
           >
             <EditorContainer
-              dir={dir}
               rtl={isRTL}
               grow={grow}
               readOnly={readOnly}
@@ -811,7 +814,11 @@ export class Editor extends React.PureComponent<
               Object.values(this.widgets).map((Widget, index) => (
                 <Widget key={String(index)} rtl={isRTL} readOnly={readOnly} />
               ))}
-            {Array.from(this.renderers).map((view) => view.content)}
+            <Observer>
+              {() => (
+                <>{Array.from(this.renderers).map((view) => view.content)}</>
+              )}
+            </Observer>
           </Flex>
         </EditorContext.Provider>
       </PortalContext.Provider>
