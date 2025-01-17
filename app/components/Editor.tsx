@@ -1,6 +1,4 @@
-import deburr from "lodash/deburr";
 import difference from "lodash/difference";
-import sortBy from "lodash/sortBy";
 import { observer } from "mobx-react";
 import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
@@ -9,10 +7,7 @@ import { mergeRefs } from "react-merge-refs";
 import { Optional } from "utility-types";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import { AttachmentPreset } from "@shared/types";
-import { dateLocale, dateToRelative } from "@shared/utils/date";
 import { getDataTransferFiles } from "@shared/utils/files";
-import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
-import { isInternalUrl } from "@shared/utils/urls";
 import { AttachmentValidation } from "@shared/validations";
 import ClickablePadding from "~/components/ClickablePadding";
 import ErrorBoundary from "~/components/ErrorBoundary";
@@ -22,12 +17,8 @@ import useDictionary from "~/hooks/useDictionary";
 import useEditorClickHandlers from "~/hooks/useEditorClickHandlers";
 import useEmbeds from "~/hooks/useEmbeds";
 import useStores from "~/hooks/useStores";
-import useUserLocale from "~/hooks/useUserLocale";
-import { NotFoundError } from "~/utils/errors";
 import { uploadFile } from "~/utils/files";
 import lazyWithRetry from "~/utils/lazyWithRetry";
-import DocumentBreadcrumb from "./DocumentBreadcrumb";
-import Icon from "./Icon";
 
 const LazyLoadedEditor = lazyWithRetry(() => import("~/editor"));
 
@@ -50,75 +41,12 @@ export type Props = Optional<
 function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const { id, shareId, onChange, onCreateCommentMark, onDeleteCommentMark } =
     props;
-  const userLocale = useUserLocale();
-  const locale = dateLocale(userLocale);
-  const { comments, documents } = useStores();
+  const { comments } = useStores();
   const dictionary = useDictionary();
   const embeds = useEmbeds(!shareId);
   const localRef = React.useRef<SharedEditor>();
   const preferences = useCurrentUser({ rejectOnEmpty: false })?.preferences;
   const previousCommentIds = React.useRef<string[]>();
-
-  const handleSearchLink = React.useCallback(
-    async (term: string) => {
-      if (isInternalUrl(term)) {
-        // search for exact internal document
-        const slug = parseDocumentSlug(term);
-        if (!slug) {
-          return [];
-        }
-
-        try {
-          const document = await documents.fetch(slug);
-          const time = dateToRelative(Date.parse(document.updatedAt), {
-            addSuffix: true,
-            shorten: true,
-            locale,
-          });
-
-          return [
-            {
-              title: document.title,
-              subtitle: `Updated ${time}`,
-              url: document.url,
-              icon: document.icon ? (
-                <Icon
-                  value={document.icon}
-                  color={document.color ?? undefined}
-                />
-              ) : undefined,
-            },
-          ];
-        } catch (error) {
-          // NotFoundError could not find document for slug
-          if (!(error instanceof NotFoundError)) {
-            throw error;
-          }
-        }
-      }
-
-      // default search for anything that doesn't look like a URL
-      const results = await documents.searchTitles({ query: term });
-
-      return sortBy(
-        results.map(({ document }) => ({
-          title: document.title,
-          subtitle: <DocumentBreadcrumb document={document} onlyText />,
-          url: document.url,
-          icon: document.icon ? (
-            <Icon value={document.icon} color={document.color ?? undefined} />
-          ) : undefined,
-        })),
-        (document) =>
-          deburr(document.title)
-            .toLowerCase()
-            .startsWith(deburr(term).toLowerCase())
-            ? -1
-            : 1
-      );
-    },
-    [locale, documents]
-  );
 
   const handleUploadFile = React.useCallback(
     async (file: File) => {
@@ -263,7 +191,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
           dictionary={dictionary}
           {...props}
           onClickLink={handleClickLink}
-          onSearchLink={handleSearchLink}
           onChange={handleChange}
           placeholder={props.placeholder || ""}
           defaultValue={props.defaultValue || ""}

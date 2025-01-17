@@ -1,7 +1,7 @@
 import { subHours } from "date-fns";
 import differenceBy from "lodash/differenceBy";
 import { Op } from "sequelize";
-import { NotificationEventType } from "@shared/types";
+import { MentionType, NotificationEventType } from "@shared/types";
 import { createSubscriptionsForDocument } from "@server/commands/subscriptionCreator";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -37,8 +37,12 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
     }
 
     // Send notifications to mentioned users first
-    const oldMentions = before ? DocumentHelper.parseMentions(before) : [];
-    const newMentions = DocumentHelper.parseMentions(document);
+    const oldMentions = before
+      ? DocumentHelper.parseMentions(before, { type: MentionType.User })
+      : [];
+    const newMentions = DocumentHelper.parseMentions(document, {
+      type: MentionType.User,
+    });
     const mentions = differenceBy(newMentions, oldMentions, "id");
     const userIdsMentioned: string[] = [];
 

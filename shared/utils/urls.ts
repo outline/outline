@@ -66,7 +66,7 @@ export function isInternalUrl(href: string) {
  */
 export function isDocumentUrl(url: string) {
   try {
-    const parsed = new URL(url);
+    const parsed = new URL(url, env.URL);
     return (
       isInternalUrl(url) &&
       (parsed.pathname.startsWith("/doc/") || parsed.pathname.startsWith("/d/"))

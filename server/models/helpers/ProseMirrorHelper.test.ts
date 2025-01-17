@@ -1,5 +1,5 @@
 import { DeepPartial } from "utility-types";
-import { ProsemirrorData } from "@shared/types";
+import { MentionType, ProsemirrorData } from "@shared/types";
 import { buildProseMirrorDoc } from "@server/test/factories";
 import { MentionAttrs, ProsemirrorHelper } from "./ProsemirrorHelper";
 
@@ -8,7 +8,7 @@ describe("ProseMirrorHelper", () => {
     it("should return the paragraph node", () => {
       const mentionAttrs: MentionAttrs = {
         id: "31d5899f-e544-4ff6-b6d3-c49dd6b81901",
-        type: "user",
+        type: MentionType.User,
         label: "test.user",
         actorId: "ccec260a-e060-4925-ade8-17cfabaf2cac",
         modelId: "9a17c1c8-d178-4350-9001-203a73070fcb",
@@ -58,7 +58,7 @@ describe("ProseMirrorHelper", () => {
     it("should return the heading node", () => {
       const mentionAttrs: MentionAttrs = {
         id: "31d5899f-e544-4ff6-b6d3-c49dd6b81901",
-        type: "user",
+        type: MentionType.User,
         label: "test.user",
         actorId: "ccec260a-e060-4925-ade8-17cfabaf2cac",
         modelId: "9a17c1c8-d178-4350-9001-203a73070fcb",
@@ -111,7 +111,7 @@ describe("ProseMirrorHelper", () => {
     it("should return the table node with the mentioned row only", () => {
       const mentionAttrs: MentionAttrs = {
         id: "31d5899f-e544-4ff6-b6d3-c49dd6b81901",
-        type: "user",
+        type: MentionType.User,
         label: "test.user",
         actorId: "ccec260a-e060-4925-ade8-17cfabaf2cac",
         modelId: "9a17c1c8-d178-4350-9001-203a73070fcb",
@@ -195,7 +195,7 @@ describe("ProseMirrorHelper", () => {
     it("should return the checkbox list with the mentioned item only", () => {
       const mentionAttrs: MentionAttrs = {
         id: "31d5899f-e544-4ff6-b6d3-c49dd6b81901",
-        type: "user",
+        type: MentionType.User,
         label: "test.user",
         actorId: "ccec260a-e060-4925-ade8-17cfabaf2cac",
         modelId: "9a17c1c8-d178-4350-9001-203a73070fcb",
@@ -275,7 +275,7 @@ describe("ProseMirrorHelper", () => {
     it("should not return anything when the mention attrs could not be found", () => {
       const mentionAttrs: MentionAttrs = {
         id: "31d5899f-e544-4ff6-b6d3-c49dd6b81901",
-        type: "user",
+        type: MentionType.User,
         label: "test.user",
         actorId: "ccec260a-e060-4925-ade8-17cfabaf2cac",
         modelId: "9a17c1c8-d178-4350-9001-203a73070fcb",

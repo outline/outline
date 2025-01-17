@@ -1,7 +1,7 @@
 import * as React from "react";
+import Icon from "@shared/components/Icon";
 import { NavigationNode } from "@shared/types";
 import Breadcrumb from "~/components/Breadcrumb";
-import Icon from "~/components/Icon";
 import { MenuInternalLink } from "~/types";
 import { sharedDocumentPath } from "~/utils/routeHelpers";
 

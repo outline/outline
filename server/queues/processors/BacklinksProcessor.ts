@@ -1,7 +1,7 @@
 import { Op } from "sequelize";
 import { Document, Backlink } from "@server/models";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { Event, DocumentEvent, RevisionEvent } from "@server/types";
-import parseDocumentIds from "@server/utils/parseDocumentIds";
 import BaseProcessor from "./BaseProcessor";
 
 export default class BacklinksProcessor extends BaseProcessor {
@@ -18,7 +18,7 @@ export default class BacklinksProcessor extends BaseProcessor {
         if (!document) {
           return;
         }
-        const linkIds = parseDocumentIds(document.text);
+        const linkIds = DocumentHelper.parseDocumentIds(document);
         await Promise.all(
           linkIds.map(async (linkId) => {
             const linkedDocument = await Document.findByPk(linkId);
@@ -52,7 +52,7 @@ export default class BacklinksProcessor extends BaseProcessor {
           return;
         }
 
-        const linkIds = parseDocumentIds(document.text);
+        const linkIds = DocumentHelper.parseDocumentIds(document);
         const linkedDocumentIds: string[] = [];
 
         // create or find existing backlink records for referenced docs

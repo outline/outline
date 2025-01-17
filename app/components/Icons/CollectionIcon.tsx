@@ -2,9 +2,9 @@ import { observer } from "mobx-react";
 import { CollectionIcon, PrivateCollectionIcon } from "outline-icons";
 import { getLuminance } from "polished";
 import * as React from "react";
+import Icon from "@shared/components/Icon";
 import { colorPalette } from "@shared/utils/collections";
 import Collection from "~/models/Collection";
-import Icon from "~/components/Icon";
 import useStores from "~/hooks/useStores";
 
 type Props = {

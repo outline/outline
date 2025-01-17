@@ -12,6 +12,7 @@ import {
 } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import Icon, { IconTitleWrapper } from "@shared/components/Icon";
 import { s } from "@shared/styles";
 import { StatusFilter } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
@@ -22,7 +23,6 @@ import CenteredContent from "~/components/CenteredContent";
 import { CollectionBreadcrumb } from "~/components/CollectionBreadcrumb";
 import CollectionDescription from "~/components/CollectionDescription";
 import Heading from "~/components/Heading";
-import Icon, { IconTitleWrapper } from "~/components/Icon";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import InputSearchPage from "~/components/InputSearchPage";
 import PlaceholderList from "~/components/List/Placeholder";

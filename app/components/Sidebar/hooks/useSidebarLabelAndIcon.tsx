@@ -1,6 +1,6 @@
 import { DocumentIcon } from "outline-icons";
 import * as React from "react";
-import Icon from "~/components/Icon";
+import Icon from "@shared/components/Icon";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import useStores from "~/hooks/useStores";
 

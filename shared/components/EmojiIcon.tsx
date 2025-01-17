@@ -1,6 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-import { s } from "@shared/styles";
+import { s } from "../styles";
 
 type Props = {
   /** The emoji to render */

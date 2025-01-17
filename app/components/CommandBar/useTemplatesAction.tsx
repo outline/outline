@@ -1,6 +1,6 @@
 import { NewDocumentIcon, ShapesIcon } from "outline-icons";
 import * as React from "react";
-import Icon from "~/components/Icon";
+import Icon from "@shared/components/Icon";
 import { createAction } from "~/actions";
 import {
   ActiveCollectionSection,

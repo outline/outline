@@ -1,6 +1,6 @@
 import dns from "dns";
 import Router from "koa-router";
-import { UnfurlResourceType } from "@shared/types";
+import { MentionType, UnfurlResourceType } from "@shared/types";
 import { getBaseDomain, parseDomain } from "@shared/utils/domains";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import parseMentionUrl from "@shared/utils/parseMentionUrl";
@@ -36,31 +36,34 @@ router.post(
       if (!documentId) {
         throw ValidationError("Document ID is required to unfurl a mention");
       }
-      const { modelId: userId } = parseMentionUrl(url);
+      const { modelId, mentionType } = parseMentionUrl(url);
 
-      const [user, document] = await Promise.all([
-        User.findByPk(userId),
-        Document.findByPk(documentId, {
-          userId: actor.id,
-        }),
-      ]);
-      if (!user) {
-        throw NotFoundError("Mentioned user does not exist");
-      }
-      if (!document) {
-        throw NotFoundError("Document does not exist");
-      }
-      authorize(actor, "read", user);
-      authorize(actor, "read", document);
+      // TODO: Add support for other mention types
+      if (mentionType === MentionType.User) {
+        const [user, document] = await Promise.all([
+          User.findByPk(modelId),
+          Document.findByPk(documentId, {
+            userId: actor.id,
+          }),
+        ]);
+        if (!user) {
+          throw NotFoundError("Mentioned user does not exist");
+        }
+        if (!document) {
+          throw NotFoundError("Document does not exist");
+        }
+        authorize(actor, "read", user);
+        authorize(actor, "read", document);
 
-      ctx.body = await presentUnfurl(
-        {
-          type: UnfurlResourceType.Mention,
-          user,
-          document,
-        },
-        { includeEmail: !!can(actor, "readEmail", user) }
-      );
+        ctx.body = await presentUnfurl(
+          {
+            type: UnfurlResourceType.Mention,
+            user,
+            document,
+          },
+          { includeEmail: !!can(actor, "readEmail", user) }
+        );
+      }
       return;
     }
 

@@ -1,5 +1,6 @@
 import differenceBy from "lodash/differenceBy";
 import * as React from "react";
+import { MentionType } from "@shared/types";
 import { Document, Revision } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
@@ -63,12 +64,12 @@ export default class DocumentMentionedEmail extends BaseEmail<
     }
 
     const currMentions = DocumentHelper.parseMentions(currDoc, {
-      type: "user",
+      type: MentionType.User,
       modelId: userId,
     });
     const prevMentions = prevDoc
       ? DocumentHelper.parseMentions(prevDoc, {
-          type: "user",
+          type: MentionType.User,
           modelId: userId,
         })
       : [];
