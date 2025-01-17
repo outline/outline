@@ -465,7 +465,10 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       orderBy(
         filtered.map((item) => ({
           item,
-          section: "section" in item ? item.section?.({ t }) : "default",
+          section:
+            "section" in item && item.section && "priority" in item.section
+              ? (item.section.priority as number) ?? 0
+              : 0,
           priority: "priority" in item ? item.priority : 0,
           score:
             searchInput && item.title
@@ -476,7 +479,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         ["desc", "desc", "desc"]
       ).map(({ item }) => item)
     );
-  }, [t, commands, props]);
+  }, [commands, props]);
 
   React.useEffect(() => {
     const handleMouseDown = (event: MouseEvent) => {
