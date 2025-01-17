@@ -17,16 +17,12 @@ import { v4 as uuidv4 } from "uuid";
 import env from "../../env";
 import { MentionType } from "../../types";
 import { MentionDocument, MentionUser } from "../components/Mentions";
-import Extension from "../lib/Extension";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import mentionRule from "../rules/mention";
 import { ComponentProps } from "../types";
+import Node from "./Node";
 
-export default class Mention extends Extension {
-  get type() {
-    return "node";
-  }
-
+export default class Mention extends Node {
   get name() {
     return "mention";
   }

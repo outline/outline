@@ -1,5 +1,6 @@
 /* global File Promise */
 import { PluginSimple } from "markdown-it";
+import { observable } from "mobx";
 import { Observer } from "mobx-react";
 import { darken, transparentize } from "polished";
 import { baseKeymap } from "prosemirror-commands";
@@ -194,7 +195,7 @@ export class Editor extends React.PureComponent<
   };
 
   widgets: { [name: string]: (props: WidgetProps) => React.ReactElement };
-  renderers: Set<NodeViewRenderer<ComponentProps>> = new Set();
+  renderers: Set<NodeViewRenderer<ComponentProps>> = observable.set();
   nodes: { [name: string]: NodeSpec };
   marks: { [name: string]: MarkSpec };
   commands: Record<string, CommandFactory>;
