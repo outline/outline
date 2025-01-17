@@ -1574,6 +1574,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.DocumentsCreateReq>) => {
     const {
+      id,
       title,
       text,
       icon,
@@ -1641,6 +1642,7 @@ router.post(
     }
 
     const document = await documentCreator({
+      id,
       title,
       text: await TextHelper.replaceImagesWithAttachments(ctx, text, user),
       icon,

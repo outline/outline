@@ -4,7 +4,7 @@ import { Primitive } from "utility-types";
 import validator from "validator";
 import isIn from "validator/lib/isIn";
 import isUUID from "validator/lib/isUUID";
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, MentionType } from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { validateColorHex } from "@shared/utils/color";
 import { validateIndexCharacters } from "@shared/utils/indexCharacters";
@@ -247,7 +247,12 @@ export class ValidateURL {
       }
 
       const { id, mentionType, modelId } = parseMentionUrl(url);
-      return id && isUUID(id) && mentionType === "user" && isUUID(modelId);
+      return (
+        id &&
+        isUUID(id) &&
+        Object.values(MentionType).includes(mentionType as MentionType) &&
+        isUUID(modelId)
+      );
     } catch (err) {
       return false;
     }
