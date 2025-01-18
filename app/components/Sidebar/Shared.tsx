@@ -67,6 +67,7 @@ function SharedSidebar({ rootNode, shareId }: Props) {
             depth={0}
             shareId={shareId}
             node={rootNode}
+            prefetchDocument={documents.prefetchDocument}
             activeDocumentId={ui.activeDocumentId}
             activeDocument={documents.active}
           />
