@@ -46,6 +46,8 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
   const actorId = auth.currentUserId;
   const location = useLocation();
   const documentId = parseDocumentSlug(location.pathname);
+  const maxResultsInSection = search ? 25 : 5;
+
   const { data, loading, request } = useRequest<{
     documents: Document[];
     users: User[];
@@ -69,6 +71,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
   React.useEffect(() => {
     if (data && actorId && !loading) {
       const items = data.users
+        .slice(0, maxResultsInSection)
         .map(
           (user) =>
             ({
@@ -100,7 +103,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
             } as MentionItem)
         )
         .concat(
-          data.documents.map(
+          data.documents.slice(0, maxResultsInSection).map(
             (doc) =>
               ({
                 name: "mention",
