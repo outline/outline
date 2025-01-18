@@ -16,6 +16,7 @@ type Props = {
   collection?: Collection;
   activeDocumentId?: string;
   activeDocument?: Document;
+  prefetchDocument?: (documentId: string) => Promise<Document | void>;
   isDraft?: boolean;
   depth: number;
   index: number;
@@ -29,6 +30,7 @@ function DocumentLink(
     collection,
     activeDocument,
     activeDocumentId,
+    prefetchDocument,
     isDraft,
     depth,
     shareId,
@@ -97,6 +99,10 @@ function DocumentLink(
     node,
   ]);
 
+  const handlePrefetch = React.useCallback(() => {
+    void prefetchDocument?.(node.id);
+  }, [prefetchDocument, node]);
+
   const title =
     (activeDocument?.id === node.id ? activeDocument.title : node.title) ||
     t("Untitled");
@@ -114,6 +120,7 @@ function DocumentLink(
         }}
         expanded={hasChildDocuments && depth !== 0 ? expanded : undefined}
         onDisclosureClick={handleDisclosureClick}
+        onClickIntent={handlePrefetch}
         icon={icon && <Icon value={icon} color={node.color} />}
         label={title}
         depth={depth}
@@ -132,6 +139,7 @@ function DocumentLink(
             node={childNode}
             activeDocumentId={activeDocumentId}
             activeDocument={activeDocument}
+            prefetchDocument={prefetchDocument}
             isDraft={childNode.isDraft}
             depth={depth + 1}
             index={index}
