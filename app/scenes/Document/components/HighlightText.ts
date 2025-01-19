@@ -1,7 +1,6 @@
 import styled from "styled-components";
-import { s } from "@shared/styles";
+import { s, truncateMultiline } from "@shared/styles";
 import Text from "~/components/Text";
-import { truncateMultiline } from "~/styles";
 
 /**
  * Highlighted text associated with a comment.

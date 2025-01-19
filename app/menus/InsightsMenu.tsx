@@ -3,14 +3,13 @@ import { MoreIcon } from "outline-icons";
 import React from "react";
 import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
-import { s } from "@shared/styles";
+import { s, hover } from "@shared/styles";
 import ContextMenu from "~/components/ContextMenu";
 import Template from "~/components/ContextMenu/Template";
 import NudeButton from "~/components/NudeButton";
 import { actionToMenuItem } from "~/actions";
 import { toggleViewerInsights } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
-import { hover } from "~/styles";
 import { MenuItem } from "~/types";
 
 const InsightsMenu: React.FC = () => {

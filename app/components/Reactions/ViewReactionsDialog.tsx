@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Tab, TabPanel, useTabState } from "reakit";
 import { toast } from "sonner";
 import styled, { css } from "styled-components";
-import { s } from "@shared/styles";
+import { s, hover } from "@shared/styles";
 import Comment from "~/models/Comment";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import { Emoji } from "~/components/Emoji";
@@ -13,7 +13,6 @@ import Flex from "~/components/Flex";
 import PlaceholderText from "~/components/PlaceholderText";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
-import { hover } from "~/styles";
 
 type Props = {
   /** Model for which to show the reactions. */

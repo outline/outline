@@ -4,7 +4,7 @@ import React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
-import { s } from "@shared/styles";
+import { s, hover } from "@shared/styles";
 import Group from "~/models/Group";
 import Facepile from "~/components/Facepile";
 import Flex from "~/components/Flex";
@@ -18,7 +18,6 @@ import Text from "~/components/Text";
 import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
 import GroupMenu from "~/menus/GroupMenu";
-import { hover } from "~/styles";
 import { ViewGroupMembersDialog } from "./GroupDialogs";
 import { FILTER_HEIGHT } from "./StickyFilters";
 

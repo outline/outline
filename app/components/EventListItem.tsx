@@ -13,7 +13,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import styled, { css } from "styled-components";
 import EventBoundary from "@shared/components/EventBoundary";
-import { s } from "@shared/styles";
+import { s, hover } from "@shared/styles";
 import Document from "~/models/Document";
 import Event from "~/models/Event";
 import { Avatar } from "~/components/Avatar";
@@ -22,7 +22,6 @@ import Time from "~/components/Time";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
 import RevisionMenu from "~/menus/RevisionMenu";
-import { hover } from "~/styles";
 import Logger from "~/utils/Logger";
 import { documentHistoryPath } from "~/utils/routeHelpers";
 

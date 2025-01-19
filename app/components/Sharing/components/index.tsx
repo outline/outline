@@ -1,9 +1,8 @@
 import { darken } from "polished";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
-import { s } from "@shared/styles";
+import { s, hover } from "@shared/styles";
 import NudeButton from "~/components/NudeButton";
-import { hover } from "~/styles";
 
 // TODO: Temp until Button/NudeButton styles are normalized
 export const Wrapper = styled.div`

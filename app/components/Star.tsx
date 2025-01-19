@@ -3,6 +3,7 @@ import { StarredIcon, UnstarredIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
+import { hover } from "@shared/styles";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import {
@@ -11,7 +12,6 @@ import {
 } from "~/actions/definitions/collections";
 import { starDocument, unstarDocument } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
-import { hover } from "~/styles";
 import NudeButton from "./NudeButton";
 
 type Props = {

@@ -4,9 +4,8 @@ import isEqual from "lodash/isEqual";
 import queryString from "query-string";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
-import { s } from "@shared/styles";
+import { s, hover } from "@shared/styles";
 import NavLink from "~/components/NavLink";
-import { hover } from "~/styles";
 
 type Props = Omit<React.ComponentProps<typeof NavLink>, "children"> & {
   /**

@@ -1,8 +1,16 @@
 import { DefaultTheme } from "styled-components";
+import { isTouchDevice } from "../utils/browser";
 
 export { default as depths } from "./depths";
 
 export { default as breakpoints } from "./breakpoints";
+
+/**
+ * Returns "hover" on a non-touch device and "active" on a touch device. To
+ * avoid "sticky" hover on mobile. Use `&:${hover} {...}` instead of
+ * using `&:hover {...}`.
+ */
+export const hover = isTouchDevice() ? "active" : "hover";
 
 /**
  * Mixin to make text ellipse when it overflows.
@@ -53,4 +61,17 @@ export const extraArea = (pixels: number): string => `
     left: -${pixels}px;
     bottom: -${pixels}px;
   }
+`;
+
+/**
+ * Truncate multiline text.
+ *
+ * @returns string of CSS
+ */
+export const truncateMultiline = (lines: number) => `
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: ${lines};
+  overflow: hidden;
+  overflow-wrap: anywhere;
 `;
