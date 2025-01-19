@@ -1,5 +1,6 @@
+import commandScore from "command-score";
 import invariant from "invariant";
-import type { ObjectIterateeCustom } from "lodash";
+import { deburr, type ObjectIterateeCustom } from "lodash";
 import filter from "lodash/filter";
 import find from "lodash/find";
 import flatten from "lodash/flatten";
@@ -15,6 +16,7 @@ import ArchivableModel from "~/models/base/ArchivableModel";
 import Model from "~/models/base/Model";
 import { LifecycleManager } from "~/models/decorators/Lifecycle";
 import { getInverseRelationsForModelClass } from "~/models/decorators/Relation";
+import { Searchable } from "~/models/interfaces/Searchable";
 import type { PaginationParams, PartialExcept, Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
@@ -89,6 +91,42 @@ export default abstract class Store<T extends Model> {
 
   addPolicies = (policies: Policy[]) => {
     policies?.forEach((policy) => this.rootStore.policies.add(policy));
+  };
+
+  findByQuery = (query: string, options?: { maxResults: number }): T[] => {
+    const normalized = deburr((query ?? "").toLocaleLowerCase());
+
+    return this.orderedData
+      .filter((item: T & Searchable) => {
+        if ("searchContent" in item) {
+          const seachables =
+            typeof item.searchContent === "string"
+              ? [item.searchContent]
+              : item.searchContent;
+          return seachables.some((searchable) =>
+            deburr(searchable.toLocaleLowerCase()).includes(normalized)
+          );
+        }
+
+        throw new Error("Item does not implement Searchable interface");
+      })
+      .map((item: T & Searchable) => {
+        const seachables =
+          typeof item.searchContent === "string"
+            ? [item.searchContent]
+            : item.searchContent;
+
+        return {
+          score:
+            seachables
+              .map((searchable) => commandScore(normalized, searchable))
+              .reduce((a, b) => a + b, 0) / seachables.length,
+          item,
+        };
+      })
+      .sort((a, b) => b.score - a.score)
+      .map(({ item }) => item)
+      .slice(0, options?.maxResults);
   };
 
   @action
