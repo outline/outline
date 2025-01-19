@@ -48,7 +48,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
   const documentId = parseDocumentSlug(location.pathname);
   const maxResultsInSection = search ? 25 : 5;
 
-  const { data, loading, request } = useRequest<{
+  const { loading, request } = useRequest<{
     documents: Document[];
     users: User[];
   }>(
@@ -69,9 +69,9 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
   }, [request, isActive]);
 
   React.useEffect(() => {
-    if (data && actorId && !loading) {
-      const items = data.users
-        .slice(0, maxResultsInSection)
+    if (actorId && !loading) {
+      const items = users
+        .findByQuery(search, { maxResults: maxResultsInSection })
         .map(
           (user) =>
             ({
@@ -103,28 +103,30 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
             } as MentionItem)
         )
         .concat(
-          data.documents.slice(0, maxResultsInSection).map(
-            (doc) =>
-              ({
-                name: "mention",
-                icon: doc.icon ? (
-                  <Icon value={doc.icon} color={doc.color ?? undefined} />
-                ) : (
-                  <DocumentIcon />
-                ),
-                title: doc.title,
-                subtitle: doc.collection?.name,
-                section: DocumentsSection,
-                appendSpace: true,
-                attrs: {
-                  id: v4(),
-                  type: MentionType.Document,
-                  modelId: doc.id,
-                  actorId,
-                  label: doc.title,
-                },
-              } as MentionItem)
-          )
+          documents
+            .findByQuery(search, { maxResults: maxResultsInSection })
+            .map(
+              (doc) =>
+                ({
+                  name: "mention",
+                  icon: doc.icon ? (
+                    <Icon value={doc.icon} color={doc.color ?? undefined} />
+                  ) : (
+                    <DocumentIcon />
+                  ),
+                  title: doc.title,
+                  subtitle: doc.collection?.name,
+                  section: DocumentsSection,
+                  appendSpace: true,
+                  attrs: {
+                    id: v4(),
+                    type: MentionType.Document,
+                    modelId: doc.id,
+                    actorId,
+                    label: doc.title,
+                  },
+                } as MentionItem)
+            )
         )
         .concat([
           {
@@ -149,7 +151,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
       setItems(items);
       setLoaded(true);
     }
-  }, [t, actorId, loading, search, data]);
+  }, [t, actorId, loading, search, users, documents, maxResultsInSection]);
 
   const handleSelect = React.useCallback(
     async (item: MentionItem) => {
