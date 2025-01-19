@@ -140,18 +140,14 @@ export default class Mention extends Node {
     return {
       Enter: (state) => {
         const { selection } = state;
-        if (selection instanceof NodeSelection) {
-          const { from } = selection;
-          const node = state.doc.nodeAt(from);
-          if (
-            node &&
-            node.type.name === "mention" &&
-            node.attrs.type === MentionType.Document
-          ) {
-            const { modelId } = node.attrs;
-            this.editor.props.onClickLink?.(`/doc/${modelId}`);
-            return true;
-          }
+        if (
+          selection instanceof NodeSelection &&
+          selection.node.type.name === this.name &&
+          selection.node.attrs.type === MentionType.Document
+        ) {
+          const { modelId } = selection.node.attrs;
+          this.editor.props.onClickLink?.(`/doc/${modelId}`);
+          return true;
         }
         return false;
       },
