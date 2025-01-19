@@ -5,7 +5,7 @@ import { CheckmarkIcon, CloseIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { s } from "@shared/styles";
+import { s, hover } from "@shared/styles";
 import { stringToColor } from "@shared/utils/color";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
@@ -20,7 +20,6 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import useMaxHeight from "~/hooks/useMaxHeight";
 import useStores from "~/hooks/useStores";
 import useThrottledCallback from "~/hooks/useThrottledCallback";
-import { hover } from "~/styles";
 import { InviteIcon, ListItem } from "./ListItem";
 
 type Suggestion = IAvatar & {

@@ -4,13 +4,12 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
-import { s, ellipsis } from "@shared/styles";
+import { s, hover, ellipsis } from "@shared/styles";
 import { IconType, NavigationNode } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import Document from "~/models/Document";
 import Flex from "~/components/Flex";
 import { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
-import { hover } from "~/styles";
 import { sharedDocumentPath } from "~/utils/routeHelpers";
 
 type Props = {

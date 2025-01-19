@@ -1,6 +1,7 @@
 /* eslint-disable no-irregular-whitespace */
 import { lighten, transparentize } from "polished";
 import styled, { DefaultTheme, css, keyframes } from "styled-components";
+import { hover } from "../../styles";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { videoStyle } from "./Video";
 
@@ -303,7 +304,7 @@ width: 100%;
   gap: 4px;
   vertical-align: bottom;
 
-  &:hover {
+  &:${hover} {
     cursor: default;
     background: ${props.theme.mentionHoverBackground};
   }

@@ -11,7 +11,7 @@ import {
 } from "reakit";
 import styled, { css } from "styled-components";
 import Icon from "@shared/components/Icon";
-import { s } from "@shared/styles";
+import { s, hover } from "@shared/styles";
 import theme from "@shared/styles/theme";
 import { IconType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
@@ -22,7 +22,6 @@ import useMobile from "~/hooks/useMobile";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 import usePrevious from "~/hooks/usePrevious";
 import useWindowSize from "~/hooks/useWindowSize";
-import { hover } from "~/styles";
 import EmojiPanel from "./components/EmojiPanel";
 import IconPanel from "./components/IconPanel";
 import { PopoverButton } from "./components/PopoverButton";

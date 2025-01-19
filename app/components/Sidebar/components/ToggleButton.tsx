@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { hover } from "~/styles";
+import { hover } from "@shared/styles";
 import SidebarButton from "./SidebarButton";
 
 const ToggleButton = styled(SidebarButton)`
