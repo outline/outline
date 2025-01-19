@@ -36,6 +36,7 @@ import Tabs from "~/components/Tabs";
 import { editCollection } from "~/actions/definitions/collections";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
 import { useLastVisitedPath } from "~/hooks/useLastVisitedPath";
+import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import { usePinnedDocuments } from "~/hooks/usePinnedDocuments";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -60,12 +61,14 @@ function CollectionScene() {
   const [error, setError] = React.useState<Error | undefined>();
   const currentPath = location.pathname;
   const [, setLastVisitedPath] = useLastVisitedPath();
+  const sidebarContext = useLocationSidebarContext();
 
   const id = params.id || "";
   const collection: Collection | null | undefined =
     collections.getByUrl(id) || collections.get(id);
   const can = usePolicy(collection);
   const { pins, count } = usePinnedDocuments(id, collection?.id);
+  const showOverview = can.update || collection?.hasDescription;
 
   const handleIconChange = React.useCallback(
     async (icon: string | null, color: string | null) => {
@@ -196,24 +199,62 @@ function CollectionScene() {
             canUpdate={can.update}
             placeholderCount={count}
           />
-          <CollectionDescription collection={collection} />
 
           <Documents>
             {!collection.isArchived && (
               <Tabs>
-                <Tab to={collectionPath(collection.path)} exact>
+                <Tab
+                  to={{
+                    pathname: collectionPath(collection.path),
+                    state: { sidebarContext },
+                  }}
+                  exact
+                >
+                  {t("Overview")}
+                </Tab>
+                <Tab
+                  to={{
+                    pathname: collectionPath(collection.path, "recent"),
+                    state: { sidebarContext },
+                  }}
+                  exact
+                >
                   {t("Documents")}
                 </Tab>
-                <Tab to={collectionPath(collection.path, "updated")} exact>
+                <Tab
+                  to={{
+                    pathname: collectionPath(collection.path, "updated"),
+                    state: { sidebarContext },
+                  }}
+                  exact
+                >
                   {t("Recently updated")}
                 </Tab>
-                <Tab to={collectionPath(collection.path, "published")} exact>
+                <Tab
+                  to={{
+                    pathname: collectionPath(collection.path, "published"),
+                    state: { sidebarContext },
+                  }}
+                  exact
+                >
                   {t("Recently published")}
                 </Tab>
-                <Tab to={collectionPath(collection.path, "old")} exact>
+                <Tab
+                  to={{
+                    pathname: collectionPath(collection.path, "old"),
+                    state: { sidebarContext },
+                  }}
+                  exact
+                >
                   {t("Least recently updated")}
                 </Tab>
-                <Tab to={collectionPath(collection.path, "alphabetical")} exact>
+                <Tab
+                  to={{
+                    pathname: collectionPath(collection.path, "alphabetical"),
+                    state: { sidebarContext },
+                  }}
+                  exact
+                >
                   {t("A–Z")}
                 </Tab>
               </Tabs>
@@ -246,9 +287,6 @@ function CollectionScene() {
                     }}
                   />
                 </Route>
-                <Route path={collectionPath(collection.path, "recent")}>
-                  <Redirect to={collectionPath(collection.path, "published")} />
-                </Route>
                 <Route path={collectionPath(collection.path, "published")}>
                   <PaginatedDocumentList
                     key="published"
@@ -274,7 +312,7 @@ function CollectionScene() {
                     }}
                   />
                 </Route>
-                <Route path={collectionPath(collection.path)} exact>
+                <Route path={collectionPath(collection.path, "recent")} exact>
                   <PaginatedDocumentList
                     documents={documents.rootInCollection(collection.id)}
                     fetch={documents.fetchPage}
@@ -287,6 +325,20 @@ function CollectionScene() {
                     showParentDocuments
                   />
                 </Route>
+                {showOverview ? (
+                  <Route path={collectionPath(collection.path)} exact>
+                    <CollectionDescription collection={collection} />
+                  </Route>
+                ) : (
+                  <Redirect
+                    path={collectionPath(collection.path)}
+                    to={{
+                      pathname: collectionPath(collection.path, "recent"),
+                      state: { sidebarContext },
+                    }}
+                    exact
+                  />
+                )}
               </Switch>
             ) : (
               <Switch>
