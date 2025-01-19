@@ -305,6 +305,7 @@ width: 100%;
 
   &:hover {
     cursor: default;
+    background: ${props.theme.mentionHoverBackground};
   }
 
   &.mention-user::before {

@@ -157,6 +157,7 @@ declare module "styled-components" {
     inputBorderFocused: string;
     listItemHoverBackground: string;
     mentionBackground: string;
+    mentionHoverBackground: string;
     buttonNeutralBackground: string;
     buttonNeutralText: string;
     buttonNeutralBorder: string;
