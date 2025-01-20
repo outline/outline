@@ -15176,10 +15176,10 @@ umzug@^2.3.0:
   dependencies:
     bluebird "^3.7.2"
 
-umzug@^3.8.1:
-  version "3.8.1"
-  resolved "https://registry.yarnpkg.com/umzug/-/umzug-3.8.1.tgz#52e7f2c831b56fade367a42bf190ac73a786dda7"
-  integrity sha512-k0HjOc3b/s8vH24BUTvnaFiKhfWI9UQAGpqHDG+3866CGlBTB83Xs5wZ1io1mwYLj/GHvQ34AxKhbpYnWtkRJg==
+umzug@^3.8.2:
+  version "3.8.2"
+  resolved "https://registry.yarnpkg.com/umzug/-/umzug-3.8.2.tgz#53c2189604d36956d7b75a89128108d0e3073a9f"
+  integrity sha512-BEWEF8OJjTYVC56GjELeHl/1XjFejrD7aHzn+HldRJTx+pL1siBrKHZC8n4K/xL3bEzVA9o++qD1tK2CpZu4KA==
   dependencies:
     "@rushstack/ts-command-line" "^4.12.2"
     emittery "^0.13.0"
