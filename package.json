@@ -207,7 +207,7 @@
     "react-router-dom": "^5.3.4",
     "react-virtualized-auto-sizer": "^1.0.21",
     "react-waypoint": "^10.3.0",
-    "react-window": "^1.8.10",
+    "react-window": "^1.8.11",
     "reakit": "^1.3.11",
     "redlock": "^5.0.0-beta.2",
     "reflect-metadata": "^0.2.2",
