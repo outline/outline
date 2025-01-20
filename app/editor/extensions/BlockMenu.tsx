@@ -12,9 +12,10 @@ import BlockMenu from "../components/BlockMenu";
 export default class BlockMenuExtension extends Suggestion {
   get defaultOptions() {
     return {
-      // ported from https://github.com/tc39/proposal-regexp-unicode-property-escapes#unicode-aware-version-of-w
-      openRegex: /(?:^|\s|\()\/([\p{L}\p{M}\d]+)?$/u,
-      closeRegex: /(?:^|\s|\()\/(([\p{L}\p{M}\d]*\s+)|(\s+[\p{L}\p{M}\d]+))$/u,
+      trigger: "/",
+      allowSpaces: false,
+      requireSearchTerm: false,
+      enabledInCode: false,
     };
   }
 
