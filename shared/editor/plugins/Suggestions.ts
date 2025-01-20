@@ -7,7 +7,10 @@ const MAX_MATCH = 500;
 type Options = {
   openRegex: RegExp;
   closeRegex: RegExp;
-  enabledInCode: true;
+  enabledInCode: boolean;
+  trigger: string;
+  allowSpaces: boolean;
+  requireSearchTerm: boolean;
 };
 
 type ExtensionState = {
@@ -16,7 +19,11 @@ type ExtensionState = {
 };
 
 export class SuggestionsMenuPlugin extends Plugin {
-  constructor(options: Options, extensionState: ExtensionState) {
+  constructor(
+    options: Options,
+    extensionState: ExtensionState,
+    openRegex: RegExp
+  ) {
     super({
       props: {
         handleKeyDown: (view, event) => {
@@ -32,14 +39,12 @@ export class SuggestionsMenuPlugin extends Plugin {
                 view,
                 fromPos,
                 fromPos,
-                options.openRegex,
+                openRegex,
                 action((_, match) => {
                   if (match) {
-                    extensionState.open = true;
                     extensionState.query = match[1];
                   } else {
                     extensionState.open = false;
-                    extensionState.query = "";
                   }
                   return null;
                 })
@@ -47,25 +52,15 @@ export class SuggestionsMenuPlugin extends Plugin {
             });
           }
 
-          const { pos } = view.state.selection.$from;
-
-          // If the query is active and we're navigating the block menu then
-          // just ignore the key events in the editor itself until we're done
+          // If the menu is open then just ignore the key events in the editor
+          // itself until we're done.
           if (
             event.key === "Enter" ||
             event.key === "ArrowUp" ||
             event.key === "ArrowDown" ||
             event.key === "Tab"
           ) {
-            return this.execute(
-              view,
-              pos,
-              pos,
-              options.openRegex,
-              (state, match) =>
-                // just tell Prosemirror we handled it and not to do anything
-                match ? true : null
-            );
+            return extensionState.open;
           }
 
           return false;
