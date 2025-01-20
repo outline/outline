@@ -116,7 +116,7 @@ export class DocumentConverter {
     });
   }
 
-  public static fileToMarkdown(content: Buffer | string): string {
+  public static fileToMarkdown(content: Buffer | string) {
     if (typeof content !== "string") {
       content = content.toString("utf8");
     }
