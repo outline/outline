@@ -94,7 +94,11 @@ export default abstract class Store<T extends Model> {
   };
 
   findByQuery = (query: string, options?: { maxResults: number }): T[] => {
-    const normalized = deburr((query ?? "").toLocaleLowerCase());
+    const normalized = deburr((query ?? "").trim().toLocaleLowerCase());
+
+    if (!normalized) {
+      return this.orderedData.slice(0, options?.maxResults);
+    }
 
     return this.orderedData
       .filter((item: T & Searchable) => {
