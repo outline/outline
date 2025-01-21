@@ -39,6 +39,7 @@ export default class DocumentAddUserNotificationsTask extends BaseTask<DocumentU
       actorId: event.actorId,
       teamId: event.teamId,
       documentId: event.documentId,
+      membershipId: event.modelId,
     });
   }
 

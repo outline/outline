@@ -41,8 +41,8 @@ export default class DocumentAddGroupNotificationsTask extends BaseTask<Document
           groupUsers.map(async (groupUser) => {
             await DocumentAddUserNotificationsTask.schedule({
               ...event,
-              userId: groupUser.userId,
               modelId: event.data.membershipId,
+              userId: groupUser.userId,
               data: addUserTaskData,
             });
           })
