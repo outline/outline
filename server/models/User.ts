@@ -2,7 +2,7 @@ import crypto from "crypto";
 import { addHours, addMinutes, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
 import { Context } from "koa";
-import { orderBy } from "lodash";
+import orderBy from "lodash/orderBy";
 import {
   Transaction,
   QueryTypes,
@@ -68,11 +68,11 @@ import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
 
-// Lower is higher
+// Higher value takes precedence
 const DocumentPermissionPriority: Record<DocumentPermission, number> = {
-  [DocumentPermission.Admin]: 0,
+  [DocumentPermission.Admin]: 2,
   [DocumentPermission.ReadWrite]: 1,
-  [DocumentPermission.Read]: 2,
+  [DocumentPermission.Read]: 0,
 };
 
 /**
@@ -645,8 +645,8 @@ class User extends ParanoidModel<
     }
 
     return (
-      DocumentPermissionPriority[permission] <
-      DocumentPermissionPriority[existingPermission]
+      DocumentPermissionPriority[existingPermission] >=
+      DocumentPermissionPriority[permission]
     );
   }
 
@@ -663,8 +663,8 @@ class User extends ParanoidModel<
     };
 
     if (skipMembershipId) {
-      userMembershipWhere.id = skipMembershipId;
-      groupMembershipWhere.id = skipMembershipId;
+      userMembershipWhere.id = { [Op.ne]: skipMembershipId };
+      groupMembershipWhere.id = { [Op.ne]: skipMembershipId };
     }
 
     const [userMemberships, groupMemberships] = await Promise.all([
@@ -687,29 +687,11 @@ class User extends ParanoidModel<
         ...userMemberships.map((m) => m.permission as DocumentPermission),
         ...groupMemberships.map((m) => m.permission as DocumentPermission),
       ],
-      (permission) => DocumentPermissionPriority[permission]
+      (permission) => DocumentPermissionPriority[permission],
+      "desc"
     );
 
     return permissions[0];
-
-    // const permission = [
-    //   ...userMemberships.map((m) => m.permission as DocumentPermission),
-    //   ...groupMemberships.map((m) => m.permission as DocumentPermission),
-    // ].reduce((highestPermission, currPermission) => {
-    //   if (!highestPermission) {
-    //     return currPermission;
-    //   }
-
-    //   if (currPermission === DocumentPermission.ReadWrite) {
-    //     return highestPermission === DocumentPermission.Read
-    //       ? currPermission
-    //       : highestPermission;
-    //   }
-
-    //   return highestPermission;
-    // }, undefined as DocumentPermission | undefined);
-
-    // return permission;
   }
 
   // hooks
