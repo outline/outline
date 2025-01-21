@@ -89,6 +89,7 @@ type Props = WithTranslation &
     revision?: Revision;
     readOnly: boolean;
     shareId?: string;
+    shareHasHeadings?: boolean;
     tocPosition?: TOCPosition;
     onCreateLink?: (
       params: Properties<Document>,
@@ -430,6 +431,7 @@ class DocumentScene extends React.Component<Props> {
       auth,
       ui,
       shareId,
+      shareHasHeadings,
       tocPosition,
       t,
     } = this.props;
@@ -439,8 +441,8 @@ class DocumentScene extends React.Component<Props> {
       (team && team.documentEmbeds === false) || document.embedsDisabled;
 
     const showContents =
-      (ui.tocVisible === true && !document.isTemplate) ||
-      (isShare && ui.tocVisible !== false);
+      ui.tocVisible === true &&
+      ((!isShare && !document.isTemplate) || (isShare && !!shareHasHeadings));
     const tocPos =
       tocPosition ??
       ((team?.getPreference(TeamPreference.TocPosition) as TOCPosition) ||

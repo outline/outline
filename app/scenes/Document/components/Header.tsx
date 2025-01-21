@@ -212,7 +212,9 @@ function DocumentHeader({
         hasSidebar={sharedTree && sharedTree.children?.length > 0}
         left={
           isMobile ? (
-            <TableOfContentsMenu />
+            hasHeadings ? (
+              <TableOfContentsMenu />
+            ) : null
           ) : (
             <PublicBreadcrumb
               documentId={document.id}

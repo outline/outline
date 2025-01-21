@@ -137,6 +137,13 @@ function SharedDocumentScene(props: Props) {
     }
   }, [ui, documentId]);
 
+  // On initial load, share's TOC should be visible.
+  React.useEffect(() => {
+    if (ui.tocVisible === undefined) {
+      ui.set({ tocVisible: true });
+    }
+  }, [ui]);
+
   React.useEffect(() => {
     async function fetchData() {
       try {
@@ -217,33 +224,30 @@ function SharedDocumentScene(props: Props) {
   );
 }
 
-const SharedDocument = ({
-  shareId,
-  response,
-}: {
-  shareId?: string;
-  response: Response;
-}) => {
-  const { setDocument } = useDocumentContext();
+const SharedDocument = observer(
+  ({ shareId, response }: { shareId?: string; response: Response }) => {
+    const { hasHeadings, setDocument } = useDocumentContext();
 
-  if (!response.document) {
-    return null;
+    if (!response.document) {
+      return null;
+    }
+
+    const tocPosition = response.team?.tocPosition ?? TOCPosition.Left;
+    setDocument(response.document);
+
+    return (
+      <Document
+        abilities={EMPTY_OBJECT}
+        document={response.document}
+        sharedTree={response.sharedTree}
+        shareId={shareId}
+        shareHasHeadings={hasHeadings}
+        tocPosition={tocPosition}
+        readOnly
+      />
+    );
   }
-
-  const tocPosition = response.team?.tocPosition ?? TOCPosition.Left;
-  setDocument(response.document);
-
-  return (
-    <Document
-      abilities={EMPTY_OBJECT}
-      document={response.document}
-      sharedTree={response.sharedTree}
-      shareId={shareId}
-      tocPosition={tocPosition}
-      readOnly
-    />
-  );
-};
+);
 
 const Content = styled(Text)`
   color: ${s("textSecondary")};
