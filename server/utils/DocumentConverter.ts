@@ -67,7 +67,7 @@ export class DocumentConverter {
   }
 
   public static async htmlToMarkdown(content: Buffer | string) {
-    if (content instanceof Buffer) {
+    if (typeof content !== "string") {
       content = content.toString("utf8");
     }
 
@@ -117,26 +117,26 @@ export class DocumentConverter {
   }
 
   public static fileToMarkdown(content: Buffer | string) {
-    if (content instanceof Buffer) {
+    if (typeof content !== "string") {
       content = content.toString("utf8");
     }
     return content;
   }
 
-  public static async confluenceToMarkdown(value: Buffer | string) {
-    if (value instanceof Buffer) {
-      value = value.toString("utf8");
+  public static async confluenceToMarkdown(content: Buffer | string) {
+    if (typeof content !== "string") {
+      content = content.toString("utf8");
     }
 
     // We're only supporting the output from Confluence here, regular Word documents should call
     // into the docxToMarkdown importer. See: https://jira.atlassian.com/browse/CONFSERVER-38237
-    if (!value.includes("Content-Type: multipart/related")) {
+    if (!content.includes("Content-Type: multipart/related")) {
       throw FileImportError("Unsupported Word file");
     }
 
     // Confluence "Word" documents are actually just multi-part email messages, so we can use
     // mailparser to parse the content.
-    const parsed = await simpleParser(value);
+    const parsed = await simpleParser(content);
     if (!parsed.html) {
       throw FileImportError("Unsupported Word file (No content found)");
     }
