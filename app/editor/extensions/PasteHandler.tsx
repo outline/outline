@@ -302,19 +302,14 @@ export default class PasteHandler extends Extension {
 
   private shiftKey = false;
 
-  private showPasteMenu(text: string) {
-    action(() => {
-      this.state.pastedText = text;
-      this.state.open = true;
-    })();
-  }
+  private showPasteMenu = action((text: string) => {
+    this.state.pastedText = text;
+    this.state.open = true;
+  });
 
-  private hidePasteMenu() {
-    action(() => {
-      this.state.pastedText = "";
-      this.state.open = false;
-    })();
-  }
+  private hidePasteMenu = action(() => {
+    this.state.open = false;
+  });
 
   private insertLink(href: string, title?: string) {
     const { view } = this.editor;
