@@ -1,5 +1,7 @@
 /* global File Promise */
 import { PluginSimple } from "markdown-it";
+import { observable } from "mobx";
+import { Observer } from "mobx-react";
 import { darken, transparentize } from "polished";
 import { baseKeymap } from "prosemirror-commands";
 import { dropCursor } from "prosemirror-dropcursor";
@@ -33,22 +35,23 @@ import Extension, {
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
 import textBetween from "@shared/editor/lib/textBetween";
+import { getTextSerializers } from "@shared/editor/lib/textSerializers";
 import Mark from "@shared/editor/marks/Mark";
 import { basicExtensions as extensions } from "@shared/editor/nodes";
 import Node from "@shared/editor/nodes/Node";
 import ReactNode from "@shared/editor/nodes/ReactNode";
-import { ComponentProps, EventType } from "@shared/editor/types";
+import { ComponentProps } from "@shared/editor/types";
 import { ProsemirrorData, UserPreferences } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import EventEmitter from "@shared/utils/events";
+import Document from "~/models/Document";
 import Flex from "~/components/Flex";
 import { PortalContext } from "~/components/Portal";
 import { Dictionary } from "~/hooks/useDictionary";
+import { Properties } from "~/types";
 import Logger from "~/utils/Logger";
 import ComponentView from "./components/ComponentView";
 import EditorContext from "./components/EditorContext";
-import { SearchResult } from "./components/LinkEditor";
-import LinkToolbar from "./components/LinkToolbar";
 import { NodeViewRenderer } from "./components/NodeViewRenderer";
 import SelectionToolbar from "./components/SelectionToolbar";
 import WithTheme from "./components/WithTheme";
@@ -115,13 +118,11 @@ export type Props = {
   /** Callback when a file upload ends */
   onFileUploadStop?: () => void;
   /** Callback when a link is created, should return url to created document */
-  onCreateLink?: (title: string) => Promise<string>;
-  /** Callback when user searches for documents from link insert interface */
-  onSearchLink?: (term: string) => Promise<SearchResult[]>;
+  onCreateLink?: (params: Properties<Document>) => Promise<string>;
   /** Callback when user clicks on any link in the document */
   onClickLink: (
     href: string,
-    event: MouseEvent | React.MouseEvent<HTMLButtonElement>
+    event?: MouseEvent | React.MouseEvent<HTMLButtonElement>
   ) => void;
   /** Callback when user presses any key with document focused */
   onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void;
@@ -145,8 +146,6 @@ type State = {
   isEditorFocused: boolean;
   /** If the toolbar for a text selection is visible */
   selectionToolbarOpen: boolean;
-  /** If the insert link toolbar is visible */
-  linkToolbarOpen: boolean;
 };
 
 /**
@@ -176,7 +175,6 @@ export class Editor extends React.PureComponent<
     isRTL: false,
     isEditorFocused: false,
     selectionToolbarOpen: false,
-    linkToolbarOpen: false,
   };
 
   isInitialized = false;
@@ -197,18 +195,13 @@ export class Editor extends React.PureComponent<
   };
 
   widgets: { [name: string]: (props: WidgetProps) => React.ReactElement };
-  renderers: Set<NodeViewRenderer<ComponentProps>> = new Set();
+  renderers: Set<NodeViewRenderer<ComponentProps>> = observable.set();
   nodes: { [name: string]: NodeSpec };
   marks: { [name: string]: MarkSpec };
   commands: Record<string, CommandFactory>;
   rulePlugins: PluginSimple[];
   events = new EventEmitter();
   mutationObserver?: MutationObserver;
-
-  public constructor(props: Props & ThemeProps<DefaultTheme>) {
-    super(props);
-    this.events.on(EventType.LinkToolbarOpen, this.handleOpenLinkToolbar);
-  }
 
   /**
    * We use componentDidMount instead of constructor as the init method requires
@@ -246,6 +239,12 @@ export class Editor extends React.PureComponent<
         ...this.view.props,
         editable: () => !this.props.readOnly,
       });
+
+      // NodeView will not automatically render when editable changes so we must trigger an update
+      // manually, see: https://discuss.prosemirror.net/t/re-render-custom-nodeview-when-view-editable-changes/6441
+      Array.from(this.renderers).forEach((view) =>
+        view.setProp("isEditable", !this.props.readOnly)
+      );
     }
 
     if (this.props.scrollTo && this.props.scrollTo !== prevProps.scrollTo) {
@@ -265,7 +264,6 @@ export class Editor extends React.PureComponent<
     if (
       !this.isBlurred &&
       !this.state.isEditorFocused &&
-      !this.state.linkToolbarOpen &&
       !this.state.selectionToolbarOpen
     ) {
       this.isBlurred = true;
@@ -274,9 +272,7 @@ export class Editor extends React.PureComponent<
 
     if (
       this.isBlurred &&
-      (this.state.isEditorFocused ||
-        this.state.linkToolbarOpen ||
-        this.state.selectionToolbarOpen)
+      (this.state.isEditorFocused || this.state.selectionToolbarOpen)
     ) {
       this.isBlurred = false;
       this.props.onFocus?.();
@@ -713,11 +709,7 @@ export class Editor extends React.PureComponent<
    */
   public getPlainText = () => {
     const { doc } = this.view.state;
-    const textSerializers = Object.fromEntries(
-      Object.entries(this.schema.nodes)
-        .filter(([, node]) => node.spec.toPlainText)
-        .map(([name, node]) => [name, node.spec.toPlainText])
-    );
+    const textSerializers = getTextSerializers(this.schema);
 
     return textBetween(doc, 0, doc.content.size, textSerializers);
   };
@@ -779,25 +771,8 @@ export class Editor extends React.PureComponent<
     }));
   };
 
-  private handleOpenLinkToolbar = () => {
-    if (this.state.selectionToolbarOpen) {
-      return;
-    }
-    this.setState((state) => ({
-      ...state,
-      linkToolbarOpen: true,
-    }));
-  };
-
-  private handleCloseLinkToolbar = () => {
-    this.setState((state) => ({
-      ...state,
-      linkToolbarOpen: false,
-    }));
-  };
-
   public render() {
-    const { dir, readOnly, canUpdate, grow, style, className, onKeyDown } =
+    const { readOnly, canUpdate, grow, style, className, onKeyDown } =
       this.props;
     const { isRTL } = this.state;
 
@@ -814,7 +789,6 @@ export class Editor extends React.PureComponent<
             column
           >
             <EditorContainer
-              dir={dir}
               rtl={isRTL}
               grow={grow}
               readOnly={readOnly}
@@ -834,25 +808,18 @@ export class Editor extends React.PureComponent<
                 isTemplate={this.props.template === true}
                 onOpen={this.handleOpenSelectionToolbar}
                 onClose={this.handleCloseSelectionToolbar}
-                onSearchLink={this.props.onSearchLink}
                 onClickLink={this.props.onClickLink}
-                onCreateLink={this.props.onCreateLink}
-              />
-            )}
-            {!readOnly && this.view && this.marks.link && (
-              <LinkToolbar
-                isActive={this.state.linkToolbarOpen}
-                onCreateLink={this.props.onCreateLink}
-                onSearchLink={this.props.onSearchLink}
-                onClickLink={this.props.onClickLink}
-                onClose={this.handleCloseLinkToolbar}
               />
             )}
             {this.widgets &&
               Object.values(this.widgets).map((Widget, index) => (
                 <Widget key={String(index)} rtl={isRTL} readOnly={readOnly} />
               ))}
-            {Array.from(this.renderers).map((view) => view.content)}
+            <Observer>
+              {() => (
+                <>{Array.from(this.renderers).map((view) => view.content)}</>
+              )}
+            </Observer>
           </Flex>
         </EditorContext.Provider>
       </PortalContext.Provider>

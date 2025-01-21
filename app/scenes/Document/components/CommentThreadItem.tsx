@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
-import { s } from "@shared/styles";
+import { s, hover } from "@shared/styles";
 import { ProsemirrorData } from "@shared/types";
 import { dateToRelative } from "@shared/utils/date";
 import { Minute } from "@shared/utils/time";
@@ -28,7 +28,6 @@ import useActionContext from "~/hooks/useActionContext";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import CommentMenu from "~/menus/CommentMenu";
-import { hover } from "~/styles";
 import CommentEditor from "./CommentEditor";
 import { HighlightedText } from "./HighlightText";
 

@@ -1,13 +1,12 @@
 import { BackIcon } from "outline-icons";
 import React from "react";
 import styled from "styled-components";
-import { breakpoints, s } from "@shared/styles";
+import { breakpoints, s, hover } from "@shared/styles";
 import { colorPalette } from "@shared/utils/collections";
 import { validateColorHex } from "@shared/utils/color";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import Text from "~/components/Text";
-import { hover } from "~/styles";
 
 enum Panel {
   Builtin,

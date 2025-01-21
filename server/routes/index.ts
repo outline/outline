@@ -2,7 +2,6 @@ import crypto from "crypto";
 import path from "path";
 import { formatRFC7231 } from "date-fns";
 import Koa, { BaseContext } from "koa";
-import compress from "koa-compress";
 import Router from "koa-router";
 import send from "koa-send";
 import userAgent, { UserAgentContext } from "koa-useragent";
@@ -91,8 +90,6 @@ if (env.isProduction) {
     }
   });
 }
-
-router.use(compress());
 
 router.get("/locales/:lng.json", async (ctx) => {
   const { lng } = ctx.params;

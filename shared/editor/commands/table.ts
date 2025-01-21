@@ -11,6 +11,7 @@ import {
   deleteRow,
   deleteColumn,
 } from "prosemirror-tables";
+import { ProsemirrorHelper } from "../../utils/ProsemirrorHelper";
 import { chainTransactions } from "../lib/chainTransactions";
 import { getCellsInColumn, isHeaderEnabled } from "../queries/table";
 import { TableLayout } from "../types";
@@ -116,7 +117,7 @@ export function exportTable({
         .map((row) =>
           row
             .map((cell) => {
-              let value = cell.textContent;
+              let value = ProsemirrorHelper.toPlainText(cell, state.schema);
 
               // Escape double quotes by doubling them
               if (value.includes('"')) {

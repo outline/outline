@@ -6,10 +6,9 @@ import { LocationDescriptor } from "history";
 import * as React from "react";
 import scrollIntoView from "scroll-into-view-if-needed";
 import styled, { useTheme } from "styled-components";
-import { s, ellipsis } from "@shared/styles";
+import { s, hover, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
 import NavLink from "~/components/NavLink";
-import { hover } from "~/styles";
 
 export type Props = Omit<React.HTMLAttributes<HTMLAnchorElement>, "title"> & {
   /** An icon or image to display to the left of the list item */
