@@ -626,6 +626,16 @@ class User extends ParanoidModel<
       ],
     });
 
+  /**
+   * Determines whether the user has a higher access level to a document.
+   *
+   *
+   * @param {Object} params Input parameters.
+   * @param {string} params.documentId The document to check.
+   * @param {DocumentPermission} params.permission The base permission to compare against.
+   * @param {string} params.skipMembershipId The membership to skip when comparing the existing permissions.
+   * @returns {boolean} Whether the user has a higher access level
+   */
   public async hasHigherDocumentPermission({
     documentId,
     permission,
@@ -650,6 +660,14 @@ class User extends ParanoidModel<
     );
   }
 
+  /**
+   * Returns the user's highest access level to a document.
+   *
+   *
+   * @param {string} documentId The document to check.
+   * @param {string} skipMembershipId The membership to skip when comparing the existing permissions.
+   * @returns {DocumentPermission | undefined} Highest access level, if it exists.
+   */
   public async getDocumentPermission(
     documentId: string,
     skipMembershipId?: string
