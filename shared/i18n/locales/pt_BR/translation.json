@@ -419,6 +419,8 @@
   "Profile picture": "Imagem do perfil",
   "Create a new doc": "Criar um novo documento",
   "{{ userName }} won't be notified, as they do not have access to this document": "{{ userName }} não será notificado, pois não tem acesso a este documento",
+  "Keep as link": "Keep as link",
+  "Embed": "Embed",
   "Add column after": "Adicionar coluna depois",
   "Add column before": "Adicionar coluna antes",
   "Add row after": "Adicionar linha após",
