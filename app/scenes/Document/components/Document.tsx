@@ -440,9 +440,9 @@ class DocumentScene extends React.Component<Props> {
     const embedsDisabled =
       (team && team.documentEmbeds === false) || document.embedsDisabled;
 
-    const showContents =
-      ui.tocVisible === true &&
-      (isShare ? !!shareHasHeadings : !document.isTemplate);
+    const showContents = isShare
+      ? !!shareHasHeadings && ui.tocVisible !== false
+      : !document.isTemplate;
     const tocPos =
       tocPosition ??
       ((team?.getPreference(TeamPreference.TocPosition) as TOCPosition) ||

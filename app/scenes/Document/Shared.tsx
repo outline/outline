@@ -137,13 +137,6 @@ function SharedDocumentScene(props: Props) {
     }
   }, [ui, documentId]);
 
-  // On initial load, share's TOC should be visible.
-  React.useEffect(() => {
-    if (ui.tocVisible === undefined) {
-      ui.set({ tocVisible: true });
-    }
-  }, [ui]);
-
   React.useEffect(() => {
     async function fetchData() {
       try {
