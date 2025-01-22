@@ -6,6 +6,7 @@ import JSZip from "jszip";
 import Router from "koa-router";
 import escapeRegExp from "lodash/escapeRegExp";
 import has from "lodash/has";
+import isNil from "lodash/isNil";
 import remove from "lodash/remove";
 import uniq from "lodash/uniq";
 import mime from "mime-types";
@@ -1644,7 +1645,9 @@ router.post(
     const document = await documentCreator({
       id,
       title,
-      text: await TextHelper.replaceImagesWithAttachments(ctx, text, user),
+      text: !isNil(text)
+        ? await TextHelper.replaceImagesWithAttachments(ctx, text, user)
+        : text,
       icon,
       color,
       createdAt,

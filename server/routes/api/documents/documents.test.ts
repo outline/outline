@@ -6,6 +6,7 @@ import {
   StatusFilter,
   UserRole,
 } from "@shared/types";
+import { TextHelper } from "@shared/utils/TextHelper";
 import { createContext } from "@server/context";
 import {
   Document,
@@ -3357,6 +3358,127 @@ describe("#documents.import", () => {
 });
 
 describe("#documents.create", () => {
+  it("should replace template variables when a doc is created from a template", async () => {
+    const user = await buildUser();
+    const template = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      template: true,
+      title: "template title",
+      text: "Created by user {author} on {date}",
+    });
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        templateId: template.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toEqual(
+      TextHelper.replaceTemplateVariables(template.title, user)
+    );
+    expect(body.data.text).toEqual(
+      TextHelper.replaceTemplateVariables(template.text, user)
+    );
+  });
+
+  it("should retain template variables when a template is created from another template", async () => {
+    const user = await buildUser();
+    const template = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      template: true,
+      title: "template title",
+      text: "Created by user {author} on {date}",
+    });
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        templateId: template.id,
+        template: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toEqual(template.title);
+    expect(body.data.text).toEqual(template.text);
+  });
+
+  it("should create a document with empty title if no title is explicitly passed", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        text: "hello",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toEqual("");
+  });
+
+  it("should use template title when doc is supposed to be created using the template and title is not explicitly passed", async () => {
+    const user = await buildUser();
+    const template = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      template: true,
+      title: "template title",
+      text: "template text",
+    });
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        templateId: template.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toEqual(template.title);
+    expect(body.data.text).toEqual(template.text);
+  });
+
+  it("should override template title when doc title is explicitly passed", async () => {
+    const user = await buildUser();
+    const template = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      template: true,
+      title: "template title",
+    });
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        templateId: template.id,
+        title: "doc title",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toEqual("doc title");
+  });
+
+  it("should override template text when doc text is explicitly passed", async () => {
+    const user = await buildUser();
+    const template = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      template: true,
+      text: "template text",
+    });
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        templateId: template.id,
+        text: "doc text",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.text).toEqual("doc text");
+  });
+
   it("should fail for invalid collectionId", async () => {
     const user = await buildUser();
     const res = await server.post("/api/documents.create", {
