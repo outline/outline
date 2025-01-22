@@ -419,6 +419,8 @@
   "Profile picture": "프로필 사진",
   "Create a new doc": "새 문서 만들기",
   "{{ userName }} won't be notified, as they do not have access to this document": "{{ userName }} won't be notified, as they do not have access to this document",
+  "Keep as link": "Keep as link",
+  "Embed": "Embed",
   "Add column after": "뒤에 열 추가",
   "Add column before": "앞에 열 추가",
   "Add row after": "뒤에 행 추가",
