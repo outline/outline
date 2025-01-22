@@ -104,12 +104,16 @@ export default async function documentCreator({
       title:
         title ??
         (templateDocument
-          ? TextHelper.replaceTemplateVariables(templateDocument.title, user)
+          ? template
+            ? templateDocument.title
+            : TextHelper.replaceTemplateVariables(templateDocument.title, user)
           : ""),
       text:
         text ??
         (templateDocument
-          ? TextHelper.replaceTemplateVariables(templateDocument.text, user)
+          ? template
+            ? templateDocument.text
+            : TextHelper.replaceTemplateVariables(templateDocument.text, user)
           : ""),
       content: templateDocument
         ? ProsemirrorHelper.replaceTemplateVariables(

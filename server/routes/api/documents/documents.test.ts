@@ -6,6 +6,7 @@ import {
   StatusFilter,
   UserRole,
 } from "@shared/types";
+import { TextHelper } from "@shared/utils/TextHelper";
 import { createContext } from "@server/context";
 import {
   Document,
@@ -3357,6 +3358,53 @@ describe("#documents.import", () => {
 });
 
 describe("#documents.create", () => {
+  it("should replace template variables when a doc is created from a template", async () => {
+    const user = await buildUser();
+    const template = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      template: true,
+      title: "template title",
+      text: "Created by user {author} on {date}",
+    });
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        templateId: template.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toEqual(
+      TextHelper.replaceTemplateVariables(template.title, user)
+    );
+    expect(body.data.text).toEqual(
+      TextHelper.replaceTemplateVariables(template.text, user)
+    );
+  });
+
+  it("should retain template variables when a template is created from another template", async () => {
+    const user = await buildUser();
+    const template = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      template: true,
+      title: "template title",
+      text: "Created by user {author} on {date}",
+    });
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        templateId: template.id,
+        template: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toEqual(template.title);
+    expect(body.data.text).toEqual(template.text);
+  });
+
   it("should create a document with empty title if no title is explicitly passed", async () => {
     const user = await buildUser();
     const res = await server.post("/api/documents.create", {
