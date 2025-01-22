@@ -1,18 +1,29 @@
+import { action, observable } from "mobx";
 import { toggleMark } from "prosemirror-commands";
 import { Slice } from "prosemirror-model";
-import { Plugin } from "prosemirror-state";
+import {
+  EditorState,
+  Plugin,
+  PluginKey,
+  TextSelection,
+} from "prosemirror-state";
+import { Decoration, DecorationSet } from "prosemirror-view";
+import * as React from "react";
 import { v4 } from "uuid";
 import { LANGUAGES } from "@shared/editor/extensions/Prism";
-import Extension from "@shared/editor/lib/Extension";
+import Extension, { WidgetProps } from "@shared/editor/lib/Extension";
 import isMarkdown from "@shared/editor/lib/isMarkdown";
 import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
+import { isRemoteTransaction } from "@shared/editor/lib/multiplayer";
+import { recreateTransform } from "@shared/editor/lib/prosemirror-recreate-transform";
 import { isInCode } from "@shared/editor/queries/isInCode";
-import { isInList } from "@shared/editor/queries/isInList";
+import { MenuItem } from "@shared/editor/types";
 import { IconType, MentionType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isDocumentUrl, isUrl } from "@shared/utils/urls";
 import stores from "~/stores";
+import PasteMenu from "../components/PasteMenu";
 
 /**
  * Checks if the HTML string is likely coming from Dropbox Paper.
@@ -61,13 +72,26 @@ function parseSingleIframeSrc(html: string) {
 }
 
 export default class PasteHandler extends Extension {
+  state: {
+    open: boolean;
+    query: string;
+    pastedText: string;
+  } = observable({
+    open: false,
+    query: "",
+    pastedText: "",
+  });
+
   get name() {
     return "paste-handler";
   }
 
+  private key = new PluginKey(this.name);
+
   get plugins() {
     return [
       new Plugin({
+        key: this.key,
         props: {
           transformPastedHTML(html: string) {
             if (isDropboxPaper(html)) {
@@ -107,23 +131,6 @@ export default class PasteHandler extends Extension {
             const html = event.clipboardData.getData("text/html");
             const vscode = event.clipboardData.getData("vscode-editor-data");
 
-            function insertLink(href: string, title?: string) {
-              // If it's not an embed and there is no text selected – just go ahead and insert the
-              // link directly
-              const transaction = view.state.tr
-                .insertText(
-                  title ?? href,
-                  state.selection.from,
-                  state.selection.to
-                )
-                .addMark(
-                  state.selection.from,
-                  state.selection.to + (title ?? href).length,
-                  state.schema.marks.link.create({ href })
-                );
-              view.dispatch(transaction);
-            }
-
             // If the users selection is currently in a code block then paste
             // as plain text, ignore all formatting and HTML content.
             if (isInCode(state)) {
@@ -150,28 +157,6 @@ export default class PasteHandler extends Extension {
                     dispatch
                   );
                   return true;
-                }
-
-                // Is this link embeddable? Create an embed!
-                const { embeds } = this.editor.props;
-                if (
-                  embeds &&
-                  this.editor.commands.embed &&
-                  !isInCode(state) &&
-                  !isInList(state)
-                ) {
-                  for (const embed of embeds) {
-                    if (!embed.matchOnInput) {
-                      continue;
-                    }
-                    const matches = embed.matcher(text);
-                    if (matches) {
-                      this.editor.commands.embed({
-                        href: text,
-                      });
-                      return true;
-                    }
-                  }
                 }
 
                 // Is the link a link to a document? If so, we can grab the title and insert it.
@@ -209,7 +194,7 @@ export default class PasteHandler extends Extension {
                               hasEmoji ? document.icon + " " : ""
                             }${document.titleWithDefault}`;
 
-                            insertLink(`${document.path}${hash}`, title);
+                            this.insertLink(`${document.path}${hash}`, title);
                           }
                         }
                       })
@@ -217,11 +202,11 @@ export default class PasteHandler extends Extension {
                         if (view.isDestroyed) {
                           return;
                         }
-                        insertLink(text);
+                        this.insertLink(text);
                       });
                   }
                 } else {
-                  insertLink(text);
+                  this.insertLink(text);
                 }
 
                 return true;
@@ -323,10 +308,171 @@ export default class PasteHandler extends Extension {
             return false;
           },
         },
+        state: {
+          init: () => DecorationSet.empty,
+          apply: (tr, set) => {
+            let mapping = tr.mapping;
+
+            // See if the transaction adds or removes any placeholders
+            const meta = tr.getMeta(this.key);
+            const hasDecorations = set.find().length;
+
+            // We only want a single paste placeholder at a time, so if we're adding a new
+            // placeholder we can just return a new DecorationSet and avoid mapping logic.
+            if (meta?.add) {
+              const { from, to, id } = meta.add;
+              const decorations = [
+                Decoration.inline(
+                  from,
+                  to,
+                  {
+                    class: "paste-placeholder",
+                  },
+                  {
+                    id,
+                  }
+                ),
+              ];
+              return DecorationSet.create(tr.doc, decorations);
+            }
+
+            if (hasDecorations && (isRemoteTransaction(tr) || meta)) {
+              try {
+                mapping = recreateTransform(tr.before, tr.doc, {
+                  complexSteps: true,
+                  wordDiffs: false,
+                  simplifyDiff: true,
+                }).mapping;
+              } catch (err) {
+                // eslint-disable-next-line no-console
+                console.warn("Failed to recreate transform: ", err);
+              }
+            }
+
+            set = set.map(mapping, tr.doc);
+
+            if (meta?.remove) {
+              const { id } = meta.remove;
+              const decorations = set.find(
+                undefined,
+                undefined,
+                (spec) => spec.id === id
+              );
+              return set.remove(decorations);
+            }
+
+            return set;
+          },
+        },
       }),
     ];
   }
 
-  /** Tracks whether the Shift key is currently held down */
   private shiftKey = false;
+
+  private showPasteMenu = action((text: string) => {
+    this.state.pastedText = text;
+    this.state.open = true;
+  });
+
+  private hidePasteMenu = action(() => {
+    this.state.open = false;
+  });
+
+  private insertLink(href: string, title?: string) {
+    const { view } = this.editor;
+    const { state } = view;
+    const { from } = state.selection;
+    const to = from + (title ?? href).length;
+
+    const transaction = view.state.tr
+      .insertText(title ?? href, state.selection.from, state.selection.to)
+      .addMark(from, to, state.schema.marks.link.create({ href }))
+      .setMeta(this.key, { add: { from, to, id: href } });
+    view.dispatch(transaction);
+    this.showPasteMenu(href);
+  }
+
+  private insertEmbed = () => {
+    const { view } = this.editor;
+    const { state } = view;
+    const result = this.findPlaceholder(state, this.state.pastedText);
+
+    if (result) {
+      const tr = state.tr.deleteRange(result[0], result[1]);
+      view.dispatch(
+        tr.setSelection(TextSelection.near(tr.doc.resolve(result[0])))
+      );
+    }
+
+    this.editor.commands.embed({
+      href: this.state.pastedText,
+    });
+  };
+
+  private removePlaceholder = () => {
+    const { view } = this.editor;
+    const { state } = view;
+    const result = this.findPlaceholder(state, this.state.pastedText);
+
+    if (result) {
+      view.dispatch(
+        state.tr.setMeta(this.key, {
+          remove: { id: this.state.pastedText },
+        })
+      );
+    }
+  };
+
+  private findPlaceholder = (
+    state: EditorState,
+    id: string
+  ): [number, number] | null => {
+    const decos = this.key.getState(state) as DecorationSet;
+    const found = decos?.find(undefined, undefined, (spec) => spec.id === id);
+    return found?.length ? [found[0].from, found[0].to] : null;
+  };
+
+  private handleSelect = (item: MenuItem) => {
+    switch (item.name) {
+      case "link": {
+        this.hidePasteMenu();
+        this.removePlaceholder();
+        break;
+      }
+      case "embed": {
+        this.hidePasteMenu();
+        this.insertEmbed();
+        break;
+      }
+      default:
+        break;
+    }
+  };
+
+  keys() {
+    return {
+      Backspace: () => {
+        this.hidePasteMenu();
+        return false;
+      },
+      "Mod-z": () => {
+        this.hidePasteMenu();
+        return false;
+      },
+    };
+  }
+
+  widget = ({ rtl }: WidgetProps) => (
+    <PasteMenu
+      rtl={rtl}
+      trigger=""
+      embeds={this.editor.props.embeds}
+      pastedText={this.state.pastedText}
+      isActive={this.state.open}
+      search={this.state.query}
+      onClose={this.hidePasteMenu}
+      onSelect={this.handleSelect}
+    />
+  );
 }
