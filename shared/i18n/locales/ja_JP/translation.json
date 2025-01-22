@@ -419,6 +419,8 @@
   "Profile picture": "プロフィール画像",
   "Create a new doc": "ドキュメントを作成",
   "{{ userName }} won't be notified, as they do not have access to this document": "{{ userName }} はこのドキュメントへのアクセス権限がないため、通知されません",
+  "Keep as link": "Keep as link",
+  "Embed": "Embed",
   "Add column after": "後ろに列を挿入",
   "Add column before": "前に列を挿入",
   "Add row after": "後ろに行を挿入",
