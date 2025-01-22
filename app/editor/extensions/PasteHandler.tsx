@@ -317,23 +317,8 @@ export default class PasteHandler extends Extension {
             const meta = tr.getMeta(this.key);
             const hasDecorations = set.find().length;
 
-            // Note: We always rebuild the mapping if the transaction comes from this plugin as otherwise
-            // with the default mapping decorations are wiped out when you upload multiple files at a time.
-            if (hasDecorations && (isRemoteTransaction(tr) || meta)) {
-              try {
-                mapping = recreateTransform(tr.before, tr.doc, {
-                  complexSteps: true,
-                  wordDiffs: false,
-                  simplifyDiff: true,
-                }).mapping;
-              } catch (err) {
-                // eslint-disable-next-line no-console
-                console.warn("Failed to recreate transform: ", err);
-              }
-            }
-
-            set = set.map(mapping, tr.doc);
-
+            // We only want a single paste placeholder at a time, so if we're adding a new
+            // placeholder we can just return a new DecorationSet and avoid mapping logic.
             if (meta?.add) {
               const { from, to, id } = meta.add;
               const decorations = [
@@ -348,8 +333,23 @@ export default class PasteHandler extends Extension {
                   }
                 ),
               ];
-              return set.add(tr.doc, decorations);
+              return DecorationSet.create(tr.doc, decorations);
             }
+
+            if (hasDecorations && (isRemoteTransaction(tr) || meta)) {
+              try {
+                mapping = recreateTransform(tr.before, tr.doc, {
+                  complexSteps: true,
+                  wordDiffs: false,
+                  simplifyDiff: true,
+                }).mapping;
+              } catch (err) {
+                // eslint-disable-next-line no-console
+                console.warn("Failed to recreate transform: ", err);
+              }
+            }
+
+            set = set.map(mapping, tr.doc);
 
             if (meta?.remove) {
               const { id } = meta.remove;
