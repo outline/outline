@@ -1,7 +1,12 @@
 import { action, observable } from "mobx";
 import { toggleMark } from "prosemirror-commands";
 import { Slice } from "prosemirror-model";
-import { EditorState, Plugin, PluginKey } from "prosemirror-state";
+import {
+  EditorState,
+  Plugin,
+  PluginKey,
+  TextSelection,
+} from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
 import { v4 } from "uuid";
@@ -12,6 +17,7 @@ import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
 import { isRemoteTransaction } from "@shared/editor/lib/multiplayer";
 import { recreateTransform } from "@shared/editor/lib/prosemirror-recreate-transform";
 import { isInCode } from "@shared/editor/queries/isInCode";
+import { MenuItem } from "@shared/editor/types";
 import { IconType, MentionType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
@@ -307,8 +313,7 @@ export default class PasteHandler extends Extension {
           apply: (tr, set) => {
             let mapping = tr.mapping;
 
-            // See if the transaction adds or removes any placeholders – the placeholder display is
-            // different depending on if we're uploading an image, video or plain file
+            // See if the transaction adds or removes any placeholders
             const meta = tr.getMeta(this.key);
             const hasDecorations = set.find().length;
 
@@ -388,14 +393,62 @@ export default class PasteHandler extends Extension {
     this.showPasteMenu(href);
   }
 
-  private findPlaceholder(
+  private insertEmbed = () => {
+    const { view } = this.editor;
+    const { state } = view;
+    const result = this.findPlaceholder(state, this.state.pastedText);
+
+    if (result) {
+      const tr = state.tr.deleteRange(result[0], result[1]);
+      view.dispatch(
+        tr.setSelection(TextSelection.near(tr.doc.resolve(result[0])))
+      );
+    }
+
+    this.editor.commands.embed({
+      href: this.state.pastedText,
+    });
+  };
+
+  private removePlaceholder = () => {
+    const { view } = this.editor;
+    const { state } = view;
+    const result = this.findPlaceholder(state, this.state.pastedText);
+
+    if (result) {
+      view.dispatch(
+        state.tr.setMeta(this.key, {
+          remove: { id: this.state.pastedText },
+        })
+      );
+    }
+  };
+
+  private findPlaceholder = (
     state: EditorState,
     id: string
-  ): [number, number] | null {
+  ): [number, number] | null => {
     const decos = this.key.getState(state) as DecorationSet;
     const found = decos?.find(undefined, undefined, (spec) => spec.id === id);
     return found?.length ? [found[0].from, found[0].to] : null;
-  }
+  };
+
+  private handleSelect = (item: MenuItem) => {
+    switch (item.name) {
+      case "link": {
+        this.hidePasteMenu();
+        this.removePlaceholder();
+        break;
+      }
+      case "embed": {
+        this.hidePasteMenu();
+        this.insertEmbed();
+        break;
+      }
+      default:
+        break;
+    }
+  };
 
   keys() {
     return {
@@ -418,47 +471,8 @@ export default class PasteHandler extends Extension {
       pastedText={this.state.pastedText}
       isActive={this.state.open}
       search={this.state.query}
-      onClose={() => {
-        this.hidePasteMenu();
-      }}
-      onSelect={(item) => {
-        const { view } = this.editor;
-        const { state } = view;
-
-        switch (item.name) {
-          case "link": {
-            view.dispatch(
-              state.tr.setMeta(this.key, {
-                remove: { id: this.state.pastedText },
-              })
-            );
-            this.hidePasteMenu();
-
-            break;
-          }
-          case "embed": {
-            const result = this.findPlaceholder(state, this.state.pastedText);
-
-            if (result) {
-              view.dispatch(
-                state.tr.replaceWith(
-                  result[0],
-                  result[1],
-                  this.editor.schema.text("")
-                )
-              );
-            }
-
-            this.editor.commands.embed({
-              href: this.state.pastedText,
-            });
-            this.hidePasteMenu();
-            break;
-          }
-          default:
-            break;
-        }
-      }}
+      onClose={this.hidePasteMenu}
+      onSelect={this.handleSelect}
     />
   );
 }
