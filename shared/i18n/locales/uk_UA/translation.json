@@ -419,6 +419,8 @@
   "Profile picture": "Аватар",
   "Create a new doc": "Створіть новий документ",
   "{{ userName }} won't be notified, as they do not have access to this document": "{{ userName }} не буде повідомлено, тому що він не має доступу до цього документа",
+  "Keep as link": "Keep as link",
+  "Embed": "Embed",
   "Add column after": "Add column after",
   "Add column before": "Add column before",
   "Add row after": "Add row after",
