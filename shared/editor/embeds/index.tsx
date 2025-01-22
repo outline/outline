@@ -31,9 +31,9 @@ export type EmbedProps = {
 };
 
 const Img = styled(Image)`
-  border-radius: 2px;
+  border-radius: 3px;
   background: #fff;
-  box-shadow: 0 0 0 1px #fff;
+  box-shadow: 0 0 0 1px ${(props) => props.theme.divider};
   margin: 3px;
   width: 18px;
   height: 18px;

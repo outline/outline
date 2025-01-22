@@ -12,7 +12,7 @@ export type Props = {
   /** Callback when the item is clicked */
   onClick: (event: React.SyntheticEvent) => void;
   /** An optional icon for the item */
-  icon?: React.ReactElement;
+  icon?: React.ReactNode;
   /** The title of the item */
   title: React.ReactNode;
   /** An optional subtitle for the item */

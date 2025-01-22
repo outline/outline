@@ -15,7 +15,7 @@ export enum TableLayout {
 type Section = ({ t }: { t: TFunction }) => string;
 
 export type MenuItem = {
-  icon?: React.ReactElement;
+  icon?: React.ReactNode;
   name?: string;
   title?: string;
   section?: Section;
