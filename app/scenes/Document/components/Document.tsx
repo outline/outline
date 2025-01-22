@@ -442,7 +442,7 @@ class DocumentScene extends React.Component<Props> {
 
     const showContents = isShare
       ? !!shareHasHeadings && ui.tocVisible !== false
-      : !document.isTemplate;
+      : !document.isTemplate && ui.tocVisible === true;
     const tocPos =
       tocPosition ??
       ((team?.getPreference(TeamPreference.TocPosition) as TOCPosition) ||
