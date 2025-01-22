@@ -331,10 +331,10 @@ export const DocumentsCreateSchema = BaseSchema.extend({
     id: z.string().uuid().optional(),
 
     /** Document title */
-    title: z.string().default(""),
+    title: z.string().optional(),
 
     /** Document text */
-    text: z.string().default(""),
+    text: z.string().optional(),
 
     /** Icon displayed alongside doc title */
     icon: zodIconType().optional(),
