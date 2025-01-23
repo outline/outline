@@ -197,6 +197,7 @@
   "Install now": "Встановити зараз",
   "Deleted Collection": "Видалена колекція",
   "Unpin": "Відкріпити",
+  "{{ minutes }}m read": "{{ minutes }}m read",
   "Select a location to copy": "Select a location to copy",
   "Document copied": "Document copied",
   "Couldn’t copy the document, try again?": "Couldn’t copy the document, try again?",
