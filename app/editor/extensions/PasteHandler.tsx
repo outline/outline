@@ -435,7 +435,7 @@ export default class PasteHandler extends Extension {
 
   private handleSelect = (item: MenuItem) => {
     switch (item.name) {
-      case "link": {
+      case "noop": {
         this.hidePasteMenu();
         this.removePlaceholder();
         break;

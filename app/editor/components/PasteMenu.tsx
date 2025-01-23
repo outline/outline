@@ -31,7 +31,7 @@ const PasteMenu = ({ embeds, ...props }: Props) => {
   const items = React.useMemo(
     () => [
       {
-        name: "link",
+        name: "noop",
         title: t("Keep as link"),
         icon: <LinkIcon />,
       },
