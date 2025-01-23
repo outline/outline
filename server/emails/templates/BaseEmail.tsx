@@ -191,9 +191,12 @@ export default abstract class BaseEmail<
 
     const parsedFrom = addressparser(env.SMTP_FROM_EMAIL)[0];
     const domain = parsedFrom.address.split("@")[1];
+    const customFromName = this.fromName?.(props);
 
     return {
-      name: this.fromName?.(props) ?? parsedFrom.name,
+      name: customFromName
+        ? `${customFromName} via ${env.APP_NAME}`
+        : parsedFrom.name,
       address:
         env.isCloudHosted &&
         this.category === EmailMessageCategory.Authentication
