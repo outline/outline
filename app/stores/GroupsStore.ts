@@ -106,6 +106,6 @@ export default class GroupsStore extends Store<Group> {
 
 function queriedGroups(groups: Group[], query: string) {
   return groups.filter((group) =>
-    group.name.toLowerCase().match(query.toLowerCase())
+    group.name.toLocaleLowerCase().includes(query.toLocaleLowerCase())
   );
 }
