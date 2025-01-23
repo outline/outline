@@ -197,6 +197,7 @@
   "Install now": "지금 설치",
   "Deleted Collection": "삭제 된 콜렉션",
   "Unpin": "고정 해제",
+  "{{ minutes }}m read": "{{ minutes }}m read",
   "Select a location to copy": "복사할 위치 선택\n",
   "Document copied": "문서가 복사되었습니다",
   "Couldn’t copy the document, try again?": "Couldn’t copy the document, try again?",
