@@ -197,6 +197,7 @@
   "Install now": "Cài đặt ngay",
   "Deleted Collection": "Xóa Bộ Sưu Tập",
   "Unpin": "Bỏ ghim",
+  "{{ minutes }}m read": "{{ minutes }}m read",
   "Select a location to copy": "Select a location to copy",
   "Document copied": "Document copied",
   "Couldn’t copy the document, try again?": "Couldn’t copy the document, try again?",
