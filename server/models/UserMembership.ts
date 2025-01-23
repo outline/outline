@@ -324,6 +324,7 @@ class UserMembership extends IdModel<
         },
         {
           transaction,
+          hooks: false,
         }
       );
     }
