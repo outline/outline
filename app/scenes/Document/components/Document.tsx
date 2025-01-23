@@ -89,7 +89,7 @@ type Props = WithTranslation &
     revision?: Revision;
     readOnly: boolean;
     shareId?: string;
-    tocPosition?: TOCPosition;
+    tocPosition?: TOCPosition | false;
     onCreateLink?: (
       params: Properties<Document>,
       nested?: boolean
@@ -438,13 +438,15 @@ class DocumentScene extends React.Component<Props> {
     const embedsDisabled =
       (team && team.documentEmbeds === false) || document.embedsDisabled;
 
-    const showContents =
-      (ui.tocVisible === true && !document.isTemplate) ||
-      (isShare && ui.tocVisible !== false);
     const tocPos =
       tocPosition ??
       ((team?.getPreference(TeamPreference.TocPosition) as TOCPosition) ||
         TOCPosition.Left);
+    const showContents =
+      tocPos &&
+      (isShare
+        ? ui.tocVisible !== false
+        : !document.isTemplate && ui.tocVisible === true);
     const multiplayerEditor =
       !document.isArchived && !document.isDeleted && !revision && !isShare;
 
@@ -622,7 +624,7 @@ class DocumentScene extends React.Component<Props> {
 
 type MainProps = {
   fullWidth: boolean;
-  tocPosition: TOCPosition;
+  tocPosition: TOCPosition | false;
 };
 
 const Main = styled.div<MainProps>`
@@ -650,7 +652,7 @@ const Main = styled.div<MainProps>`
 
 type ContentsContainerProps = {
   docFullWidth: boolean;
-  position: TOCPosition;
+  position: TOCPosition | false;
 };
 
 const ContentsContainer = styled.div<ContentsContainerProps>`
@@ -668,7 +670,7 @@ const ContentsContainer = styled.div<ContentsContainerProps>`
 type EditorContainerProps = {
   docFullWidth: boolean;
   showContents: boolean;
-  tocPosition: TOCPosition;
+  tocPosition: TOCPosition | false;
 };
 
 const EditorContainer = styled.div<EditorContainerProps>`

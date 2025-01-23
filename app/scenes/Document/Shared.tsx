@@ -217,33 +217,31 @@ function SharedDocumentScene(props: Props) {
   );
 }
 
-const SharedDocument = ({
-  shareId,
-  response,
-}: {
-  shareId?: string;
-  response: Response;
-}) => {
-  const { setDocument } = useDocumentContext();
+const SharedDocument = observer(
+  ({ shareId, response }: { shareId?: string; response: Response }) => {
+    const { hasHeadings, setDocument } = useDocumentContext();
 
-  if (!response.document) {
-    return null;
+    if (!response.document) {
+      return null;
+    }
+
+    const tocPosition = hasHeadings
+      ? response.team?.tocPosition ?? TOCPosition.Left
+      : false;
+    setDocument(response.document);
+
+    return (
+      <Document
+        abilities={EMPTY_OBJECT}
+        document={response.document}
+        sharedTree={response.sharedTree}
+        shareId={shareId}
+        tocPosition={tocPosition}
+        readOnly
+      />
+    );
   }
-
-  const tocPosition = response.team?.tocPosition ?? TOCPosition.Left;
-  setDocument(response.document);
-
-  return (
-    <Document
-      abilities={EMPTY_OBJECT}
-      document={response.document}
-      sharedTree={response.sharedTree}
-      shareId={shareId}
-      tocPosition={tocPosition}
-      readOnly
-    />
-  );
-};
+);
 
 const Content = styled(Text)`
   color: ${s("textSecondary")};

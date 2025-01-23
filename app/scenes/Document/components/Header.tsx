@@ -96,6 +96,7 @@ function DocumentHeader({
   const ref = React.useRef<HTMLDivElement | null>(null);
   const size = useComponentSize(ref);
   const isMobile = isMobileMedia || size.width < 700;
+  const isShare = !!shareId;
 
   // We cache this value for as long as the component is mounted so that if you
   // apply a template there is still the option to replace it until the user
@@ -109,8 +110,13 @@ function DocumentHeader({
   }, [onSave]);
 
   const handleToggle = React.useCallback(() => {
-    ui.set({ tocVisible: !ui.tocVisible });
-  }, [ui]);
+    // Public shares, by default, show ToC on load.
+    if (isShare && ui.tocVisible === undefined) {
+      ui.set({ tocVisible: false });
+    } else {
+      ui.set({ tocVisible: !ui.tocVisible });
+    }
+  }, [ui, isShare]);
 
   const context = useActionContext({
     activeDocumentId: document?.id,
@@ -120,7 +126,6 @@ function DocumentHeader({
   const { isDeleted, isTemplate } = document;
   const isTemplateEditable = can.update && isTemplate;
   const canToggleEmbeds = team?.documentEmbeds;
-  const isShare = !!shareId;
   const showContents =
     (ui.tocVisible === true && !document.isTemplate) ||
     (isShare && ui.tocVisible !== false);
@@ -212,7 +217,9 @@ function DocumentHeader({
         hasSidebar={sharedTree && sharedTree.children?.length > 0}
         left={
           isMobile ? (
-            <TableOfContentsMenu />
+            hasHeadings ? (
+              <TableOfContentsMenu />
+            ) : null
           ) : (
             <PublicBreadcrumb
               documentId={document.id}
