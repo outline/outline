@@ -1,4 +1,3 @@
-import emojiRegex from "emoji-regex";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -20,6 +19,7 @@ import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useTextSelection from "~/hooks/useTextSelection";
+import { useTextStats } from "~/hooks/useTextStats";
 import InsightsMenu from "~/menus/InsightsMenu";
 import { documentPath } from "~/utils/routeHelpers";
 import Sidebar from "./SidebarLayout";
@@ -211,32 +211,6 @@ function Insights() {
       ) : null}
     </Sidebar>
   );
-}
-
-function useTextStats(text: string, selectedText: string) {
-  const numTotalWords = countWords(text);
-  const regex = emojiRegex();
-  const matches = Array.from(text.matchAll(regex));
-
-  return {
-    total: {
-      words: numTotalWords,
-      characters: text.length,
-      emoji: matches.length ?? 0,
-      readingTime: Math.max(1, Math.floor(numTotalWords / 200)),
-    },
-    selected: {
-      words: countWords(selectedText),
-      characters: selectedText.length,
-    },
-  };
-}
-
-function countWords(text: string): number {
-  const t = text.trim();
-
-  // Hyphenated words are counted as two words
-  return t ? t.replace(/-/g, " ").split(/\s+/g).length : 0;
 }
 
 const ListSpacing = styled("div")`

@@ -1,8 +1,9 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { subDays } from "date-fns";
 import { m } from "framer-motion";
 import { observer } from "mobx-react";
-import { CloseIcon, DocumentIcon, ClockIcon } from "outline-icons";
+import { CloseIcon, DocumentIcon, ClockIcon, EyeIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -18,6 +19,7 @@ import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
+import { useTextStats } from "~/hooks/useTextStats";
 import CollectionIcon from "./Icons/CollectionIcon";
 import Text from "./Text";
 import Tooltip from "./Tooltip";
@@ -69,6 +71,10 @@ function DocumentCard(props: Props) {
     },
     [pin]
   );
+
+  // If the document was updated within the last 7 days, show a timestamp instead of reading time
+  const isRecentlyUpdated =
+    new Date(document.updatedAt) > subDays(new Date(), 7);
 
   return (
     <Reorderable
@@ -142,8 +148,14 @@ function DocumentCard(props: Props) {
                   : document.titleWithDefault}
               </Heading>
               <DocumentMeta size="xsmall">
-                <Clock size={18} />
-                <Time dateTime={document.updatedAt} addSuffix shorten />
+                {isRecentlyUpdated ? (
+                  <>
+                    <Clock size={18} />
+                    <Time dateTime={document.updatedAt} addSuffix shorten />
+                  </>
+                ) : (
+                  <ReadingTime document={document} />
+                )}
               </DocumentMeta>
             </div>
           </Content>
@@ -163,6 +175,21 @@ function DocumentCard(props: Props) {
     </Reorderable>
   );
 }
+
+const ReadingTime = ({ document }: { document: Document }) => {
+  const { t } = useTranslation();
+  const markdown = React.useMemo(() => document.toMarkdown(), [document]);
+  const stats = useTextStats(markdown);
+
+  return (
+    <>
+      <EyeIcon size={18} />
+      {t(`{{ minutes }}m read`, {
+        minutes: stats.total.readingTime,
+      })}
+    </>
+  );
+};
 
 const DocumentSquircle = ({
   icon,
