@@ -261,15 +261,19 @@ router.post(
     const group = await Group.findByPk(id, { transaction });
     authorize(actor, "update", group);
 
-    const [groupUser] = await GroupUser.findOrCreateWithCtx(ctx, {
-      where: {
-        groupId: group.id,
-        userId: user.id,
+    const [groupUser] = await GroupUser.findOrCreateWithCtx(
+      ctx,
+      {
+        where: {
+          groupId: group.id,
+          userId: user.id,
+        },
+        defaults: {
+          createdById: actor.id,
+        },
       },
-      defaults: {
-        createdById: actor.id,
-      },
-    });
+      { name: "add_user" }
+    );
 
     groupUser.user = user;
 
@@ -308,7 +312,7 @@ router.post(
       lock: transaction.LOCK.UPDATE,
     });
 
-    await groupUser?.destroyWithCtx(ctx);
+    await groupUser?.destroyWithCtx(ctx, { name: "remove_user" });
 
     ctx.body = {
       data: {

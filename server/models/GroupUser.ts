@@ -7,12 +7,10 @@ import {
   Table,
   DataType,
   Scopes,
-  AfterCreate,
-  AfterDestroy,
 } from "sequelize-typescript";
 import Group from "./Group";
 import User from "./User";
-import Model, { type HookContext } from "./base/Model";
+import Model from "./base/Model";
 import Fix from "./decorators/Fix";
 
 @DefaultScope(() => ({
@@ -44,6 +42,8 @@ class GroupUser extends Model<
   InferAttributes<GroupUser>,
   Partial<InferCreationAttributes<GroupUser>>
 > {
+  static eventNamespace = "groups";
+
   @BelongsTo(() => User, "userId")
   user: User;
 
@@ -67,24 +67,6 @@ class GroupUser extends Model<
 
   get modelId() {
     return this.groupId;
-  }
-
-  // hooks
-
-  @AfterCreate
-  public static async publishAddUserEvent(
-    model: GroupUser,
-    context: HookContext
-  ) {
-    await Group.insertEvent("add_user", model, context);
-  }
-
-  @AfterDestroy
-  public static async publishRemoveUserEvent(
-    model: GroupUser,
-    context: HookContext
-  ) {
-    await Group.insertEvent("remove_user", model, context);
   }
 }
 

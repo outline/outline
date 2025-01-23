@@ -254,8 +254,6 @@ class Document extends ArchivableModel<
   InferAttributes<Document>,
   Partial<InferCreationAttributes<Document>>
 > {
-  static eventNamespace = "documents";
-
   @SimpleLength({
     min: 10,
     max: 10,

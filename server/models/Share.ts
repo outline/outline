@@ -83,8 +83,6 @@ class Share extends IdModel<
   InferAttributes<Share>,
   Partial<InferCreationAttributes<Share>>
 > {
-  static eventNamespace = "shares";
-
   @Column
   published: boolean;
 

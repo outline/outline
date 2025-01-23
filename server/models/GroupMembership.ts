@@ -21,6 +21,7 @@ import {
   AfterDestroy,
 } from "sequelize-typescript";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
+import { APIContext } from "@server/types";
 import Collection from "./Collection";
 import Document from "./Document";
 import Group from "./Group";
@@ -211,20 +212,12 @@ class GroupMembership extends ParanoidModel<
   @AfterCreate
   static async publishAddGroupEventAfterCreate(
     model: GroupMembership,
-    context: HookContext
+    context: APIContext["context"]
   ) {
-    const data = { membershipId: model.id, isNew: true };
-
-    const ctxWithData = {
-      ...context,
-      event: { ...context.event, data },
-    } as HookContext;
-
-    if (model.collectionId) {
-      await Collection.insertEvent("add_group", model, ctxWithData);
-    } else {
-      await Document.insertEvent("add_group", model, ctxWithData);
-    }
+    await model.insertEvent(context, "add_group", {
+      membershipId: model.id,
+      isNew: true,
+    });
   }
 
   @AfterUpdate
@@ -257,20 +250,12 @@ class GroupMembership extends ParanoidModel<
   @AfterUpdate
   static async publishAddGroupEventAfterUpdate(
     model: GroupMembership,
-    context: HookContext
+    context: APIContext["context"]
   ) {
-    const data = { membershipId: model.id, isNew: false };
-
-    const ctxWithData = {
-      ...context,
-      event: { ...context.event, data },
-    } as HookContext;
-
-    if (model.collectionId) {
-      await Collection.insertEvent("add_group", model, ctxWithData);
-    } else {
-      await Document.insertEvent("add_group", model, ctxWithData);
-    }
+    await model.insertEvent(context, "add_group", {
+      membershipId: model.id,
+      isNew: false,
+    });
   }
 
   @AfterDestroy
@@ -295,20 +280,11 @@ class GroupMembership extends ParanoidModel<
   @AfterDestroy
   static async publishRemoveGroupEvent(
     model: GroupMembership,
-    context: HookContext
+    context: APIContext["context"]
   ) {
-    const data = { membershipId: model.id };
-
-    const ctxWithData = {
-      ...context,
-      event: { ...context.event, data },
-    } as HookContext;
-
-    if (model.collectionId) {
-      await Collection.insertEvent("remove_group", model, ctxWithData);
-    } else {
-      await Document.insertEvent("remove_group", model, ctxWithData);
-    }
+    await model.insertEvent(context, "remove_group", {
+      membershipId: model.id,
+    });
   }
 
   /**
@@ -370,6 +346,23 @@ class GroupMembership extends ParanoidModel<
           transaction,
         }
       );
+    }
+  }
+
+  private async insertEvent(
+    ctx: APIContext["context"],
+    name: string,
+    data: Record<string, unknown>
+  ) {
+    const hookContext = {
+      ...ctx,
+      event: { name, data, create: true },
+    } as HookContext;
+
+    if (this.collectionId) {
+      await Collection.insertEvent(name, this, hookContext);
+    } else {
+      await Document.insertEvent(name, this, hookContext);
     }
   }
 }

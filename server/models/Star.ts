@@ -19,8 +19,6 @@ class Star extends IdModel<
   InferAttributes<Star>,
   Partial<InferCreationAttributes<Star>>
 > {
-  static eventNamespace = "stars";
-
   @Length({
     max: 256,
     msg: `index must be 256 characters or less`,

@@ -381,12 +381,13 @@ router.post(
     authorize(user, "comment", document);
     authorize(user, "addReaction", comment);
 
-    await Reaction.findOrCreateWithCtx(ctx, {
+    await Reaction.findOrCreate({
       where: {
         emoji,
         userId: user.id,
         commentId: id,
       },
+      ...ctx.context,
     });
 
     ctx.body = {
@@ -429,7 +430,7 @@ router.post(
     });
     authorize(user, "delete", reaction);
 
-    await reaction.destroyWithCtx(ctx);
+    await reaction.destroy(ctx.context);
 
     ctx.body = {
       success: true,
