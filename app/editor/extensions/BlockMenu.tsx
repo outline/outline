@@ -99,22 +99,28 @@ export default class BlockMenuExtension extends Suggestion {
     ];
   }
 
+  private handleClose = action((insertNewLine: boolean) => {
+    const { view } = this.editor;
+
+    if (insertNewLine) {
+      const transaction = view.state.tr.split(view.state.selection.to);
+      view.dispatch(transaction);
+      view.focus();
+    }
+
+    this.state.open = false;
+  });
+
   widget = ({ rtl }: WidgetProps) => {
-    const { props, view } = this.editor;
+    const { props } = this.editor;
+
     return (
       <BlockMenu
         rtl={rtl}
+        trigger={this.options.trigger}
         isActive={this.state.open}
         search={this.state.query}
-        onClose={action((insertNewLine) => {
-          if (insertNewLine) {
-            const transaction = view.state.tr.split(view.state.selection.to);
-            view.dispatch(transaction);
-            view.focus();
-          }
-
-          this.state.open = false;
-        })}
+        onClose={this.handleClose}
         uploadFile={props.uploadFile}
         onFileUploadStart={props.onFileUploadStart}
         onFileUploadStop={props.onFileUploadStop}

@@ -35,7 +35,7 @@ interface MentionItem extends MenuItem {
 
 type Props = Omit<
   SuggestionsMenuProps<MentionItem>,
-  "renderMenuItem" | "items" | "embeds" | "trigger"
+  "renderMenuItem" | "items" | "embeds"
 >;
 
 function MentionMenu({ search, isActive, ...rest }: Props) {
@@ -194,7 +194,6 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
       {...rest}
       isActive={isActive}
       filterable={false}
-      trigger="@"
       search={search}
       onSelect={handleSelect}
       renderMenuItem={(item, _index, options) => (

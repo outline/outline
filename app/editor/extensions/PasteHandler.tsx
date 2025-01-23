@@ -466,7 +466,6 @@ export default class PasteHandler extends Extension {
   widget = ({ rtl }: WidgetProps) => (
     <PasteMenu
       rtl={rtl}
-      trigger=""
       embeds={this.editor.props.embeds}
       pastedText={this.state.pastedText}
       isActive={this.state.open}

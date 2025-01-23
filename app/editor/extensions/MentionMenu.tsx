@@ -21,6 +21,7 @@ export default class MentionMenuExtension extends Suggestion {
   widget = ({ rtl }: WidgetProps) => (
     <MentionMenu
       rtl={rtl}
+      trigger={this.options.trigger}
       isActive={this.state.open}
       search={this.state.query}
       onClose={action(() => {
