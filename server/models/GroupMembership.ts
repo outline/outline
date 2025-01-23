@@ -344,6 +344,7 @@ class GroupMembership extends ParanoidModel<
         },
         {
           transaction,
+          hooks: false,
         }
       );
     }
