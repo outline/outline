@@ -197,6 +197,7 @@
   "Install now": "Instalar ahora",
   "Deleted Collection": "Colección Eliminada",
   "Unpin": "Desfijar",
+  "{{ minutes }}m read": "{{ minutes }}m read",
   "Select a location to copy": "Select a location to copy",
   "Document copied": "Document copied",
   "Couldn’t copy the document, try again?": "No se pudo copiar el documento, ¿intentar de nuevo?",
