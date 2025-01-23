@@ -233,7 +233,9 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       const attrs =
         typeof item.attrs === "function" ? item.attrs(view.state) : item.attrs;
 
-      if (command) {
+      if (item.name === "noop") {
+        // Do nothing
+      } else if (command) {
         command(attrs);
       } else {
         commands[`create${capitalize(item.name)}`](attrs);
@@ -435,7 +437,8 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       if (
         item.name &&
         !commands[item.name] &&
-        !commands[`create${capitalize(item.name)}`]
+        !commands[`create${capitalize(item.name)}`] &&
+        item.name !== "noop"
       ) {
         return false;
       }
