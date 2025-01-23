@@ -197,6 +197,7 @@
   "Install now": "立即安装",
   "Deleted Collection": "删除文档集",
   "Unpin": "取消置顶",
+  "{{ minutes }}m read": "{{ minutes }}m read",
   "Select a location to copy": "选择要复制的目标位置",
   "Document copied": "文档已复制",
   "Couldn’t copy the document, try again?": "无法复制文档，请重试",
