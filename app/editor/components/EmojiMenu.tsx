@@ -17,7 +17,7 @@ type Emoji = {
 
 type Props = Omit<
   SuggestionsMenuProps<Emoji>,
-  "renderMenuItem" | "items" | "embeds" | "trigger"
+  "renderMenuItem" | "items" | "embeds"
 >;
 
 const EmojiMenu = (props: Props) => {
@@ -48,7 +48,6 @@ const EmojiMenu = (props: Props) => {
   return (
     <SuggestionsMenu
       {...props}
-      trigger=":"
       filterable={false}
       renderMenuItem={(item, _index, options) => (
         <EmojiMenuItem

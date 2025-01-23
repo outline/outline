@@ -33,6 +33,7 @@ export default class EmojiMenuExtension extends Suggestion {
   widget = ({ rtl }: WidgetProps) => (
     <EmojiMenu
       rtl={rtl}
+      trigger={this.options.trigger}
       isActive={this.state.open}
       search={this.state.query}
       onClose={action(() => {

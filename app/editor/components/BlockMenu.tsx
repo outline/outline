@@ -6,10 +6,7 @@ import SuggestionsMenu, {
 } from "./SuggestionsMenu";
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
 
-type Props = Omit<
-  SuggestionsMenuProps,
-  "renderMenuItem" | "items" | "trigger"
-> &
+type Props = Omit<SuggestionsMenuProps, "renderMenuItem" | "items"> &
   Required<Pick<SuggestionsMenuProps, "embeds">>;
 
 function BlockMenu(props: Props) {
