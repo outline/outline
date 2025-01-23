@@ -338,6 +338,7 @@ class Collection extends ParanoidModel<
         createdById: model.createdById,
       },
       transaction: options.transaction,
+      hooks: false,
     });
   }
 
