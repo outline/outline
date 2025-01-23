@@ -225,7 +225,9 @@ const SharedDocument = observer(
       return null;
     }
 
-    const tocPosition = response.team?.tocPosition ?? TOCPosition.Left;
+    const tocPosition = hasHeadings
+      ? response.team?.tocPosition ?? TOCPosition.Left
+      : false;
     setDocument(response.document);
 
     return (
@@ -234,7 +236,6 @@ const SharedDocument = observer(
         document={response.document}
         sharedTree={response.sharedTree}
         shareId={shareId}
-        shareHasHeadings={hasHeadings}
         tocPosition={tocPosition}
         readOnly
       />
