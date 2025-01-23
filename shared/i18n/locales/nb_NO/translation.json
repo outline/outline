@@ -197,6 +197,7 @@
   "Install now": "Installer nå",
   "Deleted Collection": "Slettet samling",
   "Unpin": "Løsne",
+  "{{ minutes }}m read": "{{ minutes }}m read",
   "Select a location to copy": "Velg en plassering å kopiere",
   "Document copied": "Dokument kopiert",
   "Couldn’t copy the document, try again?": "Kunne ikke kopiere dokumentet, prøv igjen?",
