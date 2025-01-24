@@ -78,7 +78,7 @@ const Profile = () => {
           />
         </SettingRow>
         <SettingRow
-          border={false}
+          border={env.EMAIL_ENABLED}
           label={t("Name")}
           name="name"
           description={t(
@@ -95,7 +95,7 @@ const Profile = () => {
         </SettingRow>
 
         {env.EMAIL_ENABLED && (
-          <SettingRow label={t("Email address")} name="email">
+          <SettingRow border={false} label={t("Email address")} name="email">
             <Input
               type="email"
               value={user.email}
