@@ -92,7 +92,7 @@ export default class DocumentMentionedEmail extends BaseEmail<
   }
 
   protected subject({ document }: Props) {
-    return `Mentioned you in “${document.title}”`;
+    return `Mentioned you in “${document.titleWithDefault}”`;
   }
 
   protected preview({ actorName }: Props): string {
@@ -116,7 +116,7 @@ export default class DocumentMentionedEmail extends BaseEmail<
     return `
 You were mentioned
 
-${actorName} mentioned you in the document “${document.title}”.
+${actorName} mentioned you in the document “${document.titleWithDefault}”.
 
 Open Document: ${teamUrl}${document.url}
 `;
@@ -137,7 +137,7 @@ Open Document: ${teamUrl}${document.url}
           <Heading>You were mentioned</Heading>
           <p>
             {actorName} mentioned you in the document{" "}
-            <a href={documentLink}>{document.title}</a>.
+            <a href={documentLink}>{document.titleWithDefault}</a>.
           </p>
           {body && (
             <>

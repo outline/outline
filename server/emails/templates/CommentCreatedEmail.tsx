@@ -103,7 +103,7 @@ export default class CommentCreatedEmail extends BaseEmail<
         : `${commentText.slice(0, MAX_SUBJECT_CONTENT)}...`;
 
     return `${parentComment ? "Re: " : ""}New comment on “${
-      document.title
+      document.titleWithDefault
     }” - ${trimmedText}`;
   }
 
@@ -136,7 +136,7 @@ export default class CommentCreatedEmail extends BaseEmail<
   }: Props): string {
     return `
 ${actorName} ${isReply ? "replied to a thread in" : "commented on"} "${
-      document.title
+      document.titleWithDefault
     }"${collection?.name ? `in the ${collection.name} collection` : ""}.
 
 Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
@@ -164,10 +164,10 @@ Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
         <Header />
 
         <Body>
-          <Heading>{document.title}</Heading>
+          <Heading>{document.titleWithDefault}</Heading>
           <p>
             {actorName} {isReply ? "replied to a thread in" : "commented on"}{" "}
-            <a href={threadLink}>{document.title}</a>{" "}
+            <a href={threadLink}>{document.titleWithDefault}</a>{" "}
             {collection?.name ? `in the ${collection.name} collection` : ""}.
           </p>
           {body && (
