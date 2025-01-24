@@ -144,12 +144,12 @@ class UserMembership extends IdModel<
     options: SaveOptions
   ) {
     const { transaction } = options;
-    const groupMemberships = await this.findAll({
+    const userMemberships = await this.findAll({
       where,
       transaction,
     });
     await Promise.all(
-      groupMemberships.map((membership) =>
+      userMemberships.map((membership) =>
         this.create(
           {
             documentId: document.id,
@@ -158,7 +158,7 @@ class UserMembership extends IdModel<
             permission: membership.permission,
             createdById: membership.createdById,
           },
-          { transaction }
+          { transaction, hooks: false }
         )
       )
     );
