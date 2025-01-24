@@ -92,7 +92,7 @@ export default class CommentMentionedEmail extends BaseEmail<
   }
 
   protected subject({ document }: Props) {
-    return `Mentioned you in “${document.title}”`;
+    return `Mentioned you in “${document.titleWithDefault}”`;
   }
 
   protected preview({ actorName }: Props): string {
@@ -111,7 +111,7 @@ export default class CommentMentionedEmail extends BaseEmail<
     collection,
   }: Props): string {
     return `
-${actorName} mentioned you in a comment on "${document.title}"${
+${actorName} mentioned you in a comment on "${document.titleWithDefault}"${
       collection.name ? `in the ${collection.name} collection` : ""
     }.
 
@@ -139,10 +139,10 @@ Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
         <Header />
 
         <Body>
-          <Heading>{document.title}</Heading>
+          <Heading>{document.titleWithDefault}</Heading>
           <p>
             {actorName} mentioned you in a comment on{" "}
-            <a href={threadLink}>{document.title}</a>{" "}
+            <a href={threadLink}>{document.titleWithDefault}</a>{" "}
             {collection.name ? `in the ${collection.name} collection` : ""}.
           </p>
           {body && (

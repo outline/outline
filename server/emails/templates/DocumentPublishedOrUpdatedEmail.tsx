@@ -114,7 +114,7 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
   }
 
   protected subject({ document, eventType }: Props) {
-    return `“${document.title}” ${this.eventName(eventType)}`;
+    return `“${document.titleWithDefault}” ${this.eventName(eventType)}`;
   }
 
   protected preview({ actorName, eventType }: Props): string {
@@ -144,9 +144,9 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
     const eventName = this.eventName(eventType);
 
     return `
-"${document.title}" ${eventName}
+"${document.titleWithDefault}" ${eventName}
 
-${actorName} ${eventName} the document "${document.title}"${
+${actorName} ${eventName} the document "${document.titleWithDefault}"${
       collection?.name ? `, in the ${collection.name} collection` : ""
     }.
 
@@ -176,11 +176,11 @@ Open Document: ${teamUrl}${document.url}
 
         <Body>
           <Heading>
-            “{document.title}” {eventName}
+            “{document.titleWithDefault}” {eventName}
           </Heading>
           <p>
             {actorName} {eventName} the document{" "}
-            <a href={documentLink}>{document.title}</a>
+            <a href={documentLink}>{document.titleWithDefault}</a>
             {collection?.name ? <>, in the {collection.name} collection</> : ""}
             .
           </p>
