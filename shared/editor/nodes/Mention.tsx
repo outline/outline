@@ -30,7 +30,9 @@ export default class Mention extends Node {
   get schema(): NodeSpec {
     return {
       attrs: {
-        type: {},
+        type: {
+          default: MentionType.User,
+        },
         label: {},
         modelId: {},
         actorId: {
