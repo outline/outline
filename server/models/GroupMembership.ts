@@ -158,7 +158,7 @@ class GroupMembership extends ParanoidModel<
             permission: membership.permission,
             createdById: membership.createdById,
           },
-          { transaction }
+          { transaction, hooks: false }
         )
       )
     );
