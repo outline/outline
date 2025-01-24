@@ -31,6 +31,7 @@ export default () =>
       port: 3001,
       host: true,
       https: httpsConfig,
+      cors: true,
       fs:
         environment.NODE_ENV === "development"
           ? {
