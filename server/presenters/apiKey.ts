@@ -5,6 +5,7 @@ export default function presentApiKey(apiKey: ApiKey) {
     id: apiKey.id,
     userId: apiKey.userId,
     name: apiKey.name,
+    scope: apiKey.scope,
     value: apiKey.value,
     last4: apiKey.last4,
     createdAt: apiKey.createdAt,

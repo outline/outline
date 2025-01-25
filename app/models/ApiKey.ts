@@ -6,10 +6,15 @@ import Field from "./decorators/Field";
 class ApiKey extends ParanoidModel {
   static modelName = "ApiKey";
 
-  /** The user chosen name of the API key. */
+  /** The human-readable name of this API key */
   @Field
   @observable
   name: string;
+
+  /** A space-separated list of scopes that this API key has access to */
+  @Field
+  @observable
+  scope?: string;
 
   /** An optional datetime that the API key expires. */
   @Field
@@ -28,6 +33,12 @@ class ApiKey extends ParanoidModel {
 
   /** A preview of the last 4 characters of the API key. */
   last4: string;
+
+  /** An array of scopes that this API key has access to. */
+  @computed
+  get scopes() {
+    return this.scope?.split(" ") ?? [];
+  }
 
   /** Whether the API key has an expiry in the past. */
   @computed
