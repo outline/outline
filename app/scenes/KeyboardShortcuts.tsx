@@ -457,13 +457,32 @@ function KeyboardShortcuts() {
           },
         ],
       },
+      {
+        title: t("Triggers"),
+        items: [
+          {
+            shortcut: "@",
+            label: t("Mention user or document"),
+          },
+          {
+            shortcut: ":",
+            label: t("Emoji"),
+          },
+          {
+            shortcut: "/",
+            label: t("Insert block"),
+          },
+        ],
+      },
     ],
     [t]
   );
   const [searchTerm, setSearchTerm] = React.useState("");
+  const normalizedSearchTerm = searchTerm.toLocaleLowerCase();
   const handleChange = React.useCallback((event) => {
     setSearchTerm(event.target.value);
   }, []);
+
   const handleKeyDown = React.useCallback((event) => {
     if (event.currentTarget.value && event.key === "Escape") {
       event.preventDefault();
@@ -471,17 +490,20 @@ function KeyboardShortcuts() {
       setSearchTerm("");
     }
   }, []);
+
   return (
     <Flex column>
-      <InputSearch
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-        value={searchTerm}
-      />
+      <StickySearch>
+        <InputSearch
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          value={searchTerm}
+        />
+      </StickySearch>
       {categories.map((category, x) => {
         const filtered = searchTerm
           ? category.items.filter((item) =>
-              item.label.toLowerCase().includes(searchTerm.toLowerCase())
+              item.label.toLocaleLowerCase().includes(normalizedSearchTerm)
             )
           : category.items;
 
@@ -508,6 +530,16 @@ function KeyboardShortcuts() {
     </Flex>
   );
 }
+
+const StickySearch = styled.div`
+  position: sticky;
+  top: -16px;
+  z-index: 1;
+  padding: 16px;
+  margin: -16px;
+  background: ${s("background")};
+  border-radius: 8px;
+`;
 
 const Header = styled.h2`
   font-size: 15px;
