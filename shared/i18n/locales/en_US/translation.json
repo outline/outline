@@ -571,6 +571,7 @@
   "Choose a date": "Choose a date",
   "API key created. Please copy the value now as it will not be shown again.": "API key created. Please copy the value now as it will not be shown again.",
   "Name your key something that will help you to remember it's use in the future, for example \"local development\" or \"continuous integration\".": "Name your key something that will help you to remember it's use in the future, for example \"local development\" or \"continuous integration\".",
+  "Scopes": "Scopes",
   "Expiration": "Expiration",
   "Never expires": "Never expires",
   "7 days": "7 days",

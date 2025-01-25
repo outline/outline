@@ -7,6 +7,7 @@ import {
   isOwner,
   isTeamModel,
   isTeamMutable,
+  or,
 } from "./utils";
 
 allow(User, "createApiKey", Team, (actor, team) =>
@@ -27,6 +28,14 @@ allow(User, "listApiKeys", Team, (actor, team) =>
     isCloudHosted(),
     isTeamModel(actor, team),
     actor.isAdmin
+  )
+);
+
+allow(User, "listApiKeys", User, (actor, user) =>
+  and(
+    //
+    isTeamModel(actor, user),
+    or(actor.isAdmin, actor.id === user?.id)
   )
 );
 

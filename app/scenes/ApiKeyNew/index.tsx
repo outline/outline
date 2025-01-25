@@ -22,6 +22,7 @@ type Props = {
 
 function ApiKeyNew({ onSubmit }: Props) {
   const [name, setName] = React.useState("");
+  const [scope, setScope] = React.useState("");
   const [expiryType, setExpiryType] = React.useState<ExpiryType>(
     ExpiryType.Week
   );
@@ -51,6 +52,10 @@ function ApiKeyNew({ onSubmit }: Props) {
     setName(event.target.value);
   }, []);
 
+  const handleScopeChange = React.useCallback((event) => {
+    setScope(event.target.value);
+  }, []);
+
   const handleExpiryTypeChange = React.useCallback((value: string) => {
     const expiry = value as ExpiryType;
     setExpiryType(expiry);
@@ -70,6 +75,7 @@ function ApiKeyNew({ onSubmit }: Props) {
         await apiKeys.create({
           name,
           expiresAt: expiresAt?.toISOString(),
+          scope,
         });
         toast.success(
           t(
@@ -83,7 +89,7 @@ function ApiKeyNew({ onSubmit }: Props) {
         setIsSaving(false);
       }
     },
-    [t, name, expiresAt, onSubmit, apiKeys]
+    [t, name, scope, expiresAt, onSubmit, apiKeys]
   );
 
   return (
@@ -103,6 +109,14 @@ function ApiKeyNew({ onSubmit }: Props) {
           maxLength={ApiKeyValidation.maxNameLength}
           required
           autoFocus
+          flex
+        />
+        <Input
+          type="text"
+          label={t("Scopes")}
+          placeholder="documents.info users.*"
+          onChange={handleScopeChange}
+          value={scope}
           flex
         />
         <Flex align="center" gap={16}>

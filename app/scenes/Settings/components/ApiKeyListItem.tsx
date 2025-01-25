@@ -10,6 +10,7 @@ import Flex from "~/components/Flex";
 import ListItem from "~/components/List/Item";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
+import Tooltip from "~/components/Tooltip";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useUserLocale from "~/hooks/useUserLocale";
 import ApiKeyMenu from "~/menus/ApiKeyMenu";
@@ -35,16 +36,22 @@ const ApiKeyListItem = ({ apiKey }: Props) => {
         &middot;{" "}
       </Text>
       {apiKey.lastActiveAt && (
-        <Text type={"tertiary"}>
-          {t("Last used")} <Time dateTime={apiKey.lastActiveAt} addSuffix />{" "}
-          &middot;{" "}
+        <Text type="tertiary">
+          {t("Last used")} <Time dateTime={apiKey.lastActiveAt} addSuffix />
+          {apiKey.expiresAt && <> &middot; </>}
         </Text>
       )}
       <Text type={apiKey.isExpired ? "danger" : "tertiary"}>
         {apiKey.expiresAt
           ? dateToExpiry(apiKey.expiresAt, t, userLocale)
           : t("No expiry")}
+        {apiKey.scope && <> &middot; </>}
       </Text>
+      {apiKey.scope && (
+        <Tooltip content={t("Scopes")}>
+          <Text type="tertiary">{apiKey.scope}</Text>
+        </Tooltip>
+      )}
     </>
   );
 
