@@ -165,6 +165,25 @@ class ApiKey extends ParanoidModel<
 
     return this.save({ silent: true });
   };
+
+  /** Checks if the API key has access to the given path */
+  canAccess = (path: string) => {
+    if (!this.scope) {
+      return true;
+    }
+
+    const resource = path.replace("/", "");
+    const [namespace, method] = resource.split(".");
+    const scopes = this.scope.split(" ");
+
+    return scopes.some((scope) => {
+      const [scopeNamespace, scopeMethod] = scope.split(".");
+      return (
+        (namespace === scopeNamespace || scopeNamespace === "*") &&
+        (method === scopeMethod || scopeMethod === "*")
+      );
+    });
+  };
 }
 
 export default ApiKey;
