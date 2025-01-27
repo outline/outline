@@ -112,3 +112,14 @@ export function getEventFiles(
     ? Array.prototype.slice.call(event.target.files)
     : [];
 }
+
+export function getFileNameFromUrl(url: string) {
+  try {
+    const urlObj = new URL(url);
+    const pathname = urlObj.pathname;
+    const filename = pathname.substring(pathname.lastIndexOf("/") + 1);
+    return filename;
+  } catch (error) {
+    return null;
+  }
+}

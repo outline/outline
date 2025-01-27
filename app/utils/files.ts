@@ -14,6 +14,17 @@ type UploadOptions = {
   onProgress?: (fractionComplete: number) => void;
 };
 
+export const uploadFileFromUrl = async (
+  url: string,
+  options: UploadOptions
+) => {
+  const response = await client.post("/attachments.createFromUrl", {
+    documentId: options.documentId,
+    url,
+  });
+  return response.data;
+};
+
 export const uploadFile = async (
   file: File | Blob,
   options: UploadOptions = {

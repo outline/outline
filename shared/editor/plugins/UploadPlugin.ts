@@ -1,4 +1,5 @@
 import { extension } from "mime-types";
+import { Node } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
 import { getDataTransferFiles, getDataTransferImage } from "../../utils/files";
 import { fileNameFromUrl, isInternalUrl } from "../../utils/urls";
@@ -95,6 +96,40 @@ export class UploadPlugin extends Plugin {
 
             return false;
           },
+        },
+        transformPasted: (slice, view) => {
+          // find images in slice
+          const images: Node[] = [];
+          slice.content.descendants((node) => {
+            if (node.type.name === "image" && !isInternalUrl(node.attrs.src)) {
+              images.push(node);
+            }
+          });
+
+          void images.map(async (image) => {
+            const newSrc = await options.uploadFile?.(image.attrs.src);
+
+            if (newSrc) {
+              // find nodes in tr.doc with matching src
+              const { tr } = view.state;
+
+              tr.doc.nodesBetween(0, tr.doc.nodeSize - 2, (node, pos) => {
+                if (
+                  node.type.name === "image" &&
+                  node.attrs.src === image.attrs.src
+                ) {
+                  tr.setNodeMarkup(pos, undefined, {
+                    ...node.attrs,
+                    src: newSrc,
+                  });
+                }
+              });
+
+              view.dispatch(tr);
+            }
+          });
+
+          return slice;
         },
       },
     });

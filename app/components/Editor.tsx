@@ -17,7 +17,7 @@ import useDictionary from "~/hooks/useDictionary";
 import useEditorClickHandlers from "~/hooks/useEditorClickHandlers";
 import useEmbeds from "~/hooks/useEmbeds";
 import useStores from "~/hooks/useStores";
-import { uploadFile } from "~/utils/files";
+import { uploadFile, uploadFileFromUrl } from "~/utils/files";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 
 const LazyLoadedEditor = lazyWithRetry(() => import("~/editor"));
@@ -49,11 +49,15 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const previousCommentIds = React.useRef<string[]>();
 
   const handleUploadFile = React.useCallback(
-    async (file: File) => {
-      const result = await uploadFile(file, {
+    async (file: File | string) => {
+      const options = {
         documentId: id,
         preset: AttachmentPreset.DocumentAttachment,
-      });
+      };
+      const result =
+        file instanceof File
+          ? await uploadFile(file, options)
+          : await uploadFileFromUrl(file, options);
       return result.url;
     },
     [id]

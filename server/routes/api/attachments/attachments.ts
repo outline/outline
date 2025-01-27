@@ -1,9 +1,13 @@
 import Router from "koa-router";
 import { v4 as uuidv4 } from "uuid";
 import { AttachmentPreset } from "@shared/types";
-import { bytesToHumanReadable } from "@shared/utils/files";
+import { bytesToHumanReadable, getFileNameFromUrl } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
-import { AuthorizationError, ValidationError } from "@server/errors";
+import {
+  AuthorizationError,
+  InvalidRequestError,
+  ValidationError,
+} from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -12,6 +16,7 @@ import { Attachment, Document } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { authorize } from "@server/policies";
 import { presentAttachment } from "@server/presenters";
+import UploadAttachmentFromUrlTask from "@server/queues/tasks/UploadAttachmentFromUrlTask";
 import FileStorage from "@server/storage/files";
 import BaseStorage from "@server/storage/files/BaseStorage";
 import { APIContext } from "@server/types";
@@ -101,6 +106,67 @@ router.post(
               : attachment.url,
         },
       },
+    };
+  }
+);
+
+router.post(
+  "attachments.createFromUrl",
+  rateLimiter(RateLimiterStrategy.TenPerMinute),
+  auth(),
+  validate(T.AttachmentsCreateFromUrlSchema),
+  async (ctx: APIContext<T.AttachmentCreateFromUrlReq>) => {
+    const { url, documentId, preset } = ctx.input.body;
+    const { auth, transaction } = ctx.state;
+    const { user } = auth;
+
+    // All user types can upload an avatar so no additional authorization is needed.
+    if (preset !== AttachmentPreset.DocumentAttachment || !documentId) {
+      throw ValidationError(
+        "Only document attachments can be created from a URL"
+      );
+    }
+
+    const document = await Document.findByPk(documentId, {
+      userId: user.id,
+      transaction,
+    });
+    authorize(user, "update", document);
+
+    const name = getFileNameFromUrl(url) ?? "file";
+    const modelId = uuidv4();
+    const acl = AttachmentHelper.presetToAcl(preset);
+    const key = AttachmentHelper.getKey({
+      acl,
+      id: modelId,
+      name,
+      userId: user.id,
+    });
+
+    const attachment = await Attachment.createWithCtx(ctx, {
+      id: modelId,
+      key,
+      acl,
+      size: 0,
+      expiresAt: AttachmentHelper.presetToExpiry(preset),
+      contentType: "application/octet-stream",
+      documentId,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
+    const job = await UploadAttachmentFromUrlTask.schedule({
+      attachmentId: attachment.id,
+      url,
+    });
+
+    const response = await job.finished();
+    if ("error" in response) {
+      throw InvalidRequestError(response.error);
+    }
+
+    ctx.body = {
+      data: presentAttachment(attachment),
     };
   }
 );
