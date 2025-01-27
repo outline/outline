@@ -4,6 +4,7 @@ import { Plugin } from "prosemirror-state";
 import { getDataTransferFiles, getDataTransferImage } from "../../utils/files";
 import { fileNameFromUrl, isInternalUrl } from "../../utils/urls";
 import insertFiles, { Options } from "../commands/insertFiles";
+import FileHelper from "../lib/FileHelper";
 
 export class UploadPlugin extends Plugin {
   constructor(options: Options) {
@@ -107,10 +108,11 @@ export class UploadPlugin extends Plugin {
           });
 
           void images.map(async (image) => {
-            const newSrc = await options.uploadFile?.(image.attrs.src);
+            const url = await options.uploadFile?.(image.attrs.src);
 
-            if (newSrc) {
-              // find nodes in tr.doc with matching src
+            if (url) {
+              const file = await FileHelper.getFileForUrl(url);
+              const dimensions = await FileHelper.getImageDimensions(file);
               const { tr } = view.state;
 
               tr.doc.nodesBetween(0, tr.doc.nodeSize - 2, (node, pos) => {
@@ -120,7 +122,8 @@ export class UploadPlugin extends Plugin {
                 ) {
                   tr.setNodeMarkup(pos, undefined, {
                     ...node.attrs,
-                    src: newSrc,
+                    ...dimensions,
+                    src: url,
                   });
                 }
               });
