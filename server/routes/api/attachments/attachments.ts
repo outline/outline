@@ -17,6 +17,7 @@ import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { authorize } from "@server/policies";
 import { presentAttachment } from "@server/presenters";
 import UploadAttachmentFromUrlTask from "@server/queues/tasks/UploadAttachmentFromUrlTask";
+import { sequelize } from "@server/storage/database";
 import FileStorage from "@server/storage/files";
 import BaseStorage from "@server/storage/files/BaseStorage";
 import { APIContext } from "@server/types";
@@ -112,7 +113,7 @@ router.post(
 
 router.post(
   "attachments.createFromUrl",
-  rateLimiter(RateLimiterStrategy.TenPerMinute),
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
   validate(T.AttachmentsCreateFromUrlSchema),
   async (ctx: APIContext<T.AttachmentCreateFromUrlReq>) => {
@@ -143,17 +144,24 @@ router.post(
       userId: user.id,
     });
 
-    const attachment = await Attachment.createWithCtx(ctx, {
-      id: modelId,
-      key,
-      acl,
-      size: 0,
-      expiresAt: AttachmentHelper.presetToExpiry(preset),
-      contentType: "application/octet-stream",
-      documentId,
-      teamId: user.teamId,
-      userId: user.id,
-    });
+    // Does not use transaction middleware, as attachment must be persisted
+    // before the job is scheduled.
+    const attachment = await sequelize.transaction(async (transaction) =>
+      Attachment.createWithCtx(
+        { ...ctx, transaction },
+        {
+          id: modelId,
+          key,
+          acl,
+          size: 0,
+          expiresAt: AttachmentHelper.presetToExpiry(preset),
+          contentType: "application/octet-stream",
+          documentId,
+          teamId: user.teamId,
+          userId: user.id,
+        }
+      )
+    );
 
     const job = await UploadAttachmentFromUrlTask.schedule({
       attachmentId: attachment.id,

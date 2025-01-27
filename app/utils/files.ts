@@ -14,6 +14,13 @@ type UploadOptions = {
   onProgress?: (fractionComplete: number) => void;
 };
 
+/**
+ * Upload a file from a URL
+ *
+ * @param url The remote URL to download the file from
+ * @param options The upload options
+ * @returns The attachment object
+ */
 export const uploadFileFromUrl = async (
   url: string,
   options: UploadOptions
@@ -25,6 +32,13 @@ export const uploadFileFromUrl = async (
   return response.data;
 };
 
+/**
+ * Upload a file
+ *
+ * @param file The file to upload
+ * @param options The upload options
+ * @returns The attachment object
+ */
 export const uploadFile = async (
   file: File | Blob,
   options: UploadOptions = {
@@ -85,6 +99,12 @@ export const uploadFile = async (
   return attachment;
 };
 
+/**
+ * Convert a data URL to a Blob
+ *
+ * @param dataURL The data URL to convert
+ * @returns The Blob
+ */
 export const dataUrlToBlob = (dataURL: string) => {
   const blobBin = atob(dataURL.split(",")[1]);
   const array = [];
