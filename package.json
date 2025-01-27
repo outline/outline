@@ -85,7 +85,7 @@
     "@renderlesskit/react": "^0.11.0",
     "@sentry/node": "^7.120.3",
     "@sentry/react": "^7.120.3",
-    "@tanstack/react-table": "^8.20.5",
+    "@tanstack/react-table": "^8.20.6",
     "@tanstack/react-virtual": "^3.10.9",
     "@tippyjs/react": "^4.2.6",
     "@types/form-data": "^2.5.0",
