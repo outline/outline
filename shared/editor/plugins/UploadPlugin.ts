@@ -99,7 +99,7 @@ export class UploadPlugin extends Plugin {
           },
         },
         transformPasted: (slice, view) => {
-          // find images in slice
+          // find any remote images in pasted slice, but leave it alone.
           const images: Node[] = [];
           slice.content.descendants((node) => {
             if (node.type.name === "image" && !isInternalUrl(node.attrs.src)) {
@@ -107,6 +107,8 @@ export class UploadPlugin extends Plugin {
             }
           });
 
+          // Upload each remote image to our storage and replace the src
+          // with the new url and dimensions.
           void images.map(async (image) => {
             const url = await options.uploadFile?.(image.attrs.src);
 
