@@ -52,7 +52,7 @@
     "@aws-sdk/lib-storage": "3.693.0",
     "@aws-sdk/s3-presigned-post": "3.693.0",
     "@aws-sdk/s3-request-presigner": "3.693.0",
-    "@aws-sdk/signature-v4-crt": "^3.693.0",
+    "@aws-sdk/signature-v4-crt": "^3.734.0",
     "@babel/core": "^7.24.7",
     "@babel/plugin-proposal-decorators": "^7.24.7",
     "@babel/plugin-transform-class-properties": "^7.24.7",
