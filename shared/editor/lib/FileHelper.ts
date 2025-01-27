@@ -23,6 +23,7 @@ export default class FileHelper {
 
   /**
    * Download a file from a URL and return it as a File object.
+   *
    * @param url The URL to download the file from
    * @returns The downloaded file
    */

@@ -113,6 +113,12 @@ export function getEventFiles(
     : [];
 }
 
+/**
+ * Get the likely filename from a URL
+ *
+ * @param url The URL to get the filename from
+ * @returns The filename or null if it could not be determined
+ */
 export function getFileNameFromUrl(url: string) {
   try {
     const urlObj = new URL(url);
