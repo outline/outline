@@ -10,6 +10,7 @@ import { AttachmentValidation } from "../../validations";
 import insertFiles, { Options } from "../commands/insertFiles";
 import { default as ImageComponent } from "../components/Image";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import uploadPlaceholderPlugin from "../lib/uploadPlaceholder";
 import { UploadPlugin } from "../plugins/UploadPlugin";
 import { ComponentProps } from "../types";
 import Node from "./Node";
@@ -237,6 +238,6 @@ export default class SimpleImage extends Node {
   }
 
   get plugins() {
-    return [new UploadPlugin(this.options)];
+    return [uploadPlaceholderPlugin, new UploadPlugin(this.options)];
   }
 }
