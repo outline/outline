@@ -243,7 +243,7 @@ function CommentThreadItem({
                       onOpen={disableScroll}
                       onClose={enableScroll}
                       size={28}
-                      rounded
+                      $rounded
                     />
                   ) : undefined
                 }
@@ -264,7 +264,7 @@ function CommentThreadItem({
                     onSelect={handleAddReaction}
                     onOpen={disableScroll}
                     onClose={enableScroll}
-                    rounded
+                    $rounded
                   />
                 </>
               )}
@@ -302,7 +302,7 @@ const ResolveButton = ({
           comment,
           onResolve: () => onUpdate({ resolved: true }),
         })}
-        rounded
+        $rounded
       >
         <DoneIcon size={22} outline />
       </Action>
@@ -340,10 +340,10 @@ const Body = styled.form`
   border-radius: 2px;
 `;
 
-const Action = styled.span<{ rounded?: boolean }>`
+const Action = styled.span<{ $rounded?: boolean }>`
   color: ${s("textSecondary")};
   ${(props) =>
-    props.rounded &&
+    props.$rounded &&
     css`
       border-radius: 50%;
     `}
