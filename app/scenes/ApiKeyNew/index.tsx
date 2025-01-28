@@ -94,15 +94,11 @@ function ApiKeyNew({ onSubmit }: Props) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <Text as="p" type="secondary">
-        {t(
-          `Name your key something that will help you to remember it's use in the future, for example "local development" or "continuous integration".`
-        )}
-      </Text>
       <Flex column>
         <Input
           type="text"
           label={t("Name")}
+          placeholder={t("Development")}
           onChange={handleNameChange}
           value={name}
           minLength={ApiKeyValidation.minNameLength}
@@ -114,11 +110,17 @@ function ApiKeyNew({ onSubmit }: Props) {
         <Input
           type="text"
           label={t("Scopes")}
-          placeholder="documents.info users.*"
+          placeholder="documents.info"
           onChange={handleScopeChange}
           value={scope}
           flex
         />
+        <Text type="secondary" size="small" as="p">
+          {t(
+            "Space-separated scopes restrict the access of this API key to specific parts of the API. Leave blank for full access"
+          )}
+          .
+        </Text>
         <Flex align="center" gap={16}>
           <StyledExpirySelect
             ariaLabel={t("Expiration")}
