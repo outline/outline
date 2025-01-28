@@ -59,7 +59,7 @@ describe("#ApiKey", () => {
     it("should return false if no matching scope", async () => {
       const apiKey = await buildApiKey({
         name: "Dev",
-        scope: "documents.info",
+        scope: ["documents.info"],
       });
 
       expect(apiKey.canAccess("documents.info")).toBe(true);
@@ -70,7 +70,7 @@ describe("#ApiKey", () => {
     it("should allow wildcard methods", async () => {
       const apiKey = await buildApiKey({
         name: "Dev",
-        scope: "documents.*",
+        scope: ["documents.*"],
       });
 
       expect(apiKey.canAccess("documents.info")).toBe(true);
@@ -81,10 +81,23 @@ describe("#ApiKey", () => {
     it("should allow wildcard namespaces", async () => {
       const apiKey = await buildApiKey({
         name: "Dev",
-        scope: "*.info",
+        scope: ["*.info"],
       });
 
       expect(apiKey.canAccess("documents.info")).toBe(true);
+      expect(apiKey.canAccess("documents.create")).toBe(false);
+      expect(apiKey.canAccess("collections.create")).toBe(false);
+    });
+
+    it("should allow multiple scopes", async () => {
+      const apiKey = await buildApiKey({
+        name: "Dev",
+        scope: ["*.info", "collections.list"],
+      });
+
+      expect(apiKey.canAccess("shares.info")).toBe(true);
+      expect(apiKey.canAccess("documents.info")).toBe(true);
+      expect(apiKey.canAccess("collections.list")).toBe(true);
       expect(apiKey.canAccess("documents.create")).toBe(false);
       expect(apiKey.canAccess("collections.create")).toBe(false);
     });

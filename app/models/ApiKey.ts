@@ -11,10 +11,10 @@ class ApiKey extends ParanoidModel {
   @observable
   name: string;
 
-  /** A space-separated list of scopes that this API key has access to */
+  /** A list of scopes that this API key has access to. If empty, the key has full access. */
   @Field
   @observable
-  scope?: string;
+  scope?: string[];
 
   /** An optional datetime that the API key expires. */
   @Field
@@ -33,12 +33,6 @@ class ApiKey extends ParanoidModel {
 
   /** A preview of the last 4 characters of the API key. */
   last4: string;
-
-  /** An array of scopes that this API key has access to. */
-  @computed
-  get scopes() {
-    return this.scope?.split(" ") ?? [];
-  }
 
   /** Whether the API key has an expiry in the past. */
   @computed
