@@ -28,7 +28,7 @@ router.post(
       name,
       userId: user.id,
       expiresAt,
-      scope,
+      scope: scope?.map((s) => (s.startsWith("/api/") ? s : `/api/${s}`)),
     });
 
     ctx.body = {

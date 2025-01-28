@@ -40,6 +40,27 @@ describe("#apiKeys.create", () => {
     expect(body.data.lastActiveAt).toBeNull();
   });
 
+  it("should allow creating an api key with scopes", async () => {
+    const user = await buildUser();
+
+    const res = await server.post("/api/apiKeys.create", {
+      body: {
+        token: user.getJwtToken(),
+        name: "My API Key",
+        scope: ["/api/documents.list", "*.info", "users.*"],
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.name).toEqual("My API Key");
+    expect(body.data.scope).toEqual([
+      "/api/documents.list",
+      "/api/*.info",
+      "/api/users.*",
+    ]);
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/apiKeys.create");
     expect(res.status).toEqual(401);

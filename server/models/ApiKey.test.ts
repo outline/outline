@@ -51,55 +51,55 @@ describe("#ApiKey", () => {
         name: "Dev",
       });
 
-      expect(apiKey.canAccess("documents.info")).toBe(true);
-      expect(apiKey.canAccess("collections.create")).toBe(true);
-      expect(apiKey.canAccess("apiKeys.list")).toBe(true);
+      expect(apiKey.canAccess("/api/documents.info")).toBe(true);
+      expect(apiKey.canAccess("/api/collections.create")).toBe(true);
+      expect(apiKey.canAccess("/api/apiKeys.list")).toBe(true);
     });
 
     it("should return false if no matching scope", async () => {
       const apiKey = await buildApiKey({
         name: "Dev",
-        scope: ["documents.info"],
+        scope: ["/api/documents.info"],
       });
 
-      expect(apiKey.canAccess("documents.info")).toBe(true);
-      expect(apiKey.canAccess("collections.create")).toBe(false);
-      expect(apiKey.canAccess("apiKeys.list")).toBe(false);
+      expect(apiKey.canAccess("/api/documents.info")).toBe(true);
+      expect(apiKey.canAccess("/api/collections.create")).toBe(false);
+      expect(apiKey.canAccess("/api/apiKeys.list")).toBe(false);
     });
 
     it("should allow wildcard methods", async () => {
       const apiKey = await buildApiKey({
         name: "Dev",
-        scope: ["documents.*"],
+        scope: ["/api/documents.*"],
       });
 
-      expect(apiKey.canAccess("documents.info")).toBe(true);
-      expect(apiKey.canAccess("documents.create")).toBe(true);
-      expect(apiKey.canAccess("collections.create")).toBe(false);
+      expect(apiKey.canAccess("/api/documents.info")).toBe(true);
+      expect(apiKey.canAccess("/api/documents.create")).toBe(true);
+      expect(apiKey.canAccess("/api/collections.create")).toBe(false);
     });
 
     it("should allow wildcard namespaces", async () => {
       const apiKey = await buildApiKey({
         name: "Dev",
-        scope: ["*.info"],
+        scope: ["/api/*.info"],
       });
 
-      expect(apiKey.canAccess("documents.info")).toBe(true);
-      expect(apiKey.canAccess("documents.create")).toBe(false);
-      expect(apiKey.canAccess("collections.create")).toBe(false);
+      expect(apiKey.canAccess("/api/documents.info")).toBe(true);
+      expect(apiKey.canAccess("/api/documents.create")).toBe(false);
+      expect(apiKey.canAccess("/api/collections.create")).toBe(false);
     });
 
     it("should allow multiple scopes", async () => {
       const apiKey = await buildApiKey({
         name: "Dev",
-        scope: ["*.info", "collections.list"],
+        scope: ["/api/*.info", "/api/collections.list"],
       });
 
-      expect(apiKey.canAccess("shares.info")).toBe(true);
-      expect(apiKey.canAccess("documents.info")).toBe(true);
-      expect(apiKey.canAccess("collections.list")).toBe(true);
-      expect(apiKey.canAccess("documents.create")).toBe(false);
-      expect(apiKey.canAccess("collections.create")).toBe(false);
+      expect(apiKey.canAccess("/api/shares.info")).toBe(true);
+      expect(apiKey.canAccess("/api/documents.info")).toBe(true);
+      expect(apiKey.canAccess("/api/collections.list")).toBe(true);
+      expect(apiKey.canAccess("/api/documents.create")).toBe(false);
+      expect(apiKey.canAccess("/api/collections.create")).toBe(false);
     });
   });
 });

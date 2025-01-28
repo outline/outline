@@ -42,7 +42,7 @@ class ApiKey extends ParanoidModel<
   name: string;
 
   /** A space-separated list of scopes that this API key has access to */
-  @Matches(/[\.\w\s]*/, {
+  @Matches(/[\/\.\w\s]*/, {
     each: true,
   })
   @Column(DataType.ARRAY(DataType.STRING))
@@ -174,12 +174,15 @@ class ApiKey extends ParanoidModel<
       return true;
     }
 
-    const resource = path.replace("/", "");
+    const resource = path.split("/").pop() ?? "";
     const [namespace, method] = resource.split(".");
 
     return this.scope.some((scope) => {
-      const [scopeNamespace, scopeMethod] = scope.split(".");
+      const [scopeNamespace, scopeMethod] = scope
+        .replace("/api/", "")
+        .split(".");
       return (
+        scope.startsWith("/api/") &&
         (namespace === scopeNamespace || scopeNamespace === "*") &&
         (method === scopeMethod || scopeMethod === "*")
       );
