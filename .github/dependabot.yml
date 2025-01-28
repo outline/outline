@@ -13,3 +13,16 @@ updates:
         update-types: ["version-update:semver-major"]
     schedule:
       interval: "weekly"
+    groups:
+      babel:
+        patterns:
+          - "@babel/*"
+      sentry:
+        patterns:
+          - "@sentry/*"
+      fortawesome:
+        patterns:
+          - "@fortawesome/*"
+      aws:
+        patterns:
+          - "@aws-sdk/*"
