@@ -829,6 +829,7 @@
   "by {{ name }}": "by {{ name }}",
   "Last used": "Last used",
   "No expiry": "No expiry",
+  "Restricted scope": "Restricted scope",
   "API key copied to clipboard": "API key copied to clipboard",
   "Copied": "Copied",
   "Revoking": "Revoking",

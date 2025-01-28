@@ -48,8 +48,15 @@ const ApiKeyListItem = ({ apiKey }: Props) => {
         {apiKey.scope && <> &middot; </>}
       </Text>
       {apiKey.scope && (
-        <Tooltip content={t("Scopes")}>
-          <Text type="tertiary">{apiKey.scope}</Text>
+        <Tooltip
+          content={apiKey.scope.map((s) => (
+            <>
+              {s}
+              <br />
+            </>
+          ))}
+        >
+          <Text type="tertiary">{t("Restricted scope")}</Text>
         </Tooltip>
       )}
     </>
