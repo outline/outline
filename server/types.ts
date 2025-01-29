@@ -118,6 +118,10 @@ export type AttachmentEvent = BaseEvent<Attachment> &
         };
       }
     | {
+        name: "attachments.update";
+        modelId: string;
+      }
+    | {
         name: "attachments.delete";
         modelId: string;
         data: {
