@@ -22,6 +22,7 @@ type Props = {
 
 function ApiKeyNew({ onSubmit }: Props) {
   const [name, setName] = React.useState("");
+  const [scope, setScope] = React.useState("");
   const [expiryType, setExpiryType] = React.useState<ExpiryType>(
     ExpiryType.Week
   );
@@ -51,6 +52,10 @@ function ApiKeyNew({ onSubmit }: Props) {
     setName(event.target.value);
   }, []);
 
+  const handleScopeChange = React.useCallback((event) => {
+    setScope(event.target.value);
+  }, []);
+
   const handleExpiryTypeChange = React.useCallback((value: string) => {
     const expiry = value as ExpiryType;
     setExpiryType(expiry);
@@ -70,6 +75,7 @@ function ApiKeyNew({ onSubmit }: Props) {
         await apiKeys.create({
           name,
           expiresAt: expiresAt?.toISOString(),
+          scope: scope ? scope.split(" ") : undefined,
         });
         toast.success(
           t(
@@ -83,20 +89,16 @@ function ApiKeyNew({ onSubmit }: Props) {
         setIsSaving(false);
       }
     },
-    [t, name, expiresAt, onSubmit, apiKeys]
+    [t, name, scope, expiresAt, onSubmit, apiKeys]
   );
 
   return (
     <form onSubmit={handleSubmit}>
-      <Text as="p" type="secondary">
-        {t(
-          `Name your key something that will help you to remember it's use in the future, for example "local development" or "continuous integration".`
-        )}
-      </Text>
       <Flex column>
         <Input
           type="text"
           label={t("Name")}
+          placeholder={t("Development")}
           onChange={handleNameChange}
           value={name}
           minLength={ApiKeyValidation.minNameLength}
@@ -105,6 +107,20 @@ function ApiKeyNew({ onSubmit }: Props) {
           autoFocus
           flex
         />
+        <Input
+          type="text"
+          label={t("Scopes")}
+          placeholder="documents.info"
+          onChange={handleScopeChange}
+          value={scope}
+          flex
+        />
+        <Text type="secondary" size="small" as="p">
+          {t(
+            "Space-separated scopes restrict the access of this API key to specific parts of the API. Leave blank for full access"
+          )}
+          .
+        </Text>
         <Flex align="center" gap={16}>
           <StyledExpirySelect
             ariaLabel={t("Expiration")}
