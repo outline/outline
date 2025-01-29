@@ -18,12 +18,15 @@ import {
   AfterCreate,
   AfterUpdate,
   Length,
+  AfterDestroy,
 } from "sequelize-typescript";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
+import { APIContext } from "@server/types";
 import Collection from "./Collection";
 import Document from "./Document";
 import User from "./User";
 import IdModel from "./base/IdModel";
+import { HookContext } from "./base/Model";
 import Fix from "./decorators/Fix";
 
 /**
@@ -209,6 +212,16 @@ class UserMembership extends IdModel<
     return this.recreateSourcedMemberships(model, options);
   }
 
+  @AfterCreate
+  static async publishAddUserEventAfterCreate(
+    model: UserMembership,
+    context: APIContext["context"]
+  ) {
+    await model.insertEvent(context, "add_user", {
+      isNew: true,
+    });
+  }
+
   @AfterUpdate
   static async updateSourcedMemberships(
     model: UserMembership,
@@ -234,6 +247,24 @@ class UserMembership extends IdModel<
         }
       );
     }
+  }
+
+  @AfterUpdate
+  static async publishAddUserEventAfterUpdate(
+    model: UserMembership,
+    context: APIContext["context"]
+  ) {
+    await model.insertEvent(context, "add_user", {
+      isNew: false,
+    });
+  }
+
+  @AfterDestroy
+  static async publishRemoveUserEvent(
+    model: UserMembership,
+    context: APIContext["context"]
+  ) {
+    await model.insertEvent(context, "remove_user");
   }
 
   /**
@@ -293,8 +324,26 @@ class UserMembership extends IdModel<
         },
         {
           transaction,
+          hooks: false,
         }
       );
+    }
+  }
+
+  private async insertEvent(
+    ctx: APIContext["context"],
+    name: string,
+    data?: Record<string, unknown>
+  ) {
+    const hookContext = {
+      ...ctx,
+      event: { name, data, create: true },
+    } as HookContext;
+
+    if (this.collectionId) {
+      await Collection.insertEvent(name, this, hookContext);
+    } else {
+      await Document.insertEvent(name, this, hookContext);
     }
   }
 }
