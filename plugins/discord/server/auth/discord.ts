@@ -70,6 +70,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
           const client = getClientFromContext(ctx);
           /** Fetch the user's profile */
           const profile: RESTGetAPICurrentUserResult = await request(
+            "GET",
             "https://discord.com/api/users/@me",
             accessToken
           );
@@ -105,6 +106,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
           if (env.DISCORD_SERVER_ID) {
             /** Fetch the guilds a user is in */
             const guilds: RESTGetAPICurrentUserGuildsResult = await request(
+              "GET",
               "https://discord.com/api/users/@me/guilds",
               accessToken
             );
@@ -146,6 +148,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
             /** Fetch the user's member object in the server for nickname and roles */
             const guildMember: RESTGetCurrentUserGuildMemberResult =
               await request(
+                "GET",
                 `https://discord.com/api/users/@me/guilds/${env.DISCORD_SERVER_ID}/member`,
                 accessToken
               );
