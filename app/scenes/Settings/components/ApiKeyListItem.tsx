@@ -37,8 +37,8 @@ const ApiKeyListItem = ({ apiKey }: Props) => {
       </Text>
       {apiKey.lastActiveAt && (
         <Text type="tertiary">
-          {t("Last used")} <Time dateTime={apiKey.lastActiveAt} addSuffix />
-          {apiKey.expiresAt && <> &middot; </>}
+          {t("Last used")} <Time dateTime={apiKey.lastActiveAt} addSuffix />{" "}
+          &middot;{" "}
         </Text>
       )}
       <Text type={apiKey.isExpired ? "danger" : "tertiary"}>
