@@ -57,10 +57,14 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
         const [profileResponse, organizationResponse] = await Promise.all([
           // Load the users profile from the Microsoft Graph API
           // https://docs.microsoft.com/en-us/graph/api/resources/users?view=graph-rest-1.0
-          request(`https://graph.microsoft.com/v1.0/me`, accessToken),
+          request("GET", `https://graph.microsoft.com/v1.0/me`, accessToken),
           // Load the organization profile from the Microsoft Graph API
           // https://docs.microsoft.com/en-us/graph/api/organization-get?view=graph-rest-1.0
-          request(`https://graph.microsoft.com/v1.0/organization`, accessToken),
+          request(
+            "GET",
+            `https://graph.microsoft.com/v1.0/organization`,
+            accessToken
+          ),
         ]);
 
         if (!profileResponse) {
