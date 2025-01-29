@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { AttachmentPreset } from "@shared/types";
 import { bytesToHumanReadable, getFileNameFromUrl } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
+import { createContext } from "@server/context";
 import {
   AuthorizationError,
   InvalidRequestError,
@@ -118,10 +119,8 @@ router.post(
   validate(T.AttachmentsCreateFromUrlSchema),
   async (ctx: APIContext<T.AttachmentCreateFromUrlReq>) => {
     const { url, documentId, preset } = ctx.input.body;
-    const { auth, transaction } = ctx.state;
-    const { user } = auth;
+    const { user, type } = ctx.state.auth;
 
-    // All user types can upload an avatar so no additional authorization is needed.
     if (preset !== AttachmentPreset.DocumentAttachment || !documentId) {
       throw ValidationError(
         "Only document attachments can be created from a URL"
@@ -130,7 +129,6 @@ router.post(
 
     const document = await Document.findByPk(documentId, {
       userId: user.id,
-      transaction,
     });
     authorize(user, "update", document);
 
@@ -148,7 +146,12 @@ router.post(
     // before the job is scheduled.
     const attachment = await sequelize.transaction(async (transaction) =>
       Attachment.createWithCtx(
-        { ...ctx, transaction },
+        createContext({
+          authType: type,
+          user,
+          ip: ctx.ip,
+          transaction,
+        }),
         {
           id: modelId,
           key,
