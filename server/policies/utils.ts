@@ -1,5 +1,4 @@
 import env from "@server/env";
-import { IncorrectEditionError } from "@server/errors";
 import { User, Team } from "@server/models";
 import Model from "@server/models/base/Model";
 
@@ -97,9 +96,7 @@ export function isTeamMutable(_actor: User, _model?: Model | null) {
  */
 export function isCloudHosted() {
   if (!env.isCloudHosted) {
-    throw IncorrectEditionError(
-      "Functionality is not available in this edition"
-    );
+    return false;
   }
   return true;
 }
