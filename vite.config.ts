@@ -2,13 +2,14 @@ import fs from "fs";
 import path from "path";
 import react from "@vitejs/plugin-react";
 import browserslistToEsbuild from "browserslist-to-esbuild";
-import { webpackStats } from "rollup-plugin-webpack-stats";
+import webpackStats from "rollup-plugin-webpack-stats";
 import { CommonServerOptions, defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import environment from "./server/utils/environment";
 
 let httpsConfig: CommonServerOptions["https"] | undefined;
+const host = new URL(environment.URL!).hostname;
 
 if (environment.NODE_ENV === "development") {
   try {
@@ -31,6 +32,8 @@ export default () =>
       port: 3001,
       host: true,
       https: httpsConfig,
+      allowedHosts: [host],
+      cors: true,
       fs:
         environment.NODE_ENV === "development"
           ? {

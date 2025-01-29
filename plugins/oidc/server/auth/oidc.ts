@@ -81,8 +81,14 @@ if (
         ) => void
       ) {
         try {
+          // Some providers require a POST request to the userinfo endpoint, add them as exceptions here.
+          const usePostMethod = [
+            "https://api.dropboxapi.com/2/openid/userinfo",
+          ];
+
           const profile = await request(
-            env.OIDC_USERINFO_URI ?? "",
+            usePostMethod.includes(env.OIDC_USERINFO_URI!) ? "POST" : "GET",
+            env.OIDC_USERINFO_URI!,
             accessToken
           );
 

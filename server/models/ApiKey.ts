@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { Matches } from "class-validator";
 import { subMinutes } from "date-fns";
 import randomstring from "randomstring";
 import { InferAttributes, InferCreationAttributes, Op } from "sequelize";
@@ -31,6 +32,7 @@ class ApiKey extends ParanoidModel<
 
   static eventNamespace = "api_keys";
 
+  /** The human-readable name of this API key */
   @Length({
     min: ApiKeyValidation.minNameLength,
     max: ApiKeyValidation.maxNameLength,
@@ -38,6 +40,13 @@ class ApiKey extends ParanoidModel<
   })
   @Column
   name: string;
+
+  /** A space-separated list of scopes that this API key has access to */
+  @Matches(/[\/\.\w\s]*/, {
+    each: true,
+  })
+  @Column(DataType.ARRAY(DataType.STRING))
+  scope: string[] | null;
 
   /** @deprecated The plain text value of the API key, removed soon. */
   @Unique
@@ -59,10 +68,12 @@ class ApiKey extends ParanoidModel<
   @SkipChangeset
   last4: string;
 
+  /** The date and time when this API key will expire */
   @IsDate
   @Column
   expiresAt: Date | null;
 
+  /** The date and time when this API key was last used */
   @IsDate
   @Column
   @SkipChangeset
@@ -155,6 +166,27 @@ class ApiKey extends ParanoidModel<
     }
 
     return this.save({ silent: true });
+  };
+
+  /** Checks if the API key has access to the given path */
+  canAccess = (path: string) => {
+    if (!this.scope) {
+      return true;
+    }
+
+    const resource = path.split("/").pop() ?? "";
+    const [namespace, method] = resource.split(".");
+
+    return this.scope.some((scope) => {
+      const [scopeNamespace, scopeMethod] = scope
+        .replace("/api/", "")
+        .split(".");
+      return (
+        scope.startsWith("/api/") &&
+        (namespace === scopeNamespace || scopeNamespace === "*") &&
+        (method === scopeMethod || scopeMethod === "*")
+      );
+    });
   };
 }
 

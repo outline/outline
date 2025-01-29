@@ -1,5 +1,6 @@
 import differenceBy from "lodash/differenceBy";
 import * as React from "react";
+import { MentionType } from "@shared/types";
 import { Document, Revision } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
@@ -63,12 +64,12 @@ export default class DocumentMentionedEmail extends BaseEmail<
     }
 
     const currMentions = DocumentHelper.parseMentions(currDoc, {
-      type: "user",
+      type: MentionType.User,
       modelId: userId,
     });
     const prevMentions = prevDoc
       ? DocumentHelper.parseMentions(prevDoc, {
-          type: "user",
+          type: MentionType.User,
           modelId: userId,
         })
       : [];
@@ -91,7 +92,7 @@ export default class DocumentMentionedEmail extends BaseEmail<
   }
 
   protected subject({ document }: Props) {
-    return `Mentioned you in “${document.title}”`;
+    return `Mentioned you in “${document.titleWithDefault}”`;
   }
 
   protected preview({ actorName }: Props): string {
@@ -115,7 +116,7 @@ export default class DocumentMentionedEmail extends BaseEmail<
     return `
 You were mentioned
 
-${actorName} mentioned you in the document “${document.title}”.
+${actorName} mentioned you in the document “${document.titleWithDefault}”.
 
 Open Document: ${teamUrl}${document.url}
 `;
@@ -136,7 +137,7 @@ Open Document: ${teamUrl}${document.url}
           <Heading>You were mentioned</Heading>
           <p>
             {actorName} mentioned you in the document{" "}
-            <a href={documentLink}>{document.title}</a>.
+            <a href={documentLink}>{document.titleWithDefault}</a>.
           </p>
           {body && (
             <>

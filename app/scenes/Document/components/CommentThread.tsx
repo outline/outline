@@ -6,7 +6,7 @@ import { useHistory, useLocation } from "react-router-dom";
 import scrollIntoView from "scroll-into-view-if-needed";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { s } from "@shared/styles";
+import { s, hover } from "@shared/styles";
 import { ProsemirrorData } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import Comment from "~/models/Comment";
@@ -21,7 +21,6 @@ import useOnClickOutside from "~/hooks/useOnClickOutside";
 import usePersistedState from "~/hooks/usePersistedState";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import { hover } from "~/styles";
 import { sidebarAppearDuration } from "~/styles/animations";
 import CommentForm from "./CommentForm";
 import CommentThreadItem from "./CommentThreadItem";
@@ -55,7 +54,7 @@ function CommentThread({
   collapseThreshold = 5,
   collapseNumDisplayed = 3,
 }: Props) {
-  const [focusedOnMount] = React.useState(focused);
+  const [scrollOnMount] = React.useState(focused && !window.location.hash);
   const { editor } = useDocumentContext();
   const { comments } = useStores();
   const topRef = React.useRef<HTMLDivElement>(null);
@@ -166,7 +165,7 @@ function CommentThread({
 
   React.useEffect(() => {
     if (focused) {
-      if (focusedOnMount) {
+      if (scrollOnMount) {
         setTimeout(() => {
           if (!topRef.current) {
             return;
@@ -210,7 +209,7 @@ function CommentThread({
         isMarkVisible ? 0 : sidebarAppearDuration
       );
     }
-  }, [focused, focusedOnMount, thread.id]);
+  }, [focused, scrollOnMount, thread.id]);
 
   return (
     <Thread

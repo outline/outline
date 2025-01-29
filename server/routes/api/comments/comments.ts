@@ -1,7 +1,11 @@
 import Router from "koa-router";
 import difference from "lodash/difference";
 import { FindOptions, Op, WhereOptions } from "sequelize";
-import { CommentStatusFilter, TeamPreference } from "@shared/types";
+import {
+  CommentStatusFilter,
+  TeamPreference,
+  MentionType,
+} from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import { feature } from "@server/middlewares/feature";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -225,10 +229,12 @@ router.post(
 
     if (data !== undefined) {
       const existingMentionIds = ProsemirrorHelper.parseMentions(
-        ProsemirrorHelper.toProsemirror(comment.data)
+        ProsemirrorHelper.toProsemirror(comment.data),
+        { type: MentionType.User }
       ).map((mention) => mention.id);
       const updatedMentionIds = ProsemirrorHelper.parseMentions(
-        ProsemirrorHelper.toProsemirror(data)
+        ProsemirrorHelper.toProsemirror(data),
+        { type: MentionType.User }
       ).map((mention) => mention.id);
 
       newMentionIds = difference(updatedMentionIds, existingMentionIds);
@@ -375,12 +381,13 @@ router.post(
     authorize(user, "comment", document);
     authorize(user, "addReaction", comment);
 
-    await Reaction.findOrCreateWithCtx(ctx, {
+    await Reaction.findOrCreate({
       where: {
         emoji,
         userId: user.id,
         commentId: id,
       },
+      ...ctx.context,
     });
 
     ctx.body = {
@@ -423,7 +430,7 @@ router.post(
     });
     authorize(user, "delete", reaction);
 
-    await reaction.destroyWithCtx(ctx);
+    await reaction.destroy(ctx.context);
 
     ctx.body = {
       success: true,

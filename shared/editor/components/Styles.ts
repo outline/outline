@@ -1,6 +1,7 @@
 /* eslint-disable no-irregular-whitespace */
 import { lighten, transparentize } from "polished";
 import styled, { DefaultTheme, css, keyframes } from "styled-components";
+import { hover } from "../../styles";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { videoStyle } from "./Video";
 
@@ -289,16 +290,31 @@ width: 100%;
 .mention {
   background: ${props.theme.mentionBackground};
   border-radius: 8px;
-  padding-bottom: 2px;
   padding-top: 1px;
+  padding-bottom: 1px;
   padding-left: 4px;
-  padding-right: 4px;
+  padding-right: 6px;
   font-weight: 500;
   font-size: 0.9em;
   cursor: default;
+  text-decoration: none !important;
 
-  &::before {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  vertical-align: bottom;
+
+  &:${hover} {
+    cursor: default;
+    background: ${props.theme.mentionHoverBackground};
+  }
+
+  &.mention-user::before {
     content: "@";
+  }
+
+  &.mention-document::before {
+    content: "+";
   }
 }
 

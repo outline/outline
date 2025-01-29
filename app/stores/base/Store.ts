@@ -1,5 +1,6 @@
+import commandScore from "command-score";
 import invariant from "invariant";
-import type { ObjectIterateeCustom } from "lodash";
+import { deburr, type ObjectIterateeCustom } from "lodash";
 import filter from "lodash/filter";
 import find from "lodash/find";
 import flatten from "lodash/flatten";
@@ -15,6 +16,7 @@ import ArchivableModel from "~/models/base/ArchivableModel";
 import Model from "~/models/base/Model";
 import { LifecycleManager } from "~/models/decorators/Lifecycle";
 import { getInverseRelationsForModelClass } from "~/models/decorators/Relation";
+import { Searchable } from "~/models/interfaces/Searchable";
 import type { PaginationParams, PartialExcept, Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
@@ -54,6 +56,8 @@ export default abstract class Store<T extends Model> {
   @observable
   isLoaded = false;
 
+  requests: Map<string, Promise<any>> = new Map();
+
   model: typeof Model;
 
   modelName: string;
@@ -87,6 +91,46 @@ export default abstract class Store<T extends Model> {
 
   addPolicies = (policies: Policy[]) => {
     policies?.forEach((policy) => this.rootStore.policies.add(policy));
+  };
+
+  findByQuery = (query: string, options?: { maxResults: number }): T[] => {
+    const normalized = deburr((query ?? "").trim().toLocaleLowerCase());
+
+    if (!normalized) {
+      return this.orderedData.slice(0, options?.maxResults);
+    }
+
+    return this.orderedData
+      .filter((item: T & Searchable) => {
+        if ("searchContent" in item) {
+          const seachables =
+            typeof item.searchContent === "string"
+              ? [item.searchContent]
+              : item.searchContent;
+          return seachables.some((searchable) =>
+            deburr(searchable.toLocaleLowerCase()).includes(normalized)
+          );
+        }
+
+        throw new Error("Item does not implement Searchable interface");
+      })
+      .map((item: T & Searchable) => {
+        const seachables =
+          typeof item.searchContent === "string"
+            ? [item.searchContent]
+            : item.searchContent;
+
+        return {
+          score:
+            seachables
+              .map((searchable) => commandScore(normalized, searchable))
+              .reduce((a, b) => a + b, 0) / seachables.length,
+          item,
+        };
+      })
+      .sort((a, b) => b.score - a.score)
+      .map(({ item }) => item)
+      .slice(0, options?.maxResults);
   };
 
   @action
@@ -302,27 +346,43 @@ export default abstract class Store<T extends Model> {
     if (item && !options.force) {
       return item;
     }
+
+    if (this.requests.has(id)) {
+      return this.requests.get(id);
+    }
+
     this.isFetching = true;
 
-    try {
-      const res = await client.post(`/${this.apiEndpoint}.info`, {
-        id,
-      });
+    const promise = new Promise<T>((resolve, reject) => {
+      client
+        .post(`/${this.apiEndpoint}.info`, {
+          id,
+        })
+        .then((res) =>
+          runInAction(`info#${this.modelName}`, () => {
+            invariant(res?.data, "Data should be available");
+            this.addPolicies(res.policies);
+            resolve(this.add(accessor(res)));
+          })
+        )
+        .catch((err) => {
+          if (
+            err instanceof AuthorizationError ||
+            err instanceof NotFoundError
+          ) {
+            this.remove(id);
+          }
 
-      return runInAction(`info#${this.modelName}`, () => {
-        invariant(res?.data, "Data should be available");
-        this.addPolicies(res.policies);
-        return this.add(accessor(res));
-      });
-    } catch (err) {
-      if (err instanceof AuthorizationError || err instanceof NotFoundError) {
-        this.remove(id);
-      }
+          reject(err);
+        })
+        .finally(() => {
+          this.requests.delete(id);
+          this.isFetching = false;
+        });
+    });
 
-      throw err;
-    } finally {
-      this.isFetching = false;
-    }
+    this.requests.set(id, promise);
+    return promise;
   }
 
   @action

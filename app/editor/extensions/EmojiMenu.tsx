@@ -19,11 +19,10 @@ export default class EmojiMenuExtension extends Suggestion {
       : false;
 
     return {
-      openRegex: new RegExp(
-        `(?:^|\\s|\\():([0-9a-zA-Z_+-]+)${languageIsUsingColon ? "" : "?"}$`
-      ),
-      closeRegex:
-        /(?:^|\s|\():(([0-9a-zA-Z_+-]*\s+)|(\s+[0-9a-zA-Z_+-]+)|[^0-9a-zA-Z_+-]+)$/,
+      trigger: ":",
+      allowSpaces: false,
+      requireSearchTerm: languageIsUsingColon,
+      enabledInCode: false,
     };
   }
 
@@ -34,6 +33,7 @@ export default class EmojiMenuExtension extends Suggestion {
   widget = ({ rtl }: WidgetProps) => (
     <EmojiMenu
       rtl={rtl}
+      trigger={this.options.trigger}
       isActive={this.state.open}
       search={this.state.query}
       onClose={action(() => {

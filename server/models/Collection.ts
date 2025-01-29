@@ -166,8 +166,6 @@ class Collection extends ParanoidModel<
   InferAttributes<Collection>,
   Partial<InferCreationAttributes<Collection>>
 > {
-  static eventNamespace = "collections";
-
   @SimpleLength({
     min: 10,
     max: 10,
@@ -340,6 +338,7 @@ class Collection extends ParanoidModel<
         createdById: model.createdById,
       },
       transaction: options.transaction,
+      hooks: false,
     });
   }
 

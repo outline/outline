@@ -19,7 +19,7 @@ router.post(
   validate(T.APIKeysCreateSchema),
   transaction(),
   async (ctx: APIContext<T.APIKeysCreateReq>) => {
-    const { name, expiresAt } = ctx.input.body;
+    const { name, scope, expiresAt } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     authorize(user, "createApiKey", user.team);
@@ -28,6 +28,7 @@ router.post(
       name,
       userId: user.id,
       expiresAt,
+      scope: scope?.map((s) => (s.startsWith("/api/") ? s : `/api/${s}`)),
     });
 
     ctx.body = {

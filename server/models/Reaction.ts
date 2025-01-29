@@ -18,10 +18,10 @@ import {
   Table,
 } from "sequelize-typescript";
 import { createContext } from "@server/context";
+import { APIContext } from "@server/types";
 import Comment from "./Comment";
 import User from "./User";
 import IdModel from "./base/IdModel";
-import { type HookContext } from "./base/Model";
 import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
 
@@ -57,7 +57,7 @@ class Reaction extends IdModel<
   @AfterCreate
   public static async addReactionToCommentCache(
     model: Reaction,
-    ctx: HookContext &
+    ctx: APIContext["context"] &
       FindOrCreateOptions<Attributes<Reaction>, CreationAttributes<Reaction>>
   ) {
     const { transaction } = ctx;
@@ -109,7 +109,7 @@ class Reaction extends IdModel<
   @AfterDestroy
   public static async removeReactionFromCommentCache(
     model: Reaction,
-    ctx: HookContext & InstanceDestroyOptions
+    ctx: APIContext["context"] & InstanceDestroyOptions
   ) {
     const { transaction } = ctx;
 

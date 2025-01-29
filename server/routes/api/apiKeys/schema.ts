@@ -7,6 +7,8 @@ export const APIKeysCreateSchema = BaseSchema.extend({
     name: z.string(),
     /** API Key expiry date */
     expiresAt: z.coerce.date().optional(),
+    /** A list of scopes that this API key has access to */
+    scope: z.array(z.string()).optional(),
   }),
 });
 
