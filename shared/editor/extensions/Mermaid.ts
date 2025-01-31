@@ -13,7 +13,8 @@ import { Decoration, DecorationSet } from "prosemirror-view";
 import { v4 as uuidv4 } from "uuid";
 import { isCode } from "../lib/isCode";
 import { isRemoteTransaction } from "../lib/multiplayer";
-import { findBlockNodes, NodeWithPos } from "../queries/findChildren";
+import { findBlockNodes } from "../queries/findChildren";
+import { NodeWithPos } from "../types";
 
 type MermaidState = {
   decorationSet: DecorationSet;

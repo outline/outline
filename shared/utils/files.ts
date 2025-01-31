@@ -112,3 +112,20 @@ export function getEventFiles(
     ? Array.prototype.slice.call(event.target.files)
     : [];
 }
+
+/**
+ * Get the likely filename from a URL
+ *
+ * @param url The URL to get the filename from
+ * @returns The filename or null if it could not be determined
+ */
+export function getFileNameFromUrl(url: string) {
+  try {
+    const urlObj = new URL(url);
+    const pathname = urlObj.pathname;
+    const filename = pathname.substring(pathname.lastIndexOf("/") + 1);
+    return filename;
+  } catch (error) {
+    return null;
+  }
+}

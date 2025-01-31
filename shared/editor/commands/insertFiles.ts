@@ -16,7 +16,7 @@ export type Options = {
   /** Set to true to replace any existing image at the users selection */
   replaceExisting?: boolean;
   /** Callback fired to upload a file */
-  uploadFile?: (file: File) => Promise<string>;
+  uploadFile?: (file: File | string) => Promise<string>;
   /** Callback fired when the user starts a file upload */
   onFileUploadStart?: () => void;
   /** Callback fired when the user completes a file upload */
