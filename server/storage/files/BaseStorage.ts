@@ -129,13 +129,15 @@ export default abstract class BaseStorage {
    * @param key The path to store the file at
    * @param acl The ACL to use
    * @param init Optional fetch options to use
+   * @param options Optional upload options
    * @returns A promise that resolves when the file is uploaded
    */
   public async storeFromUrl(
     url: string,
     key: string,
     acl: string,
-    init?: RequestInit
+    init?: RequestInit,
+    options?: { maxUploadSize?: number }
   ): Promise<
     | {
         url: string;
@@ -162,7 +164,10 @@ export default abstract class BaseStorage {
         const res = await fetch(url, {
           follow: 3,
           redirect: "follow",
-          size: env.FILE_STORAGE_UPLOAD_MAX_SIZE,
+          size: Math.min(
+            options?.maxUploadSize ?? Infinity,
+            env.FILE_STORAGE_UPLOAD_MAX_SIZE
+          ),
           timeout: 10000,
           ...init,
         });

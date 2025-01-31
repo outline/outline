@@ -22,6 +22,23 @@ export default class FileHelper {
   }
 
   /**
+   * Download a file from a URL and return it as a File object.
+   *
+   * @param url The URL to download the file from
+   * @returns The downloaded file
+   */
+  static async getFileForUrl(url: string): Promise<File> {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const fileName = (response.headers.get("content-disposition") || "").split(
+      "filename="
+    )[1];
+    return new File([blob], fileName || "file", {
+      type: blob.type,
+    });
+  }
+
+  /**
    * Loads the dimensions of a video file.
    *
    * @param file The file to load the dimensions for

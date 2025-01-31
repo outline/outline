@@ -1,8 +1,10 @@
 import { extension } from "mime-types";
+import { Node } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
 import { getDataTransferFiles, getDataTransferImage } from "../../utils/files";
 import { fileNameFromUrl, isInternalUrl } from "../../utils/urls";
 import insertFiles, { Options } from "../commands/insertFiles";
+import FileHelper from "../lib/FileHelper";
 
 export class UploadPlugin extends Plugin {
   constructor(options: Options) {
@@ -95,6 +97,44 @@ export class UploadPlugin extends Plugin {
 
             return false;
           },
+        },
+        transformPasted: (slice, view) => {
+          // find any remote images in pasted slice, but leave it alone.
+          const images: Node[] = [];
+          slice.content.descendants((node) => {
+            if (node.type.name === "image" && !isInternalUrl(node.attrs.src)) {
+              images.push(node);
+            }
+          });
+
+          // Upload each remote image to our storage and replace the src
+          // with the new url and dimensions.
+          void images.map(async (image) => {
+            const url = await options.uploadFile?.(image.attrs.src);
+
+            if (url) {
+              const file = await FileHelper.getFileForUrl(url);
+              const dimensions = await FileHelper.getImageDimensions(file);
+              const { tr } = view.state;
+
+              tr.doc.nodesBetween(0, tr.doc.nodeSize - 2, (node, pos) => {
+                if (
+                  node.type.name === "image" &&
+                  node.attrs.src === image.attrs.src
+                ) {
+                  tr.setNodeMarkup(pos, undefined, {
+                    ...node.attrs,
+                    ...dimensions,
+                    src: url,
+                  });
+                }
+              });
+
+              view.dispatch(tr);
+            }
+          });
+
+          return slice;
         },
       },
     });
