@@ -9,9 +9,11 @@ import { viteStaticCopy } from "vite-plugin-static-copy";
 import environment from "./server/utils/environment";
 
 let httpsConfig: CommonServerOptions["https"] | undefined;
-const host = new URL(environment.URL!).hostname;
+let host: string | undefined;
 
 if (environment.NODE_ENV === "development") {
+  host = host = new URL(environment.URL!).hostname;
+
   try {
     httpsConfig = {
       key: fs.readFileSync("./server/config/certs/private.key"),
@@ -32,7 +34,7 @@ export default () =>
       port: 3001,
       host: true,
       https: httpsConfig,
-      allowedHosts: [host],
+      allowedHosts: host ? [host] : undefined,
       cors: true,
       fs:
         environment.NODE_ENV === "development"
