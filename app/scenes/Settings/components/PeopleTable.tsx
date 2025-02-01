@@ -3,7 +3,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import User from "~/models/User";
-import { Avatar } from "~/components/Avatar";
+import { Avatar, AvatarSize } from "~/components/Avatar";
 import Badge from "~/components/Badge";
 import Flex from "~/components/Flex";
 import { HEADER_HEIGHT } from "~/components/Header";
@@ -38,7 +38,7 @@ export function PeopleTable({ canManage, ...rest }: Props) {
           accessor: (user) => user.name,
           component: (user) => (
             <Flex align="center" gap={8}>
-              <Avatar model={user} size={32} /> {user.name}{" "}
+              <Avatar model={user} size={AvatarSize.Large} /> {user.name}{" "}
               {currentUser.id === user.id && `(${t("You")})`}
             </Flex>
           ),

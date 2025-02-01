@@ -10,6 +10,7 @@ import { s } from "@shared/styles";
 import { UserPreference } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import { Config } from "~/stores/AuthStore";
+import { AvatarSize } from "~/components/Avatar";
 import ButtonLarge from "~/components/ButtonLarge";
 import ChangeLanguage from "~/components/ChangeLanguage";
 import Fade from "~/components/Fade";
@@ -249,9 +250,9 @@ function Login({ children }: Props) {
         />
         <Logo>
           {config.logo && !isCreate ? (
-            <TeamLogo size={48} src={config.logo} />
+            <TeamLogo size={AvatarSize.XXLarge} src={config.logo} />
           ) : (
-            <OutlineIcon size={48} />
+            <OutlineIcon size={AvatarSize.XXLarge} />
           )}
         </Logo>
         {isCreate ? (

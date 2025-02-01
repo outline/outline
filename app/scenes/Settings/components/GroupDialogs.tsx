@@ -434,7 +434,7 @@ const GroupMemberListItem = observer(function ({
           {user.isAdmin && <Badge primary={user.isAdmin}>{t("Admin")}</Badge>}
         </>
       }
-      image={<Avatar model={user} size={32} />}
+      image={<Avatar model={user} size={AvatarSize.Large} />}
       actions={
         <Flex align="center">
           {onRemove && <GroupMemberMenu onRemove={onRemove} />}

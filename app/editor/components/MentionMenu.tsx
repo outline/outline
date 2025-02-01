@@ -84,7 +84,6 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
                 >
                   <Avatar
                     model={user}
-                    showBorder={false}
                     alt={t("Profile picture")}
                     size={AvatarSize.Small}
                   />

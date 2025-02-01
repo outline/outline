@@ -16,7 +16,7 @@ import EventBoundary from "@shared/components/EventBoundary";
 import { s, hover } from "@shared/styles";
 import Document from "~/models/Document";
 import Event from "~/models/Event";
-import { Avatar } from "~/components/Avatar";
+import { Avatar, AvatarSize } from "~/components/Avatar";
 import Item, { Actions, Props as ItemProps } from "~/components/List/Item";
 import Time from "~/components/Time";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
@@ -153,7 +153,7 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
           onClick={handleTimeClick}
         />
       }
-      image={<Avatar model={event.actor} size={32} />}
+      image={<Avatar model={event.actor} size={AvatarSize.Large} />}
       subtitle={
         <Subtitle>
           {icon}

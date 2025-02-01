@@ -7,9 +7,10 @@ export enum AvatarSize {
   Small = 16,
   Toast = 18,
   Medium = 24,
-  Large = 32,
-  XLarge = 48,
-  XXLarge = 64,
+  Large = 28,
+  XLarge = 32,
+  XXLarge = 48,
+  Upload = 64,
 }
 
 export interface IAvatar {
@@ -20,36 +21,37 @@ export interface IAvatar {
 }
 
 type Props = {
+  /** The size of the avatar */
   size: AvatarSize;
+  /** The source of the avatar image, if not passing a model. */
   src?: string;
+  /** The avatar model, if not passing a source. */
   model?: IAvatar;
+  /** The alt text for the image */
   alt?: string;
-  showBorder?: boolean;
+  /** Optional click handler */
   onClick?: React.MouseEventHandler<HTMLImageElement>;
+  /** Optional class name */
   className?: string;
+  /** Optional style */
   style?: React.CSSProperties;
 };
 
 function Avatar(props: Props) {
-  const { showBorder, model, style, ...rest } = props;
+  const { model, style, ...rest } = props;
   const src = props.src || model?.avatarUrl;
   const [error, handleError] = useBoolean(false);
 
   return (
     <Relative style={style}>
       {src && !error ? (
-        <CircleImg
-          onError={handleError}
-          src={src}
-          $showBorder={showBorder}
-          {...rest}
-        />
+        <CircleImg onError={handleError} src={src} {...rest} />
       ) : model ? (
-        <Initials color={model.color} $showBorder={showBorder} {...rest}>
+        <Initials color={model.color} {...rest}>
           {model.initial}
         </Initials>
       ) : (
-        <Initials $showBorder={showBorder} {...rest} />
+        <Initials {...rest} />
       )}
     </Relative>
   );
@@ -65,15 +67,11 @@ const Relative = styled.div`
   flex-shrink: 0;
 `;
 
-const CircleImg = styled.img<{ size: number; $showBorder?: boolean }>`
+const CircleImg = styled.img<{ size: number }>`
   display: block;
   width: ${(props) => props.size}px;
   height: ${(props) => props.size}px;
   border-radius: 50%;
-  border: ${(props) =>
-    props.$showBorder === false
-      ? "none"
-      : `2px solid ${props.theme.background}`};
   flex-shrink: 0;
   overflow: hidden;
 `;

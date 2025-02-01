@@ -116,7 +116,6 @@ function GitHub() {
                         <TeamLogo
                           src={githubAccount?.avatarUrl}
                           size={AvatarSize.Large}
-                          showBorder={false}
                         />
                       }
                       actions={
