@@ -16,11 +16,11 @@ type Props = {
   /** The maximum number of users to display, defaults to 8 */
   limit?: number;
   /** A component to render the avatar, defaults to Avatar. */
-  renderAvatar?: (
-    props: React.ComponentProps<typeof Avatar> & {
+  renderAvatar?: React.ComponentType<
+    React.ComponentProps<typeof Avatar> & {
       model: User;
     }
-  ) => React.ReactNode;
+  >;
 };
 
 function Facepile({
@@ -32,6 +32,7 @@ function Facepile({
   ...rest
 }: Props) {
   const filtered = users.filter(Boolean).slice(-limit);
+  const Component = renderAvatar;
 
   return (
     <Avatars {...rest}>
@@ -43,16 +44,21 @@ function Facepile({
       )}
       {filtered.map((model, index) => {
         const lastChild = index === 0 && overflow <= 0;
-        return renderAvatar({
-          model,
-          size,
-          style: {
-            marginRight: lastChild ? 0 : -4,
-            ...(lastChild || filtered.length === 1
-              ? {}
-              : { clipPath: `url(#${clipPathId(size)})` }),
-          },
-        });
+        return (
+          <Component
+            key={model.id}
+            {...{
+              model,
+              size,
+              style: {
+                marginRight: lastChild ? 0 : -4,
+                ...(lastChild || filtered.length === 1
+                  ? {}
+                  : { clipPath: `url(#${clipPathId(size)})` }),
+              },
+            }}
+          />
+        );
       })}
       <FacepileClip size={size} />
     </Avatars>
