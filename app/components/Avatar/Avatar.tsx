@@ -21,18 +21,24 @@ export interface IAvatar {
 }
 
 type Props = {
+  /** The size of the avatar */
   size: AvatarSize;
+  /** The source of the avatar image, if not passing a model. */
   src?: string;
+  /** The avatar model, if not passing a source. */
   model?: IAvatar;
+  /** The alt text for the image */
   alt?: string;
-  showBorder?: boolean;
+  /** Optional click handler */
   onClick?: React.MouseEventHandler<HTMLImageElement>;
+  /** Optional class name */
   className?: string;
+  /** Optional style */
   style?: React.CSSProperties;
 };
 
 function Avatar(props: Props) {
-  const { showBorder, model, style, ...rest } = props;
+  const { model, style, ...rest } = props;
   const src = props.src || model?.avatarUrl;
   const [error, handleError] = useBoolean(false);
 

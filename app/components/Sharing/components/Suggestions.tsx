@@ -158,13 +158,7 @@ export const Suggestions = observer(
           : suggestion.isViewer
           ? t("Viewer")
           : t("Editor"),
-        image: (
-          <Avatar
-            model={suggestion}
-            size={AvatarSize.Medium}
-            showBorder={false}
-          />
-        ),
+        image: <Avatar model={suggestion} size={AvatarSize.Medium} />,
       };
     }
 

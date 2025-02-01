@@ -201,11 +201,7 @@ export const AccessControlList = observer(
                 <ListItem
                   key={membership.id}
                   image={
-                    <Avatar
-                      model={membership.user}
-                      size={AvatarSize.Medium}
-                      showBorder={false}
-                    />
+                    <Avatar model={membership.user} size={AvatarSize.Medium} />
                   }
                   title={membership.user.name}
                   subtitle={membership.user.email}

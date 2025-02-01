@@ -7,10 +7,15 @@ import { Avatar, AvatarSize } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 
 type Props = {
+  /** The users to display */
   users: User[];
+  /** The size of the avatars, defaults to AvatarSize.Large */
   size?: number;
+  /** A number to show as the number of additional users */
   overflow?: number;
+  /** The maximum number of users to display, defaults to 8 */
   limit?: number;
+  /** A function to render the avatar */
   renderAvatar?: (user: User) => React.ReactNode;
 };
 
@@ -58,8 +63,7 @@ function DefaultAvatar(user: User) {
 
 function FacepileClip() {
   return (
-    <svg
-      style={{ position: "absolute", top: 0, left: 0 }}
+    <SVG
       width="25"
       height="28"
       viewBox="0 0 25 28"
@@ -69,9 +73,15 @@ function FacepileClip() {
       <clipPath id="facepile">
         <path d="M14.0633 0.5C18.1978 0.5 21.8994 2.34071 24.3876 5.24462C22.8709 7.81315 22.0012 10.8061 22.0012 14C22.0012 17.1939 22.8709 20.1868 24.3876 22.7554C21.8994 25.6593 18.1978 27.5 14.0633 27.5C6.57035 27.5 0.5 21.4537 0.5 14C0.5 6.54628 6.57035 0.5 14.0633 0.5Z" />
       </clipPath>
-    </svg>
+    </SVG>
   );
 }
+
+const SVG = styled.svg`
+  position: absolute;
+  top: 0;
+  left: 0;
+`;
 
 const AvatarWrapper = styled.div`
   position: relative;

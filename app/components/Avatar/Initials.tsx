@@ -5,7 +5,6 @@ import Flex from "~/components/Flex";
 const Initials = styled(Flex)<{
   color?: string;
   size: number;
-  $showBorder?: boolean;
 }>`
   align-items: center;
   justify-content: center;
