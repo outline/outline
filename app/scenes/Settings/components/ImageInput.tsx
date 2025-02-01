@@ -18,7 +18,7 @@ export default function ImageInput({ model, onSuccess, ...rest }: Props) {
     <Flex gap={8} justify="space-between">
       <ImageBox>
         <ImageUpload onSuccess={onSuccess} {...rest}>
-          <StyledAvatar model={model} size={AvatarSize.XXLarge} />
+          <StyledAvatar model={model} size={AvatarSize.Upload} />
           <Flex auto align="center" justify="center" className="upload">
             {t("Upload")}
           </Flex>
@@ -34,8 +34,8 @@ export default function ImageInput({ model, onSuccess, ...rest }: Props) {
 }
 
 const avatarStyles = `
-  width: ${AvatarSize.XXLarge}px;
-  height: ${AvatarSize.XXLarge}px;
+  width: ${AvatarSize.Upload}px;
+  height: ${AvatarSize.Upload}px;
 `;
 
 const StyledAvatar = styled(Avatar)`

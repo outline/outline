@@ -14,6 +14,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
 import { homePath, sharedDocumentPath } from "~/utils/routeHelpers";
+import { AvatarSize } from "../Avatar";
 import { useTeamContext } from "../TeamContext";
 import TeamLogo from "../TeamLogo";
 import Sidebar from "./Sidebar";
@@ -40,7 +41,9 @@ function SharedSidebar({ rootNode, shareId }: Props) {
       {teamAvailable && (
         <SidebarButton
           title={team.name}
-          image={<TeamLogo model={team} size={32} alt={t("Logo")} />}
+          image={
+            <TeamLogo model={team} size={AvatarSize.XLarge} alt={t("Logo")} />
+          }
           onClick={() =>
             history.push(
               user ? homePath() : sharedDocumentPath(shareId, rootNode.url)
