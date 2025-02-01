@@ -228,7 +228,6 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
                     alt={user.name}
                     model={user}
                     size={24}
-                    showBorder={false}
                     style={{ marginLeft: 4 }}
                   />
                 }

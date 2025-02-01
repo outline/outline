@@ -3,9 +3,12 @@ import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
 
 const Initials = styled(Flex)<{
+  /** The color of the background, defaults to textTertiary. */
   color?: string;
+  /** Content is only used to calculate font size, use children to render. */
+  content?: string;
+  /** The size of the avatar */
   size: number;
-  $showBorder?: boolean;
 }>`
   align-items: center;
   justify-content: center;
@@ -13,15 +16,14 @@ const Initials = styled(Flex)<{
   width: 100%;
   height: 100%;
   color: ${s("white75")};
-  background-color: ${(props) => props.color};
+  background-color: ${(props) => props.color ?? props.theme.textTertiary};
   width: ${(props) => props.size}px;
   height: ${(props) => props.size}px;
   border-radius: 50%;
-  border: 2px solid
-    ${(props) =>
-      props.$showBorder === false ? "transparent" : props.theme.background};
   flex-shrink: 0;
-  font-size: ${(props) => props.size / 2}px;
+
+  // adjust font size down for each additional character
+  font-size: ${(props) => props.size / 2 - (props.content?.length ?? 0)}px;
   font-weight: 500;
 `;
 

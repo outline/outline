@@ -25,7 +25,7 @@ function UserFilter(props: Props) {
     const userOptions = users.all.map((user) => ({
       key: user.id,
       label: user.name,
-      icon: <Avatar model={user} showBorder={false} size={AvatarSize.Small} />,
+      icon: <Avatar model={user} size={AvatarSize.Small} />,
     }));
     return [
       {

@@ -146,7 +146,7 @@ export const AccessControlList = observer(
                   />
                 ) : (
                   <ListItem
-                    image={<Avatar model={user} showBorder={false} />}
+                    image={<Avatar model={user} />}
                     title={user.name}
                     subtitle={t("You have full access")}
                     actions={<AccessTooltip>{t("Can edit")}</AccessTooltip>}
@@ -160,9 +160,7 @@ export const AccessControlList = observer(
             ) : document.isDraft ? (
               <>
                 <ListItem
-                  image={
-                    <Avatar model={document.createdBy} showBorder={false} />
-                  }
+                  image={<Avatar model={document.createdBy} />}
                   title={document.createdBy?.name}
                   actions={
                     <AccessTooltip content={t("Created the document")}>

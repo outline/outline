@@ -6,7 +6,7 @@ import styled from "styled-components";
 import { s } from "@shared/styles";
 import { stringToColor } from "@shared/utils/color";
 import User from "~/models/User";
-import { Avatar } from "~/components/Avatar";
+import { Avatar, AvatarSize } from "~/components/Avatar";
 import { useDocumentContext } from "~/components/DocumentContext";
 import DocumentViews from "~/components/DocumentViews";
 import Flex from "~/components/Flex";
@@ -136,7 +136,7 @@ function Insights() {
                           avatarUrl: null,
                           initial: document.sourceMetadata.createdByName[0],
                         }}
-                        size={32}
+                        size={AvatarSize.Large}
                       />
                     }
                     subtitle={t("Creator")}

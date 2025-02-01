@@ -73,9 +73,7 @@ const DocumentMemberListItem = ({
   return (
     <ListItem
       title={user.name}
-      image={
-        <Avatar model={user} size={AvatarSize.Medium} showBorder={false} />
-      }
+      image={<Avatar model={user} size={AvatarSize.Medium} />}
       subtitle={
         membership?.sourceId ? (
           <Trans>

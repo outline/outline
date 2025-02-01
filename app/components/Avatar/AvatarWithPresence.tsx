@@ -5,7 +5,7 @@ import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
 import User from "~/models/User";
 import Tooltip from "~/components/Tooltip";
-import Avatar from "./Avatar";
+import Avatar, { AvatarSize } from "./Avatar";
 
 type Props = {
   user: User;
@@ -14,6 +14,8 @@ type Props = {
   isObserving: boolean;
   isCurrentUser: boolean;
   onClick?: React.MouseEventHandler<HTMLImageElement>;
+  size?: AvatarSize;
+  style?: React.CSSProperties;
 };
 
 function AvatarWithPresence({
@@ -23,6 +25,8 @@ function AvatarWithPresence({
   isEditing,
   isObserving,
   isCurrentUser,
+  size = AvatarSize.Large,
+  style,
 }: Props) {
   const { t } = useTranslation();
   const status = isPresent
@@ -47,13 +51,14 @@ function AvatarWithPresence({
         }
         placement="bottom"
       >
-        <AvatarWrapper
+        <AvatarPresence
           $isPresent={isPresent}
           $isObserving={isObserving}
           $color={user.color}
+          style={style}
         >
-          <Avatar model={user} onClick={onClick} size={32} />
-        </AvatarWrapper>
+          <Avatar model={user} onClick={onClick} size={size} />
+        </AvatarPresence>
       </Tooltip>
     </>
   );
@@ -69,7 +74,7 @@ type AvatarWrapperProps = {
   $color: string;
 };
 
-const AvatarWrapper = styled.div<AvatarWrapperProps>`
+const AvatarPresence = styled.div<AvatarWrapperProps>`
   opacity: ${(props) => (props.$isPresent ? 1 : 0.5)};
   transition: opacity 250ms ease-in-out;
   border-radius: 50%;
