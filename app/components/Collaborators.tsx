@@ -88,10 +88,11 @@ function Collaborators(props: Props) {
             {...popoverProps}
           >
             <Facepile
+              size={AvatarSize.Large}
               limit={limit}
-              overflow={collaborators.length - limit}
+              overflow={Math.max(0, collaborators.length - limit)}
               users={collaborators}
-              renderAvatar={(collaborator) => {
+              renderAvatar={({ model: collaborator, ...rest }) => {
                 const isPresent = presentIds.includes(collaborator.id);
                 const isEditing = editingIds.includes(collaborator.id);
                 const isObserving = ui.observingUserId === collaborator.id;
@@ -99,6 +100,7 @@ function Collaborators(props: Props) {
 
                 return (
                   <AvatarWithPresence
+                    {...rest}
                     key={collaborator.id}
                     user={collaborator}
                     isPresent={isPresent}

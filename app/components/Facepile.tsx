@@ -1,10 +1,10 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
-import { s } from "@shared/styles";
 import User from "~/models/User";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Flex from "~/components/Flex";
+import Initials from "./Avatar/Initials";
 
 type Props = {
   /** The users to display */
@@ -15,8 +15,12 @@ type Props = {
   overflow?: number;
   /** The maximum number of users to display, defaults to 8 */
   limit?: number;
-  /** A function to render the avatar */
-  renderAvatar?: (user: User) => React.ReactNode;
+  /** A component to render the avatar, defaults to Avatar. */
+  renderAvatar?: (
+    props: React.ComponentProps<typeof Avatar> & {
+      model: User;
+    }
+  ) => React.ReactNode;
 };
 
 function Facepile({
@@ -24,44 +28,38 @@ function Facepile({
   overflow = 0,
   size = AvatarSize.Large,
   limit = 8,
-  renderAvatar = DefaultAvatar,
+  renderAvatar = Avatar,
   ...rest
 }: Props) {
+  const filtered = users.filter(Boolean).slice(-limit);
+
   return (
     <Avatars {...rest}>
       {overflow > 0 && (
-        <More size={size}>
-          <span>
-            {users.length ? "+" : ""}
-            {overflow}
-          </span>
-        </More>
+        <Initials size={size} content={String(overflow)}>
+          {users.length ? "+" : ""}
+          {overflow}
+        </Initials>
       )}
-      {users
-        .filter(Boolean)
-        .slice(0, limit)
-        .map((user, index) => (
-          <AvatarWrapper
-            style={
-              index === 0 && overflow <= 0
-                ? undefined
-                : { clipPath: "url(#facepile)" }
-            }
-            key={user.id}
-          >
-            {renderAvatar(user)}
-          </AvatarWrapper>
-        ))}
-      <FacepileClip />
+      {filtered.map((model, index) => {
+        const lastChild = index === 0 && overflow <= 0;
+        return renderAvatar({
+          model,
+          size,
+          style: {
+            marginRight: lastChild ? 0 : -4,
+            ...(lastChild || filtered.length === 1
+              ? {}
+              : { clipPath: `url(#${clipPathId(size)})` }),
+          },
+        });
+      })}
+      <FacepileClip size={size} />
     </Avatars>
   );
 }
 
-function DefaultAvatar(user: User) {
-  return <Avatar model={user} size={AvatarSize.Large} />;
-}
-
-function FacepileClip() {
+function FacepileClip({ size }: { size: number }) {
   return (
     <SVG
       width="25"
@@ -70,41 +68,24 @@ function FacepileClip() {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <clipPath id="facepile">
-        <path d="M14.0633 0.5C18.1978 0.5 21.8994 2.34071 24.3876 5.24462C22.8709 7.81315 22.0012 10.8061 22.0012 14C22.0012 17.1939 22.8709 20.1868 24.3876 22.7554C21.8994 25.6593 18.1978 27.5 14.0633 27.5C6.57035 27.5 0.5 21.4537 0.5 14C0.5 6.54628 6.57035 0.5 14.0633 0.5Z" />
+      <clipPath id={clipPathId(size)}>
+        <path
+          transform={size !== 28 ? `scale(${size / 28})` : ""}
+          d="M14.0633 0.5C18.1978 0.5 21.8994 2.34071 24.3876 5.24462C22.8709 7.81315 22.0012 10.8061 22.0012 14C22.0012 17.1939 22.8709 20.1868 24.3876 22.7554C21.8994 25.6593 18.1978 27.5 14.0633 27.5C6.57035 27.5 0.5 21.4537 0.5 14C0.5 6.54628 6.57035 0.5 14.0633 0.5Z"
+        />
       </clipPath>
     </SVG>
   );
+}
+
+function clipPathId(size: number) {
+  return `facepile-${size}`;
 }
 
 const SVG = styled.svg`
   position: absolute;
   top: 0;
   left: 0;
-`;
-
-const AvatarWrapper = styled.div`
-  position: relative;
-  margin-right: -4px;
-
-  &:first-child {
-    margin-right: 0;
-  }
-`;
-
-const More = styled.div<{ size: number }>`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-width: ${(props) => props.size}px;
-  height: ${(props) => props.size}px;
-  border-radius: 100%;
-  background: ${(props) => props.theme.textTertiary};
-  color: ${s("white")};
-  text-align: center;
-  font-size: 12px;
-  font-weight: 600;
 `;
 
 const Avatars = styled(Flex)`
