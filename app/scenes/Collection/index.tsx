@@ -36,6 +36,7 @@ import Tabs from "~/components/Tabs";
 import { editCollection } from "~/actions/definitions/collections";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
 import { useLastVisitedPath } from "~/hooks/useLastVisitedPath";
+import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import { usePinnedDocuments } from "~/hooks/usePinnedDocuments";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -60,6 +61,7 @@ function CollectionScene() {
   const [error, setError] = React.useState<Error | undefined>();
   const currentPath = location.pathname;
   const [, setLastVisitedPath] = useLastVisitedPath();
+  const sidebarContext = useLocationSidebarContext();
 
   const id = params.id || "";
   const collection: Collection | null | undefined =
@@ -201,19 +203,49 @@ function CollectionScene() {
           <Documents>
             {!collection.isArchived && (
               <Tabs>
-                <Tab to={collectionPath(collection.path)} exact>
+                <Tab
+                  to={{
+                    pathname: collectionPath(collection.path),
+                    state: { sidebarContext },
+                  }}
+                  exact
+                >
                   {t("Documents")}
                 </Tab>
-                <Tab to={collectionPath(collection.path, "updated")} exact>
+                <Tab
+                  to={{
+                    pathname: collectionPath(collection.path, "updated"),
+                    state: { sidebarContext },
+                  }}
+                  exact
+                >
                   {t("Recently updated")}
                 </Tab>
-                <Tab to={collectionPath(collection.path, "published")} exact>
+                <Tab
+                  to={{
+                    pathname: collectionPath(collection.path, "published"),
+                    state: { sidebarContext },
+                  }}
+                  exact
+                >
                   {t("Recently published")}
                 </Tab>
-                <Tab to={collectionPath(collection.path, "old")} exact>
+                <Tab
+                  to={{
+                    pathname: collectionPath(collection.path, "old"),
+                    state: { sidebarContext },
+                  }}
+                  exact
+                >
                   {t("Least recently updated")}
                 </Tab>
-                <Tab to={collectionPath(collection.path, "alphabetical")} exact>
+                <Tab
+                  to={{
+                    pathname: collectionPath(collection.path, "alphabetical"),
+                    state: { sidebarContext },
+                  }}
+                  exact
+                >
                   {t("A–Z")}
                 </Tab>
               </Tabs>
