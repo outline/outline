@@ -7,7 +7,7 @@ export enum AvatarSize {
   Small = 16,
   Toast = 18,
   Medium = 24,
-  Large = 32,
+  Large = 28,
   XLarge = 48,
   XXLarge = 64,
 }
@@ -38,18 +38,13 @@ function Avatar(props: Props) {
   return (
     <Relative style={style}>
       {src && !error ? (
-        <CircleImg
-          onError={handleError}
-          src={src}
-          $showBorder={showBorder}
-          {...rest}
-        />
+        <CircleImg onError={handleError} src={src} {...rest} />
       ) : model ? (
-        <Initials color={model.color} $showBorder={showBorder} {...rest}>
+        <Initials color={model.color} {...rest}>
           {model.initial}
         </Initials>
       ) : (
-        <Initials $showBorder={showBorder} {...rest} />
+        <Initials {...rest} />
       )}
     </Relative>
   );
@@ -65,15 +60,11 @@ const Relative = styled.div`
   flex-shrink: 0;
 `;
 
-const CircleImg = styled.img<{ size: number; $showBorder?: boolean }>`
+const CircleImg = styled.img<{ size: number }>`
   display: block;
   width: ${(props) => props.size}px;
   height: ${(props) => props.size}px;
   border-radius: 50%;
-  border: ${(props) =>
-    props.$showBorder === false
-      ? "none"
-      : `2px solid ${props.theme.background}`};
   flex-shrink: 0;
   overflow: hidden;
 `;

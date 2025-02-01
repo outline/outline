@@ -5,7 +5,7 @@ import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
 import User from "~/models/User";
 import Tooltip from "~/components/Tooltip";
-import Avatar from "./Avatar";
+import Avatar, { AvatarSize } from "./Avatar";
 
 type Props = {
   user: User;
@@ -52,7 +52,7 @@ function AvatarWithPresence({
           $isObserving={isObserving}
           $color={user.color}
         >
-          <Avatar model={user} onClick={onClick} size={32} />
+          <Avatar model={user} onClick={onClick} size={AvatarSize.Large} />
         </AvatarWrapper>
       </Tooltip>
     </>

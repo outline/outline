@@ -35,9 +35,19 @@ function Facepile({
       {users
         .filter(Boolean)
         .slice(0, limit)
-        .map((user) => (
-          <AvatarWrapper key={user.id}>{renderAvatar(user)}</AvatarWrapper>
+        .map((user, index) => (
+          <AvatarWrapper
+            style={
+              index === 0 && overflow <= 0
+                ? undefined
+                : { clipPath: "url(#facepile)" }
+            }
+            key={user.id}
+          >
+            {renderAvatar(user)}
+          </AvatarWrapper>
         ))}
+      <FacepileClip />
     </Avatars>
   );
 }
@@ -46,8 +56,26 @@ function DefaultAvatar(user: User) {
   return <Avatar model={user} size={AvatarSize.Large} />;
 }
 
+function FacepileClip() {
+  return (
+    <svg
+      style={{ position: "absolute", top: 0, left: 0 }}
+      width="25"
+      height="28"
+      viewBox="0 0 25 28"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <clipPath id="facepile">
+        <path d="M14.0633 0.5C18.1978 0.5 21.8994 2.34071 24.3876 5.24462C22.8709 7.81315 22.0012 10.8061 22.0012 14C22.0012 17.1939 22.8709 20.1868 24.3876 22.7554C21.8994 25.6593 18.1978 27.5 14.0633 27.5C6.57035 27.5 0.5 21.4537 0.5 14C0.5 6.54628 6.57035 0.5 14.0633 0.5Z" />
+      </clipPath>
+    </svg>
+  );
+}
+
 const AvatarWrapper = styled.div`
-  margin-right: -8px;
+  position: relative;
+  margin-right: -4px;
 
   &:first-child {
     margin-right: 0;
@@ -64,7 +92,6 @@ const More = styled.div<{ size: number }>`
   border-radius: 100%;
   background: ${(props) => props.theme.textTertiary};
   color: ${s("white")};
-  border: 2px solid ${s("background")};
   text-align: center;
   font-size: 12px;
   font-weight: 600;
