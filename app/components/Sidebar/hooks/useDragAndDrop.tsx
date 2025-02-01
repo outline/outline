@@ -16,6 +16,7 @@ import UserMembership from "~/models/UserMembership";
 import ConfirmMoveDialog from "~/components/ConfirmMoveDialog";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
+import { AuthorizationError } from "~/utils/errors";
 import { DragObject } from "../components/SidebarLink";
 import { useSidebarLabelAndIcon } from "./useSidebarLabelAndIcon";
 
@@ -175,7 +176,7 @@ export function useDropToReparentDocument(
   parentRef: React.RefObject<HTMLDivElement>
 ) {
   const { t } = useTranslation();
-  const { documents, collections, dialogs, policies } = useStores();
+  const { documents, collections, dialogs } = useStores();
   const hasChildDocuments = !!node?.children.length;
   const document = node ? documents.get(node.id) : undefined;
   const pathToNode = React.useMemo(
@@ -214,7 +215,9 @@ export function useDropToReparentDocument(
         return;
       }
 
-      const collection = documents.get(node.id)?.collection;
+      const collection = node.collectionId
+        ? collections.get(node.collectionId)
+        : undefined;
       const prevCollection = collections.get(item.collectionId);
 
       if (
@@ -233,10 +236,26 @@ export function useDropToReparentDocument(
           ),
         });
       } else {
-        await documents.move({
-          documentId: item.id,
-          parentDocumentId: node.id,
-        });
+        try {
+          await documents.move({
+            documentId: item.id,
+            parentDocumentId: node.id,
+          });
+        } catch (err) {
+          if (err instanceof AuthorizationError) {
+            toast.error(
+              t(
+                "You do not have permission to move {{ documentName }} document to {{ parentDocumentName }} document",
+                {
+                  documentName: item.title,
+                  parentDocumentName: node.title,
+                }
+              )
+            );
+          } else {
+            toast.error(err.message);
+          }
+        }
       }
 
       setExpanded();
@@ -246,9 +265,7 @@ export function useDropToReparentDocument(
       !!pathToNode &&
       !pathToNode.includes(monitor.getItem().id) &&
       item.id !== node.id &&
-      !!document?.isActive &&
-      policies.abilities(node.id).update &&
-      policies.abilities(item.id).move,
+      (!document || !!document.isActive),
     hover: (_item, monitor) => {
       // Enables expansion of document children when hovering over the document
       // for more than half a second.
@@ -297,7 +314,7 @@ export function useDropToReorderDocument(
       }
 ) {
   const { t } = useTranslation();
-  const { documents, collections, dialogs, policies } = useStores();
+  const { documents, collections, dialogs } = useStores();
 
   const document = documents.get(node.id);
 
@@ -308,22 +325,9 @@ export function useDropToReorderDocument(
   >({
     accept: "document",
     canDrop: (item: DragObject) => {
-      if (
-        item.id === node.id ||
-        !policies.abilities(item.id)?.move ||
-        !document?.isActive
-      ) {
+      if (item.id === node.id || (document && !document.isActive)) {
         return false;
       }
-
-      const params = getMoveParams(item);
-      if (params?.collectionId) {
-        return policies.abilities(params.collectionId)?.updateDocument;
-      }
-      if (params?.parentDocumentId) {
-        return policies.abilities(params.parentDocumentId)?.update;
-      }
-
       return true;
     },
     drop: async (item) => {
@@ -357,7 +361,22 @@ export function useDropToReorderDocument(
             ),
           });
         } else {
-          void documents.move(params);
+          try {
+            await documents.move(params);
+          } catch (err) {
+            if (err instanceof AuthorizationError) {
+              toast.error(
+                t(
+                  "You do not have permission to reorder {{ documentName }} document",
+                  {
+                    documentName: item.title,
+                  }
+                )
+              );
+            } else {
+              toast.error(err.message);
+            }
+          }
         }
       }
     },
