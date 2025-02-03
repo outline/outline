@@ -69,8 +69,8 @@ const CollectionScene = observer(function _CollectionScene() {
   const can = usePolicy(collection);
   const { pins, count } = usePinnedDocuments(id, collection?.id);
   const [collectionTab, setCollectionTab] = usePersistedState<string>(
-    `collectionTab:${collection?.id}`,
-    "overview",
+    `collection-tab:${collection?.id}`,
+    collection?.hasDescription ? "overview" : "recent",
     {
       listen: false,
     }
