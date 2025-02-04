@@ -2,7 +2,7 @@ import { Op } from "sequelize";
 import { DocumentPermission } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { GroupUser } from "@server/models";
-import { DocumentGroupEvent, DocumentUserEvent } from "@server/types";
+import { DocumentGroupEvent } from "@server/types";
 import BaseTask, { TaskPriority } from "./BaseTask";
 import DocumentAddUserNotificationsTask from "./DocumentAddUserNotificationsTask";
 
@@ -16,15 +16,12 @@ export default class DocumentAddGroupNotificationsTask extends BaseTask<Document
       Logger.debug(
         "task",
         `Suppressing notification for group ${event.modelId} as permission not available`,
-        event.data
+        {
+          documentId: event.documentId,
+          groupId: event.modelId,
+        }
       );
     }
-
-    const addUserTaskData: DocumentUserEvent["data"] = {
-      title: "",
-      isNew: event.data.isNew,
-      permission,
-    };
 
     await GroupUser.findAllInBatches<GroupUser>(
       {
@@ -43,7 +40,6 @@ export default class DocumentAddGroupNotificationsTask extends BaseTask<Document
               ...event,
               modelId: event.data.membershipId,
               userId: groupUser.userId,
-              data: addUserTaskData,
             });
           })
         );

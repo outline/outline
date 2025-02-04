@@ -629,7 +629,6 @@ class User extends ParanoidModel<
   /**
    * Determines whether the user has a higher access level to a document.
    *
-   *
    * @param {Object} params Input parameters.
    * @param {string} params.documentId The document to check.
    * @param {DocumentPermission} params.permission The base permission to compare against.
@@ -662,7 +661,6 @@ class User extends ParanoidModel<
 
   /**
    * Returns the user's highest access level to a document.
-   *
    *
    * @param {string} documentId The document to check.
    * @param {string} skipMembershipId The membership to skip when comparing the existing permissions.

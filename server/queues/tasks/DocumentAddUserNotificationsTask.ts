@@ -1,4 +1,4 @@
-import { NotificationEventType } from "@shared/types";
+import { DocumentPermission, NotificationEventType } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { Notification, User } from "@server/models";
 import { DocumentUserEvent } from "@server/types";
@@ -6,6 +6,22 @@ import BaseTask, { TaskPriority } from "./BaseTask";
 
 export default class DocumentAddUserNotificationsTask extends BaseTask<DocumentUserEvent> {
   public async perform(event: DocumentUserEvent) {
+    const permission = event.changes?.attributes.permission as
+      | DocumentPermission
+      | undefined;
+
+    if (!permission) {
+      Logger.debug(
+        "task",
+        `Suppressing notification for user ${event.userId} as permission not available`,
+        {
+          documentId: event.documentId,
+          userId: event.userId,
+        }
+      );
+      return;
+    }
+
     const recipient = await User.findByPk(event.userId);
     if (
       !recipient ||
@@ -17,7 +33,7 @@ export default class DocumentAddUserNotificationsTask extends BaseTask<DocumentU
 
     const hasHigherPermission = await recipient.hasHigherDocumentPermission({
       documentId: event.documentId,
-      permission: event.data.permission!,
+      permission,
       skipMembershipId: event.modelId,
     });
 
