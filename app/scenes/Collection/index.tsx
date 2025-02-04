@@ -50,6 +50,15 @@ import ShareButton from "./components/ShareButton";
 
 const IconPicker = React.lazy(() => import("~/components/IconPicker"));
 
+enum CollectionPath {
+  Overview = "overview",
+  Recent = "recent",
+  Updated = "updated",
+  Published = "published",
+  Old = "old",
+  Alphabetical = "alphabetical",
+}
+
 const CollectionScene = observer(function _CollectionScene() {
   const params = useParams<{ id?: string }>();
   const history = useHistory();
@@ -68,9 +77,11 @@ const CollectionScene = observer(function _CollectionScene() {
     collections.getByUrl(id) || collections.get(id);
   const can = usePolicy(collection);
   const { pins, count } = usePinnedDocuments(id, collection?.id);
-  const [collectionTab, setCollectionTab] = usePersistedState<string>(
+  const [collectionTab, setCollectionTab] = usePersistedState<CollectionPath>(
     `collection-tab:${collection?.id}`,
-    collection?.hasDescription ? "overview" : "recent",
+    collection?.hasDescription
+      ? CollectionPath.Overview
+      : CollectionPath.Recent,
     {
       listen: false,
     }
@@ -138,7 +149,7 @@ const CollectionScene = observer(function _CollectionScene() {
     />
   ) : null;
 
-  const tabProps = (path: string) => ({
+  const tabProps = (path: CollectionPath) => ({
     exact: true,
     onClick: () => setCollectionTab(path),
     to: {
@@ -216,17 +227,25 @@ const CollectionScene = observer(function _CollectionScene() {
           <Documents>
             <Tabs>
               {hasOverview && (
-                <Tab {...tabProps("overview")}>{t("Overview")}</Tab>
+                <Tab {...tabProps(CollectionPath.Overview)}>
+                  {t("Overview")}
+                </Tab>
               )}
-              <Tab {...tabProps("recent")}>{t("Documents")}</Tab>
+              <Tab {...tabProps(CollectionPath.Recent)}>{t("Documents")}</Tab>
               {!collection.isArchived && (
                 <>
-                  <Tab {...tabProps("updated")}>{t("Recently updated")}</Tab>
-                  <Tab {...tabProps("published")}>
+                  <Tab {...tabProps(CollectionPath.Updated)}>
+                    {t("Recently updated")}
+                  </Tab>
+                  <Tab {...tabProps(CollectionPath.Published)}>
                     {t("Recently published")}
                   </Tab>
-                  <Tab {...tabProps("old")}>{t("Least recently updated")}</Tab>
-                  <Tab {...tabProps("alphabetical")}>{t("A–Z")}</Tab>
+                  <Tab {...tabProps(CollectionPath.Old)}>
+                    {t("Least recently updated")}
+                  </Tab>
+                  <Tab {...tabProps(CollectionPath.Alphabetical)}>
+                    {t("A–Z")}
+                  </Tab>
                 </>
               )}
             </Tabs>
@@ -239,13 +258,18 @@ const CollectionScene = observer(function _CollectionScene() {
                   }}
                 />
               </Route>
-              <Route path={collectionPath(collection.path, "overview")}>
+              <Route
+                path={collectionPath(collection.path, CollectionPath.Overview)}
+              >
                 {hasOverview ? (
                   <CollectionDescription collection={collection} />
                 ) : (
                   <Redirect
                     to={{
-                      pathname: collectionPath(collection.path, "recent"),
+                      pathname: collectionPath(
+                        collection.path,
+                        CollectionPath.Recent
+                      ),
                       state: { sidebarContext },
                     }}
                   />
@@ -255,7 +279,12 @@ const CollectionScene = observer(function _CollectionScene() {
                 <Empty collection={collection} />
               ) : !collection.isArchived ? (
                 <>
-                  <Route path={collectionPath(collection.path, "alphabetical")}>
+                  <Route
+                    path={collectionPath(
+                      collection.path,
+                      CollectionPath.Alphabetical
+                    )}
+                  >
                     <PaginatedDocumentList
                       key="alphabetical"
                       documents={documents.alphabeticalInCollection(
@@ -267,7 +296,9 @@ const CollectionScene = observer(function _CollectionScene() {
                       }}
                     />
                   </Route>
-                  <Route path={collectionPath(collection.path, "old")}>
+                  <Route
+                    path={collectionPath(collection.path, CollectionPath.Old)}
+                  >
                     <PaginatedDocumentList
                       key="old"
                       documents={documents.leastRecentlyUpdatedInCollection(
@@ -279,7 +310,12 @@ const CollectionScene = observer(function _CollectionScene() {
                       }}
                     />
                   </Route>
-                  <Route path={collectionPath(collection.path, "published")}>
+                  <Route
+                    path={collectionPath(
+                      collection.path,
+                      CollectionPath.Published
+                    )}
+                  >
                     <PaginatedDocumentList
                       key="published"
                       documents={documents.recentlyPublishedInCollection(
@@ -292,7 +328,12 @@ const CollectionScene = observer(function _CollectionScene() {
                       showPublished
                     />
                   </Route>
-                  <Route path={collectionPath(collection.path, "updated")}>
+                  <Route
+                    path={collectionPath(
+                      collection.path,
+                      CollectionPath.Updated
+                    )}
+                  >
                     <PaginatedDocumentList
                       key="updated"
                       documents={documents.recentlyUpdatedInCollection(
@@ -304,7 +345,13 @@ const CollectionScene = observer(function _CollectionScene() {
                       }}
                     />
                   </Route>
-                  <Route path={collectionPath(collection.path, "recent")} exact>
+                  <Route
+                    path={collectionPath(
+                      collection.path,
+                      CollectionPath.Recent
+                    )}
+                    exact
+                  >
                     <PaginatedDocumentList
                       documents={documents.rootInCollection(collection.id)}
                       fetch={documents.fetchPage}
@@ -319,7 +366,10 @@ const CollectionScene = observer(function _CollectionScene() {
                   </Route>
                 </>
               ) : (
-                <Route path={collectionPath(collection.path)} exact>
+                <Route
+                  path={collectionPath(collection.path, CollectionPath.Recent)}
+                  exact
+                >
                   <PaginatedDocumentList
                     documents={documents.archivedInCollection(collection.id)}
                     fetch={documents.fetchPage}
