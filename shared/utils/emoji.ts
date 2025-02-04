@@ -19,57 +19,58 @@ const isFlagEmojiSupported = (): boolean => {
     ctx = document
       .createElement("canvas")
       .getContext("2d", { willReadFrequently: true });
-    // eslint-disable-next-line no-empty
-  } catch {}
 
-  if (!ctx) {
-    return false;
-  }
+    if (!ctx) {
+      return false;
+    }
 
-  const CANVAS_HEIGHT = 25;
-  const CANVAS_WIDTH = 20;
-  const textSize = Math.floor(CANVAS_HEIGHT / 2);
+    const CANVAS_HEIGHT = 25;
+    const CANVAS_WIDTH = 20;
+    const textSize = Math.floor(CANVAS_HEIGHT / 2);
 
-  // Initialize convas context
-  ctx.font = textSize + "px Arial, Sans-Serif";
-  ctx.textBaseline = "top";
-  ctx.canvas.width = CANVAS_WIDTH * 2;
-  ctx.canvas.height = CANVAS_HEIGHT;
+    // Initialize convas context
+    ctx.font = textSize + "px Arial, Sans-Serif";
+    ctx.textBaseline = "top";
+    ctx.canvas.width = CANVAS_WIDTH * 2;
+    ctx.canvas.height = CANVAS_HEIGHT;
 
-  // Draw in red on the left
-  ctx.fillStyle = "#FF0000";
-  ctx.fillText(emoji, 0, 22);
+    // Draw in red on the left
+    ctx.fillStyle = "#FF0000";
+    ctx.fillText(emoji, 0, 22);
 
-  // Draw in blue on right
-  ctx.fillStyle = "#0000FF";
-  ctx.fillText(emoji, CANVAS_WIDTH, 22);
+    // Draw in blue on right
+    ctx.fillStyle = "#0000FF";
+    ctx.fillText(emoji, CANVAS_WIDTH, 22);
 
-  const a = ctx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT).data;
-  const count = a.length;
-  let i = 0;
+    const a = ctx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT).data;
+    const count = a.length;
+    let i = 0;
 
-  // Search the first visible pixel
-  // eslint-disable-next-line curly
-  for (; i < count && !a[i + 3]; i += 4);
+    // Search the first visible pixel
+    // eslint-disable-next-line curly
+    for (; i < count && !a[i + 3]; i += 4);
 
-  // No visible pixel
-  if (i >= count) {
-    return false;
-  }
+    // No visible pixel
+    if (i >= count) {
+      return false;
+    }
 
-  // Emoji has immutable color, so we check the color of the emoji in two different colors
-  // the result show be the same.
-  const x = CANVAS_WIDTH + ((i / 4) % CANVAS_WIDTH);
-  const y = Math.floor(i / 4 / CANVAS_WIDTH);
-  const b = ctx.getImageData(x, y, 1, 1).data;
+    // Emoji has immutable color, so we check the color of the emoji in two different colors
+    // the result show be the same.
+    const x = CANVAS_WIDTH + ((i / 4) % CANVAS_WIDTH);
+    const y = Math.floor(i / 4 / CANVAS_WIDTH);
+    const b = ctx.getImageData(x, y, 1, 1).data;
 
-  if (a[i] !== b[0] || a[i + 2] !== b[2]) {
-    return false;
-  }
+    if (a[i] !== b[0] || a[i + 2] !== b[2]) {
+      return false;
+    }
 
-  // Some emojis are a contraction of different ones, so if it's not
-  // supported, it will show multiple characters
-  if (ctx.measureText(emoji).width >= CANVAS_WIDTH) {
+    // Some emojis are a contraction of different ones, so if it's not
+    // supported, it will show multiple characters
+    if (ctx.measureText(emoji).width >= CANVAS_WIDTH) {
+      return false;
+    }
+  } catch {
     return false;
   }
 
