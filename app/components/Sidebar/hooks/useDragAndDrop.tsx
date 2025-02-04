@@ -353,12 +353,17 @@ export function useDropToReparentDocument(
         }
       }
     },
-    canDrop: (item, monitor) =>
-      !!node &&
-      !!pathToNode &&
-      !pathToNode.includes(monitor.getItem().id) &&
-      item.id !== node.id &&
-      (!document || !!document.isActive),
+    canDrop: (item) => {
+      if (!node || item.id === node.id) {
+        return false;
+      }
+
+      if (!document) {
+        return true; // optimistic, in case the document is not loaded yet; server will check for permissions before performing the move.
+      }
+
+      return document.isActive && !!pathToNode && !pathToNode.includes(item.id);
+    },
     hover: (_item, monitor) => {
       // Enables expansion of document children when hovering over the document
       // for more than half a second.
