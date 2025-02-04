@@ -20,12 +20,6 @@ import useStores from "~/hooks/useStores";
 import { AuthorizationError } from "~/utils/errors";
 import { useSidebarLabelAndIcon } from "./useSidebarLabelAndIcon";
 
-const enum DragItem {
-  Col = "collection",
-  Doc = "document",
-  St = "star",
-}
-
 export type DragObject = NavigationNode & {
   depth: number;
   collectionId: string;
@@ -35,19 +29,18 @@ function useHover(
   elementRef: React.RefObject<HTMLDivElement>,
   callback: () => void
 ) {
-  const callbackRef = React.useRef(callback);
   const hoverTimeoutRef = React.useRef<ReturnType<typeof setTimeout>>();
 
   const startHover = React.useCallback(() => {
     if (!hoverTimeoutRef.current) {
       hoverTimeoutRef.current = setTimeout(() => {
         hoverTimeoutRef.current = undefined;
-        callbackRef.current();
+        callback();
       }, 500);
     }
-  }, []);
+  }, [callback]);
 
-  const resetHover = React.useCallback(() => {
+  const unsetHover = React.useCallback(() => {
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
       hoverTimeoutRef.current = undefined;
@@ -58,9 +51,9 @@ function useHover(
   // to trigger expansion of children. Clear this timeout when they stop hovering.
   React.useEffect(() => {
     const element = elementRef.current;
-    element?.addEventListener("dragleave", resetHover);
-    return () => element?.removeEventListener("dragleave", resetHover);
-  }, [elementRef, resetHover]);
+    element?.addEventListener("dragleave", unsetHover);
+    return () => element?.removeEventListener("dragleave", unsetHover);
+  }, [elementRef, unsetHover]);
 
   return startHover;
 }
@@ -223,7 +216,7 @@ export function useDropToChangeCollection(
     Promise<void>,
     { isOver: boolean; canDrop: boolean }
   >({
-    accept: DragItem.Doc,
+    accept: "document",
     drop: async (item, monitor) => {
       if (monitor.didDrop()) {
         return;
@@ -303,25 +296,7 @@ export function useDropToReparentDocument(
     [document]
   );
 
-  const hoverExpanding = React.useRef<ReturnType<typeof setTimeout>>();
-
-  // We set a timeout when the user first starts hovering over the document link,
-  // to trigger expansion of children. Clear this timeout when they stop hovering.
-  React.useEffect(() => {
-    const resetHoverExpanding = () => {
-      if (hoverExpanding.current) {
-        clearTimeout(hoverExpanding.current);
-        hoverExpanding.current = undefined;
-      }
-    };
-
-    const element = parentRef.current;
-    element?.addEventListener("dragleave", resetHoverExpanding);
-
-    return () => {
-      element?.removeEventListener("dragleave", resetHoverExpanding);
-    };
-  }, [parentRef]);
+  const startHover = useHover(parentRef, setExpanded);
 
   return useDrop<
     DragObject,
@@ -394,15 +369,7 @@ export function useDropToReparentDocument(
           shallow: true,
         })
       ) {
-        if (!hoverExpanding.current) {
-          hoverExpanding.current = setTimeout(() => {
-            hoverExpanding.current = undefined;
-
-            if (monitor.isOver({ shallow: true })) {
-              setExpanded();
-            }
-          }, 500);
-        }
+        startHover();
       }
     },
     collect: (monitor) => ({
@@ -485,7 +452,7 @@ export function useDropToReorderDocument(
             if (err instanceof AuthorizationError) {
               toast.error(
                 t(
-                  "You do not have permission to reorder {{ documentName }} document",
+                  "You do not have permission to move {{ documentName }} document",
                   {
                     documentName: item.title,
                   }
