@@ -102,7 +102,11 @@ export class UploadPlugin extends Plugin {
           // find any remote images in pasted slice, but leave it alone.
           const images: Node[] = [];
           slice.content.descendants((node) => {
-            if (node.type.name === "image" && !isInternalUrl(node.attrs.src)) {
+            if (
+              node.type.name === "image" &&
+              node.attrs.src &&
+              !isInternalUrl(node.attrs.src)
+            ) {
               images.push(node);
             }
           });
