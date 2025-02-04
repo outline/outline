@@ -134,9 +134,41 @@ describe("user model", () => {
   });
 
   describe("hasHigherDocumentPermission", () => {
-    it("should return true when user has higher access level", async () => {
+    it("should return true when user has higher access level through collection", async () => {
       const user = await buildUser();
-      const document = await buildDocument({ teamId: user.teamId });
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        permission: null,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        teamId: user.teamId,
+      });
+      await UserMembership.create({
+        createdById: user.id,
+        collectionId: collection.id,
+        userId: user.id,
+        permission: CollectionPermission.ReadWrite,
+      });
+
+      const hasHigherPermission = await user.hasHigherDocumentPermission({
+        documentId: document.id,
+        permission: DocumentPermission.Read,
+      });
+
+      expect(hasHigherPermission).toBe(true);
+    });
+
+    it("should return true when user has higher access level through document", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        permission: null,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        teamId: user.teamId,
+      });
       const group = await buildGroup();
       await Promise.all([
         await buildGroupUser({
@@ -168,7 +200,14 @@ describe("user model", () => {
 
     it("should return true when user has the same access level", async () => {
       const user = await buildUser();
-      const document = await buildDocument({ teamId: user.teamId });
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        permission: null,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        teamId: user.teamId,
+      });
       const group = await buildGroup();
       await Promise.all([
         await buildGroupUser({
@@ -200,7 +239,14 @@ describe("user model", () => {
 
     it("should return false when user has lower access level", async () => {
       const user = await buildUser();
-      const document = await buildDocument({ teamId: user.teamId });
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        permission: null,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        teamId: user.teamId,
+      });
       const group = await buildGroup();
       await Promise.all([
         await buildGroupUser({
@@ -232,7 +278,14 @@ describe("user model", () => {
 
     it("should return false when user does not have access", async () => {
       const user = await buildUser();
-      const document = await buildDocument({ teamId: user.teamId });
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        permission: null,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        teamId: user.teamId,
+      });
 
       const hasHigherPermission = await user.hasHigherDocumentPermission({
         documentId: document.id,
@@ -244,9 +297,38 @@ describe("user model", () => {
   });
 
   describe("getDocumentPermission", () => {
-    it("should return the highest provided permission", async () => {
+    it("should return the highest provided permission through collection", async () => {
       const user = await buildUser();
-      const document = await buildDocument({ teamId: user.teamId });
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        permission: null,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        teamId: user.teamId,
+      });
+      await UserMembership.create({
+        createdById: user.id,
+        collectionId: collection.id,
+        userId: user.id,
+        permission: CollectionPermission.ReadWrite,
+      });
+
+      const permission = await user.getDocumentPermission(document.id);
+
+      expect(permission).toEqual(DocumentPermission.ReadWrite);
+    });
+
+    it("should return the highest provided permission through document", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        permission: null,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        teamId: user.teamId,
+      });
       const group = await buildGroup();
       await Promise.all([
         await buildGroupUser({
@@ -275,7 +357,14 @@ describe("user model", () => {
 
     it("should return the highest provided permission with skipped membership", async () => {
       const user = await buildUser();
-      const document = await buildDocument({ teamId: user.teamId });
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        permission: null,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        teamId: user.teamId,
+      });
       const group = await buildGroup();
       const [, , groupMembership] = await Promise.all([
         await buildGroupUser({
@@ -307,7 +396,14 @@ describe("user model", () => {
 
     it("should return undefined when user does not have access", async () => {
       const user = await buildUser();
-      const document = await buildDocument({ teamId: user.teamId });
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        permission: null,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        teamId: user.teamId,
+      });
 
       const permission = await user.getDocumentPermission(document.id);
 

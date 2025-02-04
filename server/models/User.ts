@@ -2,6 +2,7 @@ import crypto from "crypto";
 import { addHours, addMinutes, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
 import { Context } from "koa";
+import compact from "lodash/compact";
 import orderBy from "lodash/orderBy";
 import {
   Transaction,
@@ -56,6 +57,7 @@ import { ValidationError } from "../errors";
 import Attachment from "./Attachment";
 import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
+import Document from "./Document";
 import Group from "./Group";
 import GroupMembership from "./GroupMembership";
 import Team from "./Team";
@@ -67,6 +69,13 @@ import Fix from "./decorators/Fix";
 import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
+
+// Higher value takes precedence
+const CollectionPermissionPriority: Record<CollectionPermission, number> = {
+  [CollectionPermission.Admin]: 2,
+  [CollectionPermission.ReadWrite]: 1,
+  [CollectionPermission.Read]: 0,
+};
 
 // Higher value takes precedence
 const DocumentPermissionPriority: Record<DocumentPermission, number> = {
@@ -670,6 +679,41 @@ class User extends ParanoidModel<
     documentId: string,
     skipMembershipId?: string
   ): Promise<DocumentPermission | undefined> {
+    const document = await Document.scope({
+      method: ["withCollectionPermissions", this.id],
+    }).findOne({ where: { id: documentId } });
+
+    const permissions: DocumentPermission[] = [];
+
+    const collection = document?.collection;
+    if (collection) {
+      const collectionPermissions = orderBy(
+        compact([
+          collection.permission,
+          ...compact(
+            collection.memberships?.map(
+              (m) => m.permission as CollectionPermission
+            )
+          ),
+          ...compact(
+            collection.groupMemberships?.map(
+              (m) => m.permission as CollectionPermission
+            )
+          ),
+        ]),
+        (permission) => CollectionPermissionPriority[permission],
+        "desc"
+      );
+
+      if (collectionPermissions[0]) {
+        permissions.push(
+          collectionPermissions[0] === CollectionPermission.Read
+            ? DocumentPermission.Read
+            : DocumentPermission.ReadWrite
+        );
+      }
+    }
+
     const userMembershipWhere: WhereOptions<UserMembership> = {
       userId: this.id,
       documentId,
@@ -698,16 +742,18 @@ class User extends ParanoidModel<
       }),
     ]);
 
-    const permissions = orderBy(
-      [
-        ...userMemberships.map((m) => m.permission as DocumentPermission),
-        ...groupMemberships.map((m) => m.permission as DocumentPermission),
-      ],
+    permissions.push(
+      ...userMemberships.map((m) => m.permission as DocumentPermission),
+      ...groupMemberships.map((m) => m.permission as DocumentPermission)
+    );
+
+    const orderedPermissions = orderBy(
+      permissions,
       (permission) => DocumentPermissionPriority[permission],
       "desc"
     );
 
-    return permissions[0];
+    return orderedPermissions[0];
   }
 
   // hooks
