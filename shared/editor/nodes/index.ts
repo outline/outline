@@ -117,4 +117,8 @@ export const richExtensions: Nodes = [
 /**
  * Add commenting and mentions to a set of nodes
  */
-export const withComments = (nodes: Nodes) => [...nodes, Comment];
+export const withComments = (nodes: Nodes) => [
+  ...nodes.filter((node) => node !== Mention),
+  Mention,
+  Comment,
+];
