@@ -5,7 +5,7 @@ import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
 import { randomElement } from "@shared/random";
-import { CollectionPermission } from "@shared/types";
+import { CollectionDisplay, CollectionPermission } from "@shared/types";
 import { IconLibrary } from "@shared/utils/IconLibrary";
 import { colorPalette } from "@shared/utils/collections";
 import { CollectionValidation } from "@shared/validations";
@@ -27,6 +27,7 @@ export interface FormData {
   icon: string;
   color: string | null;
   sharing: boolean;
+  display: CollectionDisplay | undefined;
   permission: CollectionPermission | undefined;
 }
 
@@ -62,6 +63,7 @@ export const CollectionForm = observer(function CollectionForm_({
     defaultValues: {
       name: collection?.name ?? "",
       icon: collection?.icon,
+      display: collection?.display,
       sharing: collection?.sharing ?? true,
       permission: collection?.permission,
       color: iconColor,

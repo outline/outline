@@ -20,6 +20,7 @@ export default async function presentCollection(
     icon: collection.icon,
     index: collection.index,
     color: collection.color,
+    display: collection.display,
     permission: collection.permission,
     sharing: collection.sharing,
     createdAt: collection.createdAt,

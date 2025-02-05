@@ -1,6 +1,7 @@
 import invariant from "invariant";
 import { action, computed, observable, runInAction } from "mobx";
 import {
+  CollectionDisplay,
   CollectionPermission,
   FileOperationFormat,
   type NavigationNode,
@@ -41,6 +42,11 @@ export default class Collection extends ParanoidModel {
   @Field
   @observable
   color?: string | null;
+
+  /** The display mode of the collection index. */
+  @Field
+  @observable
+  display: CollectionDisplay;
 
   /** The default permission for workspace users. */
   @Field

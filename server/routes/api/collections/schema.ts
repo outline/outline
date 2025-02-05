@@ -1,6 +1,7 @@
 import isUndefined from "lodash/isUndefined";
 import { z } from "zod";
 import {
+  CollectionDisplay,
   CollectionPermission,
   CollectionStatusFilter,
   FileOperationFormat,
@@ -24,6 +25,7 @@ export const CollectionsCreateSchema = BaseSchema.extend({
       .nullish(),
     description: z.string().nullish(),
     data: ProsemirrorSchema({ allowEmpty: true }).nullish(),
+    display: z.nativeEnum(CollectionDisplay).nullish(),
     permission: z
       .nativeEnum(CollectionPermission)
       .nullish()
@@ -159,6 +161,7 @@ export const CollectionsUpdateSchema = BaseSchema.extend({
     data: ProsemirrorSchema({ allowEmpty: true }).nullish(),
     icon: zodIconType().nullish(),
     permission: z.nativeEnum(CollectionPermission).nullish(),
+    display: z.nativeEnum(CollectionDisplay).nullish(),
     color: z
       .string()
       .regex(ValidateColor.regex, { message: ValidateColor.message })

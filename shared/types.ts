@@ -1,3 +1,8 @@
+export enum CollectionDisplay {
+  List = "list",
+  Post = "post",
+}
+
 export enum UserRole {
   Admin = "admin",
   Member = "member",

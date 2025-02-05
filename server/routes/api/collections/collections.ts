@@ -55,7 +55,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.CollectionsCreateReq>) => {
     const { transaction } = ctx.state;
-    const { name, color, description, data, permission, sharing, icon, sort } =
+    const { name, color, description, data, display, permission, sharing, icon, sort } =
       ctx.input.body;
     let { index } = ctx.input.body;
 
@@ -80,6 +80,7 @@ router.post(
       color,
       teamId: user.teamId,
       createdById: user.id,
+      display,
       permission,
       sharing,
       sort,
@@ -570,6 +571,7 @@ router.post(
       name,
       description,
       data,
+      display,
       icon,
       permission,
       color,
@@ -621,6 +623,10 @@ router.post(
     if (data !== undefined) {
       collection.content = data;
       collection.description = DocumentHelper.toMarkdown(collection);
+    }
+
+    if (display !== undefined) {
+      collection.display = display;
     }
 
     if (icon !== undefined) {

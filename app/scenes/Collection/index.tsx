@@ -353,6 +353,7 @@ const CollectionScene = observer(function _CollectionScene() {
                     exact
                   >
                     <PaginatedDocumentList
+                      display={collection.display}
                       documents={documents.rootInCollection(collection.id)}
                       fetch={documents.fetchPage}
                       options={{
