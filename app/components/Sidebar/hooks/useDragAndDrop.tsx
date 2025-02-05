@@ -239,7 +239,11 @@ export function useDropToChangeCollection(
         });
       } else {
         try {
-          await documents.move({ documentId: id, collectionId: collection.id });
+          await documents.move({
+            documentId: id,
+            collectionId: collection.id,
+            index: 0,
+          });
           expandNode();
         } catch (err) {
           if (err instanceof AuthorizationError) {
