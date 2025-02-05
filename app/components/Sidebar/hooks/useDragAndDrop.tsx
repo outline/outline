@@ -245,7 +245,7 @@ export function useDropToChangeCollection(
           if (err instanceof AuthorizationError) {
             toast.error(
               t(
-                "You do not have permission to move {{ documentName }} document to {{ collectionName }} collection",
+                "You do not have permission to move {{ documentName }} to the {{ collectionName }} collection",
                 {
                   documentName: item.title,
                   collectionName: collection.name,
@@ -340,7 +340,7 @@ export function useDropToReparentDocument(
           if (err instanceof AuthorizationError) {
             toast.error(
               t(
-                "You do not have permission to move {{ documentName }} document to {{ parentDocumentName }} document",
+                "{{ documentName }} cannot be moved within {{ parentDocumentName }}",
                 {
                   documentName: item.title,
                   parentDocumentName: node.title,
@@ -456,12 +456,9 @@ export function useDropToReorderDocument(
           } catch (err) {
             if (err instanceof AuthorizationError) {
               toast.error(
-                t(
-                  "You do not have permission to move {{ documentName }} document",
-                  {
-                    documentName: item.title,
-                  }
-                )
+                t("The {{ documentName }} cannot be moved here", {
+                  documentName: item.title,
+                })
               );
             } else {
               toast.error(err.message);

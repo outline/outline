@@ -42,7 +42,7 @@ function ConfirmMoveDialog({ collection, item, ...rest }: Props) {
       if (err instanceof AuthorizationError) {
         toast.error(
           t(
-            "You do not have permission to move {{ documentName }} document to {{ collectionName }} collection",
+            "You do not have permission to move {{ documentName }} to the {{ collectionName }} collection",
             {
               documentName: item.title,
               collectionName: collection.name,
