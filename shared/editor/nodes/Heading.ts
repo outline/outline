@@ -16,7 +16,7 @@ import splitHeading from "../commands/splitHeading";
 import toggleBlockType from "../commands/toggleBlockType";
 import headingToSlug, { headingToPersistenceKey } from "../lib/headingToSlug";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
-import { FoldingHeadersPlugin } from "../plugins/FoldingHeaders";
+import { findCollapsedNodes } from "../queries/findCollapsedNodes";
 import Node from "./Node";
 
 export default class Heading extends Node {
@@ -274,7 +274,23 @@ export default class Heading extends Node {
       },
     });
 
-    return [new FoldingHeadersPlugin(this.editor.props.id), plugin];
+    const foldPlugin: Plugin = new Plugin({
+      props: {
+        decorations: (state) => {
+          const { doc } = state;
+          const decorations: Decoration[] = findCollapsedNodes(doc).map(
+            (block) =>
+              Decoration.node(block.pos, block.pos + block.node.nodeSize, {
+                class: "folded-content",
+              })
+          );
+
+          return DecorationSet.create(doc, decorations);
+        },
+      },
+    });
+
+    return [foldPlugin, plugin];
   }
 
   inputRules({ type }: { type: NodeType }) {
