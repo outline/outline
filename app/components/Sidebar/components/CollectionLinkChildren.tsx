@@ -60,7 +60,7 @@ function CollectionLinkChildren({
 
   return (
     <Folder expanded={expanded}>
-      {canDrop && (
+      {canDrop && collection.isManualSort && (
         <DropCursor isActiveDrop={isOver} innerRef={dropRef} position="top" />
       )}
       <DocumentsLoader collection={collection} enabled={expanded}>

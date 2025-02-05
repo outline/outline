@@ -262,7 +262,7 @@ export function useDropToChangeCollection(
         }
       }
     },
-    canDrop: () => can.createDocument && collection.isManualSort,
+    canDrop: () => can.createDocument,
     hover: (_, monitor) => {
       if (
         collection.hasDocuments &&
