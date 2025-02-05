@@ -1,7 +1,7 @@
 import { m, TargetAndTransition } from "framer-motion";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
-import useComponentSize from "~/hooks/useComponentSize";
+import { useComponentSize } from "@shared/hooks/useComponentSize";
 
 type Props = {
   /** The children to render */
