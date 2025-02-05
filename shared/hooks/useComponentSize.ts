@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useLayoutEffect, useEffect } from "react";
 
 const defaultRect = {
   top: 0,
@@ -11,12 +11,19 @@ const defaultRect = {
   height: 0,
 };
 
-export default function useComponentSize(
-  element: HTMLElement | null
+/**
+ * A hook that returns the size of an element or ref.
+ *
+ * @param input The element or ref to observe
+ * @returns The size and position of the element
+ */
+export function useComponentSize(
+  input: HTMLElement | null | React.RefObject<HTMLElement | null>
 ): DOMRect | typeof defaultRect {
+  const element = input instanceof HTMLElement ? input : input?.current;
   const [size, setSize] = useState(() => element?.getBoundingClientRect());
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const sizeObserver = new ResizeObserver(() => {
       element?.dispatchEvent(new CustomEvent("resize"));
     });
