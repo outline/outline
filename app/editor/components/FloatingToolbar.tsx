@@ -6,10 +6,10 @@ import styled, { css } from "styled-components";
 import { isCode } from "@shared/editor/lib/isCode";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
+import { useComponentSize } from "@shared/hooks/useComponentSize";
 import { depths, s } from "@shared/styles";
 import { HEADER_HEIGHT } from "~/components/Header";
 import { Portal } from "~/components/Portal";
-import useComponentSize from "~/hooks/useComponentSize";
 import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
 import useWindowSize from "~/hooks/useWindowSize";
@@ -184,10 +184,10 @@ function usePosition({
   // of the selection still
   const offset = left - (centerOfSelection - menuWidth / 2);
   return {
-    left: Math.round(left - offsetParent.left),
+    left: Math.max(margin, Math.round(left - offsetParent.left)),
     top: Math.round(top - offsetParent.top),
     offset: Math.round(offset),
-    maxWidth: Math.min(window.innerWidth - margin * 2, offsetParent.width),
+    maxWidth: Math.min(window.innerWidth, offsetParent.width) - margin * 2,
     blockSelection: codeBlock || isColSelection || isRowSelection,
     visible: true,
   };
