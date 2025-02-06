@@ -190,7 +190,7 @@ class WebsocketProvider extends React.Component<Props> {
             if (collection?.updatedAt === collectionDescriptor.updatedAt) {
               continue;
             }
-            if (!collection?.documents?.length && !event.fetchIfMissing) {
+            if (!collection?.documents && !event.fetchIfMissing) {
               continue;
             }
 

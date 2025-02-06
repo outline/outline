@@ -181,6 +181,11 @@ export default class Collection extends ParanoidModel {
     return !this.isArchived && !this.isDeleted;
   }
 
+  @computed
+  get hasDocuments() {
+    return !!this.documents?.length;
+  }
+
   fetchDocuments = async (options?: { force: boolean }) => {
     if (this.isFetching) {
       return;

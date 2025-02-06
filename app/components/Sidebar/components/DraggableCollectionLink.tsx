@@ -9,12 +9,12 @@ import Document from "~/models/Document";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
+import { DragObject } from "../hooks/useDragAndDrop";
 import CollectionLink from "./CollectionLink";
 import CollectionLinkChildren from "./CollectionLinkChildren";
 import DropCursor from "./DropCursor";
 import Relative from "./Relative";
 import { useSidebarContext } from "./SidebarContext";
-import { DragObject } from "./SidebarLink";
 
 type Props = {
   collection: Collection;
