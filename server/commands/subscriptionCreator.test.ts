@@ -210,6 +210,7 @@ describe("subscriptionCreator", () => {
       where: {
         teamId: user.teamId,
       },
+      order: [["createdAt", "ASC"]],
     });
     expect(events.length).toEqual(3);
 
