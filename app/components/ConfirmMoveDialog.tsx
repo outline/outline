@@ -1,10 +1,12 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { CollectionPermission, NavigationNode } from "@shared/types";
 import type Collection from "~/models/Collection";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import useStores from "~/hooks/useStores";
+import { AuthorizationError } from "~/utils/errors";
 
 type Props = {
   /** The navigation node to move, must represent a document. */
@@ -30,12 +32,29 @@ function ConfirmMoveDialog({ collection, item, ...rest }: Props) {
     };
 
   const handleSubmit = async () => {
-    await documents.move({
-      documentId: item.id,
-      collectionId: collection.id,
-      ...rest,
-    });
-    dialogs.closeAllModals();
+    try {
+      await documents.move({
+        documentId: item.id,
+        collectionId: collection.id,
+        ...rest,
+      });
+    } catch (err) {
+      if (err instanceof AuthorizationError) {
+        toast.error(
+          t(
+            "You do not have permission to move {{ documentName }} to the {{ collectionName }} collection",
+            {
+              documentName: item.title,
+              collectionName: collection.name,
+            }
+          )
+        );
+      } else {
+        toast.error(err.message);
+      }
+    } finally {
+      dialogs.closeAllModals();
+    }
   };
 
   return (
