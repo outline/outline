@@ -1,4 +1,4 @@
-import { useState, useLayoutEffect, useEffect } from "react";
+import { useState, useLayoutEffect } from "react";
 
 const defaultRect = {
   top: 0,
@@ -33,7 +33,7 @@ export function useComponentSize(
     return () => sizeObserver.disconnect();
   }, [element]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const handleResize = () => {
       setSize((state) => {
         const rect = element?.getBoundingClientRect();
