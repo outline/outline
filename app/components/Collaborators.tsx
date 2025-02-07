@@ -78,6 +78,41 @@ function Collaborators(props: Props) {
     placement: "bottom-end",
   });
 
+  const renderAvatar = React.useCallback(
+    ({ model: collaborator, ...rest }) => {
+      const isPresent = presentIds.includes(collaborator.id);
+      const isEditing = editingIds.includes(collaborator.id);
+      const isObserving = ui.observingUserId === collaborator.id;
+      const isObservable = collaborator.id !== currentUserId;
+
+      return (
+        <AvatarWithPresence
+          {...rest}
+          key={collaborator.id}
+          user={collaborator}
+          isPresent={isPresent}
+          isEditing={isEditing}
+          isObserving={isObserving}
+          isCurrentUser={currentUserId === collaborator.id}
+          onClick={
+            isObservable
+              ? (ev) => {
+                  if (isPresent) {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    ui.setObservingUser(
+                      isObserving ? undefined : collaborator.id
+                    );
+                  }
+                }
+              : undefined
+          }
+        />
+      );
+    },
+    [presentIds, ui, currentUserId, editingIds]
+  );
+
   return (
     <>
       <PopoverDisclosure {...popover}>
@@ -92,37 +127,7 @@ function Collaborators(props: Props) {
               limit={limit}
               overflow={Math.max(0, collaborators.length - limit)}
               users={collaborators}
-              renderAvatar={({ model: collaborator, ...rest }) => {
-                const isPresent = presentIds.includes(collaborator.id);
-                const isEditing = editingIds.includes(collaborator.id);
-                const isObserving = ui.observingUserId === collaborator.id;
-                const isObservable = collaborator.id !== user.id;
-
-                return (
-                  <AvatarWithPresence
-                    {...rest}
-                    key={collaborator.id}
-                    user={collaborator}
-                    isPresent={isPresent}
-                    isEditing={isEditing}
-                    isObserving={isObserving}
-                    isCurrentUser={currentUserId === collaborator.id}
-                    onClick={
-                      isObservable
-                        ? (ev) => {
-                            if (isPresent) {
-                              ev.preventDefault();
-                              ev.stopPropagation();
-                              ui.setObservingUser(
-                                isObserving ? undefined : collaborator.id
-                              );
-                            }
-                          }
-                        : undefined
-                    }
-                  />
-                );
-              }}
+              renderAvatar={renderAvatar}
             />
           </NudeButton>
         )}
