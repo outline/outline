@@ -26,6 +26,8 @@ export default class DocumentSubscriptionProcessor extends BaseProcessor {
       case "documents.remove_user": {
         return this.removeUser(event, user);
       }
+
+      default:
     }
   }
 
