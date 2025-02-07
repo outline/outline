@@ -1,4 +1,8 @@
-import { MentionType, NotificationEventType } from "@shared/types";
+import {
+  MentionType,
+  NotificationEventType,
+  SubscriptionEventType,
+} from "@shared/types";
 import { createSubscriptionsForDocument } from "@server/commands/subscriptionCreator";
 import { Document, Notification, User } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -51,12 +55,12 @@ export default class DocumentPublishedNotificationsTask extends BaseTask<Documen
     }
 
     const recipients = (
-      await NotificationHelper.getDocumentNotificationRecipients(
+      await NotificationHelper.getDocumentNotificationRecipients({
         document,
-        NotificationEventType.PublishDocument,
-        document.lastModifiedById,
-        false
-      )
+        notificationType: NotificationEventType.PublishDocument,
+        subscriptionTypes: [SubscriptionEventType.Collection],
+        actorId: document.lastModifiedById,
+      })
     ).filter((recipient) => !userIdsMentioned.includes(recipient.id));
 
     for (const recipient of recipients) {

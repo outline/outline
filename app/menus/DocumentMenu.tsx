@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
-import { UserPreference } from "@shared/types";
+import { SubscriptionEventType, UserPreference } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import Document from "~/models/Document";
 import ContextMenu from "~/components/ContextMenu";
@@ -96,10 +96,16 @@ const MenuTrigger: React.FC<MenuTriggerProps> = ({ label, onTrigger }) => {
   const { model: document, menuState } = useMenuContext<Document>();
 
   const { data, loading, error, request } = useRequest(() =>
-    subscriptions.fetchOne({
-      documentId: document.id,
-      event: "documents.update",
-    })
+    Promise.all([
+      subscriptions.fetchOne({
+        documentId: document.id,
+        event: SubscriptionEventType.Document,
+      }),
+      subscriptions.fetchOne({
+        collectionId: document.collectionId,
+        event: SubscriptionEventType.Collection,
+      }),
+    ])
   );
 
   const handlePointerEnter = React.useCallback(() => {
@@ -187,7 +193,7 @@ const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
         if (can.createDocument) {
           filtered.push({
             type: "button",
-            onClick: (ev) =>
+            onClick: ev =>
               handleRestore(ev, {
                 collectionId: collection.id,
               }),
@@ -218,7 +224,7 @@ const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
             visible:
               !!(document.isWorkspaceTemplate || collection?.isActive) &&
               !!(can.restore || can.unarchive),
-            onClick: (ev) => handleRestore(ev),
+            onClick: ev => handleRestore(ev),
             icon: <RestoreIcon />,
           },
           {
@@ -330,7 +336,7 @@ const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
                   label={t("Full width")}
                   labelPosition="left"
                   checked={document.fullWidth}
-                  onChange={(ev) => {
+                  onChange={ev => {
                     const fullWidth = ev.currentTarget.checked;
                     user.setPreference(
                       UserPreference.FullWidthDocuments,
@@ -432,7 +438,10 @@ function DocumentMenu({
         </label>
       </VisuallyHidden>
       <MenuContext.Provider value={{ model: document, menuState }}>
-        <MenuTrigger label={label} onTrigger={showMenu} />
+        <MenuTrigger
+          label={label}
+          onTrigger={showMenu}
+        />
         {isMenuVisible ? (
           <MenuContent
             onOpen={onOpen}

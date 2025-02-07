@@ -1,4 +1,8 @@
-import { MentionType, NotificationEventType } from "@shared/types";
+import {
+  MentionType,
+  NotificationEventType,
+  SubscriptionEventType,
+} from "@shared/types";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { createContext } from "@server/context";
 import { Comment, Document, Notification, User } from "@server/models";
@@ -34,7 +38,7 @@ export default class CommentCreatedNotificationsTask extends BaseTask<CommentEve
           transaction,
         }),
         documentId: document.id,
-        event: "documents.update",
+        event: SubscriptionEventType.Document,
         resubscribe: false,
       });
     });

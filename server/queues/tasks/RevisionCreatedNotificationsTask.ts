@@ -1,7 +1,11 @@
 import { subHours } from "date-fns";
 import differenceBy from "lodash/differenceBy";
 import { Op } from "sequelize";
-import { MentionType, NotificationEventType } from "@shared/types";
+import {
+  MentionType,
+  NotificationEventType,
+  SubscriptionEventType,
+} from "@shared/types";
 import { createSubscriptionsForDocument } from "@server/commands/subscriptionCreator";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -73,12 +77,15 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
     }
 
     const recipients = (
-      await NotificationHelper.getDocumentNotificationRecipients(
+      await NotificationHelper.getDocumentNotificationRecipients({
         document,
-        NotificationEventType.UpdateDocument,
-        document.lastModifiedById,
-        true
-      )
+        notificationType: NotificationEventType.UpdateDocument,
+        subscriptionTypes: [
+          SubscriptionEventType.Collection,
+          SubscriptionEventType.Document,
+        ],
+        actorId: document.lastModifiedById,
+      })
     ).filter((recipient) => !userIdsMentioned.includes(recipient.id));
     if (!recipients.length) {
       return;

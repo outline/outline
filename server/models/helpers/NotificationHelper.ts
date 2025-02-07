@@ -1,6 +1,10 @@
 import uniq from "lodash/uniq";
-import { Op } from "sequelize";
-import { NotificationEventType, MentionType } from "@shared/types";
+import { Op, WhereOptions } from "sequelize";
+import {
+  NotificationEventType,
+  MentionType,
+  SubscriptionEventType,
+} from "@shared/types";
 import Logger from "@server/logging/Logger";
 import {
   User,
@@ -56,12 +60,14 @@ export default class NotificationHelper {
     comment: Comment,
     actorId: string
   ): Promise<User[]> => {
-    let recipients = await this.getDocumentNotificationRecipients(
+    let recipients = await this.getDocumentNotificationRecipients({
       document,
-      NotificationEventType.UpdateDocument,
+      notificationType: NotificationEventType.UpdateDocument,
+      subscriptionTypes: !comment.parentCommentId
+        ? [SubscriptionEventType.Document]
+        : undefined,
       actorId,
-      !comment.parentCommentId
-    );
+    });
 
     recipients = recipients.filter((recipient) =>
       recipient.subscribedToEventType(NotificationEventType.CreateComment)
@@ -133,12 +139,17 @@ export default class NotificationHelper {
    * subscribed to the document.
    * @returns A list of recipients
    */
-  public static getDocumentNotificationRecipients = async (
-    document: Document,
-    eventType: NotificationEventType,
-    actorId: string,
-    onlySubscribers: boolean
-  ): Promise<User[]> => {
+  public static getDocumentNotificationRecipients = async ({
+    document,
+    notificationType,
+    subscriptionTypes,
+    actorId,
+  }: {
+    document: Document;
+    notificationType: NotificationEventType;
+    subscriptionTypes?: SubscriptionEventType[];
+    actorId: string;
+  }): Promise<User[]> => {
     // First find all the users that have notifications enabled for this event
     // type at all and aren't the one that performed the action.
     let recipients = await User.findAll({
@@ -151,17 +162,30 @@ export default class NotificationHelper {
     });
 
     recipients = recipients.filter((recipient) =>
-      recipient.subscribedToEventType(eventType)
+      recipient.subscribedToEventType(notificationType)
     );
 
     // Filter further to only those that have a subscription to the document…
-    if (onlySubscribers) {
+    if (subscriptionTypes) {
+      const subscriptionFilters = subscriptionTypes.map<
+        WhereOptions<Subscription>
+      >((subscriptionType) =>
+        subscriptionType === SubscriptionEventType.Collection
+          ? {
+              collectionId: document.collectionId,
+              event: SubscriptionEventType.Collection,
+            }
+          : {
+              documentId: document.id,
+              event: SubscriptionEventType.Document,
+            }
+      );
+
       const subscriptions = await Subscription.findAll({
         attributes: ["userId"],
         where: {
           userId: recipients.map((recipient) => recipient.id),
-          documentId: document.id,
-          event: eventType,
+          [Op.or]: subscriptionFilters,
         },
       });
 
