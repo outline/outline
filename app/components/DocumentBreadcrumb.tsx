@@ -105,14 +105,15 @@ function DocumentBreadcrumb(
     }
 
     path.slice(0, -1).forEach((node: NavigationNode) => {
+      const title = node.title || t("Untitled");
       output.push({
         type: "route",
         title: node.icon ? (
           <>
-            <StyledIcon value={node.icon} color={node.color} /> {node.title}
+            <StyledIcon value={node.icon} color={node.color} /> {title}
           </>
         ) : (
-          node.title
+          title
         ),
         to: {
           pathname: node.url,
@@ -121,7 +122,7 @@ function DocumentBreadcrumb(
       });
     });
     return output;
-  }, [path, category, sidebarContext, collectionNode]);
+  }, [t, path, category, sidebarContext, collectionNode]);
 
   if (!collections.isLoaded) {
     return null;
@@ -134,7 +135,7 @@ function DocumentBreadcrumb(
         {path.slice(0, -1).map((node: NavigationNode) => (
           <React.Fragment key={node.id}>
             <SmallSlash />
-            {node.title}
+            {node.title || t("Untitled")}
           </React.Fragment>
         ))}
       </>
