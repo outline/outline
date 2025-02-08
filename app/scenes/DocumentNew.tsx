@@ -50,7 +50,7 @@ function DocumentNew({ template }: Props) {
               user.getPreference(UserPreference.FullWidthDocuments),
             templateId: query.get("templateId") ?? undefined,
             template,
-            title: "",
+            title: query.get("title") ?? "",
             data: ProsemirrorHelper.getEmptyDocument(),
           },
           { publish: collection?.id || parentDocumentId ? true : undefined }

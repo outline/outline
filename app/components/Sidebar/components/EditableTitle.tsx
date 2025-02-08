@@ -3,12 +3,14 @@ import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 
-type Props = {
-  onSubmit: (title: string) => Promise<void>;
+type Props = Omit<React.HTMLAttributes<HTMLInputElement>, "onSubmit"> & {
+  onSubmit: (title: string) => Promise<void> | void;
   onEditing?: (isEditing: boolean) => void;
+  onEscape?: () => void;
   title: string;
   canUpdate: boolean;
   maxLength?: number;
+  isEditing?: boolean;
 };
 
 export type RefHandle = {
@@ -16,10 +18,10 @@ export type RefHandle = {
 };
 
 function EditableTitle(
-  { title, onSubmit, canUpdate, onEditing, ...rest }: Props,
+  { title, onSubmit, canUpdate, onEditing, onEscape, ...rest }: Props,
   ref: React.RefObject<RefHandle>
 ) {
-  const [isEditing, setIsEditing] = React.useState(false);
+  const [isEditing, setIsEditing] = React.useState(rest.isEditing || false);
   const [originalValue, setOriginalValue] = React.useState(title);
   const [value, setValue] = React.useState(title);
 
@@ -59,6 +61,7 @@ function EditableTitle(
 
       if (trimmedValue === originalValue || trimmedValue.length === 0) {
         setValue(originalValue);
+        onEscape?.();
         return;
       }
 
@@ -83,6 +86,7 @@ function EditableTitle(
       }
       if (ev.key === "Escape") {
         setIsEditing(false);
+        onEscape?.();
         setValue(originalValue);
       }
       if (ev.key === "Enter") {
