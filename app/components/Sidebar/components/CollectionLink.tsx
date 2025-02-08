@@ -146,7 +146,7 @@ const CollectionLink: React.FC<Props> = ({
       </Relative>
       {isAddingNewChild && (
         <SidebarLink
-          depth={(depth ?? 0) + 2}
+          depth={2}
           isActive={() => true}
           label={
             <EditableTitle
