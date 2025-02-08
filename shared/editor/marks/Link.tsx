@@ -65,7 +65,7 @@ export default class Link extends Mark {
       inclusive: false,
       parseDOM: [
         {
-          tag: "a[href]",
+          tag: "a[href]:not(.embed)",
           getAttrs: (dom: HTMLElement) => ({
             href: dom.getAttribute("href"),
             title: dom.getAttribute("title"),
