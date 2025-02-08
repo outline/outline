@@ -584,6 +584,7 @@ class DocumentScene extends React.Component<Props> {
                         readOnly={readOnly}
                         canUpdate={abilities.update}
                         canComment={abilities.comment}
+                        autoFocus
                       >
                         {shareId ? (
                           <ReferencesWrapper>

@@ -264,6 +264,24 @@ export default class Collection extends ParanoidModel {
   }
 
   @action
+  addDocument(document: Document, parentDocumentId?: string) {
+    if (!this.documents) {
+      return;
+    }
+
+    const travelNodes = (nodes: NavigationNode[]) =>
+      nodes.forEach((node) => {
+        if (node.id === parentDocumentId) {
+          node.children = [document.asNavigationNode, ...(node.children ?? [])];
+        } else {
+          travelNodes(node.children);
+        }
+      });
+
+    travelNodes(this.documents);
+  }
+
+  @action
   updateIndex(index: string) {
     this.index = index;
   }
