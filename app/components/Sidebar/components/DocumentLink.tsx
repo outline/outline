@@ -326,7 +326,7 @@ function InnerDocumentLink(
               canUpdate
               isEditing
               placeholder={`${t("New doc")}…`}
-              onEscape={closeAddingNewChild}
+              onCancel={closeAddingNewChild}
               onSubmit={async (input) => {
                 const newDocument = await documents.create(
                   {
