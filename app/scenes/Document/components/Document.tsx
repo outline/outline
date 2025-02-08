@@ -380,24 +380,23 @@ class DocumentScene extends React.Component<Props> {
     AUTOSAVE_DELAY
   );
 
-  updateIsDirty = () => {
+  updateIsDirty = action(() => {
     const { document } = this.props;
     const doc = this.editor.current?.view.state.doc;
-    this.isEditorDirty = !isEqual(doc?.toJSON(), document.data);
 
-    // a single hash is a doc with just an empty title
+    this.isEditorDirty = !isEqual(doc?.toJSON(), document.data);
     this.isEmpty = (!doc || ProsemirrorHelper.isEmpty(doc)) && !this.title;
-  };
+  });
 
   updateIsDirtyDebounced = debounce(this.updateIsDirty, 500);
 
-  onFileUploadStart = () => {
+  onFileUploadStart = action(() => {
     this.isUploading = true;
-  };
+  });
 
-  onFileUploadStop = () => {
+  onFileUploadStop = action(() => {
     this.isUploading = false;
-  };
+  });
 
   handleChangeTitle = action((value: string) => {
     this.title = value;
@@ -584,7 +583,7 @@ class DocumentScene extends React.Component<Props> {
                         readOnly={readOnly}
                         canUpdate={abilities.update}
                         canComment={abilities.comment}
-                        autoFocus
+                        autoFocus={document.createdAt === document.updatedAt}
                       >
                         {shareId ? (
                           <ReferencesWrapper>
