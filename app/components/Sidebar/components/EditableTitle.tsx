@@ -3,23 +3,33 @@ import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 
-type Props = {
-  onSubmit: (title: string) => Promise<void>;
+type Props = Omit<React.HTMLAttributes<HTMLInputElement>, "onSubmit"> & {
+  /** A callback when the title is submitted. */
+  onSubmit: (title: string) => Promise<void> | void;
+  /** A callback when the editing status changes. */
   onEditing?: (isEditing: boolean) => void;
+  /** A callback when editing is canceled. */
+  onCancel?: () => void;
+  /** The default title. */
   title: string;
+  /** Whether the user can update the title. */
   canUpdate: boolean;
+  /** The maximum length of the title. */
   maxLength?: number;
+  /** The default editing state. */
+  isEditing?: boolean;
 };
 
 export type RefHandle = {
+  /** A function to set the editing state. */
   setIsEditing: (isEditing: boolean) => void;
 };
 
 function EditableTitle(
-  { title, onSubmit, canUpdate, onEditing, ...rest }: Props,
+  { title, onSubmit, canUpdate, onEditing, onCancel, ...rest }: Props,
   ref: React.RefObject<RefHandle>
 ) {
-  const [isEditing, setIsEditing] = React.useState(false);
+  const [isEditing, setIsEditing] = React.useState(rest.isEditing || false);
   const [originalValue, setOriginalValue] = React.useState(title);
   const [value, setValue] = React.useState(title);
 
@@ -59,6 +69,7 @@ function EditableTitle(
 
       if (trimmedValue === originalValue || trimmedValue.length === 0) {
         setValue(originalValue);
+        onCancel?.();
         return;
       }
 
@@ -73,7 +84,7 @@ function EditableTitle(
         }
       }
     },
-    [originalValue, value, onSubmit]
+    [originalValue, value, onCancel, onSubmit]
   );
 
   const handleKeyDown = React.useCallback(
@@ -83,13 +94,14 @@ function EditableTitle(
       }
       if (ev.key === "Escape") {
         setIsEditing(false);
+        onCancel?.();
         setValue(originalValue);
       }
       if (ev.key === "Enter") {
         await handleSave(ev);
       }
     },
-    [handleSave, originalValue]
+    [handleSave, onCancel, originalValue]
   );
 
   React.useEffect(() => {

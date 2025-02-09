@@ -3,10 +3,11 @@ import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
-import { NavigationNode } from "@shared/types";
+import { NavigationNode, UserPreference } from "@shared/types";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import { DocumentValidation } from "@shared/validations";
 import Collection from "~/models/Collection";
@@ -15,10 +16,11 @@ import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
-import { newNestedDocumentPath } from "~/utils/routeHelpers";
+import { documentEditPath } from "~/utils/routeHelpers";
 import {
   useDragDocument,
   useDropToReorderDocument,
@@ -58,6 +60,7 @@ function InnerDocumentLink(
 ) {
   const { documents, policies } = useStores();
   const { t } = useTranslation();
+  const history = useHistory();
   const canUpdate = usePolicy(node.id).update;
   const isActiveDocument = activeDocument && activeDocument.id === node.id;
   const hasChildDocuments =
@@ -67,6 +70,7 @@ function InnerDocumentLink(
   const [isEditing, setIsEditing] = React.useState(false);
   const editableTitleRef = React.useRef<RefHandle>(null);
   const sidebarContext = useSidebarContext();
+  const user = useCurrentUser();
 
   React.useEffect(() => {
     if (
@@ -216,6 +220,31 @@ function InnerDocumentLink(
     [setExpanded, setCollapsed, hasChildren, expanded]
   );
 
+  const [isAddingNewChild, setIsAddingNewChild, closeAddingNewChild] =
+    useBoolean();
+
+  const handleNewDoc = React.useCallback(
+    async (input) => {
+      const newDocument = await documents.create(
+        {
+          collectionId: collection?.id,
+          parentDocumentId: node.id,
+          fullWidth:
+            doc?.fullWidth ??
+            user.getPreference(UserPreference.FullWidthDocuments),
+          title: input,
+          data: ProsemirrorHelper.getEmptyDocument(),
+        },
+        { publish: true }
+      );
+      collection?.addDocument(newDocument, node.id);
+
+      closeAddingNewChild();
+      history.replace(documentEditPath(newDocument));
+    },
+    [documents, collection, user, node, doc, history, closeAddingNewChild]
+  );
+
   return (
     <>
       <Relative ref={parentRef}>
@@ -282,8 +311,11 @@ function InnerDocumentLink(
                           <NudeButton
                             type={undefined}
                             aria-label={t("New nested document")}
-                            as={Link}
-                            to={newNestedDocumentPath(document.id)}
+                            onClick={(ev) => {
+                              ev.preventDefault();
+                              setIsAddingNewChild();
+                              setExpanded();
+                            }}
                           >
                             <PlusIcon />
                           </NudeButton>
@@ -308,8 +340,25 @@ function InnerDocumentLink(
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
         )}
       </Relative>
+      {isAddingNewChild && (
+        <SidebarLink
+          isActive={() => true}
+          depth={depth + 1}
+          label={
+            <EditableTitle
+              title=""
+              canUpdate
+              isEditing
+              placeholder={`${t("New doc")}…`}
+              onCancel={closeAddingNewChild}
+              onSubmit={handleNewDoc}
+              maxLength={DocumentValidation.maxTitleLength}
+            />
+          }
+        />
+      )}
       <Folder expanded={expanded && !isDragging}>
-        {nodeChildren.map((childNode, index) => (
+        {nodeChildren.map((childNode, childIndex) => (
           <DocumentLink
             key={childNode.id}
             collection={collection}
@@ -318,7 +367,7 @@ function InnerDocumentLink(
             prefetchDocument={prefetchDocument}
             isDraft={childNode.isDraft}
             depth={depth + 1}
-            index={index}
+            index={childIndex}
             parentId={node.id}
           />
         ))}
