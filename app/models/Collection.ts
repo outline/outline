@@ -263,6 +263,13 @@ export default class Collection extends ParanoidModel {
     });
   }
 
+  /**
+   * Adds the document identified by the given id to the collection in
+   * memory. Does not add the document to the database or store.
+   *
+   * @param document The document to add.
+   * @param parentDocumentId The id of the document to add the new document to.
+   */
   @action
   addDocument(document: Document, parentDocumentId?: string) {
     if (!this.documents) {

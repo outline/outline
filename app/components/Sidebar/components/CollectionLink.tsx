@@ -5,6 +5,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
 import { useHistory } from "react-router-dom";
+import { UserPreference } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { CollectionValidation, DocumentValidation } from "@shared/validations";
 import Collection from "~/models/Collection";
@@ -13,6 +14,7 @@ import Fade from "~/components/Fade";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import NudeButton from "~/components/NudeButton";
 import useBoolean from "~/hooks/useBoolean";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import CollectionMenu from "~/menus/CollectionMenu";
@@ -49,6 +51,7 @@ const CollectionLink: React.FC<Props> = ({
   const can = usePolicy(collection);
   const { t } = useTranslation();
   const sidebarContext = useSidebarContext();
+  const user = useCurrentUser();
   const editableTitleRef = React.useRef<RefHandle>(null);
 
   const handleTitleChange = React.useCallback(
@@ -83,6 +86,25 @@ const CollectionLink: React.FC<Props> = ({
 
   const [isAddingNewChild, setIsAddingNewChild, closeAddingNewChild] =
     useBoolean();
+
+  const handleNewDoc = React.useCallback(
+    async (input) => {
+      const newDocument = await documents.create(
+        {
+          collectionId: collection.id,
+          title: input,
+          fullWidth: user.getPreference(UserPreference.FullWidthDocuments),
+          data: ProsemirrorHelper.getEmptyDocument(),
+        },
+        { publish: true }
+      );
+      collection?.addDocument(newDocument);
+
+      closeAddingNewChild();
+      history.replace(documentEditPath(newDocument));
+    },
+    [user, closeAddingNewChild, history, collection, documents]
+  );
 
   return (
     <>
@@ -155,20 +177,7 @@ const CollectionLink: React.FC<Props> = ({
               isEditing
               placeholder={`${t("New doc")}…`}
               onCancel={closeAddingNewChild}
-              onSubmit={async (input) => {
-                const newDocument = await documents.create(
-                  {
-                    collectionId: collection.id,
-                    title: input,
-                    data: ProsemirrorHelper.getEmptyDocument(),
-                  },
-                  { publish: true }
-                );
-                collection?.addDocument(newDocument);
-
-                closeAddingNewChild();
-                history.replace(documentEditPath(newDocument));
-              }}
+              onSubmit={handleNewDoc}
               maxLength={DocumentValidation.maxTitleLength}
             />
           }

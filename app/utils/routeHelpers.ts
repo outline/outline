@@ -107,11 +107,8 @@ export function newDocumentPath(
     : `/doc/new?${queryString.stringify(params)}`;
 }
 
-export function newNestedDocumentPath(
-  parentDocumentId?: string,
-  title?: string
-): string {
-  return `/doc/new?${queryString.stringify({ parentDocumentId, title })}`;
+export function newNestedDocumentPath(parentDocumentId?: string): string {
+  return `/doc/new?${queryString.stringify({ parentDocumentId })}`;
 }
 
 export function searchPath(
