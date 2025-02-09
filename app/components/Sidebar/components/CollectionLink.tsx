@@ -101,9 +101,12 @@ const CollectionLink: React.FC<Props> = ({
       collection?.addDocument(newDocument);
 
       closeAddingNewChild();
-      history.replace(documentEditPath(newDocument));
+      history.push({
+        pathname: documentEditPath(newDocument),
+        state: { sidebarContext },
+      });
     },
-    [user, closeAddingNewChild, history, collection, documents]
+    [user, sidebarContext, closeAddingNewChild, history, collection, documents]
   );
 
   return (
