@@ -1179,6 +1179,7 @@ export const rootDocumentActions = [
   openDocument,
   archiveDocument,
   createDocument,
+  createNestedDocument,
   createTemplateFromDocument,
   deleteDocument,
   importDocument,
