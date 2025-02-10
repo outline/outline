@@ -86,6 +86,11 @@ function StarredLink({ star }: Props) {
     []
   );
 
+  const handlePrefetch = React.useCallback(
+    () => documentId && documents.prefetchDocument(documentId),
+    [documents, documentId]
+  );
+
   const getIndex = () => {
     const next = star?.next();
     return fractionalIndex(star?.index || null, next?.index || null);
@@ -142,6 +147,7 @@ function StarredLink({ star }: Props) {
             }}
             expanded={hasChildDocuments && !isDragging ? expanded : undefined}
             onDisclosureClick={handleDisclosureClick}
+            onClickIntent={handlePrefetch}
             icon={icon}
             isActive={(
               match,
@@ -172,6 +178,7 @@ function StarredLink({ star }: Props) {
                   node={node}
                   collection={collection}
                   activeDocument={documents.active}
+                  prefetchDocument={documents.prefetchDocument}
                   isDraft={node.isDraft}
                   depth={2}
                   index={index}
