@@ -768,16 +768,7 @@
     "@babel/traverse" "^7.25.9"
     semver "^6.3.1"
 
-"@babel/helper-create-regexp-features-plugin@^7.18.6":
-  version "7.25.7"
-  resolved "https://registry.yarnpkg.com/@babel/helper-create-regexp-features-plugin/-/helper-create-regexp-features-plugin-7.25.7.tgz#dcb464f0e2cdfe0c25cc2a0a59c37ab940ce894e"
-  integrity sha512-byHhumTj/X47wJ6C6eLpK7wW/WBEcnUeb7D0FNc/jFQnQVw7DOso3Zz5u9x/zLrFVkHa89ZGDbkAa1D54NdrCQ==
-  dependencies:
-    "@babel/helper-annotate-as-pure" "^7.25.7"
-    regexpu-core "^6.1.1"
-    semver "^6.3.1"
-
-"@babel/helper-create-regexp-features-plugin@^7.25.9":
+"@babel/helper-create-regexp-features-plugin@^7.18.6", "@babel/helper-create-regexp-features-plugin@^7.25.9":
   version "7.26.3"
   resolved "https://registry.yarnpkg.com/@babel/helper-create-regexp-features-plugin/-/helper-create-regexp-features-plugin-7.26.3.tgz#5169756ecbe1d95f7866b90bb555b022595302a0"
   integrity sha512-G7ZRb40uUgdKOQqPLjfD12ZmGA54PzqDFUv2BKImnC9QIfGhIHKvVML0oN8IUiDq4iRqpq74ABpvOaerfWdong==
@@ -1078,19 +1069,12 @@
   dependencies:
     "@babel/helper-plugin-utils" "^7.14.5"
 
-"@babel/plugin-syntax-typescript@^7.25.9":
+"@babel/plugin-syntax-typescript@^7.25.9", "@babel/plugin-syntax-typescript@^7.7.2":
   version "7.25.9"
   resolved "https://registry.yarnpkg.com/@babel/plugin-syntax-typescript/-/plugin-syntax-typescript-7.25.9.tgz#67dda2b74da43727cf21d46cf9afef23f4365399"
   integrity sha512-hjMgRy5hb8uJJjUcdWunWVcoi9bGpJp8p5Ol1229PoN6aytsLwNMgmdftO23wnCLMfVmTwZDWMPNq/D1SY60JQ==
   dependencies:
     "@babel/helper-plugin-utils" "^7.25.9"
-
-"@babel/plugin-syntax-typescript@^7.7.2":
-  version "7.24.1"
-  resolved "https://registry.yarnpkg.com/@babel/plugin-syntax-typescript/-/plugin-syntax-typescript-7.24.1.tgz#b3bcc51f396d15f3591683f90239de143c076844"
-  integrity sha512-Yhnmvy5HZEnHUty6i++gcfH1/l68AHnItFHnaCv6hn9dNh0hQvvQJsxpi4BMBFN5DLeHBuucT/0DgzXif/OyRw==
-  dependencies:
-    "@babel/helper-plugin-utils" "^7.24.0"
 
 "@babel/plugin-syntax-unicode-sets-regex@^7.18.6":
   version "7.18.6"
@@ -5237,6 +5221,11 @@
   version "5.0.7"
   resolved "https://registry.yarnpkg.com/@types/slug/-/slug-5.0.7.tgz#dc0e5d3ea6ab6daf29bafaa2bcf689cfefaab28a"
   integrity "sha1-3A5dPqarba8puvqivPaJz++qsoo= sha512-u5T21+PqfRpHszRWSv5gJYDIkm6lmYUXLjZVYvQyWNO9aC0zs+a11qqtbxbsNRiNLTmw0Xi+5NWK/Qz+JjaB9w=="
+
+"@types/sorted-array-functions@^1.3.3":
+  version "1.3.3"
+  resolved "https://registry.yarnpkg.com/@types/sorted-array-functions/-/sorted-array-functions-1.3.3.tgz#c7e9902b4677dfd0693e4658d85a3ccb35b6e091"
+  integrity sha512-Znd+o08cWzYInbmSyoeK7D1aet3zFj346zuL0QWAnKVg3Sp57azvCzbxBfnxjDPNyHqOhzvK79K9sEV97BX5iQ==
 
 "@types/stack-utils@^2.0.0":
   version "2.0.0"
@@ -13519,19 +13508,7 @@ regexpp@^3.0.0:
   resolved "https://registry.yarnpkg.com/regexpp/-/regexpp-3.2.0.tgz#0425a2768d8f23bad70ca4b90461fa2f1213e1b2"
   integrity "sha1-BCWido2PI7rXDKS5BGH6LxIT4bI= sha512-pq2bWo9mVD43nbts2wGv17XLiNLya+GklZ8kaDLV2Z08gDCsGpnKn9BFMepvWuHCbyVvY7J5o5+BVvoQbmlJLg=="
 
-regexpu-core@^6.1.1:
-  version "6.1.1"
-  resolved "https://registry.yarnpkg.com/regexpu-core/-/regexpu-core-6.1.1.tgz#b469b245594cb2d088ceebc6369dceb8c00becac"
-  integrity sha512-k67Nb9jvwJcJmVpw0jPttR1/zVfnKf8Km0IPatrU/zJ5XeG3+Slx0xLXs9HByJSzXzrlz5EDvN6yLNMDc2qdnw==
-  dependencies:
-    regenerate "^1.4.2"
-    regenerate-unicode-properties "^10.2.0"
-    regjsgen "^0.8.0"
-    regjsparser "^0.11.0"
-    unicode-match-property-ecmascript "^2.0.0"
-    unicode-match-property-value-ecmascript "^2.1.0"
-
-regexpu-core@^6.2.0:
+regexpu-core@^6.1.1, regexpu-core@^6.2.0:
   version "6.2.0"
   resolved "https://registry.yarnpkg.com/regexpu-core/-/regexpu-core-6.2.0.tgz#0e5190d79e542bf294955dccabae04d3c7d53826"
   integrity sha512-H66BPQMrv+V16t8xtmq+UC0CBpiTBA60V8ibS1QVReIp8T1z8hwFxqcGzm9K6lgsN7sB5edVH8a+ze6Fqm4weA==
@@ -14230,6 +14207,11 @@ sort-keys@^5.0.0:
   integrity "sha1-XXdfiuk+zCm8cxK786ysTjbjxEY= sha512-Pdz01AvCAottHTPQGzndktFNdbRA75BgOfeT1hH+AMnJFv8lynkPi42rfeEhpx1saTEI3YNMWxfqu0sFD1G8pw=="
   dependencies:
     is-plain-obj "^4.0.0"
+
+sorted-array-functions@^1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/sorted-array-functions/-/sorted-array-functions-1.3.0.tgz#8605695563294dffb2c9796d602bd8459f7a0dd5"
+  integrity sha512-2sqgzeFlid6N4Z2fUQ1cvFmTOLRi/sEDzSQ0OKYchqgoPmQBVyM3959qYx3fpS6Esef80KjmpgPeEr028dP3OA==
 
 source-list-map@~0.1.7:
   version "0.1.8"
