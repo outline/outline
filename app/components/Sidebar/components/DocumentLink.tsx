@@ -240,9 +240,21 @@ function InnerDocumentLink(
       collection?.addDocument(newDocument, node.id);
 
       closeAddingNewChild();
-      history.replace(documentEditPath(newDocument));
+      history.push({
+        pathname: documentEditPath(newDocument),
+        state: { sidebarContext },
+      });
     },
-    [documents, collection, user, node, doc, history, closeAddingNewChild]
+    [
+      documents,
+      collection,
+      sidebarContext,
+      user,
+      node,
+      doc,
+      history,
+      closeAddingNewChild,
+    ]
   );
 
   return (
