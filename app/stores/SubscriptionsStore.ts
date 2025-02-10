@@ -1,6 +1,8 @@
+import invariant from "invariant";
 import { action } from "mobx";
 import Subscription from "~/models/Subscription";
 import { client } from "~/utils/ApiClient";
+import { AuthorizationError, NotFoundError } from "~/utils/errors";
 import RootStore from "./RootStore";
 import Store, { RPCAction } from "./base/Store";
 
@@ -26,7 +28,13 @@ export default class SubscriptionsStore extends Store<Subscription> {
         documentId,
         event,
       });
-      return res.data ? this.add(res.data) : undefined;
+      invariant(res?.data, "Data should be available");
+      return this.add(res.data);
+    } catch (err) {
+      if (err instanceof AuthorizationError || err instanceof NotFoundError) {
+        return;
+      }
+      throw err;
     } finally {
       this.isFetching = false;
     }

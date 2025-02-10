@@ -4,6 +4,7 @@ import { QueryNotices } from "@shared/types";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { createContext } from "@server/context";
 import env from "@server/env";
+import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -72,8 +73,12 @@ router.post(
       rejectOnEmpty: false,
     });
 
+    if (!subscription) {
+      throw NotFoundError();
+    }
+
     ctx.body = {
-      data: subscription ? presentSubscription(subscription) : undefined,
+      data: presentSubscription(subscription),
     };
   }
 );
