@@ -34,6 +34,11 @@ describe("DeliverWebhookTask", () => {
       teamId: subscription.teamId,
       actorId: signedInUser.id,
       ip,
+      data: {
+        inviteAccepted: false,
+        name: signedInUser.name,
+        service: "google",
+      },
     };
     await processor.perform({
       subscriptionId: subscription.id,
@@ -79,6 +84,11 @@ describe("DeliverWebhookTask", () => {
       teamId: subscription.teamId,
       actorId: signedInUser.id,
       ip,
+      data: {
+        inviteAccepted: false,
+        name: signedInUser.name,
+        service: "google",
+      },
     };
     await processor.perform({
       subscriptionId: subscription.id,
@@ -156,6 +166,11 @@ describe("DeliverWebhookTask", () => {
       teamId: subscription.teamId,
       actorId: signedInUser.id,
       ip,
+      data: {
+        inviteAccepted: false,
+        name: signedInUser.name,
+        service: "google",
+      },
     };
 
     await task.perform({
@@ -204,6 +219,11 @@ describe("DeliverWebhookTask", () => {
       teamId: subscription.teamId,
       actorId: signedInUser.id,
       ip,
+      data: {
+        inviteAccepted: false,
+        name: signedInUser.name,
+        service: "google",
+      },
     };
 
     await task.perform({

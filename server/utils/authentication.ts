@@ -59,6 +59,8 @@ export async function signIn(
     }
   }
 
+  const inviteAccepted = user.isInvited;
+
   // update the database when the user last signed in
   await user.updateSignedIn(ctx.request.ip);
 
@@ -70,6 +72,7 @@ export async function signIn(
     teamId: team.id,
     authType: AuthenticationType.APP,
     data: {
+      inviteAccepted,
       name: user.name,
       service,
     },
