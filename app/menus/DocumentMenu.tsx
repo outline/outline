@@ -96,7 +96,7 @@ const MenuTrigger: React.FC<MenuTriggerProps> = ({ label, onTrigger }) => {
   const { model: document, menuState } = useMenuContext<Document>();
 
   const { data, loading, error, request } = useRequest(() =>
-    subscriptions.fetchPage({
+    subscriptions.fetchOne({
       documentId: document.id,
       event: "documents.update",
     })

@@ -202,6 +202,27 @@ describe("#subscriptions.info", () => {
     expect(response0.data.documentId).toEqual(document0.id);
   });
 
+  it("should return undefined if no subscription found", async () => {
+    const author = await buildUser();
+    const subscriber = await buildUser({ teamId: author.teamId });
+    const document = await buildDocument({
+      userId: author.id,
+      teamId: author.teamId,
+    });
+
+    const subscription = await server.post("/api/subscriptions.info", {
+      body: {
+        token: subscriber.getJwtToken(),
+        documentId: document.id,
+        event: "documents.update",
+      },
+    });
+    const res = await subscription.json();
+
+    expect(res.status).toEqual(200);
+    expect(res.data).toBeUndefined();
+  });
+
   it("should not allow outsiders to gain info about a subscription", async () => {
     const creator = await buildUser();
     const subscriber = await buildUser({ teamId: creator.teamId });

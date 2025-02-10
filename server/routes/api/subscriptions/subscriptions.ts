@@ -69,11 +69,11 @@ router.post(
         documentId: document.id,
         event,
       },
-      rejectOnEmpty: true,
+      rejectOnEmpty: false,
     });
 
     ctx.body = {
-      data: presentSubscription(subscription),
+      data: subscription ? presentSubscription(subscription) : undefined,
     };
   }
 );
