@@ -358,7 +358,7 @@ export const unsubscribeDocument = createAction({
 
     const document = stores.documents.get(activeDocumentId);
 
-    await document?.unsubscribe(currentUserId);
+    await document?.unsubscribe();
 
     toast.success(t("Unsubscribed from document notifications"));
   },
