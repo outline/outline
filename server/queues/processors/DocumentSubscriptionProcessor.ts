@@ -1,72 +1,60 @@
-import { Transaction } from "sequelize";
-import subscriptionCreator from "@server/commands/subscriptionCreator";
-import { createContext } from "@server/context";
-import { Subscription, User } from "@server/models";
-import { sequelize } from "@server/storage/database";
-import { DocumentUserEvent, Event } from "@server/types";
+import { Op } from "sequelize";
+import { GroupUser } from "@server/models";
+import { DocumentGroupEvent, DocumentUserEvent, Event } from "@server/types";
+import DocumentSubscriptionTask from "../tasks/DocumentSubscriptionTask";
 import BaseProcessor from "./BaseProcessor";
 
 export default class DocumentSubscriptionProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
     "documents.add_user",
     "documents.remove_user",
+    "documents.add_group",
+    "documents.remove_group",
   ];
 
-  async perform(event: DocumentUserEvent) {
-    const user = await User.findByPk(event.userId);
-    if (!user) {
-      return;
-    }
-
+  async perform(event: DocumentUserEvent | DocumentGroupEvent) {
     switch (event.name) {
-      case "documents.add_user": {
-        return this.addUser(event, user);
+      case "documents.add_user":
+      case "documents.remove_user": {
+        await DocumentSubscriptionTask.schedule(event);
+        return;
       }
 
-      case "documents.remove_user": {
-        return this.removeUser(event, user);
-      }
+      case "documents.add_group":
+      case "documents.remove_group":
+        return this.handleGroup(event);
 
       default:
     }
   }
 
-  private async addUser(event: DocumentUserEvent, user: User) {
-    await sequelize.transaction(async (transaction) => {
-      await subscriptionCreator({
-        ctx: createContext({
-          user,
-          authType: event.authType,
-          ip: event.ip,
-          transaction,
-        }),
-        documentId: event.documentId,
-        event: "documents.update",
-        resubscribe: false,
-      });
-    });
-  }
+  private async handleGroup(event: DocumentGroupEvent) {
+    const userEventName: DocumentUserEvent["name"] =
+      event.name === "documents.add_group"
+        ? "documents.add_user"
+        : "documents.remove_user";
 
-  private async removeUser(event: DocumentUserEvent, user: User) {
-    await sequelize.transaction(async (transaction) => {
-      const subscription = await Subscription.findOne({
+    await GroupUser.findAllInBatches<GroupUser>(
+      {
         where: {
-          userId: user.id,
-          documentId: event.documentId,
-          event: "documents.update",
+          groupId: event.modelId,
+          userId: {
+            [Op.ne]: event.actorId,
+          },
         },
-        transaction,
-        lock: Transaction.LOCK.UPDATE,
-      });
-
-      await subscription?.destroyWithCtx(
-        createContext({
-          user,
-          authType: event.authType,
-          ip: event.ip,
-          transaction,
-        })
-      );
-    });
+        batchLimit: 10,
+      },
+      async (groupUsers) => {
+        await Promise.all(
+          groupUsers.map((groupUser) =>
+            DocumentSubscriptionTask.schedule({
+              ...event,
+              name: userEventName,
+              userId: groupUser.userId,
+            })
+          )
+        );
+      }
+    );
   }
 }
