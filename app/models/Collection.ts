@@ -136,9 +136,7 @@ export default class Collection extends ParanoidModel {
    */
   @computed
   get isSubscribed(): boolean {
-    return !!this.store.rootStore.subscriptions.orderedData.find(
-      (subscription) => subscription.collectionId === this.id
-    );
+    return !!this.store.rootStore.subscriptions.getByCollectionId(this.id);
   }
 
   @computed
@@ -402,7 +400,7 @@ export default class Collection extends ParanoidModel {
    * @returns A promise that resolves when the subscription is destroyed.
    */
   @action
-  unsubscribe = (userId: string) => this.store.unsubscribe(userId, this);
+  unsubscribe = () => this.store.unsubscribe(this);
 
   archive = () => this.store.archive(this);
 

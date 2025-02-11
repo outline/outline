@@ -261,7 +261,7 @@ export const unsubscribeCollection = createAction({
 
     const collection = stores.collections.get(activeCollectionId);
 
-    await collection?.unsubscribe(currentUserId);
+    await collection?.unsubscribe();
 
     toast.success(t("Unsubscribed from collection notifications"));
   },

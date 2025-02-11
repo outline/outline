@@ -1,6 +1,7 @@
 import capitalize from "lodash/capitalize";
 import isEmpty from "lodash/isEmpty";
 import isUndefined from "lodash/isUndefined";
+import noop from "lodash/noop";
 import { observer } from "mobx-react";
 import { EditIcon, InputIcon, RestoreIcon, SearchIcon } from "outline-icons";
 import * as React from "react";
@@ -101,10 +102,12 @@ const MenuTrigger: React.FC<MenuTriggerProps> = ({ label, onTrigger }) => {
         documentId: document.id,
         event: SubscriptionEventType.Document,
       }),
-      subscriptions.fetchOne({
-        collectionId: document.collectionId,
-        event: SubscriptionEventType.Collection,
-      }),
+      document.collectionId
+        ? subscriptions.fetchOne({
+            collectionId: document.collectionId,
+            event: SubscriptionEventType.Collection,
+          })
+        : noop,
     ])
   );
 
@@ -193,7 +196,7 @@ const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
         if (can.createDocument) {
           filtered.push({
             type: "button",
-            onClick: ev =>
+            onClick: (ev) =>
               handleRestore(ev, {
                 collectionId: collection.id,
               }),
@@ -224,7 +227,7 @@ const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
             visible:
               !!(document.isWorkspaceTemplate || collection?.isActive) &&
               !!(can.restore || can.unarchive),
-            onClick: ev => handleRestore(ev),
+            onClick: (ev) => handleRestore(ev),
             icon: <RestoreIcon />,
           },
           {
@@ -336,7 +339,7 @@ const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
                   label={t("Full width")}
                   labelPosition="left"
                   checked={document.fullWidth}
-                  onChange={ev => {
+                  onChange={(ev) => {
                     const fullWidth = ev.currentTarget.checked;
                     user.setPreference(
                       UserPreference.FullWidthDocuments,
@@ -438,10 +441,7 @@ function DocumentMenu({
         </label>
       </VisuallyHidden>
       <MenuContext.Provider value={{ model: document, menuState }}>
-        <MenuTrigger
-          label={label}
-          onTrigger={showMenu}
-        />
+        <MenuTrigger label={label} onTrigger={showMenu} />
         {isMenuVisible ? (
           <MenuContent
             onOpen={onOpen}

@@ -44,9 +44,9 @@ export default class DocumentSubscriptionProcessor extends BaseProcessor {
         },
         batchLimit: 10,
       },
-      async groupUsers => {
+      async (groupUsers) => {
         await Promise.all(
-          groupUsers.map(groupUser =>
+          groupUsers.map((groupUser) =>
             DocumentSubscriptionTask.schedule({
               ...event,
               name: userEventName,

@@ -220,9 +220,9 @@ export default class CollectionsStore extends Store<Collection> {
       event: SubscriptionEventType.Collection,
     });
 
-  unsubscribe = (userId: string, collection: Collection) => {
-    const subscription = this.rootStore.subscriptions.orderedData.find(
-      (s) => s.collectionId === collection.id && s.userId === userId
+  unsubscribe = (collection: Collection) => {
+    const subscription = this.rootStore.subscriptions.getByCollectionId(
+      collection.id
     );
 
     return subscription?.delete();

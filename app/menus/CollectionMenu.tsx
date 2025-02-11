@@ -74,7 +74,7 @@ function CollectionMenu({
   const file = React.useRef<HTMLInputElement>(null);
 
   const { data, loading, error, request } = useRequest(() =>
-    subscriptions.fetchPage({
+    subscriptions.fetchOne({
       collectionId: collection.id,
       event: SubscriptionEventType.Collection,
     })
