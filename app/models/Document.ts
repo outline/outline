@@ -307,9 +307,7 @@ export default class Document extends ArchivableModel implements Searchable {
    */
   @computed
   get isSubscribed(): boolean {
-    return !!this.store.rootStore.subscriptions.orderedData.find(
-      (subscription) => subscription.documentId === this.id
-    );
+    return !!this.store.rootStore.subscriptions.getByDocumentId(this.id);
   }
 
   /**
@@ -501,7 +499,7 @@ export default class Document extends ArchivableModel implements Searchable {
    * @returns A promise that resolves when the subscription is destroyed.
    */
   @action
-  unsubscribe = (userId: string) => this.store.unsubscribe(userId, this);
+  unsubscribe = () => this.store.unsubscribe(this);
 
   @action
   view = () => {

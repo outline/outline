@@ -816,9 +816,9 @@ export default class DocumentsStore extends Store<Document> {
       event: "documents.update",
     });
 
-  unsubscribe = (userId: string, document: Document) => {
-    const subscription = this.rootStore.subscriptions.orderedData.find(
-      (s) => s.documentId === document.id && s.userId === userId
+  unsubscribe = (document: Document) => {
+    const subscription = this.rootStore.subscriptions.getByDocumentId(
+      document.id
     );
 
     return subscription?.delete();
