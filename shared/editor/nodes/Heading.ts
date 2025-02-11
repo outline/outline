@@ -10,11 +10,10 @@ import { Command, Plugin, Selection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { toast } from "sonner";
 import { Primitive } from "utility-types";
-import Storage from "../../utils/Storage";
 import backspaceToParagraph from "../commands/backspaceToParagraph";
 import splitHeading from "../commands/splitHeading";
 import toggleBlockType from "../commands/toggleBlockType";
-import headingToSlug, { headingToPersistenceKey } from "../lib/headingToSlug";
+import headingToSlug from "../lib/headingToSlug";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { HeadingTracker } from "../plugins/HeadingTracker";
 import Node from "./Node";
@@ -164,14 +163,6 @@ export default class Heading extends Node {
           ...node.attrs,
           collapsed,
         });
-
-        const persistKey = headingToPersistenceKey(node, this.editor.props.id);
-
-        if (collapsed) {
-          Storage.set(persistKey, "collapsed");
-        } else {
-          Storage.remove(persistKey);
-        }
 
         view.dispatch(transaction);
 
