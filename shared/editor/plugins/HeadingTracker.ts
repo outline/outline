@@ -85,6 +85,9 @@ export class HeadingTracker extends Plugin {
           cursorPos > closestHeading.pos.before &&
           cursorPos < closestHeading.pos.after
         ) {
+          // noop if the cursor lies within a heading node because
+          // then this plugin overrides the behavior of heading toggle button
+          // in a way that user can't collapse heading anymore by clicking the toggle button
           return;
         }
         const headingsToUnfold = this.findHeadingsToUnfold();
