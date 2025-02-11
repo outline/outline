@@ -256,7 +256,7 @@
     "@babel/cli": "^7.26.4",
     "@babel/preset-typescript": "^7.26.0",
     "@faker-js/faker": "^8.4.1",
-    "@relative-ci/agent": "^4.2.13",
+    "@relative-ci/agent": "^4.2.14",
     "@testing-library/react": "^12.0.0",
     "@types/addressparser": "^1.0.3",
     "@types/body-scroll-lock": "^3.1.2",
