@@ -1,8 +1,10 @@
 import { Node } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
+import { Decoration, DecorationSet } from "prosemirror-view";
 import sorted from "sorted-array-functions";
 import Heading, { HeadingLevel } from "../nodes/Heading";
 import { findBlockNodes } from "../queries/findChildren";
+import { findCollapsedNodes } from "../queries/findCollapsedNodes";
 
 /**
  * Algorithm for finding which headings to unfold upon backspacing is as follows:
@@ -104,6 +106,19 @@ export class HeadingTracker extends Plugin {
         }
 
         return transaction;
+      },
+      props: {
+        decorations: (state) => {
+          const { doc } = state;
+          const decorations: Decoration[] = findCollapsedNodes(doc).map(
+            (block) =>
+              Decoration.node(block.pos, block.pos + block.node.nodeSize, {
+                class: "folded-content",
+              })
+          );
+
+          return DecorationSet.create(doc, decorations);
+        },
       },
     });
   }

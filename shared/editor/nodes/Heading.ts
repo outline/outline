@@ -17,7 +17,6 @@ import toggleBlockType from "../commands/toggleBlockType";
 import headingToSlug, { headingToPersistenceKey } from "../lib/headingToSlug";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { HeadingTracker } from "../plugins/HeadingTracker";
-import { findCollapsedNodes } from "../queries/findCollapsedNodes";
 import Node from "./Node";
 
 export enum HeadingLevel {
@@ -284,23 +283,7 @@ export default class Heading extends Node {
       },
     });
 
-    const foldPlugin: Plugin = new Plugin({
-      props: {
-        decorations: (state) => {
-          const { doc } = state;
-          const decorations: Decoration[] = findCollapsedNodes(doc).map(
-            (block) =>
-              Decoration.node(block.pos, block.pos + block.node.nodeSize, {
-                class: "folded-content",
-              })
-          );
-
-          return DecorationSet.create(doc, decorations);
-        },
-      },
-    });
-
-    return [new HeadingTracker(), foldPlugin, plugin];
+    return [new HeadingTracker(), plugin];
   }
 
   inputRules({ type }: { type: NodeType }) {
