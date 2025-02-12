@@ -107,6 +107,7 @@ jobs:
           name: Send bundle stats to RelativeCI
           command: npx relative-ci-agent
   build-image:
+    resource_class: xlarge
     executor: docker-publisher
     steps:
       - checkout
