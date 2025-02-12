@@ -1,6 +1,5 @@
 import capitalize from "lodash/capitalize";
 import isEmpty from "lodash/isEmpty";
-import isUndefined from "lodash/isUndefined";
 import noop from "lodash/noop";
 import { observer } from "mobx-react";
 import { EditIcon, InputIcon, RestoreIcon, SearchIcon } from "outline-icons";
@@ -96,7 +95,11 @@ const MenuTrigger: React.FC<MenuTriggerProps> = ({ label, onTrigger }) => {
   const { subscriptions } = useStores();
   const { model: document, menuState } = useMenuContext<Document>();
 
-  const { data, loading, error, request } = useRequest(() =>
+  const {
+    loading: subscriptionsLoading,
+    loaded: subscriptionsLoaded,
+    request: loadSubscriptions,
+  } = useRequest(() =>
     Promise.all([
       subscriptions.fetchOne({
         documentId: document.id,
@@ -112,11 +115,11 @@ const MenuTrigger: React.FC<MenuTriggerProps> = ({ label, onTrigger }) => {
   );
 
   const handlePointerEnter = React.useCallback(() => {
-    if (isUndefined(data ?? error) && !loading) {
-      void request();
+    if (!subscriptionsLoading && !subscriptionsLoaded) {
+      void loadSubscriptions();
       void document.loadRelations();
     }
-  }, [data, error, loading, request, document]);
+  }, [subscriptionsLoading, subscriptionsLoaded, loadSubscriptions, document]);
 
   return label ? (
     <MenuButton

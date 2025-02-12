@@ -1,4 +1,3 @@
-import isUndefined from "lodash/isUndefined";
 import { observer } from "mobx-react";
 import {
   NewDocumentIcon,
@@ -73,7 +72,11 @@ function CollectionMenu({
   const history = useHistory();
   const file = React.useRef<HTMLInputElement>(null);
 
-  const { data, loading, error, request } = useRequest(() =>
+  const {
+    loading: subscriptionLoading,
+    loaded: subscriptionLoaded,
+    request: loadSubscription,
+  } = useRequest(() =>
     subscriptions.fetchOne({
       collectionId: collection.id,
       event: SubscriptionEventType.Collection,
@@ -81,10 +84,10 @@ function CollectionMenu({
   );
 
   const handlePointerEnter = React.useCallback(() => {
-    if (isUndefined(data ?? error) && !loading) {
-      void request();
+    if (!subscriptionLoading && !subscriptionLoaded) {
+      void loadSubscription();
     }
-  }, [data, error, loading, request]);
+  }, [subscriptionLoading, subscriptionLoaded, loadSubscription]);
 
   const handleExport = React.useCallback(() => {
     dialogs.openModal({
