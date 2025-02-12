@@ -251,10 +251,13 @@ const codeBlockStyle = (props: Props) => css`
 `;
 
 const findAndReplaceStyle = () => css`
-  .find-result {
+  .find-result:not(:has(.mention)),
+  .find-result .mention {
     background: rgba(255, 213, 0, 0.25);
+  }
 
-    &.current-result {
+  .find-result.current-result:not(:has(.mention)),
+  .find-result.current-result .mention {
       background: rgba(255, 213, 0, 0.75);
       animation: ${pulse} 150ms 1;
     }
@@ -615,7 +618,6 @@ iframe.embed {
 }
 
 .column-resize-handle {
-  animation: ${fadeIn} 150ms ease-in-out;
   ${props.readOnly ? "display: none;" : ""}
   position: absolute;
   right: -1px;
