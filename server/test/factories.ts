@@ -15,6 +15,7 @@ import {
   NotificationEventType,
   ProsemirrorData,
   ReactionSummary,
+  SubscriptionType,
   UserRole,
 } from "@shared/types";
 import { parser, schema } from "@server/editor";
@@ -108,29 +109,16 @@ export async function buildStar(overrides: Partial<Star> = {}) {
   });
 }
 
-export async function buildSubscription(overrides: Partial<Subscription> = {}) {
-  let user;
-
-  if (overrides.userId) {
-    user = await User.findByPk(overrides.userId, {
-      rejectOnEmpty: true,
-    });
-  } else {
-    user = await buildUser();
-    overrides.userId = user.id;
-  }
-
-  if (!overrides.documentId) {
-    const document = await buildDocument({
-      createdById: overrides.userId,
-      teamId: user.teamId,
-    });
-    overrides.documentId = document.id;
-  }
-
+export async function buildSubscription(
+  options:
+    | { userId: string } & ({ collectionId: string } | { documentId: string })
+) {
   return Subscription.create({
-    event: "documents.update",
-    ...overrides,
+    event:
+      "collectionId" in options
+        ? SubscriptionType.Collection
+        : SubscriptionType.Document,
+    ...options,
   });
 }
 

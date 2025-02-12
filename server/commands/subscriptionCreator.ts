@@ -1,5 +1,5 @@
 import { WhereOptions } from "sequelize";
-import { SubscriptionEventType } from "@shared/types";
+import { SubscriptionType } from "@shared/types";
 import { createContext } from "@server/context";
 import { Subscription, Document } from "@server/models";
 import { sequelize } from "@server/storage/database";
@@ -13,7 +13,7 @@ type Props = {
   /** The collection to subscribe to */
   collectionId?: string;
   /** Event to subscribe to */
-  event: SubscriptionEventType;
+  event: SubscriptionType;
   /** Whether the subscription should be restored if it exists in a deleted state  */
   resubscribe?: boolean;
 };
@@ -83,7 +83,7 @@ export const createSubscriptionsForDocument = async (
           transaction,
         }),
         documentId: document.id,
-        event: SubscriptionEventType.Document,
+        event: SubscriptionType.Document,
         resubscribe: false,
       });
     }

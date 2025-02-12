@@ -144,7 +144,7 @@ describe("#subscriptions.create", () => {
     expect(body.ok).toEqual(false);
     expect(body.error).toEqual("validation_error");
     expect(body.message).toEqual(
-      `event: Invalid literal value, expected "documents.update"`
+      "event: Invalid discriminator value. Expected 'collections.update' | 'documents.update'"
     );
   });
 });
@@ -346,7 +346,7 @@ describe("#subscriptions.info", () => {
     expect(response0.ok).toEqual(false);
     expect(response0.error).toEqual("validation_error");
     expect(response0.message).toEqual(
-      `event: Invalid literal value, expected "documents.update"`
+      "event: Invalid discriminator value. Expected 'collections.update' | 'documents.update'"
     );
 
     // `viewer` wants info about `subscriber`'s
@@ -366,7 +366,7 @@ describe("#subscriptions.info", () => {
     expect(response1.ok).toEqual(false);
     expect(response1.error).toEqual("validation_error");
     expect(response1.message).toEqual(
-      `event: Invalid literal value, expected "documents.update"`
+      "event: Invalid discriminator value. Expected 'collections.update' | 'documents.update'"
     );
   });
 });
@@ -380,12 +380,9 @@ describe("#subscriptions.list", () => {
       teamId: user.teamId,
     });
 
-    await buildSubscription();
-
     const subscription = await buildSubscription({
       userId: user.id,
       documentId: document.id,
-      event: "documents.update",
     });
 
     const res = await server.post("/api/subscriptions.list", {
@@ -538,7 +535,7 @@ describe("#subscriptions.list", () => {
     expect(body.ok).toEqual(false);
     expect(body.error).toEqual("validation_error");
     expect(body.message).toEqual(
-      `event: Invalid literal value, expected "documents.update"`
+      "event: Invalid discriminator value. Expected 'collections.update' | 'documents.update'"
     );
   });
 
@@ -608,7 +605,6 @@ describe("#subscriptions.delete", () => {
     const subscription = await buildSubscription({
       userId: user.id,
       documentId: document.id,
-      event: "documents.update",
     });
 
     const res = await server.post("/api/subscriptions.delete", {
@@ -637,7 +633,6 @@ describe("#subscriptions.delete", () => {
     const subscription = await buildSubscription({
       userId: user.id,
       documentId: document.id,
-      event: "documents.update",
     });
 
     const res = await server.post("/api/subscriptions.delete", {

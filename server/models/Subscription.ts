@@ -8,7 +8,7 @@ import {
   IsIn,
   Scopes,
 } from "sequelize-typescript";
-import { SubscriptionEventType } from "@shared/types";
+import { SubscriptionType } from "@shared/types";
 import Collection from "./Collection";
 import Document from "./Document";
 import User from "./User";
@@ -51,7 +51,7 @@ class Subscription extends ParanoidModel<
   @Column(DataType.UUID)
   collectionId: string | null;
 
-  @IsIn([Object.values(SubscriptionEventType)])
+  @IsIn([Object.values(SubscriptionType)])
   @Column(DataType.STRING)
   event: string;
 }

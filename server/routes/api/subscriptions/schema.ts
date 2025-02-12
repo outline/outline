@@ -1,15 +1,15 @@
 import { z } from "zod";
-import { SubscriptionEventType } from "@shared/types";
+import { SubscriptionType } from "@shared/types";
 import { ValidateDocumentId } from "@server/validation";
 import { BaseSchema } from "../schema";
 
 const SubscriptionBody = z.discriminatedUnion("event", [
   z.object({
-    event: z.literal(SubscriptionEventType.Collection),
+    event: z.literal(SubscriptionType.Collection),
     collectionId: z.string().uuid(),
   }),
   z.object({
-    event: z.literal(SubscriptionEventType.Document),
+    event: z.literal(SubscriptionType.Document),
     documentId: z.string().refine(ValidateDocumentId.isValid, {
       message: ValidateDocumentId.message,
     }),

@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import { Transaction, WhereOptions } from "sequelize";
-import { QueryNotices, SubscriptionEventType } from "@shared/types";
+import { QueryNotices, SubscriptionType } from "@shared/types";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { createContext } from "@server/context";
 import env from "@server/env";
@@ -33,7 +33,7 @@ router.post(
       event,
     };
 
-    if (event === SubscriptionEventType.Collection) {
+    if (event === SubscriptionType.Collection) {
       const { collectionId } = ctx.input.body;
 
       const collection = await Collection.scope({
@@ -78,7 +78,7 @@ router.post(
       event,
     };
 
-    if (event === SubscriptionEventType.Collection) {
+    if (event === SubscriptionType.Collection) {
       const { collectionId } = ctx.input.body;
 
       const collection = await Collection.scope({
@@ -119,7 +119,7 @@ router.post(
 
     let documentId, collectionId;
 
-    if (event === SubscriptionEventType.Collection) {
+    if (event === SubscriptionType.Collection) {
       collectionId = ctx.input.body.collectionId;
 
       const collection = await Collection.scope({

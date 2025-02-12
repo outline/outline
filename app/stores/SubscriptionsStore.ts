@@ -1,6 +1,6 @@
 import invariant from "invariant";
 import { action } from "mobx";
-import { SubscriptionEventType } from "@shared/types";
+import { SubscriptionType } from "@shared/types";
 import Subscription from "~/models/Subscription";
 import { client } from "~/utils/ApiClient";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
@@ -17,11 +17,11 @@ export default class SubscriptionsStore extends Store<Subscription> {
   @action
   async fetchOne(
     options:
-      | { documentId: string; event: SubscriptionEventType.Document }
-      | { collectionId: string; event: SubscriptionEventType.Collection }
+      | { documentId: string; event: SubscriptionType.Document }
+      | { collectionId: string; event: SubscriptionType.Collection }
   ) {
     const subscription =
-      options.event === SubscriptionEventType.Collection
+      options.event === SubscriptionType.Collection
         ? this.getByCollectionId(options.collectionId)
         : this.getByDocumentId(options.documentId);
 

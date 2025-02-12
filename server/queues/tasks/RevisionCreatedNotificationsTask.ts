@@ -4,7 +4,7 @@ import { Op } from "sequelize";
 import {
   MentionType,
   NotificationEventType,
-  SubscriptionEventType,
+  SubscriptionType,
 } from "@shared/types";
 import { createSubscriptionsForDocument } from "@server/commands/subscriptionCreator";
 import env from "@server/env";
@@ -81,8 +81,8 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
         document,
         notificationType: NotificationEventType.UpdateDocument,
         subscriptionTypes: [
-          SubscriptionEventType.Collection,
-          SubscriptionEventType.Document,
+          SubscriptionType.Collection,
+          SubscriptionType.Document,
         ],
         actorId: document.lastModifiedById,
       })

@@ -3,7 +3,7 @@ import { Op, WhereOptions } from "sequelize";
 import {
   NotificationEventType,
   MentionType,
-  SubscriptionEventType,
+  SubscriptionType,
 } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import {
@@ -64,7 +64,7 @@ export default class NotificationHelper {
       document,
       notificationType: NotificationEventType.UpdateDocument,
       subscriptionTypes: !comment.parentCommentId
-        ? [SubscriptionEventType.Document]
+        ? [SubscriptionType.Document]
         : undefined,
       actorId,
     });
@@ -133,10 +133,9 @@ export default class NotificationHelper {
    * Get the recipients of a notification for a document event.
    *
    * @param document The document to get recipients for.
-   * @param eventType The event name.
+   * @param notificationType The notification type for which to find the recipients.
+   * @param subscriptionTypes The active subscription types to consider for the recipient, if any.
    * @param actorId The id of the user that performed the action.
-   * @param onlySubscribers Whether to only return recipients that are actively
-   * subscribed to the document.
    * @returns A list of recipients
    */
   public static getDocumentNotificationRecipients = async ({
@@ -147,7 +146,7 @@ export default class NotificationHelper {
   }: {
     document: Document;
     notificationType: NotificationEventType;
-    subscriptionTypes?: SubscriptionEventType[];
+    subscriptionTypes?: SubscriptionType[];
     actorId: string;
   }): Promise<User[]> => {
     // First find all the users that have notifications enabled for this event
@@ -170,14 +169,14 @@ export default class NotificationHelper {
       const subscriptionFilters = subscriptionTypes.map<
         WhereOptions<Subscription>
       >((subscriptionType) =>
-        subscriptionType === SubscriptionEventType.Collection
+        subscriptionType === SubscriptionType.Collection
           ? {
               collectionId: document.collectionId,
-              event: SubscriptionEventType.Collection,
+              event: SubscriptionType.Collection,
             }
           : {
               documentId: document.id,
-              event: SubscriptionEventType.Document,
+              event: SubscriptionType.Document,
             }
       );
 

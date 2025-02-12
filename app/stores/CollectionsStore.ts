@@ -8,7 +8,7 @@ import {
   CollectionPermission,
   CollectionStatusFilter,
   FileOperationFormat,
-  SubscriptionEventType,
+  SubscriptionType,
 } from "@shared/types";
 import Collection from "~/models/Collection";
 import { PaginationParams, Properties } from "~/types";
@@ -217,7 +217,7 @@ export default class CollectionsStore extends Store<Collection> {
   subscribe = (collection: Collection) =>
     this.rootStore.subscriptions.create({
       collectionId: collection.id,
-      event: SubscriptionEventType.Collection,
+      event: SubscriptionType.Collection,
     });
 
   unsubscribe = (collection: Collection) => {

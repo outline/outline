@@ -270,7 +270,7 @@ export type CollectionSort = {
   direction: "asc" | "desc";
 };
 
-export enum SubscriptionEventType {
+export enum SubscriptionType {
   Collection = "collections.update",
   Document = "documents.update",
 }

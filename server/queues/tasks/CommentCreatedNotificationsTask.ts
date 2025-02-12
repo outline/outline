@@ -1,7 +1,7 @@
 import {
   MentionType,
   NotificationEventType,
-  SubscriptionEventType,
+  SubscriptionType,
 } from "@shared/types";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { createContext } from "@server/context";
@@ -38,7 +38,7 @@ export default class CommentCreatedNotificationsTask extends BaseTask<CommentEve
           transaction,
         }),
         documentId: document.id,
-        event: SubscriptionEventType.Document,
+        event: SubscriptionType.Document,
         resubscribe: false,
       });
     });

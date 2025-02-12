@@ -6,7 +6,7 @@ import omitBy from "lodash/omitBy";
 import orderBy from "lodash/orderBy";
 import { observable, action, computed, runInAction } from "mobx";
 import {
-  SubscriptionEventType,
+  SubscriptionType,
   type DateFilter,
   type NavigationNode,
   type PublicTeam,
@@ -814,7 +814,7 @@ export default class DocumentsStore extends Store<Document> {
   subscribe = (document: Document) =>
     this.rootStore.subscriptions.create({
       documentId: document.id,
-      event: SubscriptionEventType.Document,
+      event: SubscriptionType.Document,
     });
 
   unsubscribe = (document: Document) => {

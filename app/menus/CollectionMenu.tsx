@@ -14,7 +14,7 @@ import { useHistory } from "react-router-dom";
 import { useMenuState, MenuButton, MenuButtonHTMLProps } from "reakit/Menu";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import { toast } from "sonner";
-import { SubscriptionEventType } from "@shared/types";
+import { SubscriptionType } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import Collection from "~/models/Collection";
 import ContextMenu, { Placement } from "~/components/ContextMenu";
@@ -79,7 +79,7 @@ function CollectionMenu({
   } = useRequest(() =>
     subscriptions.fetchOne({
       collectionId: collection.id,
-      event: SubscriptionEventType.Collection,
+      event: SubscriptionType.Collection,
     })
   );
 

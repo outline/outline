@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
-import { SubscriptionEventType, UserPreference } from "@shared/types";
+import { SubscriptionType, UserPreference } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import Document from "~/models/Document";
 import ContextMenu from "~/components/ContextMenu";
@@ -103,12 +103,12 @@ const MenuTrigger: React.FC<MenuTriggerProps> = ({ label, onTrigger }) => {
     Promise.all([
       subscriptions.fetchOne({
         documentId: document.id,
-        event: SubscriptionEventType.Document,
+        event: SubscriptionType.Document,
       }),
       document.collectionId
         ? subscriptions.fetchOne({
             collectionId: document.collectionId,
-            event: SubscriptionEventType.Collection,
+            event: SubscriptionType.Collection,
           })
         : noop,
     ])
