@@ -1,4 +1,5 @@
 import { Transaction } from "sequelize";
+import { SubscriptionType } from "@shared/types";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { createContext } from "@server/context";
 import { Subscription, User } from "@server/models";
@@ -34,7 +35,7 @@ export default class DocumentSubscriptionTask extends BaseTask<DocumentUserEvent
           transaction,
         }),
         documentId: event.documentId,
-        event: "documents.update",
+        event: SubscriptionType.Document,
         resubscribe: false,
       });
     });
