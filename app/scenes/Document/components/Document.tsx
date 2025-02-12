@@ -542,14 +542,6 @@ class DocumentScene extends React.Component<Props> {
                   </RevisionContainer>
                 ) : (
                   <>
-                    {showContents && (
-                      <ContentsContainer
-                        docFullWidth={document.fullWidth}
-                        position={tocPos}
-                      >
-                        <Contents />
-                      </ContentsContainer>
-                    )}
                     <MeasuredContainer
                       name="document"
                       as={EditorContainer}
@@ -600,6 +592,14 @@ class DocumentScene extends React.Component<Props> {
                         ) : null}
                       </Editor>
                     </MeasuredContainer>
+                    {showContents && (
+                      <ContentsContainer
+                        docFullWidth={document.fullWidth}
+                        position={tocPos}
+                      >
+                        <Contents />
+                      </ContentsContainer>
+                    )}
                   </>
                 )}
               </React.Suspense>
