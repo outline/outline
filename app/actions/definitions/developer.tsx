@@ -2,6 +2,7 @@ import copy from "copy-to-clipboard";
 import {
   BeakerIcon,
   CopyIcon,
+  EditIcon,
   ToolsIcon,
   TrashIcon,
   UserIcon,
@@ -80,6 +81,38 @@ export const copyId = createAction({
         perform: () => copyAndToast(env.VERSION),
       }),
     ];
+  },
+});
+
+function generateRandomText() {
+  const characters =
+    "abcdefghijklmno pqrstuvwxyzABCDEFGHIJKL MNOPQRSTUVWXYZ 0123456789\n";
+  let text = "";
+  for (let i = 0; i < Math.floor(Math.random() * 10) + 1; i++) {
+    text += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return text;
+}
+
+export const startTyping = createAction({
+  name: "Start automatic typing",
+  icon: <EditIcon />,
+  section: DeveloperSection,
+  visible: ({ activeDocumentId }) =>
+    !!activeDocumentId && env.ENVIRONMENT === "development",
+  perform: () => {
+    const intervalId = setInterval(() => {
+      const text = generateRandomText();
+      document.execCommand("insertText", false, text);
+    }, 250);
+
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        intervalId && clearInterval(intervalId);
+      }
+    });
+
+    toast.info("Automatic typing started, press Escape to stop");
   },
 });
 
@@ -169,6 +202,7 @@ export const developer = createAction({
     createToast,
     createTestUsers,
     clearIndexedDB,
+    startTyping,
   ],
 });
 
