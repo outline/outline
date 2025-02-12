@@ -143,32 +143,29 @@ export default class Heading extends Node {
     const { view } = this.editor;
     const hadFocus = view.hasFocus();
     const { tr } = view.state;
-    const { top, left } = event.currentTarget.getBoundingClientRect();
-    const result = view.posAtCoords({ top, left });
 
-    if (result) {
-      const node = view.state.doc.nodeAt(result.inside);
+    const pos = view.posAtDOM(event.currentTarget, 0);
+    const $pos = view.state.doc.resolve(pos);
+    const node = view.state.doc.nodeAt($pos.before());
 
-      if (node) {
-        const endOfHeadingPos = result.inside + node.nodeSize;
-        const $pos = view.state.doc.resolve(endOfHeadingPos);
-        const collapsed = !node.attrs.collapsed;
+    if (node) {
+      const collapsed = !node.attrs.collapsed;
 
-        if (collapsed && view.state.selection.to > endOfHeadingPos) {
-          // move selection to the end of the collapsed heading
-          tr.setSelection(Selection.near($pos, -1));
-        }
+      if (collapsed && view.state.selection.to > $pos.end()) {
+        // move selection to the end of the collapsed heading
+        const $end = view.state.doc.resolve($pos.end());
+        tr.setSelection(Selection.near($end, -1));
+      }
 
-        const transaction = tr.setNodeMarkup(result.inside, undefined, {
-          ...node.attrs,
-          collapsed,
-        });
+      const transaction = tr.setNodeMarkup($pos.before(), undefined, {
+        ...node.attrs,
+        collapsed,
+      });
 
-        view.dispatch(transaction);
+      view.dispatch(transaction);
 
-        if (hadFocus) {
-          view.focus();
-        }
+      if (hadFocus) {
+        view.focus();
       }
     }
   };
