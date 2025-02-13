@@ -59,21 +59,22 @@ export const useRevNav = (revisionHtml: string) => {
     [opIndices]
   );
 
-  const NavBar = () => (
-    <Container>
-      <span>
-        {select === -1 && t("Total {{ count }} edit", { count: total })}
-        {select !== -1 &&
-          t("Edit {{ i }} of {{ total }}", { i: select + 1, total })}
-      </span>
-      <Button onClick={() => handleNav(-1)}>
-        <CaretUpIcon />
-      </Button>
-      <Button onClick={() => handleNav(+1)}>
-        <CaretDownIcon />
-      </Button>
-    </Container>
-  );
+  const NavBar = () =>
+    total !== 0 ? (
+      <Container>
+        <span>
+          {select === -1 && t("Total {{ count }} edit", { count: total })}
+          {select !== -1 &&
+            t("Edit {{ i }} of {{ total }}", { i: select + 1, total })}
+        </span>
+        <Button onClick={() => handleNav(-1)}>
+          <CaretUpIcon />
+        </Button>
+        <Button onClick={() => handleNav(+1)}>
+          <CaretDownIcon />
+        </Button>
+      </Container>
+    ) : null;
 
   return {
     editorRef,
