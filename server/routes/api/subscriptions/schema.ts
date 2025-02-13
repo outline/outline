@@ -1,20 +1,23 @@
+import isEmpty from "lodash/isEmpty";
 import { z } from "zod";
 import { SubscriptionType } from "@shared/types";
 import { ValidateDocumentId } from "@server/validation";
 import { BaseSchema } from "../schema";
 
-const SubscriptionBody = z.discriminatedUnion("event", [
-  z.object({
-    event: z.literal(SubscriptionType.Collection),
-    collectionId: z.string().uuid(),
-  }),
-  z.object({
+const SubscriptionBody = z
+  .object({
     event: z.literal(SubscriptionType.Document),
-    documentId: z.string().refine(ValidateDocumentId.isValid, {
-      message: ValidateDocumentId.message,
-    }),
-  }),
-]);
+    collectionId: z.string().uuid().optional(),
+    documentId: z
+      .string()
+      .refine(ValidateDocumentId.isValid, {
+        message: ValidateDocumentId.message,
+      })
+      .optional(),
+  })
+  .refine((obj) => !(isEmpty(obj.collectionId) && isEmpty(obj.documentId)), {
+    message: "one of collectionId or documentId is required",
+  });
 
 export const SubscriptionsListSchema = BaseSchema.extend({
   body: SubscriptionBody,

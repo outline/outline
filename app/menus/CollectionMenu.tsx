@@ -79,7 +79,7 @@ function CollectionMenu({
   } = useRequest(() =>
     subscriptions.fetchOne({
       collectionId: collection.id,
-      event: SubscriptionType.Collection,
+      event: SubscriptionType.Document,
     })
   );
 

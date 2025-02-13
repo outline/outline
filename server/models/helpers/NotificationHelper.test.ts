@@ -1,4 +1,4 @@
-import { NotificationEventType, SubscriptionType } from "@shared/types";
+import { NotificationEventType } from "@shared/types";
 import {
   buildDocument,
   buildSubscription,
@@ -8,7 +8,7 @@ import NotificationHelper from "./NotificationHelper";
 
 describe("NotificationHelper", () => {
   describe("getDocumentNotificationRecipients", () => {
-    it("should return all users who have notification enabled for the event when subscription type is not provided", async () => {
+    it("should return all users who have notification enabled for the event", async () => {
       const documentAuthor = await buildUser();
       const document = await buildDocument({
         userId: documentAuthor.id,
@@ -23,6 +23,7 @@ describe("NotificationHelper", () => {
         await NotificationHelper.getDocumentNotificationRecipients({
           document,
           notificationType: NotificationEventType.UpdateDocument,
+          onlySubscribers: false,
           actorId: documentAuthor.id,
         });
 
@@ -46,7 +47,7 @@ describe("NotificationHelper", () => {
         await NotificationHelper.getDocumentNotificationRecipients({
           document,
           notificationType: NotificationEventType.UpdateDocument,
-          subscriptionTypes: [SubscriptionType.Document],
+          onlySubscribers: true,
           actorId: documentAuthor.id,
         });
 
@@ -70,7 +71,7 @@ describe("NotificationHelper", () => {
         await NotificationHelper.getDocumentNotificationRecipients({
           document,
           notificationType: NotificationEventType.UpdateDocument,
-          subscriptionTypes: [SubscriptionType.Collection],
+          onlySubscribers: true,
           actorId: documentAuthor.id,
         });
 
@@ -108,10 +109,7 @@ describe("NotificationHelper", () => {
         await NotificationHelper.getDocumentNotificationRecipients({
           document,
           notificationType: NotificationEventType.UpdateDocument,
-          subscriptionTypes: [
-            SubscriptionType.Collection,
-            SubscriptionType.Document,
-          ],
+          onlySubscribers: true,
           actorId: documentAuthor.id,
         });
 
@@ -120,52 +118,6 @@ describe("NotificationHelper", () => {
       const recipientIds = recipients.map((u) => u.id);
       expect(recipientIds).toContain(collectionSubscribedUser.id);
       expect(recipientIds).toContain(documentSubscribedUser.id);
-    });
-
-    it("should return no users when the user is subscribed to the document, but the requested subscription is for the containing collection", async () => {
-      const documentAuthor = await buildUser();
-      const document = await buildDocument({
-        userId: documentAuthor.id,
-        teamId: documentAuthor.teamId,
-      });
-      const subscribedUser = await buildUser({ teamId: document.teamId });
-      await buildSubscription({
-        userId: subscribedUser.id,
-        documentId: document.id,
-      });
-
-      const recipients =
-        await NotificationHelper.getDocumentNotificationRecipients({
-          document,
-          notificationType: NotificationEventType.UpdateDocument,
-          subscriptionTypes: [SubscriptionType.Collection],
-          actorId: documentAuthor.id,
-        });
-
-      expect(recipients.length).toEqual(0);
-    });
-
-    it("should return no users when the user is subscribed to the containing collection, but the requested subscription is for the document", async () => {
-      const documentAuthor = await buildUser();
-      const document = await buildDocument({
-        userId: documentAuthor.id,
-        teamId: documentAuthor.teamId,
-      });
-      const subscribedUser = await buildUser({ teamId: document.teamId });
-      await buildSubscription({
-        userId: subscribedUser.id,
-        collectionId: document.collectionId!,
-      });
-
-      const recipients =
-        await NotificationHelper.getDocumentNotificationRecipients({
-          document,
-          notificationType: NotificationEventType.UpdateDocument,
-          subscriptionTypes: [SubscriptionType.Document],
-          actorId: documentAuthor.id,
-        });
-
-      expect(recipients.length).toEqual(0);
     });
 
     it("should not return suspended users", async () => {
@@ -189,6 +141,7 @@ describe("NotificationHelper", () => {
         await NotificationHelper.getDocumentNotificationRecipients({
           document,
           notificationType: NotificationEventType.UpdateDocument,
+          onlySubscribers: false,
           actorId: documentAuthor.id,
         });
 

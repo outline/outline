@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import { Transaction, WhereOptions } from "sequelize";
-import { QueryNotices, SubscriptionType } from "@shared/types";
+import { QueryNotices } from "@shared/types";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { createContext } from "@server/context";
 import env from "@server/env";
@@ -26,16 +26,14 @@ router.post(
   validate(T.SubscriptionsListSchema),
   async (ctx: APIContext<T.SubscriptionsListReq>) => {
     const { user } = ctx.state.auth;
-    const { event } = ctx.input.body;
+    const { event, collectionId, documentId } = ctx.input.body;
 
     const where: WhereOptions<Subscription> = {
       userId: user.id,
       event,
     };
 
-    if (event === SubscriptionType.Collection) {
-      const { collectionId } = ctx.input.body;
-
+    if (collectionId) {
       const collection = await Collection.scope({
         method: ["withMembership", user.id],
       }).findByPk(collectionId);
@@ -43,9 +41,10 @@ router.post(
 
       where.collectionId = collectionId;
     } else {
-      const { documentId } = ctx.input.body;
-
-      const document = await Document.findByPk(documentId, { userId: user.id });
+      // documentId will be available here
+      const document = await Document.findByPk(documentId!, {
+        userId: user.id,
+      });
       authorize(user, "read", document);
 
       where.documentId = documentId;
@@ -71,16 +70,14 @@ router.post(
   validate(T.SubscriptionsInfoSchema),
   async (ctx: APIContext<T.SubscriptionsInfoReq>) => {
     const { user } = ctx.state.auth;
-    const { event } = ctx.input.body;
+    const { event, collectionId, documentId } = ctx.input.body;
 
     const where: WhereOptions<Subscription> = {
       userId: user.id,
       event,
     };
 
-    if (event === SubscriptionType.Collection) {
-      const { collectionId } = ctx.input.body;
-
+    if (collectionId) {
       const collection = await Collection.scope({
         method: ["withMembership", user.id],
       }).findByPk(collectionId);
@@ -88,9 +85,10 @@ router.post(
 
       where.collectionId = collectionId;
     } else {
-      const { documentId } = ctx.input.body;
-
-      const document = await Document.findByPk(documentId, { userId: user.id });
+      // documentId will be available here
+      const document = await Document.findByPk(documentId!, {
+        userId: user.id,
+      });
       authorize(user, "read", document);
 
       where.documentId = documentId;
@@ -115,22 +113,19 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.SubscriptionsCreateReq>) => {
     const { user } = ctx.state.auth;
-    const { event } = ctx.input.body;
+    const { event, collectionId, documentId } = ctx.input.body;
 
-    let documentId, collectionId;
-
-    if (event === SubscriptionType.Collection) {
-      collectionId = ctx.input.body.collectionId;
-
+    if (collectionId) {
       const collection = await Collection.scope({
         method: ["withMembership", user.id],
       }).findByPk(collectionId);
 
       authorize(user, "subscribe", collection);
     } else {
-      documentId = ctx.input.body.documentId;
-
-      const document = await Document.findByPk(documentId, { userId: user.id });
+      // documentId will be available here
+      const document = await Document.findByPk(documentId!, {
+        userId: user.id,
+      });
 
       authorize(user, "subscribe", document);
     }

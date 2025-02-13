@@ -109,16 +109,29 @@ export async function buildStar(overrides: Partial<Star> = {}) {
   });
 }
 
-export async function buildSubscription(
-  options:
-    | { userId: string } & ({ collectionId: string } | { documentId: string })
-) {
+export async function buildSubscription(overrides: Partial<Subscription> = {}) {
+  let user;
+
+  if (overrides.userId) {
+    user = await User.findByPk(overrides.userId, {
+      rejectOnEmpty: true,
+    });
+  } else {
+    user = await buildUser();
+    overrides.userId = user.id;
+  }
+
+  if (!overrides.documentId && !overrides.collectionId) {
+    const document = await buildDocument({
+      createdById: overrides.userId,
+      teamId: user.teamId,
+    });
+    overrides.documentId = document.id;
+  }
+
   return Subscription.create({
-    event:
-      "collectionId" in options
-        ? SubscriptionType.Collection
-        : SubscriptionType.Document,
-    ...options,
+    event: SubscriptionType.Document,
+    ...overrides,
   });
 }
 

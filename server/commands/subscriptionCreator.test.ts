@@ -13,7 +13,7 @@ describe("subscriptionCreator", () => {
   const ip = "127.0.0.1";
   const subscribedEvent = SubscriptionType.Document;
 
-  it("should create a collection subscription", async () => {
+  it("should create a document subscription for the whole collection", async () => {
     const user = await buildUser();
 
     const collection = await buildCollection({
@@ -25,7 +25,7 @@ describe("subscriptionCreator", () => {
       subscriptionCreator({
         ctx: createContext({ user, transaction, ip }),
         collectionId: collection.id,
-        event: SubscriptionType.Collection,
+        event: SubscriptionType.Document,
       })
     );
 

@@ -108,7 +108,7 @@ const MenuTrigger: React.FC<MenuTriggerProps> = ({ label, onTrigger }) => {
       document.collectionId
         ? subscriptions.fetchOne({
             collectionId: document.collectionId,
-            event: SubscriptionType.Collection,
+            event: SubscriptionType.Document,
           })
         : noop,
     ])

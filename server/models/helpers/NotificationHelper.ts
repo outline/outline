@@ -1,5 +1,5 @@
 import uniq from "lodash/uniq";
-import { Op, WhereOptions } from "sequelize";
+import { Op } from "sequelize";
 import {
   NotificationEventType,
   MentionType,
@@ -63,9 +63,7 @@ export default class NotificationHelper {
     let recipients = await this.getDocumentNotificationRecipients({
       document,
       notificationType: NotificationEventType.UpdateDocument,
-      subscriptionTypes: !comment.parentCommentId
-        ? [SubscriptionType.Document]
-        : undefined,
+      onlySubscribers: !comment.parentCommentId,
       actorId,
     });
 
@@ -134,19 +132,19 @@ export default class NotificationHelper {
    *
    * @param document The document to get recipients for.
    * @param notificationType The notification type for which to find the recipients.
-   * @param subscriptionTypes The active subscription types to consider for the recipient, if any.
+   * @param onlySubscribers Whether to consider only the users who have active subscription to the document.
    * @param actorId The id of the user that performed the action.
    * @returns A list of recipients
    */
   public static getDocumentNotificationRecipients = async ({
     document,
     notificationType,
-    subscriptionTypes,
+    onlySubscribers,
     actorId,
   }: {
     document: Document;
     notificationType: NotificationEventType;
-    subscriptionTypes?: SubscriptionType[];
+    onlySubscribers: boolean;
     actorId: string;
   }): Promise<User[]> => {
     // First find all the users that have notifications enabled for this event
@@ -165,26 +163,18 @@ export default class NotificationHelper {
     );
 
     // Filter further to only those that have a subscription to the document…
-    if (subscriptionTypes) {
-      const subscriptionFilters = subscriptionTypes.map<
-        WhereOptions<Subscription>
-      >((subscriptionType) =>
-        subscriptionType === SubscriptionType.Collection
-          ? {
-              collectionId: document.collectionId,
-              event: SubscriptionType.Collection,
-            }
-          : {
-              documentId: document.id,
-              event: SubscriptionType.Document,
-            }
-      );
-
+    if (onlySubscribers) {
       const subscriptions = await Subscription.findAll({
         attributes: ["userId"],
         where: {
           userId: recipients.map((recipient) => recipient.id),
-          [Op.or]: subscriptionFilters,
+          [Op.or]: [
+            {
+              collectionId: document.collectionId,
+              event: SubscriptionType.Document,
+            },
+            { documentId: document.id, event: SubscriptionType.Document },
+          ],
         },
       });
 

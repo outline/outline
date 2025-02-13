@@ -217,7 +217,7 @@ export default class CollectionsStore extends Store<Collection> {
   subscribe = (collection: Collection) =>
     this.rootStore.subscriptions.create({
       collectionId: collection.id,
-      event: SubscriptionType.Collection,
+      event: SubscriptionType.Document,
     });
 
   unsubscribe = (collection: Collection) => {

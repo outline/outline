@@ -271,7 +271,6 @@ export type CollectionSort = {
 };
 
 export enum SubscriptionType {
-  Collection = "collections.update",
   Document = "documents.update",
 }
 

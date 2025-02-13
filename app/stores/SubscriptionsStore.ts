@@ -16,12 +16,13 @@ export default class SubscriptionsStore extends Store<Subscription> {
 
   @action
   async fetchOne(
-    options:
-      | { documentId: string; event: SubscriptionType.Document }
-      | { collectionId: string; event: SubscriptionType.Collection }
+    options: { event: SubscriptionType } & (
+      | { documentId: string }
+      | { collectionId: string }
+    )
   ) {
     const subscription =
-      options.event === SubscriptionType.Collection
+      "collectionId" in options
         ? this.getByCollectionId(options.collectionId)
         : this.getByDocumentId(options.documentId);
 
