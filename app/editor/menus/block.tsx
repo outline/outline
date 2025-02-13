@@ -127,7 +127,7 @@ export default function blockMenuItems(
       attrs: {
         rowsCount: 3,
         colsCount: 3,
-        columnWidths: [documentWidth / 3, documentWidth / 3],
+        colWidth: documentWidth / 3,
       },
     },
     {

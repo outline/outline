@@ -20,19 +20,19 @@ import { collapseSelection } from "./collapseSelection";
 export function createTable({
   rowsCount,
   colsCount,
-  columnWidths = [],
+  colWidth,
 }: {
   /** The number of rows in the table. */
   rowsCount: number;
   /** The number of columns in the table. */
   colsCount: number;
   /** The widths of each column in the table. */
-  columnWidths: number[];
+  colWidth: number;
 }): Command {
   return (state, dispatch) => {
     if (dispatch) {
       const offset = state.tr.selection.anchor + 1;
-      const nodes = createTableInner(state, rowsCount, colsCount, columnWidths);
+      const nodes = createTableInner(state, rowsCount, colsCount, colWidth);
       const tr = state.tr.replaceSelectionWith(nodes).scrollIntoView();
       const resolvedPos = tr.doc.resolve(offset);
       tr.setSelection(TextSelection.near(resolvedPos));
@@ -46,7 +46,7 @@ function createTableInner(
   state: EditorState,
   rowsCount: number,
   colsCount: number,
-  columnWidths: number[],
+  colWidth: number,
   withHeaderRow = true,
   cellContent?: Node
 ) {
@@ -61,9 +61,9 @@ function createTableInner(
       : cellType.createAndFill(attrs);
 
   for (let index = 0; index < colsCount; index += 1) {
-    const attrs = columnWidths[index]
+    const attrs = colWidth
       ? {
-          colwidth: [columnWidths[index]],
+          colwidth: [colWidth],
           colspan: 1,
           rowspan: 1,
         }
