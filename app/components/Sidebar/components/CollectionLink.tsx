@@ -147,16 +147,18 @@ const CollectionLink: React.FC<Props> = ({
               !isEditing &&
               !isDraggingAnyCollection && (
                 <Fade>
-                  <NudeButton
-                    tooltip={{ content: t("New doc"), delay: 500 }}
-                    onClick={(ev) => {
-                      ev.preventDefault();
-                      setIsAddingNewChild();
-                      handleExpand();
-                    }}
-                  >
-                    <PlusIcon />
-                  </NudeButton>
+                  {!collection.isArchived && (
+                    <NudeButton
+                      tooltip={{ content: t("New doc"), delay: 500 }}
+                      onClick={(ev) => {
+                        ev.preventDefault();
+                        setIsAddingNewChild();
+                        handleExpand();
+                      }}
+                    >
+                      <PlusIcon />
+                    </NudeButton>
+                  )}
                   <CollectionMenu
                     collection={collection}
                     onRename={handleRename}
