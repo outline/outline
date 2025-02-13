@@ -76,7 +76,7 @@ export const renderApp = async (
         const csp = ctx.response.get("Content-Security-Policy");
         ctx.set(
           "Content-Security-Policy",
-          csp.replace("script-src", `script-src ${parsed.hostname}`)
+          csp.replace("script-src", `script-src ${parsed.host}`)
         );
       }
     });
