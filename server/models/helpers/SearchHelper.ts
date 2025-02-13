@@ -470,7 +470,7 @@ export default class SearchHelper {
       const likelyUrls = getUrls(options.query);
 
       // remove likely urls, and escape the rest of the query.
-      const limitedQuery = this.escapeQuery(
+      let limitedQuery = this.escapeQuery(
         likelyUrls
           .reduce((q, url) => q.replace(url, ""), options.query)
           .slice(0, this.maxQueryLength)
@@ -481,6 +481,9 @@ export default class SearchHelper {
       const quotedQueries = Array.from(limitedQuery.matchAll(/"([^"]*)"/g)).map(
         (match) => match[1]
       );
+
+      // remove quoted queries from the limited query
+      limitedQuery = limitedQuery.replace(/"([^"]*)"/g, "");
 
       const iLikeQueries = [...quotedQueries, ...likelyUrls].slice(0, 3);
 

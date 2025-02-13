@@ -877,7 +877,7 @@ describe("SearchHelper", () => {
         "this&is&a&test:*"
       );
     });
-    test("should now wildcard quoted queries", () => {
+    test("should not wildcard quoted queries", () => {
       expect(SearchHelper.webSearchQuery(`"this is a test"`)).toBe(
         `"this<->is<->a<->test"`
       );
