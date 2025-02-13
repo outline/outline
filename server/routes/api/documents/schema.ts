@@ -5,7 +5,7 @@ import { z } from "zod";
 import { DocumentPermission, StatusFilter } from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { BaseSchema } from "@server/routes/api/schema";
-import { zodIconType } from "@server/utils/zod";
+import { zodIconType, zodIdType } from "@server/utils/zod";
 import { ValidateColor } from "@server/validation";
 
 const DocumentsSortParamsSchema = z.object({
@@ -64,7 +64,7 @@ const BaseSearchSchema = DateFilterSchema.extend({
 
 const BaseIdSchema = z.object({
   /** Id of the document to be updated */
-  id: z.string(),
+  id: zodIdType(),
 });
 
 export const DocumentsListSchema = BaseSchema.extend({
@@ -137,9 +137,7 @@ export type DocumentsDraftsReq = z.infer<typeof DocumentsDraftsSchema>;
 
 export const DocumentsInfoSchema = BaseSchema.extend({
   body: z.object({
-    /** Id of the document to be retrieved */
-    id: z.string().optional(),
-
+    id: zodIdType().optional(),
     /** Share Id, if available */
     shareId: z
       .string()
@@ -328,7 +326,7 @@ export type DocumentsImportReq = z.infer<typeof DocumentsImportSchema>;
 export const DocumentsCreateSchema = BaseSchema.extend({
   body: z.object({
     /** Id of the document to be created */
-    id: z.string().uuid().optional(),
+    id: zodIdType().optional(),
 
     /** Document title */
     title: z.string().optional(),
@@ -393,9 +391,7 @@ export const DocumentsUsersSchema = BaseSchema.extend({
 export type DocumentsUsersReq = z.infer<typeof DocumentsUsersSchema>;
 
 export const DocumentsAddUserSchema = BaseSchema.extend({
-  body: z.object({
-    /** Id of the document to which the user is supposed to be added */
-    id: z.string().uuid(),
+  body: BaseIdSchema.extend({
     /** Id of the user who is to be added */
     userId: z.string().uuid(),
     /** Permission to be granted to the added user */
@@ -406,9 +402,7 @@ export const DocumentsAddUserSchema = BaseSchema.extend({
 export type DocumentsAddUserReq = z.infer<typeof DocumentsAddUserSchema>;
 
 export const DocumentsRemoveUserSchema = BaseSchema.extend({
-  body: z.object({
-    /** Id of the document from which to remove the user */
-    id: z.string().uuid(),
+  body: BaseIdSchema.extend({
     /** Id of the user who is to be removed */
     userId: z.string().uuid(),
   }),
