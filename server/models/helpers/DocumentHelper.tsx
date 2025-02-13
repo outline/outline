@@ -479,13 +479,12 @@ export class DocumentHelper {
   }
 
   /**
-   * Compares two documents and returns true if the text content is equal. This does not take into account
-   * changes to other properties such as table column widths, other visual settings.
+   * Compares two documents or revisions and returns whether the text differs by more than the threshold.
    *
    * @param document The document to compare
    * @param other The other document to compare
    * @param threshold The threshold for the change in characters
-   * @returns True if the text content is equal
+   * @returns True if the text differs by more than the threshold
    */
   public static isChangeOverThreshold(
     before: Document | Revision | null,
