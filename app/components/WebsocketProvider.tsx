@@ -226,6 +226,32 @@ class WebsocketProvider extends React.Component<Props> {
     );
 
     this.socket.on(
+      "documents.unpublish",
+      action(
+        (event: {
+          document: PartialExcept<Document, "id">;
+          collectionId: string;
+        }) => {
+          const document = event.document;
+
+          // When document is detached as part of unpublishing, only the owner should be able to view it.
+          if (
+            !document.collectionId &&
+            document.createdBy?.id !== currentUserId
+          ) {
+            documents.remove(document.id);
+          } else {
+            documents.add(document);
+          }
+          policies.remove(document.id);
+
+          const collection = collections.get(event.collectionId);
+          collection?.removeDocument(document.id);
+        }
+      )
+    );
+
+    this.socket.on(
       "documents.archive",
       action((event: PartialExcept<Document, "id">) => {
         documents.addToArchive(event as Document);

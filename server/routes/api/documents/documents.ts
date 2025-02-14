@@ -1473,14 +1473,14 @@ router.post(
       );
     }
 
+    // detaching would unset collectionId from document, so save a ref to the affected collectionId.
+    const collectionId = document.collectionId;
+
     await document.unpublish(user, { detach });
     await Event.createFromContext(ctx, {
       name: "documents.unpublish",
       documentId: document.id,
-      collectionId: document.collectionId,
-      data: {
-        title: document.title,
-      },
+      collectionId,
     });
 
     ctx.body = {
