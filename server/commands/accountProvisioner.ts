@@ -2,7 +2,6 @@ import path from "path";
 import { readFile } from "fs-extra";
 import invariant from "invariant";
 import { CollectionPermission, UserRole } from "@shared/types";
-import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
 import env from "@server/env";
 import {
   InvalidAuthenticationError,
@@ -159,15 +158,6 @@ async function accountProvisioner({
         },
   });
   const { isNewUser, user } = result;
-
-  // TODO: Move to processor
-  if (isNewUser) {
-    await new WelcomeEmail({
-      to: user.email,
-      role: user.role,
-      teamUrl: team.url,
-    }).schedule();
-  }
 
   if (isNewUser || isNewTeam) {
     let provision = isNewTeam;
