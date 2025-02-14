@@ -1,4 +1,4 @@
-import { Fragment, Node, NodeType } from "prosemirror-model";
+import { Node, NodeType } from "prosemirror-model";
 import { Command, EditorState, TextSelection } from "prosemirror-state";
 import {
   CellSelection,
@@ -20,14 +20,19 @@ import { collapseSelection } from "./collapseSelection";
 export function createTable({
   rowsCount,
   colsCount,
+  colWidth,
 }: {
+  /** The number of rows in the table. */
   rowsCount: number;
+  /** The number of columns in the table. */
   colsCount: number;
+  /** The widths of each column in the table. */
+  colWidth: number;
 }): Command {
   return (state, dispatch) => {
     if (dispatch) {
       const offset = state.tr.selection.anchor + 1;
-      const nodes = createTableInner(state, rowsCount, colsCount);
+      const nodes = createTableInner(state, rowsCount, colsCount, colWidth);
       const tr = state.tr.replaceSelectionWith(nodes).scrollIntoView();
       const resolvedPos = tr.doc.resolve(offset);
       tr.setSelection(TextSelection.near(resolvedPos));
@@ -41,6 +46,7 @@ function createTableInner(
   state: EditorState,
   rowsCount: number,
   colsCount: number,
+  colWidth: number,
   withHeaderRow = true,
   cellContent?: Node
 ) {
@@ -49,23 +55,27 @@ function createTableInner(
   const cells: Node[] = [];
   const rows: Node[] = [];
 
-  const createCell = (
-    cellType: NodeType,
-    cellContent: Fragment | Node | readonly Node[] | null | undefined
-  ) =>
+  const createCell = (cellType: NodeType, attrs: Record<string, any> | null) =>
     cellContent
-      ? cellType.createChecked(null, cellContent)
-      : cellType.createAndFill();
+      ? cellType.createChecked(attrs, cellContent)
+      : cellType.createAndFill(attrs);
 
   for (let index = 0; index < colsCount; index += 1) {
-    const cell = createCell(types.cell, cellContent);
+    const attrs = colWidth
+      ? {
+          colwidth: [colWidth],
+          colspan: 1,
+          rowspan: 1,
+        }
+      : null;
+    const cell = createCell(types.cell, attrs);
 
     if (cell) {
       cells.push(cell);
     }
 
     if (withHeaderRow) {
-      const headerCell = createCell(types.header_cell, cellContent);
+      const headerCell = createCell(types.header_cell, attrs);
 
       if (headerCell) {
         headerCells.push(headerCell);

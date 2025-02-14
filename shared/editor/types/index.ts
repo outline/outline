@@ -35,8 +35,8 @@ export type MenuItem = {
   children?: MenuItem[];
   defaultHidden?: boolean;
   attrs?:
-    | Record<string, Primitive>
-    | ((state: EditorState) => Record<string, Primitive>);
+    | Record<string, Primitive | null>
+    | ((state: EditorState) => Record<string, Primitive | null>);
   visible?: boolean;
   active?: (state: EditorState) => boolean;
   appendSpace?: boolean;
