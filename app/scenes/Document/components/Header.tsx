@@ -281,15 +281,18 @@ function DocumentHeader({
                 limit={isCompact ? 3 : undefined}
               />
             )}
-            {(isEditing || !user?.separateEditMode) && !isTemplate && isNew && (
-              <Action>
-                <TemplatesMenu
-                  isCompact={isCompact}
-                  document={document}
-                  onSelectTemplate={onSelectTemplate}
-                />
-              </Action>
-            )}
+            {(isEditing || !user?.separateEditMode) &&
+              !isTemplate &&
+              isNew &&
+              can.update && (
+                <Action>
+                  <TemplatesMenu
+                    isCompact={isCompact}
+                    document={document}
+                    onSelectTemplate={onSelectTemplate}
+                  />
+                </Action>
+              )}
             {!isEditing && !isRevision && !isTemplate && can.update && (
               <Action>
                 <ShareButton document={document} />
