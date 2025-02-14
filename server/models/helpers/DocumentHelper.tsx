@@ -1,5 +1,6 @@
 import { JSDOM } from "jsdom";
 import { Node } from "prosemirror-model";
+import ukkonen from "ukkonen";
 import { updateYFragment, yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
 import textBetween from "@shared/editor/lib/textBetween";
@@ -478,25 +479,26 @@ export class DocumentHelper {
   }
 
   /**
-   * Compares two documents and returns true if the text content is equal. This does not take into account
-   * changes to other properties such as table column widths, other visual settings.
+   * Compares two documents or revisions and returns whether the text differs by more than the threshold.
    *
    * @param document The document to compare
    * @param other The other document to compare
-   * @returns True if the text content is equal
+   * @param threshold The threshold for the change in characters
+   * @returns True if the text differs by more than the threshold
    */
-  public static isTextContentEqual(
+  public static isChangeOverThreshold(
     before: Document | Revision | null,
-    after: Document | Revision | null
+    after: Document | Revision | null,
+    threshold: number
   ) {
     if (!before || !after) {
       return false;
     }
 
-    return (
-      before.title === after.title &&
-      this.toMarkdown(before) === this.toMarkdown(after)
-    );
+    const first = before.title + this.toPlainText(before);
+    const second = after.title + this.toPlainText(after);
+    const distance = ukkonen(first, second, threshold + 1);
+    return distance > threshold;
   }
 
   private static textSerializers = getTextSerializers(schema);

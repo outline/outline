@@ -28,10 +28,10 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
     const before = await revision.before();
 
     // If the content looks the same, don't send notifications
-    if (DocumentHelper.isTextContentEqual(before, revision)) {
+    if (!DocumentHelper.isChangeOverThreshold(before, revision, 5)) {
       Logger.info(
         "processor",
-        `suppressing notifications as update has no visual changes`
+        `suppressing notifications as update has insignificant changes`
       );
       return;
     }
