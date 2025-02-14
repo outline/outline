@@ -1,4 +1,5 @@
 import { observable } from "mobx";
+import Collection from "./Collection";
 import Document from "./Document";
 import User from "./User";
 import Model from "./base/Model";
@@ -24,6 +25,13 @@ class Subscription extends Model {
   /** The document being subscribed to */
   @Relation(() => Document, { onDelete: "cascade" })
   document?: Document;
+
+  /** The collection ID being subscribed to */
+  collectionId: string;
+
+  /** The collection being subscribed to */
+  @Relation(() => Collection, { onDelete: "cascade" })
+  collection?: Collection;
 
   /** The event being subscribed to */
   @Field
