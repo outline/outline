@@ -603,13 +603,16 @@ export function useDropToUnpublish() {
         return;
       }
 
-      await document.unpublish();
-
-      toast.success(
-        t("Unpublished {{ documentName }}", {
-          documentName: document.noun,
-        })
-      );
+      try {
+        await document.unpublish({ detach: true });
+        toast.success(
+          t("Unpublished {{ documentName }}", {
+            documentName: document.noun,
+          })
+        );
+      } catch (err) {
+        toast.error(err.message);
+      }
     },
     canDrop: (item) => {
       const policy = policies.abilities(item.id);
