@@ -10,14 +10,20 @@ import { Command, Plugin, Selection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { toast } from "sonner";
 import { Primitive } from "utility-types";
-import Storage from "../../utils/Storage";
 import backspaceToParagraph from "../commands/backspaceToParagraph";
 import splitHeading from "../commands/splitHeading";
 import toggleBlockType from "../commands/toggleBlockType";
-import headingToSlug, { headingToPersistenceKey } from "../lib/headingToSlug";
+import headingToSlug from "../lib/headingToSlug";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
-import { findCollapsedNodes } from "../queries/findCollapsedNodes";
+import { HeadingTracker } from "../plugins/HeadingTracker";
 import Node from "./Node";
+
+export enum HeadingLevel {
+  One = 1,
+  Two,
+  Three,
+  Four,
+}
 
 export default class Heading extends Node {
   className = "heading-name";
@@ -28,7 +34,9 @@ export default class Heading extends Node {
 
   get defaultOptions() {
     return {
-      levels: [1, 2, 3, 4],
+      levels: Object.values(HeadingLevel).filter(
+        (value) => typeof value === "number"
+      ),
       collapsed: undefined,
     };
   }
@@ -135,40 +143,29 @@ export default class Heading extends Node {
     const { view } = this.editor;
     const hadFocus = view.hasFocus();
     const { tr } = view.state;
-    const { top, left } = event.currentTarget.getBoundingClientRect();
-    const result = view.posAtCoords({ top, left });
 
-    if (result) {
-      const node = view.state.doc.nodeAt(result.inside);
+    const pos = view.posAtDOM(event.currentTarget, 0);
+    const $pos = view.state.doc.resolve(pos);
+    const node = view.state.doc.nodeAt($pos.before());
 
-      if (node) {
-        const endOfHeadingPos = result.inside + node.nodeSize;
-        const $pos = view.state.doc.resolve(endOfHeadingPos);
-        const collapsed = !node.attrs.collapsed;
+    if (node) {
+      const collapsed = !node.attrs.collapsed;
 
-        if (collapsed && view.state.selection.to > endOfHeadingPos) {
-          // move selection to the end of the collapsed heading
-          tr.setSelection(Selection.near($pos, -1));
-        }
+      if (collapsed && view.state.selection.to > $pos.end()) {
+        // move selection to the end of the collapsed heading
+        const $end = view.state.doc.resolve($pos.end());
+        tr.setSelection(Selection.near($end, -1));
+      }
 
-        const transaction = tr.setNodeMarkup(result.inside, undefined, {
-          ...node.attrs,
-          collapsed,
-        });
+      const transaction = tr.setNodeMarkup($pos.before(), undefined, {
+        ...node.attrs,
+        collapsed,
+      });
 
-        const persistKey = headingToPersistenceKey(node, this.editor.props.id);
+      view.dispatch(transaction);
 
-        if (collapsed) {
-          Storage.set(persistKey, "collapsed");
-        } else {
-          Storage.remove(persistKey);
-        }
-
-        view.dispatch(transaction);
-
-        if (hadFocus) {
-          view.focus();
-        }
+      if (hadFocus) {
+        view.focus();
       }
     }
   };
@@ -274,23 +271,7 @@ export default class Heading extends Node {
       },
     });
 
-    const foldPlugin: Plugin = new Plugin({
-      props: {
-        decorations: (state) => {
-          const { doc } = state;
-          const decorations: Decoration[] = findCollapsedNodes(doc).map(
-            (block) =>
-              Decoration.node(block.pos, block.pos + block.node.nodeSize, {
-                class: "folded-content",
-              })
-          );
-
-          return DecorationSet.create(doc, decorations);
-        },
-      },
-    });
-
-    return [foldPlugin, plugin];
+    return [new HeadingTracker(), plugin];
   }
 
   inputRules({ type }: { type: NodeType }) {
