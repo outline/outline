@@ -21,5 +21,9 @@ declare module "@joplin/turndown-plugin-gfm" {
 }
 
 declare module "ukkonen" {
-  export default function ukkonen(first: string, second: string): number;
+  export default function ukkonen(
+    first: string,
+    second: string,
+    limit?: number
+  ): number;
 }

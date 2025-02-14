@@ -497,7 +497,7 @@ export class DocumentHelper {
 
     const first = before.title + this.toPlainText(before);
     const second = after.title + this.toPlainText(after);
-    const distance = ukkonen(first, second);
+    const distance = ukkonen(first, second, threshold + 1);
     return distance > threshold;
   }
 
