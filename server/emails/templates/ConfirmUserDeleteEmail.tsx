@@ -11,6 +11,8 @@ import Heading from "./components/Heading";
 
 type Props = EmailProps & {
   deleteConfirmationCode: string;
+  teamName: string;
+  teamUrl: string;
 };
 
 /**
@@ -29,15 +31,15 @@ export default class ConfirmUserDeleteEmail extends BaseEmail<Props> {
     return `Your requested account deletion code`;
   }
 
-  protected renderAsText({ deleteConfirmationCode }: Props): string {
+  protected renderAsText({ teamName, deleteConfirmationCode }: Props): string {
     return `
-You requested to permanently delete your ${env.APP_NAME} account. Please enter the code below to confirm your account deletion.
+You requested to permanently delete your ${env.APP_NAME} user account in the ${teamName} workspace. Please enter the code below to confirm your account deletion.
 
 Code: ${deleteConfirmationCode}
 `;
   }
 
-  protected render({ deleteConfirmationCode }: Props) {
+  protected render({ teamUrl, teamName, deleteConfirmationCode }: Props) {
     return (
       <EmailTemplate previewText={this.preview()}>
         <Header />
@@ -45,8 +47,9 @@ Code: ${deleteConfirmationCode}
         <Body>
           <Heading>Your account deletion request</Heading>
           <p>
-            You requested to permanently delete your {env.APP_NAME} account.
-            Please enter the code below to confirm your account deletion.
+            You requested to permanently delete your {env.APP_NAME} user account
+            in the <a href={teamUrl}>{teamName}</a> workspace. Please enter the
+            code below to confirm your account deletion.
           </p>
           <EmptySpace height={5} />
           <p>
