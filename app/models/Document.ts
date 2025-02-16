@@ -448,7 +448,11 @@ export default class Document extends ArchivableModel implements Searchable {
   restore = (options?: { revisionId?: string; collectionId?: string }) =>
     this.store.restore(this, options);
 
-  unpublish = () => this.store.unpublish(this);
+  unpublish = (
+    options: { detach?: boolean } = {
+      detach: false,
+    }
+  ) => this.store.unpublish(this, options);
 
   @action
   enableEmbeds = () => {

@@ -776,17 +776,30 @@ export default class DocumentsStore extends Store<Document> {
   };
 
   @action
-  unpublish = async (document: Document) => {
+  unpublish = async (
+    document: Document,
+    options: { detach?: boolean } = {
+      detach: false,
+    }
+  ) => {
     const res = await client.post("/documents.unpublish", {
       id: document.id,
+      ...options,
     });
 
     runInAction("Document#unpublish", () => {
       invariant(res?.data, "Data should be available");
+      // unpublishing could sometimes detach the document from the collection.
+      // so, get the collection id before data is updated.
+      const collectionId = document.collectionId;
+
       document.updateData(res.data);
       this.addPolicies(res.policies);
-      const collection = this.getCollectionForDocument(document);
-      void collection?.fetchDocuments({ force: true });
+
+      if (collectionId) {
+        const collection = this.rootStore.collections.get(collectionId);
+        collection?.removeDocument(document.id);
+      }
     });
   };
 

@@ -586,3 +586,45 @@ export function useDropToArchive() {
     }),
   });
 }
+
+export function useDropToUnpublish() {
+  const { t } = useTranslation();
+  const { policies, documents } = useStores();
+
+  return useDrop<
+    DragObject,
+    Promise<void>,
+    { isOver: boolean; canDrop: boolean }
+  >({
+    accept: "document",
+    drop: async (item) => {
+      const document = documents.get(item.id);
+      if (!document) {
+        return;
+      }
+
+      try {
+        await document.unpublish({ detach: true });
+        toast.success(
+          t("Unpublished {{ documentName }}", {
+            documentName: document.noun,
+          })
+        );
+      } catch (err) {
+        toast.error(err.message);
+      }
+    },
+    canDrop: (item) => {
+      const policy = policies.abilities(item.id);
+      if (!policy) {
+        return true; // optimistic, let the server check for the necessary permission.
+      }
+
+      return policy.unpublish;
+    },
+    collect: (monitor) => ({
+      isOver: monitor.isOver(),
+      canDrop: monitor.canDrop(),
+    }),
+  });
+}

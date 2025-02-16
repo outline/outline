@@ -300,6 +300,9 @@ export type DocumentsDeleteReq = z.infer<typeof DocumentsDeleteSchema>;
 
 export const DocumentsUnpublishSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
+    /** Whether to detach the document from the collection */
+    detach: z.boolean().default(false),
+
     /** @deprecated Version of the API to be used, remove in a few releases */
     apiVersion: z.number().optional(),
   }),
