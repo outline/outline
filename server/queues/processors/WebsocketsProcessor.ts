@@ -42,7 +42,6 @@ export default class WebsocketsProcessor {
     switch (event.name) {
       case "documents.create":
       case "documents.publish":
-      case "documents.unpublish":
       case "documents.restore": {
         const document = await Document.findByPk(event.documentId, {
           paranoid: false,
@@ -70,6 +69,28 @@ export default class WebsocketsProcessor {
               id: document.collectionId,
             },
           ],
+        });
+      }
+
+      case "documents.unpublish": {
+        const document = await Document.findByPk(event.documentId, {
+          paranoid: false,
+        });
+
+        if (!document) {
+          return;
+        }
+
+        const documentToPresent = await presentDocument(undefined, document);
+
+        const channels = await this.getDocumentEventChannels(event, document);
+
+        // We need to add the collection channel to let the members update the doc structure.
+        channels.push(`collection-${event.collectionId}`);
+
+        return socketio.to(channels).emit(event.name, {
+          document: documentToPresent,
+          collectionId: event.collectionId,
         });
       }
 
