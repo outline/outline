@@ -125,6 +125,20 @@ export const createDocument = createAction({
     }),
 });
 
+export const createDraftDocument = createAction({
+  name: ({ t }) => t("New draft"),
+  analyticsName: "New document",
+  section: DocumentSection,
+  icon: <NewDocumentIcon />,
+  keywords: "create document",
+  visible: ({ currentTeamId, stores }) =>
+    !!currentTeamId && stores.policies.abilities(currentTeamId).createDocument,
+  perform: ({ sidebarContext }) =>
+    history.push(newDocumentPath(), {
+      sidebarContext,
+    }),
+});
+
 export const createDocumentFromTemplate = createAction({
   name: ({ t }) => t("New from template"),
   analyticsName: "New document",
@@ -1179,6 +1193,7 @@ export const rootDocumentActions = [
   openDocument,
   archiveDocument,
   createDocument,
+  createDraftDocument,
   createNestedDocument,
   createTemplateFromDocument,
   deleteDocument,
