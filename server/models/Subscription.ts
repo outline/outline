@@ -8,6 +8,8 @@ import {
   IsIn,
   Scopes,
 } from "sequelize-typescript";
+import { SubscriptionType } from "@shared/types";
+import Collection from "./Collection";
 import Document from "./Document";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
@@ -42,7 +44,14 @@ class Subscription extends ParanoidModel<
   @Column(DataType.UUID)
   documentId: string | null;
 
-  @IsIn([["documents.update"]])
+  @BelongsTo(() => Collection, "collectionId")
+  collection: Collection | null;
+
+  @ForeignKey(() => Document)
+  @Column(DataType.UUID)
+  collectionId: string | null;
+
+  @IsIn([Object.values(SubscriptionType)])
   @Column(DataType.STRING)
   event: string;
 }

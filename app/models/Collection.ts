@@ -129,6 +129,16 @@ export default class Collection extends ParanoidModel {
     );
   }
 
+  /**
+   * Returns whether there is a subscription for this collection in the store.
+   *
+   * @returns True if there is a subscription, false otherwise.
+   */
+  @computed
+  get isSubscribed(): boolean {
+    return !!this.store.rootStore.subscriptions.getByCollectionId(this.id);
+  }
+
   @computed
   get isManualSort(): boolean {
     return this.sort.field === "index";
@@ -375,6 +385,22 @@ export default class Collection extends ParanoidModel {
 
   @action
   unstar = async () => this.store.unstar(this);
+
+  /**
+   * Subscribes the current user to this collection.
+   *
+   * @returns A promise that resolves when the subscription is created.
+   */
+  @action
+  subscribe = () => this.store.subscribe(this);
+
+  /**
+   * Unsubscribes the current user from this collection.
+   *
+   * @returns A promise that resolves when the subscription is destroyed.
+   */
+  @action
+  unsubscribe = () => this.store.unsubscribe(this);
 
   archive = () => this.store.archive(this);
 

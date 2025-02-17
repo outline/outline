@@ -1,6 +1,6 @@
 import capitalize from "lodash/capitalize";
 import isEmpty from "lodash/isEmpty";
-import isUndefined from "lodash/isUndefined";
+import noop from "lodash/noop";
 import { observer } from "mobx-react";
 import { EditIcon, InputIcon, RestoreIcon, SearchIcon } from "outline-icons";
 import * as React from "react";
@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
-import { UserPreference } from "@shared/types";
+import { SubscriptionType, UserPreference } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import Document from "~/models/Document";
 import ContextMenu from "~/components/ContextMenu";
@@ -95,19 +95,31 @@ const MenuTrigger: React.FC<MenuTriggerProps> = ({ label, onTrigger }) => {
   const { subscriptions } = useStores();
   const { model: document, menuState } = useMenuContext<Document>();
 
-  const { data, loading, error, request } = useRequest(() =>
-    subscriptions.fetchOne({
-      documentId: document.id,
-      event: "documents.update",
-    })
+  const {
+    loading: subscriptionsLoading,
+    loaded: subscriptionsLoaded,
+    request: loadSubscriptions,
+  } = useRequest(() =>
+    Promise.all([
+      subscriptions.fetchOne({
+        documentId: document.id,
+        event: SubscriptionType.Document,
+      }),
+      document.collectionId
+        ? subscriptions.fetchOne({
+            collectionId: document.collectionId,
+            event: SubscriptionType.Document,
+          })
+        : noop,
+    ])
   );
 
   const handlePointerEnter = React.useCallback(() => {
-    if (isUndefined(data ?? error) && !loading) {
-      void request();
+    if (!subscriptionsLoading && !subscriptionsLoaded) {
+      void loadSubscriptions();
       void document.loadRelations();
     }
-  }, [data, error, loading, request, document]);
+  }, [subscriptionsLoading, subscriptionsLoaded, loadSubscriptions, document]);
 
   return label ? (
     <MenuButton

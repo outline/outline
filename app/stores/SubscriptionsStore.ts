@@ -1,5 +1,6 @@
 import invariant from "invariant";
 import { action } from "mobx";
+import { SubscriptionType } from "@shared/types";
 import Subscription from "~/models/Subscription";
 import { client } from "~/utils/ApiClient";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
@@ -14,8 +15,16 @@ export default class SubscriptionsStore extends Store<Subscription> {
   }
 
   @action
-  async fetchOne({ documentId, event }: { documentId: string; event: string }) {
-    const subscription = this.getByDocumentId(documentId);
+  async fetchOne(
+    options: { event: SubscriptionType } & (
+      | { documentId: string }
+      | { collectionId: string }
+    )
+  ) {
+    const subscription =
+      "collectionId" in options
+        ? this.getByCollectionId(options.collectionId)
+        : this.getByDocumentId(options.documentId);
 
     if (subscription) {
       return subscription;
@@ -24,10 +33,7 @@ export default class SubscriptionsStore extends Store<Subscription> {
     this.isFetching = true;
 
     try {
-      const res = await client.post(`/${this.apiEndpoint}.info`, {
-        documentId,
-        event,
-      });
+      const res = await client.post(`/${this.apiEndpoint}.info`, options);
       invariant(res?.data, "Data should be available");
       return this.add(res.data);
     } catch (err) {
@@ -42,4 +48,7 @@ export default class SubscriptionsStore extends Store<Subscription> {
 
   getByDocumentId = (documentId: string): Subscription | undefined =>
     this.find({ documentId });
+
+  getByCollectionId = (collectionId: string): Subscription | undefined =>
+    this.find({ collectionId });
 }

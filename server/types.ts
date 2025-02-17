@@ -427,6 +427,7 @@ export type SubscriptionEvent = BaseEvent<Subscription> & {
   modelId: string;
   userId: string;
   documentId: string | null;
+  collectionId: string | null;
 };
 
 export type ViewEvent = BaseEvent<View> & {
