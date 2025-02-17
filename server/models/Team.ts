@@ -171,6 +171,9 @@ class Team extends ParanoidModel<
   @Column
   lastActiveAt: Date | null;
 
+  @Column(DataType.ARRAY(DataType.STRING))
+  previousSubdomains: string[] | null;
+
   // getters
 
   /**
@@ -364,6 +367,25 @@ class Team extends ParanoidModel<
 
     if (count > 0) {
       throw ValidationError("Domain is already in use");
+    }
+
+    return model;
+  }
+
+  @BeforeUpdate
+  static async savePreviousSubdomain(model: Team) {
+    const previousSubdomain = model.previous("subdomain");
+    if (previousSubdomain && previousSubdomain !== model.subdomain) {
+      model.previousSubdomains = model.previousSubdomains || [];
+
+      if (!model.previousSubdomains.includes(previousSubdomain)) {
+        // Add the previous subdomain to the list of previous subdomains
+        // upto a maximum of 3 previous subdomains
+        model.previousSubdomains.push(previousSubdomain);
+        if (model.previousSubdomains.length > 3) {
+          model.previousSubdomains.shift();
+        }
+      }
     }
 
     return model;
