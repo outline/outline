@@ -34,22 +34,17 @@ router.post(
       teamId: user.teamId,
     };
 
-    if (name && (where.name as string[]).includes(name)) {
-      where.name = name;
-    }
-
     if (events?.length) {
       where.name = events;
+    } else if (auditLog) {
+      authorize(user, "audit", user.team);
+      where.name = EventHelper.AUDIT_EVENTS;
     } else {
       where.name = EventHelper.ACTIVITY_EVENTS;
     }
 
-    if (auditLog) {
-      authorize(user, "audit", user.team);
-
-      if (!where.name) {
-        where.name = EventHelper.AUDIT_EVENTS;
-      }
+    if (name && (where.name as string[]).includes(name)) {
+      where.name = name;
     }
 
     if (actorId) {
