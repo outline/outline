@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import intersection from "lodash/intersection";
 import { Op, WhereOptions } from "sequelize";
 import { EventHelper } from "@shared/utils/EventHelper";
 import auth from "@server/middlewares/authentication";
@@ -34,13 +35,15 @@ router.post(
       teamId: user.teamId,
     };
 
-    if (events?.length) {
-      where.name = events;
-    } else if (auditLog) {
+    if (auditLog) {
       authorize(user, "audit", user.team);
-      where.name = EventHelper.AUDIT_EVENTS;
+      where.name = events
+        ? intersection(EventHelper.AUDIT_EVENTS, events)
+        : EventHelper.AUDIT_EVENTS;
     } else {
-      where.name = EventHelper.ACTIVITY_EVENTS;
+      where.name = events
+        ? intersection(EventHelper.ACTIVITY_EVENTS, events)
+        : EventHelper.ACTIVITY_EVENTS;
     }
 
     if (name && (where.name as string[]).includes(name)) {

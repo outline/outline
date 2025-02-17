@@ -106,18 +106,26 @@ function History() {
     return pageEvents;
   }, [document, revisions, events, toEvent, offset]);
 
-  const revisionEvents = document
-    ? revisions
-        .filter({ documentId: document.id })
-        .slice(0, offset.revisions + 1) // take one extra to account for realtime edits
-        .map(toEvent)
-    : [];
-  const otherEvents = document
-    ? events
-        .filter({ documentId: document.id })
-        .slice(0, offset.events)
-        .map(toEvent)
-    : [];
+  const revisionEvents = React.useMemo(
+    () =>
+      document
+        ? revisions
+            .filter({ documentId: document.id })
+            .slice(0, offset.revisions + 1) // take one extra to account for realtime edits
+            .map(toEvent)
+        : [],
+    [document, revisions, offset.revisions, toEvent]
+  );
+  const otherEvents = React.useMemo(
+    () =>
+      document
+        ? events
+            .filter({ documentId: document.id })
+            .slice(0, offset.events)
+            .map(toEvent)
+        : [],
+    [document, events, offset.events, toEvent]
+  );
 
   const latestRevision = revisionEvents[0];
 
@@ -135,10 +143,9 @@ function History() {
     }
   }
 
-  const mergedEvents = orderBy(
-    [...revisionEvents, ...otherEvents],
-    "createdAt",
-    "desc"
+  const mergedEvents = React.useMemo(
+    () => orderBy([...revisionEvents, ...otherEvents], "createdAt", "desc"),
+    [revisionEvents, otherEvents]
   );
 
   const onCloseHistory = React.useCallback(() => {

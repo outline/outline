@@ -26,7 +26,7 @@ export const EventsListSchema = BaseSchema.extend({
     /** Whether to include audit events */
     auditLog: z.boolean().default(false),
 
-    /** @deprecated, use 'events' instead
+    /** @deprecated, use 'events' parameter instead
      * Name of the event to retrieve
      */
     name: z.string().optional(),
