@@ -48,11 +48,11 @@
     "> 0.25%, not dead"
   ],
   "dependencies": {
-    "@aws-sdk/client-s3": "3.744.0",
-    "@aws-sdk/lib-storage": "3.744.0",
-    "@aws-sdk/s3-presigned-post": "3.744.0",
-    "@aws-sdk/s3-request-presigner": "3.744.0",
-    "@aws-sdk/signature-v4-crt": "^3.744.0",
+    "@aws-sdk/client-s3": "3.749.0",
+    "@aws-sdk/lib-storage": "3.749.0",
+    "@aws-sdk/s3-presigned-post": "3.749.0",
+    "@aws-sdk/s3-request-presigner": "3.749.0",
+    "@aws-sdk/signature-v4-crt": "^3.749.0",
     "@babel/core": "^7.26.9",
     "@babel/plugin-proposal-decorators": "^7.25.9",
     "@babel/plugin-transform-class-properties": "^7.25.9",
