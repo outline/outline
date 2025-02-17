@@ -11,7 +11,7 @@ type Props = {
 };
 
 export default class UpdateTeamsAttachmentsSizeTask extends BaseTask<Props> {
-  static cron = TaskSchedule.Daily;
+  static cron = TaskSchedule.Day;
 
   public async perform({ limit }: Props) {
     Logger.info(

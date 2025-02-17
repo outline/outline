@@ -9,8 +9,9 @@ export enum TaskPriority {
 }
 
 export enum TaskSchedule {
-  Daily = "daily",
-  Hourly = "hourly",
+  Day = "daily",
+  Hour = "hourly",
+  Minute = "minute",
 }
 
 export default abstract class BaseTask<T extends Record<string, any>> {
