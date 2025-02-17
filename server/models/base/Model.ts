@@ -282,7 +282,10 @@ class Model<
    * @param callback The function to call for each batch of results
    */
   static async findAllInBatches<T extends Model>(
-    query: Replace<FindOptions<T>, "limit", "batchLimit">,
+    query: Replace<FindOptions<T>, "limit", "batchLimit"> & {
+      /** The maximum number of results to return, after which the query will stop. */
+      totalLimit?: number;
+    },
     callback: (results: Array<T>, query: FindOptions<T>) => Promise<void>
   ) {
     const mappedQuery = {
@@ -298,7 +301,10 @@ class Model<
       results = await this.findAll<T>(mappedQuery);
       await callback(results, mappedQuery);
       mappedQuery.offset += mappedQuery.limit;
-    } while (results.length >= mappedQuery.limit);
+    } while (
+      results.length >= mappedQuery.limit &&
+      (mappedQuery.totalLimit ?? Infinity) > mappedQuery.offset
+    );
   }
 
   /**
