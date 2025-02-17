@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import intersection from "lodash/intersection";
 import { Op, WhereOptions } from "sequelize";
 import { EventHelper } from "@shared/utils/EventHelper";
 import auth from "@server/middlewares/authentication";
@@ -20,19 +21,34 @@ router.post(
   async (ctx: APIContext<T.EventsListReq>) => {
     const { user } = ctx.state.auth;
     const {
-      sort,
-      direction,
+      name,
+      events,
+      auditLog,
       actorId,
       documentId,
       collectionId,
-      name,
-      auditLog,
+      sort,
+      direction,
     } = ctx.input.body;
 
     let where: WhereOptions<Event> = {
-      name: EventHelper.ACTIVITY_EVENTS,
       teamId: user.teamId,
     };
+
+    if (auditLog) {
+      authorize(user, "audit", user.team);
+      where.name = events
+        ? intersection(EventHelper.AUDIT_EVENTS, events)
+        : EventHelper.AUDIT_EVENTS;
+    } else {
+      where.name = events
+        ? intersection(EventHelper.ACTIVITY_EVENTS, events)
+        : EventHelper.ACTIVITY_EVENTS;
+    }
+
+    if (name && (where.name as string[]).includes(name)) {
+      where.name = name;
+    }
 
     if (actorId) {
       where = { ...where, actorId };
@@ -40,15 +56,6 @@ router.post(
 
     if (documentId) {
       where = { ...where, documentId };
-    }
-
-    if (auditLog) {
-      authorize(user, "audit", user.team);
-      where.name = EventHelper.AUDIT_EVENTS;
-    }
-
-    if (name && (where.name as string[]).includes(name)) {
-      where.name = name;
     }
 
     if (collectionId) {
@@ -77,7 +84,7 @@ router.post(
       };
     }
 
-    const events = await Event.findAll({
+    const loadedEvents = await Event.findAll({
       where,
       order: [[sort, direction]],
       include: [
@@ -94,7 +101,7 @@ router.post(
     ctx.body = {
       pagination: ctx.state.pagination,
       data: await Promise.all(
-        events.map((event) => presentEvent(event, auditLog))
+        loadedEvents.map((event) => presentEvent(event, auditLog))
       ),
     };
   }

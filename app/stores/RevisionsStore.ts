@@ -58,7 +58,7 @@ export default class RevisionsStore extends Store<Revision> {
 
   @action
   fetchPage = async (
-    options: PaginationParams | undefined
+    options: { documentId: string } & (PaginationParams | undefined)
   ): Promise<Revision[]> => {
     this.isFetching = true;
 
