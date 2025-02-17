@@ -1095,6 +1095,7 @@ ol {
     direction: rtl;
   }
 
+  &:has(p:dir(rtl)),
   &:dir(rtl) {
     margin: 0 ${props.staticHTML ? "0" : "-26px"} 0 0.1em;
     padding: 0 48px 0 0;
