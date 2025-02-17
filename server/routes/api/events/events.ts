@@ -20,6 +20,7 @@ router.post(
   async (ctx: APIContext<T.EventsListReq>) => {
     const { user } = ctx.state.auth;
     const {
+      name,
       events,
       auditLog,
       actorId,
@@ -32,6 +33,10 @@ router.post(
     let where: WhereOptions<Event> = {
       teamId: user.teamId,
     };
+
+    if (name && (where.name as string[]).includes(name)) {
+      where.name = name;
+    }
 
     if (events?.length) {
       where.name = events;
