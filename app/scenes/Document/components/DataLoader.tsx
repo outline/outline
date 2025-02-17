@@ -183,7 +183,7 @@ function DataLoader({ match, children }: Props) {
 
       // Prevents unauthorized request to load share information for the document
       // when viewing a public share link
-      if (can.read && !document.isDeleted) {
+      if (can.read && !document.isDeleted && !revisionId) {
         if (team.getPreference(TeamPreference.Commenting)) {
           void comments.fetchAll({
             documentId: document.id,
@@ -199,7 +199,17 @@ function DataLoader({ match, children }: Props) {
         });
       }
     }
-  }, [can.read, can.update, document, isEditRoute, comments, team, shares, ui]);
+  }, [
+    can.read,
+    can.update,
+    document,
+    isEditRoute,
+    comments,
+    team,
+    shares,
+    ui,
+    revisionId,
+  ]);
 
   if (error) {
     return error instanceof OfflineError ? (
