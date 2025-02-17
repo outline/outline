@@ -4617,10 +4617,10 @@
   dependencies:
     dotenv "*"
 
-"@types/emoji-regex@^9.2.0":
-  version "9.2.0"
-  resolved "https://registry.yarnpkg.com/@types/emoji-regex/-/emoji-regex-9.2.0.tgz#2e117de04f5fa561c5dcbe43a860ecd856517525"
-  integrity "sha1-LhF94E9fpWHF3L5DqGDs2FZRdSU= sha512-Q2BaUWiokKV2ZWk15twerRiNIex/VOGIz3pAgPMk6JZAeuGT9oAm/kA2Ri9InUtPc84bY0UQZzn/Pd2yUd33Ig=="
+"@types/emoji-regex@^9.2.2":
+  version "9.2.2"
+  resolved "https://registry.yarnpkg.com/@types/emoji-regex/-/emoji-regex-9.2.2.tgz#b0b0ac07ab7d7fe1f23d9c629f0df2fad3198987"
+  integrity sha512-kg9a3lbO8WyO3LxZAhUtcS7X+u2FwptNcfsMCTsISiv0gV1BqLZlHgkL11XsG9n18t5uSPYtcQk6Zw8g7MbNRQ==
   dependencies:
     emoji-regex "*"
 
