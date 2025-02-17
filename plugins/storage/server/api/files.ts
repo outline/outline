@@ -77,18 +77,19 @@ router.get(
     const { isPublicBucket, fileName } = AttachmentHelper.parseKey(key);
     const skipAuthorize = isPublicBucket || isSignedRequest;
     const cacheHeader = "max-age=604800, immutable";
-    let contentType =
+
+    const attachment = await Attachment.findOne({
+      where: { key },
+      rejectOnEmpty: true,
+    });
+    if (!skipAuthorize) {
+      authorize(actor, "read", attachment);
+    }
+
+    const contentType =
+      attachment.contentType ||
       (fileName ? mime.lookup(fileName) : undefined) ||
       "application/octet-stream";
-
-    if (!skipAuthorize) {
-      const attachment = await Attachment.findOne({
-        where: { key },
-        rejectOnEmpty: true,
-      });
-      authorize(actor, "read", attachment);
-      contentType = attachment.contentType;
-    }
 
     ctx.set("Accept-Ranges", "bytes");
     ctx.set("Cache-Control", cacheHeader);

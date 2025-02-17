@@ -71,6 +71,7 @@ const Content = styled.p<{ $width: number; $isSelected: boolean }>`
   cursor: text;
   width: ${(props) => props.$width}px;
   min-width: 200px;
+  max-width: 100%;
 
   ${breakpoint("tablet")`
     font-size: 13px;

@@ -8,6 +8,13 @@ import Logger from "@server/logging/Logger";
 export type { RequestInit } from "node-fetch";
 
 /**
+ * Fake Chrome user agent string for use in fetch requests to
+ * improve reliability.
+ */
+export const chromeUserAgent =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36";
+
+/**
  * Wrapper around fetch that uses the request-filtering-agent in cloud hosted
  * environments to filter malicious requests, and the fetch-with-proxy library
  * in self-hosted environments to allow for request from behind a proxy.
