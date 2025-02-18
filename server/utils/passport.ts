@@ -127,12 +127,7 @@ export async function getTeamFromContext(ctx: Context) {
   } else if (domain.custom) {
     team = await Team.findOne({ where: { domain: domain.host } });
   } else if (domain.teamSubdomain) {
-    // Preference is always given to the team with the subdomain currently
-    // otherwise we can try and find a team that previously used the subdomain.
-    team =
-      (await Team.findOne({
-        where: { subdomain: domain.teamSubdomain },
-      })) || (await Team.findByPreviousSubdomain(domain.teamSubdomain));
+    team = await Team.findBySubdomain(domain.teamSubdomain);
   }
 
   return team;

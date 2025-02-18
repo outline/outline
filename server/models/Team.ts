@@ -417,6 +417,24 @@ class Team extends ParanoidModel<
   };
 
   /**
+   * Find a team by its current or previous subdomain.
+   *
+   * @param subdomain - The subdomain to search for.
+   * @returns The team with the given or previous subdomain, or null if not found.
+   */
+  static async findBySubdomain(subdomain: string) {
+    // Preference is always given to the team with the subdomain currently
+    // otherwise we can try and find a team that previously used the subdomain.
+    return (
+      (await this.findOne({
+        where: {
+          subdomain,
+        },
+      })) || (await this.findByPreviousSubdomain(subdomain))
+    );
+  }
+
+  /**
    * Find a team by its previous subdomain.
    *
    * @param previousSubdomain - The previous subdomain to search for.
