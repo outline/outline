@@ -127,9 +127,10 @@ export async function getTeamFromContext(ctx: Context) {
   } else if (domain.custom) {
     team = await Team.findOne({ where: { domain: domain.host } });
   } else if (domain.teamSubdomain) {
-    team = await Team.findOne({
-      where: { subdomain: domain.teamSubdomain },
-    });
+    team =
+      (await Team.findOne({
+        where: { subdomain: domain.teamSubdomain },
+      })) || (await Team.findByPreviousSubdomain(domain.teamSubdomain));
   }
 
   return team;

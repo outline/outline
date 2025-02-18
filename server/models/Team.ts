@@ -415,6 +415,23 @@ class Team extends ParanoidModel<
       }
     }
   };
+
+  /**
+   * Find a team by its previous subdomain.
+   *
+   * @param previousSubdomain - The previous subdomain to search for.
+   * @returns The team with the given previous subdomain, or null if not found.
+   */
+  static async findByPreviousSubdomain(previousSubdomain: string) {
+    return this.findOne({
+      where: {
+        previousSubdomains: {
+          [Op.contains]: [previousSubdomain],
+        },
+      },
+      order: [["updatedAt", "DESC"]],
+    });
+  }
 }
 
 export default Team;
