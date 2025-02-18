@@ -147,10 +147,12 @@ router.get("*", shareDomains(), async (ctx, next) => {
   }
 
   // Redirect if subdomain is not the current team's subdomain
-  if (team?.subdomain && !ctx.hostname.startsWith(team.subdomain)) {
+  if (team?.subdomain) {
     const { teamSubdomain } = parseDomain(ctx.href);
-    ctx.redirect(ctx.href.replace(teamSubdomain, team.subdomain));
-    return;
+    if (team?.subdomain !== teamSubdomain) {
+      ctx.redirect(ctx.href.replace(teamSubdomain, team.subdomain));
+      return;
+    }
   }
 
   const analytics = team
