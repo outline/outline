@@ -168,12 +168,10 @@ export default class NotificationHelper {
         attributes: ["userId"],
         where: {
           userId: recipients.map((recipient) => recipient.id),
+          event: SubscriptionType.Document,
           [Op.or]: [
-            {
-              collectionId: document.collectionId,
-              event: SubscriptionType.Document,
-            },
-            { documentId: document.id, event: SubscriptionType.Document },
+            { collectionId: document.collectionId },
+            { documentId: document.id },
           ],
         },
       });

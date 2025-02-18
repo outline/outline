@@ -233,7 +233,7 @@ export const subscribeCollection = createAction({
 
     await collection?.subscribe();
 
-    toast.success(t("Subscribed to collection notifications"));
+    toast.success(t("Subscribed to document notifications"));
   },
 });
 
@@ -263,7 +263,7 @@ export const unsubscribeCollection = createAction({
 
     await collection?.unsubscribe();
 
-    toast.success(t("Unsubscribed from collection notifications"));
+    toast.success(t("Unsubscribed from document notifications"));
   },
 });
 
@@ -393,5 +393,7 @@ export const rootCollectionActions = [
   createCollection,
   starCollection,
   unstarCollection,
+  subscribeCollection,
+  unsubscribeCollection,
   deleteCollection,
 ];

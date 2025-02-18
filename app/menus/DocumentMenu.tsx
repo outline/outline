@@ -57,7 +57,7 @@ import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
-import { MenuItem } from "~/types";
+import { MenuItem, MenuItemButton } from "~/types";
 import { documentEditPath } from "~/utils/routeHelpers";
 import { MenuContext, useMenuContext } from "./MenuContext";
 
@@ -257,8 +257,20 @@ const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
           },
           actionToMenuItem(starDocument, context),
           actionToMenuItem(unstarDocument, context),
-          actionToMenuItem(subscribeDocument, context),
-          actionToMenuItem(unsubscribeDocument, context),
+          {
+            ...actionToMenuItem(subscribeDocument, context),
+            disabled: collection?.isSubscribed,
+            tooltip: collection?.isSubscribed
+              ? t("Subscription inherited from collection")
+              : undefined,
+          } as MenuItemButton,
+          {
+            ...actionToMenuItem(unsubscribeDocument, context),
+            disabled: collection?.isSubscribed,
+            tooltip: collection?.isSubscribed
+              ? t("Subscription inherited from collection")
+              : undefined,
+          } as MenuItemButton,
           {
             type: "button",
             title: `${t("Find and replace")}…`,
