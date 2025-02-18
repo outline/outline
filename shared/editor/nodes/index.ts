@@ -42,6 +42,8 @@ import TableHeader from "./TableHeader";
 import TableRow from "./TableRow";
 import Text from "./Text";
 import ToggleBlock from "./ToggleBlock";
+import ToggleBody from "./ToggleBody";
+import ToggleHead from "./ToggleHead";
 import Video from "./Video";
 
 type Nodes = (typeof Node | typeof Mark | typeof Extension)[];
@@ -107,6 +109,8 @@ export const richExtensions: Nodes = [
   Math,
   MathBlock,
   Mention,
+  ToggleHead,
+  ToggleBody,
   ToggleBlock,
   // Container type nodes should be last so that key handlers are registered for content inside
   // the container nodes first.
