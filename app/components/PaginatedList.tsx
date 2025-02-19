@@ -60,7 +60,7 @@ class PaginatedList<T extends PaginatedItem> extends React.PureComponent<
   fetchCounter = 0;
 
   @observable
-  renderCount = Pagination.defaultLimit;
+  renderCount = 15;
 
   @observable
   offset = 0;
@@ -108,16 +108,13 @@ class PaginatedList<T extends PaginatedItem> extends React.PureComponent<
         ...this.props.options,
       });
 
-      if (this.offset !== 0) {
-        this.renderCount += limit;
-      }
-
       if (results && (results.length === 0 || results.length < limit)) {
         this.allowLoadMore = false;
       } else {
         this.offset += limit;
       }
 
+      this.renderCount += limit;
       this.isFetchingInitial = false;
     } catch (err) {
       this.error = err;
@@ -251,9 +248,7 @@ class PaginatedList<T extends PaginatedItem> extends React.PureComponent<
           }}
         </ArrowKeyNavigation>
         {this.allowLoadMore && (
-          <div style={{ height: "1px" }}>
-            <Waypoint key={this.renderCount} onEnter={this.loadMoreResults} />
-          </div>
+          <Waypoint key={this.renderCount} onEnter={this.loadMoreResults} />
         )}
       </>
     );
