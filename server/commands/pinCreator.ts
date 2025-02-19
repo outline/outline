@@ -45,20 +45,6 @@ export default async function pinCreator({
     );
   }
 
-  const existingPin = await Pin.findOne({
-    where: {
-      collectionId: collectionId ?? null,
-      documentId,
-      createdById: user.id,
-      teamId: user.teamId,
-    },
-    transaction: ctx.context.transaction,
-  });
-
-  if (existingPin) {
-    return existingPin;
-  }
-
   if (!index) {
     const pins = await Pin.findAll({
       where,
@@ -76,12 +62,13 @@ export default async function pinCreator({
     index = fractionalIndex(pins.length ? pins[0].index : null, null);
   }
 
-  const pin = await Pin.createWithCtx(ctx, {
-    createdById: user.id,
-    teamId: user.teamId,
-    collectionId,
-    documentId,
-    index,
+  const [pin] = await Pin.findOrCreateWithCtx(ctx, {
+    where: {
+      collectionId: collectionId ?? null,
+      documentId,
+      teamId: user.teamId,
+    },
+    defaults: { index, createdById: user.id },
   });
 
   return pin;
