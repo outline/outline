@@ -171,6 +171,9 @@ class Team extends ParanoidModel<
   @Column
   lastActiveAt: Date | null;
 
+  @Column(DataType.ARRAY(DataType.STRING))
+  previousSubdomains: string[] | null;
+
   // getters
 
   /**
@@ -369,6 +372,25 @@ class Team extends ParanoidModel<
     return model;
   }
 
+  @BeforeUpdate
+  static async savePreviousSubdomain(model: Team) {
+    const previousSubdomain = model.previous("subdomain");
+    if (previousSubdomain && previousSubdomain !== model.subdomain) {
+      model.previousSubdomains = model.previousSubdomains || [];
+
+      if (!model.previousSubdomains.includes(previousSubdomain)) {
+        // Add the previous subdomain to the list of previous subdomains
+        // upto a maximum of 3 previous subdomains
+        model.previousSubdomains.push(previousSubdomain);
+        if (model.previousSubdomains.length > 3) {
+          model.previousSubdomains.shift();
+        }
+      }
+    }
+
+    return model;
+  }
+
   @AfterUpdate
   static deletePreviousAvatar = async (model: Team) => {
     const previousAvatarUrl = model.previous("avatarUrl");
@@ -393,6 +415,41 @@ class Team extends ParanoidModel<
       }
     }
   };
+
+  /**
+   * Find a team by its current or previous subdomain.
+   *
+   * @param subdomain - The subdomain to search for.
+   * @returns The team with the given or previous subdomain, or null if not found.
+   */
+  static async findBySubdomain(subdomain: string) {
+    // Preference is always given to the team with the subdomain currently
+    // otherwise we can try and find a team that previously used the subdomain.
+    return (
+      (await this.findOne({
+        where: {
+          subdomain,
+        },
+      })) || (await this.findByPreviousSubdomain(subdomain))
+    );
+  }
+
+  /**
+   * Find a team by its previous subdomain.
+   *
+   * @param previousSubdomain - The previous subdomain to search for.
+   * @returns The team with the given previous subdomain, or null if not found.
+   */
+  static async findByPreviousSubdomain(previousSubdomain: string) {
+    return this.findOne({
+      where: {
+        previousSubdomains: {
+          [Op.contains]: [previousSubdomain],
+        },
+      },
+      order: [["updatedAt", "DESC"]],
+    });
+  }
 }
 
 export default Team;

@@ -7,6 +7,7 @@ import send from "koa-send";
 import userAgent, { UserAgentContext } from "koa-useragent";
 import { languages } from "@shared/i18n";
 import { IntegrationType, TeamPreference } from "@shared/types";
+import { parseDomain } from "@shared/utils/domains";
 import { Day } from "@shared/utils/time";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
@@ -138,11 +139,29 @@ router.get("*", shareDomains(), async (ctx, next) => {
   }
 
   const team = await getTeamFromContext(ctx);
+  let redirectUrl;
 
-  // Redirect all requests to custom domain if one is set
-  if (team?.domain && team.domain !== ctx.hostname) {
-    ctx.redirect(ctx.href.replace(ctx.hostname, team.domain));
-    return;
+  if (env.isCloudHosted) {
+    // Redirect all requests to custom domain if one is set
+    if (team?.domain && team.domain !== ctx.hostname) {
+      redirectUrl = ctx.href.replace(ctx.hostname, team.domain);
+    }
+
+    // Redirect if subdomain is not the current team's subdomain
+    else if (team?.subdomain) {
+      const { teamSubdomain } = parseDomain(ctx.href);
+      if (team?.subdomain !== teamSubdomain) {
+        redirectUrl = ctx.href.replace(
+          `//${teamSubdomain}.`,
+          `//${team.subdomain}.`
+        );
+      }
+    }
+
+    if (redirectUrl) {
+      ctx.redirect(redirectUrl);
+      return;
+    }
   }
 
   const analytics = team
