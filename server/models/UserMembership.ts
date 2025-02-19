@@ -282,12 +282,12 @@ class UserMembership extends IdModel<
 
       if (userMemberships === 1 && groupMemberships === 0) {
         throw ValidationError(
-          "Cannot remove last user with manage permissions"
+          "Cannot remove the last user with manage permissions"
         );
       }
       if (userMemberships === 0 && groupMemberships === 1) {
         throw ValidationError(
-          "Cannot remove last group with manage permissions"
+          "Cannot remove the last group with manage permissions"
         );
       }
     }

@@ -19,13 +19,16 @@ import {
   AfterCreate,
   AfterUpdate,
   AfterDestroy,
+  BeforeDestroy,
 } from "sequelize-typescript";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
+import { ValidationError } from "@server/errors";
 import { APIContext } from "@server/types";
 import Collection from "./Collection";
 import Document from "./Document";
 import Group from "./Group";
 import User from "./User";
+import UserMembership from "./UserMembership";
 import { type HookContext } from "./base/Model";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
@@ -244,6 +247,47 @@ class GroupMembership extends ParanoidModel<
           transaction,
         }
       );
+    }
+  }
+
+  @BeforeDestroy
+  static async checkLastAdminPermission(
+    model: GroupMembership,
+    { transaction }: APIContext["context"]
+  ) {
+    // Only check for last admin permission if this permission is admin
+    if (model.permission !== CollectionPermission.Admin) {
+      return;
+    }
+
+    if (model.collectionId) {
+      const [userMemberships, groupMemberships] = await Promise.all([
+        UserMembership.count({
+          where: {
+            collectionId: model.collectionId,
+            permission: CollectionPermission.Admin,
+          },
+          transaction,
+        }),
+        this.count({
+          where: {
+            collectionId: model.collectionId,
+            permission: CollectionPermission.Admin,
+          },
+          transaction,
+        }),
+      ]);
+
+      if (userMemberships === 1 && groupMemberships === 0) {
+        throw ValidationError(
+          "Cannot remove the last user with manage permissions"
+        );
+      }
+      if (userMemberships === 0 && groupMemberships === 1) {
+        throw ValidationError(
+          "Cannot remove the last group with manage permissions"
+        );
+      }
     }
   }
 
