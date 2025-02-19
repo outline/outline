@@ -343,18 +343,8 @@ export default class DocumentsStore extends Store<Document> {
   };
 
   @action
-  fetchArchived = async (options?: PaginationParams): Promise<Document[]> => {
-    const archivedInResponse = await this.fetchNamedPage("archived", options);
-    const archivedInMemory = this.archived;
-
-    archivedInMemory.forEach((docInMemory) => {
-      !archivedInResponse.find(
-        (docInResponse) => docInResponse.id === docInMemory.id
-      ) && this.remove(docInMemory.id);
-    });
-
-    return archivedInResponse;
-  };
+  fetchArchived = async (options?: PaginationParams): Promise<Document[]> =>
+    this.fetchNamedPage("archived", options);
 
   @action
   fetchDeleted = async (options?: PaginationParams): Promise<Document[]> =>
