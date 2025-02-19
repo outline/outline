@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import { UserIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import styled, { useTheme } from "styled-components";
 import Squircle from "@shared/components/Squircle";
 import { CollectionPermission } from "@shared/types";
@@ -167,18 +168,24 @@ export const AccessControlList = observer(
                             | CollectionPermission
                             | typeof EmptySelectValue
                         ) => {
-                          if (permission === EmptySelectValue) {
-                            await groupMemberships.delete({
-                              collectionId: collection.id,
-                              groupId: membership.groupId,
-                            });
-                          } else {
-                            await groupMemberships.create({
-                              collectionId: collection.id,
-                              groupId: membership.groupId,
-                              permission,
-                            });
+                          try {
+                            if (permission === EmptySelectValue) {
+                              await groupMemberships.delete({
+                                collectionId: collection.id,
+                                groupId: membership.groupId,
+                              });
+                            } else {
+                              await groupMemberships.create({
+                                collectionId: collection.id,
+                                groupId: membership.groupId,
+                                permission,
+                              });
+                            }
+                          } catch (err) {
+                            toast.error(err.message);
+                            return false;
                           }
+                          return true;
                         }}
                         disabled={!can.update}
                         value={membership.permission}
@@ -215,18 +222,24 @@ export const AccessControlList = observer(
                             | CollectionPermission
                             | typeof EmptySelectValue
                         ) => {
-                          if (permission === EmptySelectValue) {
-                            await memberships.delete({
-                              collectionId: collection.id,
-                              userId: membership.userId,
-                            });
-                          } else {
-                            await memberships.create({
-                              collectionId: collection.id,
-                              userId: membership.userId,
-                              permission,
-                            });
+                          try {
+                            if (permission === EmptySelectValue) {
+                              await memberships.delete({
+                                collectionId: collection.id,
+                                userId: membership.userId,
+                              });
+                            } else {
+                              await memberships.create({
+                                collectionId: collection.id,
+                                userId: membership.userId,
+                                permission,
+                              });
+                            }
+                          } catch (err) {
+                            toast.error(err.message);
+                            return false;
                           }
+                          return true;
                         }}
                         disabled={!can.update}
                         value={membership.permission}

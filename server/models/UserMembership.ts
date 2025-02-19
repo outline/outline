@@ -19,11 +19,14 @@ import {
   AfterUpdate,
   Length,
   AfterDestroy,
+  BeforeDestroy,
 } from "sequelize-typescript";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
+import { ValidationError } from "@server/errors";
 import { APIContext } from "@server/types";
 import Collection from "./Collection";
 import Document from "./Document";
+import GroupMembership from "./GroupMembership";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import { HookContext } from "./base/Model";
@@ -246,6 +249,47 @@ class UserMembership extends IdModel<
           transaction,
         }
       );
+    }
+  }
+
+  @BeforeDestroy
+  static async checkLastAdminPermission(
+    model: UserMembership,
+    { transaction }: APIContext["context"]
+  ) {
+    // Only check for last admin permission if this permission is admin
+    if (model.permission !== CollectionPermission.Admin) {
+      return;
+    }
+
+    if (model.collectionId) {
+      const [userMemberships, groupMemberships] = await Promise.all([
+        this.count({
+          where: {
+            collectionId: model.collectionId,
+            permission: CollectionPermission.Admin,
+          },
+          transaction,
+        }),
+        GroupMembership.count({
+          where: {
+            collectionId: model.collectionId,
+            permission: CollectionPermission.Admin,
+          },
+          transaction,
+        }),
+      ]);
+
+      if (userMemberships === 1 && groupMemberships === 0) {
+        throw ValidationError(
+          "Cannot remove last user with manage permissions"
+        );
+      }
+      if (userMemberships === 0 && groupMemberships === 1) {
+        throw ValidationError(
+          "Cannot remove last group with manage permissions"
+        );
+      }
     }
   }
 
