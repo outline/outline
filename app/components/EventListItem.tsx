@@ -14,8 +14,9 @@ import { useLocation } from "react-router-dom";
 import styled, { css } from "styled-components";
 import EventBoundary from "@shared/components/EventBoundary";
 import { s, hover } from "@shared/styles";
+import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import Document from "~/models/Document";
-import Event from "~/models/Event";
+import User from "~/models/User";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Item, { Actions, Props as ItemProps } from "~/components/List/Item";
 import Time from "~/components/Time";
@@ -25,21 +26,47 @@ import RevisionMenu from "~/menus/RevisionMenu";
 import Logger from "~/utils/Logger";
 import { documentHistoryPath } from "~/utils/routeHelpers";
 
-type Props = {
-  document: Document;
-  event: Event<Document>;
-  latest?: boolean;
+export type RevisionEvent = {
+  name: "revisions.create";
+  latest: boolean;
 };
 
-const EventListItem = ({ event, latest, document, ...rest }: Props) => {
+export type DocumentEvent = {
+  name:
+    | "documents.publish"
+    | "documents.unpublish"
+    | "documents.archive"
+    | "documents.unarchive"
+    | "documents.delete"
+    | "documents.restore"
+    | "documents.add_user"
+    | "documents.remove_user"
+    | "documents.move";
+  user?: User;
+};
+
+export type Event = { id: string; actor: User; createdAt: string } & (
+  | RevisionEvent
+  | DocumentEvent
+);
+
+type Props = {
+  document: Document;
+  event: Event;
+};
+
+const EventListItem = ({ event, document, ...rest }: Props) => {
   const { t } = useTranslation();
   const { revisions } = useStores();
   const location = useLocation();
   const sidebarContext = useLocationSidebarContext();
+  const revisionLoadedRef = React.useRef(false);
   const opts = {
     userName: event.actor.name,
   };
   const isRevision = event.name === "revisions.create";
+  const isDerivedFromDocument =
+    event.id === RevisionHelper.latestId(document.id);
   let meta, icon, to: LocationDescriptor | undefined;
 
   const ref = React.useRef<HTMLAnchorElement>(null);
@@ -50,15 +77,21 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
   };
 
   const prefetchRevision = async () => {
-    if (event.name === "revisions.create" && event.modelId) {
-      await revisions.fetch(event.modelId);
+    if (
+      !document.isDeleted &&
+      event.name === "revisions.create" &&
+      !isDerivedFromDocument &&
+      !revisionLoadedRef.current
+    ) {
+      await revisions.fetch(event.id, { force: true });
+      revisionLoadedRef.current = true;
     }
   };
 
   switch (event.name) {
     case "revisions.create":
       icon = <EditIcon size={16} />;
-      meta = latest ? (
+      meta = event.latest ? (
         <>
           {t("Current version")} &middot; {event.actor.name}
         </>
@@ -66,7 +99,10 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
         t("{{userName}} edited", opts)
       );
       to = {
-        pathname: documentHistoryPath(document, event.modelId || "latest"),
+        pathname: documentHistoryPath(
+          document,
+          isDerivedFromDocument ? "latest" : event.id
+        ),
         state: {
           sidebarContext,
           retainScrollPosition: true,
@@ -161,9 +197,9 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
         </Subtitle>
       }
       actions={
-        isRevision && isActive && event.modelId && !latest ? (
+        isRevision && isActive && !event.latest ? (
           <StyledEventBoundary>
-            <RevisionMenu document={document} revisionId={event.modelId} />
+            <RevisionMenu document={document} revisionId={event.id} />
           </StyledEventBoundary>
         ) : undefined
       }
