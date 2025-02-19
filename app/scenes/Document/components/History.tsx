@@ -57,7 +57,7 @@ function History() {
         id: data.id,
         name: data.name as DocumentEvent["name"],
         actor: data.actor,
-        user: data.user,
+        userId: data.userId,
         createdAt: data.createdAt,
       } satisfies Event;
     },
