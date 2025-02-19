@@ -10,11 +10,7 @@ import Document from "~/models/Document";
 import EventModel from "~/models/Event";
 import Revision from "~/models/Revision";
 import Empty from "~/components/Empty";
-import {
-  DocumentEvent,
-  RevisionEvent,
-  type Event,
-} from "~/components/EventListItem";
+import { DocumentEvent, type Event } from "~/components/EventListItem";
 import PaginatedEventList from "~/components/PaginatedEventList";
 import useKeyDown from "~/hooks/useKeyDown";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
@@ -106,17 +102,23 @@ function History() {
     return pageEvents;
   }, [document, revisions, events, toEvent, offset]);
 
-  const revisionEvents = React.useMemo(
-    () =>
-      document
-        ? revisions
-            .filter({ documentId: document.id })
-            .slice(0, offset.revisions + 1) // take one extra to account for realtime edits
-            .map(toEvent)
-        : [],
-    [document, revisions, offset.revisions, toEvent]
-  );
-  const otherEvents = React.useMemo(
+  const revisionEvents = React.useMemo(() => {
+    if (!document) {
+      return [];
+    }
+
+    const latestRevisionId = RevisionHelper.latestId(document.id);
+    return revisions
+      .filter(
+        (revision: Revision) =>
+          revision.id !== latestRevisionId &&
+          revision.documentId === document.id
+      )
+      .slice(0, offset.revisions)
+      .map(toEvent);
+  }, [document, revisions, offset.revisions, toEvent]);
+
+  const nonRevisionEvents = React.useMemo(
     () =>
       document
         ? events
@@ -127,26 +129,33 @@ function History() {
     [document, events, offset.events, toEvent]
   );
 
-  const latestRevision = revisionEvents[0];
+  const mergedEvents = React.useMemo(() => {
+    const merged = orderBy(
+      [...revisionEvents, ...nonRevisionEvents],
+      "createdAt",
+      "desc"
+    );
 
-  if (latestRevision && document) {
-    if (latestRevision.createdAt !== document.updatedAt) {
-      revisionEvents.unshift({
-        id: RevisionHelper.latestId(document.id),
-        name: "revisions.create",
-        createdAt: document.updatedAt,
-        actor: document.updatedBy!,
-        latest: true,
-      });
-    } else {
-      (latestRevision as RevisionEvent).latest = true;
+    const latestRevision = merged.find(
+      (event) => event.name === "revisions.create"
+    );
+
+    if (merged[0] && document) {
+      if (merged[0].createdAt !== document.updatedAt) {
+        merged.unshift({
+          id: RevisionHelper.latestId(document.id),
+          name: "revisions.create",
+          createdAt: document.updatedAt,
+          actor: document.updatedBy!,
+          latest: true,
+        });
+      } else if (latestRevision) {
+        latestRevision.latest = true;
+      }
     }
-  }
 
-  const mergedEvents = React.useMemo(
-    () => orderBy([...revisionEvents, ...otherEvents], "createdAt", "desc"),
-    [revisionEvents, otherEvents]
-  );
+    return merged;
+  }, [document, revisionEvents, nonRevisionEvents]);
 
   const onCloseHistory = React.useCallback(() => {
     if (document) {
