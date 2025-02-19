@@ -43,9 +43,7 @@ class Pin extends Model {
       return;
     }
 
-    const collection = model.store.rootStore.collections.get(
-      model.collectionId
-    );
+    const collection = pins.rootStore.collections.get(model.collectionId);
     if (!collection) {
       return;
     }
