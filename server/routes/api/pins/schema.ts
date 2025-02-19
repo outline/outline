@@ -24,6 +24,21 @@ export const PinsCreateSchema = BaseSchema.extend({
 
 export type PinsCreateReq = z.infer<typeof PinsCreateSchema>;
 
+export const PinsInfoSchema = BaseSchema.extend({
+  body: z.object({
+    /** Document to get the pin info for. */
+    documentId: z
+      .string()
+      .refine((val) => isUUID(val) || UrlHelper.SLUG_URL_REGEX.test(val), {
+        message: "must be uuid or url slug",
+      }),
+    /** Collection to which the pin belongs to. If not set, it's considered as "Home" pin. */
+    collectionId: z.string().uuid().nullish(),
+  }),
+});
+
+export type PinsInfoReq = z.infer<typeof PinsInfoSchema>;
+
 export const PinsListSchema = BaseSchema.extend({
   body: z.object({
     collectionId: z.string().uuid().nullish(),

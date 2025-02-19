@@ -45,6 +45,20 @@ export default async function pinCreator({
     );
   }
 
+  const existingPin = await Pin.findOne({
+    where: {
+      collectionId: collectionId ?? null,
+      documentId,
+      createdById: user.id,
+      teamId: user.teamId,
+    },
+    transaction: ctx.context.transaction,
+  });
+
+  if (existingPin) {
+    return existingPin;
+  }
+
   if (!index) {
     const pins = await Pin.findAll({
       where,

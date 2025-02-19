@@ -58,11 +58,39 @@ router.post(
 );
 
 router.post(
+  "pins.info",
+  auth(),
+  validate(T.PinsInfoSchema),
+  async (ctx: APIContext<T.PinsInfoReq>) => {
+    const { user } = ctx.state.auth;
+    const { documentId, collectionId } = ctx.input.body;
+
+    const document = await Document.findByPk(documentId, { userId: user.id });
+    authorize(user, "read", document);
+
+    // There can be only one pin with these props.
+    const pin = await Pin.findOne({
+      where: {
+        documentId,
+        collectionId,
+        createdById: user.id,
+        teamId: user.teamId,
+      },
+      rejectOnEmpty: true,
+    });
+
+    ctx.body = {
+      data: presentPin(pin),
+    };
+  }
+);
+
+router.post(
   "pins.list",
   auth(),
   validate(T.PinsListSchema),
   pagination(),
-  async (ctx: APIContext<T.PinsCreateReq>) => {
+  async (ctx: APIContext<T.PinsListReq>) => {
     const { collectionId } = ctx.input.body;
     const { user } = ctx.state.auth;
 
