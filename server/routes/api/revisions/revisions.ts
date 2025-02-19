@@ -125,6 +125,7 @@ router.post(
 
     const document = await Document.findByPk(documentId, {
       userId: user.id,
+      paranoid: false,
     });
     authorize(user, "listRevisions", document);
 
