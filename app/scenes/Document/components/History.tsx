@@ -136,12 +136,14 @@ function History() {
       "desc"
     );
 
-    const latestRevision = merged.find(
-      (event) => event.name === "revisions.create"
-    );
+    const latestEvent = merged[0];
 
-    if (merged[0] && document) {
-      if (merged[0].createdAt !== document.updatedAt) {
+    if (latestEvent && document) {
+      const latestRevisionEvent = merged.find(
+        (event) => event.name === "revisions.create"
+      );
+
+      if (latestEvent.createdAt !== document.updatedAt) {
         merged.unshift({
           id: RevisionHelper.latestId(document.id),
           name: "revisions.create",
@@ -149,8 +151,8 @@ function History() {
           actor: document.updatedBy!,
           latest: true,
         });
-      } else if (latestRevision) {
-        latestRevision.latest = true;
+      } else if (latestRevisionEvent) {
+        latestRevisionEvent.latest = true;
       }
     }
 
