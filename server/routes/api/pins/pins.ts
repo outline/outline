@@ -72,7 +72,7 @@ router.post(
     const pin = await Pin.findOne({
       where: {
         documentId,
-        collectionId,
+        collectionId: collectionId ?? null,
         createdById: user.id,
         teamId: user.teamId,
       },
