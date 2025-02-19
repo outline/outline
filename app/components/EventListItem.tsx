@@ -78,6 +78,7 @@ const EventListItem = ({ event, document, ...rest }: Props) => {
 
   const prefetchRevision = async () => {
     if (
+      !document.isDeleted &&
       event.name === "revisions.create" &&
       !isDerivedFromDocument &&
       !revisionLoadedRef.current
