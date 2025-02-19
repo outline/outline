@@ -1,5 +1,5 @@
 export class EventHelper {
-  public static readonly ACTIVITY_EVENTS = [
+  public static ACTIVITY_EVENTS = [
     "collections.create",
     "collections.delete",
     "collections.move",
@@ -20,9 +20,9 @@ export class EventHelper {
     "users.create",
     "users.demote",
     "userMemberships.update",
-  ];
+  ] as const;
 
-  public static readonly AUDIT_EVENTS = [
+  public static AUDIT_EVENTS = [
     "api_keys.create",
     "api_keys.delete",
     "authenticationProviders.update",
@@ -73,5 +73,5 @@ export class EventHelper {
     "fileOperations.delete",
     "webhookSubscriptions.create",
     "webhookSubscriptions.delete",
-  ];
+  ] as const;
 }
