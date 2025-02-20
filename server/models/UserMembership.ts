@@ -19,11 +19,15 @@ import {
   AfterUpdate,
   Length,
   AfterDestroy,
+  BeforeDestroy,
+  BeforeUpdate,
 } from "sequelize-typescript";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
+import { ValidationError } from "@server/errors";
 import { APIContext } from "@server/types";
 import Collection from "./Collection";
 import Document from "./Document";
+import GroupMembership from "./GroupMembership";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import { HookContext } from "./base/Model";
@@ -249,6 +253,36 @@ class UserMembership extends IdModel<
     }
   }
 
+  @BeforeUpdate
+  static async checkLastAdminBeforeUpdate(
+    model: UserMembership,
+    ctx: APIContext["context"]
+  ) {
+    if (
+      model.permission === CollectionPermission.Admin ||
+      model.previous("permission") !== CollectionPermission.Admin ||
+      !model.collectionId
+    ) {
+      return;
+    }
+    await this.validateLastAdminPermission(model, ctx);
+  }
+
+  @BeforeDestroy
+  static async checkLastAdminBeforeDestroy(
+    model: UserMembership,
+    ctx: APIContext["context"]
+  ) {
+    // Only check for last admin permission if this permission is admin
+    if (
+      model.permission !== CollectionPermission.Admin ||
+      !model.collectionId
+    ) {
+      return;
+    }
+    await this.validateLastAdminPermission(model, ctx);
+  }
+
   @AfterUpdate
   static async publishAddUserEventAfterUpdate(
     model: UserMembership,
@@ -344,6 +378,34 @@ class UserMembership extends IdModel<
       await Collection.insertEvent(name, this, hookContext);
     } else {
       await Document.insertEvent(name, this, hookContext);
+    }
+  }
+
+  private static async validateLastAdminPermission(
+    model: UserMembership,
+    { transaction }: APIContext["context"]
+  ) {
+    const [userMemberships, groupMemberships] = await Promise.all([
+      this.count({
+        where: {
+          collectionId: model.collectionId,
+          permission: CollectionPermission.Admin,
+        },
+        transaction,
+      }),
+      GroupMembership.count({
+        where: {
+          collectionId: model.collectionId,
+          permission: CollectionPermission.Admin,
+        },
+        transaction,
+      }),
+    ]);
+
+    if (userMemberships === 1 && groupMemberships === 0) {
+      throw ValidationError(
+        "At least one user or group must have manage permissions"
+      );
     }
   }
 }

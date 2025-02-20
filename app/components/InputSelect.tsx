@@ -48,7 +48,8 @@ export type Props = Omit<ButtonProps<any>, "onChange"> & {
   options: Option[];
   /** @deprecated Removing soon, do not use. */
   note?: React.ReactNode;
-  onChange?: (value: string | null) => void;
+  /** Callback function that is called when the value changes. Return false to cancel the change. */
+  onChange?: (value: string | null) => void | Promise<boolean | void>;
   style?: React.CSSProperties;
   /**
    * Set to true if this component is rendered inside a Modal.
@@ -165,9 +166,18 @@ const InputSelect = (props: Props, ref: React.RefObject<InputSelectRef>) => {
     if (previousValue.current === select.selectedValue) {
       return;
     }
+    const previous = previousValue.current;
     previousValue.current = select.selectedValue;
 
-    onChange?.(select.selectedValue);
+    const response = onChange?.(select.selectedValue);
+    if (response && response instanceof Promise) {
+      void response.then((success) => {
+        if (success === false) {
+          select.selectedValue = previous;
+          select.setSelectedValue(previous);
+        }
+      });
+    }
   }, [onChange, select.selectedValue]);
 
   React.useLayoutEffect(() => {
