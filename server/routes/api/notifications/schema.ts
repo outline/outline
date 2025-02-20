@@ -74,7 +74,7 @@ export type NotificationsUpdateAllReq = z.infer<
 
 export const NotificationsPixelSchema = BaseSchema.extend({
   query: z.object({
-    id: z.string(),
+    id: z.string().uuid(),
     token: z.string(),
   }),
 });

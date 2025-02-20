@@ -35,7 +35,7 @@ function Export() {
       <Heading>{t("Export")}</Heading>
       <Text as="p" type="secondary">
         <Trans
-          defaults="A full export might take some time, consider exporting a single document or collection. The exported data is a zip of your documents in Markdown format. You may leave this page once the export has started – if you have notifications enabled, we will email a link to <em>{{ userEmail }}</em> when it’s complete."
+          defaults="A full export might take some time, consider exporting a single document or collection. You may leave this page once the export has started – if you have notifications enabled, we will email a link to <em>{{ userEmail }}</em> when it’s complete."
           values={{
             userEmail: user.email,
           }}

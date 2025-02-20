@@ -1454,7 +1454,7 @@ router.post(
   auth(),
   validate(T.DocumentsUnpublishSchema),
   async (ctx: APIContext<T.DocumentsUnpublishReq>) => {
-    const { id } = ctx.input.body;
+    const { id, detach } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const document = await Document.findByPk(id, {
@@ -1473,14 +1473,14 @@ router.post(
       );
     }
 
-    await document.unpublish(user);
+    // detaching would unset collectionId from document, so save a ref to the affected collectionId.
+    const collectionId = document.collectionId;
+
+    await document.unpublish(user, { detach });
     await Event.createFromContext(ctx, {
       name: "documents.unpublish",
       documentId: document.id,
-      collectionId: document.collectionId,
-      data: {
-        title: document.title,
-      },
+      collectionId,
     });
 
     ctx.body = {

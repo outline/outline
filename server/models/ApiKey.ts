@@ -174,6 +174,9 @@ class ApiKey extends ParanoidModel<
       return true;
     }
 
+    // strip any query string from the path
+    path = path.split("?")[0];
+
     const resource = path.split("/").pop() ?? "";
     const [namespace, method] = resource.split(".");
 

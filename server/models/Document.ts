@@ -981,7 +981,13 @@ class Document extends ArchivableModel<
     return false;
   };
 
-  unpublish = async (user: User) => {
+  /**
+   *
+   * @param user User who is performing the action
+   * @param options.detach Whether to detach the document from the containing collection
+   * @returns Updated document
+   */
+  unpublish = async (user: User, options: { detach: boolean }) => {
     // If the document is already a draft then calling unpublish should act like save
     if (!this.publishedAt) {
       return this.save();
@@ -1010,6 +1016,11 @@ class Document extends ArchivableModel<
     this.createdBy = user;
     this.updatedBy = user;
     this.publishedAt = null;
+
+    if (options.detach) {
+      this.collectionId = null;
+    }
+
     return this.save();
   };
 

@@ -92,13 +92,13 @@ type MenuTriggerProps = {
 const MenuTrigger: React.FC<MenuTriggerProps> = ({ label, onTrigger }) => {
   const { t } = useTranslation();
 
-  const { subscriptions } = useStores();
+  const { subscriptions, pins } = useStores();
   const { model: document, menuState } = useMenuContext<Document>();
 
   const {
-    loading: subscriptionsLoading,
-    loaded: subscriptionsLoaded,
-    request: loadSubscriptions,
+    loading: auxDataLoading,
+    loaded: auxDataLoaded,
+    request: auxDataRequest,
   } = useRequest(() =>
     Promise.all([
       subscriptions.fetchOne({
@@ -111,15 +111,19 @@ const MenuTrigger: React.FC<MenuTriggerProps> = ({ label, onTrigger }) => {
             event: SubscriptionType.Document,
           })
         : noop,
+      pins.fetchOne({
+        documentId: document.id,
+        collectionId: document.collectionId ?? null,
+      }),
     ])
   );
 
   const handlePointerEnter = React.useCallback(() => {
-    if (!subscriptionsLoading && !subscriptionsLoaded) {
-      void loadSubscriptions();
+    if (!auxDataLoading && !auxDataLoaded) {
+      void auxDataRequest();
       void document.loadRelations();
     }
-  }, [subscriptionsLoading, subscriptionsLoaded, loadSubscriptions, document]);
+  }, [auxDataLoading, auxDataLoaded, auxDataRequest, document]);
 
   return label ? (
     <MenuButton

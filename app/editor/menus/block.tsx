@@ -38,7 +38,12 @@ const Img = styled(Image)`
   height: 18px;
 `;
 
-export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
+export default function blockMenuItems(
+  dictionary: Dictionary,
+  documentRef: React.RefObject<HTMLDivElement>
+): MenuItem[] {
+  const documentWidth = documentRef.current?.clientWidth ?? 0;
+
   return [
     {
       name: "heading",
@@ -119,7 +124,11 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       name: "table",
       title: dictionary.table,
       icon: <TableIcon />,
-      attrs: { rowsCount: 3, colsCount: 3 },
+      attrs: {
+        rowsCount: 3,
+        colsCount: 3,
+        colWidth: documentWidth / 3,
+      },
     },
     {
       name: "blockquote",

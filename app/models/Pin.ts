@@ -1,15 +1,19 @@
 import { observable } from "mobx";
+import PinsStore from "~/stores/PinsStore";
+import { setPersistedState } from "~/hooks/usePersistedState";
+import { pinsCacheKey } from "~/hooks/usePinnedDocuments";
 import Collection from "./Collection";
 import Document from "./Document";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
+import { AfterCreate, AfterDelete, AfterRemove } from "./decorators/Lifecycle";
 import Relation from "./decorators/Relation";
 
 class Pin extends Model {
   static modelName = "Pin";
 
   /** The collection ID that the document is pinned to. If empty the document is pinned to home. */
-  collectionId: string;
+  collectionId: string | null;
 
   /** The collection that the document is pinned to. If empty the document is pinned to home. */
   @Relation(() => Collection, { onDelete: "cascade" })
@@ -26,6 +30,30 @@ class Pin extends Model {
   @observable
   @Field
   index: string;
+
+  @AfterCreate
+  @AfterDelete
+  @AfterRemove
+  static updateCache(model: Pin) {
+    const pins = model.store as PinsStore;
+
+    // Pinned to home
+    if (!model.collectionId) {
+      setPersistedState(pinsCacheKey("home"), pins.home.length);
+      return;
+    }
+
+    // Pinned to collection
+    const collection = pins.rootStore.collections.get(model.collectionId);
+    if (!collection) {
+      return;
+    }
+
+    setPersistedState(
+      pinsCacheKey(collection.urlId),
+      pins.inCollection(collection.id).length
+    );
+  }
 }
 
 export default Pin;

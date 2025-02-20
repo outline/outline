@@ -28,7 +28,7 @@ export const CommentsCreateSchema = BaseSchema.extend({
     id: z.string().uuid().optional(),
 
     /** Create comment for this document */
-    documentId: z.string(),
+    documentId: z.string().uuid(),
 
     /** Create comment under this parent */
     parentCommentId: z.string().uuid().optional(),
