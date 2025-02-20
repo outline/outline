@@ -42,7 +42,7 @@ export const PinsListSchema = BaseSchema.extend({
   }),
 });
 
-export type PinsListReq = z.infer<typeof PinsCreateSchema>;
+export type PinsListReq = z.infer<typeof PinsListSchema>;
 
 export const PinsUpdateSchema = BaseSchema.extend({
   body: z.object({
