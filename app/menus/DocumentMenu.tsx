@@ -1,6 +1,5 @@
 import capitalize from "lodash/capitalize";
 import isEmpty from "lodash/isEmpty";
-import isUndefined from "lodash/isUndefined";
 import { observer } from "mobx-react";
 import { EditIcon, InputIcon, RestoreIcon, SearchIcon } from "outline-icons";
 import * as React from "react";
@@ -92,22 +91,32 @@ type MenuTriggerProps = {
 const MenuTrigger: React.FC<MenuTriggerProps> = ({ label, onTrigger }) => {
   const { t } = useTranslation();
 
-  const { subscriptions } = useStores();
+  const { subscriptions, pins } = useStores();
   const { model: document, menuState } = useMenuContext<Document>();
 
-  const { data, loading, error, request } = useRequest(() =>
-    subscriptions.fetchOne({
-      documentId: document.id,
-      event: "documents.update",
-    })
+  const {
+    loading: auxDataLoading,
+    loaded: auxDataLoaded,
+    request: auxDataRequest,
+  } = useRequest(() =>
+    Promise.all([
+      subscriptions.fetchOne({
+        documentId: document.id,
+        event: "documents.update",
+      }),
+      pins.fetchOne({
+        documentId: document.id,
+        collectionId: document.collectionId ?? null,
+      }),
+    ])
   );
 
   const handlePointerEnter = React.useCallback(() => {
-    if (isUndefined(data ?? error) && !loading) {
-      void request();
+    if (!auxDataLoading && !auxDataLoaded) {
+      void auxDataRequest();
       void document.loadRelations();
     }
-  }, [data, error, loading, request, document]);
+  }, [auxDataLoading, auxDataLoaded, auxDataRequest, document]);
 
   return label ? (
     <MenuButton

@@ -13,7 +13,7 @@ class Pin extends Model {
   static modelName = "Pin";
 
   /** The collection ID that the document is pinned to. If empty the document is pinned to home. */
-  collectionId: string;
+  collectionId: string | null;
 
   /** The collection that the document is pinned to. If empty the document is pinned to home. */
   @Relation(() => Collection, { onDelete: "cascade" })
