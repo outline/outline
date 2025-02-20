@@ -37,12 +37,13 @@ class Pin extends Model {
   static updateCache(model: Pin) {
     const pins = model.store as PinsStore;
 
-    const isHome = !model.collectionId;
-    if (isHome) {
+    // Pinned to home
+    if (!model.collectionId) {
       setPersistedState(pinsCacheKey("home"), pins.home.length);
       return;
     }
 
+    // Pinned to collection
     const collection = pins.rootStore.collections.get(model.collectionId);
     if (!collection) {
       return;
