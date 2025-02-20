@@ -168,6 +168,84 @@ describe("#pins.create", () => {
   });
 });
 
+describe("#pins.info", () => {
+  it("should provide info about a home pin", async () => {
+    const admin = await buildAdmin();
+    const document = await buildDocument({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+
+    await server.post("/api/pins.create", {
+      body: {
+        token: admin.getJwtToken(),
+        documentId: document.id,
+      },
+    });
+
+    const res = await server.post("/api/pins.info", {
+      body: {
+        token: admin.getJwtToken(),
+        documentId: document.id,
+      },
+    });
+    const pin = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(pin.data.id).toBeDefined();
+    expect(pin.data.documentId).toEqual(document.id);
+    expect(pin.data.collectionId).toBeFalsy();
+  });
+
+  it("should provide info about a collection pin", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    await server.post("/api/pins.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        collectionId: document.collectionId,
+      },
+    });
+
+    const res = await server.post("/api/pins.info", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        collectionId: document.collectionId,
+      },
+    });
+    const pin = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(pin.data.id).toBeDefined();
+    expect(pin.data.documentId).toEqual(document.id);
+    expect(pin.data.collectionId).toEqual(document.collectionId);
+  });
+
+  it("should throw 404 if no pin found", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/pins.info", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        collectionId: null,
+      },
+    });
+
+    expect(res.status).toEqual(404);
+  });
+});
+
 describe("#pins.list", () => {
   let user: User;
   let pins: Pin[];
