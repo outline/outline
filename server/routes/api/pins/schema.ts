@@ -1,6 +1,7 @@
 import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
 import { UrlHelper } from "@shared/utils/UrlHelper";
+import { zodIdType } from "@server/utils/zod";
 import { BaseSchema } from "../schema";
 
 export const PinsCreateSchema = BaseSchema.extend({
@@ -27,11 +28,7 @@ export type PinsCreateReq = z.infer<typeof PinsCreateSchema>;
 export const PinsInfoSchema = BaseSchema.extend({
   body: z.object({
     /** Document to get the pin info for. */
-    documentId: z
-      .string()
-      .refine((val) => isUUID(val) || UrlHelper.SLUG_URL_REGEX.test(val), {
-        message: "must be uuid or url slug",
-      }),
+    documentId: zodIdType(),
     /** Collection to which the pin belongs to. If not set, it's considered as "Home" pin. */
     collectionId: z.string().uuid().nullish(),
   }),

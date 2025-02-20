@@ -81,6 +81,7 @@ router.post(
 
     ctx.body = {
       data: presentPin(pin),
+      policies: presentPolicies(user, [pin]),
     };
   }
 );
