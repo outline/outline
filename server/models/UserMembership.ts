@@ -403,7 +403,9 @@ class UserMembership extends IdModel<
     ]);
 
     if (userMemberships === 1 && groupMemberships === 0) {
-      throw ValidationError("At least one user must have manage permissions");
+      throw ValidationError(
+        "At least one user or group must have manage permissions"
+      );
     }
   }
 }
