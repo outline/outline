@@ -1,8 +1,12 @@
 import { observable } from "mobx";
+import PinsStore from "~/stores/PinsStore";
+import { setPersistedState } from "~/hooks/usePersistedState";
+import { pinsCacheKey } from "~/hooks/usePinnedDocuments";
 import Collection from "./Collection";
 import Document from "./Document";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
+import { AfterCreate, AfterDelete, AfterRemove } from "./decorators/Lifecycle";
 import Relation from "./decorators/Relation";
 
 class Pin extends Model {
@@ -26,6 +30,29 @@ class Pin extends Model {
   @observable
   @Field
   index: string;
+
+  @AfterCreate
+  @AfterDelete
+  @AfterRemove
+  static updateCache(model: Pin) {
+    const pins = model.store as PinsStore;
+
+    const isHome = !model.collectionId;
+    if (isHome) {
+      setPersistedState(pinsCacheKey("home"), pins.home.length);
+      return;
+    }
+
+    const collection = pins.rootStore.collections.get(model.collectionId);
+    if (!collection) {
+      return;
+    }
+
+    setPersistedState(
+      pinsCacheKey(collection.urlId),
+      pins.inCollection(collection.id).length
+    );
+  }
 }
 
 export default Pin;
