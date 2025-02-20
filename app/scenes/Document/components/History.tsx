@@ -47,7 +47,7 @@ function History() {
         return {
           id: data.id,
           name: "revisions.create",
-          actor: data.createdBy,
+          actorId: data.createdBy.id,
           createdAt: data.createdAt,
           latest: false,
         } satisfies Event;
@@ -56,7 +56,7 @@ function History() {
       return {
         id: data.id,
         name: data.name as DocumentEvent["name"],
-        actor: data.actor,
+        actorId: data.actorId,
         userId: data.userId,
         createdAt: data.createdAt,
       } satisfies Event;
@@ -148,7 +148,7 @@ function History() {
           id: RevisionHelper.latestId(document.id),
           name: "revisions.create",
           createdAt: document.updatedAt,
-          actor: document.updatedBy!,
+          actorId: document.updatedBy?.id ?? "",
           latest: true,
         });
       } else if (latestRevisionEvent) {
