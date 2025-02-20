@@ -48,9 +48,8 @@ class Pin extends Model {
       return;
     }
 
-    const urlId = collection.path.replace("/collection/", "");
     setPersistedState(
-      pinsCacheKey(urlId),
+      pinsCacheKey(collection.urlId),
       pins.inCollection(collection.id).length
     );
   }
