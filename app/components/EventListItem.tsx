@@ -19,7 +19,6 @@ import EventBoundary from "@shared/components/EventBoundary";
 import { s, hover } from "@shared/styles";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import Document from "~/models/Document";
-import User from "~/models/User";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Item, { Actions } from "~/components/List/Item";
 import Time from "~/components/Time";
@@ -49,7 +48,7 @@ export type DocumentEvent = {
   userId: string;
 };
 
-export type Event = { id: string; actor: User; createdAt: string } & (
+export type Event = { id: string; actorId: string; createdAt: string } & (
   | RevisionEvent
   | DocumentEvent
 );
@@ -62,12 +61,13 @@ type Props = {
 const EventListItem = ({ event, document, ...rest }: Props) => {
   const { t } = useTranslation();
   const { revisions, users } = useStores();
-  const user = "userId" in event ? users.get(event.userId) : null;
+  const actor = "actorId" in event ? users.get(event.actorId) : undefined;
+  const user = "userId" in event ? users.get(event.userId) : undefined;
   const location = useLocation();
   const sidebarContext = useLocationSidebarContext();
   const revisionLoadedRef = React.useRef(false);
   const opts = {
-    userName: event.actor.name,
+    userName: actor?.name,
   };
   const isRevision = event.name === "revisions.create";
   const isDerivedFromDocument =
@@ -98,7 +98,7 @@ const EventListItem = ({ event, document, ...rest }: Props) => {
       icon = <EditIcon size={16} />;
       meta = event.latest ? (
         <>
-          {t("Current version")} &middot; {event.actor.name}
+          {t("Current version")} &middot; {actor?.name}
         </>
       ) : (
         t("{{userName}} edited", opts)
@@ -198,7 +198,7 @@ const EventListItem = ({ event, document, ...rest }: Props) => {
           onClick={handleTimeClick}
         />
       }
-      image={<Avatar model={event.actor} size={AvatarSize.Large} />}
+      image={<Avatar model={actor} size={AvatarSize.Large} />}
       subtitle={meta}
       actions={
         isRevision && isActive && !event.latest ? (
