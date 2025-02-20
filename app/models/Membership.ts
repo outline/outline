@@ -9,8 +9,6 @@ import Relation from "./decorators/Relation";
 class Membership extends Model {
   static modelName = "Membership";
 
-  id: string;
-
   userId: string;
 
   @Relation(() => User, { onDelete: "cascade" })
