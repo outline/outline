@@ -3,7 +3,7 @@ import { Op } from "sequelize";
 import { Sequelize } from "sequelize-typescript";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
-import { User } from "@server/models";
+import { Collection, User } from "@server/models";
 import SearchHelper from "@server/models/helpers/SearchHelper";
 import { can } from "@server/policies";
 import { presentDocument, presentUser } from "@server/presenters";
@@ -23,7 +23,7 @@ router.post(
     const { offset, limit } = ctx.state.pagination;
     const actor = ctx.state.auth.user;
 
-    const [documents, users] = await Promise.all([
+    const [documents, users, collections] = await Promise.all([
       SearchHelper.searchTitlesForUser(actor, {
         query,
         offset,
@@ -35,6 +35,27 @@ router.post(
           suspendedAt: {
             [Op.eq]: null,
           },
+          [Op.and]: query
+            ? {
+                [Op.or]: [
+                  Sequelize.literal(
+                    `unaccent(LOWER(email)) like unaccent(LOWER(:query))`
+                  ),
+                  Sequelize.literal(
+                    `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
+                  ),
+                ],
+              }
+            : {},
+        },
+        order: [["name", "ASC"]],
+        replacements: { query: `%${query}%` },
+        offset,
+        limit,
+      }),
+      Collection.findAll({
+        where: {
+          teamId: actor.teamId,
           [Op.and]: query
             ? {
                 [Op.or]: [
@@ -67,6 +88,7 @@ router.post(
             includeDetails: !!can(actor, "readDetails", user),
           })
         ),
+        collections,
       },
     };
   }

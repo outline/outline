@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { DocumentIcon, EmailIcon } from "outline-icons";
+import { DocumentIcon, EmailIcon, CollectionIcon } from "outline-icons";
 import { Node } from "prosemirror-model";
 import * as React from "react";
 import { Link } from "react-router-dom";
@@ -64,6 +64,39 @@ export const MentionDocument = observer(function MentionDocument_(
         <DocumentIcon size={18} />
       )}
       {doc?.title || node.attrs.label}
+    </Link>
+  );
+});
+
+export const MentionCollection = observer(function MentionCollection_(
+  props: ComponentProps
+) {
+  const { isSelected, node } = props;
+  const { collections } = useStores();
+  const collection = collections.get(node.attrs.modelId);
+  const modelId = node.attrs.modelId;
+  const { className, ...attrs } = getAttributesFromNode(node);
+
+  React.useEffect(() => {
+    if (modelId) {
+      void collections.fetch(modelId);
+    }
+  }, [modelId, collections]);
+
+  return (
+    <Link
+      {...attrs}
+      className={cn(className, {
+        "ProseMirror-selectednode": isSelected,
+      })}
+      to={collection?.path ?? `/collection/${node.attrs.modelId}`}
+    >
+      {collection?.icon ? (
+        <Icon value={collection?.icon} color={collection?.color} size={18} />
+      ) : (
+        <CollectionIcon size={18} />
+      )}
+      {collection?.title || node.attrs.label}
     </Link>
   );
 });
