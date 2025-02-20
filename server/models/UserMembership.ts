@@ -20,6 +20,7 @@ import {
   Length,
   AfterDestroy,
   BeforeDestroy,
+  BeforeUpdate,
 } from "sequelize-typescript";
 import { CollectionPermission, DocumentPermission } from "@shared/types";
 import { ValidationError } from "@server/errors";
@@ -252,45 +253,34 @@ class UserMembership extends IdModel<
     }
   }
 
-  @BeforeDestroy
-  static async checkLastAdminPermission(
+  @BeforeUpdate
+  static async checkLastAdminBeforeUpdate(
     model: UserMembership,
-    { transaction }: APIContext["context"]
+    ctx: APIContext["context"]
   ) {
-    // Only check for last admin permission if this permission is admin
-    if (model.permission !== CollectionPermission.Admin) {
+    if (
+      model.permission === CollectionPermission.Admin ||
+      model.previous("permission") !== CollectionPermission.Admin ||
+      !model.collectionId
+    ) {
       return;
     }
+    await this.validateLastAdminPermission(model, ctx);
+  }
 
-    if (model.collectionId) {
-      const [userMemberships, groupMemberships] = await Promise.all([
-        this.count({
-          where: {
-            collectionId: model.collectionId,
-            permission: CollectionPermission.Admin,
-          },
-          transaction,
-        }),
-        GroupMembership.count({
-          where: {
-            collectionId: model.collectionId,
-            permission: CollectionPermission.Admin,
-          },
-          transaction,
-        }),
-      ]);
-
-      if (userMemberships === 1 && groupMemberships === 0) {
-        throw ValidationError(
-          "Cannot remove the last user with manage permissions"
-        );
-      }
-      if (userMemberships === 0 && groupMemberships === 1) {
-        throw ValidationError(
-          "Cannot remove the last group with manage permissions"
-        );
-      }
+  @BeforeDestroy
+  static async checkLastAdminBeforeDestroy(
+    model: UserMembership,
+    ctx: APIContext["context"]
+  ) {
+    // Only check for last admin permission if this permission is admin
+    if (
+      model.permission !== CollectionPermission.Admin ||
+      !model.collectionId
+    ) {
+      return;
     }
+    await this.validateLastAdminPermission(model, ctx);
   }
 
   @AfterUpdate
@@ -388,6 +378,32 @@ class UserMembership extends IdModel<
       await Collection.insertEvent(name, this, hookContext);
     } else {
       await Document.insertEvent(name, this, hookContext);
+    }
+  }
+
+  private static async validateLastAdminPermission(
+    model: UserMembership,
+    { transaction }: APIContext["context"]
+  ) {
+    const [userMemberships, groupMemberships] = await Promise.all([
+      this.count({
+        where: {
+          collectionId: model.collectionId,
+          permission: CollectionPermission.Admin,
+        },
+        transaction,
+      }),
+      GroupMembership.count({
+        where: {
+          collectionId: model.collectionId,
+          permission: CollectionPermission.Admin,
+        },
+        transaction,
+      }),
+    ]);
+
+    if (userMemberships === 1 && groupMemberships === 0) {
+      throw ValidationError("At least one user must have manage permissions");
     }
   }
 }
