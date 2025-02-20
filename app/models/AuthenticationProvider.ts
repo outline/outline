@@ -5,8 +5,6 @@ import Field from "./decorators/Field";
 class AuthenticationProvider extends Model {
   static modelName = "AuthenticationProvider";
 
-  id: string;
-
   displayName: string;
 
   name: string;

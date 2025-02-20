@@ -33,7 +33,7 @@ const SVG = ({ size, emoji }: { size: number; emoji: string }) => (
   <svg width={size} height={size} xmlns="http://www.w3.org/2000/svg">
     <text
       x="50%"
-      y={"55%"}
+      y="55%"
       dominantBaseline="middle"
       textAnchor="middle"
       fontSize={size * 0.7}
