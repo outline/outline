@@ -80,14 +80,14 @@ router.get(
 
     const attachment = await Attachment.findOne({
       where: { key },
-      rejectOnEmpty: true,
     });
+
     if (!skipAuthorize) {
       authorize(actor, "read", attachment);
     }
 
     const contentType =
-      attachment.contentType ||
+      attachment?.contentType ||
       (fileName ? mime.lookup(fileName) : undefined) ||
       "application/octet-stream";
 
