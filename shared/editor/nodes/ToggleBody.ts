@@ -13,7 +13,6 @@ export default class ToggleBody extends Node {
         const dom = document.createElement("div");
         dom.classList.add("toggle-body");
         const contentDOM = dom;
-        dom.style.paddingLeft = "12px";
 
         return { dom, contentDOM };
       },
