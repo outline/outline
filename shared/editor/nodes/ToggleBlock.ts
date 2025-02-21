@@ -3,8 +3,6 @@ import toggleWrap from "../commands/toggleWrap";
 import Node from "./Node";
 
 export default class ToggleBlock extends Node {
-  folded = false;
-
   get name() {
     return "toggle_block";
   }
