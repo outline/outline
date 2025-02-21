@@ -103,18 +103,18 @@ function insertToggleBody(): Command {
     if (node.type.name !== "toggle_head") {
       return false;
     }
+
+    const posAfterToggleHead = $from.after() + 1;
+    const newToggleBody = state.schema.nodes["toggle_body"].create(
+      {},
+      state.schema.nodes.paragraph.create({})
+    );
+
     const tr = state.tr;
-    tr.insert(
-      $from.after() + 1,
-      state.schema.nodes["toggle_body"].create(
-        {},
-        state.schema.nodes.paragraph.create({})
-      )
-    )
-      .setSelection(
-        TextSelection.near(tr.doc.resolve(state.selection.to + 2), 1)
-      )
+    tr.insert(posAfterToggleHead, newToggleBody)
+      .setSelection(TextSelection.near(tr.doc.resolve(posAfterToggleHead)))
       .scrollIntoView();
+
     if (dispatch) {
       dispatch(tr);
     }
