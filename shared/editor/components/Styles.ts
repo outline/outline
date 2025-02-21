@@ -1942,6 +1942,11 @@ const toggleBlockStyle = () => css`
   .toggle-head {
     display: flex;
     align-items: center;
+
+    > span {
+      flex-grow: 1;
+      overflow: auto;
+    }
   }
   .toggle-body {
     padding-left: 12px;
