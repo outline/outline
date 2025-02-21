@@ -7,6 +7,7 @@ import Document from "~/models/Document";
 import Revision from "~/models/Revision";
 import { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
+import useQuery from "~/hooks/useQuery";
 import { documentPath } from "~/utils/routeHelpers";
 import { Meta as DocumentMeta } from "./DocumentMeta";
 import DocumentTitle from "./DocumentTitle";
@@ -26,7 +27,7 @@ type Props = Omit<EditorProps, "extensions"> & {
  */
 function RevisionViewer(props: Props) {
   const { document, children, revision } = props;
-  const selectedOpIndex = 0; // TODO: grab from shared state later
+  const selectedOpIndex: string | null = useQuery().get("opIndex");
 
   return (
     <Flex auto column>
@@ -55,7 +56,7 @@ function RevisionViewer(props: Props) {
 }
 
 const EditorContainerStyled = styled(EditorContainer)<{
-  selectedOpIndex: number;
+  selectedOpIndex: string | null;
 }>`
   @keyframes transientMarker {
     from {
@@ -66,12 +67,14 @@ const EditorContainerStyled = styled(EditorContainer)<{
     }
   }
 
-  [data-operation-index="${(props) => props.selectedOpIndex}"] {
-    // Note: This assumes that the original diff-styling doesn't use border-*
-    animation: transientMarker 3s forwards;
-    border-bottom: 3px solid rgba(251, 247, 25, 1);
-    box-sizing: border-box;
-  }
+  // Note: This assumes that the original diff-styling doesn't use border-*
+  ${(props) =>
+    props.selectedOpIndex &&
+    `[data-operation-index="${props.selectedOpIndex}"] {
+      animation: transientMarker 3s forwards;
+      border-bottom: 3px solid rgba(251, 247, 25, 1);
+      box-sizing: border-box;
+    }`}
 `;
 
 export default observer(RevisionViewer);

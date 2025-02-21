@@ -1,6 +1,7 @@
 import { CaretDownIcon, CaretUpIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { useHistory } from "react-router-dom";
 import scrollIntoView from "scroll-into-view-if-needed";
 import styled from "styled-components";
 import { s } from "@shared/styles";
@@ -16,6 +17,7 @@ const RevisionNavigator = (props: Props) => {
   const { revisionHtml, addSeparator } = props;
   const [opValues, setOpValues] = React.useState<number[]>([]);
   const [opValuesSelect, setOpValuesSelect] = React.useState<number>(-1);
+  const history = useHistory();
   const { t } = useTranslation();
   const total = opValues.length;
 
@@ -30,6 +32,11 @@ const RevisionNavigator = (props: Props) => {
       }
     });
     setOpValues(opValues);
+
+    // Clear params for simplicity
+    const url = new URL(window.location.href);
+    url.searchParams.delete("opIndex");
+    history.replace(url.pathname + url.search);
   }, [revisionHtml]);
 
   const handleNav = React.useCallback(
@@ -51,6 +58,11 @@ const RevisionNavigator = (props: Props) => {
             inline: "center",
           });
         }
+
+        // Add to params for other UI to participate
+        const url = new URL(window.location.href);
+        url.searchParams.set("opIndex", value.toString());
+        history.replace(url.pathname + url.search);
 
         return m;
       });
