@@ -47,6 +47,7 @@ import TemplatesMenu from "~/menus/TemplatesMenu";
 import { documentEditPath } from "~/utils/routeHelpers";
 import ObservingBanner from "./ObservingBanner";
 import PublicBreadcrumb from "./PublicBreadcrumb";
+import RevisionNavigator from "./RevisionNavigator";
 import ShareButton from "./ShareButton";
 
 type Props = {
@@ -342,19 +343,29 @@ function DocumentHeader({
                   />
                 </Action>
               )}
-            {revision && revision.createdAt !== document.updatedAt && (
-              <Action>
-                <Tooltip content={t("Restore version")} placement="bottom">
-                  <Button
-                    action={restoreRevision}
-                    context={context}
-                    neutral
-                    hideOnActionDisabled
-                  >
-                    {t("Restore")}
-                  </Button>
-                </Tooltip>
-              </Action>
+            {revision && (
+              <>
+                <Action>
+                  <RevisionNavigator
+                    revisionHtml={revision.html}
+                    addSeparator={revision.createdAt !== document.updatedAt}
+                  />
+                </Action>
+                {revision.createdAt !== document.updatedAt && (
+                  <Action>
+                    <Tooltip content={t("Restore version")} placement="bottom">
+                      <Button
+                        action={restoreRevision}
+                        context={context}
+                        neutral
+                        hideOnActionDisabled
+                      >
+                        {t("Restore")}
+                      </Button>
+                    </Tooltip>
+                  </Action>
+                )}
+              </>
             )}
             {can.publish && (
               <Action>

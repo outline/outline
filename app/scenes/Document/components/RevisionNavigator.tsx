@@ -4,10 +4,16 @@ import { useTranslation } from "react-i18next";
 import scrollIntoView from "scroll-into-view-if-needed";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import { HEADER_HEIGHT } from "~/components/Header";
+import { Separator } from "~/components/Actions";
 import NudeButton from "~/components/NudeButton";
 
-export const useRevNav = (revisionHtml: string) => {
+type Props = {
+  revisionHtml: string;
+  addSeparator: boolean;
+};
+
+const RevisionNavigator = (props: Props) => {
+  const { revisionHtml, addSeparator } = props;
   const [opIndices, setOpIndices] = React.useState<number[]>([]);
   const [select, setSelect] = React.useState<number>(-1);
   const { t } = useTranslation();
@@ -51,8 +57,8 @@ export const useRevNav = (revisionHtml: string) => {
     [opIndices]
   );
 
-  const NavBar = () =>
-    total !== 0 ? (
+  return total !== 0 ? (
+    <>
       <Container>
         <span>
           {select === -1 && t("Total {{ count }} edit", { count: total })}
@@ -66,29 +72,17 @@ export const useRevNav = (revisionHtml: string) => {
           <CaretDownIcon />
         </Button>
       </Container>
-    ) : null;
-
-  return {
-    selectedOpIndex: opIndices[select] || -1,
-    NavBar,
-  };
+      {addSeparator && <Separator />}
+    </>
+  ) : null;
 };
 
 const Container = styled.div`
   display: flex;
-  align-self: flex-end;
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
-  padding: 8px;
-  border: 4px solid ${s("inputBorder")};
-  border-radius: 10px;
-  min-width: 250px;
-  position: fixed;
-  top: ${HEADER_HEIGHT + 10}px;
   background: ${s("background")};
-  opacity: 0.95;
-  z-index: 2;
 `;
 
 const Button = styled(NudeButton)`
@@ -107,3 +101,5 @@ const Button = styled(NudeButton)`
     cursor: default;
   }
 `;
+
+export default RevisionNavigator;

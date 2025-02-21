@@ -10,7 +10,6 @@ import Flex from "~/components/Flex";
 import { documentPath } from "~/utils/routeHelpers";
 import { Meta as DocumentMeta } from "./DocumentMeta";
 import DocumentTitle from "./DocumentTitle";
-import { useRevNav } from "./RevisionViewer.helper";
 
 type Props = Omit<EditorProps, "extensions"> & {
   /** The ID of the revision */
@@ -27,11 +26,10 @@ type Props = Omit<EditorProps, "extensions"> & {
  */
 function RevisionViewer(props: Props) {
   const { document, children, revision } = props;
-  const { selectedOpIndex, NavBar } = useRevNav(revision.html);
+  const selectedOpIndex = 0; // TODO: grab from shared state later
 
   return (
     <Flex auto column>
-      <NavBar />
       <DocumentTitle
         documentId={revision.documentId}
         title={revision.title}
