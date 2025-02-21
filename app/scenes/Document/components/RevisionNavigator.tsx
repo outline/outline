@@ -14,35 +14,36 @@ type Props = {
 
 const RevisionNavigator = (props: Props) => {
   const { revisionHtml, addSeparator } = props;
-  const [opIndices, setOpIndices] = React.useState<number[]>([]);
-  const [select, setSelect] = React.useState<number>(-1);
+  const [opValues, setOpValues] = React.useState<number[]>([]);
+  const [opValuesSelect, setOpValuesSelect] = React.useState<number>(-1);
   const { t } = useTranslation();
-  const total = opIndices.length;
+  const total = opValues.length;
 
   React.useEffect(() => {
-    // Collect unique "data-operation-index" values as 'opIndices'
-    const opIndices: number[] = [];
+    // Collect unique "data-operation-index" values as 'opValues'
+    const opValues: number[] = [];
     const all = window.document.querySelectorAll("[data-operation-index]");
     all.forEach((e) => {
       const index = parseInt(e.getAttribute("data-operation-index") || "");
-      if (!isNaN(index) && !opIndices.includes(index)) {
-        opIndices.push(index);
+      if (!isNaN(index) && !opValues.includes(index)) {
+        opValues.push(index);
       }
     });
-    setOpIndices(opIndices);
+    setOpValues(opValues);
   }, [revisionHtml]);
 
   const handleNav = React.useCallback(
     (dir: number) => {
-      setSelect((prevSelect) => {
-        // Update index (wrapped, covers both direction)
+      setOpValuesSelect((prevSelect) => {
+        // Update selection (wrapped, covers both directions)
         let m = prevSelect === -1 && dir < 0 ? 0 : prevSelect;
-        m = (m + dir + opIndices.length) % opIndices.length;
+        m = (m + dir + opValues.length) % opValues.length;
 
         // Jump to first element of 'data-operation-index=m'
-        const target = window.document.querySelector(
-          `[data-operation-index="${opIndices[m]}"]`
-        );
+        const attr = "data-operation-index";
+        const value = opValues[m];
+        const target = window.document.querySelector(`[${attr}="${value}"]`);
+
         if (target) {
           scrollIntoView(target, {
             behavior: "smooth",
@@ -54,16 +55,17 @@ const RevisionNavigator = (props: Props) => {
         return m;
       });
     },
-    [opIndices]
+    [opValues]
   );
 
   return total !== 0 ? (
     <>
       <Container>
         <span>
-          {select === -1 && t("Total {{ count }} edit", { count: total })}
-          {select !== -1 &&
-            t("Edit {{ i }} of {{ total }}", { i: select + 1, total })}
+          {opValuesSelect === -1 &&
+            t("Total {{ count }} edit", { count: total })}
+          {opValuesSelect !== -1 &&
+            t("Edit {{ i }} of {{ total }}", { i: opValuesSelect + 1, total })}
         </span>
         <Button onClick={() => handleNav(-1)}>
           <CaretUpIcon />
