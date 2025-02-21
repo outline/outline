@@ -1941,6 +1941,7 @@ del[data-operation-index] {
 const toggleBlockStyle = () => css`
   .toggle-head {
     display: flex;
+    align-items: center;
   }
   .toggle-body {
     padding-left: 12px;
