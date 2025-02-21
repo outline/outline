@@ -5,6 +5,7 @@ import env from "@server/env";
 import {
   AuthenticationError,
   AuthorizationError,
+  NotFoundError,
   ValidationError,
 } from "@server/errors";
 import auth from "@server/middlewares/authentication";
@@ -81,6 +82,11 @@ router.get(
     const attachment = await Attachment.findOne({
       where: { key },
     });
+
+    // Attachment is requested with a key, but it was not found
+    if (!attachment && !!ctx.input.query.key) {
+      throw NotFoundError();
+    }
 
     if (!skipAuthorize) {
       authorize(actor, "read", attachment);
