@@ -27,7 +27,7 @@ type Props = Omit<EditorProps, "extensions"> & {
  */
 function RevisionViewer(props: Props) {
   const { document, children, revision } = props;
-  const { editorRef, selectedOpIndex, NavBar } = useRevNav(revision.html);
+  const { selectedOpIndex, NavBar } = useRevNav(revision.html);
 
   return (
     <Flex auto column>
@@ -46,7 +46,6 @@ function RevisionViewer(props: Props) {
         rtl={revision.rtl}
       />
       <EditorContainerStyled
-        ref={editorRef}
         dangerouslySetInnerHTML={{ __html: revision.html }}
         dir={revision.dir}
         rtl={revision.rtl}

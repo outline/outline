@@ -8,7 +8,6 @@ import { HEADER_HEIGHT } from "~/components/Header";
 import NudeButton from "~/components/NudeButton";
 
 export const useRevNav = (revisionHtml: string) => {
-  const editorRef = React.useRef<HTMLDivElement | null >(null);
   const [opIndices, setOpIndices] = React.useState<number[]>([]);
   const [select, setSelect] = React.useState<number>(-1);
   const { t } = useTranslation();
@@ -16,17 +15,15 @@ export const useRevNav = (revisionHtml: string) => {
 
   React.useEffect(() => {
     // Collect unique "data-operation-index" values as 'opIndices'
-    if (editorRef.current) {
-      const opIndices: number[] = [];
-      const all = editorRef.current.querySelectorAll("[data-operation-index]");
-      all.forEach((e) => {
-        const index = parseInt(e.getAttribute("data-operation-index") || "");
-        if (!isNaN(index) && !opIndices.includes(index)) {
-          opIndices.push(index);
-        }
-      });
-      setOpIndices(opIndices);
-    }
+    const opIndices: number[] = [];
+    const all = window.document.querySelectorAll("[data-operation-index]");
+    all.forEach((e) => {
+      const index = parseInt(e.getAttribute("data-operation-index") || "");
+      if (!isNaN(index) && !opIndices.includes(index)) {
+        opIndices.push(index);
+      }
+    });
+    setOpIndices(opIndices);
   }, [revisionHtml]);
 
   const handleNav = React.useCallback(
@@ -36,18 +33,16 @@ export const useRevNav = (revisionHtml: string) => {
         let m = prevSelect === -1 && dir < 0 ? 0 : prevSelect;
         m = (m + dir + opIndices.length) % opIndices.length;
 
-        if (editorRef.current) {
-          // Jump to first element of 'data-operation-index=m'
-          const target = editorRef.current.querySelector(
-            `[data-operation-index="${opIndices[m]}"]`
-          );
-          if (target) {
-            scrollIntoView(target, {
-              behavior: "smooth",
-              block: "center",
-              inline: "center",
-            });
-          }
+        // Jump to first element of 'data-operation-index=m'
+        const target = window.document.querySelector(
+          `[data-operation-index="${opIndices[m]}"]`
+        );
+        if (target) {
+          scrollIntoView(target, {
+            behavior: "smooth",
+            block: "center",
+            inline: "center",
+          });
         }
 
         return m;
@@ -74,7 +69,6 @@ export const useRevNav = (revisionHtml: string) => {
     ) : null;
 
   return {
-    editorRef,
     selectedOpIndex: opIndices[select] || -1,
     NavBar,
   };
