@@ -19,7 +19,7 @@ export default class ToggleHead extends Node {
 
   get schema(): NodeSpec {
     return {
-      content: "block",
+      content: "heading|paragraph",
       toDOM: () => {
         const dom = document.createElement("span");
         dom.classList.add("toggle-head");
