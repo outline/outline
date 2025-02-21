@@ -8,42 +8,39 @@ import { HEADER_HEIGHT } from "~/components/Header";
 import NudeButton from "~/components/NudeButton";
 
 export const useRevNav = (revisionHtml: string) => {
-  const editorRef = React.useRef<HTMLDivElement>(null);
+  const editorRef = React.useRef<HTMLDivElement | null >(null);
   const [opIndices, setOpIndices] = React.useState<number[]>([]);
   const [select, setSelect] = React.useState<number>(-1);
   const { t } = useTranslation();
   const total = opIndices.length;
 
   React.useEffect(() => {
+    // Collect unique "data-operation-index" values as 'opIndices'
     if (editorRef.current) {
-      // Collect unique "data-operation-index" values as 'opIndices'
-      const all = editorRef.current.querySelectorAll("[data-operation-index]");
       const opIndices: number[] = [];
-
+      const all = editorRef.current.querySelectorAll("[data-operation-index]");
       all.forEach((e) => {
         const index = parseInt(e.getAttribute("data-operation-index") || "");
         if (!isNaN(index) && !opIndices.includes(index)) {
           opIndices.push(index);
         }
       });
-
       setOpIndices(opIndices);
     }
   }, [revisionHtml]);
 
   const handleNav = React.useCallback(
     (dir: number) => {
-      setSelect((prevMarker) => {
-        // Update index (wrapped)
-        let m = prevMarker === -1 && dir < 0 ? 0 : prevMarker;
+      setSelect((prevSelect) => {
+        // Update index (wrapped, covers both direction)
+        let m = prevSelect === -1 && dir < 0 ? 0 : prevSelect;
         m = (m + dir + opIndices.length) % opIndices.length;
 
         if (editorRef.current) {
-          // Find first element of 'data-operation-index=m' ...
+          // Jump to first element of 'data-operation-index=m'
           const target = editorRef.current.querySelector(
             `[data-operation-index="${opIndices[m]}"]`
           );
-          // ... and jump to it.
           if (target) {
             scrollIntoView(target, {
               behavior: "smooth",
