@@ -49,6 +49,7 @@ export default class ToggleHead extends Node {
         });
         dom.appendChild(button);
         const contentDOM = document.createElement("span");
+        contentDOM.style.flexGrow = "1";
         contentDOM.style.overflow = "auto";
         dom.appendChild(contentDOM);
 
