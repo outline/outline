@@ -60,10 +60,10 @@ const EditorContainerStyled = styled(EditorContainer)<{
 }>`
   @keyframes transientMarker {
     from {
-      border-bottom-color: rgba(251, 247, 25, 1);
+      border-bottom-color: rgba(255, 215, 0, 1);
     }
     to {
-      border-bottom-color: rgba(251, 247, 25, 0);
+      border-bottom-color: rgba(255, 215, 0, 0);
     }
   }
 
@@ -72,7 +72,7 @@ const EditorContainerStyled = styled(EditorContainer)<{
     props.selectedOpIndex &&
     `[data-operation-index="${props.selectedOpIndex}"] {
       animation: transientMarker 3s forwards;
-      border-bottom: 3px solid rgba(251, 247, 25, 1);
+      border-bottom: 3px solid rgba(255, 215, 0, 1);
       box-sizing: border-box;
     }`}
 `;
