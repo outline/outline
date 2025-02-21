@@ -92,6 +92,11 @@ export default class Collection extends ParanoidModel {
   @observable
   archivedBy?: User;
 
+  @computed
+  get searchContent(): string {
+    return this.name;
+  }
+
   /** Returns whether the collection is empty, or undefined if not loaded. */
   @computed
   get isEmpty(): boolean | undefined {

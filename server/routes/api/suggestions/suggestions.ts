@@ -3,7 +3,7 @@ import { Op } from "sequelize";
 import { Sequelize } from "sequelize-typescript";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
-import { Collection, User } from "@server/models";
+import { User } from "@server/models";
 import SearchHelper from "@server/models/helpers/SearchHelper";
 import { can } from "@server/policies";
 import { presentDocument, presentUser } from "@server/presenters";
@@ -53,27 +53,7 @@ router.post(
         offset,
         limit,
       }),
-      Collection.findAll({
-        where: {
-          teamId: actor.teamId,
-          [Op.and]: query
-            ? {
-                [Op.or]: [
-                  Sequelize.literal(
-                    `unaccent(LOWER(email)) like unaccent(LOWER(:query))`
-                  ),
-                  Sequelize.literal(
-                    `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
-                  ),
-                ],
-              }
-            : {},
-        },
-        order: [["name", "ASC"]],
-        replacements: { query: `%${query}%` },
-        offset,
-        limit,
-      }),
+      SearchHelper.searchCollectionsForUser(actor, { query, offset, limit }),
     ]);
 
     ctx.body = {
