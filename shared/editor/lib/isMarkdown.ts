@@ -33,7 +33,7 @@ export default function isMarkdown(text: string): boolean {
   }
 
   // list-ish
-  const listItems = text.match(/^([-*]|\d+.)\s\S+/gm);
+  const listItems = text.match(/^[-*]\s\S+/gm);
   if (listItems) {
     signals += listItems.length;
   }

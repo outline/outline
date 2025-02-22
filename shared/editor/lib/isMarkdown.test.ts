@@ -16,17 +16,6 @@ test("returns true for bullet list", () => {
   ).toBe(true);
 });
 
-test("returns true for numbered list", () => {
-  expect(
-    isMarkdown(`1. item one
-1. item two`)
-  ).toBe(true);
-  expect(
-    isMarkdown(`1. item one
-2. item two`)
-  ).toBe(true);
-});
-
 test("returns true for code fence", () => {
   expect(
     isMarkdown(`\`\`\`javascript
