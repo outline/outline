@@ -1,3 +1,4 @@
+import { capitalize } from "lodash";
 import {
   DoneIcon,
   ExpandedIcon,
@@ -26,7 +27,7 @@ export default function noticeMenuItems(
     {
       name: "container_notice",
       visible: !readOnly,
-      label: "Type",
+      label: capitalize(currentStyle),
       icon: <ExpandedIcon />,
       children: [
         {
