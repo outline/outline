@@ -5,11 +5,12 @@ import find from "lodash/find";
 import omitBy from "lodash/omitBy";
 import orderBy from "lodash/orderBy";
 import { observable, action, computed, runInAction } from "mobx";
-import type {
-  DateFilter,
-  NavigationNode,
-  PublicTeam,
-  StatusFilter,
+import {
+  SubscriptionType,
+  type DateFilter,
+  type NavigationNode,
+  type PublicTeam,
+  type StatusFilter,
 } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import { bytesToHumanReadable } from "@shared/utils/files";
@@ -817,7 +818,7 @@ export default class DocumentsStore extends Store<Document> {
   subscribe = (document: Document) =>
     this.rootStore.subscriptions.create({
       documentId: document.id,
-      event: "documents.update",
+      event: SubscriptionType.Document,
     });
 
   unsubscribe = (document: Document) => {

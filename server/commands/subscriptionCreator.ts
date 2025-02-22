@@ -1,3 +1,5 @@
+import { WhereOptions } from "sequelize";
+import { SubscriptionType } from "@shared/types";
 import { createContext } from "@server/context";
 import { Subscription, Document } from "@server/models";
 import { sequelize } from "@server/storage/database";
@@ -8,8 +10,10 @@ type Props = {
   ctx: APIContext;
   /** The document to subscribe to */
   documentId?: string;
+  /** The collection to subscribe to */
+  collectionId?: string;
   /** Event to subscribe to */
-  event: string;
+  event: SubscriptionType;
   /** Whether the subscription should be restored if it exists in a deleted state  */
   resubscribe?: boolean;
 };
@@ -22,16 +26,27 @@ type Props = {
 export default async function subscriptionCreator({
   ctx,
   documentId,
+  collectionId,
   event,
   resubscribe = true,
 }: Props): Promise<Subscription> {
   const { user } = ctx.context.auth;
+
+  const where: WhereOptions<Subscription> = {
+    userId: user.id,
+    event,
+  };
+
+  if (documentId) {
+    where.documentId = documentId;
+  }
+
+  if (collectionId) {
+    where.collectionId = collectionId;
+  }
+
   const [subscription] = await Subscription.findOrCreateWithCtx(ctx, {
-    where: {
-      userId: user.id,
-      documentId,
-      event,
-    },
+    where,
     paranoid: false, // Previous subscriptions are soft-deleted, we want to know about them here.
   });
 
@@ -68,7 +83,7 @@ export const createSubscriptionsForDocument = async (
           transaction,
         }),
         documentId: document.id,
-        event: "documents.update",
+        event: SubscriptionType.Document,
         resubscribe: false,
       });
     }

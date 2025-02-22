@@ -15,6 +15,7 @@ import {
   NotificationEventType,
   ProsemirrorData,
   ReactionSummary,
+  SubscriptionType,
   UserRole,
 } from "@shared/types";
 import { parser, schema } from "@server/editor";
@@ -120,7 +121,7 @@ export async function buildSubscription(overrides: Partial<Subscription> = {}) {
     overrides.userId = user.id;
   }
 
-  if (!overrides.documentId) {
+  if (!overrides.documentId && !overrides.collectionId) {
     const document = await buildDocument({
       createdById: overrides.userId,
       teamId: user.teamId,
@@ -129,7 +130,7 @@ export async function buildSubscription(overrides: Partial<Subscription> = {}) {
   }
 
   return Subscription.create({
-    event: "documents.update",
+    event: SubscriptionType.Document,
     ...overrides,
   });
 }

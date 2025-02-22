@@ -49,7 +49,7 @@ allow(User, "read", Collection, (user, collection) => {
 
 allow(
   User,
-  ["readDocument", "star", "unstar"],
+  ["readDocument", "star", "unstar", "subscribe", "unsubscribe"],
   Collection,
   (user, collection) => {
     if (!collection || user.teamId !== collection.teamId) {

@@ -27,6 +27,7 @@ export type MenuItemButton = {
   selected?: boolean;
   disabled?: boolean;
   icon?: React.ReactNode;
+  tooltip?: React.ReactChild;
 };
 
 export type MenuItemWithChildren = {
