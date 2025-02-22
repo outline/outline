@@ -7,7 +7,7 @@ import {
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import * as React from "react";
-import { NOTICE_TYPES } from "@shared/editor/nodes/Notice";
+import { NoticeTypes } from "@shared/editor/nodes/Notice";
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
 
@@ -22,7 +22,7 @@ export default function noticeMenuItems(
 
   const currentStyle = node.attrs.style;
 
-  const canView = (type: NOTICE_TYPES) => {
+  const canView = (type: NoticeTypes) => {
     if (readOnly) {
       return false;
     }
@@ -38,28 +38,28 @@ export default function noticeMenuItems(
       icon: <ExpandedIcon />,
       children: [
         {
-          name: NOTICE_TYPES.INFO,
+          name: NoticeTypes.Info,
           icon: <InfoIcon />,
           label: dictionary.infoNotice,
-          visible: canView(NOTICE_TYPES.INFO),
+          visible: canView(NoticeTypes.Info),
         },
         {
-          name: NOTICE_TYPES.SUCCESS,
+          name: NoticeTypes.Success,
           icon: <DoneIcon />,
           label: dictionary.successNotice,
-          visible: canView(NOTICE_TYPES.SUCCESS),
+          visible: canView(NoticeTypes.Success),
         },
         {
-          name: NOTICE_TYPES.WARNING,
+          name: NoticeTypes.Warning,
           icon: <WarningIcon />,
           label: dictionary.warningNotice,
-          visible: canView(NOTICE_TYPES.WARNING),
+          visible: canView(NoticeTypes.Warning),
         },
         {
-          name: NOTICE_TYPES.TIP,
+          name: NoticeTypes.Tip,
           icon: <StarredIcon />,
           label: dictionary.tipNotice,
-          visible: canView(NOTICE_TYPES.TIP),
+          visible: canView(NoticeTypes.Tip),
         },
       ],
     },

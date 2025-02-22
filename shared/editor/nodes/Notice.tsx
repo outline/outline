@@ -31,7 +31,7 @@ export default class Notice extends Node {
     return {
       attrs: {
         style: {
-          default: NOTICE_TYPES.INFO,
+          default: NoticeTypes.Info,
         },
       },
       content:
@@ -46,12 +46,12 @@ export default class Notice extends Node {
           contentElement: (node: HTMLDivElement) =>
             node.querySelector("div.content") || node,
           getAttrs: (dom: HTMLDivElement) => ({
-            style: dom.className.includes(NOTICE_TYPES.TIP)
-              ? NOTICE_TYPES.TIP
-              : dom.className.includes(NOTICE_TYPES.WARNING)
-              ? NOTICE_TYPES.WARNING
-              : dom.className.includes(NOTICE_TYPES.SUCCESS)
-              ? NOTICE_TYPES.SUCCESS
+            style: dom.className.includes(NoticeTypes.Tip)
+              ? NoticeTypes.Tip
+              : dom.className.includes(NoticeTypes.Warning)
+              ? NoticeTypes.Warning
+              : dom.className.includes(NoticeTypes.Success)
+              ? NoticeTypes.Success
               : undefined,
           }),
         },
@@ -68,10 +68,10 @@ export default class Notice extends Node {
           tag: "div.alert.theme-admonition",
           preserveWhitespace: "full",
           getAttrs: (dom: HTMLDivElement) => ({
-            style: dom.className.includes(NOTICE_TYPES.WARNING)
-              ? NOTICE_TYPES.WARNING
-              : dom.className.includes(NOTICE_TYPES.SUCCESS)
-              ? NOTICE_TYPES.SUCCESS
+            style: dom.className.includes(NoticeTypes.Warning)
+              ? NoticeTypes.Warning
+              : dom.className.includes(NoticeTypes.Success)
+              ? NoticeTypes.Success
               : undefined,
           }),
         },
@@ -81,11 +81,11 @@ export default class Notice extends Node {
           preserveWhitespace: "full",
           getAttrs: (dom: HTMLDivElement) => ({
             style: dom.className.includes("confluence-information-macro-tip")
-              ? NOTICE_TYPES.SUCCESS
+              ? NoticeTypes.Success
               : dom.className.includes("confluence-information-macro-note")
-              ? NOTICE_TYPES.TIP
+              ? NoticeTypes.Tip
               : dom.className.includes("confluence-information-macro-warning")
-              ? NOTICE_TYPES.WARNING
+              ? NoticeTypes.Warning
               : undefined,
           }),
         },
@@ -95,11 +95,11 @@ export default class Notice extends Node {
         if (typeof document !== "undefined") {
           let component;
 
-          if (node.attrs.style === NOTICE_TYPES.TIP) {
+          if (node.attrs.style === NoticeTypes.Tip) {
             component = <StarredIcon />;
-          } else if (node.attrs.style === NOTICE_TYPES.WARNING) {
+          } else if (node.attrs.style === NoticeTypes.Warning) {
             component = <WarningIcon />;
-          } else if (node.attrs.style === NOTICE_TYPES.SUCCESS) {
+          } else if (node.attrs.style === NoticeTypes.Success) {
             component = <DoneIcon />;
           } else {
             component = <InfoIcon />;
@@ -122,23 +122,24 @@ export default class Notice extends Node {
 
   commands({ type }: { type: NodeType }) {
     return {
-      createNotice: (attrs: Record<string, Primitive>) => toggleWrap(type, attrs),
+      createNotice: (attrs: Record<string, Primitive>) =>
+        toggleWrap(type, attrs),
       changeNoticeType: () => () => true,
       info: (): Command => (state, dispatch) =>
-        this.handleStyleChange(state, dispatch, NOTICE_TYPES.INFO),
+        this.handleStyleChange(state, dispatch, NoticeTypes.Info),
       warning: (): Command => (state, dispatch) =>
-        this.handleStyleChange(state, dispatch, NOTICE_TYPES.WARNING),
+        this.handleStyleChange(state, dispatch, NoticeTypes.Warning),
       success: (): Command => (state, dispatch) =>
-        this.handleStyleChange(state, dispatch, NOTICE_TYPES.SUCCESS),
+        this.handleStyleChange(state, dispatch, NoticeTypes.Success),
       tip: (): Command => (state, dispatch) =>
-        this.handleStyleChange(state, dispatch, NOTICE_TYPES.TIP),
+        this.handleStyleChange(state, dispatch, NoticeTypes.Tip),
     };
   }
 
   handleStyleChange = (
     state: EditorState,
     dispatch: ((tr: Transaction) => void) | undefined,
-    style: NOTICE_TYPES
+    style: NoticeTypes
   ): boolean => {
     const { tr, selection } = state;
     const { $from } = selection;
