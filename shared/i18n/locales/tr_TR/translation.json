@@ -1,5 +1,5 @@
 {
-  "New API key": "New API key",
+  "New API key": "Yeni API Anahtarı",
   "Open collection": "Koleksiyonu Aç",
   "New collection": "Yeni koleksiyon",
   "Create a collection": "Bir koleksiyon oluştur",
@@ -7,7 +7,7 @@
   "Edit collection": "Koleksiyonu düzenle",
   "Permissions": "Yetkiler",
   "Collection permissions": "Koleksiyon yetkileri",
-  "Share this collection": "Share this collection",
+  "Share this collection": "Bu koleksiyonu paylaş",
   "Search in collection": "Koleksiyonda ara",
   "Star": "Yıldızla",
   "Unstar": "Yıldızı kaldır",
@@ -36,6 +36,7 @@
   "Development": "Development",
   "Open document": "Belgeyi aç",
   "New document": "Yeni belge",
+  "New draft": "New draft",
   "New from template": "Şablondan yeni",
   "New nested document": "Yeni iç içe belge",
   "Publish": "Yayınla",
