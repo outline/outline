@@ -11,11 +11,11 @@ import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import noticesRule from "../rules/notices";
 import Node from "./Node";
 
-export enum NOTICE_TYPES {
-  INFO = "info",
-  SUCCESS = "success",
-  TIP = "tip",
-  WARNING = "warning",
+export enum NoticeTypes {
+  Info = "info",
+  Success = "success",
+  Tip = "tip",
+  Warning = "warning",
 }
 
 export default class Notice extends Node {
@@ -122,7 +122,7 @@ export default class Notice extends Node {
 
   commands({ type }: { type: NodeType }) {
     return {
-      toggleWrap: (attrs: Record<string, Primitive>) => toggleWrap(type, attrs),
+      createNotice: (attrs: Record<string, Primitive>) => toggleWrap(type, attrs),
       changeNoticeType: () => () => true,
       info: (): Command => (state, dispatch) =>
         this.handleStyleChange(state, dispatch, NOTICE_TYPES.INFO),
@@ -144,7 +144,7 @@ export default class Notice extends Node {
     const { $from } = selection;
     const node = $from.node(-1);
 
-    if (node?.type.name === "container_notice") {
+    if (node?.type.name === this.name) {
       if (dispatch) {
         const transaction = tr.setNodeMarkup($from.before(-1), undefined, {
           ...node.attrs,
