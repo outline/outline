@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import { TableOfContentsIcon } from "outline-icons";
-import { ellipsis } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
@@ -76,7 +75,9 @@ function TableOfContentsMenu() {
 }
 
 const HeadingWrapper = styled.div`
-  ${ellipsis()};
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
 `;
 
 export default observer(TableOfContentsMenu);
