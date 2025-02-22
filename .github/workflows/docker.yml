@@ -57,25 +57,49 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       - name: Build and push base image
+        id: build
         uses: docker/build-push-action@v5
         with:
           context: .
           file: Dockerfile.base
           push: true
           platforms: ${{ matrix.platform }}
-          tags: ${{ env.BASE_IMAGE_NAME }}:latest-${{ matrix.platform }}
+          outputs: type=image,name=${{ env.BASE_IMAGE_NAME }},push-by-digest=true
+
+      - name: Export digest
+        run: |
+          mkdir -p ${{ runner.temp }}/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "${{ runner.temp }}/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v3
+        with:
+          name: base-digests
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
 
   merge-base-manifests:
     needs: [prepare, build-base]
     runs-on: ubuntu-latest
     steps:
+      - name: Download digests
+        uses: actions/download-artifact@v3
+        with:
+          name: base-digests
+          path: ${{ runner.temp }}/base-digests
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
       
-      - name: Create and push final manifest
+      - name: Create manifest list and push
         run: |
           TAGS="-t ${{ env.BASE_IMAGE_NAME }}:${{ needs.prepare.outputs.version }}"
           if [[ "${{ needs.prepare.outputs.is_prerelease }}" == "false" ]]; then
@@ -83,11 +107,7 @@ jobs:
           fi
           
           docker buildx imagetools create $TAGS \
-            ${{ env.BASE_IMAGE_NAME }}:${{ needs.prepare.outputs.version }}-linux/amd64 \
-            ${{ env.BASE_IMAGE_NAME }}:${{ needs.prepare.outputs.version }}-linux/arm64/v8 \
-            ${{ env.BASE_IMAGE_NAME }}:${{ needs.prepare.outputs.version }}-linux/arm/v7 \
-            ${{ env.BASE_IMAGE_NAME }}:${{ needs.prepare.outputs.version }}-linux/ppc64le \
-            ${{ env.BASE_IMAGE_NAME }}:${{ needs.prepare.outputs.version }}-linux/s390x
+            $(cd ${{ runner.temp }}/base-digests && printf "${{ env.BASE_IMAGE_NAME }}@sha256:%s " *)
 
   build-main:
     needs: [prepare, merge-base-manifests]
@@ -118,24 +138,48 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       - name: Build and push main image
+        id: build
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           platforms: ${{ matrix.platform }}
-          tags: ${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.version }}-${{ matrix.platform }}
+          outputs: type=image,name=${{ env.IMAGE_NAME }},push-by-digest=true
+
+      - name: Export digest
+        run: |
+          mkdir -p ${{ runner.temp }}/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "${{ runner.temp }}/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v3
+        with:
+          name: main-digests
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
 
   merge-main-manifests:
     needs: [prepare, build-main]
     runs-on: ubuntu-latest
     steps:
+      - name: Download digests
+        uses: actions/download-artifact@v3
+        with:
+          name: main-digests
+          path: ${{ runner.temp }}/main-digests
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
       
-      - name: Create and push final manifest
+      - name: Create manifest list and push
         run: |
           TAGS="-t ${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.version }}"
           if [[ "${{ needs.prepare.outputs.is_prerelease }}" == "false" ]]; then
@@ -143,8 +187,4 @@ jobs:
           fi
           
           docker buildx imagetools create $TAGS \
-            ${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.version }}-linux/amd64 \
-            ${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.version }}-linux/arm64/v8 \
-            ${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.version }}-linux/arm/v7 \
-            ${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.version }}-linux/ppc64le \
-            ${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.version }}-linux/s390x
+            $(cd ${{ runner.temp }}/main-digests && printf "${{ env.IMAGE_NAME }}@sha256:%s " *)
