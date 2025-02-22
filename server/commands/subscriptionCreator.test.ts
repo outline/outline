@@ -1,14 +1,51 @@
+import { SubscriptionType } from "@shared/types";
 import { createContext } from "@server/context";
 import { Subscription, Event } from "@server/models";
 import { sequelize } from "@server/storage/database";
-import { buildDocument, buildUser } from "@server/test/factories";
+import {
+  buildCollection,
+  buildDocument,
+  buildUser,
+} from "@server/test/factories";
 import subscriptionCreator from "./subscriptionCreator";
 
 describe("subscriptionCreator", () => {
   const ip = "127.0.0.1";
-  const subscribedEvent = "documents.update";
+  const subscribedEvent = SubscriptionType.Document;
 
-  it("should create a subscription", async () => {
+  it("should create a document subscription for the whole collection", async () => {
+    const user = await buildUser();
+
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const subscription = await sequelize.transaction(async (transaction) =>
+      subscriptionCreator({
+        ctx: createContext({ user, transaction, ip }),
+        collectionId: collection.id,
+        event: SubscriptionType.Document,
+      })
+    );
+
+    const event = await Event.findOne({
+      where: {
+        teamId: user.teamId,
+      },
+    });
+
+    expect(subscription.collectionId).toEqual(collection.id);
+    expect(subscription.documentId).toBeNull();
+    expect(subscription.userId).toEqual(user.id);
+    expect(event?.name).toEqual("subscriptions.create");
+    expect(event?.modelId).toEqual(subscription.id);
+    expect(event?.actorId).toEqual(subscription.userId);
+    expect(event?.userId).toEqual(subscription.userId);
+    expect(event?.collectionId).toEqual(subscription.collectionId);
+  });
+
+  it("should create a document subscription", async () => {
     const user = await buildUser();
 
     const document = await buildDocument({
@@ -31,6 +68,7 @@ describe("subscriptionCreator", () => {
     });
 
     expect(subscription.documentId).toEqual(document.id);
+    expect(subscription.collectionId).toBeNull();
     expect(subscription.userId).toEqual(user.id);
     expect(event?.name).toEqual("subscriptions.create");
     expect(event?.modelId).toEqual(subscription.id);

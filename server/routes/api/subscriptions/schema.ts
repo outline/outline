@@ -1,36 +1,38 @@
+import isEmpty from "lodash/isEmpty";
 import { z } from "zod";
+import { SubscriptionType } from "@shared/types";
 import { ValidateDocumentId } from "@server/validation";
 import { BaseSchema } from "../schema";
 
+const SubscriptionBody = z
+  .object({
+    event: z.literal(SubscriptionType.Document),
+    collectionId: z.string().uuid().optional(),
+    documentId: z
+      .string()
+      .refine(ValidateDocumentId.isValid, {
+        message: ValidateDocumentId.message,
+      })
+      .optional(),
+  })
+  .refine((obj) => !(isEmpty(obj.collectionId) && isEmpty(obj.documentId)), {
+    message: "one of collectionId or documentId is required",
+  });
+
 export const SubscriptionsListSchema = BaseSchema.extend({
-  body: z.object({
-    documentId: z.string().refine(ValidateDocumentId.isValid, {
-      message: ValidateDocumentId.message,
-    }),
-    event: z.literal("documents.update"),
-  }),
+  body: SubscriptionBody,
 });
 
 export type SubscriptionsListReq = z.infer<typeof SubscriptionsListSchema>;
 
 export const SubscriptionsInfoSchema = BaseSchema.extend({
-  body: z.object({
-    documentId: z.string().refine(ValidateDocumentId.isValid, {
-      message: ValidateDocumentId.message,
-    }),
-    event: z.literal("documents.update"),
-  }),
+  body: SubscriptionBody,
 });
 
 export type SubscriptionsInfoReq = z.infer<typeof SubscriptionsInfoSchema>;
 
 export const SubscriptionsCreateSchema = BaseSchema.extend({
-  body: z.object({
-    documentId: z.string().refine(ValidateDocumentId.isValid, {
-      message: ValidateDocumentId.message,
-    }),
-    event: z.literal("documents.update"),
-  }),
+  body: SubscriptionBody,
 });
 
 export type SubscriptionsCreateReq = z.infer<typeof SubscriptionsCreateSchema>;
