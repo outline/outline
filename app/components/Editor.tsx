@@ -199,15 +199,14 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
           placeholder={props.placeholder || ""}
           defaultValue={props.defaultValue || ""}
         />
-        {props.editorStyle?.paddingBottom &&
-          (!props.readOnly || props.shareId) && (
-            <ClickablePadding
-              onClick={props.readOnly ? undefined : focusAtEnd}
-              onDrop={props.readOnly ? undefined : handleDrop}
-              onDragOver={props.readOnly ? undefined : handleDragOver}
-              minHeight={props.editorStyle.paddingBottom}
-            />
-          )}
+        {props.editorStyle?.paddingBottom && !props.readOnly && (
+          <ClickablePadding
+            onClick={props.readOnly ? undefined : focusAtEnd}
+            onDrop={props.readOnly ? undefined : handleDrop}
+            onDragOver={props.readOnly ? undefined : handleDragOver}
+            minHeight={props.editorStyle.paddingBottom}
+          />
+        )}
       </>
     </ErrorBoundary>
   );
