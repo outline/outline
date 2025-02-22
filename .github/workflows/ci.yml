@@ -122,8 +122,6 @@ jobs:
   bundle-size:
     needs: [build, types]
     runs-on: ubuntu-latest
-    env:
-      NODE_ENV: production
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
@@ -131,6 +129,8 @@ jobs:
         node-version: 20.x
         cache: 'yarn'
     - run: yarn install --frozen-lockfile
+    - name: Set environment to production
+      run: echo "NODE_ENV=production" >> $GITHUB_ENV
     - run: yarn vite:build
     - name: Send bundle stats to RelativeCI
       run: npx relative-ci-agent
