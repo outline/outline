@@ -22,17 +22,9 @@ export default function noticeMenuItems(
 
   const currentStyle = node.attrs.style;
 
-  const canView = (type: NoticeTypes) => {
-    if (readOnly) {
-      return false;
-    }
-
-    return currentStyle !== type;
-  };
-
   return [
     {
-      name: "container_notice",
+      name: "changeNoticeType",
       visible: !readOnly,
       label: "Type",
       icon: <ExpandedIcon />,
@@ -41,25 +33,29 @@ export default function noticeMenuItems(
           name: NoticeTypes.Info,
           icon: <InfoIcon />,
           label: dictionary.infoNotice,
-          visible: canView(NoticeTypes.Info),
+          visible: true,
+          active: () => currentStyle === NoticeTypes.Info,
         },
         {
           name: NoticeTypes.Success,
           icon: <DoneIcon />,
           label: dictionary.successNotice,
-          visible: canView(NoticeTypes.Success),
+          visible: true,
+          active: () => currentStyle === NoticeTypes.Success,
         },
         {
           name: NoticeTypes.Warning,
           icon: <WarningIcon />,
           label: dictionary.warningNotice,
-          visible: canView(NoticeTypes.Warning),
+          visible: true,
+          active: () => currentStyle === NoticeTypes.Warning,
         },
         {
           name: NoticeTypes.Tip,
           icon: <StarredIcon />,
           label: dictionary.tipNotice,
-          visible: canView(NoticeTypes.Tip),
+          visible: true,
+          active: () => currentStyle === NoticeTypes.Tip,
         },
       ],
     },

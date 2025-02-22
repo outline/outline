@@ -122,7 +122,7 @@ export default class Notice extends Node {
 
   commands({ type }: { type: NodeType }) {
     return {
-      createNotice: (attrs: Record<string, Primitive>) =>
+      createContainer_notice: (attrs: Record<string, Primitive>) =>
         toggleWrap(type, attrs),
       changeNoticeType: () => () => true,
       info: (): Command => (state, dispatch) =>
