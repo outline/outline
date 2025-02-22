@@ -122,9 +122,8 @@ export default class Notice extends Node {
 
   commands({ type }: { type: NodeType }) {
     return {
-      createContainer_notice: (attrs: Record<string, Primitive>) =>
+      container_notice: (attrs: Record<string, Primitive>) =>
         toggleWrap(type, attrs),
-      changeNoticeType: () => () => true,
       info: (): Command => (state, dispatch) =>
         this.handleStyleChange(state, dispatch, NoticeTypes.Info),
       warning: (): Command => (state, dispatch) =>

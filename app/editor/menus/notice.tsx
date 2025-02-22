@@ -24,7 +24,7 @@ export default function noticeMenuItems(
 
   return [
     {
-      name: "changeNoticeType",
+      name: "container_notice",
       visible: !readOnly,
       label: "Type",
       icon: <ExpandedIcon />,
