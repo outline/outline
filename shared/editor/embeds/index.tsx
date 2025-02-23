@@ -322,7 +322,6 @@ const embeds: EmbedDescriptor[] = [
     regexMatch: [new RegExp("^https?://www\\.google\\.com/maps/embed\\?(.*)$")],
     transformMatch: (matches: RegExpMatchArray) => matches[0],
     icon: <Img src="/images/google-maps.png" alt="Google Maps" />,
-    visible: true,
   }),
   new EmbedDescriptor({
     title: "Google Drawings",

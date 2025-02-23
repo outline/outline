@@ -24,7 +24,6 @@ const NotificationMenu: React.FC = () => {
       {
         type: "button",
         title: t("Notification settings"),
-        visible: true,
         onClick: () => performAction(navigateToNotificationSettings, context),
       },
     ],

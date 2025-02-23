@@ -33,14 +33,12 @@ export default function imageMenuItems(
       name: "alignLeft",
       tooltip: dictionary.alignLeft,
       icon: <AlignImageLeftIcon />,
-      visible: true,
       active: isLeftAligned,
     },
     {
       name: "alignCenter",
       tooltip: dictionary.alignCenter,
       icon: <AlignImageCenterIcon />,
-      visible: true,
       active: (state) =>
         isNodeActive(schema.nodes.image)(state) &&
         !isLeftAligned(state) &&
@@ -51,19 +49,16 @@ export default function imageMenuItems(
       name: "alignRight",
       tooltip: dictionary.alignRight,
       icon: <AlignImageRightIcon />,
-      visible: true,
       active: isRightAligned,
     },
     {
       name: "alignFullWidth",
       tooltip: dictionary.alignFullWidth,
       icon: <AlignFullWidthIcon />,
-      visible: true,
       active: isFullWidthAligned,
     },
     {
       name: "separator",
-      visible: true,
     },
     {
       name: "downloadImage",
@@ -75,13 +70,11 @@ export default function imageMenuItems(
       name: "replaceImage",
       tooltip: dictionary.replaceImage,
       icon: <ReplaceIcon />,
-      visible: true,
     },
     {
       name: "deleteImage",
       tooltip: dictionary.deleteImage,
       icon: <TrashIcon />,
-      visible: true,
     },
   ];
 }
