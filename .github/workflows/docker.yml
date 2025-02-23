@@ -12,9 +12,6 @@ env:
 jobs:
   build-base:
     runs-on: ubicloud-standard-8
-    container:
-      image: circleci/buildpack-deps:latest
-      options: --user root
     strategy:
       fail-fast: false
       matrix:
@@ -113,7 +110,7 @@ jobs:
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/base-digests
         run: |
-          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "${{ steps.meta.outputs.json }}") \
             $(printf '${{ env.BASE_IMAGE_NAME }}@sha256:%s ' *)
 
       - name: Inspect image
@@ -123,6 +120,7 @@ jobs:
   build-main:
     needs:
       - merge-base-manifests
+      - build-base
     runs-on: ubicloud-standard-8
     strategy:
       fail-fast: false
@@ -222,7 +220,7 @@ jobs:
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/main-digests
         run: |
-          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "${{ steps.meta.outputs.json }}") \
             $(printf '${{ env.IMAGE_NAME }}@sha256:%s ' *)
 
       - name: Inspect image
