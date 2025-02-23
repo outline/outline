@@ -12,6 +12,7 @@ import { sanitizeUrl } from "../../utils/urls";
 import Caption from "../components/Caption";
 import ImageComponent from "../components/Image";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { ComponentProps } from "../types";
 import SimpleImage from "./SimpleImage";
 
@@ -167,7 +168,7 @@ export default class Image extends SimpleImage {
               contentEditable: "false",
             },
           ],
-          ["p", { class: "caption" }, 0],
+          ["p", { class: EditorStyleHelper.imageCaption }, node.attrs.alt],
         ];
       },
       toPlainText: (node) =>
