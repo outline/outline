@@ -11,7 +11,7 @@ env:
 
 jobs:
   build-base:
-    runs-on: ubuntu-latest
+    runs-on: ubicloud-standard-8
     container:
       image: circleci/buildpack-deps:latest
       options: --user root
@@ -78,7 +78,7 @@ jobs:
           retention-days: 1
 
   merge-base-manifests:
-    runs-on: ubuntu-latest
+    runs-on: ubicloud-standard-2
     needs:
       - build-base
     steps:
@@ -123,7 +123,7 @@ jobs:
   build-main:
     needs:
       - merge-base-manifests
-    runs-on: ubuntu-latest
+    runs-on: ubicloud-standard-8
     strategy:
       fail-fast: false
       matrix:
@@ -187,7 +187,7 @@ jobs:
           retention-days: 1
 
   merge-main-manifests:
-    runs-on: ubuntu-latest
+    runs-on: ubicloud-standard-2
     needs:
       - build-main
     steps:
