@@ -16,10 +16,8 @@ export default function noticeMenuItems(
   readOnly: boolean | undefined,
   dictionary: Dictionary
 ): MenuItem[] {
-  const { selection } = state;
-  const { $from } = selection;
-  const node = $from.node(-1);
-  const currentStyle = node.attrs.style as NoticeTypes;
+  const node = state.selection.$from.node(-1);
+  const currentStyle = node?.attrs.style as NoticeTypes;
 
   const mapping = {
     [NoticeTypes.Info]: dictionary.infoNotice,

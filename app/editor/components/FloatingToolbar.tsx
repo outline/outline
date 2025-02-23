@@ -89,7 +89,7 @@ function usePosition({
       ? noticeBlock.pos
       : null;
 
-    if (position) {
+    if (position !== null) {
       const element = view.nodeDOM(position);
       const bounds = (element as HTMLElement).getBoundingClientRect();
       selectionBounds.top = bounds.top;
