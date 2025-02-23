@@ -1,4 +1,3 @@
-import { capitalize } from "lodash";
 import {
   DoneIcon,
   ExpandedIcon,
@@ -20,14 +19,20 @@ export default function noticeMenuItems(
   const { selection } = state;
   const { $from } = selection;
   const node = $from.node(-1);
+  const currentStyle = node.attrs.style as NoticeTypes;
 
-  const currentStyle = node.attrs.style;
+  const mapping = {
+    [NoticeTypes.Info]: dictionary.infoNotice,
+    [NoticeTypes.Warning]: dictionary.warningNotice,
+    [NoticeTypes.Success]: dictionary.successNotice,
+    [NoticeTypes.Tip]: dictionary.tipNotice,
+  };
 
   return [
     {
       name: "container_notice",
       visible: !readOnly,
-      label: capitalize(currentStyle),
+      label: mapping[currentStyle],
       icon: <ExpandedIcon />,
       children: [
         {
