@@ -63,7 +63,7 @@ const Content = styled.p<{ $width: number; $isSelected: boolean }>`
     display: ${(props) => (props.$isSelected ? "block" : "none")}};
   }
 
-  &:empty:before {
+  &:empty::before {
     color: ${s("placeholder")};
     content: attr(data-caption);
     pointer-events: none;
