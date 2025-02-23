@@ -14,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: circleci/buildpack-deps:latest
+      options: --user root
     strategy:
       fail-fast: false
       matrix:
