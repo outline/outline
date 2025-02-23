@@ -139,28 +139,25 @@ router.get("*", shareDomains(), async (ctx, next) => {
   }
 
   const team = await getTeamFromContext(ctx);
-  let redirectUrl;
 
   if (env.isCloudHosted) {
     // Redirect all requests to custom domain if one is set
-    if (team?.domain && team.domain !== ctx.hostname) {
-      redirectUrl = ctx.href.replace(ctx.hostname, team.domain);
+    if (team?.domain) {
+      if (team.domain !== ctx.hostname) {
+        ctx.redirect(ctx.href.replace(ctx.hostname, team.domain));
+        return;
+      }
     }
 
     // Redirect if subdomain is not the current team's subdomain
     else if (team?.subdomain) {
       const { teamSubdomain } = parseDomain(ctx.href);
       if (team?.subdomain !== teamSubdomain) {
-        redirectUrl = ctx.href.replace(
-          `//${teamSubdomain}.`,
-          `//${team.subdomain}.`
+        ctx.redirect(
+          ctx.href.replace(`//${teamSubdomain}.`, `//${team.subdomain}.`)
         );
+        return;
       }
-    }
-
-    if (redirectUrl) {
-      ctx.redirect(redirectUrl);
-      return;
     }
   }
 
