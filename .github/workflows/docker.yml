@@ -10,27 +10,8 @@ env:
   BASE_IMAGE_NAME: outlinewiki/outline-base
 
 jobs:
-  prepare:
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.version.outputs.VERSION }}
-      is_prerelease: ${{ steps.check_prerelease.outputs.IS_PRERELEASE }}
-    steps:
-      - name: Extract version
-        id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-      - name: Check if prerelease
-        id: check_prerelease
-        run: |
-          if [[ "${{ steps.version.outputs.VERSION }}" == *"-"* ]]; then
-            echo "IS_PRERELEASE=true" >> $GITHUB_OUTPUT
-          else
-            echo "IS_PRERELEASE=false" >> $GITHUB_OUTPUT
-          fi
-
   build-base:
     runs-on: ubuntu-latest
-    needs: prepare
     strategy:
       fail-fast: false
       matrix:
@@ -41,14 +22,17 @@ jobs:
           - linux/ppc64le
           - linux/s390x
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Prepare
+        run: |
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.BASE_IMAGE_NAME }}
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -56,61 +40,83 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build and push base image
-        id: build
-        uses: docker/build-push-action@v5
+        id: build-base
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: Dockerfile.base
-          push: true
           platforms: ${{ matrix.platform }}
+          tags: ${{ steps.meta.outputs.tags }}
           outputs: type=image,name=${{ env.BASE_IMAGE_NAME }},push-by-digest=true
 
       - name: Export digest
         run: |
           mkdir -p ${{ runner.temp }}/digests
-          digest="${{ steps.build.outputs.digest }}"
+          digest="${{ steps.build-base.outputs.digest }}"
           touch "${{ runner.temp }}/digests/${digest#sha256:}"
 
       - name: Upload digest
         uses: actions/upload-artifact@v4
         with:
-          name: base-digests
+          name: base-digests-${{ env.PLATFORM_PAIR }}
           path: ${{ runner.temp }}/digests/*
           if-no-files-found: error
           retention-days: 1
 
   merge-base-manifests:
-    needs: [prepare, build-base]
     runs-on: ubuntu-latest
+    needs:
+      - build-base
     steps:
       - name: Download digests
         uses: actions/download-artifact@v4
         with:
-          name: base-digests
-          path: ${{ runner.temp }}/base-digests
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+          path: ${{ runner.temp }}/digests
+          pattern: base-digests-*
+          merge-multiple: true
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.BASE_IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+
       - name: Create manifest list and push
+        working-directory: ${{ runner.temp }}/base-digests
         run: |
-          TAGS="-t ${{ env.BASE_IMAGE_NAME }}:${{ needs.prepare.outputs.version }}"
-          if [[ "${{ needs.prepare.outputs.is_prerelease }}" == "false" ]]; then
-            TAGS="$TAGS -t ${{ env.BASE_IMAGE_NAME }}:latest"
-          fi
-          
-          docker buildx imagetools create $TAGS \
-            $(cd ${{ runner.temp }}/base-digests && printf "${{ env.BASE_IMAGE_NAME }}@sha256:%s " *)
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.BASE_IMAGE_NAME }}@sha256:%s ' *)
+
+      - name: Inspect image
+        run: |
+          docker buildx imagetools inspect ${{ env.BASE_IMAGE_NAME }}:${{ steps.meta.outputs.version }}
 
   build-main:
-    needs: [prepare, merge-base-manifests]
+    needs:
+      - merge-base-manifests
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -120,10 +126,24 @@ jobs:
           - linux/arm/v7
           - linux/ppc64le
           - linux/s390x
-    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Prepare
+        run: |
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.IMAGE_NAME }}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -131,60 +151,69 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-      - name: Build and push main image
-        id: build
-        uses: docker/build-push-action@v5
+      - name: Build and push image
+        id: build-main
+        uses: docker/build-push-action@v6
         with:
           context: .
-          push: true
+          file: Dockerfile
           platforms: ${{ matrix.platform }}
+          tags: ${{ steps.meta.outputs.tags }}
           outputs: type=image,name=${{ env.IMAGE_NAME }},push-by-digest=true
 
       - name: Export digest
         run: |
           mkdir -p ${{ runner.temp }}/digests
-          digest="${{ steps.build.outputs.digest }}"
+          digest="${{ steps.build-main.outputs.digest }}"
           touch "${{ runner.temp }}/digests/${digest#sha256:}"
 
       - name: Upload digest
         uses: actions/upload-artifact@v4
         with:
-          name: main-digests
+          name: main-digests-${{ env.PLATFORM_PAIR }}
           path: ${{ runner.temp }}/digests/*
           if-no-files-found: error
           retention-days: 1
 
   merge-main-manifests:
-    needs: [prepare, build-main]
     runs-on: ubuntu-latest
+    needs:
+      - build-main
     steps:
       - name: Download digests
         uses: actions/download-artifact@v4
         with:
-          name: main-digests
-          path: ${{ runner.temp }}/main-digests
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+          path: ${{ runner.temp }}/digests
+          pattern: main-digests-*
+          merge-multiple: true
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+
       - name: Create manifest list and push
+        working-directory: ${{ runner.temp }}/main-digests
         run: |
-          TAGS="-t ${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.version }}"
-          if [[ "${{ needs.prepare.outputs.is_prerelease }}" == "false" ]]; then
-            TAGS="$TAGS -t ${{ env.IMAGE_NAME }}:latest"
-          fi
-          
-          docker buildx imagetools create $TAGS \
-            $(cd ${{ runner.temp }}/main-digests && printf "${{ env.IMAGE_NAME }}@sha256:%s " *)
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.IMAGE_NAME }}@sha256:%s ' *)
+
+      - name: Inspect image
+        run: |
+          docker buildx imagetools inspect ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
