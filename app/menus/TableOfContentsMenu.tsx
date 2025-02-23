@@ -28,7 +28,6 @@ function TableOfContentsMenu() {
     const i = [
       {
         type: "heading",
-        visible: true,
         title: t("Contents"),
       },
       ...headings.map((heading) => ({
