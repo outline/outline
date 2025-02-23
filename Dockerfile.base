@@ -1,19 +1,18 @@
 ARG APP_PATH=/opt/outline
 FROM node:20-slim AS deps
 
-# Install build-essential and other required dependencies
-RUN apt-get update && apt-get install -y build-essential
-
-# Clean up unnecessary files to reduce image size
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+# Install required build tools including CMake
+RUN apt-get update && apt-get install -y \
+  build-essential \
+  cmake \
+  && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 ARG APP_PATH
 WORKDIR $APP_PATH
 COPY ./package.json ./yarn.lock ./
 COPY ./patches ./patches
 
-RUN yarn install --no-optional --frozen-lockfile --network-timeout 1000000 && \
-  yarn cache clean
+RUN yarn install --no-optional --frozen-lockfile --network-timeout 1000000
 
 COPY . .
 ARG CDN_URL
