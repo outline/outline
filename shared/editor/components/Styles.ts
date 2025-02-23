@@ -692,11 +692,29 @@ img.ProseMirror-separator {
   display: none;
 }
 
+.${EditorStyleHelper.imageCaption} {
+  border: 0;
+  display: block;
+  font-style: italic;
+  font-weight: normal;
+  font-size: 13px;
+  color: ${props.theme.textSecondary};
+  padding: 8px 0 4px;
+  line-height: 16px;
+  text-align: center;
+  min-height: 1em;
+  outline: none;
+  background: none;
+  resize: none;
+  user-select: text;
+  margin: 0 auto !important;
+}
+
 .ProseMirror[contenteditable="false"] {
-  .caption {
+  .${EditorStyleHelper.imageCaption} {
     pointer-events: none;
   }
-  .caption:empty {
+  .${EditorStyleHelper.imageCaption}:empty {
     visibility: hidden;
   }
 }
