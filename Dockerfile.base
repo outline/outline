@@ -1,17 +1,12 @@
 ARG APP_PATH=/opt/outline
 FROM node:20-slim AS deps
 
-RUN apt-get update && \
-  apt-get install -y --no-install-recommends \
-  build-essential \
-  python3
-
 ARG APP_PATH
 WORKDIR $APP_PATH
 COPY ./package.json ./yarn.lock ./
 COPY ./patches ./patches
 
-RUN yarn install --no-optional --frozen-lockfile && \
+RUN yarn install --no-optional --frozen-lockfile --network-timeout 1000000 && \
   yarn cache clean
 
 COPY . .
@@ -20,7 +15,7 @@ RUN yarn build
 
 RUN rm -rf node_modules
 
-RUN yarn install --production=true --frozen-lockfile && \
+RUN yarn install --production=true --frozen-lockfile --network-timeout 1000000 && \
   yarn cache clean
 
 ENV PORT=3000

@@ -12,18 +12,22 @@ env:
 jobs:
   build-base:
     runs-on: ubuntu-latest
+    container:
+      image: circleci/buildpack-deps:latest
     strategy:
       fail-fast: false
       matrix:
         platform:
-          - linux/amd64
-          - linux/arm64/v8
+          # Group common architectures that are less resource intensive
+          - linux/amd64,linux/arm64/v8
+          # ARM v7 builds separately due to different requirements
           - linux/arm/v7
-          - linux/ppc64le
-          - linux/s390x
+          # Group other architectures
+          - linux/ppc64le,linux/s390x
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Prepare
         run: |
           platform=${{ matrix.platform }}
@@ -123,11 +127,12 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-          - linux/amd64
-          - linux/arm64/v8
+          # Group common architectures that are less resource intensive
+          - linux/amd64,linux/arm64/v8
+          # ARM v7 builds separately due to different requirements
           - linux/arm/v7
-          - linux/ppc64le
-          - linux/s390x
+          # Group other architectures
+          - linux/ppc64le,linux/s390x
     steps:
       - name: Checkout
         uses: actions/checkout@v4
