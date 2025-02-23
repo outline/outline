@@ -153,11 +153,8 @@ export default class Image extends SimpleImage {
         const className = node.attrs.layoutClass
           ? `image image-${node.attrs.layoutClass}`
           : "image";
-        return [
-          "div",
-          {
-            class: className,
-          },
+
+        const children = [
           [
             "img",
             {
@@ -168,7 +165,22 @@ export default class Image extends SimpleImage {
               contentEditable: "false",
             },
           ],
-          ["p", { class: EditorStyleHelper.imageCaption }, node.attrs.alt],
+        ];
+
+        if (node.attrs.alt) {
+          children.push([
+            "p",
+            { class: EditorStyleHelper.imageCaption },
+            node.attrs.alt,
+          ]);
+        }
+
+        return [
+          "div",
+          {
+            class: className,
+          },
+          ...children,
         ];
       },
       toPlainText: (node) =>
