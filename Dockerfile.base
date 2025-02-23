@@ -1,6 +1,12 @@
 ARG APP_PATH=/opt/outline
 FROM node:20-slim AS deps
 
+# Install build-essential and other required dependencies
+RUN apt-get update && apt-get install -y build-essential
+
+# Clean up unnecessary files to reduce image size
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
 ARG APP_PATH
 WORKDIR $APP_PATH
 COPY ./package.json ./yarn.lock ./
@@ -15,7 +21,7 @@ RUN yarn build
 
 RUN rm -rf node_modules
 
-RUN yarn install --production=true --frozen-lockfile --network-timeout 1000000 && \
+RUN yarn install --production=true --frozen-lockfile --prefer-offline --network-timeout 1000000 && \
   yarn cache clean
 
 ENV PORT=3000
