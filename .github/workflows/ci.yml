@@ -59,8 +59,30 @@ jobs:
     - run: yarn install --frozen-lockfile
     - run: yarn tsc
 
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      server: ${{ steps.filter.outputs.server }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            server:
+              - 'server/**'
+              - 'shared/**'
+              - 'package.json'
+              - 'yarn.lock'
+            app:
+              - 'app/**'
+              - 'shared/**'
+              - 'package.json'
+              - 'yarn.lock'
+
   test:
     needs: build
+    if: ${{ needs.changes.outputs.app == 'true' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -75,7 +97,8 @@ jobs:
     - run: yarn test:${{ matrix.test-group }}
 
   test-server:
-    needs: build
+    needs: [build, changes]
+    if: ${{ needs.changes.outputs.server == 'true' }}
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -121,6 +144,7 @@ jobs:
 
   bundle-size:
     needs: [build, types]
+    if: ${{ needs.changes.outputs.app == 'true' }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -133,4 +157,7 @@ jobs:
       run: echo "NODE_ENV=production" >> $GITHUB_ENV
     - run: yarn vite:build
     - name: Send bundle stats to RelativeCI
-      run: npx relative-ci-agent
+      uses: relative-ci/agent-action@v2
+      with:
+        key: ${{ secrets.RELATIVE_CI_KEY }}
+        token: ${{ secrets.GITHUB_TOKEN }}
