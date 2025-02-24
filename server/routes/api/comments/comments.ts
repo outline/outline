@@ -6,6 +6,7 @@ import {
   TeamPreference,
   MentionType,
 } from "@shared/types";
+import { parser } from "@server/editor";
 import auth from "@server/middlewares/authentication";
 import { feature } from "@server/middlewares/feature";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -30,7 +31,7 @@ router.post(
   validate(T.CommentsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsCreateReq>) => {
-    const { id, documentId, parentCommentId, data } = ctx.input.body;
+    const { id, documentId, parentCommentId, data, text } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
@@ -42,7 +43,7 @@ router.post(
 
     const comment = await Comment.createWithCtx(ctx, {
       id,
-      data,
+      data: data ? data : parser.parse(text!).toJSON(),
       createdById: user.id,
       documentId,
       parentCommentId,
