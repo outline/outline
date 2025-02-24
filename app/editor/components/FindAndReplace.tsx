@@ -24,6 +24,55 @@ import useOnClickOutside from "~/hooks/useOnClickOutside";
 import Desktop from "~/utils/Desktop";
 import { useEditor } from "./EditorContext";
 
+type KeyboardShortcutsProps = {
+  popover: ReturnType<typeof usePopoverState>;
+  selectionRef: React.MutableRefObject<string | undefined>;
+  handleCaseSensitive: () => void;
+  handleRegex: () => void;
+};
+
+function useKeyboardShortcuts({
+  popover,
+  selectionRef,
+  handleCaseSensitive,
+  handleRegex,
+}: KeyboardShortcutsProps) {
+  // Open popover
+  useKeyDown(
+    (ev) =>
+      isModKey(ev) &&
+      !popover.visible &&
+      ev.code === "KeyF" &&
+      // Keyboard handler is through the AppMenu on Desktop v1.2.0+
+      !(Desktop.bridge && "onFindInPage" in Desktop.bridge),
+    (ev) => {
+      ev.preventDefault();
+      selectionRef.current = window.getSelection()?.toString();
+      popover.show();
+    }
+  );
+
+  // Enable/disable case sensitive search
+  useKeyDown(
+    (ev) => isModKey(ev) && ev.altKey && ev.code === "KeyC" && popover.visible,
+    (ev) => {
+      ev.preventDefault();
+      handleCaseSensitive();
+    },
+    { allowInInput: true }
+  );
+
+  // Enable/disable regex search
+  useKeyDown(
+    (ev) => isModKey(ev) && ev.altKey && ev.code === "KeyR" && popover.visible,
+    (ev) => {
+      ev.preventDefault();
+      handleRegex();
+    },
+    { allowInInput: true }
+  );
+}
+
 type Props = {
   /** Whether the find and replace popover is open */
   open: boolean;
@@ -89,41 +138,6 @@ export default function FindAndReplace({
     }
   }, [show]);
 
-  useOnClickOutside(popover.unstable_referenceRef, popover.hide);
-
-  // Keyboard shortcuts
-  useKeyDown(
-    (ev) =>
-      isModKey(ev) &&
-      !popover.visible &&
-      ev.code === "KeyF" &&
-      // Keyboard handler is through the AppMenu on Desktop v1.2.0+
-      !(Desktop.bridge && "onFindInPage" in Desktop.bridge),
-    (ev) => {
-      ev.preventDefault();
-      selectionRef.current = window.getSelection()?.toString();
-      popover.show();
-    }
-  );
-
-  useKeyDown(
-    (ev) => isModKey(ev) && ev.altKey && ev.code === "KeyR" && popover.visible,
-    (ev) => {
-      ev.preventDefault();
-      setRegex((state) => !state);
-    },
-    { allowInInput: true }
-  );
-
-  useKeyDown(
-    (ev) => isModKey(ev) && ev.altKey && ev.code === "KeyC" && popover.visible,
-    (ev) => {
-      ev.preventDefault();
-      setCaseSensitive((state) => !state);
-    },
-    { allowInInput: true }
-  );
-
   // Callbacks
   const handleMore = React.useCallback(() => {
     setShowReplace((state) => !state);
@@ -132,35 +146,35 @@ export default function FindAndReplace({
 
   const handleCaseSensitive = React.useCallback(() => {
     setCaseSensitive((state) => {
-      const caseSensitive = !state;
+      const isCaseSensitive = !state;
 
       editor.commands.find({
         text: searchTerm,
-        caseSensitive,
+        caseSensitive: isCaseSensitive,
         regexEnabled,
       });
 
-      return caseSensitive;
+      return isCaseSensitive;
     });
   }, [regexEnabled, editor.commands, searchTerm]);
 
   const handleRegex = React.useCallback(() => {
     setRegex((state) => {
-      const regexEnabled = !state;
+      const isRegexEnabled = !state;
 
       editor.commands.find({
         text: searchTerm,
         caseSensitive,
-        regexEnabled,
+        regexEnabled: isRegexEnabled,
       });
 
-      return regexEnabled;
+      return isRegexEnabled;
     });
   }, [caseSensitive, editor.commands, searchTerm]);
 
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent<HTMLInputElement>) => {
-      function nextPrevious(ev: React.KeyboardEvent<HTMLInputElement>) {
+      function nextPrevious() {
         if (ev.shiftKey) {
           editor.commands.prevSearchMatch();
         } else {
@@ -174,20 +188,20 @@ export default function FindAndReplace({
       switch (ev.key) {
         case "Enter": {
           ev.preventDefault();
-          nextPrevious(ev);
+          nextPrevious();
           return;
         }
         case "g": {
           if (ev.metaKey) {
             ev.preventDefault();
-            nextPrevious(ev);
+            nextPrevious();
             selectInputText();
           }
           return;
         }
         case "F3": {
           ev.preventDefault();
-          nextPrevious(ev);
+          nextPrevious();
           selectInputText();
           return;
         }
@@ -242,6 +256,15 @@ export default function FindAndReplace({
     },
     [handleReplace]
   );
+
+  useOnClickOutside(popover.unstable_referenceRef, popover.hide);
+
+  useKeyboardShortcuts({
+    popover,
+    selectionRef,
+    handleCaseSensitive,
+    handleRegex,
+  });
 
   const style: React.CSSProperties = React.useMemo(
     () => ({
