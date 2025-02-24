@@ -143,25 +143,40 @@ export default function FindAndReplace({
     inputRef.current?.setSelectionRange(0, inputRef.current?.value.length);
   }, []);
 
+  const selectInputReplaceText = React.useCallback(() => {
+    setTimeout(() => {
+      inputReplaceRef.current?.focus();
+      inputReplaceRef.current?.setSelectionRange(
+        0,
+        inputReplaceRef.current?.value.length
+      );
+    }, 100);
+  }, []);
+
   const handleOpen = React.useCallback(
     ({ withReplace }: { withReplace: boolean }) => {
-      const includeReplace = () => {
-        if (!readOnly && withReplace) {
-          setShowReplace(true);
-        }
-      };
+      const shouldShowReplace = !readOnly && withReplace;
 
+      // If already open, switch focus to corresponding input text.
       if (popover.visible) {
-        selectInputText();
-        includeReplace();
+        if (shouldShowReplace) {
+          setShowReplace(true);
+          selectInputReplaceText();
+        } else {
+          selectInputText();
+        }
+
         return;
       }
 
       selectionRef.current = window.getSelection()?.toString();
       popover.show();
-      includeReplace();
+
+      if (shouldShowReplace) {
+        setShowReplace(true);
+      }
     },
-    [popover, selectInputText, readOnly]
+    [popover, readOnly, selectInputText, selectInputReplaceText]
   );
 
   const handleMore = React.useCallback(() => {
