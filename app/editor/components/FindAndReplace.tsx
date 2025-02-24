@@ -308,7 +308,7 @@ export default function FindAndReplace({
     <>
       <Tooltip
         content={t("Previous match")}
-        shortcut="shift+enter"
+        shortcut="Shift+Enter"
         placement="bottom"
       >
         <ButtonLarge
@@ -318,7 +318,7 @@ export default function FindAndReplace({
           <CaretUpIcon />
         </ButtonLarge>
       </Tooltip>
-      <Tooltip content={t("Next match")} shortcut="enter" placement="bottom">
+      <Tooltip content={t("Next match")} shortcut="Enter" placement="bottom">
         <ButtonLarge
           disabled={disabled}
           onClick={() => editor.commands.nextSearchMatch()}
@@ -401,7 +401,7 @@ export default function FindAndReplace({
                 />
                 <Tooltip
                   content={t("Replace")}
-                  shortcut="enter"
+                  shortcut="Enter"
                   placement="bottom"
                 >
                   <Button onClick={handleReplace} disabled={disabled} neutral>
@@ -410,7 +410,7 @@ export default function FindAndReplace({
                 </Tooltip>
                 <Tooltip
                   content={t("Replace all")}
-                  shortcut={`${metaDisplay}+enter`}
+                  shortcut={`${metaDisplay}+Enter`}
                   placement="bottom"
                 >
                   <Button
