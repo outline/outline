@@ -399,12 +399,28 @@ export default function FindAndReplace({
                   onRequestSubmit={handleReplaceAll}
                   onChange={(ev) => setReplaceTerm(ev.currentTarget.value)}
                 />
-                <Button onClick={handleReplace} disabled={disabled} neutral>
-                  {t("Replace")}
-                </Button>
-                <Button onClick={handleReplaceAll} disabled={disabled} neutral>
-                  {t("Replace all")}
-                </Button>
+                <Tooltip
+                  content={t("Replace")}
+                  shortcut="enter"
+                  placement="bottom"
+                >
+                  <Button onClick={handleReplace} disabled={disabled} neutral>
+                    {t("Replace")}
+                  </Button>
+                </Tooltip>
+                <Tooltip
+                  content={t("Replace all")}
+                  shortcut={`${metaDisplay}+enter`}
+                  placement="bottom"
+                >
+                  <Button
+                    onClick={handleReplaceAll}
+                    disabled={disabled}
+                    neutral
+                  >
+                    {t("Replace all")}
+                  </Button>
+                </Tooltip>
               </Flex>
             )}
           </ResizingHeightContainer>
