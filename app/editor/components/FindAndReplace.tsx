@@ -26,7 +26,7 @@ import { useEditor } from "./EditorContext";
 
 type KeyboardShortcutsProps = {
   popover: ReturnType<typeof usePopoverState>;
-  handleOpen: () => void;
+  handleOpen: ({ withReplace }: { withReplace: boolean }) => void;
   handleCaseSensitive: () => void;
   handleRegex: () => void;
 };
@@ -46,7 +46,7 @@ function useKeyboardShortcuts({
       !(Desktop.bridge && "onFindInPage" in Desktop.bridge),
     (ev) => {
       ev.preventDefault();
-      handleOpen();
+      handleOpen({ withReplace: ev.altKey });
     },
     { allowInInput: true }
   );
@@ -143,14 +143,26 @@ export default function FindAndReplace({
     inputRef.current?.setSelectionRange(0, inputRef.current?.value.length);
   }, []);
 
-  const handleOpen = React.useCallback(() => {
-    if (!popover.visible) {
+  const handleOpen = React.useCallback(
+    ({ withReplace }: { withReplace: boolean }) => {
+      const includeReplace = () => {
+        if (!readOnly && withReplace) {
+          setShowReplace(true);
+        }
+      };
+
+      if (popover.visible) {
+        selectInputText();
+        includeReplace();
+        return;
+      }
+
       selectionRef.current = window.getSelection()?.toString();
       popover.show();
-    } else {
-      selectInputText();
-    }
-  }, [popover, selectInputText]);
+      includeReplace();
+    },
+    [popover, selectInputText, readOnly]
+  );
 
   const handleMore = React.useCallback(() => {
     setShowReplace((state) => !state);
@@ -387,7 +399,11 @@ export default function FindAndReplace({
             </StyledInput>
             {navigation}
             {!readOnly && (
-              <Tooltip content={t("Replace options")} placement="bottom">
+              <Tooltip
+                content={t("Replace options")}
+                shortcut={`${altDisplay}+${metaDisplay}+f`}
+                placement="bottom"
+              >
                 <ButtonLarge onClick={handleMore}>
                   <ReplaceIcon color={theme.textSecondary} />
                 </ButtonLarge>

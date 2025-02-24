@@ -234,7 +234,7 @@ function Input(
               hasIcon={!!icon}
               hasPrefix={!!prefix}
               {...rest}
-              // set it after "rest" to allow "handleKeyDown" to override "onKeyDown" from prop.
+              // set it after "rest" to override "onKeyDown" from prop.
               onKeyDown={handleKeyDown}
             />
           ) : (
@@ -249,7 +249,7 @@ function Input(
               hasPrefix={!!prefix}
               type={type}
               {...rest}
-              // set it after "rest" to "handleKeyDown" to override "onKeyDown" from prop.
+              // set it after "rest" to override "onKeyDown" from prop.
               onKeyDown={handleKeyDown}
             />
           )}
