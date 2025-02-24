@@ -223,6 +223,7 @@ export default class SearchHelper {
             }
           : {},
         id: collectionIds,
+        teamId: user.teamId,
       },
       order: [["name", "ASC"]],
       replacements: { query: `%${query}%` },
