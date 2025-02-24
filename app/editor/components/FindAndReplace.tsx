@@ -26,14 +26,14 @@ import { useEditor } from "./EditorContext";
 
 type KeyboardShortcutsProps = {
   popover: ReturnType<typeof usePopoverState>;
-  selectionRef: React.MutableRefObject<string | undefined>;
+  handleOpen: () => void;
   handleCaseSensitive: () => void;
   handleRegex: () => void;
 };
 
 function useKeyboardShortcuts({
   popover,
-  selectionRef,
+  handleOpen,
   handleCaseSensitive,
   handleRegex,
 }: KeyboardShortcutsProps) {
@@ -41,15 +41,14 @@ function useKeyboardShortcuts({
   useKeyDown(
     (ev) =>
       isModKey(ev) &&
-      !popover.visible &&
       ev.code === "KeyF" &&
       // Keyboard handler is through the AppMenu on Desktop v1.2.0+
       !(Desktop.bridge && "onFindInPage" in Desktop.bridge),
     (ev) => {
       ev.preventDefault();
-      selectionRef.current = window.getSelection()?.toString();
-      popover.show();
-    }
+      handleOpen();
+    },
+    { allowInInput: true }
   );
 
   // Enable/disable case sensitive search
@@ -139,6 +138,20 @@ export default function FindAndReplace({
   }, [show]);
 
   // Callbacks
+  const selectInputText = React.useCallback(() => {
+    inputRef.current?.focus();
+    inputRef.current?.setSelectionRange(0, inputRef.current?.value.length);
+  }, []);
+
+  const handleOpen = React.useCallback(() => {
+    if (!popover.visible) {
+      selectionRef.current = window.getSelection()?.toString();
+      popover.show();
+    } else {
+      selectInputText();
+    }
+  }, [popover, selectInputText]);
+
   const handleMore = React.useCallback(() => {
     setShowReplace((state) => !state);
     setTimeout(() => inputReplaceRef.current?.focus(), 100);
@@ -181,9 +194,6 @@ export default function FindAndReplace({
           editor.commands.nextSearchMatch();
         }
       }
-      function selectInputText() {
-        inputRef.current?.setSelectionRange(0, inputRef.current?.value.length);
-      }
 
       switch (ev.key) {
         case "Enter": {
@@ -207,7 +217,7 @@ export default function FindAndReplace({
         }
       }
     },
-    [editor.commands]
+    [editor.commands, selectInputText]
   );
 
   const handleReplace = React.useCallback(
@@ -261,7 +271,7 @@ export default function FindAndReplace({
 
   useKeyboardShortcuts({
     popover,
-    selectionRef,
+    handleOpen,
     handleCaseSensitive,
     handleRegex,
   });
