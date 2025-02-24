@@ -48,16 +48,15 @@ export function createDatabaseInstance(
       schema,
     });
   } catch (error) {
-    if (error instanceof URIError) {
-      Logger.fatal(
-        "Could not connect to database",
-        new Error(
-          `Failed to parse: ${databaseUrl}, ensure special characters in database URL are properly encoded`
-        )
-      );
-      process.exit(1);
-    }
-    throw error;
+    Logger.fatal(
+      "Could not connect to database",
+      databaseUrl
+        ? new Error(
+            `Failed to parse: "${databaseUrl}". Ensure special characters in database URL are encoded`
+          )
+        : new Error(`DATABASE_URL is not set.`)
+    );
+    process.exit(1);
   }
 }
 
