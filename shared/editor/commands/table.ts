@@ -61,13 +61,14 @@ function createTableInner(
       : cellType.createAndFill(attrs);
 
   for (let index = 0; index < colsCount; index += 1) {
-    const attrs = colWidth
-      ? {
-          colwidth: [colWidth],
-          colspan: 1,
-          rowspan: 1,
-        }
-      : null;
+    const attrs =
+      colWidth && index < colsCount - 1
+        ? {
+            colwidth: [colWidth],
+            colspan: 1,
+            rowspan: 1,
+          }
+        : null;
     const cell = createCell(types.cell, attrs);
 
     if (cell) {
