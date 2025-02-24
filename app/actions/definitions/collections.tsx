@@ -15,7 +15,6 @@ import {
 } from "outline-icons";
 import * as React from "react";
 import { toast } from "sonner";
-import stores from "~/stores";
 import Collection from "~/models/Collection";
 import { CollectionEdit } from "~/components/Collection/CollectionEdit";
 import { CollectionNew } from "~/components/Collection/CollectionNew";
@@ -62,7 +61,7 @@ export const createCollection = createAction({
   keywords: "create",
   visible: ({ stores }) =>
     stores.policies.abilities(stores.auth.team?.id || "").createCollection,
-  perform: ({ t, event }) => {
+  perform: ({ t, event, stores }) => {
     event?.preventDefault();
     event?.stopPropagation();
     stores.dialogs.openModal({
@@ -78,10 +77,10 @@ export const editCollection = createAction({
   analyticsName: "Edit collection",
   section: ActiveCollectionSection,
   icon: <EditIcon />,
-  visible: ({ activeCollectionId }) =>
+  visible: ({ activeCollectionId, stores }) =>
     !!activeCollectionId &&
     stores.policies.abilities(activeCollectionId).update,
-  perform: ({ t, activeCollectionId }) => {
+  perform: ({ t, activeCollectionId, stores }) => {
     if (!activeCollectionId) {
       return;
     }
@@ -104,10 +103,10 @@ export const editCollectionPermissions = createAction({
   analyticsName: "Collection permissions",
   section: ActiveCollectionSection,
   icon: <PadlockIcon />,
-  visible: ({ activeCollectionId }) =>
+  visible: ({ activeCollectionId, stores }) =>
     !!activeCollectionId &&
     stores.policies.abilities(activeCollectionId).update,
-  perform: ({ t, activeCollectionId }) => {
+  perform: ({ t, activeCollectionId, stores }) => {
     if (!activeCollectionId) {
       return;
     }
@@ -135,7 +134,7 @@ export const searchInCollection = createAction({
   analyticsName: "Search collection",
   section: ActiveCollectionSection,
   icon: <SearchIcon />,
-  visible: ({ activeCollectionId }) => {
+  visible: ({ activeCollectionId, stores }) => {
     if (!activeCollectionId) {
       return false;
     }
@@ -160,7 +159,7 @@ export const starCollection = createAction({
   section: ActiveCollectionSection,
   icon: <StarredIcon />,
   keywords: "favorite bookmark",
-  visible: ({ activeCollectionId }) => {
+  visible: ({ activeCollectionId, stores }) => {
     if (!activeCollectionId) {
       return false;
     }
@@ -170,7 +169,7 @@ export const starCollection = createAction({
       stores.policies.abilities(activeCollectionId).star
     );
   },
-  perform: async ({ activeCollectionId }) => {
+  perform: async ({ activeCollectionId, stores }) => {
     if (!activeCollectionId) {
       return;
     }
@@ -187,7 +186,7 @@ export const unstarCollection = createAction({
   section: ActiveCollectionSection,
   icon: <UnstarredIcon />,
   keywords: "unfavorite unbookmark",
-  visible: ({ activeCollectionId }) => {
+  visible: ({ activeCollectionId, stores }) => {
     if (!activeCollectionId) {
       return false;
     }
@@ -197,7 +196,7 @@ export const unstarCollection = createAction({
       stores.policies.abilities(activeCollectionId).unstar
     );
   },
-  perform: async ({ activeCollectionId }) => {
+  perform: async ({ activeCollectionId, stores }) => {
     if (!activeCollectionId) {
       return;
     }
@@ -339,13 +338,13 @@ export const deleteCollection = createAction({
   section: ActiveCollectionSection,
   dangerous: true,
   icon: <TrashIcon />,
-  visible: ({ activeCollectionId }) => {
+  visible: ({ activeCollectionId, stores }) => {
     if (!activeCollectionId) {
       return false;
     }
     return stores.policies.abilities(activeCollectionId).delete;
   },
-  perform: ({ activeCollectionId, t }) => {
+  perform: ({ activeCollectionId, t, stores }) => {
     if (!activeCollectionId) {
       return;
     }
@@ -373,7 +372,7 @@ export const createTemplate = createAction({
   section: ActiveCollectionSection,
   icon: <ShapesIcon />,
   keywords: "new create template",
-  visible: ({ activeCollectionId }) =>
+  visible: ({ activeCollectionId, stores }) =>
     !!(
       !!activeCollectionId &&
       stores.policies.abilities(activeCollectionId).createDocument
