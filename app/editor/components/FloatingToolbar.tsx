@@ -6,7 +6,6 @@ import styled, { css } from "styled-components";
 import { isCode } from "@shared/editor/lib/isCode";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
-import { useComponentSize } from "@shared/hooks/useComponentSize";
 import { depths, s } from "@shared/styles";
 import { HEADER_HEIGHT } from "~/components/Header";
 import { Portal } from "~/components/Portal";
@@ -41,7 +40,8 @@ function usePosition({
 }) {
   const { view } = useEditor();
   const { selection } = view.state;
-  const { width: menuWidth, height: menuHeight } = useComponentSize(menuRef);
+  const menuWidth = menuRef.current?.offsetWidth;
+  const menuHeight = menuRef.current?.offsetHeight;
 
   if (!active || !menuWidth || !menuHeight || !menuRef.current) {
     return defaultPosition;
