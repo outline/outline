@@ -2,8 +2,6 @@ import crypto from "crypto";
 import { addHours, addMinutes, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
 import { Context } from "koa";
-import compact from "lodash/compact";
-import orderBy from "lodash/orderBy";
 import {
   Transaction,
   QueryTypes,
@@ -12,7 +10,6 @@ import {
   FindOptions,
   InferAttributes,
   InferCreationAttributes,
-  WhereOptions,
 } from "sequelize";
 import { type InstanceUpdateOptions } from "sequelize";
 import {
@@ -57,9 +54,7 @@ import { ValidationError } from "../errors";
 import Attachment from "./Attachment";
 import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
-import Document from "./Document";
 import Group from "./Group";
-import GroupMembership from "./GroupMembership";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
 import UserMembership from "./UserMembership";
@@ -69,20 +64,6 @@ import Fix from "./decorators/Fix";
 import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
-
-// Higher value takes precedence
-const CollectionPermissionPriority: Record<CollectionPermission, number> = {
-  [CollectionPermission.Admin]: 2,
-  [CollectionPermission.ReadWrite]: 1,
-  [CollectionPermission.Read]: 0,
-};
-
-// Higher value takes precedence
-const DocumentPermissionPriority: Record<DocumentPermission, number> = {
-  [DocumentPermission.Admin]: 2,
-  [DocumentPermission.ReadWrite]: 1,
-  [DocumentPermission.Read]: 0,
-};
 
 /**
  * Flags that are available for setting on the user.
@@ -634,127 +615,6 @@ class User extends ParanoidModel<
         },
       ],
     });
-
-  /**
-   * Determines whether the user has a higher access level to a document.
-   *
-   * @param {Object} params Input parameters.
-   * @param {string} params.documentId The document to check.
-   * @param {DocumentPermission} params.permission The base permission to compare against.
-   * @param {string} params.skipMembershipId The membership to skip when comparing the existing permissions.
-   * @returns {boolean} Whether the user has a higher access level
-   */
-  public async hasHigherDocumentPermission({
-    documentId,
-    permission,
-    skipMembershipId,
-  }: {
-    documentId: string;
-    permission: DocumentPermission;
-    skipMembershipId?: string;
-  }) {
-    const existingPermission = await this.getDocumentPermission(
-      documentId,
-      skipMembershipId
-    );
-
-    if (!existingPermission) {
-      return false;
-    }
-
-    return (
-      DocumentPermissionPriority[existingPermission] >=
-      DocumentPermissionPriority[permission]
-    );
-  }
-
-  /**
-   * Returns the user's highest access level to a document.
-   *
-   * @param {string} documentId The document to check.
-   * @param {string} skipMembershipId The membership to skip when comparing the existing permissions.
-   * @returns {DocumentPermission | undefined} Highest access level, if it exists.
-   */
-  public async getDocumentPermission(
-    documentId: string,
-    skipMembershipId?: string
-  ): Promise<DocumentPermission | undefined> {
-    const document = await Document.scope({
-      method: ["withCollectionPermissions", this.id],
-    }).findOne({ where: { id: documentId } });
-
-    const permissions: DocumentPermission[] = [];
-
-    const collection = document?.collection;
-    if (collection) {
-      const collectionPermissions = orderBy(
-        compact([
-          collection.permission,
-          ...compact(
-            collection.memberships?.map(
-              (m) => m.permission as CollectionPermission
-            )
-          ),
-          ...compact(
-            collection.groupMemberships?.map(
-              (m) => m.permission as CollectionPermission
-            )
-          ),
-        ]),
-        (permission) => CollectionPermissionPriority[permission],
-        "desc"
-      );
-
-      if (collectionPermissions[0]) {
-        permissions.push(
-          collectionPermissions[0] === CollectionPermission.Read
-            ? DocumentPermission.Read
-            : DocumentPermission.ReadWrite
-        );
-      }
-    }
-
-    const userMembershipWhere: WhereOptions<UserMembership> = {
-      userId: this.id,
-      documentId,
-    };
-    const groupMembershipWhere: WhereOptions<GroupMembership> = {
-      documentId,
-    };
-
-    if (skipMembershipId) {
-      userMembershipWhere.id = { [Op.ne]: skipMembershipId };
-      groupMembershipWhere.id = { [Op.ne]: skipMembershipId };
-    }
-
-    const [userMemberships, groupMemberships] = await Promise.all([
-      UserMembership.findAll({
-        where: userMembershipWhere,
-      }),
-      GroupMembership.findAll({
-        where: groupMembershipWhere,
-        include: [
-          {
-            model: Group.filterByMember(this.id),
-            as: "group",
-          },
-        ],
-      }),
-    ]);
-
-    permissions.push(
-      ...userMemberships.map((m) => m.permission as DocumentPermission),
-      ...groupMemberships.map((m) => m.permission as DocumentPermission)
-    );
-
-    const orderedPermissions = orderBy(
-      permissions,
-      (permission) => DocumentPermissionPriority[permission],
-      "desc"
-    );
-
-    return orderedPermissions[0];
-  }
 
   // hooks
 

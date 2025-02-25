@@ -4,7 +4,7 @@ import { MentionType, NotificationEventType } from "@shared/types";
 import { Comment, Document, Notification, User } from "@server/models";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { CommentEvent, CommentUpdateEvent } from "@server/types";
-import { canUserAccessDocument } from "@server/utils/policies";
+import { canUserAccessDocument } from "@server/utils/permissions";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 export default class CommentUpdatedNotificationsTask extends BaseTask<CommentEvent> {

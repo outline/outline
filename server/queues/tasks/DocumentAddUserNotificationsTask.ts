@@ -2,6 +2,7 @@ import { DocumentPermission, NotificationEventType } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { Notification, User } from "@server/models";
 import { DocumentUserEvent } from "@server/types";
+import { isElevatedPermission } from "@server/utils/permissions";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 export default class DocumentAddUserNotificationsTask extends BaseTask<DocumentUserEvent> {
@@ -11,12 +12,12 @@ export default class DocumentAddUserNotificationsTask extends BaseTask<DocumentU
       | undefined;
 
     if (!permission) {
-      Logger.debug(
+      Logger.info(
         "task",
-        `Suppressing notification for user ${event.userId} as permission not available`,
+        `permission not available in the DocumentAddUserNotificationsTask event`,
         {
-          documentId: event.documentId,
-          userId: event.userId,
+          name: event.name,
+          modelId: event.modelId,
         }
       );
       return;
@@ -31,19 +32,21 @@ export default class DocumentAddUserNotificationsTask extends BaseTask<DocumentU
       return;
     }
 
-    const hasHigherPermission = await recipient.hasHigherDocumentPermission({
+    const isElevated = await isElevatedPermission({
+      userId: recipient.id,
       documentId: event.documentId,
       permission,
       skipMembershipId: event.modelId,
     });
 
-    if (hasHigherPermission) {
+    if (!isElevated) {
       Logger.debug(
         "task",
-        `Suppressing notification for user ${event.userId} as they are already a member of the document`,
+        `Suppressing notification for user ${event.userId} as the new permission does not elevate user's permission to the document`,
         {
           documentId: event.documentId,
           userId: event.userId,
+          permission,
         }
       );
       return;
