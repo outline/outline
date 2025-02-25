@@ -123,9 +123,9 @@ function Details() {
     });
   };
 
-  const onSelectCollection = React.useCallback(async (value: string) => {
-    const defaultCollectionId = value === "home" ? null : value;
-    setDefaultCollectionId(defaultCollectionId);
+  const onSelectCollection = React.useCallback((value: string) => {
+    const selectedValue = value === "home" ? null : value;
+    setDefaultCollectionId(selectedValue);
   }, []);
 
   const isValid = form.current?.checkValidity();
@@ -298,7 +298,6 @@ function Details() {
             )}
           >
             <DefaultCollectionInputSelect
-              id="defaultCollectionId"
               onSelectCollection={onSelectCollection}
               defaultCollectionId={defaultCollectionId}
             />
