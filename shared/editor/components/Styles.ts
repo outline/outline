@@ -55,6 +55,7 @@ const mathStyle = (props: Props) => css`
     cursor: auto;
     white-space: pre-wrap;
     overflow-x: auto;
+    overflow-y: none;
   }
 
   .math-node.empty-math .math-render::before {
@@ -251,10 +252,13 @@ const codeBlockStyle = (props: Props) => css`
 `;
 
 const findAndReplaceStyle = () => css`
-  .find-result {
+  .find-result:not(:has(.mention)),
+  .find-result .mention {
     background: rgba(255, 213, 0, 0.25);
+  }
 
-    &.current-result {
+  .find-result.current-result:not(:has(.mention)),
+  .find-result.current-result .mention {
       background: rgba(255, 213, 0, 0.75);
       animation: ${pulse} 150ms 1;
     }
@@ -615,7 +619,6 @@ iframe.embed {
 }
 
 .column-resize-handle {
-  animation: ${fadeIn} 150ms ease-in-out;
   ${props.readOnly ? "display: none;" : ""}
   position: absolute;
   right: -1px;
@@ -689,11 +692,29 @@ img.ProseMirror-separator {
   display: none;
 }
 
+.${EditorStyleHelper.imageCaption} {
+  border: 0;
+  display: block;
+  font-style: italic;
+  font-weight: normal;
+  font-size: 13px;
+  color: ${props.theme.textSecondary};
+  padding: 8px 0 4px;
+  line-height: 16px;
+  text-align: center;
+  min-height: 1em;
+  outline: none;
+  background: none;
+  resize: none;
+  user-select: text;
+  margin: 0 auto !important;
+}
+
 .ProseMirror[contenteditable="false"] {
-  .caption {
+  .${EditorStyleHelper.imageCaption} {
     pointer-events: none;
   }
-  .caption:empty {
+  .${EditorStyleHelper.imageCaption}:empty {
     visibility: hidden;
   }
 }
@@ -1093,6 +1114,7 @@ ol {
     direction: rtl;
   }
 
+  &:has(p:dir(rtl)),
   &:dir(rtl) {
     margin: 0 ${props.staticHTML ? "0" : "-26px"} 0 0.1em;
     padding: 0 48px 0 0;

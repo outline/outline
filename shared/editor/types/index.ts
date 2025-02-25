@@ -6,6 +6,11 @@ import * as React from "react";
 import { DefaultTheme } from "styled-components";
 import { Primitive } from "utility-types";
 
+export type NodeWithPos = {
+  pos: number;
+  node: ProsemirrorNode;
+};
+
 export type PlainTextSerializer = (node: ProsemirrorNode) => string;
 
 export enum TableLayout {
@@ -30,8 +35,8 @@ export type MenuItem = {
   children?: MenuItem[];
   defaultHidden?: boolean;
   attrs?:
-    | Record<string, Primitive>
-    | ((state: EditorState) => Record<string, Primitive>);
+    | Record<string, Primitive | null>
+    | ((state: EditorState) => Record<string, Primitive | null>);
   visible?: boolean;
   active?: (state: EditorState) => boolean;
   appendSpace?: boolean;

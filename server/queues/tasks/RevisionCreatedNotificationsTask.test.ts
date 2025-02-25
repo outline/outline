@@ -179,9 +179,15 @@ describe("revisions.create", () => {
     expect(events[2].documentId).toEqual(document.id);
 
     // Events should mention correct `userId`.
-    expect(events[0].userId).toEqual(collaborator0.id);
-    expect(events[1].userId).toEqual(collaborator1.id);
-    expect(events[2].userId).toEqual(collaborator2.id);
+    const userIds = events.map((event) => event.userId);
+    expect(userIds).toEqual(
+      expect.arrayContaining([
+        collaborator0.id,
+        collaborator1.id,
+        collaborator2.id,
+      ])
+    );
+    expect(userIds.length).toBe(3);
   });
 
   test("should not send multiple emails", async () => {

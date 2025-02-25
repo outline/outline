@@ -26,6 +26,25 @@ export const AttachmentsCreateSchema = BaseSchema.extend({
 
 export type AttachmentCreateReq = z.infer<typeof AttachmentsCreateSchema>;
 
+export const AttachmentsCreateFromUrlSchema = BaseSchema.extend({
+  body: z.object({
+    /** Attachment url */
+    url: z.string(),
+
+    /** Id of the document to which the Attachment belongs */
+    documentId: z.string().uuid().optional(),
+
+    /** Attachment type */
+    preset: z
+      .nativeEnum(AttachmentPreset)
+      .default(AttachmentPreset.DocumentAttachment),
+  }),
+});
+
+export type AttachmentCreateFromUrlReq = z.infer<
+  typeof AttachmentsCreateFromUrlSchema
+>;
+
 export const AttachmentDeleteSchema = BaseSchema.extend({
   body: z.object({
     /** Id of the attachment to be deleted */

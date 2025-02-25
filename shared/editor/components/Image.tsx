@@ -98,7 +98,10 @@ const Image = (props: Props) => {
               style={{
                 ...widthStyle,
                 display: loaded ? "block" : "none",
-                pointerEvents: dragging ? "none" : "all",
+                pointerEvents:
+                  dragging || (!props.isSelected && props.isEditable)
+                    ? "none"
+                    : "all",
               }}
               src={sanitizedSrc}
               onError={() => {

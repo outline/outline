@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import Icon from "@shared/components/Icon";
+import { useComponentSize } from "@shared/hooks/useComponentSize";
 import { NavigationNode } from "@shared/types";
 import { altDisplay, metaDisplay } from "@shared/utils/keyboard";
 import { Theme } from "~/stores/UiStore";
@@ -31,7 +32,6 @@ import { publishDocument } from "~/actions/definitions/documents";
 import { navigateToTemplateSettings } from "~/actions/definitions/navigation";
 import { restoreRevision } from "~/actions/definitions/revisions";
 import useActionContext from "~/hooks/useActionContext";
-import useComponentSize from "~/hooks/useComponentSize";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useEditingFocus from "~/hooks/useEditingFocus";
@@ -281,15 +281,18 @@ function DocumentHeader({
                 limit={isCompact ? 3 : undefined}
               />
             )}
-            {(isEditing || !user?.separateEditMode) && !isTemplate && isNew && (
-              <Action>
-                <TemplatesMenu
-                  isCompact={isCompact}
-                  document={document}
-                  onSelectTemplate={onSelectTemplate}
-                />
-              </Action>
-            )}
+            {(isEditing || !user?.separateEditMode) &&
+              !isTemplate &&
+              isNew &&
+              can.update && (
+                <Action>
+                  <TemplatesMenu
+                    isCompact={isCompact}
+                    document={document}
+                    onSelectTemplate={onSelectTemplate}
+                  />
+                </Action>
+              )}
             {!isEditing && !isRevision && !isTemplate && can.update && (
               <Action>
                 <ShareButton document={document} />

@@ -12,8 +12,6 @@ import Relation from "~/models/decorators/Relation";
 class Integration<T = unknown> extends Model {
   static modelName = "Integration";
 
-  id: string;
-
   type: IntegrationType;
 
   service: IntegrationService;

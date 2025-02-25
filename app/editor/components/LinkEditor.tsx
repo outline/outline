@@ -187,7 +187,7 @@ class LinkEditor extends React.Component<Props, State> {
   };
 
   render() {
-    const { dictionary } = this.props;
+    const { view, dictionary } = this.props;
     const { value } = this.state;
     const isInternal = isInternalUrl(value);
 
@@ -202,6 +202,7 @@ class LinkEditor extends React.Component<Props, State> {
           onChange={this.handleSearch}
           onFocus={this.handleSearch}
           autoFocus={this.href === ""}
+          readOnly={!view.editable}
         />
 
         <Tooltip
@@ -211,11 +212,13 @@ class LinkEditor extends React.Component<Props, State> {
             {isInternal ? <ArrowIcon /> : <OpenIcon />}
           </ToolbarButton>
         </Tooltip>
-        <Tooltip content={dictionary.removeLink}>
-          <ToolbarButton onClick={this.handleRemoveLink}>
-            <CloseIcon />
-          </ToolbarButton>
-        </Tooltip>
+        {view.editable && (
+          <Tooltip content={dictionary.removeLink}>
+            <ToolbarButton onClick={this.handleRemoveLink}>
+              <CloseIcon />
+            </ToolbarButton>
+          </Tooltip>
+        )}
       </Wrapper>
     );
   }

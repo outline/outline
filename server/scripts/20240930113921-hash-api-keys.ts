@@ -12,6 +12,7 @@ export default async function main(exit = false, limit = 100) {
     let apiKeys: ApiKey[] = [];
     await sequelize.transaction(async (transaction) => {
       apiKeys = await ApiKey.unscoped().findAll({
+        attributes: ["id", "secret", "value", "hash"],
         limit,
         offset: page * limit,
         order: [["createdAt", "ASC"]],

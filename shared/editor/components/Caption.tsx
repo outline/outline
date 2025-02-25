@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import { s } from "../../styles";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
 type Props = {
   /** Callback triggered when the caption is blurred */
@@ -40,7 +40,7 @@ function Caption({ placeholder, children, isSelected, width, ...rest }: Props) {
       $isSelected={isSelected}
       onMouseDown={handleMouseDown}
       onPaste={handlePaste}
-      className="caption"
+      className={EditorStyleHelper.imageCaption}
       tabIndex={-1}
       role="textbox"
       contentEditable
@@ -54,33 +54,16 @@ function Caption({ placeholder, children, isSelected, width, ...rest }: Props) {
 }
 
 const Content = styled.p<{ $width: number; $isSelected: boolean }>`
-  border: 0;
-  display: block;
-  font-style: italic;
-  font-weight: normal;
-  color: ${s("textSecondary")};
-  padding: 8px 0 4px;
-  line-height: 16px;
-  text-align: center;
-  min-height: 1em;
-  outline: none;
-  background: none;
-  resize: none;
-  user-select: text;
-  margin: 0 auto !important;
   cursor: text;
   width: ${(props) => props.$width}px;
   min-width: 200px;
-
-  ${breakpoint("tablet")`
-    font-size: 13px;
-  `};
+  max-width: 100%;
 
   &:empty:not(:focus) {
     display: ${(props) => (props.$isSelected ? "block" : "none")}};
   }
 
-  &:empty:before {
+  &:empty::before {
     color: ${s("placeholder")};
     content: attr(data-caption);
     pointer-events: none;

@@ -18,7 +18,7 @@ type Props = ComponentProps & {
 const Embed = (props: Props) => {
   const ref = React.useRef<HTMLIFrameElement>(null);
   const { node, isEditable, onChangeSize } = props;
-  const naturalWidth = 10000;
+  const naturalWidth = 0;
   const naturalHeight = 400;
   const isResizable = !!onChangeSize;
 

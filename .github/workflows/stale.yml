@@ -24,6 +24,6 @@ jobs:
           operations-per-run: 60
           stale-issue-label: stale
           stale-pr-label: stale
-          exempt-issue-labels: "security,pinned"
+          exempt-issue-labels: "security,pinned,A1"
       - name: Print outputs
         run: echo ${{ join(steps.stale.outputs.*, ',') }}

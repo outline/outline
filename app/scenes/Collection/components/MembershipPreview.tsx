@@ -4,7 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { PAGINATION_SYMBOL } from "~/stores/base/Store";
 import Collection from "~/models/Collection";
-import { Avatar, AvatarSize } from "~/components/Avatar";
+import { AvatarSize } from "~/components/Avatar";
 import Facepile from "~/components/Facepile";
 import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
@@ -44,10 +44,10 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
           groupMemberships.fetchPage(options),
         ]);
         if (users[PAGINATION_SYMBOL]) {
-          setUsersCount(users[PAGINATION_SYMBOL].total);
+          setUsersCount(users[PAGINATION_SYMBOL].total ?? 0);
         }
         if (groups[PAGINATION_SYMBOL]) {
-          setGroupsCount(groups[PAGINATION_SYMBOL].total);
+          setGroupsCount(groups[PAGINATION_SYMBOL].total ?? 0);
         }
       } finally {
         setIsLoading(false);
@@ -101,12 +101,10 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
     >
       <Fade>
         <Facepile
+          size={AvatarSize.Large}
           users={sortBy(collectionUsers, "lastActiveAt")}
           overflow={overflow}
           limit={limit}
-          renderAvatar={(item) => (
-            <Avatar model={item} size={AvatarSize.Large} />
-          )}
         />
       </Fade>
     </NudeButton>

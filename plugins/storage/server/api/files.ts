@@ -5,6 +5,7 @@ import env from "@server/env";
 import {
   AuthenticationError,
   AuthorizationError,
+  NotFoundError,
   ValidationError,
 } from "@server/errors";
 import auth from "@server/middlewares/authentication";
@@ -77,18 +78,24 @@ router.get(
     const { isPublicBucket, fileName } = AttachmentHelper.parseKey(key);
     const skipAuthorize = isPublicBucket || isSignedRequest;
     const cacheHeader = "max-age=604800, immutable";
-    let contentType =
-      (fileName ? mime.lookup(fileName) : undefined) ||
-      "application/octet-stream";
+
+    const attachment = await Attachment.findOne({
+      where: { key },
+    });
+
+    // Attachment is requested with a key, but it was not found
+    if (!attachment && !!ctx.input.query.key) {
+      throw NotFoundError();
+    }
 
     if (!skipAuthorize) {
-      const attachment = await Attachment.findOne({
-        where: { key },
-        rejectOnEmpty: true,
-      });
       authorize(actor, "read", attachment);
-      contentType = attachment.contentType;
     }
+
+    const contentType =
+      attachment?.contentType ||
+      (fileName ? mime.lookup(fileName) : undefined) ||
+      "application/octet-stream";
 
     ctx.set("Accept-Ranges", "bytes");
     ctx.set("Cache-Control", cacheHeader);

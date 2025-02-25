@@ -4,9 +4,15 @@ import path from "path";
 import FormData from "form-data";
 import { ensureDirSync } from "fs-extra";
 import { v4 as uuidV4 } from "uuid";
+import { FileOperationState, FileOperationType } from "@shared/types";
 import env from "@server/env";
+import { Buckets } from "@server/models/helpers/AttachmentHelper";
 import FileStorage from "@server/storage/files";
-import { buildAttachment, buildUser } from "@server/test/factories";
+import {
+  buildAttachment,
+  buildFileOperation,
+  buildUser,
+} from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
@@ -236,7 +242,16 @@ describe("#files.get", () => {
   it("should succeed with status 200 ok when file is requested using signature", async () => {
     const user = await buildUser();
     const fileName = "images.docx";
-    const key = path.join("uploads", user.id, uuidV4(), fileName);
+    const { key } = await buildAttachment(
+      {
+        teamId: user.teamId,
+        userId: user.id,
+        contentType:
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        acl: "private",
+      },
+      fileName
+    );
     const signedUrl = await FileStorage.getSignedUrl(key);
 
     ensureDirSync(
@@ -262,6 +277,13 @@ describe("#files.get", () => {
   it("should succeed with status 200 ok when avatar is requested using key", async () => {
     const user = await buildUser();
     const key = path.join("avatars", user.id, uuidV4());
+    await buildAttachment({
+      key,
+      teamId: user.teamId,
+      userId: user.id,
+      contentType: "image/jpg",
+      acl: "public-read",
+    });
 
     ensureDirSync(
       path.dirname(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key))
@@ -274,7 +296,40 @@ describe("#files.get", () => {
 
     const res = await server.get(`/api/files.get?key=${key}`);
     expect(res.status).toEqual(200);
-    expect(res.headers.get("Content-Type")).toEqual("application/octet-stream");
+    expect(res.headers.get("Content-Type")).toEqual("image/jpg");
     expect(res.headers.get("Content-Disposition")).toEqual("attachment");
+  });
+
+  it("should succeed with status 200 ok when exported file is requested using signature", async () => {
+    const user = await buildUser();
+    const fileName = "export-markdown.zip";
+    const key = `${Buckets.uploads}/${user.teamId}/${uuidV4()}/${fileName}`;
+
+    await buildFileOperation({
+      userId: user.id,
+      teamId: user.teamId,
+      type: FileOperationType.Export,
+      state: FileOperationState.Complete,
+      key,
+    });
+
+    ensureDirSync(
+      path.dirname(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key))
+    );
+
+    copyFileSync(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName),
+      path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key)
+    );
+
+    const signedUrl = await FileStorage.getSignedUrl(key);
+    const url = new URL(signedUrl);
+    const res = await server.get(url.pathname + url.search);
+
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("Content-Type")).toEqual("application/zip");
+    expect(res.headers.get("Content-Disposition")).toEqual(
+      'attachment; filename="export-markdown.zip"'
+    );
   });
 });

@@ -84,7 +84,6 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
                 >
                   <Avatar
                     model={user}
-                    showBorder={false}
                     alt={t("Profile picture")}
                     size={AvatarSize.Small}
                   />
@@ -156,6 +155,9 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
   const handleSelect = React.useCallback(
     async (item: MentionItem) => {
       if (item.attrs.type === MentionType.Document) {
+        return;
+      }
+      if (!documentId) {
         return;
       }
       // Check if the mentioned user has access to the document

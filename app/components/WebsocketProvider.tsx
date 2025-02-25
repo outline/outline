@@ -190,7 +190,7 @@ class WebsocketProvider extends React.Component<Props> {
             if (collection?.updatedAt === collectionDescriptor.updatedAt) {
               continue;
             }
-            if (!collection?.documents?.length && !event.fetchIfMissing) {
+            if (!collection?.documents && !event.fetchIfMissing) {
               continue;
             }
 
@@ -223,6 +223,32 @@ class WebsocketProvider extends React.Component<Props> {
           collection?.updateDocument(event);
         }
       })
+    );
+
+    this.socket.on(
+      "documents.unpublish",
+      action(
+        (event: {
+          document: PartialExcept<Document, "id">;
+          collectionId: string;
+        }) => {
+          const document = event.document;
+
+          // When document is detached as part of unpublishing, only the owner should be able to view it.
+          if (
+            !document.collectionId &&
+            document.createdBy?.id !== currentUserId
+          ) {
+            documents.remove(document.id);
+          } else {
+            documents.add(document);
+          }
+          policies.remove(document.id);
+
+          const collection = collections.get(event.collectionId);
+          collection?.removeDocument(document.id);
+        }
+      )
     );
 
     this.socket.on(

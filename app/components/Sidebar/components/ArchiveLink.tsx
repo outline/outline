@@ -14,6 +14,7 @@ import { ArchivedCollectionLink } from "./ArchivedCollectionLink";
 import { StyledError } from "./Collections";
 import PlaceholderCollections from "./PlaceholderCollections";
 import Relative from "./Relative";
+import SidebarContext from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
 
 function ArchiveLink() {
@@ -64,38 +65,40 @@ function ArchiveLink() {
     useDropToArchive();
 
   return (
-    <Flex column>
-      <div ref={dropToArchiveRef}>
-        <SidebarLink
-          to={archivePath()}
-          icon={<ArchiveIcon open={isOverArchiveSection && isDragging} />}
-          exact={false}
-          label={t("Archive")}
-          isActiveDrop={isOverArchiveSection && isDragging}
-          depth={0}
-          expanded={disclosure ? expanded : undefined}
-          onDisclosureClick={handleDisclosureClick}
-          onClick={handleClick}
-        />
-      </div>
-      {expanded === true ? (
-        <Relative>
-          <PaginatedList
-            aria-label={t("Archived collections")}
-            items={collections.archived}
-            loading={<PlaceholderCollections />}
-            renderError={(props) => <StyledError {...props} />}
-            renderItem={(item: Collection) => (
-              <ArchivedCollectionLink
-                key={item.id}
-                depth={1}
-                collection={item}
-              />
-            )}
+    <SidebarContext.Provider value="archive">
+      <Flex column>
+        <div ref={dropToArchiveRef}>
+          <SidebarLink
+            to={archivePath()}
+            icon={<ArchiveIcon open={isOverArchiveSection && isDragging} />}
+            exact={false}
+            label={t("Archive")}
+            isActiveDrop={isOverArchiveSection && isDragging}
+            depth={0}
+            expanded={disclosure ? expanded : undefined}
+            onDisclosureClick={handleDisclosureClick}
+            onClick={handleClick}
           />
-        </Relative>
-      ) : null}
-    </Flex>
+        </div>
+        {expanded === true ? (
+          <Relative>
+            <PaginatedList
+              aria-label={t("Archived collections")}
+              items={collections.archived}
+              loading={<PlaceholderCollections />}
+              renderError={(props) => <StyledError {...props} />}
+              renderItem={(item: Collection) => (
+                <ArchivedCollectionLink
+                  key={item.id}
+                  depth={1}
+                  collection={item}
+                />
+              )}
+            />
+          </Relative>
+        ) : null}
+      </Flex>
+    </SidebarContext.Provider>
   );
 }
 

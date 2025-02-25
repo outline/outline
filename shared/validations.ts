@@ -29,7 +29,7 @@ export const ApiKeyValidation = {
 
 export const CollectionValidation = {
   /** The maximum length of the collection description */
-  maxDescriptionLength: 10 * 1000,
+  maxDescriptionLength: 100 * 1000,
 
   /** The maximum length of the collection name */
   maxNameLength: 100,

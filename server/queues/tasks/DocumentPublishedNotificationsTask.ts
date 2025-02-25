@@ -51,12 +51,12 @@ export default class DocumentPublishedNotificationsTask extends BaseTask<Documen
     }
 
     const recipients = (
-      await NotificationHelper.getDocumentNotificationRecipients(
+      await NotificationHelper.getDocumentNotificationRecipients({
         document,
-        NotificationEventType.PublishDocument,
-        document.lastModifiedById,
-        false
-      )
+        notificationType: NotificationEventType.PublishDocument,
+        onlySubscribers: false,
+        actorId: document.lastModifiedById,
+      })
     ).filter((recipient) => !userIdsMentioned.includes(recipient.id));
 
     for (const recipient of recipients) {
