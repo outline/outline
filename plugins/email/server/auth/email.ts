@@ -1,9 +1,6 @@
 import Router from "koa-router";
-import { NotificationEventType } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
-import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
 import SigninEmail from "@server/emails/templates/SigninEmail";
-import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
 import env from "@server/env";
 import { AuthorizationError } from "@server/errors";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -115,26 +112,6 @@ router.get(
 
     if (user.isSuspended) {
       return ctx.redirect("/?notice=user-suspended");
-    }
-
-    if (user.isInvited) {
-      await new WelcomeEmail({
-        to: user.email,
-        role: user.role,
-        teamUrl: user.team.url,
-      }).schedule();
-
-      const inviter = await user.$get("invitedBy");
-      if (
-        inviter?.subscribedToEventType(NotificationEventType.InviteAccepted)
-      ) {
-        await new InviteAcceptedEmail({
-          to: inviter.email,
-          inviterId: inviter.id,
-          invitedName: user.name,
-          teamUrl: user.team.url,
-        }).schedule();
-      }
     }
 
     // set cookies on response and redirect to team subdomain
