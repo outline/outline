@@ -14,6 +14,7 @@ import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Document, Comment, Collection, Reaction } from "@server/models";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import { TextHelper } from "@server/models/helpers/TextHelper";
 import { authorize } from "@server/policies";
 import { presentComment, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
@@ -31,7 +32,7 @@ router.post(
   validate(T.CommentsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.CommentsCreateReq>) => {
-    const { id, documentId, parentCommentId, data, text } = ctx.input.body;
+    const { id, documentId, parentCommentId } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
@@ -41,9 +42,18 @@ router.post(
     });
     authorize(user, "comment", document);
 
+    const text = ctx.input.body.text
+      ? await TextHelper.replaceImagesWithAttachments(
+          ctx,
+          ctx.input.body.text,
+          user
+        )
+      : undefined;
+    const data = text ? parser.parse(text).toJSON() : ctx.input.body.data;
+
     const comment = await Comment.createWithCtx(ctx, {
       id,
-      data: data ? data : parser.parse(text!).toJSON(),
+      data,
       createdById: user.id,
       documentId,
       parentCommentId,
