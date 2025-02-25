@@ -176,6 +176,7 @@ function Input(
     if (ev.key === "Enter" && ev.metaKey) {
       if (props.onRequestSubmit) {
         props.onRequestSubmit(ev);
+        return;
       }
     }
 
@@ -230,10 +231,11 @@ function Input(
               ])}
               onBlur={handleBlur}
               onFocus={handleFocus}
-              onKeyDown={handleKeyDown}
               hasIcon={!!icon}
               hasPrefix={!!prefix}
               {...rest}
+              // set it after "rest" to override "onKeyDown" from prop.
+              onKeyDown={handleKeyDown}
             />
           ) : (
             <NativeInput
@@ -243,11 +245,12 @@ function Input(
               ])}
               onBlur={handleBlur}
               onFocus={handleFocus}
-              onKeyDown={handleKeyDown}
               hasIcon={!!icon}
               hasPrefix={!!prefix}
               type={type}
               {...rest}
+              // set it after "rest" to override "onKeyDown" from prop.
+              onKeyDown={handleKeyDown}
             />
           )}
           {children}
