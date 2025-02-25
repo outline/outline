@@ -481,6 +481,30 @@ describe("#comments.create", () => {
     expect(body.policies[0].abilities.delete).toBeTruthy();
   });
 
+  it("should create a comment from markdown text", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const text = "## heading\n\n- list item 1\n- list item 2";
+
+    const res = await server.post("/api/comments.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        text,
+      },
+    });
+
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.data).toMatchSnapshot();
+  });
+
   it("should not allow empty comment data", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });

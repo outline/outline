@@ -1,4 +1,5 @@
 import emojiRegex from "emoji-regex";
+import isEmpty from "lodash/isEmpty";
 import { z } from "zod";
 import { CommentStatusFilter } from "@shared/types";
 import { BaseSchema, ProsemirrorSchema } from "@server/routes/api/schema";
@@ -23,19 +24,26 @@ const CommentsSortParamsSchema = z.object({
 });
 
 export const CommentsCreateSchema = BaseSchema.extend({
-  body: z.object({
-    /** Allow creation with a specific ID */
-    id: z.string().uuid().optional(),
+  body: z
+    .object({
+      /** Allow creation with a specific ID */
+      id: z.string().uuid().optional(),
 
-    /** Create comment for this document */
-    documentId: z.string().uuid(),
+      /** Create comment for this document */
+      documentId: z.string().uuid(),
 
-    /** Create comment under this parent */
-    parentCommentId: z.string().uuid().optional(),
+      /** Create comment under this parent */
+      parentCommentId: z.string().uuid().optional(),
 
-    /** Create comment with this data */
-    data: ProsemirrorSchema(),
-  }),
+      /** Create comment with this data */
+      data: ProsemirrorSchema().optional(),
+
+      /** Create comment with this text */
+      text: z.string().optional(),
+    })
+    .refine((obj) => !(isEmpty(obj.data) && isEmpty(obj.text)), {
+      message: "One of data or text is required",
+    }),
 });
 
 export type CommentsCreateReq = z.infer<typeof CommentsCreateSchema>;
