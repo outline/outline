@@ -6,18 +6,8 @@ import Koa from "koa";
 import escape from "lodash/escape";
 import isNil from "lodash/isNil";
 import snakeCase from "lodash/snakeCase";
-import {
-  ValidationError as SequelizeValidationError,
-  EmptyResultError as SequelizeEmptyResultError,
-} from "sequelize";
 import env from "@server/env";
-import {
-  AuthorizationError,
-  ClientClosedRequestError,
-  InternalError,
-  NotFoundError,
-  ValidationError,
-} from "@server/errors";
+import { ClientClosedRequestError, InternalError } from "@server/errors";
 import { requestErrorHandler } from "@server/logging/sentry";
 
 let errorHtmlCache: Buffer | undefined;
@@ -32,36 +22,11 @@ export default function onerror(app: Koa) {
 
     err = wrapInNativeError(err);
 
-    if (err instanceof SequelizeValidationError) {
-      if (err.errors && err.errors[0]) {
-        err = ValidationError(
-          `${err.errors[0].message} (${err.errors[0].path})`
-        );
-      } else {
-        err = ValidationError();
-      }
-    }
-
     // Client aborted errors are a 500 by default, but 499 is more appropriate
     if (err instanceof formidable.errors.FormidableError) {
       if (err.internalCode === 1002) {
         err = ClientClosedRequestError();
       }
-    }
-
-    if (
-      err.code === "ENOENT" ||
-      err instanceof SequelizeEmptyResultError ||
-      /Not found/i.test(err.message)
-    ) {
-      err = NotFoundError();
-    }
-
-    if (
-      !(err instanceof AuthorizationError) &&
-      /Authorization error/i.test(err.message)
-    ) {
-      err = AuthorizationError();
     }
 
     // Push only unknown and 500 status errors to sentry
