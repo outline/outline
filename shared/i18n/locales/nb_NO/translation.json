@@ -794,7 +794,7 @@
   "Sorry, it looks like that sign-in link is no longer valid, please try requesting another.": "Beklager, det ser ut som at innloggingslenken ikke lenger er gyldig, vennligst prøv å be om en ny.",
   "Your account has been suspended. To re-activate your account, please contact a workspace admin.": "Kontoen din har blitt suspendert. For å reaktivere kontoen din, vennligst kontakt en administrator for arbeidsområdet.",
   "This workspace has been suspended. Please contact support to restore access.": "Dette arbeidsområdet har blitt suspendert. Vennligst kontakt støtte for å gjenopprette tilgangen.",
-  "Authentication failed – this login method was disabled by a team admin.": "Autentisering mislyktes – denne innloggingsmetoden ble deaktivert av en teamadministrator.",
+  "Authentication failed – this login method was disabled by a workspace admin.": "Authentication failed – this login method was disabled by a workspace admin.",
   "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.": "Arbeidsområdet du prøver å bli med krever en invitasjon før du kan opprette en konto.<1></1>Vennligst be om en invitasjon fra din arbeidsområdeadministrator og prøv igjen.",
   "Sorry, an unknown error occurred.": "Beklager, det oppstod en ukjent feil.",
   "Login": "Logg inn",
