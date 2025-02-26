@@ -794,7 +794,7 @@
   "Sorry, it looks like that sign-in link is no longer valid, please try requesting another.": "このログインリンクは無効になりました。別のリンクを発行してください。",
   "Your account has been suspended. To re-activate your account, please contact a workspace admin.": "あなたのアカウントは凍結されています。アカウントを再度有効にするには、ワークスペース管理者にお問い合わせください。",
   "This workspace has been suspended. Please contact support to restore access.": "このワークスペースは凍結されています。アクセスを復元するにはサポートにお問い合わせください。",
-  "Authentication failed – this login method was disabled by a team admin.": "認証に失敗しました – このログイン方法はチーム管理者によって無効化されています。",
+  "Authentication failed – this login method was disabled by a workspace admin.": "Authentication failed – this login method was disabled by a workspace admin.",
   "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.": "アカウントを作成するには、参加しようとしているワークスペースの招待が必要です。 <1></1>ワークスペース管理者に招待をリクエストしてから、もう一度お試しください。",
   "Sorry, an unknown error occurred.": "申し訳ありません、不明なエラーが発生しました。",
   "Login": "ログイン",
