@@ -794,7 +794,7 @@
   "Sorry, it looks like that sign-in link is no longer valid, please try requesting another.": "Sorry, het lijkt erop dat de link voor aanmelding niet meer geldig is, probeer een andere aan te vragen.",
   "Your account has been suspended. To re-activate your account, please contact a workspace admin.": "Je account is geblokkeerd. Neem contact op met een werkruimte beheerder om uw account opnieuw te activeren.",
   "This workspace has been suspended. Please contact support to restore access.": "Toegang tot deze workspace is geblokkeerd. Neem contact op met support om toegang te herstellen.",
-  "Authentication failed – this login method was disabled by a team admin.": "Verificatie mislukt - deze inlogmethode is uitgeschakeld door een teambeheerder.",
+  "Authentication failed – this login method was disabled by a workspace admin.": "Authentication failed – this login method was disabled by a workspace admin.",
   "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.": "De werkruimte die u probeert toe te treden vereist een uitnodiging voordat u een account kunt aanmaken. <1></1>Vraag een uitnodiging aan van uw werkruimte beheerder en probeer het opnieuw.",
   "Sorry, an unknown error occurred.": "Sorry, an unknown error occurred.",
   "Login": "Inloggen",
