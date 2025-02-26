@@ -105,7 +105,7 @@ function Message({ notice }: { notice: string }) {
     case "authentication-provider-disabled":
       return (
         <Trans>
-          Authentication failed – this login method was disabled by a team
+          Authentication failed – this login method was disabled by a workspace
           admin.
         </Trans>
       );
