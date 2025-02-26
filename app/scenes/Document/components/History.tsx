@@ -1,3 +1,4 @@
+import isEqual from "fast-deep-equal";
 import orderBy from "lodash/orderBy";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -136,14 +137,19 @@ function History() {
       "desc"
     );
 
-    const latestEvent = merged[0];
+    const latestRevisionEvent = merged.find(
+      (event) => event.name === "revisions.create"
+    );
 
-    if (latestEvent && document) {
-      const latestRevisionEvent = merged.find(
-        (event) => event.name === "revisions.create"
-      );
+    if (latestRevisionEvent && document) {
+      const latestRevision = revisions.get(latestRevisionEvent.id);
 
-      if (latestEvent.createdAt !== document.updatedAt) {
+      const isDocUpdated =
+        latestRevision?.title !== document.title ||
+        !isEqual(latestRevision.data, document.data);
+
+      if (isDocUpdated) {
+        revisions.remove(RevisionHelper.latestId(document.id));
         merged.unshift({
           id: RevisionHelper.latestId(document.id),
           name: "revisions.create",
@@ -157,7 +163,7 @@ function History() {
     }
 
     return merged;
-  }, [document, revisionEvents, nonRevisionEvents]);
+  }, [revisions, document, revisionEvents, nonRevisionEvents]);
 
   const onCloseHistory = React.useCallback(() => {
     if (document) {
