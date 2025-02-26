@@ -1,3 +1,4 @@
+import isEqual from "fast-deep-equal";
 import orderBy from "lodash/orderBy";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -145,7 +146,7 @@ function History() {
 
       const isDocUpdated =
         latestRevision?.title !== document.title ||
-        JSON.stringify(latestRevision.data) !== JSON.stringify(document.data);
+        !isEqual(latestRevision.data, document.data);
 
       if (isDocUpdated) {
         revisions.remove(RevisionHelper.latestId(document.id));
