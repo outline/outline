@@ -794,7 +794,7 @@
   "Sorry, it looks like that sign-in link is no longer valid, please try requesting another.": "Maaf, sepertinya tautan masuk itu sudah tidak valid, coba minta yang lain.",
   "Your account has been suspended. To re-activate your account, please contact a workspace admin.": "Akun Anda telah ditangguhkan. Untuk mengaktifkan kembali akun Anda, harap hubungi admin ruang kerja.",
   "This workspace has been suspended. Please contact support to restore access.": "This workspace has been suspended. Please contact support to restore access.",
-  "Authentication failed – this login method was disabled by a team admin.": "Otentikasi gagal – metode masuk ini dinonaktifkan oleh admin tim.",
+  "Authentication failed – this login method was disabled by a workspace admin.": "Authentication failed – this login method was disabled by a workspace admin.",
   "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.": "Workspace yang ingin Anda masuki memerlukan undangan sebelum Anda dapat membuat akun.<1></1> Harap minta undangan dari admin workspace Anda dan coba lagi.",
   "Sorry, an unknown error occurred.": "Sorry, an unknown error occurred.",
   "Login": "Masuk",
