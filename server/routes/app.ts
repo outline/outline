@@ -112,6 +112,10 @@ export const renderApp = async (
       <script type="module" nonce="${ctx.state.cspNonce}" src="${viteHost}/static/${entry}"></script>
     `;
 
+  // Ensure no caching is performed
+  ctx.response.set("Cache-Control", "no-cache, must-revalidate");
+  ctx.response.set("Expires", "-1");
+
   ctx.body = page
     .toString()
     .replace(/\{env\}/g, environment)
