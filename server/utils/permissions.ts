@@ -48,6 +48,7 @@ export const canUserAccessDocument = async (user: User, documentId: string) => {
  * Determines whether the user's access to a document is being elevated with the new permission.
  *
  * @param {Object} params Input parameters.
+ * @param {string} params.userId The user to check.
  * @param {string} params.documentId The document to check.
  * @param {DocumentPermission} params.permission The new permission given to the user.
  * @param {string} params.skipMembershipId The membership to skip when comparing the existing permissions.
@@ -83,8 +84,10 @@ export const isElevatedPermission = async ({
 /**
  * Returns the user's permission to a document.
  *
- * @param {string} documentId The document to check.
- * @param {string} skipMembershipId The membership to skip when comparing the existing permissions.
+ * @param {Object} params Input parameters.
+ * @param {string} params.userId The user to check.
+ * @param {string} params.documentId The document to check.
+ * @param {string} params.skipMembershipId The membership to skip when comparing the existing permissions.
  * @returns {DocumentPermission | undefined} Highest permission, if it exists.
  */
 export const getDocumentPermission = async ({
@@ -154,6 +157,7 @@ export const getDocumentPermission = async ({
         {
           model: Group.filterByMember(userId),
           as: "group",
+          required: true,
         },
       ],
     }),
