@@ -794,7 +794,7 @@
   "Sorry, it looks like that sign-in link is no longer valid, please try requesting another.": "Désolé, il semble que ce lien de connexion ne soit plus valide, veuillez essayer d'en demander un autre.",
   "Your account has been suspended. To re-activate your account, please contact a workspace admin.": "Votre compte a été suspendu. Pour réactiver votre compte, veuillez contacter un administrateur de l'espace de travail.",
   "This workspace has been suspended. Please contact support to restore access.": "Cet espace de travail a été suspendu. Veuillez contacter le support afin de le réactiver.",
-  "Authentication failed – this login method was disabled by a team admin.": "Échec de l'authentification - cette méthode de connexion a été désactivée par un administrateur d'équipe.",
+  "Authentication failed – this login method was disabled by a workspace admin.": "Authentication failed – this login method was disabled by a workspace admin.",
   "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.": "L'espace de travail que vous essayez de rejoindre nécessite une invitation avant de pouvoir créer un compte.<1></1> Veuillez demander une invitation à l'administrateur de votre espace de travail et réessayer.",
   "Sorry, an unknown error occurred.": "Sorry, an unknown error occurred.",
   "Login": "Identification",
