@@ -794,7 +794,7 @@
   "Sorry, it looks like that sign-in link is no longer valid, please try requesting another.": "抱歉，該登入連結似乎不再有效，請嘗試請求另一個。",
   "Your account has been suspended. To re-activate your account, please contact a workspace admin.": "您的帳戶已被停用。請聯繫工作區管理員重新啟用您的帳號。",
   "This workspace has been suspended. Please contact support to restore access.": "這個工作區已被停用。請聯繫支援以回復存取權限。",
-  "Authentication failed – this login method was disabled by a team admin.": "身份驗證失敗 – 此登入方法已被團隊管理員禁用。",
+  "Authentication failed – this login method was disabled by a workspace admin.": "Authentication failed – this login method was disabled by a workspace admin.",
   "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.": "您正嘗試加入的工作區需要先得到邀請才能建立帳戶。<1></1>請向工作區管理員獲得邀請後再試一次。",
   "Sorry, an unknown error occurred.": "Sorry, an unknown error occurred.",
   "Login": "登入",
