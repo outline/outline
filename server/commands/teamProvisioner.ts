@@ -61,6 +61,7 @@ async function teamProvisioner({
         paranoid: false,
       },
     ],
+    order: [["enabled", "DESC"]],
   });
 
   // This authentication provider already exists which means we have a team and
