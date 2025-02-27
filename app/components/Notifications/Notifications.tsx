@@ -48,6 +48,15 @@ function Notifications(
         notifications.approximateUnreadCount
       );
     }
+
+    // PWA badging
+    if ("setAppBadge" in navigator) {
+      if (notifications.approximateUnreadCount) {
+        void navigator.setAppBadge(notifications.approximateUnreadCount);
+      } else {
+        void navigator.clearAppBadge();
+      }
+    }
   }, [notifications.approximateUnreadCount]);
 
   return (
