@@ -1,3 +1,4 @@
+import { nanoid } from "nanoid";
 import { wrapIn } from "prosemirror-commands";
 import { NodeSpec, NodeType } from "prosemirror-model";
 import Node from "./Node";
@@ -11,6 +12,11 @@ export default class ToggleBlock extends Node {
     return {
       content: "toggle_head toggle_body?",
       group: "block",
+      attrs: {
+        id: {
+          default: nanoid(),
+        },
+      },
       toDOM: () => {
         const dom = document.createElement("div");
         const contentDOM = dom;
