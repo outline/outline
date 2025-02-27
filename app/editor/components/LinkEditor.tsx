@@ -55,6 +55,7 @@ const LinkEditor: React.FC<Props> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const discardRef = useRef(false);
   const [value, setValue] = useState(initialValue);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const { documents } = useStores();
 
   useEffect(() => {
@@ -111,17 +112,37 @@ const LinkEditor: React.FC<Props> = ({
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
+    const results = documents.findByQuery(value, { maxResults: 5 });
+
     switch (event.key) {
+      case "ArrowDown": {
+        event.preventDefault();
+        const maxIndex = results.length - 1;
+        setSelectedIndex((current) => (current >= maxIndex ? 0 : current + 1));
+        return;
+      }
+      case "ArrowUp": {
+        event.preventDefault();
+        const maxIndex = results.length - 1;
+        setSelectedIndex((current) => (current <= 0 ? maxIndex : current - 1));
+        return;
+      }
       case "Enter": {
         event.preventDefault();
-        save(value, value);
+
+        if (selectedIndex >= 0 && results[selectedIndex]) {
+          const selectedDoc = results[selectedIndex];
+          const href = selectedDoc.url;
+          save(href, selectedDoc.title);
+        } else {
+          save(value, value);
+        }
 
         if (initialSelectionLength) {
           moveSelectionToEnd();
         }
         return;
       }
-
       case "Escape": {
         event.preventDefault();
 
@@ -139,6 +160,7 @@ const LinkEditor: React.FC<Props> = ({
   const handleSearch = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value;
     setValue(newValue);
+    setSelectedIndex(-1);
 
     const trimmedValue = newValue.trim();
     if (trimmedValue) {
@@ -215,10 +237,15 @@ const LinkEditor: React.FC<Props> = ({
         <ResizingHeightContainer>
           {hasResults && (
             <>
-              {results.map((doc) => (
+              {results.map((doc, index) => (
                 <SuggestionsMenuItem
-                  // onClick={options.onClick}
-                  // selected={options.selected}
+                  onClick={() => {
+                    save(doc.url, doc.title);
+                    if (initialSelectionLength) {
+                      moveSelectionToEnd();
+                    }
+                  }}
+                  selected={index === selectedIndex}
                   key={doc.id}
                   subtitle={doc.collection?.name}
                   title={doc.title}
