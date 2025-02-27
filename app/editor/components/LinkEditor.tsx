@@ -1,15 +1,22 @@
-import { ArrowIcon, CloseIcon, OpenIcon } from "outline-icons";
+import { ArrowIcon, CloseIcon, DocumentIcon, OpenIcon } from "outline-icons";
 import { Mark } from "prosemirror-model";
 import { Selection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import styled from "styled-components";
+import Icon from "@shared/components/Icon";
+import { hideScrollbars, s } from "@shared/styles";
 import { isInternalUrl, sanitizeUrl } from "@shared/utils/urls";
 import Flex from "~/components/Flex";
+import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
+import Scrollable from "~/components/Scrollable";
 import { Dictionary } from "~/hooks/useDictionary";
+import useStores from "~/hooks/useStores";
 import Logger from "~/utils/Logger";
 import Input from "./Input";
+import SuggestionsMenuItem from "./SuggestionsMenuItem";
 import ToolbarButton from "./ToolbarButton";
 import Tooltip from "./Tooltip";
 
@@ -32,152 +39,69 @@ type Props = {
   view: EditorView;
 };
 
-type State = {
-  value: string;
-  previousValue: string;
-};
+const LinkEditor: React.FC<Props> = ({
+  mark,
+  from,
+  to,
+  dictionary,
+  onRemoveLink,
+  onSelectLink,
+  onClickLink,
+  view,
+}) => {
+  const getHref = () => sanitizeUrl(mark?.attrs.href) ?? "";
+  const initialValue = getHref();
+  const initialSelectionLength = to - from;
+  const inputRef = useRef<HTMLInputElement>(null);
+  const discardRef = useRef(false);
+  const [value, setValue] = useState(initialValue);
+  const { documents } = useStores();
 
-class LinkEditor extends React.Component<Props, State> {
-  discardInputValue = false;
-  initialValue = this.href;
-  initialSelectionLength = this.props.to - this.props.from;
-  inputRef = React.createRef<HTMLInputElement>();
+  useEffect(() => {
+    const handleGlobalKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "k" && event.metaKey) {
+        inputRef.current?.select();
+      }
+    };
 
-  state: State = {
-    value: this.href,
-    previousValue: "",
-  };
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleGlobalKeyDown);
 
-  get href(): string {
-    return sanitizeUrl(this.props.mark?.attrs.href) ?? "";
-  }
+      // If we discarded the changes then nothing to do
+      if (discardRef.current) {
+        return;
+      }
 
-  componentDidMount(): void {
-    window.addEventListener("keydown", this.handleGlobalKeyDown);
-  }
+      // If the link is the same as it was when the editor opened, nothing to do
+      if (value === initialValue) {
+        return;
+      }
 
-  componentWillUnmount = () => {
-    window.removeEventListener("keydown", this.handleGlobalKeyDown);
+      // If the link is totally empty or only spaces then remove the mark
+      const href = (value || "").trim();
+      if (!href) {
+        return handleRemoveLink();
+      }
 
-    // If we discarded the changes then nothing to do
-    if (this.discardInputValue) {
-      return;
-    }
+      save(href, href);
+    };
+  }, [value, initialValue]);
 
-    // If the link is the same as it was when the editor opened, nothing to do
-    if (this.state.value === this.initialValue) {
-      return;
-    }
-
-    // If the link is totally empty or only spaces then remove the mark
-    const href = (this.state.value || "").trim();
-    if (!href) {
-      return this.handleRemoveLink();
-    }
-
-    this.save(href, href);
-  };
-
-  handleGlobalKeyDown = (event: KeyboardEvent): void => {
-    if (event.key === "k" && event.metaKey) {
-      this.inputRef.current?.select();
-    }
-  };
-
-  save = (href: string, title?: string): void => {
+  const save = (href: string, title?: string) => {
     href = href.trim();
 
     if (href.length === 0) {
       return;
     }
 
-    this.discardInputValue = true;
-    const { from, to } = this.props;
+    discardRef.current = true;
     href = sanitizeUrl(href) ?? "";
 
-    this.props.onSelectLink({ href, title, from, to });
+    onSelectLink({ href, title, from, to });
   };
 
-  handleKeyDown = (event: React.KeyboardEvent): void => {
-    switch (event.key) {
-      case "Enter": {
-        event.preventDefault();
-        const { value } = this.state;
-
-        this.save(value, value);
-
-        if (this.initialSelectionLength) {
-          this.moveSelectionToEnd();
-        }
-
-        return;
-      }
-
-      case "Escape": {
-        event.preventDefault();
-
-        if (this.initialValue) {
-          this.setState({ value: this.initialValue }, this.moveSelectionToEnd);
-        } else {
-          this.handleRemoveLink();
-        }
-        return;
-      }
-    }
-  };
-
-  handleSearch = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ): Promise<void> => {
-    const value = event.target.value;
-
-    this.setState({
-      value,
-    });
-
-    const trimmedValue = value.trim();
-
-    if (trimmedValue) {
-      try {
-        this.setState({
-          previousValue: trimmedValue,
-        });
-      } catch (err) {
-        Logger.error("Error searching for link", err);
-      }
-    }
-  };
-
-  handlePaste = (): void => {
-    setTimeout(() => this.save(this.state.value, this.state.value), 0);
-  };
-
-  handleOpenLink = (event: React.MouseEvent<HTMLButtonElement>): void => {
-    event.preventDefault();
-
-    try {
-      this.props.onClickLink(this.href, event);
-    } catch (err) {
-      toast.error(this.props.dictionary.openLinkError);
-    }
-  };
-
-  handleRemoveLink = (): void => {
-    this.discardInputValue = true;
-
-    const { from, to, mark, view, onRemoveLink } = this.props;
-    const { state, dispatch } = this.props.view;
-
-    if (mark) {
-      dispatch(state.tr.removeMark(from, to, mark));
-    }
-
-    onRemoveLink?.();
-    view.focus();
-  };
-
-  moveSelectionToEnd = () => {
-    const { to, view } = this.props;
+  const moveSelectionToEnd = () => {
     const { state, dispatch } = view;
     const nextSelection = Selection.findFrom(state.tr.doc.resolve(to), 1, true);
     if (nextSelection) {
@@ -186,47 +110,163 @@ class LinkEditor extends React.Component<Props, State> {
     view.focus();
   };
 
-  render() {
-    const { view, dictionary } = this.props;
-    const { value } = this.state;
-    const isInternal = isInternalUrl(value);
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    switch (event.key) {
+      case "Enter": {
+        event.preventDefault();
+        save(value, value);
 
-    return (
+        if (initialSelectionLength) {
+          moveSelectionToEnd();
+        }
+        return;
+      }
+
+      case "Escape": {
+        event.preventDefault();
+
+        if (initialValue) {
+          setValue(initialValue);
+          moveSelectionToEnd();
+        } else {
+          handleRemoveLink();
+        }
+        return;
+      }
+    }
+  };
+
+  const handleSearch = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = event.target.value;
+    setValue(newValue);
+
+    const trimmedValue = newValue.trim();
+    if (trimmedValue) {
+      try {
+        //
+      } catch (err) {
+        Logger.error("Error searching for link", err);
+      }
+    }
+  };
+
+  const handlePaste = () => {
+    setTimeout(() => save(value, value), 0);
+  };
+
+  const handleOpenLink = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+
+    try {
+      onClickLink(getHref(), event);
+    } catch (err) {
+      toast.error(dictionary.openLinkError);
+    }
+  };
+
+  const handleRemoveLink = () => {
+    discardRef.current = true;
+
+    const { state, dispatch } = view;
+    if (mark) {
+      dispatch(state.tr.removeMark(from, to, mark));
+    }
+
+    onRemoveLink?.();
+    view.focus();
+  };
+
+  const isInternal = isInternalUrl(value);
+
+  const results = documents.findByQuery(value, { maxResults: 5 });
+  const hasResults = !!results.length;
+
+  return (
+    <>
       <Wrapper>
         <Input
-          ref={this.inputRef}
+          ref={inputRef}
           value={value}
           placeholder={dictionary.enterLink}
-          onKeyDown={this.handleKeyDown}
-          onPaste={this.handlePaste}
-          onChange={this.handleSearch}
-          onFocus={this.handleSearch}
-          autoFocus={this.href === ""}
+          onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
+          onChange={handleSearch}
+          onFocus={handleSearch}
+          autoFocus={getHref() === ""}
           readOnly={!view.editable}
         />
 
         <Tooltip
           content={isInternal ? dictionary.goToLink : dictionary.openLink}
         >
-          <ToolbarButton onClick={this.handleOpenLink} disabled={!value}>
+          <ToolbarButton onClick={handleOpenLink} disabled={!value}>
             {isInternal ? <ArrowIcon /> : <OpenIcon />}
           </ToolbarButton>
         </Tooltip>
         {view.editable && (
           <Tooltip content={dictionary.removeLink}>
-            <ToolbarButton onClick={this.handleRemoveLink}>
+            <ToolbarButton onClick={handleRemoveLink}>
               <CloseIcon />
             </ToolbarButton>
           </Tooltip>
         )}
       </Wrapper>
-    );
-  }
-}
+      <SearchResults $hasResults={hasResults}>
+        <ResizingHeightContainer>
+          {hasResults && (
+            <>
+              {results.map((doc) => (
+                <SuggestionsMenuItem
+                  // onClick={options.onClick}
+                  // selected={options.selected}
+                  key={doc.id}
+                  subtitle={doc.collection?.name}
+                  title={doc.title}
+                  icon={
+                    doc.icon ? (
+                      <Icon value={doc.icon} color={doc.color ?? undefined} />
+                    ) : (
+                      <DocumentIcon />
+                    )
+                  }
+                />
+              ))}
+            </>
+          )}
+        </ResizingHeightContainer>
+      </SearchResults>
+    </>
+  );
+};
 
 const Wrapper = styled(Flex)`
   pointer-events: all;
   gap: 8px;
+`;
+
+const SearchResults = styled(Scrollable)<{ $hasResults: boolean }>`
+  background: ${s("menuBackground")};
+  box-shadow: ${(props) => (props.$hasResults ? s("menuShadow") : "none")};
+  clip-path: inset(0px -100px -100px -100px);
+  position: absolute;
+  top: 100%;
+  width: 100%;
+  height: auto;
+  left: 0;
+  margin-top: -6px;
+  border-radius: 0 0 4px 4px;
+  padding: ${(props) => (props.$hasResults ? "8px 0" : "0")};
+  max-height: 240px;
+  ${hideScrollbars()}
+
+  @media (hover: none) and (pointer: coarse) {
+    position: fixed;
+    top: auto;
+    bottom: 40px;
+    border-radius: 0;
+    max-height: 50vh;
+    padding: 8px 8px 4px;
+  }
 `;
 
 export default LinkEditor;
