@@ -79,6 +79,7 @@ describe("user model", () => {
       expect(response.length).toEqual(1);
       expect(response[0]).toEqual(collection.id);
     });
+
     it("should return read collections", async () => {
       const team = await buildTeam();
       const user = await buildUser({
@@ -92,6 +93,7 @@ describe("user model", () => {
       expect(response.length).toEqual(1);
       expect(response[0]).toEqual(collection.id);
     });
+
     it("should not return private collections", async () => {
       const team = await buildTeam();
       const user = await buildUser({
@@ -104,6 +106,7 @@ describe("user model", () => {
       const response = await user.collectionIds();
       expect(response.length).toEqual(0);
     });
+
     it("should not return private collection with membership", async () => {
       const team = await buildTeam();
       const user = await buildUser({
