@@ -1,3 +1,4 @@
+import { observer } from "mobx-react";
 import { ArrowIcon, CloseIcon, DocumentIcon, OpenIcon } from "outline-icons";
 import { Mark } from "prosemirror-model";
 import { Selection } from "prosemirror-state";
@@ -13,8 +14,9 @@ import Flex from "~/components/Flex";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Scrollable from "~/components/Scrollable";
 import { Dictionary } from "~/hooks/useDictionary";
+import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
-import Logger from "~/utils/Logger";
+import { client } from "~/utils/ApiClient";
 import Input from "./Input";
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
 import ToolbarButton from "./ToolbarButton";
@@ -54,9 +56,27 @@ const LinkEditor: React.FC<Props> = ({
   const initialSelectionLength = to - from;
   const inputRef = useRef<HTMLInputElement>(null);
   const discardRef = useRef(false);
-  const [value, setValue] = useState(initialValue);
+  const [query, setQuery] = useState(initialValue);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const { documents } = useStores();
+
+  const trimmedQuery = query.trim();
+  const results = trimmedQuery
+    ? documents.findByQuery(trimmedQuery, { maxResults: 5 })
+    : [];
+
+  const { request } = useRequest(
+    React.useCallback(async () => {
+      const res = await client.post("/suggestions.mention", { query });
+      res.data.documents.map(documents.add);
+    }, [query])
+  );
+
+  useEffect(() => {
+    if (trimmedQuery) {
+      void request();
+    }
+  }, [trimmedQuery, request]);
 
   useEffect(() => {
     const handleGlobalKeyDown = (event: KeyboardEvent) => {
@@ -75,19 +95,18 @@ const LinkEditor: React.FC<Props> = ({
       }
 
       // If the link is the same as it was when the editor opened, nothing to do
-      if (value === initialValue) {
+      if (trimmedQuery === initialValue) {
         return;
       }
 
       // If the link is totally empty or only spaces then remove the mark
-      const href = (value || "").trim();
-      if (!href) {
+      if (!trimmedQuery) {
         return handleRemoveLink();
       }
 
-      save(href, href);
+      save(trimmedQuery, trimmedQuery);
     };
-  }, [value, initialValue]);
+  }, [trimmedQuery, initialValue]);
 
   const save = (href: string, title?: string) => {
     href = href.trim();
@@ -112,8 +131,6 @@ const LinkEditor: React.FC<Props> = ({
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
-    const results = documents.findByQuery(value, { maxResults: 5 });
-
     switch (event.key) {
       case "ArrowDown": {
         event.preventDefault();
@@ -135,7 +152,7 @@ const LinkEditor: React.FC<Props> = ({
           const href = selectedDoc.url;
           save(href, selectedDoc.title);
         } else {
-          save(value, value);
+          save(trimmedQuery, trimmedQuery);
         }
 
         if (initialSelectionLength) {
@@ -147,7 +164,7 @@ const LinkEditor: React.FC<Props> = ({
         event.preventDefault();
 
         if (initialValue) {
-          setValue(initialValue);
+          setQuery(initialValue);
           moveSelectionToEnd();
         } else {
           handleRemoveLink();
@@ -159,21 +176,12 @@ const LinkEditor: React.FC<Props> = ({
 
   const handleSearch = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value;
-    setValue(newValue);
+    setQuery(newValue);
     setSelectedIndex(-1);
-
-    const trimmedValue = newValue.trim();
-    if (trimmedValue) {
-      try {
-        //
-      } catch (err) {
-        Logger.error("Error searching for link", err);
-      }
-    }
   };
 
   const handlePaste = () => {
-    setTimeout(() => save(value, value), 0);
+    setTimeout(() => save(query, query), 0);
   };
 
   const handleOpenLink = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -198,9 +206,7 @@ const LinkEditor: React.FC<Props> = ({
     view.focus();
   };
 
-  const isInternal = isInternalUrl(value);
-
-  const results = documents.findByQuery(value, { maxResults: 5 });
+  const isInternal = isInternalUrl(query);
   const hasResults = !!results.length;
 
   return (
@@ -208,8 +214,8 @@ const LinkEditor: React.FC<Props> = ({
       <Wrapper>
         <Input
           ref={inputRef}
-          value={value}
-          placeholder={dictionary.enterLink}
+          value={query}
+          placeholder={dictionary.searchOrPasteLink}
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
           onChange={handleSearch}
@@ -217,11 +223,10 @@ const LinkEditor: React.FC<Props> = ({
           autoFocus={getHref() === ""}
           readOnly={!view.editable}
         />
-
         <Tooltip
           content={isInternal ? dictionary.goToLink : dictionary.openLink}
         >
-          <ToolbarButton onClick={handleOpenLink} disabled={!value}>
+          <ToolbarButton onClick={handleOpenLink} disabled={!query}>
             {isInternal ? <ArrowIcon /> : <OpenIcon />}
           </ToolbarButton>
         </Tooltip>
@@ -296,4 +301,4 @@ const SearchResults = styled(Scrollable)<{ $hasResults: boolean }>`
   }
 `;
 
-export default LinkEditor;
+export default observer(LinkEditor);
