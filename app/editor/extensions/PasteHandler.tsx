@@ -20,8 +20,9 @@ import { isInCode } from "@shared/editor/queries/isInCode";
 import { MenuItem } from "@shared/editor/types";
 import { IconType, MentionType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
+import parseCollectionSlug from "@shared/utils/parseCollectionSlug";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
-import { isDocumentUrl, isUrl } from "@shared/utils/urls";
+import { isCollectionUrl, isDocumentUrl, isUrl } from "@shared/utils/urls";
 import stores from "~/stores";
 import PasteMenu from "../components/PasteMenu";
 
@@ -156,6 +157,51 @@ export default class PasteHandler extends Extension {
                             }${document.titleWithDefault}`;
 
                             this.insertLink(`${document.path}${hash}`, title);
+                          }
+                        }
+                      })
+                      .catch(() => {
+                        if (view.isDestroyed) {
+                          return;
+                        }
+                        this.insertLink(text);
+                      });
+                  }
+                } else if (isCollectionUrl(text)) {
+                  const slug = parseCollectionSlug(text);
+
+                  if (slug) {
+                    stores.collections
+                      .fetch(slug)
+                      .then((collection) => {
+                        if (view.isDestroyed) {
+                          return;
+                        }
+                        if (collection) {
+                          if (state.schema.nodes.mention) {
+                            view.dispatch(
+                              view.state.tr.replaceWith(
+                                state.selection.from,
+                                state.selection.to,
+                                state.schema.nodes.mention.create({
+                                  type: MentionType.Collection,
+                                  modelId: collection.id,
+                                  label: collection.name,
+                                  id: v4(),
+                                })
+                              )
+                            );
+                          } else {
+                            const { hash } = new URL(text);
+                            const hasEmoji =
+                              determineIconType(collection.icon) ===
+                              IconType.Emoji;
+
+                            const title = `${
+                              hasEmoji ? collection.icon + " " : ""
+                            }${collection.name}`;
+
+                            this.insertLink(`${collection.path}${hash}`, title);
                           }
                         }
                       })
