@@ -62,7 +62,7 @@ const LinkEditor: React.FC<Props> = ({
 
   const trimmedQuery = query.trim();
   const results = trimmedQuery
-    ? documents.findByQuery(trimmedQuery, { maxResults: 5 })
+    ? documents.findByQuery(trimmedQuery, { maxResults: 25 })
     : [];
 
   const { request } = useRequest(
@@ -250,6 +250,7 @@ const LinkEditor: React.FC<Props> = ({
                       moveSelectionToEnd();
                     }
                   }}
+                  onPointerMove={() => setSelectedIndex(index)}
                   selected={index === selectedIndex}
                   key={doc.id}
                   subtitle={doc.collection?.name}
@@ -287,8 +288,10 @@ const SearchResults = styled(Scrollable)<{ $hasResults: boolean }>`
   left: 0;
   margin-top: -6px;
   border-radius: 0 0 4px 4px;
-  padding: ${(props) => (props.$hasResults ? "8px 0" : "0")};
+  padding: ${(props) => (props.$hasResults ? "6px" : "0")};
   max-height: 240px;
+  pointer-events: all;
+
   ${hideScrollbars()}
 
   @media (hover: none) and (pointer: coarse) {
