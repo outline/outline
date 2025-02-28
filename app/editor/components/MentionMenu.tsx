@@ -10,8 +10,6 @@ import Icon from "@shared/components/Icon";
 import { MenuItem } from "@shared/editor/types";
 import { MentionType } from "@shared/types";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
-import Document from "~/models/Document";
-import User from "~/models/User";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import { DocumentsSection, UserSection } from "~/actions/sections";
@@ -48,17 +46,11 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
   const documentId = parseDocumentSlug(location.pathname);
   const maxResultsInSection = search ? 25 : 5;
 
-  const { loading, request } = useRequest<{
-    documents: Document[];
-    users: User[];
-  }>(
+  const { loading, request } = useRequest(
     React.useCallback(async () => {
       const res = await client.post("/suggestions.mention", { query: search });
-
-      return {
-        documents: res.data.documents.map(documents.add),
-        users: res.data.users.map(users.add),
-      };
+      res.data.documents.map(documents.add);
+      res.data.users.map(users.add);
     }, [search, documents, users])
   );
 
