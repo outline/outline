@@ -147,10 +147,12 @@ export class DocumentHelper {
    * Returns the document as Markdown. This is a lossy conversion and should only be used for export.
    *
    * @param document The document or revision to convert
+   * @param options Options for the conversion
    * @returns The document title and content as a Markdown string
    */
   static toMarkdown(
-    document: Document | Revision | Collection | ProsemirrorData
+    document: Document | Revision | Collection | ProsemirrorData,
+    options?: { includeTitle?: boolean }
   ) {
     const text = serializer
       .serialize(DocumentHelper.toProsemirror(document))
@@ -165,7 +167,10 @@ export class DocumentHelper {
       return text;
     }
 
-    if (document instanceof Document || document instanceof Revision) {
+    if (
+      options?.includeTitle &&
+      (document instanceof Document || document instanceof Revision)
+    ) {
       const iconType = determineIconType(document.icon);
 
       const title = `${iconType === IconType.Emoji ? document.icon + " " : ""}${

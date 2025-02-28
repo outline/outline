@@ -1,9 +1,9 @@
 import { Optional } from "utility-types";
-import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { TextHelper } from "@shared/utils/TextHelper";
 import { Document, Event, User } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
-import { ProsemirrorHelper as ProsemirrorHelper2 } from "@server/models/helpers/ProsemirrorHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { APIContext } from "@server/types";
 
 type Props = Optional<
@@ -91,11 +91,11 @@ export default async function documentCreator({
       : "");
 
   const contentWithReplacements = text
-    ? ProsemirrorHelper2.toProsemirror(text).toJSON()
+    ? ProsemirrorHelper.toProsemirror(text).toJSON()
     : templateDocument
     ? template
       ? templateDocument.content
-      : ProsemirrorHelper.replaceTemplateVariables(
+      : SharedProsemirrorHelper.replaceTemplateVariables(
           await DocumentHelper.toJSON(templateDocument),
           user
         )
@@ -125,7 +125,9 @@ export default async function documentCreator({
     state,
   });
 
-  document.text = DocumentHelper.toMarkdown(document);
+  document.text = DocumentHelper.toMarkdown(document, {
+    includeTitle: false,
+  });
 
   await document.save({
     silent: !!createdAt,
