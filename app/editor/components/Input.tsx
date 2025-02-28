@@ -1,3 +1,4 @@
+import { transparentize } from "polished";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 
@@ -12,6 +13,10 @@ const Input = styled.input`
   outline: none;
   flex-grow: 1;
   min-width: 0;
+
+  &::placeholder {
+    color: ${(props) => transparentize(0.5, props.theme.text)};
+  }
 
   @media (hover: none) and (pointer: coarse) {
     font-size: 16px;
