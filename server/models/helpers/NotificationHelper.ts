@@ -62,7 +62,7 @@ export default class NotificationHelper {
   ): Promise<User[]> => {
     let recipients = await this.getDocumentNotificationRecipients({
       document,
-      notificationType: NotificationEventType.UpdateDocument,
+      notificationType: NotificationEventType.CreateComment,
       onlySubscribers: !comment.parentCommentId,
       actorId,
     });
