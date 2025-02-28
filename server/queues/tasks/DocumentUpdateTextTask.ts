@@ -1,11 +1,11 @@
 import { Node } from "prosemirror-model";
 import { schema, serializer } from "@server/editor";
 import { Document } from "@server/models";
-import { DocumentUserEvent } from "@server/types";
+import { DocumentEvent } from "@server/types";
 import BaseTask from "./BaseTask";
 
-export default class DocumentUpdateTextTask extends BaseTask<DocumentUserEvent> {
-  public async perform(event: DocumentUserEvent) {
+export default class DocumentUpdateTextTask extends BaseTask<DocumentEvent> {
+  public async perform(event: DocumentEvent) {
     const document = await Document.findByPk(event.documentId);
     if (!document?.content) {
       return;
