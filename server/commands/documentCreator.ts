@@ -3,6 +3,7 @@ import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { TextHelper } from "@shared/utils/TextHelper";
 import { Document, Event, User } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import { ProsemirrorHelper as ProsemirrorHelper2 } from "@server/models/helpers/ProsemirrorHelper";
 import { APIContext } from "@server/types";
 
 type Props = Optional<
@@ -81,53 +82,56 @@ export default async function documentCreator({
     }
   }
 
-  const document = await Document.create(
-    {
-      id,
-      urlId,
-      parentDocumentId,
-      editorVersion,
-      collectionId,
-      teamId: user.teamId,
-      createdAt,
-      updatedAt: updatedAt ?? createdAt,
-      lastModifiedById: user.id,
-      createdById: user.id,
-      template,
-      templateId,
-      publishedAt,
-      importId,
-      sourceMetadata,
-      fullWidth: templateDocument ? templateDocument.fullWidth : fullWidth,
-      icon: templateDocument ? templateDocument.icon : icon,
-      color: templateDocument ? templateDocument.color : color,
-      title:
-        title ??
-        (templateDocument
-          ? template
-            ? templateDocument.title
-            : TextHelper.replaceTemplateVariables(templateDocument.title, user)
-          : ""),
-      text:
-        text ??
-        (templateDocument
-          ? template
-            ? templateDocument.text
-            : TextHelper.replaceTemplateVariables(templateDocument.text, user)
-          : ""),
-      content: templateDocument
-        ? ProsemirrorHelper.replaceTemplateVariables(
-            await DocumentHelper.toJSON(templateDocument),
-            user
-          )
-        : content,
-      state,
-    },
-    {
-      silent: !!createdAt,
-      transaction,
-    }
-  );
+  const titleWithReplacements =
+    title ??
+    (templateDocument
+      ? template
+        ? templateDocument.title
+        : TextHelper.replaceTemplateVariables(templateDocument.title, user)
+      : "");
+
+  const contentWithReplacements = text
+    ? ProsemirrorHelper2.toProsemirror(text).toJSON()
+    : templateDocument
+    ? template
+      ? templateDocument.content
+      : ProsemirrorHelper.replaceTemplateVariables(
+          await DocumentHelper.toJSON(templateDocument),
+          user
+        )
+    : content;
+
+  const document = Document.build({
+    id,
+    urlId,
+    parentDocumentId,
+    editorVersion,
+    collectionId,
+    teamId: user.teamId,
+    createdAt,
+    updatedAt: updatedAt ?? createdAt,
+    lastModifiedById: user.id,
+    createdById: user.id,
+    template,
+    templateId,
+    publishedAt,
+    importId,
+    sourceMetadata,
+    fullWidth: fullWidth ?? templateDocument?.fullWidth,
+    icon: icon ?? templateDocument?.icon,
+    color: color ?? templateDocument?.color,
+    title: titleWithReplacements,
+    content: contentWithReplacements,
+    state,
+  });
+
+  document.text = DocumentHelper.toMarkdown(document);
+
+  await document.save({
+    silent: !!createdAt,
+    transaction,
+  });
+
   await Event.create(
     {
       name: "documents.create",
