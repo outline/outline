@@ -152,7 +152,10 @@ export class DocumentHelper {
    */
   static toMarkdown(
     document: Document | Revision | Collection | ProsemirrorData,
-    options?: { includeTitle?: boolean }
+    options?: {
+      /** Whether to include the document title (default: true) */
+      includeTitle?: boolean;
+    }
   ) {
     const text = serializer
       .serialize(DocumentHelper.toProsemirror(document))
@@ -168,8 +171,8 @@ export class DocumentHelper {
     }
 
     if (
-      options?.includeTitle &&
-      (document instanceof Document || document instanceof Revision)
+      (document instanceof Document || document instanceof Revision) &&
+      options?.includeTitle !== false
     ) {
       const iconType = determineIconType(document.icon);
 
