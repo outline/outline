@@ -4,7 +4,6 @@ import React from "react";
 import styled from "styled-components";
 import Text from "~/components/Text";
 import useMobile from "~/hooks/useMobile";
-import useWindowSize from "~/hooks/useWindowSize";
 import Separator from "./ContextMenu/Separator";
 import Flex from "./Flex";
 import { LabelText } from "./Input";
@@ -71,19 +70,9 @@ export function InputSelectNew(props: Props) {
   const [localValue, setLocalValue] = React.useState(value);
   const [open, setOpen] = React.useState(false);
 
-  const [side, setSide] =
-    React.useState<
-      React.ComponentPropsWithoutRef<typeof SelectContent>["side"]
-    >("bottom");
-  const [align, setAlign] =
-    React.useState<
-      React.ComponentPropsWithoutRef<typeof SelectContent>["align"]
-    >("start");
-
   const triggerRef = React.useRef<React.ElementRef<typeof SelectTrigger>>(null);
   const contentRef = React.useRef<React.ElementRef<typeof SelectContent>>(null);
 
-  const window = useWindowSize();
   const isMobile = useMobile();
 
   const placeholder = `Select a ${ariaLabel.toLowerCase()}`;
@@ -98,16 +87,12 @@ export function InputSelectNew(props: Props) {
       }
 
       return (
-        <SelectItem
-          key={option.value}
-          value={option.value}
-          reverse={align === "end"}
-        >
+        <SelectItem key={option.value} value={option.value}>
           <Option option={option} optionsHaveIcon={optionsHaveIcon} />
         </SelectItem>
       );
     },
-    [optionsHaveIcon, align]
+    [optionsHaveIcon]
   );
 
   const onValueChange = React.useCallback(
@@ -123,35 +108,6 @@ export function InputSelectNew(props: Props) {
       contentRef.current.style.pointerEvents = allow ? "auto" : "none";
     }
   }, []);
-
-  React.useLayoutEffect(() => {
-    if (!open || !triggerRef.current || !contentRef.current) {
-      return;
-    }
-
-    // Portalled content's DOMRect isn't correctly calculated in layout effect phase.
-    // Use rAF to get the actual position.
-    requestAnimationFrame(() => {
-      const triggerRect = triggerRef.current?.getBoundingClientRect();
-      const contentRect = contentRef.current?.getBoundingClientRect();
-
-      // If the content height is below 300px or there is at least 300px in the bottom, render it below. Otherwise, flip it.
-      const computedSide =
-        (contentRect?.height || 0) < 300 ||
-        window.height - (triggerRect?.bottom || 0) >= 300
-          ? "bottom"
-          : "top";
-      setSide(computedSide);
-
-      // In case the content overflows the right edge, Radix pushes the content to the left to offset for the overflow.
-      // Offsetting looks odd, so flip the alignment here.
-      setAlign(
-        (contentRect?.width || 0) <= window.width - (triggerRect?.left || 0)
-          ? "start"
-          : "end"
-      );
-    });
-  }, [open, window]);
 
   React.useEffect(() => {
     setLocalValue(value);
@@ -186,8 +142,6 @@ export function InputSelectNew(props: Props) {
         <SelectContent
           ref={contentRef}
           aria-label={ariaLabel}
-          side={side}
-          align={align}
           onAnimationStart={() => allowPointerEvents(false)}
           onAnimationEnd={() => allowPointerEvents(true)}
         >
@@ -249,7 +203,6 @@ function MobileSelect(props: MobileSelectProps) {
         <SelectItemWrapper
           key={option.value}
           onClick={() => handleSelect(option.value)}
-          reverse={false}
           data-state={isSelected ? "checked" : "unchecked"}
         >
           <Option option={option} optionsHaveIcon={optionsHaveIcon} />

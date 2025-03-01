@@ -62,12 +62,7 @@ const SelectContent = React.forwardRef<
 
   return (
     <SelectPrimitive.Portal>
-      <StyledContent
-        ref={ref}
-        position={"popper"}
-        avoidCollisions={false}
-        {...rest}
-      >
+      <StyledContent ref={ref} position={"popper"} {...rest}>
         <SelectPrimitive.Viewport>{children}</SelectPrimitive.Viewport>
       </StyledContent>
     </SelectPrimitive.Portal>
@@ -79,20 +74,15 @@ SelectContent.displayName = SelectPrimitive.Content.displayName;
  * Item
  * --------------------------------------------------------------------------*/
 
-interface SelectItemProps
-  extends React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item> {
-  reverse: boolean;
-}
-
 const SelectItem = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Item>,
-  SelectItemProps
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
 >((props, ref) => {
-  const { reverse, children, ...rest } = props;
+  const { children, ...rest } = props;
 
   return (
     <SelectPrimitive.Item ref={ref} {...rest} asChild>
-      <SelectItemWrapper reverse={reverse}>
+      <SelectItemWrapper>
         <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
         <SelectPrimitive.ItemIndicator asChild>
           <SelectItemIndicator />
@@ -126,7 +116,7 @@ const StyledContent = styled(SelectPrimitive.Content)`
   min-width: var(--radix-select-trigger-width);
   max-width: 400px;
   min-height: 44px;
-  max-height: var(--radix-select-content-available-height);
+  max-height: 350px;
 
   padding: 4px;
   border-radius: 6px;

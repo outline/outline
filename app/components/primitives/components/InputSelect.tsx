@@ -10,29 +10,25 @@ import { s } from "@shared/styles";
 import Button, { Inner } from "~/components/Button";
 import Flex from "~/components/Flex";
 
-interface SelectItemProps extends React.ComponentPropsWithoutRef<"div"> {
-  reverse: boolean;
-}
+export const SelectItem = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentPropsWithoutRef<"div">
+>((props, ref) => {
+  const { children, ...rest } = props;
 
-export const SelectItem = React.forwardRef<HTMLDivElement, SelectItemProps>(
-  (props, ref) => {
-    const { reverse, children, ...rest } = props;
-
-    return (
-      <ItemContainer
-        ref={ref}
-        justify="space-between"
-        align="center"
-        gap={8}
-        reverse={reverse}
-        {...rest}
-      >
-        {children}
-        <IconSpacer />
-      </ItemContainer>
-    );
-  }
-);
+  return (
+    <ItemContainer
+      ref={ref}
+      justify="space-between"
+      align="center"
+      gap={8}
+      {...rest}
+    >
+      {children}
+      <IconSpacer />
+    </ItemContainer>
+  );
+});
 SelectItem.displayName = "SelectItem";
 
 export const SelectItemIndicator = React.forwardRef<
@@ -85,9 +81,7 @@ export const SelectButton = styled(Button)<{ $nude?: boolean }>`
   }
 `;
 
-type ItemContainerProps = { reverse: boolean };
-
-const ItemContainer = styled(Flex)<ItemContainerProps>`
+const ItemContainer = styled(Flex)`
   position: relative;
   width: 100%;
   font-size: 16px;
@@ -128,8 +122,7 @@ const ItemContainer = styled(Flex)<ItemContainerProps>`
   ${breakpoint("tablet")`
     font-size: 14px;
     padding: 4px;
-    ${({ reverse }: ItemContainerProps) =>
-      reverse ? "padding-right: 8px;" : "padding-left: 8px;"}
+    padding-left: 8px;
   `}
 `;
 
