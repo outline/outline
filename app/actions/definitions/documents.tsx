@@ -683,6 +683,7 @@ export const searchInDocument = createAction({
   name: ({ t }) => t("Search in document"),
   analyticsName: "Search document",
   section: ActiveDocumentSection,
+  shortcut: [`Meta+/`],
   icon: <SearchIcon />,
   visible: ({ stores, activeDocumentId }) => {
     if (!activeDocumentId) {
@@ -1210,6 +1211,7 @@ export const rootDocumentActions = [
   unpublishDocument,
   subscribeDocument,
   unsubscribeDocument,
+  searchInDocument,
   duplicateDocument,
   leaveDocument,
   moveTemplateToWorkspace,
