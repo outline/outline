@@ -8,7 +8,7 @@ import validate from "@server/middlewares/validate";
 import { Document, Revision } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { authorize } from "@server/policies";
-import { presentRevision } from "@server/presenters";
+import { presentPolicies, presentRevision } from "@server/presenters";
 import { APIContext } from "@server/types";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -57,6 +57,7 @@ router.post(
           includeStyles: false,
         })
       ),
+      policies: presentPolicies(user, [after]),
     };
   }
 );
@@ -110,6 +111,7 @@ router.post(
 
     ctx.body = {
       data: content,
+      policies: presentPolicies(user, [revision]),
     };
   }
 );
@@ -144,6 +146,7 @@ router.post(
     ctx.body = {
       pagination: ctx.state.pagination,
       data,
+      policies: presentPolicies(user, revisions),
     };
   }
 );
