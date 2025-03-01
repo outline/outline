@@ -32,6 +32,6 @@ export const UserPreferenceDefaults: UserPreferences = {
   [UserPreference.RememberLastPath]: true,
   [UserPreference.UseCursorPointer]: true,
   [UserPreference.CodeBlockLineNumers]: true,
-  [UserPreference.SortCommentsByOrderInDocument]: false,
+  [UserPreference.SortCommentsByOrderInDocument]: true,
   [UserPreference.EnableSmartText]: true,
 };
