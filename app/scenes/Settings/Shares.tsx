@@ -5,7 +5,7 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import Fade from "~/components/Fade";
+import { ConditionalFade } from "~/components/Fade";
 import Heading from "~/components/Heading";
 import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
@@ -83,20 +83,18 @@ function Shares() {
         </Trans>
       </Text>
 
-      {data?.length ? (
-        <Fade>
-          <SharesTable
-            data={data ?? []}
-            sort={sort}
-            canManage={can.update}
-            loading={loading}
-            page={{
-              hasNext: !!next,
-              fetchNext: next,
-            }}
-          />
-        </Fade>
-      ) : null}
+      <ConditionalFade animate={!data}>
+        <SharesTable
+          data={data ?? []}
+          sort={sort}
+          canManage={can.update}
+          loading={loading}
+          page={{
+            hasNext: !!next,
+            fetchNext: next,
+          }}
+        />
+      </ConditionalFade>
     </Scene>
   );
 }
