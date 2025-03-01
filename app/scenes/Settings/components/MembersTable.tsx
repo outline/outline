@@ -24,7 +24,7 @@ type Props = Omit<TableProps<User>, "columns" | "rowHeight"> & {
   canManage: boolean;
 };
 
-export function PeopleTable({ canManage, ...rest }: Props) {
+export function MembersTable({ canManage, ...rest }: Props) {
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
 

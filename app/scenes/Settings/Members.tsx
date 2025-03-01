@@ -22,7 +22,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
-import { PeopleTable } from "./components/PeopleTable";
+import { MembersTable } from "./components/MembersTable";
 import { StickyFilters } from "./components/StickyFilters";
 import UserRoleFilter from "./components/UserRoleFilter";
 import UserStatusFilter from "./components/UserStatusFilter";
@@ -164,7 +164,7 @@ function Members() {
         />
       </StickyFilters>
       <Fade>
-        <PeopleTable
+        <MembersTable
           data={data ?? []}
           sort={sort}
           canManage={can.update}
