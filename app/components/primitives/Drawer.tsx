@@ -3,6 +3,8 @@ import React from "react";
 import styled from "styled-components";
 import { Drawer as DrawerPrimitive } from "vaul";
 import { depths, s } from "@shared/styles";
+import Flex from "../Flex";
+import Text from "../Text";
 import { Overlay } from "./components/Overlay";
 
 /* ----------------------------------------------------------------------------
@@ -53,14 +55,20 @@ const DrawerTitle = React.forwardRef<
 >((props, ref) => {
   const { hidden, children, ...rest } = props;
 
+  const title = (
+    <TitleWrapper justify="center">
+      <Text size="medium" weight="bold">
+        {children}
+      </Text>
+    </TitleWrapper>
+  );
+
   return (
     <DrawerPrimitive.Title ref={ref} {...rest} asChild>
       {hidden ? (
-        <VisuallyHidden.Root>
-          {<StyledTitle>{children}</StyledTitle>}
-        </VisuallyHidden.Root>
+        <VisuallyHidden.Root>{title}</VisuallyHidden.Root>
       ) : (
-        <StyledTitle>{children}</StyledTitle>
+        <>{title}</>
       )}
     </DrawerPrimitive.Title>
   );
@@ -88,11 +96,8 @@ const StyledContent = styled(DrawerPrimitive.Content)`
   background: ${s("menuBackground")};
 `;
 
-const StyledTitle = styled.div`
-  font-size: 16px;
-  font-weight: 500;
-  padding: 8px;
-  padding-left: 12px;
+const TitleWrapper = styled(Flex)`
+  padding: 8px 0;
 `;
 
 export { Drawer, DrawerTrigger, DrawerContent, DrawerTitle };
