@@ -62,6 +62,7 @@ describe("#shares.list", () => {
     const document = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
+      title: "hardcoded",
     });
     await buildShare({
       documentId: document.id,
