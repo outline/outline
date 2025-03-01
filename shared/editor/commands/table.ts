@@ -1,3 +1,4 @@
+import { GapCursor } from "prosemirror-gapcursor";
 import { Node, NodeType } from "prosemirror-model";
 import { Command, EditorState, TextSelection } from "prosemirror-state";
 import {
@@ -495,6 +496,49 @@ export function selectTable(): Command {
       const tableSelection = new CellSelection($anchor, $head);
       dispatch(state.tr.setSelection(tableSelection));
       return true;
+    }
+    return false;
+  };
+}
+
+export function moveOutOfTable(direction: 1 | -1): Command {
+  return (state, dispatch): boolean => {
+    if (dispatch) {
+      if (state.selection instanceof GapCursor) {
+        return false;
+      }
+      if (!isInTable(state)) {
+        return false;
+      }
+
+      // check if current cursor position is at the top or bottom of the table
+      const rect = selectedRect(state);
+      const topOfTable =
+        rect.top === 0 && rect.bottom === 1 && direction === -1;
+      const bottomOfTable =
+        rect.top === rect.map.height - 1 &&
+        rect.bottom === rect.map.height &&
+        direction === 1;
+
+      if (!topOfTable && !bottomOfTable) {
+        return false;
+      }
+
+      const map = rect.map.map;
+      const $start = state.doc.resolve(rect.tableStart + map[0] - 1);
+      const $end = state.doc.resolve(rect.tableStart + map[map.length - 1] + 2);
+
+      // @ts-expect-error findGapCursorFrom is a ProseMirror internal method.
+      const $found = GapCursor.findGapCursorFrom(
+        direction > 0 ? $end : $start,
+        direction,
+        true
+      );
+
+      if ($found) {
+        dispatch(state.tr.setSelection(new GapCursor($found)));
+        return true;
+      }
     }
     return false;
   };
