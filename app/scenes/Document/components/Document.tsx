@@ -39,6 +39,7 @@ import Branding from "~/components/Branding";
 import ConnectionStatus from "~/components/ConnectionStatus";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import LoadingIndicator from "~/components/LoadingIndicator";
+import { MediaQuery, NotMediaQuery } from "~/components/MediaQuery";
 import PageTitle from "~/components/PageTitle";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
@@ -520,6 +521,11 @@ class DocumentScene extends React.Component<Props> {
               onSelectTemplate={this.replaceDocument}
               onSave={this.onSave}
             />
+            {showContents && (
+              <MediaQuery query="print">
+                <Contents />
+              </MediaQuery>
+            )}
             <Main fullWidth={document.fullWidth} tocPosition={tocPos}>
               <React.Suspense
                 fallback={
@@ -593,12 +599,14 @@ class DocumentScene extends React.Component<Props> {
                       </Editor>
                     </MeasuredContainer>
                     {showContents && (
-                      <ContentsContainer
-                        docFullWidth={document.fullWidth}
-                        position={tocPos}
-                      >
-                        <Contents />
-                      </ContentsContainer>
+                      <NotMediaQuery query="print">
+                        <ContentsContainer
+                          docFullWidth={document.fullWidth}
+                          position={tocPos}
+                        >
+                          <Contents />
+                        </ContentsContainer>
+                      </NotMediaQuery>
                     )}
                   </>
                 )}
