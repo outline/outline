@@ -265,15 +265,6 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     return () => window.removeEventListener("error", onUnhandledError);
   }, [t]);
 
-  const handleFocus = React.useCallback(() => {
-    presence.touch(documentId, currentUser.id, !props.readOnly);
-    props?.onFocus?.();
-  }, [props]);
-
-  const handleBlur = React.useCallback(() => {
-    props?.onBlur?.();
-  }, [props]);
-
   if (!remoteProvider) {
     return null;
   }
@@ -301,8 +292,6 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
         defaultValue={undefined}
         extensions={extensions}
         ref={showCache ? undefined : ref}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
         style={
           showCache
             ? {
