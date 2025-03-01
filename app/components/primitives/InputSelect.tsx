@@ -1,4 +1,4 @@
-import * as SelectPrimitive from "@radix-ui/react-select";
+import * as InputSelectPrimitive from "@radix-ui/react-select";
 import React from "react";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
@@ -15,7 +15,7 @@ import {
  * Root
  * --------------------------------------------------------------------------*/
 
-const Select = SelectPrimitive.Root;
+const InputSelectRoot = InputSelectPrimitive.Root;
 
 /* ----------------------------------------------------------------------------
  * Trigger
@@ -26,92 +26,96 @@ export type TriggerButtonProps = {
   className?: string;
 } & Pick<ButtonProps<unknown>, "borderOnHover">;
 
-type SelectTriggerProps = { placeholder: string } & TriggerButtonProps &
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>;
+type InputSelectTriggerProps = { placeholder: string } & TriggerButtonProps &
+  React.ComponentPropsWithoutRef<typeof InputSelectPrimitive.Trigger>;
 
-const SelectTrigger = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Trigger>,
-  SelectTriggerProps
+const InputSelectTrigger = React.forwardRef<
+  React.ElementRef<typeof InputSelectPrimitive.Trigger>,
+  InputSelectTriggerProps
 >((props, ref) => {
   const { placeholder, children, ...buttonProps } = props;
 
   return (
-    <SelectPrimitive.Trigger ref={ref} asChild>
+    <InputSelectPrimitive.Trigger ref={ref} asChild>
       <SelectButton neutral disclosure {...buttonProps}>
-        <SelectPrimitive.Value placeholder={placeholder} />
+        <InputSelectPrimitive.Value placeholder={placeholder} />
       </SelectButton>
-    </SelectPrimitive.Trigger>
+    </InputSelectPrimitive.Trigger>
   );
 });
-SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
+InputSelectTrigger.displayName = InputSelectPrimitive.Trigger.displayName;
 
 /* ----------------------------------------------------------------------------
  * Content
  * --------------------------------------------------------------------------*/
 
 type ContentProps = Omit<
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof InputSelectPrimitive.Content>,
   "position"
 >;
 
-const SelectContent = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Content>,
+const InputSelectContent = React.forwardRef<
+  React.ElementRef<typeof InputSelectPrimitive.Content>,
   ContentProps
 >((props, ref) => {
   const { children, ...rest } = props;
 
   return (
-    <SelectPrimitive.Portal>
+    <InputSelectPrimitive.Portal>
       <StyledContent ref={ref} position={"popper"} {...rest}>
-        <SelectPrimitive.Viewport>{children}</SelectPrimitive.Viewport>
+        <InputSelectPrimitive.Viewport style={{ overscrollBehavior: "none" }}>
+          {children}
+        </InputSelectPrimitive.Viewport>
       </StyledContent>
-    </SelectPrimitive.Portal>
+    </InputSelectPrimitive.Portal>
   );
 });
-SelectContent.displayName = SelectPrimitive.Content.displayName;
+InputSelectContent.displayName = InputSelectPrimitive.Content.displayName;
 
 /* ----------------------------------------------------------------------------
  * Item
  * --------------------------------------------------------------------------*/
 
-const SelectItem = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
+const InputSelectItem = React.forwardRef<
+  React.ElementRef<typeof InputSelectPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof InputSelectPrimitive.Item>
 >((props, ref) => {
   const { children, ...rest } = props;
 
   return (
-    <SelectPrimitive.Item ref={ref} {...rest} asChild>
+    <InputSelectPrimitive.Item ref={ref} {...rest} asChild>
       <SelectItemWrapper>
-        <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-        <SelectPrimitive.ItemIndicator asChild>
+        <InputSelectPrimitive.ItemText>
+          {children}
+        </InputSelectPrimitive.ItemText>
+        <InputSelectPrimitive.ItemIndicator asChild>
           <SelectItemIndicator />
-        </SelectPrimitive.ItemIndicator>
+        </InputSelectPrimitive.ItemIndicator>
       </SelectItemWrapper>
-    </SelectPrimitive.Item>
+    </InputSelectPrimitive.Item>
   );
 });
-SelectItem.displayName = SelectPrimitive.Item.displayName;
+InputSelectItem.displayName = InputSelectPrimitive.Item.displayName;
 
 /* ----------------------------------------------------------------------------
  * Separator
  * --------------------------------------------------------------------------*/
 
-const SelectSeparator = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Separator>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Separator>
+const InputSelectSeparator = React.forwardRef<
+  React.ElementRef<typeof InputSelectPrimitive.Separator>,
+  React.ComponentPropsWithoutRef<typeof InputSelectPrimitive.Separator>
 >((props, ref) => (
-  <SelectPrimitive.Separator ref={ref} asChild>
+  <InputSelectPrimitive.Separator ref={ref} asChild>
     <Separator {...props} />
-  </SelectPrimitive.Separator>
+  </InputSelectPrimitive.Separator>
 ));
-SelectSeparator.displayName = SelectPrimitive.Separator.displayName;
+InputSelectSeparator.displayName = InputSelectPrimitive.Separator.displayName;
 
 /* ----------------------------------------------------------------------------
  * Styled components
  * --------------------------------------------------------------------------*/
 
-const StyledContent = styled(SelectPrimitive.Content)`
+const StyledContent = styled(InputSelectPrimitive.Content)`
   z-index: ${depths.menu};
   min-width: var(--radix-select-trigger-width);
   max-width: 400px;
@@ -137,4 +141,10 @@ const StyledContent = styled(SelectPrimitive.Content)`
   }
 `;
 
-export { Select, SelectTrigger, SelectContent, SelectItem, SelectSeparator };
+export {
+  InputSelectRoot,
+  InputSelectTrigger,
+  InputSelectContent,
+  InputSelectItem,
+  InputSelectSeparator,
+};

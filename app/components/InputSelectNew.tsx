@@ -16,11 +16,11 @@ import {
   DrawerTrigger,
 } from "./primitives/Drawer";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectSeparator,
-  SelectTrigger,
+  InputSelectRoot,
+  InputSelectContent,
+  InputSelectItem,
+  InputSelectSeparator,
+  InputSelectTrigger,
   type TriggerButtonProps,
 } from "./primitives/InputSelect";
 import {
@@ -70,8 +70,10 @@ export function InputSelectNew(props: Props) {
   const [localValue, setLocalValue] = React.useState(value);
   const [open, setOpen] = React.useState(false);
 
-  const triggerRef = React.useRef<React.ElementRef<typeof SelectTrigger>>(null);
-  const contentRef = React.useRef<React.ElementRef<typeof SelectContent>>(null);
+  const triggerRef =
+    React.useRef<React.ElementRef<typeof InputSelectTrigger>>(null);
+  const contentRef =
+    React.useRef<React.ElementRef<typeof InputSelectContent>>(null);
 
   const isMobile = useMobile();
 
@@ -83,13 +85,13 @@ export function InputSelectNew(props: Props) {
   const renderOption = React.useCallback(
     (option: Option) => {
       if (option.type === "separator") {
-        return <SelectSeparator />;
+        return <InputSelectSeparator />;
       }
 
       return (
-        <SelectItem key={option.value} value={option.value}>
+        <InputSelectItem key={option.value} value={option.value}>
           <Option option={option} optionsHaveIcon={optionsHaveIcon} />
-        </SelectItem>
+        </InputSelectItem>
       );
     },
     [optionsHaveIcon]
@@ -103,7 +105,7 @@ export function InputSelectNew(props: Props) {
     [onChange, setLocalValue]
   );
 
-  const allowPointerEvents = React.useCallback((allow: boolean) => {
+  const togglePointerEvents = React.useCallback((allow: boolean) => {
     if (contentRef.current) {
       contentRef.current.style.pointerEvents = allow ? "auto" : "none";
     }
@@ -128,26 +130,26 @@ export function InputSelectNew(props: Props) {
   return (
     <Wrapper short={short}>
       <Label text={label} hidden={hideLabel ?? false} />
-      <Select
+      <InputSelectRoot
         open={open}
         onOpenChange={setOpen}
         value={localValue}
         onValueChange={onValueChange}
       >
-        <SelectTrigger
+        <InputSelectTrigger
           ref={triggerRef}
           placeholder={placeholder}
           {...triggerProps}
         />
-        <SelectContent
+        <InputSelectContent
           ref={contentRef}
           aria-label={ariaLabel}
-          onAnimationStart={() => allowPointerEvents(false)}
-          onAnimationEnd={() => allowPointerEvents(true)}
+          onAnimationStart={() => togglePointerEvents(false)}
+          onAnimationEnd={() => togglePointerEvents(true)}
         >
           {options.map(renderOption)}
-        </SelectContent>
-      </Select>
+        </InputSelectContent>
+      </InputSelectRoot>
     </Wrapper>
   );
 }

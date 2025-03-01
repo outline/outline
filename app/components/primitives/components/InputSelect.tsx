@@ -58,6 +58,10 @@ export const SelectButton = styled(Button)<{ $nude?: boolean }>`
     background: ${s("buttonNeutralBackground")};
   }
 
+  &:focus-visible {
+    outline: none;
+  }
+
   ${(props) =>
     props.$nude &&
     css`
