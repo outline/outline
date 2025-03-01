@@ -99,7 +99,11 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     });
 
     provider.on("awarenessChange", (event: AwarenessChangeEvent) => {
-      presence.updateFromAwarenessChangeEvent(documentId, event);
+      presence.updateFromAwarenessChangeEvent(
+        documentId,
+        provider.awareness.clientID,
+        event
+      );
 
       event.states.forEach(({ user, scrollY }) => {
         if (user) {
@@ -261,6 +265,15 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     return () => window.removeEventListener("error", onUnhandledError);
   }, [t]);
 
+  const handleFocus = React.useCallback(() => {
+    presence.touch(documentId, currentUser.id, !props.readOnly);
+    props?.onFocus?.();
+  }, [props]);
+
+  const handleBlur = React.useCallback(() => {
+    props?.onBlur?.();
+  }, [props]);
+
   if (!remoteProvider) {
     return null;
   }
@@ -288,6 +301,8 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
         defaultValue={undefined}
         extensions={extensions}
         ref={showCache ? undefined : ref}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
         style={
           showCache
             ? {

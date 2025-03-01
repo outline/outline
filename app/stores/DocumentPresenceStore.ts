@@ -36,6 +36,7 @@ export default class PresenceStore {
 
   public updateFromAwarenessChangeEvent(
     documentId: string,
+    clientId: number,
     event: AwarenessChangeEvent
   ) {
     const presence = this.data.get(documentId);
@@ -45,7 +46,10 @@ export default class PresenceStore {
 
     event.states.forEach((state) => {
       const { user, cursor } = state;
-      if (user && this.rootStore.auth.currentUserId !== user.id) {
+      const isCurrentUser = this.rootStore.auth.currentUserId === user?.id;
+      const isCurrentSession = clientId === state.clientId;
+
+      if (user && (!isCurrentUser || !isCurrentSession)) {
         this.update(documentId, user.id, !!cursor);
         existingUserIds = existingUserIds.filter((id) => id !== user.id);
       }
