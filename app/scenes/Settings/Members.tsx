@@ -9,7 +9,7 @@ import styled from "styled-components";
 import UsersStore, { queriedUsers } from "~/stores/UsersStore";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
-import Fade from "~/components/Fade";
+import { ConditionalFade } from "~/components/Fade";
 import Heading from "~/components/Heading";
 import InputSearch from "~/components/InputSearch";
 import Scene from "~/components/Scene";
@@ -163,7 +163,7 @@ function Members() {
           onSelect={handleRoleFilter}
         />
       </StickyFilters>
-      <Fade>
+      <ConditionalFade animate={!data}>
         <MembersTable
           data={data ?? []}
           sort={sort}
@@ -174,7 +174,7 @@ function Members() {
             fetchNext: next,
           }}
         />
-      </Fade>
+      </ConditionalFade>
     </Scene>
   );
 }
