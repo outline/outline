@@ -178,6 +178,9 @@ export type CollectionsUpdateReq = z.infer<typeof CollectionsUpdateSchema>;
 export const CollectionsListSchema = BaseSchema.extend({
   body: z.object({
     includeListOnly: z.boolean().default(false),
+
+    query: z.string().optional(),
+
     /** Collection statuses to include in results */
     statusFilter: z.nativeEnum(CollectionStatusFilter).array().optional(),
   }),
