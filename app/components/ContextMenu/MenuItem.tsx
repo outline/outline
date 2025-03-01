@@ -161,6 +161,9 @@ export const MenuAnchorCSS = css<MenuAnchorProps>`
     &:focus-visible {
       color: ${props.theme.accentText};
       background: ${props.dangerous ? props.theme.danger : props.theme.accent};
+      outline-color: ${
+        props.dangerous ? props.theme.danger : props.theme.accent
+      };
       box-shadow: none;
       cursor: var(--pointer);
 
