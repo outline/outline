@@ -59,6 +59,28 @@ describe("#shares.list", () => {
 
   it("should allow filtering by document title", async () => {
     const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post("/api/shares.list", {
+      body: {
+        token: user.getJwtToken(),
+        query: "test",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
+  it("should allow filtering by document title and return matching shares", async () => {
+    const user = await buildUser();
     await buildDocument({
       userId: user.id,
       teamId: user.teamId,
