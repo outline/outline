@@ -129,19 +129,24 @@ export function InputSelectNew(props: Props) {
       return;
     }
 
-    const triggerRect = triggerRef.current.getBoundingClientRect();
-
-    // If there is at least 300px in the bottom, render it below. Otherwise, flip it.
-    setSide(window.height - triggerRect.bottom >= 300 ? "bottom" : "top");
-
-    // Portalled content's DOMRect isn't correctly calculated in the layout effect phase.
+    // Portalled content's DOMRect isn't correctly calculated in layout effect phase.
     // Use rAF to get the actual position.
     requestAnimationFrame(() => {
+      const triggerRect = triggerRef.current?.getBoundingClientRect();
       const contentRect = contentRef.current?.getBoundingClientRect();
+
+      // If the content height is below 300px or there is at least 300px in the bottom, render it below. Otherwise, flip it.
+      const computedSide =
+        (contentRect?.height || 0) < 300 ||
+        window.height - (triggerRect?.bottom || 0) >= 300
+          ? "bottom"
+          : "top";
+      setSide(computedSide);
+
       // In case the content overflows the right edge, Radix pushes the content to the left to offset for the overflow.
-      // Offsetting looks odd at times, so flip the alignment here.
+      // Offsetting looks odd, so flip the alignment here.
       setAlign(
-        (contentRect?.width || 0) <= window.width - triggerRect.left
+        (contentRect?.width || 0) <= window.width - (triggerRect?.left || 0)
           ? "start"
           : "end"
       );
