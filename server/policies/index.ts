@@ -12,6 +12,7 @@ import "./fileOperation";
 import "./integration";
 import "./pins";
 import "./reaction";
+import "./revision";
 import "./searchQuery";
 import "./share";
 import "./star";

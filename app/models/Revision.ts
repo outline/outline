@@ -19,6 +19,9 @@ class Revision extends Model {
   /** The document title when the revision was created */
   title: string;
 
+  /** An optional name for the revision */
+  name: string | null;
+
   /** Prosemirror data of the content when revision was created */
   data: ProsemirrorData;
 
