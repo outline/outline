@@ -42,6 +42,42 @@ describe("#revisions.info", () => {
   });
 });
 
+describe("#revisions.update", () => {
+  it("should update a document revision", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const revision = await Revision.createFromDocument(document);
+
+    const res = await server.post("/api/revisions.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: revision.id,
+        name: "new name",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.name).toEqual("new name");
+  });
+
+  it("should require authorization", async () => {
+    const document = await buildDocument();
+    const revision = await Revision.createFromDocument(document);
+    const user = await buildUser();
+    const res = await server.post("/api/revisions.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: revision.id,
+        name: "new name",
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+});
+
 describe("#revisions.diff", () => {
   it("should return the document HTML if no previous revision", async () => {
     const user = await buildUser();

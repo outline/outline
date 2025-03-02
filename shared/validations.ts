@@ -52,6 +52,7 @@ export const DocumentValidation = {
 };
 
 export const RevisionValidation = {
+  minNameLength: 1,
   maxNameLength: 255,
 };
 

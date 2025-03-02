@@ -4,6 +4,7 @@ import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import slugify from "@shared/utils/slugify";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
+import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Document, Revision } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -58,6 +59,35 @@ router.post(
         })
       ),
       policies: presentPolicies(user, [after]),
+    };
+  }
+);
+
+router.post(
+  "revisions.update",
+  auth(),
+  validate(T.RevisionsUpdateSchema),
+  transaction(),
+  async (ctx: APIContext<T.RevisionsUpdateReq>) => {
+    const { id, name } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    const revision = await Revision.findByPk(id, {
+      rejectOnEmpty: true,
+    });
+    const document = await Document.findByPk(revision.documentId, {
+      userId: user.id,
+    });
+    authorize(user, "update", document);
+    authorize(user, "update", revision);
+
+    revision.name = name;
+    await revision.save({ transaction });
+
+    ctx.body = {
+      data: await presentRevision(revision),
+      policies: presentPolicies(user, [revision]),
     };
   }
 );
