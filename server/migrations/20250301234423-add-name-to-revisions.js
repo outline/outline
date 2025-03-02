@@ -10,6 +10,6 @@ module.exports = {
   },
 
   async down(queryInterface) {
-    await queryInterface.removeColumn("revisions", "name", { transaction });
+    await queryInterface.removeColumn("revisions", "name");
   },
 };
