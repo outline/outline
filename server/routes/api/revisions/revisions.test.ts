@@ -1,5 +1,6 @@
 import { UserMembership, Revision } from "@server/models";
 import {
+  buildAdmin,
   buildCollection,
   buildDocument,
   buildUser,
@@ -54,6 +55,25 @@ describe("#revisions.update", () => {
     const res = await server.post("/api/revisions.update", {
       body: {
         token: user.getJwtToken(),
+        id: revision.id,
+        name: "new name",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.name).toEqual("new name");
+  });
+
+  it("should allow an admin to update a document revision", async () => {
+    const admin = await buildAdmin();
+    const document = await buildDocument({
+      teamId: admin.teamId,
+    });
+    const revision = await Revision.createFromDocument(document);
+
+    const res = await server.post("/api/revisions.update", {
+      body: {
+        token: admin.getJwtToken(),
         id: revision.id,
         name: "new name",
       },
