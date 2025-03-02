@@ -830,7 +830,9 @@ class Document extends ArchivableModel<
     }
 
     this.content = revision.content;
-    this.text = revision.text;
+    this.text = DocumentHelper.toMarkdown(revision, {
+      includeTitle: false,
+    });
     this.title = revision.title;
     this.icon = revision.icon;
     this.color = revision.color;

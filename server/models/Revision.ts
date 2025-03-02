@@ -69,8 +69,9 @@ class Revision extends IdModel<
   /**
    * The content of the revision as Markdown.
    *
-   * @deprecated Use `content` instead, or `DocumentHelper.toMarkdown` if exporting lossy markdown.
-   * This column will be removed in a future migration.
+   * @deprecated Use `content` instead, or `DocumentHelper.toMarkdown` if
+   * exporting lossy markdown. This column will be removed in a future migration
+   * and is no longer being written.
    */
   @Column(DataType.TEXT)
   text: string;
@@ -134,7 +135,6 @@ class Revision extends IdModel<
   static buildFromDocument(document: Document) {
     return this.build({
       title: document.title,
-      text: document.text,
       icon: document.icon,
       color: document.color,
       content: document.content,

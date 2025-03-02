@@ -118,10 +118,13 @@ export class ProsemirrorHelper {
   /**
    * Converts a plain object into a Prosemirror Node.
    *
-   * @param data The object to parse
+   * @param data The ProsemirrorData object or string to parse.
    * @returns The content as a Prosemirror Node
    */
-  static toProsemirror(data: ProsemirrorData) {
+  static toProsemirror(data: ProsemirrorData | string) {
+    if (typeof data === "string") {
+      return parser.parse(data);
+    }
     return Node.fromJSON(schema, data);
   }
 
