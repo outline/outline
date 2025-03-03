@@ -4,6 +4,7 @@ import { isRTL } from "@shared/utils/rtl";
 import Document from "./Document";
 import User from "./User";
 import Model from "./base/Model";
+import Field from "./decorators/Field";
 import Relation from "./decorators/Relation";
 
 class Revision extends Model {
@@ -20,6 +21,7 @@ class Revision extends Model {
   title: string;
 
   /** An optional name for the revision */
+  @Field
   name: string | null;
 
   /** Prosemirror data of the content when revision was created */

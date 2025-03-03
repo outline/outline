@@ -73,15 +73,13 @@ function EditableTitle(
         return;
       }
 
-      if (document) {
-        try {
-          await onSubmit(trimmedValue);
-          setOriginalValue(trimmedValue);
-        } catch (error) {
-          setValue(originalValue);
-          toast.error(error.message);
-          throw error;
-        }
+      try {
+        await onSubmit(trimmedValue);
+        setOriginalValue(trimmedValue);
+      } catch (error) {
+        setValue(originalValue);
+        toast.error(error.message);
+        throw error;
       }
     },
     [originalValue, value, onCancel, onSubmit]
@@ -127,7 +125,10 @@ function EditableTitle(
           />
         </form>
       ) : (
-        <span onDoubleClick={canUpdate ? handleDoubleClick : undefined}>
+        <span
+          onDoubleClick={canUpdate ? handleDoubleClick : undefined}
+          className={rest.className}
+        >
           {value}
         </span>
       )}
