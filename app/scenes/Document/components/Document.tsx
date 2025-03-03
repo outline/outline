@@ -174,6 +174,7 @@ class DocumentScene extends React.Component<Props> {
 
     if (template instanceof Document) {
       this.props.document.templateId = template.id;
+      this.props.document.fullWidth = template.fullWidth;
     }
 
     if (!this.title) {
