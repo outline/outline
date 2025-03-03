@@ -294,11 +294,14 @@ export async function buildCollection(
     overrides.archivedById = overrides.userId;
   }
 
+  if (overrides.permission === undefined) {
+    overrides.permission = CollectionPermission.ReadWrite;
+  }
+
   return Collection.create({
     name: faker.lorem.words(2),
     description: faker.lorem.words(4),
     createdById: overrides.userId,
-    permission: CollectionPermission.ReadWrite,
     ...overrides,
   });
 }
