@@ -33,6 +33,7 @@ export type Props = Omit<React.HTMLAttributes<HTMLAnchorElement>, "title"> & {
   small?: boolean;
   /** Whether to enable keyboard navigation */
   keyboardNavigation?: boolean;
+  ellipsis?: boolean;
 };
 
 const ListItem = (
@@ -45,6 +46,7 @@ const ListItem = (
     border,
     to,
     keyboardNavigation,
+    ellipsis,
     ...rest
   }: Props,
   ref: React.RefObject<HTMLAnchorElement>
@@ -83,7 +85,9 @@ const ListItem = (
         column={!compact}
         $selected={selected}
       >
-        <Heading $small={small}>{title}</Heading>
+        <Heading $small={small} $ellipsis={ellipsis}>
+          {title}
+        </Heading>
         {subtitle && (
           <Subtitle $small={small} $selected={selected}>
             {subtitle}
@@ -105,7 +109,7 @@ const ListItem = (
         $border={border}
         $small={small}
         activeStyle={{
-          background: theme.accent,
+          background: theme.sidebarActiveBackground,
         }}
         {...rest}
         {...rovingTabIndex}
@@ -208,10 +212,10 @@ const Image = styled(Flex)`
   color: ${s("text")};
 `;
 
-const Heading = styled.p<{ $small?: boolean }>`
+const Heading = styled.p<{ $small?: boolean; $ellipsis?: boolean }>`
   font-size: ${(props) => (props.$small ? 14 : 16)}px;
   font-weight: 500;
-  ${ellipsis()}
+  ${(props) => (props.$ellipsis !== false ? ellipsis() : "")}
   line-height: ${(props) => (props.$small ? 1.3 : 1.2)};
   margin: 0;
 `;
