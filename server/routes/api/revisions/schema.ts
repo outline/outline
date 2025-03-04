@@ -33,7 +33,8 @@ export const RevisionsUpdateSchema = BaseSchema.extend({
     name: z
       .string()
       .min(RevisionValidation.minNameLength)
-      .max(RevisionValidation.maxNameLength),
+      .max(RevisionValidation.maxNameLength)
+      .or(z.null()),
   }),
 });
 
