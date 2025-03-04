@@ -174,6 +174,7 @@ class DocumentScene extends React.Component<Props> {
 
     if (template instanceof Document) {
       this.props.document.templateId = template.id;
+      this.props.document.fullWidth = template.fullWidth;
     }
 
     if (!this.title) {
@@ -551,6 +552,11 @@ class DocumentScene extends React.Component<Props> {
                     >
                       <Notices document={document} readOnly={readOnly} />
 
+                      {showContents && (
+                        <PrintContentsContainer>
+                          <Contents />
+                        </PrintContentsContainer>
+                      )}
                       <Editor
                         id={document.id}
                         key={embedsDisabled ? "disabled" : "enabled"}
@@ -665,6 +671,19 @@ const ContentsContainer = styled.div<ContentsContainerProps>`
     justify-self: ${({ position }: ContentsContainerProps) =>
       position === TOCPosition.Left ? "end" : "start"};
   `};
+
+  @media print {
+    display: none;
+  }
+`;
+
+const PrintContentsContainer = styled.div`
+  display: none;
+  margin: 0 -12px;
+
+  @media print {
+    display: block;
+  }
 `;
 
 type EditorContainerProps = {

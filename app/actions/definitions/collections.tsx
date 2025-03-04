@@ -8,12 +8,13 @@ import {
   SearchIcon,
   ShapesIcon,
   StarredIcon,
+  SubscribeIcon,
   TrashIcon,
   UnstarredIcon,
+  UnsubscribeIcon,
 } from "outline-icons";
 import * as React from "react";
 import { toast } from "sonner";
-import stores from "~/stores";
 import Collection from "~/models/Collection";
 import { CollectionEdit } from "~/components/Collection/CollectionEdit";
 import { CollectionNew } from "~/components/Collection/CollectionNew";
@@ -60,7 +61,7 @@ export const createCollection = createAction({
   keywords: "create",
   visible: ({ stores }) =>
     stores.policies.abilities(stores.auth.team?.id || "").createCollection,
-  perform: ({ t, event }) => {
+  perform: ({ t, event, stores }) => {
     event?.preventDefault();
     event?.stopPropagation();
     stores.dialogs.openModal({
@@ -76,10 +77,10 @@ export const editCollection = createAction({
   analyticsName: "Edit collection",
   section: ActiveCollectionSection,
   icon: <EditIcon />,
-  visible: ({ activeCollectionId }) =>
+  visible: ({ activeCollectionId, stores }) =>
     !!activeCollectionId &&
     stores.policies.abilities(activeCollectionId).update,
-  perform: ({ t, activeCollectionId }) => {
+  perform: ({ t, activeCollectionId, stores }) => {
     if (!activeCollectionId) {
       return;
     }
@@ -102,10 +103,10 @@ export const editCollectionPermissions = createAction({
   analyticsName: "Collection permissions",
   section: ActiveCollectionSection,
   icon: <PadlockIcon />,
-  visible: ({ activeCollectionId }) =>
+  visible: ({ activeCollectionId, stores }) =>
     !!activeCollectionId &&
     stores.policies.abilities(activeCollectionId).update,
-  perform: ({ t, activeCollectionId }) => {
+  perform: ({ t, activeCollectionId, stores }) => {
     if (!activeCollectionId) {
       return;
     }
@@ -133,7 +134,7 @@ export const searchInCollection = createAction({
   analyticsName: "Search collection",
   section: ActiveCollectionSection,
   icon: <SearchIcon />,
-  visible: ({ activeCollectionId }) => {
+  visible: ({ activeCollectionId, stores }) => {
     if (!activeCollectionId) {
       return false;
     }
@@ -158,7 +159,7 @@ export const starCollection = createAction({
   section: ActiveCollectionSection,
   icon: <StarredIcon />,
   keywords: "favorite bookmark",
-  visible: ({ activeCollectionId }) => {
+  visible: ({ activeCollectionId, stores }) => {
     if (!activeCollectionId) {
       return false;
     }
@@ -168,7 +169,7 @@ export const starCollection = createAction({
       stores.policies.abilities(activeCollectionId).star
     );
   },
-  perform: async ({ activeCollectionId }) => {
+  perform: async ({ activeCollectionId, stores }) => {
     if (!activeCollectionId) {
       return;
     }
@@ -185,7 +186,7 @@ export const unstarCollection = createAction({
   section: ActiveCollectionSection,
   icon: <UnstarredIcon />,
   keywords: "unfavorite unbookmark",
-  visible: ({ activeCollectionId }) => {
+  visible: ({ activeCollectionId, stores }) => {
     if (!activeCollectionId) {
       return false;
     }
@@ -195,13 +196,73 @@ export const unstarCollection = createAction({
       stores.policies.abilities(activeCollectionId).unstar
     );
   },
-  perform: async ({ activeCollectionId }) => {
+  perform: async ({ activeCollectionId, stores }) => {
     if (!activeCollectionId) {
       return;
     }
 
     const collection = stores.collections.get(activeCollectionId);
     await collection?.unstar();
+  },
+});
+
+export const subscribeCollection = createAction({
+  name: ({ t }) => t("Subscribe"),
+  analyticsName: "Subscribe to collection",
+  section: ActiveCollectionSection,
+  icon: <SubscribeIcon />,
+  visible: ({ activeCollectionId, stores }) => {
+    if (!activeCollectionId) {
+      return false;
+    }
+
+    const collection = stores.collections.get(activeCollectionId);
+
+    return (
+      !collection?.isSubscribed &&
+      stores.policies.abilities(activeCollectionId).subscribe
+    );
+  },
+  perform: async ({ activeCollectionId, stores, t }) => {
+    if (!activeCollectionId) {
+      return;
+    }
+
+    const collection = stores.collections.get(activeCollectionId);
+
+    await collection?.subscribe();
+
+    toast.success(t("Subscribed to document notifications"));
+  },
+});
+
+export const unsubscribeCollection = createAction({
+  name: ({ t }) => t("Unsubscribe"),
+  analyticsName: "Unsubscribe from collection",
+  section: ActiveCollectionSection,
+  icon: <UnsubscribeIcon />,
+  visible: ({ activeCollectionId, stores }) => {
+    if (!activeCollectionId) {
+      return false;
+    }
+
+    const collection = stores.collections.get(activeCollectionId);
+
+    return (
+      !!collection?.isSubscribed &&
+      stores.policies.abilities(activeCollectionId).unsubscribe
+    );
+  },
+  perform: async ({ activeCollectionId, currentUserId, stores, t }) => {
+    if (!activeCollectionId || !currentUserId) {
+      return;
+    }
+
+    const collection = stores.collections.get(activeCollectionId);
+
+    await collection?.unsubscribe();
+
+    toast.success(t("Unsubscribed from document notifications"));
   },
 });
 
@@ -277,13 +338,13 @@ export const deleteCollection = createAction({
   section: ActiveCollectionSection,
   dangerous: true,
   icon: <TrashIcon />,
-  visible: ({ activeCollectionId }) => {
+  visible: ({ activeCollectionId, stores }) => {
     if (!activeCollectionId) {
       return false;
     }
     return stores.policies.abilities(activeCollectionId).delete;
   },
-  perform: ({ activeCollectionId, t }) => {
+  perform: ({ activeCollectionId, t, stores }) => {
     if (!activeCollectionId) {
       return;
     }
@@ -311,7 +372,7 @@ export const createTemplate = createAction({
   section: ActiveCollectionSection,
   icon: <ShapesIcon />,
   keywords: "new create template",
-  visible: ({ activeCollectionId }) =>
+  visible: ({ activeCollectionId, stores }) =>
     !!(
       !!activeCollectionId &&
       stores.policies.abilities(activeCollectionId).createDocument
@@ -331,5 +392,7 @@ export const rootCollectionActions = [
   createCollection,
   starCollection,
   unstarCollection,
+  subscribeCollection,
+  unsubscribeCollection,
   deleteCollection,
 ];

@@ -98,9 +98,10 @@ router.post(
   pagination(),
   validate(T.SharesListSchema),
   async (ctx: APIContext<T.SharesListReq>) => {
-    const { sort, direction } = ctx.input.body;
+    const { sort, direction, query } = ctx.input.body;
     const { user } = ctx.state.auth;
     authorize(user, "listShares", user.team);
+    const collectionIds = await user.collectionIds();
 
     const where: WhereOptions<Share> = {
       teamId: user.teamId,
@@ -111,11 +112,20 @@ router.post(
       },
     };
 
+    const documentWhere: WhereOptions<Document> = {
+      teamId: user.teamId,
+      collectionId: collectionIds,
+    };
+
+    if (query) {
+      documentWhere.title = {
+        [Op.iLike]: `%${query}%`,
+      };
+    }
+
     if (user.isAdmin) {
       delete where.userId;
     }
-
-    const collectionIds = await user.collectionIds();
 
     const options: FindOptions = {
       where,
@@ -125,9 +135,7 @@ router.post(
           required: true,
           paranoid: true,
           as: "document",
-          where: {
-            collectionId: collectionIds,
-          },
+          where: documentWhere,
           include: [
             {
               model: Collection.scope({

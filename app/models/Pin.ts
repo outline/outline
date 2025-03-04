@@ -12,6 +12,8 @@ import Relation from "./decorators/Relation";
 class Pin extends Model {
   static modelName = "Pin";
 
+  store: PinsStore;
+
   /** The collection ID that the document is pinned to. If empty the document is pinned to home. */
   collectionId: string | null;
 
@@ -35,7 +37,7 @@ class Pin extends Model {
   @AfterDelete
   @AfterRemove
   static updateCache(model: Pin) {
-    const pins = model.store as PinsStore;
+    const pins = model.store;
 
     // Pinned to home
     if (!model.collectionId) {

@@ -1,5 +1,6 @@
 import capitalize from "lodash/capitalize";
 import isEmpty from "lodash/isEmpty";
+import noop from "lodash/noop";
 import { observer } from "mobx-react";
 import { EditIcon, InputIcon, RestoreIcon, SearchIcon } from "outline-icons";
 import * as React from "react";
@@ -11,7 +12,7 @@ import { toast } from "sonner";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
-import { UserPreference } from "@shared/types";
+import { SubscriptionType, UserPreference } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import Document from "~/models/Document";
 import ContextMenu from "~/components/ContextMenu";
@@ -56,7 +57,7 @@ import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
-import { MenuItem } from "~/types";
+import { MenuItem, MenuItemButton } from "~/types";
 import { documentEditPath } from "~/utils/routeHelpers";
 import { MenuContext, useMenuContext } from "./MenuContext";
 
@@ -102,8 +103,14 @@ const MenuTrigger: React.FC<MenuTriggerProps> = ({ label, onTrigger }) => {
     Promise.all([
       subscriptions.fetchOne({
         documentId: document.id,
-        event: "documents.update",
+        event: SubscriptionType.Document,
       }),
+      document.collectionId
+        ? subscriptions.fetchOne({
+            collectionId: document.collectionId,
+            event: SubscriptionType.Document,
+          })
+        : noop,
       pins.fetchOne({
         documentId: document.id,
         collectionId: document.collectionId ?? null,
@@ -254,8 +261,20 @@ const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
           },
           actionToMenuItem(starDocument, context),
           actionToMenuItem(unstarDocument, context),
-          actionToMenuItem(subscribeDocument, context),
-          actionToMenuItem(unsubscribeDocument, context),
+          {
+            ...actionToMenuItem(subscribeDocument, context),
+            disabled: collection?.isSubscribed,
+            tooltip: collection?.isSubscribed
+              ? t("Subscription inherited from collection")
+              : undefined,
+          } as MenuItemButton,
+          {
+            ...actionToMenuItem(unsubscribeDocument, context),
+            disabled: collection?.isSubscribed,
+            tooltip: collection?.isSubscribed
+              ? t("Subscription inherited from collection")
+              : undefined,
+          } as MenuItemButton,
           {
             type: "button",
             title: `${t("Find and replace")}…`,

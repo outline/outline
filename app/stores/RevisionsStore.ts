@@ -8,7 +8,7 @@ import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
 
 export default class RevisionsStore extends Store<Revision> {
-  actions = [RPCAction.List, RPCAction.Info];
+  actions = [RPCAction.List, RPCAction.Update, RPCAction.Info];
 
   constructor(rootStore: RootStore) {
     super(rootStore, Revision);

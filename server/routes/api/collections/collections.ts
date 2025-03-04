@@ -702,7 +702,7 @@ router.post(
   pagination(),
   transaction(),
   async (ctx: APIContext<T.CollectionsListReq>) => {
-    const { includeListOnly, statusFilter } = ctx.input.body;
+    const { includeListOnly, query, statusFilter } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
     const collectionIds = await user.collectionIds({ transaction });
@@ -728,6 +728,12 @@ router.post(
       where[Op.and].push({ id: collectionIds });
     }
 
+    if (query) {
+      where[Op.and].push(
+        Sequelize.literal(`unaccent(LOWER(name)) like unaccent(LOWER(:query))`)
+      );
+    }
+
     const statusQuery = [];
     if (statusFilter?.includes(CollectionStatusFilter.Archived)) {
       statusQuery.push({
@@ -743,6 +749,8 @@ router.post(
       });
     }
 
+    const replacements = { query: `%${query}%` };
+
     const [collections, total] = await Promise.all([
       Collection.scope(
         statusFilter?.includes(CollectionStatusFilter.Archived)
@@ -757,6 +765,7 @@ router.post(
             }
       ).findAll({
         where,
+        replacements,
         order: [
           Sequelize.literal('"collection"."index" collate "C"'),
           ["updatedAt", "DESC"],
@@ -765,7 +774,12 @@ router.post(
         limit: ctx.state.pagination.limit,
         transaction,
       }),
-      Collection.count({ where, transaction }),
+      Collection.count({
+        where,
+        // @ts-expect-error Types are incorrect for count
+        replacements,
+        transaction,
+      }),
     ]);
 
     const nullIndex = collections.findIndex(

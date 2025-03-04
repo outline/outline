@@ -333,6 +333,7 @@ export const subscribeDocument = createAction({
     const document = stores.documents.get(activeDocumentId);
 
     return (
+      !document?.collection?.isSubscribed &&
       !document?.isSubscribed &&
       stores.policies.abilities(activeDocumentId).subscribe
     );
@@ -361,8 +362,9 @@ export const unsubscribeDocument = createAction({
     const document = stores.documents.get(activeDocumentId);
 
     return (
-      !!document?.isSubscribed &&
-      stores.policies.abilities(activeDocumentId).unsubscribe
+      !!document?.collection?.isSubscribed ||
+      (!!document?.isSubscribed &&
+        stores.policies.abilities(activeDocumentId).unsubscribe)
     );
   },
   perform: async ({ activeDocumentId, stores, currentUserId, t }) => {
@@ -681,6 +683,7 @@ export const searchInDocument = createAction({
   name: ({ t }) => t("Search in document"),
   analyticsName: "Search document",
   section: ActiveDocumentSection,
+  shortcut: [`Meta+/`],
   icon: <SearchIcon />,
   visible: ({ stores, activeDocumentId }) => {
     if (!activeDocumentId) {
@@ -1208,6 +1211,7 @@ export const rootDocumentActions = [
   unpublishDocument,
   subscribeDocument,
   unsubscribeDocument,
+  searchInDocument,
   duplicateDocument,
   leaveDocument,
   moveTemplateToWorkspace,

@@ -12,6 +12,7 @@ async function presentRevision(revision: Revision, diff?: string) {
     id: revision.id,
     documentId: revision.documentId,
     title: strippedTitle,
+    name: revision.name,
     data: await DocumentHelper.toJSON(revision),
     icon: revision.icon ?? emoji,
     color: revision.color,

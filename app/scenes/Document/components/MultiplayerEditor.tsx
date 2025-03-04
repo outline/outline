@@ -99,7 +99,11 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     });
 
     provider.on("awarenessChange", (event: AwarenessChangeEvent) => {
-      presence.updateFromAwarenessChangeEvent(documentId, event);
+      presence.updateFromAwarenessChangeEvent(
+        documentId,
+        provider.awareness.clientID,
+        event
+      );
 
       event.states.forEach(({ user, scrollY }) => {
         if (user) {

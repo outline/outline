@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import styled from "styled-components";
 import { richExtensions } from "@shared/editor/nodes";
 import { s } from "@shared/styles";
+import { CollectionValidation } from "@shared/validations";
 import Collection from "~/models/Collection";
 import Editor from "~/components/Editor";
 import LoadingIndicator from "~/components/LoadingIndicator";
@@ -61,7 +62,7 @@ function CollectionDescription({ collection }: Props) {
             onChange={handleSave}
             placeholder={`${t("Add a description")}…`}
             extensions={extensions}
-            maxLength={1000}
+            maxLength={CollectionValidation.maxDescriptionLength}
             canUpdate={can.update}
             readOnly={!can.update}
             editorStyle={editorStyle}

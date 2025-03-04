@@ -4,6 +4,7 @@ import cookie from "cookie";
 import Koa from "koa";
 import IO from "socket.io";
 import { createAdapter } from "socket.io-redis";
+import EDITOR_VERSION from "@shared/editor/version";
 import { AuthenticationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
@@ -116,7 +117,7 @@ export default function init(
       await authenticate(socket);
       Logger.debug("websockets", `Authenticated socket ${socket.id}`);
 
-      socket.emit("authenticated", true);
+      socket.emit("authenticated", { editorVersion: EDITOR_VERSION });
       void authenticated(io, socket);
     } catch (err) {
       Logger.debug("websockets", `Authentication error socket ${socket.id}`, {

@@ -1,5 +1,6 @@
 import isEmpty from "lodash/isEmpty";
 import { z } from "zod";
+import { RevisionValidation } from "@shared/validations";
 import { Revision } from "@server/models";
 import { BaseSchema } from "@server/routes/api/schema";
 
@@ -24,6 +25,20 @@ export const RevisionsDiffSchema = BaseSchema.extend({
 });
 
 export type RevisionsDiffReq = z.infer<typeof RevisionsDiffSchema>;
+
+export const RevisionsUpdateSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid(),
+
+    name: z
+      .string()
+      .min(RevisionValidation.minNameLength)
+      .max(RevisionValidation.maxNameLength)
+      .or(z.null()),
+  }),
+});
+
+export type RevisionsUpdateReq = z.infer<typeof RevisionsUpdateSchema>;
 
 export const RevisionsListSchema = z.object({
   body: z.object({
