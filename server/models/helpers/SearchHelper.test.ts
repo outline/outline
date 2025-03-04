@@ -861,6 +861,51 @@ describe("SearchHelper", () => {
     });
   });
 
+  describe("#searchCollectionsForUser", () => {
+    test("should return search results from collections", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection1 = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+        name: "Test Collection",
+      });
+      await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+        name: "Other Collection",
+      });
+
+      const results = await SearchHelper.searchCollectionsForUser(user, {
+        query: "test",
+      });
+
+      expect(results.length).toBe(1);
+      expect(results[0].id).toBe(collection1.id);
+    });
+
+    test("should return all collections when no query provided", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection1 = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+        name: "Alpha",
+      });
+      const collection2 = await buildCollection({
+        teamId: team.id,
+        userId: user.id,
+        name: "Beta",
+      });
+
+      const results = await SearchHelper.searchCollectionsForUser(user);
+
+      expect(results.length).toBe(2);
+      expect(results[0].id).toBe(collection1.id);
+      expect(results[1].id).toBe(collection2.id);
+    });
+  });
+
   describe("webSearchQuery", () => {
     test("should correctly sanitize query", () => {
       expect(SearchHelper.webSearchQuery("one/two")).toBe("one/two:*");

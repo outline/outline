@@ -2,6 +2,8 @@ import { ActionContext } from "~/types";
 
 export const CollectionSection = ({ t }: ActionContext) => t("Collection");
 
+export const CollectionsSection = ({ t }: ActionContext) => t("Collections");
+
 export const ActiveCollectionSection = ({ t, stores }: ActionContext) => {
   const activeCollection = stores.collections.active;
   return `${t("Collection")} · ${activeCollection?.name}`;

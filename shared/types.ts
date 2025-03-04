@@ -57,6 +57,7 @@ export enum FileOperationState {
 export enum MentionType {
   User = "user",
   Document = "document",
+  Collection = "collection",
 }
 
 export type PublicEnv = {
