@@ -1925,6 +1925,21 @@ del[data-operation-index] {
 }
 `;
 
+const toggleBlockStyle = () => css`
+  .toggle-head {
+    display: flex;
+    align-items: center;
+
+    > span {
+      flex-grow: 1;
+      overflow: auto;
+    }
+  }
+  .toggle-body {
+    padding-left: 12px;
+  }
+`;
+
 const EditorContainer = styled.div<Props>`
   ${style}
   ${mathStyle}
@@ -1932,6 +1947,7 @@ const EditorContainer = styled.div<Props>`
   ${codeBlockStyle}
   ${findAndReplaceStyle}
   ${emailStyle}
+  ${toggleBlockStyle}
 `;
 
 export default EditorContainer;
