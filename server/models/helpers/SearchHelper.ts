@@ -203,6 +203,35 @@ export default class SearchHelper {
     });
   }
 
+  public static async searchCollectionsForUser(
+    user: User,
+    options: SearchOptions = {}
+  ): Promise<Collection[]> {
+    const { limit = 15, offset = 0, query } = options;
+
+    const collectionIds = await user.collectionIds();
+
+    return Collection.findAll({
+      where: {
+        [Op.and]: query
+          ? {
+              [Op.or]: [
+                Sequelize.literal(
+                  `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
+                ),
+              ],
+            }
+          : {},
+        id: collectionIds,
+        teamId: user.teamId,
+      },
+      order: [["name", "ASC"]],
+      replacements: { query: `%${query}%` },
+      limit,
+      offset,
+    });
+  }
+
   public static async searchForUser(
     user: User,
     options: SearchOptions = {}
