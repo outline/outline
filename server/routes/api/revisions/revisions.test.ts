@@ -64,6 +64,44 @@ describe("#revisions.update", () => {
     expect(body.data.name).toEqual("new name");
   });
 
+  it("should allow setting name to null", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const revision = await Revision.createFromDocument(document);
+
+    const res = await server.post("/api/revisions.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: revision.id,
+        name: null,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.name).toBeNull();
+  });
+
+  it("should not allow setting name to empty string", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const revision = await Revision.createFromDocument(document);
+
+    const res = await server.post("/api/revisions.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: revision.id,
+        name: "",
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it("should allow an admin to update a document revision", async () => {
     const admin = await buildAdmin();
     const document = await buildDocument({
