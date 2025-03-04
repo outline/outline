@@ -30,27 +30,41 @@ import {
 } from "./primitives/components/InputSelect";
 
 type Separator = {
+  /* Denotes a horizontal divider line to be rendered in the menu, */
   type: "separator";
 };
 
 export type Item = {
+  /* Denotes a selectable option in the menu. */
   type: "item";
+  /* Representative text shown in the menu for this option. */
   label: string;
+  /* Actual value of this option. */
   value: string;
+  /* Additional info shown alongside the label.  */
   description?: string;
+  /* An icon shown alongside the label.  */
   icon?: React.ReactElement;
 };
 
 export type Option = Item | Separator;
 
 type Props = {
+  /* Options to display in the select menu. */
   options: Option[];
+  /* Current chosen value. */
   value?: string;
+  /* Callback when an option is selected. */
   onChange: (value: string) => void;
+  /* ARIA label for accessibility. */
   ariaLabel: string;
+  /* Label for the select menu. */
   label: string;
+  /* When true, label is hidden in an accessible manner. */
   hideLabel?: boolean;
+  /* When true, menu is disabled. */
   disabled?: boolean;
+  /* When true, width of the menu trigger is restricted. Otherwise, takes up the full width of parent. */
   short?: boolean;
 } & TriggerButtonProps;
 
@@ -105,9 +119,15 @@ export function InputSelectNew(props: Props) {
     [onChange, setLocalValue]
   );
 
-  const togglePointerEvents = React.useCallback((allow: boolean) => {
+  const enablePointerEvents = React.useCallback(() => {
     if (contentRef.current) {
-      contentRef.current.style.pointerEvents = allow ? "auto" : "none";
+      contentRef.current.style.pointerEvents = "auto";
+    }
+  }, []);
+
+  const disablePointerEvents = React.useCallback(() => {
+    if (contentRef.current) {
+      contentRef.current.style.pointerEvents = "none";
     }
   }, []);
 
@@ -144,8 +164,8 @@ export function InputSelectNew(props: Props) {
         <InputSelectContent
           ref={contentRef}
           aria-label={ariaLabel}
-          onAnimationStart={() => togglePointerEvents(false)}
-          onAnimationEnd={() => togglePointerEvents(true)}
+          onAnimationStart={disablePointerEvents}
+          onAnimationEnd={enablePointerEvents}
         >
           {options.map(renderOption)}
         </InputSelectContent>
@@ -215,9 +235,15 @@ function MobileSelect(props: MobileSelectProps) {
     [handleSelect, selectedOption, optionsHaveIcon]
   );
 
-  const allowPointerEvents = React.useCallback((allow: boolean) => {
+  const enablePointerEvents = React.useCallback(() => {
     if (contentRef.current) {
-      contentRef.current.style.pointerEvents = allow ? "auto" : "none";
+      contentRef.current.style.pointerEvents = "auto";
+    }
+  }, []);
+
+  const disablePointerEvents = React.useCallback(() => {
+    if (contentRef.current) {
+      contentRef.current.style.pointerEvents = "none";
     }
   }, []);
 
@@ -245,8 +271,8 @@ function MobileSelect(props: MobileSelectProps) {
         <DrawerContent
           ref={contentRef}
           aria-label={ariaLabel}
-          onAnimationStart={() => allowPointerEvents(false)}
-          onAnimationEnd={() => allowPointerEvents(true)}
+          onAnimationStart={disablePointerEvents}
+          onAnimationEnd={enablePointerEvents}
         >
           <DrawerTitle hidden={!label}>{label ?? ariaLabel}</DrawerTitle>
           <StyledScrollable hiddenScrollbars>

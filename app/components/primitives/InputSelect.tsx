@@ -11,18 +11,15 @@ import {
   SelectButton,
 } from "./components/InputSelect";
 
-/* ----------------------------------------------------------------------------
- * Root
- * --------------------------------------------------------------------------*/
-
+/** Root InputSelect component - all the other components are rendered inside it. */
 const InputSelectRoot = InputSelectPrimitive.Root;
 
-/* ----------------------------------------------------------------------------
- * Trigger
- * --------------------------------------------------------------------------*/
+/** InputSelect's trigger. */
 
 export type TriggerButtonProps = {
+  /** When true, "nude" variant of Button is rendered. */
   nude?: boolean;
+  /** Optional css class names to pass to the trigger. */
   className?: string;
 } & Pick<ButtonProps<unknown>, "borderOnHover">;
 
@@ -45,10 +42,7 @@ const InputSelectTrigger = React.forwardRef<
 });
 InputSelectTrigger.displayName = InputSelectPrimitive.Trigger.displayName;
 
-/* ----------------------------------------------------------------------------
- * Content
- * --------------------------------------------------------------------------*/
-
+/** InputSelect's content - renders the options in a scrollable element. */
 type ContentProps = Omit<
   React.ComponentPropsWithoutRef<typeof InputSelectPrimitive.Content>,
   "position"
@@ -72,10 +66,7 @@ const InputSelectContent = React.forwardRef<
 });
 InputSelectContent.displayName = InputSelectPrimitive.Content.displayName;
 
-/* ----------------------------------------------------------------------------
- * Item
- * --------------------------------------------------------------------------*/
-
+/** Individual InputSelect option rendered in the menu. */
 const InputSelectItem = React.forwardRef<
   React.ElementRef<typeof InputSelectPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof InputSelectPrimitive.Item>
@@ -97,10 +88,7 @@ const InputSelectItem = React.forwardRef<
 });
 InputSelectItem.displayName = InputSelectPrimitive.Item.displayName;
 
-/* ----------------------------------------------------------------------------
- * Separator
- * --------------------------------------------------------------------------*/
-
+/** Horizontal separator rendered between the options. */
 const InputSelectSeparator = React.forwardRef<
   React.ElementRef<typeof InputSelectPrimitive.Separator>,
   React.ComponentPropsWithoutRef<typeof InputSelectPrimitive.Separator>
@@ -111,10 +99,7 @@ const InputSelectSeparator = React.forwardRef<
 ));
 InputSelectSeparator.displayName = InputSelectPrimitive.Separator.displayName;
 
-/* ----------------------------------------------------------------------------
- * Styled components
- * --------------------------------------------------------------------------*/
-
+/** Styled components. */
 const StyledContent = styled(InputSelectPrimitive.Content)`
   z-index: ${depths.menu};
   min-width: var(--radix-select-trigger-width);

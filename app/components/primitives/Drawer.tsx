@@ -7,25 +7,16 @@ import Flex from "../Flex";
 import Text from "../Text";
 import { Overlay } from "./components/Overlay";
 
-/* ----------------------------------------------------------------------------
- * Root
- * --------------------------------------------------------------------------*/
-
+/** Root Drawer component - all the other components are rendered inside it. */
 const Drawer = (props: React.ComponentProps<typeof DrawerPrimitive.Root>) => (
-  <DrawerPrimitive.Root shouldScaleBackground {...props} />
+  <DrawerPrimitive.Root {...props} />
 );
 Drawer.displayName = "Drawer";
 
-/* ----------------------------------------------------------------------------
- * Trigger
- * --------------------------------------------------------------------------*/
-
+/** Drawer's trigger. */
 const DrawerTrigger = DrawerPrimitive.Trigger;
 
-/* ----------------------------------------------------------------------------
- * Content
- * --------------------------------------------------------------------------*/
-
+/** Drawer's content - renders the overlay and the actual content. */
 const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
@@ -45,10 +36,7 @@ const DrawerContent = React.forwardRef<
 });
 DrawerContent.displayName = DrawerPrimitive.Content.displayName;
 
-/* ----------------------------------------------------------------------------
- * Title
- * --------------------------------------------------------------------------*/
-
+/** Drawer's title shown in the center. */
 const DrawerTitle = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Title>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Title>
@@ -75,10 +63,7 @@ const DrawerTitle = React.forwardRef<
 });
 DrawerTitle.displayName = DrawerPrimitive.Title.displayName;
 
-/* ----------------------------------------------------------------------------
- * Styled components
- * --------------------------------------------------------------------------*/
-
+/** Styled components. */
 const StyledContent = styled(DrawerPrimitive.Content)`
   z-index: ${depths.menu};
   position: fixed;
