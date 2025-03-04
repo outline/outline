@@ -69,7 +69,9 @@ export default class CollectionsStore extends Store<Collection> {
    */
   @computed
   get nonPrivate(): Collection[] {
-    return this.all.filter((collection) => !collection.isPrivate);
+    return this.all.filter(
+      (collection) => collection.isActive && !collection.isPrivate
+    );
   }
 
   /**
