@@ -6,21 +6,17 @@ import BaseProcessor from "./BaseProcessor";
 
 export default class DocumentSubscriptionProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
-    "documents.add_user",
     "documents.remove_user",
-    "documents.add_group",
     "documents.remove_group",
   ];
 
   async perform(event: DocumentUserEvent | DocumentGroupEvent) {
     switch (event.name) {
-      case "documents.add_user":
       case "documents.remove_user": {
         await DocumentSubscriptionTask.schedule(event);
         return;
       }
 
-      case "documents.add_group":
       case "documents.remove_group":
         return this.handleGroup(event);
 
@@ -29,11 +25,6 @@ export default class DocumentSubscriptionProcessor extends BaseProcessor {
   }
 
   private async handleGroup(event: DocumentGroupEvent) {
-    const userEventName: DocumentUserEvent["name"] =
-      event.name === "documents.add_group"
-        ? "documents.add_user"
-        : "documents.remove_user";
-
     await GroupUser.findAllInBatches<GroupUser>(
       {
         where: {
@@ -49,7 +40,7 @@ export default class DocumentSubscriptionProcessor extends BaseProcessor {
           groupUsers.map((groupUser) =>
             DocumentSubscriptionTask.schedule({
               ...event,
-              name: userEventName,
+              name: "documents.remove_user",
               userId: groupUser.userId,
             })
           )
