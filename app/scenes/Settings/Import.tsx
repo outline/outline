@@ -15,10 +15,10 @@ import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import env from "~/env";
 import useStores from "~/hooks/useStores";
+import { Hook, PluginManager } from "~/utils/PluginManager";
 import FileOperationListItem from "./components/FileOperationListItem";
 import ImportJSONDialog from "./components/ImportJSONDialog";
 import ImportMarkdownDialog from "./components/ImportMarkdownDialog";
-import ImportNotionDialog from "./components/ImportNotionDialog";
 
 type Config = {
   title: string;
@@ -32,8 +32,8 @@ function Import() {
   const { dialogs, fileOperations } = useStores();
   const appName = env.APP_NAME;
 
-  const configs: Config[] = React.useMemo(
-    () => [
+  const configs = React.useMemo(() => {
+    const items: Config[] = [
       {
         title: t("Markdown"),
         subtitle: t(
@@ -79,38 +79,25 @@ function Import() {
           </Button>
         ),
       },
-      {
-        title: "Notion",
-        subtitle: t("Import pages exported from Notion"),
-        icon: <img src={cdnPath("/images/notion.png")} width={28} />,
-        action: (
-          <Button
-            type="submit"
-            onClick={() => {
-              dialogs.openModal({
-                title: t("Import data"),
-                content: <ImportNotionDialog />,
-              });
-            }}
-            neutral
-          >
-            {t("Import")}…
-          </Button>
-        ),
-      },
-      {
-        title: "Confluence",
-        subtitle: t("Import pages from a Confluence instance"),
-        icon: <img src={cdnPath("/images/confluence.png")} width={28} />,
-        action: (
-          <Button type="submit" disabled neutral>
-            {t("Enterprise")}
-          </Button>
-        ),
-      },
-    ],
-    [t, dialogs, appName]
-  );
+    ];
+
+    PluginManager.getHooks(Hook.Imports).forEach((plugin) => {
+      items.push({ ...plugin.value });
+    });
+
+    items.push({
+      title: "Confluence",
+      subtitle: t("Import pages from a Confluence instance"),
+      icon: <img src={cdnPath("/images/confluence.png")} width={28} />,
+      action: (
+        <Button type="submit" disabled neutral>
+          {t("Enterprise")}
+        </Button>
+      ),
+    });
+
+    return items;
+  }, [t, dialogs, appName]);
 
   return (
     <Scene title={t("Import")} icon={<NewDocumentIcon />}>
