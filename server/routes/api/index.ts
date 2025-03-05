@@ -106,11 +106,11 @@ if (env.isDevelopment) {
   router.use("/", developer.routes());
 }
 
-router.post("*", (ctx) => {
+router.post("*all", (ctx) => {
   ctx.throw(NotFoundError("Endpoint not found"));
 });
 
-router.get("*", (ctx) => {
+router.get("*all", (ctx) => {
   ctx.throw(NotFoundError("Endpoint not found"));
 });
 
