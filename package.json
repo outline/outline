@@ -142,7 +142,7 @@
     "koa-helmet": "^6.1.0",
     "koa-logger": "^3.2.1",
     "koa-mount": "^4.0.0",
-    "koa-router": "7.4.0",
+    "koa-router": "13.0.1",
     "koa-send": "5.0.1",
     "koa-sslify": "5.0.1",
     "koa-useragent": "^4.1.0",
