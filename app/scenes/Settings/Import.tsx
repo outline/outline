@@ -20,10 +20,97 @@ import ImportJSONDialog from "./components/ImportJSONDialog";
 import ImportMarkdownDialog from "./components/ImportMarkdownDialog";
 import ImportNotionDialog from "./components/ImportNotionDialog";
 
+type Config = {
+  title: string;
+  subtitle: string;
+  icon: React.ReactElement;
+  action: React.ReactElement;
+};
+
 function Import() {
   const { t } = useTranslation();
   const { dialogs, fileOperations } = useStores();
   const appName = env.APP_NAME;
+
+  const configs: Config[] = React.useMemo(
+    () => [
+      {
+        title: t("Markdown"),
+        subtitle: t(
+          "Import a zip file of Markdown documents (exported from version 0.67.0 or earlier)"
+        ),
+        icon: <MarkdownIcon size={28} />,
+        action: (
+          <Button
+            type="submit"
+            onClick={() => {
+              dialogs.openModal({
+                title: t("Import data"),
+                content: <ImportMarkdownDialog />,
+              });
+            }}
+            neutral
+          >
+            {t("Import")}…
+          </Button>
+        ),
+      },
+      {
+        title: "JSON",
+        subtitle: t(
+          "Import a JSON data file exported from another {{ appName }} instance",
+          {
+            appName,
+          }
+        ),
+        icon: <OutlineIcon size={28} cover />,
+        action: (
+          <Button
+            type="submit"
+            onClick={() => {
+              dialogs.openModal({
+                title: t("Import data"),
+                content: <ImportJSONDialog />,
+              });
+            }}
+            neutral
+          >
+            {t("Import")}…
+          </Button>
+        ),
+      },
+      {
+        title: "Notion",
+        subtitle: t("Import pages exported from Notion"),
+        icon: <img src={cdnPath("/images/notion.png")} width={28} />,
+        action: (
+          <Button
+            type="submit"
+            onClick={() => {
+              dialogs.openModal({
+                title: t("Import data"),
+                content: <ImportNotionDialog />,
+              });
+            }}
+            neutral
+          >
+            {t("Import")}…
+          </Button>
+        ),
+      },
+      {
+        title: "Confluence",
+        subtitle: t("Import pages from a Confluence instance"),
+        icon: <img src={cdnPath("/images/confluence.png")} width={28} />,
+        action: (
+          <Button type="submit" disabled neutral>
+            {t("Enterprise")}
+          </Button>
+        ),
+      },
+    ],
+    [t, dialogs, appName]
+  );
 
   return (
     <Scene title={t("Import")} icon={<NewDocumentIcon />}>
@@ -38,84 +125,16 @@ function Import() {
       </Text>
 
       <div>
-        <Item
-          border={false}
-          image={<MarkdownIcon size={28} />}
-          title={t("Markdown")}
-          subtitle={t(
-            "Import a zip file of Markdown documents (exported from version 0.67.0 or earlier)"
-          )}
-          actions={
-            <Button
-              type="submit"
-              onClick={() => {
-                dialogs.openModal({
-                  title: t("Import data"),
-                  content: <ImportMarkdownDialog />,
-                });
-              }}
-              neutral
-            >
-              {t("Import")}…
-            </Button>
-          }
-        />
-        <Item
-          border={false}
-          image={<OutlineIcon size={28} cover />}
-          title="JSON"
-          subtitle={t(
-            "Import a JSON data file exported from another {{ appName }} instance",
-            {
-              appName,
-            }
-          )}
-          actions={
-            <Button
-              type="submit"
-              onClick={() => {
-                dialogs.openModal({
-                  title: t("Import data"),
-                  content: <ImportJSONDialog />,
-                });
-              }}
-              neutral
-            >
-              {t("Import")}…
-            </Button>
-          }
-        />
-        <Item
-          border={false}
-          image={<img src={cdnPath("/images/notion.png")} width={28} />}
-          title="Notion"
-          subtitle={t("Import pages exported from Notion")}
-          actions={
-            <Button
-              type="submit"
-              onClick={() => {
-                dialogs.openModal({
-                  title: t("Import data"),
-                  content: <ImportNotionDialog />,
-                });
-              }}
-              neutral
-            >
-              {t("Import")}…
-            </Button>
-          }
-        />
-        <Item
-          border={false}
-          image={<img src={cdnPath("/images/confluence.png")} width={28} />}
-          title="Confluence"
-          subtitle={t("Import pages from a Confluence instance")}
-          actions={
-            <Button type="submit" disabled neutral>
-              {t("Enterprise")}
-            </Button>
-          }
-        />
+        {configs.map((config) => (
+          <Item
+            key={config.title}
+            title={config.title}
+            subtitle={config.subtitle}
+            image={config.icon}
+            actions={config.action}
+            border={false}
+          />
+        ))}
       </div>
       <br />
       <PaginatedList
