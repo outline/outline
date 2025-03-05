@@ -86,6 +86,7 @@ export enum IntegrationType {
   Analytics = "analytics",
   /** An integration that maps an Outline user to an external service. */
   LinkedAccount = "linkedAccount",
+  Import = "import",
 }
 
 export enum IntegrationService {
@@ -96,6 +97,7 @@ export enum IntegrationService {
   Matomo = "matomo",
   Umami = "umami",
   GitHub = "github",
+  Notion = "notion",
 }
 
 export type UserCreatableIntegrationService = Extract<
@@ -157,6 +159,7 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
       | { serviceTeamId: string }
       | { measurementId: string }
       | { slack: { serviceTeamId: string; serviceUserId: string } }
+      | { externalWorkspace: { id: string; name?: string; iconUrl?: string } }
       | undefined;
 
 export enum UserPreference {
