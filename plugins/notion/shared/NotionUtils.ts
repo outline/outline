@@ -1,18 +1,25 @@
 import queryString from "query-string";
 import env from "@shared/env";
+import { settingsPath } from "@shared/utils/routeHelpers";
 
 export type OAuthState = {
   teamId: string;
 };
 
 export class NotionUtils {
-  // private static clientId = "eda3ac5b-39fa-4d79-a99d-b70bc5ded123";
-  private static clientId = env.NOTION_CLIENT_ID;
-  private static clientSecret = env.NOTION_CLIENT_SECRET;
   private static authBaseUrl = "https://api.notion.com/v1/oauth/authorize";
+  static settingsUrl = settingsPath("import");
 
   static parseState(state: string): OAuthState {
     return JSON.parse(state);
+  }
+
+  static errorUrl(error: string) {
+    const params = {
+      type: "notion",
+      error,
+    };
+    return `${this.settingsUrl}?${queryString.stringify(params)}`;
   }
 
   static callbackUrl(
@@ -29,7 +36,7 @@ export class NotionUtils {
 
   static authUrl({ state }: { state: OAuthState }) {
     const params = {
-      client_id: this.clientId,
+      client_id: env.NOTION_CLIENT_ID,
       redirect_uri: this.callbackUrl(),
       state: JSON.stringify(state),
       response_type: "code",
