@@ -1936,20 +1936,32 @@ del[data-operation-index] {
     font-family: "SF Pro Text", ${props.theme.fontFamily};
   }
 }
-`;
 
-const toggleBlockStyle = () => css`
-  .toggle-head {
+.toggle-block {
     display: flex;
-    align-items: center;
 
-    > span {
-      flex-grow: 1;
-      overflow: auto;
+    > .toggle-block-button {
+      color: ${props.theme.text};
+      opacity: 0.75;
+      cursor: var(--pointer);
+      background: none;
+      outline: none;
+      border: 0;
+      margin: 0;
+      padding: 0;
+      /* TODO: For now, this is calculated as lineHeight(h1)*fontSize(h1). Fix it! */
+      max-height: 35px;
+
+      &:focus,
+      &:hover {
+        opacity: 1;
+      }
     }
-  }
-  .toggle-body {
-    padding-left: 12px;
+
+    > .toggle-block-content {
+     flex-grow: 1;
+     overflow: auto;
+    }
   }
 `;
 
@@ -1960,7 +1972,6 @@ const EditorContainer = styled.div<Props>`
   ${codeBlockStyle}
   ${findAndReplaceStyle}
   ${emailStyle}
-  ${toggleBlockStyle}
 `;
 
 export default EditorContainer;
