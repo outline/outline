@@ -5,7 +5,7 @@ import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { UserPreference } from "@shared/types";
-import InputSelect from "~/components/InputSelect";
+import { InputSelectNew, Option } from "~/components/InputSelectNew";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useQuery from "~/hooks/useQuery";
@@ -28,66 +28,80 @@ const CommentSortMenu = () => {
   const viewingResolved = params.get("resolved") === "";
   const value = viewingResolved ? "resolved" : preferredSortType;
 
-  const handleSortTypeChange = (type: CommentSortType) => {
-    if (type !== preferredSortType) {
-      user.setPreference(
-        UserPreference.SortCommentsByOrderInDocument,
-        type === CommentSortType.OrderInDocument
-      );
-      void user.save();
-    }
-  };
+  const handleChange = React.useCallback(
+    (val: string) => {
+      if (val === "resolved") {
+        history.push({
+          search: queryString.stringify({
+            ...queryString.parse(location.search),
+            resolved: "",
+          }),
+          pathname: location.pathname,
+          state: { sidebarContext },
+        });
+        return;
+      }
 
-  const showResolved = () => {
-    history.push({
-      search: queryString.stringify({
-        ...queryString.parse(location.search),
-        resolved: "",
-      }),
-      pathname: location.pathname,
-      state: { sidebarContext },
-    });
-  };
+      const sortType = val as CommentSortType;
+      if (sortType !== preferredSortType) {
+        user.setPreference(
+          UserPreference.SortCommentsByOrderInDocument,
+          sortType === CommentSortType.OrderInDocument
+        );
+        void user.save();
+      }
 
-  const showUnresolved = () => {
-    history.push({
-      search: queryString.stringify({
-        ...queryString.parse(location.search),
-        resolved: undefined,
-      }),
-      pathname: location.pathname,
-      state: { sidebarContext },
-    });
-  };
+      history.push({
+        search: queryString.stringify({
+          ...queryString.parse(location.search),
+          resolved: undefined,
+        }),
+        pathname: location.pathname,
+        state: { sidebarContext },
+      });
+    },
+    [history, location, sidebarContext, user, preferredSortType]
+  );
+
+  const options: Option[] = React.useMemo(
+    () =>
+      [
+        {
+          type: "item",
+          label: t("Most recent"),
+          value: CommentSortType.MostRecent,
+        },
+        {
+          type: "item",
+          label: t("Order in doc"),
+          value: CommentSortType.OrderInDocument,
+        },
+        {
+          type: "separator",
+        },
+        {
+          type: "item",
+          label: t("Resolved"),
+          value: "resolved",
+        },
+      ] satisfies Option[],
+    [t]
+  );
 
   return (
     <Select
-      style={{ margin: 0 }}
-      ariaLabel={t("Sort comments")}
+      options={options}
       value={value}
-      onChange={(ev) => {
-        if (ev === "resolved") {
-          showResolved();
-        } else {
-          handleSortTypeChange(ev as CommentSortType);
-          showUnresolved();
-        }
-      }}
+      onChange={handleChange}
+      ariaLabel={t("Sort comments")}
+      label={t("Sort comments")}
+      hideLabel
       borderOnHover
-      options={[
-        { value: CommentSortType.MostRecent, label: t("Most recent") },
-        { value: CommentSortType.OrderInDocument, label: t("Order in doc") },
-        {
-          divider: true,
-          value: "resolved",
-          label: t("Resolved"),
-        },
-      ]}
     />
   );
 };
 
-const Select = styled(InputSelect)`
+const Select = styled(InputSelectNew)`
   color: ${s("textSecondary")};
 `;
 

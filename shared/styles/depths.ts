@@ -6,7 +6,7 @@ const depths = {
   mobileSidebar: 930,
   hoverPreview: 950,
   // Note: editor lightbox is z-index 999
-  modalOverlay: 2000,
+  overlay: 2000,
   modal: 3000,
   menu: 4000,
   toasts: 5000,
