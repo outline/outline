@@ -2,10 +2,10 @@ import { Transaction } from "sequelize";
 import { SubscriptionType } from "@shared/types";
 import { createContext } from "@server/context";
 import Logger from "@server/logging/Logger";
-import { Subscription, User } from "@server/models";
+import { Document, Subscription, User } from "@server/models";
+import { can } from "@server/policies";
 import { sequelize } from "@server/storage/database";
 import { DocumentUserEvent } from "@server/types";
-import { getDocumentPermission } from "@server/utils/permissions";
 import BaseTask from "./BaseTask";
 
 export default class DocumentSubscriptionTask extends BaseTask<DocumentUserEvent> {
@@ -16,12 +16,11 @@ export default class DocumentSubscriptionTask extends BaseTask<DocumentUserEvent
       return;
     }
 
-    const docPermission = await getDocumentPermission({
+    const document = await Document.findByPk(event.documentId, {
       userId: user.id,
-      documentId: event.documentId,
     });
 
-    if (docPermission) {
+    if (can(user, "read", document)) {
       Logger.debug(
         "task",
         `Skip unsubscribing user ${user.id} as they have permission to the document ${event.documentId} through other means`
