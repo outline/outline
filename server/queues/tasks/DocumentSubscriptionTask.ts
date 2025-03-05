@@ -1,7 +1,9 @@
 import { Transaction } from "sequelize";
 import { SubscriptionType } from "@shared/types";
 import { createContext } from "@server/context";
-import { Subscription, User } from "@server/models";
+import Logger from "@server/logging/Logger";
+import { Document, Subscription, User } from "@server/models";
+import { can } from "@server/policies";
 import { sequelize } from "@server/storage/database";
 import { DocumentUserEvent } from "@server/types";
 import BaseTask from "./BaseTask";
@@ -11,6 +13,18 @@ export default class DocumentSubscriptionTask extends BaseTask<DocumentUserEvent
     const user = await User.findByPk(event.userId);
 
     if (!user || event.name !== "documents.remove_user") {
+      return;
+    }
+
+    const document = await Document.findByPk(event.documentId, {
+      userId: user.id,
+    });
+
+    if (can(user, "read", document)) {
+      Logger.debug(
+        "task",
+        `Skip unsubscribing user ${user.id} as they have permission to the document ${event.documentId} through other means`
+      );
       return;
     }
 
