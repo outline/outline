@@ -344,7 +344,7 @@
     "eslint-plugin-react": "^7.37.3",
     "eslint-plugin-react-hooks": "^4.6.2",
     "husky": "^8.0.3",
-    "i18next-parser": "^7.9.0",
+    "i18next-parser": "^8.13.0",
     "jest-cli": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "jest-fetch-mock": "^3.0.3",
