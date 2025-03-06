@@ -8,7 +8,7 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { v4 as uuidv4 } from "uuid";
 import { Pagination } from "@shared/constants";
-import { hover, hideScrollbars } from "@shared/styles";
+import { hideScrollbars } from "@shared/styles";
 import {
   DateFilter as TDateFilter,
   StatusFilter as TStatusFilter,
@@ -375,21 +375,17 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
 
 const Filters = styled(Flex)`
   margin-bottom: 12px;
-  opacity: 0.85;
   transition: opacity 100ms ease-in-out;
   overflow-y: hidden;
   overflow-x: auto;
   padding: 8px 0;
   gap: 8px;
+
   ${hideScrollbars()}
 
   ${breakpoint("tablet")`
     padding: 0;
   `};
-
-  &: ${hover} {
-    opacity: 1;
-  }
 `;
 
 const SearchTitlesFilter = styled(Switch)`

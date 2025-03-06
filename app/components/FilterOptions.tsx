@@ -231,6 +231,7 @@ const SearchInput = styled(Input)`
     border-radius: 0;
     border-bottom: 1px solid ${s("divider")};
     background: ${s("menuBackground")};
+    margin: 0;
   }
 
   ${NativeInput} {
@@ -273,7 +274,6 @@ export const StyledButton = styled(Button)`
 `;
 
 const Icon = styled.div`
-  margin-right: 8px;
   width: 18px;
   height: 18px;
 `;
