@@ -1,9 +1,7 @@
-import capitalize from "lodash/capitalize";
 import { observer } from "mobx-react";
 import { NewDocumentIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import { toast } from "sonner";
 import { FileOperationType } from "@shared/types";
 import { cdnPath } from "@shared/utils/urls";
 import FileOperation from "~/models/FileOperation";
@@ -16,7 +14,6 @@ import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import env from "~/env";
-import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { Hook, PluginManager } from "~/utils/PluginManager";
 import FileOperationListItem from "./components/FileOperationListItem";
@@ -34,11 +31,6 @@ function Import() {
   const { t } = useTranslation();
   const { dialogs, fileOperations } = useStores();
   const appName = env.APP_NAME;
-
-  const queryParams = useQuery();
-  const oauthService = queryParams.get("service");
-  const oauthSuccess = queryParams.get("success") === "";
-  const oauthError = queryParams.get("error");
 
   const configs = React.useMemo(() => {
     const items: Config[] = [
@@ -106,30 +98,6 @@ function Import() {
 
     return items;
   }, [t, dialogs, appName]);
-
-  React.useEffect(() => {
-    if (!oauthError) {
-      return;
-    }
-
-    if (oauthError === "access_denied") {
-      toast.error(
-        t(
-          "Whoops, you need to accept the permissions in {{ serviceName }} to connect {{ appName }} to your workspace. Try again?",
-          {
-            appName,
-            serviceName: capitalize(oauthService!.toLowerCase()), // oauthService must be present in oauth import flows.
-          }
-        )
-      );
-    } else {
-      toast.error(
-        t(
-          "Something went wrong while authenticating your request. Please try logging in again."
-        )
-      );
-    }
-  }, [t, appName, oauthError, oauthService]);
 
   return (
     <Scene title={t("Import")} icon={<NewDocumentIcon />}>

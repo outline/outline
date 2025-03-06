@@ -37,7 +37,7 @@ export class NotionClient {
         pages.push({
           id: item.id,
           name: titleProp.at(0)?.plain_text ?? "",
-          emoji: item.icon?.type === "emoji" ? item.icon.emoji : undefined,
+          emoji: item.icon?.type === "emoji" ? item.icon.emoji : undefined, // other icon types return a url to download from, which we don't support.
         });
       }
     }
