@@ -1,11 +1,13 @@
 import Router from "koa-router";
-import { IntegrationService, IntegrationType } from "@shared/types";
+import { IntegrationService, IntegrationType, UserRole } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
+import { InvalidRequestError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Integration, IntegrationAuthentication, Team } from "@server/models";
+import { can } from "@server/policies";
 import { APIContext } from "@server/types";
 import { NotionClient } from "../notion";
 import { NotionOAuth } from "../oauth";
@@ -79,7 +81,7 @@ router.get(
       },
       { transaction }
     );
-    await Integration.create(
+    const integration = await Integration.create(
       {
         service: IntegrationService.Notion,
         type: IntegrationType.Import,
@@ -97,10 +99,36 @@ router.get(
       { transaction }
     );
 
-    // const notionClient = new NotionClient(data.access_token);
-    // const rootPages = await notionClient.fetchRootPages();
+    ctx.redirect(NotionUtils.successUrl(integration.id));
+  }
+);
 
-    ctx.redirect(NotionUtils.successUrl());
+router.post(
+  "notion.search",
+  auth({ role: UserRole.Admin }),
+  validate(T.NotionSearchSchema),
+  async (ctx: APIContext<T.NotionSearchReq>) => {
+    const { integrationId } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const integration = await Integration.scope("withAuthentication").findByPk(
+      integrationId
+    );
+    can(user, "read", integration);
+
+    if (
+      integration?.service !== IntegrationService.Notion ||
+      integration.userId !== user.id
+    ) {
+      throw InvalidRequestError("Invalid integrationId");
+    }
+
+    const notionClient = new NotionClient(integration.authentication.token);
+    const rootPages = await notionClient.fetchRootPages();
+
+    ctx.body = {
+      data: rootPages,
+    };
   }
 );
 

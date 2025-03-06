@@ -15,3 +15,11 @@ export const NotionCallbackSchema = BaseSchema.extend({
 });
 
 export type NotionCallbackReq = z.infer<typeof NotionCallbackSchema>;
+
+export const NotionSearchSchema = BaseSchema.extend({
+  body: z.object({
+    integrationId: z.string().uuid(),
+  }),
+});
+
+export type NotionSearchReq = z.infer<typeof NotionSearchSchema>;

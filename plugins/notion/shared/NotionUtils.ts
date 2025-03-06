@@ -15,18 +15,19 @@ export class NotionUtils {
     return JSON.parse(state);
   }
 
-  static successUrl() {
+  static successUrl(integrationId: string) {
     const params = {
-      service: IntegrationService.Notion,
       success: "",
+      service: IntegrationService.Notion,
+      integrationId,
     };
     return `${this.settingsUrl}?${queryString.stringify(params)}`;
   }
 
   static errorUrl(error: string) {
     const params = {
-      service: IntegrationService.Notion,
       error,
+      service: IntegrationService.Notion,
     };
     return `${this.settingsUrl}?${queryString.stringify(params)}`;
   }
