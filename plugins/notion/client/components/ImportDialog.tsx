@@ -3,13 +3,16 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import { CollectionPermission } from "@shared/types";
+import {
+  CollectionPermission,
+  ImportData,
+  IntegrationService,
+} from "@shared/types";
 import Button from "~/components/Button";
 import { Emoji } from "~/components/Emoji";
 import Flex from "~/components/Flex";
 import InputSelectPermission from "~/components/InputSelectPermission";
 import Text from "~/components/Text";
-import useQuery from "~/hooks/useQuery";
 import useRequest from "~/hooks/useRequest";
 import { EmptySelectValue } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -19,10 +22,13 @@ type PageWithPermission = Page & {
   permission?: CollectionPermission;
 };
 
-export function ImportDialog() {
+type Props = {
+  integrationId: string;
+  onSubmit: () => void;
+};
+
+export function ImportDialog({ integrationId, onSubmit }: Props) {
   const { t } = useTranslation();
-  const queryParams = useQuery();
-  const integrationId = queryParams.get("integrationId"); // integration id will be available here since dialog renders only in success flow.
   const [pagesWithPermission, setPagesWithPermission] =
     React.useState<PageWithPermission[]>();
 
@@ -53,9 +59,30 @@ export function ImportDialog() {
     []
   );
 
-  const handleStartImport = React.useCallback(() => {
-    console.log("start import");
-  }, []);
+  const handleStartImport = React.useCallback(async () => {
+    const data: ImportData = {
+      collection: pagesWithPermission!.map((page) => ({
+        externalId: page.id,
+        permission: page.permission,
+      })),
+    };
+
+    try {
+      await client.post("/imports.create", {
+        integrationId,
+        service: IntegrationService.Notion,
+        data,
+      });
+
+      toast.success(
+        t("Your import is being processed, you can safely leave this page")
+      );
+
+      onSubmit();
+    } catch (err) {
+      toast.error(err.message);
+    }
+  }, [pagesWithPermission, onSubmit]);
 
   React.useEffect(() => {
     if (pages?.length) {
@@ -74,10 +101,14 @@ export function ImportDialog() {
     return <div>Loading data</div>;
   }
 
+  if (pagesWithPermission.length === 0) {
+    return <div>No pages available for import</div>;
+  }
+
   return (
     <Flex column gap={8}>
       <div>
-        {pagesWithPermission?.map((page) => (
+        {pagesWithPermission.map((page) => (
           <PageItem
             key={page.id}
             page={page}

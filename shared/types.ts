@@ -54,6 +54,18 @@ export enum FileOperationState {
   Expired = "expired",
 }
 
+export enum ImportState {
+  Created = "created",
+  InProgress = "in_progress",
+  Processed = "processed",
+  Completed = "completed",
+  Errored = "errored",
+}
+
+export type ImportData = {
+  collection: { externalId: string; permission?: CollectionPermission }[];
+};
+
 export enum MentionType {
   User = "user",
   Document = "document",
