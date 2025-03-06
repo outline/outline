@@ -59,7 +59,7 @@ const Heading = styled.h2`
   font-size: 14px;
   line-height: 1.5;
   color: ${s("textSecondary")};
-  margin-bottom: 0;
+  margin: 12px 0 0;
 `;
 
 const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
