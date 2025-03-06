@@ -23,7 +23,6 @@ type Props = {
   options: TFilterOption[];
   selectedKeys: (string | null | undefined)[];
   defaultLabel?: string;
-  selectedPrefix?: string;
   className?: string;
   onSelect: (key: string | null | undefined) => void;
   showFilter?: boolean;
@@ -35,7 +34,6 @@ const FilterOptions = ({
   options,
   selectedKeys = [],
   defaultLabel = "Filter options",
-  selectedPrefix = "",
   className,
   onSelect,
   showFilter,
@@ -54,9 +52,7 @@ const FilterOptions = ({
   const [query, setQuery] = React.useState("");
 
   const selectedLabel = selectedItems.length
-    ? selectedItems
-        .map((selected) => `${selectedPrefix} ${selected.label}`)
-        .join(", ")
+    ? selectedItems.map((selected) => selected.label).join(", ")
     : "";
 
   const renderItem = React.useCallback(
@@ -70,7 +66,7 @@ const FilterOptions = ({
         selected={selectedKeys.includes(option.key)}
         {...menu}
       >
-        {option.icon && <Icon>{option.icon}</Icon>}
+        {option.icon}
         {option.note ? (
           <LabelWithNote>
             {option.label}
@@ -163,10 +159,16 @@ const FilterOptions = ({
   const showFilterInput = showFilter || options.length > 10;
 
   return (
-    <div>
+    <>
       <MenuButton {...menu}>
         {(props) => (
-          <StyledButton {...props} className={className} neutral disclosure>
+          <StyledButton
+            {...props}
+            className={className}
+            icon={selectedItems[0]?.key && selectedItems[0]?.icon}
+            neutral
+            disclosure
+          >
             {selectedItems.length ? selectedLabel : defaultLabel}
           </StyledButton>
         )}
@@ -193,7 +195,7 @@ const FilterOptions = ({
           />
         )}
       </ContextMenu>
-    </div>
+    </>
   );
 };
 
@@ -268,14 +270,9 @@ export const StyledButton = styled(Button)`
   }
 
   ${Inner} {
-    line-height: 24px;
+    line-height: 28px;
     min-height: auto;
   }
-`;
-
-const Icon = styled.div`
-  width: 18px;
-  height: 18px;
 `;
 
 export default FilterOptions;

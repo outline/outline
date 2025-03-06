@@ -16,7 +16,7 @@ const DateFilter = ({ dateFilter, onSelect }: Props) => {
     () => [
       {
         key: "",
-        label: t("Any time"),
+        label: t("All time"),
       },
       {
         key: "day",

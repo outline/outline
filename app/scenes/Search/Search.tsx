@@ -60,10 +60,10 @@ function Search(props: Props) {
     routeMatch.params.term ?? params.get("query") ?? ""
   ).trim();
   const query = decodedQuery !== "" ? decodedQuery : undefined;
-  const collectionId = params.get("collectionId") ?? undefined;
-  const userId = params.get("userId") ?? undefined;
+  const collectionId = params.get("collectionId") ?? "";
+  const userId = params.get("userId") ?? "";
   const documentId = params.get("documentId") ?? undefined;
-  const dateFilter = (params.get("dateFilter") as TDateFilter) ?? undefined;
+  const dateFilter = (params.get("dateFilter") as TDateFilter) ?? "";
   const statusFilter = params.getAll("statusFilter")?.length
     ? (params.getAll("statusFilter") as TStatusFilter[])
     : [TStatusFilter.Published, TStatusFilter.Draft];
@@ -379,6 +379,7 @@ const Filters = styled(Flex)`
   overflow-y: hidden;
   overflow-x: auto;
   padding: 8px 0;
+  height: 28px;
   gap: 8px;
 
   ${hideScrollbars()}
@@ -391,7 +392,7 @@ const Filters = styled(Flex)`
 const SearchTitlesFilter = styled(Switch)`
   white-space: nowrap;
   margin-left: 8px;
-  margin-top: 2px;
+  margin-top: 4px;
   font-size: 14px;
   font-weight: 400;
 `;
