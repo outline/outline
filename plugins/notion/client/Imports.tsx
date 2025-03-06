@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import env from "@shared/env";
 import { IntegrationService } from "@shared/types";
@@ -16,23 +17,45 @@ export const Notion = observer(() => {
   const { t } = useTranslation();
   const { dialogs } = useStores();
   const team = useCurrentTeam();
-  const appName = env.APP_NAME;
+  const history = useHistory();
+  const location = useLocation();
+  const queryParams = useQuery();
 
+  const appName = env.APP_NAME;
   const authUrl = NotionUtils.authUrl({ state: { teamId: team.id } });
 
-  const queryParams = useQuery();
   const service = queryParams.get("service");
   const oauthSuccess = queryParams.get("success") === "";
   const oauthError = queryParams.get("error");
+  const integrationId = queryParams.get("integrationId");
+
+  const clearQueryParams = React.useCallback(() => {
+    history.replace({
+      pathname: location.pathname,
+      search: "",
+    });
+  }, [history, location]);
+
+  const handleSubmit = React.useCallback(() => {
+    dialogs.closeAllModals();
+    clearQueryParams();
+  }, [dialogs, clearQueryParams]);
 
   React.useEffect(() => {
-    if (oauthSuccess && service === IntegrationService.Notion) {
+    if (
+      integrationId &&
+      oauthSuccess &&
+      service === IntegrationService.Notion
+    ) {
       dialogs.openModal({
         title: t("Import data"),
-        content: <ImportDialog />,
+        content: (
+          <ImportDialog integrationId={integrationId} onSubmit={handleSubmit} />
+        ),
+        onClose: clearQueryParams,
       });
     }
-  }, [t, dialogs, oauthSuccess, service]);
+  }, [t, dialogs, oauthSuccess, service, clearQueryParams]);
 
   React.useEffect(() => {
     if (!oauthError) {
