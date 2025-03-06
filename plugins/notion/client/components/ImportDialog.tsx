@@ -13,6 +13,7 @@ import { Emoji } from "~/components/Emoji";
 import Flex from "~/components/Flex";
 import InputSelectPermission from "~/components/InputSelectPermission";
 import Text from "~/components/Text";
+import useBoolean from "~/hooks/useBoolean";
 import useRequest from "~/hooks/useRequest";
 import { EmptySelectValue } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -29,6 +30,7 @@ type Props = {
 
 export function ImportDialog({ integrationId, onSubmit }: Props) {
   const { t } = useTranslation();
+  const [submitting, setSubmitting, resetSubmitting] = useBoolean();
   const [pagesWithPermission, setPagesWithPermission] =
     React.useState<PageWithPermission[]>();
 
@@ -60,6 +62,8 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
   );
 
   const handleStartImport = React.useCallback(async () => {
+    setSubmitting();
+
     const data: ImportData = {
       collection: pagesWithPermission!.map((page) => ({
         externalId: page.id,
@@ -81,6 +85,7 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
       onSubmit();
     } catch (err) {
       toast.error(err.message);
+      resetSubmitting();
     }
   }, [pagesWithPermission, onSubmit]);
 
@@ -106,8 +111,21 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
   }
 
   return (
-    <Flex column gap={8}>
-      <div>
+    <Flex column gap={12}>
+      <Pages>
+        <Row>
+          <Column justify="center" align="center" $border>
+            <Text size="small" weight="bold">
+              {t("Page")}
+            </Text>
+          </Column>
+          <Column justify="center" align="center">
+            <Text size="small" weight="bold">
+              {t("Permission")}
+            </Text>
+          </Column>
+        </Row>
+
         {pagesWithPermission.map((page) => (
           <PageItem
             key={page.id}
@@ -115,9 +133,11 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
             onPermissionChange={handlePermissionChange}
           />
         ))}
-      </div>
+      </Pages>
       <Flex justify="flex-end">
-        <Button onClick={handleStartImport}>{t("Start import")}</Button>
+        <Button onClick={handleStartImport} disabled={submitting}>
+          {t("Start import")}
+        </Button>
       </Flex>
     </Flex>
   );
@@ -140,14 +160,12 @@ function PageItem({
   );
 
   return (
-    <Row align="center" justify="space-between" gap={4}>
-      <Column $width="75%" $border>
-        <Flex gap={6} align="center">
-          {page.emoji && <Emoji>{page.emoji}</Emoji>}
-          <Text size="small">{page.name}</Text>
-        </Flex>
+    <Row>
+      <Column gap={6} align="center" $border>
+        {page.emoji && <Emoji>{page.emoji}</Emoji>}
+        <Text size="small">{page.name}</Text>
       </Column>
-      <Column>
+      <Column justify="end">
         <InputSelectPermission
           onChange={handlePermissionChange}
           value={page.permission}
@@ -160,15 +178,22 @@ function PageItem({
   );
 }
 
-const Row = styled(Flex)`
-  border: 1px solid ${s("divider")};
-  border-collapse: collapse;
-  margin-bottom: auto;
-`;
-
-const Column = styled.div<{ $width?: string; $border?: boolean }>`
-  width: ${({ $width }) => $width || "auto"};
-  padding: 4px 6px;
+const Column = styled(Flex)<{ $border?: boolean }>`
+  padding: 4px 8px;
   border-right: 1px solid
     ${({ $border }) => ($border ? s("divider") : "transparent")};
+`;
+
+const Row = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 140px;
+  gap: 4px;
+`;
+
+const Pages = styled.div`
+  border: 1px solid ${s("divider")};
+
+  ${Row}:not(:last-child) {
+    border-bottom: 1px solid ${s("divider")};
+  }
 `;

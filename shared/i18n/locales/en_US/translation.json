@@ -1086,6 +1086,7 @@
   "The URL of your Matomo instance. If you are using Matomo Cloud it will end in matomo.cloud/": "The URL of your Matomo instance. If you are using Matomo Cloud it will end in matomo.cloud/",
   "Site ID": "Site ID",
   "An ID that uniquely identifies the website in your Matomo instance.": "An ID that uniquely identifies the website in your Matomo instance.",
+  "Page": "Page",
   "Whoops, you need to accept the permissions in Notion to connect {{ appName }} to your workspace. Try again?": "Whoops, you need to accept the permissions in Notion to connect {{ appName }} to your workspace. Try again?",
   "Import pages from Notion": "Import pages from Notion",
   "Add to Slack": "Add to Slack",
