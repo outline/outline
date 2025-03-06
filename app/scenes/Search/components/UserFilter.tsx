@@ -25,13 +25,13 @@ function UserFilter(props: Props) {
     const userOptions = users.all.map((user) => ({
       key: user.id,
       label: user.name,
-      icon: <Avatar model={user} size={AvatarSize.Small} />,
+      icon: <StyledAvatar model={user} size={AvatarSize.Small} />,
     }));
     return [
       {
         key: "",
         label: t("Any author"),
-        icon: <NoAuthor size={20} />,
+        icon: <UserIcon size={20} />,
       },
       ...userOptions,
     ];
@@ -43,7 +43,6 @@ function UserFilter(props: Props) {
       selectedKeys={[userId]}
       onSelect={onSelect}
       defaultLabel={t("Any author")}
-      selectedPrefix={`${t("Author")}:`}
       fetchQuery={users.fetchPage}
       fetchQueryOptions={fetchQueryOptions}
       showFilter
@@ -51,8 +50,8 @@ function UserFilter(props: Props) {
   );
 }
 
-const NoAuthor = styled(UserIcon)`
-  margin-left: -2px;
+const StyledAvatar = styled(Avatar)`
+  margin: 2px;
 `;
 
 export default observer(UserFilter);
