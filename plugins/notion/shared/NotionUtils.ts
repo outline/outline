@@ -1,5 +1,6 @@
 import queryString from "query-string";
 import env from "@shared/env";
+import { IntegrationService } from "@shared/types";
 import { settingsPath } from "@shared/utils/routeHelpers";
 
 export type OAuthState = {
@@ -8,15 +9,23 @@ export type OAuthState = {
 
 export class NotionUtils {
   private static authBaseUrl = "https://api.notion.com/v1/oauth/authorize";
-  static settingsUrl = settingsPath("import");
+  private static settingsUrl = settingsPath("import");
 
   static parseState(state: string): OAuthState {
     return JSON.parse(state);
   }
 
+  static successUrl() {
+    const params = {
+      service: IntegrationService.Notion,
+      success: "",
+    };
+    return `${this.settingsUrl}?${queryString.stringify(params)}`;
+  }
+
   static errorUrl(error: string) {
     const params = {
-      type: "notion",
+      service: IntegrationService.Notion,
       error,
     };
     return `${this.settingsUrl}?${queryString.stringify(params)}`;

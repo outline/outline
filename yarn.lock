@@ -2812,6 +2812,14 @@
   resolved "https://registry.yarnpkg.com/@nolyfill/is-core-module/-/is-core-module-1.0.39.tgz#3dc35ba0f1e66b403c00b39344f870298ebb1c8e"
   integrity sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==
 
+"@notionhq/client@^2.2.16":
+  version "2.2.16"
+  resolved "https://registry.yarnpkg.com/@notionhq/client/-/client-2.2.16.tgz#6564cd77bc12e7dc68e4f5c4c6adef8384a33027"
+  integrity sha512-3GlkfhLw8+Jw8U2iFEmHA6WfCgYhZCXLxgPdqDJkYMFotELNpQO+yGSy2QWURsG8ndu21sLt+FEOfDbNcCtFMg==
+  dependencies:
+    "@types/node-fetch" "^2.5.10"
+    node-fetch "^2.6.1"
+
 "@octokit/app@^14.0.2":
   version "14.0.2"
   resolved "https://registry.yarnpkg.com/@octokit/app/-/app-14.0.2.tgz#b47c52020221351fb58640f113eb38b2ad3998fe"
@@ -5001,6 +5009,14 @@
   version "0.0.24"
   resolved "https://registry.yarnpkg.com/@types/natural-sort/-/natural-sort-0.0.24.tgz#9a89fcbabd963937fab9cc4ca527635c2a7c0cef"
   integrity "sha1-mon8ur2WOTf6ucxMpSdjXCp8DO8= sha512-+/F8JDyT0QUi2cE51S4Xsy4yuHVBiFsU5bq0g2XnTKkOj0Jz69o3TLYd1gnVTOrKOvg0+FUJqE9BA24FgnpuGg=="
+
+"@types/node-fetch@^2.5.10":
+  version "2.6.12"
+  resolved "https://registry.yarnpkg.com/@types/node-fetch/-/node-fetch-2.6.12.tgz#8ab5c3ef8330f13100a7479e2cd56d3386830a03"
+  integrity sha512-8nneRWKCg3rMtF69nLQJnOYUcbafYeFSjqkw3jCRLsqkWFlHaoQrr5mXmofFGOx3DKn7UfmBMyov8ySvLRVldA==
+  dependencies:
+    "@types/node" "*"
+    form-data "^4.0.0"
 
 "@types/node-fetch@^2.6.9":
   version "2.6.9"
