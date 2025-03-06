@@ -7,6 +7,7 @@ import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Integration, IntegrationAuthentication, Team } from "@server/models";
 import { APIContext } from "@server/types";
+import { NotionClient } from "../notion";
 import { NotionOAuth } from "../oauth";
 import * as T from "./schema";
 import { NotionUtils } from "plugins/notion/shared/NotionUtils";
@@ -23,11 +24,6 @@ router.get(
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
-    if (error) {
-      ctx.redirect(NotionUtils.errorUrl(error));
-      return;
-    }
-
     let parsedState;
     try {
       parsedState = NotionUtils.parseState(state);
@@ -39,7 +35,7 @@ router.get(
     const { teamId } = parsedState;
 
     // This code block accounts for the root domain being unable to access authentication for subdomains.
-    // We must forward to the appropriate subdomain to complete the oauth flow
+    // We must forward to the appropriate subdomain to complete the oauth flow.
     if (!user) {
       if (teamId) {
         try {
@@ -63,6 +59,12 @@ router.get(
       } else {
         return ctx.redirect(NotionUtils.errorUrl("unauthenticated"));
       }
+    }
+
+    // Check error after any sub-domain redirection. Otherwise, the user will be redirected to the root domain.
+    if (error) {
+      ctx.redirect(NotionUtils.errorUrl(error));
+      return;
     }
 
     // validation middleware ensures that code is non-null at this point.
@@ -95,7 +97,10 @@ router.get(
       { transaction }
     );
 
-    ctx.redirect(NotionUtils.settingsUrl);
+    // const notionClient = new NotionClient(data.access_token);
+    // const rootPages = await notionClient.fetchRootPages();
+
+    ctx.redirect(NotionUtils.successUrl());
   }
 );
 
