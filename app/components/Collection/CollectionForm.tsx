@@ -1,10 +1,12 @@
 import { observer } from "mobx-react";
+import { BulletedListIcon, MenuIcon } from "outline-icons";
 import * as React from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
 import { randomElement } from "@shared/random";
+import { s } from "@shared/styles";
 import { CollectionDisplay, CollectionPermission } from "@shared/types";
 import { IconLibrary } from "@shared/utils/IconLibrary";
 import { colorPalette } from "@shared/utils/collections";
@@ -13,12 +15,13 @@ import Collection from "~/models/Collection";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
-import InputSelectPermission from "~/components/InputSelectPermission";
+import InputSelect from "~/components/InputSelect";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import { EmptySelectValue } from "~/types";
+import { Label } from "../Labeled";
 
 const IconPicker = React.lazy(() => import("~/components/IconPicker"));
 
@@ -63,7 +66,7 @@ export const CollectionForm = observer(function CollectionForm_({
     defaultValues: {
       name: collection?.name ?? "",
       icon: collection?.icon,
-      display: collection?.display,
+      display: collection?.display ?? CollectionDisplay.List,
       sharing: collection?.sharing ?? true,
       permission: collection?.permission,
       color: iconColor,
@@ -141,9 +144,25 @@ export const CollectionForm = observer(function CollectionForm_({
           control={control}
           name="permission"
           render={({ field }) => (
-            <InputSelectPermission
+            <InputSelect
               ref={field.ref}
-              value={field.value}
+              label={t("Permission")}
+              options={[
+                {
+                  label: t("View only"),
+                  value: CollectionPermission.Read,
+                },
+                {
+                  label: t("Can edit"),
+                  value: CollectionPermission.ReadWrite,
+                },
+                {
+                  label: t("No access"),
+                  value: EmptySelectValue,
+                },
+              ]}
+              ariaLabel={t("Default access")}
+              value={field.value || EmptySelectValue}
               onChange={(
                 value: CollectionPermission | typeof EmptySelectValue
               ) => {
@@ -156,6 +175,44 @@ export const CollectionForm = observer(function CollectionForm_({
           )}
         />
       )}
+
+      <Controller
+        control={control}
+        name="display"
+        render={({ field }) => (
+          <div style={{ marginBottom: 8 }}>
+            <Label>{t("Display")}</Label>
+            <Flex gap={8}>
+              <Toggle>
+                <Text weight="bold" as={Flex} gap={4} align="center">
+                  <MenuIcon /> {t("List")}
+                </Text>
+                <Text type="secondary">{t("Show only titles")}</Text>
+                <input
+                  type="radio"
+                  name="display"
+                  value={CollectionDisplay.List}
+                  checked={field.value === CollectionDisplay.List}
+                  onClick={(ev) => field.onChange(ev.currentTarget.value)}
+                />
+              </Toggle>
+              <Toggle>
+                <Text weight="bold" as={Flex} gap={4} align="center">
+                  <BulletedListIcon /> {t("Post")}
+                </Text>
+                <Text type="secondary">{t("Show document preview")}</Text>
+                <input
+                  type="radio"
+                  name="display"
+                  value={CollectionDisplay.Post}
+                  checked={field.value === CollectionDisplay.Post}
+                  onClick={(ev) => field.onChange(ev.currentTarget.value)}
+                />
+              </Toggle>
+            </Flex>
+          </div>
+        )}
+      />
 
       {team.sharing && (
         <Switch
@@ -189,4 +246,26 @@ export const CollectionForm = observer(function CollectionForm_({
 const StyledIconPicker = styled(IconPicker)`
   margin-left: 4px;
   margin-right: 4px;
+`;
+
+const Toggle = styled.label`
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  border-radius: 4px;
+  border: 1px solid ${s("inputBorder")};
+  font-size: 14px;
+  padding: 8px;
+  margin-bottom: 12px;
+  width: 50%;
+  cursor: var(--pointer);
+
+  input {
+    display: none;
+  }
+
+  &:has(input:checked) {
+    border-color: ${s("accent")};
+    box-shadow: 0 0 0 1px ${s("accent")};
+  }
 `;

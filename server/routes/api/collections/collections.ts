@@ -55,8 +55,17 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.CollectionsCreateReq>) => {
     const { transaction } = ctx.state;
-    const { name, color, description, data, display, permission, sharing, icon, sort } =
-      ctx.input.body;
+    const {
+      name,
+      color,
+      description,
+      data,
+      display,
+      permission,
+      sharing,
+      icon,
+      sort,
+    } = ctx.input.body;
     let { index } = ctx.input.body;
 
     const { user } = ctx.state.auth;

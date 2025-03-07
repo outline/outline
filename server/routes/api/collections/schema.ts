@@ -25,7 +25,7 @@ export const CollectionsCreateSchema = BaseSchema.extend({
       .nullish(),
     description: z.string().nullish(),
     data: ProsemirrorSchema({ allowEmpty: true }).nullish(),
-    display: z.nativeEnum(CollectionDisplay).nullish(),
+    display: z.nativeEnum(CollectionDisplay).optional(),
     permission: z
       .nativeEnum(CollectionPermission)
       .nullish()
@@ -161,7 +161,7 @@ export const CollectionsUpdateSchema = BaseSchema.extend({
     data: ProsemirrorSchema({ allowEmpty: true }).nullish(),
     icon: zodIconType().nullish(),
     permission: z.nativeEnum(CollectionPermission).nullish(),
-    display: z.nativeEnum(CollectionDisplay).nullish(),
+    display: z.nativeEnum(CollectionDisplay).optional(),
     color: z
       .string()
       .regex(ValidateColor.regex, { message: ValidateColor.message })

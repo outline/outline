@@ -68,11 +68,13 @@ class Comment extends Model {
    * The user who resolved this comment, if it has been resolved.
    */
   @Relation(() => User)
+  @observable
   resolvedBy: User | null;
 
   /**
    * The ID of the user who resolved this comment, if it has been resolved.
    */
+  @observable
   resolvedById: string | null;
 
   /**

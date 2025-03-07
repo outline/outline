@@ -324,6 +324,8 @@ const StyledButton = styled(Button)<{ $nude?: boolean }>`
   display: block;
   width: 100%;
   cursor: var(--pointer);
+  background: ${s("background")};
+  border-radius: 4px;
 
   &:hover:not(:disabled) {
     background: ${s("buttonNeutralBackground")};

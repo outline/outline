@@ -82,7 +82,6 @@ function DocumentPostItem(
 
   return (
     <Post
-      ref={itemRef}
       dir={document.dir}
       role="menuitem"
       $isStarred={document.isStarred}
@@ -92,6 +91,7 @@ function DocumentPostItem(
     >
       <Content>
         <Heading
+          ref={itemRef}
           dir={document.dir}
           to={{
             pathname: documentPath(document),
@@ -183,15 +183,15 @@ const Post = styled.div<{
 }>`
   position: relative;
   margin-top: 10px;
-  margin-bottom: 2em;
-  padding: 6px 0;
+  margin-bottom: 3em;
+  padding: 0;
 `;
 
 const Heading = styled(Link)<{ rtl?: boolean }>`
   display: flex;
   justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
   align-items: center;
-  margin-top: 8px;
+  margin-top: 0;
   margin-bottom: -4px;
   white-space: nowrap;
   color: ${s("text")};
