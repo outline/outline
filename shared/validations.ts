@@ -29,7 +29,7 @@ export const ApiKeyValidation = {
 
 export const CollectionValidation = {
   /** The maximum length of the collection description */
-  maxDescriptionLength: 10 * 1000,
+  maxDescriptionLength: 100 * 1000,
 
   /** The maximum length of the collection name */
   maxNameLength: 100,
@@ -49,6 +49,11 @@ export const DocumentValidation = {
 
   /** The maximum size of the collaborative document state */
   maxStateLength: 1500 * 1024,
+};
+
+export const RevisionValidation = {
+  minNameLength: 1,
+  maxNameLength: 255,
 };
 
 export const PinValidation = {

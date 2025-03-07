@@ -1,4 +1,5 @@
-import { Fragment, Node, NodeType } from "prosemirror-model";
+import { GapCursor } from "prosemirror-gapcursor";
+import { Node, NodeType } from "prosemirror-model";
 import { Command, EditorState, TextSelection } from "prosemirror-state";
 import {
   CellSelection,
@@ -20,14 +21,19 @@ import { collapseSelection } from "./collapseSelection";
 export function createTable({
   rowsCount,
   colsCount,
+  colWidth,
 }: {
+  /** The number of rows in the table. */
   rowsCount: number;
+  /** The number of columns in the table. */
   colsCount: number;
+  /** The widths of each column in the table. */
+  colWidth: number;
 }): Command {
   return (state, dispatch) => {
     if (dispatch) {
       const offset = state.tr.selection.anchor + 1;
-      const nodes = createTableInner(state, rowsCount, colsCount);
+      const nodes = createTableInner(state, rowsCount, colsCount, colWidth);
       const tr = state.tr.replaceSelectionWith(nodes).scrollIntoView();
       const resolvedPos = tr.doc.resolve(offset);
       tr.setSelection(TextSelection.near(resolvedPos));
@@ -41,6 +47,7 @@ function createTableInner(
   state: EditorState,
   rowsCount: number,
   colsCount: number,
+  colWidth: number,
   withHeaderRow = true,
   cellContent?: Node
 ) {
@@ -49,23 +56,28 @@ function createTableInner(
   const cells: Node[] = [];
   const rows: Node[] = [];
 
-  const createCell = (
-    cellType: NodeType,
-    cellContent: Fragment | Node | readonly Node[] | null | undefined
-  ) =>
+  const createCell = (cellType: NodeType, attrs: Record<string, any> | null) =>
     cellContent
-      ? cellType.createChecked(null, cellContent)
-      : cellType.createAndFill();
+      ? cellType.createChecked(attrs, cellContent)
+      : cellType.createAndFill(attrs);
 
   for (let index = 0; index < colsCount; index += 1) {
-    const cell = createCell(types.cell, cellContent);
+    const attrs =
+      colWidth && index < colsCount - 1
+        ? {
+            colwidth: [colWidth],
+            colspan: 1,
+            rowspan: 1,
+          }
+        : null;
+    const cell = createCell(types.cell, attrs);
 
     if (cell) {
       cells.push(cell);
     }
 
     if (withHeaderRow) {
-      const headerCell = createCell(types.header_cell, cellContent);
+      const headerCell = createCell(types.header_cell, attrs);
 
       if (headerCell) {
         headerCells.push(headerCell);
@@ -484,6 +496,49 @@ export function selectTable(): Command {
       const tableSelection = new CellSelection($anchor, $head);
       dispatch(state.tr.setSelection(tableSelection));
       return true;
+    }
+    return false;
+  };
+}
+
+export function moveOutOfTable(direction: 1 | -1): Command {
+  return (state, dispatch): boolean => {
+    if (dispatch) {
+      if (state.selection instanceof GapCursor) {
+        return false;
+      }
+      if (!isInTable(state)) {
+        return false;
+      }
+
+      // check if current cursor position is at the top or bottom of the table
+      const rect = selectedRect(state);
+      const topOfTable =
+        rect.top === 0 && rect.bottom === 1 && direction === -1;
+      const bottomOfTable =
+        rect.top === rect.map.height - 1 &&
+        rect.bottom === rect.map.height &&
+        direction === 1;
+
+      if (!topOfTable && !bottomOfTable) {
+        return false;
+      }
+
+      const map = rect.map.map;
+      const $start = state.doc.resolve(rect.tableStart + map[0] - 1);
+      const $end = state.doc.resolve(rect.tableStart + map[map.length - 1] + 2);
+
+      // @ts-expect-error findGapCursorFrom is a ProseMirror internal method.
+      const $found = GapCursor.findGapCursorFrom(
+        direction > 0 ? $end : $start,
+        direction,
+        true
+      );
+
+      if ($found) {
+        dispatch(state.tr.setSelection(new GapCursor($found)));
+        return true;
+      }
     }
     return false;
   };

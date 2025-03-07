@@ -8,6 +8,7 @@ import {
   CollectionPermission,
   CollectionStatusFilter,
   FileOperationFormat,
+  SubscriptionType,
 } from "@shared/types";
 import Collection from "~/models/Collection";
 import { PaginationParams, Properties } from "~/types";
@@ -68,7 +69,9 @@ export default class CollectionsStore extends Store<Collection> {
    */
   @computed
   get nonPrivate(): Collection[] {
-    return this.all.filter((collection) => !collection.isPrivate);
+    return this.all.filter(
+      (collection) => collection.isActive && !collection.isPrivate
+    );
   }
 
   /**
@@ -211,6 +214,20 @@ export default class CollectionsStore extends Store<Collection> {
       (s) => s.collectionId === collection.id
     );
     await star?.delete();
+  };
+
+  subscribe = (collection: Collection) =>
+    this.rootStore.subscriptions.create({
+      collectionId: collection.id,
+      event: SubscriptionType.Document,
+    });
+
+  unsubscribe = (collection: Collection) => {
+    const subscription = this.rootStore.subscriptions.getByCollectionId(
+      collection.id
+    );
+
+    return subscription?.delete();
   };
 
   @computed

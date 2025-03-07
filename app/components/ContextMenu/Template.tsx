@@ -20,6 +20,7 @@ import {
   MenuHeading,
   MenuItem as TMenuItem,
 } from "~/types";
+import Tooltip from "../Tooltip";
 import Header from "./Header";
 import MenuItem, { MenuAnchor } from "./MenuItem";
 import MouseSafeArea from "./MouseSafeArea";
@@ -167,7 +168,7 @@ function Template({ items, actions, context, showIcons, ...menu }: Props) {
         }
 
         if (item.type === "button") {
-          return (
+          const menuItem = (
             <MenuItem
               as="button"
               id={`${item.title}-${index}`}
@@ -181,6 +182,14 @@ function Template({ items, actions, context, showIcons, ...menu }: Props) {
             >
               {item.title}
             </MenuItem>
+          );
+
+          return item.tooltip ? (
+            <Tooltip content={item.tooltip} placement={"bottom"}>
+              <div>{menuItem}</div>
+            </Tooltip>
+          ) : (
+            <>{menuItem}</>
           );
         }
 

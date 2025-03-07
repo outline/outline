@@ -4,11 +4,12 @@ import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import slugify from "@shared/utils/slugify";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
+import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Document, Revision } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { authorize } from "@server/policies";
-import { presentRevision } from "@server/presenters";
+import { presentPolicies, presentRevision } from "@server/presenters";
 import { APIContext } from "@server/types";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -57,6 +58,36 @@ router.post(
           includeStyles: false,
         })
       ),
+      policies: presentPolicies(user, [after]),
+    };
+  }
+);
+
+router.post(
+  "revisions.update",
+  auth(),
+  validate(T.RevisionsUpdateSchema),
+  transaction(),
+  async (ctx: APIContext<T.RevisionsUpdateReq>) => {
+    const { id, name } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    const revision = await Revision.findByPk(id, {
+      rejectOnEmpty: true,
+    });
+    const document = await Document.findByPk(revision.documentId, {
+      userId: user.id,
+    });
+    authorize(user, "update", document);
+    authorize(user, "update", revision);
+
+    revision.name = name;
+    await revision.save({ transaction });
+
+    ctx.body = {
+      data: await presentRevision(revision),
+      policies: presentPolicies(user, [revision]),
     };
   }
 );
@@ -110,6 +141,7 @@ router.post(
 
     ctx.body = {
       data: content,
+      policies: presentPolicies(user, [revision]),
     };
   }
 );
@@ -125,6 +157,7 @@ router.post(
 
     const document = await Document.findByPk(documentId, {
       userId: user.id,
+      paranoid: false,
     });
     authorize(user, "listRevisions", document);
 
@@ -143,6 +176,7 @@ router.post(
     ctx.body = {
       pagination: ctx.state.pagination,
       data,
+      policies: presentPolicies(user, revisions),
     };
   }
 );

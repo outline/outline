@@ -98,6 +98,11 @@ export default class Collection extends ParanoidModel {
   @observable
   archivedBy?: User;
 
+  @computed
+  get searchContent(): string {
+    return this.name;
+  }
+
   /** Returns whether the collection is empty, or undefined if not loaded. */
   @computed
   get isEmpty(): boolean | undefined {
@@ -133,6 +138,16 @@ export default class Collection extends ParanoidModel {
     return !!this.store.rootStore.stars.orderedData.find(
       (star) => star.collectionId === this.id
     );
+  }
+
+  /**
+   * Returns whether there is a subscription for this collection in the store.
+   *
+   * @returns True if there is a subscription, false otherwise.
+   */
+  @computed
+  get isSubscribed(): boolean {
+    return !!this.store.rootStore.subscriptions.getByCollectionId(this.id);
   }
 
   @computed
@@ -185,6 +200,11 @@ export default class Collection extends ParanoidModel {
   @computed
   get isActive() {
     return !this.isArchived && !this.isDeleted;
+  }
+
+  @computed
+  get hasDocuments() {
+    return !!this.documents?.length;
   }
 
   fetchDocuments = async (options?: { force: boolean }) => {
@@ -262,6 +282,36 @@ export default class Collection extends ParanoidModel {
 
       return true;
     });
+  }
+
+  /**
+   * Adds the document identified by the given id to the collection in
+   * memory. Does not add the document to the database or store.
+   *
+   * @param document The document to add.
+   * @param parentDocumentId The id of the document to add the new document to.
+   */
+  @action
+  addDocument(document: Document, parentDocumentId?: string) {
+    if (!this.documents) {
+      return;
+    }
+
+    if (!parentDocumentId) {
+      this.documents.unshift(document.asNavigationNode);
+      return;
+    }
+
+    const travelNodes = (nodes: NavigationNode[]) =>
+      nodes.forEach((node) => {
+        if (node.id === parentDocumentId) {
+          node.children = [document.asNavigationNode, ...(node.children ?? [])];
+        } else {
+          travelNodes(node.children);
+        }
+      });
+
+    travelNodes(this.documents);
   }
 
   @action
@@ -346,6 +396,22 @@ export default class Collection extends ParanoidModel {
 
   @action
   unstar = async () => this.store.unstar(this);
+
+  /**
+   * Subscribes the current user to this collection.
+   *
+   * @returns A promise that resolves when the subscription is created.
+   */
+  @action
+  subscribe = () => this.store.subscribe(this);
+
+  /**
+   * Unsubscribes the current user from this collection.
+   *
+   * @returns A promise that resolves when the subscription is destroyed.
+   */
+  @action
+  unsubscribe = () => this.store.unsubscribe(this);
 
   archive = () => this.store.archive(this);
 

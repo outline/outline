@@ -1,0 +1,163 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_ENV: test
+  DATABASE_URL: postgres://postgres:password@localhost:5432/outline_test
+  REDIS_URL: redis://127.0.0.1:6379
+  URL: http://localhost:3000
+  NODE_OPTIONS: --max-old-space-size=8000
+  SECRET_KEY: F0E5AD933D7F6FD8F4DBB3E038C501C052DC0593C686D21ACB30AE205D2F634B
+  UTILS_SECRET: 123456
+  SLACK_VERIFICATION_TOKEN: 123456
+  SMTP_USERNAME: localhost
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'yarn'
+    
+    - name: Install dependencies
+      run: yarn install --frozen-lockfile
+
+  lint:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: 'yarn'
+    - run: yarn install --frozen-lockfile
+    - run: yarn lint
+
+  types:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: 'yarn'
+    - run: yarn install --frozen-lockfile
+    - run: yarn tsc
+
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      server: ${{ steps.filter.outputs.server }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            server:
+              - 'server/**'
+              - 'shared/**'
+              - 'package.json'
+              - 'yarn.lock'
+            app:
+              - 'app/**'
+              - 'shared/**'
+              - 'package.json'
+              - 'yarn.lock'
+
+  test:
+    needs: build
+    if: ${{ needs.changes.outputs.app == 'true' }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test-group: [app, shared]
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: 'yarn'
+    - run: yarn install --frozen-lockfile
+    - run: yarn test:${{ matrix.test-group }}
+
+  test-server:
+    needs: [build, changes]
+    if: ${{ needs.changes.outputs.server == 'true' }}
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14.2
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: outline_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+      redis:
+        image: redis:5.0
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    strategy:
+      matrix:
+        shard: [1, 2, 3]
+    
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: 'yarn'
+    - run: yarn install --frozen-lockfile
+    - run: yarn sequelize db:migrate
+    - name: Run server tests
+      run: |
+        TESTFILES=$(find . -name "*.test.ts" -path "*/server/*" | sort | split -n -d -l $(($(find . -name "*.test.ts" -path "*/server/*" | wc -l)/${{ matrix.shard }})) - | sed -n "${{ matrix.shard }}p")
+        yarn test --maxWorkers=2 $TESTFILES
+
+  bundle-size:
+    needs: [build, types]
+    if: ${{ needs.changes.outputs.app == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: 'yarn'
+    - run: yarn install --frozen-lockfile
+    - name: Set environment to production
+      run: echo "NODE_ENV=production" >> $GITHUB_ENV
+    - run: yarn vite:build
+    - name: Send bundle stats to RelativeCI
+      uses: relative-ci/agent-action@v2
+      with:
+        key: ${{ secrets.RELATIVE_CI_KEY }}
+        token: ${{ secrets.GITHUB_TOKEN }}

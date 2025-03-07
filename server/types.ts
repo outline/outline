@@ -182,7 +182,6 @@ export type DocumentEvent = BaseEvent<Document> &
         name:
           | "documents.create"
           | "documents.publish"
-          | "documents.unpublish"
           | "documents.delete"
           | "documents.permanent_delete"
           | "documents.archive"
@@ -193,6 +192,11 @@ export type DocumentEvent = BaseEvent<Document> &
           title: string;
           source?: "import";
         };
+      }
+    | {
+        name: "documents.unpublish";
+        documentId: string;
+        collectionId: string;
       }
     | {
         name: "documents.unarchive";
@@ -423,6 +427,7 @@ export type SubscriptionEvent = BaseEvent<Subscription> & {
   modelId: string;
   userId: string;
   documentId: string | null;
+  collectionId: string | null;
 };
 
 export type ViewEvent = BaseEvent<View> & {
@@ -459,6 +464,7 @@ export type NotificationEvent = BaseEvent<Notification> & {
   commentId?: string;
   documentId?: string;
   collectionId?: string;
+  membershipId?: string;
 };
 
 export type Event =

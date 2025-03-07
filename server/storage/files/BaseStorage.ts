@@ -1,10 +1,10 @@
 import { Blob } from "buffer";
 import { Readable } from "stream";
 import { PresignedPost } from "@aws-sdk/s3-presigned-post";
-import { isBase64Url } from "@shared/utils/urls";
+import { isBase64Url, isInternalUrl } from "@shared/utils/urls";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
-import fetch, { RequestInit } from "@server/utils/fetch";
+import fetch, { chromeUserAgent, RequestInit } from "@server/utils/fetch";
 
 export default abstract class BaseStorage {
   /** The default number of seconds until a signed URL expires. */
@@ -149,7 +149,7 @@ export default abstract class BaseStorage {
     const endpoint = this.getUploadUrl(true);
 
     // Early return if url is already uploaded to the storage provider
-    if (url.startsWith("/api") || url.startsWith(endpoint)) {
+    if (url.startsWith(endpoint) || isInternalUrl(url)) {
       return;
     }
 
@@ -168,6 +168,9 @@ export default abstract class BaseStorage {
             options?.maxUploadSize ?? Infinity,
             env.FILE_STORAGE_UPLOAD_MAX_SIZE
           ),
+          headers: {
+            "User-Agent": chromeUserAgent,
+          },
           timeout: 10000,
           ...init,
         });

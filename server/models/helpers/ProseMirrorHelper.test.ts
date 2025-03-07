@@ -3,7 +3,7 @@ import { MentionType, ProsemirrorData } from "@shared/types";
 import { buildProseMirrorDoc } from "@server/test/factories";
 import { MentionAttrs, ProsemirrorHelper } from "./ProsemirrorHelper";
 
-describe("ProseMirrorHelper", () => {
+describe("ProsemirrorHelper", () => {
   describe("getNodeForMentionEmail", () => {
     it("should return the paragraph node", () => {
       const mentionAttrs: MentionAttrs = {

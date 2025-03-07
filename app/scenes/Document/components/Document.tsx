@@ -174,6 +174,7 @@ class DocumentScene extends React.Component<Props> {
 
     if (template instanceof Document) {
       this.props.document.templateId = template.id;
+      this.props.document.fullWidth = template.fullWidth;
     }
 
     if (!this.title) {
@@ -380,24 +381,23 @@ class DocumentScene extends React.Component<Props> {
     AUTOSAVE_DELAY
   );
 
-  updateIsDirty = () => {
+  updateIsDirty = action(() => {
     const { document } = this.props;
     const doc = this.editor.current?.view.state.doc;
-    this.isEditorDirty = !isEqual(doc?.toJSON(), document.data);
 
-    // a single hash is a doc with just an empty title
+    this.isEditorDirty = !isEqual(doc?.toJSON(), document.data);
     this.isEmpty = (!doc || ProsemirrorHelper.isEmpty(doc)) && !this.title;
-  };
+  });
 
   updateIsDirtyDebounced = debounce(this.updateIsDirty, 500);
 
-  onFileUploadStart = () => {
+  onFileUploadStart = action(() => {
     this.isUploading = true;
-  };
+  });
 
-  onFileUploadStop = () => {
+  onFileUploadStop = action(() => {
     this.isUploading = false;
-  };
+  });
 
   handleChangeTitle = action((value: string) => {
     this.title = value;
@@ -543,14 +543,6 @@ class DocumentScene extends React.Component<Props> {
                   </RevisionContainer>
                 ) : (
                   <>
-                    {showContents && (
-                      <ContentsContainer
-                        docFullWidth={document.fullWidth}
-                        position={tocPos}
-                      >
-                        <Contents />
-                      </ContentsContainer>
-                    )}
                     <MeasuredContainer
                       name="document"
                       as={EditorContainer}
@@ -560,6 +552,11 @@ class DocumentScene extends React.Component<Props> {
                     >
                       <Notices document={document} readOnly={readOnly} />
 
+                      {showContents && (
+                        <PrintContentsContainer>
+                          <Contents />
+                        </PrintContentsContainer>
+                      )}
                       <Editor
                         id={document.id}
                         key={embedsDisabled ? "disabled" : "enabled"}
@@ -584,6 +581,7 @@ class DocumentScene extends React.Component<Props> {
                         readOnly={readOnly}
                         canUpdate={abilities.update}
                         canComment={abilities.comment}
+                        autoFocus={document.createdAt === document.updatedAt}
                       >
                         {shareId ? (
                           <ReferencesWrapper>
@@ -600,6 +598,14 @@ class DocumentScene extends React.Component<Props> {
                         ) : null}
                       </Editor>
                     </MeasuredContainer>
+                    {showContents && (
+                      <ContentsContainer
+                        docFullWidth={document.fullWidth}
+                        position={tocPos}
+                      >
+                        <Contents />
+                      </ContentsContainer>
+                    )}
                   </>
                 )}
               </React.Suspense>
@@ -665,6 +671,19 @@ const ContentsContainer = styled.div<ContentsContainerProps>`
     justify-self: ${({ position }: ContentsContainerProps) =>
       position === TOCPosition.Left ? "end" : "start"};
   `};
+
+  @media print {
+    display: none;
+  }
+`;
+
+const PrintContentsContainer = styled.div`
+  display: none;
+  margin: 0 -12px;
+
+  @media print {
+    display: block;
+  }
 `;
 
 type EditorContainerProps = {

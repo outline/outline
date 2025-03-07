@@ -176,6 +176,8 @@ router.post(
       throw InvalidRequestError(response.error);
     }
 
+    await attachment.reload();
+
     ctx.body = {
       data: presentAttachment(attachment),
     };

@@ -125,6 +125,20 @@ export const createDocument = createAction({
     }),
 });
 
+export const createDraftDocument = createAction({
+  name: ({ t }) => t("New draft"),
+  analyticsName: "New document",
+  section: DocumentSection,
+  icon: <NewDocumentIcon />,
+  keywords: "create document",
+  visible: ({ currentTeamId, stores }) =>
+    !!currentTeamId && stores.policies.abilities(currentTeamId).createDocument,
+  perform: ({ sidebarContext }) =>
+    history.push(newDocumentPath(), {
+      sidebarContext,
+    }),
+});
+
 export const createDocumentFromTemplate = createAction({
   name: ({ t }) => t("New from template"),
   analyticsName: "New document",
@@ -319,6 +333,7 @@ export const subscribeDocument = createAction({
     const document = stores.documents.get(activeDocumentId);
 
     return (
+      !document?.collection?.isSubscribed &&
       !document?.isSubscribed &&
       stores.policies.abilities(activeDocumentId).subscribe
     );
@@ -347,8 +362,9 @@ export const unsubscribeDocument = createAction({
     const document = stores.documents.get(activeDocumentId);
 
     return (
-      !!document?.isSubscribed &&
-      stores.policies.abilities(activeDocumentId).unsubscribe
+      !!document?.collection?.isSubscribed ||
+      (!!document?.isSubscribed &&
+        stores.policies.abilities(activeDocumentId).unsubscribe)
     );
   },
   perform: async ({ activeDocumentId, stores, currentUserId, t }) => {
@@ -358,7 +374,7 @@ export const unsubscribeDocument = createAction({
 
     const document = stores.documents.get(activeDocumentId);
 
-    await document?.unsubscribe(currentUserId);
+    await document?.unsubscribe();
 
     toast.success(t("Unsubscribed from document notifications"));
   },
@@ -667,6 +683,7 @@ export const searchInDocument = createAction({
   name: ({ t }) => t("Search in document"),
   analyticsName: "Search document",
   section: ActiveDocumentSection,
+  shortcut: [`Meta+/`],
   icon: <SearchIcon />,
   visible: ({ stores, activeDocumentId }) => {
     if (!activeDocumentId) {
@@ -1179,6 +1196,8 @@ export const rootDocumentActions = [
   openDocument,
   archiveDocument,
   createDocument,
+  createDraftDocument,
+  createNestedDocument,
   createTemplateFromDocument,
   deleteDocument,
   importDocument,
@@ -1192,6 +1211,7 @@ export const rootDocumentActions = [
   unpublishDocument,
   subscribeDocument,
   unsubscribeDocument,
+  searchInDocument,
   duplicateDocument,
   leaveDocument,
   moveTemplateToWorkspace,

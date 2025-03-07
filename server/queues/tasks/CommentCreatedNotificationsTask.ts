@@ -1,4 +1,8 @@
-import { MentionType, NotificationEventType } from "@shared/types";
+import {
+  MentionType,
+  NotificationEventType,
+  SubscriptionType,
+} from "@shared/types";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { createContext } from "@server/context";
 import { Comment, Document, Notification, User } from "@server/models";
@@ -6,7 +10,7 @@ import NotificationHelper from "@server/models/helpers/NotificationHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
 import { CommentEvent } from "@server/types";
-import { canUserAccessDocument } from "@server/utils/policies";
+import { canUserAccessDocument } from "@server/utils/permissions";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 export default class CommentCreatedNotificationsTask extends BaseTask<CommentEvent> {
@@ -34,7 +38,7 @@ export default class CommentCreatedNotificationsTask extends BaseTask<CommentEve
           transaction,
         }),
         documentId: document.id,
-        event: "documents.update",
+        event: SubscriptionType.Document,
         resubscribe: false,
       });
     });

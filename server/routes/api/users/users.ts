@@ -636,6 +636,8 @@ router.post(
     await new ConfirmUserDeleteEmail({
       to: user.email,
       deleteConfirmationCode: user.deleteConfirmationCode,
+      teamName: user.team.name,
+      teamUrl: user.team.url,
     }).schedule();
 
     ctx.body = {

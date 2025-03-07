@@ -7,6 +7,7 @@ import send from "koa-send";
 import userAgent, { UserAgentContext } from "koa-useragent";
 import { languages } from "@shared/i18n";
 import { IntegrationType, TeamPreference } from "@shared/types";
+import { parseDomain } from "@shared/utils/domains";
 import { Day } from "@shared/utils/time";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
@@ -26,33 +27,36 @@ const router = new Router();
 koa.use<BaseContext, UserAgentContext>(userAgent);
 
 // serve public assets
-router.use(["/images/*", "/email/*", "/fonts/*"], async (ctx, next) => {
-  let done;
+router.use(
+  ["/images/*path", "/email/*path", "/fonts/*path"],
+  async (ctx, next) => {
+    let done;
 
-  if (ctx.method === "HEAD" || ctx.method === "GET") {
-    try {
-      done = await send(ctx, ctx.path, {
-        root: path.resolve(__dirname, "../../../public"),
-        // 7 day expiry, these assets are mostly static but do not contain a hash
-        maxAge: Day.ms * 7,
-        setHeaders: (res) => {
-          res.setHeader("Access-Control-Allow-Origin", "*");
-        },
-      });
-    } catch (err) {
-      if (err.status !== 404) {
-        throw err;
+    if (ctx.method === "HEAD" || ctx.method === "GET") {
+      try {
+        done = await send(ctx, ctx.path, {
+          root: path.resolve(__dirname, "../../../public"),
+          // 7 day expiry, these assets are mostly static but do not contain a hash
+          maxAge: Day.ms * 7,
+          setHeaders: (res) => {
+            res.setHeader("Access-Control-Allow-Origin", "*");
+          },
+        });
+      } catch (err) {
+        if (err.status !== 404) {
+          throw err;
+        }
       }
     }
-  }
 
-  if (!done) {
-    await next();
+    if (!done) {
+      await next();
+    }
   }
-});
+);
 
 router.use(
-  ["/share/:shareId", "/share/:shareId/doc/:documentSlug", "/share/:shareId/*"],
+  ["/share/:shareId{/*path}", "/share/:shareId/doc/:documentSlug"],
   (ctx) => {
     ctx.redirect(ctx.path.replace(/^\/share/, "/s"));
     ctx.status = 301;
@@ -60,7 +64,7 @@ router.use(
 );
 
 if (env.isProduction) {
-  router.get("/static/*", async (ctx) => {
+  router.get("/static/*path", async (ctx) => {
     try {
       const pathname = ctx.path.substring(8);
       if (!pathname) {
@@ -122,9 +126,8 @@ router.get("/opensearch.xml", (ctx) => {
   ctx.body = opensearchResponse(ctx.request.URL.origin);
 });
 
-router.get("/s/:shareId", shareDomains(), renderShare);
+router.get("/s/:shareId{/*path}", shareDomains(), renderShare);
 router.get("/s/:shareId/doc/:documentSlug", shareDomains(), renderShare);
-router.get("/s/:shareId/*", shareDomains(), renderShare);
 
 router.get("/embeds/gitlab", renderEmbed);
 router.get("/embeds/github", renderEmbed);
@@ -132,17 +135,32 @@ router.get("/embeds/dropbox", renderEmbed);
 router.get("/embeds/pinterest", renderEmbed);
 
 // catch all for application
-router.get("*", shareDomains(), async (ctx, next) => {
+router.get("*all", shareDomains(), async (ctx, next) => {
   if (ctx.state?.rootShare) {
     return renderShare(ctx, next);
   }
 
   const team = await getTeamFromContext(ctx);
 
-  // Redirect all requests to custom domain if one is set
-  if (team?.domain && team.domain !== ctx.hostname) {
-    ctx.redirect(ctx.href.replace(ctx.hostname, team.domain));
-    return;
+  if (env.isCloudHosted) {
+    // Redirect all requests to custom domain if one is set
+    if (team?.domain) {
+      if (team.domain !== ctx.hostname) {
+        ctx.redirect(ctx.href.replace(ctx.hostname, team.domain));
+        return;
+      }
+    }
+
+    // Redirect if subdomain is not the current team's subdomain
+    else if (team?.subdomain) {
+      const { teamSubdomain } = parseDomain(ctx.href);
+      if (team?.subdomain !== teamSubdomain) {
+        ctx.redirect(
+          ctx.href.replace(`//${teamSubdomain}.`, `//${team.subdomain}.`)
+        );
+        return;
+      }
+    }
   }
 
   const analytics = team

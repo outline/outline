@@ -76,7 +76,7 @@ export const renderApp = async (
         const csp = ctx.response.get("Content-Security-Policy");
         ctx.set(
           "Content-Security-Policy",
-          csp.replace("script-src", `script-src ${parsed.hostname}`)
+          csp.replace("script-src", `script-src ${parsed.host}`)
         );
       }
     });
@@ -111,6 +111,10 @@ export const renderApp = async (
       <script type="module" nonce="${ctx.state.cspNonce}" src="${viteHost}/static/@vite/client"></script>
       <script type="module" nonce="${ctx.state.cspNonce}" src="${viteHost}/static/${entry}"></script>
     `;
+
+  // Ensure no caching is performed
+  ctx.response.set("Cache-Control", "no-cache, must-revalidate");
+  ctx.response.set("Expires", "-1");
 
   ctx.body = page
     .toString()

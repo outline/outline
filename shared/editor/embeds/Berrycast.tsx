@@ -1,5 +1,5 @@
 import * as React from "react";
-import useComponentSize from "../../hooks/useComponentSize";
+import { useComponentSize } from "../../hooks/useComponentSize";
 import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 

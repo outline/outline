@@ -27,7 +27,7 @@ const HoverPreviewLink = React.forwardRef(function _HoverPreviewLink(
   return (
     <Preview as="a" href={url} target="_blank" rel="noopener noreferrer">
       <Flex column ref={ref}>
-        {thumbnailUrl ? <Thumbnail src={thumbnailUrl} alt={""} /> : null}
+        {thumbnailUrl ? <Thumbnail src={thumbnailUrl} alt="" /> : null}
         <Card>
           <CardContent>
             <Flex column>

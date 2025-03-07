@@ -7,13 +7,13 @@ import {
   FileOperationFormat,
 } from "@shared/types";
 import { Collection } from "@server/models";
-import { zodIconType } from "@server/utils/zod";
+import { zodIconType, zodIdType } from "@server/utils/zod";
 import { ValidateColor, ValidateIndex } from "@server/validation";
 import { BaseSchema, ProsemirrorSchema } from "../schema";
 
 const BaseIdSchema = z.object({
   /** Id of the collection to be updated */
-  id: z.string(),
+  id: zodIdType(),
 });
 
 export const CollectionsCreateSchema = BaseSchema.extend({
@@ -181,6 +181,9 @@ export type CollectionsUpdateReq = z.infer<typeof CollectionsUpdateSchema>;
 export const CollectionsListSchema = BaseSchema.extend({
   body: z.object({
     includeListOnly: z.boolean().default(false),
+
+    query: z.string().optional(),
+
     /** Collection statuses to include in results */
     statusFilter: z.nativeEnum(CollectionStatusFilter).array().optional(),
   }),

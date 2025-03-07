@@ -1,25 +1,23 @@
+import noop from "lodash/noop";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import { Waypoint } from "react-waypoint";
-import { toast } from "sonner";
 import styled from "styled-components";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
-import ConfirmMoveDialog from "~/components/ConfirmMoveDialog";
 import DocumentsLoader from "~/components/DocumentsLoader";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Text from "~/components/Text";
-import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
 import useCollectionDocuments from "../hooks/useCollectionDocuments";
+import { useDropToChangeCollection } from "../hooks/useDragAndDrop";
 import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
 import PlaceholderCollections from "./PlaceholderCollections";
-import SidebarLink, { DragObject } from "./SidebarLink";
+import SidebarLink from "./SidebarLink";
 
 type Props = {
   /** The collection to render the children of. */
@@ -36,55 +34,17 @@ function CollectionLinkChildren({
   prefetchDocument,
 }: Props) {
   const pageSize = 250;
-  const can = usePolicy(collection);
-  const manualSort = collection.sort.field === "index";
-  const { documents, dialogs, collections } = useStores();
+  const { documents } = useStores();
   const { t } = useTranslation();
   const childDocuments = useCollectionDocuments(collection, documents.active);
   const [showing, setShowing] = React.useState(pageSize);
+  const dummyRef = React.useRef<HTMLDivElement>(null);
 
-  // Drop to reorder document
-  const [{ isOverReorder, isDraggingAnyDocument }, dropToReorder] = useDrop({
-    accept: "document",
-    drop: (item: DragObject) => {
-      if (!manualSort && item.collectionId === collection?.id) {
-        toast.message(
-          t(
-            "You can't reorder documents in an alphabetically sorted collection"
-          )
-        );
-        return;
-      }
-
-      if (!collection) {
-        return;
-      }
-
-      const prevCollection = collections.get(item.collectionId);
-
-      if (
-        prevCollection &&
-        prevCollection.permission !== collection.permission
-      ) {
-        dialogs.openModal({
-          title: t("Change permissions?"),
-          content: (
-            <ConfirmMoveDialog item={item} collection={collection} index={0} />
-          ),
-        });
-      } else {
-        void documents.move({
-          documentId: item.id,
-          collectionId: collection.id,
-          index: 0,
-        });
-      }
-    },
-    collect: (monitor) => ({
-      isOverReorder: !!monitor.isOver(),
-      isDraggingAnyDocument: !!monitor.canDrop(),
-    }),
-  });
+  const [{ isOver, canDrop }, dropRef] = useDropToChangeCollection(
+    collection,
+    noop,
+    dummyRef
+  );
 
   React.useEffect(() => {
     if (!expanded) {
@@ -100,12 +60,8 @@ function CollectionLinkChildren({
 
   return (
     <Folder expanded={expanded}>
-      {isDraggingAnyDocument && can.createDocument && manualSort && (
-        <DropCursor
-          isActiveDrop={isOverReorder}
-          innerRef={dropToReorder}
-          position="top"
-        />
+      {canDrop && collection.isManualSort && (
+        <DropCursor isActiveDrop={isOver} innerRef={dropRef} position="top" />
       )}
       <DocumentsLoader collection={collection} enabled={expanded}>
         {!childDocuments && (

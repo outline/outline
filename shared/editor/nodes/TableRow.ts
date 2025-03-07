@@ -17,6 +17,10 @@ export default class TableRow extends Node {
     };
   }
 
+  toMarkdown() {
+    // see: renderTable
+  }
+
   parseMarkdown() {
     return { block: "tr" };
   }

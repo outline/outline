@@ -1,6 +1,6 @@
 import capitalize from "lodash/capitalize";
 import isEmpty from "lodash/isEmpty";
-import isUndefined from "lodash/isUndefined";
+import noop from "lodash/noop";
 import { observer } from "mobx-react";
 import { EditIcon, InputIcon, RestoreIcon, SearchIcon } from "outline-icons";
 import * as React from "react";
@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
-import { UserPreference } from "@shared/types";
+import { SubscriptionType, UserPreference } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import Document from "~/models/Document";
 import ContextMenu from "~/components/ContextMenu";
@@ -57,7 +57,7 @@ import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
-import { MenuItem } from "~/types";
+import { MenuItem, MenuItemButton } from "~/types";
 import { documentEditPath } from "~/utils/routeHelpers";
 import { MenuContext, useMenuContext } from "./MenuContext";
 
@@ -92,22 +92,38 @@ type MenuTriggerProps = {
 const MenuTrigger: React.FC<MenuTriggerProps> = ({ label, onTrigger }) => {
   const { t } = useTranslation();
 
-  const { subscriptions } = useStores();
+  const { subscriptions, pins } = useStores();
   const { model: document, menuState } = useMenuContext<Document>();
 
-  const { data, loading, error, request } = useRequest(() =>
-    subscriptions.fetchPage({
-      documentId: document.id,
-      event: "documents.update",
-    })
+  const {
+    loading: auxDataLoading,
+    loaded: auxDataLoaded,
+    request: auxDataRequest,
+  } = useRequest(() =>
+    Promise.all([
+      subscriptions.fetchOne({
+        documentId: document.id,
+        event: SubscriptionType.Document,
+      }),
+      document.collectionId
+        ? subscriptions.fetchOne({
+            collectionId: document.collectionId,
+            event: SubscriptionType.Document,
+          })
+        : noop,
+      pins.fetchOne({
+        documentId: document.id,
+        collectionId: document.collectionId ?? null,
+      }),
+    ])
   );
 
   const handlePointerEnter = React.useCallback(() => {
-    if (isUndefined(data ?? error) && !loading) {
-      void request();
+    if (!auxDataLoading && !auxDataLoaded) {
+      void auxDataRequest();
       void document.loadRelations();
     }
-  }, [data, error, loading, request, document]);
+  }, [auxDataLoading, auxDataLoaded, auxDataRequest, document]);
 
   return label ? (
     <MenuButton
@@ -245,8 +261,20 @@ const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
           },
           actionToMenuItem(starDocument, context),
           actionToMenuItem(unstarDocument, context),
-          actionToMenuItem(subscribeDocument, context),
-          actionToMenuItem(unsubscribeDocument, context),
+          {
+            ...actionToMenuItem(subscribeDocument, context),
+            disabled: collection?.isSubscribed,
+            tooltip: collection?.isSubscribed
+              ? t("Subscription inherited from collection")
+              : undefined,
+          } as MenuItemButton,
+          {
+            ...actionToMenuItem(unsubscribeDocument, context),
+            disabled: collection?.isSubscribed,
+            tooltip: collection?.isSubscribed
+              ? t("Subscription inherited from collection")
+              : undefined,
+          } as MenuItemButton,
           {
             type: "button",
             title: `${t("Find and replace")}…`,

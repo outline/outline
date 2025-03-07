@@ -228,6 +228,45 @@ describe("#events.list", () => {
     expect(body.data[0].id).toEqual(event.id);
   });
 
+  it("should allow filtering by events param", async () => {
+    const user = await buildUser();
+    const admin = await buildAdmin({ teamId: user.teamId });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+    });
+    // audit event
+    await buildEvent({
+      name: "users.promote",
+      teamId: user.teamId,
+      actorId: admin.id,
+      userId: user.id,
+    });
+    // event viewable in activity stream
+    const event = await buildEvent({
+      name: "documents.publish",
+      collectionId: collection.id,
+      documentId: document.id,
+      teamId: user.teamId,
+      actorId: user.id,
+    });
+    const res = await server.post("/api/events.list", {
+      body: {
+        token: user.getJwtToken(),
+        events: ["documents.publish"],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(event.id);
+  });
+
   it("should return events with deleted actors", async () => {
     const user = await buildUser();
     const admin = await buildAdmin({ teamId: user.teamId });
