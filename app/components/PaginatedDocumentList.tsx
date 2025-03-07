@@ -27,7 +27,7 @@ const PaginatedDocumentList = React.memo<Props>(function PaginatedDocumentList({
   documents,
   fetch,
   options,
-  display,
+  display = CollectionDisplay.List,
   showParentDocuments,
   showCollection,
   showPublished,

@@ -9,7 +9,6 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
-import Icon from "@shared/components/Icon";
 import { richExtensions, withComments } from "@shared/editor/nodes";
 import { s, hover } from "@shared/styles";
 import Document from "~/models/Document";
@@ -80,6 +79,17 @@ function DocumentPostItem(
     currentContext: locationSidebarContext,
   });
 
+  const to = React.useMemo(
+    () => ({
+      pathname: documentPath(document),
+      state: {
+        title: document.titleWithDefault,
+        sidebarContext,
+      },
+    }),
+    [document, sidebarContext]
+  );
+
   return (
     <Post
       dir={document.dir}
@@ -90,23 +100,7 @@ function DocumentPostItem(
       {...rovingTabIndex}
     >
       <Content>
-        <Heading
-          ref={itemRef}
-          dir={document.dir}
-          to={{
-            pathname: documentPath(document),
-            state: {
-              title: document.titleWithDefault,
-              sidebarContext,
-            },
-          }}
-        >
-          {document.icon && (
-            <>
-              <Icon value={document.icon} color={document.color ?? undefined} />
-              &nbsp;
-            </>
-          )}
+        <Heading ref={itemRef} dir={document.dir} to={to}>
           <Title
             text={document.titleWithDefault}
             highlight={highlight}
@@ -141,7 +135,11 @@ function DocumentPostItem(
             <Avatar model={document.createdBy} size={AvatarSize.Medium} />
             <Text type="secondary" size="small">
               {t("By {{ author }}", { author: document.createdBy?.name })}{" "}
-              <Time dateTime={document.updatedAt} addSuffix />
+              <Link to={to}>
+                <Text type="secondary" size="small">
+                  <Time dateTime={document.updatedAt} addSuffix />
+                </Text>
+              </Link>
             </Text>
           </Flex>
         </Flex>
