@@ -290,6 +290,7 @@ const CollectionScene = observer(function _CollectionScene() {
                   >
                     <PaginatedDocumentList
                       key="alphabetical"
+                      display={collection.display}
                       documents={documents.alphabeticalInCollection(
                         collection.id
                       )}
@@ -304,6 +305,7 @@ const CollectionScene = observer(function _CollectionScene() {
                   >
                     <PaginatedDocumentList
                       key="old"
+                      display={collection.display}
                       documents={documents.leastRecentlyUpdatedInCollection(
                         collection.id
                       )}
@@ -321,6 +323,7 @@ const CollectionScene = observer(function _CollectionScene() {
                   >
                     <PaginatedDocumentList
                       key="published"
+                      display={collection.display}
                       documents={documents.recentlyPublishedInCollection(
                         collection.id
                       )}
@@ -339,6 +342,7 @@ const CollectionScene = observer(function _CollectionScene() {
                   >
                     <PaginatedDocumentList
                       key="updated"
+                      display={collection.display}
                       documents={documents.recentlyUpdatedInCollection(
                         collection.id
                       )}
@@ -356,6 +360,7 @@ const CollectionScene = observer(function _CollectionScene() {
                     exact
                   >
                     <PaginatedDocumentList
+                      key="recent"
                       display={collection.display}
                       documents={documents.rootInCollection(collection.id)}
                       fetch={documents.fetchPage}
@@ -375,6 +380,7 @@ const CollectionScene = observer(function _CollectionScene() {
                   exact
                 >
                   <PaginatedDocumentList
+                    display={collection.display}
                     documents={documents.archivedInCollection(collection.id)}
                     fetch={documents.fetchPage}
                     options={{

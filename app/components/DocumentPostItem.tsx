@@ -189,7 +189,7 @@ const Heading = styled(Link)<{ rtl?: boolean }>`
   display: flex;
   justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
   align-items: center;
-  margin-top: 0;
+  margin-top: -2px;
   margin-bottom: -4px;
   white-space: nowrap;
   color: ${s("text")};
