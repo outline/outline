@@ -6,7 +6,9 @@ import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import { Optional } from "utility-types";
 import insertFiles from "@shared/editor/commands/insertFiles";
+import EditorContainer from "@shared/editor/components/Styles";
 import { AttachmentPreset } from "@shared/types";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { getDataTransferFiles } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
 import ClickablePadding from "~/components/ClickablePadding";
@@ -182,6 +184,23 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     },
     [updateComments]
   );
+
+  const paragraphs =
+    props.readOnly && typeof props.value === "object"
+      ? ProsemirrorHelper.getPlainParagrahs(props.value)
+      : undefined;
+
+  console.log({ paragraphs });
+
+  if (paragraphs) {
+    return (
+      <EditorContainer>
+        {paragraphs.map((paragraph, index) => (
+          <p key={index}>{paragraph.content.map((content) => content.text)}</p>
+        ))}
+      </EditorContainer>
+    );
+  }
 
   return (
     <ErrorBoundary component="div" reloadOnChunkMissing>
