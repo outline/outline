@@ -27,36 +27,33 @@ const router = new Router();
 koa.use<BaseContext, UserAgentContext>(userAgent);
 
 // serve public assets
-router.use(
-  ["/images/*path", "/email/*path", "/fonts/*path"],
-  async (ctx, next) => {
-    let done;
+router.use(["/images/*", "/email/*", "/fonts/*"], async (ctx, next) => {
+  let done;
 
-    if (ctx.method === "HEAD" || ctx.method === "GET") {
-      try {
-        done = await send(ctx, ctx.path, {
-          root: path.resolve(__dirname, "../../../public"),
-          // 7 day expiry, these assets are mostly static but do not contain a hash
-          maxAge: Day.ms * 7,
-          setHeaders: (res) => {
-            res.setHeader("Access-Control-Allow-Origin", "*");
-          },
-        });
-      } catch (err) {
-        if (err.status !== 404) {
-          throw err;
-        }
+  if (ctx.method === "HEAD" || ctx.method === "GET") {
+    try {
+      done = await send(ctx, ctx.path, {
+        root: path.resolve(__dirname, "../../../public"),
+        // 7 day expiry, these assets are mostly static but do not contain a hash
+        maxAge: Day.ms * 7,
+        setHeaders: (res) => {
+          res.setHeader("Access-Control-Allow-Origin", "*");
+        },
+      });
+    } catch (err) {
+      if (err.status !== 404) {
+        throw err;
       }
     }
-
-    if (!done) {
-      await next();
-    }
   }
-);
+
+  if (!done) {
+    await next();
+  }
+});
 
 router.use(
-  ["/share/:shareId{/*path}", "/share/:shareId/doc/:documentSlug"],
+  ["/share/:shareId", "/share/:shareId/doc/:documentSlug", "/share/:shareId/*"],
   (ctx) => {
     ctx.redirect(ctx.path.replace(/^\/share/, "/s"));
     ctx.status = 301;
@@ -64,7 +61,7 @@ router.use(
 );
 
 if (env.isProduction) {
-  router.get("/static/*path", async (ctx) => {
+  router.get("/static/*", async (ctx) => {
     try {
       const pathname = ctx.path.substring(8);
       if (!pathname) {
@@ -126,8 +123,9 @@ router.get("/opensearch.xml", (ctx) => {
   ctx.body = opensearchResponse(ctx.request.URL.origin);
 });
 
-router.get("/s/:shareId{/*path}", shareDomains(), renderShare);
+router.get("/s/:shareId", shareDomains(), renderShare);
 router.get("/s/:shareId/doc/:documentSlug", shareDomains(), renderShare);
+router.get("/s/:shareId/*", shareDomains(), renderShare);
 
 router.get("/embeds/gitlab", renderEmbed);
 router.get("/embeds/github", renderEmbed);
@@ -135,7 +133,7 @@ router.get("/embeds/dropbox", renderEmbed);
 router.get("/embeds/pinterest", renderEmbed);
 
 // catch all for application
-router.get("*all", shareDomains(), async (ctx, next) => {
+router.get("*", shareDomains(), async (ctx, next) => {
   if (ctx.state?.rootShare) {
     return renderShare(ctx, next);
   }
