@@ -7,6 +7,7 @@ import {
 import { bytesToHumanReadable } from "@shared/utils/files";
 import User from "./User";
 import Model from "./base/Model";
+import Relation from "./decorators/Relation";
 
 class FileOperation extends Model {
   static modelName = "FileOperation";
@@ -27,6 +28,7 @@ class FileOperation extends Model {
 
   format: FileOperationFormat;
 
+  @Relation(() => User)
   user: User;
 
   @computed
