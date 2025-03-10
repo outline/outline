@@ -3,13 +3,13 @@ import {
   BelongsTo,
   Column,
   DataType,
-  Default,
   ForeignKey,
   IsIn,
+  Scopes,
   Table,
 } from "sequelize-typescript";
 import {
-  type ImportData,
+  type ImportInput,
   ImportState,
   IntegrationService,
 } from "@shared/types";
@@ -18,11 +18,21 @@ import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 
+@Scopes(() => ({
+  withUser: {
+    include: [
+      {
+        association: "createdBy",
+        required: true,
+      },
+    ],
+  },
+}))
 @Table({ tableName: "imports", modelName: "import" })
 @Fix
-class Import<T = unknown> extends IdModel<
-  InferAttributes<Import<T>>,
-  Partial<InferCreationAttributes<Import<T>>>
+class Import extends IdModel<
+  InferAttributes<Import>,
+  Partial<InferCreationAttributes<Import>>
 > {
   @IsIn([Object.values(IntegrationService)])
   @Column(DataType.STRING)
@@ -33,11 +43,7 @@ class Import<T = unknown> extends IdModel<
   state: ImportState;
 
   @Column(DataType.JSONB)
-  data: ImportData;
-
-  @Default(0)
-  @Column(DataType.INTEGER)
-  pendingTaskCount: number;
+  input: ImportInput;
 
   // associations
 

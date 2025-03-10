@@ -3,15 +3,11 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("imports", {
+    await queryInterface.createTable("import_tasks", {
       id: {
         type: Sequelize.UUID,
         allowNull: false,
         primaryKey: true,
-      },
-      service: {
-        type: Sequelize.STRING,
-        allowNull: false,
       },
       state: {
         type: Sequelize.STRING,
@@ -21,18 +17,16 @@ module.exports = {
         type: Sequelize.JSONB,
         allowNull: false,
       },
-      createdById: {
-        type: Sequelize.UUID,
-        allowNull: false,
-        references: {
-          model: "users",
-        },
+      output: {
+        type: Sequelize.JSONB,
+        allowNull: true,
       },
-      integrationId: {
+      importId: {
         type: Sequelize.UUID,
         allowNull: false,
+        onDelete: "cascade",
         references: {
-          model: "integrations",
+          model: "imports",
         },
       },
       createdAt: {
@@ -47,6 +41,6 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("imports");
+    await queryInterface.dropTable("import_tasks");
   },
 };

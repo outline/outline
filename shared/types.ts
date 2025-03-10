@@ -62,9 +62,30 @@ export enum ImportState {
   Errored = "errored",
 }
 
-export type ImportData = {
-  collection: { externalId: string; permission?: CollectionPermission }[];
-};
+export enum ImportTaskState {
+  Created = "created",
+  InProgress = "in_progress",
+  Completed = "completed",
+  Errored = "errored",
+}
+
+export type ImportInput = {
+  externalId: string;
+  permission?: CollectionPermission;
+}[];
+
+export type ImportTaskInput = {
+  externalId: string;
+  parentExternalId?: string;
+  collectionExternalId?: string;
+}[];
+
+export type ImportTaskOutput = {
+  externalId: string;
+  title: string;
+  emoji?: string;
+  content: ProsemirrorData[];
+}[];
 
 export enum MentionType {
   User = "user",

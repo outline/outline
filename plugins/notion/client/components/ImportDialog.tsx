@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { s } from "@shared/styles";
 import {
   CollectionPermission,
-  ImportData,
+  ImportInput,
   IntegrationService,
 } from "@shared/types";
 import Button from "~/components/Button";
@@ -64,18 +64,16 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
   const handleStartImport = React.useCallback(async () => {
     setSubmitting();
 
-    const data: ImportData = {
-      collection: pagesWithPermission!.map((page) => ({
-        externalId: page.id,
-        permission: page.permission,
-      })),
-    };
+    const input: ImportInput = pagesWithPermission!.map((page) => ({
+      externalId: page.id,
+      permission: page.permission,
+    }));
 
     try {
       await client.post("/imports.create", {
         integrationId,
         service: IntegrationService.Notion,
-        data,
+        input,
       });
 
       toast.success(

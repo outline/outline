@@ -94,6 +94,7 @@
     "@types/sanitize-filename": "^1.6.3",
     "@vitejs/plugin-react": "^3.1.0",
     "addressparser": "^1.0.1",
+    "async-sema": "^3.1.1",
     "autotrack": "^2.4.1",
     "babel-plugin-styled-components": "^2.1.4",
     "babel-plugin-transform-class-properties": "^6.24.1",
