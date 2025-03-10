@@ -17,12 +17,8 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      data: {
+      input: {
         type: Sequelize.JSONB,
-        allowNull: false,
-      },
-      pendingTaskCount: {
-        type: Sequelize.INTEGER,
         allowNull: false,
       },
       createdById: {

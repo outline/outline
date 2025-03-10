@@ -3,7 +3,6 @@ import {
   BelongsTo,
   Column,
   DataType,
-  Default,
   ForeignKey,
   IsIn,
   Scopes,
@@ -45,10 +44,6 @@ class Import extends IdModel<
 
   @Column(DataType.JSONB)
   input: ImportInput;
-
-  @Default(0)
-  @Column(DataType.INTEGER)
-  pendingTaskCount: number;
 
   // associations
 
