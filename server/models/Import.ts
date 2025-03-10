@@ -10,7 +10,7 @@ import {
   Table,
 } from "sequelize-typescript";
 import {
-  type ImportData,
+  type ImportInput,
   ImportState,
   IntegrationService,
 } from "@shared/types";
@@ -44,7 +44,7 @@ class Import extends IdModel<
   state: ImportState;
 
   @Column(DataType.JSONB)
-  data: ImportData;
+  input: ImportInput;
 
   @Default(0)
   @Column(DataType.INTEGER)

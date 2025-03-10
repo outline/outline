@@ -6,14 +6,12 @@ export const ImportsCreateSchema = BaseSchema.extend({
   body: z.object({
     integrationId: z.string().uuid(),
     service: z.nativeEnum(IntegrationService),
-    data: z.object({
-      collection: z.array(
-        z.object({
-          externalId: z.string(),
-          permission: z.nativeEnum(CollectionPermission).optional(),
-        })
-      ),
-    }),
+    input: z.array(
+      z.object({
+        externalId: z.string(),
+        permission: z.nativeEnum(CollectionPermission).optional(),
+      })
+    ),
   }),
 });
 

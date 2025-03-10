@@ -35,6 +35,7 @@ import type {
   Notification,
   Share,
   GroupMembership,
+  Import,
 } from "./models";
 
 export enum AuthenticationType {
@@ -467,6 +468,11 @@ export type NotificationEvent = BaseEvent<Notification> & {
   membershipId?: string;
 };
 
+export type ImportEvent = BaseEvent<Import> & {
+  name: "imports.create" | "imports.processed";
+  modelId: string;
+};
+
 export type Event =
   | ApiKeyEvent
   | AttachmentEvent
@@ -492,7 +498,8 @@ export type Event =
   | ViewEvent
   | WebhookSubscriptionEvent
   | NotificationEvent
-  | EmptyTrashEvent;
+  | EmptyTrashEvent
+  | ImportEvent;
 
 export type NotificationMetadata = {
   notificationId?: string;

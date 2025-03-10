@@ -69,13 +69,14 @@ export enum ImportTaskState {
   Errored = "errored",
 }
 
-export type ImportData = {
-  collection: { externalId: string; permission?: CollectionPermission }[];
-};
+export type ImportInput = {
+  externalId: string;
+  permission?: CollectionPermission;
+}[];
 
 export type ImportTaskInput = {
   externalId: string;
-  parentExternalId: string;
+  parentExternalId?: string;
 }[];
 
 export type ImportTaskOutput = {
