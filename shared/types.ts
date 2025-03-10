@@ -62,8 +62,19 @@ export enum ImportState {
   Errored = "errored",
 }
 
+export enum ImportTaskState {
+  Created = "created",
+  InProgress = "in_progress",
+  Completed = "completed",
+  Errored = "errored",
+}
+
 export type ImportData = {
   collection: { externalId: string; permission?: CollectionPermission }[];
+};
+
+export type ImportTaskInput = {
+  externalIds: string[];
 };
 
 export enum MentionType {
