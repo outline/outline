@@ -74,8 +74,14 @@ export type ImportData = {
 };
 
 export type ImportTaskInput = {
-  externalIds: string[];
-};
+  externalId: string;
+  parentExternalId: string;
+}[];
+
+export type ImportTaskOutput = {
+  externalId: string;
+  content: ProsemirrorData[];
+}[];
 
 export enum MentionType {
   User = "user",

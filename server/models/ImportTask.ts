@@ -6,22 +6,33 @@ import {
   DataType,
   ForeignKey,
   IsIn,
+  Scopes,
   Table,
 } from "sequelize-typescript";
 import {
   type ImportTaskInput,
+  ImportTaskOutput,
   ImportTaskState,
-  ProsemirrorData,
 } from "@shared/types";
 import Import from "./Import";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 
+@Scopes(() => ({
+  withImport: {
+    include: [
+      {
+        association: "import",
+        required: true,
+      },
+    ],
+  },
+}))
 @Table({ tableName: "import_tasks", modelName: "import_task" })
 @Fix
-class ImportTask<T = unknown> extends IdModel<
-  InferAttributes<ImportTask<T>>,
-  Partial<InferCreationAttributes<ImportTask<T>>>
+class ImportTask extends IdModel<
+  InferAttributes<ImportTask>,
+  Partial<InferCreationAttributes<ImportTask>>
 > {
   @IsIn([Object.values(ImportTaskState)])
   @Column(DataType.STRING)
@@ -32,7 +43,7 @@ class ImportTask<T = unknown> extends IdModel<
 
   @AllowNull
   @Column(DataType.JSONB)
-  output: ProsemirrorData | null;
+  output: ImportTaskOutput | null;
 
   @BelongsTo(() => Import, "importId")
   import: Import;
