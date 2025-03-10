@@ -1,5 +1,5 @@
-import sample from "lodash/sample";
 import { ProsemirrorDoc } from "@shared/types";
+import sample from "lodash/sample";
 
 const pageWithoutLinks: ProsemirrorDoc = {
   type: "doc",

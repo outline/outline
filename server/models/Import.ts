@@ -6,6 +6,7 @@ import {
   Default,
   ForeignKey,
   IsIn,
+  Scopes,
   Table,
 } from "sequelize-typescript";
 import {
@@ -18,11 +19,21 @@ import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 
+@Scopes(() => ({
+  withUser: {
+    include: [
+      {
+        association: "createdBy",
+        required: true,
+      },
+    ],
+  },
+}))
 @Table({ tableName: "imports", modelName: "import" })
 @Fix
-class Import<T = unknown> extends IdModel<
-  InferAttributes<Import<T>>,
-  Partial<InferCreationAttributes<Import<T>>>
+class Import extends IdModel<
+  InferAttributes<Import>,
+  Partial<InferCreationAttributes<Import>>
 > {
   @IsIn([Object.values(IntegrationService)])
   @Column(DataType.STRING)

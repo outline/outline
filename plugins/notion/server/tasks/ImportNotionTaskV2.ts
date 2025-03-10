@@ -1,18 +1,20 @@
 import chunk from "lodash/chunk";
+import { Transaction } from "sequelize";
 import {
+  ImportState,
   ImportTaskInput,
   ImportTaskOutput,
   ImportTaskState,
   ProsemirrorData,
-  ProsemirrorDoc,
 } from "@shared/types";
-import { Integration } from "@server/models";
+import { createContext } from "@server/context";
+import { Import, Integration } from "@server/models";
 import ImportTask from "@server/models/ImportTask";
 import BaseTask from "@server/queues/tasks/BaseTask";
 import { sequelize } from "@server/storage/database";
+import { getPageData } from "../mock-data";
 import { NotionBlock, NotionClient } from "../notion";
 import { PagePerTask } from "../utils";
-import { getPageData } from "./mock-data";
 
 type ParsePageOutput = {
   externalId: string;
@@ -34,13 +36,22 @@ export default class ImportNotionTaskV2 extends BaseTask<Props> {
       }
     );
 
+    switch (importTask.state) {
+      case ImportTaskState.Created:
+        return await this.creationFlow(importTask);
+
+      case ImportTaskState.Completed:
+        return await this.completionFlow(importTask);
+    }
+  }
+
+  private async creationFlow(importTask: ImportTask) {
     const integration = await Integration.scope("withAuthentication").findByPk(
       importTask.import.integrationId,
       { rejectOnEmpty: true }
     );
 
     const client = new NotionClient(integration.authentication.token);
-    const pages: Record<string, ProsemirrorDoc> = {};
 
     const parsedPages = await Promise.all(
       importTask.input.map(async (page) =>
@@ -80,7 +91,42 @@ export default class ImportNotionTaskV2 extends BaseTask<Props> {
 
       importTask.output = taskOutput;
       importTask.state = ImportTaskState.Completed;
-      await importTask.save();
+      await importTask.save({ transaction });
+    });
+
+    await ImportNotionTaskV2.schedule({ importTaskId: importTask.id });
+  }
+
+  private async completionFlow(importTask: ImportTask) {
+    const nextImportTask = await ImportTask.findOne({
+      where: {
+        state: ImportTaskState.Created,
+        importId: importTask.importId,
+      },
+    });
+
+    if (nextImportTask) {
+      await ImportNotionTaskV2.schedule({ importTaskId: nextImportTask.id });
+      return;
+    }
+
+    await sequelize.transaction(async (transaction) => {
+      const associatedImport = await Import.scope("withUser").findByPk(
+        importTask.id,
+        {
+          rejectOnEmpty: true,
+          transaction,
+          lock: Transaction.LOCK.UPDATE,
+        }
+      );
+
+      const ctx = createContext({
+        user: associatedImport.createdBy,
+        transaction,
+      });
+
+      associatedImport.state = ImportState.Processed;
+      await associatedImport.saveWithCtx(ctx, undefined, { name: "processed" });
     });
   }
 
