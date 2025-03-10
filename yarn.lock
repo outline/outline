@@ -4704,10 +4704,10 @@
     "@types/qs" "*"
     "@types/serve-static" "*"
 
-"@types/form-data@^2.5.0":
-  version "2.5.0"
-  resolved "https://registry.yarnpkg.com/@types/form-data/-/form-data-2.5.0.tgz#5025f7433016f923348434c40006d9a797c1b0e8"
-  integrity "sha1-UCX3QzAW+SM0hDTEAAbZp5fBsOg= sha512-23/wYiuckYYtFpL+4RPWiWmRQH2BjFuqCUi2+N3amB1a1Drv+i/byTrGvlLwRVLFNAZbwpbQ7JvTK+VCAPMbcg=="
+"@types/form-data@^2.5.2":
+  version "2.5.2"
+  resolved "https://registry.yarnpkg.com/@types/form-data/-/form-data-2.5.2.tgz#a4dbfd4d5d4a8d0dec9932f1932e2ae7267fc9ae"
+  integrity sha512-tfmcyHn1Pp9YHAO5r40+UuZUPAZbUEgqTel3EuEKpmF9hPkXgR4l41853raliXnb4gwyPNoQOfvgGGlHN5WSog==
   dependencies:
     form-data "*"
 
@@ -11590,7 +11590,7 @@ mermaid@11.4.1:
     ts-dedent "^2.2.0"
     uuid "^9.0.1"
 
-methods@^1.0.1, methods@^1.1.2:
+methods@^1.0.1:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/methods/-/methods-1.1.2.tgz#5529a4d67654134edcc5266656835b0f851afcee"
   integrity "sha1-VSmk1nZUE07cxSZmVoNbD4Ua/O4= sha512-iclAHeNqNm68zFtnZ0e+1L2yUIdvzNoauKU4WBA3VvH/vPFieF7qfRlwUZU+DA9P9bPXIS90ulxoUoCH23sV2w=="
