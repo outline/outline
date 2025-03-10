@@ -3,7 +3,10 @@ import {
   isFullPageOrDatabase,
   iteratePaginatedAPI,
 } from "@notionhq/client";
-import { BlockObjectResponse } from "@notionhq/client/build/src/api-endpoints";
+import {
+  BlockObjectResponse,
+  PageObjectResponse,
+} from "@notionhq/client/build/src/api-endpoints";
 import { RateLimit } from "async-sema";
 import { Second } from "@shared/utils/time";
 import { Page, PageTitle } from "../shared/types";
@@ -66,10 +69,11 @@ export class NotionClient {
 
   async fetchPage(pageId: string) {
     const blocks = await this.fetchBlockChildren(pageId);
-    return blocks;
+    const { title, emoji } = await this.fetchPageInfo(pageId);
+    return { title, emoji, blocks };
   }
 
-  async fetchBlockChildren(blockId: string) {
+  private async fetchBlockChildren(blockId: string) {
     const blocks: NotionBlock[] = [];
 
     let cursor: string | undefined;
@@ -110,5 +114,22 @@ export class NotionClient {
     );
 
     return blocks;
+  }
+
+  private async fetchPageInfo(pageId: string): Promise<{
+    title: string;
+    emoji?: string;
+  }> {
+    await this.limiter();
+    const page = (await this.client.pages.retrieve({
+      page_id: pageId,
+    })) as PageObjectResponse;
+
+    const titleProp = (page.properties["title"] as PageTitle).title;
+
+    return {
+      title: titleProp.at(0)?.plain_text ?? "",
+      emoji: page.icon?.type === "emoji" ? page.icon.emoji : undefined, // Other icon types return a url to download from, which we don't support.
+    };
   }
 }

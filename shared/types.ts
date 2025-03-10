@@ -81,6 +81,8 @@ export type ImportTaskInput = {
 
 export type ImportTaskOutput = {
   externalId: string;
+  title: string;
+  emoji?: string;
   content: ProsemirrorData[];
 }[];
 

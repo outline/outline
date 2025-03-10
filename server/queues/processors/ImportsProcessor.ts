@@ -35,7 +35,7 @@ export default class ImportsProcessor extends BaseProcessor {
 
     const tasksInput: ImportTaskInput = importModel.input.map<
       ImportTaskInput[number]
-    >((item) => ({ externalId: item.externalId }));
+    >((item) => ({ externalId: item.externalId, name: item.name }));
 
     const importTasks = await sequelize.transaction(async (transaction) => {
       const insertedTasks = await Promise.all(
@@ -61,6 +61,16 @@ export default class ImportsProcessor extends BaseProcessor {
   }
 
   private async processedFlow(importModel: Import) {
-    console.log("inside processed flow");
+    ImportTask.findAllInBatches<ImportTask>(
+      {
+        where: { importId: importModel.id },
+        batchLimit: 5,
+      },
+      async (importTasks) => {
+        importTasks.forEach((importTask) => {
+          importTask.output;
+        });
+      }
+    );
   }
 }

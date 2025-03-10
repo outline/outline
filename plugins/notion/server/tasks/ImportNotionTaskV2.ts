@@ -18,8 +18,10 @@ import { PagePerTask } from "../utils";
 
 type ParsePageOutput = {
   externalId: string;
-  childExternalIds: string[];
+  title: string;
+  emoji?: string;
   content: ProsemirrorData[];
+  childExternalIds: string[];
 };
 
 type Props = {
@@ -63,6 +65,8 @@ export default class ImportNotionTaskV2 extends BaseTask<Props> {
       ImportTaskOutput[number]
     >((parsedPage) => ({
       externalId: parsedPage.externalId,
+      title: parsedPage.title,
+      emoji: parsedPage.emoji,
       content: parsedPage.content,
     }));
 
@@ -134,7 +138,7 @@ export default class ImportNotionTaskV2 extends BaseTask<Props> {
     pageId: string,
     client: NotionClient
   ): Promise<ParsePageOutput> {
-    const pageBlocks = await client.fetchPage(pageId);
+    const { title, emoji, blocks } = await client.fetchPage(pageId);
     // TODO: transform blocks to prose mirror content
     const content: ProsemirrorData[] = [
       {
@@ -151,8 +155,10 @@ export default class ImportNotionTaskV2 extends BaseTask<Props> {
 
     return {
       externalId: pageId,
-      childExternalIds: this.getChildPageIds(pageBlocks),
+      title,
+      emoji,
       content,
+      childExternalIds: this.getChildPageIds(blocks),
     };
   }
 
