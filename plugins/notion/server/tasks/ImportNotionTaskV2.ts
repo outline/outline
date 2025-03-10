@@ -16,11 +16,8 @@ import { getPageData } from "../mock-data";
 import { NotionBlock, NotionClient } from "../notion";
 import { PagePerTask } from "../utils";
 
-type ParsePageOutput = {
-  externalId: string;
-  title: string;
-  emoji?: string;
-  content: ProsemirrorData[];
+type ParsePageOutput = ImportTaskOutput[number] & {
+  collectionExternalId?: string;
   childExternalIds: string[];
 };
 
@@ -40,7 +37,11 @@ export default class ImportNotionTaskV2 extends BaseTask<Props> {
 
     switch (importTask.state) {
       case ImportTaskState.Created:
+        await importTask.update({ state: ImportTaskState.InProgress });
         return await this.creationFlow(importTask);
+
+      case ImportTaskState.InProgress:
+        return this.fetchAndProcess(importTask);
 
       case ImportTaskState.Completed:
         return await this.completionFlow(importTask);
@@ -48,57 +49,8 @@ export default class ImportNotionTaskV2 extends BaseTask<Props> {
   }
 
   private async creationFlow(importTask: ImportTask) {
-    const integration = await Integration.scope("withAuthentication").findByPk(
-      importTask.import.integrationId,
-      { rejectOnEmpty: true }
-    );
-
-    const client = new NotionClient(integration.authentication.token);
-
-    const parsedPages = await Promise.all(
-      importTask.input.map(async (page) =>
-        this.parsePage(page.externalId, client)
-      )
-    );
-
-    const taskOutput: ImportTaskOutput = parsedPages.map<
-      ImportTaskOutput[number]
-    >((parsedPage) => ({
-      externalId: parsedPage.externalId,
-      title: parsedPage.title,
-      emoji: parsedPage.emoji,
-      content: parsedPage.content,
-    }));
-
-    const childTasksInput: ImportTaskInput = parsedPages.flatMap((parsedPage) =>
-      parsedPage.childExternalIds.map<ImportTaskInput[number]>(
-        (childExternalId) => ({
-          externalId: childExternalId,
-          parentExternalId: parsedPage.externalId,
-        })
-      )
-    );
-
-    await sequelize.transaction(async (transaction) => {
-      await Promise.all(
-        chunk(childTasksInput, PagePerTask).map(async (input) => {
-          await ImportTask.create(
-            {
-              state: ImportTaskState.Created,
-              input,
-              importId: importTask.importId,
-            },
-            { transaction }
-          );
-        })
-      );
-
-      importTask.output = taskOutput;
-      importTask.state = ImportTaskState.Completed;
-      await importTask.save({ transaction });
-    });
-
-    await ImportNotionTaskV2.schedule({ importTaskId: importTask.id });
+    await importTask.update({ state: ImportTaskState.InProgress });
+    return this.fetchAndProcess(importTask);
   }
 
   private async completionFlow(importTask: ImportTask) {
@@ -134,11 +86,64 @@ export default class ImportNotionTaskV2 extends BaseTask<Props> {
     });
   }
 
+  private async fetchAndProcess(importTask: ImportTask) {
+    const integration = await Integration.scope("withAuthentication").findByPk(
+      importTask.import.integrationId,
+      { rejectOnEmpty: true }
+    );
+
+    const client = new NotionClient(integration.authentication.token);
+
+    const parsedPages = await Promise.all(
+      importTask.input.map(async (page) => this.parsePage(page, client))
+    );
+
+    const taskOutput: ImportTaskOutput = parsedPages.map<
+      ImportTaskOutput[number]
+    >((parsedPage) => ({
+      externalId: parsedPage.externalId,
+      title: parsedPage.title,
+      emoji: parsedPage.emoji,
+      content: parsedPage.content,
+    }));
+
+    const childTasksInput: ImportTaskInput = parsedPages.flatMap((parsedPage) =>
+      parsedPage.childExternalIds.map<ImportTaskInput[number]>(
+        (childExternalId) => ({
+          externalId: childExternalId,
+          parentExternalId: parsedPage.externalId,
+          collectionExternalId: parsedPage.collectionExternalId,
+        })
+      )
+    );
+
+    await sequelize.transaction(async (transaction) => {
+      await Promise.all(
+        chunk(childTasksInput, PagePerTask).map(async (input) => {
+          await ImportTask.create(
+            {
+              state: ImportTaskState.Created,
+              input,
+              importId: importTask.importId,
+            },
+            { transaction }
+          );
+        })
+      );
+
+      importTask.output = taskOutput;
+      importTask.state = ImportTaskState.Completed;
+      await importTask.save({ transaction });
+    });
+
+    await ImportNotionTaskV2.schedule({ importTaskId: importTask.id });
+  }
+
   private async parsePage(
-    pageId: string,
+    page: ImportTaskInput[number],
     client: NotionClient
   ): Promise<ParsePageOutput> {
-    const { title, emoji, blocks } = await client.fetchPage(pageId);
+    const { title, emoji, blocks } = await client.fetchPage(page.externalId);
     // TODO: transform blocks to prose mirror content
     const content: ProsemirrorData[] = [
       {
@@ -154,10 +159,11 @@ export default class ImportNotionTaskV2 extends BaseTask<Props> {
     ];
 
     return {
-      externalId: pageId,
+      externalId: page.externalId,
       title,
       emoji,
       content,
+      collectionExternalId: page.collectionExternalId ?? page.externalId,
       childExternalIds: this.getChildPageIds(blocks),
     };
   }

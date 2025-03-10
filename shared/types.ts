@@ -77,6 +77,7 @@ export type ImportInput = {
 export type ImportTaskInput = {
   externalId: string;
   parentExternalId?: string;
+  collectionExternalId?: string;
 }[];
 
 export type ImportTaskOutput = {

@@ -24,6 +24,7 @@ module.exports = {
       importId: {
         type: Sequelize.UUID,
         allowNull: false,
+        onDelete: "cascade",
         references: {
           model: "imports",
         },
