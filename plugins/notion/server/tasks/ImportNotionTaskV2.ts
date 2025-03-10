@@ -112,7 +112,7 @@ export default class ImportNotionTaskV2 extends BaseTask<Props> {
 
     await sequelize.transaction(async (transaction) => {
       const associatedImport = await Import.scope("withUser").findByPk(
-        importTask.id,
+        importTask.importId,
         {
           rejectOnEmpty: true,
           transaction,

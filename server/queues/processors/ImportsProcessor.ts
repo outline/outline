@@ -4,6 +4,7 @@ import { sequelize } from "@server/storage/database";
 import { Event, ImportEvent } from "@server/types";
 import { ImportState, ImportTaskInput, ImportTaskState } from "@shared/types";
 import chunk from "lodash/chunk";
+import ImportNotionTaskV2 from "plugins/notion/server/tasks/ImportNotionTaskV2";
 import { PagePerTask } from "plugins/notion/server/utils";
 import BaseProcessor from "./BaseProcessor";
 
@@ -28,27 +29,35 @@ export default class ImportsProcessor extends BaseProcessor {
   }
 
   private async creationFlow(importModel: Import) {
+    if (!importModel.input.length) {
+      return;
+    }
+
     const tasksInput: ImportTaskInput = importModel.input.map<
       ImportTaskInput[number]
     >((item) => ({ externalId: item.externalId }));
 
-    await sequelize.transaction(async (transaction) => {
-      await Promise.all(
-        chunk(tasksInput, PagePerTask).map(async (input) => {
-          await ImportTask.create(
+    const importTasks = await sequelize.transaction(async (transaction) => {
+      const insertedTasks = await Promise.all(
+        chunk(tasksInput, PagePerTask).map((input) =>
+          ImportTask.create(
             {
               state: ImportTaskState.Created,
               input,
               importId: importModel.id,
             },
             { transaction }
-          );
-        })
+          )
+        )
       );
 
       importModel.state = ImportState.InProgress;
       await importModel.save({ transaction });
+
+      return insertedTasks;
     });
+
+    await ImportNotionTaskV2.schedule({ importTaskId: importTasks[0].id });
   }
 
   private async processedFlow(importModel: Import) {
