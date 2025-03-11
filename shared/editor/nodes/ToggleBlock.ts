@@ -137,10 +137,7 @@ export default class ToggleBlock extends Node {
           const blocks = findBlockNodes(newState.doc);
           tr = newState.tr;
           for (const block of blocks) {
-            if (
-              block.node.type.name === "toggle_block" &&
-              !block.node.attrs.id
-            ) {
+            if (block.node.type.name === this.name && !block.node.attrs.id) {
               tr = tr.setNodeAttribute(block.pos, "id", v4());
             }
           }
@@ -148,7 +145,7 @@ export default class ToggleBlock extends Node {
           if (!foldPlugin.spec.initialDecorationsLoaded) {
             const positions = [];
             for (const block of blocks) {
-              if (block.node.type.name === "toggle_block") {
+              if (block.node.type.name === this.name) {
                 positions.push(block.pos);
               }
             }
