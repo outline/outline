@@ -52,7 +52,34 @@ export default class ToggleBlock extends Node {
           return DecorationSet.empty;
         },
         apply: (tr, value) => {
-          value = value.map(tr.mapping, tr.doc);
+          let decoToRestore;
+          value = value.map(tr.mapping, tr.doc, {
+            onRemove: (decorationSpec) => {
+              if (decorationSpec && decorationSpec.id) {
+                const block = findBlockNodes(tr.doc).find(
+                  (blk) =>
+                    blk.node.type.name === this.name &&
+                    blk.node.attrs.id === decorationSpec.id
+                );
+                if (!isNil(block)) {
+                  decoToRestore = Decoration.node(
+                    block.pos,
+                    block.pos + block.node.nodeSize,
+                    {},
+                    decorationSpec
+                  );
+                } else {
+                  const key = `${decorationSpec.id}:${this.editor.props.userId}`;
+                  Storage.remove(key);
+                }
+              }
+            },
+          });
+
+          if (!isNil(decoToRestore)) {
+            value = value.add(tr.doc, [decoToRestore]);
+          }
+
           const action = tr.getMeta(ToggleBlock.pluginKey);
           if (action) {
             if (action.type === Action.INIT) {
@@ -66,7 +93,7 @@ export default class ToggleBlock extends Node {
                       pos,
                       pos + node.nodeSize,
                       {},
-                      { unfold: unfoldState.unfold }
+                      { unfold: unfoldState.unfold, id: node.attrs.id }
                     ),
                   ]);
                 }
@@ -90,7 +117,7 @@ export default class ToggleBlock extends Node {
                   action.at,
                   action.at + node.nodeSize,
                   {},
-                  { unfold: true }
+                  { unfold: true, id: node.attrs.id }
                 ),
               ]);
               const key = `${node.attrs.id}:${this.editor.props.userId}`;
