@@ -70,6 +70,10 @@ services:
       STAGE: 'local'
       WEBSOCKET: 'true'
       CLIENT_MAX_BODY_SIZE: '0'
+      WEBSOCKET_SUPPORT: 'true'
+      KEEPALIVE_TIMEOUT: '70s'
+      PROXY_READ_TIMEOUT: '60s'
+      PROXY_SEND_TIMEOUT: '60s'
 
   portainer:
     container_name: portainer
