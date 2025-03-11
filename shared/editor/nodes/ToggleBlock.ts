@@ -99,14 +99,14 @@ export default class ToggleBlock extends Node {
                 }
               }
             } else if (action.type === Action.FOLD) {
+              const node = tr.doc.nodeAt(action.at)!;
               const deco = value.find(
-                action.at + 1,
-                action.at + 1,
-                (spec) => spec.unfold
+                undefined,
+                undefined,
+                (spec) => spec.id === node.attrs.id && spec.unfold
               );
               if (deco.length) {
                 value = value.remove(deco);
-                const node = tr.doc.nodeAt(action.at)!;
                 const key = `${node.attrs.id}:${this.editor.props.userId}`;
                 Storage.remove(key);
               }
