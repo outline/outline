@@ -24,14 +24,15 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import NewDocumentMenu from "~/menus/NewDocumentMenu";
 
+// Home document ID
+const HOME_DOCUMENT_ID = "homepage-DaekFaFBVL";
+
 function Home() {
-  const { documents, ui } = useStores();
+  const { ui } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const { t } = useTranslation();
   const [spendPostLoginPath] = usePostLoginPath();
-  const userId = user?.id;
-  const { pins, count } = usePinnedDocuments("home");
   const can = usePolicy(team);
 
   const postLoginPath = spendPostLoginPath();
@@ -55,69 +56,17 @@ function Home() {
       <ResizingHeightContainer>
         {!ui.languagePromptDismissed && <LanguagePrompt key="language" />}
       </ResizingHeightContainer>
-      <Heading>{t("Home")}</Heading>
-      <PinnedDocuments
-        pins={pins}
-        canUpdate={can.update}
-        placeholderCount={count}
-      />
-      <Documents>
-        <Tabs>
-          <Tab to="/home" exact>
-            {t("Recently viewed")}
-          </Tab>
-          <Tab to="/home/recent" exact>
-            {t("Recently updated")}
-          </Tab>
-          <Tab to="/home/created">{t("Created by me")}</Tab>
-        </Tabs>
-        <Switch>
-          <Route path="/home/recent">
-            <PaginatedDocumentList
-              documents={documents.recentlyUpdated}
-              fetch={documents.fetchRecentlyUpdated}
-              empty={<Empty>{t("Weird, this shouldn’t ever be empty")}</Empty>}
-              showCollection
-            />
-          </Route>
-          <Route path="/home/created">
-            <PaginatedDocumentList
-              key="created"
-              documents={documents.createdByUser(userId)}
-              fetch={documents.fetchOwned}
-              options={{
-                userId,
-              }}
-              empty={
-                <Empty>{t("You haven’t created any documents yet")}</Empty>
-              }
-              showCollection
-            />
-          </Route>
-          <Route path="/home">
-            <PaginatedDocumentList
-              key="recent"
-              documents={documents.recentlyViewed}
-              fetch={documents.fetchRecentlyViewed}
-              empty={
-                <Empty>
-                  {t(
-                    "Documents you’ve recently viewed will be here for easy access"
-                  )}
-                </Empty>
-              }
-              showCollection
-            />
-          </Route>
-        </Switch>
-      </Documents>
+      <DocumentContainer>
+        <Document documentId={HOME_DOCUMENT_ID} readOnly />
+      </DocumentContainer>
     </Scene>
   );
 }
 
-const Documents = styled.div`
+const DocumentContainer = styled.div`
   position: relative;
   background: ${s("background")};
+  height: 100%;
 `;
 
 export default observer(Home);
