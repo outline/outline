@@ -66,7 +66,7 @@ services:
       timeout: 20s
       retries: 3
     environment:
-      HTTPS_PORTAL_STAGE: 'staging'
+      HTTPS_PORTAL_STAGE: 'production'
       DOMAINS: 'scruffy.is.ed.ac.uk -> http://outline:3000'
       STAGE: 'local'
       WEBSOCKET: 'true'
