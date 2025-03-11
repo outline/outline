@@ -2,31 +2,36 @@ import { observer } from "mobx-react";
 import { HomeIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Redirect } from "react-router-dom";
+import { Switch, Route, Redirect } from "react-router-dom";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { Action } from "~/components/Actions";
+import Empty from "~/components/Empty";
+import Heading from "~/components/Heading";
 import InputSearchPage from "~/components/InputSearchPage";
 import LanguagePrompt from "~/components/LanguagePrompt";
+import PaginatedDocumentList from "~/components/PaginatedDocumentList";
+import PinnedDocuments from "~/components/PinnedDocuments";
+import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Scene from "~/components/Scene";
+import Tab from "~/components/Tab";
+import Tabs from "~/components/Tabs";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { usePostLoginPath } from "~/hooks/useLastVisitedPath";
+import { usePinnedDocuments } from "~/hooks/usePinnedDocuments";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import NewDocumentMenu from "~/menus/NewDocumentMenu";
-import DocumentScene from "~/scenes/Document"; // Renamed the import
-import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
-
-// Home document ID
-const HOME_DOCUMENT_ID = "homepage-DaekFaFBVL";
 
 function Home() {
-  const { ui } = useStores();
+  const { documents, ui } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const { t } = useTranslation();
   const [spendPostLoginPath] = usePostLoginPath();
+  const userId = user?.id;
+  const { pins, count } = usePinnedDocuments("home");
   const can = usePolicy(team);
 
   const postLoginPath = spendPostLoginPath();
@@ -50,17 +55,69 @@ function Home() {
       <ResizingHeightContainer>
         {!ui.languagePromptDismissed && <LanguagePrompt key="language" />}
       </ResizingHeightContainer>
-      <DocumentContainer>
-        <DocumentScene documentId={HOME_DOCUMENT_ID} readOnly />
-      </DocumentContainer>
+      <Heading>{t("Home")}</Heading>
+      <PinnedDocuments
+        pins={pins}
+        canUpdate={can.update}
+        placeholderCount={count}
+      />
+      <Documents>
+        <Tabs>
+          <Tab to="/home" exact>
+            {t("Recently viewed")}
+          </Tab>
+          <Tab to="/home/recent" exact>
+            {t("Recently updated")}
+          </Tab>
+          <Tab to="/home/created">{t("Created by me")}</Tab>
+        </Tabs>
+        <Switch>
+          <Route path="/home/recent">
+            <PaginatedDocumentList
+              documents={documents.recentlyUpdated}
+              fetch={documents.fetchRecentlyUpdated}
+              empty={<Empty>{t("Weird, this shouldn’t ever be empty")}</Empty>}
+              showCollection
+            />
+          </Route>
+          <Route path="/home/created">
+            <PaginatedDocumentList
+              key="created"
+              documents={documents.createdByUser(userId)}
+              fetch={documents.fetchOwned}
+              options={{
+                userId,
+              }}
+              empty={
+                <Empty>{t("You haven’t created any documents yet")}</Empty>
+              }
+              showCollection
+            />
+          </Route>
+          <Route path="/home">
+            <PaginatedDocumentList
+              key="recent"
+              documents={documents.recentlyViewed}
+              fetch={documents.fetchRecentlyViewed}
+              empty={
+                <Empty>
+                  {t(
+                    "Documents you’ve recently viewed will be here for easy access"
+                  )}
+                </Empty>
+              }
+              showCollection
+            />
+          </Route>
+        </Switch>
+      </Documents>
     </Scene>
   );
 }
 
-const DocumentContainer = styled.div`
+const Documents = styled.div`
   position: relative;
   background: ${s("background")};
-  height: 100%;
 `;
 
 export default observer(Home);
