@@ -40,8 +40,6 @@ Strategy.prototype.authenticate = function (req, options) {
   authenticate.bind(this)(req, options);
 };
 
-Logger.info("task", `LOOOK OUT FOR THIS XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXS`);
-
 if (
   env.OIDC_CLIENT_ID &&
   env.OIDC_CLIENT_SECRET &&
@@ -153,6 +151,10 @@ if (
               throw new AuthenticationError("Access control system is not properly configured");
             }
 
+            Logger.info("authentication", `Starting authentication for user: ${usernamecheck}`);
+            Logger.info("authentication", `ACCESS_API configured as: ${env.ACCESS_API || 'not set'}`);
+            Logger.info("authentication", `Attempting to contact access control API at: ${env.ACCESS_API}`);
+
             let accessResponse;
             try {
               accessResponse = await Promise.race([
@@ -162,7 +164,11 @@ if (
                 )
               ]);
 
+              Logger.info("authentication", `Access API raw response: ${JSON.stringify(accessResponse)}`);
+              Logger.info("authentication", `Access check result: ${accessResponse?.has_access}`);
+
             } catch (requestError) {
+              Logger.info("authentication", `Access API request error: ${requestError.message}`);
               throw new AuthenticationError(`Access check failed: ${requestError.message}`);
             }
 
@@ -181,6 +187,16 @@ if (
               throw new AuthenticationError('User does not have required access permissions');
             }
           } catch (err) {
+            Logger.info("authentication", `Access check error: ${err.message}, code: ${err.code || 'none'}`);
+
+            if (err.code === 'ECONNREFUSED' || err.code === 'ENOTFOUND') {
+              Logger.info("authentication", `Network error connecting to access API: ${err.code} - ${err.message}`);
+            }
+
+            if (err.message === 'Access API timeout') {
+              Logger.info("authentication", `Access API timed out after 5000ms`);
+            }
+
             if (
               err.code === 'ECONNREFUSED' ||
               err.code === 'ENOTFOUND' ||
