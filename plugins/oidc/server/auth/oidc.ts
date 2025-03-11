@@ -147,6 +147,7 @@ if (
           Logger.info("authentication", `OIDC_EMAIL_CLAIM configured as: ${env.OIDC_EMAIL_CLAIM}`);
           Logger.info("authentication", `UPN value: ${profile.upn}`);
           Logger.info("authentication", `Email value: ${profile.email}`);
+          Logger.info("authentication", `Available profile fields: ${Object.keys(profile).join(', ')}`);
 
           const email = get(profile, env.OIDC_EMAIL_CLAIM) || profile.email;
           Logger.info("authentication", `Email selected for authentication: ${email}`);
