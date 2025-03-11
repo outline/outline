@@ -2,27 +2,21 @@ import { observer } from "mobx-react";
 import { HomeIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Switch, Route, Redirect } from "react-router-dom";
+import { Redirect } from "react-router-dom";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { Action } from "~/components/Actions";
-import Empty from "~/components/Empty";
-import Heading from "~/components/Heading";
 import InputSearchPage from "~/components/InputSearchPage";
 import LanguagePrompt from "~/components/LanguagePrompt";
-import PaginatedDocumentList from "~/components/PaginatedDocumentList";
-import PinnedDocuments from "~/components/PinnedDocuments";
-import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Scene from "~/components/Scene";
-import Tab from "~/components/Tab";
-import Tabs from "~/components/Tabs";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { usePostLoginPath } from "~/hooks/useLastVisitedPath";
-import { usePinnedDocuments } from "~/hooks/usePinnedDocuments";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import NewDocumentMenu from "~/menus/NewDocumentMenu";
+import DocumentScene from "~/scenes/Document"; // Renamed the import
+import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 
 // Home document ID
 const HOME_DOCUMENT_ID = "homepage-DaekFaFBVL";
@@ -57,7 +51,7 @@ function Home() {
         {!ui.languagePromptDismissed && <LanguagePrompt key="language" />}
       </ResizingHeightContainer>
       <DocumentContainer>
-        <Document documentId={HOME_DOCUMENT_ID} readOnly />
+        <DocumentScene documentId={HOME_DOCUMENT_ID} readOnly />
       </DocumentContainer>
     </Scene>
   );
