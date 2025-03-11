@@ -71,6 +71,18 @@ class OIDCPluginEnvironment extends Environment {
     environment.OIDC_USERNAME_CLAIM ?? "preferred_username";
 
   /**
+   * The OIDC profile field to use as the email. The default value is
+   * "email".
+   */
+  public OIDC_EMAIL_CLAIM = environment.OIDC_EMAIL_CLAIM ?? "email";
+
+  /**
+   * The OIDC profile field to use as the display name. The default value is
+   * "name".
+   */
+  public OIDC_DISPLAY_NAME_CLAIM = environment.OIDC_DISPLAY_NAME_CLAIM ?? "name";
+
+  /**
    * A space separated list of OIDC scopes to request. Defaults to "openid
    * profile email".
    */
@@ -98,7 +110,7 @@ class OIDCPluginEnvironment extends Environment {
   })
   public OIDC_LOGOUT_URI = this.toOptionalString(environment.OIDC_LOGOUT_URI);
 
-    /**
+  /**
    * The OIDC API URL for accessing user information.
    */
   @IsOptional()

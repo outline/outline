@@ -143,7 +143,7 @@ if (
             );
           }
 
-          const email = profile.email;
+          const email = get(profile, env.OIDC_EMAIL_CLAIM) || profile.email;
           const usernamecheck = email.split('@')[0];
 
           try {
