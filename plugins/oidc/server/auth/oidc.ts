@@ -21,6 +21,7 @@ import {
 } from "@server/utils/passport";
 import config from "../../plugin.json";
 import env from "../env";
+import Logger from "@server/logging/Logger";
 
 const router = new Router();
 const scopes = env.OIDC_SCOPES.split(" ");
@@ -38,6 +39,8 @@ Strategy.prototype.authenticate = function (req, options) {
   options.originalQuery = req.query;
   authenticate.bind(this)(req, options);
 };
+
+Logger.info("task", `LOOOK OUT FOR THIS XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXS`);
 
 if (
   env.OIDC_CLIENT_ID &&
