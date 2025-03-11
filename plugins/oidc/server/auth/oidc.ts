@@ -142,6 +142,54 @@ if (
             );
           }
 
+          const email = profile.email;
+          const usernamecheck = email.split('@')[0];
+
+          try {
+            if (!env.ACCESS_API) {
+              throw new AuthenticationError("Access control system is not properly configured");
+            }
+
+            let accessResponse;
+            try {
+              accessResponse = await Promise.race([
+                request('GET', `${env.ACCESS_API}?username=${usernamecheck}`, ''),
+                new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error('Access API timeout')), 5000)
+                )
+              ]);
+
+            } catch (requestError) {
+              throw new AuthenticationError(`Access check failed: ${requestError.message}`);
+            }
+
+            if (!accessResponse) {
+              throw new AuthenticationError('No response from access control API');
+            }
+
+            if (typeof accessResponse !== 'object' || accessResponse === null) {
+              throw new AuthenticationError('Invalid response from access control API');
+            }
+
+            if (typeof accessResponse.has_access !== 'boolean') {
+              throw new AuthenticationError('Invalid response format from access control API');
+            }
+            if (!accessResponse.has_access) {
+              throw new AuthenticationError('User does not have required access permissions');
+            }
+          } catch (err) {
+            if (
+              err.code === 'ECONNREFUSED' ||
+              err.code === 'ENOTFOUND' ||
+              err.message === 'Access API timeout' ||
+              err.message.includes('Access check failed')
+            ) {
+              return done(new AuthenticationError('Access control system unavailable'), null);
+            }
+
+            return done(err, null);
+          }
+
           const result = await accountProvisioner({
             ip: ctx.ip,
             team: {

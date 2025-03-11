@@ -97,6 +97,17 @@ class OIDCPluginEnvironment extends Environment {
     allow_underscores: true,
   })
   public OIDC_LOGOUT_URI = this.toOptionalString(environment.OIDC_LOGOUT_URI);
+
+    /**
+   * The OIDC API URL for accessing user information.
+   */
+  @IsOptional()
+  @IsUrl({
+    require_tld: false,
+    allow_underscores: true,
+  })
+  public ACCESS_API = this.toOptionalString(environment.ACCESS_API);
+
 }
 
 export default new OIDCPluginEnvironment();
