@@ -1,15 +1,93 @@
 services:
+
+  outline:
+      container_name: outline
+      build:
+        context: .
+        dockerfile: Dockerfile
+      env_file: ./docker.env
+      expose:
+        - "3000"
+      volumes:
+        - storage-data:/var/lib/outline/data
+      depends_on:
+        - postgres
+        - redis
+
   redis:
+    container_name: redis
     image: redis
-    ports:
-      - "127.0.0.1:6379:6379"
-    user: "redis:redis"
+    env_file: ./docker.env
+    expose:
+      - "6379"
+    volumes:
+      - ./redis.conf:/redis.conf
+    command: ["redis-server", "/redis.conf"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 30s
+      retries: 3
+
   postgres:
+    container_name: postgres
     image: postgres
-    ports:
-      - "127.0.0.1:5432:5432"
+    env_file: ./docker.env
+    expose:
+      - "5432"
+    volumes:
+      - database-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "outlinedb", "-U", "outlinedbadmin"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
-      POSTGRES_DB: outline
-    user: "postgres:postgres"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+  https-portal:
+    container_name: https-portal
+    image: steveltn/https-portal
+    env_file: ./docker.env
+    ports:
+      - '80:80'
+      - '443:443'
+    links:
+      - outline
+    restart: always
+    volumes:
+      - https-portal-data:/var/lib/https-portal
+    healthcheck:
+      test: ["CMD", "service", "nginx", "status"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    environment:
+      HTTPS_PORTAL_STAGE: 'staging'
+      DOMAINS: 'scruffy.is.ed.ac.uk -> http://outline:3000'
+      STAGE: 'local'
+      WEBSOCKET: 'true'
+      CLIENT_MAX_BODY_SIZE: '0'
+
+  portainer:
+    container_name: portainer
+    image: portainer/portainer-ce:latest
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - portainer-data:/data
+    expose:
+      - "9000"
+    environment:
+      - TZ=Europe/London
+
+volumes:
+  https-portal-data:
+  storage-data:
+  database-data:
+  portainer-data:
