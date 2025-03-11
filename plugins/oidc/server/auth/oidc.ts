@@ -73,7 +73,7 @@ if (
         ctx: Context,
         accessToken: string,
         refreshToken: string,
-        params: { expires_in: number },
+        params: { expires_in: number, id_token?: string },
         _profile: unknown,
         done: (
           err: Error | null,
@@ -88,10 +88,33 @@ if (
           ];
 
           const profile = await request(
-            usePostMethod.includes(env.OIDC_USERINFO_URI!) ? "POST" : "GET",
-            env.OIDC_USERINFO_URI!,
-            accessToken
+          usePostMethod.includes(env.OIDC_USERINFO_URI!) ? "POST" : "GET",
+          env.OIDC_USERINFO_URI!,
+          accessToken
           );
+
+          // Extract claims from ID token if available
+          if (params.id_token) {
+            try {
+              // Parse ID token (it's a JWT)
+              const tokenParts = params.id_token.split('.');
+              if (tokenParts.length >= 2) {
+                const tokenPayload = JSON.parse(
+                  Buffer.from(tokenParts[1], 'base64').toString()
+                );
+
+                // Merge ID token claims into profile
+                // This makes claims like 'upn' available in the profile object
+                Object.assign(profile, tokenPayload);
+
+                Logger.info("authentication", `ID token parsed and merged with profile`);
+              }
+            } catch (tokenError) {
+              Logger.error("authentication", `Failed to parse ID token: ${tokenError.message}`);
+            }
+          }
+
+          Logger.info("authentication", `Profile data after merge: ${JSON.stringify(profile)}`);
 
           if (!profile.email) {
             throw AuthenticationError(
