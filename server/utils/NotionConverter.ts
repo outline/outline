@@ -22,20 +22,21 @@ import type {
   ToggleBlockObjectResponse,
   PageObjectResponse,
 } from "@notionhq/client/build/src/api-endpoints";
-import Logger from "@server/logging/Logger";
-import { MentionType, ProsemirrorData } from "@shared/types";
 import isArray from "lodash/isArray";
+import { MentionType, ProsemirrorData } from "@shared/types";
+import Logger from "@server/logging/Logger";
 
-type NotionBlock = BlockObjectResponse & {
+export type NotionBlock = BlockObjectResponse & {
   children: NotionBlock[];
 };
 
-type NotionPage = PageObjectResponse & {
+export type NotionPage = PageObjectResponse & {
   children: NotionBlock[];
 };
 
 /** Convert Notion blocks to Outline data. */
 export class NotionConverter {
+  // TODO: Implement the following blocks:
   // - "callout"
   // - "child_database"
   // - "child_page"
@@ -71,6 +72,7 @@ export class NotionConverter {
         // @ts-expect-error Not all blocks have an interface
         const response = this[child.type](child);
         if (
+          response &&
           this.nodesWithoutBlockChildren.includes(response.type) &&
           "children" in child
         ) {
@@ -143,7 +145,7 @@ export class NotionConverter {
       type: "paragraph",
       content: [
         {
-          text: item.bookmark.caption,
+          text: item.bookmark.caption.map(this.rich_text_to_plaintext).join(""),
           type: "text",
           marks: [
             {
@@ -181,7 +183,12 @@ export class NotionConverter {
       attrs: {
         language: item.code.language,
       },
-      content: item.code.rich_text.map(this.rich_text_to_plaintext),
+      content: [
+        {
+          type: "text",
+          text: item.code.rich_text.map(this.rich_text_to_plaintext).join(""),
+        },
+      ],
     };
   }
 
@@ -198,13 +205,24 @@ export class NotionConverter {
   }
 
   private static rich_text(item: RichTextItemResponse) {
-    // TODO: Remap color, bold here.
+    const annotationToMark: Record<
+      keyof RichTextItemResponse["annotations"],
+      string
+    > = {
+      bold: "strong",
+      code: "code_inline",
+      italic: "em",
+      underline: "underline",
+      strikethrough: "strikethrough",
+      color: "highlight",
+    };
+
     const mapAttrs = () =>
       Object.entries(item.annotations)
         .filter(([key]) => key !== "color")
         .filter(([, enabled]) => enabled)
         .map(([key]) => ({
-          type: key,
+          type: annotationToMark[key as keyof typeof annotationToMark],
         }));
 
     if (item.type === "mention") {
@@ -243,7 +261,7 @@ export class NotionConverter {
       marks: [
         ...mapAttrs(),
         ...(item.text.link
-          ? [{ type: "link", attrs: { href: item.text.link } }]
+          ? [{ type: "link", attrs: { href: item.text.link.url } }]
           : []),
       ].filter(Boolean),
     };
@@ -341,7 +359,7 @@ export class NotionConverter {
               "file" in item.image
                 ? item.image.file.url
                 : item.image.external.url,
-            alt: item.image.caption.map(this.rich_text_to_plaintext),
+            alt: item.image.caption.map(this.rich_text_to_plaintext).join(""),
           },
         },
       ],

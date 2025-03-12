@@ -1,51 +1,15 @@
-import { NotionConverter } from "./NotionConverter";
+import { Node } from "prosemirror-model";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import data from "@server/test/fixtures/notion-page.json";
+import { NotionConverter, NotionPage } from "./NotionConverter";
 
 describe("NotionConverter", () => {
   it("converts a page", () => {
     const response = NotionConverter.page({
-      children: [
-        {
-          type: "paragraph",
-          paragraph: {
-            rich_text: [
-              {
-                type: "text",
-                text: {
-                  content: "Hello World",
-                  link: null,
-                },
-                annotations: {
-                  bold: false,
-                  italic: false,
-                  strikethrough: false,
-                  underline: false,
-                  code: false,
-                  color: "default",
-                },
-                plain_text: "Hello World",
-                href: null,
-              },
-            ],
-            color: "default",
-          },
-        },
-      ],
-    });
+      children: data,
+    } as NotionPage);
 
-    expect(response).toEqual({
-      type: "doc",
-      content: [
-        {
-          type: "paragraph",
-          content: [
-            {
-              marks: [],
-              text: "Hello World",
-              type: "text",
-            },
-          ],
-        },
-      ],
-    });
+    expect(response).toMatchSnapshot();
+    expect(ProsemirrorHelper.toProsemirror(response)).toBeInstanceOf(Node);
   });
 });
