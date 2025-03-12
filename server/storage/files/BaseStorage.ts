@@ -1,6 +1,7 @@
 import { Blob } from "buffer";
 import { Readable } from "stream";
 import { PresignedPost } from "@aws-sdk/s3-presigned-post";
+import FileHelper from "@shared/editor/lib/FileHelper";
 import { isBase64Url, isInternalUrl } from "@shared/utils/urls";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -239,14 +240,14 @@ export default abstract class BaseStorage {
    * @returns The content disposition
    */
   public getContentDisposition(contentType?: string) {
-    if (contentType && this.safeInlineContentTypes.includes(contentType)) {
-      return "inline";
+    if (!contentType) {
+      return "attachment";
     }
+
     if (
-      contentType &&
-      this.safeInlineContentPrefixes.some((prefix) =>
-        contentType.startsWith(prefix)
-      )
+      FileHelper.isAudio(contentType) ||
+      FileHelper.isVideo(contentType) ||
+      this.safeInlineContentTypes.includes(contentType)
     ) {
       return "inline";
     }
@@ -255,8 +256,8 @@ export default abstract class BaseStorage {
   }
 
   /**
-   * A list of content types considered safe to display inline in the browser. Note that
-   * SVGs are purposefully not included here as they can contain JavaScript.
+   * A list of content types considered safe to display inline in the browser.
+   * Note that SVGs are purposefully not included here as they can contain JS.
    */
   protected safeInlineContentTypes = [
     "application/pdf",
@@ -265,9 +266,4 @@ export default abstract class BaseStorage {
     "image/gif",
     "image/webp",
   ];
-
-  /**
-   * A list of content type prefixes considered safe to display inline in the browser.
-   */
-  protected safeInlineContentPrefixes = ["video/", "audio/"];
 }
