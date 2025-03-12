@@ -6,10 +6,11 @@ import {
 import {
   BlockObjectResponse,
   PageObjectResponse,
+  RichTextItemResponse,
 } from "@notionhq/client/build/src/api-endpoints";
 import { RateLimit } from "async-sema";
 import { Second } from "@shared/utils/time";
-import { Block, Page, PageTitle } from "../shared/types";
+import { Block, Page, PageTitle, PageType } from "../shared/types";
 
 export class NotionClient {
   private client: Client;
@@ -43,17 +44,23 @@ export class NotionClient {
       }
 
       if (item.parent.type === "workspace") {
-        let titleProp;
+        let titleProp: RichTextItemResponse[], type: PageType;
 
         if (item.object === "page") {
-          titleProp = (item.properties["title"] as PageTitle).title;
+          type = PageType.Page;
+          titleProp =
+            "title" in item.properties["title"]
+              ? item.properties["title"].title
+              : [];
         } else {
+          type = PageType.Database;
           titleProp = item.title;
         }
 
         pages.push({
+          type,
           id: item.id,
-          name: titleProp.at(0)?.plain_text ?? "",
+          name: titleProp.map((title) => title.plain_text).join(""),
           emoji: item.icon?.type === "emoji" ? item.icon.emoji : undefined, // Other icon types return a url to download from, which we don't support.
         });
       }

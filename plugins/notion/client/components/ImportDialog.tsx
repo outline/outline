@@ -14,7 +14,7 @@ import useBoolean from "~/hooks/useBoolean";
 import useRequest from "~/hooks/useRequest";
 import { EmptySelectValue } from "~/types";
 import { client } from "~/utils/ApiClient";
-import { Page, PageType } from "plugins/notion/shared/types";
+import { Page } from "plugins/notion/shared/types";
 
 type PageWithPermission = Page & {
   permission?: CollectionPermission;
@@ -63,7 +63,7 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
 
     const input: ImportInput<IntegrationService.Notion> =
       pagesWithPermission!.map((page) => ({
-        type: PageType.Page,
+        type: page.type,
         externalId: page.id,
         permission: page.permission,
       }));
@@ -95,7 +95,7 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
   }, [pages]);
 
   if (error) {
-    toast.error("Error while fetching page info from Notion");
+    toast.error(t("Error fetching page info from Notion"));
     return <div>Error: {error}</div>;
   }
 
