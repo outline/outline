@@ -184,7 +184,7 @@
     "prosemirror-model": "^1.24.0",
     "prosemirror-schema-list": "^1.4.1",
     "prosemirror-state": "^1.4.3",
-    "prosemirror-tables": "^1.4.0",
+    "prosemirror-tables": "^1.6.4",
     "prosemirror-transform": "1.10.0",
     "prosemirror-view": "^1.38.1",
     "query-string": "^7.1.3",
