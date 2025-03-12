@@ -8,7 +8,7 @@ export default class FileHelper {
    * @returns True if the file is an image
    */
   static isImage(contentType: string) {
-    return /^image\/[a-z0-9_\-\+]+$/i.test(contentType);
+    return /^image\/[!#$%&'*+.^\w`|~-]+$/i.test(contentType);
   }
 
   /**
@@ -18,7 +18,7 @@ export default class FileHelper {
    * @returns True if the file is an video
    */
   static isVideo(contentType: string) {
-    return /^video\/[a-z0-9_\-\+]+$/i.test(contentType);
+    return /^video\/[!#$%&'*+.^\w`|~-]+$/i.test(contentType);
   }
 
   /**
@@ -28,7 +28,7 @@ export default class FileHelper {
    * @returns True if the file is an audio file
    */
   static isAudio(contentType: string) {
-    return /^audio\/[a-z0-9_\-\+]+$/i.test(contentType);
+    return /^audio\/[!#$%&'*+.^\w`|~-]+$/i.test(contentType);
   }
 
   /**
