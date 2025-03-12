@@ -58,11 +58,11 @@ const insertFiles = async function (
   const filesToUpload = await Promise.all(
     files.map(async (file) => {
       const isImage =
-        FileHelper.isImage(file) &&
+        FileHelper.isImage(file.type) &&
         !options.isAttachment &&
         !!schema.nodes.image;
       const isVideo =
-        FileHelper.isVideo(file) &&
+        FileHelper.isVideo(file.type) &&
         !options.isAttachment &&
         !!schema.nodes.video;
       const getDimensions = isImage
