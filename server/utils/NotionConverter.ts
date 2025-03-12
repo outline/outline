@@ -26,7 +26,7 @@ import isArray from "lodash/isArray";
 import { MentionType, ProsemirrorData } from "@shared/types";
 import Logger from "@server/logging/Logger";
 
-export type NotionBlock = BlockObjectResponse & {
+export type NotionBlock<T = BlockObjectResponse> = T & {
   children: NotionBlock[];
 };
 
@@ -88,6 +88,10 @@ export class NotionConverter {
     let wrappingList;
     const children = [] as ProsemirrorData[];
 
+    if (!item.children) {
+      return [];
+    }
+
     for (const child of item.children) {
       const mapped = mapChild(child);
       if (!mapped) {
@@ -137,6 +141,10 @@ export class NotionConverter {
       children.push(...(isArray(mapped) ? mapped : [mapped]));
     }
 
+    if (wrappingList) {
+      children.push(wrappingList);
+    }
+
     return children;
   }
 
@@ -165,7 +173,9 @@ export class NotionConverter {
     return undefined;
   }
 
-  private static bulleted_list_item(item: BulletedListItemBlockObjectResponse) {
+  private static bulleted_list_item(
+    item: NotionBlock<BulletedListItemBlockObjectResponse>
+  ) {
     return {
       type: "list_item",
       content: [
@@ -173,6 +183,7 @@ export class NotionConverter {
           type: "paragraph",
           content: item.bulleted_list_item.rich_text.map(this.rich_text),
         },
+        ...this.mapChildren(item),
       ],
     };
   }
@@ -192,7 +203,9 @@ export class NotionConverter {
     };
   }
 
-  private static numbered_list_item(item: NumberedListItemBlockObjectResponse) {
+  private static numbered_list_item(
+    item: NotionBlock<NumberedListItemBlockObjectResponse>
+  ) {
     return {
       type: "list_item",
       content: [
@@ -200,6 +213,7 @@ export class NotionConverter {
           type: "paragraph",
           content: item.numbered_list_item.rich_text.map(this.rich_text),
         },
+        ...this.mapChildren(item),
       ],
     };
   }
@@ -414,7 +428,7 @@ export class NotionConverter {
     };
   }
 
-  private static to_do(item: ToDoBlockObjectResponse) {
+  private static to_do(item: NotionBlock<ToDoBlockObjectResponse>) {
     return {
       type: "checkbox_item",
       attrs: {
@@ -425,6 +439,7 @@ export class NotionConverter {
           type: "paragraph",
           content: item.to_do.rich_text.map(this.rich_text),
         },
+        ...this.mapChildren(item),
       ],
     };
   }

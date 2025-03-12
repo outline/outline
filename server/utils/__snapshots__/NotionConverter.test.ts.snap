@@ -102,6 +102,46 @@ exports[`NotionConverter converts a page 1`] = `
               ],
               "type": "paragraph",
             },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "content": [
+                        {
+                          "marks": [],
+                          "text": "Bullet list item 2.1",
+                          "type": "text",
+                        },
+                      ],
+                      "type": "paragraph",
+                    },
+                    {
+                      "content": [
+                        {
+                          "content": [
+                            {
+                              "content": [
+                                {
+                                  "marks": [],
+                                  "text": "Ordered list item 2.1.1",
+                                  "type": "text",
+                                },
+                              ],
+                              "type": "paragraph",
+                            },
+                          ],
+                          "type": "list_item",
+                        },
+                      ],
+                      "type": "ordered_list",
+                    },
+                  ],
+                  "type": "list_item",
+                },
+              ],
+              "type": "bullet_list",
+            },
           ],
           "type": "list_item",
         },
@@ -970,6 +1010,76 @@ exports[`NotionConverter converts a page 1`] = `
               ],
               "type": "paragraph",
             },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "content": [
+                        {
+                          "marks": [],
+                          "text": "Numbered list item 2.1",
+                          "type": "text",
+                        },
+                      ],
+                      "type": "paragraph",
+                    },
+                  ],
+                  "type": "list_item",
+                },
+                {
+                  "content": [
+                    {
+                      "content": [
+                        {
+                          "marks": [],
+                          "text": "Numbered list item 2.2",
+                          "type": "text",
+                        },
+                      ],
+                      "type": "paragraph",
+                    },
+                    {
+                      "content": [
+                        {
+                          "content": [
+                            {
+                              "content": [
+                                {
+                                  "marks": [],
+                                  "text": "Bullet list item 2.2.1",
+                                  "type": "text",
+                                },
+                              ],
+                              "type": "paragraph",
+                            },
+                          ],
+                          "type": "list_item",
+                        },
+                        {
+                          "content": [
+                            {
+                              "content": [
+                                {
+                                  "marks": [],
+                                  "text": "Bullet list item 2.2.2",
+                                  "type": "text",
+                                },
+                              ],
+                              "type": "paragraph",
+                            },
+                          ],
+                          "type": "list_item",
+                        },
+                      ],
+                      "type": "bullet_list",
+                    },
+                  ],
+                  "type": "list_item",
+                },
+              ],
+              "type": "ordered_list",
+            },
           ],
           "type": "list_item",
         },
@@ -1325,6 +1435,92 @@ exports[`NotionConverter converts a page 1`] = `
                 },
               ],
               "type": "paragraph",
+            },
+            {
+              "content": [
+                {
+                  "attrs": {
+                    "checked": false,
+                  },
+                  "content": [
+                    {
+                      "content": [
+                        {
+                          "marks": [],
+                          "text": "Todo item 2.1",
+                          "type": "text",
+                        },
+                      ],
+                      "type": "paragraph",
+                    },
+                    {
+                      "content": [
+                        {
+                          "content": [
+                            {
+                              "content": [
+                                {
+                                  "marks": [],
+                                  "text": "Numbered item 2.1.1",
+                                  "type": "text",
+                                },
+                              ],
+                              "type": "paragraph",
+                            },
+                          ],
+                          "type": "list_item",
+                        },
+                        {
+                          "content": [
+                            {
+                              "content": [
+                                {
+                                  "marks": [],
+                                  "text": "bulleted item 2.1.2",
+                                  "type": "text",
+                                },
+                              ],
+                              "type": "paragraph",
+                            },
+                          ],
+                          "type": "list_item",
+                        },
+                      ],
+                      "type": "ordered_list",
+                    },
+                  ],
+                  "type": "checkbox_item",
+                },
+                {
+                  "attrs": {
+                    "checked": false,
+                  },
+                  "content": [
+                    {
+                      "content": [
+                        {
+                          "marks": [],
+                          "text": "Todo item 2.2",
+                          "type": "text",
+                        },
+                      ],
+                      "type": "paragraph",
+                    },
+                    {
+                      "content": [
+                        {
+                          "marks": [],
+                          "text": "Nested content inside todo item 2.2.",
+                          "type": "text",
+                        },
+                      ],
+                      "type": "paragraph",
+                    },
+                  ],
+                  "type": "checkbox_item",
+                },
+              ],
+              "type": "checkbox_list",
             },
           ],
           "type": "checkbox_item",
