@@ -15,6 +15,7 @@ import { findBlockNodes } from "../queries/findChildren";
 import Node from "./Node";
 
 enum Action {
+  CREATE,
   INIT,
   FOLD,
   UNFOLD,
@@ -55,21 +56,41 @@ export default class ToggleBlock extends Node {
           let decoToRestore;
           value = value.map(tr.mapping, tr.doc, {
             onRemove: (decorationSpec) => {
-              if (decorationSpec && decorationSpec.id) {
-                const block = findBlockNodes(tr.doc).find(
-                  (blk) =>
-                    blk.node.type.name === this.name &&
-                    blk.node.attrs.id === decorationSpec.id
+              if (
+                decorationSpec &&
+                "target" in decorationSpec &&
+                decorationSpec.target.startsWith(this.name)
+              ) {
+                const toggleBlock = findBlockNodes(tr.doc).find(
+                  (block) =>
+                    block.node.type.name === this.name &&
+                    block.node.attrs.id === decorationSpec.nodeId
                 );
-                if (!isNil(block)) {
-                  decoToRestore = Decoration.node(
-                    block.pos,
-                    block.pos + block.node.nodeSize,
-                    {},
-                    decorationSpec
-                  );
+                if (!isNil(toggleBlock)) {
+                  if (decorationSpec.target === this.name) {
+                    const start = toggleBlock.pos;
+                    const end = toggleBlock.pos + toggleBlock.node.nodeSize;
+                    decoToRestore = Decoration.node(
+                      start,
+                      end,
+                      {},
+                      decorationSpec
+                    );
+                  } else {
+                    const start = toggleBlock.pos + 1;
+                    const end = start + toggleBlock.node.firstChild!.nodeSize;
+                    decoToRestore = Decoration.node(
+                      start,
+                      end,
+                      {
+                        nodeName: "div",
+                        class: "toggle-block-head",
+                      },
+                      decorationSpec
+                    );
+                  }
                 } else {
-                  const key = `${decorationSpec.id}:${this.editor.props.userId}`;
+                  const key = `${decorationSpec.nodeId}:${this.editor.props.userId}`;
                   Storage.remove(key);
                 }
               }
@@ -82,10 +103,41 @@ export default class ToggleBlock extends Node {
 
           const action = tr.getMeta(ToggleBlock.pluginKey);
           if (action) {
+            if (action.type === Action.CREATE) {
+              const node = tr.doc.nodeAt(action.at)!;
+              value = value.add(tr.doc, [
+                Decoration.node(
+                  action.at + 1,
+                  action.at + 1 + node.firstChild!.nodeSize,
+                  {
+                    nodeName: "div",
+                    class: "toggle-block-head",
+                  },
+                  {
+                    target: `${node.type.name}>:firstChild`,
+                    nodeId: node.attrs.id,
+                  }
+                ),
+              ]);
+            }
             if (action.type === Action.INIT) {
               for (const pos of action.positions) {
                 const node = tr.doc.nodeAt(pos)!;
                 const key = `${node.attrs.id}:${this.editor.props.userId}`;
+                value = value.add(tr.doc, [
+                  Decoration.node(
+                    pos + 1,
+                    pos + 1 + node.firstChild!.nodeSize,
+                    {
+                      nodeName: "div",
+                      class: "toggle-block-head",
+                    },
+                    {
+                      target: `${node.type.name}>:firstChild`,
+                      nodeId: node.attrs.id,
+                    }
+                  ),
+                ]);
                 const unfoldState = Storage.get(key);
                 if (!isNil(unfoldState)) {
                   value = value.add(tr.doc, [
@@ -93,7 +145,11 @@ export default class ToggleBlock extends Node {
                       pos,
                       pos + node.nodeSize,
                       {},
-                      { unfold: unfoldState.unfold, id: node.attrs.id }
+                      {
+                        target: `${node.type.name}`,
+                        nodeId: node.attrs.id,
+                        unfold: unfoldState.unfold,
+                      }
                     ),
                   ]);
                 }
@@ -103,7 +159,10 @@ export default class ToggleBlock extends Node {
               const deco = value.find(
                 undefined,
                 undefined,
-                (spec) => spec.id === node.attrs.id && spec.unfold
+                (spec) =>
+                  spec.nodeId === node.attrs.id &&
+                  spec.target === node.type.name &&
+                  spec.unfold
               );
               if (deco.length) {
                 value = value.remove(deco);
@@ -117,7 +176,11 @@ export default class ToggleBlock extends Node {
                   action.at,
                   action.at + node.nodeSize,
                   {},
-                  { unfold: true, id: node.attrs.id }
+                  {
+                    target: `${node.type.name}`,
+                    nodeId: node.attrs.id,
+                    unfold: true,
+                  }
                 ),
               ]);
               const key = `${node.attrs.id}:${this.editor.props.userId}`;
@@ -138,7 +201,12 @@ export default class ToggleBlock extends Node {
           tr = newState.tr;
           for (const block of blocks) {
             if (block.node.type.name === this.name && !block.node.attrs.id) {
-              tr = tr.setNodeAttribute(block.pos, "id", v4());
+              tr = tr
+                .setNodeAttribute(block.pos, "id", v4())
+                .setMeta(ToggleBlock.pluginKey, {
+                  type: Action.CREATE,
+                  at: block.pos,
+                });
             }
           }
 
