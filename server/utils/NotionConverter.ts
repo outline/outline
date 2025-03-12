@@ -54,6 +54,7 @@ export class NotionConverter {
   private static nodesWithoutBlockChildren = [
     // TODO.
     "paragraph",
+    "toggle",
   ];
 
   public static page(item: NotionPage) {
@@ -387,10 +388,16 @@ export class NotionConverter {
     };
   }
 
-  private static quote(item: QuoteBlockObjectResponse) {
+  private static quote(item: NotionBlock<QuoteBlockObjectResponse>) {
     return {
       type: "blockquote",
-      content: item.quote.rich_text.map(this.rich_text),
+      content: [
+        {
+          type: "paragraph",
+          content: item.quote.rich_text.map(this.rich_text),
+        },
+        ...this.mapChildren(item),
+      ],
     };
   }
 
@@ -415,7 +422,12 @@ export class NotionConverter {
             (item.table.has_column_header && x === 0)
               ? "th"
               : "td",
-          content: td.map(this.rich_text),
+          content: [
+            {
+              type: "paragraph",
+              content: td.map(this.rich_text),
+            },
+          ],
         })),
       })),
     };

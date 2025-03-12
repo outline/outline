@@ -1161,9 +1161,14 @@ exports[`NotionConverter converts a page 1`] = `
     {
       "content": [
         {
-          "marks": [],
-          "text": "Test quote",
-          "type": "text",
+          "content": [
+            {
+              "marks": [],
+              "text": "Test quote",
+              "type": "text",
+            },
+          ],
+          "type": "paragraph",
         },
       ],
       "type": "blockquote",
@@ -1225,15 +1230,10 @@ exports[`NotionConverter converts a page 1`] = `
         {
           "content": [
             {
-              "content": [],
-              "type": "th",
-            },
-            {
               "content": [
                 {
-                  "marks": [],
-                  "text": "Col Header 1",
-                  "type": "text",
+                  "content": [],
+                  "type": "paragraph",
                 },
               ],
               "type": "th",
@@ -1241,9 +1241,29 @@ exports[`NotionConverter converts a page 1`] = `
             {
               "content": [
                 {
-                  "marks": [],
-                  "text": "Col Header 2",
-                  "type": "text",
+                  "content": [
+                    {
+                      "marks": [],
+                      "text": "Col Header 1",
+                      "type": "text",
+                    },
+                  ],
+                  "type": "paragraph",
+                },
+              ],
+              "type": "th",
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "marks": [],
+                      "text": "Col Header 2",
+                      "type": "text",
+                    },
+                  ],
+                  "type": "paragraph",
                 },
               ],
               "type": "th",
@@ -1256,9 +1276,14 @@ exports[`NotionConverter converts a page 1`] = `
             {
               "content": [
                 {
-                  "marks": [],
-                  "text": "Row Header 1",
-                  "type": "text",
+                  "content": [
+                    {
+                      "marks": [],
+                      "text": "Row Header 1",
+                      "type": "text",
+                    },
+                  ],
+                  "type": "paragraph",
                 },
               ],
               "type": "th",
@@ -1266,9 +1291,14 @@ exports[`NotionConverter converts a page 1`] = `
             {
               "content": [
                 {
-                  "marks": [],
-                  "text": "R1 C1",
-                  "type": "text",
+                  "content": [
+                    {
+                      "marks": [],
+                      "text": "R1 C1",
+                      "type": "text",
+                    },
+                  ],
+                  "type": "paragraph",
                 },
               ],
               "type": "td",
@@ -1276,9 +1306,14 @@ exports[`NotionConverter converts a page 1`] = `
             {
               "content": [
                 {
-                  "marks": [],
-                  "text": "R1 C2",
-                  "type": "text",
+                  "content": [
+                    {
+                      "marks": [],
+                      "text": "R1 C2",
+                      "type": "text",
+                    },
+                  ],
+                  "type": "paragraph",
                 },
               ],
               "type": "td",
@@ -1291,9 +1326,14 @@ exports[`NotionConverter converts a page 1`] = `
             {
               "content": [
                 {
-                  "marks": [],
-                  "text": "Row Header 2",
-                  "type": "text",
+                  "content": [
+                    {
+                      "marks": [],
+                      "text": "Row Header 2",
+                      "type": "text",
+                    },
+                  ],
+                  "type": "paragraph",
                 },
               ],
               "type": "th",
@@ -1301,9 +1341,14 @@ exports[`NotionConverter converts a page 1`] = `
             {
               "content": [
                 {
-                  "marks": [],
-                  "text": "R2 C1",
-                  "type": "text",
+                  "content": [
+                    {
+                      "marks": [],
+                      "text": "R2 C1",
+                      "type": "text",
+                    },
+                  ],
+                  "type": "paragraph",
                 },
               ],
               "type": "td",
@@ -1311,9 +1356,14 @@ exports[`NotionConverter converts a page 1`] = `
             {
               "content": [
                 {
-                  "marks": [],
-                  "text": "R2 C2",
-                  "type": "text",
+                  "content": [
+                    {
+                      "marks": [],
+                      "text": "R2 C2",
+                      "type": "text",
+                    },
+                  ],
+                  "type": "paragraph",
                 },
               ],
               "type": "td",
