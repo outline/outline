@@ -22,7 +22,7 @@ export default class Code extends Mark {
   get schema(): MarkSpec {
     return {
       excludes: "mention placeholder highlight em strong",
-      parseDOM: [{ tag: "code.inline", preserveWhitespace: true }],
+      parseDOM: [{ tag: "code", preserveWhitespace: true }],
       toDOM: () => ["code", { class: "inline", spellCheck: "false" }],
     };
   }
