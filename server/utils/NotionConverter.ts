@@ -251,6 +251,34 @@ export class NotionConverter {
           },
         };
       }
+      if (item.mention.type === "link_mention") {
+        return {
+          type: "text",
+          text: item.plain_text,
+          marks: [
+            {
+              type: "link",
+              attrs: {
+                href: item.mention.link_mention.href,
+              },
+            },
+          ],
+        };
+      }
+      if (item.mention.type === "link_preview") {
+        return {
+          type: "text",
+          text: item.plain_text,
+          marks: [
+            {
+              type: "link",
+              attrs: {
+                href: item.mention.link_preview.url,
+              },
+            },
+          ],
+        };
+      }
 
       return {
         type: "text",

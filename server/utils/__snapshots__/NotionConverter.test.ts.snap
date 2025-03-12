@@ -620,6 +620,14 @@ exports[`NotionConverter converts a page 1`] = `
           "type": "text",
         },
         {
+          "marks": [
+            {
+              "attrs": {
+                "href": "https://github.com/outline/outline",
+              },
+              "type": "link",
+            },
+          ],
           "text": "https://github.com/outline/outline",
           "type": "text",
         },
@@ -880,6 +888,14 @@ exports[`NotionConverter converts a page 1`] = `
     {
       "content": [
         {
+          "marks": [
+            {
+              "attrs": {
+                "href": "https://www.youtube.com/watch?v=cCOL7MC4Pl0",
+              },
+              "type": "link",
+            },
+          ],
           "text": "https://www.youtube.com/watch?v=cCOL7MC4Pl0",
           "type": "text",
         },
@@ -912,6 +928,14 @@ exports[`NotionConverter converts a page 1`] = `
     {
       "content": [
         {
+          "marks": [
+            {
+              "attrs": {
+                "href": "https://github.com/outline/outline",
+              },
+              "type": "link",
+            },
+          ],
           "text": "https://github.com/outline/outline",
           "type": "text",
         },
