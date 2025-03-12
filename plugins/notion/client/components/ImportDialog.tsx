@@ -2,12 +2,9 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
+import { ImportInput } from "@shared/schema";
 import { s } from "@shared/styles";
-import {
-  CollectionPermission,
-  ImportInput,
-  IntegrationService,
-} from "@shared/types";
+import { CollectionPermission, IntegrationService } from "@shared/types";
 import Button from "~/components/Button";
 import { Emoji } from "~/components/Emoji";
 import Flex from "~/components/Flex";
@@ -17,7 +14,7 @@ import useBoolean from "~/hooks/useBoolean";
 import useRequest from "~/hooks/useRequest";
 import { EmptySelectValue } from "~/types";
 import { client } from "~/utils/ApiClient";
-import { Page } from "plugins/notion/shared/types";
+import { Page, PageType } from "plugins/notion/shared/types";
 
 type PageWithPermission = Page & {
   permission?: CollectionPermission;
@@ -64,10 +61,12 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
   const handleStartImport = React.useCallback(async () => {
     setSubmitting();
 
-    const input: ImportInput = pagesWithPermission!.map((page) => ({
-      externalId: page.id,
-      permission: page.permission,
-    }));
+    const input: ImportInput<IntegrationService.Notion> =
+      pagesWithPermission!.map((page) => ({
+        type: PageType.Page,
+        externalId: page.id,
+        permission: page.permission,
+      }));
 
     try {
       await client.post("/imports.create", {

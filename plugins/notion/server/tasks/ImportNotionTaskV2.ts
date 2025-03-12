@@ -3,12 +3,12 @@ import uniqBy from "lodash/uniqBy";
 import { Fragment, Node } from "prosemirror-model";
 import { Transaction } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
+import { ImportTaskInput, ImportTaskOutput } from "@shared/schema";
 import {
   AttachmentPreset,
   ImportState,
-  ImportTaskInput,
-  ImportTaskOutput,
   ImportTaskState,
+  IntegrationService,
   ProsemirrorData,
   ProsemirrorDoc,
 } from "@shared/types";
@@ -26,11 +26,13 @@ import { sequelize } from "@server/storage/database";
 import { NotionConverter, NotionPage } from "@server/utils/NotionConverter";
 import { NotionClient } from "../notion";
 import { PagePerTask } from "../utils";
-import { Block } from "plugins/notion/shared/types";
+import { Block, PageType } from "plugins/notion/shared/types";
+
+type ChildPage = { type: PageType; externalId: string };
 
 type ParsePageOutput = ImportTaskOutput[number] & {
   collectionExternalId?: string;
-  childExternalIds: string[];
+  children: ChildPage[];
 };
 
 type Props = {
@@ -40,7 +42,9 @@ type Props = {
 
 export default class ImportNotionTaskV2 extends BaseTask<Props> {
   public async perform({ importTaskId }: Props) {
-    const importTask = await ImportTask.findByPk(importTaskId, {
+    const importTask = await ImportTask.findByPk<
+      ImportTask<IntegrationService.Notion>
+    >(importTaskId, {
       rejectOnEmpty: true,
       include: [
         {
@@ -65,7 +69,7 @@ export default class ImportNotionTaskV2 extends BaseTask<Props> {
     }
   }
 
-  private async process(importTask: ImportTask) {
+  private async process(importTask: ImportTask<IntegrationService.Notion>) {
     const integration = await Integration.scope("withAuthentication").findByPk(
       importTask.import.integrationId,
       { rejectOnEmpty: true }
@@ -79,24 +83,22 @@ export default class ImportNotionTaskV2 extends BaseTask<Props> {
       )
     );
 
-    const taskOutput: ImportTaskOutput = parsedPages.map<
-      ImportTaskOutput[number]
-    >((parsedPage) => ({
+    const taskOutput: ImportTaskOutput = parsedPages.map((parsedPage) => ({
       externalId: parsedPage.externalId,
       title: parsedPage.title,
       emoji: parsedPage.emoji,
       content: parsedPage.content,
     }));
 
-    const childTasksInput: ImportTaskInput = parsedPages.flatMap((parsedPage) =>
-      parsedPage.childExternalIds.map<ImportTaskInput[number]>(
-        (childExternalId) => ({
-          externalId: childExternalId,
+    const childTasksInput: ImportTaskInput<IntegrationService.Notion> =
+      parsedPages.flatMap((parsedPage) =>
+        parsedPage.children.map((childPage) => ({
+          type: childPage.type,
+          externalId: childPage.externalId,
           parentExternalId: parsedPage.externalId,
           collectionExternalId: parsedPage.collectionExternalId,
-        })
-      )
-    );
+        }))
+      );
 
     await sequelize.transaction(async (transaction) => {
       await Promise.all(
@@ -120,7 +122,9 @@ export default class ImportNotionTaskV2 extends BaseTask<Props> {
     await ImportNotionTaskV2.schedule({ importTaskId: importTask.id });
   }
 
-  private async completionFlow(importTask: ImportTask) {
+  private async completionFlow(
+    importTask: ImportTask<IntegrationService.Notion>
+  ) {
     const nextImportTask = await ImportTask.findOne({
       where: {
         state: ImportTaskState.Created,
@@ -158,7 +162,7 @@ export default class ImportNotionTaskV2 extends BaseTask<Props> {
     client,
     createdBy,
   }: {
-    page: ImportTaskInput[number];
+    page: ImportTaskInput<IntegrationService.Notion>[number];
     client: NotionClient;
     createdBy: User;
   }): Promise<ParsePageOutput> {
@@ -178,7 +182,7 @@ export default class ImportNotionTaskV2 extends BaseTask<Props> {
       emoji,
       content: docWithReplacements,
       collectionExternalId: page.collectionExternalId ?? page.externalId,
-      childExternalIds: this.getChildPageIds(blocks),
+      children: this.parseChildPages(blocks),
     };
   }
 
@@ -273,20 +277,6 @@ export default class ImportNotionTaskV2 extends BaseTask<Props> {
     return this.replaceAttachmentUrls(docNode, urlToAttachment).toJSON();
   }
 
-  private getChildPageIds(pageBlocks: Block[]) {
-    const childPageIds: string[] = [];
-
-    pageBlocks.forEach((block) => {
-      if (block.type === "child_page") {
-        childPageIds.push(block.id);
-      } else if (block.children?.length) {
-        childPageIds.push(...this.getChildPageIds(block.children));
-      }
-    });
-
-    return childPageIds;
-  }
-
   private replaceAttachmentUrls(
     doc: Node,
     urlToAttachment: Record<string, Attachment>
@@ -327,5 +317,19 @@ export default class ImportNotionTaskV2 extends BaseTask<Props> {
     };
 
     return doc.copy(transformFragment(doc.content));
+  }
+
+  private parseChildPages(pageBlocks: Block[]): ChildPage[] {
+    const childPages: ChildPage[] = [];
+
+    pageBlocks.forEach((block) => {
+      if (block.type === "child_page") {
+        childPages.push({ type: PageType.Page, externalId: block.id });
+      } else if (block.children?.length) {
+        childPages.push(...this.parseChildPages(block.children));
+      }
+    });
+
+    return childPages;
   }
 }

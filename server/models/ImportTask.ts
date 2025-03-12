@@ -9,11 +9,8 @@ import {
   Scopes,
   Table,
 } from "sequelize-typescript";
-import {
-  type ImportTaskInput,
-  ImportTaskOutput,
-  ImportTaskState,
-} from "@shared/types";
+import { type ImportTaskInput, ImportTaskOutput } from "@shared/schema";
+import { ImportTaskState, IntegrationService } from "@shared/types";
 import Import from "./Import";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
@@ -30,23 +27,23 @@ import Fix from "./decorators/Fix";
 }))
 @Table({ tableName: "import_tasks", modelName: "import_task" })
 @Fix
-class ImportTask extends IdModel<
-  InferAttributes<ImportTask>,
-  Partial<InferCreationAttributes<ImportTask>>
+class ImportTask<T extends IntegrationService> extends IdModel<
+  InferAttributes<ImportTask<T>>,
+  Partial<InferCreationAttributes<ImportTask<T>>>
 > {
   @IsIn([Object.values(ImportTaskState)])
   @Column(DataType.STRING)
   state: ImportTaskState;
 
   @Column(DataType.JSONB)
-  input: ImportTaskInput;
+  input: ImportTaskInput<T>;
 
   @AllowNull
   @Column(DataType.JSONB)
   output: ImportTaskOutput | null;
 
   @BelongsTo(() => Import, "importId")
-  import: Import;
+  import: Import<T>;
 
   @ForeignKey(() => Import)
   @Column(DataType.UUID)

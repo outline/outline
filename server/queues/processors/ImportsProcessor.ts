@@ -5,12 +5,11 @@ import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
 import { Event, ImportEvent } from "@server/types";
+import { ImportInput, ImportTaskInput } from "@shared/schema";
 import {
-  ImportInput,
   ImportState,
-  ImportTaskInput,
-  ImportTaskOutput,
   ImportTaskState,
+  IntegrationService,
   MentionType,
   ProsemirrorData,
   ProsemirrorDoc,
@@ -43,14 +42,20 @@ export default class ImportsProcessor extends BaseProcessor {
     }
   }
 
-  private async creationFlow(importModel: Import) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private async creationFlow(importModel: Import<any>) {
     if (!importModel.input.length) {
       return;
     }
 
-    const tasksInput: ImportTaskInput = importModel.input.map<
-      ImportTaskInput[number]
-    >((item) => ({
+    if (importModel.service !== IntegrationService.Notion) {
+      return;
+    }
+
+    const tasksInput: ImportTaskInput<IntegrationService.Notion> = (
+      importModel as Import<IntegrationService.Notion>
+    ).input.map((item) => ({
+      type: item.type,
       externalId: item.externalId,
     }));
 
@@ -77,19 +82,18 @@ export default class ImportsProcessor extends BaseProcessor {
     await ImportNotionTaskV2.schedule({ importTaskId: importTasks[0].id });
   }
 
-  private async processedFlow(importModel: Import) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private async processedFlow(importModel: Import<any>) {
     // External id to internal model id.
     const idMap: Record<string, string> = {};
     const now = new Date();
 
     // These will be imported as collections.
-    const importInput = keyBy<ImportInput[number]>(
-      importModel.input,
-      "externalId"
-    );
+    const importInput = keyBy(importModel.input, "externalId");
 
     await sequelize.transaction(async (transaction) => {
-      await ImportTask.findAllInBatches<ImportTask>(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await ImportTask.findAllInBatches<ImportTask<any>>(
         {
           where: { importId: importModel.id },
           order: [["createdAt", "ASC"]], // ordering ensures collections are created first.
@@ -99,10 +103,7 @@ export default class ImportsProcessor extends BaseProcessor {
         async (importTasks) => {
           await Promise.all(
             importTasks.map(async (importTask) => {
-              const outputMap = keyBy<ImportTaskOutput[number]>(
-                importTask.output ?? [],
-                "externalId"
-              );
+              const outputMap = keyBy(importTask.output ?? [], "externalId");
 
               await Promise.all(
                 importTask.input.map(async (input) => {
@@ -253,7 +254,8 @@ export default class ImportsProcessor extends BaseProcessor {
   }: {
     content: ProsemirrorDoc;
     idMap: Record<string, string>;
-    importInput: Record<string, ImportInput[number]>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    importInput: Record<string, ImportInput<any>[number]>;
     attachments: Attachment[];
     actorId: string;
   }) {

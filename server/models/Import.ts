@@ -8,11 +8,8 @@ import {
   Scopes,
   Table,
 } from "sequelize-typescript";
-import {
-  type ImportInput,
-  ImportState,
-  IntegrationService,
-} from "@shared/types";
+import { type ImportInput } from "@shared/schema";
+import { ImportState, IntegrationService } from "@shared/types";
 import Integration from "./Integration";
 import User from "./User";
 import IdModel from "./base/IdModel";
@@ -30,20 +27,20 @@ import Fix from "./decorators/Fix";
 }))
 @Table({ tableName: "imports", modelName: "import" })
 @Fix
-class Import extends IdModel<
-  InferAttributes<Import>,
-  Partial<InferCreationAttributes<Import>>
+class Import<T extends IntegrationService> extends IdModel<
+  InferAttributes<Import<T>>,
+  Partial<InferCreationAttributes<Import<T>>>
 > {
   @IsIn([Object.values(IntegrationService)])
   @Column(DataType.STRING)
-  service: IntegrationService;
+  service: T;
 
   @IsIn([Object.values(ImportState)])
   @Column(DataType.STRING)
   state: ImportState;
 
   @Column(DataType.JSONB)
-  input: ImportInput;
+  input: ImportInput<T>;
 
   // associations
 

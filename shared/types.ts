@@ -69,24 +69,6 @@ export enum ImportTaskState {
   Errored = "errored",
 }
 
-export type ImportInput = {
-  externalId: string;
-  permission?: CollectionPermission;
-}[];
-
-export type ImportTaskInput = {
-  externalId: string;
-  parentExternalId?: string;
-  collectionExternalId?: string;
-}[];
-
-export type ImportTaskOutput = {
-  externalId: string;
-  title: string;
-  emoji?: string;
-  content: ProsemirrorDoc;
-}[];
-
 export enum MentionType {
   User = "user",
   Document = "document",
@@ -119,6 +101,7 @@ export enum IntegrationType {
   Analytics = "analytics",
   /** An integration that maps an Outline user to an external service. */
   LinkedAccount = "linkedAccount",
+  /** An integration that imports documents into Outline. */
   Import = "import",
 }
 

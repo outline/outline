@@ -3,6 +3,11 @@ import {
   RichTextItemResponse,
 } from "@notionhq/client/build/src/api-endpoints";
 
+export enum PageType {
+  Page = "page",
+  Database = "database",
+}
+
 export type Page = {
   id: string;
   name: string;
