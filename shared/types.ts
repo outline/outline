@@ -84,7 +84,7 @@ export type ImportTaskOutput = {
   externalId: string;
   title: string;
   emoji?: string;
-  content: ProsemirrorData[];
+  content: ProsemirrorDoc;
 }[];
 
 export enum MentionType {

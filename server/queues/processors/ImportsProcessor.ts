@@ -1,5 +1,8 @@
-import { Collection, Document, Import } from "@server/models";
+import { schema } from "@server/editor";
+import { Attachment, Collection, Document, Import } from "@server/models";
 import ImportTask from "@server/models/ImportTask";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
 import { Event, ImportEvent } from "@server/types";
 import {
@@ -8,11 +11,15 @@ import {
   ImportTaskInput,
   ImportTaskOutput,
   ImportTaskState,
+  MentionType,
+  ProsemirrorData,
+  ProsemirrorDoc,
 } from "@shared/types";
 import chunk from "lodash/chunk";
 import keyBy from "lodash/keyBy";
 import ImportNotionTaskV2 from "plugins/notion/server/tasks/ImportNotionTaskV2";
 import { PagePerTask } from "plugins/notion/server/utils";
+import { Fragment, Node } from "prosemirror-model";
 import { v4 as uuidv4 } from "uuid";
 import BaseProcessor from "./BaseProcessor";
 
@@ -71,14 +78,14 @@ export default class ImportsProcessor extends BaseProcessor {
   }
 
   private async processedFlow(importModel: Import) {
-    // External id to internal model id mapper.
-    const idMapper: Record<string, string> = {};
+    // External id to internal model id.
+    const idMap: Record<string, string> = {};
     const now = new Date();
 
     // These will be imported as collections.
     const importInput = keyBy<ImportInput[number]>(
       importModel.input,
-      (item) => item.externalId
+      "externalId"
     );
 
     await sequelize.transaction(async (transaction) => {
@@ -86,7 +93,7 @@ export default class ImportsProcessor extends BaseProcessor {
         {
           where: { importId: importModel.id },
           order: [["createdAt", "ASC"]], // ordering ensures collections are created first.
-          batchLimit: 5,
+          batchLimit: 5, // output data per task could be huge, so keep a low batch size to prevent OOM.
           transaction,
         },
         async (importTasks) => {
@@ -94,27 +101,41 @@ export default class ImportsProcessor extends BaseProcessor {
             importTasks.map(async (importTask) => {
               const outputMap = keyBy<ImportTaskOutput[number]>(
                 importTask.output ?? [],
-                (item) => item.externalId
+                "externalId"
               );
 
               await Promise.all(
                 importTask.input.map(async (input) => {
                   const externalId = input.externalId;
-                  const internalId = this.getInternalId(externalId, idMapper);
+                  const internalId = this.getInternalId(externalId, idMap);
 
                   const parentExternalId = input.parentExternalId;
                   const parentInternalId = parentExternalId
-                    ? this.getInternalId(parentExternalId, idMapper)
+                    ? this.getInternalId(parentExternalId, idMap)
                     : undefined;
 
                   const collectionExternalId = input.collectionExternalId;
                   const collectionInternalId = collectionExternalId
-                    ? this.getInternalId(collectionExternalId, idMapper)
+                    ? this.getInternalId(collectionExternalId, idMap)
                     : undefined;
 
                   const output = outputMap[externalId];
 
                   const collection = importInput[externalId];
+
+                  const attachments = await Attachment.findAll({
+                    attributes: ["id", "size"],
+                    where: { documentId: externalId },
+                    transaction,
+                  });
+
+                  const transformedContent = this.updateMentionsAndAttachments({
+                    content: output.content,
+                    attachments,
+                    importInput,
+                    idMap,
+                    actorId: importModel.createdById,
+                  });
 
                   if (collection) {
                     await Collection.create(
@@ -122,10 +143,13 @@ export default class ImportsProcessor extends BaseProcessor {
                         id: internalId,
                         name: output.title,
                         icon: output.emoji,
-                        content: {
-                          type: "doc",
-                          content: output.content,
-                        },
+                        content: transformedContent,
+                        description: DocumentHelper.toMarkdown(
+                          transformedContent,
+                          {
+                            includeTitle: false,
+                          }
+                        ),
                         createdById: importModel.createdById,
                         teamId: importModel.createdBy.teamId,
                         sort: Collection.DEFAULT_SORT,
@@ -134,6 +158,12 @@ export default class ImportsProcessor extends BaseProcessor {
                         updatedAt: now,
                       },
                       { transaction }
+                    );
+
+                    // Unset documentId for attachments in collection overview.
+                    await Attachment.update(
+                      { documentId: null },
+                      { where: { documentId: externalId }, transaction }
                     );
 
                     return;
@@ -148,11 +178,10 @@ export default class ImportsProcessor extends BaseProcessor {
                       id: internalId,
                       title: output.title,
                       icon: output.emoji,
-                      content: {
-                        type: "doc",
-                        content: output.content,
-                      },
-                      text: "",
+                      content: transformedContent,
+                      text: DocumentHelper.toMarkdown(transformedContent, {
+                        includeTitle: false,
+                      }),
                       collectionId: collectionInternalId,
                       parentDocumentId: isRootDocument
                         ? undefined
@@ -166,6 +195,12 @@ export default class ImportsProcessor extends BaseProcessor {
                     },
                     { transaction }
                   );
+
+                  // Update document id for attachments in document content.
+                  await Attachment.update(
+                    { documentId: internalId },
+                    { where: { documentId: externalId }, transaction }
+                  );
                 })
               );
             })
@@ -174,7 +209,7 @@ export default class ImportsProcessor extends BaseProcessor {
       );
 
       const createdCollectionIds = importModel.input.map(
-        (item) => idMapper[item.externalId]
+        (item) => idMap[item.externalId]
       );
 
       // Once all collections and documents are created, update collection's document structure.
@@ -209,9 +244,78 @@ export default class ImportsProcessor extends BaseProcessor {
     });
   }
 
-  private getInternalId(externalId: string, mapper: Record<string, string>) {
-    const internalId = mapper[externalId] ?? uuidv4();
-    mapper[externalId] = internalId;
+  private updateMentionsAndAttachments({
+    content,
+    attachments,
+    idMap,
+    importInput,
+    actorId,
+  }: {
+    content: ProsemirrorDoc;
+    idMap: Record<string, string>;
+    importInput: Record<string, ImportInput[number]>;
+    attachments: Attachment[];
+    actorId: string;
+  }) {
+    const attachmentsMap = keyBy(attachments, "id");
+    const doc = ProsemirrorHelper.toProsemirror(content);
+
+    const transformMentionNode = (node: Node): Node => {
+      const json = node.toJSON() as ProsemirrorData;
+      const attrs = json.attrs ?? {};
+
+      attrs.id = uuidv4();
+      attrs.actorId = actorId;
+
+      const externalId = attrs.modelId as string;
+      const internalId = idMap[externalId];
+
+      // In case the linked page is not in the import, don't map the externalId.
+      // App will fail the redirect in this case.
+      if (internalId) {
+        const isCollectionMention = !!importInput[externalId]; // the referenced externalId is a root page.
+        attrs.type = isCollectionMention
+          ? MentionType.Collection
+          : MentionType.Document;
+        attrs.modelId = internalId;
+      }
+
+      json.attrs = attrs;
+      return Node.fromJSON(schema, json);
+    };
+
+    const transformAttachmentNode = (node: Node): Node => {
+      const json = node.toJSON() as ProsemirrorData;
+      const attrs = json.attrs ?? {};
+
+      attrs.size = attachmentsMap[attrs.id as string].size;
+
+      json.attrs = attrs;
+      return Node.fromJSON(schema, json);
+    };
+
+    const transformFragment = (fragment: Fragment): Fragment => {
+      const nodes: Node[] = [];
+
+      fragment.forEach((node) => {
+        nodes.push(
+          node.type.name === "mention"
+            ? transformMentionNode(node)
+            : node.type.name === "attachment"
+            ? transformAttachmentNode(node)
+            : node.copy(transformFragment(node.content))
+        );
+      });
+
+      return Fragment.fromArray(nodes);
+    };
+
+    return doc.copy(transformFragment(doc.content)).toJSON();
+  }
+
+  private getInternalId(externalId: string, idMap: Record<string, string>) {
+    const internalId = idMap[externalId] ?? uuidv4();
+    idMap[externalId] = internalId;
     return internalId;
   }
 }

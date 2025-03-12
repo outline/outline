@@ -9,12 +9,7 @@ import {
 } from "@notionhq/client/build/src/api-endpoints";
 import { RateLimit } from "async-sema";
 import { Second } from "@shared/utils/time";
-import { Page, PageTitle } from "../shared/types";
-
-// Transformed block structure with "children".
-export type NotionBlock = BlockObjectResponse & {
-  children?: NotionBlock[];
-};
+import { Block, Page, PageTitle } from "../shared/types";
 
 export class NotionClient {
   private client: Client;
@@ -74,7 +69,7 @@ export class NotionClient {
   }
 
   private async fetchBlockChildren(blockId: string) {
-    const blocks: NotionBlock[] = [];
+    const blocks: Block[] = [];
 
     let cursor: string | undefined;
     let hasMore = true;

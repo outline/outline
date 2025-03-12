@@ -15,7 +15,6 @@ import type {
   ImageBlockObjectResponse,
   EmbedBlockObjectResponse,
   TableBlockObjectResponse,
-  BlockObjectResponse,
   ToDoBlockObjectResponse,
   EquationBlockObjectResponse,
   CodeBlockObjectResponse,
@@ -23,16 +22,13 @@ import type {
   PageObjectResponse,
   VideoBlockObjectResponse,
 } from "@notionhq/client/build/src/api-endpoints";
-import isArray from "lodash/isArray";
-import { MentionType, ProsemirrorData } from "@shared/types";
 import Logger from "@server/logging/Logger";
-
-export type NotionBlock<T = BlockObjectResponse> = T & {
-  children: NotionBlock[];
-};
+import { MentionType, ProsemirrorData, ProsemirrorDoc } from "@shared/types";
+import isArray from "lodash/isArray";
+import { Block } from "plugins/notion/shared/types";
 
 export type NotionPage = PageObjectResponse & {
-  children: NotionBlock[];
+  children: Block[];
 };
 
 /** Convert Notion blocks to Outline data. */
@@ -57,16 +53,16 @@ export class NotionConverter {
     "toggle",
   ];
 
-  public static page(item: NotionPage) {
+  public static page(item: NotionPage): ProsemirrorDoc {
     return {
       type: "doc",
       content: this.mapChildren(item),
     };
   }
 
-  private static mapChildren(item: NotionBlock | NotionPage) {
+  private static mapChildren(item: Block | NotionPage) {
     const mapChild = (
-      child: NotionBlock
+      child: Block
     ): ProsemirrorData | ProsemirrorData[] | undefined => {
       // @ts-expect-error Not all blocks have an interface
       if (this[child.type]) {
@@ -82,7 +78,7 @@ export class NotionConverter {
         return response;
       }
 
-      Logger.warn("Encountered unknown Notion block", child);
+      // Logger.warn("Encountered unknown Notion block", child);
       return undefined;
     };
 
@@ -175,7 +171,7 @@ export class NotionConverter {
   }
 
   private static bulleted_list_item(
-    item: NotionBlock<BulletedListItemBlockObjectResponse>
+    item: Block<BulletedListItemBlockObjectResponse>
   ) {
     return {
       type: "list_item",
@@ -205,7 +201,7 @@ export class NotionConverter {
   }
 
   private static numbered_list_item(
-    item: NotionBlock<NumberedListItemBlockObjectResponse>
+    item: Block<NumberedListItemBlockObjectResponse>
   ) {
     return {
       type: "list_item",
@@ -356,7 +352,7 @@ export class NotionConverter {
       type: "attachment",
       attrs: {
         href: "file" in item.pdf ? item.pdf.file.url : item.pdf.external.url,
-        title: item.pdf.caption.map(this.rich_text_to_plaintext),
+        title: item.pdf.caption.map(this.rich_text_to_plaintext).join(""),
       },
     };
   }
@@ -416,7 +412,7 @@ export class NotionConverter {
     };
   }
 
-  private static quote(item: NotionBlock<QuoteBlockObjectResponse>) {
+  private static quote(item: Block<QuoteBlockObjectResponse>) {
     return {
       type: "blockquote",
       content: [
@@ -468,7 +464,7 @@ export class NotionConverter {
     };
   }
 
-  private static to_do(item: NotionBlock<ToDoBlockObjectResponse>) {
+  private static to_do(item: Block<ToDoBlockObjectResponse>) {
     return {
       type: "checkbox_item",
       attrs: {

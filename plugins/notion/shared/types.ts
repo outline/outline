@@ -1,4 +1,7 @@
-import { RichTextItemResponse } from "@notionhq/client/build/src/api-endpoints";
+import {
+  BlockObjectResponse,
+  RichTextItemResponse,
+} from "@notionhq/client/build/src/api-endpoints";
 
 export type Page = {
   id: string;
@@ -9,4 +12,9 @@ export type Page = {
 export type PageTitle = {
   type: "title";
   title: Array<RichTextItemResponse>;
+};
+
+// Transformed block structure with "children".
+export type Block<T = BlockObjectResponse> = T & {
+  children?: Block[];
 };
