@@ -1637,6 +1637,13 @@ exports[`NotionConverter converts a page 1`] = `
     },
     {
       "attrs": {
+        "src": "https://prod-files-secure.s3.us-west-2.amazonaws.com/2f3fcad6-fc32-434b-b6b2-a03ca7893c4d/c15768c4-949b-42d1-9ac4-f8a42799f892/pin_bug.mp4?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466RS3SJOJ5%2F20250311%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20250311T180207Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEGIaCXVzLXdlc3QtMiJGMEQCIH0vrPOGAEuMwcQvR%2FeBar5WQBsn9NlB%2BLs53LGDXr4WAiBO4j1RsuAC0vxiXj69hwGfmTTWKOahAPkfXwYLkkz8%2FCqIBAir%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F8BEAAaDDYzNzQyMzE4MzgwNSIMpE2y0r3%2Fl0xpUispKtwDl8oQ9dF381Z%2FJlpZO8786ZYo8J1dlSqyd%2FLxxhdWcP9etgUALo098dfQtY39dLVIBpdAVUhE4h10paMGbJhJnXtOUIcB2C%2FFbsykHhaN5l3H1kgFn605LAhnm9H07RpHl%2FwUW3XkmETAc%2F6%2BOsv%2FgD%2FB%2BddCeDKZ%2BFeZF0%2FEOlwqs3csmfos%2ByvTpeUdHzvGrIpJ5dP7DhaT5HdEyZZY8hqIhSSBvhbHEks21EOVHQjnWkciNf0AMgInMnvDplU1%2B3nV60jwW%2ByRH8aJ56W2OFlhKrBetGMsO8gX62z%2B%2Bl4Tn0G%2FxU1TGpjUu6Zvz1RYkp8QTtBMi95u1%2FEd6F94OdfKavTyGMgbZj2ITulPvM8UFBMuAH1Wjf01xEsz7DsuNV4qqgnTERDtFADfkZDgQH%2F8mWaGlnA6tCQwOGiZ%2BEl00MDz5DGajJEYg2eczY%2Fs%2FL7OUMdK8OCAeowGw994epcPIhFpaEyN%2Bby4S4tDycy9nRkCevv8qQ74k3x3bRYWGvMmvQkaHoDdFWahgte5cQq6ejEzibvq%2BzFGoZifTCE%2Fn2umiBtBGjce6%2B2FQ4xHbOtoNus3fxaL9Lom%2B7pRCMG2cfXRhuuUl5tLKhsQvXFq8ycMY042k2FytPQwt%2FHBvgY6pgEUs1yYp8f%2FiMmXjskadIGnwQyZ6BlgvmtE3Kfsghj2M1ijBLIJDp516HXefBTOFgl08c7J03u7ZrYF841n56f8g%2FHvzvxdP7pIt3u1oLKXdas8gguRuSmvj9YHahisqvNnZ43RbbFawYtRsBecRdpSUaIukhl9gs0ahq6sJ1jDFSkil4i2W4xViaIFFFMnWrKAGDzJ%2BsJ46G3DRFjWuHinpWl5zrxZ&X-Amz-Signature=05d57bb4896e8262ef6c1a73970a7a17e5171550e4a458a27161ddc0282998dd&X-Amz-SignedHeaders=host&x-id=GetObject",
+        "title": "",
+      },
+      "type": "video",
+    },
+    {
+      "attrs": {
         "level": 3,
       },
       "content": [
@@ -1647,6 +1654,12 @@ exports[`NotionConverter converts a page 1`] = `
         },
       ],
       "type": "heading",
+    },
+    {
+      "attrs": {
+        "href": "https://www.youtube.com/watch?v=cCOL7MC4Pl0",
+      },
+      "type": "embed",
     },
     {
       "content": [],

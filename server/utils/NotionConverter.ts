@@ -21,6 +21,7 @@ import type {
   CodeBlockObjectResponse,
   ToggleBlockObjectResponse,
   PageObjectResponse,
+  VideoBlockObjectResponse,
 } from "@notionhq/client/build/src/api-endpoints";
 import isArray from "lodash/isArray";
 import { MentionType, ProsemirrorData } from "@shared/types";
@@ -45,7 +46,6 @@ export class NotionConverter {
   // - "link_preview"
   // - "link_to_page"
   // - "synced_block"
-  // - "video"
 
   /**
    * Nodes which cannot contain block children in Outline, their children
@@ -441,6 +441,25 @@ export class NotionConverter {
         },
         ...this.mapChildren(item),
       ],
+    };
+  }
+
+  private static video(item: VideoBlockObjectResponse) {
+    if (item.video.type === "file") {
+      return {
+        type: "video",
+        attrs: {
+          src: item.video.file.url,
+          title: item.video.caption.map(this.rich_text_to_plaintext).join(""),
+        },
+      };
+    }
+
+    return {
+      type: "embed",
+      attrs: {
+        href: item.video.external.url,
+      },
     };
   }
 }
