@@ -78,8 +78,8 @@ export default class ImportNotionTaskV2 extends BaseTask<Props> {
     const client = new NotionClient(integration.authentication.token);
 
     const parsedPages = await Promise.all(
-      importTask.input.map(async (page) =>
-        this.parsePage({ page, client, createdBy: importTask.import.createdBy })
+      importTask.input.map(async (item) =>
+        this.parseItem({ item, client, createdBy: importTask.import.createdBy })
       )
     );
 
@@ -157,33 +157,43 @@ export default class ImportNotionTaskV2 extends BaseTask<Props> {
     });
   }
 
-  private async parsePage({
-    page,
+  private async parseItem({
+    item,
     client,
     createdBy,
   }: {
-    page: ImportTaskInput<IntegrationService.Notion>[number];
+    item: ImportTaskInput<IntegrationService.Notion>[number];
     client: NotionClient;
     createdBy: User;
   }): Promise<ParsePageOutput> {
-    const { title, emoji, blocks } = await client.fetchPage(page.externalId);
+    const {
+      title: pageTitle,
+      emoji: pageEmoji,
+      blocks,
+    } = await client.fetchPage(item.externalId);
 
     const doc = NotionConverter.page({ children: blocks } as NotionPage);
 
     const docWithReplacements = await this.uploadAttachments({
       doc,
-      externalId: page.externalId,
+      externalId: item.externalId,
       createdBy,
     });
 
     return {
-      externalId: page.externalId,
-      title,
-      emoji,
+      externalId: item.externalId,
+      title: pageTitle,
+      emoji: pageEmoji,
       content: docWithReplacements,
-      collectionExternalId: page.collectionExternalId ?? page.externalId,
+      collectionExternalId: item.collectionExternalId ?? item.externalId,
       children: this.parseChildPages(blocks),
     };
+
+    // const {
+    //   title: databaseTitle,
+    //   emoji: databaseEmoji,
+    //   pages,
+    // } = await client.fetchDatabase(item.externalId);
   }
 
   private async uploadAttachments({

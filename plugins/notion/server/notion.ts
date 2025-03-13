@@ -1,16 +1,19 @@
 import {
   Client,
+  isFullPage,
   isFullPageOrDatabase,
   iteratePaginatedAPI,
 } from "@notionhq/client";
 import {
   BlockObjectResponse,
+  DatabaseObjectResponse,
   PageObjectResponse,
   RichTextItemResponse,
 } from "@notionhq/client/build/src/api-endpoints";
 import { RateLimit } from "async-sema";
+import compact from "lodash/compact";
 import { Second } from "@shared/utils/time";
-import { Block, Page, PageTitle, PageType } from "../shared/types";
+import { Block, Page, PageType } from "../shared/types";
 
 export class NotionClient {
   private client: Client;
@@ -44,24 +47,11 @@ export class NotionClient {
       }
 
       if (item.parent.type === "workspace") {
-        let titleProp: RichTextItemResponse[], type: PageType;
-
-        if (item.object === "page") {
-          type = PageType.Page;
-          titleProp =
-            "title" in item.properties["title"]
-              ? item.properties["title"].title
-              : [];
-        } else {
-          type = PageType.Database;
-          titleProp = item.title;
-        }
-
         pages.push({
-          type,
+          type: item.object === "page" ? PageType.Page : PageType.Database,
           id: item.id,
-          name: titleProp.map((title) => title.plain_text).join(""),
-          emoji: item.icon?.type === "emoji" ? item.icon.emoji : undefined, // Other icon types return a url to download from, which we don't support.
+          name: this.parseTitle(item),
+          emoji: this.parseEmoji(item),
         });
       }
     }
@@ -73,6 +63,12 @@ export class NotionClient {
     const blocks = await this.fetchBlockChildren(pageId);
     const { title, emoji } = await this.fetchPageInfo(pageId);
     return { title, emoji, blocks };
+  }
+
+  async fetchDatabase(databaseId: string) {
+    const pages = await this.queryDatabase(databaseId);
+    const { title, emoji } = await this.fetchDatabaseInfo(databaseId);
+    return { title, emoji, pages };
   }
 
   private async fetchBlockChildren(blockId: string) {
@@ -118,6 +114,50 @@ export class NotionClient {
     return blocks;
   }
 
+  private async queryDatabase(databaseId: string) {
+    const pages: Page[] = [];
+
+    let cursor: string | undefined;
+    let hasMore = true;
+    const queryPromises = [];
+
+    while (hasMore) {
+      await this.limiter();
+
+      const response = await this.client.databases.query({
+        database_id: databaseId,
+        start_cursor: cursor,
+        page_size: this.pageSize,
+      });
+
+      const pagesFromRes = compact(
+        response.results.map<Page | undefined>((item) => {
+          if (!isFullPage(item)) {
+            return;
+          }
+
+          return {
+            type: PageType.Page,
+            id: item.id,
+            name: this.parseTitle(item),
+            emoji: this.parseEmoji(item),
+          };
+        })
+      );
+
+      pages.push(...pagesFromRes);
+
+      hasMore = response.has_more;
+      cursor = response.next_cursor ?? undefined;
+
+      queryPromises.push(Promise.resolve()); // Resolved promise when this query completes post rate-limiting.
+    }
+
+    await Promise.all(queryPromises);
+
+    return pages;
+  }
+
   private async fetchPageInfo(pageId: string): Promise<{
     title: string;
     emoji?: string;
@@ -127,11 +167,44 @@ export class NotionClient {
       page_id: pageId,
     })) as PageObjectResponse;
 
-    const titleProp = (page.properties["title"] as PageTitle).title;
+    return {
+      title: this.parseTitle(page),
+      emoji: this.parseEmoji(page),
+    };
+  }
+
+  private async fetchDatabaseInfo(databaseId: string): Promise<{
+    title: string;
+    emoji?: string;
+  }> {
+    await this.limiter();
+    const database = (await this.client.databases.retrieve({
+      database_id: databaseId,
+    })) as DatabaseObjectResponse;
 
     return {
-      title: titleProp.at(0)?.plain_text ?? "",
-      emoji: page.icon?.type === "emoji" ? page.icon.emoji : undefined, // Other icon types return a url to download from, which we don't support.
+      title: this.parseTitle(database),
+      emoji: this.parseEmoji(database),
     };
+  }
+
+  private parseTitle(item: PageObjectResponse | DatabaseObjectResponse) {
+    let richTexts: RichTextItemResponse[];
+
+    if (item.object === "page") {
+      richTexts =
+        "title" in item.properties["title"]
+          ? item.properties["title"].title
+          : [];
+    } else {
+      richTexts = item.title;
+    }
+
+    return richTexts.map((richText) => richText.plain_text).join("");
+  }
+
+  private parseEmoji(item: PageObjectResponse | DatabaseObjectResponse) {
+    // Other icon types return a url to download from, which we don't support.
+    return item.icon?.type === "emoji" ? item.icon.emoji : undefined;
   }
 }
