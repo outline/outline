@@ -1,3 +1,4 @@
+import { PagePerImportTask } from "@server/constants";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
 import { Attachment, Collection, Document, Import } from "@server/models";
@@ -8,9 +9,9 @@ import { sequelize } from "@server/storage/database";
 import { Event, ImportEvent } from "@server/types";
 import { ImportInput, ImportTaskInput } from "@shared/schema";
 import {
+  ImportableIntegrationService,
   ImportState,
   ImportTaskState,
-  IntegrationService,
   MentionType,
   ProsemirrorData,
   ProsemirrorDoc,
@@ -18,28 +19,31 @@ import {
 import chunk from "lodash/chunk";
 import keyBy from "lodash/keyBy";
 import ImportNotionTaskV2 from "plugins/notion/server/tasks/ImportNotionTaskV2";
-import { PagePerTask } from "plugins/notion/server/utils";
 import { Fragment, Node } from "prosemirror-model";
 import { v4 as uuidv4 } from "uuid";
 import BaseProcessor from "./BaseProcessor";
 
-export default class ImportsProcessor extends BaseProcessor {
+export default class ImportsProcessor<
+  T extends ImportableIntegrationService
+> extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
     "imports.create",
     "imports.processed",
   ];
 
   public async perform(event: ImportEvent) {
-    const importModel = await Import.scope("withUser").findByPk(event.modelId, {
+    const importModel = await Import.scope<Import<T>>("withUser").findByPk<
+      Import<T>
+    >(event.modelId, {
       rejectOnEmpty: true,
     });
 
     switch (event.name) {
       case "imports.create":
-        return this.creationFlow(importModel);
+        return this.onCreation(importModel);
 
       case "imports.processed":
-        return this.processedFlow(importModel);
+        return this.onProcessed(importModel);
     }
   }
 
@@ -62,26 +66,19 @@ export default class ImportsProcessor extends BaseProcessor {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private async creationFlow(importModel: Import<any>) {
+  private async onCreation(importModel: Import<T>) {
     if (!importModel.input.length) {
       return;
     }
 
-    if (importModel.service !== IntegrationService.Notion) {
-      return;
-    }
-
-    const tasksInput: ImportTaskInput<IntegrationService.Notion> = (
-      importModel as Import<IntegrationService.Notion>
-    ).input.map((item) => ({
+    const tasksInput: ImportTaskInput<T> = importModel.input.map((item) => ({
       type: item.type,
       externalId: item.externalId,
     }));
 
     const importTasks = await sequelize.transaction(async (transaction) => {
       const insertedTasks = await Promise.all(
-        chunk(tasksInput, PagePerTask).map((input) =>
+        chunk(tasksInput, PagePerImportTask).map((input) =>
           ImportTask.create(
             {
               state: ImportTaskState.Created,
@@ -102,8 +99,7 @@ export default class ImportsProcessor extends BaseProcessor {
     await ImportNotionTaskV2.schedule({ importTaskId: importTasks[0].id });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private async processedFlow(importModel: Import<any>) {
+  private async onProcessed(importModel: Import<T>) {
     // External id to internal model id.
     const idMap: Record<string, string> = {};
     const now = new Date();
@@ -113,7 +109,7 @@ export default class ImportsProcessor extends BaseProcessor {
 
     await sequelize.transaction(async (transaction) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await ImportTask.findAllInBatches<ImportTask<any>>(
+      await ImportTask.findAllInBatches<ImportTask<T>>(
         {
           where: { importId: importModel.id },
           order: [["createdAt", "ASC"]], // ordering ensures collections are created first.

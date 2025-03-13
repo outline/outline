@@ -1,32 +1,28 @@
-import { JobOptions } from "bull";
-import chunk from "lodash/chunk";
-import uniqBy from "lodash/uniqBy";
-import { Fragment, Node } from "prosemirror-model";
-import { v4 as uuidv4 } from "uuid";
+import { schema } from "@server/editor";
+import Logger from "@server/logging/Logger";
+import { Attachment, Integration, User } from "@server/models";
+import ImportTask from "@server/models/ImportTask";
+import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import APIImportTask, {
+  ProcessOutput,
+} from "@server/queues/tasks/APIImportTask";
+import UploadAttachmentsForImportTask from "@server/queues/tasks/UploadAttachmentsForImportTask";
+import { sequelize } from "@server/storage/database";
+import { NotionConverter, NotionPage } from "@server/utils/NotionConverter";
 import { ImportTaskInput, ImportTaskOutput } from "@shared/schema";
 import {
   AttachmentPreset,
-  ImportState,
-  ImportTaskState,
   IntegrationService,
   ProsemirrorData,
   ProsemirrorDoc,
 } from "@shared/types";
 import { ProsemirrorHelper as SharedProseMirrorHelper } from "@shared/utils/ProsemirrorHelper";
-import { createContext } from "@server/context";
-import { schema } from "@server/editor";
-import Logger from "@server/logging/Logger";
-import { Attachment, Import, Integration, User } from "@server/models";
-import ImportTask from "@server/models/ImportTask";
-import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
-import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
-import BaseTask, { TaskPriority } from "@server/queues/tasks/BaseTask";
-import UploadAttachmentsForImportTask from "@server/queues/tasks/UploadAttachmentsForImportTask";
-import { sequelize } from "@server/storage/database";
-import { NotionConverter, NotionPage } from "@server/utils/NotionConverter";
-import { NotionClient } from "../notion";
-import { PagePerTask } from "../utils";
+import uniqBy from "lodash/uniqBy";
 import { Block, PageType } from "plugins/notion/shared/types";
+import { Fragment, Node } from "prosemirror-model";
+import { v4 as uuidv4 } from "uuid";
+import { NotionClient } from "../notion";
 
 type ChildPage = { type: PageType; externalId: string };
 
@@ -35,70 +31,10 @@ type ParsePageOutput = ImportTaskOutput[number] & {
   children: ChildPage[];
 };
 
-type Props = {
-  /** id of the import_task */
-  importTaskId: string;
-};
-
-export default class ImportNotionTaskV2 extends BaseTask<Props> {
-  public async perform({ importTaskId }: Props) {
-    const importTask = await ImportTask.findByPk<
-      ImportTask<IntegrationService.Notion>
-    >(importTaskId, {
-      rejectOnEmpty: true,
-      include: [
-        {
-          model: Import.scope("withUser"),
-          as: "import",
-          required: true,
-        },
-      ],
-    });
-
-    switch (importTask.state) {
-      case ImportTaskState.Created: {
-        await importTask.update({ state: ImportTaskState.InProgress });
-        return this.process(importTask);
-      }
-
-      case ImportTaskState.InProgress:
-        return this.process(importTask);
-
-      case ImportTaskState.Completed:
-        return await this.completionFlow(importTask);
-    }
-  }
-
-  public async onFailed({ importTaskId }: Props) {
-    const importTask = await ImportTask.findByPk<
-      ImportTask<IntegrationService.Notion>
-    >(importTaskId, {
-      rejectOnEmpty: true,
-      include: [
-        {
-          model: Import.scope("withUser"),
-          as: "import",
-          required: true,
-        },
-      ],
-    });
-
-    await sequelize.transaction(async (transaction) => {
-      importTask.state = ImportTaskState.Errored;
-      await importTask.save({ transaction });
-
-      const associatedImport = importTask.import;
-      associatedImport.state = ImportState.Errored;
-      await associatedImport.saveWithCtx(
-        createContext({
-          user: associatedImport.createdBy,
-          transaction,
-        })
-      );
-    });
-  }
-
-  private async process(importTask: ImportTask<IntegrationService.Notion>) {
+export default class APIImportNotionTask extends APIImportTask<IntegrationService.Notion> {
+  protected async process(
+    importTask: ImportTask<IntegrationService.Notion>
+  ): Promise<ProcessOutput<IntegrationService.Notion>> {
     const integration = await Integration.scope("withAuthentication").findByPk(
       importTask.import.integrationId,
       { rejectOnEmpty: true }
@@ -129,64 +65,14 @@ export default class ImportNotionTaskV2 extends BaseTask<Props> {
         }))
       );
 
-    await sequelize.transaction(async (transaction) => {
-      await Promise.all(
-        chunk(childTasksInput, PagePerTask).map(async (input) => {
-          await ImportTask.create(
-            {
-              state: ImportTaskState.Created,
-              input,
-              importId: importTask.importId,
-            },
-            { transaction }
-          );
-        })
-      );
-
-      importTask.output = taskOutput;
-      importTask.state = ImportTaskState.Completed;
-      await importTask.save({ transaction });
-
-      const associatedImport = importTask.import;
-      associatedImport.pageCount += importTask.input.length;
-      await associatedImport.saveWithCtx(
-        createContext({
-          user: associatedImport.createdBy,
-          transaction,
-        })
-      );
-    });
-
-    await ImportNotionTaskV2.schedule({ importTaskId: importTask.id });
+    return { taskOutput, childTasksInput };
   }
 
-  private async completionFlow(
+  protected async scheduleNextTask(
     importTask: ImportTask<IntegrationService.Notion>
   ) {
-    const nextImportTask = await ImportTask.findOne({
-      where: {
-        state: ImportTaskState.Created,
-        importId: importTask.importId,
-      },
-    });
-
-    if (nextImportTask) {
-      await ImportNotionTaskV2.schedule({ importTaskId: nextImportTask.id });
-      return;
-    }
-
-    await sequelize.transaction(async (transaction) => {
-      const associatedImport = importTask.import;
-      associatedImport.state = ImportState.Processed;
-      await associatedImport.saveWithCtx(
-        createContext({
-          user: associatedImport.createdBy,
-          transaction,
-        }),
-        undefined,
-        { name: "processed" }
-      );
-    });
+    await APIImportNotionTask.schedule({ importTaskId: importTask.id });
+    return;
   }
 
   private async parseItem({
@@ -373,16 +259,5 @@ export default class ImportNotionTaskV2 extends BaseTask<Props> {
     });
 
     return childPages;
-  }
-
-  public get options(): JobOptions {
-    return {
-      priority: TaskPriority.Normal,
-      attempts: 3,
-      backoff: {
-        type: "exponential",
-        delay: 60 * 1000,
-      },
-    };
   }
 }

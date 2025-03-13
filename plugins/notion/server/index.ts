@@ -2,7 +2,7 @@ import { Hook, PluginManager } from "@server/utils/PluginManager";
 import config from "../plugin.json";
 import router from "./api/notion";
 import env from "./env";
-import ImportNotionTaskV2 from "./tasks/ImportNotionTaskV2";
+import APIImportNotionTask from "./tasks/APIImportNotionTask";
 
 const enabled = !!env.NOTION_CLIENT_ID && !!env.NOTION_CLIENT_SECRET;
 
@@ -15,7 +15,7 @@ if (enabled) {
     },
     {
       type: Hook.Task,
-      value: ImportNotionTaskV2,
+      value: APIImportNotionTask,
     },
   ]);
 }
