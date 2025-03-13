@@ -144,7 +144,14 @@ function Import() {
     return pageImports;
   }, [imports, fileOperations, offset]);
 
-  const allImports = imports.all(offset.imports, offset.fileOperations);
+  const allImports = orderBy(
+    [
+      ...imports.orderedData,
+      ...fileOperations.filter({ type: FileOperationType.Import }),
+    ],
+    "createdAt",
+    "desc"
+  ).slice(0, offset.imports + offset.fileOperations);
 
   return (
     <Scene title={t("Import")} icon={<NewDocumentIcon />}>

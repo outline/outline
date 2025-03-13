@@ -8,6 +8,7 @@ import { CollectionPermission, IntegrationService } from "@shared/types";
 import Button from "~/components/Button";
 import { Emoji } from "~/components/Emoji";
 import Flex from "~/components/Flex";
+import Input from "~/components/Input";
 import InputSelectPermission from "~/components/InputSelectPermission";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
@@ -30,6 +31,7 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
   const { t } = useTranslation();
   const { imports } = useStores();
   const [submitting, setSubmitting, resetSubmitting] = useBoolean();
+  const [name, setName] = React.useState("");
   const [pagesWithPermission, setPagesWithPermission] =
     React.useState<PageWithPermission[]>();
 
@@ -72,7 +74,7 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
 
     try {
       await imports.create(
-        { service: IntegrationService.Notion },
+        { name, service: IntegrationService.Notion },
         { integrationId, input }
       );
 
@@ -85,7 +87,7 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
       toast.error(err.message);
       resetSubmitting();
     }
-  }, [pagesWithPermission, onSubmit]);
+  }, [name, pagesWithPermission, onSubmit]);
 
   React.useEffect(() => {
     if (pages?.length) {
@@ -110,6 +112,15 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
 
   return (
     <Flex column gap={12}>
+      <Input
+        type="text"
+        placeholder={t("Name")}
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        autoComplete="off"
+        autoFocus
+        flex
+      />
       <Pages>
         <Row>
           <Column justify="center" align="center" $border>
@@ -133,7 +144,7 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
         ))}
       </Pages>
       <Flex justify="flex-end">
-        <Button onClick={handleStartImport} disabled={submitting}>
+        <Button onClick={handleStartImport} disabled={!name || submitting}>
           {t("Start import")}
         </Button>
       </Flex>
