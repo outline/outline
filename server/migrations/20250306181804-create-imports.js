@@ -9,6 +9,10 @@ module.exports = {
         allowNull: false,
         primaryKey: true,
       },
+      name: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
       service: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -21,6 +25,18 @@ module.exports = {
         type: Sequelize.JSONB,
         allowNull: false,
       },
+      pageCount: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
+      },
+      integrationId: {
+        type: Sequelize.UUID,
+        allowNull: false,
+        references: {
+          model: "integrations",
+        },
+      },
       createdById: {
         type: Sequelize.UUID,
         allowNull: false,
@@ -28,11 +44,11 @@ module.exports = {
           model: "users",
         },
       },
-      integrationId: {
+      teamId: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: "integrations",
+          model: "teams",
         },
       },
       createdAt: {

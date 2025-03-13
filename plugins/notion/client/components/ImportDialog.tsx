@@ -12,6 +12,7 @@ import InputSelectPermission from "~/components/InputSelectPermission";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useRequest from "~/hooks/useRequest";
+import useStores from "~/hooks/useStores";
 import { EmptySelectValue } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { Page } from "plugins/notion/shared/types";
@@ -27,6 +28,7 @@ type Props = {
 
 export function ImportDialog({ integrationId, onSubmit }: Props) {
   const { t } = useTranslation();
+  const { imports } = useStores();
   const [submitting, setSubmitting, resetSubmitting] = useBoolean();
   const [pagesWithPermission, setPagesWithPermission] =
     React.useState<PageWithPermission[]>();
@@ -69,11 +71,10 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
       }));
 
     try {
-      await client.post("/imports.create", {
-        integrationId,
-        service: IntegrationService.Notion,
-        input,
-      });
+      await imports.create(
+        { service: IntegrationService.Notion },
+        { integrationId, input }
+      );
 
       toast.success(
         t("Your import is being processed, you can safely leave this page")

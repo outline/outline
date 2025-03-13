@@ -10,7 +10,7 @@ import {
   Table,
 } from "sequelize-typescript";
 import { type ImportTaskInput, ImportTaskOutput } from "@shared/schema";
-import { ImportTaskState, IntegrationService } from "@shared/types";
+import { ImportableIntegrationService, ImportTaskState } from "@shared/types";
 import Import from "./Import";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
@@ -27,7 +27,7 @@ import Fix from "./decorators/Fix";
 }))
 @Table({ tableName: "import_tasks", modelName: "import_task" })
 @Fix
-class ImportTask<T extends IntegrationService> extends IdModel<
+class ImportTask<T extends ImportableIntegrationService> extends IdModel<
   InferAttributes<ImportTask<T>>,
   Partial<InferCreationAttributes<ImportTask<T>>>
 > {

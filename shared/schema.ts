@@ -2,6 +2,7 @@ import { PageType } from "plugins/notion/shared/types";
 import { z } from "zod";
 import {
   CollectionPermission,
+  type ImportableIntegrationService,
   IntegrationService,
   ProsemirrorDoc,
 } from "./types";
@@ -19,7 +20,7 @@ export const NotionImportInputItemSchema = BaseImportInputItemSchema.extend({
 
 export type NotionImportInput = z.infer<typeof NotionImportInputItemSchema>[];
 
-export type ImportInput<T extends IntegrationService> =
+export type ImportInput<T extends ImportableIntegrationService> =
   T extends IntegrationService.Notion ? NotionImportInput : BaseImportInput;
 
 export const BaseImportTaskInputItemSchema = z.object({
@@ -41,7 +42,7 @@ export type NotionImportTaskInput = z.infer<
   typeof NotionImportTaskInputItemSchema
 >[];
 
-export type ImportTaskInput<T extends IntegrationService> =
+export type ImportTaskInput<T extends ImportableIntegrationService> =
   T extends IntegrationService.Notion
     ? NotionImportTaskInput
     : BaseImportTaskInput;

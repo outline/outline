@@ -116,6 +116,15 @@ export enum IntegrationService {
   Notion = "notion",
 }
 
+export type ImportableIntegrationService = Extract<
+  IntegrationService,
+  IntegrationService.Notion
+>;
+
+export const ImportableIntegrationService = {
+  Notion: IntegrationService.Notion,
+} as const;
+
 export type UserCreatableIntegrationService = Extract<
   IntegrationService,
   | IntegrationService.Diagrams
