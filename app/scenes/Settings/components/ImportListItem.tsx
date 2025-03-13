@@ -63,8 +63,13 @@ export const ImportListItem = observer(({ item }: Props) => {
           &nbsp;
           <Time dateTime={item.createdAt} addSuffix shorten />
           &nbsp;•&nbsp;
-          {capitalize(item.service)}&nbsp;•&nbsp;
-          {t("{{ count }} pages imported", { count: item.pageCount })}
+          {capitalize(item.service)}
+          {item.state !== ImportState.Errored && (
+            <>
+              &nbsp;•&nbsp;
+              {t("{{ count }} pages imported", { count: item.pageCount })}
+            </>
+          )}
         </>
       }
       // actions={

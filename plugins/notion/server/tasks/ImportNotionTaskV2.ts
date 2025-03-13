@@ -1,3 +1,4 @@
+import { JobOptions } from "bull";
 import chunk from "lodash/chunk";
 import uniqBy from "lodash/uniqBy";
 import { Fragment, Node } from "prosemirror-model";
@@ -19,7 +20,7 @@ import { Attachment, Import, Integration, User } from "@server/models";
 import ImportTask from "@server/models/ImportTask";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
-import BaseTask from "@server/queues/tasks/BaseTask";
+import BaseTask, { TaskPriority } from "@server/queues/tasks/BaseTask";
 import UploadAttachmentsForImportTask from "@server/queues/tasks/UploadAttachmentsForImportTask";
 import { sequelize } from "@server/storage/database";
 import { NotionConverter, NotionPage } from "@server/utils/NotionConverter";
@@ -66,6 +67,35 @@ export default class ImportNotionTaskV2 extends BaseTask<Props> {
       case ImportTaskState.Completed:
         return await this.completionFlow(importTask);
     }
+  }
+
+  public async onFailed({ importTaskId }: Props) {
+    const importTask = await ImportTask.findByPk<
+      ImportTask<IntegrationService.Notion>
+    >(importTaskId, {
+      rejectOnEmpty: true,
+      include: [
+        {
+          model: Import.scope("withUser"),
+          as: "import",
+          required: true,
+        },
+      ],
+    });
+
+    await sequelize.transaction(async (transaction) => {
+      importTask.state = ImportTaskState.Errored;
+      await importTask.save({ transaction });
+
+      const associatedImport = importTask.import;
+      associatedImport.state = ImportState.Errored;
+      await associatedImport.saveWithCtx(
+        createContext({
+          user: associatedImport.createdBy,
+          transaction,
+        })
+      );
+    });
   }
 
   private async process(importTask: ImportTask<IntegrationService.Notion>) {
@@ -343,5 +373,16 @@ export default class ImportNotionTaskV2 extends BaseTask<Props> {
     });
 
     return childPages;
+  }
+
+  public get options(): JobOptions {
+    return {
+      priority: TaskPriority.Normal,
+      attempts: 3,
+      backoff: {
+        type: "exponential",
+        delay: 60 * 1000,
+      },
+    };
   }
 }

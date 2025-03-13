@@ -43,6 +43,25 @@ export default class ImportsProcessor extends BaseProcessor {
     }
   }
 
+  public async onFailed(event: ImportEvent) {
+    await sequelize.transaction(async (transaction) => {
+      const importModel = await Import.scope("withUser").findByPk(
+        event.modelId,
+        {
+          rejectOnEmpty: true,
+        }
+      );
+
+      importModel.state = ImportState.Errored;
+      await importModel.saveWithCtx(
+        createContext({
+          user: importModel.createdBy,
+          transaction,
+        })
+      );
+    });
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async creationFlow(importModel: Import<any>) {
     if (!importModel.input.length) {
