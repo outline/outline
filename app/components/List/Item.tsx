@@ -223,14 +223,13 @@ const Heading = styled.p<{ $small?: boolean; $ellipsis?: boolean }>`
 const Content = styled(Flex)<{ $selected: boolean }>`
   flex-direction: column;
   flex-grow: 1;
-  color: ${(props) => (props.$selected ? props.theme.white : props.theme.text)};
+  color: ${s("text")};
 `;
 
 const Subtitle = styled.p<{ $small?: boolean; $selected?: boolean }>`
   margin: 0;
   font-size: ${(props) => (props.$small ? 13 : 14)}px;
-  color: ${(props) =>
-    props.$selected ? props.theme.white50 : props.theme.textTertiary};
+  color: ${s("textTertiary")};
   margin-top: -2px;
 `;
 
@@ -238,8 +237,7 @@ export const Actions = styled(Flex)<{ $selected?: boolean }>`
   align-self: center;
   justify-content: center;
   flex-shrink: 0;
-  color: ${(props) =>
-    props.$selected ? props.theme.white : props.theme.textSecondary};
+  color: ${s("textSecondary")};
 `;
 
 export default React.forwardRef(ListItem);
