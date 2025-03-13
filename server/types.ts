@@ -468,8 +468,9 @@ export type NotificationEvent = BaseEvent<Notification> & {
   membershipId?: string;
 };
 
-export type ImportEvent = BaseEvent<Import> & {
-  name: "imports.create" | "imports.processed";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ImportEvent = BaseEvent<Import<any>> & {
+  name: "imports.create" | "imports.update" | "imports.processed";
   modelId: string;
 };
 

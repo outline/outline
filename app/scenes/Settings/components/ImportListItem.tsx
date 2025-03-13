@@ -60,6 +60,7 @@ export const ImportListItem = observer(({ item }: Props) => {
             userName:
               user.id === item.createdBy.id ? t("You") : item.createdBy.name,
           })}
+          &nbsp;
           <Time dateTime={item.createdAt} addSuffix shorten />
           &nbsp;•&nbsp;
           {capitalize(item.service)}&nbsp;•&nbsp;

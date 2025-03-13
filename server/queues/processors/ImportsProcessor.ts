@@ -1,3 +1,4 @@
+import { createContext } from "@server/context";
 import { schema } from "@server/editor";
 import { Attachment, Collection, Document, Import } from "@server/models";
 import ImportTask from "@server/models/ImportTask";
@@ -241,7 +242,12 @@ export default class ImportsProcessor extends BaseProcessor {
       );
 
       importModel.state = ImportState.Completed;
-      await importModel.save({ transaction });
+      await importModel.saveWithCtx(
+        createContext({
+          user: importModel.createdBy,
+          transaction,
+        })
+      );
     });
   }
 

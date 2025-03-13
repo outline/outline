@@ -1,7 +1,6 @@
 import chunk from "lodash/chunk";
 import uniqBy from "lodash/uniqBy";
 import { Fragment, Node } from "prosemirror-model";
-import { Transaction } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
 import { ImportTaskInput, ImportTaskOutput } from "@shared/schema";
 import {
@@ -117,6 +116,15 @@ export default class ImportNotionTaskV2 extends BaseTask<Props> {
       importTask.output = taskOutput;
       importTask.state = ImportTaskState.Completed;
       await importTask.save({ transaction });
+
+      const associatedImport = importTask.import;
+      associatedImport.pageCount += importTask.input.length;
+      await associatedImport.saveWithCtx(
+        createContext({
+          user: associatedImport.createdBy,
+          transaction,
+        })
+      );
     });
 
     await ImportNotionTaskV2.schedule({ importTaskId: importTask.id });
@@ -138,22 +146,16 @@ export default class ImportNotionTaskV2 extends BaseTask<Props> {
     }
 
     await sequelize.transaction(async (transaction) => {
-      const associatedImport = await Import.scope("withUser").findByPk(
-        importTask.importId,
-        {
-          rejectOnEmpty: true,
-          transaction,
-          lock: Transaction.LOCK.UPDATE,
-        }
-      );
-
-      const ctx = createContext({
-        user: associatedImport.createdBy,
-        transaction,
-      });
-
+      const associatedImport = importTask.import;
       associatedImport.state = ImportState.Processed;
-      await associatedImport.saveWithCtx(ctx, undefined, { name: "processed" });
+      await associatedImport.saveWithCtx(
+        createContext({
+          user: associatedImport.createdBy,
+          transaction,
+        }),
+        undefined,
+        { name: "processed" }
+      );
     });
   }
 
