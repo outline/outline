@@ -2,7 +2,10 @@ import { PagePerImportTask } from "@server/constants";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
 import { Attachment, Collection, Document, Import } from "@server/models";
-import ImportTask from "@server/models/ImportTask";
+import ImportTask, {
+  ImportTaskAttributes,
+  ImportTaskCreationAttributes,
+} from "@server/models/ImportTask";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
@@ -18,12 +21,12 @@ import {
 } from "@shared/types";
 import chunk from "lodash/chunk";
 import keyBy from "lodash/keyBy";
-import ImportNotionTaskV2 from "plugins/notion/server/tasks/ImportNotionTaskV2";
 import { Fragment, Node } from "prosemirror-model";
+import { CreateOptions, CreationAttributes } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
 import BaseProcessor from "./BaseProcessor";
 
-export default class ImportsProcessor<
+export default abstract class ImportsProcessor<
   T extends ImportableIntegrationService
 > extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
@@ -37,6 +40,10 @@ export default class ImportsProcessor<
     >(event.modelId, {
       rejectOnEmpty: true,
     });
+
+    if (!this.canProcess(importModel)) {
+      return;
+    }
 
     switch (event.name) {
       case "imports.create":
@@ -66,28 +73,31 @@ export default class ImportsProcessor<
     });
   }
 
+  protected abstract canProcess(importModel: Import<T>): boolean;
+
   private async onCreation(importModel: Import<T>) {
     if (!importModel.input.length) {
       return;
     }
 
-    const tasksInput: ImportTaskInput<T> = importModel.input.map((item) => ({
-      type: item.type,
-      externalId: item.externalId,
-    }));
+    const tasksInput = this.buildTasksInput(importModel.input);
 
     const importTasks = await sequelize.transaction(async (transaction) => {
       const insertedTasks = await Promise.all(
-        chunk(tasksInput, PagePerImportTask).map((input) =>
-          ImportTask.create(
-            {
-              state: ImportTaskState.Created,
-              input,
-              importId: importModel.id,
-            },
-            { transaction }
-          )
-        )
+        chunk(tasksInput, PagePerImportTask).map((input) => {
+          const attrs = {
+            state: ImportTaskState.Created,
+            input,
+            importId: importModel.id,
+          } as ImportTaskCreationAttributes<T>;
+
+          return ImportTask.create<
+            ImportTask<T>,
+            CreateOptions<ImportTaskAttributes<T>>
+          >(attrs as unknown as CreationAttributes<ImportTask<T>>, {
+            transaction,
+          });
+        })
       );
 
       importModel.state = ImportState.InProgress;
@@ -96,8 +106,14 @@ export default class ImportsProcessor<
       return insertedTasks;
     });
 
-    await ImportNotionTaskV2.schedule({ importTaskId: importTasks[0].id });
+    await this.scheduleTask(importTasks[0]);
   }
+
+  protected abstract buildTasksInput(
+    importInput: ImportInput<T>
+  ): ImportTaskInput<T>;
+
+  protected abstract scheduleTask(importTask: ImportTask<T>): Promise<void>;
 
   private async onProcessed(importModel: Import<T>) {
     // External id to internal model id.

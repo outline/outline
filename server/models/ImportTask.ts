@@ -15,6 +15,20 @@ import Import from "./Import";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 
+// Not all fields are automatically inferred by Sequelize.
+// see https://sequelize.org/docs/v7/models/model-typing/#manual-attribute-typing
+type NonInferredAttributes<T extends ImportableIntegrationService> = {
+  input: ImportTaskInput<T>;
+};
+
+export type ImportTaskAttributes<T extends ImportableIntegrationService> =
+  InferAttributes<ImportTask<T>> & NonInferredAttributes<T>;
+
+export type ImportTaskCreationAttributes<
+  T extends ImportableIntegrationService
+> = Partial<InferCreationAttributes<ImportTask<T>>> &
+  Partial<NonInferredAttributes<T>>;
+
 @Scopes(() => ({
   withImport: {
     include: [
@@ -28,8 +42,8 @@ import Fix from "./decorators/Fix";
 @Table({ tableName: "import_tasks", modelName: "import_task" })
 @Fix
 class ImportTask<T extends ImportableIntegrationService> extends IdModel<
-  InferAttributes<ImportTask<T>>,
-  Partial<InferCreationAttributes<ImportTask<T>>>
+  ImportTaskAttributes<T>,
+  ImportTaskCreationAttributes<T>
 > {
   @IsIn([Object.values(ImportTaskState)])
   @Column(DataType.STRING)
@@ -41,6 +55,8 @@ class ImportTask<T extends ImportableIntegrationService> extends IdModel<
   @AllowNull
   @Column(DataType.JSONB)
   output: ImportTaskOutput | null;
+
+  // associations
 
   @BelongsTo(() => Import, "importId")
   import: Import<T>;

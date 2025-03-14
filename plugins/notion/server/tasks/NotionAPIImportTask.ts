@@ -31,7 +31,7 @@ type ParsePageOutput = ImportTaskOutput[number] & {
   children: ChildPage[];
 };
 
-export default class APIImportNotionTask extends APIImportTask<IntegrationService.Notion> {
+export default class NotionAPIImportTask extends APIImportTask<IntegrationService.Notion> {
   protected async process(
     importTask: ImportTask<IntegrationService.Notion>
   ): Promise<ProcessOutput<IntegrationService.Notion>> {
@@ -71,7 +71,7 @@ export default class APIImportNotionTask extends APIImportTask<IntegrationServic
   protected async scheduleNextTask(
     importTask: ImportTask<IntegrationService.Notion>
   ) {
-    await APIImportNotionTask.schedule({ importTaskId: importTask.id });
+    await NotionAPIImportTask.schedule({ importTaskId: importTask.id });
     return;
   }
 

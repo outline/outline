@@ -1,16 +1,17 @@
 import { PagePerImportTask } from "@server/constants";
 import { createContext } from "@server/context";
+import { Import, ImportTask } from "@server/models";
+import { ImportTaskAttributes } from "@server/models/ImportTask";
 import { sequelize } from "@server/storage/database";
 import { ImportTaskInput, ImportTaskOutput } from "@shared/schema";
-import { JobOptions } from "bull";
-import chunk from "lodash/chunk";
-import { Transaction, WhereOptions } from "sequelize";
 import {
   ImportableIntegrationService,
   ImportState,
   ImportTaskState,
 } from "@shared/types";
-import { Import, ImportTask } from "@server/models";
+import { JobOptions } from "bull";
+import chunk from "lodash/chunk";
+import { Transaction, WhereOptions } from "sequelize";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 export type ProcessOutput<T extends ImportableIntegrationService> = {
@@ -27,7 +28,7 @@ export default abstract class APIImportTask<
   T extends ImportableIntegrationService
 > extends BaseTask<Props> {
   public async perform({ importTaskId }: Props) {
-    const importTask = await ImportTask.findByPk<ImportTask<T>>(importTaskId, {
+    let importTask = await ImportTask.findByPk<ImportTask<T>>(importTaskId, {
       rejectOnEmpty: true,
       include: [
         {
@@ -40,7 +41,8 @@ export default abstract class APIImportTask<
 
     switch (importTask.state) {
       case ImportTaskState.Created: {
-        await importTask.update({ state: ImportTaskState.InProgress });
+        importTask.state = ImportTaskState.InProgress;
+        importTask = await importTask.save();
         return await this.onProcess(importTask);
       }
 
