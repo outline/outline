@@ -4,14 +4,19 @@ import { observer } from "mobx-react";
 import { DoneIcon, WarningIcon } from "outline-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { useTheme } from "styled-components";
 import FileOperation from "~/models/FileOperation";
 import Import from "~/models/Import";
 import { Action } from "~/components/Actions";
+import ConfirmationDialog from "~/components/ConfirmationDialog";
 import { ListItem } from "~/components/Sharing/components/ListItem";
 import Spinner from "~/components/Spinner";
 import Time from "~/components/Time";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import usePolicy from "~/hooks/usePolicy";
+import useStores from "~/hooks/useStores";
+import ImportMenu from "~/menus/ImportMenu";
 import FileOperationListItem from "./FileOperationListItem";
 
 type Props = {
@@ -20,8 +25,10 @@ type Props = {
 
 export const ImportListItem = observer(({ item }: Props) => {
   const { t } = useTranslation();
+  const { dialogs, imports } = useStores();
   const user = useCurrentUser();
   const theme = useTheme();
+  const can = usePolicy(item);
 
   const stateMap = React.useMemo(
     () => ({
@@ -44,6 +51,32 @@ export const ImportListItem = observer(({ item }: Props) => {
     }),
     [theme]
   );
+
+  const handleDelete = React.useCallback(async () => {
+    const onDelete = async () => {
+      try {
+        await imports.delete(item);
+        toast.success(t("Import deleted"));
+      } catch (err) {
+        toast.error(err.message);
+      }
+    };
+
+    dialogs.openModal({
+      title: t("Are you sure you want to delete this import?"),
+      content: (
+        <ConfirmationDialog
+          onSubmit={onDelete}
+          savingText={`${t("Deleting")}…`}
+          danger
+        >
+          {t(
+            "Deleting this import will also delete all collections and documents that were created from it. This cannot be undone."
+          )}
+        </ConfirmationDialog>
+      ),
+    });
+  }, [dialogs, imports, t, item]);
 
   if (item instanceof FileOperation) {
     return <FileOperationListItem fileOperation={item} />;
@@ -72,20 +105,13 @@ export const ImportListItem = observer(({ item }: Props) => {
           )}
         </>
       }
-      // actions={
-      //   item.state === ImportState.Completed && (
-      //     <Action>
-      //       <FileOperationMenu
-      //         fileOperation={fileOperation}
-      //         onDelete={
-      //           fileOperation.type === FileOperationType.Import
-      //             ? handleConfirmDelete
-      //             : handleDelete
-      //         }
-      //       />
-      //     </Action>
-      //   )
-      // }
+      actions={
+        can.delete && (
+          <Action>
+            <ImportMenu importModel={item} onDelete={handleDelete} />
+          </Action>
+        )
+      }
     />
   );
 });

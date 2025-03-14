@@ -6,7 +6,7 @@ import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import Import from "@server/models/Import";
 import { authorize } from "@server/policies";
-import { presentImport } from "@server/presenters";
+import { presentImport, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -37,6 +37,7 @@ router.post(
 
     ctx.body = {
       data: presentImport(importModel),
+      policies: presentPolicies(user, [importModel]),
     };
   }
 );
@@ -76,6 +77,32 @@ router.post(
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
       data: imports.map(presentImport),
+      policies: presentPolicies(user, imports),
+    };
+  }
+);
+
+router.post(
+  "imports.delete",
+  auth({ role: UserRole.Admin }),
+  validate(T.ImportsDeleteSchema),
+  transaction(),
+  async (ctx: APIContext<T.ImportsDeleteReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    const importModel = await Import.findByPk(id, {
+      rejectOnEmpty: true,
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+    authorize(user, "delete", importModel);
+
+    await importModel.destroyWithCtx(ctx);
+
+    ctx.body = {
+      success: true,
     };
   }
 );

@@ -470,7 +470,11 @@ export type NotificationEvent = BaseEvent<Notification> & {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ImportEvent = BaseEvent<Import<any>> & {
-  name: "imports.create" | "imports.update" | "imports.processed";
+  name:
+    | "imports.create"
+    | "imports.update"
+    | "imports.processed"
+    | "imports.delete";
   modelId: string;
 };
 

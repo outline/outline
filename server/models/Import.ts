@@ -16,7 +16,7 @@ import { ImportValidation } from "@shared/validations";
 import Integration from "./Integration";
 import Team from "./Team";
 import User from "./User";
-import IdModel from "./base/IdModel";
+import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
@@ -33,7 +33,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
 }))
 @Table({ tableName: "imports", modelName: "import" })
 @Fix
-class Import<T extends ImportableIntegrationService> extends IdModel<
+class Import<T extends ImportableIntegrationService> extends ParanoidModel<
   InferAttributes<Import<T>>,
   Partial<InferCreationAttributes<Import<T>>>
 > {

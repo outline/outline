@@ -45,3 +45,12 @@ export const ImportsListSchema = BaseSchema.extend({
 });
 
 export type ImportsListReq = z.infer<typeof ImportsListSchema>;
+
+export const ImportsDeleteSchema = BaseSchema.extend({
+  body: z.object({
+    /** Id of the import to delete */
+    id: z.string().uuid(),
+  }),
+});
+
+export type ImportsDeleteReq = z.infer<typeof ImportsDeleteSchema>;

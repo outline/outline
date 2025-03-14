@@ -1,7 +1,9 @@
+import collectionDestroyer from "@server/commands/collectionDestroyer";
 import { PagePerImportTask } from "@server/constants";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
-import { Attachment, Collection, Document, Import } from "@server/models";
+import Logger from "@server/logging/Logger";
+import { Attachment, Collection, Document, Import, User } from "@server/models";
 import ImportTask, {
   ImportTaskAttributes,
   ImportTaskCreationAttributes,
@@ -32,6 +34,7 @@ export default abstract class ImportsProcessor<
   static applicableEvents: Event["name"][] = [
     "imports.create",
     "imports.processed",
+    "imports.delete",
   ];
 
   public async perform(event: ImportEvent) {
@@ -39,6 +42,7 @@ export default abstract class ImportsProcessor<
       Import<T>
     >(event.modelId, {
       rejectOnEmpty: true,
+      paranoid: false,
     });
 
     if (!this.canProcess(importModel)) {
@@ -51,6 +55,9 @@ export default abstract class ImportsProcessor<
 
       case "imports.processed":
         return this.onProcessed(importModel);
+
+      case "imports.delete":
+        return this.onDeletion(importModel, event);
     }
   }
 
@@ -185,6 +192,7 @@ export default abstract class ImportsProcessor<
                         ),
                         createdById: importModel.createdById,
                         teamId: importModel.createdBy.teamId,
+                        apiImportId: importModel.id,
                         sort: Collection.DEFAULT_SORT,
                         permission: collection.permission,
                         createdAt: now,
@@ -222,6 +230,7 @@ export default abstract class ImportsProcessor<
                       createdById: importModel.createdById,
                       lastModifiedById: importModel.createdById,
                       teamId: importModel.createdBy.teamId,
+                      apiImportId: importModel.id,
                       createdAt: now,
                       updatedAt: now,
                       publishedAt: now,
@@ -356,5 +365,41 @@ export default abstract class ImportsProcessor<
     const internalId = idMap[externalId] ?? uuidv4();
     idMap[externalId] = internalId;
     return internalId;
+  }
+
+  private async onDeletion(importModel: Import<T>, event: ImportEvent) {
+    if (importModel.state !== ImportState.Completed) {
+      return;
+    }
+
+    await sequelize.transaction(async (transaction) => {
+      const user = await User.findByPk(event.actorId, {
+        rejectOnEmpty: true,
+        paranoid: false,
+        transaction,
+      });
+
+      const collections = await Collection.findAll({
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+        where: {
+          teamId: importModel.teamId,
+          apiImportId: importModel.id,
+        },
+      });
+
+      for (const collection of collections) {
+        Logger.debug("processor", "Destroying collection created from import", {
+          collectionId: collection.id,
+        });
+
+        await collectionDestroyer({
+          collection,
+          transaction,
+          user,
+          ip: event.ip,
+        });
+      }
+    });
   }
 }
