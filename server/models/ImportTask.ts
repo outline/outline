@@ -29,16 +29,6 @@ export type ImportTaskCreationAttributes<
 > = Partial<InferCreationAttributes<ImportTask<T>>> &
   Partial<NonInferredAttributes<T>>;
 
-@Scopes(() => ({
-  withImport: {
-    include: [
-      {
-        association: "import",
-        required: true,
-      },
-    ],
-  },
-}))
 @Table({ tableName: "import_tasks", modelName: "import_task" })
 @Fix
 class ImportTask<T extends ImportableIntegrationService> extends IdModel<

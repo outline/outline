@@ -43,7 +43,7 @@ export default abstract class APIImportTask<
       rejectOnEmpty: true,
       include: [
         {
-          model: Import.scope("withUser"),
+          model: Import,
           as: "import",
           required: true,
         },
@@ -75,7 +75,7 @@ export default abstract class APIImportTask<
           rejectOnEmpty: true,
           include: [
             {
-              model: Import.scope("withUser"),
+              model: Import,
               as: "import",
               required: true,
             },
@@ -154,10 +154,12 @@ export default abstract class APIImportTask<
       where,
     });
 
+    // Tasks available to process for this import.
     if (nextImportTask) {
       return await this.scheduleNextTask(nextImportTask);
     }
 
+    // All tasks for this import have been processed.
     await sequelize.transaction(async (transaction) => {
       const associatedImport = importTask.import;
       associatedImport.state = ImportState.Processed;

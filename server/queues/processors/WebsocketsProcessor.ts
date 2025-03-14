@@ -457,9 +457,7 @@ export default class WebsocketsProcessor {
 
       case "imports.create":
       case "imports.update": {
-        const importModel = await Import.scope("withUser").findByPk(
-          event.modelId
-        );
+        const importModel = await Import.findByPk(event.modelId);
         if (!importModel) {
           return;
         }

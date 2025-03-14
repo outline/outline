@@ -4,10 +4,10 @@ import {
   Column,
   DataType,
   Default,
+  DefaultScope,
   ForeignKey,
   IsIn,
   IsNumeric,
-  Scopes,
   Table,
 } from "sequelize-typescript";
 import { type ImportInput } from "@shared/schema";
@@ -21,15 +21,14 @@ import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
 
-@Scopes(() => ({
-  withUser: {
-    include: [
-      {
-        association: "createdBy",
-        required: true,
-      },
-    ],
-  },
+@DefaultScope(() => ({
+  include: [
+    {
+      association: "createdBy",
+      required: true,
+      paranoid: false,
+    },
+  ],
 }))
 @Table({ tableName: "imports", modelName: "import" })
 @Fix

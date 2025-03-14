@@ -62,7 +62,7 @@ router.post(
 
     const [imports, total] = await Promise.all([
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      Import.scope("withUser").findAll<Import<any>>({
+      Import.findAll<Import<any>>({
         where,
         order: [[sort, direction]],
         offset: ctx.state.pagination.offset,

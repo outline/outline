@@ -38,9 +38,7 @@ export default abstract class ImportsProcessor<
   ];
 
   public async perform(event: ImportEvent) {
-    const importModel = await Import.scope<Import<T>>("withUser").findByPk<
-      Import<T>
-    >(event.modelId, {
+    const importModel = await Import.findByPk<Import<T>>(event.modelId, {
       rejectOnEmpty: true,
       paranoid: false,
     });
@@ -63,12 +61,9 @@ export default abstract class ImportsProcessor<
 
   public async onFailed(event: ImportEvent) {
     await sequelize.transaction(async (transaction) => {
-      const importModel = await Import.scope("withUser").findByPk(
-        event.modelId,
-        {
-          rejectOnEmpty: true,
-        }
-      );
+      const importModel = await Import.findByPk(event.modelId, {
+        rejectOnEmpty: true,
+      });
 
       importModel.state = ImportState.Errored;
       await importModel.saveWithCtx(
@@ -79,8 +74,6 @@ export default abstract class ImportsProcessor<
       );
     });
   }
-
-  protected abstract canProcess(importModel: Import<T>): boolean;
 
   private async onCreation(importModel: Import<T>) {
     if (!importModel.input.length) {
@@ -116,12 +109,6 @@ export default abstract class ImportsProcessor<
     await this.scheduleTask(importTasks[0]);
   }
 
-  protected abstract buildTasksInput(
-    importInput: ImportInput<T>
-  ): ImportTaskInput<T>;
-
-  protected abstract scheduleTask(importTask: ImportTask<T>): Promise<void>;
-
   private async onProcessed(importModel: Import<T>) {
     // External id to internal model id.
     const idMap: Record<string, string> = {};
@@ -136,7 +123,7 @@ export default abstract class ImportsProcessor<
         {
           where: { importId: importModel.id },
           order: [["createdAt", "ASC"]], // ordering ensures collections are created first.
-          batchLimit: 5, // output data per task could be huge, so keep a low batch size to prevent OOM.
+          batchLimit: 5, // output data per task could be huge, keep a low batch size to prevent OOM.
           transaction,
         },
         async (importTasks) => {
@@ -291,6 +278,42 @@ export default abstract class ImportsProcessor<
     });
   }
 
+  private async onDeletion(importModel: Import<T>, event: ImportEvent) {
+    if (importModel.state !== ImportState.Completed) {
+      return;
+    }
+
+    await sequelize.transaction(async (transaction) => {
+      const user = await User.findByPk(event.actorId, {
+        rejectOnEmpty: true,
+        paranoid: false,
+        transaction,
+      });
+
+      const collections = await Collection.findAll({
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+        where: {
+          teamId: importModel.teamId,
+          apiImportId: importModel.id,
+        },
+      });
+
+      for (const collection of collections) {
+        Logger.debug("processor", "Destroying collection created from import", {
+          collectionId: collection.id,
+        });
+
+        await collectionDestroyer({
+          collection,
+          transaction,
+          user,
+          ip: event.ip,
+        });
+      }
+    });
+  }
+
   private updateMentionsAndAttachments({
     content,
     attachments,
@@ -367,39 +390,11 @@ export default abstract class ImportsProcessor<
     return internalId;
   }
 
-  private async onDeletion(importModel: Import<T>, event: ImportEvent) {
-    if (importModel.state !== ImportState.Completed) {
-      return;
-    }
+  protected abstract canProcess(importModel: Import<T>): boolean;
 
-    await sequelize.transaction(async (transaction) => {
-      const user = await User.findByPk(event.actorId, {
-        rejectOnEmpty: true,
-        paranoid: false,
-        transaction,
-      });
+  protected abstract buildTasksInput(
+    importInput: ImportInput<T>
+  ): ImportTaskInput<T>;
 
-      const collections = await Collection.findAll({
-        transaction,
-        lock: transaction.LOCK.UPDATE,
-        where: {
-          teamId: importModel.teamId,
-          apiImportId: importModel.id,
-        },
-      });
-
-      for (const collection of collections) {
-        Logger.debug("processor", "Destroying collection created from import", {
-          collectionId: collection.id,
-        });
-
-        await collectionDestroyer({
-          collection,
-          transaction,
-          user,
-          ip: event.ip,
-        });
-      }
-    });
-  }
+  protected abstract scheduleTask(importTask: ImportTask<T>): Promise<void>;
 }
