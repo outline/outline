@@ -60,14 +60,14 @@ export class NotionClient {
   }
 
   async fetchPage(pageId: string) {
-    const blocks = await this.fetchBlockChildren(pageId);
     const { title, emoji } = await this.fetchPageInfo(pageId);
+    const blocks = await this.fetchBlockChildren(pageId);
     return { title, emoji, blocks };
   }
 
   async fetchDatabase(databaseId: string) {
-    const pages = await this.queryDatabase(databaseId);
     const { title, emoji } = await this.fetchDatabaseInfo(databaseId);
+    const pages = await this.queryDatabase(databaseId);
     return { title, emoji, pages };
   }
 
@@ -126,6 +126,7 @@ export class NotionClient {
 
       const response = await this.client.databases.query({
         database_id: databaseId,
+        filter_properties: ["title"],
         start_cursor: cursor,
         page_size: this.pageSize,
       });
@@ -192,10 +193,10 @@ export class NotionClient {
     let richTexts: RichTextItemResponse[];
 
     if (item.object === "page") {
-      richTexts =
-        "title" in item.properties["title"]
-          ? item.properties["title"].title
-          : [];
+      const titleProp = Object.values(item.properties).find(
+        (property) => property.type === "title"
+      );
+      richTexts = titleProp?.title ?? [];
     } else {
       richTexts = item.title;
     }

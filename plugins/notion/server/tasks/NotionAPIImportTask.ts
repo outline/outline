@@ -5,7 +5,8 @@ import APIImportTask, {
 } from "@server/queues/tasks/APIImportTask";
 import { NotionConverter, NotionPage } from "@server/utils/NotionConverter";
 import { ImportTaskInput, ImportTaskOutput } from "@shared/schema";
-import { IntegrationService } from "@shared/types";
+import { IntegrationService, ProsemirrorDoc } from "@shared/types";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { Block, PageType } from "plugins/notion/shared/types";
 import { NotionClient } from "../notion";
 
@@ -65,28 +66,43 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
     item: ImportTaskInput<IntegrationService.Notion>[number];
     client: NotionClient;
   }): Promise<ParsePageOutput> {
+    const collectionExternalId = item.collectionExternalId ?? item.externalId;
+
+    // Convert Notion database to an empty page with "pages in database" as its children.
+    if (item.type === PageType.Database) {
+      const {
+        title: databaseTitle,
+        emoji: databaseEmoji,
+        pages,
+      } = await client.fetchDatabase(item.externalId);
+
+      return {
+        externalId: item.externalId,
+        title: databaseTitle,
+        emoji: databaseEmoji,
+        content: ProsemirrorHelper.getEmptyDocument() as ProsemirrorDoc,
+        collectionExternalId,
+        children: pages.map((page) => ({
+          type: page.type,
+          externalId: page.id,
+        })),
+      };
+    }
+
     const {
       title: pageTitle,
       emoji: pageEmoji,
       blocks,
     } = await client.fetchPage(item.externalId);
 
-    const doc = NotionConverter.page({ children: blocks } as NotionPage);
-
     return {
       externalId: item.externalId,
       title: pageTitle,
       emoji: pageEmoji,
-      content: doc,
-      collectionExternalId: item.collectionExternalId ?? item.externalId,
+      content: NotionConverter.page({ children: blocks } as NotionPage),
+      collectionExternalId,
       children: this.parseChildPages(blocks),
     };
-
-    // const {
-    //   title: databaseTitle,
-    //   emoji: databaseEmoji,
-    //   pages,
-    // } = await client.fetchDatabase(item.externalId);
   }
 
   private parseChildPages(pageBlocks: Block[]): ChildPage[] {
@@ -95,6 +111,8 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
     pageBlocks.forEach((block) => {
       if (block.type === "child_page") {
         childPages.push({ type: PageType.Page, externalId: block.id });
+      } else if (block.type === "child_database") {
+        childPages.push({ type: PageType.Database, externalId: block.id });
       } else if (block.children?.length) {
         childPages.push(...this.parseChildPages(block.children));
       }
