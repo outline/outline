@@ -152,6 +152,7 @@ export default abstract class APIImportTask<
 
     const nextImportTask = await ImportTask.findOne<ImportTask<T>>({
       where,
+      order: [["createdAt", "ASC"]],
     });
 
     // Tasks available to process for this import.

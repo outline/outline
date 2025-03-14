@@ -118,7 +118,6 @@ export default abstract class ImportsProcessor<
     const importInput = keyBy(importModel.input, "externalId");
 
     await sequelize.transaction(async (transaction) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await ImportTask.findAllInBatches<ImportTask<T>>(
         {
           where: { importId: importModel.id },
@@ -242,7 +241,7 @@ export default abstract class ImportsProcessor<
       );
 
       // Once all collections and documents are created, update collection's document structure.
-      // This ensures the root documents have the whole sub tree available in the structure.
+      // This ensures the root documents have the whole subtree available in the structure.
       await Document.findAllInBatches<Document>(
         {
           where: { parentDocumentId: null, collectionId: createdCollectionIds },
@@ -252,13 +251,13 @@ export default abstract class ImportsProcessor<
               as: "collection",
             },
           ],
+          order: [["createdAt", "DESC"]],
           transaction,
         },
         async (documents) => {
           // use "for" loop to sequentially add documents - prevents race condition when same collection structure is updated in multiple promises.
           for (const document of documents) {
-            // Without reload, sequelize doesn't have the latest doc structure.
-            // TODO: Find an efficient way to do this.
+            // Without reload, sequelize overwrites the updates to collection.
             await document.collection?.reload({ transaction });
 
             await document.collection?.addDocumentToStructure(document, 0, {
