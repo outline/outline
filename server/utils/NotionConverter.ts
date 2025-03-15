@@ -22,8 +22,10 @@ import type {
   ToggleBlockObjectResponse,
   PageObjectResponse,
   VideoBlockObjectResponse,
+  CalloutBlockObjectResponse,
 } from "@notionhq/client/build/src/api-endpoints";
 import isArray from "lodash/isArray";
+import { NoticeTypes } from "@shared/editor/nodes/Notice";
 import { MentionType, ProsemirrorData } from "@shared/types";
 import Logger from "@server/logging/Logger";
 
@@ -38,7 +40,6 @@ export type NotionPage = PageObjectResponse & {
 /** Convert Notion blocks to Outline data. */
 export class NotionConverter {
   // TODO: Implement the following blocks:
-  // - "callout"
   // - "child_database"
   // - "child_page"
   // - "column"
@@ -147,6 +148,34 @@ export class NotionConverter {
     }
 
     return children;
+  }
+
+  private static callout(item: NotionBlock<CalloutBlockObjectResponse>) {
+    const colorToNoticeType: Record<string, NoticeTypes> = {
+      default_background: NoticeTypes.Info,
+      blue_background: NoticeTypes.Info,
+      purple_background: NoticeTypes.Info,
+      green_background: NoticeTypes.Success,
+      orange_background: NoticeTypes.Tip,
+      yellow_background: NoticeTypes.Tip,
+      pink_background: NoticeTypes.Warning,
+      red_background: NoticeTypes.Warning,
+    };
+
+    return {
+      type: "container_notice",
+      attrs: {
+        style:
+          colorToNoticeType[item.callout.color as string] ?? NoticeTypes.Info,
+      },
+      content: [
+        {
+          type: "paragraph",
+          content: item.callout.rich_text.map(this.rich_text).filter(Boolean),
+        },
+        ...this.mapChildren(item),
+      ],
+    };
   }
 
   private static bookmark(item: BookmarkBlockObjectResponse) {
