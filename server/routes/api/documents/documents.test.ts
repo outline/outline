@@ -2041,7 +2041,7 @@ describe("#documents.templatize", () => {
     expect(body.data.collectionId).toEqual(collection.id);
   });
   it("should create a published workspace template", async () => {
-    const user = await buildUser();
+    const user = await buildAdmin();
     const collection = await buildCollection({
       createdById: user.id,
       teamId: user.teamId,
@@ -2063,8 +2063,9 @@ describe("#documents.templatize", () => {
     expect(body.data.publishedAt).toBeTruthy();
     expect(body.data.collectionId).toBeNull();
   });
+
   it("should create a draft non-workspace template", async () => {
-    const user = await buildUser();
+    const user = await buildAdmin();
     const collection = await buildCollection({
       createdById: user.id,
       teamId: user.teamId,
@@ -2087,8 +2088,9 @@ describe("#documents.templatize", () => {
     expect(body.data.publishedAt).toBeNull();
     expect(body.data.collectionId).toEqual(collection.id);
   });
+
   it("should create a draft workspace template", async () => {
-    const user = await buildUser();
+    const user = await buildAdmin();
     const collection = await buildCollection({
       createdById: user.id,
       teamId: user.teamId,
@@ -2110,6 +2112,7 @@ describe("#documents.templatize", () => {
     expect(body.data.publishedAt).toBeNull();
     expect(body.data.collectionId).toBeNull();
   });
+
   it("should create a template in a different collection", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -3394,7 +3397,7 @@ describe("#documents.create", () => {
   });
 
   it("should retain template variables when a template is created from another template", async () => {
-    const user = await buildUser();
+    const user = await buildAdmin();
     const template = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
@@ -3416,7 +3419,7 @@ describe("#documents.create", () => {
   });
 
   it("should create a document with empty title if no title is explicitly passed", async () => {
-    const user = await buildUser();
+    const user = await buildAdmin();
     const res = await server.post("/api/documents.create", {
       body: {
         token: user.getJwtToken(),
@@ -3429,7 +3432,7 @@ describe("#documents.create", () => {
   });
 
   it("should use template title when doc is supposed to be created using the template and title is not explicitly passed", async () => {
-    const user = await buildUser();
+    const user = await buildAdmin();
     const template = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
@@ -3450,7 +3453,7 @@ describe("#documents.create", () => {
   });
 
   it("should override template title when doc title is explicitly passed", async () => {
-    const user = await buildUser();
+    const user = await buildAdmin();
     const template = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
@@ -3470,7 +3473,7 @@ describe("#documents.create", () => {
   });
 
   it("should override template text when doc text is explicitly passed", async () => {
-    const user = await buildUser();
+    const user = await buildAdmin();
     const template = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
@@ -3611,7 +3614,7 @@ describe("#documents.create", () => {
 
   it("should allow creating a draft template without a collection", async () => {
     const team = await buildTeam();
-    const user = await buildUser({ teamId: team.id });
+    const user = await buildAdmin({ teamId: team.id });
     const res = await server.post("/api/documents.create", {
       body: {
         template: true,
@@ -3630,7 +3633,7 @@ describe("#documents.create", () => {
 
   it("should not allow publishing without specifying the collection", async () => {
     const team = await buildTeam();
-    const user = await buildUser({ teamId: team.id });
+    const user = await buildAdmin({ teamId: team.id });
     const res = await server.post("/api/documents.create", {
       body: {
         token: user.getJwtToken(),
@@ -3849,7 +3852,7 @@ describe("#documents.update", () => {
 
   it("should successfully publish a draft template without collection", async () => {
     const team = await buildTeam();
-    const user = await buildUser({ teamId: team.id });
+    const user = await buildAdmin({ teamId: team.id });
     const collection = await buildCollection({
       userId: user.id,
       teamId: team.id,
