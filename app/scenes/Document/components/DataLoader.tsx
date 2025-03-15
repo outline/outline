@@ -6,9 +6,10 @@ import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
-import Error402 from "~/scenes/Error402";
-import Error404 from "~/scenes/Error404";
-import ErrorOffline from "~/scenes/ErrorOffline";
+import Error402 from "~/scenes/Errors/Error402";
+import Error403 from "~/scenes/Errors/Error403";
+import Error404 from "~/scenes/Errors/Error404";
+import ErrorOffline from "~/scenes/Errors/ErrorOffline";
 import { useDocumentContext } from "~/components/DocumentContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -17,6 +18,7 @@ import useStores from "~/hooks/useStores";
 import { Properties } from "~/types";
 import Logger from "~/utils/Logger";
 import {
+  AuthorizationError,
   NotFoundError,
   OfflineError,
   PaymentRequiredError,
@@ -216,6 +218,8 @@ function DataLoader({ match, children }: Props) {
       <ErrorOffline />
     ) : error instanceof PaymentRequiredError ? (
       <Error402 />
+    ) : error instanceof AuthorizationError ? (
+      <Error403 />
     ) : (
       <Error404 />
     );

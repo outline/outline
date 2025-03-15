@@ -62,6 +62,15 @@ export const navigateToDrafts = createAction({
   visible: ({ location }) => location.pathname !== draftsPath(),
 });
 
+export const navigateToSearch = createAction({
+  name: ({ t }) => t("Search"),
+  analyticsName: "Navigate to search",
+  section: NavigationSection,
+  icon: <SearchIcon />,
+  perform: () => history.push(searchPath()),
+  visible: ({ location }) => location.pathname !== searchPath(),
+});
+
 export const navigateToArchive = createAction({
   name: ({ t }) => t("Archive"),
   analyticsName: "Navigate to archive",
