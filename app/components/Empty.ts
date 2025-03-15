@@ -1,9 +1,9 @@
 import styled from "styled-components";
-import { s } from "@shared/styles";
+import Text from "~/components/Text";
 
-const Empty = styled.p`
-  color: ${s("textTertiary")};
-  user-select: none;
-`;
+const Empty = styled(Text).attrs({
+  type: "tertiary",
+  selectable: false,
+})``;
 
 export default Empty;

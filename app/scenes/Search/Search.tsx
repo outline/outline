@@ -15,7 +15,6 @@ import {
 } from "@shared/types";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import DocumentListItem from "~/components/DocumentListItem";
-import Empty from "~/components/Empty";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import LoadingIndicator from "~/components/LoadingIndicator";
@@ -38,9 +37,7 @@ import RecentSearches from "./components/RecentSearches";
 import SearchInput from "./components/SearchInput";
 import UserFilter from "./components/UserFilter";
 
-type Props = { notFound?: boolean };
-
-function Search(props: Props) {
+function Search() {
   const { t } = useTranslation();
   const { documents, searches } = useStores();
 
@@ -211,14 +208,6 @@ function Search(props: Props) {
     <Scene textTitle={query ? `${query} – ${t("Search")}` : t("Search")}>
       <RegisterKeyDown trigger="Escape" handler={history.goBack} />
       {loading && <LoadingIndicator />}
-      {props.notFound && (
-        <div>
-          <h1>{t("Not Found")}</h1>
-          <Empty>
-            {t("We were unable to find the page you’re looking for.")}
-          </Empty>
-        </div>
-      )}
       <ResultsWrapper column auto>
         <form
           method="GET"

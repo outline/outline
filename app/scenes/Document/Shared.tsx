@@ -9,8 +9,8 @@ import { s } from "@shared/styles";
 import { NavigationNode, PublicTeam, TOCPosition } from "@shared/types";
 import type { Theme } from "~/stores/UiStore";
 import DocumentModel from "~/models/Document";
-import Error404 from "~/scenes/Error404";
-import ErrorOffline from "~/scenes/ErrorOffline";
+import Error404 from "~/scenes/Errors/Error404";
+import ErrorOffline from "~/scenes/Errors/ErrorOffline";
 import ClickablePadding from "~/components/ClickablePadding";
 import {
   DocumentContextProvider,
