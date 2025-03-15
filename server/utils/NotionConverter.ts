@@ -182,7 +182,9 @@ export class NotionConverter {
       content: [
         {
           type: "paragraph",
-          content: item.bulleted_list_item.rich_text.map(this.rich_text),
+          content: item.bulleted_list_item.rich_text
+            .map(this.rich_text)
+            .filter(Boolean),
         },
         ...this.mapChildren(item),
       ],
@@ -212,7 +214,9 @@ export class NotionConverter {
       content: [
         {
           type: "paragraph",
-          content: item.numbered_list_item.rich_text.map(this.rich_text),
+          content: item.numbered_list_item.rich_text
+            .map(this.rich_text)
+            .filter(Boolean),
         },
         ...this.mapChildren(item),
       ],
@@ -280,6 +284,10 @@ export class NotionConverter {
         };
       }
 
+      if (!item.plain_text) {
+        return undefined;
+      }
+
       return {
         type: "text",
         text: item.plain_text,
@@ -296,6 +304,10 @@ export class NotionConverter {
           },
         ],
       };
+    }
+
+    if (!item.text.content) {
+      return undefined;
     }
 
     return {
@@ -367,7 +379,7 @@ export class NotionConverter {
       attrs: {
         level: 1,
       },
-      content: item.heading_1.rich_text.map(this.rich_text),
+      content: item.heading_1.rich_text.map(this.rich_text).filter(Boolean),
     };
   }
 
@@ -377,7 +389,7 @@ export class NotionConverter {
       attrs: {
         level: 2,
       },
-      content: item.heading_2.rich_text.map(this.rich_text),
+      content: item.heading_2.rich_text.map(this.rich_text).filter(Boolean),
     };
   }
 
@@ -387,7 +399,7 @@ export class NotionConverter {
       attrs: {
         level: 3,
       },
-      content: item.heading_3.rich_text.map(this.rich_text),
+      content: item.heading_3.rich_text.map(this.rich_text).filter(Boolean),
     };
   }
 
@@ -412,7 +424,7 @@ export class NotionConverter {
   private static paragraph(item: ParagraphBlockObjectResponse) {
     return {
       type: "paragraph",
-      content: item.paragraph.rich_text.map(this.rich_text),
+      content: item.paragraph.rich_text.map(this.rich_text).filter(Boolean),
     };
   }
 
@@ -422,7 +434,7 @@ export class NotionConverter {
       content: [
         {
           type: "paragraph",
-          content: item.quote.rich_text.map(this.rich_text),
+          content: item.quote.rich_text.map(this.rich_text).filter(Boolean),
         },
         ...this.mapChildren(item),
       ],
@@ -464,7 +476,7 @@ export class NotionConverter {
   private static toggle(item: ToggleBlockObjectResponse) {
     return {
       type: "paragraph",
-      content: item.toggle.rich_text.map(this.rich_text),
+      content: item.toggle.rich_text.map(this.rich_text).filter(Boolean),
     };
   }
 
@@ -477,7 +489,7 @@ export class NotionConverter {
       content: [
         {
           type: "paragraph",
-          content: item.to_do.rich_text.map(this.rich_text),
+          content: item.to_do.rich_text.map(this.rich_text).filter(Boolean),
         },
         ...this.mapChildren(item),
       ],
