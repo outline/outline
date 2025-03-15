@@ -407,14 +407,20 @@ describe("template", () => {
         collectionId: collection.id,
         template: true,
       });
+      await UserMembership.create({
+        userId: user.id,
+        documentId: doc.id,
+        permission: DocumentPermission.ReadWrite,
+        createdById: user.id,
+      });
 
       // reload to get membership
       const document = await Document.findByPk(doc.id, { userId: user.id });
       const abilities = serialize(user, document);
       expect(abilities.read).toBeTruthy();
       expect(abilities.download).toBeTruthy();
-      expect(abilities.update).toEqual(false);
-      expect(abilities.createChildDocument).toEqual(false);
+      expect(abilities.update).toBeFalsy();
+      expect(abilities.createChildDocument).toBeFalsy();
       expect(abilities.manageUsers).toEqual(false);
       expect(abilities.archive).toEqual(false);
       expect(abilities.delete).toEqual(false);

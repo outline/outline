@@ -92,16 +92,22 @@ allow(User, "update", Document, (actor, document) =>
     isTeamMutable(actor),
     !!document?.isActive,
     or(
-      includesMembership(document, [
-        DocumentPermission.ReadWrite,
-        DocumentPermission.Admin,
-      ]),
+      and(
+        !document?.template,
+        includesMembership(document, [
+          DocumentPermission.ReadWrite,
+          DocumentPermission.Admin,
+        ])
+      ),
       or(
         and(
           !document?.template &&
             can(actor, "updateDocument", document?.collection)
         ),
-        and(!!document?.template && can(actor, "update", document?.collection)),
+        and(
+          !!document?.template &&
+            can(actor, "updateTemplate", document?.collection)
+        ),
         and(!!document?.isDraft && actor.id === document?.createdById),
         and(
           !!document?.isWorkspaceTemplate,
