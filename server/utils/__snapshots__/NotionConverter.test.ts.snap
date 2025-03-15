@@ -337,6 +337,66 @@ exports[`NotionConverter converts a page 1`] = `
       "type": "paragraph",
     },
     {
+      "content": [
+        {
+          "marks": [
+            {
+              "type": "strong",
+            },
+          ],
+          "text": "Column one content",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "It can have any node permissible in the page",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [
+            {
+              "type": "strong",
+            },
+          ],
+          "text": "Column two content",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "style": "info",
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "marks": [],
+              "text": "Callout inside column",
+              "type": "text",
+            },
+          ],
+          "type": "paragraph",
+        },
+      ],
+      "type": "container_notice",
+    },
+    {
       "attrs": {
         "level": 2,
       },

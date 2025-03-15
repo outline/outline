@@ -23,6 +23,8 @@ import type {
   PageObjectResponse,
   VideoBlockObjectResponse,
   CalloutBlockObjectResponse,
+  ColumnListBlockObjectResponse,
+  ColumnBlockObjectResponse,
 } from "@notionhq/client/build/src/api-endpoints";
 import isArray from "lodash/isArray";
 import { NoticeTypes } from "@shared/editor/nodes/Notice";
@@ -42,8 +44,6 @@ export class NotionConverter {
   // TODO: Implement the following blocks:
   // - "child_database"
   // - "child_page"
-  // - "column"
-  // - "column_list"
   // - "link_preview"
   // - "link_to_page"
   // - "synced_block"
@@ -52,11 +52,7 @@ export class NotionConverter {
    * Nodes which cannot contain block children in Outline, their children
    * will be flattened into the parent.
    */
-  private static nodesWithoutBlockChildren = [
-    // TODO.
-    "paragraph",
-    "toggle",
-  ];
+  private static nodesWithoutBlockChildren = ["paragraph", "toggle"];
 
   public static page(item: NotionPage) {
     return {
@@ -176,6 +172,14 @@ export class NotionConverter {
         ...this.mapChildren(item),
       ],
     };
+  }
+
+  private static column_list(item: NotionBlock<ColumnListBlockObjectResponse>) {
+    return this.mapChildren(item);
+  }
+
+  private static column(item: NotionBlock<ColumnBlockObjectResponse>) {
+    return this.mapChildren(item);
   }
 
   private static bookmark(item: BookmarkBlockObjectResponse) {
