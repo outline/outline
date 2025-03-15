@@ -124,7 +124,7 @@ function DocumentHeader({
 
   const can = usePolicy(document);
   const { isDeleted, isTemplate } = document;
-  const isTemplateEditable = can.update && isTemplate;
+  const isTemplateEditable = can.update && isTemplate && !isRevision;
   const canToggleEmbeds = team?.documentEmbeds;
   const showContents =
     (ui.tocVisible === true && !document.isTemplate) ||

@@ -149,4 +149,6 @@ export const matchDocumentEdit = `/doc/${matchDocumentSlug}/edit`;
 
 export const matchDocumentHistory = `/doc/${matchDocumentSlug}/history/:revisionId?`;
 
+export const matchTemplateHistory = `/settings/templates/${matchDocumentSlug}/history/:revisionId?`;
+
 export const matchDocumentInsights = `/doc/${matchDocumentSlug}/insights`;

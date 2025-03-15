@@ -24,6 +24,13 @@ export default function SettingsRoutes() {
       ))}
       <Route
         exact
+        path={`${settingsPath(
+          "templates"
+        )}/${matchDocumentSlug}/history/:revisionId?`}
+        component={Document}
+      />
+      <Route
+        exact
         path={`${settingsPath("templates")}/${matchDocumentSlug}`}
         component={Document}
       />
