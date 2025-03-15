@@ -26,6 +26,7 @@ import type {
   ColumnListBlockObjectResponse,
   ColumnBlockObjectResponse,
   LinkPreviewBlockObjectResponse,
+  SyncedBlockBlockObjectResponse,
 } from "@notionhq/client/build/src/api-endpoints";
 import isArray from "lodash/isArray";
 import { NoticeTypes } from "@shared/editor/nodes/Notice";
@@ -46,7 +47,6 @@ export class NotionConverter {
   // - "child_database"
   // - "child_page"
   // - "link_to_page"
-  // - "synced_block"
 
   /**
    * Nodes which cannot contain block children in Outline, their children
@@ -492,6 +492,12 @@ export class NotionConverter {
         ...this.mapChildren(item),
       ],
     };
+  }
+
+  private static synced_block(
+    item: NotionBlock<SyncedBlockBlockObjectResponse>
+  ) {
+    return this.mapChildren(item);
   }
 
   private static table(

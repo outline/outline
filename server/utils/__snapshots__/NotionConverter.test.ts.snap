@@ -1372,6 +1372,44 @@ exports[`NotionConverter converts a page 1`] = `
       "type": "heading",
     },
     {
+      "content": [
+        {
+          "marks": [],
+          "text": "Synced block content. It can contain any node permissible in the page.",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "For example, a callout.",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "style": "info",
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "marks": [],
+              "text": "This is inside a synced block",
+              "type": "text",
+            },
+          ],
+          "type": "paragraph",
+        },
+      ],
+      "type": "container_notice",
+    },
+    {
       "attrs": {
         "level": 3,
       },
@@ -1383,6 +1421,44 @@ exports[`NotionConverter converts a page 1`] = `
         },
       ],
       "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "Synced block content. It can contain any node permissible in the page.",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "For example, a callout.",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "style": "info",
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "marks": [],
+              "text": "This is inside a synced block",
+              "type": "text",
+            },
+          ],
+          "type": "paragraph",
+        },
+      ],
+      "type": "container_notice",
     },
     {
       "attrs": {
