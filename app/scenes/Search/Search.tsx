@@ -48,7 +48,7 @@ function Search(props: Props) {
   const params = useQuery();
   const location = useLocation();
   const history = useHistory();
-  const routeMatch = useRouteMatch<{ term: string }>();
+  const routeMatch = useRouteMatch<{ query: string }>();
 
   // refs
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
@@ -57,7 +57,7 @@ function Search(props: Props) {
 
   // filters
   const decodedQuery = decodeURIComponentSafe(
-    routeMatch.params.term ?? params.get("query") ?? ""
+    routeMatch.params.query ?? params.get("q") ?? params.get("query") ?? ""
   ).trim();
   const query = decodedQuery !== "" ? decodedQuery : undefined;
   const collectionId = params.get("collectionId") ?? "";
@@ -130,9 +130,9 @@ function Search(props: Props) {
 
   const updateLocation = (query: string) => {
     history.replace({
-      pathname: searchPath(query),
+      pathname: location.pathname,
       search: queryString.stringify(
-        { ...queryString.parse(location.search), query: undefined },
+        { ...queryString.parse(location.search), q: query },
         {
           skipEmptyString: true,
         }
@@ -153,7 +153,7 @@ function Search(props: Props) {
     history.replace({
       pathname: location.pathname,
       search: queryString.stringify(
-        { ...queryString.parse(location.search), query: undefined, ...search },
+        { ...queryString.parse(location.search), ...search },
         {
           skipEmptyString: true,
         }

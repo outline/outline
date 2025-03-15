@@ -83,7 +83,7 @@ function AuthenticatedRoutes() {
             <Route exact path={`/doc/${slug}/insights`} component={Document} />
             <Route exact path={`/doc/${slug}/edit`} component={Document} />
             <Route path={`/doc/${slug}`} component={Document} />
-            <Route exact path={`${searchPath()}/:term?`} component={Search} />
+            <Route exact path={`${searchPath()}/:query?`} component={Search} />
             <Route path="/404" component={Error404} />
             <SettingsRoutes />
             <Route component={Error404} />
