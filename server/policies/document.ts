@@ -97,7 +97,11 @@ allow(User, "update", Document, (actor, document) =>
         DocumentPermission.Admin,
       ]),
       or(
-        can(actor, "updateDocument", document?.collection),
+        and(
+          !document?.template &&
+            can(actor, "updateDocument", document?.collection)
+        ),
+        and(!!document?.template && can(actor, "update", document?.collection)),
         and(!!document?.isDraft && actor.id === document?.createdById),
         and(
           !!document?.isWorkspaceTemplate,

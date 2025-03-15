@@ -393,6 +393,70 @@ describe("read_write document", () => {
   }
 });
 
+describe("template", () => {
+  for (const role of Object.values(UserRole)) {
+    it(`should allow read permissions for ${role}`, async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        teamId: team.id,
+        permission: CollectionPermission.ReadWrite,
+      });
+      const doc = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        template: true,
+      });
+
+      // reload to get membership
+      const document = await Document.findByPk(doc.id, { userId: user.id });
+      const abilities = serialize(user, document);
+      expect(abilities.read).toBeTruthy();
+      expect(abilities.download).toBeTruthy();
+      expect(abilities.update).toEqual(false);
+      expect(abilities.createChildDocument).toEqual(false);
+      expect(abilities.manageUsers).toEqual(false);
+      expect(abilities.archive).toEqual(false);
+      expect(abilities.delete).toEqual(false);
+      expect(abilities.share).toEqual(false);
+      expect(abilities.move).toEqual(false);
+    });
+  }
+
+  it(`should allow update permissions with collection admin`, async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+      template: true,
+    });
+    await UserMembership.create({
+      userId: user.id,
+      collectionId: collection.id,
+      permission: DocumentPermission.Admin,
+      createdById: user.id,
+    });
+
+    // reload to get membership
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.read).toBeTruthy();
+    expect(abilities.download).toBeTruthy();
+    expect(abilities.update).toBeTruthy();
+    expect(abilities.delete).toBeTruthy();
+    expect(abilities.move).toBeTruthy();
+    expect(abilities.createChildDocument).toEqual(false);
+    expect(abilities.manageUsers).toEqual(false);
+    expect(abilities.archive).toEqual(false);
+    expect(abilities.share).toEqual(false);
+  });
+});
+
 describe("manage document", () => {
   for (const role of Object.values(UserRole)) {
     it(`should allow write permissions, user management, and sub-document creation for ${role}`, async () => {
