@@ -149,7 +149,7 @@ export const searchInCollection = createAction({
   },
 
   perform: ({ activeCollectionId }) => {
-    history.push(searchPath(undefined, { collectionId: activeCollectionId }));
+    history.push(searchPath({ collectionId: activeCollectionId }));
   },
 });
 
