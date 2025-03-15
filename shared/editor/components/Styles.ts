@@ -1923,6 +1923,58 @@ del[data-operation-index] {
     font-family: "SF Pro Text", ${props.theme.fontFamily};
   }
 }
+
+.toggle-block {
+  display: flex;
+
+  &.folded {
+    &:dir(rtl) {
+      --rotate-by: 90deg;
+    }
+    &:dir(ltr) {
+      --rotate-by: -90deg;
+    }
+    > .toggle-block-content > :is(:not(.toggle-block-head)) {
+      display: none;
+    }
+    > .toggle-block-button {
+      svg {
+        transform: rotate(var(--rotate-by));
+        pointer-events: none;
+      }
+      transition-delay: 0.1s;
+      opacity: 1;
+    }
+  }
+
+  > .toggle-block-button {
+    color: ${props.theme.text};
+    opacity: 0.75;
+    cursor: var(--pointer);
+    background: none;
+    outline: none;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    /* TODO: For now, this is calculated as lineHeight(h1)*fontSize(h1). Fix it! */
+    max-height: 35px;
+    &:focus,
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  > .toggle-block-content {
+    > .toggle-block-head {
+      > * {
+          margin-top: 0
+        }
+      }
+      flex-grow: 1;
+      overflow: auto;
+    }
+  }
+}
 `;
 
 const EditorContainer = styled.div<Props>`
