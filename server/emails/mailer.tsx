@@ -122,11 +122,11 @@ export class Mailer {
   sendMail = async (data: SendMailOptions): Promise<void> => {
     const { transporter } = this;
 
-    if (!transporter) {
-      Logger.info(
+    if (env.isDevelopment) {
+      Logger.debug(
         "email",
         [
-          `Attempted to send email but no transport configured.`,
+          `Sending email:`,
           ``,
           `--------------`,
           `From:      ${data.from.address}`,
@@ -138,6 +138,9 @@ export class Mailer {
           data.text,
         ].join("\n")
       );
+    }
+    if (!transporter) {
+      Logger.warn("No mail transport available");
       return;
     }
 
