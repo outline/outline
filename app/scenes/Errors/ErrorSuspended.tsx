@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import CenteredContent from "~/components/CenteredContent";
+import Heading from "~/components/Heading";
 import PageTitle from "~/components/PageTitle";
 import useStores from "~/hooks/useStores";
 
@@ -12,12 +13,12 @@ const ErrorSuspended = () => {
   return (
     <CenteredContent>
       <PageTitle title={t("Your account has been suspended")} />
-      <h1>
+      <Heading>
         <span role="img" aria-label={t("Warning Sign")}>
           ⚠️
         </span>{" "}
         {t("Your account has been suspended")}
-      </h1>
+      </Heading>
 
       <p>
         <Trans

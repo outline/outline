@@ -683,6 +683,7 @@ export const searchInDocument = createAction({
   name: ({ t }) => t("Search in document"),
   analyticsName: "Search document",
   section: ActiveDocumentSection,
+  shortcut: [`Meta+/`],
   icon: <SearchIcon />,
   visible: ({ stores, activeDocumentId }) => {
     if (!activeDocumentId) {
@@ -692,7 +693,7 @@ export const searchInDocument = createAction({
     return !!document?.isActive;
   },
   perform: ({ activeDocumentId }) => {
-    history.push(searchPath(undefined, { documentId: activeDocumentId }));
+    history.push(searchPath({ documentId: activeDocumentId }));
   },
 });
 
@@ -805,15 +806,15 @@ export const openRandomDocument = createAction({
   },
 });
 
-export const searchDocumentsForQuery = (searchQuery: string) =>
+export const searchDocumentsForQuery = (query: string) =>
   createAction({
     id: "search",
     name: ({ t }) =>
-      t(`Search documents for "{{searchQuery}}"`, { searchQuery }),
+      t(`Search documents for "{{searchQuery}}"`, { searchQuery: query }),
     analyticsName: "Search documents",
     section: DocumentSection,
     icon: <SearchIcon />,
-    perform: () => history.push(searchPath(searchQuery)),
+    perform: () => history.push(searchPath({ query })),
     visible: ({ location }) => location.pathname !== searchPath(),
   });
 
@@ -1210,6 +1211,7 @@ export const rootDocumentActions = [
   unpublishDocument,
   subscribeDocument,
   unsubscribeDocument,
+  searchInDocument,
   duplicateDocument,
   leaveDocument,
   moveTemplateToWorkspace,

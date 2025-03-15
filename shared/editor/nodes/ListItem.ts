@@ -26,7 +26,7 @@ export default class ListItem extends Node {
 
   get schema(): NodeSpec {
     return {
-      content: "paragraph block*",
+      content: "block+",
       defining: true,
       draggable: true,
       parseDOM: [{ tag: "li" }],

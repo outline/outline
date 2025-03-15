@@ -1,8 +1,9 @@
 import { Transaction } from "sequelize";
 import { SubscriptionType } from "@shared/types";
-import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { createContext } from "@server/context";
-import { Subscription, User } from "@server/models";
+import Logger from "@server/logging/Logger";
+import { Document, Subscription, User } from "@server/models";
+import { can } from "@server/policies";
 import { sequelize } from "@server/storage/database";
 import { DocumentUserEvent } from "@server/types";
 import BaseTask from "./BaseTask";
@@ -10,44 +11,29 @@ import BaseTask from "./BaseTask";
 export default class DocumentSubscriptionTask extends BaseTask<DocumentUserEvent> {
   public async perform(event: DocumentUserEvent) {
     const user = await User.findByPk(event.userId);
-    if (!user) {
+
+    if (!user || event.name !== "documents.remove_user") {
       return;
     }
 
-    switch (event.name) {
-      case "documents.add_user":
-        return this.addUser(event, user);
-
-      case "documents.remove_user":
-        return this.removeUser(event, user);
-
-      default:
-    }
-  }
-
-  private async addUser(event: DocumentUserEvent, user: User) {
-    await sequelize.transaction(async (transaction) => {
-      await subscriptionCreator({
-        ctx: createContext({
-          user,
-          authType: event.authType,
-          ip: event.ip,
-          transaction,
-        }),
-        documentId: event.documentId,
-        event: SubscriptionType.Document,
-        resubscribe: false,
-      });
+    const document = await Document.findByPk(event.documentId, {
+      userId: user.id,
     });
-  }
 
-  private async removeUser(event: DocumentUserEvent, user: User) {
+    if (can(user, "read", document)) {
+      Logger.debug(
+        "task",
+        `Skip unsubscribing user ${user.id} as they have permission to the document ${event.documentId} through other means`
+      );
+      return;
+    }
+
     await sequelize.transaction(async (transaction) => {
       const subscription = await Subscription.findOne({
         where: {
           userId: user.id,
           documentId: event.documentId,
-          event: "documents.update",
+          event: SubscriptionType.Document,
         },
         transaction,
         lock: Transaction.LOCK.UPDATE,

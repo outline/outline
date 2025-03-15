@@ -12,6 +12,7 @@ import { sortNavigationNodes } from "@shared/utils/collections";
 import { DocumentValidation } from "@shared/validations";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
+import EditableTitle, { RefHandle } from "~/components/EditableTitle";
 import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
@@ -28,7 +29,6 @@ import {
 } from "../hooks/useDragAndDrop";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
-import EditableTitle, { RefHandle } from "./EditableTitle";
 import Folder from "./Folder";
 import Relative from "./Relative";
 import { SidebarContextType, useSidebarContext } from "./SidebarContext";
