@@ -50,7 +50,7 @@ export const navigateToRecentSearchQuery = (searchQuery: SearchQuery) =>
     name: searchQuery.query,
     analyticsName: "Navigate to recent search query",
     icon: <SearchIcon />,
-    perform: () => history.push(searchPath(searchQuery.query)),
+    perform: () => history.push(searchPath({ query: searchQuery.query })),
   });
 
 export const navigateToDrafts = createAction({
