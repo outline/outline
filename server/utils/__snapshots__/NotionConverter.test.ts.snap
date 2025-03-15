@@ -731,6 +731,23 @@ exports[`NotionConverter converts a page 1`] = `
       "type": "heading",
     },
     {
+      "content": [
+        {
+          "marks": [
+            {
+              "attrs": {
+                "href": "https://github.com/outline/outline",
+              },
+              "type": "link",
+            },
+          ],
+          "text": "https://github.com/outline/outline",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
       "attrs": {
         "level": 3,
       },

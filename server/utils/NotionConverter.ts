@@ -25,6 +25,7 @@ import type {
   CalloutBlockObjectResponse,
   ColumnListBlockObjectResponse,
   ColumnBlockObjectResponse,
+  LinkPreviewBlockObjectResponse,
 } from "@notionhq/client/build/src/api-endpoints";
 import isArray from "lodash/isArray";
 import { NoticeTypes } from "@shared/editor/nodes/Notice";
@@ -44,7 +45,6 @@ export class NotionConverter {
   // TODO: Implement the following blocks:
   // - "child_database"
   // - "child_page"
-  // - "link_preview"
   // - "link_to_page"
   // - "synced_block"
 
@@ -449,6 +449,26 @@ export class NotionConverter {
                 : item.image.external.url,
             alt: item.image.caption.map(this.rich_text_to_plaintext).join(""),
           },
+        },
+      ],
+    };
+  }
+
+  private static link_preview(item: LinkPreviewBlockObjectResponse) {
+    return {
+      type: "paragraph",
+      content: [
+        {
+          type: "text",
+          text: item.link_preview.url,
+          marks: [
+            {
+              type: "link",
+              attrs: {
+                href: item.link_preview.url,
+              },
+            },
+          ],
         },
       ],
     };
