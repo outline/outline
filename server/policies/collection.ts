@@ -132,6 +132,18 @@ allow(
   User,
   ["createDocument", "deleteDocument"],
   Collection,
+  (user, collection) =>
+    and(
+      //
+      !!collection?.isActive,
+      can(user, "updateDocument", collection)
+    )
+);
+
+allow(
+  User,
+  ["createTemplate", "updateTemplate"],
+  Collection,
   (user, collection) => {
     if (
       !collection ||
@@ -147,14 +159,11 @@ allow(
     }
 
     if (
-      collection.permission !== CollectionPermission.ReadWrite ||
+      collection.permission !== CollectionPermission.Admin ||
       user.isViewer ||
       user.isGuest
     ) {
-      return includesMembership(collection, [
-        CollectionPermission.ReadWrite,
-        CollectionPermission.Admin,
-      ]);
+      return includesMembership(collection, [CollectionPermission.Admin]);
     }
 
     return true;

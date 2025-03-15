@@ -1627,7 +1627,11 @@ router.post(
         },
         transaction,
       });
-      authorize(user, "createDocument", collection);
+      authorize(
+        user,
+        template ? "createTemplate" : "createDocument",
+        collection
+      );
     } else if (!!template && !collectionId) {
       authorize(user, "createTemplate", user.team);
     }
