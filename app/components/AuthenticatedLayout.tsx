@@ -21,6 +21,7 @@ import {
   matchDocumentHistory,
   matchDocumentSlug as slug,
   matchDocumentInsights,
+  matchTemplateHistory,
 } from "~/utils/routeHelpers";
 import { DocumentContextProvider } from "./DocumentContext";
 import Fade from "./Fade";
@@ -82,9 +83,14 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
   );
 
   const showHistory =
-    !!matchPath(location.pathname, {
-      path: matchDocumentHistory,
-    }) && can.listRevisions;
+    !!(
+      matchPath(location.pathname, {
+        path: matchDocumentHistory,
+      }) ||
+      matchPath(location.pathname, {
+        path: matchTemplateHistory,
+      })
+    ) && can.listRevisions;
   const showInsights =
     !!matchPath(location.pathname, {
       path: matchDocumentInsights,
@@ -103,15 +109,24 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
       key={ui.activeDocumentId ? "active" : "inactive"}
     >
       {(showHistory || showInsights || showComments) && (
-        <Route path={`/doc/${slug}`}>
-          <SidebarRight>
-            <React.Suspense fallback={null}>
-              {showHistory && <DocumentHistory />}
-              {showInsights && <DocumentInsights />}
-              {showComments && <DocumentComments />}
-            </React.Suspense>
-          </SidebarRight>
-        </Route>
+        <>
+          <Route path={`/doc/${slug}`}>
+            <SidebarRight>
+              <React.Suspense fallback={null}>
+                {showHistory && <DocumentHistory />}
+                {showInsights && <DocumentInsights />}
+                {showComments && <DocumentComments />}
+              </React.Suspense>
+            </SidebarRight>
+          </Route>
+          <Route path={`/settings/templates/${slug}`}>
+            <SidebarRight>
+              <React.Suspense fallback={null}>
+                {showHistory && <DocumentHistory />}
+              </React.Suspense>
+            </SidebarRight>
+          </Route>
+        </>
       )}
     </AnimatePresence>
   );
