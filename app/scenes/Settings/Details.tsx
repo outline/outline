@@ -16,7 +16,7 @@ import DefaultCollectionInputSelect from "~/components/DefaultCollectionInputSel
 import Heading from "~/components/Heading";
 import Input from "~/components/Input";
 import InputColor from "~/components/InputColor";
-import InputSelect from "~/components/InputSelect";
+import { InputSelectNew, Option } from "~/components/InputSelectNew";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
@@ -63,6 +63,27 @@ function Details() {
   const [tocPosition, setTocPosition] = useState(
     team.getPreference(TeamPreference.TocPosition) as TOCPosition
   );
+
+  const tocPositionOptions: Option[] = React.useMemo(
+    () =>
+      [
+        {
+          type: "item",
+          label: t("Left"),
+          value: TOCPosition.Left,
+        },
+        {
+          type: "item",
+          label: t("Right"),
+          value: TOCPosition.Right,
+        },
+      ] satisfies Option[],
+    [t]
+  );
+
+  const handleTocPositionChange = React.useCallback((position: string) => {
+    setTocPosition(position as TOCPosition);
+  }, []);
 
   const handleSubmit = React.useCallback(
     async (event?: React.SyntheticEvent) => {
@@ -123,9 +144,9 @@ function Details() {
     });
   };
 
-  const onSelectCollection = React.useCallback(async (value: string) => {
-    const defaultCollectionId = value === "home" ? null : value;
-    setDefaultCollectionId(defaultCollectionId);
+  const onSelectCollection = React.useCallback((value: string) => {
+    const selectedValue = value === "home" ? null : value;
+    setDefaultCollectionId(selectedValue);
   }, []);
 
   const isValid = form.current?.checkValidity();
@@ -242,20 +263,13 @@ function Details() {
               "The side to display the table of contents in relation to the main content."
             )}
           >
-            <InputSelect
-              ariaLabel={t("Table of contents position")}
-              options={[
-                {
-                  label: t("Left"),
-                  value: TOCPosition.Left,
-                },
-                {
-                  label: t("Right"),
-                  value: TOCPosition.Right,
-                },
-              ]}
+            <InputSelectNew
+              options={tocPositionOptions}
               value={tocPosition}
-              onChange={(p: TOCPosition) => setTocPosition(p)}
+              onChange={handleTocPositionChange}
+              ariaLabel={t("Table of contents position")}
+              label={t("Table of contents position")}
+              hideLabel
             />
           </SettingRow>
 
@@ -298,7 +312,6 @@ function Details() {
             )}
           >
             <DefaultCollectionInputSelect
-              id="defaultCollectionId"
               onSelectCollection={onSelectCollection}
               defaultCollectionId={defaultCollectionId}
             />
