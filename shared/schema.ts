@@ -9,6 +9,7 @@ import { PageType } from "plugins/notion/shared/types";
 
 const BaseImportInputItemSchema = z.object({
   externalId: z.string(),
+  externalName: z.string(),
   permission: z.nativeEnum(CollectionPermission).optional(),
 });
 

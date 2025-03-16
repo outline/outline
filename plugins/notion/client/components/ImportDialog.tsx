@@ -8,7 +8,6 @@ import { CollectionPermission, IntegrationService } from "@shared/types";
 import Button from "~/components/Button";
 import { Emoji } from "~/components/Emoji";
 import Flex from "~/components/Flex";
-import Input from "~/components/Input";
 import InputSelectPermission from "~/components/InputSelectPermission";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
@@ -31,7 +30,6 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
   const { t } = useTranslation();
   const { imports } = useStores();
   const [submitting, setSubmitting, resetSubmitting] = useBoolean();
-  const [name, setName] = React.useState("");
   const [pagesWithPermission, setPagesWithPermission] =
     React.useState<PageWithPermission[]>();
 
@@ -69,12 +67,13 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
       pagesWithPermission!.map((page) => ({
         type: page.type,
         externalId: page.id,
+        externalName: page.name,
         permission: page.permission,
       }));
 
     try {
       await imports.create(
-        { name, service: IntegrationService.Notion },
+        { service: IntegrationService.Notion },
         { integrationId, input }
       );
 
@@ -112,15 +111,6 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
 
   return (
     <Flex column gap={12}>
-      <Input
-        type="text"
-        placeholder={t("Name")}
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        autoComplete="off"
-        autoFocus
-        flex
-      />
       <Pages>
         <Row>
           <Column justify="center" align="center" $border>
@@ -144,7 +134,7 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
         ))}
       </Pages>
       <Flex justify="flex-end">
-        <Button onClick={handleStartImport} disabled={!name || submitting}>
+        <Button onClick={handleStartImport} disabled={submitting}>
           {t("Start import")}
         </Button>
       </Flex>

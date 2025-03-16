@@ -4,6 +4,7 @@ import truncate from "lodash/truncate";
 import { Fragment, Node } from "prosemirror-model";
 import { CreateOptions, CreationAttributes, Transaction } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
+import { randomElement } from "@shared/random";
 import { ImportInput, ImportTaskInput } from "@shared/schema";
 import {
   ImportableIntegrationService,
@@ -13,6 +14,7 @@ import {
   ProsemirrorData,
   ProsemirrorDoc,
 } from "@shared/types";
+import { colorPalette } from "@shared/utils/collections";
 import { CollectionValidation } from "@shared/validations";
 import collectionDestroyer from "@server/commands/collectionDestroyer";
 import documentCreator from "@server/commands/documentCreator";
@@ -264,6 +266,7 @@ export default abstract class ImportsProcessor<
                   id: internalId,
                   name: output.title,
                   icon: output.emoji ?? "collection",
+                  color: output.emoji ? undefined : randomElement(colorPalette),
                   content: transformedContent,
                   description: truncate(description, {
                     length: CollectionValidation.maxDescriptionLength,

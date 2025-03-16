@@ -23,7 +23,6 @@ const ImportsSortParamsSchema = z.object({
 });
 
 const BaseBodySchema = z.object({
-  name: z.string(),
   integrationId: z.string().uuid(),
 });
 

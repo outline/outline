@@ -1,6 +1,8 @@
 import Router from "koa-router";
+import truncate from "lodash/truncate";
 import { WhereOptions } from "sequelize";
 import { ImportState, UserRole } from "@shared/types";
+import { ImportValidation } from "@shared/validations";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
@@ -19,13 +21,15 @@ router.post(
   validate(T.ImportsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.ImportsCreateReq>) => {
-    const { name, integrationId, service, input } = ctx.input.body;
+    const { integrationId, service, input } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     authorize(user, "createImport", user.team);
 
+    const name = input.map((item) => item.externalName).join(", ");
+
     const importModel = await Import.createWithCtx(ctx, {
-      name,
+      name: truncate(name, { length: ImportValidation.maxNameLength }),
       service,
       state: ImportState.Created,
       input,
