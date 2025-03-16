@@ -147,7 +147,7 @@ const Backdrop = styled(Flex)<{ $fullscreen?: boolean }>`
     props.$fullscreen
       ? transparentize(0.25, props.theme.background)
       : props.theme.modalBackdrop} !important;
-  z-index: ${depths.modalOverlay};
+  z-index: ${depths.overlay};
   transition: opacity 50ms ease-in-out;
   opacity: 0;
 

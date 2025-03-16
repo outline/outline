@@ -2,16 +2,11 @@ import { HomeIcon } from "outline-icons";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Optional } from "utility-types";
-import Flex from "~/components/Flex";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
-import InputSelect from "~/components/InputSelect";
-import { IconWrapper } from "~/components/Sidebar/components/SidebarLink";
+import { InputSelectNew, Option } from "~/components/InputSelectNew";
 import useStores from "~/hooks/useStores";
 
-type DefaultCollectionInputSelectProps = Optional<
-  React.ComponentProps<typeof InputSelect>
-> & {
+type DefaultCollectionInputSelectProps = {
   onSelectCollection: (collection: string) => void;
   defaultCollectionId: string | null;
 };
@@ -19,7 +14,6 @@ type DefaultCollectionInputSelectProps = Optional<
 const DefaultCollectionInputSelect = ({
   onSelectCollection,
   defaultCollectionId,
-  ...rest
 }: DefaultCollectionInputSelectProps) => {
   const { t } = useTranslation();
   const { collections } = useStores();
@@ -47,36 +41,26 @@ const DefaultCollectionInputSelect = ({
     void fetchData();
   }, [fetchError, t, fetching, collections]);
 
-  const options = React.useMemo(
+  const options: Option[] = React.useMemo(
     () =>
       collections.nonPrivate.reduce(
         (acc, collection) => [
           ...acc,
           {
-            label: (
-              <Flex align="center">
-                <IconWrapper>
-                  <CollectionIcon collection={collection} />
-                </IconWrapper>
-                {collection.name}
-              </Flex>
-            ),
+            type: "item",
+            label: collection.name,
             value: collection.id,
+            icon: <CollectionIcon collection={collection} />,
           },
         ],
         [
           {
-            label: (
-              <Flex align="center">
-                <IconWrapper>
-                  <HomeIcon />
-                </IconWrapper>
-                {t("Home")}
-              </Flex>
-            ),
+            type: "item",
+            label: t("Home"),
             value: "home",
+            icon: <HomeIcon />,
           },
-        ]
+        ] satisfies Option[]
       ),
     [collections.nonPrivate, t]
   );
@@ -86,13 +70,14 @@ const DefaultCollectionInputSelect = ({
   }
 
   return (
-    <InputSelect
-      value={defaultCollectionId ?? "home"}
+    <InputSelectNew
       options={options}
+      value={defaultCollectionId ?? "home"}
       onChange={onSelectCollection}
       ariaLabel={t("Default collection")}
+      label={t("Start view")}
+      hideLabel
       short
-      {...rest}
     />
   );
 };

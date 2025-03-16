@@ -80,6 +80,10 @@ const RealButton = styled(ActionButton)<RealProps>`
       } 0 0 0 1px inset;
     }
 
+    &:focus-visible {
+      box-shadow: ${`rgba(0, 0, 0, 0.07) 0px 1px 2px, ${props.theme.inputBorderFocused} 0 0 0 1px inset`};
+    }
+
     &:disabled {
       color: ${props.theme.textTertiary};
       background: none;
