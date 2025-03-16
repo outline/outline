@@ -178,21 +178,6 @@ function Import() {
         ))}
       </div>
       <br />
-      {/* <PaginatedList
-        items={fileOperations.imports}
-        fetch={fileOperations.fetchPage}
-        options={{
-          type: FileOperationType.Import,
-        }}
-        heading={
-          <h2>
-            <Trans>Recent imports</Trans>
-          </h2>
-        }
-        renderItem={(item: FileOperation) => (
-          <FileOperationListItem key={item.id} fileOperation={item} />
-        )}
-      /> */}
       <PaginatedList
         items={allImports}
         fetch={fetchImports}
