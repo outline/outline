@@ -52,7 +52,6 @@ const DocumentMeta: React.FC<Props> = ({
     isDraft,
     lastViewedAt,
     isTasks,
-    isTemplate,
   } = document;
 
   // Prevent meta information from displaying if updatedBy is not available.
@@ -142,7 +141,6 @@ const DocumentMeta: React.FC<Props> = ({
   const nestedDocumentsCount = collection
     ? collection.getChildrenForDocument(document.id).length
     : 0;
-  const canShowProgressBar = isTasks && !isTemplate;
 
   const timeSinceNow = () => {
     if (isDraft || !showLastViewed) {
@@ -199,7 +197,7 @@ const DocumentMeta: React.FC<Props> = ({
         </span>
       )}
       &nbsp;{timeSinceNow()}
-      {canShowProgressBar && (
+      {isTasks && (
         <>
           &nbsp;•&nbsp;
           <DocumentTasks document={document} />

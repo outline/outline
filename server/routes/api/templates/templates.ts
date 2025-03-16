@@ -39,6 +39,19 @@ router.post(
         method: ["withMembership", user.id],
       }).findByPk(collectionId);
       authorize(user, "read", collection);
+    } else {
+      where[Op.and].push({
+        [Op.or]: [
+          {
+            collectionId: {
+              [Op.eq]: null,
+            },
+          },
+          {
+            collectionId: await user.collectionIds(),
+          },
+        ],
+      });
     }
 
     const [templates, total] = await Promise.all([
@@ -58,6 +71,30 @@ router.post(
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
+      data,
+      policies,
+    };
+  }
+);
+
+router.post(
+  "templates.info",
+  auth(),
+  validate(T.TemplatesInfoSchema),
+  async (ctx: APIContext<T.TemplatesInfoReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const template = await Template.findByPk(id, {
+      userId: user.id,
+      rejectOnEmpty: true,
+    });
+    authorize(user, "read", template);
+
+    const data = await presentTemplate(ctx, template);
+    const policies = presentPolicies(user, [template]);
+
+    ctx.body = {
       data,
       policies,
     };

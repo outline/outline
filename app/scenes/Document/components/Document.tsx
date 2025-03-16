@@ -33,6 +33,7 @@ import { isModKey } from "@shared/utils/keyboard";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
+import Template from "~/models/Template";
 import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPublish from "~/scenes/DocumentPublish";
 import Branding from "~/components/Branding";
@@ -146,7 +147,7 @@ class DocumentScene extends React.Component<Props> {
     }
   }
 
-  replaceDocument = (template: Document | Revision) => {
+  replaceDocument = (template: Template | Revision) => {
     const editorRef = this.editor.current;
 
     if (!editorRef) {
@@ -443,10 +444,7 @@ class DocumentScene extends React.Component<Props> {
       ((team?.getPreference(TeamPreference.TocPosition) as TOCPosition) ||
         TOCPosition.Left);
     const showContents =
-      tocPos &&
-      (isShare
-        ? ui.tocVisible !== false
-        : !document.isTemplate && ui.tocVisible === true);
+      tocPos && (isShare ? ui.tocVisible !== false : ui.tocVisible === true);
     const multiplayerEditor =
       !document.isArchived && !document.isDeleted && !revision && !isShare;
 

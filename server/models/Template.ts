@@ -1,4 +1,13 @@
-import { InferAttributes, InferCreationAttributes, Op } from "sequelize";
+import { isUUID } from "class-validator";
+import {
+  Identifier,
+  InferAttributes,
+  InferCreationAttributes,
+  NonNullFindOptions,
+  Op,
+  FindOptions,
+  EmptyResultError,
+} from "sequelize";
 import {
   Column,
   DataType,
@@ -11,9 +20,11 @@ import {
   Default,
   HasMany,
   Unique,
+  Scopes,
 } from "sequelize-typescript";
 import slugify from "slugify";
 import { ProsemirrorData } from "@shared/types";
+import { UrlHelper } from "@shared/utils/UrlHelper";
 import { DocumentValidation } from "@shared/validations";
 import Collection from "./Collection";
 import Revision from "./Revision";
@@ -23,6 +34,12 @@ import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
+
+type AdditionalFindOptions = {
+  userId?: string;
+  includeState?: boolean;
+  rejectOnEmpty?: boolean | Error;
+};
 
 @DefaultScope(() => ({
   include: [
@@ -46,6 +63,22 @@ import Length from "./validators/Length";
   attributes: {
     exclude: ["state"],
   },
+}))
+@Scopes(() => ({
+  withCollectionPermissions: (userId: string, paranoid = true) => ({
+    include: [
+      {
+        attributes: ["id", "permission", "sharing", "teamId", "deletedAt"],
+        model: userId
+          ? Collection.scope({
+              method: ["withMembership", userId],
+            })
+          : Collection,
+        as: "collection",
+        paranoid,
+      },
+    ],
+  }),
 }))
 @Table({ tableName: "documents", modelName: "template" })
 @Fix
@@ -178,6 +211,78 @@ class Template extends IdModel<
    */
   get isDeleted(): boolean {
     return !this.deletedAt;
+  }
+
+  /**
+   * Overrides the standard findByPk behavior to allow also querying by urlId
+   *
+   * @param id uuid or urlId
+   * @param options FindOptions
+   * @returns A promise resolving to a template instance or null
+   */
+  static async findByPk(
+    id: Identifier,
+    options?: NonNullFindOptions<Template> & AdditionalFindOptions
+  ): Promise<Template>;
+
+  static async findByPk(
+    id: Identifier,
+    options?: FindOptions<Template> & AdditionalFindOptions
+  ): Promise<Template | null>;
+
+  static async findByPk(
+    id: Identifier,
+    options: (NonNullFindOptions<Template> | FindOptions<Template>) &
+      AdditionalFindOptions = {}
+  ): Promise<Template | null> {
+    if (typeof id !== "string") {
+      return null;
+    }
+
+    const { includeState, userId, ...rest } = options;
+
+    // allow default preloading of collection membership if `userId` is passed in find options
+    // almost every endpoint needs the collection membership to determine policy permissions.
+    const scope = this.scope([
+      {
+        method: ["withCollectionPermissions", userId, rest.paranoid],
+      },
+    ]);
+
+    if (isUUID(id)) {
+      const template = await scope.findOne({
+        where: {
+          id,
+        },
+        ...rest,
+        rejectOnEmpty: false,
+      });
+
+      if (!template && rest.rejectOnEmpty) {
+        throw new EmptyResultError(`Template doesn't exist with id: ${id}`);
+      }
+
+      return template;
+    }
+
+    const match = id.match(UrlHelper.SLUG_URL_REGEX);
+    if (match) {
+      const template = await scope.findOne({
+        where: {
+          urlId: match[1],
+        },
+        ...rest,
+        rejectOnEmpty: false,
+      });
+
+      if (!template && rest.rejectOnEmpty) {
+        throw new EmptyResultError(`Template doesn't exist with id: ${id}`);
+      }
+
+      return template;
+    }
+
+    return null;
   }
 }
 

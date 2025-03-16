@@ -266,7 +266,7 @@ export const publishDocument = createAction({
       return;
     }
 
-    if (document?.collectionId || document?.template) {
+    if (document?.collectionId) {
       await document.save(undefined, {
         publish: true,
       });
@@ -844,15 +844,7 @@ export const moveTemplateToWorkspace = createAction({
 });
 
 export const moveDocumentToCollection = createAction({
-  name: ({ activeDocumentId, stores, t }) => {
-    if (!activeDocumentId) {
-      return t("Move");
-    }
-    const document = stores.documents.get(activeDocumentId);
-    return document?.template && document?.collectionId
-      ? t("Move to collection")
-      : t("Move");
-  },
+  name: ({ t }) => t("Move"),
   analyticsName: "Move document",
   section: ActiveDocumentSection,
   icon: <MoveIcon />,

@@ -38,13 +38,8 @@ function DocumentCopy({ document, onSubmit }: Props) {
         : true
     );
 
-    if (document.isTemplate) {
-      return nodes
-        .filter((node) => node.type === "collection")
-        .map((node) => ({ ...node, children: [] }));
-    }
     return nodes;
-  }, [policies, collectionTrees, document.isTemplate]);
+  }, [policies, collectionTrees]);
 
   const handlePublishChange = React.useCallback(
     (ev: React.ChangeEvent<HTMLInputElement>) => {
@@ -93,31 +88,27 @@ function DocumentCopy({ document, onSubmit }: Props) {
         defaultValue={document.parentDocumentId || document.collectionId || ""}
       />
       <OptionsContainer>
-        {!document.isTemplate && (
-          <>
-            {document.collectionId && (
-              <Text size="small">
-                <Switch
-                  name="publish"
-                  label={t("Publish")}
-                  labelPosition="right"
-                  checked={publish}
-                  onChange={handlePublishChange}
-                />
-              </Text>
-            )}
-            {document.publishedAt && document.childDocuments.length > 0 && (
-              <Text size="small">
-                <Switch
-                  name="recursive"
-                  label={t("Include nested documents")}
-                  labelPosition="right"
-                  checked={recursive}
-                  onChange={handleRecursiveChange}
-                />
-              </Text>
-            )}
-          </>
+        {document.collectionId && (
+          <Text size="small">
+            <Switch
+              name="publish"
+              label={t("Publish")}
+              labelPosition="right"
+              checked={publish}
+              onChange={handlePublishChange}
+            />
+          </Text>
+        )}
+        {document.publishedAt && document.childDocuments.length > 0 && (
+          <Text size="small">
+            <Switch
+              name="recursive"
+              label={t("Include nested documents")}
+              labelPosition="right"
+              checked={recursive}
+              onChange={handleRecursiveChange}
+            />
+          </Text>
         )}
       </OptionsContainer>
       <Footer justify="space-between" align="center" gap={8}>

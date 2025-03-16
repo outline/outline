@@ -6,6 +6,7 @@ import { isRTL } from "@shared/utils/rtl";
 import slugify from "@shared/utils/slugify";
 import TemplatesStore from "~/stores/TemplatesStore";
 import User from "~/models/User";
+import { settingsPath } from "~/utils/routeHelpers";
 import Collection from "./Collection";
 import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
@@ -26,41 +27,41 @@ export default class Template extends ParanoidModel implements Searchable {
   }
 
   /**
-   * The id of the collection that this document belongs to, if any.
+   * The id of the collection that this template belongs to, if any.
    */
   @Field
   @observable
   collectionId?: string | null;
 
   /**
-   * The collection that this document belongs to.
+   * The collection that this template belongs to.
    */
   @Relation(() => Collection, { onDelete: "cascade" })
   collection?: Collection;
 
   /**
-   * The title of the document.
+   * The title of the template.
    */
   @Field
   @observable
   title: string;
 
   /**
-   * An icon (or) emoji to use as the document icon.
+   * An icon (or) emoji to use as the template icon.
    */
   @Field
   @observable
   icon?: string | null;
 
   /**
-   * The color to use for the document icon.
+   * The color to use for the template icon.
    */
   @Field
   @observable
   color?: string | null;
 
   /**
-   * Whether the document layout is displayed full page width.
+   * Whether the template layout is displayed full page width.
    */
   @Field
   @observable
@@ -98,11 +99,11 @@ export default class Template extends ParanoidModel implements Searchable {
   @computed
   get path(): string {
     if (!this.title) {
-      return `/settings/templates/untitled-${this.urlId}`;
+      return `${settingsPath("templates")}/untitled-${this.urlId}`;
     }
 
     const slugifiedTitle = slugify(this.title);
-    return `/settings/templates/${slugifiedTitle}-${this.urlId}`;
+    return `${settingsPath("templates")}/${slugifiedTitle}-${this.urlId}`;
   }
 
   @computed

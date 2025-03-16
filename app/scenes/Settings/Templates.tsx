@@ -35,8 +35,7 @@ function Templates() {
       <Heading>{t("Templates")}</Heading>
       <Text as="p" type="secondary">
         <Trans>
-          You can create templates to help your team create consistent and
-          accurate documentation.
+          Templates help your team create consistent and accurate documentation.
         </Trans>
       </Text>
 

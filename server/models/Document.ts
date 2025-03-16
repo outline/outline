@@ -653,7 +653,7 @@ class Document extends ArchivableModel<
    *
    * @param id uuid or urlId
    * @param options FindOptions
-   * @returns A promise resolving to a collection instance or null
+   * @returns A promise resolving to a document instance or null
    */
   static async findByPk(
     id: Identifier,
