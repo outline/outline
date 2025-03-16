@@ -1,14 +1,14 @@
+import { ImportTaskInput, ImportTaskOutput } from "@shared/schema";
+import { IntegrationService, ProsemirrorDoc } from "@shared/types";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { Integration } from "@server/models";
 import ImportTask from "@server/models/ImportTask";
 import APIImportTask, {
   ProcessOutput,
 } from "@server/queues/tasks/APIImportTask";
 import { NotionConverter, NotionPage } from "@server/utils/NotionConverter";
-import { ImportTaskInput, ImportTaskOutput } from "@shared/schema";
-import { IntegrationService, ProsemirrorDoc } from "@shared/types";
-import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
-import { Block, PageType } from "plugins/notion/shared/types";
 import { NotionClient } from "../notion";
+import { Block, PageType } from "plugins/notion/shared/types";
 
 type ChildPage = { type: PageType; externalId: string };
 

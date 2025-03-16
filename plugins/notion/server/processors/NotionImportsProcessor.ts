@@ -1,7 +1,7 @@
-import { Import, ImportTask } from "@server/models";
-import ImportsProcessor from "@server/queues/processors/ImportsProcessor";
 import { NotionImportInput, NotionImportTaskInput } from "@shared/schema";
 import { IntegrationService } from "@shared/types";
+import { Import, ImportTask } from "@server/models";
+import ImportsProcessor from "@server/queues/processors/ImportsProcessor";
 import NotionAPIImportTask from "../tasks/NotionAPIImportTask";
 
 export class NotionImportsProcessor extends ImportsProcessor<IntegrationService.Notion> {

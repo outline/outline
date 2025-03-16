@@ -1,4 +1,3 @@
-import { PageType } from "plugins/notion/shared/types";
 import { z } from "zod";
 import {
   CollectionPermission,
@@ -6,6 +5,7 @@ import {
   IntegrationService,
   ProsemirrorDoc,
 } from "./types";
+import { PageType } from "plugins/notion/shared/types";
 
 const BaseImportInputItemSchema = z.object({
   externalId: z.string(),

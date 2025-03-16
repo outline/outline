@@ -1,4 +1,21 @@
+import chunk from "lodash/chunk";
+import keyBy from "lodash/keyBy";
+import truncate from "lodash/truncate";
+import { Fragment, Node } from "prosemirror-model";
+import { CreateOptions, CreationAttributes, Transaction } from "sequelize";
+import { v4 as uuidv4 } from "uuid";
+import { ImportInput, ImportTaskInput } from "@shared/schema";
+import {
+  ImportableIntegrationService,
+  ImportState,
+  ImportTaskState,
+  MentionType,
+  ProsemirrorData,
+  ProsemirrorDoc,
+} from "@shared/types";
+import { CollectionValidation } from "@shared/validations";
 import collectionDestroyer from "@server/commands/collectionDestroyer";
+import documentCreator from "@server/commands/documentCreator";
 import { PagePerImportTask } from "@server/constants";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
@@ -12,20 +29,6 @@ import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
 import { Event, ImportEvent } from "@server/types";
-import { ImportInput, ImportTaskInput } from "@shared/schema";
-import {
-  ImportableIntegrationService,
-  ImportState,
-  ImportTaskState,
-  MentionType,
-  ProsemirrorData,
-  ProsemirrorDoc,
-} from "@shared/types";
-import chunk from "lodash/chunk";
-import keyBy from "lodash/keyBy";
-import { Fragment, Node } from "prosemirror-model";
-import { CreateOptions, CreationAttributes } from "sequelize";
-import { v4 as uuidv4 } from "uuid";
 import BaseProcessor from "./BaseProcessor";
 
 export default abstract class ImportsProcessor<
@@ -110,141 +113,17 @@ export default abstract class ImportsProcessor<
   }
 
   private async onProcessed(importModel: Import<T>) {
-    // External id to internal model id.
-    const idMap: Record<string, string> = {};
-    const now = new Date();
-
-    // These will be imported as collections.
-    const importInput = keyBy(importModel.input, "externalId");
-
     await sequelize.transaction(async (transaction) => {
-      await ImportTask.findAllInBatches<ImportTask<T>>(
-        {
-          where: { importId: importModel.id },
-          order: [["createdAt", "ASC"]], // ordering ensures collections are created first.
-          batchLimit: 5, // output data per task could be huge, keep a low batch size to prevent OOM.
-          transaction,
-        },
-        async (importTasks) => {
-          await Promise.all(
-            importTasks.map(async (importTask) => {
-              const outputMap = keyBy(importTask.output ?? [], "externalId");
-
-              await Promise.all(
-                importTask.input.map(async (input) => {
-                  const externalId = input.externalId;
-                  const internalId = this.getInternalId(externalId, idMap);
-
-                  const parentExternalId = input.parentExternalId;
-                  const parentInternalId = parentExternalId
-                    ? this.getInternalId(parentExternalId, idMap)
-                    : undefined;
-
-                  const collectionExternalId = input.collectionExternalId;
-                  const collectionInternalId = collectionExternalId
-                    ? this.getInternalId(collectionExternalId, idMap)
-                    : undefined;
-
-                  const output = outputMap[externalId];
-
-                  const collection = importInput[externalId];
-
-                  const attachments = await Attachment.findAll({
-                    attributes: ["id", "size"],
-                    where: { documentId: externalId },
-                    transaction,
-                  });
-
-                  const transformedContent = this.updateMentionsAndAttachments({
-                    content: output.content,
-                    attachments,
-                    importInput,
-                    idMap,
-                    actorId: importModel.createdById,
-                  });
-
-                  if (collection) {
-                    await Collection.create(
-                      {
-                        id: internalId,
-                        name: output.title,
-                        icon: output.emoji,
-                        content: transformedContent,
-                        description: DocumentHelper.toMarkdown(
-                          transformedContent,
-                          {
-                            includeTitle: false,
-                          }
-                        ),
-                        createdById: importModel.createdById,
-                        teamId: importModel.createdBy.teamId,
-                        apiImportId: importModel.id,
-                        sort: Collection.DEFAULT_SORT,
-                        permission: collection.permission,
-                        createdAt: now,
-                        updatedAt: now,
-                      },
-                      { transaction }
-                    );
-
-                    // Unset documentId for attachments in collection overview.
-                    await Attachment.update(
-                      { documentId: null },
-                      { where: { documentId: externalId }, transaction }
-                    );
-
-                    return;
-                  }
-
-                  // Document at the root of a collection when there's no parent (or) the parent is the collection.
-                  const isRootDocument =
-                    !parentExternalId || !!importInput[parentExternalId];
-
-                  await Document.create(
-                    {
-                      id: internalId,
-                      title: output.title,
-                      icon: output.emoji,
-                      content: transformedContent,
-                      text: DocumentHelper.toMarkdown(transformedContent, {
-                        includeTitle: false,
-                      }),
-                      collectionId: collectionInternalId,
-                      parentDocumentId: isRootDocument
-                        ? undefined
-                        : parentInternalId,
-                      createdById: importModel.createdById,
-                      lastModifiedById: importModel.createdById,
-                      teamId: importModel.createdBy.teamId,
-                      apiImportId: importModel.id,
-                      createdAt: now,
-                      updatedAt: now,
-                      publishedAt: now,
-                    },
-                    { transaction }
-                  );
-
-                  // Update document id for attachments in document content.
-                  await Attachment.update(
-                    { documentId: internalId },
-                    { where: { documentId: externalId }, transaction }
-                  );
-                })
-              );
-            })
-          );
-        }
-      );
-
-      const createdCollectionIds = importModel.input.map(
-        (item) => idMap[item.externalId]
-      );
+      const { collectionIds } = await this.createCollectionsAndDocuments({
+        importModel,
+        transaction,
+      });
 
       // Once all collections and documents are created, update collection's document structure.
       // This ensures the root documents have the whole subtree available in the structure.
       await Document.findAllInBatches<Document>(
         {
-          where: { parentDocumentId: null, collectionId: createdCollectionIds },
+          where: { parentDocumentId: null, collectionId: collectionIds },
           include: [
             {
               model: Collection,
@@ -255,14 +134,15 @@ export default abstract class ImportsProcessor<
           transaction,
         },
         async (documents) => {
-          // use "for" loop to sequentially add documents - prevents race condition when same collection structure is updated in multiple promises.
           for (const document of documents) {
             // Without reload, sequelize overwrites the updates to collection.
-            await document.collection?.reload({ transaction });
+            // await document.collection?.reload({ transaction });
 
             await document.collection?.addDocumentToStructure(document, 0, {
               transaction,
             });
+
+            await document.collection?.save({ transaction });
           }
         }
       );
@@ -313,6 +193,138 @@ export default abstract class ImportsProcessor<
     });
   }
 
+  private async createCollectionsAndDocuments({
+    importModel,
+    transaction,
+  }: {
+    importModel: Import<T>;
+    transaction: Transaction;
+  }): Promise<{ collectionIds: string[] }> {
+    const now = new Date();
+    // External id to internal model id.
+    const idMap: Record<string, string> = {};
+    // These will be imported as collections.
+    const importInput = keyBy(importModel.input, "externalId");
+    const ctx = createContext({ user: importModel.createdBy, transaction });
+
+    await ImportTask.findAllInBatches<ImportTask<T>>(
+      {
+        where: { importId: importModel.id },
+        order: [["createdAt", "ASC"]], // ordering ensures collections are created first.
+        batchLimit: 5, // output data per task could be huge, keep a low batch size to prevent OOM.
+        transaction,
+      },
+      async (importTasks) => {
+        for (const importTask of importTasks) {
+          const outputMap = keyBy(importTask.output ?? [], "externalId");
+
+          for (const input of importTask.input) {
+            const externalId = input.externalId;
+            const internalId = this.getInternalId(externalId, idMap);
+
+            const parentExternalId = input.parentExternalId;
+            const parentInternalId = parentExternalId
+              ? this.getInternalId(parentExternalId, idMap)
+              : undefined;
+
+            const collectionExternalId = input.collectionExternalId;
+            const collectionInternalId = collectionExternalId
+              ? this.getInternalId(collectionExternalId, idMap)
+              : undefined;
+
+            const output = outputMap[externalId];
+
+            const collectionItem = importInput[externalId];
+
+            const attachments = await Attachment.findAll({
+              attributes: ["id", "size"],
+              where: { documentId: externalId }, // This will be set for root pages too (which will be imported as collection)
+              transaction,
+            });
+
+            const transformedContent = this.updateMentionsAndAttachments({
+              content: output.content,
+              attachments,
+              importInput,
+              idMap,
+              actorId: importModel.createdById,
+            });
+
+            if (collectionItem) {
+              const description = DocumentHelper.toMarkdown(
+                transformedContent,
+                {
+                  includeTitle: false,
+                }
+              );
+
+              await Collection.createWithCtx(
+                ctx,
+                {
+                  id: internalId,
+                  name: output.title,
+                  icon: output.emoji ?? "collection",
+                  content: transformedContent,
+                  description: truncate(description, {
+                    length: CollectionValidation.maxDescriptionLength,
+                  }),
+                  createdById: importModel.createdById,
+                  teamId: importModel.createdBy.teamId,
+                  apiImportId: importModel.id,
+                  sort: Collection.DEFAULT_SORT,
+                  permission: collectionItem.permission,
+                  createdAt: now,
+                  updatedAt: now,
+                },
+                { data: { name: output.title, source: "import" } }
+              );
+
+              // Unset documentId for attachments in collection overview.
+              await Attachment.update(
+                { documentId: null },
+                { where: { documentId: externalId }, transaction }
+              );
+
+              continue;
+            }
+
+            // Document at the root of a collection when there's no parent (or) the parent is the collection.
+            const isRootDocument =
+              !parentExternalId || !!importInput[parentExternalId];
+
+            await documentCreator({
+              id: internalId,
+              title: output.title,
+              icon: output.emoji,
+              content: transformedContent,
+              text: DocumentHelper.toMarkdown(transformedContent, {
+                includeTitle: false,
+              }),
+              collectionId: collectionInternalId,
+              parentDocumentId: isRootDocument ? undefined : parentInternalId,
+              apiImportId: importModel.id,
+              createdAt: now,
+              updatedAt: now,
+              publishedAt: now,
+              user: importModel.createdBy,
+              ctx,
+            });
+
+            // Update document id for attachments in document content.
+            await Attachment.update(
+              { documentId: internalId },
+              { where: { documentId: externalId }, transaction }
+            );
+          }
+        }
+      }
+    );
+
+    return {
+      collectionIds: importModel.input.map((item) => idMap[item.externalId]),
+    };
+  }
+
   private updateMentionsAndAttachments({
     content,
     attachments,
@@ -326,7 +338,7 @@ export default abstract class ImportsProcessor<
     importInput: Record<string, ImportInput<any>[number]>;
     attachments: Attachment[];
     actorId: string;
-  }) {
+  }): ProsemirrorDoc {
     const attachmentsMap = keyBy(attachments, "id");
     const doc = ProsemirrorHelper.toProsemirror(content);
 
