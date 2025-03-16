@@ -89,7 +89,7 @@ describe("ProsemirrorHelper", () => {
     });
   });
 
-  describe("getPlainParagrahs", () => {
+  describe("getPlainParagraphs", () => {
     it("should return an array of plain paragraphs", async () => {
       const data = {
         type: "doc",
@@ -115,7 +115,7 @@ describe("ProsemirrorHelper", () => {
         ],
       } as ProsemirrorData;
 
-      const paragraphs = ProsemirrorHelper.getPlainParagrahs(data);
+      const paragraphs = ProsemirrorHelper.getPlainParagraphs(data);
 
       expect(paragraphs).toEqual([
         {
@@ -161,7 +161,7 @@ describe("ProsemirrorHelper", () => {
         ],
       } as ProsemirrorData;
 
-      const paragraphs = ProsemirrorHelper.getPlainParagrahs(data);
+      const paragraphs = ProsemirrorHelper.getPlainParagraphs(data);
       expect(paragraphs).toBeUndefined();
     });
 
@@ -186,7 +186,7 @@ describe("ProsemirrorHelper", () => {
         ],
       } as ProsemirrorData;
 
-      const paragraphs = ProsemirrorHelper.getPlainParagrahs(data);
+      const paragraphs = ProsemirrorHelper.getPlainParagraphs(data);
       expect(paragraphs).toBeUndefined();
     });
 
@@ -211,7 +211,7 @@ describe("ProsemirrorHelper", () => {
         ],
       } as ProsemirrorData;
 
-      const paragraphs = ProsemirrorHelper.getPlainParagrahs(data);
+      const paragraphs = ProsemirrorHelper.getPlainParagraphs(data);
       expect(paragraphs).toBeUndefined();
     });
   });

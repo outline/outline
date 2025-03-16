@@ -354,7 +354,7 @@ export class ProsemirrorHelper {
    * @param data The ProsemirrorData object
    * @returns An array of paragraph nodes or undefined
    */
-  static getPlainParagrahs(data: ProsemirrorData) {
+  static getPlainParagraphs(data: ProsemirrorData) {
     const paragraphs = [];
     for (const node of data.content) {
       if (
