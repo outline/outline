@@ -1,5 +1,3 @@
-import { ProsemirrorData } from "@shared/types";
-import { DocumentValidation } from "@shared/validations";
 import { InferAttributes, InferCreationAttributes, Op } from "sequelize";
 import {
   Column,
@@ -15,6 +13,8 @@ import {
   Unique,
 } from "sequelize-typescript";
 import slugify from "slugify";
+import { ProsemirrorData } from "@shared/types";
+import { DocumentValidation } from "@shared/validations";
 import Collection from "./Collection";
 import Revision from "./Revision";
 import Team from "./Team";

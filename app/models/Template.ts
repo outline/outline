@@ -1,9 +1,9 @@
-import type { ProsemirrorData } from "@shared/types";
-import { isRTL } from "@shared/utils/rtl";
-import slugify from "@shared/utils/slugify";
 import { addDays } from "date-fns";
 import i18n from "i18next";
 import { computed, observable } from "mobx";
+import type { ProsemirrorData } from "@shared/types";
+import { isRTL } from "@shared/utils/rtl";
+import slugify from "@shared/utils/slugify";
 import TemplatesStore from "~/stores/TemplatesStore";
 import User from "~/models/User";
 import Collection from "./Collection";

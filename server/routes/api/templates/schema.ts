@@ -1,5 +1,5 @@
-import { BaseSchema } from "@server/routes/api/schema";
 import { z } from "zod";
+import { BaseSchema } from "@server/routes/api/schema";
 
 const TemplatesSortParamsSchema = z.object({
   /** Specifies the attributes by which templates will be sorted in the list */

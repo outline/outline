@@ -1,5 +1,5 @@
-import naturalSort from "@shared/utils/naturalSort";
 import { computed } from "mobx";
+import naturalSort from "@shared/utils/naturalSort";
 import Template from "~/models/Template";
 import RootStore from "./RootStore";
 import Store from "./base/Store";
