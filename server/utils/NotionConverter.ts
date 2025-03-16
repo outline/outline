@@ -518,7 +518,7 @@ export class NotionConverter {
           content: [
             {
               type: "paragraph",
-              content: td.map(this.rich_text),
+              content: td.map(this.rich_text).filter(Boolean),
             },
           ],
         })),

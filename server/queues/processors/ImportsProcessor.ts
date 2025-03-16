@@ -17,7 +17,6 @@ import {
 import { colorPalette } from "@shared/utils/collections";
 import { CollectionValidation } from "@shared/validations";
 import collectionDestroyer from "@server/commands/collectionDestroyer";
-import documentCreator from "@server/commands/documentCreator";
 import { PagePerImportTask } from "@server/constants";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
@@ -138,13 +137,11 @@ export default abstract class ImportsProcessor<
         async (documents) => {
           for (const document of documents) {
             // Without reload, sequelize overwrites the updates to collection.
-            // await document.collection?.reload({ transaction });
+            await document.collection?.reload({ transaction });
 
             await document.collection?.addDocumentToStructure(document, 0, {
               transaction,
             });
-
-            await document.collection?.save({ transaction });
           }
         }
       );
@@ -212,7 +209,10 @@ export default abstract class ImportsProcessor<
     await ImportTask.findAllInBatches<ImportTask<T>>(
       {
         where: { importId: importModel.id },
-        order: [["createdAt", "ASC"]], // ordering ensures collections are created first.
+        order: [
+          ["createdAt", "ASC"],
+          ["id", "ASC"], // for stable order when multiple tasks have same "createdAt" value.
+        ], // ordering ensures collections are created first.
         batchLimit: 5, // output data per task could be huge, keep a low batch size to prevent OOM.
         transaction,
       },
@@ -295,23 +295,28 @@ export default abstract class ImportsProcessor<
             const isRootDocument =
               !parentExternalId || !!importInput[parentExternalId];
 
-            await documentCreator({
-              id: internalId,
-              title: output.title,
-              icon: output.emoji,
-              content: transformedContent,
-              text: DocumentHelper.toMarkdown(transformedContent, {
-                includeTitle: false,
-              }),
-              collectionId: collectionInternalId,
-              parentDocumentId: isRootDocument ? undefined : parentInternalId,
-              apiImportId: importModel.id,
-              createdAt: now,
-              updatedAt: now,
-              publishedAt: now,
-              user: importModel.createdBy,
+            await Document.createWithCtx(
               ctx,
-            });
+              {
+                id: internalId,
+                title: output.title,
+                icon: output.emoji,
+                content: transformedContent,
+                text: DocumentHelper.toMarkdown(transformedContent, {
+                  includeTitle: false,
+                }),
+                collectionId: collectionInternalId,
+                parentDocumentId: isRootDocument ? undefined : parentInternalId,
+                createdById: importModel.createdById,
+                lastModifiedById: importModel.createdById,
+                teamId: importModel.createdBy.teamId,
+                apiImportId: importModel.id,
+                createdAt: now,
+                updatedAt: now,
+                publishedAt: now,
+              },
+              { data: { title: output.title, source: "import" } }
+            );
 
             // Update document id for attachments in document content.
             await Attachment.update(
@@ -353,17 +358,12 @@ export default abstract class ImportsProcessor<
       attrs.actorId = actorId;
 
       const externalId = attrs.modelId as string;
-      const internalId = idMap[externalId];
+      attrs.modelId = this.getInternalId(externalId, idMap);
 
-      // In case the linked page is not in the import, don't map the externalId.
-      // App will fail the redirect in this case.
-      if (internalId) {
-        const isCollectionMention = !!importInput[externalId]; // the referenced externalId is a root page.
-        attrs.type = isCollectionMention
-          ? MentionType.Collection
-          : MentionType.Document;
-        attrs.modelId = internalId;
-      }
+      const isCollectionMention = !!importInput[externalId]; // the referenced externalId is a root page.
+      attrs.type = isCollectionMention
+        ? MentionType.Collection
+        : MentionType.Document;
 
       json.attrs = attrs;
       return Node.fromJSON(schema, json);
