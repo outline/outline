@@ -69,7 +69,7 @@ describe("policies/team", () => {
         });
 
         const abilities = serialize(user, team);
-        expect(abilities.readTemplate).toEqual(permission);
+        expect(abilities.createDocument).toEqual(permission);
       });
     }
   });

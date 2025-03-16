@@ -368,9 +368,7 @@ function DocumentHeader({
                   hideOnActionDisabled
                   hideIcon
                 >
-                  {document.collectionId || document.isWorkspaceTemplate
-                    ? t("Publish")
-                    : `${t("Publish")}…`}
+                  {document.collectionId ? t("Publish") : `${t("Publish")}…`}
                 </Button>
               </Action>
             )}

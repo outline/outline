@@ -12,15 +12,15 @@ import history from "~/utils/history";
 import { newDocumentPath } from "~/utils/routeHelpers";
 
 const useTemplatesAction = () => {
-  const { documents } = useStores();
+  const { templates } = useStores();
 
   React.useEffect(() => {
-    void documents.fetchAllTemplates();
-  }, [documents]);
+    void templates.fetchAll();
+  }, [templates]);
 
   const actions = React.useMemo(
     () =>
-      documents.templatesAlphabetical.map((template) =>
+      templates.orderedData.map((template) =>
         createAction({
           name: template.titleWithDefault,
           analyticsName: "New document",
@@ -58,7 +58,7 @@ const useTemplatesAction = () => {
             ),
         })
       ),
-    [documents.templatesAlphabetical]
+    [templates.orderedData]
   );
 
   const newFromTemplate = React.useMemo(

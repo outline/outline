@@ -1,13 +1,6 @@
 import { Team, User } from "@server/models";
 import { allow } from "./cancan";
-import {
-  and,
-  isCloudHosted,
-  isTeamAdmin,
-  isTeamModel,
-  isTeamMutable,
-  or,
-} from "./utils";
+import { and, isCloudHosted, isTeamAdmin, isTeamModel, or } from "./utils";
 
 allow(User, "read", Team, isTeamModel);
 
@@ -37,28 +30,5 @@ allow(User, ["delete", "audit"], Team, (actor, team) =>
     //
     isCloudHosted(),
     isTeamAdmin(actor, team)
-  )
-);
-
-allow(User, "createTemplate", Team, (actor, team) =>
-  and(
-    //
-    !actor.isGuest,
-    !actor.isViewer,
-    isTeamModel(actor, team),
-    isTeamMutable(actor)
-  )
-);
-
-allow(User, "readTemplate", Team, (actor, team) =>
-  and(!actor.isViewer, isTeamModel(actor, team))
-);
-
-allow(User, "updateTemplate", Team, (actor, team) =>
-  and(
-    //
-    actor.isAdmin,
-    isTeamModel(actor, team),
-    isTeamMutable(actor)
   )
 );

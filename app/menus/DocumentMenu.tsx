@@ -231,9 +231,7 @@ const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
           {
             type: "button",
             title: t("Restore"),
-            visible:
-              !!(document.isWorkspaceTemplate || collection?.isActive) &&
-              !!(can.restore || can.unarchive),
+            visible: !!collection?.isActive && !!(can.restore || can.unarchive),
             onClick: (ev) => handleRestore(ev),
             icon: <RestoreIcon />,
           },
@@ -241,7 +239,7 @@ const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
             type: "submenu",
             title: t("Restore"),
             visible:
-              !(document.isWorkspaceTemplate || collection?.isActive) &&
+              !collection?.isActive &&
               !!(can.restore || can.unarchive) &&
               restoreItems.length !== 0,
             style: {
@@ -289,8 +287,7 @@ const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
             type: "route",
             title: t("Edit"),
             to: documentEditPath(document),
-            visible:
-              !!can.update && user.separateEditMode && !document.template,
+            visible: !!can.update && user.separateEditMode,
             icon: <EditIcon />,
           },
           {

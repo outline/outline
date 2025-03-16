@@ -99,6 +99,7 @@ type AdditionalFindOptions = {
         [Op.is]: null,
       },
     },
+    template: false,
   },
   attributes: {
     exclude: ["state"],
@@ -810,13 +811,6 @@ class Document extends ArchivableModel<
    */
   get isTrialImport() {
     return !!(this.importId && this.sourceMetadata?.trial);
-  }
-
-  /**
-   * Returns whether this document is a template created at the workspace level.
-   */
-  get isWorkspaceTemplate() {
-    return this.template && !this.collectionId;
   }
 
   /**

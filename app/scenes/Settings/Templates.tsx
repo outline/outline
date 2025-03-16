@@ -17,15 +17,10 @@ import NewTemplateMenu from "~/menus/NewTemplateMenu";
 import { settingsPath } from "~/utils/routeHelpers";
 
 function Templates() {
-  const { documents } = useStores();
+  const { templates } = useStores();
   const { t } = useTranslation();
   const param = useQuery();
-  const { fetchTemplates, templates, templatesAlphabetical } = documents;
   const sort = param.get("sort") || "recent";
-
-  React.useEffect(() => {
-    void documents.fetchDrafts();
-  }, [documents]);
 
   return (
     <Scene
@@ -65,8 +60,12 @@ function Templates() {
           </Tabs>
         }
         empty={<Empty>{t("There are no templates just yet.")}</Empty>}
-        fetch={fetchTemplates}
-        documents={sort === "alphabetical" ? templatesAlphabetical : templates}
+        fetch={templates.fetchAll}
+        documents={
+          sort === "alphabetical"
+            ? templates.alphabetical
+            : templates.orderedData
+        }
         showCollection
         showDraft
       />

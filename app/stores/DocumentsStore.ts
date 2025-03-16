@@ -99,17 +99,6 @@ export default class DocumentsStore extends Store<Document> {
     return orderBy(this.all, "updatedAt", "desc");
   }
 
-  get templates(): Document[] {
-    return orderBy(
-      filter(
-        this.orderedData,
-        (d) => !d.archivedAt && !d.deletedAt && d.template
-      ),
-      "updatedAt",
-      "desc"
-    );
-  }
-
   createdByUser(userId: string): Document[] {
     return orderBy(
       filter(this.all, (d) => d.createdBy?.id === userId),
@@ -149,21 +138,6 @@ export default class DocumentsStore extends Store<Document> {
         document.collectionId === collectionId &&
         !document.isArchived &&
         !document.isDeleted
-    );
-  }
-
-  templatesInCollection(collectionId: string): Document[] {
-    return orderBy(
-      filter(
-        this.orderedData,
-        (d) =>
-          !d.archivedAt &&
-          !d.deletedAt &&
-          d.template === true &&
-          d.collectionId === collectionId
-      ),
-      "updatedAt",
-      "desc"
     );
   }
 
@@ -229,11 +203,6 @@ export default class DocumentsStore extends Store<Document> {
     return orderBy(this.orderedData, "deletedAt", "desc").filter(
       (d) => d.deletedAt
     );
-  }
-
-  @computed
-  get templatesAlphabetical(): Document[] {
-    return naturalSort(this.templates, "title");
   }
 
   @computed
