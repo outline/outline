@@ -346,4 +346,29 @@ export class ProsemirrorHelper {
 
     return replace(data);
   }
+
+  /**
+   * Returns the paragraphs from the data if there are only plain paragraphs
+   * without any formatting. Otherwise returns undefined.
+   *
+   * @param data The ProsemirrorData object
+   * @returns An array of paragraph nodes or undefined
+   */
+  static getPlainParagraphs(data: ProsemirrorData) {
+    const paragraphs = [];
+    for (const node of data.content) {
+      if (
+        node.type === "paragraph" &&
+        !node.content.some(
+          (item) =>
+            item.type !== "text" || (item.marks && item.marks.length > 0)
+        )
+      ) {
+        paragraphs.push(node);
+      } else {
+        return undefined;
+      }
+    }
+    return paragraphs;
+  }
 }
