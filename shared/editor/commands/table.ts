@@ -13,6 +13,7 @@ import {
   deleteColumn,
 } from "prosemirror-tables";
 import { ProsemirrorHelper } from "../../utils/ProsemirrorHelper";
+import { CSVHelper } from "../../utils/csv";
 import { chainTransactions } from "../lib/chainTransactions";
 import { getCellsInColumn, isHeaderEnabled } from "../queries/table";
 import { TableLayout } from "../types";
@@ -137,7 +138,7 @@ export function exportTable({
               }
 
               // Avoid cell content being interpreted as formulas by adding a leading single quote
-              value = value.trimStart().replace(/^([+\-=@])/, "'$1");
+              value = CSVHelper.sanitizeValue(value);
 
               return `"${value}"`;
             })

@@ -22,7 +22,7 @@ export default class CheckboxItem extends Node {
           default: false,
         },
       },
-      content: "paragraph block*",
+      content: "block+",
       defining: true,
       draggable: true,
       parseDOM: [
