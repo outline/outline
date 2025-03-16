@@ -176,6 +176,24 @@ exports[`NotionConverter converts a page 1`] = `
     },
     {
       "attrs": {
+        "style": "info",
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "marks": [],
+              "text": "Basic callout with just a paragraph",
+              "type": "text",
+            },
+          ],
+          "type": "paragraph",
+        },
+      ],
+      "type": "container_notice",
+    },
+    {
+      "attrs": {
         "level": 3,
       },
       "content": [
@@ -186,6 +204,59 @@ exports[`NotionConverter converts a page 1`] = `
         },
       ],
       "type": "heading",
+    },
+    {
+      "attrs": {
+        "style": "info",
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "marks": [],
+              "text": "Callout can contain any node which are permissible in a page.",
+              "type": "text",
+            },
+          ],
+          "type": "paragraph",
+        },
+        {
+          "content": [
+            {
+              "marks": [],
+              "text": "An example of including a heading and image below.",
+              "type": "text",
+            },
+          ],
+          "type": "paragraph",
+        },
+        {
+          "attrs": {
+            "level": 2,
+          },
+          "content": [
+            {
+              "marks": [],
+              "text": "Pikachu",
+              "type": "text",
+            },
+          ],
+          "type": "heading",
+        },
+        {
+          "content": [
+            {
+              "attrs": {
+                "alt": "",
+                "src": "https://prod-files-secure.s3.us-west-2.amazonaws.com/2f3fcad6-fc32-434b-b6b2-a03ca7893c4d/55c7611e-6ed9-4765-a99a-705b4f388161/pikachu.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466UOADIMHA%2F20250311%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20250311T180209Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEGIaCXVzLXdlc3QtMiJGMEQCIHurC6k0nBQRtmzXfVYFYbKwqRHHyPtuIWTIUm2N3tc7AiBPjSXsql4D2bXy8MZRs3ZiAAYIe8jmrmBvOzyrJlD%2FiCqIBAir%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F8BEAAaDDYzNzQyMzE4MzgwNSIMGfC%2BM%2FgHagHGg8UXKtwDtUhAIkDiAnSKLwnT4%2B%2B4mV5qerWaoCqShUMwA0K5TaneC8Fijh49NBZ0VvJb%2FPqYwREbTirSZ9V2LcbIY%2BgrwgeJxfaiYiIo%2F3xHZ41JzTD19ceAw9o1H8lJvheSRYNTWiWJVrajO1mc9v4pUzcwUgRdC3lwYM1qFaCw9FLYjxTr8CYJKqs1awOTNMNq1uSaSvETN7flIeZwYKfZdKJwH%2BB1Tc1fTO6mEvrLu5L4eZE7At8qQE3xS5WhOuc79IsGcXCU8CkxfUquxuBcqmbmCw2G1cjigcp3rs%2FPVH8%2Bb9jkR0IqAGn4Sv9vsRzruYz2GyLM8agX9kAvulowOntR40Ze5VgZpm3XHKe7Bqz80X0rM2q4VuMuRJZesTNaiOjZY%2BPub%2B1qkD8prfXHWTviEuePa%2BObMWAcmArso4Eytjt8Li%2B%2FIOqPD18hHpUpLXg2tgfSZngEPrlQ0jelFzQIqysV8v8wPk%2BjwR2qUSiKwN2C2MF1mypV768VnrTskq1XaOX2deNt8mjWvR8f89JMKqTqoEwXlADZvktmusWX2V%2FaRshj%2B6Avym8cFzZR0S%2BEtaaPbvTZvKgazwQmGXUI0vtFTHzInnx%2BnN32loOgamEYVR644W43%2BvC7kpcwgPLBvgY6pgHrNR%2B9vaMWJsHaXNjOmWkw%2Bu0zYoZScW4QnB9V84vUhVLVxG30%2FbhqkUCZfWr1PjF0KnimUTFfiA8lbusGyTofkFvMb0uOiHKq5SXehHb6skiNbFexE7JvigcBuI%2FUKAfIZqC2hUE73cveuKCnlo2%2Ftmgjb6czk281N6R5x7Rd%2BxbisjbEidAOOKVJPqrRQzQMe2uyF9wWixJRtdip%2BCE5iF2NK77Z&X-Amz-Signature=d98feb21549d970b5fae7bf0b0e341631e24c6e10ba43306f076324051725ea3&X-Amz-SignedHeaders=host&x-id=GetObject",
+              },
+              "type": "image",
+            },
+          ],
+          "type": "paragraph",
+        },
+      ],
+      "type": "container_notice",
     },
     {
       "content": [],
@@ -264,6 +335,66 @@ exports[`NotionConverter converts a page 1`] = `
         },
       ],
       "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [
+            {
+              "type": "strong",
+            },
+          ],
+          "text": "Column one content",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "It can have any node permissible in the page",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [
+            {
+              "type": "strong",
+            },
+          ],
+          "text": "Column two content",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "style": "info",
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "marks": [],
+              "text": "Callout inside column",
+              "type": "text",
+            },
+          ],
+          "type": "paragraph",
+        },
+      ],
+      "type": "container_notice",
     },
     {
       "attrs": {
@@ -598,6 +729,23 @@ exports[`NotionConverter converts a page 1`] = `
         },
       ],
       "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "marks": [
+            {
+              "attrs": {
+                "href": "https://github.com/outline/outline",
+              },
+              "type": "link",
+            },
+          ],
+          "text": "https://github.com/outline/outline",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
     },
     {
       "attrs": {
@@ -1224,6 +1372,44 @@ exports[`NotionConverter converts a page 1`] = `
       "type": "heading",
     },
     {
+      "content": [
+        {
+          "marks": [],
+          "text": "Synced block content. It can contain any node permissible in the page.",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "For example, a callout.",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "style": "info",
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "marks": [],
+              "text": "This is inside a synced block",
+              "type": "text",
+            },
+          ],
+          "type": "paragraph",
+        },
+      ],
+      "type": "container_notice",
+    },
+    {
       "attrs": {
         "level": 3,
       },
@@ -1235,6 +1421,44 @@ exports[`NotionConverter converts a page 1`] = `
         },
       ],
       "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "Synced block content. It can contain any node permissible in the page.",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "For example, a callout.",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "style": "info",
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "marks": [],
+              "text": "This is inside a synced block",
+              "type": "text",
+            },
+          ],
+          "type": "paragraph",
+        },
+      ],
+      "type": "container_notice",
     },
     {
       "attrs": {
@@ -1662,6 +1886,24 @@ exports[`NotionConverter converts a page 1`] = `
         },
       ],
       "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "style": "info",
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "marks": [],
+              "text": "Callout inside toggle list item 1",
+              "type": "text",
+            },
+          ],
+          "type": "paragraph",
+        },
+      ],
+      "type": "container_notice",
     },
     {
       "content": [

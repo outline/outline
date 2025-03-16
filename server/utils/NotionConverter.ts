@@ -21,10 +21,16 @@ import type {
   ToggleBlockObjectResponse,
   PageObjectResponse,
   VideoBlockObjectResponse,
+  CalloutBlockObjectResponse,
+  ColumnListBlockObjectResponse,
+  ColumnBlockObjectResponse,
+  LinkPreviewBlockObjectResponse,
+  SyncedBlockBlockObjectResponse,
 } from "@notionhq/client/build/src/api-endpoints";
-import Logger from "@server/logging/Logger";
-import { MentionType, ProsemirrorData, ProsemirrorDoc } from "@shared/types";
 import isArray from "lodash/isArray";
+import { NoticeTypes } from "@shared/editor/nodes/Notice";
+import { MentionType, ProsemirrorData, ProsemirrorDoc } from "@shared/types";
+import Logger from "@server/logging/Logger";
 import { Block } from "plugins/notion/shared/types";
 
 export type NotionPage = PageObjectResponse & {
@@ -34,24 +40,15 @@ export type NotionPage = PageObjectResponse & {
 /** Convert Notion blocks to Outline data. */
 export class NotionConverter {
   // TODO: Implement the following blocks:
-  // - "callout"
   // - "child_database"
   // - "child_page"
-  // - "column"
-  // - "column_list"
-  // - "link_preview"
   // - "link_to_page"
-  // - "synced_block"
 
   /**
    * Nodes which cannot contain block children in Outline, their children
    * will be flattened into the parent.
    */
-  private static nodesWithoutBlockChildren = [
-    // TODO.
-    "paragraph",
-    "toggle",
-  ];
+  private static nodesWithoutBlockChildren = ["paragraph", "toggle"];
 
   public static page(item: NotionPage): ProsemirrorDoc {
     return {
@@ -78,7 +75,7 @@ export class NotionConverter {
         return response;
       }
 
-      // Logger.warn("Encountered unknown Notion block", child);
+      Logger.warn("Encountered unknown Notion block", child);
       return undefined;
     };
 
@@ -145,6 +142,42 @@ export class NotionConverter {
     return children;
   }
 
+  private static callout(item: Block<CalloutBlockObjectResponse>) {
+    const colorToNoticeType: Record<string, NoticeTypes> = {
+      default_background: NoticeTypes.Info,
+      blue_background: NoticeTypes.Info,
+      purple_background: NoticeTypes.Info,
+      green_background: NoticeTypes.Success,
+      orange_background: NoticeTypes.Tip,
+      yellow_background: NoticeTypes.Tip,
+      pink_background: NoticeTypes.Warning,
+      red_background: NoticeTypes.Warning,
+    };
+
+    return {
+      type: "container_notice",
+      attrs: {
+        style:
+          colorToNoticeType[item.callout.color as string] ?? NoticeTypes.Info,
+      },
+      content: [
+        {
+          type: "paragraph",
+          content: item.callout.rich_text.map(this.rich_text).filter(Boolean),
+        },
+        ...this.mapChildren(item),
+      ],
+    };
+  }
+
+  private static column_list(item: Block<ColumnListBlockObjectResponse>) {
+    return this.mapChildren(item);
+  }
+
+  private static column(item: Block<ColumnBlockObjectResponse>) {
+    return this.mapChildren(item);
+  }
+
   private static bookmark(item: BookmarkBlockObjectResponse) {
     return {
       type: "paragraph",
@@ -178,7 +211,9 @@ export class NotionConverter {
       content: [
         {
           type: "paragraph",
-          content: item.bulleted_list_item.rich_text.map(this.rich_text),
+          content: item.bulleted_list_item.rich_text
+            .map(this.rich_text)
+            .filter(Boolean),
         },
         ...this.mapChildren(item),
       ],
@@ -208,7 +243,9 @@ export class NotionConverter {
       content: [
         {
           type: "paragraph",
-          content: item.numbered_list_item.rich_text.map(this.rich_text),
+          content: item.numbered_list_item.rich_text
+            .map(this.rich_text)
+            .filter(Boolean),
         },
         ...this.mapChildren(item),
       ],
@@ -276,6 +313,10 @@ export class NotionConverter {
         };
       }
 
+      if (!item.plain_text) {
+        return undefined;
+      }
+
       return {
         type: "text",
         text: item.plain_text,
@@ -292,6 +333,10 @@ export class NotionConverter {
           },
         ],
       };
+    }
+
+    if (!item.text.content) {
+      return undefined;
     }
 
     return {
@@ -363,7 +408,7 @@ export class NotionConverter {
       attrs: {
         level: 1,
       },
-      content: item.heading_1.rich_text.map(this.rich_text),
+      content: item.heading_1.rich_text.map(this.rich_text).filter(Boolean),
     };
   }
 
@@ -373,7 +418,7 @@ export class NotionConverter {
       attrs: {
         level: 2,
       },
-      content: item.heading_2.rich_text.map(this.rich_text),
+      content: item.heading_2.rich_text.map(this.rich_text).filter(Boolean),
     };
   }
 
@@ -383,7 +428,7 @@ export class NotionConverter {
       attrs: {
         level: 3,
       },
-      content: item.heading_3.rich_text.map(this.rich_text),
+      content: item.heading_3.rich_text.map(this.rich_text).filter(Boolean),
     };
   }
 
@@ -405,10 +450,30 @@ export class NotionConverter {
     };
   }
 
+  private static link_preview(item: LinkPreviewBlockObjectResponse) {
+    return {
+      type: "paragraph",
+      content: [
+        {
+          type: "text",
+          text: item.link_preview.url,
+          marks: [
+            {
+              type: "link",
+              attrs: {
+                href: item.link_preview.url,
+              },
+            },
+          ],
+        },
+      ],
+    };
+  }
+
   private static paragraph(item: ParagraphBlockObjectResponse) {
     return {
       type: "paragraph",
-      content: item.paragraph.rich_text.map(this.rich_text),
+      content: item.paragraph.rich_text.map(this.rich_text).filter(Boolean),
     };
   }
 
@@ -418,11 +483,15 @@ export class NotionConverter {
       content: [
         {
           type: "paragraph",
-          content: item.quote.rich_text.map(this.rich_text),
+          content: item.quote.rich_text.map(this.rich_text).filter(Boolean),
         },
         ...this.mapChildren(item),
       ],
     };
+  }
+
+  private static synced_block(item: Block<SyncedBlockBlockObjectResponse>) {
+    return this.mapChildren(item);
   }
 
   private static table(
@@ -460,7 +529,7 @@ export class NotionConverter {
   private static toggle(item: ToggleBlockObjectResponse) {
     return {
       type: "paragraph",
-      content: item.toggle.rich_text.map(this.rich_text),
+      content: item.toggle.rich_text.map(this.rich_text).filter(Boolean),
     };
   }
 
@@ -473,7 +542,7 @@ export class NotionConverter {
       content: [
         {
           type: "paragraph",
-          content: item.to_do.rich_text.map(this.rich_text),
+          content: item.to_do.rich_text.map(this.rich_text).filter(Boolean),
         },
         ...this.mapChildren(item),
       ],
