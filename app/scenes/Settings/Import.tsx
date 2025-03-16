@@ -1,10 +1,13 @@
+import orderBy from "lodash/orderBy";
 import { observer } from "mobx-react";
 import { NewDocumentIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { Pagination } from "@shared/constants";
 import { FileOperationType } from "@shared/types";
 import { cdnPath } from "@shared/utils/urls";
 import FileOperation from "~/models/FileOperation";
+import ImportModel from "~/models/Import";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
 import MarkdownIcon from "~/components/Icons/MarkdownIcon";
@@ -16,23 +19,16 @@ import Text from "~/components/Text";
 import env from "~/env";
 import useStores from "~/hooks/useStores";
 import { Hook, PluginManager } from "~/utils/PluginManager";
-import FileOperationListItem from "./components/FileOperationListItem";
 import ImportJSONDialog from "./components/ImportJSONDialog";
+import { ImportListItem } from "./components/ImportListItem";
 import ImportMarkdownDialog from "./components/ImportMarkdownDialog";
 
-type Config = {
-  title: string;
-  subtitle: string;
-  icon: React.ReactElement;
-  action: React.ReactElement;
-};
-
-function Import() {
+function useImportsConfig() {
   const { t } = useTranslation();
-  const { dialogs, fileOperations } = useStores();
+  const { dialogs } = useStores();
   const appName = env.APP_NAME;
 
-  const configs = React.useMemo(() => {
+  return React.useMemo(() => {
     const items: Config[] = [
       {
         title: t("Markdown"),
@@ -98,6 +94,64 @@ function Import() {
 
     return items;
   }, [t, dialogs, appName]);
+}
+
+type Config = {
+  title: string;
+  subtitle: string;
+  icon: React.ReactElement;
+  action: React.ReactElement;
+};
+
+function Import() {
+  const { t } = useTranslation();
+  const { fileOperations, imports } = useStores();
+  const configs = useImportsConfig();
+  const appName = env.APP_NAME;
+
+  const [, setForceRender] = React.useState(0);
+  const offset = React.useMemo(() => ({ imports: 0, fileOperations: 0 }), []);
+
+  const fetchImports = React.useCallback(async () => {
+    const [importsArr, fileOpsArr] = await Promise.all([
+      imports.fetchPage({
+        offset: offset.imports,
+        limit: Pagination.defaultLimit,
+      }),
+      fileOperations.fetchPage({
+        type: FileOperationType.Import,
+        offset: offset.fileOperations,
+        limit: Pagination.defaultLimit,
+      }),
+    ]);
+
+    const pageImports = orderBy(
+      [...importsArr, ...fileOpsArr],
+      "createdAt",
+      "desc"
+    ).slice(0, Pagination.defaultLimit);
+
+    const apiImportsCount = pageImports.filter(
+      (item) => item instanceof ImportModel
+    ).length;
+
+    offset.imports += apiImportsCount;
+    offset.fileOperations += pageImports.length - apiImportsCount;
+
+    // needed to re-render after mobx store and offset is updated
+    setForceRender((s) => ++s);
+
+    return pageImports;
+  }, [imports, fileOperations, offset]);
+
+  const allImports = orderBy(
+    [
+      ...imports.orderedData,
+      ...fileOperations.filter({ type: FileOperationType.Import }),
+    ],
+    "createdAt",
+    "desc"
+  ).slice(0, offset.imports + offset.fileOperations);
 
   return (
     <Scene title={t("Import")} icon={<NewDocumentIcon />}>
@@ -125,18 +179,15 @@ function Import() {
       </div>
       <br />
       <PaginatedList
-        items={fileOperations.imports}
-        fetch={fileOperations.fetchPage}
-        options={{
-          type: FileOperationType.Import,
-        }}
+        items={allImports}
+        fetch={fetchImports}
         heading={
           <h2>
             <Trans>Recent imports</Trans>
           </h2>
         }
-        renderItem={(item: FileOperation) => (
-          <FileOperationListItem key={item.id} fileOperation={item} />
+        renderItem={(item: ImportModel | FileOperation) => (
+          <ImportListItem key={item.id} item={item} />
         )}
       />
     </Scene>

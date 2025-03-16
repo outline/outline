@@ -2,12 +2,9 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
+import { ImportInput } from "@shared/schema";
 import { s } from "@shared/styles";
-import {
-  CollectionPermission,
-  ImportData,
-  IntegrationService,
-} from "@shared/types";
+import { CollectionPermission, IntegrationService } from "@shared/types";
 import Button from "~/components/Button";
 import { Emoji } from "~/components/Emoji";
 import Flex from "~/components/Flex";
@@ -15,6 +12,7 @@ import InputSelectPermission from "~/components/InputSelectPermission";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useRequest from "~/hooks/useRequest";
+import useStores from "~/hooks/useStores";
 import { EmptySelectValue } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { Page } from "plugins/notion/shared/types";
@@ -30,6 +28,7 @@ type Props = {
 
 export function ImportDialog({ integrationId, onSubmit }: Props) {
   const { t } = useTranslation();
+  const { imports } = useStores();
   const [submitting, setSubmitting, resetSubmitting] = useBoolean();
   const [pagesWithPermission, setPagesWithPermission] =
     React.useState<PageWithPermission[]>();
@@ -64,19 +63,19 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
   const handleStartImport = React.useCallback(async () => {
     setSubmitting();
 
-    const data: ImportData = {
-      collection: pagesWithPermission!.map((page) => ({
+    const input: ImportInput<IntegrationService.Notion> =
+      pagesWithPermission!.map((page) => ({
+        type: page.type,
         externalId: page.id,
+        externalName: page.name,
         permission: page.permission,
-      })),
-    };
+      }));
 
     try {
-      await client.post("/imports.create", {
-        integrationId,
-        service: IntegrationService.Notion,
-        data,
-      });
+      await imports.create(
+        { service: IntegrationService.Notion },
+        { integrationId, input }
+      );
 
       toast.success(
         t("Your import is being processed, you can safely leave this page")
@@ -87,7 +86,7 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
       toast.error(err.message);
       resetSubmitting();
     }
-  }, [pagesWithPermission, onSubmit]);
+  }, [name, pagesWithPermission, onSubmit]);
 
   React.useEffect(() => {
     if (pages?.length) {
@@ -98,7 +97,7 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
   }, [pages]);
 
   if (error) {
-    toast.error("Error while fetching page info from Notion");
+    toast.error(t("Error fetching page info from Notion"));
     return <div>Error: {error}</div>;
   }
 

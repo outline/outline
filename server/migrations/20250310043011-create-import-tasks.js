@@ -5,20 +5,12 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.sequelize.transaction(async transaction => {
       await queryInterface.createTable(
-        "imports",
+        "import_tasks",
         {
           id: {
             type: Sequelize.UUID,
             allowNull: false,
             primaryKey: true,
-          },
-          name: {
-            type: Sequelize.STRING,
-            allowNull: false,
-          },
-          service: {
-            type: Sequelize.STRING,
-            allowNull: false,
           },
           state: {
             type: Sequelize.STRING,
@@ -28,30 +20,16 @@ module.exports = {
             type: Sequelize.JSONB,
             allowNull: false,
           },
-          pageCount: {
-            type: Sequelize.INTEGER,
-            allowNull: false,
-            defaultValue: 0,
+          output: {
+            type: Sequelize.JSONB,
+            allowNull: true,
           },
-          integrationId: {
+          importId: {
             type: Sequelize.UUID,
             allowNull: false,
+            onDelete: "cascade",
             references: {
-              model: "integrations",
-            },
-          },
-          createdById: {
-            type: Sequelize.UUID,
-            allowNull: false,
-            references: {
-              model: "users",
-            },
-          },
-          teamId: {
-            type: Sequelize.UUID,
-            allowNull: false,
-            references: {
-              model: "teams",
+              model: "imports",
             },
           },
           createdAt: {
@@ -62,22 +40,28 @@ module.exports = {
             type: Sequelize.DATE,
             allowNull: false,
           },
-          deletedAt: {
-            type: Sequelize.DATE,
-            allowNull: true,
-          },
         },
         { transaction }
       );
 
-      await queryInterface.addIndex("imports", ["service"], { transaction });
+      await queryInterface.addIndex("import_tasks", ["importId"], {
+        transaction,
+      });
+      await queryInterface.addIndex("import_tasks", ["state", "importId"], {
+        transaction,
+      });
     });
   },
 
   async down(queryInterface, Sequelize) {
     await queryInterface.sequelize.transaction(async transaction => {
-      await queryInterface.removeIndex("imports", ["service"], { transaction });
-      await queryInterface.dropTable("imports", { transaction });
+      await queryInterface.removeIndex("import_tasks", ["importId"], {
+        transaction,
+      });
+      await queryInterface.removeIndex("import_tasks", ["state", "importId"], {
+        transaction,
+      });
+      await queryInterface.dropTable("import_tasks", { transaction });
     });
   },
 };

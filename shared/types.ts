@@ -62,9 +62,12 @@ export enum ImportState {
   Errored = "errored",
 }
 
-export type ImportData = {
-  collection: { externalId: string; permission?: CollectionPermission }[];
-};
+export enum ImportTaskState {
+  Created = "created",
+  InProgress = "in_progress",
+  Completed = "completed",
+  Errored = "errored",
+}
 
 export enum MentionType {
   User = "user",
@@ -98,6 +101,7 @@ export enum IntegrationType {
   Analytics = "analytics",
   /** An integration that maps an Outline user to an external service. */
   LinkedAccount = "linkedAccount",
+  /** An integration that imports documents into Outline. */
   Import = "import",
 }
 
@@ -111,6 +115,15 @@ export enum IntegrationService {
   GitHub = "github",
   Notion = "notion",
 }
+
+export type ImportableIntegrationService = Extract<
+  IntegrationService,
+  IntegrationService.Notion
+>;
+
+export const ImportableIntegrationService = {
+  Notion: IntegrationService.Notion,
+} as const;
 
 export type UserCreatableIntegrationService = Extract<
   IntegrationService,
