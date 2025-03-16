@@ -185,39 +185,46 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     [updateComments]
   );
 
-  const paragraphs =
-    props.readOnly && typeof props.value === "object"
-      ? ProsemirrorHelper.getPlainParagrahs(props.value)
-      : undefined;
-
-  console.log({ paragraphs });
-
-  if (paragraphs) {
-    return (
-      <EditorContainer>
-        {paragraphs.map((paragraph, index) => (
-          <p key={index}>{paragraph.content.map((content) => content.text)}</p>
-        ))}
-      </EditorContainer>
-    );
-  }
+  const paragraphs = React.useMemo(() => {
+    if (props.readOnly && typeof props.value === "object") {
+      return ProsemirrorHelper.getPlainParagrahs(props.value);
+    }
+    return undefined;
+  }, [props.readOnly, props.value]);
 
   return (
     <ErrorBoundary component="div" reloadOnChunkMissing>
       <>
-        <LazyLoadedEditor
-          key={props.extensions?.length || 0}
-          ref={mergeRefs([ref, localRef, handleRefChanged])}
-          uploadFile={handleUploadFile}
-          embeds={embeds}
-          userPreferences={preferences}
-          dictionary={dictionary}
-          {...props}
-          onClickLink={handleClickLink}
-          onChange={handleChange}
-          placeholder={props.placeholder || ""}
-          defaultValue={props.defaultValue || ""}
-        />
+        {paragraphs ? (
+          <EditorContainer
+            rtl={props.dir === "rtl"}
+            grow={props.grow}
+            style={props.style}
+            editorStyle={props.editorStyle}
+          >
+            <div className="ProseMirror">
+              {paragraphs.map((paragraph, index) => (
+                <p key={index} dir="auto">
+                  {paragraph.content.map((content) => content.text)}
+                </p>
+              ))}
+            </div>
+          </EditorContainer>
+        ) : (
+          <LazyLoadedEditor
+            key={props.extensions?.length || 0}
+            ref={mergeRefs([ref, localRef, handleRefChanged])}
+            uploadFile={handleUploadFile}
+            embeds={embeds}
+            userPreferences={preferences}
+            dictionary={dictionary}
+            {...props}
+            onClickLink={handleClickLink}
+            onChange={handleChange}
+            placeholder={props.placeholder || ""}
+            defaultValue={props.defaultValue || ""}
+          />
+        )}
         {props.editorStyle?.paddingBottom && !props.readOnly && (
           <ClickablePadding
             onClick={props.readOnly ? undefined : focusAtEnd}

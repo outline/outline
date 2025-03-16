@@ -359,7 +359,10 @@ export class ProsemirrorHelper {
     for (const node of data.content) {
       if (
         node.type === "paragraph" &&
-        !node.content.some((item) => item.marks)
+        !node.content.some(
+          (item) =>
+            item.type !== "text" || (item.marks && item.marks.length > 0)
+        )
       ) {
         paragraphs.push(node);
       } else {
