@@ -3,6 +3,7 @@ import truncate from "lodash/truncate";
 import { WhereOptions } from "sequelize";
 import { ImportState, UserRole } from "@shared/types";
 import { ImportValidation } from "@shared/validations";
+import { UnprocessableEntityError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
@@ -25,6 +26,21 @@ router.post(
     const { user } = ctx.state.auth;
 
     authorize(user, "createImport", user.team);
+
+    const pendingImport = await Import.findOne({
+      where: {
+        state: [
+          ImportState.Created,
+          ImportState.InProgress,
+          ImportState.Processed,
+        ],
+        teamId: user.teamId,
+      },
+    });
+
+    if (pendingImport) {
+      throw UnprocessableEntityError("An import is already in progress");
+    }
 
     const name = input.map((item) => item.externalName).join(", ");
 

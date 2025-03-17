@@ -50,6 +50,9 @@ module.exports = {
       await queryInterface.addIndex("import_tasks", ["state", "importId"], {
         transaction,
       });
+      await queryInterface.addIndex("import_tasks", ["state", "teamId"], {
+        transaction,
+      });
     });
   },
 
@@ -59,6 +62,9 @@ module.exports = {
         transaction,
       });
       await queryInterface.removeIndex("import_tasks", ["state", "importId"], {
+        transaction,
+      });
+      await queryInterface.removeIndex("import_tasks", ["state", "teamId"], {
         transaction,
       });
       await queryInterface.dropTable("import_tasks", { transaction });

@@ -17,7 +17,7 @@ export default class ErrorTimedOutImportsTask extends BaseTask<Props> {
     // TODO: Hardcoded right now, configurable later
     const thresholdHours = 12;
     const cutOffTime = subHours(new Date(), thresholdHours);
-    let totalImportsErrored = 0;
+    const importsErrored: Record<string, boolean> = {};
 
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -50,15 +50,19 @@ export default class ErrorTimedOutImportsTask extends BaseTask<Props> {
               await importTask.save({ transaction });
 
               const associatedImport = importTask.import;
-              associatedImport.state = ImportState.Errored;
-              await associatedImport.save({ transaction });
+              // this import could have been seen before in another import_task.
+              if (!importsErrored[associatedImport.id]) {
+                associatedImport.state = ImportState.Errored;
+                await associatedImport.save({ transaction });
+                importsErrored[associatedImport.id] = true;
+              }
             });
-
-            totalImportsErrored++;
           }
         }
       );
     } finally {
+      const totalImportsErrored = Object.keys(importsErrored).length;
+
       if (totalImportsErrored > 0) {
         Logger.info(
           "task",
