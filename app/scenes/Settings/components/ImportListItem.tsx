@@ -6,7 +6,6 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useTheme } from "styled-components";
 import { ImportState } from "@shared/types";
-import FileOperation from "~/models/FileOperation";
 import Import from "~/models/Import";
 import { Action } from "~/components/Actions";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
@@ -15,20 +14,25 @@ import Spinner from "~/components/Spinner";
 import Time from "~/components/Time";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
+import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
 import ImportMenu from "~/menus/ImportMenu";
-import FileOperationListItem from "./FileOperationListItem";
 
 type Props = {
-  item: Import | FileOperation;
+  importModel: Import;
 };
 
-export const ImportListItem = observer(({ item }: Props) => {
+export const ImportListItem = observer(({ importModel }: Props) => {
   const { t } = useTranslation();
   const { dialogs, imports } = useStores();
   const user = useCurrentUser();
   const theme = useTheme();
-  const can = usePolicy(item);
+  const prevState = usePrevious(importModel.state);
+  const can = usePolicy(importModel, {
+    force:
+      prevState !== ImportState.Completed &&
+      importModel.state === ImportState.Completed,
+  });
 
   const stateMap = React.useMemo(
     () => ({
@@ -55,7 +59,7 @@ export const ImportListItem = observer(({ item }: Props) => {
   const handleDelete = React.useCallback(async () => {
     const onDelete = async () => {
       try {
-        await imports.delete(item as Import);
+        await imports.delete(importModel);
         toast.success(t("Import deleted"));
       } catch (err) {
         toast.error(err.message);
@@ -76,31 +80,29 @@ export const ImportListItem = observer(({ item }: Props) => {
         </ConfirmationDialog>
       ),
     });
-  }, [dialogs, imports, t, item]);
-
-  if (item instanceof FileOperation) {
-    return <FileOperationListItem fileOperation={item} />;
-  }
+  }, [dialogs, imports, t, importModel]);
 
   return (
     <ListItem
-      title={item.name}
-      image={iconMap[item.state]}
+      title={importModel.name}
+      image={iconMap[importModel.state]}
       subtitle={
         <>
-          {stateMap[item.state]}&nbsp;•&nbsp;
+          {stateMap[importModel.state]}&nbsp;•&nbsp;
           {t(`{{userName}} requested`, {
             userName:
-              user.id === item.createdBy.id ? t("You") : item.createdBy.name,
+              user.id === importModel.createdBy.id
+                ? t("You")
+                : importModel.createdBy.name,
           })}
           &nbsp;
-          <Time dateTime={item.createdAt} addSuffix shorten />
+          <Time dateTime={importModel.createdAt} addSuffix shorten />
           &nbsp;•&nbsp;
-          {capitalize(item.service)}
-          {item.state !== ImportState.Errored && (
+          {capitalize(importModel.service)}
+          {importModel.state !== ImportState.Errored && (
             <>
               &nbsp;•&nbsp;
-              {t("{{ count }} pages imported", { count: item.pageCount })}
+              {t("{{ count }} page imported", { count: importModel.pageCount })}
             </>
           )}
         </>
@@ -108,7 +110,7 @@ export const ImportListItem = observer(({ item }: Props) => {
       actions={
         can.delete && (
           <Action>
-            <ImportMenu importModel={item} onDelete={handleDelete} />
+            <ImportMenu importModel={importModel} onDelete={handleDelete} />
           </Action>
         )
       }

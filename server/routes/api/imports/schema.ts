@@ -6,6 +6,11 @@ import {
 } from "@shared/types";
 import { BaseSchema } from "../schema";
 
+const BaseIdSchema = z.object({
+  /** Id of the import */
+  id: z.string().uuid(),
+});
+
 const ImportsSortParamsSchema = z.object({
   /** Specifies the attributes by which imports will be sorted in the list. */
   sort: z
@@ -45,11 +50,14 @@ export const ImportsListSchema = BaseSchema.extend({
 
 export type ImportsListReq = z.infer<typeof ImportsListSchema>;
 
+export const ImportsInfoSchema = BaseSchema.extend({
+  body: BaseIdSchema,
+});
+
+export type ImportsInfoReq = z.infer<typeof ImportsInfoSchema>;
+
 export const ImportsDeleteSchema = BaseSchema.extend({
-  body: z.object({
-    /** Id of the import to delete */
-    id: z.string().uuid(),
-  }),
+  body: BaseIdSchema,
 });
 
 export type ImportsDeleteReq = z.infer<typeof ImportsDeleteSchema>;

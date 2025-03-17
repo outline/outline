@@ -17,8 +17,10 @@ class Import extends Model {
   @observable
   pageCount: number;
 
-  @Relation(() => User)
+  @Relation(() => User, {})
   createdBy: User;
+
+  createdById: string;
 }
 
 export default Import;

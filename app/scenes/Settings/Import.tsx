@@ -19,6 +19,7 @@ import Text from "~/components/Text";
 import env from "~/env";
 import useStores from "~/hooks/useStores";
 import { Hook, PluginManager } from "~/utils/PluginManager";
+import FileOperationListItem from "./components/FileOperationListItem";
 import ImportJSONDialog from "./components/ImportJSONDialog";
 import { ImportListItem } from "./components/ImportListItem";
 import ImportMarkdownDialog from "./components/ImportMarkdownDialog";
@@ -186,9 +187,13 @@ function Import() {
             <Trans>Recent imports</Trans>
           </h2>
         }
-        renderItem={(item: ImportModel | FileOperation) => (
-          <ImportListItem key={item.id} item={item} />
-        )}
+        renderItem={(item: ImportModel | FileOperation) =>
+          item instanceof ImportModel ? (
+            <ImportListItem key={item.id} importModel={item} />
+          ) : (
+            <FileOperationListItem fileOperation={item} />
+          )
+        }
       />
     </Scene>
   );

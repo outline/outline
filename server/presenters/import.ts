@@ -12,6 +12,7 @@ export default function presentImport(
     state: importModel.state,
     pageCount: importModel.pageCount,
     createdBy: presentUser(importModel.createdBy),
+    createdById: importModel.createdById,
     createdAt: importModel.createdAt,
     updatedAt: importModel.updatedAt,
   };

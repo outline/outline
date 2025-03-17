@@ -7,7 +7,7 @@ allow(User, ["createImport", "readImport"], Team, (actor, team) =>
   and(isTeamAdmin(actor, team), isTeamMutable(actor))
 );
 
-allow(User, "delete", Import, (actor, importModel) =>
+allow(User, ["read", "delete"], Import, (actor, importModel) =>
   and(
     isTeamAdmin(actor, importModel),
     isTeamMutable(actor),

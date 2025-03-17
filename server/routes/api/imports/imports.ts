@@ -87,6 +87,30 @@ router.post(
 );
 
 router.post(
+  "imports.info",
+  auth({ role: UserRole.Admin }),
+  validate(T.ImportsInfoSchema),
+  transaction(),
+  async (ctx: APIContext<T.ImportsInfoReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    const importModel = await Import.findByPk(id, {
+      rejectOnEmpty: true,
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+    authorize(user, "read", importModel);
+
+    ctx.body = {
+      data: presentImport(importModel),
+      policies: presentPolicies(user, [importModel]),
+    };
+  }
+);
+
+router.post(
   "imports.delete",
   auth({ role: UserRole.Admin }),
   validate(T.ImportsDeleteSchema),
