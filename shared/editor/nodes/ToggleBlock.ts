@@ -1,3 +1,4 @@
+import isEmpty from "lodash/isEmpty";
 import isNil from "lodash/isNil";
 import { wrapIn } from "prosemirror-commands";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
@@ -53,7 +54,7 @@ export default class ToggleBlock extends Node {
           return DecorationSet.empty;
         },
         apply: (tr, value) => {
-          let decoToRestore;
+          const decosToRestore: Decoration[] = [];
           value = value.map(tr.mapping, tr.doc, {
             onRemove: (decorationSpec) => {
               if (
@@ -70,23 +71,22 @@ export default class ToggleBlock extends Node {
                   if (decorationSpec.target === this.name) {
                     const start = toggleBlock.pos;
                     const end = toggleBlock.pos + toggleBlock.node.nodeSize;
-                    decoToRestore = Decoration.node(
-                      start,
-                      end,
-                      {},
-                      decorationSpec
+                    decosToRestore.push(
+                      Decoration.node(start, end, {}, decorationSpec)
                     );
                   } else {
                     const start = toggleBlock.pos + 1;
                     const end = start + toggleBlock.node.firstChild!.nodeSize;
-                    decoToRestore = Decoration.node(
-                      start,
-                      end,
-                      {
-                        nodeName: "div",
-                        class: "toggle-block-head",
-                      },
-                      decorationSpec
+                    decosToRestore.push(
+                      Decoration.node(
+                        start,
+                        end,
+                        {
+                          nodeName: "div",
+                          class: "toggle-block-head",
+                        },
+                        decorationSpec
+                      )
                     );
                   }
                 } else {
@@ -97,8 +97,8 @@ export default class ToggleBlock extends Node {
             },
           });
 
-          if (!isNil(decoToRestore)) {
-            value = value.add(tr.doc, [decoToRestore]);
+          if (!isEmpty(decosToRestore)) {
+            value = value.add(tr.doc, decosToRestore);
           }
 
           const action = tr.getMeta(ToggleBlock.pluginKey);
