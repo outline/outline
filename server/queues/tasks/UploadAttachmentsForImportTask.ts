@@ -1,6 +1,7 @@
+import { Sema } from "async-sema";
+import Logger from "@server/logging/Logger";
 import { Attachment } from "@server/models";
 import FileStorage from "@server/storage/files";
-import { Sema } from "async-sema";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 const ConcurrentUploads = 5;
@@ -50,7 +51,7 @@ export default class UploadAttachmentsForImportTask extends BaseTask<Item[]> {
           });
         }
       } catch (err) {
-        console.log("upload error", err);
+        Logger.error("error uploading attachments for import", err);
       } finally {
         sema.release();
       }

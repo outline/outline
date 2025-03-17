@@ -1,5 +1,5 @@
-import { ImportableIntegrationService, ImportState } from "@shared/types";
 import { observable } from "mobx";
+import { ImportableIntegrationService, ImportState } from "@shared/types";
 import User from "./User";
 import Model from "./base/Model";
 import Relation from "./decorators/Relation";

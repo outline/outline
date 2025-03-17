@@ -1,5 +1,5 @@
-import { User, Team, Import } from "@server/models";
 import { ImportState } from "@shared/types";
+import { User, Team, Import } from "@server/models";
 import { allow } from "./cancan";
 import { and, isTeamAdmin, isTeamMutable } from "./utils";
 

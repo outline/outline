@@ -1,4 +1,3 @@
-import { ImportState } from "@shared/types";
 import capitalize from "lodash/capitalize";
 import { observer } from "mobx-react";
 import { DoneIcon, WarningIcon } from "outline-icons";
@@ -6,6 +5,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useTheme } from "styled-components";
+import { ImportState } from "@shared/types";
 import FileOperation from "~/models/FileOperation";
 import Import from "~/models/Import";
 import { Action } from "~/components/Actions";
@@ -55,7 +55,7 @@ export const ImportListItem = observer(({ item }: Props) => {
   const handleDelete = React.useCallback(async () => {
     const onDelete = async () => {
       try {
-        await imports.delete(item);
+        await imports.delete(item as Import);
         toast.success(t("Import deleted"));
       } catch (err) {
         toast.error(err.message);

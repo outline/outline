@@ -6,7 +6,6 @@ import {
   DataType,
   ForeignKey,
   IsIn,
-  Scopes,
   Table,
 } from "sequelize-typescript";
 import { type ImportTaskInput, ImportTaskOutput } from "@shared/schema";
