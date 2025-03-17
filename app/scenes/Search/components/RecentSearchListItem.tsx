@@ -27,7 +27,7 @@ function RecentSearchListItem({ searchQuery }: Props) {
 
   return (
     <RecentSearch
-      to={searchPath(searchQuery.query)}
+      to={searchPath({ query: searchQuery.query })}
       ref={ref}
       {...rovingTabIndex}
     >

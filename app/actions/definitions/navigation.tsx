@@ -50,7 +50,7 @@ export const navigateToRecentSearchQuery = (searchQuery: SearchQuery) =>
     name: searchQuery.query,
     analyticsName: "Navigate to recent search query",
     icon: <SearchIcon />,
-    perform: () => history.push(searchPath(searchQuery.query)),
+    perform: () => history.push(searchPath({ query: searchQuery.query })),
   });
 
 export const navigateToDrafts = createAction({
@@ -60,6 +60,15 @@ export const navigateToDrafts = createAction({
   icon: <DraftsIcon />,
   perform: () => history.push(draftsPath()),
   visible: ({ location }) => location.pathname !== draftsPath(),
+});
+
+export const navigateToSearch = createAction({
+  name: ({ t }) => t("Search"),
+  analyticsName: "Navigate to search",
+  section: NavigationSection,
+  icon: <SearchIcon />,
+  perform: () => history.push(searchPath()),
+  visible: ({ location }) => location.pathname !== searchPath(),
 });
 
 export const navigateToArchive = createAction({
