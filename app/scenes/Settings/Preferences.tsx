@@ -127,7 +127,7 @@ function Preferences() {
       >
         <InputSelectNew
           options={themeOptions}
-          value={ui.resolvedTheme}
+          value={ui.theme}
           onChange={handleThemeChange}
           ariaLabel={t("Appearance")}
           label={t("Appearance")}
