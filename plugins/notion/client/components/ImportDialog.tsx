@@ -86,7 +86,7 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
       toast.error(err.message);
       resetSubmitting();
     }
-  }, [name, pagesWithPermission, onSubmit]);
+  }, [pagesWithPermission, onSubmit]);
 
   React.useEffect(() => {
     if (pages?.length) {
