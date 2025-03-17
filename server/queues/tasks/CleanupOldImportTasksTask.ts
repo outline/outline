@@ -11,6 +11,7 @@ export default class CleanupOldImportTasksTask extends BaseTask<Props> {
   static cron = TaskSchedule.Day;
 
   public async perform() {
+    // TODO: Hardcoded right now, configurable later
     const retentionDays = 1;
     const cutoffDate = subDays(new Date(), retentionDays);
     const maxEventsPerTask = 100000;
@@ -27,12 +28,12 @@ export default class CleanupOldImportTasksTask extends BaseTask<Props> {
               [Op.lt]: cutoffDate,
             },
           },
-          batchLimit: 1000,
-          totalLimit: maxEventsPerTask,
           order: [
             ["createdAt", "ASC"],
             ["id", "ASC"],
           ],
+          batchLimit: 1000,
+          totalLimit: maxEventsPerTask,
         },
         async (importTasks) => {
           totalTasksDeleted += await ImportTask.destroy({

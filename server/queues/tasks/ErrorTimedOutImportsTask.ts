@@ -1,0 +1,77 @@
+import { subHours } from "date-fns";
+import { Op } from "sequelize";
+import { ImportState, ImportTaskState } from "@shared/types";
+import Logger from "@server/logging/Logger";
+import { Import, ImportTask } from "@server/models";
+import { sequelize } from "@server/storage/database";
+import BaseTask, { TaskPriority, TaskSchedule } from "./BaseTask";
+
+type Props = {
+  limit: number;
+};
+
+export default class ErrorTimedOutImportsTask extends BaseTask<Props> {
+  static cron = TaskSchedule.Hour;
+
+  public async perform({ limit }: Props) {
+    // TODO: Hardcoded right now, configurable later
+    const thresholdHours = 12;
+    const cutOffTime = subHours(new Date(), thresholdHours);
+    let totalImportsErrored = 0;
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await ImportTask.findAllInBatches<ImportTask<any>>(
+        {
+          where: {
+            state: [ImportTaskState.Created, ImportTaskState.InProgress],
+            createdAt: {
+              [Op.lt]: cutOffTime,
+            },
+          },
+          include: [
+            {
+              model: Import.unscoped(),
+              as: "import",
+              required: true,
+            },
+          ],
+          order: [
+            ["createdAt", "ASC"],
+            ["id", "ASC"],
+          ],
+          batchLimit: 1000,
+          totalLimit: limit,
+        },
+        async (importTasks) => {
+          for (const importTask of importTasks) {
+            await sequelize.transaction(async (transaction) => {
+              importTask.state = ImportTaskState.Errored;
+              await importTask.save({ transaction });
+
+              const associatedImport = importTask.import;
+              associatedImport.state = ImportState.Errored;
+              await associatedImport.save({ transaction });
+            });
+
+            totalImportsErrored++;
+          }
+        }
+      );
+    } finally {
+      if (totalImportsErrored > 0) {
+        Logger.info(
+          "task",
+          `Updated ${totalImportsErrored} imports to error status`
+        );
+      }
+    }
+  }
+
+  public get options() {
+    return {
+      attempts: 1,
+      priority: TaskPriority.Background,
+    };
+  }
+}
