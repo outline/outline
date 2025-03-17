@@ -26,7 +26,7 @@ export async function collectionIndexing(
   for (const collection of sortable) {
     if (collection.index === null) {
       collection.index = fractionalIndex(previousIndex, null);
-      promises.push(collection.save({ transaction }));
+      promises.push(collection.save({ fields: ["index"], transaction })); // save only index to prevent overwriting other unfetched fields.
     }
 
     previousIndex = collection.index;

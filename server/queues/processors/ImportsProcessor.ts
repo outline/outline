@@ -1,3 +1,4 @@
+import fractionalIndex from "fractional-index";
 import chunk from "lodash/chunk";
 import keyBy from "lodash/keyBy";
 import truncate from "lodash/truncate";
@@ -206,6 +207,16 @@ export default abstract class ImportsProcessor<
     const importInput = keyBy(importModel.input, "externalId");
     const ctx = createContext({ user: importModel.createdBy, transaction });
 
+    const firstCollection = await Collection.findFirstCollectionForUser(
+      importModel.createdBy,
+      {
+        attributes: ["index"],
+        transaction,
+      }
+    );
+
+    let collectionIdx = firstCollection?.index ?? null;
+
     await ImportTask.findAllInBatches<ImportTask<T>>(
       {
         where: { importId: importModel.id },
@@ -253,6 +264,9 @@ export default abstract class ImportsProcessor<
             });
 
             if (collectionItem) {
+              // imported collection will be placed in the beginning.
+              collectionIdx = fractionalIndex(null, collectionIdx);
+
               const description = DocumentHelper.toMarkdown(
                 transformedContent,
                 {
@@ -274,6 +288,7 @@ export default abstract class ImportsProcessor<
                   createdById: importModel.createdById,
                   teamId: importModel.createdBy.teamId,
                   apiImportId: importModel.id,
+                  index: collectionIdx,
                   sort: Collection.DEFAULT_SORT,
                   permission: collectionItem.permission,
                   createdAt: now,
