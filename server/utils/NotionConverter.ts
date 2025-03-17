@@ -26,6 +26,7 @@ import type {
   ColumnBlockObjectResponse,
   LinkPreviewBlockObjectResponse,
   SyncedBlockBlockObjectResponse,
+  LinkToPageBlockObjectResponse,
 } from "@notionhq/client/build/src/api-endpoints";
 import isArray from "lodash/isArray";
 import { NoticeTypes } from "@shared/editor/nodes/Notice";
@@ -42,7 +43,6 @@ export class NotionConverter {
   // TODO: Implement the following blocks:
   // - "child_database"
   // - "child_page"
-  // - "link_to_page"
 
   /**
    * Nodes which cannot contain block children in Outline, their children
@@ -467,6 +467,20 @@ export class NotionConverter {
           ],
         },
       ],
+    };
+  }
+
+  private static link_to_page(item: LinkToPageBlockObjectResponse) {
+    if (item.link_to_page.type !== "page_id") {
+      return undefined;
+    }
+    return {
+      type: "mention",
+      attrs: {
+        modelId: item.link_to_page.page_id,
+        type: MentionType.Document,
+        label: "Page",
+      },
     };
   }
 
