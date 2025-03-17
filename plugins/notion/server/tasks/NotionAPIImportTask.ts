@@ -37,6 +37,7 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
       title: parsedPage.title,
       emoji: parsedPage.emoji,
       content: parsedPage.content,
+      author: parsedPage.author,
     }));
 
     const childTasksInput: ImportTaskInput<IntegrationService.Notion> =
@@ -73,6 +74,7 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
       const {
         title: databaseTitle,
         emoji: databaseEmoji,
+        author: databaseAuthor,
         pages,
       } = await client.fetchDatabase(item.externalId);
 
@@ -80,6 +82,7 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
         externalId: item.externalId,
         title: databaseTitle,
         emoji: databaseEmoji,
+        author: databaseAuthor,
         content: ProsemirrorHelper.getEmptyDocument() as ProsemirrorDoc,
         collectionExternalId,
         children: pages.map((page) => ({
@@ -92,6 +95,7 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
     const {
       title: pageTitle,
       emoji: pageEmoji,
+      author: pageAuthor,
       blocks,
     } = await client.fetchPage(item.externalId);
 
@@ -99,6 +103,7 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
       externalId: item.externalId,
       title: pageTitle,
       emoji: pageEmoji,
+      author: pageAuthor,
       content: NotionConverter.page({ children: blocks } as NotionPage),
       collectionExternalId,
       children: this.parseChildPages(blocks),

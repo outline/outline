@@ -326,6 +326,11 @@ export default abstract class ImportsProcessor<
                 lastModifiedById: importModel.createdById,
                 teamId: importModel.createdBy.teamId,
                 apiImportId: importModel.id,
+                sourceMetadata: {
+                  externalId,
+                  externalName: output.title,
+                  createdByName: output.author,
+                },
                 createdAt: now,
                 updatedAt: now,
                 publishedAt: now,

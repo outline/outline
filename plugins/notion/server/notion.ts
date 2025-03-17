@@ -2,6 +2,7 @@ import {
   Client,
   isFullPage,
   isFullPageOrDatabase,
+  isFullUser,
   iteratePaginatedAPI,
 } from "@notionhq/client";
 import {
@@ -60,15 +61,15 @@ export class NotionClient {
   }
 
   async fetchPage(pageId: string) {
-    const { title, emoji } = await this.fetchPageInfo(pageId);
+    const { title, emoji, author } = await this.fetchPageInfo(pageId);
     const blocks = await this.fetchBlockChildren(pageId);
-    return { title, emoji, blocks };
+    return { title, emoji, author, blocks };
   }
 
   async fetchDatabase(databaseId: string) {
-    const { title, emoji } = await this.fetchDatabaseInfo(databaseId);
+    const { title, emoji, author } = await this.fetchDatabaseInfo(databaseId);
     const pages = await this.queryDatabase(databaseId);
-    return { title, emoji, pages };
+    return { title, emoji, author, pages };
   }
 
   private async fetchBlockChildren(blockId: string) {
@@ -162,31 +163,56 @@ export class NotionClient {
   private async fetchPageInfo(pageId: string): Promise<{
     title: string;
     emoji?: string;
+    author?: string;
   }> {
     await this.limiter();
     const page = (await this.client.pages.retrieve({
       page_id: pageId,
     })) as PageObjectResponse;
 
+    const author = await this.fetchUsername(page.created_by.id);
+
     return {
       title: this.parseTitle(page),
       emoji: this.parseEmoji(page),
+      author: author ?? undefined,
     };
   }
 
   private async fetchDatabaseInfo(databaseId: string): Promise<{
     title: string;
     emoji?: string;
+    author?: string;
   }> {
     await this.limiter();
     const database = (await this.client.databases.retrieve({
       database_id: databaseId,
     })) as DatabaseObjectResponse;
 
+    const author = await this.fetchUsername(database.created_by.id);
+
     return {
       title: this.parseTitle(database),
       emoji: this.parseEmoji(database),
+      author: author ?? undefined,
     };
+  }
+
+  private async fetchUsername(userId: string) {
+    await this.limiter();
+    const user = await this.client.users.retrieve({ user_id: userId });
+
+    if (user.type === "person") {
+      return user.name;
+    }
+
+    // bot belongs to a user, get the user's name.
+    if (user.bot.owner.type === "user" && isFullUser(user.bot.owner.user)) {
+      return user.bot.owner.user.name;
+    }
+
+    // bot belongs to a workspace, fallback to bot's name.
+    return user.name;
   }
 
   private parseTitle(item: PageObjectResponse | DatabaseObjectResponse) {

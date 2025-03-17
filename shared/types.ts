@@ -215,6 +215,8 @@ export type SourceMetadata = {
   createdByName?: string;
   /** An ID in the external source. */
   externalId?: string;
+  /** Original name in the external source. */
+  externalName?: string;
   /** Whether the item was created through a trial license. */
   trial?: boolean;
 };

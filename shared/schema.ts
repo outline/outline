@@ -53,5 +53,6 @@ export type ImportTaskOutput = {
   externalId: string;
   title: string;
   emoji?: string;
+  author?: string;
   content: ProsemirrorDoc;
 }[];
