@@ -24,6 +24,13 @@ import ImportJSONDialog from "./components/ImportJSONDialog";
 import { ImportListItem } from "./components/ImportListItem";
 import ImportMarkdownDialog from "./components/ImportMarkdownDialog";
 
+type Config = {
+  title: string;
+  subtitle: string;
+  icon: React.ReactElement;
+  action: React.ReactElement;
+};
+
 function useImportsConfig() {
   const { t } = useTranslation();
   const { dialogs } = useStores();
@@ -96,13 +103,6 @@ function useImportsConfig() {
     return items;
   }, [t, dialogs, appName]);
 }
-
-type Config = {
-  title: string;
-  subtitle: string;
-  icon: React.ReactElement;
-  action: React.ReactElement;
-};
 
 function Import() {
   const { t } = useTranslation();
@@ -191,7 +191,7 @@ function Import() {
           item instanceof ImportModel ? (
             <ImportListItem key={item.id} importModel={item} />
           ) : (
-            <FileOperationListItem fileOperation={item} />
+            <FileOperationListItem key={item.id} fileOperation={item} />
           )
         }
       />
