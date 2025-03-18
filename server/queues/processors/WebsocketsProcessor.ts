@@ -828,6 +828,12 @@ export default class WebsocketsProcessor {
           .emit(event.name, { id: event.userId });
       }
 
+      case "users.delete": {
+        return socketio
+          .to(`team-${event.teamId}`)
+          .emit(event.name, { modelId: event.userId });
+      }
+
       case "userMemberships.update": {
         return socketio
           .to(`user-${event.userId}`)
