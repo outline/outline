@@ -74,12 +74,11 @@ router.post(
     authorize(user, "listImports", user.team);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: WhereOptions<Import<any>> = service
-      ? {
-          service,
-          teamId: user.teamId,
-        }
-      : {};
+    const where: WhereOptions<Import<any>> = { teamId: user.teamId };
+
+    if (service) {
+      where.service = service;
+    }
 
     const [imports, total] = await Promise.all([
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
