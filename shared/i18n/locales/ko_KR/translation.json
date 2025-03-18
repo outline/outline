@@ -999,7 +999,7 @@
   "When enabled, documents have a separate editing mode. When disabled, documents are always editable when you have permission.": "이 기능을 활성화하면, 문서에서 분할 편집 모드를 사용할 수 있습니다. 활성화하지 않으면 권한이 있을 경우에만 문서를 편집할 수 있습니다.",
   "Remember previous location": "이전 위치 기억",
   "Automatically return to the document you were last viewing when the app is re-opened.": "앱이 다시 열렸을때 마지막으로 보고 있던 문서로 돌아갑니다.",
-  "Smart text replacements": "스마트 텍스트 교체",
+  "Smart text replacements": "스마트 텍스트 대체",
   "Auto-format text by replacing shortcuts with symbols, dashes, smart quotes, and other typographical elements.": "단축키를 기호, 대시, 스마트 따옴표 및 기타 타이포그래픽 요소로 교체하여 텍스트를 자동으로 형식화합니다.",
   "You may delete your account at any time, note that this is unrecoverable": "계정을 언제든지 삭제할 수 있지만 다시 복구할 수 없습니다",
   "Profile saved": "프로필이 저장되었습니다",
