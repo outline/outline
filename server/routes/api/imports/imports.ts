@@ -27,7 +27,7 @@ router.post(
 
     authorize(user, "createImport", user.team);
 
-    const pendingImport = await Import.findOne({
+    const importInProgress = await Import.count({
       where: {
         state: [
           ImportState.Created,
@@ -38,7 +38,7 @@ router.post(
       },
     });
 
-    if (pendingImport) {
+    if (importInProgress) {
       throw UnprocessableEntityError("An import is already in progress");
     }
 
@@ -77,6 +77,7 @@ router.post(
     const where: WhereOptions<Import<any>> = service
       ? {
           service,
+          teamId: user.teamId,
         }
       : {};
 
@@ -106,16 +107,12 @@ router.post(
   "imports.info",
   auth({ role: UserRole.Admin }),
   validate(T.ImportsInfoSchema),
-  transaction(),
   async (ctx: APIContext<T.ImportsInfoReq>) => {
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
 
     const importModel = await Import.findByPk(id, {
       rejectOnEmpty: true,
-      transaction,
-      lock: transaction.LOCK.UPDATE,
     });
     authorize(user, "read", importModel);
 

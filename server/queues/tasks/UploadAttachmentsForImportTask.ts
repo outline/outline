@@ -30,7 +30,6 @@ export default class UploadAttachmentsForImportTask extends BaseTask<Item[]> {
 
         const attachment = await Attachment.findByPk(item.attachmentId, {
           rejectOnEmpty: true,
-          include: [{ association: "user" }],
         });
 
         // This means the attachment has already been uploaded.
