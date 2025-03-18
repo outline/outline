@@ -119,36 +119,35 @@ export default abstract class ImportsProcessor<
   }
 
   private async onProcessed(importModel: Import<T>, transaction: Transaction) {
-    const { collectionIds } = await this.createCollectionsAndDocuments({
+    const { collections } = await this.createCollectionsAndDocuments({
       importModel,
       transaction,
     });
 
     // Once all collections and documents are created, update collection's document structure.
     // This ensures the root documents have the whole subtree available in the structure.
-    await Document.findAllInBatches<Document>(
-      {
-        where: { parentDocumentId: null, collectionId: collectionIds },
-        include: [
-          {
-            model: Collection,
-            as: "collection",
-          },
-        ],
-        order: [["createdAt", "DESC"]],
-        transaction,
-      },
-      async (documents) => {
-        for (const document of documents) {
-          // Without reload, sequelize overwrites the updates to collection.
-          await document.collection?.reload({ transaction });
-
-          await document.collection?.addDocumentToStructure(document, 0, {
-            transaction,
-          });
+    for (const collection of collections) {
+      await Document.unscoped().findAllInBatches<Document>(
+        {
+          where: { parentDocumentId: null, collectionId: collection.id },
+          order: [
+            ["createdAt", "DESC"],
+            ["id", "ASC"],
+          ],
+          transaction,
+        },
+        async (documents) => {
+          for (const document of documents) {
+            await collection.addDocumentToStructure(document, 0, {
+              transaction,
+              save: false,
+            });
+          }
         }
-      }
-    );
+      );
+
+      await collection.save({ transaction });
+    }
 
     importModel.state = ImportState.Completed;
     await importModel.saveWithCtx(
@@ -203,8 +202,9 @@ export default abstract class ImportsProcessor<
   }: {
     importModel: Import<T>;
     transaction: Transaction;
-  }): Promise<{ collectionIds: string[] }> {
+  }): Promise<{ collections: Collection[] }> {
     const now = new Date();
+    const createdCollections: Collection[] = [];
     // External id to internal model id.
     const idMap: Record<string, string> = {};
     // These will be imported as collections.
@@ -278,7 +278,7 @@ export default abstract class ImportsProcessor<
                 }
               );
 
-              await Collection.createWithCtx(
+              const collection = await Collection.createWithCtx(
                 ctx,
                 {
                   id: internalId,
@@ -300,6 +300,8 @@ export default abstract class ImportsProcessor<
                 },
                 { data: { name: output.title, source: "import" } }
               );
+
+              createdCollections.push(collection);
 
               // Unset documentId for attachments in collection overview.
               await Attachment.update(
@@ -352,9 +354,7 @@ export default abstract class ImportsProcessor<
       }
     );
 
-    return {
-      collectionIds: importModel.input.map((item) => idMap[item.externalId]),
-    };
+    return { collections: createdCollections };
   }
 
   private updateMentionsAndAttachments({
