@@ -18,7 +18,6 @@ import {
 import { colorPalette } from "@shared/utils/collections";
 import { CollectionValidation } from "@shared/validations";
 import collectionDestroyer from "@server/commands/collectionDestroyer";
-import { PagePerImportTask } from "@server/constants";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
@@ -32,6 +31,8 @@ import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
 import { Event, ImportEvent } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
+
+export const PagePerImportTask = 3;
 
 export default abstract class ImportsProcessor<
   T extends ImportableIntegrationService

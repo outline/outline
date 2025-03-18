@@ -14,7 +14,6 @@ import {
   ProsemirrorDoc,
 } from "@shared/types";
 import { ProsemirrorHelper as SharedProseMirrorHelper } from "@shared/utils/ProsemirrorHelper";
-import { PagePerImportTask } from "@server/constants";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
@@ -22,6 +21,7 @@ import { Attachment, Import, ImportTask, User } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
+import { PagePerImportTask } from "../processors/ImportsProcessor";
 import BaseTask, { TaskPriority } from "./BaseTask";
 import UploadAttachmentsForImportTask from "./UploadAttachmentsForImportTask";
 
