@@ -73,12 +73,18 @@ module.exports = {
       await queryInterface.addIndex("imports", ["service", "teamId"], {
         transaction,
       });
+      await queryInterface.addIndex("imports", ["state", "teamId"], {
+        transaction,
+      });
     });
   },
 
   async down(queryInterface, Sequelize) {
     await queryInterface.sequelize.transaction(async transaction => {
       await queryInterface.removeIndex("imports", ["service", "teamId"], {
+        transaction,
+      });
+      await queryInterface.removeIndex("imports", ["state", "teamId"], {
         transaction,
       });
       await queryInterface.dropTable("imports", { transaction });

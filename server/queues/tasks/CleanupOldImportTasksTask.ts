@@ -23,7 +23,7 @@ export default class CleanupOldImportTasksTask extends BaseTask<Props> {
         {
           attributes: ["id"],
           where: {
-            state: [ImportTaskState.Completed, ImportTaskState.Completed],
+            state: [ImportTaskState.Completed, ImportTaskState.Errored],
             createdAt: {
               [Op.lt]: cutoffDate,
             },
