@@ -60,6 +60,7 @@ export enum ImportState {
   Processed = "processed",
   Completed = "completed",
   Errored = "errored",
+  Canceled = "canceled",
 }
 
 export enum ImportTaskState {
@@ -67,6 +68,7 @@ export enum ImportTaskState {
   InProgress = "in_progress",
   Completed = "completed",
   Errored = "errored",
+  Canceled = "canceled",
 }
 
 export enum MentionType {

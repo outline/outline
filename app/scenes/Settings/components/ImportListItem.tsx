@@ -1,6 +1,6 @@
 import capitalize from "lodash/capitalize";
 import { observer } from "mobx-react";
-import { DoneIcon, WarningIcon } from "outline-icons";
+import { CrossIcon, DoneIcon, WarningIcon } from "outline-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -16,7 +16,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
-import ImportMenu from "~/menus/ImportMenu";
+import { ImportMenu } from "~/menus/ImportMenu";
 
 type Props = {
   /** Import that's displayed as list item. */
@@ -25,7 +25,7 @@ type Props = {
 
 export const ImportListItem = observer(({ importModel }: Props) => {
   const { t } = useTranslation();
-  const { dialogs, imports } = useStores();
+  const { dialogs } = useStores();
   const user = useCurrentUser();
   const theme = useTheme();
   const prevState = usePrevious(importModel.state);
@@ -34,6 +34,9 @@ export const ImportListItem = observer(({ importModel }: Props) => {
       prevState !== ImportState.Completed &&
       importModel.state === ImportState.Completed,
   });
+  const showProgress =
+    importModel.state !== ImportState.Canceled &&
+    importModel.state !== ImportState.Errored;
 
   const stateMap = React.useMemo(
     () => ({
@@ -42,6 +45,7 @@ export const ImportListItem = observer(({ importModel }: Props) => {
       [ImportState.Processed]: t("Processing"),
       [ImportState.Completed]: t("Completed"),
       [ImportState.Errored]: t("Failed"),
+      [ImportState.Canceled]: t("Canceled"),
     }),
     [t]
   );
@@ -53,14 +57,42 @@ export const ImportListItem = observer(({ importModel }: Props) => {
       [ImportState.Processed]: <Spinner />,
       [ImportState.Completed]: <DoneIcon color={theme.accent} />,
       [ImportState.Errored]: <WarningIcon color={theme.danger} />,
+      [ImportState.Canceled]: <CrossIcon color={theme.textTertiary} />,
     }),
     [theme]
   );
 
+  const handleCancel = React.useCallback(async () => {
+    const onCancel = async () => {
+      try {
+        await importModel.cancel();
+        toast.success(t("Import canceled"));
+      } catch (err) {
+        toast.error(err.message);
+      }
+    };
+
+    dialogs.openModal({
+      title: t("Are you sure you want to cancel this import?"),
+      content: (
+        <ConfirmationDialog
+          onSubmit={onCancel}
+          submitText={t("Cancel")}
+          savingText={`${t("Canceling")}…`}
+          danger
+        >
+          {t(
+            "Canceling this import will discard any progress made. This cannot be undone."
+          )}
+        </ConfirmationDialog>
+      ),
+    });
+  }, [t, dialogs, importModel]);
+
   const handleDelete = React.useCallback(async () => {
     const onDelete = async () => {
       try {
-        await imports.delete(importModel);
+        await importModel.delete();
         toast.success(t("Import deleted"));
       } catch (err) {
         toast.error(err.message);
@@ -81,7 +113,7 @@ export const ImportListItem = observer(({ importModel }: Props) => {
         </ConfirmationDialog>
       ),
     });
-  }, [dialogs, imports, t, importModel]);
+  }, [t, dialogs, importModel]);
 
   return (
     <ListItem
@@ -100,7 +132,7 @@ export const ImportListItem = observer(({ importModel }: Props) => {
           <Time dateTime={importModel.createdAt} addSuffix shorten />
           &nbsp;•&nbsp;
           {capitalize(importModel.service)}
-          {importModel.state !== ImportState.Errored && (
+          {showProgress && (
             <>
               &nbsp;•&nbsp;
               {t("{{ count }} document imported", {
@@ -111,9 +143,13 @@ export const ImportListItem = observer(({ importModel }: Props) => {
         </>
       }
       actions={
-        can.delete && (
+        (can.delete || can.cancel) && (
           <Action>
-            <ImportMenu importModel={importModel} onDelete={handleDelete} />
+            <ImportMenu
+              importModel={importModel}
+              onCancel={handleCancel}
+              onDelete={handleDelete}
+            />
           </Action>
         )
       }

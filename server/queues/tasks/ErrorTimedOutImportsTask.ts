@@ -48,6 +48,10 @@ export default class ErrorTimedOutImportsTask extends BaseTask<Props> {
         },
         async (importTasks) => {
           for (const importTask of importTasks) {
+            if (importTask.import.state === ImportState.Canceled) {
+              continue; // Canceled import will be cleaned up by `CleanupOldImportsTask`.
+            }
+
             await sequelize.transaction(async (transaction) => {
               importTask.state = ImportTaskState.Errored;
               await importTask.save({ transaction });

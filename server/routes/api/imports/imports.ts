@@ -147,4 +147,31 @@ router.post(
   }
 );
 
+router.post(
+  "imports.cancel",
+  auth({ role: UserRole.Admin }),
+  validate(T.ImportsCancelSchema),
+  transaction(),
+  async (ctx: APIContext<T.ImportsCancelReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    let importModel = await Import.findByPk(id, {
+      rejectOnEmpty: true,
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+    authorize(user, "cancel", importModel);
+
+    importModel.state = ImportState.Canceled;
+    importModel = await importModel.saveWithCtx(ctx);
+
+    ctx.body = {
+      data: presentImport(importModel),
+      policies: presentPolicies(user, [importModel]),
+    };
+  }
+);
+
 export default router;

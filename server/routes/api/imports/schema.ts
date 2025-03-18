@@ -61,3 +61,9 @@ export const ImportsDeleteSchema = BaseSchema.extend({
 });
 
 export type ImportsDeleteReq = z.infer<typeof ImportsDeleteSchema>;
+
+export const ImportsCancelSchema = BaseSchema.extend({
+  body: BaseIdSchema,
+});
+
+export type ImportsCancelReq = z.infer<typeof ImportsCancelSchema>;

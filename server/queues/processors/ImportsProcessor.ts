@@ -59,7 +59,8 @@ export default abstract class ImportsProcessor<
 
       if (
         !this.canProcess(importModel) ||
-        importModel.state === ImportState.Errored
+        importModel.state === ImportState.Errored ||
+        importModel.state === ImportState.Canceled
       ) {
         return;
       }

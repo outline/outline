@@ -56,6 +56,13 @@ export default abstract class APIImportTask<
       ],
     });
 
+    // Don't process any further when the associated import is canceled by the user.
+    if (importTask.import.state === ImportState.Canceled) {
+      importTask.state = ImportTaskState.Canceled;
+      await importTask.save();
+      return;
+    }
+
     switch (importTask.state) {
       case ImportTaskState.Created: {
         importTask.state = ImportTaskState.InProgress;

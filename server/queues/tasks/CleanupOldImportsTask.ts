@@ -10,7 +10,7 @@ type Props = Record<string, never>;
 /**
  * A task that deletes the completed & errored old import_tasks.
  */
-export default class CleanupOldImportTasksTask extends BaseTask<Props> {
+export default class CleanupOldImportsTask extends BaseTask<Props> {
   static cron = TaskSchedule.Day;
 
   public async perform() {
@@ -26,7 +26,11 @@ export default class CleanupOldImportTasksTask extends BaseTask<Props> {
         {
           attributes: ["id"],
           where: {
-            state: [ImportTaskState.Completed, ImportTaskState.Errored],
+            state: [
+              ImportTaskState.Completed,
+              ImportTaskState.Errored,
+              ImportTaskState.Canceled,
+            ],
             createdAt: {
               [Op.lt]: cutoffDate,
             },
