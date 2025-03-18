@@ -10,7 +10,6 @@ import { Integration, IntegrationAuthentication, Team } from "@server/models";
 import { can } from "@server/policies";
 import { APIContext } from "@server/types";
 import { NotionClient } from "../notion";
-import { NotionOAuth } from "../oauth";
 import * as T from "./schema";
 import { NotionUtils } from "plugins/notion/shared/NotionUtils";
 
@@ -70,7 +69,7 @@ router.get(
     }
 
     // validation middleware ensures that code is non-null at this point.
-    const data = await NotionOAuth.oauthAccess(code!);
+    const data = await NotionClient.oauthAccess(code!);
 
     const authentication = await IntegrationAuthentication.create(
       {

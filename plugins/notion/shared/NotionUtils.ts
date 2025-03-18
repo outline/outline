@@ -9,6 +9,11 @@ export type OAuthState = {
 
 export class NotionUtils {
   private static authBaseUrl = "https://api.notion.com/v1/oauth/authorize";
+  public static tokenUrl = "https://api.notion.com/v1/oauth/token";
+  public static credentials = Buffer.from(
+    `${env.NOTION_CLIENT_ID}:${env.NOTION_CLIENT_SECRET}`
+  ).toString("base64");
+
   private static settingsUrl = settingsPath("import");
 
   static parseState(state: string): OAuthState {

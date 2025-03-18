@@ -13,8 +13,18 @@ import {
 } from "@notionhq/client/build/src/api-endpoints";
 import { RateLimit } from "async-sema";
 import compact from "lodash/compact";
+import { z } from "zod";
 import { Second } from "@shared/utils/time";
+import { NotionUtils } from "../shared/NotionUtils";
 import { Block, Page, PageType } from "../shared/types";
+
+const AccessTokenResponseSchema = z.object({
+  access_token: z.string(),
+  bot_id: z.string(),
+  workspace_id: z.string(),
+  workspace_name: z.string().nullish(),
+  workspace_icon: z.string().url().nullish(),
+});
 
 export class NotionClient {
   private client: Client;
@@ -35,6 +45,27 @@ export class NotionClient {
       timeUnit: rateLimit.window,
       uniformDistribution: true,
     });
+  }
+
+  static async oauthAccess(code: string) {
+    const headers = {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Authorization: `Basic ${NotionUtils.credentials}`,
+    };
+    const body = {
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: NotionUtils.callbackUrl(),
+    };
+
+    const res = await fetch(NotionUtils.tokenUrl, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+    });
+
+    return AccessTokenResponseSchema.parse(await res.json());
   }
 
   async fetchRootPages() {
