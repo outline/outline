@@ -661,6 +661,10 @@ class WebsocketProvider extends React.Component<Props> {
       }
     });
 
+    this.socket.on("users.delete", (event: WebsocketEntityDeletedEvent) => {
+      users.remove(event.modelId);
+    });
+
     this.socket.on(
       "userMemberships.update",
       async (event: PartialExcept<UserMembership, "id">) => {
