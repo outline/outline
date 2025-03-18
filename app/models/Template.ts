@@ -71,7 +71,6 @@ export default class Template extends ParanoidModel implements Searchable {
   createdBy: User | undefined;
 
   @Relation(() => User)
-  @observable
   updatedBy: User | undefined;
 
   @observable

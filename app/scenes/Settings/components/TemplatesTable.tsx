@@ -1,14 +1,15 @@
-import Flex from "@shared/components/Flex";
-import Icon from "@shared/components/Icon";
 import compact from "lodash/compact";
 import { observer } from "mobx-react";
 import { DocumentIcon } from "outline-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
-import { useTheme } from "styled-components";
+import styled, { useTheme } from "styled-components";
+import Flex from "@shared/components/Flex";
+import Icon from "@shared/components/Icon";
+import { hover } from "@shared/styles";
 import Template from "~/models/Template";
 import { Avatar, AvatarSize } from "~/components/Avatar";
+import ButtonLink from "~/components/ButtonLink";
 import { HEADER_HEIGHT } from "~/components/Header";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import {
@@ -21,6 +22,7 @@ import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
 import TemplateMenu from "~/menus/TemplateMenu";
 import { FILTER_HEIGHT } from "./StickyFilters";
+import TemplateEdit from "./Template";
 
 const ROW_HEIGHT = 60;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
@@ -32,6 +34,14 @@ export function TemplatesTable(props: Props) {
   const theme = useTheme();
   const { dialogs } = useStores();
 
+  const handleOpen = (template: Template) => () => {
+    dialogs.openModal({
+      title: "",
+      content: <TemplateEdit template={template} />,
+      fullscreen: true,
+    });
+  };
+
   const columns = React.useMemo<TableColumn<Template>[]>(
     () =>
       compact<TableColumn<Template>>([
@@ -41,7 +51,7 @@ export function TemplatesTable(props: Props) {
           header: t("Title"),
           accessor: (template) => template.titleWithDefault,
           component: (template) => (
-            <Link to={template.path}>
+            <ButtonLink onClick={handleOpen(template)}>
               <Flex align="center" gap={4}>
                 {template.icon ? (
                   <Icon
@@ -52,9 +62,9 @@ export function TemplatesTable(props: Props) {
                 ) : (
                   <DocumentIcon size={24} color={theme.textSecondary} />
                 )}
-                <Text>{template.titleWithDefault}</Text>
+                <Title>{template.titleWithDefault}</Title>
               </Flex>
-            </Link>
+            </ButtonLink>
           ),
           width: "4fr",
         },
@@ -127,3 +137,10 @@ const Permission = observer(({ template }: { template: Template }) => {
     </Flex>
   );
 });
+
+const Title = styled(Text)`
+  &: ${hover} {
+    text-decoration: underline;
+    cursor: var(--pointer);
+  }
+`;

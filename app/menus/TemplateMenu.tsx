@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { CopyIcon, EditIcon, TrashIcon } from "outline-icons";
+import { DuplicateIcon, EditIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
@@ -42,7 +42,7 @@ function TemplateMenu({ template }: Props) {
               type: "button",
               title: t("Duplicate"),
               visible: !!can.duplicate,
-              icon: <CopyIcon />,
+              icon: <DuplicateIcon />,
               onClick: () => templates.duplicate(template),
             },
             {
@@ -50,7 +50,7 @@ function TemplateMenu({ template }: Props) {
             },
             {
               type: "button",
-              title: t("Delete"),
+              title: `${t("Delete")}…`,
               visible: !!can.delete,
               icon: <TrashIcon />,
               dangerous: true,

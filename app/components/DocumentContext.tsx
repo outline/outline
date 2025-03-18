@@ -2,11 +2,12 @@ import { action, computed, observable } from "mobx";
 import React, { PropsWithChildren } from "react";
 import { Heading } from "@shared/utils/ProsemirrorHelper";
 import Document from "~/models/Document";
+import Template from "~/models/Template";
 import { Editor } from "~/editor";
 
 class DocumentContext {
   /** The current document */
-  document?: Document;
+  document?: Document | Template;
 
   /** The editor instance for this document */
   editor?: Editor;
@@ -57,6 +58,9 @@ class DocumentContext {
   }
 
   private updateTasks() {
+    if (this.document instanceof Template) {
+      return;
+    }
     const tasks = this.editor?.getTasks() ?? [];
     const total = tasks.length ?? 0;
     const completed = tasks.filter((t) => t.completed).length ?? 0;

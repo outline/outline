@@ -173,7 +173,7 @@ class DocumentScene extends React.Component<Props> {
 
     this.isEditorDirty = true;
 
-    if (template instanceof Document) {
+    if (template instanceof Template) {
       this.props.document.templateId = template.id;
       this.props.document.fullWidth = template.fullWidth;
     }
@@ -444,7 +444,10 @@ class DocumentScene extends React.Component<Props> {
       ((team?.getPreference(TeamPreference.TocPosition) as TOCPosition) ||
         TOCPosition.Left);
     const showContents =
-      tocPos && (isShare ? ui.tocVisible !== false : ui.tocVisible === true);
+      tocPos &&
+      (isShare
+        ? ui.tocVisible !== false
+        : !(document instanceof Template) && ui.tocVisible === true);
     const multiplayerEditor =
       !document.isArchived && !document.isDeleted && !revision && !isShare;
 
@@ -562,7 +565,7 @@ class DocumentScene extends React.Component<Props> {
                         multiplayer={multiplayerEditor}
                         shareId={shareId}
                         isDraft={document.isDraft}
-                        template={document.isTemplate}
+                        template={document instanceof Template}
                         document={document}
                         value={readOnly ? document.data : undefined}
                         defaultValue={document.data}
