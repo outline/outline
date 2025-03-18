@@ -71,7 +71,7 @@ router.post(
     const { service, sort, direction } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    authorize(user, "readImport", user.team);
+    authorize(user, "listImports", user.team);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: WhereOptions<Import<any>> = service

@@ -3,7 +3,7 @@ import { User, Team, Import } from "@server/models";
 import { allow } from "./cancan";
 import { and, isTeamAdmin, isTeamMutable } from "./utils";
 
-allow(User, ["createImport", "readImport"], Team, (actor, team) =>
+allow(User, ["createImport", "listImports"], Team, (actor, team) =>
   and(isTeamAdmin(actor, team), isTeamMutable(actor))
 );
 
