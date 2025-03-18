@@ -6,9 +6,9 @@ import ImportTask from "@server/models/ImportTask";
 import APIImportTask, {
   ProcessOutput,
 } from "@server/queues/tasks/APIImportTask";
-import { NotionConverter, NotionPage } from "@server/utils/NotionConverter";
+import { Block, PageType } from "../../shared/types";
 import { NotionClient } from "../notion";
-import { Block, PageType } from "plugins/notion/shared/types";
+import { NotionConverter, NotionPage } from "../utils/NotionConverter";
 
 type ChildPage = { type: PageType; externalId: string };
 

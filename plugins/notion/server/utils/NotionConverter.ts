@@ -32,7 +32,7 @@ import isArray from "lodash/isArray";
 import { NoticeTypes } from "@shared/editor/nodes/Notice";
 import { MentionType, ProsemirrorData, ProsemirrorDoc } from "@shared/types";
 import Logger from "@server/logging/Logger";
-import { Block } from "plugins/notion/shared/types";
+import { Block } from "../../shared/types";
 
 export type NotionPage = PageObjectResponse & {
   children: Block[];
