@@ -10,7 +10,7 @@ export default function presentImport(
     name: importModel.name,
     service: importModel.service,
     state: importModel.state,
-    pageCount: importModel.pageCount,
+    documentCount: importModel.documentCount,
     createdBy: presentUser(importModel.createdBy),
     createdById: importModel.createdById,
     createdAt: importModel.createdAt,

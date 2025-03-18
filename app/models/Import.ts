@@ -19,7 +19,7 @@ class Import extends Model {
 
   /** The count of documents created in the import. */
   @observable
-  pageCount: number;
+  documentCount: number;
 
   /** The user who created the import. */
   @Relation(() => User, {})

@@ -28,7 +28,7 @@ module.exports = {
             type: Sequelize.JSONB,
             allowNull: false,
           },
-          pageCount: {
+          documentCount: {
             type: Sequelize.INTEGER,
             allowNull: false,
             defaultValue: 0,

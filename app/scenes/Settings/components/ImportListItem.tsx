@@ -103,7 +103,9 @@ export const ImportListItem = observer(({ importModel }: Props) => {
           {importModel.state !== ImportState.Errored && (
             <>
               &nbsp;•&nbsp;
-              {t("{{ count }} page imported", { count: importModel.pageCount })}
+              {t("{{ count }} document imported", {
+                count: importModel.documentCount,
+              })}
             </>
           )}
         </>

@@ -58,7 +58,7 @@ class Import<T extends ImportableIntegrationService> extends ParanoidModel<
   @IsNumeric
   @Default(0)
   @Column(DataType.INTEGER)
-  pageCount: number;
+  documentCount: number;
 
   // associations
 
