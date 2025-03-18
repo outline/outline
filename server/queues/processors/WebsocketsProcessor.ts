@@ -51,7 +51,10 @@ export default class WebsocketsProcessor {
         if (!document) {
           return;
         }
-        if (event.name === "documents.create" && document.importId) {
+        if (
+          event.name === "documents.create" &&
+          event.data.source === "import"
+        ) {
           return;
         }
 
