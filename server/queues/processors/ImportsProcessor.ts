@@ -44,25 +44,32 @@ export default abstract class ImportsProcessor<
   ];
 
   public async perform(event: ImportEvent) {
-    const importModel = await Import.findByPk<Import<T>>(event.modelId, {
-      rejectOnEmpty: true,
-      paranoid: false,
+    await sequelize.transaction(async (transaction) => {
+      const importModel = await Import.findByPk<Import<T>>(event.modelId, {
+        rejectOnEmpty: true,
+        paranoid: false,
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+
+      if (
+        !this.canProcess(importModel) ||
+        importModel.state === ImportState.Errored
+      ) {
+        return;
+      }
+
+      switch (event.name) {
+        case "imports.create":
+          return this.onCreation(importModel, transaction);
+
+        case "imports.processed":
+          return this.onProcessed(importModel, transaction);
+
+        case "imports.delete":
+          return this.onDeletion(importModel, event, transaction);
+      }
     });
-
-    if (!this.canProcess(importModel)) {
-      return;
-    }
-
-    switch (event.name) {
-      case "imports.create":
-        return this.onCreation(importModel);
-
-      case "imports.processed":
-        return this.onProcessed(importModel);
-
-      case "imports.delete":
-        return this.onDeletion(importModel, event);
-    }
   }
 
   public async onFailed(event: ImportEvent) {
@@ -81,117 +88,113 @@ export default abstract class ImportsProcessor<
     });
   }
 
-  private async onCreation(importModel: Import<T>) {
+  private async onCreation(importModel: Import<T>, transaction: Transaction) {
     if (!importModel.input.length) {
       return;
     }
 
     const tasksInput = this.buildTasksInput(importModel.input);
 
-    const importTasks = await sequelize.transaction(async (transaction) => {
-      const insertedTasks = await Promise.all(
-        chunk(tasksInput, PagePerImportTask).map((input) => {
-          const attrs = {
-            state: ImportTaskState.Created,
-            input,
-            importId: importModel.id,
-          } as ImportTaskCreationAttributes<T>;
+    const importTasks = await Promise.all(
+      chunk(tasksInput, PagePerImportTask).map((input) => {
+        const attrs = {
+          state: ImportTaskState.Created,
+          input,
+          importId: importModel.id,
+        } as ImportTaskCreationAttributes<T>;
 
-          return ImportTask.create<
-            ImportTask<T>,
-            CreateOptions<ImportTaskAttributes<T>>
-          >(attrs as unknown as CreationAttributes<ImportTask<T>>, {
+        return ImportTask.create<
+          ImportTask<T>,
+          CreateOptions<ImportTaskAttributes<T>>
+        >(attrs as unknown as CreationAttributes<ImportTask<T>>, {
+          transaction,
+        });
+      })
+    );
+
+    importModel.state = ImportState.InProgress;
+    await importModel.save({ transaction });
+
+    transaction.afterCommit(() => this.scheduleTask(importTasks[0]));
+  }
+
+  private async onProcessed(importModel: Import<T>, transaction: Transaction) {
+    const { collectionIds } = await this.createCollectionsAndDocuments({
+      importModel,
+      transaction,
+    });
+
+    // Once all collections and documents are created, update collection's document structure.
+    // This ensures the root documents have the whole subtree available in the structure.
+    await Document.findAllInBatches<Document>(
+      {
+        where: { parentDocumentId: null, collectionId: collectionIds },
+        include: [
+          {
+            model: Collection,
+            as: "collection",
+          },
+        ],
+        order: [["createdAt", "DESC"]],
+        transaction,
+      },
+      async (documents) => {
+        for (const document of documents) {
+          // Without reload, sequelize overwrites the updates to collection.
+          await document.collection?.reload({ transaction });
+
+          await document.collection?.addDocumentToStructure(document, 0, {
             transaction,
           });
-        })
-      );
-
-      importModel.state = ImportState.InProgress;
-      await importModel.save({ transaction });
-
-      return insertedTasks;
-    });
-
-    await this.scheduleTask(importTasks[0]);
-  }
-
-  private async onProcessed(importModel: Import<T>) {
-    await sequelize.transaction(async (transaction) => {
-      const { collectionIds } = await this.createCollectionsAndDocuments({
-        importModel,
-        transaction,
-      });
-
-      // Once all collections and documents are created, update collection's document structure.
-      // This ensures the root documents have the whole subtree available in the structure.
-      await Document.findAllInBatches<Document>(
-        {
-          where: { parentDocumentId: null, collectionId: collectionIds },
-          include: [
-            {
-              model: Collection,
-              as: "collection",
-            },
-          ],
-          order: [["createdAt", "DESC"]],
-          transaction,
-        },
-        async (documents) => {
-          for (const document of documents) {
-            // Without reload, sequelize overwrites the updates to collection.
-            await document.collection?.reload({ transaction });
-
-            await document.collection?.addDocumentToStructure(document, 0, {
-              transaction,
-            });
-          }
         }
-      );
+      }
+    );
 
-      importModel.state = ImportState.Completed;
-      await importModel.saveWithCtx(
-        createContext({
-          user: importModel.createdBy,
-          transaction,
-        })
-      );
-    });
+    importModel.state = ImportState.Completed;
+    await importModel.saveWithCtx(
+      createContext({
+        user: importModel.createdBy,
+        transaction,
+      })
+    );
   }
 
-  private async onDeletion(importModel: Import<T>, event: ImportEvent) {
+  private async onDeletion(
+    importModel: Import<T>,
+    event: ImportEvent,
+    transaction: Transaction
+  ) {
     if (importModel.state !== ImportState.Completed) {
       return;
     }
 
-    await sequelize.transaction(async (transaction) => {
-      const user = await User.findByPk(event.actorId, {
-        rejectOnEmpty: true,
-        paranoid: false,
-        transaction,
-      });
-
-      const collections = await Collection.findAll({
-        transaction,
-        lock: transaction.LOCK.UPDATE,
-        where: {
-          teamId: importModel.teamId,
-          apiImportId: importModel.id,
-        },
-      });
-
-      for (const collection of collections) {
-        Logger.debug("processor", "Destroying collection created from import", {
-          collectionId: collection.id,
-        });
-
-        await collectionDestroyer({
-          collection,
-          transaction,
-          user,
-          ip: event.ip,
-        });
-      }
+    const user = await User.findByPk(event.actorId, {
+      rejectOnEmpty: true,
+      paranoid: false,
+      transaction,
     });
+
+    const collections = await Collection.findAll({
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+      where: {
+        teamId: importModel.teamId,
+        apiImportId: importModel.id,
+      },
+    });
+
+    for (const collection of collections) {
+      Logger.debug("processor", "Destroying collection created from import", {
+        collectionId: collection.id,
+      });
+
+      await collectionDestroyer({
+        collection,
+        transaction,
+        user,
+        ip: event.ip,
+      });
+    }
   }
 
   private async createCollectionsAndDocuments({
