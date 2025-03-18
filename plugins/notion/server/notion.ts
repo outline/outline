@@ -17,6 +17,11 @@ import { z } from "zod";
 import { Second } from "@shared/utils/time";
 import { NotionUtils } from "../shared/NotionUtils";
 import { Block, Page, PageType } from "../shared/types";
+import env from "./env";
+
+const Credentials = Buffer.from(
+  `${env.NOTION_CLIENT_ID}:${env.NOTION_CLIENT_SECRET}`
+).toString("base64");
 
 const AccessTokenResponseSchema = z.object({
   access_token: z.string(),
@@ -51,7 +56,7 @@ export class NotionClient {
     const headers = {
       "Content-Type": "application/json",
       Accept: "application/json",
-      Authorization: `Basic ${NotionUtils.credentials}`,
+      Authorization: `Basic ${Credentials}`,
     };
     const body = {
       grant_type: "authorization_code",
