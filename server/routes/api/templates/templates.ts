@@ -1,11 +1,11 @@
-import Router from "koa-router";
-import { Op, WhereOptions } from "sequelize";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { Collection, Template } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentPolicies, presentTemplate } from "@server/presenters";
 import { APIContext } from "@server/types";
+import Router from "koa-router";
+import { Op, WhereOptions } from "sequelize";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -55,7 +55,12 @@ router.post(
     }
 
     const [templates, total] = await Promise.all([
-      Template.findAll({
+      Template.scope([
+        "defaultScope",
+        {
+          method: ["withCollectionPermissions", user.id],
+        },
+      ]).findAll({
         where,
         order: [[sort, direction]],
         offset: ctx.state.pagination.offset,

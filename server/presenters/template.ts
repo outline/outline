@@ -23,7 +23,7 @@ async function presentTemplate(
     publishedAt: template.publishedAt,
     deletedAt: template.deletedAt,
     fullWidth: template.fullWidth,
-    collectionId: undefined,
+    collectionId: template.collectionId,
   };
 }
 

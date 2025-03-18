@@ -1,3 +1,6 @@
+import { ProsemirrorData } from "@shared/types";
+import { UrlHelper } from "@shared/utils/UrlHelper";
+import { DocumentValidation } from "@shared/validations";
 import { isUUID } from "class-validator";
 import {
   Identifier,
@@ -23,9 +26,6 @@ import {
   Scopes,
 } from "sequelize-typescript";
 import slugify from "slugify";
-import { ProsemirrorData } from "@shared/types";
-import { UrlHelper } from "@shared/utils/UrlHelper";
-import { DocumentValidation } from "@shared/validations";
 import Collection from "./Collection";
 import Revision from "./Revision";
 import Team from "./Team";
@@ -57,6 +57,9 @@ type AdditionalFindOptions = {
   where: {
     publishedAt: {
       [Op.ne]: null,
+    },
+    archivedAt: {
+      [Op.eq]: null,
     },
     template: true,
   },
@@ -210,7 +213,7 @@ class Template extends IdModel<
    * @returns boolean
    */
   get isDeleted(): boolean {
-    return !this.deletedAt;
+    return !!this.deletedAt;
   }
 
   /**
