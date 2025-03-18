@@ -40,10 +40,6 @@ export type NotionPage = PageObjectResponse & {
 
 /** Convert Notion blocks to Outline data. */
 export class NotionConverter {
-  // TODO: Implement the following blocks:
-  // - "child_database"
-  // - "child_page"
-
   /**
    * Nodes which cannot contain block children in Outline, their children
    * will be flattened into the parent.
@@ -61,6 +57,10 @@ export class NotionConverter {
     const mapChild = (
       child: Block
     ): ProsemirrorData | ProsemirrorData[] | undefined => {
+      if (child.type === "child_page" || child.type === "child_database") {
+        return; // this will be created as a nested page, no need to handle/convert.
+      }
+
       // @ts-expect-error Not all blocks have an interface
       if (this[child.type]) {
         // @ts-expect-error Not all blocks have an interface
