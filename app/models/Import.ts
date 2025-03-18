@@ -7,19 +7,25 @@ import Relation from "./decorators/Relation";
 class Import extends Model {
   static modelName = "Import";
 
+  /** The name of the import. */
   name: string;
 
+  /** The current state of the import. */
   @observable
   state: ImportState;
 
+  /** The external service from which the import is created. */
   service: ImportableIntegrationService;
 
+  /** The count of documents created in the import. */
   @observable
   pageCount: number;
 
+  /** The user who created the import. */
   @Relation(() => User, {})
   createdBy: User;
 
+  /** The ID of the user who created the import. */
   createdById: string;
 }
 

@@ -19,6 +19,7 @@ import useStores from "~/hooks/useStores";
 import ImportMenu from "~/menus/ImportMenu";
 
 type Props = {
+  /** Import that's displayed as list item. */
   importModel: Import;
 };
 

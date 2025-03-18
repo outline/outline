@@ -9,7 +9,9 @@ import Template from "~/components/ContextMenu/Template";
 import usePolicy from "~/hooks/usePolicy";
 
 type Props = {
+  /** Import to which actions will be applied. */
   importModel: Import;
+  /** Callback to handle import deletion. */
   onDelete: (ev: React.SyntheticEvent) => Promise<void>;
 };
 

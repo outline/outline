@@ -43,6 +43,11 @@ export default abstract class ImportsProcessor<
     "imports.delete",
   ];
 
+  /**
+   * Run the import processor.
+   *
+   * @param event The import event
+   */
   public async perform(event: ImportEvent) {
     await sequelize.transaction(async (transaction) => {
       const importModel = await Import.findByPk<Import<T>>(event.modelId, {
@@ -88,6 +93,13 @@ export default abstract class ImportsProcessor<
     });
   }
 
+  /**
+   * Handle "imports.create" event.
+   *
+   * @param importModel Import model associated with the event.
+   * @param transaction Sequelize transaction.
+   * @returns Promise that resolves when the creation flow setup is done.
+   */
   private async onCreation(importModel: Import<T>, transaction: Transaction) {
     if (!importModel.input.length) {
       return;
@@ -118,6 +130,15 @@ export default abstract class ImportsProcessor<
     transaction.afterCommit(() => this.scheduleTask(importTasks[0]));
   }
 
+  /**
+   * Handle "imports.processed" event.
+   * This event is received when all the tasks for the import has been completed.
+   * This method is responsible for persisting the collections and documents associated with the import.
+   *
+   * @param importModel Import model associated with the event.
+   * @param transaction Sequelize transaction.
+   * @returns Promise that resolves when mapping and persistence is completed.
+   */
   private async onProcessed(importModel: Import<T>, transaction: Transaction) {
     const { collections } = await this.createCollectionsAndDocuments({
       importModel,
@@ -158,6 +179,15 @@ export default abstract class ImportsProcessor<
     );
   }
 
+  /**
+   * Handle "imports.delete" event.
+   * This method is responsible for deleting the collections and documents associated with the import.
+   *
+   * @param importModel Import model associated with the event.
+   * @param event Received event.
+   * @param transaction Sequelize transaction.
+   * @returns Promise that resolves when the collections and documents are deleted.
+   */
   private async onDeletion(
     importModel: Import<T>,
     event: ImportEvent,
@@ -196,6 +226,13 @@ export default abstract class ImportsProcessor<
     }
   }
 
+  /**
+   * Create collections and documents associated with the import.
+   *
+   * @param importModel Import model associated with the event.
+   * @param transaction Sequelize transaction.
+   * @returns Promise of collection models that are created.
+   */
   private async createCollectionsAndDocuments({
     importModel,
     transaction,
@@ -357,6 +394,16 @@ export default abstract class ImportsProcessor<
     return { collections: createdCollections };
   }
 
+  /**
+   * Transform the mentions and attachments in ProseMirrorDoc to their internal references.
+   *
+   * @param content ProseMirrorDoc that represents collection (or) document content.
+   * @param attachments Array of attachment models created for the import.
+   * @param idMap Map of internalId to externalId.
+   * @param importInput Contains the root externalId and associated info which were used to create the import.
+   * @param actorId ID of the user who created the import.
+   * @returns Updated ProseMirrorDoc.
+   */
   private updateMentionsAndAttachments({
     content,
     attachments,
@@ -365,10 +412,10 @@ export default abstract class ImportsProcessor<
     actorId,
   }: {
     content: ProsemirrorDoc;
+    attachments: Attachment[];
     idMap: Record<string, string>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     importInput: Record<string, ImportInput<any>[number]>;
-    attachments: Attachment[];
     actorId: string;
   }): ProsemirrorDoc {
     const attachmentsMap = keyBy(attachments, "id");
@@ -422,17 +469,43 @@ export default abstract class ImportsProcessor<
     return doc.copy(transformFragment(doc.content)).toJSON();
   }
 
+  /**
+   * Get internalId for the given externalId.
+   * Returned internalId will be used as "id" for collections and documents created in the import.
+   *
+   * @param externalId externalId from a source.
+   * @param idMap Map of internalId to externalId.
+   * @returns Mapped internalId.
+   */
   private getInternalId(externalId: string, idMap: Record<string, string>) {
     const internalId = idMap[externalId] ?? uuidv4();
     idMap[externalId] = internalId;
     return internalId;
   }
 
+  /**
+   * Determine whether this import can be processed by this processor.
+   *
+   * @param importModel Import model associated with the import.
+   * @returns boolean.
+   */
   protected abstract canProcess(importModel: Import<T>): boolean;
 
+  /**
+   * Build task inputs which will be used for `APIImportTask`s.
+   *
+   * @param importInput Array of root externalId and associated info which were used to create the import.
+   * @returns `ImportTaskInput`.
+   */
   protected abstract buildTasksInput(
     importInput: ImportInput<T>
   ): ImportTaskInput<T>;
 
+  /**
+   * Schedule the first `APIImportTask` for the import.
+   *
+   * @param importTask ImportTask model associated with the `APIImportTask`.
+   * @returns Promise that resolves when the task is scheduled.
+   */
   protected abstract scheduleTask(importTask: ImportTask<T>): Promise<void>;
 }

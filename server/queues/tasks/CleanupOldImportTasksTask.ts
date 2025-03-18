@@ -7,6 +7,9 @@ import BaseTask, { TaskPriority, TaskSchedule } from "./BaseTask";
 
 type Props = Record<string, never>;
 
+/**
+ * A task that deletes the completed & errored old import_tasks.
+ */
 export default class CleanupOldImportTasksTask extends BaseTask<Props> {
   static cron = TaskSchedule.Day;
 

@@ -10,6 +10,9 @@ type Props = {
   limit: number;
 };
 
+/**
+ * A task that moves the stuck imports to errored state.
+ */
 export default class ErrorTimedOutImportsTask extends BaseTask<Props> {
   static cron = TaskSchedule.Hour;
 

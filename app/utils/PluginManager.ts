@@ -33,9 +33,13 @@ type PluginValueMap = {
     enabled?: (team: Team, user: User) => boolean;
   };
   [Hook.Imports]: {
+    /** The title of the import. */
     title: string;
+    /** The auxiliary descriptive text of the import. */
     subtitle: string;
+    /** An icon to denote the kind of import. */
     icon: React.ReactElement;
+    /** Trigger for the import. */
     action: React.ReactElement;
   };
   [Hook.Icon]: React.ElementType;

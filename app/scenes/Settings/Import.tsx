@@ -25,9 +25,13 @@ import { ImportListItem } from "./components/ImportListItem";
 import ImportMarkdownDialog from "./components/ImportMarkdownDialog";
 
 type Config = {
+  /** The title of the import. */
   title: string;
+  /** The auxiliary descriptive text of the import. */
   subtitle: string;
+  /** An icon to denote the kind of import. */
   icon: React.ReactElement;
+  /** Trigger for the import. */
   action: React.ReactElement;
 };
 

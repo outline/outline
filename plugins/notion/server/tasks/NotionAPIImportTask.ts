@@ -18,6 +18,13 @@ type ParsePageOutput = ImportTaskOutput[number] & {
 };
 
 export default class NotionAPIImportTask extends APIImportTask<IntegrationService.Notion> {
+  /**
+   * Process the Notion import task.
+   * This fetches data from Notion and converts it to task output.
+   *
+   * @param importTask ImportTask model to process.
+   * @returns Promise with output that resolves once processing has completed.
+   */
   protected async process(
     importTask: ImportTask<IntegrationService.Notion>
   ): Promise<ProcessOutput<IntegrationService.Notion>> {
@@ -29,7 +36,7 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
     const client = new NotionClient(integration.authentication.token);
 
     const parsedPages = await Promise.all(
-      importTask.input.map(async (item) => this.parseItem({ item, client }))
+      importTask.input.map(async (item) => this.processPage({ item, client }))
     );
 
     const taskOutput: ImportTaskOutput = parsedPages.map((parsedPage) => ({
@@ -53,6 +60,12 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
     return { taskOutput, childTasksInput };
   }
 
+  /**
+   * Schedule the next `NotionAPIImportTask`.
+   *
+   * @param importTask ImportTask model associated with the `NotionAPIImportTask`.
+   * @returns Promise that resolves when the task is scheduled.
+   */
   protected async scheduleNextTask(
     importTask: ImportTask<IntegrationService.Notion>
   ) {
@@ -60,7 +73,14 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
     return;
   }
 
-  private async parseItem({
+  /**
+   * Fetch page data from Notion and convert it to expected output.
+   *
+   * @param item Object containing data about a notion page (or) database.
+   * @param client Notion client.
+   * @returns Promise of parsed page output that resolves when the task is scheduled.
+   */
+  private async processPage({
     item,
     client,
   }: {
@@ -110,6 +130,12 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
     };
   }
 
+  /**
+   * Parse Notion page blocks to get its child pages and databases.
+   *
+   * @param pageBlocks Array of blocks representing the page's content.
+   * @returns Array containing child page and child database info.
+   */
   private parseChildPages(pageBlocks: Block[]): ChildPage[] {
     const childPages: ChildPage[] = [];
 

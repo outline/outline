@@ -22,7 +22,9 @@ type PageWithPermission = Page & {
 };
 
 type Props = {
+  /** The integrationId associated with this import flow. */
   integrationId: string;
+  /** Callback to handle import creation. */
   onSubmit: () => void;
 };
 

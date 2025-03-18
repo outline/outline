@@ -38,6 +38,12 @@ type Props = {
 export default abstract class APIImportTask<
   T extends ImportableIntegrationService
 > extends BaseTask<Props> {
+  /**
+   * Run the import task.
+   *
+   * @param importTaskId id of the import_task model.
+   * @returns Promise that resolves once the task has completed.
+   */
   public async perform({ importTaskId }: Props) {
     let importTask = await ImportTask.findByPk<ImportTask<T>>(importTaskId, {
       rejectOnEmpty: true,
@@ -67,6 +73,12 @@ export default abstract class APIImportTask<
     }
   }
 
+  /**
+   * Handle failure when all attempts of APIImportTask has failed.
+   *
+   * @param importTaskId id of the import_task model.
+   * @returns Promise that resolves once failure has been handled.
+   */
   public async onFailed({ importTaskId }: Props) {
     await sequelize.transaction(async (transaction) => {
       const importTask = await ImportTask.findByPk<ImportTask<T>>(
@@ -99,6 +111,13 @@ export default abstract class APIImportTask<
     });
   }
 
+  /**
+   * Creation flow for the task.
+   * This fetches data from external source, stores the task output and creates subsequent import_task models.
+   *
+   * @param importTask import_task model to process.
+   * @returns Promise that resolves once processing has completed.
+   */
   private async onProcess(importTask: ImportTask<T>) {
     const { taskOutput, childTasksInput } = await this.process(importTask);
 
@@ -144,6 +163,13 @@ export default abstract class APIImportTask<
     await this.scheduleNextTask(importTask);
   }
 
+  /**
+   * Completion flow for the task.
+   * This determines if there are any more import_tasks to process (or) all tasks for the import have been processed, and schedules the next step.
+   *
+   * @param importTask import_task model to process.
+   * @returns Promise that resolves once processing has completed.
+   */
   private async onCompletion(importTask: ImportTask<T>) {
     const where: WhereOptions<ImportTask<T>> = {
       state: ImportTaskState.Created,
@@ -175,12 +201,33 @@ export default abstract class APIImportTask<
     });
   }
 
+  /**
+   * Process the import task.
+   * This fetches data from external source and converts it to task output.
+   *
+   * @param importTask ImportTask model to process.
+   * @returns Promise with output that resolves once processing has completed.
+   */
   protected abstract process(
     importTask: ImportTask<T>
   ): Promise<ProcessOutput<T>>;
 
+  /**
+   * Schedule the next `APIImportTask`.
+   *
+   * @param importTask ImportTask model associated with the `APIImportTask`.
+   * @returns Promise that resolves when the task is scheduled.
+   */
   protected abstract scheduleNextTask(importTask: ImportTask<T>): Promise<void>;
 
+  /**
+   * Upload attachments found in the external document.
+   *
+   * @param doc ProseMirrorDoc that represents collection (or) document content.
+   * @param externalId id of the document in the external service.
+   * @param createdBy user who created the import.
+   * @returns Updated ProseMirrorDoc.
+   */
   private async uploadAttachments({
     doc,
     externalId,
@@ -272,6 +319,13 @@ export default abstract class APIImportTask<
     return this.replaceAttachmentUrls(docNode, urlToAttachment).toJSON();
   }
 
+  /**
+   * Replace remote url to internal redirect url for attachments.
+   *
+   * @param doc ProseMirror node that represents collection (or) document content.
+   * @param urlToAttachment Map of remote url to attachment model.
+   * @returns Updated Prosemirror node.
+   */
   private replaceAttachmentUrls(
     doc: Node,
     urlToAttachment: Record<string, Attachment>
@@ -314,6 +368,9 @@ export default abstract class APIImportTask<
     return doc.copy(transformFragment(doc.content));
   }
 
+  /**
+   * Job options such as priority and retry strategy, as defined by Bull.
+   */
   public get options(): JobOptions {
     return {
       priority: TaskPriority.Normal,
