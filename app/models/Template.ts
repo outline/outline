@@ -108,11 +108,6 @@ export default class Template extends ParanoidModel implements Searchable {
   }
 
   @computed
-  get isDraft(): boolean {
-    return !this.publishedAt;
-  }
-
-  @computed
   get hasEmptyTitle(): boolean {
     return this.title === "";
   }

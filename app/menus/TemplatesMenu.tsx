@@ -48,11 +48,7 @@ function TemplatesMenu({ isCompact, onSelectTemplate, document }: Props) {
     [user, onSelectTemplate]
   );
 
-  const publishedTemplates = templates.orderedData.filter(
-    (template) => template.publishedAt
-  );
-
-  const collectionItems = publishedTemplates
+  const collectionItems = templates.orderedData
     .filter(
       (template) =>
         !template.isWorkspaceTemplate &&
@@ -60,7 +56,7 @@ function TemplatesMenu({ isCompact, onSelectTemplate, document }: Props) {
     )
     .map(templateToMenuItem);
 
-  const workspaceTemplates = publishedTemplates
+  const workspaceTemplates = templates.orderedData
     .filter((template) => template.isWorkspaceTemplate)
     .map(templateToMenuItem);
 

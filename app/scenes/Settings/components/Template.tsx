@@ -62,7 +62,7 @@ export default function TemplateEdit({ template }: Props) {
         </Notice>
         <Editor
           id={template.id}
-          isDraft={template.isDraft}
+          isDraft={false}
           document={template}
           value={readOnly ? template.data : undefined}
           defaultValue={template.data}

@@ -42,22 +42,6 @@ allow(User, ["update", "duplicate"], Template, (actor, template) =>
   )
 );
 
-allow(User, "publish", Template, (actor, template) =>
-  and(
-    //
-    can(actor, "update", template),
-    !!template?.isDraft
-  )
-);
-
-allow(User, "unpublish", Template, (actor, template) =>
-  and(
-    //
-    can(actor, "update", template),
-    !template?.isDraft
-  )
-);
-
 allow(User, "delete", Template, (actor, template) =>
   and(
     //
