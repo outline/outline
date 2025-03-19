@@ -179,7 +179,10 @@ export default class Link extends Mark {
           },
           mousedown: (view: EditorView, event: MouseEvent) => {
             const target = (event.target as HTMLElement)?.closest("a");
-            if (!(target instanceof HTMLAnchorElement) || event.button !== 0) {
+            if (
+              !(target instanceof HTMLAnchorElement) ||
+              (event.button !== 0 && event.button !== 1)
+            ) {
               return false;
             }
 
