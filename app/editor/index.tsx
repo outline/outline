@@ -843,7 +843,7 @@ const EditorContainer = styled(Styles)<{
   ${(props) =>
     props.userId &&
     css`
-      .mention[data-id=${props.userId}] {
+      .mention[data-id="${props.userId}"] {
         color: ${props.theme.textHighlightForeground};
         background: ${props.theme.textHighlight};
 
