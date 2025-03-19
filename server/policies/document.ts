@@ -28,7 +28,7 @@ allow(
           DocumentPermission.ReadWrite,
           DocumentPermission.Admin,
         ]),
-        and(!!document?.isDraft, actor.id === document?.createdById),
+        !!document?.isDraft && actor.id === document?.createdById,
         can(actor, "readDocument", document?.collection)
       )
     )
@@ -84,7 +84,7 @@ allow(User, "update", Document, (actor, document) =>
       ]),
       or(
         can(actor, "updateDocument", document?.collection),
-        and(!!document?.isDraft && actor.id === document?.createdById)
+        !!document?.isDraft && actor.id === document?.createdById
       )
     )
   )
@@ -173,7 +173,7 @@ allow(User, ["restore", "permanentDelete"], Document, (actor, document) =>
         DocumentPermission.Admin,
       ]),
       can(actor, "updateDocument", document?.collection),
-      and(!!document?.isDraft && actor.id === document?.createdById),
+      !!document?.isDraft && actor.id === document?.createdById,
       !document?.collection
     )
   )
@@ -203,7 +203,7 @@ allow(User, "unarchive", Document, (actor, document) =>
         DocumentPermission.Admin,
       ]),
       can(actor, "updateDocument", document?.collection),
-      and(!!document?.isDraft && actor.id === document?.createdById)
+      !!document?.isDraft && actor.id === document?.createdById
     )
   )
 );

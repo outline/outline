@@ -1,6 +1,3 @@
-import { ProsemirrorData } from "@shared/types";
-import { UrlHelper } from "@shared/utils/UrlHelper";
-import { DocumentValidation } from "@shared/validations";
 import { isUUID } from "class-validator";
 import {
   Identifier,
@@ -24,8 +21,13 @@ import {
   HasMany,
   Unique,
   Scopes,
+  BeforeValidate,
 } from "sequelize-typescript";
 import slugify from "slugify";
+import { ProsemirrorData } from "@shared/types";
+import { UrlHelper } from "@shared/utils/UrlHelper";
+import { DocumentValidation } from "@shared/validations";
+import { generateUrlId } from "@server/utils/url";
 import Collection from "./Collection";
 import Revision from "./Revision";
 import Team from "./Team";
@@ -82,6 +84,14 @@ type AdditionalFindOptions = {
       },
     ],
   }),
+  withCollection: {
+    include: [
+      {
+        model: Collection,
+        as: "collection",
+      },
+    ],
+  },
 }))
 @Table({ tableName: "documents", modelName: "template" })
 @Fix
@@ -214,6 +224,11 @@ class Template extends IdModel<
    */
   get isDeleted(): boolean {
     return !!this.deletedAt;
+  }
+
+  @BeforeValidate
+  static createUrlId(model: Template) {
+    return (model.urlId = model.urlId || generateUrlId());
   }
 
   /**

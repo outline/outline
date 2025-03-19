@@ -41,6 +41,7 @@ import {
   SearchQuery,
   Pin,
   Comment,
+  Template,
 } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 
@@ -411,6 +412,57 @@ export async function buildDocument(
   }
 
   return document;
+}
+
+export async function buildTemplate(
+  // Omission first, addition later?
+  // This is actually a workaround to allow
+  // passing collectionId as null. Ideally, it
+  // should be updated in the Document model itself
+  // but that'd cascade and require further changes
+  // beyond the scope of what's required now
+  overrides: Omit<Partial<Template>, "collectionId"> & {
+    userId?: string;
+    text?: string;
+    collectionId?: string | null;
+  } = {}
+) {
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
+  if (!overrides.userId) {
+    const user = await buildUser();
+    overrides.userId = user.id;
+  }
+
+  let collection;
+  if (overrides.collectionId === undefined) {
+    collection = await buildCollection({
+      teamId: overrides.teamId,
+      userId: overrides.userId,
+    });
+    overrides.collectionId = collection.id;
+  }
+
+  const text = overrides.text ?? "This is the text in an example template";
+  const template = await Template.create(
+    {
+      title: faker.lorem.words(4),
+      content: overrides.content ?? parser.parse(text)?.toJSON(),
+      publishedAt: isNull(overrides.collectionId) ? null : new Date(),
+      lastModifiedById: overrides.userId,
+      createdById: overrides.userId,
+      editorVersion: "12.0.0",
+      ...overrides,
+    },
+    {
+      silent: overrides.createdAt || overrides.updatedAt ? true : false,
+    }
+  );
+
+  return template;
 }
 
 export async function buildComment(overrides: {
