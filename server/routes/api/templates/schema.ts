@@ -48,7 +48,6 @@ export const TemplatesDuplicateSchema = BaseSchema.extend({
   body: z.object({
     id: zodIdType(),
     title: z.string().optional(),
-    publish: z.boolean().optional(),
   }),
 });
 

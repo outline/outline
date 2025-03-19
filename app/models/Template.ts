@@ -74,9 +74,6 @@ export default class Template extends ParanoidModel implements Searchable {
   updatedBy: User | undefined;
 
   @observable
-  publishedAt: string | undefined;
-
-  @observable
   urlId: string;
 
   /**

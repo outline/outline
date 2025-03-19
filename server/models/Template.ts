@@ -13,7 +13,6 @@ import {
   DataType,
   BelongsTo,
   ForeignKey,
-  IsDate,
   Table,
   Length as SimpleLength,
   DefaultScope,
@@ -46,20 +45,15 @@ type AdditionalFindOptions = {
 @DefaultScope(() => ({
   include: [
     {
-      model: User,
-      as: "createdBy",
+      association: "createdBy",
       paranoid: false,
     },
     {
-      model: User,
-      as: "updatedBy",
+      association: "updatedBy",
       paranoid: false,
     },
   ],
   where: {
-    publishedAt: {
-      [Op.ne]: null,
-    },
     archivedAt: {
       [Op.eq]: null,
     },
@@ -146,11 +140,6 @@ class Template extends IdModel<
   @Column(DataType.JSONB)
   content: ProsemirrorData | null;
 
-  /** Whether the document is published, and if so when. */
-  @IsDate
-  @Column
-  publishedAt: Date | null;
-
   // associations
 
   @BelongsTo(() => User, "lastModifiedById")
@@ -209,15 +198,6 @@ class Template extends IdModel<
   }
 
   /**
-   * Convenience method that returns whether this template is a draft.
-   *
-   * @returns boolean
-   */
-  get isDraft(): boolean {
-    return !this.publishedAt;
-  }
-
-  /**
    * Convenience method that returns whether this template is deleted.
    *
    * @returns boolean
@@ -262,6 +242,7 @@ class Template extends IdModel<
     // allow default preloading of collection membership if `userId` is passed in find options
     // almost every endpoint needs the collection membership to determine policy permissions.
     const scope = this.scope([
+      "defaultScope",
       {
         method: ["withCollectionPermissions", userId, rest.paranoid],
       },

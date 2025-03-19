@@ -71,7 +71,7 @@ router.post(
     ]);
 
     const data = await Promise.all(
-      templates.map((template) => presentTemplate(ctx, template))
+      templates.map((template) => presentTemplate(template))
     );
     const policies = presentPolicies(user, templates);
 
@@ -97,12 +97,9 @@ router.post(
     });
     authorize(user, "read", template);
 
-    const data = await presentTemplate(ctx, template);
-    const policies = presentPolicies(user, [template]);
-
     ctx.body = {
-      data,
-      policies,
+      data: presentTemplate(template),
+      policies: presentPolicies(user, [template]),
     };
   }
 );
@@ -120,7 +117,6 @@ router.post(
     const template = await Template.findByPk(id, {
       userId: user.id,
       rejectOnEmpty: true,
-      lock: transaction.LOCK.UPDATE,
       transaction,
     });
     authorize(user, "delete", template);
@@ -140,7 +136,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.TemplatesDuplicateReq>) => {
     const { transaction } = ctx.state;
-    const { id, title, publish } = ctx.input.body;
+    const { id, title } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const original = await Template.findByPk(id, {
@@ -150,9 +146,8 @@ router.post(
     });
     authorize(user, "duplicate", original);
 
-    const template = await Template.createWithCtx(ctx, {
+    let template = await Template.createWithCtx(ctx, {
       title: title ?? original.title,
-      publishedAt: publish ? new Date() : null,
       createdById: user.id,
       lastModifiedById: user.id,
       teamId: user.teamId,
@@ -163,8 +158,15 @@ router.post(
       fullWidth: original.fullWidth,
     });
 
+    // reload to get all of the data needed to present (user, collection etc)
+    template = await Template.findByPk(template.id, {
+      userId: user.id,
+      rejectOnEmpty: true,
+      transaction,
+    });
+
     ctx.body = {
-      data: presentTemplate(ctx, template),
+      data: presentTemplate(template),
       policies: presentPolicies(user, [template]),
     };
   }
@@ -183,7 +185,6 @@ router.post(
     const template = await Template.findByPk(id, {
       userId: user.id,
       rejectOnEmpty: true,
-      lock: transaction.LOCK.UPDATE,
       transaction,
     });
     authorize(user, "update", template);
@@ -195,7 +196,7 @@ router.post(
     await template.updateWithCtx(ctx, updatedFields);
 
     ctx.body = {
-      data: await presentTemplate(ctx, template),
+      data: presentTemplate(template),
       policies: presentPolicies(user, [template]),
     };
   }

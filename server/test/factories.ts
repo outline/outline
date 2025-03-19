@@ -373,7 +373,9 @@ export async function buildDocument(
   }
 
   if (!overrides.userId) {
-    const user = await buildUser();
+    const user = await buildUser({
+      teamId: overrides.teamId,
+    });
     overrides.userId = user.id;
   }
 
@@ -433,7 +435,9 @@ export async function buildTemplate(
   }
 
   if (!overrides.userId) {
-    const user = await buildUser();
+    const user = await buildUser({
+      teamId: overrides.teamId,
+    });
     overrides.userId = user.id;
   }
 
@@ -451,7 +455,6 @@ export async function buildTemplate(
     {
       title: faker.lorem.words(4),
       content: overrides.content ?? parser.parse(text)?.toJSON(),
-      publishedAt: isNull(overrides.collectionId) ? null : new Date(),
       lastModifiedById: overrides.userId,
       createdById: overrides.userId,
       editorVersion: "12.0.0",
