@@ -1,6 +1,7 @@
 import { z } from "zod";
-import { BaseSchema } from "@server/routes/api/schema";
-import { zodIdType } from "@server/utils/zod";
+import { BaseSchema, ProsemirrorSchema } from "@server/routes/api/schema";
+import { zodIconType, zodIdType } from "@server/utils/zod";
+import { ValidateColor } from "@server/validation";
 
 const TemplatesSortParamsSchema = z.object({
   /** Specifies the attributes by which templates will be sorted in the list */
@@ -34,3 +35,37 @@ export const TemplatesInfoSchema = BaseSchema.extend({
 });
 
 export type TemplatesInfoReq = z.infer<typeof TemplatesInfoSchema>;
+
+export const TemplatesDeleteSchema = BaseSchema.extend({
+  body: z.object({
+    id: zodIdType(),
+  }),
+});
+
+export type TemplatesDeleteReq = z.infer<typeof TemplatesDeleteSchema>;
+
+export const TemplatesDuplicateSchema = BaseSchema.extend({
+  body: z.object({
+    id: zodIdType(),
+    title: z.string().optional(),
+    publish: z.boolean().optional(),
+  }),
+});
+
+export type TemplatesDuplicateReq = z.infer<typeof TemplatesDuplicateSchema>;
+
+export const TemplatesUpdateSchema = BaseSchema.extend({
+  body: z.object({
+    id: zodIdType(),
+    title: z.string().optional(),
+    data: ProsemirrorSchema().optional(),
+    icon: zodIconType().nullish(),
+    color: z
+      .string()
+      .regex(ValidateColor.regex, { message: ValidateColor.message })
+      .nullish(),
+    fullWidth: z.boolean().optional(),
+  }),
+});
+
+export type TemplatesUpdateReq = z.infer<typeof TemplatesUpdateSchema>;

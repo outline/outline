@@ -4,7 +4,6 @@ import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Template from "~/models/Template";
 import Editor from "~/scenes/Document/components/Editor";
-import Button from "~/components/Button";
 import { DocumentContextProvider } from "~/components/DocumentContext";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import Notice from "~/components/Notice";

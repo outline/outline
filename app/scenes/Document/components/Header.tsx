@@ -30,7 +30,6 @@ import Header from "~/components/Header";
 import Star from "~/components/Star";
 import Tooltip from "~/components/Tooltip";
 import { publishDocument } from "~/actions/definitions/documents";
-import { navigateToTemplateSettings } from "~/actions/definitions/navigation";
 import { restoreRevision } from "~/actions/definitions/revisions";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";

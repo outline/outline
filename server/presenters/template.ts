@@ -1,6 +1,5 @@
 import { traceFunction } from "@server/logging/tracing";
 import { Template } from "@server/models";
-import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { APIContext } from "@server/types";
 import presentUser from "./user";
 
@@ -13,7 +12,7 @@ async function presentTemplate(
     url: template.path,
     urlId: template.urlId,
     title: template.title,
-    data: await DocumentHelper.toJSON(template),
+    data: template.content,
     icon: template.icon,
     color: template.color,
     createdAt: template.createdAt,

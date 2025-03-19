@@ -1,11 +1,12 @@
+import Router from "koa-router";
+import { Op, WhereOptions } from "sequelize";
 import auth from "@server/middlewares/authentication";
+import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Collection, Template } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentPolicies, presentTemplate } from "@server/presenters";
 import { APIContext } from "@server/types";
-import Router from "koa-router";
-import { Op, WhereOptions } from "sequelize";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -102,6 +103,100 @@ router.post(
     ctx.body = {
       data,
       policies,
+    };
+  }
+);
+
+router.post(
+  "templates.delete",
+  auth(),
+  validate(T.TemplatesDeleteSchema),
+  transaction(),
+  async (ctx: APIContext<T.TemplatesDeleteReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    const template = await Template.findByPk(id, {
+      userId: user.id,
+      rejectOnEmpty: true,
+      lock: transaction.LOCK.UPDATE,
+      transaction,
+    });
+    authorize(user, "delete", template);
+
+    await template.destroyWithCtx(ctx);
+
+    ctx.body = {
+      success: true,
+    };
+  }
+);
+
+router.post(
+  "templates.duplicate",
+  auth(),
+  validate(T.TemplatesDuplicateSchema),
+  transaction(),
+  async (ctx: APIContext<T.TemplatesDuplicateReq>) => {
+    const { transaction } = ctx.state;
+    const { id, title, publish } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const original = await Template.findByPk(id, {
+      userId: user.id,
+      rejectOnEmpty: true,
+      transaction,
+    });
+    authorize(user, "duplicate", original);
+
+    const template = await Template.createWithCtx(ctx, {
+      title: title ?? original.title,
+      publishedAt: publish ? new Date() : null,
+      createdById: user.id,
+      lastModifiedById: user.id,
+      teamId: user.teamId,
+      collectionId: original.collectionId,
+      content: original.content,
+      icon: original.icon,
+      color: original.color,
+      fullWidth: original.fullWidth,
+    });
+
+    ctx.body = {
+      data: presentTemplate(ctx, template),
+      policies: presentPolicies(user, [template]),
+    };
+  }
+);
+
+router.post(
+  "templates.update",
+  auth(),
+  validate(T.TemplatesUpdateSchema),
+  transaction(),
+  async (ctx: APIContext<T.TemplatesUpdateReq>) => {
+    const { transaction } = ctx.state;
+    const { id, data, ...updatedFields } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const template = await Template.findByPk(id, {
+      userId: user.id,
+      rejectOnEmpty: true,
+      lock: transaction.LOCK.UPDATE,
+      transaction,
+    });
+    authorize(user, "update", template);
+
+    if (data) {
+      template.content = data;
+    }
+
+    await template.updateWithCtx(ctx, updatedFields);
+
+    ctx.body = {
+      data: await presentTemplate(ctx, template),
+      policies: presentPolicies(user, [template]),
     };
   }
 );
