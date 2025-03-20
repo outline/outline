@@ -600,7 +600,7 @@ export default class Document extends ArchivableModel implements Searchable {
    */
   getSummary = (blocks = 4) => ({
     ...this.data,
-    content: this.data.content.slice(0, blocks),
+    content: this.data.content?.slice(0, blocks),
   });
 
   @computed

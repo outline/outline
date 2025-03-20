@@ -70,7 +70,7 @@ export class ProsemirrorHelper {
       return false;
     }
 
-    if (data.content.length === 1) {
+    if (data.content?.length === 1) {
       const node = data.content[0];
       return (
         node.type === "paragraph" &&
@@ -80,7 +80,7 @@ export class ProsemirrorHelper {
       );
     }
 
-    return data.content.length === 0;
+    return !data.content || data.content.length === 0;
   }
 
   /**
@@ -355,14 +355,19 @@ export class ProsemirrorHelper {
    * @returns An array of paragraph nodes or undefined
    */
   static getPlainParagraphs(data: ProsemirrorData) {
-    const paragraphs = [];
+    const paragraphs: ProsemirrorData[] = [];
+    if (!data.content) {
+      return paragraphs;
+    }
+
     for (const node of data.content) {
       if (
         node.type === "paragraph" &&
-        !node.content.some(
-          (item) =>
-            item.type !== "text" || (item.marks && item.marks.length > 0)
-        )
+        (!node.content ||
+          !node.content.some(
+            (item) =>
+              item.type !== "text" || (item.marks && item.marks.length > 0)
+          ))
       ) {
         paragraphs.push(node);
       } else {
