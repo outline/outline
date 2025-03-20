@@ -1,28 +1,34 @@
 import { observer } from "mobx-react";
-import { DuplicateIcon, EditIcon, TrashIcon } from "outline-icons";
+import { DuplicateIcon, EditIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
 import { useMenuState } from "reakit/Menu";
 import Template from "~/models/Template";
 import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import ContextMenuTemplate from "~/components/ContextMenu/Template";
+import { actionToMenuItem } from "~/actions";
+import { deleteTemplate } from "~/actions/definitions/templates";
+import useActionContext from "~/hooks/useActionContext";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 
 type Props = {
   template: Template;
+  onEdit?: () => void;
 };
 
-function TemplateMenu({ template }: Props) {
+function TemplateMenu({ template, onEdit }: Props) {
   const menu = useMenuState({
     modal: true,
   });
   const { templates } = useStores();
   const { t } = useTranslation();
-  const history = useHistory();
   const can = usePolicy(template);
+  const context = useActionContext({
+    isContextMenu: true,
+    activeTemplateId: template.id,
+  });
 
   return (
     <>
@@ -33,10 +39,10 @@ function TemplateMenu({ template }: Props) {
           items={[
             {
               type: "button",
-              title: t("Edit"),
+              title: `${t("Edit")}…`,
               visible: !!can.update,
               icon: <EditIcon />,
-              onClick: () => history.push(`/settings/templates/${template.id}`),
+              onClick: () => onEdit?.(),
             },
             {
               type: "button",
@@ -48,14 +54,7 @@ function TemplateMenu({ template }: Props) {
             {
               type: "separator",
             },
-            {
-              type: "button",
-              title: `${t("Delete")}…`,
-              visible: !!can.delete,
-              icon: <TrashIcon />,
-              dangerous: true,
-              onClick: () => templates.delete(template),
-            },
+            actionToMenuItem(deleteTemplate, context),
           ]}
         />
       </ContextMenu>

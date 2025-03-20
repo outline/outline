@@ -104,7 +104,9 @@ export function TemplatesTable(props: Props) {
         {
           type: "action",
           id: "action",
-          component: (template) => <TemplateMenu template={template} />,
+          component: (template) => (
+            <TemplateMenu template={template} onEdit={handleOpen(template)} />
+          ),
           width: "50px",
         },
       ]),
