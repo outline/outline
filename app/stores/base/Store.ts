@@ -103,6 +103,9 @@ export default abstract class Store<T extends Model> {
 
     return this.orderedData
       .filter((item: T & Searchable) => {
+        if ("deletedAt" in item && item.deletedAt) {
+          return false;
+        }
         if ("searchContent" in item) {
           const seachables =
             typeof item.searchContent === "string"

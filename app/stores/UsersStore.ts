@@ -27,7 +27,7 @@ export default class UsersStore extends Store<User> {
 
   @computed
   get active(): User[] {
-    return this.all.filter((user) => !user.isSuspended);
+    return this.all.filter((user) => !user.isSuspended && !user.isInvited);
   }
 
   @computed
@@ -37,36 +37,34 @@ export default class UsersStore extends Store<User> {
 
   @computed
   get activeOrInvited(): User[] {
-    return this.orderedData.filter(
-      (user) => !user.isSuspended && !user.isDeleted
-    );
+    return this.all.filter((user) => !user.isSuspended);
   }
 
   @computed
   get invited(): User[] {
-    return this.orderedData.filter((user) => user.isInvited && !user.isDeleted);
+    return this.all.filter((user) => user.isInvited);
   }
 
   @computed
   get admins(): User[] {
-    return this.all.filter((user) => user.isAdmin);
+    return this.all.filter((user) => user.isAdmin && !user.isInvited);
   }
 
   @computed
   get members(): User[] {
-    return this.all.filter((user) => !user.isViewer && !user.isAdmin);
+    return this.all.filter(
+      (user) => !user.isViewer && !user.isAdmin && !user.isInvited
+    );
   }
 
   @computed
   get viewers(): User[] {
-    return this.all.filter((user) => user.isViewer);
+    return this.all.filter((user) => user.isViewer && !user.isInvited);
   }
 
   @computed
   get all(): User[] {
-    return this.orderedData.filter(
-      (user) => !user.isInvited && !user.isDeleted
-    );
+    return this.orderedData.filter((user) => !user.isDeleted);
   }
 
   @computed
