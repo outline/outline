@@ -205,7 +205,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
             <div className="ProseMirror">
               {paragraphs.map((paragraph, index) => (
                 <p key={index} dir="auto">
-                  {paragraph.content.map((content) => content.text)}
+                  {paragraph.content?.map((content) => content.text)}
                 </p>
               ))}
             </div>

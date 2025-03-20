@@ -214,5 +214,23 @@ describe("ProsemirrorHelper", () => {
       const paragraphs = ProsemirrorHelper.getPlainParagraphs(data);
       expect(paragraphs).toBeUndefined();
     });
+
+    it("should handle paragraph without content", async () => {
+      const data = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+          },
+        ],
+      } as ProsemirrorData;
+
+      const paragraphs = ProsemirrorHelper.getPlainParagraphs(data);
+      expect(paragraphs).toEqual([
+        {
+          type: "paragraph",
+        },
+      ]);
+    });
   });
 });
