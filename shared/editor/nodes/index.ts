@@ -105,10 +105,10 @@ export const richExtensions: Nodes = [
   HorizontalRule,
   Highlight,
   TemplatePlaceholder,
+  ToggleBlock,
   Math,
   MathBlock,
   Mention,
-  ToggleBlock,
   // Container type nodes should be last so that key handlers are registered for content inside
   // the container nodes first.
   ...listExtensions,
