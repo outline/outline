@@ -194,7 +194,7 @@ function getFilteredUsers({
 
   switch (filter) {
     case "all":
-      filteredUsers = users.orderedData;
+      filteredUsers = users.all;
       break;
     case "suspended":
       filteredUsers = users.suspended;

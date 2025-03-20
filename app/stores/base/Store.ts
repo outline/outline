@@ -1,6 +1,7 @@
 import commandScore from "command-score";
 import invariant from "invariant";
-import { deburr, type ObjectIterateeCustom } from "lodash";
+import type { ObjectIterateeCustom } from "lodash";
+import deburr from "lodash/deburr";
 import filter from "lodash/filter";
 import find from "lodash/find";
 import flatten from "lodash/flatten";
@@ -102,6 +103,9 @@ export default abstract class Store<T extends Model> {
 
     return this.orderedData
       .filter((item: T & Searchable) => {
+        if ("deletedAt" in item && item.deletedAt) {
+          return false;
+        }
         if ("searchContent" in item) {
           const seachables =
             typeof item.searchContent === "string"

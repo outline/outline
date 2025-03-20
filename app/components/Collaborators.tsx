@@ -49,7 +49,7 @@ function Collaborators(props: Props) {
     () =>
       orderBy(
         filter(
-          users.orderedData,
+          users.all,
           (u) =>
             (presentIds.includes(u.id) ||
               document.collaboratorIds.includes(u.id)) &&
@@ -58,7 +58,7 @@ function Collaborators(props: Props) {
         [(u) => presentIds.includes(u.id), "id"],
         ["asc", "asc"]
       ),
-    [document.collaboratorIds, users.orderedData, presentIds]
+    [document.collaboratorIds, users.all, presentIds]
   );
 
   // load any users we don't yet have in memory
