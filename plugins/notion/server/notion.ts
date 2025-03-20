@@ -238,7 +238,7 @@ export class NotionClient {
     await this.limiter();
     const user = await this.client.users.retrieve({ user_id: userId });
 
-    if (user.type === "person") {
+    if (user.type === "person" || !user.bot.owner) {
       return user.name;
     }
 
