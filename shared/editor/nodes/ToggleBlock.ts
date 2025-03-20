@@ -62,7 +62,7 @@ export default class ToggleBlock extends Node {
                 "target" in decorationSpec &&
                 decorationSpec.target.startsWith(this.name)
               ) {
-                const toggleBlock = findBlockNodes(tr.doc).find(
+                const toggleBlock = findBlockNodes(tr.doc, true).find(
                   (block) =>
                     block.node.type.name === this.name &&
                     block.node.attrs.id === decorationSpec.nodeId
@@ -197,7 +197,7 @@ export default class ToggleBlock extends Node {
         );
         let tr = null;
         if (docChanged) {
-          const blocks = findBlockNodes(newState.doc);
+          const blocks = findBlockNodes(newState.doc, true);
           tr = newState.tr;
           for (const block of blocks) {
             if (block.node.type.name === this.name && !block.node.attrs.id) {
