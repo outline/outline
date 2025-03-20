@@ -12,6 +12,7 @@ import {
 } from "prosemirror-view";
 import { v4 } from "uuid";
 import Storage from "../../utils/Storage";
+import { liftChildrenUp } from "../commands/toggleBlock";
 import { findBlockNodes } from "../queries/findChildren";
 import Node from "./Node";
 
@@ -243,6 +244,12 @@ export default class ToggleBlock extends Node {
     });
 
     return [foldPlugin];
+  }
+
+  keys({ type }: { type: NodeType }) {
+    return {
+      Backspace: liftChildrenUp(type),
+    };
   }
 
   commands({ type }: { type: NodeType }) {
