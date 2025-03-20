@@ -20,11 +20,13 @@ export default class ValidateSSOAccessTask extends BaseTask<Props> {
       }
 
       // Check the validity of the user's authentications.
+      let error;
       const validity = await Promise.all(
         userAuthentications.map(async (authentication) => {
           try {
             return await authentication.validateAccess({ transaction });
           } catch (err) {
+            error = err;
             return false;
           }
         })
@@ -32,6 +34,11 @@ export default class ValidateSSOAccessTask extends BaseTask<Props> {
 
       if (validity.some((isValid) => isValid)) {
         return;
+      }
+
+      // If an unexpected error occurred, throw it to trigger a retry.
+      if (error) {
+        throw error;
       }
 
       // If all are invalid then we need to revoke the users Outline sessions.
