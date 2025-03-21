@@ -161,14 +161,15 @@ export default abstract class ImportsProcessor<
         async (documents) => {
           for (const document of documents) {
             await collection.addDocumentToStructure(document, 0, {
-              transaction,
               save: false,
+              silent: true,
+              transaction,
             });
           }
         }
       );
 
-      await collection.save({ transaction });
+      await collection.save({ silent: true, transaction });
     }
 
     importModel.state = ImportState.Completed;
@@ -316,27 +317,32 @@ export default abstract class ImportsProcessor<
                 }
               );
 
-              const collection = await Collection.createWithCtx(
+              const collection = Collection.build({
+                id: internalId,
+                name: output.title,
+                icon: output.emoji ?? "collection",
+                color: output.emoji ? undefined : randomElement(colorPalette),
+                content: transformedContent,
+                description: truncate(description, {
+                  length: CollectionValidation.maxDescriptionLength,
+                }),
+                createdById: importModel.createdById,
+                teamId: importModel.createdBy.teamId,
+                apiImportId: importModel.id,
+                index: collectionIdx,
+                sort: Collection.DEFAULT_SORT,
+                permission: collectionItem.permission,
+                createdAt: output.createdAt ?? now,
+                updatedAt: output.updatedAt ?? now,
+              });
+
+              await collection.saveWithCtx(
                 ctx,
+                { silent: true },
                 {
-                  id: internalId,
-                  name: output.title,
-                  icon: output.emoji ?? "collection",
-                  color: output.emoji ? undefined : randomElement(colorPalette),
-                  content: transformedContent,
-                  description: truncate(description, {
-                    length: CollectionValidation.maxDescriptionLength,
-                  }),
-                  createdById: importModel.createdById,
-                  teamId: importModel.createdBy.teamId,
-                  apiImportId: importModel.id,
-                  index: collectionIdx,
-                  sort: Collection.DEFAULT_SORT,
-                  permission: collectionItem.permission,
-                  createdAt: now,
-                  updatedAt: now,
-                },
-                { data: { name: output.title, source: "import" } }
+                  name: "create",
+                  data: { name: output.title, source: "import" },
+                }
               );
 
               createdCollections.push(collection);
@@ -344,7 +350,7 @@ export default abstract class ImportsProcessor<
               // Unset documentId for attachments in collection overview.
               await Attachment.update(
                 { documentId: null },
-                { where: { documentId: externalId }, transaction }
+                { where: { documentId: externalId }, silent: true, transaction }
               );
 
               continue;
@@ -354,38 +360,43 @@ export default abstract class ImportsProcessor<
             const isRootDocument =
               !parentExternalId || !!importInput[parentExternalId];
 
-            await Document.createWithCtx(
-              ctx,
-              {
-                id: internalId,
-                title: output.title,
-                icon: output.emoji,
-                content: transformedContent,
-                text: DocumentHelper.toMarkdown(transformedContent, {
-                  includeTitle: false,
-                }),
-                collectionId: collectionInternalId,
-                parentDocumentId: isRootDocument ? undefined : parentInternalId,
-                createdById: importModel.createdById,
-                lastModifiedById: importModel.createdById,
-                teamId: importModel.createdBy.teamId,
-                apiImportId: importModel.id,
-                sourceMetadata: {
-                  externalId,
-                  externalName: output.title,
-                  createdByName: output.author,
-                },
-                createdAt: now,
-                updatedAt: now,
-                publishedAt: now,
+            const document = Document.build({
+              id: internalId,
+              title: output.title,
+              icon: output.emoji,
+              content: transformedContent,
+              text: DocumentHelper.toMarkdown(transformedContent, {
+                includeTitle: false,
+              }),
+              collectionId: collectionInternalId,
+              parentDocumentId: isRootDocument ? undefined : parentInternalId,
+              createdById: importModel.createdById,
+              lastModifiedById: importModel.createdById,
+              teamId: importModel.createdBy.teamId,
+              apiImportId: importModel.id,
+              sourceMetadata: {
+                externalId,
+                externalName: output.title,
+                createdByName: output.author,
               },
-              { data: { title: output.title, source: "import" } }
+              createdAt: output.createdAt ?? now,
+              updatedAt: output.updatedAt ?? now,
+              publishedAt: output.updatedAt ?? output.createdAt ?? now,
+            });
+
+            await document.saveWithCtx(
+              ctx,
+              { silent: true },
+              {
+                name: "create",
+                data: { title: output.title, source: "import" },
+              }
             );
 
             // Update document id for attachments in document content.
             await Attachment.update(
               { documentId: internalId },
-              { where: { documentId: externalId }, transaction }
+              { where: { documentId: externalId }, silent: true, transaction }
             );
           }
         }

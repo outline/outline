@@ -19,6 +19,14 @@ import { NotionUtils } from "../shared/NotionUtils";
 import { Block, Page, PageType } from "../shared/types";
 import env from "./env";
 
+type PageInfo = {
+  title: string;
+  emoji?: string;
+  author?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+};
+
 const Credentials = Buffer.from(
   `${env.NOTION_CLIENT_ID}:${env.NOTION_CLIENT_SECRET}`
 ).toString("base64");
@@ -97,15 +105,15 @@ export class NotionClient {
   }
 
   async fetchPage(pageId: string) {
-    const { title, emoji, author } = await this.fetchPageInfo(pageId);
+    const pageInfo = await this.fetchPageInfo(pageId);
     const blocks = await this.fetchBlockChildren(pageId);
-    return { title, emoji, author, blocks };
+    return { ...pageInfo, blocks };
   }
 
   async fetchDatabase(databaseId: string) {
-    const { title, emoji, author } = await this.fetchDatabaseInfo(databaseId);
+    const databaseInfo = await this.fetchDatabaseInfo(databaseId);
     const pages = await this.queryDatabase(databaseId);
-    return { title, emoji, author, pages };
+    return { ...databaseInfo, pages };
   }
 
   private async fetchBlockChildren(blockId: string) {
@@ -196,11 +204,7 @@ export class NotionClient {
     return pages;
   }
 
-  private async fetchPageInfo(pageId: string): Promise<{
-    title: string;
-    emoji?: string;
-    author?: string;
-  }> {
+  private async fetchPageInfo(pageId: string): Promise<PageInfo> {
     await this.limiter();
     const page = (await this.client.pages.retrieve({
       page_id: pageId,
@@ -212,14 +216,14 @@ export class NotionClient {
       title: this.parseTitle(page),
       emoji: this.parseEmoji(page),
       author: author ?? undefined,
+      createdAt: !page.created_time ? undefined : new Date(page.created_time),
+      updatedAt: !page.last_edited_time
+        ? undefined
+        : new Date(page.last_edited_time),
     };
   }
 
-  private async fetchDatabaseInfo(databaseId: string): Promise<{
-    title: string;
-    emoji?: string;
-    author?: string;
-  }> {
+  private async fetchDatabaseInfo(databaseId: string): Promise<PageInfo> {
     await this.limiter();
     const database = (await this.client.databases.retrieve({
       database_id: databaseId,
@@ -231,6 +235,12 @@ export class NotionClient {
       title: this.parseTitle(database),
       emoji: this.parseEmoji(database),
       author: author ?? undefined,
+      createdAt: !database.created_time
+        ? undefined
+        : new Date(database.created_time),
+      updatedAt: !database.last_edited_time
+        ? undefined
+        : new Date(database.last_edited_time),
     };
   }
 

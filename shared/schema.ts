@@ -55,4 +55,6 @@ export type ImportTaskOutput = {
   emoji?: string;
   author?: string;
   content: ProsemirrorDoc;
+  createdAt?: Date;
+  updatedAt?: Date;
 }[];
