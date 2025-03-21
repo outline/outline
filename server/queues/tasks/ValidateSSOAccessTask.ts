@@ -19,26 +19,26 @@ export default class ValidateSSOAccessTask extends BaseTask<Props> {
         return;
       }
 
-      try {
-        // Check the validity of all the user's associated authentications.
-        // @ts-expect-error TODO: Need to setup nested tsconfig with ES2021
-        const valid = await Promise.any(
-          userAuthentications.map(async (authentication) =>
-            authentication.validateAccess({ transaction })
-          )
-        );
+      // Check the validity of the user's authentications.
+      let error;
+      const validity = await Promise.all(
+        userAuthentications.map(async (authentication) => {
+          try {
+            return await authentication.validateAccess({ transaction });
+          } catch (err) {
+            error = err;
+            return false;
+          }
+        })
+      );
 
-        // If any are valid then we're done here.
-        if (valid) {
-          return;
-        }
-      } catch (err) {
-        // Promise.any will throw an AggregateError if all validateAccess calls throw, this would
-        // only be the case if all receive an unexpected error. We want to throw the first error
-        // as a descriptive error message.
-        if ("errors" in err && err.errors.length > 0) {
-          throw err.errors[0];
-        }
+      if (validity.some((isValid) => isValid)) {
+        return;
+      }
+
+      // If an unexpected error occurred, throw it to trigger a retry.
+      if (error) {
+        throw error;
       }
 
       // If all are invalid then we need to revoke the users Outline sessions.
