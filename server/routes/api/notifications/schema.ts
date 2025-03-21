@@ -30,6 +30,7 @@ export const NotificationsUnsubscribeSchema = BaseSchema.extend({
     eventType: z.nativeEnum(NotificationEventType).optional(),
   }),
   query: z.object({
+    follow: z.string().default(""),
     userId: z.string().uuid().optional(),
     token: z.string().optional(),
     eventType: z.nativeEnum(NotificationEventType).optional(),
