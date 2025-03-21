@@ -168,14 +168,13 @@ router.get(
       return;
     }
 
-    const [subscription, user] = await Promise.all([
+    const [documentSubscription, user] = await Promise.all([
       Subscription.findOne({
         where: {
           userId,
           documentId,
         },
         lock: Transaction.LOCK.UPDATE,
-        rejectOnEmpty: true,
         transaction,
       }),
       User.scope("withTeam").findByPk(userId, {
@@ -184,18 +183,48 @@ router.get(
       }),
     ]);
 
+    let collectionSubscription;
+    if (!documentSubscription) {
+      const document = await Document.findOne({
+        attributes: ["collectionId"],
+        where: {
+          id: documentId,
+        },
+        paranoid: false,
+        transaction,
+      });
+      collectionSubscription = document?.collectionId
+        ? await Subscription.findOne({
+            where: {
+              userId,
+              collectionId: document.collectionId,
+            },
+            lock: Transaction.LOCK.UPDATE,
+            rejectOnEmpty: true,
+            transaction,
+          })
+        : undefined;
+    }
+
+    const subscription = documentSubscription ?? collectionSubscription;
     authorize(user, "delete", subscription);
 
-    await subscription.destroyWithCtx(
-      createContext({
-        user,
-        ip: ctx.request.ip,
-        transaction,
-      })
-    );
+    if (subscription) {
+      await subscription.destroyWithCtx(
+        createContext({
+          user,
+          ip: ctx.request.ip,
+          transaction,
+        })
+      );
+    }
 
     ctx.redirect(
-      `${user.team.url}/home?notice=${QueryNotices.UnsubscribeDocument}`
+      `${user.team.url}/home?notice=${
+        subscription?.collectionId
+          ? QueryNotices.UnsubscribeCollection
+          : QueryNotices.UnsubscribeDocument
+      }`
     );
   }
 );
