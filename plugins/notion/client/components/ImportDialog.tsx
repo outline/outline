@@ -1,5 +1,5 @@
 import React from "react";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { ImportInput } from "@shared/schema";
@@ -15,6 +15,7 @@ import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { EmptySelectValue } from "~/types";
 import { client } from "~/utils/ApiClient";
+import { NetworkError, OfflineError } from "~/utils/errors";
 import { Page } from "plugins/notion/shared/types";
 
 type PageWithPermission = Page & {
@@ -99,8 +100,28 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
   }, [pages]);
 
   if (error) {
-    toast.error(t("Error fetching page info from Notion"));
-    return <div>Error: {error}</div>;
+    if (error instanceof NetworkError || error instanceof OfflineError) {
+      return (
+        <Text as="p" type="secondary">
+          <Trans>
+            Sorry, we faced a timeout getting page information from Notion.
+            <br />
+            <br />
+            We recommend selecting smaller pages for import to overcome this
+            limitation with Notion.
+          </Trans>
+        </Text>
+      );
+    }
+
+    return (
+      <Text as="p" type="secondary">
+        <Trans>
+          Sorry, an unknown error occurred. Please try reloading the page, it
+          may have been a temporary glitch.
+        </Trans>
+      </Text>
+    );
   }
 
   if (loading || !pagesWithPermission) {
