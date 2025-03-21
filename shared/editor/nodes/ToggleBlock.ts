@@ -2,7 +2,7 @@ import isEmpty from "lodash/isEmpty";
 import isNil from "lodash/isNil";
 import { wrapIn } from "prosemirror-commands";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
-import { Plugin, PluginKey } from "prosemirror-state";
+import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import {
   Decoration,
   DecorationSet,
@@ -339,10 +339,23 @@ class ToggleBlockView implements NodeView {
   }
 
   private toggleFold(view: EditorView, getPos: () => number | undefined) {
+    const actionType = this.folded ? Action.UNFOLD : Action.FOLD;
     const tr = view.state.tr.setMeta(ToggleBlock.pluginKey, {
-      type: this.folded ? Action.UNFOLD : Action.FOLD,
+      type: actionType,
       at: getPos(),
     });
+
+    if (actionType === Action.FOLD) {
+      const { $anchor } = view.state.selection;
+      const node = view.state.doc.nodeAt(getPos()!)!;
+      const startOfNode = getPos()! + 1;
+      const endOfFirstChild = startOfNode + node.firstChild!.nodeSize;
+      const endOfNode = startOfNode + node.nodeSize - 1;
+      if ($anchor.pos > endOfFirstChild && $anchor.pos < endOfNode) {
+        const $endOfFirstChild = view.state.doc.resolve(endOfFirstChild);
+        tr.setSelection(TextSelection.near($endOfFirstChild, -1));
+      }
+    }
     view.dispatch(tr);
   }
 }
