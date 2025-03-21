@@ -17,7 +17,7 @@ import { findBlockNodes } from "../queries/findChildren";
 import Node from "./Node";
 
 enum Action {
-  CREATE,
+  CHANGE,
   INIT,
   FOLD,
   UNFOLD,
@@ -104,22 +104,47 @@ export default class ToggleBlock extends Node {
 
           const action = tr.getMeta(ToggleBlock.pluginKey);
           if (action) {
-            if (action.type === Action.CREATE) {
-              const node = tr.doc.nodeAt(action.at)!;
-              value = value.add(tr.doc, [
-                Decoration.node(
-                  action.at + 1,
-                  action.at + 1 + node.firstChild!.nodeSize,
-                  {
-                    nodeName: "div",
-                    class: "toggle-block-head",
-                  },
-                  {
-                    target: `${node.type.name}>:firstChild`,
-                    nodeId: node.attrs.id,
-                  }
-                ),
-              ]);
+            if (action.type === Action.CHANGE) {
+              const decosToRemove = value.find(
+                undefined,
+                undefined,
+                (spec) => spec.target === `${this.name}>:firstChild`
+              );
+              value = value.remove(decosToRemove);
+
+              const decosToApply = [];
+              const toggleBlocks = findBlockNodes(tr.doc, true).filter(
+                (block) => block.node.type.name === this.name
+              );
+              for (const toggleBlock of toggleBlocks) {
+                const from = toggleBlock.pos + 1;
+                const to = from + toggleBlock.node.firstChild!.nodeSize;
+                const decoExists =
+                  value.find(
+                    from,
+                    to,
+                    (spec) =>
+                      spec.nodeId === toggleBlock.node.attrs.id &&
+                      spec.target === `${this.name}>:firstChild`
+                  ).length > 0;
+                if (!decoExists) {
+                  decosToApply.push(
+                    Decoration.node(
+                      from,
+                      to,
+                      {
+                        nodeName: "div",
+                        class: "toggle-block-head",
+                      },
+                      {
+                        target: `${this.name}>:firstChild`,
+                        nodeId: toggleBlock.node.attrs.id,
+                      }
+                    )
+                  );
+                }
+              }
+              value = value.add(tr.doc, decosToApply);
             }
             if (action.type === Action.INIT) {
               for (const pos of action.positions) {
@@ -202,14 +227,13 @@ export default class ToggleBlock extends Node {
           tr = newState.tr;
           for (const block of blocks) {
             if (block.node.type.name === this.name && !block.node.attrs.id) {
-              tr = tr
-                .setNodeAttribute(block.pos, "id", v4())
-                .setMeta(ToggleBlock.pluginKey, {
-                  type: Action.CREATE,
-                  at: block.pos,
-                });
+              tr = tr.setNodeAttribute(block.pos, "id", v4());
             }
           }
+
+          tr = tr.setMeta(ToggleBlock.pluginKey, {
+            type: Action.CHANGE,
+          });
 
           if (!foldPlugin.spec.initialDecorationsLoaded) {
             const positions = [];
