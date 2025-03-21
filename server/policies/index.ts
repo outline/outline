@@ -19,6 +19,7 @@ import "./star";
 import "./subscription";
 import "./user";
 import "./team";
+import "./template";
 import "./group";
 import "./webhookSubscription";
 import "./notification";

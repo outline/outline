@@ -11,7 +11,7 @@ import { determineIconType } from "@shared/utils/icon";
 import { parser, serializer, schema } from "@server/editor";
 import { addTags } from "@server/logging/tracer";
 import { trace } from "@server/logging/tracing";
-import { Collection, Document, Revision } from "@server/models";
+import { Collection, Document, Revision, Template } from "@server/models";
 import diff from "@server/utils/diff";
 import { MentionAttrs, ProsemirrorHelper } from "./ProsemirrorHelper";
 import { TextHelper } from "./TextHelper";
@@ -72,7 +72,7 @@ export class DocumentHelper {
    * @returns The document content as a plain JSON object
    */
   static async toJSON(
-    document: Document | Revision | Collection,
+    document: Document | Template | Revision | Collection,
     options?: {
       /** The team context */
       teamId?: string;
@@ -84,7 +84,7 @@ export class DocumentHelper {
       internalUrlBase?: string;
     }
   ): Promise<ProsemirrorData> {
-    let doc: Node | null;
+    let doc: Node | null | undefined;
     let data;
 
     if ("content" in document && document.content) {
@@ -103,7 +103,7 @@ export class DocumentHelper {
       doc = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
     } else if (document instanceof Collection) {
       doc = parser.parse(document.description ?? "");
-    } else {
+    } else if (document instanceof Document) {
       doc = parser.parse(document.text);
     }
 

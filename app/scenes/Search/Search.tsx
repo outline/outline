@@ -318,7 +318,6 @@ function Search() {
                           highlight={query}
                           context={result.context}
                           showCollection
-                          showTemplate
                         />
                       ))
                     : null

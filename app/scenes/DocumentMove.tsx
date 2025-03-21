@@ -52,21 +52,8 @@ function DocumentMove({ document }: Props) {
           : true
       );
 
-    // If the document we're moving is a template, only show collections as
-    // move targets.
-    if (document.isTemplate) {
-      return nodes
-        .filter((node) => node.type === "collection")
-        .map((node) => ({ ...node, children: [] }));
-    }
     return nodes;
-  }, [
-    policies,
-    collectionTrees,
-    document.id,
-    document.parentDocumentId,
-    document.isTemplate,
-  ]);
+  }, [policies, collectionTrees, document.id, document.parentDocumentId]);
 
   const move = async () => {
     if (!selectedPath) {

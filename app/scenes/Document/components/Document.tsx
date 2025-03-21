@@ -33,6 +33,7 @@ import { isModKey } from "@shared/utils/keyboard";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
+import Template from "~/models/Template";
 import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPublish from "~/scenes/DocumentPublish";
 import Branding from "~/components/Branding";
@@ -146,7 +147,7 @@ class DocumentScene extends React.Component<Props> {
     }
   }
 
-  replaceDocument = (template: Document | Revision) => {
+  replaceDocument = (template: Template | Revision) => {
     const editorRef = this.editor.current;
 
     if (!editorRef) {
@@ -172,7 +173,7 @@ class DocumentScene extends React.Component<Props> {
 
     this.isEditorDirty = true;
 
-    if (template instanceof Document) {
+    if (template instanceof Template) {
       this.props.document.templateId = template.id;
       this.props.document.fullWidth = template.fullWidth;
     }
@@ -446,7 +447,7 @@ class DocumentScene extends React.Component<Props> {
       tocPos &&
       (isShare
         ? ui.tocVisible !== false
-        : !document.isTemplate && ui.tocVisible === true);
+        : !(document instanceof Template) && ui.tocVisible === true);
     const multiplayerEditor =
       !document.isArchived && !document.isDeleted && !revision && !isShare;
 
@@ -564,7 +565,7 @@ class DocumentScene extends React.Component<Props> {
                         multiplayer={multiplayerEditor}
                         shareId={shareId}
                         isDraft={document.isDraft}
-                        template={document.isTemplate}
+                        template={document instanceof Template}
                         document={document}
                         value={readOnly ? document.data : undefined}
                         defaultValue={document.data}

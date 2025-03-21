@@ -39,7 +39,6 @@ function Trash() {
         heading={<Subheading sticky>{t("Recently deleted")}</Subheading>}
         empty={<Empty>{t("Trash is empty at the moment.")}</Empty>}
         showCollection
-        showTemplate
       />
     </Scene>
   );
