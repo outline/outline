@@ -216,15 +216,18 @@ router.get(
           transaction,
         })
       );
+
+      ctx.redirect(
+        `${user.team.url}/home?notice=${
+          subscription?.collectionId
+            ? QueryNotices.UnsubscribeCollection
+            : QueryNotices.UnsubscribeDocument
+        }`
+      );
+      return;
     }
 
-    ctx.redirect(
-      `${user.team.url}/home?notice=${
-        subscription?.collectionId
-          ? QueryNotices.UnsubscribeCollection
-          : QueryNotices.UnsubscribeDocument
-      }`
-    );
+    ctx.redirect(`${user.team.url}/home`);
   }
 );
 
