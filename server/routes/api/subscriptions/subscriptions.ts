@@ -150,7 +150,13 @@ router.get(
   transaction(),
   async (ctx: APIContext<T.SubscriptionsDeleteTokenReq>) => {
     const { transaction } = ctx.state;
-    const { userId, documentId, token } = ctx.input.query;
+    const { follow, userId, documentId, token } = ctx.input.query;
+
+    // The link in the email does not include the follow query param, this
+    // is to help prevent anti-virus, and email clients from pre-fetching the link
+    if (!follow) {
+      return ctx.redirectOnClient(ctx.request.href + "&follow=true");
+    }
 
     const unsubscribeToken = SubscriptionHelper.unsubscribeToken(
       userId,

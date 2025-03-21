@@ -47,6 +47,7 @@ export type SubscriptionsDeleteReq = z.infer<typeof SubscriptionsDeleteSchema>;
 
 export const SubscriptionsDeleteTokenSchema = BaseSchema.extend({
   query: z.object({
+    follow: z.string().default(""),
     userId: z.string().uuid(),
     documentId: z.string().uuid(),
     token: z.string(),
