@@ -185,7 +185,7 @@ router.get(
 
     let collectionSubscription;
     if (!documentSubscription) {
-      const document = await Document.findOne({
+      const document = await Document.unscoped().findOne({
         attributes: ["collectionId"],
         where: {
           id: documentId,
@@ -200,16 +200,15 @@ router.get(
               collectionId: document.collectionId,
             },
             lock: Transaction.LOCK.UPDATE,
-            rejectOnEmpty: true,
             transaction,
           })
         : undefined;
     }
 
     const subscription = documentSubscription ?? collectionSubscription;
-    authorize(user, "delete", subscription);
 
     if (subscription) {
+      authorize(user, "delete", subscription);
       await subscription.destroyWithCtx(
         createContext({
           user,
