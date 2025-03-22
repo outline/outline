@@ -10,6 +10,7 @@ import {
   buildDocument,
   buildDraftDocument,
   buildCollection,
+  buildAdmin,
 } from "@server/test/factories";
 import { serialize } from "./index";
 
@@ -355,7 +356,10 @@ describe("read document", () => {
 });
 
 describe("read_write document", () => {
-  for (const role of Object.values(UserRole)) {
+  const nonAdminRoles = Object.values(UserRole).filter(
+    (role) => role !== UserRole.Admin
+  );
+  for (const role of nonAdminRoles) {
     it(`should allow write permissions for ${role}`, async () => {
       const team = await buildTeam();
       const user = await buildUser({ teamId: team.id, role });
@@ -391,6 +395,41 @@ describe("read_write document", () => {
       expect(abilities.move).toEqual(false);
     });
   }
+
+  it(`should allow write permissions for admin`, async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: null,
+    });
+    const doc = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    await UserMembership.create({
+      userId: user.id,
+      documentId: doc.id,
+      permission: DocumentPermission.ReadWrite,
+      createdById: user.id,
+    });
+
+    // reload to get membership
+    const document = await Document.findByPk(doc.id, { userId: user.id });
+    const abilities = serialize(user, document);
+    expect(abilities.read).toBeTruthy();
+    expect(abilities.download).toBeTruthy();
+    expect(abilities.update).toBeTruthy();
+    expect(abilities.delete).toBeTruthy();
+    expect(abilities.subscribe).toBeTruthy();
+    expect(abilities.unsubscribe).toBeTruthy();
+    expect(abilities.comment).toBeTruthy();
+    expect(abilities.createChildDocument).toBeTruthy();
+    expect(abilities.manageUsers).toBeTruthy();
+    expect(abilities.archive).toBeTruthy();
+    expect(abilities.share).toEqual(false);
+    expect(abilities.move).toEqual(false);
+  });
 });
 
 describe("manage document", () => {
