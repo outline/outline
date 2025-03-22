@@ -1,14 +1,11 @@
 import invariant from "invariant";
 import find from "lodash/find";
-import isObject from "lodash/isObject";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
-import semver from "semver";
 import { io, Socket } from "socket.io-client";
 import { toast } from "sonner";
-import EDITOR_VERSION from "@shared/editor/version";
 import { FileOperationState, FileOperationType } from "@shared/types";
 import RootStore from "~/stores/RootStore";
 import Collection from "~/models/Collection";
@@ -117,22 +114,9 @@ class WebsocketProvider extends React.Component<Props> {
       }
     });
 
-    this.socket.on("authenticated", (data) => {
+    this.socket.on("authenticated", () => {
       if (this.socket) {
         this.socket.authenticated = true;
-      }
-      if (isObject(data) && "editorVersion" in data) {
-        const parsedClientVersion = semver.parse(EDITOR_VERSION);
-        const parsedCurrentVersion = semver.parse(String(data.editorVersion));
-
-        if (
-          parsedClientVersion &&
-          parsedCurrentVersion &&
-          (parsedClientVersion.major < parsedCurrentVersion.major ||
-            parsedClientVersion.minor < parsedCurrentVersion.minor)
-        ) {
-          window.location.reload();
-        }
       }
     });
 
