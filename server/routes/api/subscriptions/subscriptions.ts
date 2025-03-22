@@ -168,7 +168,7 @@ router.get(
       return;
     }
 
-    const [documentSubscription, user] = await Promise.all([
+    const [documentSubscription, document, user] = await Promise.all([
       Subscription.findOne({
         where: {
           userId,
@@ -177,57 +177,56 @@ router.get(
         lock: Transaction.LOCK.UPDATE,
         transaction,
       }),
-      User.scope("withTeam").findByPk(userId, {
-        rejectOnEmpty: true,
-        transaction,
-      }),
-    ]);
-
-    let collectionSubscription;
-    if (!documentSubscription) {
-      const document = await Document.unscoped().findOne({
+      Document.unscoped().findOne({
         attributes: ["collectionId"],
         where: {
           id: documentId,
         },
         paranoid: false,
         transaction,
-      });
-      collectionSubscription = document?.collectionId
-        ? await Subscription.findOne({
-            where: {
-              userId,
-              collectionId: document.collectionId,
-            },
-            lock: Transaction.LOCK.UPDATE,
-            transaction,
-          })
-        : undefined;
-    }
+      }),
+      User.scope("withTeam").findByPk(userId, {
+        rejectOnEmpty: true,
+        transaction,
+      }),
+    ]);
 
-    const subscription = documentSubscription ?? collectionSubscription;
+    const context = createContext({
+      user,
+      ip: ctx.request.ip,
+      transaction,
+    });
 
-    if (subscription) {
-      authorize(user, "delete", subscription);
-      await subscription.destroyWithCtx(
-        createContext({
-          user,
-          ip: ctx.request.ip,
+    const collectionSubscription = document?.collectionId
+      ? await Subscription.findOne({
+          where: {
+            userId,
+            collectionId: document.collectionId,
+          },
+          lock: Transaction.LOCK.UPDATE,
           transaction,
         })
-      );
+      : undefined;
 
-      ctx.redirect(
-        `${user.team.url}/home?notice=${
-          subscription?.collectionId
-            ? QueryNotices.UnsubscribeCollection
-            : QueryNotices.UnsubscribeDocument
-        }`
-      );
-      return;
+    if (collectionSubscription) {
+      authorize(user, "delete", collectionSubscription);
+      await collectionSubscription.destroyWithCtx(context);
     }
 
-    ctx.redirect(`${user.team.url}/home`);
+    if (documentSubscription) {
+      authorize(user, "delete", documentSubscription);
+      await documentSubscription.destroyWithCtx(context);
+    }
+
+    ctx.redirect(
+      `${user.team.url}/home?notice=${
+        collectionSubscription
+          ? QueryNotices.UnsubscribeCollection
+          : documentSubscription
+          ? QueryNotices.UnsubscribeDocument
+          : ""
+      }`
+    );
   }
 );
 
