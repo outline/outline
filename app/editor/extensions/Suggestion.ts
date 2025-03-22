@@ -23,7 +23,7 @@ export default class Suggestion extends Extension {
         this.options.trigger
       )}(${`[\\p{L}\/\\p{M}\\d${
         this.options.allowSpaces ? "\\s{1}" : ""
-      }\\.]+`})${this.options.requireSearchTerm ? "" : "?"}$`,
+      }\\.\\-–_]+`})${this.options.requireSearchTerm ? "" : "?"}$`,
       "u"
     );
   }
