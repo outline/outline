@@ -1,4 +1,4 @@
-import { Extension, connectedPayload } from "@hocuspocus/server";
+import { Extension, onConnectPayload } from "@hocuspocus/server";
 import semver from "semver";
 import EDITOR_VERSION from "@shared/editor/version";
 import Logger from "@server/logging/Logger";
@@ -9,10 +9,12 @@ import { withContext } from "./types";
 @trace()
 export class EditorVersionExtension implements Extension {
   /**
-   * connected hook
-   * @param data The connected payload
+   * On connect hook
+   *
+   * @param data The connect payload
+   * @returns Promise, resolving will allow the connection, rejecting will drop it
    */
-  connected({ requestParameters }: withContext<connectedPayload>) {
+  onConnect({ requestParameters }: withContext<onConnectPayload>) {
     const clientVersion = requestParameters.get("editorVersion");
 
     if (clientVersion) {
@@ -29,8 +31,6 @@ export class EditorVersionExtension implements Extension {
           "multiplayer",
           `Dropping connection due to outdated editor version: ${clientVersion} < ${EDITOR_VERSION}`
         );
-
-        // Rejecting the promise will cause the connection to be dropped.
         return Promise.reject(EditorUpdateError);
       }
     }

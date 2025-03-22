@@ -1,6 +1,6 @@
 import {
   Extension,
-  connectedPayload,
+  onConnectPayload,
   onDisconnectPayload,
 } from "@hocuspocus/server";
 import env from "@server/env";
@@ -17,8 +17,10 @@ export class ConnectionLimitExtension implements Extension {
   connectionsByDocument: Map<string, Set<string>> = new Map();
 
   /**
-   * onDisconnect hook
+   * On disconnect hook
+   *
    * @param data The disconnect payload
+   * @returns Promise
    */
   onDisconnect({ documentName, socketId }: withContext<onDisconnectPayload>) {
     const connections = this.connectionsByDocument.get(documentName);
@@ -41,10 +43,12 @@ export class ConnectionLimitExtension implements Extension {
   }
 
   /**
-   * connected hook
-   * @param data The connected payload
+   * On connect hook
+   *
+   * @param data The connect payload
+   * @returns Promise, resolving will allow the connection, rejecting will drop it
    */
-  connected({ documentName, socketId }: withContext<connectedPayload>) {
+  onConnect({ documentName, socketId }: withContext<onConnectPayload>) {
     const connections =
       this.connectionsByDocument.get(documentName) || new Set();
     if (connections?.size >= env.COLLABORATION_MAX_CLIENTS_PER_DOCUMENT) {
