@@ -7,6 +7,7 @@ import {
   buildSubscription,
   buildDocument,
   buildCollection,
+  buildDraftDocument,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
@@ -709,7 +710,7 @@ describe("#subscriptions.delete", () => {
   describe("GET", () => {
     it("should delete user's document subscription", async () => {
       const user = await buildUser();
-      const document = await buildDocument({
+      const document = await buildDraftDocument({
         userId: user.id,
         teamId: user.teamId,
       });
