@@ -122,6 +122,8 @@ export default class PasteHandler extends Extension {
                 }
 
                 // Is the link a link to a document? If so, we can grab the title and insert it.
+                const containsHash = text.includes("#");
+
                 if (isDocumentUrl(text)) {
                   const slug = parseDocumentSlug(text);
 
@@ -133,7 +135,7 @@ export default class PasteHandler extends Extension {
                           return;
                         }
                         if (document) {
-                          if (state.schema.nodes.mention) {
+                          if (state.schema.nodes.mention && !containsHash) {
                             view.dispatch(
                               view.state.tr.replaceWith(
                                 state.selection.from,
@@ -178,7 +180,7 @@ export default class PasteHandler extends Extension {
                           return;
                         }
                         if (collection) {
-                          if (state.schema.nodes.mention) {
+                          if (state.schema.nodes.mention && !containsHash) {
                             view.dispatch(
                               view.state.tr.replaceWith(
                                 state.selection.from,
