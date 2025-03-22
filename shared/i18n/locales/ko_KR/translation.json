@@ -507,6 +507,7 @@
   "None": "없음",
   "Could not import file": "파일을 가져올 수 없음",
   "Unsubscribed from document": "문서 구독이 취소됨",
+  "Unsubscribed from collection": "Unsubscribed from collection",
   "Account": "계정",
   "API Keys": "API 키",
   "Details": "세부 정보",
