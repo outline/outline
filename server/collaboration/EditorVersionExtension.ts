@@ -9,10 +9,11 @@ import { withContext } from "./types";
 @trace()
 export class EditorVersionExtension implements Extension {
   /**
-   * On connect hook
+   * On connect hook – prevents connections from clients with an outdated editor
+   * version. See the equivalent logic for API in /server/routes/api/middlewares/editor.ts
    *
    * @param data The connect payload
-   * @returns Promise, resolving will allow the connection, rejecting will drop it
+   * @returns Promise, resolving will allow the connection, rejecting will drop.
    */
   onConnect({ requestParameters }: withContext<onConnectPayload>) {
     const clientVersion = requestParameters.get("editorVersion");
@@ -24,8 +25,7 @@ export class EditorVersionExtension implements Extension {
       if (
         parsedClientVersion &&
         parsedServerVersion &&
-        (parsedClientVersion.major < parsedServerVersion.major ||
-          parsedClientVersion.minor < parsedServerVersion.minor)
+        parsedClientVersion.major < parsedServerVersion.major
       ) {
         Logger.debug(
           "multiplayer",
