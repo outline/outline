@@ -19,6 +19,7 @@ type Props = Optional<
     | "collectionId"
     | "parentDocumentId"
     | "importId"
+    | "apiImportId"
     | "template"
     | "fullWidth"
     | "sourceMetadata"
@@ -51,6 +52,7 @@ export default async function documentCreator({
   templateDocument,
   fullWidth,
   importId,
+  apiImportId,
   createdAt,
   // allows override for import
   updatedAt,
@@ -116,6 +118,7 @@ export default async function documentCreator({
     templateId,
     publishedAt,
     importId,
+    apiImportId,
     sourceMetadata,
     fullWidth: fullWidth ?? templateDocument?.fullWidth,
     icon: icon ?? templateDocument?.icon,
@@ -142,7 +145,7 @@ export default async function documentCreator({
       teamId: document.teamId,
       actorId: user.id,
       data: {
-        source: importId ? "import" : undefined,
+        source: importId || apiImportId ? "import" : undefined,
         title: document.title,
         templateId,
       },

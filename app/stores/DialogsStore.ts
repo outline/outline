@@ -8,6 +8,7 @@ type DialogDefinition = {
   isOpen: boolean;
   fullscreen?: boolean;
   style?: React.CSSProperties;
+  onClose?: () => void;
 };
 
 export default class DialogsStore {
@@ -50,6 +51,7 @@ export default class DialogsStore {
     fullscreen,
     replace,
     style,
+    onClose,
   }: {
     id?: string;
     title: string;
@@ -57,6 +59,7 @@ export default class DialogsStore {
     content: React.ReactNode;
     style?: React.CSSProperties;
     replace?: boolean;
+    onClose?: () => void;
   }) => {
     setTimeout(
       action(() => {
@@ -70,6 +73,7 @@ export default class DialogsStore {
           fullscreen,
           style,
           isOpen: true,
+          onClose,
         });
       }),
       0

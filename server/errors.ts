@@ -201,6 +201,12 @@ export function AuthenticationProviderDisabledError(
   });
 }
 
+export function UnprocessableEntityError(
+  message = "Cannot process the request"
+) {
+  return httpErrors(422, message, { id: "unprocessable_entity" });
+}
+
 export function ClientClosedRequestError(
   message = "Client closed request before response was received"
 ) {

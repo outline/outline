@@ -2867,6 +2867,14 @@
   resolved "https://registry.yarnpkg.com/@nolyfill/is-core-module/-/is-core-module-1.0.39.tgz#3dc35ba0f1e66b403c00b39344f870298ebb1c8e"
   integrity sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==
 
+"@notionhq/client@^2.2.16":
+  version "2.2.16"
+  resolved "https://registry.yarnpkg.com/@notionhq/client/-/client-2.2.16.tgz#6564cd77bc12e7dc68e4f5c4c6adef8384a33027"
+  integrity sha512-3GlkfhLw8+Jw8U2iFEmHA6WfCgYhZCXLxgPdqDJkYMFotELNpQO+yGSy2QWURsG8ndu21sLt+FEOfDbNcCtFMg==
+  dependencies:
+    "@types/node-fetch" "^2.5.10"
+    node-fetch "^2.6.1"
+
 "@octokit/app@^14.0.2":
   version "14.0.2"
   resolved "https://registry.yarnpkg.com/@octokit/app/-/app-14.0.2.tgz#b47c52020221351fb58640f113eb38b2ad3998fe"
@@ -5320,6 +5328,14 @@
   resolved "https://registry.yarnpkg.com/@types/natural-sort/-/natural-sort-0.0.24.tgz#9a89fcbabd963937fab9cc4ca527635c2a7c0cef"
   integrity "sha1-mon8ur2WOTf6ucxMpSdjXCp8DO8= sha512-+/F8JDyT0QUi2cE51S4Xsy4yuHVBiFsU5bq0g2XnTKkOj0Jz69o3TLYd1gnVTOrKOvg0+FUJqE9BA24FgnpuGg=="
 
+"@types/node-fetch@^2.5.10":
+  version "2.6.12"
+  resolved "https://registry.yarnpkg.com/@types/node-fetch/-/node-fetch-2.6.12.tgz#8ab5c3ef8330f13100a7479e2cd56d3386830a03"
+  integrity sha512-8nneRWKCg3rMtF69nLQJnOYUcbafYeFSjqkw3jCRLsqkWFlHaoQrr5mXmofFGOx3DKn7UfmBMyov8ySvLRVldA==
+  dependencies:
+    "@types/node" "*"
+    form-data "^4.0.0"
+
 "@types/node-fetch@^2.6.9":
   version "2.6.9"
   resolved "https://registry.yarnpkg.com/@types/node-fetch/-/node-fetch-2.6.9.tgz#15f529d247f1ede1824f7e7acdaa192d5f28071e"
@@ -6075,6 +6091,11 @@ async-lock@^1.3.1:
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/async-lock/-/async-lock-1.3.1.tgz#f2301c200600cde97acc386453b7126fa8aced3c"
   integrity "sha1-8jAcIAYAzel6zDhkU7cSb6is7Tw= sha512-zK7xap9UnttfbE23JmcrNIyueAn6jWshihJqA33U/hEnKprF/lVGBDsBv/bqLm2YMMl1DnpHhUY044eA0t1TUw=="
+
+async-sema@^3.1.1:
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/async-sema/-/async-sema-3.1.1.tgz#e527c08758a0f8f6f9f15f799a173ff3c40ea808"
+  integrity sha512-tLRNUXati5MFePdAk8dw7Qt7DpxPB60ofAgn8WRhW6a2rcimZnYBP9oxHiv0OHy+Wz7kPMG+t4LGdt31+4EmGg==
 
 async@^3.2.3:
   version "3.2.3"
@@ -11978,7 +11999,7 @@ mobx-react@^6.3.1:
 mobx-utils@^4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/mobx-utils/-/mobx-utils-4.0.1.tgz#1bd8648332be7ca83d7023aaa0ba24bbf389a300"
-  integrity "sha1-G9hkgzK+fKg9cCOqoLoku/OJowA= sha512-hWYLNJNBoGY/iQbQuOzYkUsTGArpTTutrXaQQrXvxBMefDwhWyNHr7bx/g7syf6KQ1f6aKzgQICqC+zXSvGzJQ=="
+  integrity sha512-hWYLNJNBoGY/iQbQuOzYkUsTGArpTTutrXaQQrXvxBMefDwhWyNHr7bx/g7syf6KQ1f6aKzgQICqC+zXSvGzJQ==
 
 mobx@^4.15.4:
   version "4.15.7"

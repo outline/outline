@@ -9,6 +9,7 @@ import "./collection";
 import "./comment";
 import "./document";
 import "./fileOperation";
+import "./import";
 import "./integration";
 import "./pins";
 import "./reaction";

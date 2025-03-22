@@ -5,7 +5,7 @@ import { and, isTeamAdmin, isTeamMutable, or } from "./utils";
 
 allow(
   User,
-  ["createFileOperation", "createImport", "createExport"],
+  ["createFileOperation", "createExport"],
   Team,
   // Note: Not checking for isTeamMutable here because we want to allow exporting data in read-only.
   isTeamAdmin

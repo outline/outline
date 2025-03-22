@@ -48,6 +48,17 @@ export default abstract class BaseTask<T extends Record<string, any>> {
   public abstract perform(props: T): Promise<any>;
 
   /**
+   * Handle failure when all attempts are exhausted for the task.
+   *
+   * @param props Properties to be used by the task
+   * @returns A promise that resolves once the task handles the failure.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public onFailed(props: T): Promise<void> {
+    return Promise.resolve();
+  }
+
+  /**
    * Job options such as priority and retry strategy, as defined by Bull.
    */
   public get options(): JobOptions {

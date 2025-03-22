@@ -235,6 +235,46 @@ export class ProsemirrorHelper {
   }
 
   /**
+   * Iterates through the document to find all of the videos.
+   *
+   * @param doc Prosemirror document node
+   * @returns Array<Node> of videos
+   */
+  static getVideos(doc: Node): Node[] {
+    const videos: Node[] = [];
+
+    doc.descendants((node) => {
+      if (node.type.name === "video") {
+        videos.push(node);
+      }
+
+      return true;
+    });
+
+    return videos;
+  }
+
+  /**
+   * Iterates through the document to find all of the attachments.
+   *
+   * @param doc Prosemirror document node
+   * @returns Array<Node> of attachments
+   */
+  static getAttachments(doc: Node): Node[] {
+    const attachments: Node[] = [];
+
+    doc.descendants((node) => {
+      if (node.type.name === "attachment") {
+        attachments.push(node);
+      }
+
+      return true;
+    });
+
+    return attachments;
+  }
+
+  /**
    * Iterates through the document to find all of the tasks and their completion state.
    *
    * @param doc Prosemirror document node
