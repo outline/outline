@@ -3,7 +3,6 @@ import {
   isFullPage,
   isFullPageOrDatabase,
   isFullUser,
-  iteratePaginatedAPI,
 } from "@notionhq/client";
 import {
   BlockObjectResponse,
@@ -84,21 +83,34 @@ export class NotionClient {
   async fetchRootPages() {
     const pages: Page[] = [];
 
-    for await (const item of iteratePaginatedAPI(this.client.search, {
-      page_size: this.pageSize,
-    })) {
-      if (!isFullPageOrDatabase(item)) {
-        continue;
-      }
+    let cursor: string | undefined;
+    let hasMore = true;
 
-      if (item.parent.type === "workspace") {
-        pages.push({
-          type: item.object === "page" ? PageType.Page : PageType.Database,
-          id: item.id,
-          name: this.parseTitle(item),
-          emoji: this.parseEmoji(item),
-        });
-      }
+    while (hasMore) {
+      await this.limiter();
+
+      const response = await this.client.search({
+        start_cursor: cursor,
+        page_size: this.pageSize,
+      });
+
+      response.results.forEach((item) => {
+        if (!isFullPageOrDatabase(item)) {
+          return;
+        }
+
+        if (item.parent.type === "workspace") {
+          pages.push({
+            type: item.object === "page" ? PageType.Page : PageType.Database,
+            id: item.id,
+            name: this.parseTitle(item),
+            emoji: this.parseEmoji(item),
+          });
+        }
+      });
+
+      hasMore = response.has_more;
+      cursor = response.next_cursor ?? undefined;
     }
 
     return pages;
@@ -121,7 +133,6 @@ export class NotionClient {
 
     let cursor: string | undefined;
     let hasMore = true;
-    const childrenPromises = [];
 
     while (hasMore) {
       await this.limiter();
@@ -136,12 +147,7 @@ export class NotionClient {
 
       hasMore = response.has_more;
       cursor = response.next_cursor ?? undefined;
-
-      childrenPromises.push(Promise.resolve()); // Resolved promise when this page completes post rate-limiting.
     }
-
-    // Wait for all direct children to complete fetching.
-    await Promise.all(childrenPromises);
 
     // Recursive fetch when direct children have their own children.
     await Promise.all(
@@ -164,7 +170,6 @@ export class NotionClient {
 
     let cursor: string | undefined;
     let hasMore = true;
-    const queryPromises = [];
 
     while (hasMore) {
       await this.limiter();
@@ -195,11 +200,7 @@ export class NotionClient {
 
       hasMore = response.has_more;
       cursor = response.next_cursor ?? undefined;
-
-      queryPromises.push(Promise.resolve()); // Resolved promise when this query completes post rate-limiting.
     }
-
-    await Promise.all(queryPromises);
 
     return pages;
   }

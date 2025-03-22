@@ -8,15 +8,14 @@ import {
 import { PageType } from "plugins/notion/shared/types";
 
 const BaseImportInputItemSchema = z.object({
-  externalId: z.string(),
-  externalName: z.string(),
   permission: z.nativeEnum(CollectionPermission).optional(),
 });
 
 export type BaseImportInput = z.infer<typeof BaseImportInputItemSchema>[];
 
 export const NotionImportInputItemSchema = BaseImportInputItemSchema.extend({
-  type: z.nativeEnum(PageType),
+  type: z.nativeEnum(PageType).optional(),
+  externalId: z.string().optional(),
 });
 
 export type NotionImportInput = z.infer<typeof NotionImportInputItemSchema>[];

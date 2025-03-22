@@ -80,7 +80,9 @@ router.get(
       },
       { transaction }
     );
-    const integration = await Integration.create(
+    const integration = await Integration.create<
+      Integration<IntegrationType.Import>
+    >(
       {
         service: IntegrationService.Notion,
         type: IntegrationType.Import,
@@ -90,7 +92,7 @@ router.get(
         settings: {
           externalWorkspace: {
             id: data.workspace_id,
-            name: data.workspace_name ?? undefined,
+            name: data.workspace_name ?? "Notion import",
             iconUrl: data.workspace_icon ?? undefined,
           },
         },

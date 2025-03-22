@@ -106,7 +106,7 @@ export default abstract class ImportsProcessor<
       return;
     }
 
-    const tasksInput = this.buildTasksInput(importModel.input);
+    const tasksInput = await this.buildTasksInput(importModel, transaction);
 
     const importTasks = await Promise.all(
       chunk(tasksInput, PagePerImportTask).map((input) => {
@@ -510,8 +510,9 @@ export default abstract class ImportsProcessor<
    * @returns `ImportTaskInput`.
    */
   protected abstract buildTasksInput(
-    importInput: ImportInput<T>
-  ): ImportTaskInput<T>;
+    importModel: Import<T>,
+    transaction: Transaction
+  ): Promise<ImportTaskInput<T>>;
 
   /**
    * Schedule the first `APIImportTask` for the import.

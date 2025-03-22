@@ -1,7 +1,9 @@
+import { Transaction } from "sequelize";
 import { NotionImportInput, NotionImportTaskInput } from "@shared/schema";
 import { IntegrationService } from "@shared/types";
-import { Import, ImportTask } from "@server/models";
+import { Import, ImportTask, Integration } from "@server/models";
 import ImportsProcessor from "@server/queues/processors/ImportsProcessor";
+import { NotionClient } from "../notion";
 import NotionAPIImportTask from "../tasks/NotionAPIImportTask";
 
 export class NotionImportsProcessor extends ImportsProcessor<IntegrationService.Notion> {
@@ -23,12 +25,35 @@ export class NotionImportsProcessor extends ImportsProcessor<IntegrationService.
    * @param importInput Array of root externalId and associated info which were used to create the import.
    * @returns `NotionImportTaskInput`.
    */
-  protected buildTasksInput(
-    importInput: NotionImportInput
-  ): NotionImportTaskInput {
-    return importInput.map((item) => ({
-      type: item.type,
-      externalId: item.externalId,
+  protected async buildTasksInput(
+    importModel: Import<IntegrationService.Notion>,
+    transaction: Transaction
+  ): Promise<NotionImportTaskInput> {
+    const integration = await Integration.scope("withAuthentication").findByPk(
+      importModel.integrationId,
+      { rejectOnEmpty: true }
+    );
+
+    const notion = new NotionClient(integration.authentication.token);
+
+    const rootPages = await notion.fetchRootPages();
+
+    // App will send the default permission in an array with single item.
+    const defaultPermission = importModel.input[0].permission;
+
+    // TODO: This update can be deleted when we receive the page info + permission from app.
+    const importInput: NotionImportInput = rootPages.map((page) => ({
+      type: page.type,
+      externalId: page.id,
+      permission: defaultPermission,
+    }));
+
+    importModel.input = importInput;
+    await importModel.save({ transaction });
+
+    return rootPages.map((page) => ({
+      type: page.type,
+      externalId: page.id,
     }));
   }
 

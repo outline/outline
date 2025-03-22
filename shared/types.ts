@@ -172,6 +172,8 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
   ? { url: string; channel: string; channelId: string }
   : T extends IntegrationType.Command
   ? { serviceTeamId: string }
+  : T extends IntegrationType.Import
+  ? { externalWorkspace: { id: string; name: string; iconUrl?: string } }
   :
       | { url: string }
       | {
@@ -186,7 +188,6 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
       | { serviceTeamId: string }
       | { measurementId: string }
       | { slack: { serviceTeamId: string; serviceUserId: string } }
-      | { externalWorkspace: { id: string; name?: string; iconUrl?: string } }
       | undefined;
 
 export enum UserPreference {
