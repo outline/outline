@@ -430,6 +430,11 @@ export default abstract class ImportsProcessor<
     importInput: Record<string, ImportInput<any>[number]>;
     actorId: string;
   }): ProsemirrorDoc {
+    // special case when the doc content is empty
+    if (!content.content.length) {
+      return content;
+    }
+
     const attachmentsMap = keyBy(attachments, "id");
     const doc = ProsemirrorHelper.toProsemirror(content);
 
