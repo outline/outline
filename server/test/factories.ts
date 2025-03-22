@@ -45,7 +45,6 @@ import {
   Import,
 } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
-import { PageType } from "plugins/notion/shared/types";
 
 export async function buildApiKey(overrides: Partial<ApiKey> = {}) {
   if (!overrides.userId) {
@@ -515,9 +514,7 @@ export async function buildImport(overrides: Partial<Import<any>> = {}) {
     state: ImportState.Created,
     input: [
       {
-        type: PageType.Page,
-        externalId: "testExternalId",
-        externalName: "testExternalName",
+        permission: CollectionPermission.Read,
       },
     ],
     ...overrides,

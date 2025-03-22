@@ -1,10 +1,12 @@
 import { NotionImportInput } from "@shared/schema";
 import {
+  CollectionPermission,
   ImportableIntegrationService,
   ImportState,
   IntegrationService,
+  IntegrationType,
 } from "@shared/types";
-import { Import } from "@server/models";
+import { Import, Integration } from "@server/models";
 import {
   buildAdmin,
   buildImport,
@@ -12,21 +14,27 @@ import {
   buildUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
-import { PageType } from "plugins/notion/shared/types";
 
 const server = getTestServer();
 
 describe("#imports.create", () => {
   it("should create an import", async () => {
     const admin = await buildAdmin();
-    const integration = await buildIntegration();
-    const input: NotionImportInput = [
-      {
-        type: PageType.Page,
-        externalId: "testExternalId",
-        externalName: "testExternalName",
+    const integration = await Integration.create<
+      Integration<IntegrationType.Import>
+    >({
+      service: IntegrationService.Notion,
+      type: IntegrationType.Import,
+      userId: admin.id,
+      teamId: admin.teamId,
+      settings: {
+        externalWorkspace: {
+          id: "testId",
+          name: "testWorkspaceName",
+        },
       },
-    ];
+    });
+    const input: NotionImportInput = [{ permission: undefined }];
 
     const res = await server.post("/api/imports.create", {
       body: {
@@ -40,6 +48,7 @@ describe("#imports.create", () => {
 
     expect(res.status).toEqual(200);
     expect(body.data.id).toBeTruthy();
+    expect(body.data.name).toEqual("testWorkspaceName");
     expect(body.data.state).toEqual(ImportState.Created);
     expect(body.data.service).toEqual(IntegrationService.Notion);
     expect(body.data.createdById).toEqual(admin.id);
@@ -47,13 +56,12 @@ describe("#imports.create", () => {
 
   it("should not allow more than one active import at a time", async () => {
     const admin = await buildAdmin();
-    const integration = await buildIntegration();
+    const integration = await buildIntegration({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
     const input: NotionImportInput = [
-      {
-        type: PageType.Page,
-        externalId: "testExternalId",
-        externalName: "testExternalName",
-      },
+      { permission: CollectionPermission.Read },
     ];
     await buildImport({
       createdById: admin.id,
