@@ -3,10 +3,10 @@ import {
   onConnectPayload,
   onDisconnectPayload,
 } from "@hocuspocus/server";
+import { TooManyConnections } from "@shared/collaboration/CloseEvents";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
-import { TooManyConnections } from "./CloseEvents";
 import { withContext } from "./types";
 
 @trace()

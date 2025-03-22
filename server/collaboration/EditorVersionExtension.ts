@@ -1,9 +1,9 @@
 import { Extension, onConnectPayload } from "@hocuspocus/server";
 import semver from "semver";
+import { EditorUpdateError } from "@shared/collaboration/CloseEvents";
 import EDITOR_VERSION from "@shared/editor/version";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
-import { EditorUpdateError } from "./CloseEvents";
 import { withContext } from "./types";
 
 @trace()

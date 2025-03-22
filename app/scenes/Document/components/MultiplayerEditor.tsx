@@ -6,6 +6,11 @@ import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
+import {
+  AuthenticationFailed,
+  DocumentTooLarge,
+  EditorUpdateError,
+} from "@shared/collaboration/CloseEvents";
 import EDITOR_VERSION from "@shared/editor/version";
 import { supportsPassiveListener } from "@shared/utils/browser";
 import Editor, { Props as EditorProps } from "~/components/Editor";
@@ -144,12 +149,12 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     provider.on("close", (ev: MessageEvent) => {
       if ("code" in ev.event) {
         provider.shouldConnect =
-          ev.event.code !== 1009 &&
-          ev.event.code !== 4401 &&
-          ev.event.code !== 4504;
+          ev.event.code !== DocumentTooLarge.code &&
+          ev.event.code !== AuthenticationFailed.code &&
+          ev.event.code !== EditorUpdateError.code;
         ui.setMultiplayerStatus("disconnected", ev.event.code);
 
-        if (ev.event.code === 4504) {
+        if (ev.event.code === EditorUpdateError.code) {
           window.location.reload();
         }
       }
