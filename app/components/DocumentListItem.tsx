@@ -22,6 +22,7 @@ import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
+import usePolicy from "~/hooks/usePolicy";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { documentPath } from "~/utils/routeHelpers";
 import { determineSidebarContext } from "./Sidebar/components/SidebarContext";
@@ -35,7 +36,6 @@ type Props = {
   showPublished?: boolean;
   showPin?: boolean;
   showDraft?: boolean;
-  showTemplate?: boolean;
 };
 
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
@@ -51,6 +51,7 @@ function DocumentListItem(
 ) {
   const { t } = useTranslation();
   const user = useCurrentUser();
+  const can = usePolicy(props.document);
   const locationSidebarContext = useLocationSidebarContext();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
 
@@ -70,7 +71,6 @@ function DocumentListItem(
     showPublished,
     showPin,
     showDraft = true,
-    showTemplate,
     highlight,
     context,
     ...rest
@@ -78,7 +78,6 @@ function DocumentListItem(
   const queryIsInTitle =
     !!highlight &&
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
-  const canStar = !document.isArchived && !document.isTemplate;
 
   const sidebarContext = determineSidebarContext({
     document,
@@ -124,13 +123,10 @@ function DocumentListItem(
               <Badge>{t("Draft")}</Badge>
             </Tooltip>
           )}
-          {canStar && (
+          {(can.star || can.unstar) && (
             <StarPositioner>
               <StarButton document={document} />
             </StarPositioner>
-          )}
-          {document.isTemplate && showTemplate && (
-            <Badge primary>{t("Template")}</Badge>
           )}
         </Heading>
 

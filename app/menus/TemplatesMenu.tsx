@@ -6,9 +6,10 @@ import { MenuButton, useMenuState } from "reakit/Menu";
 import Icon from "@shared/components/Icon";
 import { TextHelper } from "@shared/utils/TextHelper";
 import Document from "~/models/Document";
+import Template from "~/models/Template";
 import Button from "~/components/Button";
 import ContextMenu from "~/components/ContextMenu";
-import Template from "~/components/ContextMenu/Template";
+import ContextMenuTemplate from "~/components/ContextMenu/Template";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import { MenuItem } from "~/types";
@@ -19,7 +20,7 @@ type Props = {
   /** Whether to render the button as a compact icon */
   isCompact?: boolean;
   /** Callback to handle when a template is selected */
-  onSelectTemplate: (template: Document) => void;
+  onSelectTemplate: (template: Template) => void;
 };
 
 function TemplatesMenu({ isCompact, onSelectTemplate, document }: Props) {
@@ -27,34 +28,40 @@ function TemplatesMenu({ isCompact, onSelectTemplate, document }: Props) {
     modal: true,
   });
   const user = useCurrentUser();
-  const { documents } = useStores();
+  const { templates } = useStores();
   const { t } = useTranslation();
 
   const templateToMenuItem = React.useCallback(
-    (tmpl: Document): MenuItem => ({
+    (template: Template): MenuItem => ({
       type: "button",
-      title: TextHelper.replaceTemplateVariables(tmpl.titleWithDefault, user),
-      icon: tmpl.icon ? (
-        <Icon value={tmpl.icon} color={tmpl.color ?? undefined} />
+      title: TextHelper.replaceTemplateVariables(
+        template.titleWithDefault,
+        user
+      ),
+      icon: template.icon ? (
+        <Icon value={template.icon} color={template.color ?? undefined} />
       ) : (
         <DocumentIcon />
       ),
-      onClick: () => onSelectTemplate(tmpl),
+      onClick: () => onSelectTemplate(template),
     }),
     [user, onSelectTemplate]
   );
 
-  const templates = documents.templates.filter((tmpl) => tmpl.publishedAt);
+  const publishedTemplates = templates.orderedData.filter(
+    (template) => template.publishedAt
+  );
 
-  const collectionItems = templates
+  const collectionItems = publishedTemplates
     .filter(
-      (tmpl) =>
-        !tmpl.isWorkspaceTemplate && tmpl.collectionId === document.collectionId
+      (template) =>
+        !template.isWorkspaceTemplate &&
+        template.collectionId === document.collectionId
     )
     .map(templateToMenuItem);
 
-  const workspaceTemplates = templates
-    .filter((tmpl) => tmpl.isWorkspaceTemplate)
+  const workspaceTemplates = publishedTemplates
+    .filter((template) => template.isWorkspaceTemplate)
     .map(templateToMenuItem);
 
   const workspaceItems: MenuItem[] = React.useMemo(
@@ -94,7 +101,7 @@ function TemplatesMenu({ isCompact, onSelectTemplate, document }: Props) {
         )}
       </MenuButton>
       <ContextMenu {...menu} aria-label={t("Templates")}>
-        <Template {...menu} items={items} />
+        <ContextMenuTemplate {...menu} items={items} />
       </ContextMenu>
     </>
   );

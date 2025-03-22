@@ -52,19 +52,6 @@ describe("#delete", () => {
     expect(newDocument?.deletedAt).toBeTruthy();
   });
 
-  test("should soft delete templates", async () => {
-    const document = await buildDocument({
-      template: true,
-    });
-    const user = await buildUser();
-    await document.delete(user);
-    const newDocument = await Document.findByPk(document.id, {
-      paranoid: false,
-    });
-    expect(newDocument?.lastModifiedById).toBe(user.id);
-    expect(newDocument?.deletedAt).toBeTruthy();
-  });
-
   test("should soft delete archived", async () => {
     const document = await buildDocument({
       archivedAt: new Date(),

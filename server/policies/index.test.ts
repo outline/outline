@@ -1,4 +1,4 @@
-import { buildUser, buildTeam } from "@server/test/factories";
+import { buildUser, buildAdmin, buildTeam } from "@server/test/factories";
 import { serialize } from "./index";
 
 it("should serialize policy", async () => {
@@ -10,7 +10,7 @@ it("should serialize policy", async () => {
 
 it("should serialize domain policies on Team", async () => {
   const team = await buildTeam();
-  const user = await buildUser({
+  const user = await buildAdmin({
     teamId: team.id,
   });
   const response = serialize(user, team);
