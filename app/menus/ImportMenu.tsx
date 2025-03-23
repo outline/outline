@@ -27,33 +27,28 @@ export const ImportMenu = observer(
       modal: true,
     });
 
-    const items = React.useMemo(() => {
-      const menuItems: MenuItem[] = [];
-
-      if (can.cancel) {
-        menuItems.push({
-          type: "button",
-          title: t("Cancel"),
-          visible: true,
-          icon: <CrossIcon />,
-          dangerous: true,
-          onClick: onCancel,
-        });
-      }
-
-      if (can.delete) {
-        menuItems.push({
-          type: "button",
-          title: t("Delete"),
-          visible: true,
-          icon: <TrashIcon />,
-          dangerous: true,
-          onClick: onDelete,
-        });
-      }
-
-      return menuItems;
-    }, [t, can, onCancel, onDelete]);
+    const items = React.useMemo(
+      () =>
+        [
+          {
+            type: "button",
+            title: t("Cancel"),
+            visible: can.cancel,
+            icon: <CrossIcon />,
+            dangerous: true,
+            onClick: onCancel,
+          },
+          {
+            type: "button",
+            title: t("Delete"),
+            visible: can.delete,
+            icon: <TrashIcon />,
+            dangerous: true,
+            onClick: onDelete,
+          },
+        ] satisfies MenuItem[],
+      [t, can, onCancel, onDelete]
+    );
 
     return (
       <>
