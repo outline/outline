@@ -28,6 +28,7 @@ const pixel = Buffer.from(
 const handleUnsubscribe = async (
   ctx: APIContext<T.NotificationsUnsubscribeReq>
 ) => {
+  const { transaction } = ctx.state;
   const eventType = (ctx.input.body.eventType ??
     ctx.input.query.eventType) as NotificationEventType;
   const userId = (ctx.input.body.userId ?? ctx.input.query.userId) as string;
@@ -45,6 +46,8 @@ const handleUnsubscribe = async (
 
   const user = await User.scope("withTeam").findByPk(userId, {
     rejectOnEmpty: true,
+    lock: transaction.LOCK.UPDATE,
+    transaction,
   });
 
   user.setNotificationEventType(eventType, false);
@@ -144,7 +147,13 @@ router.get(
   transaction(),
   async (ctx: APIContext<T.NotificationsPixelReq>) => {
     const { id, token } = ctx.input.query;
-    const notification = await Notification.unscoped().findByPk(id);
+    const { transaction } = ctx.state;
+
+    const notification = await Notification.unscoped().findByPk(id, {
+      lock: transaction.LOCK.UPDATE,
+      rejectOnEmpty: true,
+      transaction,
+    });
 
     if (!notification || !safeEqual(token, notification.pixelToken)) {
       throw AuthenticationError();
