@@ -47,7 +47,7 @@ export const ImportMenu = observer(
             onClick: onDelete,
           },
         ] satisfies MenuItem[],
-      [t, can, onCancel, onDelete]
+      [t, can.delete, can.cancel, onCancel, onDelete]
     );
 
     return (

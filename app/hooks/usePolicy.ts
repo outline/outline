@@ -8,14 +8,9 @@ import useStores from "./useStores";
  * located in the store, it will be fetched from the server.
  *
  * @param entity The model or model id
- * @param {Object} options - Options for loading relations.
- * @param {string} options.force - Whether to force load the relations, default: false.
  * @returns The policy for the model
  */
-export default function usePolicy(
-  entity?: string | Model | null,
-  { force }: { force: boolean } = { force: false }
-) {
+export default function usePolicy(entity?: string | Model | null) {
   const { policies } = useStores();
   const user = useCurrentUser({ rejectOnEmpty: false });
   const entityId = entity
@@ -23,6 +18,7 @@ export default function usePolicy(
       ? entity
       : entity.id
     : "";
+  const policy = policies.get(entityId);
 
   React.useEffect(() => {
     if (
@@ -33,11 +29,11 @@ export default function usePolicy(
     ) {
       // The policy for this model is missing and we have an authenticated session, attempt to
       // reload relationships for this model.
-      if ((!policies.get(entity.id) || force) && user) {
+      if (!policy && user) {
         void entity.loadRelations();
       }
     }
-  }, [policies, user, entity, force]);
+  }, [policies, policy, user, entity]);
 
   return policies.abilities(entityId);
 }

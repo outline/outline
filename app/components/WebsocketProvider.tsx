@@ -6,7 +6,6 @@ import * as React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { io, Socket } from "socket.io-client";
 import { toast } from "sonner";
-import EDITOR_VERSION from "@shared/editor/version";
 import {
   FileOperationState,
   FileOperationType,
@@ -631,22 +630,18 @@ class WebsocketProvider extends React.Component<Props> {
       imports.add(event);
     });
 
-    this.socket.on(
-      "imports.update",
-      action((event: PartialExcept<Import, "id">) => {
-        imports.add(event);
+    this.socket.on("imports.update", (event: PartialExcept<Import, "id">) => {
+      imports.add(event);
 
-        if (event.state === ImportState.Completed) {
-          policies.remove(event.id); // allows fetching latest policy when import is completed.
-
-          if (event.createdBy?.id === auth.user?.id) {
-            toast.success(event.name, {
-              description: this.props.t("Your import completed"),
-            });
-          }
-        }
-      })
-    );
+      if (
+        event.state === ImportState.Completed &&
+        event.createdBy?.id === auth.user?.id
+      ) {
+        toast.success(event.name, {
+          description: this.props.t("Your import completed"),
+        });
+      }
+    });
 
     this.socket.on(
       "subscriptions.create",

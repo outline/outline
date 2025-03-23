@@ -9,12 +9,10 @@ import { ImportState } from "@shared/types";
 import Import from "~/models/Import";
 import { Action } from "~/components/Actions";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
-import { ListItem } from "~/components/Sharing/components/ListItem";
+import ListItem from "~/components/List/Item";
 import Spinner from "~/components/Spinner";
 import Time from "~/components/Time";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import usePolicy from "~/hooks/usePolicy";
-import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
 import { ImportMenu } from "~/menus/ImportMenu";
 
@@ -28,12 +26,6 @@ export const ImportListItem = observer(({ importModel }: Props) => {
   const { dialogs } = useStores();
   const user = useCurrentUser();
   const theme = useTheme();
-  const prevState = usePrevious(importModel.state);
-  const can = usePolicy(importModel, {
-    force:
-      prevState !== ImportState.Completed &&
-      importModel.state === ImportState.Completed,
-  });
   const showProgress =
     importModel.state !== ImportState.Canceled &&
     importModel.state !== ImportState.Errored;
@@ -143,15 +135,13 @@ export const ImportListItem = observer(({ importModel }: Props) => {
         </>
       }
       actions={
-        (can.delete || can.cancel) && (
-          <Action>
-            <ImportMenu
-              importModel={importModel}
-              onCancel={handleCancel}
-              onDelete={handleDelete}
-            />
-          </Action>
-        )
+        <Action>
+          <ImportMenu
+            importModel={importModel}
+            onCancel={handleCancel}
+            onDelete={handleDelete}
+          />
+        </Action>
       }
     />
   );

@@ -82,7 +82,7 @@ export const Notion = observer(() => {
 
   return (
     <Button type="submit" onClick={() => redirectTo(authUrl)} neutral>
-      {t("Import")}
+      {t("Import")}…
     </Button>
   );
 });
