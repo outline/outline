@@ -1,10 +1,9 @@
 import Router from "koa-router";
-import { isNil } from "lodash";
+import isNil from "lodash/isNil";
 import isNull from "lodash/isNull";
 import isUndefined from "lodash/isUndefined";
 import { WhereOptions, Op } from "sequelize";
 import { NotificationEventType } from "@shared/types";
-import notificationUpdater from "@server/commands/notificationUpdater";
 import env from "@server/env";
 import { AuthenticationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
@@ -152,10 +151,8 @@ router.get(
     }
 
     if (!notification.viewedAt) {
-      await notificationUpdater(ctx, {
-        notification,
-        viewedAt: new Date(),
-      });
+      notification.viewedAt = new Date();
+      await notification.saveWithCtx(ctx);
     }
 
     ctx.response.set("Content-Type", "image/gif");
@@ -171,15 +168,22 @@ router.post(
   async (ctx: APIContext<T.NotificationsUpdateReq>) => {
     const { id, viewedAt, archivedAt } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
 
-    const notification = await Notification.findByPk(id);
+    const notification = await Notification.findByPk(id, {
+      lock: transaction.LOCK.UPDATE,
+      rejectOnEmpty: true,
+      transaction,
+    });
     authorize(user, "update", notification);
 
-    await notificationUpdater(ctx, {
-      notification,
-      viewedAt,
-      archivedAt,
-    });
+    if (!isUndefined(viewedAt)) {
+      notification.viewedAt = viewedAt;
+    }
+    if (!isUndefined(archivedAt)) {
+      notification.archivedAt = archivedAt;
+    }
+    await notification.saveWithCtx(ctx);
 
     ctx.body = {
       data: await presentNotification(ctx, notification),
@@ -196,7 +200,7 @@ router.post(
     const { viewedAt, archivedAt } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    const values: { [x: string]: any } = {};
+    const values: Partial<Notification> = {};
     let where: WhereOptions<Notification> = {
       teamId: user.teamId,
       userId: user.id,
@@ -216,7 +220,14 @@ router.post(
       };
     }
 
-    const [total] = await Notification.update(values, { where });
+    const total = await Notification.findAllInBatches(
+      { where },
+      async (results) => {
+        await Promise.all(
+          results.map((notification) => notification.updateWithCtx(ctx, values))
+        );
+      }
+    );
 
     ctx.body = {
       success: true,

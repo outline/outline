@@ -280,6 +280,7 @@ class Model<
    *
    * @param query The query options.
    * @param callback The function to call for each batch of results
+   * @return The total number of results processed.
    */
   static async findAllInBatches<T extends Model>(
     query: Replace<FindOptions<T>, "limit", "batchLimit"> & {
@@ -287,7 +288,7 @@ class Model<
       totalLimit?: number;
     },
     callback: (results: Array<T>, query: FindOptions<T>) => Promise<void>
-  ) {
+  ): Promise<number> {
     const mappedQuery = {
       ...query,
       offset: query.offset ?? 0,
@@ -305,6 +306,8 @@ class Model<
       results.length >= mappedQuery.limit &&
       (mappedQuery.totalLimit ?? Infinity) > mappedQuery.offset
     );
+
+    return mappedQuery.offset;
   }
 
   /**
