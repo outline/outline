@@ -57,6 +57,7 @@ import FileOperation from "./FileOperation";
 import Group from "./Group";
 import GroupMembership from "./GroupMembership";
 import GroupUser from "./GroupUser";
+import Import from "./Import";
 import Revision from "./Revision";
 import Star from "./Star";
 import Team from "./Team";
@@ -536,6 +537,13 @@ class Document extends ArchivableModel<
   @ForeignKey(() => FileOperation)
   @Column(DataType.UUID)
   importId: string | null;
+
+  @BelongsTo(() => Import, "apiImportId")
+  apiImport: Import<any> | null;
+
+  @ForeignKey(() => Import)
+  @Column(DataType.UUID)
+  apiImportId: string | null;
 
   @AllowNull
   @Column(DataType.JSONB)

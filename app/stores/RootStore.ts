@@ -14,6 +14,7 @@ import FileOperationsStore from "./FileOperationsStore";
 import GroupMembershipsStore from "./GroupMembershipsStore";
 import GroupUsersStore from "./GroupUsersStore";
 import GroupsStore from "./GroupsStore";
+import ImportsStore from "./ImportsStore";
 import IntegrationsStore from "./IntegrationsStore";
 import MembershipsStore from "./MembershipsStore";
 import NotificationsStore from "./NotificationsStore";
@@ -43,6 +44,7 @@ export default class RootStore {
   events: EventsStore;
   groups: GroupsStore;
   groupUsers: GroupUsersStore;
+  imports: ImportsStore;
   integrations: IntegrationsStore;
   memberships: MembershipsStore;
   notifications: NotificationsStore;
@@ -72,6 +74,7 @@ export default class RootStore {
     this.registerStore(EventsStore);
     this.registerStore(GroupsStore);
     this.registerStore(GroupUsersStore);
+    this.registerStore(ImportsStore);
     this.registerStore(IntegrationsStore);
     this.registerStore(MembershipsStore);
     this.registerStore(NotificationsStore);
