@@ -6,7 +6,11 @@ import * as React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { io, Socket } from "socket.io-client";
 import { toast } from "sonner";
-import { FileOperationState, FileOperationType } from "@shared/types";
+import {
+  FileOperationState,
+  FileOperationType,
+  ImportState,
+} from "@shared/types";
 import RootStore from "~/stores/RootStore";
 import Collection from "~/models/Collection";
 import Comment from "~/models/Comment";
@@ -15,6 +19,7 @@ import FileOperation from "~/models/FileOperation";
 import Group from "~/models/Group";
 import GroupMembership from "~/models/GroupMembership";
 import GroupUser from "~/models/GroupUser";
+import Import from "~/models/Import";
 import Membership from "~/models/Membership";
 import Notification from "~/models/Notification";
 import Pin from "~/models/Pin";
@@ -100,6 +105,7 @@ class WebsocketProvider extends React.Component<Props> {
       subscriptions,
       fileOperations,
       notifications,
+      imports,
     } = this.props;
 
     const currentUserId = auth?.user?.id;
@@ -619,6 +625,23 @@ class WebsocketProvider extends React.Component<Props> {
         }
       }
     );
+
+    this.socket.on("imports.create", (event: PartialExcept<Import, "id">) => {
+      imports.add(event);
+    });
+
+    this.socket.on("imports.update", (event: PartialExcept<Import, "id">) => {
+      imports.add(event);
+
+      if (
+        event.state === ImportState.Completed &&
+        event.createdBy?.id === auth.user?.id
+      ) {
+        toast.success(event.name, {
+          description: this.props.t("Your import completed"),
+        });
+      }
+    });
 
     this.socket.on(
       "subscriptions.create",

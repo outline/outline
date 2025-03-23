@@ -54,6 +54,23 @@ export enum FileOperationState {
   Expired = "expired",
 }
 
+export enum ImportState {
+  Created = "created",
+  InProgress = "in_progress",
+  Processed = "processed",
+  Completed = "completed",
+  Errored = "errored",
+  Canceled = "canceled",
+}
+
+export enum ImportTaskState {
+  Created = "created",
+  InProgress = "in_progress",
+  Completed = "completed",
+  Errored = "errored",
+  Canceled = "canceled",
+}
+
 export enum MentionType {
   User = "user",
   Document = "document",
@@ -86,6 +103,8 @@ export enum IntegrationType {
   Analytics = "analytics",
   /** An integration that maps an Outline user to an external service. */
   LinkedAccount = "linkedAccount",
+  /** An integration that imports documents into Outline. */
+  Import = "import",
 }
 
 export enum IntegrationService {
@@ -96,7 +115,17 @@ export enum IntegrationService {
   Matomo = "matomo",
   Umami = "umami",
   GitHub = "github",
+  Notion = "notion",
 }
+
+export type ImportableIntegrationService = Extract<
+  IntegrationService,
+  IntegrationService.Notion
+>;
+
+export const ImportableIntegrationService = {
+  Notion: IntegrationService.Notion,
+} as const;
 
 export type UserCreatableIntegrationService = Extract<
   IntegrationService,
@@ -143,6 +172,8 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
   ? { url: string; channel: string; channelId: string }
   : T extends IntegrationType.Command
   ? { serviceTeamId: string }
+  : T extends IntegrationType.Import
+  ? { externalWorkspace: { id: string; name: string; iconUrl?: string } }
   :
       | { url: string }
       | {
@@ -187,6 +218,8 @@ export type SourceMetadata = {
   createdByName?: string;
   /** An ID in the external source. */
   externalId?: string;
+  /** Original name in the external source. */
+  externalName?: string;
   /** Whether the item was created through a trial license. */
   trial?: boolean;
 };

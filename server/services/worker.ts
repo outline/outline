@@ -111,6 +111,11 @@ export default function init() {
           try {
             await processor.perform(event);
           } catch (err) {
+            // last attempt has failed.
+            if (job.attemptsMade + 1 >= (job.opts.attempts || 1)) {
+              await processor.onFailed(event).catch(); // suppress exception from 'onFailed'.
+            }
+
             Logger.error(
               `Error processing ${event.name} in ${name}`,
               err,
@@ -154,6 +159,11 @@ export default function init() {
         try {
           return await task.perform(props);
         } catch (err) {
+          // last attempt has failed.
+          if (job.attemptsMade + 1 >= (job.opts.attempts || 1)) {
+            await task.onFailed(props).catch(); // suppress exception from 'onFailed'.
+          }
+
           Logger.error(`Error processing task in ${name}`, err, props);
           throw err;
         }

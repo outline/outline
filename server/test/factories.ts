@@ -10,6 +10,7 @@ import {
   CollectionPermission,
   FileOperationState,
   FileOperationType,
+  ImportState,
   IntegrationService,
   IntegrationType,
   NotificationEventType,
@@ -41,6 +42,7 @@ import {
   SearchQuery,
   Pin,
   Comment,
+  Import,
 } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 
@@ -478,6 +480,43 @@ export async function buildFileOperation(
     key: "uploads/key/to/file.zip",
     collectionId: null,
     url: "https://www.urltos3file.com/file.zip",
+    ...overrides,
+  });
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function buildImport(overrides: Partial<Import<any>> = {}) {
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
+  if (!overrides.createdById) {
+    const user = await buildAdmin({
+      teamId: overrides.teamId,
+    });
+    overrides.createdById = user.id;
+  }
+
+  if (!overrides.integrationId) {
+    const integration = await buildIntegration({
+      service: IntegrationService.Notion,
+      userId: overrides.createdById,
+      teamId: overrides.teamId,
+    });
+    overrides.integrationId = integration.id;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return Import.create<Import<any>>({
+    name: "testImport",
+    service: IntegrationService.Notion,
+    state: ImportState.Created,
+    input: [
+      {
+        permission: CollectionPermission.Read,
+      },
+    ],
     ...overrides,
   });
 }

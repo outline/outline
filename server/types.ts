@@ -35,6 +35,7 @@ import type {
   Notification,
   Share,
   GroupMembership,
+  Import,
 } from "./models";
 
 export enum AuthenticationType {
@@ -467,6 +468,16 @@ export type NotificationEvent = BaseEvent<Notification> & {
   membershipId?: string;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ImportEvent = BaseEvent<Import<any>> & {
+  name:
+    | "imports.create"
+    | "imports.update"
+    | "imports.processed"
+    | "imports.delete";
+  modelId: string;
+};
+
 export type Event =
   | ApiKeyEvent
   | AttachmentEvent
@@ -492,7 +503,8 @@ export type Event =
   | ViewEvent
   | WebhookSubscriptionEvent
   | NotificationEvent
-  | EmptyTrashEvent;
+  | EmptyTrashEvent
+  | ImportEvent;
 
 export type NotificationMetadata = {
   notificationId?: string;
