@@ -4,6 +4,12 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import {
+  AuthenticationFailed,
+  AuthorizationFailed,
+  DocumentTooLarge,
+  TooManyConnections,
+} from "@shared/collaboration/CloseEvents";
 import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
@@ -14,21 +20,21 @@ function ConnectionStatus() {
   const { t } = useTranslation();
 
   const codeToMessage = {
-    1009: {
+    [DocumentTooLarge.code]: {
       title: t("Document is too large"),
       body: t(
         "This document has reached the maximum size and can no longer be edited"
       ),
     },
-    4401: {
+    [AuthenticationFailed.code]: {
       title: t("Authentication failed"),
       body: t("Please try logging out and back in again"),
     },
-    4403: {
+    [AuthorizationFailed.code]: {
       title: t("Authorization failed"),
       body: t("You may have lost access to this document, try reloading"),
     },
-    4503: {
+    [TooManyConnections.code]: {
       title: t("Too many users connected to document"),
       body: t("Your edits will sync once other users leave the document"),
     },

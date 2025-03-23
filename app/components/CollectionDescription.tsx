@@ -11,6 +11,7 @@ import Collection from "~/models/Collection";
 import Editor from "~/components/Editor";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import { withUIExtensions } from "~/editor/extensions";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import Text from "./Text";
@@ -24,6 +25,7 @@ type Props = {
 function CollectionDescription({ collection }: Props) {
   const { collections } = useStores();
   const { t } = useTranslation();
+  const user = useCurrentUser({ rejectOnEmpty: true });
   const can = usePolicy(collection);
 
   const handleSave = React.useMemo(
@@ -65,6 +67,7 @@ function CollectionDescription({ collection }: Props) {
             maxLength={CollectionValidation.maxDescriptionLength}
             canUpdate={can.update}
             readOnly={!can.update}
+            userId={user.id}
             editorStyle={editorStyle}
             embedsDisabled
           />

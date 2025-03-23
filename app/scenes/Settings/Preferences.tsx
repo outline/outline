@@ -3,12 +3,12 @@ import { SettingsIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { languageOptions } from "@shared/i18n";
+import { languageOptions as availableLanguages } from "@shared/i18n";
 import { TeamPreference, UserPreference } from "@shared/types";
 import { Theme } from "~/stores/UiStore";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
-import InputSelect from "~/components/InputSelect";
+import { InputSelectNew, Option } from "~/components/InputSelectNew";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
@@ -26,6 +26,29 @@ function Preferences() {
   const team = useCurrentTeam();
   const can = usePolicy(user.id);
 
+  const languageOptions: Option[] = React.useMemo(
+    () =>
+      availableLanguages.map(
+        (lang) =>
+          ({
+            type: "item",
+            label: lang.label,
+            value: lang.value,
+          } satisfies Option)
+      ),
+    []
+  );
+
+  const themeOptions: Option[] = React.useMemo(
+    () =>
+      [
+        { type: "item", label: t("Light"), value: Theme.Light },
+        { type: "item", label: t("Dark"), value: Theme.Dark },
+        { type: "item", label: t("System"), value: Theme.System },
+      ] satisfies Option[],
+    [t]
+  );
+
   const handlePreferenceChange =
     (inverted = false) =>
     async (ev: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,10 +60,21 @@ function Preferences() {
       toast.success(t("Preferences saved"));
     };
 
-  const handleLanguageChange = async (language: string) => {
-    await user.save({ language });
-    toast.success(t("Preferences saved"));
-  };
+  const handleLanguageChange = React.useCallback(
+    async (language: string) => {
+      await user.save({ language });
+      toast.success(t("Preferences saved"));
+    },
+    [t, user]
+  );
+
+  const handleThemeChange = React.useCallback(
+    (theme) => {
+      ui.setTheme(theme as Theme);
+      toast.success(t("Preferences saved"));
+    },
+    [t, ui]
+  );
 
   const showDeleteAccount = () => {
     dialogs.openModal({
@@ -77,12 +111,13 @@ function Preferences() {
           </>
         }
       >
-        <InputSelect
-          id="language"
+        <InputSelectNew
           options={languageOptions}
           value={user.language}
           onChange={handleLanguageChange}
           ariaLabel={t("Language")}
+          label={t("Language")}
+          hideLabel
         />
       </SettingRow>
       <SettingRow
@@ -90,18 +125,13 @@ function Preferences() {
         label={t("Appearance")}
         description={t("Choose your preferred interface color scheme.")}
       >
-        <InputSelect
+        <InputSelectNew
+          options={themeOptions}
+          value={ui.theme}
+          onChange={handleThemeChange}
           ariaLabel={t("Appearance")}
-          options={[
-            { label: t("Light"), value: Theme.Light },
-            { label: t("Dark"), value: Theme.Dark },
-            { label: t("System"), value: Theme.System },
-          ]}
-          value={ui.resolvedTheme}
-          onChange={(theme) => {
-            ui.setTheme(theme as Theme);
-            toast.success(t("Preferences saved"));
-          }}
+          label={t("Appearance")}
+          hideLabel
         />
       </SettingRow>
       <SettingRow

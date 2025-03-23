@@ -448,6 +448,7 @@ export type UnfurlResponse = {
 
 export enum QueryNotices {
   UnsubscribeDocument = "unsubscribe-document",
+  UnsubscribeCollection = "unsubscribe-collection",
 }
 
 export type JSONValue =
@@ -463,7 +464,7 @@ export type JSONObject = { [x: string]: JSONValue };
 
 export type ProsemirrorData = {
   type: string;
-  content: ProsemirrorData[];
+  content?: ProsemirrorData[];
   text?: string;
   attrs?: JSONObject;
   marks?: {

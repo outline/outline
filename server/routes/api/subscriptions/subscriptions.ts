@@ -150,7 +150,13 @@ router.get(
   transaction(),
   async (ctx: APIContext<T.SubscriptionsDeleteTokenReq>) => {
     const { transaction } = ctx.state;
-    const { userId, documentId, token } = ctx.input.query;
+    const { follow, userId, documentId, token } = ctx.input.query;
+
+    // The link in the email does not include the follow query param, this
+    // is to help prevent anti-virus, and email clients from pre-fetching the link
+    if (!follow) {
+      return ctx.redirectOnClient(ctx.request.href + "&follow=true");
+    }
 
     const unsubscribeToken = SubscriptionHelper.unsubscribeToken(
       userId,
@@ -162,14 +168,21 @@ router.get(
       return;
     }
 
-    const [subscription, user] = await Promise.all([
+    const [documentSubscription, document, user] = await Promise.all([
       Subscription.findOne({
         where: {
           userId,
           documentId,
         },
         lock: Transaction.LOCK.UPDATE,
-        rejectOnEmpty: true,
+        transaction,
+      }),
+      Document.unscoped().findOne({
+        attributes: ["collectionId"],
+        where: {
+          id: documentId,
+        },
+        paranoid: false,
         transaction,
       }),
       User.scope("withTeam").findByPk(userId, {
@@ -178,18 +191,41 @@ router.get(
       }),
     ]);
 
-    authorize(user, "delete", subscription);
+    const context = createContext({
+      user,
+      ip: ctx.request.ip,
+      transaction,
+    });
 
-    await subscription.destroyWithCtx(
-      createContext({
-        user,
-        ip: ctx.request.ip,
-        transaction,
-      })
-    );
+    const collectionSubscription = document?.collectionId
+      ? await Subscription.findOne({
+          where: {
+            userId,
+            collectionId: document.collectionId,
+          },
+          lock: Transaction.LOCK.UPDATE,
+          transaction,
+        })
+      : undefined;
+
+    if (collectionSubscription) {
+      authorize(user, "delete", collectionSubscription);
+      await collectionSubscription.destroyWithCtx(context);
+    }
+
+    if (documentSubscription) {
+      authorize(user, "delete", documentSubscription);
+      await documentSubscription.destroyWithCtx(context);
+    }
 
     ctx.redirect(
-      `${user.team.url}/home?notice=${QueryNotices.UnsubscribeDocument}`
+      `${user.team.url}/home?notice=${
+        collectionSubscription
+          ? QueryNotices.UnsubscribeCollection
+          : documentSubscription
+          ? QueryNotices.UnsubscribeDocument
+          : ""
+      }`
     );
   }
 );

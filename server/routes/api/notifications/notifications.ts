@@ -57,8 +57,19 @@ router.get(
   "notifications.unsubscribe",
   validate(T.NotificationsUnsubscribeSchema),
   transaction(),
-  handleUnsubscribe
+  async (ctx: APIContext<T.NotificationsUnsubscribeReq>) => {
+    const { follow } = ctx.input.query;
+
+    // The link in the email does not include the follow query param, this
+    // is to help prevent anti-virus, and email clients from pre-fetching the link
+    if (!follow) {
+      return ctx.redirectOnClient(ctx.request.href + "&follow=true");
+    }
+
+    return handleUnsubscribe(ctx);
+  }
 );
+
 router.post(
   "notifications.unsubscribe",
   validate(T.NotificationsUnsubscribeSchema),
