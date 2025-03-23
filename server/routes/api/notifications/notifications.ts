@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import isEmpty from "lodash/isEmpty";
 import isNil from "lodash/isNil";
 import isNull from "lodash/isNull";
 import isUndefined from "lodash/isUndefined";
@@ -180,7 +181,10 @@ router.post(
     const { transaction } = ctx.state;
 
     const notification = await Notification.findByPk(id, {
-      lock: transaction.LOCK.UPDATE,
+      lock: {
+        level: transaction.LOCK.UPDATE,
+        of: Notification,
+      },
       rejectOnEmpty: true,
       transaction,
     });
@@ -229,14 +233,19 @@ router.post(
       };
     }
 
-    const total = await Notification.findAllInBatches(
-      { where },
-      async (results) => {
-        await Promise.all(
-          results.map((notification) => notification.updateWithCtx(ctx, values))
-        );
-      }
-    );
+    let total = 0;
+    if (!isEmpty(values)) {
+      total = await Notification.findAllInBatches(
+        { where },
+        async (results) => {
+          await Promise.all(
+            results.map((notification) =>
+              notification.updateWithCtx(ctx, values)
+            )
+          );
+        }
+      );
+    }
 
     ctx.body = {
       success: true,

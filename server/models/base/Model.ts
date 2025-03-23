@@ -289,6 +289,7 @@ class Model<
     },
     callback: (results: Array<T>, query: FindOptions<T>) => Promise<void>
   ): Promise<number> {
+    let total = 0;
     const mappedQuery = {
       ...query,
       offset: query.offset ?? 0,
@@ -300,6 +301,7 @@ class Model<
     do {
       // @ts-expect-error this T
       results = await this.findAll<T>(mappedQuery);
+      total += results.length;
       await callback(results, mappedQuery);
       mappedQuery.offset += mappedQuery.limit;
     } while (
@@ -307,7 +309,7 @@ class Model<
       (mappedQuery.totalLimit ?? Infinity) > mappedQuery.offset
     );
 
-    return mappedQuery.offset;
+    return total;
   }
 
   /**
