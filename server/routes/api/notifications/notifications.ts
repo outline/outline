@@ -235,7 +235,7 @@ router.post(
 
     let total = 0;
     if (!isEmpty(values)) {
-      total = await Notification.findAllInBatches(
+      total = await Notification.unscoped().findAllInBatches(
         { where },
         async (results) => {
           await Promise.all(
