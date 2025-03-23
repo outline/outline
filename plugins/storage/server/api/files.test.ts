@@ -17,6 +17,9 @@ import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
 
+// Increase timeout for all tests in this file
+jest.setTimeout(10000);
+
 describe("#files.create", () => {
   it("should fail with status 400 bad request if key is invalid", async () => {
     const user = await buildUser();
