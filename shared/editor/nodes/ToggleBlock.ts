@@ -310,11 +310,11 @@ export default class ToggleBlock extends Node {
             foldPlugin.spec.initialDecorationsLoaded = true;
           }
 
-          // if toggle block is folded and cursor ends up within the hidden range of toggle block, then unfold toggle block
+          // if cursor ends up within the hidden range of toggle block while it is folded, immediately unfold it
           const { $cursor } = tr.selection as TextSelection;
           if ($cursor) {
             const parentNode = $cursor.node($cursor.depth - 1);
-            if (parentNode.type.name === this.name) {
+            if (parentNode && parentNode.type.name === this.name) {
               const posBeforeToggleBlockHead = $cursor.start($cursor.depth - 1);
               const posAfterToggleBlockHead =
                 posBeforeToggleBlockHead + parentNode.firstChild!.nodeSize;
