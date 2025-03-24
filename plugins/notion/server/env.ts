@@ -5,8 +5,8 @@ import environment from "@server/utils/environment";
 import { CannotUseWithout } from "@server/utils/validators";
 
 class NotionPluginEnvironment extends Environment {
-  @IsOptional()
   @Public
+  @IsOptional()
   public NOTION_CLIENT_ID = this.toOptionalString(environment.NOTION_CLIENT_ID);
 
   @IsOptional()

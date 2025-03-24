@@ -81,7 +81,12 @@ export const Notion = observer(() => {
   }, [t, appName, oauthError]);
 
   return (
-    <Button type="submit" onClick={() => redirectTo(authUrl)} neutral>
+    <Button
+      type="submit"
+      onClick={() => redirectTo(authUrl)}
+      disabled={!env.NOTION_CLIENT_ID}
+      neutral
+    >
       {t("Import")}…
     </Button>
   );
