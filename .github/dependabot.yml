@@ -26,3 +26,5 @@ updates:
       aws:
         patterns:
           - "@aws-sdk/*"
+        schedule:
+          interval: "monthly"
