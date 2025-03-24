@@ -5,6 +5,7 @@ import isNull from "lodash/isNull";
 import isUndefined from "lodash/isUndefined";
 import { WhereOptions, Op } from "sequelize";
 import { NotificationEventType } from "@shared/types";
+import { createContext } from "@server/context";
 import env from "@server/env";
 import { AuthenticationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
@@ -85,7 +86,6 @@ router.post(
   auth(),
   pagination(),
   validate(T.NotificationsListSchema),
-  transaction(),
   async (ctx: APIContext<T.NotificationsListReq>) => {
     const { eventType, archived } = ctx.input.body;
     const user = ctx.state.auth.user;
@@ -152,17 +152,28 @@ router.get(
 
     const notification = await Notification.unscoped().findByPk(id, {
       lock: transaction.LOCK.UPDATE,
-      rejectOnEmpty: true,
       transaction,
+      rejectOnEmpty: true,
     });
 
-    if (!notification || !safeEqual(token, notification.pixelToken)) {
+    if (!safeEqual(token, notification.pixelToken)) {
       throw AuthenticationError();
     }
 
     if (!notification.viewedAt) {
-      notification.viewedAt = new Date();
-      await notification.saveWithCtx(ctx);
+      const user = await notification.$get("user");
+      if (user) {
+        await notification.updateWithCtx(
+          createContext({
+            ...ctx,
+            transaction,
+            user,
+          }),
+          {
+            viewedAt: new Date(),
+          }
+        );
+      }
     }
 
     ctx.response.set("Content-Type", "image/gif");
