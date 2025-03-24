@@ -117,21 +117,49 @@ export default class ToggleBlock extends Node {
                 (block) => block.node.type.name === this.name
               );
               for (const toggleBlock of toggleBlocks) {
-                const from = toggleBlock.pos + 1;
-                const to = from + toggleBlock.node.firstChild!.nodeSize;
-                const decoExists =
+                const toggleBlockStart = toggleBlock.pos;
+                const toggleBlockEnd =
+                  toggleBlockStart + toggleBlock.node.nodeSize;
+                const decoOnToggleBlockExists =
                   value.find(
-                    from,
-                    to,
+                    toggleBlockStart,
+                    toggleBlockEnd,
+                    (spec) =>
+                      spec.nodeId === toggleBlock.node.attrs.id &&
+                      spec.target === this.name
+                  ).length > 0;
+                if (!decoOnToggleBlockExists) {
+                  decosToApply.push(
+                    Decoration.node(
+                      toggleBlockStart,
+                      toggleBlockEnd,
+                      {},
+                      {
+                        target: this.name,
+                        nodeId: toggleBlock.node.attrs.id,
+                        fold: true,
+                      }
+                    )
+                  );
+                  const key = `${toggleBlock.node.attrs.id}:${this.editor.props.userId}`;
+                  Storage.set(key, { fold: true });
+                }
+                const toggleBlockHeadStart = toggleBlock.pos + 1;
+                const toggleBlockHeadEnd =
+                  toggleBlockHeadStart + toggleBlock.node.firstChild!.nodeSize;
+                const decoOnToggleBlockHeadExists =
+                  value.find(
+                    toggleBlockHeadStart,
+                    toggleBlockHeadEnd,
                     (spec) =>
                       spec.nodeId === toggleBlock.node.attrs.id &&
                       spec.target === `${this.name}>:firstChild`
                   ).length > 0;
-                if (!decoExists) {
+                if (!decoOnToggleBlockHeadExists) {
                   decosToApply.push(
                     Decoration.node(
-                      from,
-                      to,
+                      toggleBlockHeadStart,
+                      toggleBlockHeadEnd,
                       {
                         nodeName: "div",
                         class: "toggle-block-head",
@@ -164,8 +192,8 @@ export default class ToggleBlock extends Node {
                     }
                   ),
                 ]);
-                const unfoldState = Storage.get(key);
-                if (!isNil(unfoldState)) {
+                const foldState = Storage.get(key);
+                if (isNil(foldState)) {
                   value = value.add(tr.doc, [
                     Decoration.node(
                       pos,
@@ -174,7 +202,21 @@ export default class ToggleBlock extends Node {
                       {
                         target: `${node.type.name}`,
                         nodeId: node.attrs.id,
-                        unfold: unfoldState.unfold,
+                        fold: true,
+                      }
+                    ),
+                  ]);
+                  Storage.set(key, { fold: true });
+                } else {
+                  value = value.add(tr.doc, [
+                    Decoration.node(
+                      pos,
+                      pos + node.nodeSize,
+                      {},
+                      {
+                        target: `${node.type.name}`,
+                        nodeId: node.attrs.id,
+                        fold: foldState.fold,
                       }
                     ),
                   ]);
@@ -182,21 +224,15 @@ export default class ToggleBlock extends Node {
               }
             } else if (action.type === Action.FOLD) {
               const node = tr.doc.nodeAt(action.at)!;
-              const deco = value.find(
-                undefined,
-                undefined,
+              const decos = value.find(
+                action.at,
+                action.at + node.nodeSize,
                 (spec) =>
                   spec.nodeId === node.attrs.id &&
                   spec.target === node.type.name &&
-                  spec.unfold
+                  spec.fold === false
               );
-              if (deco.length) {
-                value = value.remove(deco);
-                const key = `${node.attrs.id}:${this.editor.props.userId}`;
-                Storage.remove(key);
-              }
-            } else if (action.type === Action.UNFOLD) {
-              const node = tr.doc.nodeAt(action.at)!;
+              value = value.remove(decos);
               value = value.add(tr.doc, [
                 Decoration.node(
                   action.at,
@@ -205,12 +241,37 @@ export default class ToggleBlock extends Node {
                   {
                     target: `${node.type.name}`,
                     nodeId: node.attrs.id,
-                    unfold: true,
+                    fold: true,
                   }
                 ),
               ]);
               const key = `${node.attrs.id}:${this.editor.props.userId}`;
-              Storage.set(key, { unfold: true });
+              Storage.set(key, { fold: true });
+            } else if (action.type === Action.UNFOLD) {
+              const node = tr.doc.nodeAt(action.at)!;
+              const decos = value.find(
+                action.at,
+                action.at + node.nodeSize,
+                (spec) =>
+                  spec.nodeId === node.attrs.id &&
+                  spec.target === node.type.name &&
+                  spec.fold === true
+              );
+              value = value.remove(decos);
+              value = value.add(tr.doc, [
+                Decoration.node(
+                  action.at,
+                  action.at + node.nodeSize,
+                  {},
+                  {
+                    target: `${node.type.name}`,
+                    nodeId: node.attrs.id,
+                    fold: false,
+                  }
+                ),
+              ]);
+              const key = `${node.attrs.id}:${this.editor.props.userId}`;
+              Storage.set(key, { fold: false });
             }
           }
 
@@ -315,16 +376,13 @@ class ToggleBlockView implements NodeView {
     this.dom.appendChild(this.button);
     this.dom.appendChild(this.contentDOM);
 
-    this.setFolded(
-      !decorations.length || decorations.some((deco) => !deco.spec.unfold)
-    );
+    this.setFolded(decorations.some((deco) => deco.spec.fold));
   }
 
   update(_node: ProsemirrorNode, decorations: readonly Decoration[]) {
-    const folded =
-      !decorations.length || decorations.some((deco) => !deco.spec.unfold);
-    if (folded !== this.folded) {
-      this.setFolded(folded);
+    const fold = decorations.some((deco) => deco.spec.fold);
+    if (fold !== this.folded) {
+      this.setFolded(fold);
     }
     return true;
   }
