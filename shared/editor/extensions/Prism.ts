@@ -4,61 +4,9 @@ import { Node } from "prosemirror-model";
 import { Plugin, PluginKey, Transaction } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import refractor from "refractor/core";
+import { getPrismLangForLanguage } from "../lib/code";
 import { isRemoteTransaction } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
-
-export const LANGUAGES = {
-  none: "Plain text", // additional entry to disable highlighting
-  bash: "Bash",
-  clike: "C",
-  cpp: "C++",
-  csharp: "C#",
-  css: "CSS",
-  docker: "Docker",
-  elixir: "Elixir",
-  erlang: "Erlang",
-  go: "Go",
-  graphql: "GraphQL",
-  groovy: "Groovy",
-  haskell: "Haskell",
-  hcl: "HCL",
-  markup: "HTML",
-  ini: "INI",
-  java: "Java",
-  javascript: "JavaScript",
-  json: "JSON",
-  jsx: "JSX",
-  kotlin: "Kotlin",
-  lisp: "Lisp",
-  lua: "Lua",
-  mermaidjs: "Mermaid Diagram",
-  nginx: "Nginx",
-  nix: "Nix",
-  objectivec: "Objective-C",
-  ocaml: "OCaml",
-  perl: "Perl",
-  php: "PHP",
-  powershell: "Powershell",
-  protobuf: "Protobuf",
-  python: "Python",
-  r: "R",
-  ruby: "Ruby",
-  rust: "Rust",
-  scala: "Scala",
-  sass: "Sass",
-  scss: "SCSS",
-  sql: "SQL",
-  solidity: "Solidity",
-  swift: "Swift",
-  toml: "TOML",
-  tsx: "TSX",
-  typescript: "TypeScript",
-  vb: "Visual Basic",
-  verilog: "Verilog",
-  vhdl: "VHDL",
-  yaml: "YAML",
-  zig: "Zig",
-};
 
 type ParsedNode = {
   text: string;
@@ -109,12 +57,9 @@ function getDecorations({
 
   blocks.forEach((block) => {
     let startPos = block.pos + 1;
-    const language = (
-      block.node.attrs.language === "mermaidjs"
-        ? "mermaid"
-        : block.node.attrs.language
-    ) as string;
-    if (!language || language === "none" || !refractor.registered(language)) {
+    const language = getPrismLangForLanguage(block.node.attrs.language);
+
+    if (!language || !refractor.registered(language)) {
       return;
     }
 

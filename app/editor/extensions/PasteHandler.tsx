@@ -10,8 +10,8 @@ import {
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
 import { v4 } from "uuid";
-import { LANGUAGES } from "@shared/editor/extensions/Prism";
 import Extension, { WidgetProps } from "@shared/editor/lib/Extension";
+import { codeLanguages } from "@shared/editor/lib/code";
 import isMarkdown from "@shared/editor/lib/isMarkdown";
 import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
 import { isRemoteTransaction } from "@shared/editor/lib/multiplayer";
@@ -228,7 +228,7 @@ export default class PasteHandler extends Extension {
                     state.tr
                       .replaceSelectionWith(
                         state.schema.nodes.code_block.create({
-                          language: Object.keys(LANGUAGES).includes(
+                          language: Object.keys(codeLanguages).includes(
                             vscodeMeta.mode
                           )
                             ? vscodeMeta.mode
