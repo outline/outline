@@ -54,7 +54,9 @@ export class CacheHelper {
       }
       return value;
     } finally {
-      await lock?.release();
+      if (lock && lock.expiration > new Date().getTime()) {
+        await lock.release();
+      }
     }
   }
 
