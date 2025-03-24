@@ -110,7 +110,7 @@
     "copy-to-clipboard": "^3.3.3",
     "core-js": "^3.37.0",
     "crypto-js": "^4.2.0",
-    "datadog-metrics": "^0.11.2",
+    "datadog-metrics": "^0.12.1",
     "date-fns": "^3.6.0",
     "dd-trace": "^5.40.0",
     "diff": "^5.2.0",

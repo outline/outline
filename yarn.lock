@@ -1841,10 +1841,10 @@
     enabled "2.0.x"
     kuler "^2.0.0"
 
-"@datadog/datadog-api-client@^1.16.0":
-  version "1.19.0"
-  resolved "https://registry.yarnpkg.com/@datadog/datadog-api-client/-/datadog-api-client-1.19.0.tgz#3bd7cafa2e83080a0efba836602699ea0441899b"
-  integrity "sha1-O9fK+i6DCAoO+6g2YCaZ6gRBiZs= sha512-tMkHo7nBFtpDP4dbT/dGIIdittGaTuA6hIY6v4vWb/f+NlJPwnJUf/gBJ9Hwz1HEmlYQMuAnpdFxIQ2P6zjujA=="
+"@datadog/datadog-api-client@^1.17.0":
+  version "1.33.1"
+  resolved "https://registry.yarnpkg.com/@datadog/datadog-api-client/-/datadog-api-client-1.33.1.tgz#7dcdc86383699c3a4d4414c1a3deacb44a6d3262"
+  integrity sha512-ztX1/uutcuSdRqZLlirKy8tIn1VbMjBE/oLCcNL8PsDlzztaXkjhRzX71V8LTc35iQcuv9XzjjbUfOLGhypwdw==
   dependencies:
     "@types/buffer-from" "^1.1.0"
     "@types/node" "*"
@@ -1855,7 +1855,6 @@
     form-data "^4.0.0"
     loglevel "^1.8.1"
     pako "^2.0.4"
-    url-parse "^1.4.3"
 
 "@datadog/libdatadog@^0.5.0":
   version "0.5.0"
@@ -7758,12 +7757,12 @@ data-view-byte-offset@^1.0.1:
     es-errors "^1.3.0"
     is-data-view "^1.0.1"
 
-datadog-metrics@^0.11.2:
-  version "0.11.2"
-  resolved "https://registry.yarnpkg.com/datadog-metrics/-/datadog-metrics-0.11.2.tgz#3fadf376773b06da21d5527e8574f5f315aee547"
-  integrity sha512-gM2Yc9b0fwpsDtcE4Q573Xy0OJw0tp+vsli3ghZ4QRLGKkQtviKj6EFOxRYtFADV5opP+bIIJIclcWmaI76uvg==
+datadog-metrics@^0.12.1:
+  version "0.12.1"
+  resolved "https://registry.yarnpkg.com/datadog-metrics/-/datadog-metrics-0.12.1.tgz#8d3b91d554f9149990520d05199d08975d3edb7a"
+  integrity sha512-Gy+17ia7m9Uy+nKQHDd7fljdq0fqqfpgkpxlwW0x1oFKI7RcgDV32pMCfHtv4HKychP6fHtncj3Lf4VN/g4G6A==
   dependencies:
-    "@datadog/datadog-api-client" "^1.16.0"
+    "@datadog/datadog-api-client" "^1.17.0"
     debug "^4.1.0"
 
 date-fns@^2.28.0, date-fns@^2.30.0:
@@ -15443,7 +15442,7 @@ urijs@^1.19.0:
   resolved "https://registry.yarnpkg.com/urijs/-/urijs-1.19.11.tgz#204b0d6b605ae80bea54bea39280cdb7c9f923cc"
   integrity "sha1-IEsNa2Ba6AvqVL6jkoDNt8n5I8w= sha512-HXgFDgDommxn5/bIv0cnQZsPhHDA90NPHD6+c/v21U5+Sx5hoP8+dP9IZXBU1gIfvdRfhG8cel9QNPeionfcCQ=="
 
-url-parse@^1.4.3, url-parse@^1.5.3:
+url-parse@^1.5.3:
   version "1.5.10"
   resolved "https://registry.yarnpkg.com/url-parse/-/url-parse-1.5.10.tgz#9d3c2f736c1d75dd3bd2be507dcc111f1e2ea9c1"
   integrity "sha1-nTwvc2wddd070r5QfcwRHx4uqcE= sha512-WypcfiRhfeUP9vvF0j6rw0J3hrWrw6iZv3+22h6iRMJ/8z1Tj6XfLP4DsUix5MhMPnXpiHDoKyoZ/bdCkwBCiQ=="
