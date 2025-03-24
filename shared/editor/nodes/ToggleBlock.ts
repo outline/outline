@@ -309,6 +309,42 @@ export default class ToggleBlock extends Node {
             });
             foldPlugin.spec.initialDecorationsLoaded = true;
           }
+
+          // if toggle block is folded and cursor ends up within the hidden range of toggle block, then unfold toggle block
+          const { $cursor } = tr.selection as TextSelection;
+          if ($cursor) {
+            const parentNode = $cursor.node($cursor.depth - 1);
+            if (parentNode.type.name === this.name) {
+              const posBeforeToggleBlockHead = $cursor.start($cursor.depth - 1);
+              const posAfterToggleBlockHead =
+                posBeforeToggleBlockHead + parentNode.firstChild!.nodeSize;
+              const endOfToggleBlock = $cursor.end($cursor.depth - 1);
+              const posBeforeToggleBlock = $cursor.before($cursor.depth - 1);
+              const posAfterToggleBlock = $cursor.after($cursor.depth - 1);
+              const decosOnParent = ToggleBlock.pluginKey
+                .getState(newState)
+                ?.find(
+                  posBeforeToggleBlock,
+                  posAfterToggleBlock,
+                  (spec) =>
+                    spec.nodeId === parentNode.attrs.id &&
+                    spec.target === parentNode.type.name &&
+                    spec.fold === true
+                );
+
+              const toggleBlockFolded = decosOnParent && decosOnParent.length;
+              if (
+                toggleBlockFolded &&
+                $cursor.pos > posAfterToggleBlockHead &&
+                $cursor.pos < endOfToggleBlock
+              ) {
+                tr.setMeta(ToggleBlock.pluginKey, {
+                  type: Action.UNFOLD,
+                  at: posBeforeToggleBlock,
+                });
+              }
+            }
+          }
         }
 
         return tr;
