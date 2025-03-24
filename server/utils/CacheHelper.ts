@@ -54,7 +54,12 @@ export class CacheHelper {
       }
       return value;
     } finally {
-      await lock?.release();
+      try {
+        await lock?.release();
+      } catch (err) {
+        // This is fine - a concurrent process (or) redlock itself would have released the lock upon expiry.
+        Logger.error(`Failed to release lock for ${key}`, err);
+      }
     }
   }
 
