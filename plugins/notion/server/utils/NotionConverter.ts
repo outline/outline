@@ -179,11 +179,15 @@ export class NotionConverter {
   }
 
   private static bookmark(item: BookmarkBlockObjectResponse) {
+    const caption = item.bookmark.caption
+      .map(this.rich_text_to_plaintext)
+      .join("");
+
     return {
       type: "paragraph",
       content: [
         {
-          text: item.bookmark.caption.map(this.rich_text_to_plaintext).join(""),
+          text: caption || item.bookmark.url,
           type: "text",
           marks: [
             {
@@ -221,17 +225,14 @@ export class NotionConverter {
   }
 
   private static code(item: CodeBlockObjectResponse) {
+    const text = item.code.rich_text.map(this.rich_text_to_plaintext).join("");
+
     return {
       type: "code_fence",
       attrs: {
         language: item.code.language,
       },
-      content: [
-        {
-          type: "text",
-          text: item.code.rich_text.map(this.rich_text_to_plaintext).join(""),
-        },
-      ],
+      content: text ? [{ type: "text", text }] : undefined,
     };
   }
 
@@ -364,12 +365,14 @@ export class NotionConverter {
   private static equation(item: EquationBlockObjectResponse) {
     return {
       type: "math_block",
-      content: [
-        {
-          type: "text",
-          text: item.equation.expression,
-        },
-      ],
+      content: item.equation.expression
+        ? [
+            {
+              type: "text",
+              text: item.equation.expression,
+            },
+          ]
+        : undefined,
     };
   }
 
