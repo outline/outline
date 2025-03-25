@@ -1,9 +1,6 @@
 import crypto from "crypto";
 import { addMinutes, subMinutes } from "date-fns";
 import type { Context } from "koa";
-// Allowed for trusted server<->server connections
-// eslint-disable-next-line no-restricted-imports
-import fetch from "node-fetch";
 import {
   StateStoreStoreCallback,
   StateStoreVerifyCallback,
@@ -13,6 +10,7 @@ import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import { Team } from "@server/models";
 import { InternalError, OAuthStateMismatchError } from "../errors";
+import fetch from "./fetch";
 
 export class StateStore {
   key = "state";
