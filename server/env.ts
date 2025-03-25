@@ -294,13 +294,19 @@ export class Environment {
   public SMTP_HOST = environment.SMTP_HOST;
 
   @Public
-  public EMAIL_ENABLED = !!this.SMTP_HOST || this.isDevelopment;
+  public EMAIL_ENABLED = !!(this.SMTP_HOST || this.SMTP_SERVICE) || this.isDevelopment;
 
   /**
    * Optional hostname of the client, used for identifying to the server
    * defaults to hostname of the machine.
    */
   public SMTP_NAME = environment.SMTP_NAME;
+
+  /**
+   * The service name of a well-known SMTP service for nodemailer.
+   * See https://community.nodemailer.com/2-0-0-beta/setup-smtp/well-known-services/
+   */
+  public SMTP_SERVICE = environment.SMTP_SERVICE;
 
   /**
    * The port of your SMTP server.

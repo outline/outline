@@ -33,7 +33,7 @@ export class Mailer {
   transporter: Transporter | undefined;
 
   constructor() {
-    if (env.SMTP_HOST) {
+    if (env.SMTP_HOST || env.SMTP_SERVICE) {
       this.transporter = nodemailer.createTransport(this.getOptions());
     }
     if (useTestEmailService) {
@@ -203,6 +203,7 @@ export class Mailer {
       host: env.SMTP_HOST,
       port: env.SMTP_PORT,
       secure: env.SMTP_SECURE ?? env.isProduction,
+      service: env.SMTP_SERVICE,
       auth: env.SMTP_USERNAME
         ? {
             user: env.SMTP_USERNAME,
