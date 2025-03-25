@@ -1983,3 +1983,148 @@ exports[`NotionConverter converts a page 1`] = `
   "type": "doc",
 }
 `;
+
+exports[`NotionConverter converts a page with empty text nodes 1`] = `
+{
+  "content": [
+    {
+      "content": [],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "language": "javascript",
+      },
+      "content": undefined,
+      "type": "code_fence",
+    },
+    {
+      "content": [],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "text": "E",
+              "type": "text",
+            },
+          ],
+          "type": "math_inline",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [
+            {
+              "attrs": {
+                "href": "http://github.com/outline/",
+              },
+              "type": "link",
+            },
+          ],
+          "text": "http://github.com/outline/",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [
+            {
+              "attrs": {
+                "href": "https://github.com/outline/outline",
+              },
+              "type": "link",
+            },
+          ],
+          "text": "https://github.com/outline/outline",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [],
+      "type": "paragraph",
+    },
+    {
+      "content": undefined,
+      "type": "math_block",
+    },
+    {
+      "content": [],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [
+            {
+              "attrs": {
+                "href": "https://google.com",
+                "title": null,
+              },
+              "type": "link",
+            },
+          ],
+          "text": "https://google.com",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [
+            {
+              "attrs": {
+                "href": "https://github.com/outline/outline",
+              },
+              "type": "link",
+            },
+          ],
+          "text": "https://github.com/outline/outline",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "href": "https://prod-files-secure.s3.us-west-2.amazonaws.com/2f3fcad6-fc32-434b-b6b2-a03ca7893c4d/49bfa851-95c1-458b-abb0-88ed591f7712/Empty_pdf.pdf",
+        "title": "",
+      },
+      "type": "attachment",
+    },
+    {
+      "content": [],
+      "type": "paragraph",
+    },
+  ],
+  "type": "doc",
+}
+`;
