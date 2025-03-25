@@ -198,12 +198,22 @@ export class Mailer {
   };
 
   private getOptions(): SMTPTransport.Options {
+    // nodemailer will use the service config to determine host/port
+    if (env.SMTP_SERVICE) {
+      return {
+        service: env.SMTP_SERVICE,
+        auth: {
+          user: env.SMTP_USERNAME,
+          pass: env.SMTP_PASSWORD,
+        },
+      };
+    }
+
     return {
       name: env.SMTP_NAME,
       host: env.SMTP_HOST,
       port: env.SMTP_PORT,
       secure: env.SMTP_SECURE ?? env.isProduction,
-      service: env.SMTP_SERVICE,
       auth: env.SMTP_USERNAME
         ? {
             user: env.SMTP_USERNAME,
