@@ -72,9 +72,10 @@ export const codeLanguages = {
  * @param language The language identifier.
  * @returns The human-readable label for the language.
  */
-export const getLabelForLanguage = (language: keyof typeof codeLanguages) => {
-  const lang = codeLanguages[language];
-  return lang ? lang.label : language;
+export const getLabelForLanguage = (language: string) => {
+  const lang =
+    codeLanguages[language as keyof typeof codeLanguages] ?? codeLanguages.none;
+  return lang.label;
 };
 
 /**
