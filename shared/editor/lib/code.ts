@@ -72,9 +72,10 @@ export const codeLanguages = {
  * @param language The language identifier.
  * @returns The human-readable label for the language.
  */
-export const getLabelForLanguage = (language: keyof typeof codeLanguages) => {
-  const lang = codeLanguages[language];
-  return lang ? lang.label : language;
+export const getLabelForLanguage = (language: string) => {
+  const lang =
+    codeLanguages[language as keyof typeof codeLanguages] ?? codeLanguages.none;
+  return lang.label;
 };
 
 /**
@@ -83,9 +84,8 @@ export const getLabelForLanguage = (language: keyof typeof codeLanguages) => {
  * @param language The language identifier.
  * @returns The Prism language identifier for the language.
  */
-export const getPrismLangForLanguage = (
-  language: keyof typeof codeLanguages
-): string | undefined => codeLanguages[language].lang;
+export const getPrismLangForLanguage = (language: string): string | undefined =>
+  codeLanguages[language as keyof typeof codeLanguages]?.lang;
 
 /**
  * Set the most recent code language used.
