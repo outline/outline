@@ -147,43 +147,43 @@ export default class NotificationHelper {
     onlySubscribers: boolean;
     actorId: string;
   }): Promise<User[]> => {
-    // First find all the users that have notifications enabled for this event
-    // type at all and aren't the one that performed the action.
-    let recipients = await User.findAll({
-      where: {
-        id: {
-          [Op.ne]: actorId,
-        },
-        teamId: document.teamId,
-      },
-    });
+    let recipients: User[];
 
-    recipients = recipients.filter((recipient) =>
-      recipient.subscribedToEventType(notificationType)
-    );
-
-    // Filter further to only those that have a subscription to the document…
     if (onlySubscribers) {
       const subscriptions = await Subscription.findAll({
         attributes: ["userId"],
         where: {
-          userId: recipients.map((recipient) => recipient.id),
+          userId: {
+            [Op.ne]: actorId,
+          },
           event: SubscriptionType.Document,
           [Op.or]: [
             { collectionId: document.collectionId },
             { documentId: document.id },
           ],
         },
+        include: [
+          {
+            association: "user",
+          },
+        ],
       });
 
-      const subscribedUserIds = subscriptions.map(
-        (subscription) => subscription.userId
-      );
-
-      recipients = recipients.filter((recipient) =>
-        subscribedUserIds.includes(recipient.id)
-      );
+      recipients = subscriptions.map((s) => s.user);
+    } else {
+      recipients = await User.findAll({
+        where: {
+          id: {
+            [Op.ne]: actorId,
+          },
+          teamId: document.teamId,
+        },
+      });
     }
+
+    recipients = recipients.filter((recipient) =>
+      recipient.subscribedToEventType(notificationType)
+    );
 
     const filtered = [];
 
