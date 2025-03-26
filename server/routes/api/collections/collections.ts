@@ -62,15 +62,15 @@ router.post(
     const { user } = ctx.state.auth;
     authorize(user, "createCollection", user.team);
 
-    if (index) {
-      index = await removeIndexCollision(user.teamId, index, { transaction });
-    } else {
+    if (!index) {
       const first = await Collection.findFirstCollectionForUser(user, {
         attributes: ["id", "index"],
         transaction,
       });
       index = fractionalIndex(null, first ? first.index : null);
     }
+
+    index = await removeIndexCollision(user.teamId, index, { transaction });
 
     const collection = Collection.build({
       name,
