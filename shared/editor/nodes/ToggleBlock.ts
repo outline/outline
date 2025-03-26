@@ -1,8 +1,8 @@
 import isEmpty from "lodash/isEmpty";
 import isNil from "lodash/isNil";
-import { wrapIn } from "prosemirror-commands";
+import { chainCommands, wrapIn } from "prosemirror-commands";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
-import { Plugin, PluginKey, TextSelection } from "prosemirror-state";
+import { Command, Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import {
   Decoration,
   DecorationSet,
@@ -12,7 +12,11 @@ import {
 } from "prosemirror-view";
 import { v4 } from "uuid";
 import Storage from "../../utils/Storage";
-import { liftChildrenUp } from "../commands/toggleBlock";
+import {
+  liftChildrenUp,
+  prependParagraph,
+  splitHead,
+} from "../commands/toggleBlock";
 import { findBlockNodes } from "../queries/findChildren";
 import Node from "./Node";
 
@@ -367,9 +371,10 @@ export default class ToggleBlock extends Node {
     return [foldPlugin];
   }
 
-  keys({ type }: { type: NodeType }) {
+  keys({ type }: { type: NodeType }): Record<string, Command> {
     return {
       Backspace: liftChildrenUp(type),
+      Enter: chainCommands(prependParagraph, splitHead),
     };
   }
 

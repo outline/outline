@@ -1,7 +1,9 @@
 import isNull from "lodash/isNull";
-import { NodeType } from "prosemirror-model";
-import { Command, TextSelection } from "prosemirror-state";
+import some from "lodash/some";
+import { Node, NodeType, ResolvedPos, Slice } from "prosemirror-model";
+import { Command, EditorState, TextSelection } from "prosemirror-state";
 import { liftTarget } from "prosemirror-transform";
+import ToggleBlock from "../nodes/ToggleBlock";
 
 export function liftChildrenUp(type: NodeType): Command {
   return (state, dispatch) => {
@@ -39,3 +41,84 @@ export function liftChildrenUp(type: NodeType): Command {
     return true;
   };
 }
+
+const withinToggleBlock = ($cursor: ResolvedPos | null) =>
+  $cursor && $cursor.node($cursor.depth - 1).type.name === "toggle_block";
+
+const withinToggleBlockHead = ($cursor: ResolvedPos | null) =>
+  withinToggleBlock($cursor) && $cursor!.index($cursor!.depth - 1) === 0;
+
+const atStartOfToggleBlockHead = ($cursor: ResolvedPos | null) =>
+  withinToggleBlockHead($cursor) && $cursor!.parentOffset === 0;
+
+const inMiddleOrAtEndOfToggleBlockHead = ($cursor: ResolvedPos | null) =>
+  withinToggleBlockHead($cursor) && $cursor!.parentOffset > 0;
+
+const headIsEmpty = (toggleBlock: Node) =>
+  toggleBlock.firstChild!.content.size === 0;
+
+const folded = (toggleBlock: Node, state: EditorState) =>
+  some(
+    ToggleBlock.pluginKey
+      .getState(state)
+      ?.find(
+        undefined,
+        undefined,
+        (spec) =>
+          spec.nodeId === toggleBlock.attrs.id &&
+          spec.target === toggleBlock.type.name &&
+          spec.fold === true
+      )
+  );
+
+export const prependParagraph: Command = (state, dispatch) => {
+  const { $cursor } = state.selection as TextSelection;
+
+  if (!atStartOfToggleBlockHead($cursor)) {
+    return false;
+  }
+
+  const toggleBlock = $cursor!.node($cursor!.depth - 1);
+  if (headIsEmpty(toggleBlock) || !folded(toggleBlock, state)) {
+    return false;
+  }
+
+  const posBeforeToggleBlock = $cursor!.before($cursor!.depth - 1);
+  const emptyParagraph = state.schema.nodes.paragraph.create({});
+  const tr = state.tr;
+  tr.insert(posBeforeToggleBlock, emptyParagraph);
+  dispatch?.(tr);
+  return true;
+};
+
+export const splitHead: Command = (state, dispatch) => {
+  const { $cursor } = state.selection as TextSelection;
+
+  if (!inMiddleOrAtEndOfToggleBlockHead($cursor)) {
+    return false;
+  }
+
+  const toggleBlock = $cursor!.node($cursor!.depth - 1);
+  if (headIsEmpty(toggleBlock) || !folded(toggleBlock, state)) {
+    return false;
+  }
+
+  const toggleBlockHead = toggleBlock.firstChild!;
+
+  const tr = state.tr;
+  const newToggleBlock = state.schema.nodes.toggle_block.create(
+    undefined,
+    toggleBlockHead.type.create(
+      undefined,
+      tr.doc.slice($cursor!.pos, $cursor!.end()).content
+    )
+  );
+  tr.replace($cursor!.pos, $cursor!.end(), Slice.empty);
+  const { $cursor: $newCursorPos } = tr.selection as TextSelection;
+  const posAfterToggleBlock = $newCursorPos!.after($newCursorPos!.depth - 1);
+  tr.insert(posAfterToggleBlock, newToggleBlock).setSelection(
+    TextSelection.near(tr.doc.resolve(posAfterToggleBlock))
+  );
+  dispatch?.(tr);
+  return true;
+};
