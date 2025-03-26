@@ -41,7 +41,6 @@ import {
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { collectionIndexing } from "@server/utils/indexing";
-import removeIndexCollision from "@server/utils/removeIndexCollision";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -956,18 +955,16 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.CollectionsMoveReq>) => {
     const { transaction } = ctx.state;
-    const { id } = ctx.input.body;
-    let { index } = ctx.input.body;
+    const { id, index } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    const collection = await Collection.findByPk(id, {
+    let collection = await Collection.findByPk(id, {
       transaction,
       lock: transaction.LOCK.UPDATE,
     });
     authorize(user, "move", collection);
 
-    index = await removeIndexCollision(user.teamId, index, { transaction });
-    await collection.update(
+    collection = await collection.update(
       {
         index,
       },
@@ -979,14 +976,14 @@ router.post(
       name: "collections.move",
       collectionId: collection.id,
       data: {
-        index,
+        index: collection.index,
       },
     });
 
     ctx.body = {
       success: true,
       data: {
-        index,
+        index: collection.index,
       },
     };
   }

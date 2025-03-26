@@ -13,6 +13,7 @@ import {
   InferCreationAttributes,
   EmptyResultError,
   type CreateOptions,
+  type UpdateOptions,
 } from "sequelize";
 import {
   Sequelize,
@@ -35,6 +36,7 @@ import {
   IsDate,
   AllowNull,
   BeforeCreate,
+  BeforeUpdate,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import type { CollectionSort, ProsemirrorData } from "@shared/types";
@@ -370,6 +372,18 @@ class Collection extends ParanoidModel<
       transaction: options.transaction,
       hooks: false,
     });
+  }
+
+  @BeforeUpdate
+  static async checkIndex(
+    model: Collection,
+    options: UpdateOptions<Collection>
+  ) {
+    if (model.index && model.changed("index")) {
+      model.index = await removeIndexCollision(model.teamId, model.index, {
+        transaction: options.transaction,
+      });
+    }
   }
 
   // associations
