@@ -46,6 +46,7 @@ import { CollectionValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
 import removeIndexCollision from "@server/utils/removeIndexCollision";
 import { generateUrlId } from "@server/utils/url";
+import { ValidateIndex } from "@server/validation";
 import Document from "./Document";
 import FileOperation from "./FileOperation";
 import Group from "./Group";
@@ -221,8 +222,8 @@ class Collection extends ParanoidModel<
   color: string | null;
 
   @Length({
-    max: 256,
-    msg: `index must be 256 characters or less`,
+    max: ValidateIndex.maxLength,
+    msg: `index must be ${ValidateIndex.maxLength} characters or less`,
   })
   @Column
   index: string | null;
