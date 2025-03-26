@@ -190,7 +190,7 @@ class Team extends ParanoidModel<
    * @return {boolean} Whether to show email login options
    */
   get emailSigninEnabled(): boolean {
-    return this.guestSignin && (!!env.SMTP_HOST || env.isDevelopment);
+    return this.guestSignin && env.EMAIL_ENABLED;
   }
 
   get url() {
