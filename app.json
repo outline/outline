@@ -171,6 +171,10 @@
       "description": "smtp.example.com (optional)",
       "required": false
     },
+    "SMTP_SERVICE": {
+      "description": "Well-known SMTP service name for nodemailer (optional, e.g. 'gmail', 'SES')",
+      "required": false
+    },
     "SMTP_PORT": {
       "description": "1234 (optional)",
       "required": false
