@@ -1,4 +1,6 @@
 import {
+  APIErrorCode,
+  APIResponseError,
   Client,
   isFullPage,
   isFullPageOrDatabase,
@@ -264,8 +266,8 @@ export class NotionClient {
     } catch (error) {
       // Handle the case where a user can't be found
       if (
-        error instanceof Error &&
-        error.message.includes("Could not find user with ID")
+        error instanceof APIResponseError &&
+        error.code === APIErrorCode.ObjectNotFound
       ) {
         return "Unknown";
       }
