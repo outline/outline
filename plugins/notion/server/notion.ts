@@ -263,8 +263,10 @@ export class NotionClient {
       return user.name;
     } catch (error) {
       // Handle the case where a user can't be found
-      if (error instanceof Error && 
-          error.message.includes("Could not find user with ID")) {
+      if (
+        error instanceof Error &&
+        error.message.includes("Could not find user with ID")
+      ) {
         return "Unknown";
       }
       throw error;
