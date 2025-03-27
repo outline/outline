@@ -49,33 +49,46 @@ export default abstract class ImportsProcessor<
    * @param event The import event
    */
   public async perform(event: ImportEvent) {
-    await sequelize.transaction(async (transaction) => {
-      const importModel = await Import.findByPk<Import<T>>(event.modelId, {
-        rejectOnEmpty: true,
-        paranoid: false,
-        transaction,
-        lock: transaction.LOCK.UPDATE,
+    try {
+      await sequelize.transaction(async (transaction) => {
+        const importModel = await Import.findByPk<Import<T>>(event.modelId, {
+          rejectOnEmpty: true,
+          paranoid: false,
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+        });
+
+        if (
+          !this.canProcess(importModel) ||
+          importModel.state === ImportState.Errored ||
+          importModel.state === ImportState.Canceled
+        ) {
+          return;
+        }
+
+        switch (event.name) {
+          case "imports.create":
+            return this.onCreation(importModel, transaction);
+
+          case "imports.processed":
+            return this.onProcessed(importModel, transaction);
+
+          case "imports.delete":
+            return this.onDeletion(importModel, event, transaction);
+        }
       });
-
-      if (
-        !this.canProcess(importModel) ||
-        importModel.state === ImportState.Errored ||
-        importModel.state === ImportState.Canceled
-      ) {
-        return;
+    } catch (err) {
+      if (event.name !== "imports.delete" && err instanceof Error) {
+        const importModel = await Import.findByPk<Import<T>>(event.modelId, {
+          rejectOnEmpty: true,
+          paranoid: false,
+        });
+        importModel.error = truncate(err.message, { length: 255 });
+        await importModel.save();
       }
 
-      switch (event.name) {
-        case "imports.create":
-          return this.onCreation(importModel, transaction);
-
-        case "imports.processed":
-          return this.onProcessed(importModel, transaction);
-
-        case "imports.delete":
-          return this.onDeletion(importModel, event, transaction);
-      }
-    });
+      throw err; // throw error for retry.
+    }
   }
 
   public async onFailed(event: ImportEvent) {
@@ -173,6 +186,7 @@ export default abstract class ImportsProcessor<
     }
 
     importModel.state = ImportState.Completed;
+    importModel.error = null; // unset any error from previous attempts.
     await importModel.saveWithCtx(
       createContext({
         user: importModel.createdBy,
