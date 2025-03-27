@@ -30,7 +30,6 @@ import {
   DataType,
   Length as SimpleLength,
   BeforeDestroy,
-  IsDate,
   AllowNull,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
@@ -51,7 +50,7 @@ import Import from "./Import";
 import Team from "./Team";
 import User from "./User";
 import UserMembership from "./UserMembership";
-import ParanoidModel from "./base/ParanoidModel";
+import ArchivableModel from "./base/ArchivableModel";
 import Fix from "./decorators/Fix";
 import { DocumentHelper } from "./helpers/DocumentHelper";
 import IsHexColor from "./validators/IsHexColor";
@@ -163,7 +162,7 @@ type AdditionalFindOptions = {
 }))
 @Table({ tableName: "collections", modelName: "collection" })
 @Fix
-class Collection extends ParanoidModel<
+class Collection extends ArchivableModel<
   InferAttributes<Collection>,
   Partial<InferCreationAttributes<Collection>>
 > {
@@ -263,11 +262,6 @@ class Collection extends ParanoidModel<
     },
   })
   sort: CollectionSort;
-
-  /** Whether the collection is archived, and if so when. */
-  @IsDate
-  @Column
-  archivedAt: Date | null;
 
   // getters
 
