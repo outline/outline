@@ -71,7 +71,7 @@ const folded = (toggleBlock: Node, state: EditorState) =>
       )
   );
 
-export const prependParagraph: Command = (state, dispatch) => {
+export const createParagraphBefore: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;
 
   if (!atStartOfToggleBlockHead($cursor)) {
@@ -91,7 +91,7 @@ export const prependParagraph: Command = (state, dispatch) => {
   return true;
 };
 
-export const splitHead: Command = (state, dispatch) => {
+export const split: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;
 
   if (!inMiddleOrAtEndOfToggleBlockHead($cursor)) {
@@ -99,7 +99,7 @@ export const splitHead: Command = (state, dispatch) => {
   }
 
   const toggleBlock = $cursor!.node($cursor!.depth - 1);
-  if (headIsEmpty(toggleBlock) || !folded(toggleBlock, state)) {
+  if (!folded(toggleBlock, state)) {
     return false;
   }
 
