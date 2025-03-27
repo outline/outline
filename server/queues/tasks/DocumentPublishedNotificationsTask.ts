@@ -54,7 +54,6 @@ export default class DocumentPublishedNotificationsTask extends BaseTask<Documen
       await NotificationHelper.getDocumentNotificationRecipients({
         document,
         notificationType: NotificationEventType.PublishDocument,
-        onlySubscribers: false,
         actorId: document.lastModifiedById,
       })
     ).filter((recipient) => !userIdsMentioned.includes(recipient.id));

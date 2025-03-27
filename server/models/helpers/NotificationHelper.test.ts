@@ -115,29 +115,6 @@ describe("NotificationHelper", () => {
   });
 
   describe("getDocumentNotificationRecipients", () => {
-    it("should return all users who have notification enabled for the event", async () => {
-      const documentAuthor = await buildUser();
-      const document = await buildDocument({
-        userId: documentAuthor.id,
-        teamId: documentAuthor.teamId,
-      });
-      const notificationEnabledUser = await buildUser({
-        teamId: document.teamId,
-        notificationSettings: { [NotificationEventType.UpdateDocument]: true },
-      });
-
-      const recipients =
-        await NotificationHelper.getDocumentNotificationRecipients({
-          document,
-          notificationType: NotificationEventType.UpdateDocument,
-          onlySubscribers: false,
-          actorId: documentAuthor.id,
-        });
-
-      expect(recipients.length).toEqual(1);
-      expect(recipients[0].id).toEqual(notificationEnabledUser.id);
-    });
-
     it("should return users who have subscribed to the document", async () => {
       const documentAuthor = await buildUser();
       const document = await buildDocument({
@@ -154,7 +131,6 @@ describe("NotificationHelper", () => {
         await NotificationHelper.getDocumentNotificationRecipients({
           document,
           notificationType: NotificationEventType.UpdateDocument,
-          onlySubscribers: true,
           actorId: documentAuthor.id,
         });
 
@@ -178,7 +154,6 @@ describe("NotificationHelper", () => {
         await NotificationHelper.getDocumentNotificationRecipients({
           document,
           notificationType: NotificationEventType.UpdateDocument,
-          onlySubscribers: true,
           actorId: documentAuthor.id,
         });
 
@@ -216,7 +191,6 @@ describe("NotificationHelper", () => {
         await NotificationHelper.getDocumentNotificationRecipients({
           document,
           notificationType: NotificationEventType.UpdateDocument,
-          onlySubscribers: true,
           actorId: documentAuthor.id,
         });
 
@@ -235,20 +209,19 @@ describe("NotificationHelper", () => {
       });
       const notificationEnabledUser = await buildUser({
         teamId: document.teamId,
-        notificationSettings: { [NotificationEventType.UpdateDocument]: true },
+        notificationSettings: { [NotificationEventType.PublishDocument]: true },
       });
       // suspended user
       await buildUser({
         suspendedAt: new Date(),
         teamId: document.teamId,
-        notificationSettings: { [NotificationEventType.UpdateDocument]: true },
+        notificationSettings: { [NotificationEventType.PublishDocument]: true },
       });
 
       const recipients =
         await NotificationHelper.getDocumentNotificationRecipients({
           document,
-          notificationType: NotificationEventType.UpdateDocument,
-          onlySubscribers: false,
+          notificationType: NotificationEventType.PublishDocument,
           actorId: documentAuthor.id,
         });
 

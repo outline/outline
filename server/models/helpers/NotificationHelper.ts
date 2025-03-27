@@ -63,7 +63,6 @@ export default class NotificationHelper {
     let recipients = await this.getDocumentNotificationRecipients({
       document,
       notificationType: NotificationEventType.CreateComment,
-      onlySubscribers: !comment.parentCommentId,
       actorId,
     });
 
@@ -139,17 +138,27 @@ export default class NotificationHelper {
   public static getDocumentNotificationRecipients = async ({
     document,
     notificationType,
-    onlySubscribers,
     actorId,
   }: {
     document: Document;
     notificationType: NotificationEventType;
-    onlySubscribers: boolean;
     actorId: string;
   }): Promise<User[]> => {
     let recipients: User[];
 
-    if (onlySubscribers) {
+    if (notificationType === NotificationEventType.PublishDocument) {
+      recipients = await User.findAll({
+        where: {
+          id: {
+            [Op.ne]: actorId,
+          },
+          teamId: document.teamId,
+          notificationSettings: {
+            [notificationType]: true,
+          },
+        },
+      });
+    } else {
       const subscriptions = await Subscription.findAll({
         attributes: ["userId"],
         where: {
@@ -170,15 +179,6 @@ export default class NotificationHelper {
       });
 
       recipients = subscriptions.map((s) => s.user);
-    } else {
-      recipients = await User.findAll({
-        where: {
-          id: {
-            [Op.ne]: actorId,
-          },
-          teamId: document.teamId,
-        },
-      });
     }
 
     recipients = recipients.filter((recipient) =>
