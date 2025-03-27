@@ -232,7 +232,7 @@ export class ValidateDocumentId {
 export class ValidateIndex {
   public static regex = new RegExp("^[\x20-\x7E]+$");
   public static message = "Must be between x20 to x7E ASCII";
-  public static maxLength = 100;
+  public static maxLength = 256;
 }
 
 export class ValidateURL {

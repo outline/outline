@@ -1327,6 +1327,32 @@ describe("#collections.create", () => {
     expect(body.policies[0].abilities.read).toBeTruthy();
   });
 
+  it("should ensure unique index across the team", async () => {
+    const team = await buildTeam();
+    const [adminA, adminB] = await Promise.all([
+      buildAdmin({ teamId: team.id }),
+      buildAdmin({ teamId: team.id }),
+    ]);
+
+    const resA = await server.post("/api/collections.create", {
+      body: {
+        token: adminA.getJwtToken(),
+        name: "Test A",
+      },
+    });
+    const resB = await server.post("/api/collections.create", {
+      body: {
+        token: adminB.getJwtToken(),
+        name: "Test B",
+      },
+    });
+    const [bodyA, bodyB] = await Promise.all([resA.json(), resB.json()]);
+
+    expect(resA.status).toEqual(200);
+    expect(resB.status).toEqual(200);
+    expect(bodyA.data.index).not.toEqual(bodyB.data.index);
+  });
+
   it("if index collision, should updated index of other collection", async () => {
     const user = await buildUser();
     const createdCollectionAResponse = await server.post(

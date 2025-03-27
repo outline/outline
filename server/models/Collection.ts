@@ -1,4 +1,5 @@
 /* eslint-disable lines-between-class-members */
+import fractionalIndex from "fractional-index";
 import find from "lodash/find";
 import findIndex from "lodash/findIndex";
 import remove from "lodash/remove";
@@ -11,6 +12,8 @@ import {
   InferAttributes,
   InferCreationAttributes,
   EmptyResultError,
+  type CreateOptions,
+  type UpdateOptions,
 } from "sequelize";
 import {
   Sequelize,
@@ -32,6 +35,8 @@ import {
   BeforeDestroy,
   IsDate,
   AllowNull,
+  BeforeCreate,
+  BeforeUpdate,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import type { CollectionSort, ProsemirrorData } from "@shared/types";
@@ -41,7 +46,9 @@ import { sortNavigationNodes } from "@shared/utils/collections";
 import slugify from "@shared/utils/slugify";
 import { CollectionValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
+import removeIndexCollision from "@server/utils/removeIndexCollision";
 import { generateUrlId } from "@server/utils/url";
+import { ValidateIndex } from "@server/validation";
 import Document from "./Document";
 import FileOperation from "./FileOperation";
 import Group from "./Group";
@@ -217,8 +224,8 @@ class Collection extends ParanoidModel<
   color: string | null;
 
   @Length({
-    max: 256,
-    msg: `index must be 256 characters or less`,
+    max: ValidateIndex.maxLength,
+    msg: `index must be ${ValidateIndex.maxLength} characters or less`,
   })
   @Column
   index: string | null;
@@ -324,6 +331,30 @@ class Collection extends ParanoidModel<
     }
   }
 
+  @BeforeCreate
+  static async setIndex(model: Collection, options: CreateOptions<Collection>) {
+    if (model.index) {
+      model.index = await removeIndexCollision(model.teamId, model.index, {
+        transaction: options.transaction,
+      });
+      return;
+    }
+
+    const firstCollectionForTeam = await this.findOne({
+      where: {
+        teamId: model.teamId,
+      },
+      order: [
+        // using LC_COLLATE:"C" because we need byte order to drive the sorting
+        Sequelize.literal('"collection"."index" collate "C"'),
+        ["updatedAt", "DESC"],
+      ],
+      ...options,
+    });
+
+    model.index = fractionalIndex(null, firstCollectionForTeam?.index ?? null);
+  }
+
   @AfterCreate
   static async onAfterCreate(
     model: Collection,
@@ -341,6 +372,18 @@ class Collection extends ParanoidModel<
       transaction: options.transaction,
       hooks: false,
     });
+  }
+
+  @BeforeUpdate
+  static async checkIndex(
+    model: Collection,
+    options: UpdateOptions<Collection>
+  ) {
+    if (model.index && model.changed("index")) {
+      model.index = await removeIndexCollision(model.teamId, model.index, {
+        transaction: options.transaction,
+      });
+    }
   }
 
   // associations
