@@ -60,13 +60,7 @@ export default class NotificationHelper {
     comment: Comment,
     actorId: string
   ): Promise<User[]> => {
-    let recipients = await this.getDocumentNotificationRecipients({
-      document,
-      notificationType: NotificationEventType.CreateComment,
-      actorId,
-      // We will check below, this just prevents duplicate queries
-      disableAccessCheck: true,
-    });
+    let recipients: User[];
 
     // If this is a reply to another comment, we want to notify all users
     // that are involved in the thread of this comment (i.e. the original
@@ -109,6 +103,14 @@ export default class NotificationHelper {
       recipients = recipients.filter((recipient) =>
         recipient.subscribedToEventType(NotificationEventType.CreateComment)
       );
+    } else {
+      recipients = await this.getDocumentNotificationRecipients({
+        document,
+        notificationType: NotificationEventType.CreateComment,
+        actorId,
+        // We will check below, this just prevents duplicate queries
+        disableAccessCheck: true,
+      });
     }
 
     const filtered: User[] = [];
