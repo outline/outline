@@ -14,8 +14,8 @@ import { v4 } from "uuid";
 import Storage from "../../utils/Storage";
 import {
   liftChildrenUp,
-  prependParagraph,
-  splitHead,
+  createParagraphBefore,
+  split,
 } from "../commands/toggleBlock";
 import { findBlockNodes } from "../queries/findChildren";
 import Node from "./Node";
@@ -374,7 +374,7 @@ export default class ToggleBlock extends Node {
   keys({ type }: { type: NodeType }): Record<string, Command> {
     return {
       Backspace: liftChildrenUp(type),
-      Enter: chainCommands(prependParagraph, splitHead),
+      Enter: chainCommands(createParagraphBefore, split),
     };
   }
 
