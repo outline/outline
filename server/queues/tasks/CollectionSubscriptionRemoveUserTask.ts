@@ -8,11 +8,11 @@ import { sequelize } from "@server/storage/database";
 import { CollectionUserEvent } from "@server/types";
 import BaseTask from "./BaseTask";
 
-export default class CollectionSubscriptionTask extends BaseTask<CollectionUserEvent> {
+export default class CollectionSubscriptionRemoveUserTask extends BaseTask<CollectionUserEvent> {
   public async perform(event: CollectionUserEvent) {
     const user = await User.findByPk(event.userId);
 
-    if (!user || event.name !== "collections.remove_user") {
+    if (!user) {
       return;
     }
 
