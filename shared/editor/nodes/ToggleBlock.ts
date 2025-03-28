@@ -1,6 +1,6 @@
 import isEmpty from "lodash/isEmpty";
 import isNil from "lodash/isNil";
-import { chainCommands, wrapIn } from "prosemirror-commands";
+import { chainCommands, joinForward, wrapIn } from "prosemirror-commands";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
 import { Command, Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import {
@@ -16,7 +16,9 @@ import {
   liftChildrenUp,
   createParagraphBefore,
   split,
+  liftToggleBlockAfter,
 } from "../commands/toggleBlock";
+import { chainTransactions } from "../lib/chainTransactions";
 import { findBlockNodes } from "../queries/findChildren";
 import Node from "./Node";
 
@@ -375,6 +377,8 @@ export default class ToggleBlock extends Node {
     return {
       Backspace: liftChildrenUp(type),
       Enter: chainCommands(createParagraphBefore, split),
+      Delete: (state, dispatch) =>
+        chainTransactions(liftToggleBlockAfter(), joinForward)(state, dispatch),
     };
   }
 
