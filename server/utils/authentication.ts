@@ -30,7 +30,7 @@ export function getSessionsInCookie(ctx: Context) {
 export async function signIn(
   ctx: Context,
   service: string,
-  { user, team, client, isNewTeam }: AuthenticationResult
+  { user, team, client, isNewTeam, id_token }: AuthenticationResult
 ) {
   if (team.isSuspended) {
     return ctx.redirect("/?notice=team-suspended");

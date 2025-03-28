@@ -18,7 +18,7 @@ import Store from "./base/Store";
 
 type PersistedData = Pick<
   AuthStore,
-  "user" | "team" | "collaborationToken" | "availableTeams" | "policies"
+  "user" | "team" | "collaborationToken" | "idToken" | "availableTeams" | "policies"
 >;
 
 type Provider = {
@@ -49,6 +49,10 @@ export default class AuthStore extends Store<Team> {
   /* A short-lived token to be used to authenticate with the collaboration server. */
   @observable
   public collaborationToken?: string | null;
+
+  /* The ID token from OIDC authentication, used for logout */
+  @observable
+  public idToken?: string | null;
 
   /* A list of teams that the current user has access to. */
   @observable
@@ -133,6 +137,7 @@ export default class AuthStore extends Store<Team> {
     this.currentTeamId = data.team?.id;
     this.currentUserId = data.user?.id;
     this.collaborationToken = data.collaborationToken;
+    this.idToken = data.idToken;
     this.lastSignedIn = getCookie("lastSignedIn");
   }
 
@@ -171,6 +176,7 @@ export default class AuthStore extends Store<Team> {
       user: this.user,
       team: this.team,
       collaborationToken: this.collaborationToken,
+      idToken: this.idToken,
       availableTeams: this.availableTeams,
       policies: this.policies,
     };
@@ -205,6 +211,7 @@ export default class AuthStore extends Store<Team> {
 
         this.availableTeams = res.data.availableTeams;
         this.collaborationToken = res.data.collaborationToken;
+        this.idToken = res.data.id_token;
 
         if (env.SENTRY_DSN) {
           Sentry.configureScope((scope) => {
@@ -261,6 +268,7 @@ export default class AuthStore extends Store<Team> {
       this.currentUserId = null;
       this.currentTeamId = null;
       this.collaborationToken = null;
+      this.idToken = null;
       this.availableTeams = this.availableTeams?.filter(
         (team) => team.id !== this.team?.id
       );
@@ -333,6 +341,7 @@ export default class AuthStore extends Store<Team> {
     this.currentUserId = null;
     this.currentTeamId = null;
     this.collaborationToken = null;
+    this.idToken = null;
     this.rootStore.clear();
 
     // Tell the host application we logged out, if any – allows window cleanup.

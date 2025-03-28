@@ -58,7 +58,7 @@ if (
         ctx: Context,
         accessToken: string,
         refreshToken: string,
-        params: { expires_in: number },
+        params: { expires_in: number; id_token?: string },
         _profile: unknown,
         done: (
           err: Error | null,
@@ -153,7 +153,7 @@ if (
               scopes,
             },
           });
-          return done(null, result.user, { ...result, client });
+          return done(null, result.user, { ...result, client, id_token: params.id_token });
         } catch (err) {
           return done(err, null);
         }

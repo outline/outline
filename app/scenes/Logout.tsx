@@ -10,7 +10,12 @@ const Logout = () => {
   void auth.logout().then(() => {
     if (env.OIDC_LOGOUT_URI) {
       setTimeout(() => {
-        window.location.replace(env.OIDC_LOGOUT_URI);
+        // If the logout URI contains a template for the id_token, replace it
+        let logoutUri = env.OIDC_LOGOUT_URI;
+        if (auth.idToken && logoutUri.includes("{id_token}")) {
+          logoutUri = logoutUri.replace("{id_token}", auth.idToken);
+        }
+        window.location.replace(logoutUri);
       }, 200);
     }
   });

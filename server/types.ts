@@ -45,12 +45,14 @@ export enum AuthenticationType {
 
 export type AuthenticationResult = AccountProvisionerResult & {
   client: Client;
+  id_token?: string;
 };
 
 export type Authentication = {
   user: User;
   token?: string;
   type?: AuthenticationType;
+  id_token?: string;
 };
 
 export type Pagination = {

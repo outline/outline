@@ -235,7 +235,11 @@ export const logout = createAction({
     await stores.auth.logout();
     if (env.OIDC_LOGOUT_URI) {
       setTimeout(() => {
-        window.location.replace(env.OIDC_LOGOUT_URI);
+        let logoutUri = env.OIDC_LOGOUT_URI;
+        if (stores.auth.idToken && logoutUri.includes("{id_token}")) {
+          logoutUri = logoutUri.replace("{id_token}", stores.auth.idToken);
+        }
+        window.location.replace(logoutUri);
       }, 200);
     }
   },
