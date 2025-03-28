@@ -10,6 +10,10 @@ type Props = {
   captureEvents?: "all" | "pointer" | "click";
 };
 
+/**
+ * EventBoundary is a component that prevents events from propagating to parent elements.
+ * This is useful for preventing clicks or other interactions from bubbling up the DOM tree.
+ */
 const EventBoundary: React.FC<Props> = ({
   children,
   className,
