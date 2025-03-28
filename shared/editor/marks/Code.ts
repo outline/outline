@@ -99,6 +99,7 @@ export default class Code extends Mark {
               return false;
             }
 
+            // Check if we're pasting inside backticks
             const start = from - 1;
             const end = to + 1;
             if (
@@ -116,6 +117,69 @@ export default class Code extends Mark {
                   )
               );
               return true;
+            }
+
+            // Check if we're pasting over an existing inline code block
+            if (isInCode(state, { onlyMark: true })) {
+              // Get the range of the current code mark
+              const marks = state.doc.resolve(from).marks();
+              const codeMark = marks.find(
+                (mark) => mark.type === state.schema.marks.code_inline
+              );
+              
+              if (codeMark) {
+                // Find the start and end of the code mark
+                let codeStart = from;
+                let codeEnd = to;
+                
+                // Find the start of the code mark
+                for (let i = from; i > 0; i--) {
+                  const resolvedPos = state.doc.resolve(i);
+                  const marksAtPos = resolvedPos.marks();
+                  const hasCodeMark = marksAtPos.some(
+                    (mark) => mark.type === state.schema.marks.code_inline
+                  );
+                  
+                  if (!hasCodeMark) {
+                    codeStart = i + 1;
+                    break;
+                  }
+                  
+                  if (i === 1) {
+                    codeStart = 1;
+                  }
+                }
+                
+                // Find the end of the code mark
+                for (let i = to; i < state.doc.nodeSize - 2; i++) {
+                  const resolvedPos = state.doc.resolve(i);
+                  const marksAtPos = resolvedPos.marks();
+                  const hasCodeMark = marksAtPos.some(
+                    (mark) => mark.type === state.schema.marks.code_inline
+                  );
+                  
+                  if (!hasCodeMark) {
+                    codeEnd = i;
+                    break;
+                  }
+                  
+                  if (i === state.doc.nodeSize - 3) {
+                    codeEnd = state.doc.nodeSize - 2;
+                  }
+                }
+                
+                // Replace the content within the code mark
+                view.dispatch(
+                  state.tr
+                    .replaceRange(from, to, slice)
+                    .addMark(
+                      from,
+                      from + slice.size,
+                      state.schema.marks.code_inline.create()
+                    )
+                );
+                return true;
+              }
             }
 
             return false;
