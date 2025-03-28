@@ -8,11 +8,11 @@ import { sequelize } from "@server/storage/database";
 import { DocumentUserEvent } from "@server/types";
 import BaseTask from "./BaseTask";
 
-export default class DocumentSubscriptionTask extends BaseTask<DocumentUserEvent> {
+export default class DocumentSubscriptionRemoveUserTask extends BaseTask<DocumentUserEvent> {
   public async perform(event: DocumentUserEvent) {
     const user = await User.findByPk(event.userId);
 
-    if (!user || event.name !== "documents.remove_user") {
+    if (!user) {
       return;
     }
 

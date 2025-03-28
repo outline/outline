@@ -8,7 +8,7 @@ import {
   Event,
 } from "@server/types";
 import CollectionSubscriptionRemoveUserTask from "../tasks/CollectionSubscriptionRemoveUserTask";
-import DocumentSubscriptionTask from "../tasks/DocumentSubscriptionTask";
+import DocumentSubscriptionRemoveUserTask from "../tasks/DocumentSubscriptionRemoveUserTask";
 import BaseProcessor from "./BaseProcessor";
 
 type ReceivedEvent =
@@ -36,7 +36,7 @@ export default class DocumentSubscriptionProcessor extends BaseProcessor {
         return this.handleRemoveGroupFromCollection(event);
 
       case "documents.remove_user": {
-        await DocumentSubscriptionTask.schedule(event);
+        await DocumentSubscriptionRemoveUserTask.schedule(event);
         return;
       }
 
@@ -86,7 +86,7 @@ export default class DocumentSubscriptionProcessor extends BaseProcessor {
       async (groupUsers) => {
         await Promise.all(
           groupUsers.map((groupUser) =>
-            DocumentSubscriptionTask.schedule({
+            DocumentSubscriptionRemoveUserTask.schedule({
               ...event,
               name: "documents.remove_user",
               userId: groupUser.userId,
