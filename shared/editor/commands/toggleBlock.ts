@@ -122,3 +122,49 @@ export const split: Command = (state, dispatch) => {
   dispatch?.(tr);
   return true;
 };
+
+const maybeNextSibling = ($cursor: ResolvedPos | null) => {
+  if (!$cursor) {
+    return null;
+  }
+
+  const parentOfNearestAncestor = $cursor.node($cursor.depth - 1);
+  const indexOfNearestAncestor = $cursor.index($cursor.depth - 1);
+  const siblingOfNearestAncestor = parentOfNearestAncestor.maybeChild(
+    indexOfNearestAncestor + 1
+  );
+  return siblingOfNearestAncestor;
+};
+
+export const liftToggleBlockAfter: () => Command = () => (state, dispatch) => {
+  const { $cursor } = state.selection as TextSelection;
+  const nextSibling = maybeNextSibling($cursor);
+
+  if (!(nextSibling && nextSibling.type.name === "toggle_block")) {
+    return false;
+  }
+
+  const pos = $cursor!.posAtIndex($cursor!.index(0) + 1, 0);
+  const tr = state.tr;
+  const node = tr.doc.nodeAt(pos);
+  const start = pos + 1;
+  const end = start + node!.content.size;
+  const $start = tr.doc.resolve(start);
+  const $end = tr.doc.resolve(end);
+  const range = $start.blockRange($end);
+  if (isNull(range)) {
+    return false;
+  }
+  const target = liftTarget(range);
+  if (isNull(target)) {
+    return false;
+  }
+
+  tr.lift(range, target);
+
+  if (dispatch) {
+    dispatch(tr);
+  }
+
+  return true;
+};
