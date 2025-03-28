@@ -41,6 +41,7 @@ export default class CleanupOldImportsTask extends BaseTask<Props> {
           ],
           batchLimit: 50,
           totalLimit: maxImportsPerTask,
+          paranoid: false,
         },
         async (imports) => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
