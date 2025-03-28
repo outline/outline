@@ -1,6 +1,15 @@
 import * as React from "react";
 import useWindowSize from "./useWindowSize";
 
+/**
+ * Hook to calculate the maximum height for an element based on its position and viewport size.
+ *
+ * @param options Configuration options
+ * @param options.elementRef A ref pointing to the element to calculate max height for
+ * @param options.maxViewportPercentage The maximum height of the element as a percentage of the viewport
+ * @param options.margin The margin to apply to the positioning
+ * @returns Object containing the calculated maxHeight and a function to recalculate it
+ */
 const useMaxHeight = ({
   elementRef,
   maxViewportPercentage = 90,
