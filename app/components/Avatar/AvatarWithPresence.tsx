@@ -112,7 +112,7 @@ type AvatarWrapperProps = {
 /**
  * Styled component that wraps the Avatar and provides visual indicators
  * for the user's presence status.
- * 
+ *
  * - Adjusts opacity based on presence
  * - Adds colored borders for observing users
  * - Handles hover effects
