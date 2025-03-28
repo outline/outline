@@ -76,7 +76,6 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
       await NotificationHelper.getDocumentNotificationRecipients({
         document,
         notificationType: NotificationEventType.UpdateDocument,
-        onlySubscribers: true,
         actorId: document.lastModifiedById,
       })
     ).filter((recipient) => !userIdsMentioned.includes(recipient.id));
