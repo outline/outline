@@ -15,7 +15,7 @@ const defaultOptions = {
 
 /**
  * Hook to track the window's scroll position.
- * 
+ *
  * @param options Configuration options
  * @param options.throttle Time in milliseconds to throttle the scroll event
  * @returns Object containing the current scroll position (x, y coordinates)

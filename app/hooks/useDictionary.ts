@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 
 /**
  * Hook that provides a dictionary of translated UI strings.
- * 
+ *
  * @returns An object containing all translated UI strings used throughout the application
  */
 export default function useDictionary() {

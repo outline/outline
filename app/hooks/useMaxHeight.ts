@@ -3,7 +3,7 @@ import useWindowSize from "./useWindowSize";
 
 /**
  * Hook to calculate the maximum height for an element based on its position and viewport size.
- * 
+ *
  * @param options Configuration options
  * @param options.elementRef A ref pointing to the element to calculate max height for
  * @param options.maxViewportPercentage The maximum height of the element as a percentage of the viewport

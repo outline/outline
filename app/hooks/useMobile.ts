@@ -3,7 +3,7 @@ import useMediaQuery from "~/hooks/useMediaQuery";
 
 /**
  * Hook to detect if the current viewport is mobile-sized.
- * 
+ *
  * @returns boolean indicating whether the current viewport is mobile-sized
  */
 export default function useMobile(): boolean {
