@@ -6,7 +6,7 @@ on:
 
 jobs:
   run-linters:
-    if:  startsWith(github.head_ref, 'gen/')
+    if:  startsWith(github.head_ref, 'codegen-')
     name: Run linters
     runs-on: ubuntu-latest
 
