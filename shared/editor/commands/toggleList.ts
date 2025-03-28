@@ -1,5 +1,5 @@
 import { NodeType } from "prosemirror-model";
-import { wrapInList, liftListItem } from "prosemirror-schema-list";
+import { liftListItem, wrapInList } from "prosemirror-schema-list";
 import { Command } from "prosemirror-state";
 import { chainTransactions } from "../lib/chainTransactions";
 import { findParentNode } from "../queries/findParentNode";
@@ -27,6 +27,14 @@ export default function toggleList(
     if (range.depth >= 1 && parentList && range.depth - parentList.depth <= 1) {
       if (parentList.node.type === listType) {
         return liftListItem(itemType)(state, dispatch);
+      }
+
+      const currentItemType = parentList.node.content.firstChild?.type;
+      if (currentItemType && currentItemType !== itemType) {
+        return chainTransactions(clearNodes(), wrapInList(listType))(
+          state,
+          dispatch
+        );
       }
 
       if (
