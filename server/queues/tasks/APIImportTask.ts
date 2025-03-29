@@ -1,5 +1,6 @@
 import { JobOptions } from "bull";
 import chunk from "lodash/chunk";
+import truncate from "lodash/truncate";
 import uniqBy from "lodash/uniqBy";
 import { Fragment, Node } from "prosemirror-model";
 import { Transaction, WhereOptions } from "sequelize";
@@ -63,20 +64,29 @@ export default abstract class APIImportTask<
       return;
     }
 
-    switch (importTask.state) {
-      case ImportTaskState.Created: {
-        importTask.state = ImportTaskState.InProgress;
-        importTask = await importTask.save();
-        return await this.onProcess(importTask);
+    try {
+      switch (importTask.state) {
+        case ImportTaskState.Created: {
+          importTask.state = ImportTaskState.InProgress;
+          importTask = await importTask.save();
+          return await this.onProcess(importTask);
+        }
+
+        case ImportTaskState.InProgress:
+          return await this.onProcess(importTask);
+
+        case ImportTaskState.Completed:
+          return await this.onCompletion(importTask);
+
+        default:
+      }
+    } catch (err) {
+      if (err instanceof Error) {
+        importTask.error = truncate(err.message, { length: 255 });
+        await importTask.save();
       }
 
-      case ImportTaskState.InProgress:
-        return await this.onProcess(importTask);
-
-      case ImportTaskState.Completed:
-        return await this.onCompletion(importTask);
-
-      default:
+      throw err; // throw error for retry.
     }
   }
 
@@ -108,6 +118,7 @@ export default abstract class APIImportTask<
       await importTask.save({ transaction });
 
       const associatedImport = importTask.import;
+      associatedImport.error = importTask.error; // copy error from ImportTask that caused the failure.
       associatedImport.state = ImportState.Errored;
       await associatedImport.saveWithCtx(
         createContext({
@@ -155,6 +166,7 @@ export default abstract class APIImportTask<
 
       importTask.output = taskOutputWithReplacements;
       importTask.state = ImportTaskState.Completed;
+      importTask.error = null; // unset any error from previous attempts.
       await importTask.save({ transaction });
 
       const associatedImport = importTask.import;

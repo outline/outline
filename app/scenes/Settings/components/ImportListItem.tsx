@@ -15,6 +15,7 @@ import Time from "~/components/Time";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import { ImportMenu } from "~/menus/ImportMenu";
+import isCloudHosted from "~/utils/isCloudHosted";
 
 type Props = {
   /** Import that's displayed as list item. */
@@ -29,6 +30,10 @@ export const ImportListItem = observer(({ importModel }: Props) => {
   const showProgress =
     importModel.state !== ImportState.Canceled &&
     importModel.state !== ImportState.Errored;
+  const showErrorInfo =
+    !isCloudHosted &&
+    importModel.state === ImportState.Errored &&
+    !!importModel.error;
 
   const stateMap = React.useMemo(
     () => ({
@@ -114,6 +119,12 @@ export const ImportListItem = observer(({ importModel }: Props) => {
       subtitle={
         <>
           {stateMap[importModel.state]}&nbsp;•&nbsp;
+          {showErrorInfo && (
+            <>
+              {importModel.error}
+              {`. ${t("Check server logs for more details.")}`}&nbsp;•&nbsp;
+            </>
+          )}
           {t(`{{userName}} requested`, {
             userName:
               user.id === importModel.createdBy.id
