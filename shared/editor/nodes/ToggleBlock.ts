@@ -13,10 +13,10 @@ import {
 import { v4 } from "uuid";
 import Storage from "../../utils/Storage";
 import {
-  liftChildrenUp,
   createParagraphBefore,
   split,
-  liftToggleBlockAfter,
+  lift,
+  liftAfter,
 } from "../commands/toggleBlock";
 import { chainTransactions } from "../lib/chainTransactions";
 import { findBlockNodes } from "../queries/findChildren";
@@ -373,12 +373,12 @@ export default class ToggleBlock extends Node {
     return [foldPlugin];
   }
 
-  keys({ type }: { type: NodeType }): Record<string, Command> {
+  keys(): Record<string, Command> {
     return {
-      Backspace: liftChildrenUp(type),
+      Backspace: lift,
       Enter: chainCommands(createParagraphBefore, split),
       Delete: (state, dispatch) =>
-        chainTransactions(liftToggleBlockAfter(), joinForward)(state, dispatch),
+        chainTransactions(liftAfter, joinForward)(state, dispatch),
     };
   }
 
