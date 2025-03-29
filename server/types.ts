@@ -142,7 +142,6 @@ export type UserEvent = BaseEvent<User> &
   (
     | {
         name:
-          | "users.signin"
           | "users.signout"
           | "users.update"
           | "users.suspend"
@@ -163,6 +162,15 @@ export type UserEvent = BaseEvent<User> &
         data: {
           email: string;
           name: string;
+        };
+      }
+    | {
+        name: "users.signin";
+        userId: string;
+        data: {
+          inviteAccepted: boolean;
+          name: string;
+          service: string;
         };
       }
   );
