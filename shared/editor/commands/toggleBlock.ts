@@ -1,46 +1,30 @@
 import isNull from "lodash/isNull";
 import some from "lodash/some";
-import { Node, NodeType, ResolvedPos, Slice } from "prosemirror-model";
-import { Command, EditorState, TextSelection } from "prosemirror-state";
+import { Node, ResolvedPos, Slice } from "prosemirror-model";
+import {
+  Command,
+  EditorState,
+  TextSelection,
+  Transaction,
+} from "prosemirror-state";
 import { liftTarget } from "prosemirror-transform";
 import ToggleBlock from "../nodes/ToggleBlock";
 
-export function liftChildrenUp(type: NodeType): Command {
-  return (state, dispatch) => {
-    const { $cursor } = state.selection as TextSelection;
-    if (!$cursor) {
-      return false;
-    }
-    const parent = $cursor.node($cursor.depth - 1);
-    if (parent.type.name !== type.name) {
-      return false;
-    }
+export const lift: Command = (state, dispatch) => {
+  const { $cursor } = state.selection as TextSelection;
 
-    const start = $cursor.start($cursor.depth - 1);
-    if ($cursor.pos !== start + 1) {
-      return false;
-    }
-    const end = $cursor.end($cursor.depth - 1);
+  if (!atStartOfToggleBlockHead($cursor)) {
+    return false;
+  }
 
-    const $start = state.doc.resolve(start);
-    const $end = state.doc.resolve(end);
-    const range = $start.blockRange($end);
-    if (isNull(range)) {
-      return false;
-    }
-    const target = liftTarget(range);
-    if (isNull(target)) {
-      return false;
-    }
+  const pos = $cursor!.before($cursor!.depth - 1);
+  const tr = liftToggleBlockAt(pos, state.tr);
 
-    const tr = state.tr;
-    tr.lift(range, target);
-    if (dispatch) {
-      dispatch(tr);
-    }
-    return true;
-  };
-}
+  if (dispatch) {
+    dispatch(tr);
+  }
+  return true;
+};
 
 const withinToggleBlock = ($cursor: ResolvedPos | null) =>
   $cursor && $cursor.node($cursor.depth - 1).type.name === "toggle_block";
@@ -136,16 +120,7 @@ const maybeNextSibling = ($cursor: ResolvedPos | null) => {
   return siblingOfNearestAncestor;
 };
 
-export const liftToggleBlockAfter: () => Command = () => (state, dispatch) => {
-  const { $cursor } = state.selection as TextSelection;
-  const nextSibling = maybeNextSibling($cursor);
-
-  if (!(nextSibling && nextSibling.type.name === "toggle_block")) {
-    return false;
-  }
-
-  const pos = $cursor!.posAtIndex($cursor!.index(0) + 1, 0);
-  const tr = state.tr;
+const liftToggleBlockAt = (pos: number, tr: Transaction): Transaction => {
   const node = tr.doc.nodeAt(pos);
   const start = pos + 1;
   const end = start + node!.content.size;
@@ -153,14 +128,25 @@ export const liftToggleBlockAfter: () => Command = () => (state, dispatch) => {
   const $end = tr.doc.resolve(end);
   const range = $start.blockRange($end);
   if (isNull(range)) {
-    return false;
+    return tr;
   }
   const target = liftTarget(range);
   if (isNull(target)) {
+    return tr;
+  }
+
+  return tr.lift(range, target);
+};
+
+export const liftAfter: Command = (state, dispatch) => {
+  const { $cursor } = state.selection as TextSelection;
+  const nextSibling = maybeNextSibling($cursor);
+
+  if (!(nextSibling && nextSibling.type.name === "toggle_block")) {
     return false;
   }
 
-  tr.lift(range, target);
+  const tr = liftToggleBlockAt($cursor!.after(), state.tr);
 
   if (dispatch) {
     dispatch(tr);
