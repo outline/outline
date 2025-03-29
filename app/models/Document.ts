@@ -105,8 +105,6 @@ export default class Document extends ArchivableModel implements Searchable {
         return "Markdown";
       case FileOperationFormat.JSON:
         return "JSON";
-      case FileOperationFormat.Notion:
-        return "Notion";
       default:
         return capitalize(this.sourceMetadata.importType);
     }
