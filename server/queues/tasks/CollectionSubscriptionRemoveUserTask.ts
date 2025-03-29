@@ -2,28 +2,28 @@ import { Transaction } from "sequelize";
 import { SubscriptionType } from "@shared/types";
 import { createContext } from "@server/context";
 import Logger from "@server/logging/Logger";
-import { Document, Subscription, User } from "@server/models";
+import { Collection, Subscription, User } from "@server/models";
 import { can } from "@server/policies";
 import { sequelize } from "@server/storage/database";
-import { DocumentUserEvent } from "@server/types";
+import { CollectionUserEvent } from "@server/types";
 import BaseTask from "./BaseTask";
 
-export default class DocumentSubscriptionTask extends BaseTask<DocumentUserEvent> {
-  public async perform(event: DocumentUserEvent) {
+export default class CollectionSubscriptionRemoveUserTask extends BaseTask<CollectionUserEvent> {
+  public async perform(event: CollectionUserEvent) {
     const user = await User.findByPk(event.userId);
 
-    if (!user || event.name !== "documents.remove_user") {
+    if (!user) {
       return;
     }
 
-    const document = await Document.findByPk(event.documentId, {
-      userId: user.id,
-    });
+    const collection = await Collection.scope({
+      method: ["withMembership", user.id],
+    }).findByPk(event.collectionId);
 
-    if (can(user, "read", document)) {
+    if (can(user, "read", collection)) {
       Logger.debug(
         "task",
-        `Skip unsubscribing user ${user.id} as they have permission to the document ${event.documentId} through other means`
+        `Skip unsubscribing user ${user.id} as they have permission to the collection ${event.collectionId} through other means`
       );
       return;
     }
@@ -32,7 +32,7 @@ export default class DocumentSubscriptionTask extends BaseTask<DocumentUserEvent
       const subscription = await Subscription.findOne({
         where: {
           userId: user.id,
-          documentId: event.documentId,
+          collectionId: event.collectionId,
           event: SubscriptionType.Document,
         },
         transaction,
