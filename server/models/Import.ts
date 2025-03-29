@@ -60,6 +60,9 @@ class Import<T extends ImportableIntegrationService> extends ParanoidModel<
   @Column(DataType.INTEGER)
   documentCount: number;
 
+  @Column
+  error: string | null;
+
   // associations
 
   @BelongsTo(() => Integration, "integrationId")

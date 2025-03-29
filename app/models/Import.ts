@@ -15,6 +15,9 @@ class Import extends Model {
   /** The name of the import. */
   name: string;
 
+  /** Descriptive error message when the import errors out. */
+  error: string | null;
+
   /** The current state of the import. */
   @Field
   @observable

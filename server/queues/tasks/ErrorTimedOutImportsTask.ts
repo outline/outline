@@ -56,11 +56,13 @@ export default class ErrorTimedOutImportsTask extends BaseTask<Props> {
 
             await sequelize.transaction(async (transaction) => {
               importTask.state = ImportTaskState.Errored;
+              importTask.error = "Timed out";
               await importTask.save({ transaction });
 
               // this import could have been seen before in another import_task.
               if (!importsErrored[associatedImport.id]) {
                 associatedImport.state = ImportState.Errored;
+                associatedImport.error = "Timed out";
                 await associatedImport.save({ transaction });
                 importsErrored[associatedImport.id] = true;
               }
