@@ -1,4 +1,3 @@
-import { Op } from "sequelize";
 import { GroupUser } from "@server/models";
 import {
   CollectionGroupEvent,
@@ -52,9 +51,6 @@ export default class DocumentSubscriptionProcessor extends BaseProcessor {
       {
         where: {
           groupId: event.modelId,
-          userId: {
-            [Op.ne]: event.actorId,
-          },
         },
         batchLimit: 10,
       },
@@ -77,9 +73,6 @@ export default class DocumentSubscriptionProcessor extends BaseProcessor {
       {
         where: {
           groupId: event.modelId,
-          userId: {
-            [Op.ne]: event.actorId,
-          },
         },
         batchLimit: 10,
       },
