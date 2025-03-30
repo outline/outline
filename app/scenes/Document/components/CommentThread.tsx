@@ -16,6 +16,7 @@ import { useDocumentContext } from "~/components/DocumentContext";
 import Facepile from "~/components/Facepile";
 import Fade from "~/components/Fade";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
+import useBoolean from "~/hooks/useBoolean";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 import usePersistedState from "~/hooks/usePersistedState";
@@ -63,7 +64,7 @@ function CommentThread({
   const history = useHistory();
   const location = useLocation();
   const sidebarContext = useLocationSidebarContext();
-  const [autoFocus, setAutoFocus] = React.useState(thread.isNew);
+  const [autoFocus, setAutoFocusOn, setAutoFocusOff] = useBoolean(thread.isNew);
 
   const can = usePolicy(document);
 
@@ -156,9 +157,9 @@ function CommentThread({
 
   React.useEffect(() => {
     if (!focused && autoFocus) {
-      setAutoFocus(false);
+      setAutoFocusOff();
     }
-  }, [focused, autoFocus]);
+  }, [focused, autoFocus, setAutoFocusOff]);
 
   React.useEffect(() => {
     if (focused) {
@@ -273,7 +274,7 @@ function CommentThread({
         )}
       </ResizingHeightContainer>
       {!focused && !recessed && !draft && canReply && (
-        <Reply onClick={() => setAutoFocus(true)}>{t("Reply")}…</Reply>
+        <Reply onClick={setAutoFocusOn}>{t("Reply")}…</Reply>
       )}
     </Thread>
   );

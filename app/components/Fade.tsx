@@ -2,6 +2,11 @@ import React from "react";
 import styled from "styled-components";
 import { fadeIn } from "~/styles/animations";
 
+/**
+ * Fade in animation for a component.
+ *
+ * @param timing - The duration of the fade in animation, default is 250ms.
+ */
 const Fade = styled.span<{ timing?: number | string }>`
   animation: ${fadeIn} ${(props) => props.timing || "250ms"} ease-in-out;
 `;
@@ -17,7 +22,6 @@ type Props = {
  */
 export const ConditionalFade = ({ animate, children }: Props) => {
   const [isAnimated] = React.useState(animate);
-
   return isAnimated ? <Fade>{children}</Fade> : <>{children}</>;
 };
 
