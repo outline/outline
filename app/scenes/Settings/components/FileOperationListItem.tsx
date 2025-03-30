@@ -48,6 +48,7 @@ const FileOperationListItem = ({ fileOperation }: Props) => {
 
   const formatMapping: Record<FileOperationFormat, string> = {
     [FileOperationFormat.JSON]: "JSON",
+    [FileOperationFormat.Notion]: "Notion",
     [FileOperationFormat.MarkdownZip]: "Markdown",
     [FileOperationFormat.HTMLZip]: "HTML",
     [FileOperationFormat.PDF]: "PDF",
