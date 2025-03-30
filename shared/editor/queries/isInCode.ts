@@ -7,6 +7,8 @@ type Options = {
   onlyBlock?: boolean;
   /** Only check if the selection is inside a code mark. */
   onlyMark?: boolean;
+  /** If true then code must contain entire selection */
+  inclusive?: boolean;
 };
 
 /**
@@ -30,7 +32,9 @@ export function isInCode(state: EditorState, options?: Options): boolean {
 
   if (!options?.onlyBlock) {
     if (marks.code_inline) {
-      return isMarkActive(marks.code_inline)(state);
+      return isMarkActive(marks.code_inline, undefined, {
+        inclusive: options?.inclusive,
+      })(state);
     }
   }
 

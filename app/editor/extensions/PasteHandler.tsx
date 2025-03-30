@@ -88,7 +88,7 @@ export default class PasteHandler extends Extension {
 
             // If the users selection is currently in a code block then paste
             // as plain text, ignore all formatting and HTML content.
-            if (isInCode(state)) {
+            if (isInCode(state, { inclusive: true })) {
               event.preventDefault();
               view.dispatch(state.tr.insertText(text));
               return true;
