@@ -22,10 +22,20 @@ export function isInCode(state: EditorState, options?: Options): boolean {
   const { nodes, marks } = state.schema;
 
   if (!options?.onlyMark) {
-    if (nodes.code_block && isNodeActive(nodes.code_block)(state)) {
+    if (
+      nodes.code_block &&
+      isNodeActive(nodes.code_block, undefined, {
+        inclusive: options?.inclusive,
+      })(state)
+    ) {
       return true;
     }
-    if (nodes.code_fence && isNodeActive(nodes.code_fence)(state)) {
+    if (
+      nodes.code_fence &&
+      isNodeActive(nodes.code_fence, undefined, {
+        inclusive: options?.inclusive,
+      })(state)
+    ) {
       return true;
     }
   }
