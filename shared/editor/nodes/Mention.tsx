@@ -32,6 +32,11 @@ export default class Mention extends Node {
   }
 
   get schema(): NodeSpec {
+    const toPlainText = (node: ProsemirrorNode) =>
+      node.attrs.type === MentionType.User
+        ? `@${node.attrs.label}`
+        : node.attrs.label;
+
     return {
       attrs: {
         type: {
@@ -88,12 +93,9 @@ export default class Mention extends Node {
           "data-actorid": node.attrs.actorId,
           "data-url": `mention://${node.attrs.id}/${node.attrs.type}/${node.attrs.modelId}`,
         },
-        String(node.attrs.label),
+        toPlainText(node),
       ],
-      toPlainText: (node) =>
-        node.attrs.type === MentionType.User
-          ? `@${node.attrs.label}`
-          : node.attrs.label,
+      toPlainText,
     };
   }
 
