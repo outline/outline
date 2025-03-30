@@ -21,23 +21,14 @@ export function useComponentSize(
   input: HTMLElement | null | React.RefObject<HTMLElement | null>
 ): DOMRect | typeof defaultRect {
   const element = input instanceof HTMLElement ? input : input?.current;
-  const [size, setSize] = useState(() => element?.getBoundingClientRect());
-
-  useLayoutEffect(() => {
-    const sizeObserver = new ResizeObserver(() => {
-      element?.dispatchEvent(new CustomEvent("resize"));
-    });
-    if (element) {
-      sizeObserver.observe(element);
-    }
-    return () => sizeObserver.disconnect();
-  }, [element]);
+  const [size, setSize] = useState<DOMRect | undefined>(
+    () => element?.getBoundingClientRect() || new DOMRect()
+  );
 
   useLayoutEffect(() => {
     const handleResize = () => {
       setSize((state) => {
         const rect = element?.getBoundingClientRect();
-
         if (
           rect &&
           state &&
@@ -55,6 +46,7 @@ export function useComponentSize(
     window.addEventListener("click", handleResize);
     window.addEventListener("resize", handleResize);
     element?.addEventListener("resize", handleResize);
+    handleResize();
 
     return () => {
       window.removeEventListener("click", handleResize);
@@ -62,6 +54,16 @@ export function useComponentSize(
       element?.removeEventListener("resize", handleResize);
     };
   });
+
+  useLayoutEffect(() => {
+    const sizeObserver = new ResizeObserver(() => {
+      element?.dispatchEvent(new CustomEvent("resize"));
+    });
+    if (element) {
+      sizeObserver.observe(element);
+    }
+    return () => sizeObserver.disconnect();
+  }, [element]);
 
   return size ?? defaultRect;
 }
