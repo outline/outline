@@ -6,6 +6,8 @@ import { getMarksBetween } from "./getMarksBetween";
 type Options = {
   /** Only return match if the range and attrs is exact */
   exact?: boolean;
+  /** If true then mark must contain entire selection */
+  inclusive?: boolean;
 };
 
 /**
@@ -40,7 +42,8 @@ export const isMarkActive =
             Object.keys(attrs).every(
               (key) => mark.attrs[key] === attrs[key]
             )) &&
-          (!options?.exact || (start === from && end === to))
+          (!options?.exact || (start === from && end === to)) &&
+          (!options?.inclusive || (start <= from && end >= to))
       );
     }
 

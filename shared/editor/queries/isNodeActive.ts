@@ -3,31 +3,55 @@ import { EditorState } from "prosemirror-state";
 import { Primitive } from "utility-types";
 import { findParentNode } from "./findParentNode";
 
+type Options = {
+  /** Only return match if the range and attrs is exact */
+  exact?: boolean;
+  /** If true then node must contain entire selection */
+  inclusive?: boolean;
+};
+
 /**
  * Checks if a node is active in the current selection or not.
  *
  * @param type The node type to check.
  * @param attrs The attributes to check.
+ * @param options The options to use.
  * @returns A function that checks if a node is active in the current selection or not.
  */
 export const isNodeActive =
-  (type: NodeType, attrs: Record<string, Primitive> = {}) =>
-  (state: EditorState) => {
+  (type: NodeType, attrs?: Record<string, Primitive>, options?: Options) =>
+  (state: EditorState): boolean => {
     if (!type) {
       return false;
     }
 
-    const nodeAfter = state.selection.$from.nodeAfter;
-    let node = nodeAfter?.type === type ? nodeAfter : undefined;
+    const { from, to } = state.selection;
+    const nodeWithPos = findParentNode(
+      (node) =>
+        node.type === type &&
+        (!attrs ||
+          Object.keys(attrs).every((key) => node.attrs[key] === attrs[key]))
+    )(state.selection);
 
-    if (!node) {
-      const parent = findParentNode((n) => n.type === type)(state.selection);
-      node = parent?.node;
+    if (!nodeWithPos) {
+      return false;
     }
 
-    if (!Object.keys(attrs).length || !node) {
-      return !!node;
+    if (options?.inclusive) {
+      // Check if the node's position contains the entire selection
+      return (
+        nodeWithPos.pos <= from &&
+        nodeWithPos.pos + nodeWithPos.node.nodeSize >= to
+      );
     }
 
-    return node.hasMarkup(type, { ...node.attrs, ...attrs });
+    if (options?.exact) {
+      // Check if node's range exactly matches selection
+      return (
+        nodeWithPos.pos === from &&
+        nodeWithPos.pos + nodeWithPos.node.nodeSize === to
+      );
+    }
+
+    return true;
   };
