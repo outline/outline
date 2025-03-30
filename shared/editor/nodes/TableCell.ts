@@ -98,6 +98,8 @@ export default class TableCell extends Node {
               }
             }
 
+            // For all other cases, preserve the slice as is to maintain table structure
+            // including column widths and other attributes
             return slice;
           },
           handleDOMEvents: {
