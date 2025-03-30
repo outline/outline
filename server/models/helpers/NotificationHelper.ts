@@ -201,6 +201,7 @@ export default class NotificationHelper {
         include: [
           {
             association: "user",
+            required: true,
           },
         ],
       });

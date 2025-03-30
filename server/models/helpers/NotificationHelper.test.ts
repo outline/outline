@@ -222,6 +222,13 @@ describe("NotificationHelper", () => {
         documentId: document.id,
       });
 
+      const deletedUser = await buildUser({ teamId: document.teamId });
+      await buildSubscription({
+        userId: deletedUser.id,
+        documentId: document.id,
+      });
+      await deletedUser.destroy();
+
       const recipients =
         await NotificationHelper.getDocumentNotificationRecipients({
           document,
