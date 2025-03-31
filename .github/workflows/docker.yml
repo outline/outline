@@ -3,7 +3,7 @@ name: Docker
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 env:
   IMAGE_NAME: outlinewiki/outline
@@ -37,8 +37,8 @@ jobs:
           tags: ${{ env.BASE_IMAGE_NAME }}:latest
           platforms: linux/amd64,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x
 
-      - name: Extract version
-        id: version
+      - name: Extract tag version
+        id: get_version
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
       - name: Build and push main image
@@ -48,5 +48,4 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x
           tags: |
-            ${{ env.IMAGE_NAME }}:latest
-            ${{ env.IMAGE_NAME }}:${{ steps.version.outputs.VERSION }}
+            ${{ contains(steps.get_version.outputs.VERSION, '-') && format('{0}:{1}', env.IMAGE_NAME, steps.get_version.outputs.VERSION) || format('{0}:{1},{0}:latest', env.IMAGE_NAME, steps.get_version.outputs.VERSION) }}
