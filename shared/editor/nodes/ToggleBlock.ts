@@ -39,7 +39,7 @@ export default class ToggleBlock extends Node {
 
   get schema(): NodeSpec {
     return {
-      content: "block+",
+      content: "(paragraph | heading) block*",
       group: "block",
       attrs: {
         id: { default: undefined },
