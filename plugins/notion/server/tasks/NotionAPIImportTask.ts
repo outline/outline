@@ -6,6 +6,7 @@ import ImportTask from "@server/models/ImportTask";
 import APIImportTask, {
   ProcessOutput,
 } from "@server/queues/tasks/APIImportTask";
+import { APIResponseError, APIErrorCode } from "@notionhq/client";
 import { Block, PageType } from "../../shared/types";
 import { NotionClient } from "../notion";
 import { NotionConverter, NotionPage } from "../utils/NotionConverter";
@@ -39,7 +40,10 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
       importTask.input.map(async (item) => this.processPage({ item, client }))
     );
 
-    const taskOutput: ImportTaskOutput = parsedPages.map((parsedPage) => ({
+    // Filter out any null results (from pages/databases that couldn't be accessed)
+    const validParsedPages = parsedPages.filter(Boolean);
+
+    const taskOutput: ImportTaskOutput = validParsedPages.map((parsedPage) => ({
       externalId: parsedPage.externalId,
       title: parsedPage.title,
       emoji: parsedPage.emoji,
@@ -50,7 +54,7 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
     }));
 
     const childTasksInput: ImportTaskInput<IntegrationService.Notion> =
-      parsedPages.flatMap((parsedPage) =>
+      validParsedPages.flatMap((parsedPage) =>
         parsedPage.children.map((childPage) => ({
           type: childPage.type,
           externalId: childPage.externalId,
@@ -88,36 +92,54 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
   }: {
     item: ImportTaskInput<IntegrationService.Notion>[number];
     client: NotionClient;
-  }): Promise<ParsePageOutput> {
+  }): Promise<ParsePageOutput | null> {
     const collectionExternalId = item.collectionExternalId ?? item.externalId;
 
-    // Convert Notion database to an empty page with "pages in database" as its children.
-    if (item.type === PageType.Database) {
-      const { pages, ...databaseInfo } = await client.fetchDatabase(
-        item.externalId
-      );
+    try {
+      // Convert Notion database to an empty page with "pages in database" as its children.
+      if (item.type === PageType.Database) {
+        const { pages, ...databaseInfo } = await client.fetchDatabase(
+          item.externalId
+        );
+
+        return {
+          ...databaseInfo,
+          externalId: item.externalId,
+          content: ProsemirrorHelper.getEmptyDocument() as ProsemirrorDoc,
+          collectionExternalId,
+          children: pages.map((page) => ({
+            type: page.type,
+            externalId: page.id,
+          })),
+        };
+      }
+
+      const { blocks, ...pageInfo } = await client.fetchPage(item.externalId);
 
       return {
-        ...databaseInfo,
+        ...pageInfo,
         externalId: item.externalId,
-        content: ProsemirrorHelper.getEmptyDocument() as ProsemirrorDoc,
+        content: NotionConverter.page({ children: blocks } as NotionPage),
         collectionExternalId,
-        children: pages.map((page) => ({
-          type: page.type,
-          externalId: page.id,
-        })),
+        children: this.parseChildPages(blocks),
       };
+    } catch (error) {
+      // Handle Notion API errors gracefully
+      if (error instanceof APIResponseError) {
+        // Skip this page/database if it's not found or not accessible
+        if (error.code === APIErrorCode.ObjectNotFound || 
+            error.code === APIErrorCode.Unauthorized) {
+          console.warn(
+            `Skipping Notion ${item.type === PageType.Database ? 'database' : 'page'} ${
+              item.externalId
+            } - ${error.message}`
+          );
+          return null;
+        }
+      }
+      // Re-throw other errors to be handled by the parent try/catch
+      throw error;
     }
-
-    const { blocks, ...pageInfo } = await client.fetchPage(item.externalId);
-
-    return {
-      ...pageInfo,
-      externalId: item.externalId,
-      content: NotionConverter.page({ children: blocks } as NotionPage),
-      collectionExternalId,
-      children: this.parseChildPages(blocks),
-    };
   }
 
   /**
