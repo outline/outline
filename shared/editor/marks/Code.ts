@@ -24,6 +24,7 @@ export default class Code extends Mark {
       excludes: "mention placeholder highlight",
       parseDOM: [{ tag: "code", preserveWhitespace: true }],
       toDOM: () => ["code", { class: "inline", spellCheck: "false" }],
+      code: true,
     };
   }
 
