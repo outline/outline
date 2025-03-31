@@ -15610,10 +15610,10 @@ vite-plugin-static-copy@^0.17.0:
     fs-extra "^11.1.0"
     picocolors "^1.0.0"
 
-vite@^5.4.15:
-  version "5.4.15"
-  resolved "https://registry.yarnpkg.com/vite/-/vite-5.4.15.tgz#2941547f10ebb4bf9b0fa0da863c06711eb7e5e5"
-  integrity sha512-6ANcZRivqL/4WtwPGTKNaosuNJr5tWiftOC7liM7G9+rMb8+oeJeyzymDu4rTN93seySBmbjSfsS3Vzr19KNtA==
+vite@^5.4.16:
+  version "5.4.16"
+  resolved "https://registry.yarnpkg.com/vite/-/vite-5.4.16.tgz#471983257a890ef33f2700cbbbc2134f2d08abf1"
+  integrity sha512-Y5gnfp4NemVfgOTDQAunSD4346fal44L9mszGGY/e+qxsRT5y1sMlS/8tiQ8AFAp+MFgYNSINdfEchJiPm41vQ==
   dependencies:
     esbuild "^0.21.3"
     postcss "^8.4.43"
