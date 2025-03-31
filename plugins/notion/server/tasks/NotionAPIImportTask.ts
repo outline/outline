@@ -7,6 +7,7 @@ import APIImportTask, {
   ProcessOutput,
 } from "@server/queues/tasks/APIImportTask";
 import { APIResponseError, APIErrorCode } from "@notionhq/client";
+import Logger from "@server/logging/Logger";
 import { Block, PageType } from "../../shared/types";
 import { NotionClient } from "../notion";
 import { NotionConverter, NotionPage } from "../utils/NotionConverter";
@@ -129,7 +130,7 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
         // Skip this page/database if it's not found or not accessible
         if (error.code === APIErrorCode.ObjectNotFound || 
             error.code === APIErrorCode.Unauthorized) {
-          console.warn(
+          Logger.warn(
             `Skipping Notion ${item.type === PageType.Database ? 'database' : 'page'} ${
               item.externalId
             } - ${error.message}`
