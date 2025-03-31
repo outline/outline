@@ -1,13 +1,13 @@
+import { APIResponseError, APIErrorCode } from "@notionhq/client";
 import { ImportTaskInput, ImportTaskOutput } from "@shared/schema";
 import { IntegrationService, ProsemirrorDoc } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import Logger from "@server/logging/Logger";
 import { Integration } from "@server/models";
 import ImportTask from "@server/models/ImportTask";
 import APIImportTask, {
   ProcessOutput,
 } from "@server/queues/tasks/APIImportTask";
-import { APIResponseError, APIErrorCode } from "@notionhq/client";
-import Logger from "@server/logging/Logger";
 import { Block, PageType } from "../../shared/types";
 import { NotionClient } from "../notion";
 import { NotionConverter, NotionPage } from "../utils/NotionConverter";
@@ -128,12 +128,14 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
       // Handle Notion API errors gracefully
       if (error instanceof APIResponseError) {
         // Skip this page/database if it's not found or not accessible
-        if (error.code === APIErrorCode.ObjectNotFound || 
-            error.code === APIErrorCode.Unauthorized) {
+        if (
+          error.code === APIErrorCode.ObjectNotFound ||
+          error.code === APIErrorCode.Unauthorized
+        ) {
           Logger.warn(
-            `Skipping Notion ${item.type === PageType.Database ? 'database' : 'page'} ${
-              item.externalId
-            } - ${error.message}`
+            `Skipping Notion ${
+              item.type === PageType.Database ? "database" : "page"
+            } ${item.externalId} - ${error.message}`
           );
           return null;
         }
