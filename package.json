@@ -89,7 +89,7 @@
     "@sentry/node": "^7.120.3",
     "@sentry/react": "^7.120.3",
     "@tanstack/react-table": "^8.20.6",
-    "@tanstack/react-virtual": "^3.11.3",
+    "@tanstack/react-virtual": "^3.13.6",
     "@tippyjs/react": "^4.2.6",
     "@types/form-data": "^2.5.2",
     "@types/mailparser": "^3.4.5",
