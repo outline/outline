@@ -11,7 +11,7 @@ env:
 
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest
+    runs-on: ubicloud-standard-16
     steps:
       - name: Checkout
         uses: actions/checkout@v4
