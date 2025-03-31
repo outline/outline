@@ -79,6 +79,7 @@
     "@hocuspocus/server": "1.1.2",
     "@joplin/turndown-plugin-gfm": "^1.0.49",
     "@juggle/resize-observer": "^3.4.0",
+    "@node-oauth/oauth2-server": "^5.2.0",
     "@notionhq/client": "^2.2.16",
     "@octokit/auth-app": "^6.1.3",
     "@outlinewiki/koa-passport": "^4.2.1",
