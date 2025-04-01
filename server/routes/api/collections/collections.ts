@@ -597,6 +597,7 @@ router.post(
           createdById: user.id,
         },
         transaction,
+        hooks: false,
       });
     }
 
