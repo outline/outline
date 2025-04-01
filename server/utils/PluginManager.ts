@@ -6,6 +6,7 @@ import sortBy from "lodash/sortBy";
 import type BaseEmail from "@server/emails/templates/BaseEmail";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
+import Model from "@server/models/base/Model";
 import type BaseProcessor from "@server/queues/processors/BaseProcessor";
 import type BaseTask from "@server/queues/tasks/BaseTask";
 import { UnfurlSignature, UninstallSignature } from "@server/types";
@@ -25,6 +26,7 @@ export enum Hook {
   API = "api",
   AuthProvider = "authProvider",
   EmailTemplate = "emailTemplate",
+  Model = "model",
   Processor = "processor",
   Task = "task",
   UnfurlProvider = "unfurl",
@@ -43,6 +45,7 @@ type PluginValueMap = {
   [Hook.Task]: typeof BaseTask<any>;
   [Hook.Uninstall]: UninstallSignature;
   [Hook.UnfurlProvider]: { unfurl: UnfurlSignature; cacheExpiry: number };
+  [Hook.Model]: typeof Model;
 };
 
 export type Plugin<T extends Hook> = {

@@ -4,8 +4,9 @@ import { Sequelize } from "sequelize-typescript";
 import { Umzug, SequelizeStorage, MigrationError } from "umzug";
 import env from "@server/env";
 import Model from "@server/models/base/Model";
+import { Hook, PluginManager } from "@server/utils/PluginManager";
 import Logger from "../logging/Logger";
-import * as models from "../models";
+import * as baseModels from "../models";
 
 const isSSLDisabled = env.PGSSLMODE === "disable";
 const poolMax = env.DATABASE_CONNECTION_POOL_MAX ?? 5;
@@ -22,7 +23,14 @@ export function createDatabaseInstance(
     >;
   }
 ): Sequelize {
+  const models = Object.values(input);
+
   try {
+    // Collect any additional models from plugins
+    PluginManager.getHooks(Hook.Model).forEach((plugin) => {
+      models.push(plugin.value);
+    });
+
     return new Sequelize(databaseUrl, {
       logging: (msg) =>
         process.env.DEBUG?.includes("database") &&
@@ -38,7 +46,7 @@ export function createDatabaseInstance(
               }
             : false,
       },
-      models: Object.values(input),
+      models,
       pool: {
         max: poolMax,
         min: poolMin,
@@ -48,6 +56,10 @@ export function createDatabaseInstance(
       schema,
     });
   } catch (error) {
+    if (env.isDevelopment) {
+      throw error;
+    }
+
     Logger.fatal(
       "Could not connect to database",
       databaseUrl
@@ -128,7 +140,7 @@ export function createMigrationRunner(
   });
 }
 
-export const sequelize = createDatabaseInstance(url, models);
+export const sequelize = createDatabaseInstance(url, baseModels);
 
 export const migrations = createMigrationRunner(sequelize, [
   "migrations/*.js",

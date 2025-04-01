@@ -13,11 +13,11 @@ import {
   IsDate,
   Unique,
 } from "sequelize-typescript";
+import User from "@server/models/User";
+import ParanoidModel from "@server/models/base/ParanoidModel";
+import { SkipChangeset } from "@server/models/decorators/Changeset";
+import Fix from "@server/models/decorators/Fix";
 import OAuthClient from "./OAuthClient";
-import User from "./User";
-import ParanoidModel from "./base/ParanoidModel";
-import { SkipChangeset } from "./decorators/Changeset";
-import Fix from "./decorators/Fix";
 
 @Table({
   tableName: "oauth_authentications",

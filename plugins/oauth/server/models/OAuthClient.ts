@@ -12,13 +12,13 @@ import {
   AllowNull,
 } from "sequelize-typescript";
 import { OAuthClientValidation } from "@shared/validations";
-import Team from "./Team";
-import User from "./User";
-import ParanoidModel from "./base/ParanoidModel";
-import Encrypted from "./decorators/Encrypted";
-import Fix from "./decorators/Fix";
-import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
-import NotContainsUrl from "./validators/NotContainsUrl";
+import Team from "@server/models/Team";
+import User from "@server/models/User";
+import ParanoidModel from "@server/models/base/ParanoidModel";
+import Encrypted from "@server/models/decorators/Encrypted";
+import Fix from "@server/models/decorators/Fix";
+import IsUrlOrRelativePath from "@server/models/validators/IsUrlOrRelativePath";
+import NotContainsUrl from "@server/models/validators/NotContainsUrl";
 
 @Table({
   tableName: "oauth_clients",
@@ -70,7 +70,6 @@ class OAuthClient extends ParanoidModel<
   @Column
   published: boolean;
 
-  @Column(DataType.ARRAY(DataType.STRING))
   @ArrayNotEmpty()
   @ArrayUnique()
   @Length({ max: OAuthClientValidation.maxRedirectUriLength })
@@ -83,6 +82,7 @@ class OAuthClient extends ParanoidModel<
       each: true,
     }
   )
+  @Column(DataType.ARRAY(DataType.STRING))
   redirectUris: string[];
 
   // associations

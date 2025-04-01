@@ -9,16 +9,16 @@ import {
   Length,
 } from "sequelize-typescript";
 import { OAuthClientValidation } from "@shared/validations";
+import User from "@server/models/User";
+import IdModel from "@server/models/base/IdModel";
+import { SkipChangeset } from "@server/models/decorators/Changeset";
+import Fix from "@server/models/decorators/Fix";
 import OAuthClient from "./OAuthClient";
-import User from "./User";
-import IdModel from "./base/IdModel";
-import { SkipChangeset } from "./decorators/Changeset";
-import Fix from "./decorators/Fix";
 
 @Table({
   tableName: "oauth_authorization_codes",
   modelName: "oauth_authorization_code",
-  timestamps: false,
+  updatedAt: false,
 })
 @Fix
 class OAuthAuthorizationCode extends IdModel<
@@ -42,9 +42,6 @@ class OAuthAuthorizationCode extends IdModel<
 
   @Column(DataType.DATE)
   expiresAt: Date;
-
-  @Column(DataType.DATE)
-  createdAt: Date;
 
   // associations
 
