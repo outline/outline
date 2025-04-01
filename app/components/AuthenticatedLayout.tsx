@@ -1,7 +1,13 @@
 import { AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { Switch, Route, useLocation, matchPath, Redirect } from "react-router-dom";
+import {
+  Switch,
+  Route,
+  useLocation,
+  matchPath,
+  Redirect,
+} from "react-router-dom";
 import { TeamPreference } from "@shared/types";
 import ErrorSuspended from "~/scenes/Errors/ErrorSuspended";
 import Layout from "~/components/Layout";

@@ -24,9 +24,7 @@ import TeamLogo from "~/components/TeamLogo";
 import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import {
-  useLastVisitedPath,
-} from "~/hooks/useLastVisitedPath";
+import { useLastVisitedPath } from "~/hooks/useLastVisitedPath";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { draggableOnDesktop } from "~/styles";
