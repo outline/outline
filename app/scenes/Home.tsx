@@ -69,7 +69,7 @@ function Home() {
             <PaginatedDocumentList
               documents={documents.recentlyUpdated}
               fetch={documents.fetchRecentlyUpdated}
-              empty={<Empty>{t("Weird, this shouldn't ever be empty")}</Empty>}
+              empty={<Empty>{t("Weird, this shouldn’t ever be empty")}</Empty>}
               showCollection
             />
           </Route>
@@ -82,7 +82,7 @@ function Home() {
                 userId,
               }}
               empty={
-                <Empty>{t("You haven't created any documents yet")}</Empty>
+                <Empty>{t("You haven’t created any documents yet")}</Empty>
               }
               showCollection
             />
@@ -95,7 +95,7 @@ function Home() {
               empty={
                 <Empty>
                   {t(
-                    "Documents you've recently viewed will be here for easy access"
+                    "Documents you’ve recently viewed will be here for easy access"
                   )}
                 </Empty>
               }
