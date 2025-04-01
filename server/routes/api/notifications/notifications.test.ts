@@ -2,6 +2,7 @@ import queryString from "query-string";
 import { v4 as uuidv4 } from "uuid";
 import { randomElement } from "@shared/random";
 import { NotificationEventType } from "@shared/types";
+import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import {
   buildCollection,
   buildDocument,
@@ -695,5 +696,42 @@ describe("#notifications.update_all", () => {
     expect(res.status).toBe(200);
     expect(body.success).toBe(true);
     expect(body.data.total).toBe(2);
+  });
+});
+
+describe("#notifications.unsubscribe", () => {
+  it("should allow unsubscribe with valid token", async () => {
+    const user = await buildUser();
+    const token = NotificationSettingsHelper.unsubscribeToken(
+      user.id,
+      NotificationEventType.UpdateDocument
+    );
+
+    const res = await server.get(
+      `/api/notifications.unsubscribe?userId=${user.id}&token=${token}&eventType=documents.update&follow=true`,
+      {
+        redirect: "manual",
+      }
+    );
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toContain(
+      "/settings/notifications?success"
+    );
+
+    const events = (await user.reload()).notificationSettings;
+    expect(events).not.toContain("documents.update");
+  });
+
+  it("should not allow unsubscribe with invalid token", async () => {
+    const user = await buildUser();
+
+    const res = await server.get(
+      `/api/notifications.unsubscribe?userId=${user.id}&token=invalid-token&eventType=documents.update&follow=true`,
+      {
+        redirect: "manual",
+      }
+    );
+    expect(res.status).toBe(302);
+    expect(res.headers.get("location")).toContain("?notice=invalid-auth");
   });
 });
