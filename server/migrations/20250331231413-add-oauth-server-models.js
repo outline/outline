@@ -30,7 +30,12 @@ module.exports = {
           type: Sequelize.STRING,
           allowNull: true
         },
-        secret: {
+        clientId: {
+          type: Sequelize.STRING,
+          allowNull: false,
+          unique: true,
+        },
+        clientSecret: {
           type: Sequelize.BLOB,
           allowNull: false
         },
