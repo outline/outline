@@ -131,7 +131,8 @@ module.exports = {
         },
         accessTokenHash: {
           type: Sequelize.STRING,
-          allowNull: false
+          allowNull: false,
+          unique: true
         },
         accessTokenExpiresAt: {
           type: Sequelize.DATE,
@@ -139,9 +140,14 @@ module.exports = {
         },
         refreshTokenHash: {
           type: Sequelize.STRING,
-          allowNull: false
+          allowNull: false,
+          unique: true
         },
         refreshTokenExpiresAt: {
+          type: Sequelize.DATE,
+          allowNull: false
+        },
+        lastActiveAt: {
           type: Sequelize.DATE,
           allowNull: false
         },

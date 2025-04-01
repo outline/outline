@@ -119,8 +119,8 @@ class ApiKey extends ParanoidModel<
   }
 
   /**
-   * Validates that the input touch could be an API key, this does not check
-   * that the key exists in the database.
+   * Validates that the input text _could_ be an API key, this does not check
+   * that the key actually exists in the database.
    *
    * @param text The text to validate
    * @returns True if likely an API key
