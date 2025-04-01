@@ -125,7 +125,6 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
         children: this.parseChildPages(blocks),
       };
     } catch (error) {
-      // Handle Notion API errors gracefully
       if (error instanceof APIResponseError) {
         // Skip this page/database if it's not found or not accessible
         if (
