@@ -71,6 +71,9 @@ export const OAuthClientValidation = {
 
   /** The maximum length of the OAuth client avatar URL */
   maxAvatarUrlLength: 1000,
+
+  /** The maximum length of an OAuth client redirect URI */
+  maxRedirectUriLength: 1000,
 };
 
 export const RevisionValidation = {

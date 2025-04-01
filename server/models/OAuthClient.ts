@@ -73,6 +73,7 @@ class OAuthClient extends ParanoidModel<
   @Column(DataType.ARRAY(DataType.STRING))
   @ArrayNotEmpty()
   @ArrayUnique()
+  @Length({ max: OAuthClientValidation.maxRedirectUriLength })
   @IsUrl({
     require_tld: false,
     allow_underscores: true,
