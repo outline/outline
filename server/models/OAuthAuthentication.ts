@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import { addDays, addHours, subMinutes } from "date-fns";
-import randomstring from "randomstring";
+import rs from "randomstring";
 import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   Column,
@@ -10,6 +10,7 @@ import {
   Table,
   BeforeCreate,
   IsDate,
+  Unique,
 } from "sequelize-typescript";
 import OAuthClient from "./OAuthClient";
 import User from "./User";
@@ -26,7 +27,12 @@ class OAuthAuthentication extends ParanoidModel<
   InferAttributes<OAuthAuthentication>,
   Partial<InferCreationAttributes<OAuthAuthentication>>
 > {
+  public static accessTokenPrefix = "ol_atx_";
+  public static refreshTokenPrefix = "ol_rtx_";
+
+  @Unique
   @Column
+  @SkipChangeset
   accessTokenHash: string;
 
   /** The cached plain text access token. Only available during creation. */
@@ -37,7 +43,9 @@ class OAuthAuthentication extends ParanoidModel<
   @Column
   accessTokenExpiresAt: Date;
 
+  @Unique
   @Column
+  @SkipChangeset
   refreshTokenHash: string;
 
   /** The cached plain text refresh token. Only available during creation. */
@@ -90,12 +98,12 @@ class OAuthAuthentication extends ParanoidModel<
 
   @BeforeCreate
   static async generateTokens(model: OAuthAuthentication) {
-    const accessToken = randomstring.generate(32);
+    const accessToken = `${this.accessTokenPrefix}${rs.generate(32)}`;
     model.accessToken = accessToken;
     model.accessTokenHash = this.hash(accessToken);
     model.accessTokenExpiresAt = addHours(new Date(), 1);
 
-    const refreshToken = randomstring.generate(32);
+    const refreshToken = `${this.refreshTokenPrefix}${rs.generate(32)}`;
     model.refreshToken = refreshToken;
     model.refreshTokenHash = this.hash(refreshToken);
     model.refreshTokenExpiresAt = addDays(new Date(), 30);

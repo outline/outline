@@ -11,6 +11,7 @@ import { OAuthClientValidation } from "@shared/validations";
 import OAuthClient from "./OAuthClient";
 import User from "./User";
 import IdModel from "./base/IdModel";
+import { SkipChangeset } from "./decorators/Changeset";
 import Fix from "./decorators/Fix";
 
 @Table({
@@ -24,6 +25,7 @@ class OAuthAuthorizationCode extends IdModel<
   Partial<InferCreationAttributes<OAuthAuthorizationCode>>
 > {
   @Column
+  @SkipChangeset
   authorizationCodeHash: string;
 
   @Column

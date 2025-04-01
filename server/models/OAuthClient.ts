@@ -1,5 +1,5 @@
 import { ArrayNotEmpty, ArrayUnique, IsUrl } from "class-validator";
-import randomstring from "randomstring";
+import rs from "randomstring";
 import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   Column,
@@ -29,7 +29,7 @@ class OAuthClient extends ParanoidModel<
   InferAttributes<OAuthClient>,
   Partial<InferCreationAttributes<OAuthClient>>
 > {
-  static secretPrefix = "ol_secret_";
+  public static secretPrefix = "ol_secret_";
 
   @NotContainsUrl
   @Length({ max: OAuthClientValidation.maxNameLength })
@@ -100,13 +100,11 @@ class OAuthClient extends ParanoidModel<
 
   @BeforeCreate
   public static async generateCredentials(model: OAuthClient) {
-    model.clientId = randomstring.generate({
+    model.clientId = rs.generate({
       length: 32,
       charset: "alphanumeric",
     });
-    model.clientSecret = `${OAuthClient.secretPrefix}${randomstring.generate(
-      32
-    )}`;
+    model.clientSecret = `${OAuthClient.secretPrefix}${rs.generate(32)}`;
   }
 }
 
