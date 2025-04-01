@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { Matches } from "class-validator";
 import { addDays, addHours, subMinutes } from "date-fns";
 import rs from "randomstring";
 import { InferAttributes, InferCreationAttributes } from "sequelize";
@@ -56,8 +57,12 @@ class OAuthAuthentication extends ParanoidModel<
   @Column
   refreshTokenExpiresAt: Date;
 
-  @Column
-  scope: string;
+  /** A list of scopes that this authentication has access to */
+  @Matches(/[\/\.\w\s]*/, {
+    each: true,
+  })
+  @Column(DataType.ARRAY(DataType.STRING))
+  scope: string[];
 
   @IsDate
   @Column

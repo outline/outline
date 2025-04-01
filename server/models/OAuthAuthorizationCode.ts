@@ -1,3 +1,4 @@
+import { Matches } from "class-validator";
 import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   Column,
@@ -28,8 +29,12 @@ class OAuthAuthorizationCode extends IdModel<
   @SkipChangeset
   authorizationCodeHash: string;
 
-  @Column
-  scope: string;
+  /** A list of scopes that this authorization code has access to */
+  @Matches(/[\/\.\w\s]*/, {
+    each: true,
+  })
+  @Column(DataType.ARRAY(DataType.STRING))
+  scope: string[];
 
   @Length({ max: OAuthClientValidation.maxRedirectUriLength })
   @Column

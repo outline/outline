@@ -41,7 +41,7 @@ class ApiKey extends ParanoidModel<
   @Column
   name: string;
 
-  /** A space-separated list of scopes that this API key has access to */
+  /** A list of scopes that this API key has access to */
   @Matches(/[\/\.\w\s]*/, {
     each: true,
   })

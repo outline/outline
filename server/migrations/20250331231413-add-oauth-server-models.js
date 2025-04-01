@@ -90,7 +90,7 @@ module.exports = {
           allowNull: false
         },
         scope: {
-          type: Sequelize.STRING,
+          type: Sequelize.ARRAY(Sequelize.STRING),
           allowNull: false
         },
         oauthClientId: {
@@ -152,7 +152,7 @@ module.exports = {
           allowNull: false
         },
         scope: {
-          type: Sequelize.STRING,
+          type: Sequelize.ARRAY(Sequelize.STRING),
           allowNull: false
         },
         oauthClientId: {

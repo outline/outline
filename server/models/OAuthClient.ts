@@ -74,10 +74,15 @@ class OAuthClient extends ParanoidModel<
   @ArrayNotEmpty()
   @ArrayUnique()
   @Length({ max: OAuthClientValidation.maxRedirectUriLength })
-  @IsUrl({
-    require_tld: false,
-    allow_underscores: true,
-  })
+  @IsUrl(
+    {
+      require_tld: false,
+      allow_underscores: true,
+    },
+    {
+      each: true,
+    }
+  )
   redirectUris: string[];
 
   // associations
