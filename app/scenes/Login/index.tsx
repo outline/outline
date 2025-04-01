@@ -26,7 +26,6 @@ import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import {
   useLastVisitedPath,
-  usePostLoginPath,
 } from "~/hooks/useLastVisitedPath";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
@@ -60,7 +59,6 @@ function Login({ children }: Props) {
     UserPreference.RememberLastPath
   );
   const [lastVisitedPath] = useLastVisitedPath();
-  const [spendPostLoginPath] = usePostLoginPath();
 
   const handleReset = React.useCallback(() => {
     setEmailLinkSentTo("");
@@ -91,11 +89,6 @@ function Login({ children }: Props) {
   }, [query]);
 
   if (auth.authenticated) {
-    const postLoginPath = spendPostLoginPath();
-    if (postLoginPath) {
-      return <Redirect to={postLoginPath} />;
-    }
-
     if (rememberLastPath && lastVisitedPath !== location.pathname) {
       return <Redirect to={lastVisitedPath} />;
     }

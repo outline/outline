@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import { HomeIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Switch, Route, Redirect } from "react-router-dom";
+import { Switch, Route } from "react-router-dom";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { Action } from "~/components/Actions";
@@ -18,7 +18,6 @@ import Tab from "~/components/Tab";
 import Tabs from "~/components/Tabs";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import { usePostLoginPath } from "~/hooks/useLastVisitedPath";
 import { usePinnedDocuments } from "~/hooks/usePinnedDocuments";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -29,15 +28,9 @@ function Home() {
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const { t } = useTranslation();
-  const [spendPostLoginPath] = usePostLoginPath();
   const userId = user?.id;
   const { pins, count } = usePinnedDocuments("home");
   const can = usePolicy(team);
-
-  const postLoginPath = spendPostLoginPath();
-  if (postLoginPath) {
-    return <Redirect to={postLoginPath} />;
-  }
 
   return (
     <Scene
@@ -76,7 +69,7 @@ function Home() {
             <PaginatedDocumentList
               documents={documents.recentlyUpdated}
               fetch={documents.fetchRecentlyUpdated}
-              empty={<Empty>{t("Weird, this shouldn’t ever be empty")}</Empty>}
+              empty={<Empty>{t("Weird, this shouldn't ever be empty")}</Empty>}
               showCollection
             />
           </Route>
@@ -89,7 +82,7 @@ function Home() {
                 userId,
               }}
               empty={
-                <Empty>{t("You haven’t created any documents yet")}</Empty>
+                <Empty>{t("You haven't created any documents yet")}</Empty>
               }
               showCollection
             />
@@ -102,7 +95,7 @@ function Home() {
               empty={
                 <Empty>
                   {t(
-                    "Documents you’ve recently viewed will be here for easy access"
+                    "Documents you've recently viewed will be here for easy access"
                   )}
                 </Empty>
               }
