@@ -1,4 +1,5 @@
 import { PluginManager, Hook } from "@server/utils/PluginManager";
+import oauthClients from "./api/oauthClients";
 import OAuthAuthentication from "./models/OAuthAuthentication";
 import OAuthAuthorizationCode from "./models/OAuthAuthorizationCode";
 import OAuthClient from "./models/OAuthClient";
@@ -23,5 +24,9 @@ PluginManager.add([
       path: "/oauth",
       app: oauth,
     },
+  },
+  {
+    type: Hook.API,
+    value: oauthClients,
   },
 ]);

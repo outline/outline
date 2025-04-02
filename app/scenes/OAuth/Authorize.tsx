@@ -12,8 +12,9 @@ function Authorize() {
         <input type="text" name="client_id" placeholder="Client ID" />
         <input type="text" name="client_secret" placeholder="Client Secret" />
         <input type="text" name="redirect_uri" placeholder="Redirect URI" />
-        <input type="text" name="response_type" placeholder="Response Type" />
-        <input type="text" name="scope" placeholder="Scope" />
+        <input type="text" name="response_type" value="code" />
+        <input type="text" name="scope" value="read" />
+        <input type="text" name="state" value="123" />
         <button type="submit">Authorize</button>
       </form>
     </CenteredContent>

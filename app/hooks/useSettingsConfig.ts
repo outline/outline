@@ -29,6 +29,7 @@ import useCurrentUser from "./useCurrentUser";
 import usePolicy from "./usePolicy";
 
 const ApiKeys = lazy(() => import("~/scenes/Settings/ApiKeys"));
+const Applications = lazy(() => import("~/scenes/Settings/Applications"));
 const PersonalApiKeys = lazy(() => import("~/scenes/Settings/PersonalApiKeys"));
 const Details = lazy(() => import("~/scenes/Settings/Details"));
 const Export = lazy(() => import("~/scenes/Settings/Export"));
@@ -149,6 +150,14 @@ const useSettingsConfig = () => {
         path: settingsPath("api-keys"),
         component: ApiKeys,
         enabled: can.listApiKeys,
+        group: t("Workspace"),
+        icon: CodeIcon,
+      },
+      {
+        name: t("Applications"),
+        path: settingsPath("applications"),
+        component: Applications,
+        enabled: true, // can.listApiKeys, TODO
         group: t("Workspace"),
         icon: CodeIcon,
       },

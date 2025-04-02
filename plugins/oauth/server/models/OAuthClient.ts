@@ -1,4 +1,18 @@
-import { ArrayNotEmpty, ArrayUnique, IsUrl } from "class-validator";
+import Team from "@server/models/Team";
+import User from "@server/models/User";
+import ParanoidModel from "@server/models/base/ParanoidModel";
+import Encrypted from "@server/models/decorators/Encrypted";
+import Fix from "@server/models/decorators/Fix";
+import IsUrlOrRelativePath from "@server/models/validators/IsUrlOrRelativePath";
+import NotContainsUrl from "@server/models/validators/NotContainsUrl";
+import { OAuthClientValidation } from "@shared/validations";
+import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  ArrayNotEmpty,
+  ArrayUnique,
+  IsUrl,
+} from "class-validator";
 import rs from "randomstring";
 import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
@@ -11,14 +25,6 @@ import {
   BeforeCreate,
   AllowNull,
 } from "sequelize-typescript";
-import { OAuthClientValidation } from "@shared/validations";
-import Team from "@server/models/Team";
-import User from "@server/models/User";
-import ParanoidModel from "@server/models/base/ParanoidModel";
-import Encrypted from "@server/models/decorators/Encrypted";
-import Fix from "@server/models/decorators/Fix";
-import IsUrlOrRelativePath from "@server/models/validators/IsUrlOrRelativePath";
-import NotContainsUrl from "@server/models/validators/NotContainsUrl";
 
 @Table({
   tableName: "oauth_clients",
@@ -29,7 +35,7 @@ class OAuthClient extends ParanoidModel<
   InferAttributes<OAuthClient>,
   Partial<InferCreationAttributes<OAuthClient>>
 > {
-  public static secretPrefix = "ol_secret_";
+  public static clientSecretPrefix = "ol_sk_";
 
   @NotContainsUrl
   @Length({ max: OAuthClientValidation.maxNameLength })
@@ -72,7 +78,8 @@ class OAuthClient extends ParanoidModel<
 
   @ArrayNotEmpty()
   @ArrayUnique()
-  @Length({ max: OAuthClientValidation.maxRedirectUriLength })
+  @ArrayMinSize(1)
+  @ArrayMaxSize(10)
   @IsUrl(
     {
       require_tld: false,
@@ -106,10 +113,11 @@ class OAuthClient extends ParanoidModel<
   @BeforeCreate
   public static async generateCredentials(model: OAuthClient) {
     model.clientId = rs.generate({
-      length: 32,
+      length: 20,
       charset: "alphanumeric",
+      capitalization: "lowercase",
     });
-    model.clientSecret = `${OAuthClient.secretPrefix}${rs.generate(32)}`;
+    model.clientSecret = `${OAuthClient.clientSecretPrefix}${rs.generate(32)}`;
   }
 }
 

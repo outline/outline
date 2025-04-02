@@ -1,8 +1,8 @@
 import OAuth2Server from "@node-oauth/oauth2-server";
+import auth from "@server/middlewares/authentication";
 import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
-import auth from "@server/middlewares/authentication";
 import { OAuthInterface } from "./interface";
 
 const app = new Koa();
@@ -17,7 +17,14 @@ router.post("/authorize", auth(), async (ctx) => {
   const request = new OAuth2Server.Request(ctx.request);
   const response = new OAuth2Server.Response(ctx.response);
 
-  const authorizationCode = await oauth.authorize(request, response);
+  const authorizationCode = await oauth.authorize(request, response, {
+    authenticateHandler: {
+      handle: async () => {
+        const { user } = ctx.state.auth;
+        return user;
+      },
+    },
+  });
   ctx.body = { code: authorizationCode };
 });
 
