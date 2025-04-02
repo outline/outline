@@ -9,8 +9,12 @@ import { Node } from "prosemirror-model";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import Flex from "../../components/Flex";
 import Icon from "../../components/Icon";
+import { IssueStatusIcon } from "../../components/IssueStatusIcon";
+import { PullRequestIcon } from "../../components/PullRequestIcon";
 import Spinner from "../../components/Spinner";
+import Text from "../../components/Text";
 import useStores from "../../hooks/useStores";
 import theme from "../../styles/theme";
 import type { UnfurlResourceType, UnfurlResponse } from "../../types";
@@ -116,7 +120,7 @@ export const MentionCollection = observer(function MentionCollection_(
 
 export const MentionIssue = (props: ComponentProps) => {
   const { unfurls } = useStores();
-  const [data, setData] =
+  const [issue, setIssue] =
     React.useState<UnfurlResponse[UnfurlResourceType.Issue]>();
   const [loaded, setLoaded] = React.useState(false);
 
@@ -125,7 +129,7 @@ export const MentionIssue = (props: ComponentProps) => {
 
   React.useEffect(() => {
     const fetchIssue = async () => {
-      setData(await unfurls.fetch(attrs.href));
+      setIssue(await unfurls.fetch(attrs.href));
       setLoaded(true);
     };
 
@@ -136,7 +140,7 @@ export const MentionIssue = (props: ComponentProps) => {
     return <MentionLoading className={className} />;
   }
 
-  if (!data) {
+  if (!issue) {
     return <MentionError className={className} />;
   }
 
@@ -150,14 +154,24 @@ export const MentionIssue = (props: ComponentProps) => {
       target="_blank"
       rel="noopener noreferrer"
     >
-      {data.title}
+      <Flex align="center" gap={6}>
+        <IssueStatusIcon
+          size={14}
+          status={issue.state.name}
+          color={issue.state.color}
+        />
+        <Flex align="center" gap={4}>
+          <Text>{issue.title}</Text>
+          <Text type="tertiary">{issue.id}</Text>
+        </Flex>
+      </Flex>
     </a>
   );
 };
 
 export const MentionPullRequest = (props: ComponentProps) => {
   const { unfurls } = useStores();
-  const [data, setData] =
+  const [pullRequest, setPullRequest] =
     React.useState<UnfurlResponse[UnfurlResourceType.PR]>();
   const [loaded, setLoaded] = React.useState(false);
 
@@ -166,7 +180,7 @@ export const MentionPullRequest = (props: ComponentProps) => {
 
   React.useEffect(() => {
     const fetchPR = async () => {
-      setData(await unfurls.fetch(attrs.href));
+      setPullRequest(await unfurls.fetch(attrs.href));
       setLoaded(true);
     };
 
@@ -177,7 +191,7 @@ export const MentionPullRequest = (props: ComponentProps) => {
     return <MentionLoading className={className} />;
   }
 
-  if (!data) {
+  if (!pullRequest) {
     return <MentionError className={className} />;
   }
 
@@ -191,7 +205,17 @@ export const MentionPullRequest = (props: ComponentProps) => {
       target="_blank"
       rel="noopener noreferrer"
     >
-      {data.title}
+      <Flex align="center" gap={6}>
+        <PullRequestIcon
+          size={14}
+          status={pullRequest.state.name}
+          color={pullRequest.state.color}
+        />
+        <Flex align="center" gap={4}>
+          <Text>{pullRequest.title}</Text>
+          <Text type="tertiary">{pullRequest.id}</Text>
+        </Flex>
+      </Flex>
     </a>
   );
 };
@@ -202,7 +226,7 @@ const MentionLoading = ({ className }: { className: string }) => {
   return (
     <span className={className}>
       <Spinner />
-      {`${t("Loading")}…`}
+      <Text type="tertiary">{`${t("Loading")}…`}</Text>
     </span>
   );
 };
@@ -213,7 +237,7 @@ const MentionError = ({ className }: { className: string }) => {
   return (
     <span className={className}>
       <WarningIcon color={theme.danger} />
-      {`${t("Error loading data")}`}
+      <Text type="secondary">{`${t("Error loading data")}`}</Text>
     </span>
   );
 };
