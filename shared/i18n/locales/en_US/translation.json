@@ -427,6 +427,7 @@
   "{{ userName }} won't be notified, as they do not have access to this document": "{{ userName }} won't be notified, as they do not have access to this document",
   "Keep as link": "Keep as link",
   "Embed": "Embed",
+  "Mention": "Mention",
   "Add column after": "Add column after",
   "Add column before": "Add column before",
   "Add row after": "Add row after",
@@ -1155,5 +1156,6 @@
   "{{ user }} updated {{ timeAgo }}": "{{ user }} updated {{ timeAgo }}",
   "You created {{ timeAgo }}": "You created {{ timeAgo }}",
   "{{ user }} created {{ timeAgo }}": "{{ user }} created {{ timeAgo }}",
+  "Error loading data": "Error loading data",
   "Uploading": "Uploading"
 }
