@@ -134,7 +134,7 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
           Logger.warn(
             `Skipping Notion ${
               item.type === PageType.Database ? "database" : "page"
-            } ${item.externalId} - ${error.message}`
+            } ${item.externalId} - Error code: ${error.code} - ${error.message}`
           );
           return null;
         }

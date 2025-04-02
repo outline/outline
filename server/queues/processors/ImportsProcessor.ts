@@ -303,6 +303,12 @@ export default abstract class ImportsProcessor<
               : undefined;
 
             const output = outputMap[externalId];
+            
+            // Skip this item if it has no output (likely due to an error during processing)
+            if (!output) {
+              Logger.debug("processor", `Skipping item with no output: ${externalId}`);
+              continue;
+            }
 
             const collectionItem = importInput[externalId];
 
