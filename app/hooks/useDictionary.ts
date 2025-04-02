@@ -100,6 +100,7 @@ export default function useDictionary() {
       video: t("Video"),
       untitled: t("Untitled"),
       none: t("None"),
+      toggleBlock: t("Toggle block"),
     }),
     [t]
   );
