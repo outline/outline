@@ -415,26 +415,19 @@ export default class PasteHandler extends Extension {
     });
   };
 
-  private insertMention = (attrs: Record<string, unknown>) => {
+  private insertMention = () => {
     const { view } = this.editor;
     const { state } = view;
     const result = this.findPlaceholder(state, this.state.pastedText);
 
+    // Remove just the placeholder here.
+    // Mention node will be created by SuggestionsMenu.
     if (result) {
       const tr = state.tr.deleteRange(result[0], result[1]);
       view.dispatch(
         tr.setSelection(TextSelection.near(tr.doc.resolve(result[0])))
       );
     }
-
-    this.editor.commands.mention({
-      id: v4(),
-      type: attrs.type as MentionType,
-      label: this.state.pastedText,
-      href: this.state.pastedText,
-      modelId: v4(),
-      actorId: stores.auth.currentUserId,
-    });
   };
 
   private removePlaceholder = () => {
@@ -474,7 +467,7 @@ export default class PasteHandler extends Extension {
       }
       case "mention": {
         this.hidePasteMenu();
-        this.insertMention(item.attrs as Record<string, unknown>);
+        this.insertMention();
         break;
       }
       default:

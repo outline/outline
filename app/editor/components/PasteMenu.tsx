@@ -2,9 +2,11 @@ import { observer } from "mobx-react";
 import { EmailIcon, LinkIcon } from "outline-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { v4 } from "uuid";
 import { EmbedDescriptor } from "@shared/editor/embeds";
 import { MenuItem } from "@shared/editor/types";
 import Integration from "~/models/Integration";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import SuggestionsMenu, {
   Props as SuggestionsMenuProps,
@@ -22,6 +24,7 @@ type Props = Omit<
 export const PasteMenu = observer(({ pastedText, embeds, ...props }: Props) => {
   const { t } = useTranslation();
   const { integrations } = useStores();
+  const user = useCurrentUser();
 
   const url = pastedText ? new URL(pastedText) : undefined;
 
@@ -61,13 +64,20 @@ export const PasteMenu = observer(({ pastedText, embeds, ...props }: Props) => {
         name: "mention",
         title: t("Mention"),
         icon: <EmailIcon />,
-        attrs: { type: mentionType },
+        attrs: {
+          id: v4(),
+          type: mentionType,
+          label: pastedText,
+          href: pastedText,
+          modelId: v4(),
+          actorId: user.id,
+        },
         appendSpace: true,
       });
     }
 
     return menuItems;
-  }, [embed, t, mentionType]);
+  }, [t, embed, mentionType, pastedText, user]);
 
   return (
     <SuggestionsMenu
@@ -76,9 +86,7 @@ export const PasteMenu = observer(({ pastedText, embeds, ...props }: Props) => {
       filterable={false}
       renderMenuItem={(item, _index, options) => (
         <SuggestionsMenuItem
-          onClick={() => {
-            props.onSelect?.(item);
-          }}
+          onClick={options.onClick}
           selected={options.selected}
           title={item.title}
           icon={item.icon}

@@ -12,7 +12,6 @@ import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
 import { MenuItem } from "@shared/editor/types";
 import { depths, s } from "@shared/styles";
-import { MentionType } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
 import Header from "~/components/ContextMenu/Header";
@@ -234,11 +233,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       const attrs =
         typeof item.attrs === "function" ? item.attrs(view.state) : item.attrs;
 
-      const skipMention =
-        attrs?.type === MentionType.Issue ||
-        attrs?.type === MentionType.PullRequest; // Mention node creation will be handled by PasteHandler.
-
-      if (item.name === "noop" || (item.name === "mention" && skipMention)) {
+      if (item.name === "noop") {
         // Do nothing
       } else if (command) {
         command(attrs);
