@@ -1,8 +1,9 @@
 import { observable } from "mobx";
-import type {
+import {
   IntegrationService,
-  IntegrationSettings,
-  IntegrationType,
+  MentionType,
+  type IntegrationSettings,
+  type IntegrationType,
 } from "@shared/types";
 import User from "~/models/User";
 import Model from "~/models/base/Model";
@@ -29,6 +30,41 @@ class Integration<T = unknown> extends Model {
 
   @observable
   settings: IntegrationSettings<T>;
+
+  isMentionable(url: URL) {
+    const { hostname, pathname } = url;
+    const pathParts = pathname.split("/");
+
+    switch (this.service) {
+      case IntegrationService.GitHub: {
+        const settings = this
+          .settings as IntegrationSettings<IntegrationType.Embed>;
+
+        return (
+          hostname === "github.com" &&
+          settings.github?.installation.account.name === pathParts[1] // ensure installed org/account name matches with the provided url.
+        );
+      }
+
+      default:
+        return false;
+    }
+  }
+
+  getMentionType(url: URL): MentionType | undefined {
+    const { pathname } = url;
+    const pathParts = pathname.split("/");
+
+    switch (this.service) {
+      case IntegrationService.GitHub: {
+        const type = pathParts[3];
+        return type === "pull" ? MentionType.PullRequest : MentionType.Issue;
+      }
+
+      default:
+        return;
+    }
+  }
 }
 
 export default Integration;

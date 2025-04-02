@@ -24,7 +24,7 @@ import parseCollectionSlug from "@shared/utils/parseCollectionSlug";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isCollectionUrl, isDocumentUrl, isUrl } from "@shared/utils/urls";
 import stores from "~/stores";
-import PasteMenu from "../components/PasteMenu";
+import { PasteMenu } from "../components/PasteMenu";
 
 export default class PasteHandler extends Extension {
   state: {
@@ -415,6 +415,27 @@ export default class PasteHandler extends Extension {
     });
   };
 
+  private insertMention = (attrs: Record<string, unknown>) => {
+    const { view } = this.editor;
+    const { state } = view;
+    const result = this.findPlaceholder(state, this.state.pastedText);
+
+    if (result) {
+      const tr = state.tr.deleteRange(result[0], result[1]);
+      view.dispatch(
+        tr.setSelection(TextSelection.near(tr.doc.resolve(result[0])))
+      );
+    }
+
+    this.editor.commands.mention({
+      id: v4(),
+      type: attrs.type as MentionType,
+      label: this.state.pastedText,
+      modelId: v4(),
+      actorId: stores.auth.currentUserId,
+    });
+  };
+
   private removePlaceholder = () => {
     const { view } = this.editor;
     const { state } = view;
@@ -448,6 +469,11 @@ export default class PasteHandler extends Extension {
       case "embed": {
         this.hidePasteMenu();
         this.insertEmbed();
+        break;
+      }
+      case "mention": {
+        this.hidePasteMenu();
+        this.insertMention(item.attrs as Record<string, unknown>);
         break;
       }
       default:

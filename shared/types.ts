@@ -75,6 +75,8 @@ export enum MentionType {
   User = "user",
   Document = "document",
   Collection = "collection",
+  Issue = "issue",
+  PullRequest = "pull_request",
 }
 
 export type PublicEnv = {

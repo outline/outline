@@ -5,10 +5,15 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 import Icon from "../../components/Icon";
 import useStores from "../../hooks/useStores";
+import type { UnfurlResourceType, UnfurlResponse } from "../../types";
 import { cn } from "../styles/utils";
 import { ComponentProps } from "../types";
 
-const getAttributesFromNode = (node: Node) => {
+type Attrs = {
+  className: string;
+} & Record<string, string>;
+
+const getAttributesFromNode = (node: Node): Attrs => {
   const spec = node.type.spec.toDOM?.(node) as any as Record<string, string>[];
   const { class: className, ...attrs } = spec[1];
   return { className, ...attrs };
@@ -100,3 +105,44 @@ export const MentionCollection = observer(function MentionCollection_(
     </Link>
   );
 });
+
+export const MentionIssue = (props: ComponentProps) => {
+  const { unfurls } = useStores();
+  const [data, setData] =
+    React.useState<UnfurlResponse[UnfurlResourceType.Issue]>();
+  const [loaded, setLoaded] = React.useState(false);
+
+  const { isSelected, node } = props;
+  const { className, ...attrs } = getAttributesFromNode(node);
+
+  React.useEffect(() => {
+    const fetchIssue = async () => {
+      setData(await unfurls.fetch(attrs.href));
+      setLoaded(true);
+    };
+
+    void fetchIssue();
+  }, [unfurls, attrs.href]);
+
+  if (!loaded) {
+    return <span>Loading..</span>;
+  }
+
+  if (!data) {
+    return <span>Error loading issue</span>;
+  }
+
+  return (
+    <a
+      {...attrs}
+      className={cn(className, {
+        "ProseMirror-selectednode": isSelected,
+      })}
+      href={attrs.href}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {data.title}
+    </a>
+  );
+};

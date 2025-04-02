@@ -19,6 +19,7 @@ import { MentionType } from "../../types";
 import {
   MentionCollection,
   MentionDocument,
+  MentionIssue,
   MentionUser,
 } from "../components/Mentions";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
@@ -87,11 +88,17 @@ export default class Mention extends Node {
               ? undefined
               : node.attrs.type === MentionType.Document
               ? `${env.URL}/doc/${node.attrs.modelId}`
-              : `${env.URL}/collection/${node.attrs.modelId}`,
+              : node.attrs.type === MentionType.Collection
+              ? `${env.URL}/collection/${node.attrs.modelId}`
+              : node.attrs.label,
           "data-type": node.attrs.type,
           "data-id": node.attrs.modelId,
           "data-actorid": node.attrs.actorId,
-          "data-url": `mention://${node.attrs.id}/${node.attrs.type}/${node.attrs.modelId}`,
+          "data-url":
+            node.attrs.type === MentionType.PullRequest ||
+            node.attrs.type === MentionType.Issue
+              ? node.attrs.label
+              : `mention://${node.attrs.id}/${node.attrs.type}/${node.attrs.modelId}`,
         },
         toPlainText(node),
       ],
@@ -107,6 +114,8 @@ export default class Mention extends Node {
         return <MentionDocument {...props} />;
       case MentionType.Collection:
         return <MentionCollection {...props} />;
+      case MentionType.Issue:
+        return <MentionIssue {...props} />;
       default:
         return null;
     }
@@ -149,29 +158,42 @@ export default class Mention extends Node {
   }
 
   keys(): Record<string, Command> {
+    const NavigableMention = [
+      MentionType.Collection,
+      MentionType.Document,
+      MentionType.Issue,
+      MentionType.PullRequest,
+    ];
+
     return {
       Enter: (state) => {
         const { selection } = state;
         if (
           selection instanceof NodeSelection &&
           selection.node.type.name === this.name &&
-          (selection.node.attrs.type === MentionType.Document ||
-            selection.node.attrs.type === MentionType.Collection)
+          NavigableMention.includes(selection.node.attrs.type)
         ) {
-          const { modelId } = selection.node.attrs;
+          const mentionType = selection.node.attrs.type;
 
-          const linkType =
-            selection.node.attrs.type === MentionType.Document
-              ? "doc"
-              : selection.node.attrs.type === MentionType.Collection
-              ? "collection"
-              : undefined;
+          let link: string;
 
-          if (!linkType) {
-            return false;
+          if (
+            mentionType === MentionType.Issue ||
+            mentionType === MentionType.PullRequest
+          ) {
+            link = selection.node.attrs.label;
+          } else {
+            const { modelId } = selection.node.attrs;
+
+            const linkType =
+              selection.node.attrs.type === MentionType.Document
+                ? "doc"
+                : "collection";
+
+            link = `/${linkType}/${modelId}`;
           }
 
-          this.editor.props.onClickLink?.(`/${linkType}/${modelId}`);
+          this.editor.props.onClickLink?.(link);
           return true;
         }
         return false;
@@ -182,6 +204,8 @@ export default class Mention extends Node {
   commands({ type }: { type: NodeType; schema: Schema }) {
     return (attrs: Record<string, Primitive>): Command =>
       (state, dispatch) => {
+        console.log("running mention command", attrs);
+
         const { selection } = state;
         const position =
           selection instanceof TextSelection
