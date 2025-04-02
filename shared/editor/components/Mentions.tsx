@@ -1,5 +1,10 @@
 import { observer } from "mobx-react";
-import { DocumentIcon, EmailIcon, CollectionIcon } from "outline-icons";
+import {
+  DocumentIcon,
+  EmailIcon,
+  CollectionIcon,
+  WarningIcon,
+} from "outline-icons";
 import { Node } from "prosemirror-model";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -7,6 +12,7 @@ import { Link } from "react-router-dom";
 import Icon from "../../components/Icon";
 import Spinner from "../../components/Spinner";
 import useStores from "../../hooks/useStores";
+import theme from "../../styles/theme";
 import type { UnfurlResourceType, UnfurlResponse } from "../../types";
 import { cn } from "../styles/utils";
 import { ComponentProps } from "../types";
@@ -131,7 +137,7 @@ export const MentionIssue = (props: ComponentProps) => {
   }
 
   if (!data) {
-    return <span>Error loading issue</span>;
+    return <MentionError className={className} />;
   }
 
   return (
@@ -172,7 +178,7 @@ export const MentionPullRequest = (props: ComponentProps) => {
   }
 
   if (!data) {
-    return <span>Error loading pull request</span>;
+    return <MentionError className={className} />;
   }
 
   return (
@@ -192,10 +198,22 @@ export const MentionPullRequest = (props: ComponentProps) => {
 
 const MentionLoading = ({ className }: { className: string }) => {
   const { t } = useTranslation();
+
   return (
     <span className={className}>
       <Spinner />
       {`${t("Loading")}…`}
+    </span>
+  );
+};
+
+const MentionError = ({ className }: { className: string }) => {
+  const { t } = useTranslation();
+
+  return (
+    <span className={className}>
+      <WarningIcon color={theme.danger} />
+      {`${t("Error loading data")}`}
     </span>
   );
 };
