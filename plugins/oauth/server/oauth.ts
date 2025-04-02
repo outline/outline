@@ -1,6 +1,11 @@
 import OAuth2Server from "@node-oauth/oauth2-server";
+import Koa from "koa";
+import bodyParser from "koa-body";
 import Router from "koa-router";
+import auth from "@server/middlewares/authentication";
 import { OAuthInterface } from "./interface";
+
+const app = new Koa();
 
 const router = new Router();
 
@@ -8,7 +13,7 @@ const oauth = new OAuth2Server({
   model: OAuthInterface,
 });
 
-router.get("/oauth/authorize", async (ctx) => {
+router.post("/authorize", auth(), async (ctx) => {
   const request = new OAuth2Server.Request(ctx.request);
   const response = new OAuth2Server.Response(ctx.response);
 
@@ -16,7 +21,7 @@ router.get("/oauth/authorize", async (ctx) => {
   ctx.body = { code: authorizationCode };
 });
 
-router.post("/oauth/token", async (ctx) => {
+router.post("/token", async (ctx) => {
   const request = new OAuth2Server.Request(ctx.request);
   const response = new OAuth2Server.Response(ctx.response);
 
@@ -24,4 +29,7 @@ router.post("/oauth/token", async (ctx) => {
   ctx.body = { token };
 });
 
-export default router;
+app.use(bodyParser());
+app.use(router.routes());
+
+export default app;

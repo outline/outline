@@ -1,5 +1,6 @@
 import path from "path";
 import { glob } from "glob";
+import type Koa from "koa";
 import type Router from "koa-router";
 import isArray from "lodash/isArray";
 import sortBy from "lodash/sortBy";
@@ -47,7 +48,7 @@ type PluginValueMap = {
   [Hook.Uninstall]: UninstallSignature;
   [Hook.UnfurlProvider]: { unfurl: UnfurlSignature; cacheExpiry: number };
   [Hook.Model]: typeof BaseModel;
-  [Hook.Route]: Router;
+  [Hook.Route]: { path: string; app: Koa };
 };
 
 export type Plugin<T extends Hook> = {

@@ -17,6 +17,7 @@ import { Second } from "@shared/utils/time";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
+import { Hook, PluginManager } from "@server/utils/PluginManager";
 import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
 import { initI18n } from "@server/utils/i18n";
 import routes from "../routes";
@@ -74,6 +75,12 @@ export default function init(app: Koa = new Koa(), server?: Server) {
   }
 
   app.use(compress());
+
+  // Register routes before others to allow for overrides
+  PluginManager.getHooks(Hook.Route).forEach((hook) =>
+    app.use(mount(hook.value.path, hook.value.app))
+  );
+
   app.use(mount("/auth", auth));
   app.use(mount("/api", api));
 

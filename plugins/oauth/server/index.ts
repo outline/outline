@@ -19,6 +19,9 @@ PluginManager.add([
   },
   {
     type: Hook.Route,
-    value: oauth,
+    value: {
+      path: "/oauth",
+      app: oauth,
+    },
   },
 ]);
