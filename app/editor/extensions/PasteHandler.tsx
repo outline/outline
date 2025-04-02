@@ -431,6 +431,7 @@ export default class PasteHandler extends Extension {
       id: v4(),
       type: attrs.type as MentionType,
       label: this.state.pastedText,
+      href: this.state.pastedText,
       modelId: v4(),
       actorId: stores.auth.currentUserId,
     });

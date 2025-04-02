@@ -15,7 +15,7 @@ import * as React from "react";
 import { Primitive } from "utility-types";
 import { v4 as uuidv4 } from "uuid";
 import env from "../../env";
-import { MentionType } from "../../types";
+import { MentionType, UnfurlResourceType, UnfurlResponse } from "../../types";
 import {
   MentionCollection,
   MentionDocument,
@@ -50,6 +50,12 @@ export default class Mention extends Node {
           default: undefined,
         },
         id: {
+          default: undefined,
+        },
+        href: {
+          default: undefined,
+        },
+        unfurl: {
           default: undefined,
         },
       },
@@ -91,15 +97,16 @@ export default class Mention extends Node {
               ? `${env.URL}/doc/${node.attrs.modelId}`
               : node.attrs.type === MentionType.Collection
               ? `${env.URL}/collection/${node.attrs.modelId}`
-              : node.attrs.label,
+              : node.attrs.href,
           "data-type": node.attrs.type,
           "data-id": node.attrs.modelId,
           "data-actorid": node.attrs.actorId,
           "data-url":
             node.attrs.type === MentionType.PullRequest ||
             node.attrs.type === MentionType.Issue
-              ? node.attrs.label
+              ? node.attrs.href
               : `mention://${node.attrs.id}/${node.attrs.type}/${node.attrs.modelId}`,
+          "data-unfurl": node.attrs.unfurl,
         },
         toPlainText(node),
       ],
@@ -116,9 +123,19 @@ export default class Mention extends Node {
       case MentionType.Collection:
         return <MentionCollection {...props} />;
       case MentionType.Issue:
-        return <MentionIssue {...props} />;
+        return (
+          <MentionIssue
+            {...props}
+            onChangeUnfurl={this.handleChangeUnfurl(props)}
+          />
+        );
       case MentionType.PullRequest:
-        return <MentionPullRequest {...props} />;
+        return (
+          <MentionPullRequest
+            {...props}
+            onChangeUnfurl={this.handleChangeUnfurl(props)}
+          />
+        );
       default:
         return null;
     }
@@ -243,4 +260,27 @@ export default class Mention extends Node {
       }),
     };
   }
+
+  handleChangeUnfurl =
+    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    (unfurl: UnfurlResponse[keyof UnfurlResponse]) => {
+      const { view } = this.editor;
+      const { tr } = view.state;
+
+      const label =
+        unfurl.type === UnfurlResourceType.Issue ||
+        unfurl.type === UnfurlResourceType.PR
+          ? unfurl.title
+          : undefined;
+
+      const overrides: Record<string, unknown> = label ? { label } : {};
+      overrides.unfurl = unfurl;
+
+      const pos = getPos();
+      const transaction = tr.setNodeMarkup(pos, undefined, {
+        ...node.attrs,
+        ...overrides,
+      });
+      view.dispatch(transaction);
+    };
 }

@@ -17,18 +17,31 @@ import Spinner from "../../components/Spinner";
 import Text from "../../components/Text";
 import useStores from "../../hooks/useStores";
 import theme from "../../styles/theme";
-import type { UnfurlResourceType, UnfurlResponse } from "../../types";
+import type {
+  JSONValue,
+  UnfurlResourceType,
+  UnfurlResponse,
+} from "../../types";
 import { cn } from "../styles/utils";
 import { ComponentProps } from "../types";
 
 type Attrs = {
   className: string;
-} & Record<string, string>;
+  unfurl?: UnfurlResponse[keyof UnfurlResponse];
+} & Record<string, JSONValue>;
 
 const getAttributesFromNode = (node: Node): Attrs => {
-  const spec = node.type.spec.toDOM?.(node) as any as Record<string, string>[];
-  const { class: className, ...attrs } = spec[1];
-  return { className, ...attrs };
+  const spec = node.type.spec.toDOM?.(node) as any as Record<
+    string,
+    JSONValue
+  >[];
+  const { class: className, "data-unfurl": unfurl, ...attrs } = spec[1];
+
+  return {
+    className: className as Attrs["className"],
+    unfurl: unfurl as Attrs["unfurl"],
+    ...attrs,
+  };
 };
 
 export const MentionUser = observer(function MentionUser_(
@@ -37,7 +50,7 @@ export const MentionUser = observer(function MentionUser_(
   const { isSelected, node } = props;
   const { users } = useStores();
   const user = users.get(node.attrs.modelId);
-  const { className, ...attrs } = getAttributesFromNode(node);
+  const { className, unfurl, ...attrs } = getAttributesFromNode(node);
 
   return (
     <span
@@ -59,7 +72,7 @@ export const MentionDocument = observer(function MentionDocument_(
   const { documents } = useStores();
   const doc = documents.get(node.attrs.modelId);
   const modelId = node.attrs.modelId;
-  const { className, ...attrs } = getAttributesFromNode(node);
+  const { className, unfurl, ...attrs } = getAttributesFromNode(node);
 
   React.useEffect(() => {
     if (modelId) {
@@ -92,7 +105,7 @@ export const MentionCollection = observer(function MentionCollection_(
   const { collections } = useStores();
   const collection = collections.get(node.attrs.modelId);
   const modelId = node.attrs.modelId;
-  const { className, ...attrs } = getAttributesFromNode(node);
+  const { className, unfurl, ...attrs } = getAttributesFromNode(node);
 
   React.useEffect(() => {
     if (modelId) {
@@ -118,31 +131,49 @@ export const MentionCollection = observer(function MentionCollection_(
   );
 });
 
-export const MentionIssue = (props: ComponentProps) => {
+type IssuePrProps = ComponentProps & {
+  onChangeUnfurl: (
+    unfurl:
+      | UnfurlResponse[UnfurlResourceType.Issue]
+      | UnfurlResponse[UnfurlResourceType.PR]
+  ) => void;
+};
+
+export const MentionIssue = (props: IssuePrProps) => {
   const { unfurls } = useStores();
-  const [issue, setIssue] =
-    React.useState<UnfurlResponse[UnfurlResourceType.Issue]>();
   const [loaded, setLoaded] = React.useState(false);
+  const onChangeUnfurl = React.useRef(props.onChangeUnfurl).current; // stable reference to callback function.
 
   const { isSelected, node } = props;
-  const { className, ...attrs } = getAttributesFromNode(node);
+  const { className, unfurl, ...attrs } = getAttributesFromNode(node);
 
   React.useEffect(() => {
     const fetchIssue = async () => {
-      setIssue(await unfurls.fetch(attrs.href));
+      const unfurledIssue: UnfurlResponse[UnfurlResourceType.Issue] =
+        await unfurls.fetch(attrs.href);
+
+      if (unfurledIssue) {
+        onChangeUnfurl({
+          ...unfurledIssue,
+          description: null,
+        } satisfies UnfurlResponse[UnfurlResourceType.Issue]);
+      }
+
       setLoaded(true);
     };
 
     void fetchIssue();
-  }, [unfurls, attrs.href]);
+  }, [unfurls, attrs.href, onChangeUnfurl]);
 
-  if (!loaded) {
-    return <MentionLoading className={className} />;
+  if (!unfurl) {
+    return !loaded ? (
+      <MentionLoading className={className} />
+    ) : (
+      <MentionError className={className} />
+    );
   }
 
-  if (!issue) {
-    return <MentionError className={className} />;
-  }
+  const issue = unfurl as UnfurlResponse[UnfurlResourceType.Issue];
 
   return (
     <a
@@ -150,7 +181,7 @@ export const MentionIssue = (props: ComponentProps) => {
       className={cn(className, {
         "ProseMirror-selectednode": isSelected,
       })}
-      href={attrs.href}
+      href={attrs.href as string}
       target="_blank"
       rel="noopener noreferrer nofollow"
     >
@@ -169,31 +200,41 @@ export const MentionIssue = (props: ComponentProps) => {
   );
 };
 
-export const MentionPullRequest = (props: ComponentProps) => {
+export const MentionPullRequest = (props: IssuePrProps) => {
   const { unfurls } = useStores();
-  const [pullRequest, setPullRequest] =
-    React.useState<UnfurlResponse[UnfurlResourceType.PR]>();
   const [loaded, setLoaded] = React.useState(false);
+  const onChangeUnfurl = React.useRef(props.onChangeUnfurl).current; // stable reference to callback function.
 
   const { isSelected, node } = props;
-  const { className, ...attrs } = getAttributesFromNode(node);
+  const { className, unfurl, ...attrs } = getAttributesFromNode(node);
 
   React.useEffect(() => {
     const fetchPR = async () => {
-      setPullRequest(await unfurls.fetch(attrs.href));
+      const unfurledPR: UnfurlResponse[UnfurlResourceType.PR] =
+        await unfurls.fetch(attrs.href);
+
+      if (unfurledPR) {
+        onChangeUnfurl({
+          ...unfurledPR,
+          description: null,
+        } satisfies UnfurlResponse[UnfurlResourceType.PR]);
+      }
+
       setLoaded(true);
     };
 
     void fetchPR();
-  }, [unfurls, attrs.href]);
+  }, [unfurls, attrs.href, onChangeUnfurl]);
 
-  if (!loaded) {
-    return <MentionLoading className={className} />;
+  if (!unfurl) {
+    return !loaded ? (
+      <MentionLoading className={className} />
+    ) : (
+      <MentionError className={className} />
+    );
   }
 
-  if (!pullRequest) {
-    return <MentionError className={className} />;
-  }
+  const pullRequest = unfurl as UnfurlResponse[UnfurlResourceType.PR];
 
   return (
     <a
@@ -201,7 +242,7 @@ export const MentionPullRequest = (props: ComponentProps) => {
       className={cn(className, {
         "ProseMirror-selectednode": isSelected,
       })}
-      href={attrs.href}
+      href={attrs.href as string}
       target="_blank"
       rel="noopener noreferrer nofollow"
     >

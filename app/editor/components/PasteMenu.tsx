@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { LinkIcon } from "outline-icons";
+import { EmailIcon, LinkIcon } from "outline-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { EmbedDescriptor } from "@shared/editor/embeds";
@@ -60,6 +60,7 @@ export const PasteMenu = observer(({ pastedText, embeds, ...props }: Props) => {
       menuItems.push({
         name: "mention",
         title: t("Mention"),
+        icon: <EmailIcon />,
         attrs: { type: mentionType },
         appendSpace: true,
       });
