@@ -2,6 +2,7 @@ import { PluginManager, Hook } from "@server/utils/PluginManager";
 import OAuthAuthentication from "./models/OAuthAuthentication";
 import OAuthAuthorizationCode from "./models/OAuthAuthorizationCode";
 import OAuthClient from "./models/OAuthClient";
+import oauth from "./oauth";
 
 PluginManager.add([
   {
@@ -15,5 +16,9 @@ PluginManager.add([
   {
     type: Hook.Model,
     value: OAuthAuthorizationCode,
+  },
+  {
+    type: Hook.Route,
+    value: oauth,
   },
 ]);

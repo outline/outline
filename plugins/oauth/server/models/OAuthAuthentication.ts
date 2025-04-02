@@ -1,7 +1,10 @@
 import crypto from "crypto";
+import User from "@server/models/User";
+import ParanoidModel from "@server/models/base/ParanoidModel";
+import { SkipChangeset } from "@server/models/decorators/Changeset";
+import Fix from "@server/models/decorators/Fix";
 import { Matches } from "class-validator";
-import { addDays, addHours, subMinutes } from "date-fns";
-import rs from "randomstring";
+import { subMinutes } from "date-fns";
 import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   Column,
@@ -13,10 +16,6 @@ import {
   IsDate,
   Unique,
 } from "sequelize-typescript";
-import User from "@server/models/User";
-import ParanoidModel from "@server/models/base/ParanoidModel";
-import { SkipChangeset } from "@server/models/decorators/Changeset";
-import Fix from "@server/models/decorators/Fix";
 import OAuthClient from "./OAuthClient";
 
 @Table({
@@ -102,19 +101,6 @@ class OAuthAuthentication extends ParanoidModel<
   // hooks
 
   @BeforeCreate
-  static async generateTokens(model: OAuthAuthentication) {
-    const accessToken = `${this.accessTokenPrefix}${rs.generate(32)}`;
-    model.accessToken = accessToken;
-    model.accessTokenHash = this.hash(accessToken);
-    model.accessTokenExpiresAt = addHours(new Date(), 1);
-
-    const refreshToken = `${this.refreshTokenPrefix}${rs.generate(32)}`;
-    model.refreshToken = refreshToken;
-    model.refreshTokenHash = this.hash(refreshToken);
-    model.refreshTokenExpiresAt = addDays(new Date(), 30);
-  }
-
-  @BeforeCreate
   static async setLastActiveAt(model: OAuthAuthentication) {
     model.lastActiveAt = new Date();
   }
@@ -132,9 +118,9 @@ class OAuthAuthentication extends ParanoidModel<
   }
 
   /**
-   * Finds an OAuthAuthentication by the given input string.
+   * Finds an OAuthAuthentication by the given access token.
    *
-   * @param input The input string to search for
+   * @param input The access token to search for
    * @returns The OAuthAuthentication if found
    */
   public static findByAccessToken(input: string) {
@@ -142,6 +128,34 @@ class OAuthAuthentication extends ParanoidModel<
       where: {
         accessTokenHash: this.hash(input),
       },
+      include: [
+        {
+          association: "user",
+          required: true,
+        },
+      ],
+      rejectOnEmpty: true,
+    });
+  }
+
+  /**
+   * Finds an OAuthAuthentication by the given refresh token.
+   *
+   * @param input The refresh token to search for
+   * @returns The OAuthAuthentication if found
+   */
+  public static findByRefreshToken(input: string) {
+    return this.findOne({
+      where: {
+        refreshTokenHash: this.hash(input),
+      },
+      include: [
+        {
+          association: "user",
+          required: true,
+        },
+      ],
+      rejectOnEmpty: true,
     });
   }
 }

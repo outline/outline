@@ -13,6 +13,7 @@ import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import shareDomains from "@server/middlewares/shareDomains";
 import { Integration } from "@server/models";
+import { Hook, PluginManager } from "@server/utils/PluginManager";
 import { opensearchResponse } from "@server/utils/opensearch";
 import { getTeamFromContext } from "@server/utils/passport";
 import { robotsResponse } from "@server/utils/robots";
@@ -25,6 +26,11 @@ const koa = new Koa();
 const router = new Router();
 
 koa.use<BaseContext, UserAgentContext>(userAgent);
+
+// Register routes before others to allow for overrides
+PluginManager.getHooks(Hook.Route).forEach((hook) =>
+  router.use("/", hook.value.routes())
+);
 
 // serve public assets
 router.use(["/images/*", "/email/*", "/fonts/*"], async (ctx, next) => {
