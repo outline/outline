@@ -1,11 +1,13 @@
 import { observer } from "mobx-react";
 import * as React from "react";
+import styled from "styled-components";
 import EditorContainer from "@shared/editor/components/Styles";
 import { colorPalette } from "@shared/utils/collections";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
 import { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
+import useQuery from "~/hooks/useQuery";
 import { documentPath } from "~/utils/routeHelpers";
 import { Meta as DocumentMeta } from "./DocumentMeta";
 import DocumentTitle from "./DocumentTitle";
@@ -25,6 +27,7 @@ type Props = Omit<EditorProps, "extensions"> & {
  */
 function RevisionViewer(props: Props) {
   const { document, children, revision } = props;
+  const selectedOpIndex: string | null = useQuery().get("opIndex");
 
   return (
     <Flex auto column>
@@ -41,14 +44,37 @@ function RevisionViewer(props: Props) {
         to={documentPath(document)}
         rtl={revision.rtl}
       />
-      <EditorContainer
+      <EditorContainerStyled
         dangerouslySetInnerHTML={{ __html: revision.html }}
         dir={revision.dir}
         rtl={revision.rtl}
+        selectedOpIndex={selectedOpIndex}
       />
       {children}
     </Flex>
   );
 }
+
+const EditorContainerStyled = styled(EditorContainer)<{
+  selectedOpIndex: string | null;
+}>`
+  @keyframes transientMarker {
+    from {
+      border-bottom-color: rgba(255, 215, 0, 1);
+    }
+    to {
+      border-bottom-color: rgba(255, 215, 0, 0);
+    }
+  }
+
+  // Note: This assumes that the original diff-styling doesn't use border-*
+  ${(props) =>
+    props.selectedOpIndex &&
+    `[data-operation-index="${props.selectedOpIndex}"] {
+      animation: transientMarker 3s forwards;
+      border-bottom: 3px solid rgba(255, 215, 0, 1);
+      box-sizing: border-box;
+    }`}
+`;
 
 export default observer(RevisionViewer);
