@@ -42,7 +42,7 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
     );
 
     // Filter out any null results (from pages/databases that couldn't be accessed)
-    const validParsedPages = parsedPages.filter(Boolean);
+    const validParsedPages = parsedPages.filter(Boolean) as ParsePageOutput[];
 
     const taskOutput: ImportTaskOutput = validParsedPages.map((parsedPage) => ({
       externalId: parsedPage.externalId,
