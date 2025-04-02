@@ -58,7 +58,11 @@ class Integration<T = unknown> extends Model {
     switch (this.service) {
       case IntegrationService.GitHub: {
         const type = pathParts[3];
-        return type === "pull" ? MentionType.PullRequest : MentionType.Issue;
+        return type === "pull"
+          ? MentionType.PullRequest
+          : type === "issue"
+          ? MentionType.Issue
+          : undefined;
       }
 
       default:

@@ -2,8 +2,10 @@ import { observer } from "mobx-react";
 import { DocumentIcon, EmailIcon, CollectionIcon } from "outline-icons";
 import { Node } from "prosemirror-model";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import Icon from "../../components/Icon";
+import Spinner from "../../components/Spinner";
 import useStores from "../../hooks/useStores";
 import type { UnfurlResourceType, UnfurlResponse } from "../../types";
 import { cn } from "../styles/utils";
@@ -125,7 +127,7 @@ export const MentionIssue = (props: ComponentProps) => {
   }, [unfurls, attrs.href]);
 
   if (!loaded) {
-    return <span>Loading..</span>;
+    return <MentionLoading className={className} />;
   }
 
   if (!data) {
@@ -144,5 +146,56 @@ export const MentionIssue = (props: ComponentProps) => {
     >
       {data.title}
     </a>
+  );
+};
+
+export const MentionPullRequest = (props: ComponentProps) => {
+  const { unfurls } = useStores();
+  const [data, setData] =
+    React.useState<UnfurlResponse[UnfurlResourceType.PR]>();
+  const [loaded, setLoaded] = React.useState(false);
+
+  const { isSelected, node } = props;
+  const { className, ...attrs } = getAttributesFromNode(node);
+
+  React.useEffect(() => {
+    const fetchPR = async () => {
+      setData(await unfurls.fetch(attrs.href));
+      setLoaded(true);
+    };
+
+    void fetchPR();
+  }, [unfurls, attrs.href]);
+
+  if (!loaded) {
+    return <MentionLoading className={className} />;
+  }
+
+  if (!data) {
+    return <span>Error loading pull request</span>;
+  }
+
+  return (
+    <a
+      {...attrs}
+      className={cn(className, {
+        "ProseMirror-selectednode": isSelected,
+      })}
+      href={attrs.href}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {data.title}
+    </a>
+  );
+};
+
+const MentionLoading = ({ className }: { className: string }) => {
+  const { t } = useTranslation();
+  return (
+    <span className={className}>
+      <Spinner />
+      {`${t("Loading")}…`}
+    </span>
   );
 };

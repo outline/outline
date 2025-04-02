@@ -20,6 +20,7 @@ import {
   MentionCollection,
   MentionDocument,
   MentionIssue,
+  MentionPullRequest,
   MentionUser,
 } from "../components/Mentions";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
@@ -116,6 +117,8 @@ export default class Mention extends Node {
         return <MentionCollection {...props} />;
       case MentionType.Issue:
         return <MentionIssue {...props} />;
+      case MentionType.PullRequest:
+        return <MentionPullRequest {...props} />;
       default:
         return null;
     }
