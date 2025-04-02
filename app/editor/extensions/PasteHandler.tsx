@@ -479,8 +479,6 @@ export default class PasteHandler extends Extension {
       default:
         break;
     }
-
-    return true;
   };
 
   keys() {

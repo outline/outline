@@ -152,7 +152,7 @@ export const MentionIssue = (props: ComponentProps) => {
       })}
       href={attrs.href}
       target="_blank"
-      rel="noopener noreferrer"
+      rel="noopener noreferrer nofollow"
     >
       <Flex align="center" gap={6}>
         <IssueStatusIcon
@@ -203,7 +203,7 @@ export const MentionPullRequest = (props: ComponentProps) => {
       })}
       href={attrs.href}
       target="_blank"
-      rel="noopener noreferrer"
+      rel="noopener noreferrer nofollow"
     >
       <Flex align="center" gap={6}>
         <PullRequestIcon
