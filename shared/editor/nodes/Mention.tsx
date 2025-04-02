@@ -207,8 +207,6 @@ export default class Mention extends Node {
   commands({ type }: { type: NodeType; schema: Schema }) {
     return (attrs: Record<string, Primitive>): Command =>
       (state, dispatch) => {
-        console.log("running mention command", attrs);
-
         const { selection } = state;
         const position =
           selection instanceof TextSelection

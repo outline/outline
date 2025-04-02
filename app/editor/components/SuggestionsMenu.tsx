@@ -12,6 +12,7 @@ import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
 import { MenuItem } from "@shared/editor/types";
 import { depths, s } from "@shared/styles";
+import { MentionType } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
 import Header from "~/components/ContextMenu/Header";
@@ -64,7 +65,7 @@ export type Props<T extends MenuItem = MenuItem> = {
   onFileUploadStop?: () => void;
   /** Callback when the menu is closed */
   onClose: (insertNewLine?: boolean) => void;
-  /** Optional callback when a suggestion is selected */
+  /** Optional callback when a suggestion is selected/ */
   onSelect?: (item: MenuItem) => void;
   embeds?: EmbedDescriptor[];
   renderMenuItem: (
@@ -233,7 +234,11 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       const attrs =
         typeof item.attrs === "function" ? item.attrs(view.state) : item.attrs;
 
-      if (item.name === "noop") {
+      const skipMention =
+        attrs?.type === MentionType.Issue ||
+        attrs?.type === MentionType.PullRequest; // Mention node creation will be handled by PasteHandler.
+
+      if (item.name === "noop" || (item.name === "mention" && skipMention)) {
         // Do nothing
       } else if (command) {
         command(attrs);

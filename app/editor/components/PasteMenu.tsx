@@ -61,6 +61,7 @@ export const PasteMenu = observer(({ pastedText, embeds, ...props }: Props) => {
         name: "mention",
         title: t("Mention"),
         attrs: { type: mentionType },
+        appendSpace: true,
       });
     }
 

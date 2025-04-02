@@ -60,7 +60,7 @@ class Integration<T = unknown> extends Model {
         const type = pathParts[3];
         return type === "pull"
           ? MentionType.PullRequest
-          : type === "issue"
+          : type === "issues"
           ? MentionType.Issue
           : undefined;
       }
