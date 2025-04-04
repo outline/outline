@@ -26,10 +26,12 @@ import ImportTask, {
   ImportTaskAttributes,
   ImportTaskCreationAttributes,
 } from "@server/models/ImportTask";
+import { EventOverrideOptions } from "@server/models/base/Model";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
-import { Event, ImportEvent } from "@server/types";
+import { APIContext, Event, ImportEvent } from "@server/types";
+import { generateUrlId } from "@server/utils/url";
 import BaseProcessor from "./BaseProcessor";
 
 export const PagePerImportTask = 3;
@@ -331,8 +333,9 @@ export default abstract class ImportsProcessor<
                 }
               );
 
-              const collection = Collection.build({
+              let collection = Collection.build({
                 id: internalId,
+                urlId: generateUrlId(),
                 name: output.title,
                 icon: output.emoji ?? "collection",
                 color: output.emoji ? undefined : randomElement(colorPalette),
@@ -350,14 +353,10 @@ export default abstract class ImportsProcessor<
                 updatedAt: output.updatedAt ?? now,
               });
 
-              await collection.saveWithCtx(
-                ctx,
-                { silent: true },
-                {
-                  name: "create",
-                  data: { name: output.title, source: "import" },
-                }
-              );
+              collection = await this.saveCollection(ctx, collection, {
+                name: "create",
+                data: { name: output.title, source: "import" },
+              });
 
               createdCollections.push(collection);
 
@@ -376,6 +375,7 @@ export default abstract class ImportsProcessor<
 
             const document = Document.build({
               id: internalId,
+              urlId: generateUrlId(),
               title: output.title,
               icon: output.emoji,
               content: transformedContent,
@@ -398,14 +398,10 @@ export default abstract class ImportsProcessor<
               publishedAt: output.updatedAt ?? output.createdAt ?? now,
             });
 
-            await document.saveWithCtx(
-              ctx,
-              { silent: true },
-              {
-                name: "create",
-                data: { title: output.title, source: "import" },
-              }
-            );
+            await this.saveDocument(ctx, document, {
+              name: "create",
+              data: { title: output.title, source: "import" },
+            });
 
             // Update document id for attachments in document content.
             await Attachment.update(
@@ -498,6 +494,42 @@ export default abstract class ImportsProcessor<
     };
 
     return doc.copy(transformFragment(doc.content)).toJSON();
+  }
+
+  private async saveCollection(
+    ctx: APIContext,
+    collection: Collection,
+    eventOpts: EventOverrideOptions
+  ): Promise<Collection> {
+    const existingUrlId = await Collection.count({
+      where: { urlId: collection.urlId },
+      paranoid: false,
+      transaction: ctx.context.transaction,
+    });
+
+    if (existingUrlId) {
+      collection.urlId = generateUrlId();
+    }
+
+    return collection.saveWithCtx(ctx, { silent: true }, eventOpts);
+  }
+
+  private async saveDocument(
+    ctx: APIContext,
+    document: Document,
+    eventOpts: EventOverrideOptions
+  ): Promise<Document> {
+    const existingUrlId = await Document.count({
+      where: { urlId: document.urlId },
+      paranoid: false,
+      transaction: ctx.context.transaction,
+    });
+
+    if (existingUrlId) {
+      document.urlId = generateUrlId();
+    }
+
+    return document.saveWithCtx(ctx, { silent: true }, eventOpts);
   }
 
   /**
