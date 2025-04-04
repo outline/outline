@@ -2,7 +2,7 @@ import { t } from "i18next";
 import capitalize from "lodash/capitalize";
 import uniq from "lodash/uniq";
 
-export class OAuthHelper {
+export class OAuthScopeHelper {
   public static normalizeScopes(scopes: string[]): string[] {
     const methodToReadable = {
       list: t("read"),

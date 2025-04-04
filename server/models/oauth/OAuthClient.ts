@@ -108,16 +108,33 @@ class OAuthClient extends ParanoidModel<
   @Column(DataType.UUID)
   createdById: string;
 
+  // instance methods
+
+  /**
+   * Rotate the client secret value. Does not persist to database.
+   */
+  public rotateClientSecret() {
+    this.clientSecret = OAuthClient.generateNewClientSecret();
+  }
+
   // hooks
 
   @BeforeCreate
   public static async generateCredentials(model: OAuthClient) {
-    model.clientId = rs.generate({
+    model.clientId = OAuthClient.generateNewClientId();
+    model.clientSecret = OAuthClient.generateNewClientSecret();
+  }
+
+  private static generateNewClientId(): string {
+    return rs.generate({
       length: 20,
       charset: "alphanumeric",
       capitalization: "lowercase",
     });
-    model.clientSecret = `${OAuthClient.clientSecretPrefix}${rs.generate(32)}`;
+  }
+
+  private static generateNewClientSecret(): string {
+    return `${OAuthClient.clientSecretPrefix}${rs.generate(32)}`;
   }
 }
 

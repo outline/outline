@@ -1,7 +1,7 @@
 import { TeamPreference } from "@shared/types";
 import { Team, User, OAuthClient } from "@server/models";
 import { allow } from "./cancan";
-import { or, isTeamModel, isTeamMutable, and, isOwner } from "./utils";
+import { or, isTeamModel, isTeamMutable, and, isTeamAdmin } from "./utils";
 
 allow(User, "createOAuthClient", Team, (actor, team) =>
   and(
@@ -16,11 +16,7 @@ allow(User, "createOAuthClient", Team, (actor, team) =>
 );
 
 allow(User, "listOAuthClients", Team, (actor, team) =>
-  and(
-    //
-    isTeamModel(actor, team),
-    actor.isAdmin
-  )
+  isTeamAdmin(actor, team)
 );
 
 allow(User, "read", OAuthClient, (actor, oauthClient) =>
@@ -28,9 +24,5 @@ allow(User, "read", OAuthClient, (actor, oauthClient) =>
 );
 
 allow(User, ["update", "delete"], OAuthClient, (actor, oauthClient) =>
-  and(
-    isOwner(actor, oauthClient),
-    actor.isAdmin ||
-      !!actor.team?.getPreference(TeamPreference.MembersCanCreateApiKey)
-  )
+  and(isTeamModel(actor, oauthClient), isTeamMutable(actor), actor.isAdmin)
 );

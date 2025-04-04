@@ -15,7 +15,7 @@ import useQuery from "~/hooks/useQuery";
 import useRequest from "~/hooks/useRequest";
 import { client } from "~/utils/ApiClient";
 import { detectLanguage } from "~/utils/language";
-import { OAuthHelper } from "./OAuthHelper";
+import { OAuthScopeHelper } from "./OAuthScopeHelper";
 import { Background } from "./components/Background";
 import { Centered } from "./components/Centered";
 
@@ -141,7 +141,7 @@ function Authorize() {
           )}
         </Text>
         <ul style={{ width: "100%", paddingLeft: "1em", marginTop: 0 }}>
-          {OAuthHelper.normalizeScopes(scopes).map((item) => (
+          {OAuthScopeHelper.normalizeScopes(scopes).map((item) => (
             <li key={item}>
               <Text type="secondary">{item}</Text>
             </li>
