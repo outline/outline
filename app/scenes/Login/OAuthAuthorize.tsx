@@ -8,12 +8,14 @@ import { Avatar, AvatarSize } from "~/components/Avatar";
 import ButtonLarge from "~/components/ButtonLarge";
 import ChangeLanguage from "~/components/ChangeLanguage";
 import Heading from "~/components/Heading";
+import PageTitle from "~/components/PageTitle";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useQuery from "~/hooks/useQuery";
 import useRequest from "~/hooks/useRequest";
 import { client } from "~/utils/ApiClient";
 import { detectLanguage } from "~/utils/language";
+import { OAuthHelper } from "./OAuthHelper";
 import { Background } from "./components/Background";
 import { Centered } from "./components/Centered";
 
@@ -58,7 +60,7 @@ function Authorize() {
       <Background>
         <ChangeLanguage locale={detectLanguage()} />
         <Centered>
-          <StyledHeading>{t("Error")}</StyledHeading>
+          <StyledHeading>{t("An error occurred")}</StyledHeading>
           <Text as="p" type="secondary">
             {t("Required OAuth parameters are missing")}
             <Pre>
@@ -80,8 +82,8 @@ function Authorize() {
       <Background>
         <ChangeLanguage locale={detectLanguage()} />
         <Centered>
-          <StyledHeading>{t("Error")}</StyledHeading>
-          <p>{t("Unable to load OAuth client")}</p>
+          <StyledHeading>{t("An error occurred")}</StyledHeading>
+          <p>{t("Unable to load details of OAuth client")}</p>
         </Centered>
       </Background>
     );
@@ -94,6 +96,7 @@ function Authorize() {
 
   return (
     <Background>
+      <PageTitle title={t("Authorize")} />
       <ChangeLanguage locale={detectLanguage()} />
 
       <Centered gap={12}>
@@ -110,16 +113,26 @@ function Authorize() {
           <Logo model={team} size={AvatarSize.XXLarge} alt={t("Logo")} />
         </Flex>
         <StyledHeading>
-          {response.data.name} wants to access {team.name}
+          {t(`{{ appName }} wants to access {{ teamName }}`, {
+            appName: response.data.name,
+            teamName: team.name,
+          })}
         </StyledHeading>
-        <p>
-          {scopes.map((item) => (
-            <>
-              {item}
-              <br />
-            </>
+        <Text type="tertiary" as="p">
+          {t(
+            "{{ appName }} will be able to access your account and perform the following actions:",
+            {
+              appName: response.data.name,
+            }
+          )}
+        </Text>
+        <ul style={{ width: "100%", paddingLeft: "1em", marginTop: 0 }}>
+          {OAuthHelper.normalizeScopes(scopes).map((item) => (
+            <li key={item}>
+              <Text type="secondary">{item}</Text>
+            </li>
           ))}
-        </p>
+        </ul>
         <form method="POST" action="/oauth/authorize" style={{ width: "100%" }}>
           <input type="hidden" name="client_id" value={clientId ?? ""} />
           <input
