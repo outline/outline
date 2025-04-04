@@ -23,6 +23,8 @@ function Authorize() {
   const team = useCurrentTeam();
   const params = useQuery();
   const { t } = useTranslation();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const timeoutRef = React.useRef<number>();
   const clientId = params.get("client_id");
   const clientSecret = params.get("client_secret");
   const redirectUri = params.get("redirect_uri");
@@ -40,11 +42,23 @@ function Authorize() {
     if (clientId) {
       void request();
     }
-  }, []);
+  }, [clientId, request]);
 
   const handleCancel = () => {
     window.location.href = redirectUri ?? "/";
   };
+
+  const handleSubmit = () => {
+    setIsSubmitting(true);
+    timeoutRef.current = window.setTimeout(() => setIsSubmitting(false), 3000);
+  };
+
+  React.useEffect(
+    () => () => {
+      timeoutRef.current && window.clearTimeout(timeoutRef.current);
+    },
+    []
+  );
 
   const missingParams = [
     !clientId && "client_id",
@@ -152,7 +166,13 @@ function Authorize() {
             <Button type="button" onClick={handleCancel} neutral>
               {t("Cancel")}
             </Button>
-            <Button type="submit">{t("Authorize")}</Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              onClick={handleSubmit}
+            >
+              {t("Authorize")}
+            </Button>
           </Flex>
         </form>
       </Centered>
