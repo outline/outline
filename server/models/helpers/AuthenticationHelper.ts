@@ -5,6 +5,11 @@ import Team from "@server/models/Team";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 
 export default class AuthenticationHelper {
+  public static methodToScope = {
+    list: "read",
+    info: "read",
+  };
+
   /**
    * Returns the enabled authentication provider configurations for the current
    * installation.
@@ -63,12 +68,27 @@ export default class AuthenticationHelper {
     return scopes.some((scope) => {
       const [scopeNamespace, scopeMethod] = scope
         .replace("/api/", "")
-        .split(".");
-      return (
-        scope.startsWith("/api/") &&
-        (namespace === scopeNamespace || scopeNamespace === "*") &&
-        (method === scopeMethod || scopeMethod === "*")
-      );
+        .split(/[:\.]/g);
+      const isRouteScope = scope.startsWith("/api/");
+      const isAccessScope = scope.includes(":");
+
+      if (isRouteScope) {
+        return (
+          (namespace === scopeNamespace || scopeNamespace === "*") &&
+          (method === scopeMethod || scopeMethod === "*")
+        );
+      }
+
+      if (isAccessScope) {
+        return (
+          namespace === scopeNamespace &&
+          (scopeMethod === "write" ||
+            this.methodToScope[method as keyof typeof this.methodToScope] ===
+              scopeMethod)
+        );
+      }
+
+      return false;
     });
   };
 }
