@@ -23,6 +23,7 @@ import groups from "./groups";
 import imports from "./imports";
 import installation from "./installation";
 import integrations from "./integrations";
+import issues from "./issues";
 import apiErrorHandler from "./middlewares/apiErrorHandler";
 import apiResponse from "./middlewares/apiResponse";
 import apiTracer from "./middlewares/apiTracer";
@@ -99,6 +100,7 @@ router.use("/", urls.routes());
 router.use("/", userMemberships.routes());
 router.use("/", reactions.routes());
 router.use("/", imports.routes());
+router.use("/", issues.routes());
 
 if (!env.isCloudHosted) {
   router.use("/", installation.routes());

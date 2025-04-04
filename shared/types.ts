@@ -146,6 +146,15 @@ export const UserCreatableIntegrationService = {
   Umami: IntegrationService.Umami,
 } as const;
 
+export type IssueProviderIntegrationService = Extract<
+  IntegrationService,
+  IntegrationService.GitHub
+>;
+
+export const IssueProviderIntegrationService = {
+  Notion: IntegrationService.GitHub,
+} as const;
+
 export enum CollectionPermission {
   Read = "read",
   ReadWrite = "read_write",

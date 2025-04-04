@@ -40,6 +40,32 @@ const requestPlugin = (octokit: Octokit) => ({
       },
     }),
 
+  requestRepos: async () =>
+    octokit.request("GET /installation/repositories", {
+      headers: {
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    }),
+
+  createIssue: async ({
+    owner,
+    repo,
+    title,
+  }: {
+    owner: string;
+    repo: string;
+    title: string;
+  }) =>
+    octokit.request(`POST /repos/{owner}/{repo}/issues`, {
+      owner,
+      repo,
+      title,
+      headers: {
+        Accept: "application/vnd.github.text+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    }),
   /**
    * Fetches app installations accessible to the user
    *
@@ -82,9 +108,11 @@ const CustomOctokit = Octokit.plugin(requestPlugin);
 
 export class GitHub {
   private static appId = env.GITHUB_APP_ID;
-  private static appKey = env.GITHUB_APP_PRIVATE_KEY
-    ? Buffer.from(env.GITHUB_APP_PRIVATE_KEY, "base64").toString("ascii")
-    : undefined;
+  // private static appKey = env.GITHUB_APP_PRIVATE_KEY
+  //   ? Buffer.from(env.GITHUB_APP_PRIVATE_KEY, "base64").toString("ascii")
+  //   : undefined;
+
+  private static appKey = env.GITHUB_APP_PRIVATE_KEY;
 
   private static clientId = env.GITHUB_CLIENT_ID;
   private static clientSecret = env.GITHUB_CLIENT_SECRET;

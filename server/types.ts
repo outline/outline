@@ -2,6 +2,7 @@ import { ParameterizedContext, DefaultContext } from "koa";
 import { IRouterParamContext } from "koa-router";
 import { InferAttributes, Model, Transaction } from "sequelize";
 import { z } from "zod";
+import { IssueSource } from "@shared/schema";
 import {
   CollectionSort,
   NavigationNode,
@@ -584,6 +585,17 @@ export type UnfurlSignature = (
 ) => Promise<Unfurl | void>;
 
 export type UninstallSignature = (integration: Integration) => Promise<void>;
+
+export type CreateIssueResponse = Unfurl & { cacheKey: string };
+
+export type IssueProvider = {
+  listSources: (actor: User) => Promise<IssueSource[]>;
+  createIssue: (
+    title: string,
+    source: IssueSource,
+    actor: User
+  ) => Promise<CreateIssueResponse | undefined>;
+};
 
 export type Replace<T, K extends keyof T, N extends string> = {
   [P in keyof T as P extends K ? N : P]: T[P extends K ? K : P];

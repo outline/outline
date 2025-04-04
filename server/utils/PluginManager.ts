@@ -3,12 +3,17 @@ import { glob } from "glob";
 import type Router from "koa-router";
 import isArray from "lodash/isArray";
 import sortBy from "lodash/sortBy";
+import { IssueProviderIntegrationService } from "@shared/types";
 import type BaseEmail from "@server/emails/templates/BaseEmail";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import type BaseProcessor from "@server/queues/processors/BaseProcessor";
 import type BaseTask from "@server/queues/tasks/BaseTask";
-import { UnfurlSignature, UninstallSignature } from "@server/types";
+import {
+  IssueProvider as TIssueProvider,
+  UnfurlSignature,
+  UninstallSignature,
+} from "@server/types";
 
 export enum PluginPriority {
   VeryHigh = 0,
@@ -25,6 +30,7 @@ export enum Hook {
   API = "api",
   AuthProvider = "authProvider",
   EmailTemplate = "emailTemplate",
+  IssueProvider = "issueProvider",
   Processor = "processor",
   Task = "task",
   UnfurlProvider = "unfurl",
@@ -39,6 +45,11 @@ type PluginValueMap = {
   [Hook.API]: Router;
   [Hook.AuthProvider]: { router: Router; id: string };
   [Hook.EmailTemplate]: typeof BaseEmail;
+  [Hook.IssueProvider]: {
+    provider: TIssueProvider;
+    service: IssueProviderIntegrationService;
+    cacheExpiry: number;
+  };
   [Hook.Processor]: typeof BaseProcessor;
   [Hook.Task]: typeof BaseTask<any>;
   [Hook.Uninstall]: UninstallSignature;
