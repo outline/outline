@@ -17,6 +17,7 @@ import {
   IndentIcon,
   CopyIcon,
   Heading3Icon,
+  PlusIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import * as React from "react";
@@ -258,6 +259,21 @@ export default function formattingMenuItems(
       tooltip: dictionary.copy,
       shortcut: `${metaDisplay}+C`,
       visible: isCode && !isCodeBlock && (!isMobile || !isEmpty),
+    },
+    {
+      name: "separator",
+      visible: !isCode && !isEmpty,
+    },
+    {
+      name: "issue",
+      tooltip: dictionary.createIssue,
+      shortcut: `${metaDisplay}+⌥+I`,
+      icon: <PlusIcon />,
+      attrs: {
+        title: state.doc.cut(state.selection.from, state.selection.to)
+          .textContent,
+      },
+      visible: !isCode && !isEmpty,
     },
   ];
 }
