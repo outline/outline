@@ -1,11 +1,3 @@
-import Team from "@server/models/Team";
-import User from "@server/models/User";
-import ParanoidModel from "@server/models/base/ParanoidModel";
-import Encrypted from "@server/models/decorators/Encrypted";
-import Fix from "@server/models/decorators/Fix";
-import IsUrlOrRelativePath from "@server/models/validators/IsUrlOrRelativePath";
-import NotContainsUrl from "@server/models/validators/NotContainsUrl";
-import { OAuthClientValidation } from "@shared/validations";
 import {
   ArrayMaxSize,
   ArrayMinSize,
@@ -25,6 +17,14 @@ import {
   BeforeCreate,
   AllowNull,
 } from "sequelize-typescript";
+import { OAuthClientValidation } from "@shared/validations";
+import Team from "@server/models/Team";
+import User from "@server/models/User";
+import ParanoidModel from "@server/models/base/ParanoidModel";
+import Encrypted from "@server/models/decorators/Encrypted";
+import Fix from "@server/models/decorators/Fix";
+import IsUrlOrRelativePath from "@server/models/validators/IsUrlOrRelativePath";
+import NotContainsUrl from "@server/models/validators/NotContainsUrl";
 
 @Table({
   tableName: "oauth_clients",

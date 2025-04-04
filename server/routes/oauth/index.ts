@@ -1,9 +1,9 @@
 import OAuth2Server from "@node-oauth/oauth2-server";
-import auth from "@server/middlewares/authentication";
 import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
-import { OAuthInterface } from "./interface";
+import auth from "@server/middlewares/authentication";
+import { OAuthInterface } from "@server/utils/oauth/OAuthInterface";
 
 const app = new Koa();
 
@@ -25,6 +25,15 @@ router.post("/authorize", auth(), async (ctx) => {
       },
     },
   });
+
+  if (response.status === 302 && response.headers?.location) {
+    const location = response.headers.location;
+    delete response.headers.location;
+    ctx.set(response.headers);
+    ctx.redirect(location);
+    return;
+  }
+
   ctx.body = { code: authorizationCode };
 });
 
@@ -33,7 +42,16 @@ router.post("/token", async (ctx) => {
   const response = new OAuth2Server.Response(ctx.response);
 
   const token = await oauth.token(request, response);
-  ctx.body = { token };
+
+  ctx.body = {
+    access_token: token.accessToken,
+    refresh_token: token.refreshToken,
+    expires_in: token.accessTokenExpiresAt
+      ? Math.round((token.accessTokenExpiresAt.getTime() - Date.now()) / 1000)
+      : undefined,
+    token_type: "Bearer",
+    scope: token.scope?.join(" "),
+  };
 });
 
 app.use(bodyParser());

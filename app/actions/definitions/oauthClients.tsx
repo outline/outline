@@ -11,9 +11,8 @@ export const createOAuthClient = createAction({
   section: SettingsSection,
   icon: <PlusIcon />,
   keywords: "create",
-  // TODO
-  // visible: () =>
-  //   stores.policies.abilities(stores.auth.team?.id || "").createOAuthClient,
+  visible: () =>
+    stores.policies.abilities(stores.auth.team?.id || "").createOAuthClient,
   perform: ({ t, event }) => {
     event?.preventDefault();
     event?.stopPropagation();

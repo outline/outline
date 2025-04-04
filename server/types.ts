@@ -41,6 +41,7 @@ import type {
 export enum AuthenticationType {
   API = "api",
   APP = "app",
+  OAUTH = "oauth",
 }
 
 export type AuthenticationResult = AccountProvisionerResult & {

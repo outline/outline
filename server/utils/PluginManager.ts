@@ -1,13 +1,11 @@
 import path from "path";
 import { glob } from "glob";
-import type Koa from "koa";
 import type Router from "koa-router";
 import isArray from "lodash/isArray";
 import sortBy from "lodash/sortBy";
 import type BaseEmail from "@server/emails/templates/BaseEmail";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
-import BaseModel from "@server/models/base/Model";
 import type BaseProcessor from "@server/queues/processors/BaseProcessor";
 import type BaseTask from "@server/queues/tasks/BaseTask";
 import { UnfurlSignature, UninstallSignature } from "@server/types";
@@ -27,8 +25,6 @@ export enum Hook {
   API = "api",
   AuthProvider = "authProvider",
   EmailTemplate = "emailTemplate",
-  Route = "route",
-  Model = "model",
   Processor = "processor",
   Task = "task",
   UnfurlProvider = "unfurl",
@@ -47,8 +43,6 @@ type PluginValueMap = {
   [Hook.Task]: typeof BaseTask<any>;
   [Hook.Uninstall]: UninstallSignature;
   [Hook.UnfurlProvider]: { unfurl: UnfurlSignature; cacheExpiry: number };
-  [Hook.Model]: typeof BaseModel;
-  [Hook.Route]: { path: string; app: Koa };
 };
 
 export type Plugin<T extends Hook> = {

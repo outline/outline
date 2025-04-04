@@ -1,9 +1,4 @@
 import crypto from "crypto";
-import User from "@server/models/User";
-import IdModel from "@server/models/base/IdModel";
-import { SkipChangeset } from "@server/models/decorators/Changeset";
-import Fix from "@server/models/decorators/Fix";
-import { OAuthClientValidation } from "@shared/validations";
 import { Matches } from "class-validator";
 import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
@@ -14,6 +9,11 @@ import {
   Table,
   Length,
 } from "sequelize-typescript";
+import { OAuthClientValidation } from "@shared/validations";
+import User from "@server/models/User";
+import IdModel from "@server/models/base/IdModel";
+import { SkipChangeset } from "@server/models/decorators/Changeset";
+import Fix from "@server/models/decorators/Fix";
 import OAuthClient from "./OAuthClient";
 
 @Table({
@@ -26,6 +26,8 @@ class OAuthAuthorizationCode extends IdModel<
   InferAttributes<OAuthAuthorizationCode>,
   Partial<InferCreationAttributes<OAuthAuthorizationCode>>
 > {
+  public static authorizationCodePrefix = "ol_ac_";
+
   @Column
   @SkipChangeset
   authorizationCodeHash: string;
@@ -77,9 +79,11 @@ class OAuthAuthorizationCode extends IdModel<
    * @returns The OAuthAuthentication if found
    */
   public static findByCode(input: string) {
+    const authorizationCodeHash = this.hash(input);
+
     return this.findOne({
       where: {
-        authorizationCodeHash: this.hash(input),
+        authorizationCodeHash,
       },
       include: [
         {
@@ -87,7 +91,6 @@ class OAuthAuthorizationCode extends IdModel<
           required: true,
         },
       ],
-      rejectOnEmpty: true,
     });
   }
 }

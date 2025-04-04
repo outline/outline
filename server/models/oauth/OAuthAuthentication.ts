@@ -1,8 +1,4 @@
 import crypto from "crypto";
-import User from "@server/models/User";
-import ParanoidModel from "@server/models/base/ParanoidModel";
-import { SkipChangeset } from "@server/models/decorators/Changeset";
-import Fix from "@server/models/decorators/Fix";
 import { Matches } from "class-validator";
 import { subMinutes } from "date-fns";
 import { InferAttributes, InferCreationAttributes } from "sequelize";
@@ -16,6 +12,11 @@ import {
   IsDate,
   Unique,
 } from "sequelize-typescript";
+import User from "@server/models/User";
+import ParanoidModel from "@server/models/base/ParanoidModel";
+import { SkipChangeset } from "@server/models/decorators/Changeset";
+import Fix from "@server/models/decorators/Fix";
+import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
 import OAuthClient from "./OAuthClient";
 
 @Table({
@@ -27,8 +28,8 @@ class OAuthAuthentication extends ParanoidModel<
   InferAttributes<OAuthAuthentication>,
   Partial<InferCreationAttributes<OAuthAuthentication>>
 > {
-  public static accessTokenPrefix = "ol_atx_";
-  public static refreshTokenPrefix = "ol_rtx_";
+  public static accessTokenPrefix = "ol_at_";
+  public static refreshTokenPrefix = "ol_rt_";
 
   @Unique
   @Column
@@ -105,7 +106,24 @@ class OAuthAuthentication extends ParanoidModel<
     model.lastActiveAt = new Date();
   }
 
+  // instance methods
+
+  /** Checks if the authentication has access to the given path */
+  canAccess = (path: string) =>
+    AuthenticationHelper.canAccess(path, this.scope);
+
   // static methods
+
+  /**
+   * Validates that the input text _could_ be an OAuth token, this does not check
+   * that the key actually exists in the database.
+   *
+   * @param text The text to validate
+   * @returns True if likely an OAuth token
+   */
+  public static match(text: string) {
+    return !!text.startsWith(this.accessTokenPrefix);
+  }
 
   /**
    * Generates a hashed token for the given input.

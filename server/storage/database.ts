@@ -4,7 +4,6 @@ import { Sequelize } from "sequelize-typescript";
 import { Umzug, SequelizeStorage, MigrationError } from "umzug";
 import env from "@server/env";
 import Model from "@server/models/base/Model";
-import { Hook, PluginManager } from "@server/utils/PluginManager";
 import Logger from "../logging/Logger";
 import * as baseModels from "../models";
 
@@ -26,11 +25,6 @@ export function createDatabaseInstance(
   const models = Object.values(input);
 
   try {
-    // Collect any additional models from plugins
-    PluginManager.getHooks(Hook.Model).forEach((plugin) => {
-      models.push(plugin.value);
-    });
-
     return new Sequelize(databaseUrl, {
       logging: (msg) =>
         process.env.DEBUG?.includes("database") &&

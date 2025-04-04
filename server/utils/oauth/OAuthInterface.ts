@@ -3,38 +3,34 @@ import {
   AuthorizationCodeModel,
 } from "@node-oauth/oauth2-server";
 import rs from "randomstring";
-import { WhereOptions } from "sequelize";
-import OAuthAuthentication from "./models/OAuthAuthentication";
-import OAuthAuthorizationCode from "./models/OAuthAuthorizationCode";
-import OAuthClient from "./models/OAuthClient";
+import {
+  OAuthClient,
+  OAuthAuthentication,
+  OAuthAuthorizationCode,
+} from "@server/models";
+import { safeEqual } from "@server/utils/crypto";
 
 interface Config {
-  accessTokenPrefix: string;
-  refreshTokenPrefix: string;
-  clientSecretPrefix: string;
-  authorizationCodePrefix: string;
   grants: string[];
 }
 
 export const OAuthInterface: RefreshTokenModel &
   AuthorizationCodeModel &
   Config = {
-  accessTokenPrefix: "ol_at_",
-  refreshTokenPrefix: "ol_rt_",
-  clientSecretPrefix: "ol_sk_",
-  authorizationCodePrefix: "ol_ac_",
   grants: ["authorization_code", "refresh_token"],
 
   async generateAccessToken() {
-    return `${this.accessTokenPrefix}${rs.generate(32)}`;
+    return `${OAuthAuthentication.accessTokenPrefix}${rs.generate(32)}`;
   },
 
   async generateRefreshToken() {
-    return `${this.refreshTokenPrefix}${rs.generate(32)}`;
+    return `${OAuthAuthentication.refreshTokenPrefix}${rs.generate(32)}`;
   },
 
   async generateAuthorizationCode() {
-    return `${this.authorizationCodePrefix}${rs.generate(32)}`;
+    return `${OAuthAuthorizationCode.authorizationCodePrefix}${rs.generate(
+      32
+    )}`;
   },
 
   async getAccessToken(accessToken: string) {
@@ -71,8 +67,15 @@ export const OAuthInterface: RefreshTokenModel &
     };
   },
 
-  async getAuthorizationCode(authorizationCode: string) {
+  async getAuthorizationCode(authorizationCode) {
     const code = await OAuthAuthorizationCode.findByCode(authorizationCode);
+    if (!code) {
+      return null;
+    }
+
+    const oauthClient = await OAuthClient.findByPk(code.oauthClientId, {
+      rejectOnEmpty: true,
+    });
 
     return {
       authorizationCode,
@@ -80,7 +83,7 @@ export const OAuthInterface: RefreshTokenModel &
       scope: code.scope,
       redirectUri: code.redirectUri,
       client: {
-        id: code.oauthClientId,
+        id: oauthClient.clientId,
         grants: this.grants,
       },
       user: code.user,
@@ -88,16 +91,20 @@ export const OAuthInterface: RefreshTokenModel &
   },
 
   async getClient(clientId: string, clientSecret: string) {
-    const where: WhereOptions<OAuthClient> = {
-      clientId,
-    };
-    if (clientSecret) {
-      where.clientSecret = clientSecret;
-    }
     const client = await OAuthClient.findOne({
-      where,
+      where: {
+        clientId,
+      },
     });
     if (!client) {
+      return null;
+    }
+
+    if (
+      clientSecret &&
+      client &&
+      !safeEqual(client.clientSecret, clientSecret)
+    ) {
       return null;
     }
 
@@ -114,10 +121,14 @@ export const OAuthInterface: RefreshTokenModel &
     const refreshToken = token.refreshToken;
     const accessTokenExpiresAt = token.accessTokenExpiresAt;
     const refreshTokenExpiresAt = token.refreshTokenExpiresAt;
+    const accessTokenHash = OAuthAuthentication.hash(accessToken);
+    const refreshTokenHash = refreshToken
+      ? OAuthAuthentication.hash(refreshToken)
+      : undefined;
 
-    const authentication = await OAuthAuthentication.create({
-      accessToken,
-      refreshToken,
+    await OAuthAuthentication.create({
+      accessTokenHash,
+      refreshTokenHash,
       accessTokenExpiresAt,
       refreshTokenExpiresAt,
       scope: token.scope,
@@ -132,10 +143,10 @@ export const OAuthInterface: RefreshTokenModel &
       refreshTokenExpiresAt,
       scope: token.scope,
       client: {
-        id: client.databaseId,
+        id: client.id,
         grants: this.grants,
       },
-      user: authentication.user,
+      user,
     };
   },
 
@@ -143,11 +154,12 @@ export const OAuthInterface: RefreshTokenModel &
     const authorizationCode = code.authorizationCode;
     const expiresAt = code.expiresAt;
     const redirectUri = code.redirectUri;
+    const scope = code.scope;
 
     const authCode = await OAuthAuthorizationCode.create({
       authorizationCodeHash: OAuthAuthorizationCode.hash(authorizationCode),
       expiresAt,
-      scope: code.scope,
+      scope,
       redirectUri,
       oauthClientId: client.databaseId,
       userId: user.id,
@@ -156,10 +168,10 @@ export const OAuthInterface: RefreshTokenModel &
     return {
       authorizationCode,
       expiresAt,
-      scope: code.scope,
+      scope,
       redirectUri,
       client: {
-        id: client.databaseId,
+        id: client.id,
         grants: this.grants,
       },
       user: authCode.user,

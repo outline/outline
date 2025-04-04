@@ -7,7 +7,7 @@ import tracer, {
   addTags,
   getRootSpanFromRequestContext,
 } from "@server/logging/tracer";
-import { User, Team, ApiKey } from "@server/models";
+import { User, Team, ApiKey, OAuthAuthentication } from "@server/models";
 import { AppContext, AuthenticationType } from "@server/types";
 import { getUserForJWT } from "@server/utils/jwt";
 import {
@@ -65,7 +65,39 @@ export default function auth(options: AuthenticationOptions = {}) {
       let user: User | null;
       let type: AuthenticationType;
 
-      if (ApiKey.match(String(token))) {
+      if (OAuthAuthentication.match(String(token))) {
+        type = AuthenticationType.OAUTH;
+
+        let authentication;
+        try {
+          authentication = await OAuthAuthentication.findByAccessToken(token);
+        } catch (err) {
+          throw AuthenticationError("Invalid access token");
+        }
+        if (authentication.accessTokenExpiresAt < new Date()) {
+          throw AuthenticationError("Access token is expired");
+        }
+        if (!authentication.canAccess(ctx.request.url)) {
+          throw AuthenticationError(
+            "Access token does not have access to this resource"
+          );
+        }
+
+        user = await User.findByPk(authentication.userId, {
+          include: [
+            {
+              model: Team,
+              as: "team",
+              required: true,
+            },
+          ],
+        });
+        if (!user) {
+          throw AuthenticationError("Invalid access token");
+        }
+
+        await authentication.updateActiveAt();
+      } else if (ApiKey.match(String(token))) {
         type = AuthenticationType.API;
         let apiKey;
 

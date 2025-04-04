@@ -17,12 +17,12 @@ import { Second } from "@shared/utils/time";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
-import { Hook, PluginManager } from "@server/utils/PluginManager";
 import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
 import { initI18n } from "@server/utils/i18n";
 import routes from "../routes";
 import api from "../routes/api";
 import auth from "../routes/auth";
+import oauth from "../routes/oauth";
 
 // Construct scripts CSP based on services in use by this installation
 const defaultSrc = ["'self'"];
@@ -76,11 +76,7 @@ export default function init(app: Koa = new Koa(), server?: Server) {
 
   app.use(compress());
 
-  // Register routes before others to allow for overrides
-  PluginManager.getHooks(Hook.Route).forEach((hook) =>
-    app.use(mount(hook.value.path, hook.value.app))
-  );
-
+  app.use(mount("/oauth", oauth));
   app.use(mount("/auth", auth));
   app.use(mount("/api", api));
 

@@ -20,6 +20,7 @@ import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import { SkipChangeset } from "./decorators/Changeset";
 import Fix from "./decorators/Fix";
+import AuthenticationHelper from "./helpers/AuthenticationHelper";
 import Length from "./validators/Length";
 
 @Table({ tableName: "apiKeys", modelName: "apiKey" })
@@ -174,22 +175,7 @@ class ApiKey extends ParanoidModel<
       return true;
     }
 
-    // strip any query string from the path
-    path = path.split("?")[0];
-
-    const resource = path.split("/").pop() ?? "";
-    const [namespace, method] = resource.split(".");
-
-    return this.scope.some((scope) => {
-      const [scopeNamespace, scopeMethod] = scope
-        .replace("/api/", "")
-        .split(".");
-      return (
-        scope.startsWith("/api/") &&
-        (namespace === scopeNamespace || scopeNamespace === "*") &&
-        (method === scopeMethod || scopeMethod === "*")
-      );
-    });
+    return AuthenticationHelper.canAccess(path, this.scope);
   };
 }
 

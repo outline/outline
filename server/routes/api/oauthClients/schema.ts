@@ -1,5 +1,5 @@
-import { BaseSchema } from "@server/routes/api/schema";
 import { z } from "zod";
+import { BaseSchema } from "@server/routes/api/schema";
 
 export const OAuthClientsCreateSchema = BaseSchema.extend({
   body: z.object({
@@ -33,3 +33,19 @@ export const OAuthClientsCreateSchema = BaseSchema.extend({
 });
 
 export type OAuthClientsCreateReq = z.infer<typeof OAuthClientsCreateSchema>;
+
+export const OAuthClientsInfoSchema = BaseSchema.extend({
+  body: z
+    .object({
+      /** OAuth client id */
+      id: z.string().uuid().optional(),
+
+      /** OAuth clientId */
+      clientId: z.string().optional(),
+    })
+    .refine((data) => data.id || data.clientId, {
+      message: "Either id or clientId is required",
+    }),
+});
+
+export type OAuthClientsInfoReq = z.infer<typeof OAuthClientsInfoSchema>;

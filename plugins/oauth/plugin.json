@@ -1,6 +1,0 @@
-{
-  "id": "oauth",
-  "name": "OAuth Provider",
-  "priority": 10,
-  "description": "Adds an OAuth2 compatible authentication provider"
-}

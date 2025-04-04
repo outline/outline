@@ -52,4 +52,23 @@ export default class AuthenticationHelper {
         );
       });
   }
+
+  public static canAccess = (path: string, scopes: string[]) => {
+    // strip any query string from the path
+    path = path.split("?")[0];
+
+    const resource = path.split("/").pop() ?? "";
+    const [namespace, method] = resource.split(".");
+
+    return scopes.some((scope) => {
+      const [scopeNamespace, scopeMethod] = scope
+        .replace("/api/", "")
+        .split(".");
+      return (
+        scope.startsWith("/api/") &&
+        (namespace === scopeNamespace || scopeNamespace === "*") &&
+        (method === scopeMethod || scopeMethod === "*")
+      );
+    });
+  };
 }
