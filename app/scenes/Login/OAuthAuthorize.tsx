@@ -1,8 +1,14 @@
+import { MoreIcon } from "outline-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import styled from "styled-components";
+import Flex from "@shared/components/Flex";
+import { s } from "@shared/styles";
+import { Avatar, AvatarSize } from "~/components/Avatar";
 import Button from "~/components/Button";
 import ChangeLanguage from "~/components/ChangeLanguage";
-import TeamLogo from "~/components/TeamLogo";
+import Heading from "~/components/Heading";
+import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useQuery from "~/hooks/useQuery";
 import useRequest from "~/hooks/useRequest";
@@ -21,10 +27,12 @@ function Authorize() {
   const responseType = params.get("response_type");
   const state = params.get("state");
   const scope = params.get("scope");
-  // const [scopes] = React.useState(() => scope?.split(" ") ?? []);
-  const { error, data, request } = useRequest(() =>
-    client.post("/oauthClients.info", { clientId })
-  );
+  const [scopes] = React.useState(() => scope?.split(" ") ?? []);
+  const {
+    error,
+    data: response,
+    request,
+  } = useRequest(() => client.post("/oauthClients.info", { clientId }));
 
   React.useEffect(() => {
     if (clientId) {
@@ -32,19 +40,50 @@ function Authorize() {
     }
   }, []);
 
+  const missingParams = [
+    !clientId && "client_id",
+    !clientSecret && "client_secret",
+    !redirectUri && "redirect_uri",
+    !responseType && "response_type",
+    !state && "state",
+    !scope && "scope",
+  ].filter(Boolean);
+
+  if (missingParams.length) {
+    return (
+      <Background>
+        <ChangeLanguage locale={detectLanguage()} />
+        <Centered>
+          <StyledHeading>{t("Error")}</StyledHeading>
+          <Text as="p" type="secondary">
+            {t("Required OAuth parameters are missing")}
+            <Pre>
+              {missingParams.map((param) => (
+                <>
+                  {param}
+                  <br />
+                </>
+              ))}
+            </Pre>
+          </Text>
+        </Centered>
+      </Background>
+    );
+  }
+
   if (error) {
     return (
       <Background>
         <ChangeLanguage locale={detectLanguage()} />
         <Centered>
-          <h1>{t("Error")}</h1>
+          <StyledHeading>{t("Error")}</StyledHeading>
           <p>{t("Unable to load OAuth client")}</p>
         </Centered>
       </Background>
     );
   }
 
-  if (!data) {
+  if (!response) {
     // TODO
     return null;
   }
@@ -54,11 +93,29 @@ function Authorize() {
       <ChangeLanguage locale={detectLanguage()} />
 
       <Centered gap={12}>
-        <TeamLogo model={team} size={24} alt={t("Logo")} /> {team.name}
-        <h1>{data.data.name}</h1>
-        <p>{data.data.developerName}</p>
-        <p>{data.data.developerUrl}</p>
-        <p>{data.data.description}</p>
+        <Flex gap={8} align="center">
+          <Logo
+            model={{
+              avatarUrl: response.data.avatarUrl,
+              initial: response.data.name[0],
+            }}
+            size={AvatarSize.XXLarge}
+            alt={t("Logo")}
+          />{" "}
+          <MoreIcon />{" "}
+          <Logo model={team} size={AvatarSize.XXLarge} alt={t("Logo")} />
+        </Flex>
+        <StyledHeading>
+          {response.data.name} wants to access {team.name}
+        </StyledHeading>
+        <p>
+          {scopes.map((item) => (
+            <>
+              {item}
+              <br />
+            </>
+          ))}
+        </p>
         <form method="POST" action="/oauth/authorize" style={{ width: "100%" }}>
           <input type="hidden" name="client_id" value={clientId ?? ""} />
           <input
@@ -70,11 +127,11 @@ function Authorize() {
           <input
             type="hidden"
             name="response_type"
-            value={responseType ?? "code"}
+            value={responseType ?? ""}
           />
           <input type="hidden" name="state" value={state ?? ""} />
           <input type="hidden" name="scope" value={scope ?? ""} />
-          <Button type="submit" fullwidth>
+          <Button type="submit" large fullwidth>
             {t("Authorize")}
           </Button>
         </form>
@@ -82,5 +139,24 @@ function Authorize() {
     </Background>
   );
 }
+
+const Logo = styled(Avatar)`
+  border-radius: 8px;
+`;
+
+const StyledHeading = styled(Heading).attrs({
+  as: "h2",
+  centered: true,
+})`
+  margin-top: 0;
+`;
+
+const Pre = styled.pre`
+  background: ${s("backgroundSecondary")};
+  padding: 16px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: pre-wrap;
+`;
 
 export default Authorize;
