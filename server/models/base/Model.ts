@@ -26,7 +26,7 @@ import Logger from "@server/logging/Logger";
 import { Replace, APIContext } from "@server/types";
 import { getChangsetSkipped } from "../decorators/Changeset";
 
-type EventOverrideOptions = {
+export type EventOverrideOptions = {
   /** Override the default event name. */
   name?: string;
   /** Additional data to publish in the event. */
