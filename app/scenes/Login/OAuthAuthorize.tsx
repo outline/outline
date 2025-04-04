@@ -5,7 +5,7 @@ import styled from "styled-components";
 import Flex from "@shared/components/Flex";
 import { s } from "@shared/styles";
 import { Avatar, AvatarSize } from "~/components/Avatar";
-import Button from "~/components/Button";
+import ButtonLarge from "~/components/ButtonLarge";
 import ChangeLanguage from "~/components/ChangeLanguage";
 import Heading from "~/components/Heading";
 import Text from "~/components/Text";
@@ -39,6 +39,10 @@ function Authorize() {
       void request();
     }
   }, []);
+
+  const handleCancel = () => {
+    window.location.href = redirectUri ?? "/";
+  };
 
   const missingParams = [
     !clientId && "client_id",
@@ -131,9 +135,12 @@ function Authorize() {
           />
           <input type="hidden" name="state" value={state ?? ""} />
           <input type="hidden" name="scope" value={scope ?? ""} />
-          <Button type="submit" large fullwidth>
-            {t("Authorize")}
-          </Button>
+          <Flex gap={8} justify="space-between">
+            <Button type="button" onClick={handleCancel} neutral>
+              {t("Cancel")}
+            </Button>
+            <Button type="submit">{t("Authorize")}</Button>
+          </Flex>
         </form>
       </Centered>
     </Background>
@@ -142,6 +149,10 @@ function Authorize() {
 
 const Logo = styled(Avatar)`
   border-radius: 8px;
+`;
+
+const Button = styled(ButtonLarge)`
+  width: calc(50% - 4px);
 `;
 
 const StyledHeading = styled(Heading).attrs({
