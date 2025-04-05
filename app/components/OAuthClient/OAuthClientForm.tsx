@@ -1,13 +1,13 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Trans, useTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { OAuthClientValidation } from "@shared/validations";
 import OAuthClient from "~/models/OAuthClient";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
-import Text from "~/components/Text";
+import isCloudHosted from "~/utils/isCloudHosted";
 import Switch from "../Switch";
 
 export interface FormData {
@@ -55,12 +55,6 @@ export const OAuthClientForm = observer(function OAuthClientForm_({
 
   return (
     <form onSubmit={formHandleSubmit(handleSubmit)}>
-      <Text as="p">
-        <Trans>
-          OAuth clients allow you to authenticate users and grant access to this
-          workspace, or to other workspaces.
-        </Trans>
-      </Text>
       <>
         <Input
           type="text"
@@ -100,17 +94,20 @@ export const OAuthClientForm = observer(function OAuthClientForm_({
               placeholder="https://example.com/callback"
               ref={field.ref}
               value={field.value.join("\n")}
+              rows={Math.max(2, field.value.length)}
               onChange={(event) => {
                 field.onChange(event.target.value.split("\n"));
               }}
             />
           )}
         />
-        <Switch
-          {...register("published")}
-          label={t("Published")}
-          note={t("Allow this app to be installed by other workspaces")}
-        />
+        {isCloudHosted && (
+          <Switch
+            {...register("published")}
+            label={t("Published")}
+            note={t("Allow this app to be installed by other workspaces")}
+          />
+        )}
       </>
 
       <Flex justify="flex-end">

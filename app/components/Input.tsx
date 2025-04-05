@@ -133,6 +133,7 @@ export interface Props
   short?: boolean;
   margin?: string | number;
   error?: string;
+  rows?: number;
   /** Optional component that appears inside the input before the textarea and any icon */
   prefix?: React.ReactNode;
   /** Optional icon that appears inside the input before the textarea */

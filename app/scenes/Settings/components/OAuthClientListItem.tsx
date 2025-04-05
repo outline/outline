@@ -11,6 +11,7 @@ import ListItem from "~/components/List/Item";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import OAuthClientMenu from "~/menus/OAuthClientMenu";
 
 type Props = {
   oauthClient: OAuthClient;
@@ -62,15 +63,7 @@ const OAuthClientListItem = ({ oauthClient }: Props) => {
               </Button>
             </CopyToClipboard>
           )}
-          <Text
-            type="tertiary"
-            size="xsmall"
-            style={{ marginRight: 8 }}
-            monospace
-          >
-            ***
-          </Text>
-          {/* <OAuthClientMenu oauthClient={oauthClient} /> */}
+          <OAuthClientMenu oauthClient={oauthClient} />
         </Flex>
       }
     />
