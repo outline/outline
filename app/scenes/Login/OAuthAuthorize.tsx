@@ -51,7 +51,7 @@ function Authorize() {
 
   const handleSubmit = () => {
     setIsSubmitting(true);
-    timeoutRef.current = window.setTimeout(() => setIsSubmitting(false), 3000);
+    timeoutRef.current = window.setTimeout(() => setIsSubmitting(false), 5000);
   };
 
   React.useEffect(
@@ -170,7 +170,12 @@ function Authorize() {
             </li>
           ))}
         </ul>
-        <form method="POST" action="/oauth/authorize" style={{ width: "100%" }}>
+        <form
+          method="POST"
+          action="/oauth/authorize"
+          style={{ width: "100%" }}
+          onSubmit={handleSubmit}
+        >
           <input type="hidden" name="client_id" value={clientId ?? ""} />
           <input
             type="hidden"
@@ -189,11 +194,7 @@ function Authorize() {
             <Button type="button" onClick={handleCancel} neutral>
               {t("Cancel")}
             </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              onClick={handleSubmit}
-            >
+            <Button type="submit" disabled={isSubmitting}>
               {t("Authorize")}
             </Button>
           </Flex>
