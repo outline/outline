@@ -5,9 +5,9 @@ import uniq from "lodash/uniq";
 export class OAuthScopeHelper {
   public static normalizeScopes(scopes: string[]): string[] {
     const methodToReadable = {
-      list: t("read"),
-      info: t("read"),
-      read: t("read"),
+      list: t("view"),
+      info: t("view"),
+      read: t("view"),
       write: t("write"),
       create: t("write"),
       update: t("write"),
@@ -34,6 +34,13 @@ export class OAuthScopeHelper {
     };
 
     const normalizedScopes = scopes.map((scope) => {
+      if (scope === "read") {
+        return t("View workspace");
+      }
+      if (scope === "write") {
+        return t("View workspace");
+      }
+
       const [namespace, method] = scope.replace("/api/", "").split(/[:\.]/g);
       const readableMethod =
         methodToReadable[method as keyof typeof methodToReadable] ?? method;
