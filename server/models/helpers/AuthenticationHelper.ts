@@ -8,6 +8,8 @@ export default class AuthenticationHelper {
   public static methodToScope = {
     list: "read",
     info: "read",
+    search: "read",
+    documents: "read",
   };
 
   /**

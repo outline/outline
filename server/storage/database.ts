@@ -5,7 +5,7 @@ import { Umzug, SequelizeStorage, MigrationError } from "umzug";
 import env from "@server/env";
 import Model from "@server/models/base/Model";
 import Logger from "../logging/Logger";
-import * as baseModels from "../models";
+import * as models from "../models";
 
 const isSSLDisabled = env.PGSSLMODE === "disable";
 const poolMax = env.DATABASE_CONNECTION_POOL_MAX ?? 5;
@@ -22,8 +22,6 @@ export function createDatabaseInstance(
     >;
   }
 ): Sequelize {
-  const models = Object.values(input);
-
   try {
     return new Sequelize(databaseUrl, {
       logging: (msg) =>
@@ -40,7 +38,7 @@ export function createDatabaseInstance(
               }
             : false,
       },
-      models,
+      models: Object.values(input),
       pool: {
         max: poolMax,
         min: poolMin,
@@ -50,10 +48,6 @@ export function createDatabaseInstance(
       schema,
     });
   } catch (error) {
-    if (env.isDevelopment) {
-      throw error;
-    }
-
     Logger.fatal(
       "Could not connect to database",
       databaseUrl
@@ -134,7 +128,7 @@ export function createMigrationRunner(
   });
 }
 
-export const sequelize = createDatabaseInstance(url, baseModels);
+export const sequelize = createDatabaseInstance(url, models);
 
 export const migrations = createMigrationRunner(sequelize, [
   "migrations/*.js",
