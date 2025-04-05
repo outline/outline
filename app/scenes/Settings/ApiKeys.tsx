@@ -61,7 +61,6 @@ function ApiKeys() {
       <PaginatedList
         fetch={apiKeys.fetchPage}
         items={apiKeys.orderedData}
-        heading={<h2>{t("All")}</h2>}
         renderItem={(apiKey: ApiKey) => (
           <ApiKeyListItem key={apiKey.id} apiKey={apiKey} />
         )}

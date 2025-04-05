@@ -1,4 +1,5 @@
 import { observable } from "mobx";
+import env from "~/env";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
@@ -54,6 +55,16 @@ class OAuthClient extends ParanoidModel {
   createdBy: User;
 
   createdById: string;
+
+  // instance methods
+
+  public get authorizationUrl(): string {
+    return `${env.URL}/oauth/authorize?client_id=${
+      this.clientId
+    }&redirect_uri=${encodeURIComponent(
+      this.redirectUris[0]
+    )}&response_type=code&scope=read`;
+  }
 }
 
 export default OAuthClient;

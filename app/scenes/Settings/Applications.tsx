@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { CodeIcon } from "outline-icons";
+import { InternetIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import OAuthClient from "~/models/OAuthClient";
@@ -26,7 +26,7 @@ function Applications() {
   return (
     <Scene
       title={t("Applications")}
-      icon={<CodeIcon />}
+      icon={<InternetIcon />}
       actions={
         <>
           {can.createOAuthClient && (
@@ -45,7 +45,7 @@ function Applications() {
       <Heading>{t("Applications")}</Heading>
       <Text as="p" type="secondary">
         <Trans
-          defaults="OAuth apps allow you to build internal or public integrations with Outline and provide secure access. For more details see the <em>developer documentation</em>."
+          defaults="Applications allow you to build internal or public integrations with Outline and provide secure access via OAuth. For more details see the <em>developer documentation</em>."
           components={{
             em: (
               <a
@@ -60,7 +60,6 @@ function Applications() {
       <PaginatedList
         fetch={oauthClients.fetchPage}
         items={oauthClients.orderedData}
-        heading={<h2>{t("All")}</h2>}
         renderItem={(oauthClient: OAuthClient) => (
           <OAuthClientListItem key={oauthClient.id} oauthClient={oauthClient} />
         )}

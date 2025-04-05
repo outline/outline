@@ -7,15 +7,17 @@ import OAuthClientDeleteDialog from "~/scenes/Settings/components/OAuthClientDel
 import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import Template from "~/components/ContextMenu/Template";
-import { OAuthClientEdit } from "~/components/OAuthClient/OAuthClientEdit";
 import useStores from "~/hooks/useStores";
+import { settingsPath } from "~/utils/routeHelpers";
 
 type Props = {
   /** The oauthClient to associate with the menu */
   oauthClient: OAuthClient;
+  /** Whether to show the edit button */
+  showEdit?: boolean;
 };
 
-function OAuthClientMenu({ oauthClient }: Props) {
+function OAuthClientMenu({ oauthClient, showEdit }: Props) {
   const menu = useMenuState({
     modal: true,
   });
@@ -34,18 +36,6 @@ function OAuthClientMenu({ oauthClient }: Props) {
     });
   }, [t, dialogs, oauthClient]);
 
-  const handleEdit = React.useCallback(() => {
-    dialogs.openModal({
-      title: t("Edit Application"),
-      content: (
-        <OAuthClientEdit
-          onSubmit={dialogs.closeAllModals}
-          oauthClientId={oauthClient.id}
-        />
-      ),
-    });
-  }, [t, dialogs, oauthClient]);
-
   return (
     <>
       <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
@@ -54,9 +44,10 @@ function OAuthClientMenu({ oauthClient }: Props) {
           {...menu}
           items={[
             {
-              type: "button",
+              type: "route",
               title: `${t("Edit")}…`,
-              onClick: handleEdit,
+              visible: showEdit,
+              to: settingsPath("applications", oauthClient.id),
             },
             {
               type: "separator",

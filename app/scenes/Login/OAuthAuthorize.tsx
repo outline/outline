@@ -27,7 +27,6 @@ function Authorize() {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const timeoutRef = React.useRef<number>();
   const clientId = params.get("client_id");
-  const clientSecret = params.get("client_secret");
   const redirectUri = params.get("redirect_uri");
   const responseType = params.get("response_type");
   const state = params.get("state");
@@ -63,10 +62,8 @@ function Authorize() {
 
   const missingParams = [
     !clientId && "client_id",
-    !clientSecret && "client_secret",
     !redirectUri && "redirect_uri",
     !responseType && "response_type",
-    !state && "state",
     !scope && "scope",
   ].filter(Boolean);
 
@@ -177,11 +174,6 @@ function Authorize() {
           onSubmit={handleSubmit}
         >
           <input type="hidden" name="client_id" value={clientId ?? ""} />
-          <input
-            type="hidden"
-            name="client_secret"
-            value={clientSecret ?? ""}
-          />
           <input type="hidden" name="redirect_uri" value={redirectUri ?? ""} />
           <input
             type="hidden"

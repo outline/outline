@@ -18,6 +18,7 @@ router.post("/authorize", auth(), async (ctx) => {
   const response = new OAuth2Server.Response(ctx.response);
 
   const authorizationCode = await oauth.authorize(request, response, {
+    allowEmptyState: true,
     authenticateHandler: {
       handle: async () => {
         const { user } = ctx.state.auth;

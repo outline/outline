@@ -43,8 +43,6 @@ export const OAuthClientForm = observer(function OAuthClientForm_({
     mode: "all",
     defaultValues: {
       name: oauthClient?.name ?? "",
-      developerName: oauthClient?.developerName ?? "",
-      developerUrl: oauthClient?.developerUrl ?? "",
       description: oauthClient?.description ?? "",
       avatarUrl: oauthClient?.avatarUrl ?? "",
       redirectUris: oauthClient?.redirectUris ?? [],
@@ -92,17 +90,10 @@ export const OAuthClientForm = observer(function OAuthClientForm_({
         />
         <Input
           type="text"
-          label={t("Developer name")}
-          {...register("developerName", {
-            maxLength: OAuthClientValidation.maxDeveloperNameLength,
-          })}
-          flex
-        />
-        <Input
-          type="text"
-          label={t("Developer URL")}
-          {...register("developerUrl", {
-            maxLength: OAuthClientValidation.maxDeveloperUrlLength,
+          label={t("Tagline")}
+          placeholder={t("A short description")}
+          {...register("description", {
+            maxLength: OAuthClientValidation.maxDescriptionLength,
           })}
           flex
         />
