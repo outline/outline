@@ -4,10 +4,12 @@ import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { OAuthClientValidation } from "@shared/validations";
 import OAuthClient from "~/models/OAuthClient";
+import ImageInput from "~/scenes/Settings/components/ImageInput";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import isCloudHosted from "~/utils/isCloudHosted";
+import { Label } from "../Labeled";
 import Switch from "../Switch";
 
 export interface FormData {
@@ -27,14 +29,15 @@ export const OAuthClientForm = observer(function OAuthClientForm_({
   handleSubmit: (data: FormData) => void;
   oauthClient?: OAuthClient;
 }) {
-  // const team = useCurrentTeam();
   const { t } = useTranslation();
 
   const {
     register,
     handleSubmit: formHandleSubmit,
     formState,
+    getValues,
     setFocus,
+    setError,
     control,
   } = useForm<FormData>({
     mode: "all",
@@ -56,6 +59,25 @@ export const OAuthClientForm = observer(function OAuthClientForm_({
   return (
     <form onSubmit={formHandleSubmit(handleSubmit)}>
       <>
+        <div style={{ marginBottom: "1em" }}>
+          <Label>{t("Icon")}</Label>
+          <Controller
+            control={control}
+            name="avatarUrl"
+            render={({ field }) => (
+              <ImageInput
+                onSuccess={(url) => field.onChange(url)}
+                onError={(err) => setError("avatarUrl", { message: err })}
+                model={{
+                  id: oauthClient?.id,
+                  avatarUrl: field.value,
+                  initial: getValues().name[0],
+                }}
+                borderRadius={0}
+              />
+            )}
+          />
+        </div>
         <Input
           type="text"
           label={t("Name")}

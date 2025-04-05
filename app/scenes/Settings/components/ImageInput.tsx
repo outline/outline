@@ -1,3 +1,4 @@
+import { EditIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -17,10 +18,14 @@ export default function ImageInput({ model, onSuccess, ...rest }: Props) {
   return (
     <Flex gap={8} justify="space-between">
       <ImageBox>
-        <ImageUpload onSuccess={onSuccess} {...rest}>
+        <ImageUpload
+          onSuccess={onSuccess}
+          submitText={t("Crop Image")}
+          {...rest}
+        >
           <StyledAvatar model={model} size={AvatarSize.Upload} />
           <Flex auto align="center" justify="center" className="upload">
-            {t("Upload")}
+            <EditIcon />
           </Flex>
         </ImageUpload>
       </ImageBox>
