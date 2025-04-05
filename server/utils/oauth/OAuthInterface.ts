@@ -3,6 +3,7 @@ import {
   AuthorizationCodeModel,
 } from "@node-oauth/oauth2-server";
 import rs from "randomstring";
+import { Scope } from "@shared/types";
 import {
   OAuthClient,
   OAuthAuthentication,
@@ -211,7 +212,8 @@ export const OAuthInterface: RefreshTokenModel &
   },
 
   /**
-   * Invoked to check if the requested scope is valid for a particular client/user combination.
+   * Invoked to check if the requested scope is valid for a particular
+   * client/user combination.
    *
    * @param scope The requested scopes.
    * @returns The scopes if valid, false otherwise.
@@ -222,15 +224,28 @@ export const OAuthInterface: RefreshTokenModel &
     }
 
     const scopes = Array.isArray(scope) ? scope : [scope];
+    const validAccessScopes = Object.values(Scope);
+
     return scopes.some((s: string) => {
-      if (s === "read" || s === "write") {
+      if (validAccessScopes.includes(s as Scope)) {
         return true;
       }
 
       const periodCount = (s.match(/\./g) || []).length;
       const colonCount = (s.match(/:/g) || []).length;
 
-      return periodCount === 1 || colonCount === 1;
+      if (periodCount === 1 && colonCount === 0) {
+        return true;
+      }
+
+      if (
+        colonCount === 1 &&
+        validAccessScopes.includes(s.split(":")[0] as Scope)
+      ) {
+        return true;
+      }
+
+      return false;
     })
       ? scopes
       : false;

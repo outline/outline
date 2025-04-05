@@ -1,6 +1,7 @@
 import { t } from "i18next";
 import capitalize from "lodash/capitalize";
 import uniq from "lodash/uniq";
+import { Scope } from "@shared/types";
 
 export class OAuthScopeHelper {
   public static normalizeScopes(scopes: string[]): string[] {
@@ -34,10 +35,10 @@ export class OAuthScopeHelper {
     };
 
     const normalizedScopes = scopes.map((scope) => {
-      if (scope === "read") {
+      if (scope === Scope.Read) {
         return t("View workspace");
       }
-      if (scope === "write") {
+      if (scope === Scope.Write) {
         return t("View workspace");
       }
 

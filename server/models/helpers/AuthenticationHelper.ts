@@ -1,15 +1,17 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import find from "lodash/find";
+import { Scope } from "@shared/types";
 import env from "@server/env";
 import Team from "@server/models/Team";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 
 export default class AuthenticationHelper {
   public static methodToScope = {
-    list: "read",
-    info: "read",
-    search: "read",
-    documents: "read",
+    create: Scope.Create,
+    list: Scope.Read,
+    info: Scope.Read,
+    search: Scope.Read,
+    documents: Scope.Read,
   };
 
   /**
@@ -68,11 +70,10 @@ export default class AuthenticationHelper {
     const [namespace, method] = resource.split(".");
 
     return scopes.some((scope) => {
-      const [scopeNamespace, scopeMethod] = scope
-        .replace("/api/", "")
-        .split(/[:\.]/g);
+      const [scopeNamespace, scopeMethod] = scope.match(/[:\.]/g)
+        ? scope.replace("/api/", "").split(/[:\.]/g)
+        : ["*", scope];
       const isRouteScope = scope.startsWith("/api/");
-      const isAccessScope = scope.includes(":");
 
       if (isRouteScope) {
         return (
@@ -81,16 +82,12 @@ export default class AuthenticationHelper {
         );
       }
 
-      if (isAccessScope) {
-        return (
-          namespace === scopeNamespace &&
-          (scopeMethod === "write" ||
-            this.methodToScope[method as keyof typeof this.methodToScope] ===
-              scopeMethod)
-        );
-      }
-
-      return false;
+      return (
+        (namespace === scopeNamespace || scopeNamespace === "*") &&
+        (scopeMethod === Scope.Write ||
+          this.methodToScope[method as keyof typeof this.methodToScope] ===
+            scopeMethod)
+      );
     });
   };
 }

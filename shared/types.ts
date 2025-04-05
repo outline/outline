@@ -5,6 +5,12 @@ export enum UserRole {
   Guest = "guest",
 }
 
+export enum Scope {
+  Read = "read",
+  Write = "write",
+  Create = "create",
+}
+
 export type DateFilter = "day" | "week" | "month" | "year";
 
 export enum StatusFilter {
