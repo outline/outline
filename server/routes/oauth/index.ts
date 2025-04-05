@@ -3,12 +3,12 @@ import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
+import requestTracer from "@server/middlewares/requestTracer";
 import { OAuthInterface } from "@server/utils/oauth/OAuthInterface";
+import oauthErrorHandler from "./middlewares/oauthErrorHandler";
 
 const app = new Koa();
-
 const router = new Router();
-
 const oauth = new OAuth2Server({
   model: OAuthInterface,
 });
@@ -43,6 +43,10 @@ router.post("/token", async (ctx) => {
 
   const token = await oauth.token(request, response);
 
+  if (response.headers) {
+    ctx.set(response.headers);
+  }
+
   ctx.body = {
     access_token: token.accessToken,
     refresh_token: token.refreshToken,
@@ -54,6 +58,8 @@ router.post("/token", async (ctx) => {
   };
 });
 
+app.use(requestTracer());
+app.use(oauthErrorHandler());
 app.use(bodyParser());
 app.use(router.routes());
 

@@ -200,8 +200,39 @@ export const OAuthInterface: RefreshTokenModel &
     return false;
   },
 
-  async validateRedirectUri() {
-    // TODO
-    return true;
+  /**
+   * Ensure the redirect URI is not plain HTTP. Custom protocols are allowed.
+   *
+   * @param uri The redirect URI to validate.
+   * @returns True if the URI is valid, false otherwise.
+   */
+  async validateRedirectUri(uri) {
+    return !uri.startsWith("http://");
+  },
+
+  /**
+   * Invoked to check if the requested scope is valid for a particular client/user combination.
+   *
+   * @param scope The requested scopes.
+   * @returns The scopes if valid, false otherwise.
+   */
+  async validateScope(user, client, scope) {
+    if (!scope) {
+      return [];
+    }
+
+    const scopes = Array.isArray(scope) ? scope : [scope];
+    return scopes.some((s: string) => {
+      if (s === "read" || s === "write") {
+        return true;
+      }
+
+      const periodCount = (s.match(/\./g) || []).length;
+      const colonCount = (s.match(/:/g) || []).length;
+
+      return periodCount === 1 || colonCount === 1;
+    })
+      ? scopes
+      : false;
   },
 };

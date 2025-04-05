@@ -1,7 +1,7 @@
 import { subMonths } from "date-fns";
 import { Op } from "sequelize";
 import Logger from "@server/logging/Logger";
-import { OAuthAuthorizationCode } from "@server/models/oauth/OAuthAuthorizationCode";
+import { OAuthAuthorizationCode } from "@server/models";
 import BaseTask, { TaskPriority, TaskSchedule } from "./BaseTask";
 
 type Props = Record<string, never>;
