@@ -14,6 +14,7 @@ import {
   ImportIcon,
   ShapesIcon,
   Icon,
+  InternetIcon,
 } from "outline-icons";
 import React, { ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
@@ -157,9 +158,9 @@ const useSettingsConfig = () => {
         name: t("Applications"),
         path: settingsPath("applications"),
         component: Applications,
-        enabled: true, // can.listApiKeys, TODO
+        enabled: can.listOAuthClients,
         group: t("Workspace"),
-        icon: CodeIcon,
+        icon: InternetIcon,
       },
       {
         name: t("Shared Links"),

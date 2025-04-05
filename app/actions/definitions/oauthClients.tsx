@@ -1,7 +1,7 @@
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import stores from "~/stores";
-import OAuthClientNew from "~/scenes/OAuthClientNew";
+import { OAuthClientNew } from "~/components/OAuthClient/OAuthClientNew";
 import { createAction } from "..";
 import { SettingsSection } from "../sections";
 
@@ -18,7 +18,7 @@ export const createOAuthClient = createAction({
     event?.stopPropagation();
 
     stores.dialogs.openModal({
-      title: t("New App"),
+      title: t("New Application"),
       content: <OAuthClientNew onSubmit={stores.dialogs.closeAllModals} />,
     });
   },

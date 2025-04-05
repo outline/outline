@@ -80,7 +80,7 @@ export default class RootStore {
     this.registerStore(IntegrationsStore);
     this.registerStore(MembershipsStore);
     this.registerStore(NotificationsStore);
-    this.registerStore(OAuthClientsStore);
+    this.registerStore(OAuthClientsStore, "oauthClients");
     this.registerStore(PinsStore);
     this.registerStore(PoliciesStore);
     this.registerStore(RevisionsStore);

@@ -29,7 +29,7 @@ function Applications() {
       icon={<CodeIcon />}
       actions={
         <>
-          {can.createApiKey && (
+          {can.createOAuthClient && (
             <Action>
               <Button
                 type="submit"
