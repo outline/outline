@@ -3,7 +3,9 @@ import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
+import { rateLimiter } from "@server/middlewares/rateLimiter";
 import requestTracer from "@server/middlewares/requestTracer";
+import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { OAuthInterface } from "@server/utils/oauth/OAuthInterface";
 import oauthErrorHandler from "./middlewares/oauthErrorHandler";
 
@@ -13,30 +15,35 @@ const oauth = new OAuth2Server({
   model: OAuthInterface,
 });
 
-router.post("/authorize", auth(), async (ctx) => {
-  const request = new OAuth2Server.Request(ctx.request);
-  const response = new OAuth2Server.Response(ctx.response);
+router.post(
+  "/authorize",
+  rateLimiter(RateLimiterStrategy.FiftyPerHour),
+  auth(),
+  async (ctx) => {
+    const request = new OAuth2Server.Request(ctx.request);
+    const response = new OAuth2Server.Response(ctx.response);
 
-  const authorizationCode = await oauth.authorize(request, response, {
-    allowEmptyState: true,
-    authenticateHandler: {
-      handle: async () => {
-        const { user } = ctx.state.auth;
-        return user;
+    const authorizationCode = await oauth.authorize(request, response, {
+      allowEmptyState: true,
+      authenticateHandler: {
+        handle: async () => {
+          const { user } = ctx.state.auth;
+          return user;
+        },
       },
-    },
-  });
+    });
 
-  if (response.status === 302 && response.headers?.location) {
-    const location = response.headers.location;
-    delete response.headers.location;
-    ctx.set(response.headers);
-    ctx.redirect(location);
-    return;
+    if (response.status === 302 && response.headers?.location) {
+      const location = response.headers.location;
+      delete response.headers.location;
+      ctx.set(response.headers);
+      ctx.redirect(location);
+      return;
+    }
+
+    ctx.body = { code: authorizationCode };
   }
-
-  ctx.body = { code: authorizationCode };
-});
+);
 
 router.post("/token", async (ctx) => {
   const request = new OAuth2Server.Request(ctx.request);

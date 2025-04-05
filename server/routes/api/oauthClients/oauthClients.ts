@@ -1,6 +1,7 @@
 import Router from "koa-router";
 import { UserRole } from "@shared/types";
 import auth from "@server/middlewares/authentication";
+import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { OAuthClient } from "@server/models";
@@ -11,21 +12,9 @@ import {
   presentPublishedOAuthClient,
 } from "@server/presenters";
 import { APIContext } from "@server/types";
+import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
-import {
-  OAuthClientsInfoSchema,
-  OAuthClientsCreateSchema,
-  OAuthClientsUpdateSchema,
-  OAuthClientsRotateSecretSchema,
-  OAuthClientsDeleteSchema,
-  OAuthClientsListSchema,
-  type OAuthClientsInfoReq,
-  type OAuthClientsCreateReq,
-  type OAuthClientsUpdateReq,
-  type OAuthClientsRotateSecretReq,
-  type OAuthClientsDeleteReq,
-  type OAuthClientsListReq,
-} from "./schema";
+import * as T from "./schema";
 
 const router = new Router();
 
@@ -33,8 +22,8 @@ router.post(
   "oauthClients.list",
   auth({ role: UserRole.Admin }),
   pagination(),
-  validate(OAuthClientsListSchema),
-  async (ctx: APIContext<OAuthClientsListReq>) => {
+  validate(T.OAuthClientsListSchema),
+  async (ctx: APIContext<T.OAuthClientsListReq>) => {
     const { user } = ctx.state.auth;
     const where = { teamId: user.teamId };
 
@@ -58,8 +47,8 @@ router.post(
 router.post(
   "oauthClients.info",
   auth(),
-  validate(OAuthClientsInfoSchema),
-  async (ctx: APIContext<OAuthClientsInfoReq>) => {
+  validate(T.OAuthClientsInfoSchema),
+  async (ctx: APIContext<T.OAuthClientsInfoReq>) => {
     const { id, clientId } = ctx.input.body;
     const { user } = ctx.state.auth;
 
@@ -82,10 +71,11 @@ router.post(
 
 router.post(
   "oauthClients.create",
+  rateLimiter(RateLimiterStrategy.FivePerHour),
   auth({ role: UserRole.Admin }),
-  validate(OAuthClientsCreateSchema),
+  validate(T.OAuthClientsCreateSchema),
   transaction(),
-  async (ctx: APIContext<OAuthClientsCreateReq>) => {
+  async (ctx: APIContext<T.OAuthClientsCreateReq>) => {
     const input = ctx.input.body;
     const { user } = ctx.state.auth;
 
@@ -107,9 +97,9 @@ router.post(
 router.post(
   "oauthClients.update",
   auth({ role: UserRole.Admin }),
-  validate(OAuthClientsUpdateSchema),
+  validate(T.OAuthClientsUpdateSchema),
   transaction(),
-  async (ctx: APIContext<OAuthClientsUpdateReq>) => {
+  async (ctx: APIContext<T.OAuthClientsUpdateReq>) => {
     const { id, ...input } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
@@ -132,10 +122,11 @@ router.post(
 
 router.post(
   "oauthClients.rotateSecret",
+  rateLimiter(RateLimiterStrategy.FivePerHour),
   auth({ role: UserRole.Admin }),
-  validate(OAuthClientsRotateSecretSchema),
+  validate(T.OAuthClientsRotateSecretSchema),
   transaction(),
-  async (ctx: APIContext<OAuthClientsRotateSecretReq>) => {
+  async (ctx: APIContext<T.OAuthClientsRotateSecretReq>) => {
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
@@ -160,9 +151,9 @@ router.post(
 router.post(
   "oauthClients.delete",
   auth({ role: UserRole.Admin }),
-  validate(OAuthClientsDeleteSchema),
+  validate(T.OAuthClientsDeleteSchema),
   transaction(),
-  async (ctx: APIContext<OAuthClientsDeleteReq>) => {
+  async (ctx: APIContext<T.OAuthClientsDeleteReq>) => {
     const { id } = ctx.input.body as { id: string };
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
