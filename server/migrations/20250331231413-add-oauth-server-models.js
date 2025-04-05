@@ -49,7 +49,8 @@ module.exports = {
           references: {
             model: "teams",
           },
-          allowNull: false
+          allowNull: false,
+          onDelete: "cascade"
         },
         createdById: {
           type: Sequelize.UUID,
@@ -98,6 +99,7 @@ module.exports = {
           references: {
             model: "oauth_clients",
           },
+          onDelete: "cascade",
           allowNull: false
         },
         userId: {
@@ -105,6 +107,7 @@ module.exports = {
           references: {
             model: "users",
           },
+          onDelete: "cascade",
           allowNull: false
         },
         redirectUri: {
@@ -160,6 +163,7 @@ module.exports = {
           references: {
             model: "oauth_clients",
           },
+          onDelete: "cascade",
           allowNull: false
         },
         userId: {
@@ -167,6 +171,7 @@ module.exports = {
           references: {
             model: "users",
           },
+          onDelete: "cascade",
           allowNull: false
         },
         createdAt: {
@@ -184,6 +189,8 @@ module.exports = {
       }, {
         transaction
       });
+
+      queryInterface.addIndex("oauth_clients", ["teamId"], { transaction });
     });
   },
 
