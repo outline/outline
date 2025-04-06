@@ -54,6 +54,8 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
   const [hasPointerMoved, setPointerMoved] = React.useState(false);
   const isSmallerThanMinimum = width < minWidth;
 
+  const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
   const handleDrag = React.useCallback(
     (event: MouseEvent) => {
       // suppresses text selection
@@ -114,6 +116,10 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
 
   const handlePointerActivity = React.useCallback(() => {
     if (ui.sidebarIsClosed) {
+      //clear the timeout when mouse exits
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
       setHovering(document.hasFocus());
       setPointerMoved(true);
     }
@@ -122,12 +128,20 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
   const handlePointerLeave = React.useCallback(
     (ev) => {
       if (hasPointerMoved) {
-        setHovering(
-          document.hasFocus() &&
-            ev.pageX < width &&
-            ev.pageY < window.innerHeight &&
-            ev.pageY > 0
-        );
+        //to clear any previous timeOut
+        if (hoverTimeoutRef.current) {
+          clearTimeout(hoverTimeoutRef.current);
+        }
+
+        //add a little bit of a delay when mouse exits the sidebar
+        hoverTimeoutRef.current = setTimeout(() => {
+          setHovering(
+            document.hasFocus() &&
+              ev.pageX < width &&
+              ev.pageY < window.innerHeight &&
+              ev.pageY > 0
+          );
+        }, 500);
       }
     },
     [width, hasPointerMoved]
