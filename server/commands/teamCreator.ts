@@ -34,7 +34,7 @@ async function teamCreator({
   ip,
   transaction,
 }: Props): Promise<Team> {
-  if (!avatarUrl.startsWith("http")) {
+  if (!avatarUrl?.startsWith("http")) {
     avatarUrl = null;
   }
 
