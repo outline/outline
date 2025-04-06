@@ -1,10 +1,10 @@
-import { t } from "i18next";
+import type { TFunction } from "i18next";
 import capitalize from "lodash/capitalize";
 import uniq from "lodash/uniq";
 import { Scope } from "@shared/types";
 
 export class OAuthScopeHelper {
-  public static normalizeScopes(scopes: string[]): string[] {
+  public static normalizeScopes(scopes: string[], t: TFunction): string[] {
     const methodToReadable = {
       list: t("view"),
       info: t("view"),

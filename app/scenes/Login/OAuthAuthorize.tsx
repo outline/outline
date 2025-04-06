@@ -7,7 +7,6 @@ import { s } from "@shared/styles";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import { AvatarVariant } from "~/components/Avatar/Avatar";
 import ButtonLarge from "~/components/ButtonLarge";
-import ChangeLanguage from "~/components/ChangeLanguage";
 import Heading from "~/components/Heading";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import PageTitle from "~/components/PageTitle";
@@ -16,7 +15,6 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useQuery from "~/hooks/useQuery";
 import useRequest from "~/hooks/useRequest";
 import { client } from "~/utils/ApiClient";
-import { detectLanguage } from "~/utils/language";
 import { OAuthScopeHelper } from "./OAuthScopeHelper";
 import { Background } from "./components/Background";
 import { Centered } from "./components/Centered";
@@ -75,7 +73,6 @@ function Authorize() {
   if (missingParams.length || clientError) {
     return (
       <Background>
-        <ChangeLanguage locale={detectLanguage()} />
         <Centered>
           <StyledHeading>{t("An error occurred")}</StyledHeading>
           {clientError ? (
@@ -112,8 +109,6 @@ function Authorize() {
   return (
     <Background>
       <PageTitle title={t("Authorize")} />
-      <ChangeLanguage locale={detectLanguage()} />
-
       <Centered gap={12}>
         <Text type="tertiary">
           <Flex gap={12} align="center">
@@ -169,14 +164,15 @@ function Authorize() {
         )}
         <Text type="tertiary" as="p">
           {t(
-            "{{ appName }} will be able to access your account and perform the following actions:",
+            "{{ appName }} will be able to access your account and perform the following actions",
             {
               appName: name,
             }
           )}
+          :
         </Text>
         <ul style={{ width: "100%", paddingLeft: "1em", marginTop: 0 }}>
-          {OAuthScopeHelper.normalizeScopes(scopes).map((item) => (
+          {OAuthScopeHelper.normalizeScopes(scopes, t).map((item) => (
             <li key={item}>
               <Text type="secondary">{item}</Text>
             </li>
