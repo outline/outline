@@ -106,10 +106,11 @@ export const OAuthClientForm = observer(function OAuthClientForm_({
               placeholder="https://example.com/callback"
               ref={field.ref}
               value={field.value.join("\n")}
-              rows={Math.max(2, field.value.length)}
+              rows={Math.max(2, field.value.length + 1)}
               onChange={(event) => {
                 field.onChange(event.target.value.split("\n"));
               }}
+              required
             />
           )}
         />

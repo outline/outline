@@ -21,14 +21,6 @@ describe("OAuthInterface", () => {
       );
       expect(result).toBe(true);
     });
-    it("should return false for insecure redirect URI", async () => {
-      const redirectUri = "http://example.com/callback";
-      const result = await OAuthInterface.validateRedirectUri(
-        redirectUri,
-        client
-      );
-      expect(result).toBe(false);
-    });
     it("should return false for invalid redirect URI", async () => {
       const redirectUri = "invalid_uri";
       const result = await OAuthInterface.validateRedirectUri(

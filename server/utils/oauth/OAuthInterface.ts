@@ -220,7 +220,7 @@ export const OAuthInterface: RefreshTokenModel &
       return false;
     }
 
-    return !uri.startsWith("http://");
+    return true;
   },
 
   /**
