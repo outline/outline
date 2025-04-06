@@ -46,9 +46,11 @@ import {
   OAuthAuthorizationCode,
   OAuthClient,
   AuthenticationProvider,
+  OAuthAuthentication,
 } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { hash } from "@server/utils/crypto";
+import { OAuthInterface } from "@server/utils/oauth/OAuthInterface";
 
 export async function buildApiKey(overrides: Partial<ApiKey> = {}) {
   if (!overrides.userId) {
@@ -750,6 +752,48 @@ export async function buildOAuthAuthorizationCode(
     scope: ["read"],
     redirectUri: client.redirectUris[0],
     ...overrides,
+  });
+}
+
+export async function buildOAuthAuthentication({
+  user,
+  scope,
+}: {
+  user: User;
+  scope: string[];
+}) {
+  const oauthClient = await buildOAuthClient({
+    teamId: user.teamId,
+  });
+  const oauthInterfaceClient = {
+    id: oauthClient.clientId,
+    grants: ["authorization_code"],
+    redirectUris: ["https://example.com/oauth/callback"],
+  };
+  const oauthInterfaceUser = {
+    id: user.id,
+  };
+
+  const accessToken = await OAuthInterface.generateAccessToken(
+    oauthInterfaceClient,
+    oauthInterfaceUser,
+    scope
+  );
+  const refreshToken = await OAuthInterface.generateRefreshToken(
+    oauthInterfaceClient,
+    oauthInterfaceUser,
+    scope
+  );
+  return OAuthAuthentication.create({
+    userId: user.id,
+    oauthClientId: oauthClient.id,
+    accessToken,
+    accessTokenHash: hash(accessToken),
+    accessTokenExpiresAt: new Date(Date.now() + 1000 * 60 * 60),
+    refreshToken,
+    refreshTokenHash: hash(refreshToken),
+    refreshTokenExpiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
+    scope,
   });
 }
 

@@ -66,6 +66,12 @@ export default function auth(options: AuthenticationOptions = {}) {
       let type: AuthenticationType;
 
       if (OAuthAuthentication.match(String(token))) {
+        if (!authorizationHeader) {
+          throw AuthenticationError(
+            "OAuth access token must be passed in the Authorization header"
+          );
+        }
+
         type = AuthenticationType.OAUTH;
 
         let authentication;

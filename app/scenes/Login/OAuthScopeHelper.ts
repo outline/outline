@@ -6,9 +6,9 @@ import { Scope } from "@shared/types";
 export class OAuthScopeHelper {
   public static normalizeScopes(scopes: string[], t: TFunction): string[] {
     const methodToReadable = {
-      list: t("view"),
-      info: t("view"),
-      read: t("view"),
+      list: t("read"),
+      info: t("read"),
+      read: t("read"),
       write: t("write"),
       create: t("write"),
       update: t("write"),
@@ -36,10 +36,10 @@ export class OAuthScopeHelper {
 
     const normalizedScopes = scopes.map((scope) => {
       if (scope === Scope.Read) {
-        return t("View workspace");
+        return t("Read all data");
       }
       if (scope === Scope.Write) {
-        return t("Write workspace");
+        return t("Write all data");
       }
 
       const [namespace, method] = scope.replace("/api/", "").split(/[:\.]/g);

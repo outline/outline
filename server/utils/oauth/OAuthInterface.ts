@@ -28,7 +28,14 @@ interface Config {
  * https://node-oauthoauth2-server.readthedocs.io/en/master/model/overview.html
  */
 export const OAuthInterface: RefreshTokenModel &
-  Required<AuthorizationCodeModel, "validateScope" | "validateRedirectUri"> &
+  Required<
+    AuthorizationCodeModel,
+    | "validateScope"
+    | "validateRedirectUri"
+    | "generateAccessToken"
+    | "generateRefreshToken"
+    | "generateAuthorizationCode"
+  > &
   Config = {
   /** Supported grant types */
   grants: ["authorization_code", "refresh_token"],
