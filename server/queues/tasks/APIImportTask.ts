@@ -170,7 +170,7 @@ export default abstract class APIImportTask<
       await importTask.save({ transaction });
 
       const associatedImport = importTask.import;
-      associatedImport.documentCount += importTask.input.length;
+      associatedImport.documentCount += taskOutputWithReplacements.length;
       await associatedImport.saveWithCtx(
         createContext({
           user: associatedImport.createdBy,

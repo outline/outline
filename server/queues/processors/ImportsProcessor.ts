@@ -304,6 +304,15 @@ export default abstract class ImportsProcessor<
 
             const output = outputMap[externalId];
 
+            // Skip this item if it has no output (likely due to an error during processing)
+            if (!output) {
+              Logger.debug(
+                "processor",
+                `Skipping item with no output: ${externalId}`
+              );
+              continue;
+            }
+
             const collectionItem = importInput[externalId];
 
             const attachments = await Attachment.findAll({
@@ -444,7 +453,7 @@ export default abstract class ImportsProcessor<
     importInput: Record<string, ImportInput<any>[number]>;
     actorId: string;
   }): ProsemirrorDoc {
-    // special case when the doc content is empty
+    // special case when the doc content is empty.
     if (!content.content.length) {
       return content;
     }
