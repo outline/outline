@@ -1,5 +1,6 @@
 import {
   Extension,
+  connectedPayload,
   onConnectPayload,
   onDisconnectPayload,
 } from "@hocuspocus/server";
@@ -43,12 +44,14 @@ export class ConnectionLimitExtension implements Extension {
   }
 
   /**
-   * On connect hook
+   * Connected hook is called when a new connection has been established.
+   * This is where we can check if the document has reached the maximum number of
+   * connections and reject the connection if it has.
    *
-   * @param data The connect payload
-   * @returns Promise, resolving will allow the connection, rejecting will drop it
+   * @param data The onConnect payload
+   * @returns Promise, resolving will allow the connection, rejecting will drop.
    */
-  onConnect({ documentName, socketId }: withContext<onConnectPayload>) {
+  onConnect({ documentName }: withContext<onConnectPayload>) {
     const connections =
       this.connectionsByDocument.get(documentName) || new Set();
     if (connections?.size >= env.COLLABORATION_MAX_CLIENTS_PER_DOCUMENT) {
@@ -60,6 +63,20 @@ export class ConnectionLimitExtension implements Extension {
       // Rejecting the promise will cause the connection to be dropped.
       return Promise.reject(TooManyConnections);
     }
+
+    return Promise.resolve();
+  }
+
+  /**
+   * Connected hook is called when a new connection has been established.
+   * This is where we can update the connection count for the document.
+   *
+   * @param data The onConnect payload
+   * @returns Promise
+   */
+  connected({ documentName, socketId }: withContext<connectedPayload>) {
+    const connections =
+      this.connectionsByDocument.get(documentName) || new Set();
 
     connections.add(socketId);
     this.connectionsByDocument.set(documentName, connections);
