@@ -190,7 +190,7 @@ module.exports = {
         transaction
       });
 
-      queryInterface.addIndex("oauth_clients", ["teamId"], { transaction });
+      await queryInterface.addIndex("oauth_clients", ["teamId"], { transaction });
     });
   },
 

@@ -5,7 +5,6 @@ import { Redirect } from "react-router-dom";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import { changeLanguage } from "~/utils/language";
-import { logoutPath } from "~/utils/routeHelpers";
 import LoadingIndicator from "./LoadingIndicator";
 
 type Props = {

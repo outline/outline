@@ -46,7 +46,11 @@ function Authorize() {
   }, []);
 
   const handleCancel = () => {
-    window.location.href = redirectUri ?? "/";
+    if (window.history.length) {
+      window.history.back();
+    } else {
+      window.location.href = "/";
+    }
   };
 
   const handleSubmit = () => {
