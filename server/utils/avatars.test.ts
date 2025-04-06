@@ -1,9 +1,9 @@
 import { generateAvatarUrl } from "./avatars";
 
-it("should return clearbit url if available", async () => {
+it("should return null as Clearbit API is discontinued", async () => {
   const url = await generateAvatarUrl({
     id: "google",
     domain: "google.com",
   });
-  expect(url).toBe("https://logo.clearbit.com/google.com");
+  expect(url).toBe(null);
 });
