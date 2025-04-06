@@ -49,7 +49,7 @@ export class ConnectionLimitExtension implements Extension {
   }
 
   /**
-   * Connected hook is called when a new connection has been established.
+   * onConnect hook is called when a new connection has been established.
    * This is where we can check if the document has reached the maximum number of
    * connections and reject the connection if it has.
    *
@@ -74,8 +74,8 @@ export class ConnectionLimitExtension implements Extension {
   }
 
   /**
-   * Connected hook is called when a new connection has been established.
-   * This is where we can update the connection count for the document.
+   * Connected hook is called after a new connection has been established.
+   * We can safely update the connection count for the document.
    *
    * @param data The onConnect payload
    * @returns Promise
