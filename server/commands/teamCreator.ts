@@ -3,7 +3,6 @@ import slugify from "slugify";
 import { RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import { traceFunction } from "@server/logging/tracing";
 import { Team, Event } from "@server/models";
-import { generateAvatarUrl } from "@server/utils/avatars";
 
 type Props = {
   /** The displayed name of the team */
@@ -36,13 +35,10 @@ async function teamCreator({
   ip,
   transaction,
 }: Props): Promise<Team> {
-  // If the service did not provide a logo/avatar then we attempt to generate
-  // one via ClearBit, or fallback to colored initials in worst case scenario
+  // If the service did not provide a logo/avatar then we'll use the default
+  // avatar generation mechanism (colored initials)
   if (!avatarUrl || !avatarUrl.startsWith("http")) {
-    avatarUrl = await generateAvatarUrl({
-      domain,
-      id: subdomain,
-    });
+    avatarUrl = null;
   }
 
   const team = await Team.create(
