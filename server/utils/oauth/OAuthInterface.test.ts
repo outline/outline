@@ -9,7 +9,44 @@ describe("OAuthInterface", () => {
   const client = {
     id: v4(),
     grants: ["authorization_code", "refresh_token"],
+    redirectUris: ["https://example.com/callback"],
   };
+
+  describe("#validateRedirectUri", () => {
+    it("should return true for valid redirect URI", async () => {
+      const redirectUri = "https://example.com/callback";
+      const result = await OAuthInterface.validateRedirectUri(
+        redirectUri,
+        client
+      );
+      expect(result).toBe(true);
+    });
+    it("should return false for insecure redirect URI", async () => {
+      const redirectUri = "http://example.com/callback";
+      const result = await OAuthInterface.validateRedirectUri(
+        redirectUri,
+        client
+      );
+      expect(result).toBe(false);
+    });
+    it("should return false for invalid redirect URI", async () => {
+      const redirectUri = "invalid_uri";
+      const result = await OAuthInterface.validateRedirectUri(
+        redirectUri,
+        client
+      );
+      expect(result).toBe(false);
+    });
+
+    it("should return false for URI with fragment", async () => {
+      const redirectUri = "https://example.com/callback#fragment";
+      const result = await OAuthInterface.validateRedirectUri(
+        redirectUri,
+        client
+      );
+      expect(result).toBe(false);
+    });
+  });
 
   describe("#validateScope", () => {
     it("should return empty array for empty scope", async () => {

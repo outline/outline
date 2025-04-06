@@ -121,7 +121,7 @@ router.post(
 );
 
 router.post(
-  "oauthClients.rotateSecret",
+  "oauthClients.rotate_secret",
   rateLimiter(RateLimiterStrategy.FivePerHour),
   auth({ role: UserRole.Admin }),
   validate(T.OAuthClientsRotateSecretSchema),

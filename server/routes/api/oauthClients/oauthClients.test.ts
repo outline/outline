@@ -214,9 +214,9 @@ describe("oauthclients.update", () => {
   });
 });
 
-describe("oauthClients.rotateSecret", () => {
+describe("oauthClients.rotate_secret", () => {
   it("should require authentication", async () => {
-    const res = await server.post("/api/oauthClients.rotateSecret");
+    const res = await server.post("/api/oauthClients.rotate_secret");
     const body = await res.json();
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();
@@ -235,7 +235,7 @@ describe("oauthClients.rotateSecret", () => {
 
     const originalSecret = client.clientSecret;
 
-    const res = await server.post("/api/oauthClients.rotateSecret", {
+    const res = await server.post("/api/oauthClients.rotate_secret", {
       body: {
         token: admin.getJwtToken(),
         id: client.id,

@@ -36,7 +36,7 @@ exports[`oauthClients.list should require authentication 1`] = `
 }
 `;
 
-exports[`oauthClients.rotateSecret should require authentication 1`] = `
+exports[`oauthClients.rotate_secret should require authentication 1`] = `
 {
   "error": "authentication_required",
   "message": "Authentication required",

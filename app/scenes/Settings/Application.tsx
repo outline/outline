@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { CopyIcon, InternetIcon } from "outline-icons";
+import { CopyIcon, InternetIcon, ReplaceIcon } from "outline-icons";
 import * as React from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -9,13 +9,16 @@ import { OAuthClientValidation } from "@shared/validations";
 import OAuthClient from "~/models/OAuthClient";
 import Breadcrumb from "~/components/Breadcrumb";
 import Button from "~/components/Button";
+import ConfirmationDialog from "~/components/ConfirmationDialog";
 import ContentEditable from "~/components/ContentEditable";
 import Heading from "~/components/Heading";
 import Input from "~/components/Input";
 import LoadingIndicator from "~/components/LoadingIndicator";
+import NudeButton from "~/components/NudeButton";
 import { FormData } from "~/components/OAuthClient/OAuthClientForm";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
+import Tooltip from "~/components/Tooltip";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import OAuthClientMenu from "~/menus/OAuthClientMenu";
@@ -30,7 +33,7 @@ type Props = {
   oauthClient: OAuthClient;
 };
 
-function LoadingState() {
+const LoadingState = observer(function LoadingState() {
   const { id } = useParams<{ id: string }>();
   const { oauthClients } = useStores();
   const oauthClient = oauthClients.get(id);
@@ -47,21 +50,11 @@ function LoadingState() {
   }
 
   return <Application oauthClient={oauthClient} />;
-}
+});
 
-function Application({ oauthClient }: Props) {
+const Application = observer(function Application({ oauthClient }: Props) {
   const { t } = useTranslation();
-
-  const handleSubmit = React.useCallback(
-    async (data: FormData) => {
-      try {
-        await oauthClient.save(data);
-      } catch (error) {
-        toast.error(error.message);
-      }
-    },
-    [oauthClient]
-  );
+  const { dialogs } = useStores();
 
   const {
     register,
@@ -82,6 +75,39 @@ function Application({ oauthClient }: Props) {
       published: oauthClient.published ?? false,
     },
   });
+
+  const handleSubmit = React.useCallback(
+    async (data: FormData) => {
+      try {
+        await oauthClient.save(data);
+      } catch (error) {
+        toast.error(error.message);
+      }
+    },
+    [oauthClient]
+  );
+
+  const handleRotateSecret = React.useCallback(async () => {
+    const onDelete = async () => {
+      try {
+        await oauthClient.rotateClientSecret();
+        toast.success(t("Client secret rotated"));
+      } catch (err) {
+        toast.error(err.message);
+      }
+    };
+
+    dialogs.openModal({
+      title: t("Rotate secret"),
+      content: (
+        <ConfirmationDialog onSubmit={onDelete} danger>
+          {t(
+            "Rotating the client secret will invalidate the current secret. Make sure to update any applications using these credentials."
+          )}
+        </ConfirmationDialog>
+      ),
+    });
+  }, [t, dialogs, oauthClient]);
 
   return (
     <Scene
@@ -219,6 +245,12 @@ function Application({ oauthClient }: Props) {
             value={oauthClient.clientSecret}
             readOnly
           >
+            <Tooltip content={t("Rotate secret")} placement="top">
+              <NudeButton type="button" onClick={handleRotateSecret}>
+                <ReplaceIcon size={20} />
+              </NudeButton>
+            </Tooltip>
+
             <CopyButton
               value={oauthClient.clientSecret}
               success={t("Copied to clipboard")}
@@ -282,6 +314,6 @@ function Application({ oauthClient }: Props) {
       </form>
     </Scene>
   );
-}
+});
 
-export default observer(LoadingState);
+export default LoadingState;

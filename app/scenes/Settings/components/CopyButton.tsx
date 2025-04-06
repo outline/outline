@@ -28,7 +28,7 @@ export function CopyButton({
         clearTimeout(timeout.current);
       }
     };
-  }, []);
+  }, [success]);
 
   return (
     <Tooltip content={tooltip} placement="top">

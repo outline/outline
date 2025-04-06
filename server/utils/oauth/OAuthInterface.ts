@@ -5,6 +5,7 @@ import {
 import rs from "randomstring";
 import { Required } from "utility-types";
 import { Scope } from "@shared/types";
+import { isUrl } from "@shared/utils/urls";
 import {
   OAuthClient,
   OAuthAuthentication,
@@ -17,7 +18,7 @@ interface Config {
 }
 
 export const OAuthInterface: RefreshTokenModel &
-  Required<AuthorizationCodeModel, "validateScope"> &
+  Required<AuthorizationCodeModel, "validateScope" | "validateRedirectUri"> &
   Config = {
   grants: ["authorization_code", "refresh_token"],
 
@@ -208,7 +209,17 @@ export const OAuthInterface: RefreshTokenModel &
    * @param uri The redirect URI to validate.
    * @returns True if the URI is valid, false otherwise.
    */
-  async validateRedirectUri(uri) {
+  async validateRedirectUri(uri, client) {
+    if (uri.includes("#")) {
+      return false;
+    }
+    if (!client.redirectUris?.includes(uri)) {
+      return false;
+    }
+    if (!isUrl(uri)) {
+      return false;
+    }
+
     return !uri.startsWith("http://");
   },
 
