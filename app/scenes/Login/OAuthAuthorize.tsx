@@ -5,6 +5,7 @@ import styled from "styled-components";
 import Flex from "@shared/components/Flex";
 import { s } from "@shared/styles";
 import { Avatar, AvatarSize } from "~/components/Avatar";
+import { AvatarVariant } from "~/components/Avatar/Avatar";
 import ButtonLarge from "~/components/ButtonLarge";
 import ChangeLanguage from "~/components/ChangeLanguage";
 import Heading from "~/components/Heading";
@@ -110,18 +111,28 @@ function Authorize() {
       <ChangeLanguage locale={detectLanguage()} />
 
       <Centered gap={12}>
-        <Flex gap={8} align="center">
-          <Logo
-            model={{
-              avatarUrl: response.data.avatarUrl,
-              initial: response.data.name[0],
-            }}
-            size={AvatarSize.XXLarge}
-            alt={t("Logo")}
-          />{" "}
-          <MoreIcon />{" "}
-          <Logo model={team} size={AvatarSize.XXLarge} alt={t("Logo")} />
-        </Flex>
+        <Text type="tertiary">
+          <Flex gap={12} align="center">
+            <Avatar
+              variant={AvatarVariant.Square}
+              model={{
+                avatarUrl: response.data.avatarUrl,
+                initial: response.data.name[0],
+              }}
+              size={AvatarSize.XXLarge}
+              alt={response.data.name}
+            />
+
+            <MoreIcon />
+
+            <Avatar
+              variant={AvatarVariant.Square}
+              model={team}
+              size={AvatarSize.XXLarge}
+              alt={team.name}
+            />
+          </Flex>
+        </Text>
         <StyledHeading>
           {t(`{{ appName }} wants to access {{ teamName }}`, {
             appName: name,
@@ -195,10 +206,6 @@ function Authorize() {
     </Background>
   );
 }
-
-const Logo = styled(Avatar)`
-  border-radius: 8px;
-`;
 
 const Button = styled(ButtonLarge)`
   width: calc(50% - 4px);

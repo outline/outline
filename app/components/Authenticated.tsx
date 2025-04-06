@@ -33,7 +33,7 @@ const Authenticated = ({ children }: Props) => {
   }
 
   void auth.logout(true);
-  return <Redirect to={logoutPath()} />;
+  return <Redirect to="/" />;
 };
 
 export default observer(Authenticated);

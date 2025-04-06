@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { OAuthClientValidation } from "@shared/validations";
 import { BaseSchema } from "@server/routes/api/schema";
 
 export const OAuthClientsInfoSchema = BaseSchema.extend({
@@ -39,9 +40,15 @@ export const OAuthClientsCreateSchema = BaseSchema.extend({
       .array(z.string().url())
       .min(1, { message: "At least one redirect uri is required" })
       .max(10, { message: "A maximum of 10 redirect uris are allowed" })
-      .refine((uris) => uris.every((uri) => uri.length <= 255), {
-        message: "Redirect uri must be less than 255 characters",
-      }),
+      .refine(
+        (uris) =>
+          uris.every(
+            (uri) => uri.length <= OAuthClientValidation.maxRedirectUriLength
+          ),
+        {
+          message: `Redirect uri must be less than ${OAuthClientValidation.maxRedirectUriLength} characters`,
+        }
+      ),
 
     /** OAuth client published */
     published: z.boolean().default(false),
@@ -74,9 +81,15 @@ export const OAuthClientsUpdateSchema = BaseSchema.extend({
       .array(z.string().url())
       .min(1, { message: "At least one redirect uri is required" })
       .max(10, { message: "A maximum of 10 redirect uris are allowed" })
-      .refine((uris) => uris.every((uri) => uri.length <= 255), {
-        message: "Redirect uri must be less than 255 characters",
-      })
+      .refine(
+        (uris) =>
+          uris.every(
+            (uri) => uri.length <= OAuthClientValidation.maxRedirectUriLength
+          ),
+        {
+          message: `Redirect uri must be less than ${OAuthClientValidation.maxRedirectUriLength} characters`,
+        }
+      )
       .optional(),
 
     /** OAuth client published */
@@ -107,10 +120,7 @@ export type OAuthClientsRotateSecretReq = z.infer<
 >;
 
 export const OAuthClientsListSchema = BaseSchema.extend({
-  body: z.object({
-    /** Include non-published OAuth clients */
-    includeUnpublished: z.boolean().optional(),
-  }),
+  body: z.object({}),
 });
 
 export type OAuthClientsListReq = z.infer<typeof OAuthClientsListSchema>;

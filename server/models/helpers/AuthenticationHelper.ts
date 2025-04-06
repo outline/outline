@@ -6,7 +6,10 @@ import Team from "@server/models/Team";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 
 export default class AuthenticationHelper {
-  public static methodToScope = {
+  /**
+   * The mapping of method names to their scopes.
+   */
+  private static methodToScope = {
     create: Scope.Create,
     list: Scope.Read,
     info: Scope.Read,
@@ -62,6 +65,13 @@ export default class AuthenticationHelper {
       });
   }
 
+  /**
+   * Returns whether the given path can be accessed with any of the scopes.
+   *
+   * @param path The path to check
+   * @param scopes The scopes to check
+   * @returns True if the path can be accessed
+   */
   public static canAccess = (path: string, scopes: string[]) => {
     // strip any query string from the path
     path = path.split("?")[0];
