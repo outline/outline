@@ -3,7 +3,12 @@ import chunk from "lodash/chunk";
 import keyBy from "lodash/keyBy";
 import truncate from "lodash/truncate";
 import { Fragment, Node } from "prosemirror-model";
-import { CreateOptions, CreationAttributes, Transaction } from "sequelize";
+import {
+  CreateOptions,
+  CreationAttributes,
+  Transaction,
+  UniqueConstraintError,
+} from "sequelize";
 import { v4 as uuidv4 } from "uuid";
 import { randomElement } from "@shared/random";
 import { ImportInput, ImportTaskInput } from "@shared/schema";
@@ -154,45 +159,59 @@ export default abstract class ImportsProcessor<
    * @returns Promise that resolves when mapping and persistence is completed.
    */
   private async onProcessed(importModel: Import<T>, transaction: Transaction) {
-    const { collections } = await this.createCollectionsAndDocuments({
-      importModel,
-      transaction,
-    });
-
-    // Once all collections and documents are created, update collection's document structure.
-    // This ensures the root documents have the whole subtree available in the structure.
-    for (const collection of collections) {
-      await Document.unscoped().findAllInBatches<Document>(
-        {
-          where: { parentDocumentId: null, collectionId: collection.id },
-          order: [
-            ["createdAt", "DESC"],
-            ["id", "ASC"],
-          ],
-          transaction,
-        },
-        async (documents) => {
-          for (const document of documents) {
-            await collection.addDocumentToStructure(document, 0, {
-              save: false,
-              silent: true,
-              transaction,
-            });
-          }
-        }
-      );
-
-      await collection.save({ silent: true, transaction });
-    }
-
-    importModel.state = ImportState.Completed;
-    importModel.error = null; // unset any error from previous attempts.
-    await importModel.saveWithCtx(
-      createContext({
-        user: importModel.createdBy,
+    try {
+      const { collections } = await this.createCollectionsAndDocuments({
+        importModel,
         transaction,
-      })
-    );
+      });
+
+      // Once all collections and documents are created, update collection's document structure.
+      // This ensures the root documents have the whole subtree available in the structure.
+      for (const collection of collections) {
+        await Document.unscoped().findAllInBatches<Document>(
+          {
+            where: { parentDocumentId: null, collectionId: collection.id },
+            order: [
+              ["createdAt", "DESC"],
+              ["id", "ASC"],
+            ],
+            transaction,
+          },
+          async (documents) => {
+            for (const document of documents) {
+              await collection.addDocumentToStructure(document, 0, {
+                save: false,
+                silent: true,
+                transaction,
+              });
+            }
+          }
+        );
+
+        await collection.save({ silent: true, transaction });
+      }
+
+      importModel.state = ImportState.Completed;
+      importModel.error = null; // unset any error from previous attempts.
+      await importModel.saveWithCtx(
+        createContext({
+          user: importModel.createdBy,
+          transaction,
+        })
+      );
+    } catch (err) {
+      if (err instanceof UniqueConstraintError) {
+        Logger.error(
+          "ImportsProcessor persistence failed due to unique constraint error",
+          err,
+          {
+            fields: err.fields,
+          }
+        );
+      }
+
+      throw err;
+    }
   }
 
   /**
