@@ -3,6 +3,7 @@ import {
   AuthorizationCodeModel,
 } from "@node-oauth/oauth2-server";
 import rs from "randomstring";
+import { Required } from "utility-types";
 import { Scope } from "@shared/types";
 import {
   OAuthClient,
@@ -16,7 +17,7 @@ interface Config {
 }
 
 export const OAuthInterface: RefreshTokenModel &
-  AuthorizationCodeModel &
+  Required<AuthorizationCodeModel, "validateScope"> &
   Config = {
   grants: ["authorization_code", "refresh_token"],
 
@@ -219,7 +220,7 @@ export const OAuthInterface: RefreshTokenModel &
    * @returns The scopes if valid, false otherwise.
    */
   async validateScope(user, client, scope) {
-    if (!scope) {
+    if (!scope?.length) {
       return [];
     }
 
@@ -240,7 +241,7 @@ export const OAuthInterface: RefreshTokenModel &
 
       if (
         colonCount === 1 &&
-        validAccessScopes.includes(s.split(":")[0] as Scope)
+        validAccessScopes.includes(s.split(":")[1] as Scope)
       ) {
         return true;
       }
