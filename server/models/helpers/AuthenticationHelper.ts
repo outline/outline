@@ -66,7 +66,12 @@ export default class AuthenticationHelper {
   }
 
   /**
-   * Returns whether the given path can be accessed with any of the scopes.
+   * Returns whether the given path can be accessed with any of the scopes. We
+   * support scopes in the formats of:
+   *
+   * - `/api/namespace.method`
+   * - `namespace:scope`
+   * - `scope`
    *
    * @param path The path to check
    * @param scopes The scopes to check
