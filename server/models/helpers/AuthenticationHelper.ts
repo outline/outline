@@ -7,7 +7,12 @@ import { Hook, PluginManager } from "@server/utils/PluginManager";
 
 export default class AuthenticationHelper {
   /**
-   * The mapping of method names to their scopes.
+   * The mapping of method names to their scopes, anything not listed here
+   * defaults to `Scope.Write`.
+   *
+   * - `documents.create` -> `Scope.Create`
+   * - `documents.list` -> `Scope.Read`
+   * - `documents.info` -> `Scope.Read`
    */
   private static methodToScope = {
     create: Scope.Create,
@@ -78,7 +83,7 @@ export default class AuthenticationHelper {
    * @returns True if the path can be accessed
    */
   public static canAccess = (path: string, scopes: string[]) => {
-    // strip any query string from the path
+    // strip any query string, this is never used as part of scope matching
     path = path.split("?")[0];
 
     const resource = path.split("/").pop() ?? "";

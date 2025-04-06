@@ -19,6 +19,11 @@ import { OAuthScopeHelper } from "./OAuthScopeHelper";
 import { Background } from "./components/Background";
 import { Centered } from "./components/Centered";
 
+/**
+ * Authorize component is responsible for handling the OAuth authorization process.
+ * It retrieves the OAuth client information, displays the authorization request,
+ * and allows the user to either authorize or cancel the request.
+ */
 function Authorize() {
   const team = useCurrentTeam();
   const params = useQuery();

@@ -1,4 +1,3 @@
-import crypto from "crypto";
 import { Matches } from "class-validator";
 import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
@@ -14,6 +13,7 @@ import User from "@server/models/User";
 import IdModel from "@server/models/base/IdModel";
 import { SkipChangeset } from "@server/models/decorators/Changeset";
 import Fix from "@server/models/decorators/Fix";
+import { hash } from "@server/utils/crypto";
 import OAuthClient from "./OAuthClient";
 
 @Table({
@@ -63,23 +63,13 @@ class OAuthAuthorizationCode extends IdModel<
   userId: string;
 
   /**
-   * Generates a hashed token for the given input.
-   *
-   * @param key The input string to hash
-   * @returns The hashed input
-   */
-  public static hash(key: string) {
-    return crypto.createHash("sha256").update(key).digest("hex");
-  }
-
-  /**
    * Finds an OAuthAuthorizationCode by the given code.
    *
    * @param input The code to search for
    * @returns The OAuthAuthentication if found
    */
   public static findByCode(input: string) {
-    const authorizationCodeHash = this.hash(input);
+    const authorizationCodeHash = hash(input);
 
     return this.findOne({
       where: {

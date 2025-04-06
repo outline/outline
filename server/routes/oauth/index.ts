@@ -20,12 +20,15 @@ router.post(
   rateLimiter(RateLimiterStrategy.FiftyPerHour),
   auth(),
   async (ctx) => {
+    // Note: These objects are mutated by the OAuth2Server library
     const request = new OAuth2Server.Request(ctx.request);
     const response = new OAuth2Server.Response(ctx.response);
 
     const authorizationCode = await oauth.authorize(request, response, {
       allowEmptyState: true,
       authenticateHandler: {
+        // Fetch the current user from the request, so the library knows
+        // which user is authorizing the client.
         handle: async () => {
           const { user } = ctx.state.auth;
           return user;
@@ -33,6 +36,8 @@ router.post(
       },
     });
 
+    // In the case of a redirect, the response will be always be a redirect
+    // to the redirect_uri with the authorization code as a query parameter.
     if (response.status === 302 && response.headers?.location) {
       const location = response.headers.location;
       delete response.headers.location;
@@ -46,9 +51,9 @@ router.post(
 );
 
 router.post("/token", async (ctx) => {
+  // Note: These objects are mutated by the OAuth2Server library
   const request = new OAuth2Server.Request(ctx.request);
   const response = new OAuth2Server.Response(ctx.response);
-
   const token = await oauth.token(request, response);
 
   if (response.headers) {
@@ -58,10 +63,12 @@ router.post("/token", async (ctx) => {
   ctx.body = {
     access_token: token.accessToken,
     refresh_token: token.refreshToken,
+    // OAuth2 spec says that the expires_in should be in seconds.
     expires_in: token.accessTokenExpiresAt
       ? Math.round((token.accessTokenExpiresAt.getTime() - Date.now()) / 1000)
       : undefined,
     token_type: "Bearer",
+    // OAuth2 spec says that the scope should be a space-separated list.
     scope: token.scope?.join(" "),
   };
 });

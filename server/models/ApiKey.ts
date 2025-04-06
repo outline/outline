@@ -1,4 +1,3 @@
-import crypto from "crypto";
 import { Matches } from "class-validator";
 import { subMinutes } from "date-fns";
 import randomstring from "randomstring";
@@ -16,6 +15,7 @@ import {
   BeforeSave,
 } from "sequelize-typescript";
 import { ApiKeyValidation } from "@shared/validations";
+import { hash } from "@server/utils/crypto";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import { SkipChangeset } from "./decorators/Changeset";
@@ -97,7 +97,7 @@ class ApiKey extends ParanoidModel<
     if (!model.hash) {
       const secret = `${ApiKey.prefix}${randomstring.generate(38)}`;
       model.value = model.secret || secret;
-      model.hash = this.hash(model.value);
+      model.hash = hash(model.value);
     }
   }
 
@@ -107,16 +107,6 @@ class ApiKey extends ParanoidModel<
     if (value) {
       model.last4 = value.slice(-4);
     }
-  }
-
-  /**
-   * Generates a hashed API key for the given input key.
-   *
-   * @param key The input string to hash
-   * @returns The hashed API key
-   */
-  public static hash(key: string) {
-    return crypto.createHash("sha256").update(key).digest("hex");
   }
 
   /**
@@ -141,7 +131,7 @@ class ApiKey extends ParanoidModel<
   public static findByToken(input: string) {
     return this.findOne({
       where: {
-        [Op.or]: [{ secret: input }, { hash: this.hash(input) }],
+        [Op.or]: [{ secret: input }, { hash: hash(input) }],
       },
     });
   }

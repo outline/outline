@@ -1,7 +1,11 @@
-import crypto from "crypto";
 import { Matches } from "class-validator";
 import { subMinutes } from "date-fns";
-import { InferAttributes, InferCreationAttributes } from "sequelize";
+import {
+  FindOptions,
+  InferAttributes,
+  InferCreationAttributes,
+  NonNullFindOptions,
+} from "sequelize";
 import {
   Column,
   DataType,
@@ -17,6 +21,7 @@ import ParanoidModel from "@server/models/base/ParanoidModel";
 import { SkipChangeset } from "@server/models/decorators/Changeset";
 import Fix from "@server/models/decorators/Fix";
 import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
+import { hash } from "@server/utils/crypto";
 import OAuthClient from "./OAuthClient";
 
 @Table({
@@ -126,25 +131,22 @@ class OAuthAuthentication extends ParanoidModel<
   }
 
   /**
-   * Generates a hashed token for the given input.
-   *
-   * @param key The input string to hash
-   * @returns The hashed input
-   */
-  public static hash(key: string) {
-    return crypto.createHash("sha256").update(key).digest("hex");
-  }
-
-  /**
-   * Finds an OAuthAuthentication by the given access token.
+   * Finds an OAuthAuthentication by the given access token, including the
+   * associated user.
    *
    * @param input The access token to search for
+   * @param options The options to pass to the find method
    * @returns The OAuthAuthentication if found
    */
-  public static findByAccessToken(input: string) {
+  static findByAccessToken(
+    input: string,
+    options?:
+      | FindOptions<OAuthAuthentication>
+      | NonNullFindOptions<OAuthAuthentication>
+  ): Promise<OAuthAuthentication | null> {
     return this.findOne({
       where: {
-        accessTokenHash: this.hash(input),
+        accessTokenHash: hash(input),
       },
       include: [
         {
@@ -152,20 +154,27 @@ class OAuthAuthentication extends ParanoidModel<
           required: true,
         },
       ],
-      rejectOnEmpty: true,
+      ...options,
     });
   }
 
   /**
-   * Finds an OAuthAuthentication by the given refresh token.
+   * Finds an OAuthAuthentication by the given refresh token, including the
+   * associated user.
    *
    * @param input The refresh token to search for
+   * @param options The options to pass to the find method
    * @returns The OAuthAuthentication if found
    */
-  public static findByRefreshToken(input: string) {
+  public static findByRefreshToken(
+    input: string,
+    options?:
+      | FindOptions<OAuthAuthentication>
+      | NonNullFindOptions<OAuthAuthentication>
+  ) {
     return this.findOne({
       where: {
-        refreshTokenHash: this.hash(input),
+        refreshTokenHash: hash(input),
       },
       include: [
         {
@@ -173,7 +182,7 @@ class OAuthAuthentication extends ParanoidModel<
           required: true,
         },
       ],
-      rejectOnEmpty: true,
+      ...options,
     });
   }
 }

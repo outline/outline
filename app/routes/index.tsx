@@ -14,9 +14,6 @@ const AuthenticatedRoutes = lazyWithRetry(() => import("./authenticated"));
 const SharedDocument = lazyWithRetry(() => import("~/scenes/Document/Shared"));
 const Login = lazyWithRetry(() => import("~/scenes/Login"));
 const Logout = lazyWithRetry(() => import("~/scenes/Logout"));
-const OAuthAuthorize = lazyWithRetry(
-  () => import("~/scenes/Login/OAuthAuthorize")
-);
 
 export default function Routes() {
   useQueryNotices();
@@ -62,10 +59,7 @@ export default function Routes() {
           />
 
           <Authenticated>
-            <Switch>
-              <Route exact path="/oauth/authorize" component={OAuthAuthorize} />
-              <AuthenticatedRoutes />
-            </Switch>
+            <AuthenticatedRoutes />
           </Authenticated>
         </Switch>
       )}

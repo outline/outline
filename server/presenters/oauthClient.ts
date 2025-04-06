@@ -1,5 +1,10 @@
 import { OAuthClient } from "@server/models";
 
+/**
+ * Presents the OAuth client to the user.
+ *
+ * @param oauthClient The OAuth client to present
+ */
 export default function presentOAuthClient(oauthClient: OAuthClient) {
   return {
     id: oauthClient.id,

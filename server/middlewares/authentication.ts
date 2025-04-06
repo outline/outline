@@ -70,8 +70,13 @@ export default function auth(options: AuthenticationOptions = {}) {
 
         let authentication;
         try {
-          authentication = await OAuthAuthentication.findByAccessToken(token);
+          authentication = await OAuthAuthentication.findByAccessToken(token, {
+            rejectOnEmpty: true,
+          });
         } catch (err) {
+          throw AuthenticationError("Invalid access token");
+        }
+        if (!authentication) {
           throw AuthenticationError("Invalid access token");
         }
         if (authentication.accessTokenExpiresAt < new Date()) {

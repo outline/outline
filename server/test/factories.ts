@@ -48,6 +48,7 @@ import {
   AuthenticationProvider,
 } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
+import { hash } from "@server/utils/crypto";
 
 export async function buildApiKey(overrides: Partial<ApiKey> = {}) {
   if (!overrides.userId) {
@@ -745,7 +746,7 @@ export async function buildOAuthAuthorizationCode(
   }
 
   return OAuthAuthorizationCode.create({
-    authorizationCodeHash: OAuthAuthorizationCode.hash(code),
+    authorizationCodeHash: hash(code),
     scope: ["read"],
     redirectUri: client.redirectUris[0],
     ...overrides,

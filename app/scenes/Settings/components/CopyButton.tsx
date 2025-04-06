@@ -5,17 +5,27 @@ import CopyToClipboard from "~/components/CopyToClipboard";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 
+type Props = {
+  /** The value to be copied */
+  value: string;
+  /** The message to show when the value is copied */
+  success: string;
+  /** The tooltip message */
+  tooltip: string;
+  /** An optional icon */
+  icon?: React.ReactNode;
+};
+
+/**
+ * A button that copies a value to the clipboard when clicked and shows a
+ * single icon.
+ */
 export function CopyButton({
   value,
   success,
   tooltip,
   icon = <LinkIcon size={20} />,
-}: {
-  value: string;
-  success: string;
-  tooltip: string;
-  icon?: React.ReactNode;
-}) {
+}: Props) {
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
 
   const handleCopied = React.useCallback(() => {

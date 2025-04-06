@@ -23,6 +23,7 @@ export default function SettingsRoutes() {
           component={config.component}
         />
       ))}
+      {/* TODO: Refactor these exceptions into config? */}
       <Route
         exact
         path={`${settingsPath("applications")}/:id`}

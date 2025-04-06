@@ -11,15 +11,26 @@ import {
   OAuthAuthentication,
   OAuthAuthorizationCode,
 } from "@server/models";
-import { safeEqual } from "@server/utils/crypto";
+import { hash, safeEqual } from "@server/utils/crypto";
 
+/**
+ * Additional configuration for the OAuthInterface, not part of the
+ * OAuth2Server library.
+ */
 interface Config {
   grants: string[];
 }
 
+/**
+ * This interface is used by the OAuth2Server library to handle OAuth2
+ * authentication and authorization flows. See the library's documentation:
+ *
+ * https://node-oauthoauth2-server.readthedocs.io/en/master/model/overview.html
+ */
 export const OAuthInterface: RefreshTokenModel &
   Required<AuthorizationCodeModel, "validateScope" | "validateRedirectUri"> &
   Config = {
+  /** Supported grant types */
   grants: ["authorization_code", "refresh_token"],
 
   async generateAccessToken() {
@@ -40,6 +51,9 @@ export const OAuthInterface: RefreshTokenModel &
     const authentication = await OAuthAuthentication.findByAccessToken(
       accessToken
     );
+    if (!authentication) {
+      return false;
+    }
 
     return {
       accessToken,
@@ -57,6 +71,9 @@ export const OAuthInterface: RefreshTokenModel &
     const authentication = await OAuthAuthentication.findByRefreshToken(
       refreshToken
     );
+    if (!authentication) {
+      return false;
+    }
 
     return {
       refreshToken,
@@ -73,12 +90,13 @@ export const OAuthInterface: RefreshTokenModel &
   async getAuthorizationCode(authorizationCode) {
     const code = await OAuthAuthorizationCode.findByCode(authorizationCode);
     if (!code) {
-      return null;
+      return false;
     }
 
-    const oauthClient = await OAuthClient.findByPk(code.oauthClientId, {
-      rejectOnEmpty: true,
-    });
+    const oauthClient = await OAuthClient.findByPk(code.oauthClientId);
+    if (!oauthClient) {
+      return false;
+    }
 
     return {
       authorizationCode,
@@ -100,15 +118,11 @@ export const OAuthInterface: RefreshTokenModel &
       },
     });
     if (!client) {
-      return null;
+      return false;
     }
 
-    if (
-      clientSecret &&
-      client &&
-      !safeEqual(client.clientSecret, clientSecret)
-    ) {
-      return null;
+    if (!safeEqual(client.clientSecret, clientSecret)) {
+      return false;
     }
 
     return {
@@ -124,10 +138,8 @@ export const OAuthInterface: RefreshTokenModel &
     const refreshToken = token.refreshToken;
     const accessTokenExpiresAt = token.accessTokenExpiresAt;
     const refreshTokenExpiresAt = token.refreshTokenExpiresAt;
-    const accessTokenHash = OAuthAuthentication.hash(accessToken);
-    const refreshTokenHash = refreshToken
-      ? OAuthAuthentication.hash(refreshToken)
-      : undefined;
+    const accessTokenHash = hash(accessToken);
+    const refreshTokenHash = refreshToken ? hash(refreshToken) : undefined;
 
     await OAuthAuthentication.create({
       accessTokenHash,
@@ -160,7 +172,7 @@ export const OAuthInterface: RefreshTokenModel &
     const scope = code.scope;
 
     const authCode = await OAuthAuthorizationCode.create({
-      authorizationCodeHash: OAuthAuthorizationCode.hash(authorizationCode),
+      authorizationCodeHash: hash(authorizationCode),
       expiresAt,
       scope,
       redirectUri,
