@@ -4,6 +4,7 @@ import {
   onConnectPayload,
   onDisconnectPayload,
 } from "@hocuspocus/server";
+import pluralize from "pluralize";
 import { TooManyConnections } from "@shared/collaboration/CloseEvents";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -15,7 +16,7 @@ export class ConnectionLimitExtension implements Extension {
   /**
    * Map of documentId -> connection count
    */
-  connectionsByDocument: Map<string, Set<string>> = new Map();
+  public connectionsByDocument: Map<string, Set<string>> = new Map();
 
   /**
    * On disconnect hook
@@ -35,9 +36,13 @@ export class ConnectionLimitExtension implements Extension {
       }
     }
 
+    const connectionCount = connections?.size ?? 0;
     Logger.debug(
       "multiplayer",
-      `${connections?.size} connections to "${documentName}"`
+      `${connectionCount} ${pluralize(
+        "connection",
+        connectionCount
+      )} to "${documentName}"`
     );
 
     return Promise.resolve();
@@ -54,6 +59,7 @@ export class ConnectionLimitExtension implements Extension {
   onConnect({ documentName }: withContext<onConnectPayload>) {
     const connections =
       this.connectionsByDocument.get(documentName) || new Set();
+
     if (connections?.size >= env.COLLABORATION_MAX_CLIENTS_PER_DOCUMENT) {
       Logger.info(
         "multiplayer",
@@ -80,10 +86,14 @@ export class ConnectionLimitExtension implements Extension {
 
     connections.add(socketId);
     this.connectionsByDocument.set(documentName, connections);
+    const connectionCount = connections.size ?? 0;
 
     Logger.debug(
       "multiplayer",
-      `${connections.size} connections to "${documentName}"`
+      `${connectionCount} ${pluralize(
+        "connection",
+        connectionCount
+      )} to "${documentName}"`
     );
 
     return Promise.resolve();
