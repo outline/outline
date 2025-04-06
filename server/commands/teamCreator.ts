@@ -28,16 +28,13 @@ type Props = {
 
 async function teamCreator({
   name,
-  domain,
   subdomain,
   avatarUrl,
   authenticationProviders,
   ip,
   transaction,
 }: Props): Promise<Team> {
-  // If the service did not provide a logo/avatar then we'll use the default
-  // avatar generation mechanism as Clearbit API is being discontinued
-  if (!avatarUrl || !avatarUrl.startsWith("http")) {
+  if (!avatarUrl.startsWith("http")) {
     avatarUrl = null;
   }
 
