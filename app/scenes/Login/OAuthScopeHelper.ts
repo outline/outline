@@ -39,7 +39,7 @@ export class OAuthScopeHelper {
         return t("View workspace");
       }
       if (scope === Scope.Write) {
-        return t("View workspace");
+        return t("Write workspace");
       }
 
       const [namespace, method] = scope.replace("/api/", "").split(/[:\.]/g);
