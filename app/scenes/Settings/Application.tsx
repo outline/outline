@@ -261,7 +261,7 @@ const Application = observer(function Application({ oauthClient }: Props) {
         </SettingRow>
         <SettingRow
           name="redirectUris"
-          label={t("Redirect URIs")}
+          label={t("Callback URLs")}
           description={t(
             "Where users are redirected after authorizing this app"
           )}

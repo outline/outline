@@ -7,9 +7,8 @@ import OAuthClient from "~/models/OAuthClient";
 import ImageInput from "~/scenes/Settings/components/ImageInput";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import Input from "~/components/Input";
+import Input, { LabelText } from "~/components/Input";
 import isCloudHosted from "~/utils/isCloudHosted";
-import { Label } from "../Labeled";
 import Switch from "../Switch";
 
 export interface FormData {
@@ -57,8 +56,8 @@ export const OAuthClientForm = observer(function OAuthClientForm_({
   return (
     <form onSubmit={formHandleSubmit(handleSubmit)}>
       <>
-        <div style={{ marginBottom: "1em" }}>
-          <Label>{t("Icon")}</Label>
+        <label style={{ marginBottom: "1em" }}>
+          <LabelText>{t("Icon")}</LabelText>
           <Controller
             control={control}
             name="avatarUrl"
@@ -75,7 +74,7 @@ export const OAuthClientForm = observer(function OAuthClientForm_({
               />
             )}
           />
-        </div>
+        </label>
         <Input
           type="text"
           label={t("Name")}
@@ -103,7 +102,7 @@ export const OAuthClientForm = observer(function OAuthClientForm_({
           render={({ field }) => (
             <Input
               type="textarea"
-              label={t("Redirect URIs")}
+              label={t("Callback URLs")}
               placeholder="https://example.com/callback"
               ref={field.ref}
               value={field.value.join("\n")}
