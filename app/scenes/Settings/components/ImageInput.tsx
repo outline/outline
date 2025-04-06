@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { Avatar, AvatarSize, IAvatar } from "~/components/Avatar";
+import { AvatarVariant } from "~/components/Avatar/Avatar";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import ImageUpload, { Props as ImageUploadProps } from "./ImageUpload";
@@ -23,7 +24,11 @@ export default function ImageInput({ model, onSuccess, ...rest }: Props) {
           submitText={t("Crop Image")}
           {...rest}
         >
-          <StyledAvatar model={model} size={AvatarSize.Upload} />
+          <Avatar
+            model={model}
+            size={AvatarSize.Upload}
+            variant={AvatarVariant.Square}
+          />
           <Flex auto align="center" justify="center" className="upload">
             <EditIcon />
           </Flex>
@@ -41,10 +46,6 @@ export default function ImageInput({ model, onSuccess, ...rest }: Props) {
 const avatarStyles = `
   width: ${AvatarSize.Upload}px;
   height: ${AvatarSize.Upload}px;
-`;
-
-const StyledAvatar = styled(Avatar)`
-  border-radius: 8px;
 `;
 
 const ImageBox = styled(Flex)`
