@@ -9,7 +9,7 @@ import { s } from "@shared/styles";
 import { AttachmentPreset } from "@shared/types";
 import { AttachmentValidation } from "@shared/validations";
 import RootStore from "~/stores/RootStore";
-import Button from "~/components/Button";
+import ButtonLarge from "~/components/ButtonLarge";
 import Flex from "~/components/Flex";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import Modal from "~/components/Modal";
@@ -95,8 +95,14 @@ class ImageUpload extends React.Component<RootStore & Props> {
 
   renderCropping() {
     const { ui, submitText } = this.props;
+
     return (
-      <Modal isOpen onRequestClose={this.handleClose} title="">
+      <Modal
+        onRequestClose={this.handleClose}
+        fullscreen={false}
+        title={<>&nbsp;</>}
+        isOpen
+      >
         <Flex auto column align="center" justify="center">
           {this.isUploading && <LoadingIndicator />}
           <AvatarEditorContainer>
@@ -122,9 +128,14 @@ class ImageUpload extends React.Component<RootStore & Props> {
             defaultValue="1"
             onChange={this.handleZoom}
           />
-          <CropButton onClick={this.handleCrop} disabled={this.isUploading}>
+          <br />
+          <ButtonLarge
+            fullwidth
+            onClick={this.handleCrop}
+            disabled={this.isUploading}
+          >
             {this.isUploading ? "Uploading…" : submitText}
-          </CropButton>
+          </ButtonLarge>
         </Flex>
       </Modal>
     );
@@ -178,10 +189,6 @@ const RangeInput = styled.input`
   &:focus {
     outline: none;
   }
-`;
-
-const CropButton = styled(Button)`
-  width: 300px;
 `;
 
 export default withStores(ImageUpload);

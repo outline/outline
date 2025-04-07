@@ -45,6 +45,10 @@ export const NativeInput = styled.input<{
   ${ellipsis()}
   ${undraggableOnDesktop()}
 
+  &[readOnly] {
+    color: ${s("textSecondary")};
+  }
+
   &:disabled,
   &::placeholder {
     color: ${s("placeholder")};
@@ -126,13 +130,14 @@ export interface Props
     React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement>,
     "prefix"
   > {
-  type?: "text" | "email" | "checkbox" | "search" | "textarea";
+  type?: "text" | "email" | "checkbox" | "search" | "textarea" | "password";
   labelHidden?: boolean;
   label?: string;
   flex?: boolean;
   short?: boolean;
   margin?: string | number;
   error?: string;
+  rows?: number;
   /** Optional component that appears inside the input before the textarea and any icon */
   prefix?: React.ReactNode;
   /** Optional icon that appears inside the input before the textarea */
