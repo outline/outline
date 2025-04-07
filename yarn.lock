@@ -14378,10 +14378,10 @@ socket.io@^4.8.1:
     socket.io-adapter "~2.5.2"
     socket.io-parser "~4.2.4"
 
-sonner@^1.7.1:
-  version "1.7.1"
-  resolved "https://registry.yarnpkg.com/sonner/-/sonner-1.7.1.tgz#737110a3e6211d8d766442076f852ddde1725205"
-  integrity sha512-b6LHBfH32SoVasRFECrdY8p8s7hXPDn3OHUFbZZbiB1ctLS9Gdh6rpX2dVrpQA0kiL5jcRzDDldwwLkSKk3+QQ==
+sonner@^1.7.4:
+  version "1.7.4"
+  resolved "https://registry.yarnpkg.com/sonner/-/sonner-1.7.4.tgz#4c39820db86623800a17115c8970796aa862133a"
+  integrity sha512-DIS8z4PfJRbIyfVFDVnK9rO3eYDtse4Omcm6bt0oEr5/jtLgysmjuBl1frJ9E/EQZrFmKx2A8m/s5s9CRXIzhw==
 
 sort-keys@^5.0.0:
   version "5.0.0"
