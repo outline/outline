@@ -5315,10 +5315,10 @@
     "@types/node" "*"
     form-data "^4.0.0"
 
-"@types/node@*", "@types/node@20.17.27", "@types/node@>=10.0.0", "@types/node@>=13.7.0":
-  version "20.17.27"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.17.27.tgz#dbf0f9e6f905e9004045742f94e8413e20bad776"
-  integrity sha512-U58sbKhDrthHlxHRJw7ZLiLDZGmAUOZUbpw0S6nL27sYUdhvgBLCRu/keSd6qcTsfArd1sRFCCBxzWATGr/0UA==
+"@types/node@*", "@types/node@20.17.30", "@types/node@>=10.0.0", "@types/node@>=13.7.0":
+  version "20.17.30"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.17.30.tgz#1d93f656d3b869dbef7b796568ac457606ba58d0"
+  integrity sha512-7zf4YyHA+jvBNfVrk2Gtvs6x7E8V+YDW05bNfG2XkWDJfYRXrTiP/DsB2zSYTaHX0bGIujTBQdMVAhb+j7mwpg==
   dependencies:
     undici-types "~6.19.2"
 
