@@ -306,7 +306,7 @@ export default class AuthStore extends Store<Team> {
     // if this logout was forced from an authenticated route then
     // save the current path so we can go back there once signed in
     if (savePath) {
-      setPostLoginPath(window.location.pathname);
+      setPostLoginPath(window.location.pathname + window.location.search);
     }
 
     if (tryRevokingToken) {
