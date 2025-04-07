@@ -3,14 +3,13 @@ import compact from "lodash/compact";
 import flatten from "lodash/flatten";
 import isEqual from "lodash/isEqual";
 import uniq from "lodash/uniq";
-import { Node, DOMSerializer, Fragment, Mark } from "prosemirror-model";
+import { Node, DOMSerializer, Fragment } from "prosemirror-model";
 import * as React from "react";
 import { renderToString } from "react-dom/server";
 import styled, { ServerStyleSheet, ThemeProvider } from "styled-components";
 import { prosemirrorToYDoc } from "y-prosemirror";
 import * as Y from "yjs";
 import EditorContainer from "@shared/editor/components/Styles";
-import embeds from "@shared/editor/embeds";
 import GlobalStyles from "@shared/styles/globals";
 import light from "@shared/styles/theme";
 import { MentionType, ProsemirrorData } from "@shared/types";
@@ -61,47 +60,7 @@ export class ProsemirrorHelper {
       );
     }
 
-    let node = parser.parse(input);
-
-    // in the editor embeds are created at runtime by converting links into
-    // embeds where they match.Because we're converting to a CRDT structure on
-    //  the server we need to mimic this behavior.
-    function urlsToEmbeds(node: Node): Node {
-      if (node.type.name === "paragraph") {
-        for (const textNode of node.content.content) {
-          for (const embed of embeds) {
-            if (
-              textNode.text &&
-              textNode.marks.some(
-                (m: Mark) =>
-                  m.type.name === "link" && m.attrs.href === textNode.text
-              ) &&
-              embed.matcher(textNode.text)
-            ) {
-              return schema.nodes.embed.createAndFill({
-                href: textNode.text,
-              }) as Node;
-            }
-          }
-        }
-      }
-
-      if (node.content) {
-        const contentAsArray =
-          node.content instanceof Fragment
-            ? node.content.content
-            : node.content;
-        // @ts-expect-error content
-        node.content = Fragment.fromArray(contentAsArray.map(urlsToEmbeds));
-      }
-
-      return node;
-    }
-
-    if (node) {
-      node = urlsToEmbeds(node);
-    }
-
+    const node = parser.parse(input);
     return node ? prosemirrorToYDoc(node, fieldName) : new Y.Doc();
   }
 
