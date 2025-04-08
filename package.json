@@ -296,7 +296,7 @@
     "@types/markdown-it-emoji": "^2.0.4",
     "@types/mime-types": "^2.1.4",
     "@types/natural-sort": "^0.0.24",
-    "@types/node": "20.17.27",
+    "@types/node": "20.17.30",
     "@types/node-fetch": "^2.6.9",
     "@types/nodemailer": "^6.4.17",
     "@types/passport-oauth2": "^1.4.17",
