@@ -21,7 +21,7 @@ export default function useDictionary() {
       alignDefaultWidth: t("Default width"),
       alignFullWidth: t("Full width"),
       bulletList: t("Bulleted list"),
-      checkboxList: t("Todo list"),
+      checkboxList: t("Checklist"),
       codeBlock: t("Code block"),
       codeCopied: t("Copied to clipboard"),
       codeInline: t("Code"),
