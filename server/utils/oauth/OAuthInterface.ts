@@ -121,11 +121,7 @@ export const OAuthInterface: RefreshTokenModel &
   },
 
   async getClient(clientId: string, clientSecret?: string) {
-    const client = await OAuthClient.findOne({
-      where: {
-        clientId,
-      },
-    });
+    const client = await OAuthClient.findByClientId(clientId);
     if (!client) {
       return false;
     }

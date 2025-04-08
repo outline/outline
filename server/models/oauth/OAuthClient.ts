@@ -125,6 +125,22 @@ class OAuthClient extends ParanoidModel<
     model.clientSecret = OAuthClient.generateNewClientSecret();
   }
 
+  // static methods
+
+  /**
+   * Find an OAuthClient by it's public `clientId`
+   *
+   * @param clientId The public clientId of the OAuthClient
+   * @returns The OAuthClient or null if not found
+   */
+  public static async findByClientId(clientId: string) {
+    return this.findOne({
+      where: {
+        clientId,
+      },
+    });
+  }
+
   private static generateNewClientId(): string {
     return rs.generate({
       length: 20,

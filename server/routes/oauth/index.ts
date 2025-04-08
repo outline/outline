@@ -29,10 +29,7 @@ router.post(
       throw ValidationError("Missing client_id");
     }
 
-    const client = await OAuthClient.findOne({
-      where: { clientId },
-      rejectOnEmpty: true,
-    });
+    const client = await OAuthClient.findByClientId(clientId);
     authorize(user, "read", client);
 
     // Note: These objects are mutated by the OAuth2Server library
