@@ -11618,10 +11618,10 @@ loose-envify@^1.0.0, loose-envify@^1.1.0, loose-envify@^1.2.0, loose-envify@^1.3
   dependencies:
     js-tokens "^3.0.0 || ^4.0.0"
 
-lop@^0.4.1:
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/lop/-/lop-0.4.1.tgz#744f1696ef480e68ce1947fe557b09db5af2a738"
-  integrity "sha1-dE8Wlu9IDmjOGUf+VXsJ21rypzg= sha512-9xyho9why2A2tzm5aIcMWKvzqKsnxrf9B5I+8O30olh6lQU8PH978LqZoI4++37RBgS1Em5i54v1TFs/3wnmXQ=="
+lop@^0.4.2:
+  version "0.4.2"
+  resolved "https://registry.yarnpkg.com/lop/-/lop-0.4.2.tgz#c9c2f958a39b9da1c2f36ca9ad66891a9fe84640"
+  integrity sha512-RefILVDQ4DKoRZsJ4Pj22TxE3omDO47yFpkIBoDKzkqPRISs5U1cnAdg/5583YPkWPaLIYHOKRMQSvjFsO26cw==
   dependencies:
     duck "^0.1.12"
     option "~0.2.1"
@@ -11737,10 +11737,10 @@ makeerror@1.0.12:
   dependencies:
     tmpl "1.0.5"
 
-mammoth@^1.8.0:
-  version "1.8.0"
-  resolved "https://registry.yarnpkg.com/mammoth/-/mammoth-1.8.0.tgz#d8f1b0d3a0355fda129270346e9dc853f223028f"
-  integrity sha512-pJNfxSk9IEGVpau+tsZFz22ofjUsl2mnA5eT8PjPs2n0BP+rhVte4Nez6FdgEuxv3IGI3afiV46ImKqTGDVlbA==
+mammoth@^1.9.0:
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/mammoth/-/mammoth-1.9.0.tgz#71e34ca280735275788bfe95e653a058dcab4df2"
+  integrity sha512-F+0NxzankQV9XSUAuVKvkdQK0GbtGGuqVnND9aVf9VSeUA82LQa29GjLqYU6Eez8LHqSJG3eGiDW3224OKdpZg==
   dependencies:
     "@xmldom/xmldom" "^0.8.6"
     argparse "~1.0.3"
@@ -11748,7 +11748,7 @@ mammoth@^1.8.0:
     bluebird "~3.4.0"
     dingbat-to-unicode "^1.0.1"
     jszip "^3.7.1"
-    lop "^0.4.1"
+    lop "^0.4.2"
     path-is-absolute "^1.0.0"
     underscore "^1.13.1"
     xmlbuilder "^10.0.0"
