@@ -3,165 +3,31 @@ import { FileIcon } from "outline-icons"; // Using a generic file icon for now
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
 import { Command, NodeSelection } from "prosemirror-state";
 import * as React from "react";
+import { lazy, Suspense } from "react";
 import { Primitive } from "utility-types";
-import { Document, Page, pdfjs } from "react-pdf";
-import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
-import 'react-pdf/dist/esm/Page/TextLayer.css';
-import styled from "styled-components";
+import { pdfjs } from "react-pdf"; // Keep pdfjs import for worker config if needed globally
 import { bytesToHumanReadable, getEventFiles } from "../../utils/files";
 import { sanitizeUrl } from "../../utils/urls";
 import insertFiles from "../commands/insertFiles";
 import toggleWrap from "../commands/toggleWrap";
-import Widget from "../components/Widget"; // Reusing Widget for consistency
+// Import Widget directly if needed for fallback, otherwise remove
+// import Widget from "../components/Widget";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import attachmentsRule from "../rules/links"; // Reusing attachment rule for parsing links
 import { ComponentProps } from "../types";
 import Node from "./Node";
 
-// Configure pdfjs worker
-// Use a CDN for the worker source for simplicity in this example.
-// In a real app, you'd likely want to host this worker file yourself.
+// Lazy load the component that contains react-pdf and CSS imports
+const PdfEmbedComponent = lazy(() => import("../components/PdfEmbed"));
+
+// Configure pdfjs worker (can remain here if configured globally)
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
-const PdfContainer = styled.div`
-  border: 1px solid ${props => props.theme.divider};
-  border-radius: 4px;
-  padding: 8px;
-  margin: 8px 0;
-  max-width: 100%;
-  overflow: hidden; /* Hide overflow initially */
-  position: relative; /* For potential resize handles */
-
-  .react-pdf__Document {
-    max-height: 500px; /* Limit initial height */
-    overflow-y: auto;
-  }
-
-  /* Basic resize handle styling (example) */
-  .resize-handle {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 15px;
-    height: 15px;
-    background: ${props => props.theme.textSecondary};
-    cursor: nwse-resize;
-    opacity: 0.5;
-    border-top-left-radius: 4px;
-  }
-`;
-
-const ErrorMessage = styled.div`
-  color: ${props => props.theme.danger};
-  padding: 10px;
-`;
-
-const LoadingMessage = styled.div`
-  padding: 10px;
-  color: ${props => props.theme.textSecondary};
-`;
-
-interface PdfComponentState {
-  numPages: number | null;
-  error: string | null;
-  containerWidth: number;
-}
-
-class PdfComponent extends React.Component<ComponentProps, PdfComponentState> {
-  state: PdfComponentState = {
-    numPages: null,
-    error: null,
-    containerWidth: 0,
-  };
-
-  containerRef = React.createRef<HTMLDivElement>();
-
-  componentDidMount() {
-    this.updateContainerWidth();
-    window.addEventListener('resize', this.updateContainerWidth);
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('resize', this.updateContainerWidth);
-  }
-
-  updateContainerWidth = () => {
-    if (this.containerRef.current) {
-      this.setState({ containerWidth: this.containerRef.current.offsetWidth - 16 }); // Adjust for padding
-    }
-  };
-
-  onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
-    this.setState({ numPages, error: null });
-  };
-
-  onDocumentLoadError = (error: Error) => {
-    console.error("Error loading PDF:", error);
-    this.setState({ error: `Failed to load PDF: ${error.message}`, numPages: null });
-  };
-
-  // Basic resize logic (could be improved with drag events)
-  handleResize = (event: React.MouseEvent) => {
-    // Placeholder for more complex resize handling
-    console.log("Resize handle clicked", event);
-  };
-
-  render() {
-    const { node, isSelected, isEditable, theme } = this.props;
-    const { href, title } = node.attrs;
-    const { numPages, error, containerWidth } = this.state;
-
-    if (!href) {
-      return (
-        <Widget
-          icon={<FileIcon color={theme.textSecondary} />}
-          title={title || "Uploading PDF..."}
-          isSelected={isSelected}
-          theme={theme}
-        >
-          <LoadingMessage>Uploading…</LoadingMessage>
-        </Widget>
-      );
-    }
-
-    return (
-      <PdfContainer ref={this.containerRef} theme={theme} data-nodetype="pdf_document">
-        <Widget
-          icon={<FileIcon color={theme.textSecondary} />}
-          title={title || "PDF Document"}
-          isSelected={isSelected}
-          theme={theme}
-          // Prevent clicks inside the widget from deselecting the node
-          onClick={(e) => e.stopPropagation()}
-        >
-          {error ? (
-            <ErrorMessage theme={theme}>{error}</ErrorMessage>
-          ) : (
-            <Document
-              file={href}
-              onLoadSuccess={this.onDocumentLoadSuccess}
-              onLoadError={this.onDocumentLoadError}
-              loading={<LoadingMessage theme={theme}>Loading PDF…</LoadingMessage>}
-            >
-              {Array.from(new Array(numPages), (el, index) => (
-                <Page
-                  key={`page_${index + 1}`}
-                  pageNumber={index + 1}
-                  width={containerWidth > 0 ? containerWidth : undefined} // Use container width
-                  renderAnnotationLayer={false} // Disable annotation layer for simplicity
-                  renderTextLayer={false} // Disable text layer for simplicity
-                />
-              ))}
-            </Document>
-          )}
-          {/* Example resize handle - needs proper event handling */}
-          {isEditable && <div className="resize-handle" onMouseDown={this.handleResize} />}
-        </Widget>
-      </PdfContainer>
-    );
-  }
-}
-
+// Fallback component while lazy component loads
+const PdfLoadingFallback = (props: ComponentProps) => {
+  // Basic fallback, could use Widget component if imported
+  return <div style={{ padding: '10px', color: props.theme?.textSecondary || '#ccc' }}>Loading PDF...</div>;
+};
 
 export default class Pdf extends Node {
   get name() {
@@ -242,13 +108,14 @@ export default class Pdf extends Node {
       view.dispatch(transaction);
     };
 
-  // Use the new PdfComponent for rendering
-  component = (props: ComponentProps) => {
-    // Need to pass theme explicitly if PdfComponent isn't wrapped by theme provider
-    return <PdfComponent {...props} theme={this.editor.props.theme} />;
-  };
+  // Use the lazy-loaded component wrapped in Suspense
+  component = (props: ComponentProps) => (
+    <Suspense fallback={<PdfLoadingFallback {...props} />}>
+      <PdfEmbedComponent {...props} />
+    </Suspense>
+  );
 
-  // Commands adapted from Attachment
+  // Commands adapted from Attachment (no changes needed here)
   commands({ type }: { type: NodeType }) {
     return {
       createPdfAttachment: (attrs: Record<string, Primitive>) =>
