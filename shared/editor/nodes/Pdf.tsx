@@ -24,9 +24,9 @@ const PdfEmbedComponent = lazy(() => import("../components/PdfEmbed"));
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 // Fallback component while lazy component loads
-const PdfLoadingFallback = (props: ComponentProps) => {
-  // Basic fallback, could use Widget component if imported
-  return <div style={{ padding: '10px', color: props.theme?.textSecondary || '#ccc' }}>Loading PDF...</div>;
+const PdfLoadingFallback = () => {
+  // Simplified fallback without theme dependency
+  return <div style={{ padding: '10px', color: '#ccc' }}>Loading PDF...</div>;
 };
 
 export default class Pdf extends Node {
@@ -110,7 +110,8 @@ export default class Pdf extends Node {
 
   // Use the lazy-loaded component wrapped in Suspense
   component = (props: ComponentProps) => (
-    <Suspense fallback={<PdfLoadingFallback {...props} />}>
+    // Pass props to PdfEmbedComponent, but use the simplified fallback
+    <Suspense fallback={<PdfLoadingFallback />}>
       <PdfEmbedComponent {...props} />
     </Suspense>
   );
