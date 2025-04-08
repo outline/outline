@@ -149,15 +149,29 @@ export default class PdfEmbedComponent extends React.Component<
               }
               options={{ workerSrc: pdfjs.GlobalWorkerOptions.workerSrc }} // Pass worker source explicitly
             >
-              {Array.from(new Array(numPages ?? 0), (el, index) => (
+              {/* Temporarily render only the first page or just check loading state */}
+              {numPages && containerWidth > 0 ? (
                 <Page
-                  key={`page_${index + 1}`}
-                  pageNumber={index + 1}
-                  width={containerWidth > 0 ? containerWidth : undefined} // Use container width
-                  renderAnnotationLayer={false} // Disable annotation layer for simplicity
-                  renderTextLayer={false} // Disable text layer for simplicity
+                  key={`page_1`}
+                  pageNumber={1}
+                  width={containerWidth}
+                  renderAnnotationLayer={false}
+                  renderTextLayer={false}
                 />
-              ))}
+              ) : (
+                !error && (
+                  <LoadingMessage theme={theme}>Checking PDF...</LoadingMessage>
+                ) // Show a different loading message
+              )}
+              {/* {Array.from(new Array(numPages ?? 0), (el, index) => (
+                 <Page
+                   key={`page_${index + 1}`}
+                   pageNumber={index + 1}
+                   width={containerWidth > 0 ? containerWidth : undefined} // Use container width
+                   renderAnnotationLayer={false} // Disable annotation layer for simplicity
+                   renderTextLayer={false} // Disable text layer for simplicity
+                 />
+               ))} */}
             </Document>
           )}
           {/* Example resize handle - needs proper event handling */}
