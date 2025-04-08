@@ -118,7 +118,7 @@ export const OAuthInterface: RefreshTokenModel &
     };
   },
 
-  async getClient(clientId: string, clientSecret: string) {
+  async getClient(clientId: string, clientSecret?: string) {
     const client = await OAuthClient.findOne({
       where: {
         clientId,
@@ -128,7 +128,7 @@ export const OAuthInterface: RefreshTokenModel &
       return false;
     }
 
-    if (!safeEqual(client.clientSecret, clientSecret)) {
+    if (clientSecret && !safeEqual(client.clientSecret, clientSecret)) {
       return false;
     }
 
