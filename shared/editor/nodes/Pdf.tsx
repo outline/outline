@@ -115,9 +115,9 @@ export default class Pdf extends Node {
 
   // Use the lazy-loaded component wrapped in Suspense
   component = (props: ComponentProps) => (
-    // Pass props to PdfEmbedComponent, but use the simplified fallback
+    // Pass props AND the handleSelect method down
     <Suspense fallback={<PdfLoadingFallback />}>
-      <PdfEmbedComponent {...props} />
+      <PdfEmbedComponent {...props} onSelect={this.handleSelect(props)} />
     </Suspense>
   );
 
