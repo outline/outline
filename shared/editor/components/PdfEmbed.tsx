@@ -129,43 +129,44 @@ export default class PdfEmbedComponent extends React.Component<
         theme={theme}
         data-nodetype="pdf_document"
       >
-        <Widget
-          icon={<AttachmentIcon color={theme.textSecondary} />} // Changed from FileIcon
+        {/* Temporarily remove Widget wrapper */}
+        {/* <Widget
+          icon={<AttachmentIcon color={theme.textSecondary} />}
           title={title || "PDF Document"}
           isSelected={isSelected}
           theme={theme}
           // Prevent clicks inside the widget from deselecting the node
-          onClick={(e) => e.stopPropagation()}
-        >
-          {error ? (
-            <ErrorMessage theme={theme}>{error}</ErrorMessage>
-          ) : (
-            <Document
-              file={{ url: href }} // Pass href as an object
-              onLoadSuccess={this.onDocumentLoadSuccess}
-              onLoadError={this.onDocumentLoadError}
-              loading={
-                <LoadingMessage theme={theme}>Loading PDF…</LoadingMessage>
-              }
-              options={{ workerSrc: pdfjs.GlobalWorkerOptions.workerSrc }} // Pass worker source explicitly
-            >
-              {/* Restore original page rendering loop */}
-              {Array.from(new Array(numPages ?? 0), (el, index) => (
-                <Page
-                  key={`page_${index + 1}`}
-                  pageNumber={index + 1}
-                  width={containerWidth > 0 ? containerWidth : undefined} // Use container width
-                  renderAnnotationLayer={false} // Disable annotation layer for simplicity
-                  renderTextLayer={false} // Disable text layer for simplicity
-                />
-              ))}
-            </Document>
-          )}
-          {/* Example resize handle - needs proper event handling */}
-          {isEditable && (
-            <div className="resize-handle" onMouseDown={this.handleResize} />
-          )}
-        </Widget>
+          // onClick={(e) => e.stopPropagation()}
+        // > */}
+        {error ? (
+          <ErrorMessage theme={theme}>{error}</ErrorMessage> // Keep error message
+        ) : (
+          <Document
+            file={{ url: href }} // Pass href as an object
+            onLoadSuccess={this.onDocumentLoadSuccess}
+            onLoadError={this.onDocumentLoadError}
+            loading={
+              <LoadingMessage theme={theme}>Loading PDF…</LoadingMessage>
+            }
+            options={{ workerSrc: pdfjs.GlobalWorkerOptions.workerSrc }} // Pass worker source explicitly
+          >
+            {/* Restore original page rendering loop */}
+            {Array.from(new Array(numPages ?? 0), (el, index) => (
+              <Page
+                key={`page_${index + 1}`}
+                pageNumber={index + 1}
+                width={containerWidth > 0 ? containerWidth : undefined} // Use container width
+                renderAnnotationLayer={false} // Disable annotation layer for simplicity
+                renderTextLayer={false} // Disable text layer for simplicity
+              />
+            ))}
+          </Document>
+        )}
+        {/* Example resize handle - needs proper event handling */}
+        {isEditable && (
+          <div className="resize-handle" onMouseDown={this.handleResize} />
+        )}
+        {/* </Widget> */}
       </PdfContainer>
     );
   }
