@@ -31,11 +31,15 @@ const PdfContainer = styled.div`
 
   .react-pdf__Document {
     flex-grow: 1; /* Allow PDF document to take available space */
-    max-height: 500px; /* Limit initial height */
+    /* max-height: 500px; */ /* Let container height control this */
     overflow-y: auto;
     width: 100%; /* Ensure it takes full width */
     display: block; /* Ensure it's displayed */
     /* background: #eee; */ /* Remove temp background */
+  }
+
+  .pdf-page {
+    margin-bottom: 8px; /* Add spacing between pages */
   }
 
   /* Basic resize handle styling (example) */
@@ -130,8 +134,9 @@ export default class PdfEmbedComponent extends React.Component<
   updateContainerWidth = () => {
     if (this.containerRef.current) {
       // Subtract padding/border width for accurate page width
+      // Use offsetWidth for the container itself, react-pdf handles page scaling
       this.setState({
-        containerWidth: this.containerRef.current.offsetWidth - 18,
+        containerWidth: this.containerRef.current.offsetWidth - 16, // 8px padding on each side
       });
     }
   };
@@ -236,6 +241,7 @@ export default class PdfEmbedComponent extends React.Component<
         <div
           className="pdf-content-area"
           style={{
+            marginTop: "8px", // Add margin/padding below the header
             flexGrow: 1,
             overflowY: "auto",
             height: `${containerHeight}px`, // Apply dynamic height
@@ -255,28 +261,31 @@ export default class PdfEmbedComponent extends React.Component<
               }
               options={pdfDocumentOptions}
             >
-              {/* Render only the first page for large PDF handling */}
+              {/* Render all pages */}
               {numPages !== null &&
-                numPages > 0 && ( // Check numPages > 0
+                Array.from(new Array(numPages), (el, index) => (
                   <Page
-                    key={`page_1`}
-                    pageNumber={1} // Always render page 1
+                    key={`page_${index + 1}`}
+                    pageNumber={index + 1}
+                    // Let react-pdf handle width based on container
                     width={containerWidth > 0 ? containerWidth : undefined}
-                    renderAnnotationLayer={false}
+                    renderAnnotationLayer={false} // Keep layers off for performance/simplicity
                     renderTextLayer={false}
+                    className="pdf-page" // Add class for potential styling
                   />
-                )}
-              {/* Optionally indicate more pages exist */}
+                ))}
+              {/* Optionally indicate total pages */}
               {(numPages ?? 0) > 1 && (
                 <div
                   style={{
                     textAlign: "center",
+                    marginTop: "8px", // Add space above page count
                     padding: "5px",
                     color: theme.textSecondary,
                     fontSize: "0.8em",
                   }}
                 >
-                  Page 1 of {numPages}
+                  {numPages} {numPages === 1 ? "page" : "pages"}
                 </div>
               )}
             </Document>

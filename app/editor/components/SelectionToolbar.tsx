@@ -20,6 +20,7 @@ import getDividerMenuItems from "../menus/divider";
 import getFormattingMenuItems from "../menus/formatting";
 import getImageMenuItems from "../menus/image";
 import getNoticeMenuItems from "../menus/notice";
+import getPdfMenuItems from "../menus/pdf"; // Import the new menu items function
 import getReadOnlyMenuItems from "../menus/readOnly";
 import getTableMenuItems from "../menus/table";
 import getTableColMenuItems from "../menus/tableCol";
@@ -84,7 +85,9 @@ function useIsActive(state: EditorState) {
 
   const slice = selection.content();
   const fragment = slice.content;
-  const nodes = (fragment as any).content;
+  // Use the correct type for fragment content
+  const nodes = (fragment as import("prosemirror-model").Fragment)
+    .content as ReadonlyArray<import("prosemirror-model").Node>;
 
   return some(nodes, (n) => n.content.size);
 }
@@ -172,48 +175,61 @@ export default function SelectionToolbar(props: Props) {
   };
 
   const { isTemplate, rtl, canComment, canUpdate, ...rest } = props;
-  const { state } = view;
-  const { selection } = state;
-  const isDividerSelection = isNodeActive(state.schema.nodes.hr)(state);
+  const { state: editorState } = view; // Rename state to avoid shadowing
+  const { selection } = editorState;
+  const isDividerSelection = isNodeActive(editorState.schema.nodes.hr)(
+    editorState
+  );
 
   if ((readOnly && !canComment) || isDragging) {
     return null;
   }
 
-  const colIndex = getColumnIndex(state);
-  const rowIndex = getRowIndex(state);
+  const colIndex = getColumnIndex(editorState);
+  const rowIndex = getRowIndex(editorState);
   const isTableSelection = colIndex !== undefined && rowIndex !== undefined;
-  const link = getMarkRange(selection.$from, state.schema.marks.link);
+  const link = getMarkRange(selection.$from, editorState.schema.marks.link);
   const isImageSelection =
     selection instanceof NodeSelection && selection.node.type.name === "image";
   const isAttachmentSelection =
     selection instanceof NodeSelection &&
     selection.node.type.name === "attachment";
-  const isCodeSelection = isInCode(state, { onlyBlock: true });
-  const isNoticeSelection = isInNotice(state);
+  const isPdfSelection = // Check for PDF node selection
+    selection instanceof NodeSelection &&
+    selection.node.type.name === "pdf_document";
+  const isCodeSelection = isInCode(editorState, { onlyBlock: true });
+  const isNoticeSelection = isInNotice(editorState);
 
   let items: MenuItem[] = [];
 
   if (isCodeSelection && selection.empty) {
-    items = getCodeMenuItems(state, readOnly, dictionary);
+    items = getCodeMenuItems(editorState, readOnly, dictionary);
   } else if (isTableSelection) {
-    items = getTableMenuItems(state, dictionary);
+    items = getTableMenuItems(editorState, dictionary);
   } else if (colIndex !== undefined) {
-    items = getTableColMenuItems(state, colIndex, rtl, dictionary);
+    items = getTableColMenuItems(editorState, colIndex, rtl, dictionary);
   } else if (rowIndex !== undefined) {
-    items = getTableRowMenuItems(state, rowIndex, dictionary);
+    items = getTableRowMenuItems(editorState, rowIndex, dictionary);
   } else if (isImageSelection) {
-    items = readOnly ? [] : getImageMenuItems(state, dictionary);
+    items = readOnly ? [] : getImageMenuItems(editorState, dictionary);
   } else if (isAttachmentSelection) {
-    items = readOnly ? [] : getAttachmentMenuItems(state, dictionary);
+    items = readOnly ? [] : getAttachmentMenuItems(editorState, dictionary);
+  } else if (isPdfSelection) {
+    // Add case for PDF selection
+    items = readOnly ? [] : getPdfMenuItems(editorState, dictionary);
   } else if (isDividerSelection) {
-    items = getDividerMenuItems(state, dictionary);
+    items = getDividerMenuItems(editorState, dictionary);
   } else if (readOnly) {
-    items = getReadOnlyMenuItems(state, !!canUpdate, dictionary);
+    items = getReadOnlyMenuItems(editorState, !!canUpdate, dictionary);
   } else if (isNoticeSelection && selection.empty) {
-    items = getNoticeMenuItems(state, readOnly, dictionary);
+    items = getNoticeMenuItems(editorState, readOnly, dictionary);
   } else {
-    items = getFormattingMenuItems(state, isTemplate, isMobile, dictionary);
+    items = getFormattingMenuItems(
+      editorState,
+      isTemplate,
+      isMobile,
+      dictionary
+    );
   }
 
   // Some extensions may be disabled, remove corresponding items
