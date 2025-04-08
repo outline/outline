@@ -142,6 +142,7 @@ export default class PdfEmbedComponent extends React.Component<
           <ErrorMessage theme={theme}>{error}</ErrorMessage> // Keep error message
         ) : (
           <Document
+            key={href} // Add key based on href
             file={{ url: href }} // Pass href as an object
             onLoadSuccess={this.onDocumentLoadSuccess}
             onLoadError={this.onDocumentLoadError}
