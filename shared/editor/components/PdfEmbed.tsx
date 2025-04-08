@@ -286,12 +286,9 @@ export default class PdfEmbedComponent extends React.Component<
           title={title || "Uploading PDF..."}
           isSelected={isSelected}
           theme={theme}
-          onMouseDown={onSelect} // Add mouse down handler for selection
-          onClick={(e) => {
-            if (isEditable) {
-              e.preventDefault();
-            }
-          }} // Prevent default click in edit mode
+          href={!isEditable ? node.attrs.href : undefined} // Only pass href when not editable
+          onMouseDown={onSelect} // Keep for selection trigger
+          // Remove onClick as href handling should suffice
         >
           <LoadingMessage theme={theme}>Uploading…</LoadingMessage>
         </Widget>
@@ -303,7 +300,12 @@ export default class PdfEmbedComponent extends React.Component<
         ref={this.containerRef}
         theme={theme}
         data-nodetype="pdf_document"
-        // Removed onClick handler - rely on ProseMirror/Widget for selection
+        onClick={() => {
+          // Add onClick to the container
+          if (isEditable) {
+            onSelect(); // Trigger selection when editable
+          }
+        }}
       >
         {/* Render Widget for header only */}
         <Widget
@@ -311,12 +313,9 @@ export default class PdfEmbedComponent extends React.Component<
           title={title || "PDF Document"}
           isSelected={isSelected}
           theme={theme}
-          onMouseDown={onSelect} // Add mouse down handler for selection
-          onClick={(e) => {
-            if (isEditable) {
-              e.preventDefault();
-            }
-          }} // Prevent default click in edit mode
+          href={!isEditable ? node.attrs.href : undefined} // Only pass href when not editable
+          onMouseDown={onSelect} // Keep for selection trigger
+          // Remove onClick as href handling should suffice
         />
         {/* Render PDF Document outside the Widget, apply dynamic height */}
         <div
@@ -364,6 +363,8 @@ export default class PdfEmbedComponent extends React.Component<
         {numPages !== null && numPages > 1 && (
           <PaginationControls>
             <PaginationButton
+              type="button"
+              onMouseDown={(e) => e.preventDefault()} // Prevent focus on mobile
               onClick={this.goToPrevPage}
               disabled={currentPage <= 1}
             >
@@ -373,6 +374,8 @@ export default class PdfEmbedComponent extends React.Component<
               Page {currentPage} of {numPages}
             </PageIndicator>
             <PaginationButton
+              type="button"
+              onMouseDown={(e) => e.preventDefault()} // Prevent focus on mobile
               onClick={this.goToNextPage}
               disabled={currentPage >= numPages}
             >
