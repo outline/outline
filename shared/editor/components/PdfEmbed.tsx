@@ -1,21 +1,8 @@
-import { AttachmentIcon } from "outline-icons"; // Changed from FileIcon
+import { AttachmentIcon } from "outline-icons";
 import * as React from "react";
-import { Document, Page, pdfjs } from "react-pdf";
-// CSS imports are safe here as this component is only loaded client-side
-// import 'react-pdf/dist/esm/entry.webpack.js'; // Removed incorrect import
-import "react-pdf/dist/esm/Page/AnnotationLayer.css";
-import "react-pdf/dist/esm/Page/TextLayer.css";
 import styled from "styled-components";
 import { ComponentProps } from "../types"; // Assuming ComponentProps is needed and defined here or imported
 import Widget from "./Widget"; // Assuming Widget is needed and defined here or imported
-
-// Configure pdfjs worker (can also be done here or globally)
-// pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
-
-// Memoize the options object outside the component
-const pdfDocumentOptions = {
-  workerSrc: pdfjs.GlobalWorkerOptions.workerSrc,
-};
 
 const PdfContainer = styled.div`
   border: 1px solid ${(props) => props.theme.divider};
@@ -23,25 +10,12 @@ const PdfContainer = styled.div`
   padding: 8px;
   margin: 8px 0;
   max-width: 100%;
-  overflow: hidden; /* Restore overflow */
-  position: relative; /* For potential resize handles */
+  overflow: hidden; /* Keep overflow hidden for container */
+  position: relative; /* For resize handle */
   display: flex; /* Use flexbox for layout */
-  flex-direction: column; /* Stack widget header and PDF vertically */
+  flex-direction: column; /* Stack widget header and iframe vertically */
 
-  .react-pdf__Document {
-    flex-grow: 1; /* Allow PDF document to take available space */
-    overflow-y: auto;
-    width: 100%; /* Ensure it takes full width */
-    display: block; /* Ensure it's displayed */
-  }
-
-  .pdf-page {
-    margin-bottom: 8px; /* Add spacing between pages */
-    display: flex; /* Center page horizontally */
-    justify-content: center;
-  }
-
-  /* Basic resize handle styling (example) */
+  /* Basic resize handle styling */
   .resize-handle {
     position: absolute;
     bottom: 0;
@@ -52,95 +26,42 @@ const PdfContainer = styled.div`
     cursor: nwse-resize;
     opacity: 0.5;
     border-top-left-radius: 4px;
-    z-index: 1; /* Ensure handle is above PDF content */
+    z-index: 1; /* Ensure handle is above iframe content */
   }
 `;
 
-const ErrorMessage = styled.div`
-  color: ${(props) => props.theme.danger};
-  padding: 10px;
-`;
-
+// Keep LoadingMessage for the initial upload state
 const LoadingMessage = styled.div`
   padding: 10px;
   color: ${(props) => props.theme.textSecondary};
 `;
 
-// Styled components for Pagination
-const PaginationControls = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 8px 0 0; /* Add padding above controls */
-  border-top: 1px solid ${(props) => props.theme.divider};
-  margin-top: 8px;
-`;
-
-const PaginationButton = styled.button`
-  background: none;
-  border: 1px solid ${(props) => props.theme.divider};
-  border-radius: 4px;
-  padding: 4px 8px;
-  margin: 0 4px;
-  color: ${(props) => props.theme.text};
-  cursor: pointer;
-
-  &:disabled {
-    color: ${(props) => props.theme.textSecondary};
-    cursor: default;
-    opacity: 0.5;
-  }
-
-  &:not(:disabled):hover {
-    background: ${(props) => props.theme.buttonNeutralBackground};
-  }
-`;
-
-const PageIndicator = styled.span`
-  margin: 0 8px;
-  color: ${(props) => props.theme.textSecondary};
-  font-size: 0.9em;
-`;
-
+// Simplified state for iframe version
 interface PdfComponentState {
-  numPages: number | null;
-  error: string | null;
-  containerWidth: number;
-  containerHeight: number; // Add height state
+  containerHeight: number; // Keep height state for resizing
   isResizing: boolean; // Track resizing state
-  memoizedFile: { url: string } | null;
-  currentPage: number; // Add state for current page
+  memoizedFile: { url: string } | null; // Keep track of the file URL
 }
 
-// Renamed to avoid conflict if PdfComponent exists elsewhere
 export default class PdfEmbedComponent extends React.Component<
   ComponentProps,
   PdfComponentState
 > {
-  // Initialize state including memoizedFile
+  // Initialize state
   state: PdfComponentState = {
-    numPages: null,
-    error: null,
-    containerWidth: 0,
     // Initialize height from node attribute if available, otherwise default
     containerHeight: this.props.node.attrs.height || 500,
     isResizing: false,
     memoizedFile: this.props.node.attrs.href
       ? { url: this.props.node.attrs.href }
       : null,
-    currentPage: 1, // Initialize current page
   };
 
   containerRef = React.createRef<HTMLDivElement>();
   startDragY = 0; // Store initial Y position for resizing
   startDragHeight = 0; // Store initial height for resizing
 
-  componentDidMount() {
-    this.updateContainerWidth();
-    window.addEventListener("resize", this.updateContainerWidth);
-  }
-
-  componentDidUpdate(prevProps: ComponentProps, prevState: PdfComponentState) {
+  componentDidUpdate(prevProps: ComponentProps) {
     // Update memoizedFile only if href actually changes
     const currentHref = this.props.node.attrs.href;
     const previousHref = prevProps.node.attrs.href;
@@ -148,10 +69,6 @@ export default class PdfEmbedComponent extends React.Component<
     if (currentHref !== previousHref) {
       this.setState({
         memoizedFile: currentHref ? { url: currentHref } : null,
-        // Reset numPages, error, and current page when file changes
-        numPages: null,
-        error: null,
-        currentPage: 1,
       });
     }
 
@@ -161,50 +78,16 @@ export default class PdfEmbedComponent extends React.Component<
     if (currentHeight !== previousHeight && !this.state.isResizing) {
       this.setState({ containerHeight: currentHeight || 500 });
     }
-
-    // Recalculate container width if height changes (might affect scrollbars)
-    if (prevState.containerHeight !== this.state.containerHeight) {
-      this.updateContainerWidth();
-    }
   }
 
   componentWillUnmount() {
-    window.removeEventListener("resize", this.updateContainerWidth);
     // Clean up resize listeners if component unmounts during resize
     window.removeEventListener("mousemove", this.handleMouseMove);
     window.removeEventListener("mouseup", this.handleMouseUp);
   }
 
-  updateContainerWidth = () => {
-    // Debounce or throttle this if it causes performance issues on resize
-    if (this.containerRef.current) {
-      // Use offsetWidth of the content area for page width calculation
-      const contentArea =
-        this.containerRef.current.querySelector<HTMLDivElement>(
-          ".pdf-content-area"
-        );
-      if (contentArea) {
-        this.setState({
-          containerWidth: contentArea.offsetWidth,
-        });
-      }
-    }
-  };
+  // --- Resizing Logic (Keep as is) ---
 
-  onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
-    this.setState({ numPages, error: null, currentPage: 1 }); // Reset to page 1 on new load
-  };
-
-  onDocumentLoadError = (error: Error) => {
-    this.setState({
-      error: `Failed to load PDF: ${error.message}`,
-      numPages: null,
-    });
-  };
-
-  // --- Resizing Logic ---
-
-  // Define as class property arrow function to bind 'this'
   handleResize = (event: React.MouseEvent): void => {
     event.preventDefault();
     event.stopPropagation(); // Prevent node selection drag
@@ -217,7 +100,6 @@ export default class PdfEmbedComponent extends React.Component<
     window.addEventListener("mouseup", this.handleMouseUp);
   };
 
-  // Define as class property arrow function
   handleMouseMove = (event: MouseEvent): void => {
     if (!this.state.isResizing) {
       return;
@@ -228,7 +110,6 @@ export default class PdfEmbedComponent extends React.Component<
     this.setState({ containerHeight: newHeight });
   };
 
-  // Define as class property arrow function
   handleMouseUp = (): void => {
     if (!this.state.isResizing) {
       return;
@@ -247,36 +128,16 @@ export default class PdfEmbedComponent extends React.Component<
   };
   // --- End Resizing Logic ---
 
-  // --- Pagination Logic ---
-  goToPrevPage = () =>
-    this.setState((state) => ({
-      currentPage: Math.max(1, state.currentPage - 1),
-    }));
-
-  goToNextPage = () =>
-    this.setState((state) => ({
-      currentPage: Math.min(state.numPages || 1, state.currentPage + 1),
-    }));
-  // --- End Pagination Logic ---
-
   render() {
     const { node, isSelected, isEditable, theme } = this.props;
     const { title } = node.attrs;
-    // Use containerHeight and currentPage from state
-    const {
-      numPages,
-      error,
-      containerWidth,
-      containerHeight,
-      memoizedFile,
-      currentPage,
-    } = this.state;
+    const { containerHeight, memoizedFile } = this.state;
 
-    // Initial loading state before href is available (via memoizedFile)
+    // Initial loading state before href is available
     if (!memoizedFile) {
       return (
         <Widget
-          icon={<AttachmentIcon color={theme.textSecondary} />} // Changed from FileIcon
+          icon={<AttachmentIcon color={theme.textSecondary} />}
           title={title || "Uploading PDF..."}
           isSelected={isSelected}
           theme={theme}
@@ -300,68 +161,33 @@ export default class PdfEmbedComponent extends React.Component<
           isSelected={isSelected}
           theme={theme}
         />
-        {/* Render PDF Document outside the Widget, apply dynamic height */}
+        {/* Render iframe for the PDF */}
         <div
-          className="pdf-content-area"
+          className="pdf-content-area" // Keep class for potential styling/selection
           style={{
-            marginTop: "8px", // Add margin/padding below the header
+            marginTop: "8px",
             flexGrow: 1,
-            overflowY: "auto",
-            height: `${containerHeight}px`, // Apply dynamic height
+            height: `${containerHeight}px`, // Apply dynamic height to wrapper
             position: "relative", // Needed for resize handle positioning
           }}
         >
-          {error ? (
-            <ErrorMessage theme={theme}>{error}</ErrorMessage>
-          ) : (
-            <Document
-              key={memoizedFile.url}
-              file={memoizedFile}
-              onLoadSuccess={this.onDocumentLoadSuccess}
-              onLoadError={this.onDocumentLoadError}
-              loading={
-                <LoadingMessage theme={theme}>Loading PDF…</LoadingMessage>
-              }
-              options={pdfDocumentOptions}
-            >
-              {/* Render only the current page */}
-              {numPages !== null && currentPage > 0 && (
-                <Page
-                  key={`page_${currentPage}`}
-                  pageNumber={currentPage}
-                  width={containerWidth > 0 ? containerWidth : undefined}
-                  renderAnnotationLayer={false}
-                  renderTextLayer={false}
-                  className="pdf-page"
-                />
-              )}
-            </Document>
-          )}
+          <iframe
+            src={memoizedFile.url}
+            style={{
+              width: "100%",
+              height: "100%", // Fill the container div
+              border: "none", // Remove default iframe border
+            }}
+            title={title || "PDF Document"}
+            // Consider adding sandbox attributes if needed for security
+            // sandbox="allow-scripts allow-same-origin"
+          />
           {/* Place resize handle within the content area or container */}
           {isEditable && (
             <div className="resize-handle" onMouseDown={this.handleResize} />
           )}
         </div>
-        {/* Pagination Controls - Placed outside the scrolling content area */}
-        {numPages !== null && numPages > 1 && (
-          <PaginationControls>
-            <PaginationButton
-              onClick={this.goToPrevPage}
-              disabled={currentPage <= 1}
-            >
-              {"< Prev"} {/* Wrap in {} as string literal */}
-            </PaginationButton>
-            <PageIndicator>
-              Page {currentPage} of {numPages}
-            </PageIndicator>
-            <PaginationButton
-              onClick={this.goToNextPage}
-              disabled={currentPage >= numPages}
-            >
-              {"Next >"} {/* Wrap in {} as string literal */}
-            </PaginationButton>
-          </PaginationControls>
-        )}
+        {/* Pagination controls removed */}
       </PdfContainer>
     );
   }
