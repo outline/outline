@@ -117,6 +117,8 @@ export default class ComponentView {
       isSelected: this.isSelected,
       isEditable: this.view.editable,
       getPos: this.getPos,
-    } as ComponentProps;
+      // Add the theme from the editor instance's props
+      theme: this.editor.props.theme,
+    }; // Remove 'as ComponentProps' cast, let TypeScript infer/validate
   }
 }
