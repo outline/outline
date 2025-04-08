@@ -13,20 +13,27 @@ import CommandBarResults from "./CommandBarResults";
 import useRecentDocumentActions from "./useRecentDocumentActions";
 import useSettingsAction from "./useSettingsAction";
 import useTemplatesAction from "./useTemplatesAction";
+import pdfActions from "~/actions/definitions/pdf";
+import useActionContext from "~/hooks/useActionContext"; // Import useActionContext
 
 function CommandBar() {
   const { t } = useTranslation();
   const recentDocumentActions = useRecentDocumentActions();
   const settingsAction = useSettingsAction();
   const templatesAction = useTemplatesAction();
+  // Get the context needed for actions like pdfActions
+  const ctx = useActionContext({ isCommandBar: true });
+
   const commandBarActions = React.useMemo(
     () => [
       ...recentDocumentActions,
       ...rootActions,
+      ...pdfActions(ctx), // Now call pdfActions with the context
       templatesAction,
       settingsAction,
     ],
-    [recentDocumentActions, settingsAction, templatesAction]
+    // Add ctx to dependencies, along with other action hooks
+    [recentDocumentActions, settingsAction, templatesAction, ctx]
   );
 
   useCommandBarActions(commandBarActions);
