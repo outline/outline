@@ -3,7 +3,7 @@ import { FileIcon } from "outline-icons"; // Using a generic file icon for now
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
 import { Command, NodeSelection } from "prosemirror-state";
 import * as React from "react";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense } from "react"; // Re-add lazy and Suspense
 import { Primitive } from "utility-types";
 import { pdfjs } from "react-pdf"; // Keep pdfjs import for worker config if needed globally
 import { bytesToHumanReadable, getEventFiles } from "../../utils/files";
@@ -17,13 +17,15 @@ import attachmentsRule from "../rules/links"; // Reusing attachment rule for par
 import { ComponentProps } from "../types";
 import Node from "./Node";
 
-// Lazy load the component that contains react-pdf and CSS imports
-const PdfEmbedComponent = lazy(() => import("../components/PdfEmbed"));
+// Lazy load the component using path alias, importing the named export
+const PdfEmbedComponent = lazy(() =>
+  import("@shared/editor/components/PdfEmbed").then(module => ({ default: module.PdfEmbedComponent }))
+);
 
 // Configure pdfjs worker (can remain here if configured globally)
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
-// Fallback component while lazy component loads
+// Re-add fallback component
 const PdfLoadingFallback = () => {
   // Simplified fallback without theme dependency
   return <div style={{ padding: '10px', color: '#ccc' }}>Loading PDF...</div>;
@@ -110,7 +112,6 @@ export default class Pdf extends Node {
 
   // Use the lazy-loaded component wrapped in Suspense
   component = (props: ComponentProps) => (
-    // Pass props to PdfEmbedComponent, but use the simplified fallback
     <Suspense fallback={<PdfLoadingFallback />}>
       <PdfEmbedComponent {...props} />
     </Suspense>

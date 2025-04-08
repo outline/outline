@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled, { css, DefaultTheme, ThemeProps } from "styled-components";
-import { s } from "../../styles";
-import { sanitizeUrl } from "../../utils/urls";
+import { s } from "@shared/styles"; // Use path alias
+import { sanitizeUrl } from "@shared/utils/urls"; // Use path alias
 
 type Props = {
   /** Icon to display on the left side of the widget */
@@ -10,8 +10,8 @@ type Props = {
   title: React.ReactNode;
   /** Context, displayed to right of title */
   context?: React.ReactNode;
-  /** URL to open when the widget is clicked */
-  href: string;
+  /** URL to open when the widget is clicked (optional) */
+  href?: string;
   /** Whether the widget is currently selected */
   isSelected: boolean;
   /** Children to display to the right of the context */
@@ -28,15 +28,18 @@ export default function Widget(props: Props & ThemeProps<DefaultTheme>) {
   const className = props.isSelected
     ? "ProseMirror-selectednode widget"
     : "widget";
+  const Component = props.href ? WrapperLink : WrapperDiv;
 
   return (
-    <Wrapper
+    <Component 
       className={className}
-      target="_blank"
-      href={sanitizeUrl(props.href)}
-      rel="noreferrer nofollow"
+      // Conditionally add props relevant to links
+      target={props.href ? "_blank" : undefined}
+      href={props.href ? sanitizeUrl(props.href) : undefined}
+      rel={props.href ? "noreferrer nofollow" : undefined}
       onDoubleClick={props.onDoubleClick}
       onMouseDown={props.onMouseDown}
+      // onClick might be needed for both div and link for selection handling? Keep it for now.
       onClick={props.onClick}
     >
       {props.icon}
@@ -45,7 +48,7 @@ export default function Widget(props: Props & ThemeProps<DefaultTheme>) {
         <Subtitle>{props.context}</Subtitle>
         <Children>{props.children}</Children>
       </Preview>
-    </Wrapper>
+    </Component> // Correct closing tag
   );
 }
 
@@ -80,12 +83,13 @@ const Subtitle = styled.span`
   line-height: 0;
 `;
 
-const Wrapper = styled.a`
+// Base styles for both div and link versions
+const wrapperStyles = css`
   display: flex;
   align-items: center;
   gap: 6px;
   background: ${s("background")};
-  color: ${s("text")} !important;
+  color: ${s("text")} !important; /* Use important carefully */
   box-shadow: 0 0 0 1px ${s("divider")};
   white-space: nowrap;
   border-radius: 8px;
@@ -96,19 +100,25 @@ const Wrapper = styled.a`
   user-select: none;
   text-overflow: ellipsis;
   overflow: hidden;
+`;
 
-  ${(props) =>
-    props.href &&
-    css`
-      &:hover,
-      &:active {
-        cursor: pointer !important;
-        text-decoration: none !important;
-        background: ${s("backgroundSecondary")};
+// Component rendered as a div (when no href)
+const WrapperDiv = styled.div`
+  ${wrapperStyles}
+`;
 
-        ${Children} {
-          opacity: 1;
-        }
-      }
-    `}
+// Component rendered as a link (when href is present)
+const WrapperLink = styled.a`
+  ${wrapperStyles}
+
+  &:hover,
+  &:active {
+    cursor: pointer !important; /* Use important carefully */
+    text-decoration: none !important; /* Use important carefully */
+    background: ${s("backgroundSecondary")};
+
+    ${Children} {
+      opacity: 1;
+    }
+  }
 `;

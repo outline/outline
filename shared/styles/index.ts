@@ -1,5 +1,5 @@
 import { DefaultTheme } from "styled-components";
-import { isTouchDevice } from "../utils/browser";
+import { isTouchDevice } from "@shared/utils/browser"; // Use path alias
 
 export { default as depths } from "./depths";
 
