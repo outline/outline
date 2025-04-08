@@ -2,6 +2,7 @@ import { AttachmentIcon } from "outline-icons"; // Changed from FileIcon
 import * as React from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 // CSS imports are safe here as this component is only loaded client-side
+// import 'react-pdf/dist/esm/entry.webpack.js'; // Removed incorrect import
 import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 import "react-pdf/dist/esm/Page/TextLayer.css";
 import styled from "styled-components";
@@ -34,7 +35,7 @@ const PdfContainer = styled.div`
     overflow-y: auto;
     width: 100%; /* Ensure it takes full width */
     display: block; /* Ensure it's displayed */
-    background: #eee; /* Temp background to see if it renders */
+    /* background: #eee; */ /* Remove temp background */
   }
 
   /* Basic resize handle styling (example) */
@@ -137,7 +138,7 @@ export default class PdfEmbedComponent extends React.Component<
 
   render() {
     // theme might need to be accessed differently if not passed via props directly
-    const { node, isSelected, /* isEditable, */ theme } = this.props; // Commented out unused isEditable
+    const { node, isSelected, isEditable, theme } = this.props; // Restore isEditable
     // Use title from node.attrs, but file from state (href is implicitly in memoizedFile.url)
     const { title } = node.attrs;
     const { numPages, error, containerWidth, memoizedFile } = this.state;
@@ -197,10 +198,10 @@ export default class PdfEmbedComponent extends React.Component<
             </Document>
           )}
           {/* Example resize handle - needs proper event handling */}
-          {/* Temporarily remove resize handle */}
-          {/* {isEditable && (
+          {/* Restore resize handle */}
+          {isEditable && (
             <div className="resize-handle" onMouseDown={this.handleResize} />
-          )} */}
+          )}
         </Widget>
       </PdfContainer>
     );
