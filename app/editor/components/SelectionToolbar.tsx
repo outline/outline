@@ -57,14 +57,14 @@ function useIsActive(state: EditorState) {
   ) {
     return true;
   }
-
-  if (isInNotice(state) && selection.from > 0) {
-    return true;
-  }
-
-  if (!selection || selection.empty) {
-    return false;
-  }
+  // Temporarily remove command existence check AGAIN for debugging
+  // if (item.name && !commands[item.name]) {
+  //   console.log(
+  //     `Filtering out item "${item.name}" - command not found in:`,
+  //     Object.keys(commands)
+  //   );
+  //   return false;
+  // }
   if (selection instanceof NodeSelection && selection.node.type.name === "hr") {
     return true;
   }
@@ -72,6 +72,7 @@ function useIsActive(state: EditorState) {
     selection instanceof NodeSelection &&
     ["image", "attachment", "pdf_document"].includes(selection.node.type.name) // Add pdf_document
   ) {
+    // console.log("useIsActive: Matched NodeSelection for", selection.node.type.name); // Remove logging
     return true;
   }
   if (selection instanceof NodeSelection) {
@@ -237,7 +238,12 @@ export default function SelectionToolbar(props: Props) {
     if (item.name === "separator") {
       return true;
     }
+    // Restore command existence check and remove logging
     if (item.name && !commands[item.name]) {
+      // console.log(
+      //   `Filtering out item "${item.name}" - command not found in:`,
+      //   Object.keys(commands)
+      // );
       return false;
     }
     if (item.visible === false) {

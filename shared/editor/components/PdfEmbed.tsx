@@ -288,7 +288,13 @@ export default class PdfEmbedComponent extends React.Component<
           theme={theme}
           href={!isEditable ? node.attrs.href : undefined} // Only pass href when not editable
           onMouseDown={onSelect} // Keep for selection trigger
-          // Remove onClick as href handling should suffice
+          onClick={(event) => {
+            // Restore correct onClick
+            if (isEditable) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+          }}
         >
           <LoadingMessage theme={theme}>Uploading…</LoadingMessage>
         </Widget>
@@ -300,12 +306,7 @@ export default class PdfEmbedComponent extends React.Component<
         ref={this.containerRef}
         theme={theme}
         data-nodetype="pdf_document"
-        onClick={() => {
-          // Add onClick to the container
-          if (isEditable) {
-            onSelect(); // Trigger selection when editable
-          }
-        }}
+        // Remove onClick from container
       >
         {/* Render Widget for header only */}
         <Widget
@@ -315,7 +316,13 @@ export default class PdfEmbedComponent extends React.Component<
           theme={theme}
           href={!isEditable ? node.attrs.href : undefined} // Only pass href when not editable
           onMouseDown={onSelect} // Keep for selection trigger
-          // Remove onClick as href handling should suffice
+          onClick={(event) => {
+            // Restore correct onClick
+            if (isEditable) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+          }}
         />
         {/* Render PDF Document outside the Widget, apply dynamic height */}
         <div
@@ -364,7 +371,8 @@ export default class PdfEmbedComponent extends React.Component<
           <PaginationControls>
             <PaginationButton
               type="button"
-              onMouseDown={(e) => e.preventDefault()} // Prevent focus on mobile
+              onMouseDown={(e) => e.preventDefault()} // Prevent focus
+              onTouchStart={(e) => e.preventDefault()} // Prevent focus on touch
               onClick={this.goToPrevPage}
               disabled={currentPage <= 1}
             >
@@ -375,7 +383,8 @@ export default class PdfEmbedComponent extends React.Component<
             </PageIndicator>
             <PaginationButton
               type="button"
-              onMouseDown={(e) => e.preventDefault()} // Prevent focus on mobile
+              onMouseDown={(e) => e.preventDefault()} // Prevent focus
+              onTouchStart={(e) => e.preventDefault()} // Prevent focus on touch
               onClick={this.goToNextPage}
               disabled={currentPage >= numPages}
             >
