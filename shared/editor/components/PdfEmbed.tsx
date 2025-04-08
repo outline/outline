@@ -1,4 +1,4 @@
-limport { FileIcon } from "outline-icons";
+import { FileIcon } from "outline-icons";
 import * as React from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 // CSS imports are safe here as this component is only loaded client-side
