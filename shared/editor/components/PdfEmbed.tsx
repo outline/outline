@@ -59,6 +59,7 @@ interface PdfComponentState {
   numPages: number | null;
   error: string | null;
   containerWidth: number;
+  memoizedFile: { url: string } | null; // Add state for memoized file prop
 }
 
 // Renamed to avoid conflict if PdfComponent exists elsewhere
@@ -66,10 +67,14 @@ export default class PdfEmbedComponent extends React.Component<
   ComponentProps,
   PdfComponentState
 > {
+  // Initialize state including memoizedFile
   state: PdfComponentState = {
     numPages: null,
     error: null,
     containerWidth: 0,
+    memoizedFile: this.props.node.attrs.href
+      ? { url: this.props.node.attrs.href }
+      : null,
   };
 
   containerRef = React.createRef<HTMLDivElement>();
@@ -77,6 +82,21 @@ export default class PdfEmbedComponent extends React.Component<
   componentDidMount() {
     this.updateContainerWidth();
     window.addEventListener("resize", this.updateContainerWidth);
+  }
+
+  componentDidUpdate(prevProps: ComponentProps) {
+    // Update memoizedFile only if href actually changes
+    const currentHref = this.props.node.attrs.href;
+    const previousHref = prevProps.node.attrs.href;
+
+    if (currentHref !== previousHref) {
+      this.setState({
+        memoizedFile: currentHref ? { url: currentHref } : null,
+        // Reset numPages and error when file changes
+        numPages: null,
+        error: null,
+      });
+    }
   }
 
   componentWillUnmount() {
@@ -112,10 +132,12 @@ export default class PdfEmbedComponent extends React.Component<
   render() {
     // theme might need to be accessed differently if not passed via props directly
     const { node, isSelected, isEditable, theme } = this.props;
-    const { href, title } = node.attrs;
-    const { numPages, error, containerWidth } = this.state;
+    // Use title from node.attrs, but file from state (href is implicitly in memoizedFile.url)
+    const { title } = node.attrs;
+    const { numPages, error, containerWidth, memoizedFile } = this.state;
 
-    if (!href) {
+    // Initial loading state before href is available (via memoizedFile)
+    if (!memoizedFile) {
       return (
         <Widget
           icon={<AttachmentIcon color={theme.textSecondary} />} // Changed from FileIcon
@@ -147,8 +169,8 @@ export default class PdfEmbedComponent extends React.Component<
             <ErrorMessage theme={theme}>{error}</ErrorMessage>
           ) : (
             <Document
-              key={href} // Add key based on href
-              file={{ url: href }} // Pass href as an object
+              key={memoizedFile.url} // Use memoizedFile.url for key
+              file={memoizedFile} // Pass memoized file object
               onLoadSuccess={this.onDocumentLoadSuccess}
               onLoadError={this.onDocumentLoadError}
               loading={
