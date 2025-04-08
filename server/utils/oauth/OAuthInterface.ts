@@ -110,6 +110,8 @@ export const OAuthInterface: RefreshTokenModel &
       expiresAt: code.expiresAt,
       scope: code.scope,
       redirectUri: code.redirectUri,
+      codeChallenge: code.codeChallenge,
+      codeChallengeMethod: code.codeChallengeMethod,
       client: {
         id: oauthClient.clientId,
         grants: this.grants,
@@ -173,16 +175,22 @@ export const OAuthInterface: RefreshTokenModel &
   },
 
   async saveAuthorizationCode(code, client, user) {
-    const authorizationCode = code.authorizationCode;
-    const expiresAt = code.expiresAt;
-    const redirectUri = code.redirectUri;
-    const scope = code.scope;
+    const {
+      authorizationCode,
+      expiresAt,
+      redirectUri,
+      scope,
+      codeChallenge,
+      codeChallengeMethod,
+    } = code;
 
     const authCode = await OAuthAuthorizationCode.create({
       authorizationCodeHash: hash(authorizationCode),
       expiresAt,
       scope,
       redirectUri,
+      codeChallenge,
+      codeChallengeMethod,
       oauthClientId: client.databaseId,
       userId: user.id,
     });

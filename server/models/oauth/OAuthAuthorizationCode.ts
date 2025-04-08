@@ -32,6 +32,14 @@ class OAuthAuthorizationCode extends IdModel<
   @SkipChangeset
   authorizationCodeHash: string;
 
+  @Column
+  @SkipChangeset
+  codeChallenge?: string;
+
+  @Column
+  @SkipChangeset
+  codeChallengeMethod?: string;
+
   /** A list of scopes that this authorization code has access to */
   @Matches(/[\/\.\w\s]*/, {
     each: true,

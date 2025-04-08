@@ -90,6 +90,14 @@ module.exports = {
           type: Sequelize.STRING,
           allowNull: false
         },
+        codeChallenge: {
+          type: Sequelize.STRING,
+          allowNull: true
+        },
+        codeChallengeMethod: {
+          type: Sequelize.STRING,
+          allowNull: true
+        },
         scope: {
           type: Sequelize.ARRAY(Sequelize.STRING),
           allowNull: false
