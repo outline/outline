@@ -70,7 +70,7 @@ function useIsActive(state: EditorState) {
   }
   if (
     selection instanceof NodeSelection &&
-    ["image", "attachment"].includes(selection.node.type.name)
+    ["image", "attachment", "pdf_document"].includes(selection.node.type.name) // Add pdf_document
   ) {
     return true;
   }
