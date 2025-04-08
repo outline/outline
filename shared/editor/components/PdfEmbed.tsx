@@ -1,4 +1,4 @@
-import { FileIcon } from "outline-icons";
+import { AttachmentIcon } from "outline-icons"; // Changed from FileIcon
 import * as React from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 // CSS imports are safe here as this component is only loaded client-side
@@ -114,7 +114,7 @@ export default class PdfEmbedComponent extends React.Component<
     if (!href) {
       return (
         <Widget
-          icon={<FileIcon color={theme.textSecondary} />}
+          icon={<AttachmentIcon color={theme.textSecondary} />} // Changed from FileIcon
           title={title || "Uploading PDF..."}
           isSelected={isSelected}
           theme={theme}
@@ -131,7 +131,7 @@ export default class PdfEmbedComponent extends React.Component<
         data-nodetype="pdf_document"
       >
         <Widget
-          icon={<FileIcon color={theme.textSecondary} />}
+          icon={<AttachmentIcon color={theme.textSecondary} />} // Changed from FileIcon
           title={title || "PDF Document"}
           isSelected={isSelected}
           theme={theme}
