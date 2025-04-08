@@ -1,9 +1,10 @@
 import * as React from "react";
-import styled, { css, DefaultTheme, ThemeProps } from "styled-components";
-import { s } from "@shared/styles"; // Use path alias
-import { sanitizeUrl } from "@shared/utils/urls"; // Use path alias
+import styled, { css, DefaultTheme } from "styled-components";
+// import { s } from "../../styles"; // Removed unused import
+import { sanitizeUrl } from "../../utils/urls";
 
 type Props = {
+  theme: DefaultTheme; // Explicitly require theme prop
   /** Icon to display on the left side of the widget */
   icon: React.ReactNode;
   /** Title of the widget */
@@ -24,31 +25,31 @@ type Props = {
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
 };
 
-export default function Widget(props: Props & ThemeProps<DefaultTheme>) {
-  const className = props.isSelected
-    ? "ProseMirror-selectednode widget"
-    : "widget";
-  const Component = props.href ? WrapperLink : WrapperDiv;
+// Remove ThemeProps<DefaultTheme> from here as theme is now explicitly in Props
+export default function Widget(props: Props) {
+  const { theme, isSelected, href, title, context, children, icon } = props;
+  const className = isSelected ? "ProseMirror-selectednode widget" : "widget";
 
   return (
-    <Component 
+    <Wrapper
+      theme={theme} // Pass theme to styled component
       className={className}
-      // Conditionally add props relevant to links
-      target={props.href ? "_blank" : undefined}
-      href={props.href ? sanitizeUrl(props.href) : undefined}
-      rel={props.href ? "noreferrer nofollow" : undefined}
+      target="_blank"
+      href={sanitizeUrl(href)}
+      rel="noreferrer nofollow"
       onDoubleClick={props.onDoubleClick}
       onMouseDown={props.onMouseDown}
-      // onClick might be needed for both div and link for selection handling? Keep it for now.
       onClick={props.onClick}
     >
-      {props.icon}
-      <Preview>
-        <Title>{props.title}</Title>
-        <Subtitle>{props.context}</Subtitle>
-        <Children>{props.children}</Children>
+      {icon}
+      <Preview theme={theme}>
+        {" "}
+        {/* Pass theme */}
+        <Title theme={theme}>{title}</Title> {/* Pass theme */}
+        <Subtitle theme={theme}>{context}</Subtitle> {/* Pass theme */}
+        <Children theme={theme}>{children}</Children> {/* Pass theme */}
       </Preview>
-    </Component> // Correct closing tag
+    </Wrapper>
   );
 }
 
@@ -58,39 +59,50 @@ const Children = styled.div`
   opacity: 0;
 
   &:hover {
-    color: ${s("text")};
+    color: ${(props: StyledThemeProps) =>
+      props.theme.text}; /* Use theme prop */
   }
 `;
 
-const Title = styled.strong`
+const Title = styled.strong<StyledThemeProps>`
+  /* Add type annotation */
   font-weight: 500;
   font-size: 14px;
-  color: ${s("text")};
+  color: ${(props: StyledThemeProps) => props.theme.text}; /* Use theme prop */
 `;
 
-const Preview = styled.div`
+const Preview = styled.div<StyledThemeProps>`
+  /* Add type annotation */
   gap: 8px;
   display: flex;
   flex-direction: row;
   flex-grow: 1;
   align-items: center;
-  color: ${s("textTertiary")};
+  color: ${(props: StyledThemeProps) =>
+    props.theme.textTertiary}; /* Use theme prop */
 `;
 
-const Subtitle = styled.span`
+const Subtitle = styled.span<StyledThemeProps>`
+  /* Add type annotation */
   font-size: 13px;
-  color: ${s("textTertiary")} !important;
+  color: ${(props: StyledThemeProps) =>
+    props.theme.textTertiary} !important; /* Use theme prop */
   line-height: 0;
 `;
 
-// Base styles for both div and link versions
-const wrapperStyles = css`
+// Define ThemeProps type for styled components
+type StyledThemeProps = { theme: DefaultTheme };
+
+const Wrapper = styled.a<StyledThemeProps>`
+  /* Add type annotation */
   display: flex;
   align-items: center;
   gap: 6px;
-  background: ${s("background")};
-  color: ${s("text")} !important; /* Use important carefully */
-  box-shadow: 0 0 0 1px ${s("divider")};
+  background: ${(props: StyledThemeProps) =>
+    props.theme.background}; /* Use theme prop */
+  color: ${(props: StyledThemeProps) =>
+    props.theme.text} !important; /* Use theme prop */
+  box-shadow: 0 0 0 1px ${(props: StyledThemeProps) => props.theme.divider}; /* Use theme prop */
   white-space: nowrap;
   border-radius: 8px;
   padding: 6px 8px;
@@ -100,25 +112,23 @@ const wrapperStyles = css`
   user-select: none;
   text-overflow: ellipsis;
   overflow: hidden;
-`;
 
-// Component rendered as a div (when no href)
-const WrapperDiv = styled.div`
-  ${wrapperStyles}
-`;
+  ${(
+    props: StyledThemeProps & { href?: string } // Add type annotation for props
+  ) =>
+    props.href &&
+    css`
+      &:hover,
+      &:active {
+        cursor: pointer !important;
+        text-decoration: none !important;
+        background: ${props.theme.backgroundSecondary}; /* Use theme prop */
 
-// Component rendered as a link (when href is present)
-const WrapperLink = styled.a`
-  ${wrapperStyles}
-
-  &:hover,
-  &:active {
-    cursor: pointer !important; /* Use important carefully */
-    text-decoration: none !important; /* Use important carefully */
-    background: ${s("backgroundSecondary")};
-
-    ${Children} {
-      opacity: 1;
-    }
-  }
+        /* Target Children correctly within the hover state */
+        ${Children} {
+          opacity: 1;
+          color: ${props.theme.text}; /* Ensure hover color uses theme */
+        }
+      }
+    `}
 `;

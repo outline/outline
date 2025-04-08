@@ -3,7 +3,7 @@ import { EditorView, Decoration } from "prosemirror-view";
 import { FunctionComponent } from "react";
 import Extension from "@shared/editor/lib/Extension";
 import { ComponentProps } from "@shared/editor/types";
-import { Editor } from "../index"; // Use relative path for potentially better type resolution
+import { Editor } from "~/editor";
 import { NodeViewRenderer } from "./NodeViewRenderer";
 
 type ComponentViewConstructor = {
@@ -117,7 +117,6 @@ export default class ComponentView {
       isSelected: this.isSelected,
       isEditable: this.view.editable,
       getPos: this.getPos,
-      theme: this.editor.props.theme,
     } as ComponentProps;
   }
 }

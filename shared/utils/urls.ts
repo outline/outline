@@ -1,7 +1,7 @@
 import escapeRegExp from "lodash/escapeRegExp";
-import env from "@shared/env"; // Use path alias
-import { isBrowser } from "@shared/utils/browser"; // Use path alias
-import { parseDomain } from "@shared/utils/domains"; // Use path alias
+import env from "../env";
+import { isBrowser } from "./browser";
+import { parseDomain } from "./domains";
 
 /**
  * Prepends the CDN url to the given path (If a CDN is configured).

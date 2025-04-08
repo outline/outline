@@ -15,3 +15,4 @@ data/*
 *.pem
 *.key
 *.cert
+=

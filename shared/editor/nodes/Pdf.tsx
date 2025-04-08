@@ -1,12 +1,12 @@
 import { Token } from "markdown-it";
-import { FileIcon } from "outline-icons"; // Using a generic file icon for now
+// import { FileIcon } from "outline-icons"; // Removed unused import
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
 import { Command, NodeSelection } from "prosemirror-state";
 import * as React from "react";
-import { lazy, Suspense } from "react"; // Re-add lazy and Suspense
-import { Primitive } from "utility-types";
+import { lazy, Suspense } from "react";
 import { pdfjs } from "react-pdf"; // Keep pdfjs import for worker config if needed globally
-import { bytesToHumanReadable, getEventFiles } from "../../utils/files";
+import { Primitive } from "utility-types";
+import { getEventFiles } from "../../utils/files"; // Removed unused bytesToHumanReadable
 import { sanitizeUrl } from "../../utils/urls";
 import insertFiles from "../commands/insertFiles";
 import toggleWrap from "../commands/toggleWrap";
@@ -17,19 +17,17 @@ import attachmentsRule from "../rules/links"; // Reusing attachment rule for par
 import { ComponentProps } from "../types";
 import Node from "./Node";
 
-// Lazy load the component using path alias, importing the named export
-const PdfEmbedComponent = lazy(() =>
-  import("@shared/editor/components/PdfEmbed").then(module => ({ default: module.PdfEmbedComponent }))
-);
+// Lazy load the component that contains react-pdf and CSS imports
+const PdfEmbedComponent = lazy(() => import("../components/PdfEmbed"));
 
 // Configure pdfjs worker (can remain here if configured globally)
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
-// Re-add fallback component
-const PdfLoadingFallback = () => {
+// Fallback component while lazy component loads
+const PdfLoadingFallback = () => (
   // Simplified fallback without theme dependency
-  return <div style={{ padding: '10px', color: '#ccc' }}>Loading PDF...</div>;
-};
+  <div style={{ padding: "10px", color: "#ccc" }}>Loading PDF...</div>
+);
 
 export default class Pdf extends Node {
   get name() {
@@ -44,16 +42,20 @@ export default class Pdf extends Node {
   get schema(): NodeSpec {
     return {
       attrs: {
-        id: { // Keep ID for potential future use
+        id: {
+          // Keep ID for potential future use
           default: null,
         },
-        href: { // URL of the uploaded PDF
+        href: {
+          // URL of the uploaded PDF
           default: null,
         },
-        title: { // Original filename
+        title: {
+          // Original filename
           default: "PDF Document",
         },
-        size: { // File size
+        size: {
+          // File size
           default: 0,
         },
         // Add width/height attributes if needed for persistence
@@ -112,6 +114,7 @@ export default class Pdf extends Node {
 
   // Use the lazy-loaded component wrapped in Suspense
   component = (props: ComponentProps) => (
+    // Pass props to PdfEmbedComponent, but use the simplified fallback
     <Suspense fallback={<PdfLoadingFallback />}>
       <PdfEmbedComponent {...props} />
     </Suspense>
@@ -124,7 +127,7 @@ export default class Pdf extends Node {
         toggleWrap(type, attrs), // Use toggleWrap to insert the node
 
       // Command to trigger file upload and insertion
-      uploadPdfPlaceholder: (): Command => (state, dispatch) => {
+      uploadPdfPlaceholder: (): Command => (state, _dispatch) => {
         const { view } = this.editor;
         const { uploadFile, onFileUploadStart, onFileUploadStop } =
           this.editor.props;
@@ -157,21 +160,29 @@ export default class Pdf extends Node {
       },
 
       // Delete command (same as attachment)
-      deletePdfAttachment: (): Command => (state, dispatch) => {
-        dispatch?.(state.tr.deleteSelection());
+      // Rename dispatch to _dispatch to satisfy eslint rule for potentially unused arguments
+      deletePdfAttachment: (): Command => (state, _dispatch) => {
+        _dispatch?.(state.tr.deleteSelection());
         return true;
       },
 
       // Replace command (similar to attachment, but for PDFs)
       replacePdfAttachment: (): Command => (state) => {
-        if (!(state.selection instanceof NodeSelection)) return false;
+        if (!(state.selection instanceof NodeSelection)) {
+          return false;
+        }
 
         const { view } = this.editor;
         const { node } = state.selection;
-        const { uploadFile, onFileUploadStart, onFileUploadStop } = this.editor.props;
+        const { uploadFile, onFileUploadStart, onFileUploadStop } =
+          this.editor.props;
 
-        if (!uploadFile) throw new Error("uploadFile prop is required");
-        if (node.type.name !== this.name) return false;
+        if (!uploadFile) {
+          throw new Error("uploadFile prop is required");
+        }
+        if (node.type.name !== this.name) {
+          return false;
+        }
 
         const inputElement = document.createElement("input");
         inputElement.type = "file";
@@ -195,12 +206,14 @@ export default class Pdf extends Node {
 
       // Download command (same as attachment)
       downloadPdfAttachment: (): Command => (state) => {
-        if (!(state.selection instanceof NodeSelection)) return false;
+        if (!(state.selection instanceof NodeSelection)) {
+          return false;
+        }
         const { node } = state.selection;
 
         const link = document.createElement("a");
         link.href = node.attrs.href;
-        link.download = node.attrs.title || 'document.pdf'; // Add download attribute
+        link.download = node.attrs.title || "document.pdf"; // Add download attribute
         link.target = "_blank"; // Open in new tab might be better than forcing download
         document.body.appendChild(link);
         link.click();
@@ -233,7 +246,7 @@ export default class Pdf extends Node {
         return {
           href: tok.attrGet("href"),
           title: title || "PDF Document",
-          size: size,
+          size,
         };
       },
       // Ensure this rule runs before the generic link rule if priorities clash
