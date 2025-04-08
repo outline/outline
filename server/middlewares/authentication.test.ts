@@ -8,6 +8,7 @@ import {
   buildApiKey,
   buildOAuthAuthentication,
 } from "@server/test/factories";
+import { AuthenticationType } from "@server/types";
 import auth from "./authentication";
 
 describe("Authentication middleware", () => {
@@ -49,6 +50,30 @@ describe("Authentication middleware", () => {
         );
       } catch (e) {
         expect(e.message).toBe("Invalid token");
+      }
+    });
+
+    it("should return error if AuthenticationType mismatches", async () => {
+      const state = {} as DefaultState;
+      const user = await buildUser();
+      const authMiddleware = auth({
+        type: AuthenticationType.API,
+      });
+
+      try {
+        await authMiddleware(
+          {
+            // @ts-expect-error mock request
+            request: {
+              get: jest.fn(() => `Bearer ${user.getJwtToken()}`),
+            },
+            state,
+            cache: {},
+          },
+          jest.fn()
+        );
+      } catch (e) {
+        expect(e.message).toBe("Invalid authentication type");
       }
     });
   });

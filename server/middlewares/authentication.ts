@@ -20,7 +20,7 @@ type AuthenticationOptions = {
   /** Role requuired to access the route. */
   role?: UserRole;
   /** Type of authentication required to access the route. */
-  type?: AuthenticationType;
+  type?: AuthenticationType | AuthenticationType[];
   /** Authentication is parsed, but optional. */
   optional?: boolean;
 };
@@ -168,7 +168,12 @@ export default function auth(options: AuthenticationOptions = {}) {
         throw AuthorizationError(`${capitalize(options.role)} role required`);
       }
 
-      if (options.type && type !== options.type) {
+      if (
+        options.type &&
+        (Array.isArray(options.type)
+          ? !options.type.includes(type)
+          : type !== options.type)
+      ) {
         throw AuthorizationError(`Invalid authentication type`);
       }
 
