@@ -25,10 +25,16 @@ const PdfContainer = styled.div`
   overflow: hidden; /* Restore overflow */
   /* min-height: 100px; */ /* Remove minimum height */
   position: relative; /* For potential resize handles */
+  display: flex; /* Use flexbox for layout */
+  flex-direction: column; /* Stack widget header and PDF vertically */
 
   .react-pdf__Document {
+    flex-grow: 1; /* Allow PDF document to take available space */
     max-height: 500px; /* Limit initial height */
     overflow-y: auto;
+    width: 100%; /* Ensure it takes full width */
+    display: block; /* Ensure it's displayed */
+    background: #eee; /* Temp background to see if it renders */
   }
 
   /* Basic resize handle styling (example) */
@@ -131,7 +137,7 @@ export default class PdfEmbedComponent extends React.Component<
 
   render() {
     // theme might need to be accessed differently if not passed via props directly
-    const { node, isSelected, isEditable, theme } = this.props;
+    const { node, isSelected, /* isEditable, */ theme } = this.props; // Commented out unused isEditable
     // Use title from node.attrs, but file from state (href is implicitly in memoizedFile.url)
     const { title } = node.attrs;
     const { numPages, error, containerWidth, memoizedFile } = this.state;
@@ -191,9 +197,10 @@ export default class PdfEmbedComponent extends React.Component<
             </Document>
           )}
           {/* Example resize handle - needs proper event handling */}
-          {isEditable && (
+          {/* Temporarily remove resize handle */}
+          {/* {isEditable && (
             <div className="resize-handle" onMouseDown={this.handleResize} />
-          )}
+          )} */}
         </Widget>
       </PdfContainer>
     );
