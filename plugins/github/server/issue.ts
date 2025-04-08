@@ -1,30 +1,38 @@
+import { Endpoints } from "@octokit/types";
+import Logger from "@server/logging/Logger";
+import { Integration, User } from "@server/models";
+import { CreateIssueResponse, IssueProvider } from "@server/types";
 import { IssueSource } from "@shared/schema";
 import {
   IntegrationService,
   IntegrationType,
   UnfurlResourceType,
 } from "@shared/types";
-import Logger from "@server/logging/Logger";
-import { Integration, User } from "@server/models";
-import { CreateIssueResponse, IssueProvider } from "@server/types";
 import { GitHub } from "./github";
+
+// This is needed to account for Octokit paginate response type mismatch.
+type ReposForInstallation =
+  Endpoints["GET /installation/repositories"]["response"]["data"]["repositories"];
 
 export class GitHubIssueProvider {
   public static listRepos: IssueProvider["listSources"] = async (
-    actor: User
+    integration: Integration<IntegrationType.Embed>
   ): Promise<IssueSource[]> => {
-    const integrations = (await Integration.findAll({
-      where: {
-        service: IntegrationService.GitHub,
-        teamId: actor.teamId,
-      },
-    })) as Integration<IntegrationType.Embed>[];
-
-    const integrationRepos = await Promise.all(
-      integrations.map(async (integration) => this.getRepos(integration))
+    const client = await GitHub.authenticateAsInstallation(
+      integration.settings.github!.installation.id
     );
 
-    return integrationRepos.flat();
+    const repos =
+      (await client.requestRepos()) as unknown as ReposForInstallation;
+
+    const sources = repos.map<IssueSource>((repo) => ({
+      id: String(repo.id),
+      name: repo.name,
+      account: { id: String(repo.owner.id), name: repo.owner.login },
+      service: IntegrationService.GitHub,
+    }));
+
+    return sources;
   };
 
   public static createIssue: IssueProvider["createIssue"] = async (

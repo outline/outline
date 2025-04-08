@@ -40,8 +40,8 @@ const requestPlugin = (octokit: Octokit) => ({
       },
     }),
 
-  requestRepos: async () =>
-    octokit.request("GET /installation/repositories", {
+  requestRepos: () =>
+    octokit.paginate(octokit.rest.apps.listReposAccessibleToInstallation, {
       headers: {
         Accept: "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",

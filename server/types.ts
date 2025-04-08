@@ -11,6 +11,7 @@ import {
   JSONValue,
   UnfurlResourceType,
   ProsemirrorData,
+  IntegrationType,
 } from "@shared/types";
 import { BaseSchema } from "@server/routes/api/schema";
 import { AccountProvisionerResult } from "./commands/accountProvisioner";
@@ -589,7 +590,9 @@ export type UninstallSignature = (integration: Integration) => Promise<void>;
 export type CreateIssueResponse = Unfurl & { cacheKey: string };
 
 export type IssueProvider = {
-  listSources: (actor: User) => Promise<IssueSource[]>;
+  listSources: (
+    integration: Integration<IntegrationType.Embed>
+  ) => Promise<IssueSource[]>;
   createIssue: (
     title: string,
     source: IssueSource,

@@ -1,10 +1,12 @@
 import { InternalError, InvalidRequestError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
+import { Integration } from "@server/models";
 import presentUnfurl from "@server/presenters/unfurl";
 import { APIContext } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
+import { IssueSource } from "@shared/schema";
 import { UserRole } from "@shared/types";
 import Router from "koa-router";
 import * as T from "./schema";
@@ -18,12 +20,17 @@ router.post(
   async (ctx: APIContext) => {
     const { user } = ctx.state.auth;
 
-    const sources = await Promise.all(
-      plugins.map((plugin) => plugin.value.provider.listSources(user))
-    );
+    const integrations = await Integration.findAll({
+      attributes: ["issueSources"],
+      where: { teamId: user.teamId },
+    });
+
+    const sources = integrations
+      .flatMap((integration) => integration.issueSources)
+      .filter(Boolean) as IssueSource[];
 
     ctx.body = {
-      data: sources.flat(),
+      data: sources,
     };
   }
 );
