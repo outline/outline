@@ -66,7 +66,9 @@ interface PdfComponentState {
   numPages: number | null;
   error: string | null;
   containerWidth: number;
-  memoizedFile: { url: string } | null; // Add state for memoized file prop
+  containerHeight: number; // Add height state
+  isResizing: boolean; // Track resizing state
+  memoizedFile: { url: string } | null;
 }
 
 // Renamed to avoid conflict if PdfComponent exists elsewhere
@@ -79,12 +81,17 @@ export default class PdfEmbedComponent extends React.Component<
     numPages: null,
     error: null,
     containerWidth: 0,
+    // Initialize height from node attribute if available, otherwise default
+    containerHeight: this.props.node.attrs.height || 500,
+    isResizing: false,
     memoizedFile: this.props.node.attrs.href
       ? { url: this.props.node.attrs.href }
       : null,
   };
 
   containerRef = React.createRef<HTMLDivElement>();
+  startDragY = 0; // Store initial Y position for resizing
+  startDragHeight = 0; // Store initial height for resizing
 
   componentDidMount() {
     this.updateContainerWidth();
@@ -104,10 +111,20 @@ export default class PdfEmbedComponent extends React.Component<
         error: null,
       });
     }
+
+    // Also update height if node attribute changes (e.g., external update)
+    const currentHeight = this.props.node.attrs.height;
+    const previousHeight = prevProps.node.attrs.height;
+    if (currentHeight !== previousHeight && !this.state.isResizing) {
+      this.setState({ containerHeight: currentHeight || 500 });
+    }
   }
 
   componentWillUnmount() {
     window.removeEventListener("resize", this.updateContainerWidth);
+    // Clean up resize listeners if component unmounts during resize
+    window.removeEventListener("mousemove", this.handleMouseMove);
+    window.removeEventListener("mouseup", this.handleMouseUp);
   }
 
   updateContainerWidth = () => {
@@ -130,18 +147,60 @@ export default class PdfEmbedComponent extends React.Component<
     });
   };
 
-  // Basic resize logic (could be improved with drag events)
-  handleResize = (event: React.MouseEvent) => {
-    // Placeholder for more complex resize handling
-    event.preventDefault(); // Prevent default drag behavior if any
+  // --- Resizing Logic ---
+
+  // Define as class property arrow function to bind 'this'
+  handleResize = (event: React.MouseEvent): void => {
+    event.preventDefault();
+    event.stopPropagation(); // Prevent node selection drag
+
+    this.startDragY = event.clientY;
+    this.startDragHeight = this.state.containerHeight;
+    this.setState({ isResizing: true });
+
+    window.addEventListener("mousemove", this.handleMouseMove);
+    window.addEventListener("mouseup", this.handleMouseUp);
   };
 
+  // Define as class property arrow function
+  handleMouseMove = (event: MouseEvent): void => {
+    if (!this.state.isResizing) {
+      return;
+    }
+
+    const deltaY = event.clientY - this.startDragY;
+    const newHeight = Math.max(100, this.startDragHeight + deltaY); // Min height 100px
+    this.setState({ containerHeight: newHeight });
+  };
+
+  // Define as class property arrow function
+  handleMouseUp = (): void => {
+    if (!this.state.isResizing) {
+      return;
+    }
+
+    this.setState({ isResizing: false });
+    window.removeEventListener("mousemove", this.handleMouseMove);
+    window.removeEventListener("mouseup", this.handleMouseUp);
+
+    // Persist the new height to the node attributes
+    // This requires the 'height' attribute in the schema and updateAttributes prop
+    if (this.props.updateAttributes) {
+      this.props.updateAttributes({
+        height: this.state.containerHeight,
+      });
+    }
+    // Removed console.warn as updateAttributes is now expected to be present
+  };
+
+  // --- End Resizing Logic ---
+
   render() {
-    // theme might need to be accessed differently if not passed via props directly
-    const { node, isSelected, isEditable, theme } = this.props; // Restore isEditable
-    // Use title from node.attrs, but file from state (href is implicitly in memoizedFile.url)
+    const { node, isSelected, isEditable, theme } = this.props;
     const { title } = node.attrs;
-    const { numPages, error, containerWidth, memoizedFile } = this.state;
+    // Use containerHeight from state
+    const { numPages, error, containerWidth, containerHeight, memoizedFile } =
+      this.state;
 
     // Initial loading state before href is available (via memoizedFile)
     if (!memoizedFile) {
@@ -162,9 +221,7 @@ export default class PdfEmbedComponent extends React.Component<
         ref={this.containerRef}
         theme={theme}
         data-nodetype="pdf_document"
-        // Add onClick handler here to select the node when the container is clicked
-        // This might be needed if the Widget's onClick is removed or doesn't cover the whole area
-        onClick={this.props.handleSelect}
+        // Removed onClick handler - rely on ProseMirror/Widget for selection
       >
         {/* Render Widget for header only */}
         <Widget
@@ -173,17 +230,16 @@ export default class PdfEmbedComponent extends React.Component<
           // Make the widget itself non-interactive if needed, or keep selection logic
           isSelected={isSelected}
           theme={theme}
-          // Remove onClick propagation stop if container handles selection
-          // onClick={(e) => e.stopPropagation()}
+          // onClick={(e) => e.stopPropagation()} // Keep if needed for Widget interaction
         />
-        {/* Render PDF Document outside the Widget */}
+        {/* Render PDF Document outside the Widget, apply dynamic height */}
         <div
           className="pdf-content-area"
           style={{
             flexGrow: 1,
             overflowY: "auto",
-            maxHeight: "500px",
-            position: "relative",
+            height: `${containerHeight}px`, // Apply dynamic height
+            position: "relative", // Needed for resize handle positioning
           }}
         >
           {error ? (
@@ -199,15 +255,30 @@ export default class PdfEmbedComponent extends React.Component<
               }
               options={pdfDocumentOptions}
             >
-              {Array.from(new Array(numPages ?? 0), (el, index) => (
-                <Page
-                  key={`page_${index + 1}`}
-                  pageNumber={index + 1}
-                  width={containerWidth > 0 ? containerWidth : undefined}
-                  renderAnnotationLayer={false}
-                  renderTextLayer={false}
-                />
-              ))}
+              {/* Render only the first page for large PDF handling */}
+              {numPages !== null &&
+                numPages > 0 && ( // Check numPages > 0
+                  <Page
+                    key={`page_1`}
+                    pageNumber={1} // Always render page 1
+                    width={containerWidth > 0 ? containerWidth : undefined}
+                    renderAnnotationLayer={false}
+                    renderTextLayer={false}
+                  />
+                )}
+              {/* Optionally indicate more pages exist */}
+              {(numPages ?? 0) > 1 && (
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "5px",
+                    color: theme.textSecondary,
+                    fontSize: "0.8em",
+                  }}
+                >
+                  Page 1 of {numPages}
+                </div>
+              )}
             </Document>
           )}
           {/* Place resize handle within the content area or container */}

@@ -58,9 +58,10 @@ export default class Pdf extends Node {
           // File size
           default: 0,
         },
-        // Add width/height attributes if needed for persistence
-        // width: { default: '100%' },
-        // height: { default: '500px' },
+        // Add height attribute for persistence
+        height: {
+          default: 500, // Default height in pixels
+        },
       },
       group: "block",
       defining: true,
@@ -94,7 +95,7 @@ export default class Pdf extends Node {
           href: sanitizeUrl(node.attrs.href),
           "data-title": node.attrs.title,
           "data-size": node.attrs.size,
-          // Add width/height data attributes if needed
+          "data-height": node.attrs.height, // Add height data attribute
         },
         String(node.attrs.title),
       ],

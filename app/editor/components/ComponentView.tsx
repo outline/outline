@@ -1,6 +1,7 @@
 import { Node as ProsemirrorNode } from "prosemirror-model";
 import { EditorView, Decoration } from "prosemirror-view";
 import { FunctionComponent } from "react";
+import { Primitive } from "utility-types"; // Added import
 import Extension from "@shared/editor/lib/Extension";
 import { ComponentProps } from "@shared/editor/types";
 import { Editor } from "~/editor";
@@ -119,6 +120,18 @@ export default class ComponentView {
       getPos: this.getPos,
       // Add the theme from the editor instance's props
       theme: this.editor.props.theme,
-    }; // Remove 'as ComponentProps' cast, let TypeScript infer/validate
+      // Function to update node attributes from the React component
+      updateAttributes: (attrs: Record<string, Primitive | null>) => {
+        const transaction = this.view.state.tr.setNodeMarkup(
+          this.getPos(),
+          undefined,
+          {
+            ...this.node.attrs,
+            ...attrs,
+          }
+        );
+        this.view.dispatch(transaction);
+      },
+    };
   }
 }

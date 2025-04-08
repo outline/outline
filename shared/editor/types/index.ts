@@ -49,4 +49,6 @@ export type ComponentProps = {
   isSelected: boolean;
   isEditable: boolean;
   getPos: () => number;
+  // Function provided by the NodeView to update node attributes
+  updateAttributes: (attrs: Record<string, Primitive | null>) => void;
 };
