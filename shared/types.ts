@@ -79,6 +79,8 @@ export enum MentionType {
   PullRequest = "pull_request",
 }
 
+export const MentionPlaceholder = "mention_placeholder";
+
 export type PublicEnv = {
   ROOT_SHARE_ID?: string;
   analytics: {

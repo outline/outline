@@ -16,11 +16,17 @@ import * as React from "react";
 import { Primitive } from "utility-types";
 import { v4 as uuidv4 } from "uuid";
 import env from "../../env";
-import { MentionType, UnfurlResourceType, UnfurlResponse } from "../../types";
+import {
+  MentionPlaceholder,
+  MentionType,
+  UnfurlResourceType,
+  UnfurlResponse,
+} from "../../types";
 import {
   MentionCollection,
   MentionDocument,
   MentionIssue,
+  MentionPlaceholder as MentionPlaceholderComp,
   MentionPullRequest,
   MentionUser,
 } from "../components/Mentions";
@@ -141,6 +147,8 @@ export default class Mention extends Node {
             onChangeUnfurl={this.handleChangeUnfurl(props)}
           />
         );
+      case MentionPlaceholder:
+        return <MentionPlaceholderComp />;
       default:
         return null;
     }

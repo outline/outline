@@ -1,6 +1,5 @@
 import { IssueSource } from "@shared/schema";
 import { ellipsis } from "@shared/styles";
-import { UnfurlResourceType, UnfurlResponse } from "@shared/types";
 import { observer } from "mobx-react";
 import React from "react";
 import { Trans, useTranslation } from "react-i18next";
@@ -19,7 +18,7 @@ import { client } from "~/utils/ApiClient";
 type Props = {
   issueTitle: string;
   open: boolean;
-  onCreate: (issue: UnfurlResponse[UnfurlResourceType.Issue]) => void;
+  onCreate: (source: IssueSource) => Promise<void>;
   onClose: () => void;
 };
 
@@ -32,32 +31,24 @@ export const CreateIssueDialog = observer(
     const {
       data: sources,
       loading,
-      error,
       request,
     } = useRequest<IssueSource[]>(
       React.useCallback(async () => {
-        const res = await client.post("/issues.list_sources");
-        return res.data;
-      }, [])
+        try {
+          const res = await client.post("/issues.list_sources");
+          return res.data;
+        } catch (err) {
+          toast.error(t("Couldn't load issue sources, try again?"));
+          throw err;
+        }
+      }, [t])
     );
 
     const handleCreateIssue = React.useCallback(async () => {
-      try {
-        setCreating();
-
-        const res = await client.post("/issues.create", {
-          title: issueTitle,
-          source: selectedSource,
-        });
-
-        onCreate(res.data);
-
-        toast.success(t("Issue created"));
-      } catch (err) {
-        unsetCreating();
-        toast.error(t("Couldn’t create the issue, try again?"));
-      }
-    }, [t, issueTitle, setCreating, unsetCreating, selectedSource, onCreate]);
+      setCreating();
+      await onCreate(selectedSource!);
+      unsetCreating();
+    }, [selectedSource, onCreate, setCreating, unsetCreating]);
 
     React.useEffect(() => {
       if (open) {
@@ -106,7 +97,7 @@ export const CreateIssueDialog = observer(
                   }}
                 />
               ) : (
-                t("Select a location to move")
+                t("Select a source to create issue")
               )}
             </StyledText>
             <Button

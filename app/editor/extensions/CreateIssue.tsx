@@ -2,7 +2,14 @@ import Extension from "@shared/editor/lib/Extension";
 import { isRemoteTransaction } from "@shared/editor/lib/multiplayer";
 import { recreateTransform } from "@shared/editor/lib/prosemirror-recreate-transform";
 import { isInCode } from "@shared/editor/queries/isInCode";
-import { MentionType, UnfurlResourceType, UnfurlResponse } from "@shared/types";
+import { IssueSource } from "@shared/schema";
+import {
+  MentionPlaceholder,
+  MentionType,
+  UnfurlResourceType,
+  UnfurlResponse,
+} from "@shared/types";
+import { t } from "i18next";
 import { action, observable } from "mobx";
 import {
   Command,
@@ -13,10 +20,13 @@ import {
 } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import React from "react";
+import { toast } from "sonner";
 import { Primitive } from "utility-types";
 import { v4 } from "uuid";
 import stores from "~/stores";
+import { client } from "~/utils/ApiClient";
 import { CreateIssueDialog } from "../components/CreateIssueDialog";
+import { addRecentIssueSource } from "../hooks/useRecentIssueSources";
 
 export default class CreateIssue extends Extension {
   private state: {
@@ -40,11 +50,8 @@ export default class CreateIssue extends Extension {
         state: {
           init: () => DecorationSet.empty,
           apply: (tr, set) => {
-            let mapping = tr.mapping;
-
-            // See if the transaction adds or removes any placeholders
+            // See if the transaction adds, replaces, or removes any placeholders.
             const meta = tr.getMeta(this.key);
-            const hasDecorations = set.find().length;
 
             // We only want a single paste placeholder at a time, so if we're adding a new
             // placeholder we can just return a new DecorationSet and avoid mapping logic.
@@ -54,9 +61,7 @@ export default class CreateIssue extends Extension {
                 Decoration.inline(
                   from,
                   to,
-                  {
-                    class: "create-issue-placeholder",
-                  },
+                  {},
                   {
                     id,
                   }
@@ -64,6 +69,9 @@ export default class CreateIssue extends Extension {
               ];
               return DecorationSet.create(tr.doc, decorations);
             }
+
+            let mapping = tr.mapping;
+            const hasDecorations = set.find().length;
 
             if (hasDecorations && (isRemoteTransaction(tr) || meta)) {
               try {
@@ -79,6 +87,16 @@ export default class CreateIssue extends Extension {
             }
 
             set = set.map(mapping, tr.doc);
+
+            if (meta?.replace) {
+              const { id } = meta.replace;
+              const decorations = set.find(
+                undefined,
+                undefined,
+                (spec) => spec.id === id
+              );
+              return DecorationSet.create(tr.doc, decorations);
+            }
 
             if (meta?.remove) {
               const { id } = meta.remove;
@@ -128,20 +146,48 @@ export default class CreateIssue extends Extension {
 
   commands() {
     return (attrs: Record<string, Primitive>): Command =>
-      (state, dispatch) => {
+      action((state, dispatch) => {
         const title = attrs.title as string;
+        const source = attrs.source
+          ? (JSON.parse(attrs.source as string) as IssueSource)
+          : undefined;
+
+        this.state.title = title;
+
         const { from } = state.selection;
         const to = from + title.length;
 
         const tr = state.tr
-          .setSelection(TextSelection.near(state.doc.resolve(from)))
+          .setSelection(TextSelection.near(state.doc.resolve(to)))
           .setMeta(this.key, { add: { from, to, id: title } });
+
         dispatch?.(tr);
 
-        this.openDialog(title);
+        if (source) {
+          tr.replaceWith(
+            from,
+            to,
+            state.schema.nodes.mention.create({
+              id: v4(),
+              type: MentionPlaceholder,
+              label: title,
+              href: title,
+              modelId: v4(),
+              actorId: stores.auth.currentUserId,
+            })
+          ).setMeta(this.key, { replace: { id: title } });
+        }
+
+        dispatch?.(tr);
+
+        if (source) {
+          void this.createIssue(source);
+        } else {
+          this.openDialog(title);
+        }
 
         return true;
-      };
+      });
   }
 
   widget = () => (
@@ -153,30 +199,74 @@ export default class CreateIssue extends Extension {
     />
   );
 
-  private createIssue = action(
-    (issue: UnfurlResponse[UnfurlResourceType.Issue]) => {
-      const { view } = this.editor;
-      const { state } = view;
-
-      const result = this.findPlaceholder(state, this.state.title);
-
-      if (result) {
-        const tr = state.tr.deleteRange(result[0], result[1]);
-        view.dispatch(
-          tr.setSelection(TextSelection.near(tr.doc.resolve(result[0])))
-        );
-      }
-
-      this.editor.commands.mention({
-        id: v4(),
-        type: MentionType.Issue,
-        label: this.state.title,
-        href: issue.url,
-        modelId: v4(),
-        actorId: stores.auth.currentUserId,
+  private createIssue = async (source: IssueSource) => {
+    try {
+      addRecentIssueSource(source);
+      const res = await client.post("/issues.create", {
+        title: this.state.title,
+        source,
       });
+      this.addMentionNode(res.data);
+      toast.success(t("Issue created"));
+    } catch (err) {
+      this.removeDecorations(source);
+      toast.error(t("Couldn’t create the issue, try again?"));
     }
-  );
+  };
+
+  private addMentionNode = (
+    issue: UnfurlResponse[UnfurlResourceType.Issue]
+  ) => {
+    const { view } = this.editor;
+    const { state } = view;
+
+    const result = this.findPlaceholder(state, this.state.title);
+
+    if (result) {
+      const tr = state.tr.deleteRange(result[0], result[1]);
+      view.dispatch(
+        tr
+          .setSelection(TextSelection.near(tr.doc.resolve(result[0])))
+          .setMeta(this.key, {
+            remove: { id: this.state.title },
+          })
+      );
+    }
+
+    this.editor.commands.mention({
+      id: v4(),
+      type: MentionType.Issue,
+      label: this.state.title,
+      href: issue.url,
+      modelId: v4(),
+      actorId: stores.auth.currentUserId,
+    });
+  };
+
+  private removeDecorations = action((source: IssueSource) => {
+    const { view } = this.editor;
+    const { state } = view;
+
+    const tr = state.tr.setMeta(this.key, {
+      remove: { id: this.state.title },
+    });
+
+    const result = this.findPlaceholder(state, this.state.title);
+
+    // Placeholder node would have been inserted in recent issue menu flow only.
+    // We want to reset it with the selected text.
+    if (source && result) {
+      tr.replaceWith(
+        result[0],
+        result[1],
+        state.schema.nodeFromJSON({ type: "text", text: this.state.title })
+      );
+    }
+
+    view.dispatch(tr);
+
+    this.state.title = "";
+  });
 
   private openDialog = action((title: string) => {
     this.state.title = title;

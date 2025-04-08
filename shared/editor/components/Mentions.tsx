@@ -287,6 +287,8 @@ export const MentionPullRequest = observer((props: IssuePrProps) => {
   );
 });
 
+export const MentionPlaceholder = () => <MentionLoading className="mention" />;
+
 const MentionLoading = ({ className }: { className: string }) => {
   const { t } = useTranslation();
 

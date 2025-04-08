@@ -9,6 +9,7 @@ import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import { getColumnIndex, getRowIndex } from "@shared/editor/queries/table";
 import { MenuItem } from "@shared/editor/types";
+import { useRecentIssueSources } from "~/editor/hooks/useRecentIssueSources";
 import useBoolean from "~/hooks/useBoolean";
 import useDictionary from "~/hooks/useDictionary";
 import useEventListener from "~/hooks/useEventListener";
@@ -106,6 +107,7 @@ export default function SelectionToolbar(props: Props) {
   const isActive = useIsActive(view.state) || isMobile;
   const isDragging = useIsDragging();
   const previousIsActive = usePrevious(isActive);
+  const { issueSources: recentIssueSources } = useRecentIssueSources();
 
   React.useEffect(() => {
     // Trigger callbacks when the toolbar is opened or closed
@@ -213,7 +215,13 @@ export default function SelectionToolbar(props: Props) {
   } else if (isNoticeSelection && selection.empty) {
     items = getNoticeMenuItems(state, readOnly, dictionary);
   } else {
-    items = getFormattingMenuItems(state, isTemplate, isMobile, dictionary);
+    items = getFormattingMenuItems(
+      state,
+      isTemplate,
+      isMobile,
+      recentIssueSources,
+      dictionary
+    );
   }
 
   // Some extensions may be disabled, remove corresponding items
