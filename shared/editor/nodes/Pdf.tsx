@@ -4,7 +4,6 @@ import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
 import { Command, NodeSelection } from "prosemirror-state";
 import * as React from "react";
 import { lazy, Suspense } from "react";
-import { pdfjs } from "react-pdf"; // Keep pdfjs import for worker config if needed globally
 import { Primitive } from "utility-types";
 import { getEventFiles } from "../../utils/files"; // Removed unused bytesToHumanReadable
 import { sanitizeUrl } from "../../utils/urls";
@@ -19,9 +18,6 @@ import Node from "./Node";
 
 // Lazy load the component that contains react-pdf and CSS imports
 const PdfEmbedComponent = lazy(() => import("../components/PdfEmbed"));
-
-// Configure pdfjs worker to use the locally copied file
-pdfjs.GlobalWorkerOptions.workerSrc = `/static/assets/pdf.worker.min.js`;
 
 // Fallback component while lazy component loads
 const PdfLoadingFallback = () => (
