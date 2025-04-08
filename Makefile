@@ -1,5 +1,5 @@
 up:
-	docker compose up -d redis postgres
+	docker compose up -d redis-dev postgres-dev
 	yarn install-local-ssl
 	yarn install --pure-lockfile
 	yarn dev:watch
