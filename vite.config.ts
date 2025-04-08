@@ -81,6 +81,11 @@ export default () =>
             src: "./public/images",
             dest: "./",
           },
+          {
+            // Copy pdfjs worker to assets
+            src: "./node_modules/pdfjs-dist/build/pdf.worker.min.js",
+            dest: "./assets",
+          },
         ],
       }),
       // https://vite-pwa-org.netlify.app/

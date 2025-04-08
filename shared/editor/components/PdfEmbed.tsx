@@ -17,8 +17,8 @@ const PdfContainer = styled.div`
   padding: 8px;
   margin: 8px 0;
   max-width: 100%;
-  /* overflow: hidden; */ /* Temporarily removed for debugging */
-  min-height: 100px; /* Added minimum height */
+  overflow: hidden; /* Restore overflow */
+  /* min-height: 100px; */ /* Remove minimum height */
   position: relative; /* For potential resize handles */
 
   .react-pdf__Document {
@@ -149,29 +149,16 @@ export default class PdfEmbedComponent extends React.Component<
               }
               options={{ workerSrc: pdfjs.GlobalWorkerOptions.workerSrc }} // Pass worker source explicitly
             >
-              {/* Temporarily render only the first page or just check loading state */}
-              {numPages && containerWidth > 0 ? (
+              {/* Restore original page rendering loop */}
+              {Array.from(new Array(numPages ?? 0), (el, index) => (
                 <Page
-                  key={`page_1`}
-                  pageNumber={1}
-                  width={containerWidth}
-                  renderAnnotationLayer={false}
-                  renderTextLayer={false}
+                  key={`page_${index + 1}`}
+                  pageNumber={index + 1}
+                  width={containerWidth > 0 ? containerWidth : undefined} // Use container width
+                  renderAnnotationLayer={false} // Disable annotation layer for simplicity
+                  renderTextLayer={false} // Disable text layer for simplicity
                 />
-              ) : (
-                !error && (
-                  <LoadingMessage theme={theme}>Checking PDF...</LoadingMessage>
-                ) // Show a different loading message
-              )}
-              {/* {Array.from(new Array(numPages ?? 0), (el, index) => (
-                 <Page
-                   key={`page_${index + 1}`}
-                   pageNumber={index + 1}
-                   width={containerWidth > 0 ? containerWidth : undefined} // Use container width
-                   renderAnnotationLayer={false} // Disable annotation layer for simplicity
-                   renderTextLayer={false} // Disable text layer for simplicity
-                 />
-               ))} */}
+              ))}
             </Document>
           )}
           {/* Example resize handle - needs proper event handling */}

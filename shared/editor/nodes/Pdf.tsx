@@ -20,8 +20,8 @@ import Node from "./Node";
 // Lazy load the component that contains react-pdf and CSS imports
 const PdfEmbedComponent = lazy(() => import("../components/PdfEmbed"));
 
-// Configure pdfjs worker (can remain here if configured globally)
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+// Configure pdfjs worker to use the locally copied file
+pdfjs.GlobalWorkerOptions.workerSrc = `/static/assets/pdf.worker.min.js`;
 
 // Fallback component while lazy component loads
 const PdfLoadingFallback = () => (
