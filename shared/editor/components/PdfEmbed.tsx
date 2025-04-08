@@ -162,47 +162,59 @@ export default class PdfEmbedComponent extends React.Component<
         ref={this.containerRef}
         theme={theme}
         data-nodetype="pdf_document"
+        // Add onClick handler here to select the node when the container is clicked
+        // This might be needed if the Widget's onClick is removed or doesn't cover the whole area
+        onClick={this.props.handleSelect}
       >
-        {/* Restore Widget wrapper */}
+        {/* Render Widget for header only */}
         <Widget
           icon={<AttachmentIcon color={theme.textSecondary} />}
           title={title || "PDF Document"}
+          // Make the widget itself non-interactive if needed, or keep selection logic
           isSelected={isSelected}
           theme={theme}
-          // Prevent clicks inside the widget from deselecting the node
-          onClick={(e) => e.stopPropagation()}
+          // Remove onClick propagation stop if container handles selection
+          // onClick={(e) => e.stopPropagation()}
+        />
+        {/* Render PDF Document outside the Widget */}
+        <div
+          className="pdf-content-area"
+          style={{
+            flexGrow: 1,
+            overflowY: "auto",
+            maxHeight: "500px",
+            position: "relative",
+          }}
         >
           {error ? (
             <ErrorMessage theme={theme}>{error}</ErrorMessage>
           ) : (
             <Document
-              key={memoizedFile.url} // Use memoizedFile.url for key
-              file={memoizedFile} // Pass memoized file object
+              key={memoizedFile.url}
+              file={memoizedFile}
               onLoadSuccess={this.onDocumentLoadSuccess}
               onLoadError={this.onDocumentLoadError}
               loading={
                 <LoadingMessage theme={theme}>Loading PDF…</LoadingMessage>
               }
-              options={pdfDocumentOptions} // Use the memoized options object
+              options={pdfDocumentOptions}
             >
-              {/* Restore original page rendering loop */}
               {Array.from(new Array(numPages ?? 0), (el, index) => (
                 <Page
                   key={`page_${index + 1}`}
                   pageNumber={index + 1}
-                  width={containerWidth > 0 ? containerWidth : undefined} // Use container width
-                  renderAnnotationLayer={false} // Disable annotation layer for simplicity
-                  renderTextLayer={false} // Disable text layer for simplicity
+                  width={containerWidth > 0 ? containerWidth : undefined}
+                  renderAnnotationLayer={false}
+                  renderTextLayer={false}
                 />
               ))}
             </Document>
           )}
-          {/* Example resize handle - needs proper event handling */}
-          {/* Restore resize handle */}
+          {/* Place resize handle within the content area or container */}
           {isEditable && (
             <div className="resize-handle" onMouseDown={this.handleResize} />
           )}
-        </Widget>
+        </div>
       </PdfContainer>
     );
   }
