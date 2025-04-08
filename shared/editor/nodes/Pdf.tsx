@@ -16,6 +16,7 @@ import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import attachmentsRule from "../rules/links"; // Reusing attachment rule for parsing links
 import { ComponentProps } from "../types";
 import Node from "./Node";
+import WithTheme from "app/editor/components/WithTheme"; // Import WithTheme
 
 // Lazy load the component that contains react-pdf and CSS imports
 const PdfEmbedComponent = lazy(() => import("../components/PdfEmbed"));
@@ -108,11 +109,12 @@ export default class Pdf extends Node {
       view.dispatch(transaction);
     };
 
-  // Use the lazy-loaded component wrapped in Suspense
+  // Use the lazy-loaded component wrapped in Suspense and WithTheme
   component = (props: ComponentProps) => (
-    // Pass props to PdfEmbedComponent, but use the simplified fallback
     <Suspense fallback={<PdfLoadingFallback />}>
-      <PdfEmbedComponent {...props} />
+      <WithTheme>
+        {(theme) => <PdfEmbedComponent {...props} theme={theme} />}
+      </WithTheme>
     </Suspense>
   );
 
