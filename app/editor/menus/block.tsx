@@ -21,6 +21,7 @@ import {
   MathIcon,
   DoneIcon,
   EmbedIcon,
+  FileIcon, // Import FileIcon for PDF
 } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
@@ -119,6 +120,12 @@ export default function blockMenuItems(
       title: dictionary.file,
       icon: <AttachmentIcon />,
       keywords: "file upload attach",
+    },
+    {
+      name: "pdf_document", // Use the node name
+      title: dictionary.uploadPdf, // Use the new dictionary entry
+      icon: <FileIcon />, // Use a generic file icon for now
+      keywords: "pdf document upload file embed",
     },
     {
       name: "table",

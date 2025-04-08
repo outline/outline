@@ -7,36 +7,32 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
 import SearchActions from "~/components/SearchActions";
-import rootActions from "~/actions/root";
+import rootActions from "~/actions/root"; // Original import name
 import useCommandBarActions from "~/hooks/useCommandBarActions";
 import CommandBarResults from "./CommandBarResults";
 import useRecentDocumentActions from "./useRecentDocumentActions";
 import useSettingsAction from "./useSettingsAction";
 import useTemplatesAction from "./useTemplatesAction";
-import pdfActions from "~/actions/definitions/pdf";
-import useActionContext from "~/hooks/useActionContext"; // Import useActionContext
+// Removed pdfActionsDef and useActionContext imports
 
 function CommandBar() {
   const { t } = useTranslation();
   const recentDocumentActions = useRecentDocumentActions();
   const settingsAction = useSettingsAction();
   const templatesAction = useTemplatesAction();
-  // Get the context needed for actions like pdfActions
-  const ctx = useActionContext({ isCommandBar: true });
-
+  // Reverted commandBarActions definition
   const commandBarActions = React.useMemo(
     () => [
       ...recentDocumentActions,
       ...rootActions,
-      ...pdfActions(ctx), // Now call pdfActions with the context
+      // Removed pdfActions
       templatesAction,
       settingsAction,
     ],
-    // Add ctx to dependencies, along with other action hooks
-    [recentDocumentActions, settingsAction, templatesAction, ctx]
+    [recentDocumentActions, settingsAction, templatesAction] // Reverted dependencies
   );
 
-  useCommandBarActions(commandBarActions);
+  useCommandBarActions(commandBarActions); // Pass original structure
 
   return (
     <>

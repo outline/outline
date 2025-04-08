@@ -98,6 +98,7 @@ export default function useDictionary() {
       indent: t("Indent"),
       outdent: t("Outdent"),
       video: t("Video"),
+      uploadPdf: t("Upload PDF"), // Added PDF entry
       untitled: t("Untitled"),
       none: t("None"),
     }),
