@@ -1,10 +1,10 @@
 services:
-  redis:
+  redis-dev:
     image: redis
     ports:
       - "127.0.0.1:6379:6379"
     user: "redis:redis"
-  postgres:
+  postgres-dev:
     image: postgres
     ports:
       - "127.0.0.1:5432:5432"
