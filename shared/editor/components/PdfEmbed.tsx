@@ -6,7 +6,8 @@ import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 import styled from "styled-components";
 import { ComponentProps } from "../types"; // Assuming ComponentProps is needed and defined here or imported
-import Widget from "./Widget"; // Assuming Widget is needed and defined here or imported
+import * as WidgetImport from "./Widget"; // Try namespace import
+const Widget = WidgetImport.default; // Explicitly reference default export
 
 // Configure pdfjs worker (can also be done here or globally)
 // pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
