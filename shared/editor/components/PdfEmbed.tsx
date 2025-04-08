@@ -17,7 +17,8 @@ const PdfContainer = styled.div`
   padding: 8px;
   margin: 8px 0;
   max-width: 100%;
-  overflow: hidden; /* Hide overflow initially */
+  /* overflow: hidden; */ /* Temporarily removed for debugging */
+  min-height: 100px; /* Added minimum height */
   position: relative; /* For potential resize handles */
 
   .react-pdf__Document {
@@ -91,7 +92,6 @@ export default class PdfEmbedComponent extends React.Component<
   };
 
   onDocumentLoadError = (error: Error) => {
-    // console.error("Error loading PDF:", error); // Removed console.error
     this.setState({
       error: `Failed to load PDF: ${error.message}`,
       numPages: null,
@@ -101,7 +101,6 @@ export default class PdfEmbedComponent extends React.Component<
   // Basic resize logic (could be improved with drag events)
   handleResize = (event: React.MouseEvent) => {
     // Placeholder for more complex resize handling
-    // console.log("Resize handle clicked", event); // Removed console.log
     event.preventDefault(); // Prevent default drag behavior if any
   };
 
