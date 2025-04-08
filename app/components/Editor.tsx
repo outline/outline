@@ -106,7 +106,14 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
         return;
       }
 
-      // Insert all files as attachments if any of the files are not images.
+      // Determine the correct node type, prioritizing PDF for single PDF drops.
+      const isSinglePdf =
+        files.length === 1 && files[0].type === "application/pdf";
+      const nodeType = isSinglePdf
+        ? view.state.schema.nodes.pdf_document
+        : undefined;
+
+      // Keep original isAttachment logic for non-image files, but nodeType takes precedence in insertFiles.
       const isAttachment = files.some(
         (file) => !AttachmentValidation.imageContentTypes.includes(file.type)
       );
@@ -117,10 +124,12 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
         onFileUploadStop: props.onFileUploadStop,
         dictionary,
         isAttachment,
+        nodeType, // Pass the determined nodeType
       });
     },
     [
-      localRef,
+      // Add view.state.schema to dependencies if needed, but likely covered by localRef
+      localRef, // Accessing view.state.schema through localRef.current.view.state.schema
       props.onFileUploadStart,
       props.onFileUploadStop,
       dictionary,

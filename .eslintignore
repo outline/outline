@@ -1,1 +1,2 @@
 server/migrations/*.js
+public/static/assets/
