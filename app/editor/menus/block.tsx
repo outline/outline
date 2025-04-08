@@ -124,7 +124,7 @@ export default function blockMenuItems(
     {
       name: "pdf_document", // Use the node name
       title: dictionary.uploadPdf, // Use the new dictionary entry
-      icon: <FileIcon />, // Use a generic file icon for now
+      icon: <AttachmentIcon />, // Temporarily use AttachmentIcon to test
       keywords: "pdf document upload file embed",
     },
     {
