@@ -2,9 +2,12 @@ import OAuth2Server from "@node-oauth/oauth2-server";
 import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
+import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import requestTracer from "@server/middlewares/requestTracer";
+import { OAuthClient } from "@server/models";
+import { authorize } from "@server/policies";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { OAuthInterface } from "@server/utils/oauth/OAuthInterface";
 import oauthErrorHandler from "./middlewares/oauthErrorHandler";
@@ -20,6 +23,18 @@ router.post(
   rateLimiter(RateLimiterStrategy.FiftyPerHour),
   auth(),
   async (ctx) => {
+    const { user } = ctx.state.auth;
+    const clientId = ctx.request.body.client_id;
+    if (!clientId) {
+      throw ValidationError("Missing client_id");
+    }
+
+    const client = await OAuthClient.findOne({
+      where: { clientId },
+      rejectOnEmpty: true,
+    });
+    authorize(user, "read", client);
+
     // Note: These objects are mutated by the OAuth2Server library
     const request = new OAuth2Server.Request(ctx.request);
     const response = new OAuth2Server.Response(ctx.response);
@@ -29,10 +44,7 @@ router.post(
       authenticateHandler: {
         // Fetch the current user from the request, so the library knows
         // which user is authorizing the client.
-        handle: async () => {
-          const { user } = ctx.state.auth;
-          return user;
-        },
+        handle: async () => user,
       },
     });
 
