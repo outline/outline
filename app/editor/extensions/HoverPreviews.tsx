@@ -4,9 +4,9 @@ import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import Extension from "@shared/editor/lib/Extension";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
+import stores from "~/stores";
 import HoverPreview from "~/components/HoverPreview";
 import env from "~/env";
-import { client } from "~/utils/ApiClient";
 
 interface HoverPreviewsOptions {
   /** Delay before the target is considered "hovered" and callback is triggered. */
@@ -63,18 +63,20 @@ export default class HoverPreviews extends Extension {
 
                     if (url) {
                       this.state.dataLoading = true;
-                      try {
-                        const data = await client.post("/urls.unfurl", {
-                          url: url.startsWith("/") ? env.URL + url : url,
-                          documentId,
-                        });
+
+                      const unfurl = await stores.unfurls.fetchUnfurl({
+                        url: url.startsWith("/") ? env.URL + url : url,
+                        documentId,
+                      });
+
+                      if (unfurl) {
                         this.state.activeLinkElement = element;
-                        this.state.data = data;
-                      } catch (err) {
+                        this.state.data = unfurl.data;
+                      } else {
                         this.state.activeLinkElement = null;
-                      } finally {
-                        this.state.dataLoading = false;
                       }
+
+                      this.state.dataLoading = false;
                     }
                   }),
                   this.options.delay
