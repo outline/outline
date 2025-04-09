@@ -175,10 +175,10 @@ export default class PdfEmbedComponent extends React.Component<
           href={memoizedFileUrl} // Always set href to enable hover + pointer
           onMouseDown={onSelect}
           onClick={(event) => {
-            if (isEditable) {
-              event.preventDefault();
-              // Removed event.stopPropagation() to allow selection events to bubble up
-            }
+            event.preventDefault(); // Always prevent default navigation on single click
+          }}
+          onDoubleClick={() => {
+            window.open(memoizedFileUrl || "", "_blank");
           }}
         />
         {/* Iframe Container */}
