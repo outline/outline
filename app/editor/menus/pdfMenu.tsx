@@ -13,20 +13,23 @@ const ReplaceIcon = React.memo(ReplaceIconBase);
 export default function getPdfMenuItems(state: EditorState, dictionary: any) {
   return [
     {
-      name: "downloadPdfAttachment",
-      tooltip: dictionary.download,
-      icon: <DownloadIcon />,
-    },
-    {
       name: "replacePdfAttachment",
-      tooltip: dictionary.replace,
+      tooltip: dictionary.replaceAttachment ?? dictionary.replace,
       icon: <ReplaceIcon />,
     },
     {
       name: "deletePdfAttachment",
-      tooltip: dictionary.delete,
+      tooltip: dictionary.deleteAttachment ?? dictionary.delete,
       icon: <TrashIcon />,
-      dangerous: true,
+    },
+    {
+      name: "separator",
+    },
+    {
+      name: "downloadPdfAttachment",
+      label: dictionary.download,
+      icon: <DownloadIcon />,
+      visible: !!fetch,
     },
   ];
 }
