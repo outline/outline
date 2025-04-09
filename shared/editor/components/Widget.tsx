@@ -18,39 +18,72 @@ type Props = {
   /** Children to display to the right of the context */
   children?: React.ReactNode;
   /** Callback fired when the widget is double clicked */
-  onDoubleClick?: React.MouseEventHandler<HTMLAnchorElement>;
+  onDoubleClick?: React.MouseEventHandler<HTMLElement>;
   /** Callback fired when the widget is clicked */
-  onMouseDown?: React.MouseEventHandler<HTMLAnchorElement>;
+  onMouseDown?: React.MouseEventHandler<HTMLElement>;
   /** Callback fired when the widget is clicked */
-  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
+  onClick?: React.MouseEventHandler<HTMLElement>;
 };
 
 // Remove ThemeProps<DefaultTheme> from here as theme is now explicitly in Props
 export default function Widget(props: Props) {
   const { theme, isSelected, href, title, context, children, icon } = props;
   const className = isSelected ? "ProseMirror-selectednode widget" : "widget";
+  const sanitizedHref = sanitizeUrl(href);
 
-  return (
-    <Wrapper
-      theme={theme} // Pass theme to styled component
-      className={className}
-      target="_blank"
-      href={sanitizeUrl(href)}
-      rel="noreferrer nofollow"
-      onDoubleClick={props.onDoubleClick}
-      onMouseDown={props.onMouseDown}
-      onClick={props.onClick}
-    >
-      {icon}
-      <Preview theme={theme}>
-        {" "}
-        {/* Pass theme */}
-        <Title theme={theme}>{title}</Title> {/* Pass theme */}
-        <Subtitle theme={theme}>{context}</Subtitle> {/* Pass theme */}
-        <Children theme={theme}>{children}</Children> {/* Pass theme */}
-      </Preview>
-    </Wrapper>
-  );
+  if (sanitizedHref) {
+    return (
+      <Wrapper
+        theme={theme}
+        className={className}
+        target="_blank"
+        href={sanitizedHref}
+        rel="noreferrer nofollow"
+        onDoubleClick={props.onDoubleClick}
+        onMouseDown={props.onMouseDown}
+        onClick={props.onClick}
+      >
+        {icon}
+        <Preview theme={theme}>
+          <Title theme={theme}>{title}</Title>
+          <Subtitle theme={theme}>{context}</Subtitle>
+          <Children theme={theme}>{children}</Children>
+        </Preview>
+      </Wrapper>
+    );
+  } else {
+    return (
+      <div
+        className={className}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
+          background: theme.background,
+          color: theme.text,
+          boxShadow: `0 0 0 1px ${theme.divider}`,
+          whiteSpace: "nowrap",
+          borderRadius: "8px",
+          padding: "6px 8px",
+          maxWidth: "840px",
+          cursor: "default",
+          userSelect: "none",
+          textOverflow: "ellipsis",
+          overflow: "hidden",
+        }}
+        onDoubleClick={props.onDoubleClick}
+        onMouseDown={props.onMouseDown}
+        onClick={props.onClick}
+      >
+        {icon}
+        <Preview theme={theme}>
+          <Title theme={theme}>{title}</Title>
+          <Subtitle theme={theme}>{context}</Subtitle>
+          <Children theme={theme}>{children}</Children>
+        </Preview>
+      </div>
+    );
+  }
 }
 
 const Children = styled.div`
