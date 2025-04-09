@@ -1,6 +1,14 @@
-import { TrashIcon, DownloadIcon, ReplaceIcon } from "outline-icons";
+import {
+  TrashIcon as TrashIconBase,
+  DownloadIcon as DownloadIconBase,
+  ReplaceIcon as ReplaceIconBase,
+} from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import * as React from "react";
+
+const TrashIcon = React.memo(TrashIconBase);
+const DownloadIcon = React.memo(DownloadIconBase);
+const ReplaceIcon = React.memo(ReplaceIconBase);
 
 export default function getPdfMenuItems(state: EditorState, dictionary: any) {
   return [
