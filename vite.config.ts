@@ -81,11 +81,6 @@ export default () =>
             src: "./public/images",
             dest: "./",
           },
-          {
-            // Copy pdfjs worker to assets
-            src: "./node_modules/pdfjs-dist/build/pdf.worker.min.js",
-            dest: "./assets",
-          },
         ],
       }),
       // https://vite-pwa-org.netlify.app/
@@ -187,11 +182,6 @@ export default () =>
           assetFileNames: "assets/[name].[hash][extname]",
           chunkFileNames: "assets/[name].[hash].js",
           entryFileNames: "assets/[name].[hash].js",
-          manualChunks(id: string) {
-            if (id.includes("app/editor/menus/pdf")) {
-              return "main";
-            }
-          },
         },
       },
     },
