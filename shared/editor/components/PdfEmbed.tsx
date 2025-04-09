@@ -38,7 +38,6 @@ const LoadingMessage = styled.div`
 
 interface PdfComponentState {
   containerHeight: number;
-  isResizing: boolean;
   memoizedFileUrl: string | null; // Store only the URL
 }
 
@@ -52,9 +51,10 @@ export default class PdfEmbedComponent extends React.Component<
 > {
   state: PdfComponentState = {
     containerHeight: this.props.node.attrs.height || 500,
-    isResizing: false,
     memoizedFileUrl: this.props.node.attrs.href || null,
   };
+
+  isResizing = false;
 
   containerRef = React.createRef<HTMLDivElement>();
   startDragY = 0;
@@ -77,7 +77,7 @@ export default class PdfEmbedComponent extends React.Component<
 
     const currentHeight = this.props.node.attrs.height;
     const previousHeight = prevProps.node.attrs.height;
-    if (currentHeight !== previousHeight && !this.state.isResizing) {
+    if (currentHeight !== previousHeight && !this.isResizing) {
       this.setState({ containerHeight: currentHeight || 500 });
     }
   }
@@ -100,14 +100,14 @@ export default class PdfEmbedComponent extends React.Component<
 
     this.startDragY = event.clientY;
     this.startDragHeight = this.state.containerHeight;
-    this.setState({ isResizing: true });
+    this.isResizing = true;
 
     window.addEventListener("mousemove", this.handleMouseMove);
     window.addEventListener("mouseup", this.handleMouseUp);
   };
 
   handleMouseMove = (event: MouseEvent): void => {
-    if (!this.state.isResizing) {
+    if (!this.isResizing) {
       return;
     }
 
@@ -123,7 +123,7 @@ export default class PdfEmbedComponent extends React.Component<
   };
 
   handleMouseUp = (): void => {
-    if (!this.state.isResizing) {
+    if (!this.isResizing) {
       return;
     }
 
@@ -146,7 +146,8 @@ export default class PdfEmbedComponent extends React.Component<
       }
     }
 
-    this.setState({ isResizing: false, containerHeight: finalHeight });
+    this.isResizing = false;
+    this.setState({ containerHeight: finalHeight });
 
     if (this.props.updateAttributes) {
       this.props.updateAttributes({
