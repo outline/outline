@@ -11215,10 +11215,10 @@ koa-useragent@*, koa-useragent@^4.1.0:
   dependencies:
     express-useragent "^1.0.15"
 
-koa@^2.15.3, koa@^2.15.4:
-  version "2.16.0"
-  resolved "https://registry.yarnpkg.com/koa/-/koa-2.16.0.tgz#0a82ed4d460774ff0b444e361cd6e4bd5c767ee3"
-  integrity sha512-Afhqq0Vq3W7C+/rW6IqHVBDLzqObwZ07JaUNUEF8yCQ6afiyFE3RAy+i7V0E46XOWlH7vPWn/x0vsZwNy6PWxw==
+koa@^2.15.3, koa@^2.16.1:
+  version "2.16.1"
+  resolved "https://registry.yarnpkg.com/koa/-/koa-2.16.1.tgz#ba1aae04d8319d7dac4a17a0d289d7482501e194"
+  integrity sha512-umfX9d3iuSxTQP4pnzLOz0HKnPg0FaUUIKcye2lOiz3KPu1Y3M3xlz76dISdFPQs37P9eJz1wUpcTS6KDPn9fA==
   dependencies:
     accepts "^1.3.5"
     cache-content-type "^1.0.0"
