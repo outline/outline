@@ -1,4 +1,4 @@
-import { action, computed } from "mobx";
+import { action } from "mobx";
 import { UnfurlResourceType } from "@shared/types";
 import Unfurl from "~/models/Unfurl";
 import { client } from "~/utils/ApiClient";
@@ -22,7 +22,7 @@ class UnfurlsStore extends Store<Unfurl<any>> {
     url: string;
     documentId?: string;
   }): Promise<Unfurl<T> | undefined> => {
-    const unfurl = this.all.find((u) => u.id === url);
+    const unfurl = this.get(url);
 
     if (unfurl) {
       return unfurl;
@@ -49,12 +49,6 @@ class UnfurlsStore extends Store<Unfurl<any>> {
       this.isFetching = false;
     }
   };
-
-  @computed
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  get all(): Unfurl<any>[] {
-    return Array.from(this.data.values());
-  }
 }
 
 export default UnfurlsStore;
