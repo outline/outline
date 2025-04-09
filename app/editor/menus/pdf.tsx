@@ -1,21 +1,23 @@
+import { TrashIcon, DownloadIcon, ReplaceIcon } from "outline-icons";
 import { EditorState } from "prosemirror-state";
+import * as React from "react";
 
 export default function getPdfMenuItems(state: EditorState, dictionary: any) {
   return [
     {
       name: "downloadPdfAttachment",
-      title: dictionary.download,
-      icon: "DownloadIcon",
+      tooltip: dictionary.download,
+      icon: <DownloadIcon />,
     },
     {
       name: "replacePdfAttachment",
-      title: dictionary.replace,
-      icon: "ReplaceIcon",
+      tooltip: dictionary.replace,
+      icon: <ReplaceIcon />,
     },
     {
       name: "deletePdfAttachment",
-      title: dictionary.delete,
-      icon: "TrashIcon",
+      tooltip: dictionary.delete,
+      icon: <TrashIcon />,
       dangerous: true,
     },
   ];
