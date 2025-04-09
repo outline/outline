@@ -1,3 +1,4 @@
+import { isMatch } from "lodash";
 import { Token } from "markdown-it";
 import {
   NodeSpec,
@@ -262,7 +263,13 @@ export default class Mention extends Node {
   }
 
   handleChangeUnfurl =
-    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    ({
+      node,
+      getPos,
+    }: {
+      node: ProsemirrorNode;
+      getPos: () => number | undefined;
+    }) =>
     (unfurl: UnfurlResponse[keyof UnfurlResponse]) => {
       const { view } = this.editor;
       const { tr } = view.state;
@@ -277,10 +284,13 @@ export default class Mention extends Node {
       overrides.unfurl = unfurl;
 
       const pos = getPos();
-      const transaction = tr.setNodeMarkup(pos, undefined, {
-        ...node.attrs,
-        ...overrides,
-      });
-      view.dispatch(transaction);
+
+      if (pos && !isMatch(node.attrs, overrides)) {
+        const transaction = tr.setNodeMarkup(pos, undefined, {
+          ...node.attrs,
+          ...overrides,
+        });
+        view.dispatch(transaction);
+      }
     };
 }

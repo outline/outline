@@ -149,8 +149,9 @@ export const MentionIssue = (props: IssuePrProps) => {
 
   React.useEffect(() => {
     const fetchIssue = async () => {
-      const unfurledIssue: UnfurlResponse[UnfurlResourceType.Issue] =
-        await unfurls.fetch(attrs.href);
+      const unfurledIssue:
+        | UnfurlResponse[UnfurlResourceType.Issue]
+        | undefined = await unfurls.fetch(attrs.href);
 
       if (unfurledIssue) {
         onChangeUnfurl({
@@ -210,7 +211,7 @@ export const MentionPullRequest = (props: IssuePrProps) => {
 
   React.useEffect(() => {
     const fetchPR = async () => {
-      const unfurledPR: UnfurlResponse[UnfurlResourceType.PR] =
+      const unfurledPR: UnfurlResponse[UnfurlResourceType.PR] | undefined =
         await unfurls.fetch(attrs.href);
 
       if (unfurledPR) {
