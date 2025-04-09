@@ -170,7 +170,7 @@ export default class PdfEmbedComponent extends React.Component<
           title={title || "PDF Document"}
           isSelected={isSelected}
           theme={theme}
-          href={!isEditable ? memoizedFileUrl : undefined} // Use memoized URL
+          href={memoizedFileUrl} // Always set href to enable hover + pointer
           onMouseDown={onSelect}
           onClick={(event) => {
             if (isEditable) {
