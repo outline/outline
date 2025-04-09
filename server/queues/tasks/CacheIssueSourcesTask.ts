@@ -31,7 +31,7 @@ export default class CacheIssueSourcesTask extends BaseTask<Props> {
         return;
       }
 
-      const sources = await plugin.value.provider.listSources(integration);
+      const sources = await plugin.value.fetchSources(integration);
       integration.issueSources = sources;
       await integration.save({ transaction });
     });

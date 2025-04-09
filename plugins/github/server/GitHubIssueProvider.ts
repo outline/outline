@@ -1,7 +1,8 @@
 import { Endpoints } from "@octokit/types";
 import Logger from "@server/logging/Logger";
 import { Integration, User } from "@server/models";
-import { CreateIssueResponse, IssueProvider } from "@server/types";
+import { CreateIssueResponse } from "@server/types";
+import { BaseIssueProvider } from "@server/utils/IssueProvider";
 import { IssueSource } from "@shared/schema";
 import {
   IntegrationService,
@@ -14,10 +15,14 @@ import { GitHub } from "./github";
 type ReposForInstallation =
   Endpoints["GET /installation/repositories"]["response"]["data"]["repositories"];
 
-export class GitHubIssueProvider {
-  public static listRepos: IssueProvider["listSources"] = async (
+export class GitHubIssueProvider extends BaseIssueProvider {
+  constructor() {
+    super(IntegrationService.GitHub);
+  }
+
+  async fetchSources(
     integration: Integration<IntegrationType.Embed>
-  ): Promise<IssueSource[]> => {
+  ): Promise<IssueSource[]> {
     const client = await GitHub.authenticateAsInstallation(
       integration.settings.github!.installation.id
     );
@@ -33,13 +38,13 @@ export class GitHubIssueProvider {
     }));
 
     return sources;
-  };
+  }
 
-  public static createIssue: IssueProvider["createIssue"] = async (
+  async createIssue(
     title: string,
     source: IssueSource,
     actor: User
-  ): Promise<CreateIssueResponse | undefined> => {
+  ): Promise<CreateIssueResponse | undefined> {
     const integration = (await Integration.findOne({
       where: {
         service: IntegrationService.GitHub,
@@ -72,22 +77,5 @@ export class GitHubIssueProvider {
       Logger.warn("Failed to create issue in GitHub", err);
       return;
     }
-  };
-
-  private static getRepos = async (
-    integration: Integration<IntegrationType.Embed>
-  ): Promise<IssueSource[]> => {
-    const client = await GitHub.authenticateAsInstallation(
-      integration.settings.github!.installation.id
-    );
-
-    const repos = await client.requestRepos();
-
-    return repos.data.repositories.map<IssueSource>((repo) => ({
-      id: String(repo.id),
-      name: repo.name,
-      account: { id: String(repo.owner.id), name: repo.owner.login },
-      service: IntegrationService.GitHub,
-    }));
-  };
+  }
 }

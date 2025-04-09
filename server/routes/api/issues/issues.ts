@@ -49,7 +49,7 @@ router.post(
       throw InvalidRequestError();
     }
 
-    const issue = await plugin.value.provider.createIssue(title, source, user);
+    const issue = await plugin.value.createIssue(title, source, user);
 
     if (!issue) {
       throw InternalError();
