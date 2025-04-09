@@ -6,7 +6,7 @@ import { Team, Event } from "@server/models";
 
 type Props = {
   /** The displayed name of the team */
-  name: string;
+  name?: string;
   /** The domain name from the email of the user logging in */
   domain?: string;
   /** The preferred subdomain to provision for the team if not yet created */
@@ -38,9 +38,12 @@ async function teamCreator({
     avatarUrl = null;
   }
 
+  // Use subdomain as a fallback for team name if not provided
+  const teamName = name || subdomain;
+
   const team = await Team.create(
     {
-      name,
+      name: teamName,
       avatarUrl,
       authenticationProviders,
     } as Partial<InferCreationAttributes<Team>>,
@@ -90,7 +93,7 @@ async function findAvailableSubdomain(team: Team, requestedSubdomain: string) {
 
     if (existing) {
       // subdomain was invalid or already used, try another
-      subdomain = `${normalizedSubdomain}${++append}`;
+      subdomain = ;
     } else {
       break;
     }

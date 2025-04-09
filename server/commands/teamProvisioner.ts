@@ -22,7 +22,7 @@ type Props = {
    */
   teamId?: string;
   /** The displayed name of the team */
-  name: string;
+  name?: string;
   /** The domain name from the email of the user logging in */
   domain?: string;
   /** The preferred subdomain to provision for the team if not yet created */

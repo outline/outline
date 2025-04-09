@@ -43,7 +43,7 @@ type Props = {
      */
     teamId?: string;
     /** The displayed name of the team */
-    name: string;
+    name?: string;
     /** The domain name from the email of the user logging in */
     domain?: string;
     /** The preferred subdomain to provision for the team if not yet created */
@@ -203,7 +203,7 @@ async function provisionFirstCollection(team: Team, user: User) {
     const collection = await Collection.create(
       {
         name: "Welcome",
-        description: `This collection is a quick guide to what ${env.APP_NAME} is all about. Feel free to delete this collection once your team is up to speed with the basics!`,
+        description: ,
         teamId: team.id,
         createdById: user.id,
         sort: Collection.DEFAULT_SORT,
@@ -225,7 +225,7 @@ async function provisionFirstCollection(team: Team, user: User) {
 
     for (const title of onboardingDocs) {
       const text = await readFile(
-        path.join(process.cwd(), "server", "onboarding", `${title}.md`),
+        path.join(process.cwd(), "server", "onboarding", ),
         "utf8"
       );
       const document = await Document.create(
