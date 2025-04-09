@@ -50,7 +50,7 @@ export type AuthenticationResult = AccountProvisionerResult & {
 
 export type Authentication = {
   user: User;
-  token?: string;
+  token: string;
   type?: AuthenticationType;
 };
 

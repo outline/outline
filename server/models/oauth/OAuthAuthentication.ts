@@ -114,8 +114,14 @@ class OAuthAuthentication extends ParanoidModel<
   // instance methods
 
   /** Checks if the authentication has access to the given path */
-  canAccess = (path: string) =>
-    AuthenticationHelper.canAccess(path, this.scope);
+  canAccess = (path: string) => {
+    // Special case for the revoke endpoint, which is always allowed
+    if (path === "/revoke") {
+      return true;
+    }
+
+    return AuthenticationHelper.canAccess(path, this.scope);
+  };
 
   // static methods
 
@@ -128,6 +134,17 @@ class OAuthAuthentication extends ParanoidModel<
    */
   public static match(text: string) {
     return !!text.startsWith(this.accessTokenPrefix);
+  }
+
+  /**
+   * Validates that the input text _could_ be an OAuth refresh token, this does
+   * not check that the key actually exists in the database.
+   *
+   * @param text The text to validate
+   * @returns True if likely an OAuth refresh token
+   */
+  public static matchRefreshToken(text: string) {
+    return !!text.startsWith(this.refreshTokenPrefix);
   }
 
   /**

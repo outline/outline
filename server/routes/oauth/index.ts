@@ -6,11 +6,16 @@ import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import requestTracer from "@server/middlewares/requestTracer";
+import { transaction } from "@server/middlewares/transaction";
+import validate from "@server/middlewares/validate";
 import { OAuthClient } from "@server/models";
+import OAuthAuthentication from "@server/models/oauth/OAuthAuthentication";
 import { authorize } from "@server/policies";
+import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { OAuthInterface } from "@server/utils/oauth/OAuthInterface";
 import oauthErrorHandler from "./middlewares/oauthErrorHandler";
+import * as T from "./schema";
 
 const app = new Koa();
 const router = new Router();
@@ -81,6 +86,33 @@ router.post("/token", async (ctx) => {
     scope: token.scope?.join(" "),
   };
 });
+
+router.post(
+  "/revoke",
+  rateLimiter(RateLimiterStrategy.FiftyPerHour),
+  validate(T.TokenRevokeSchema),
+  transaction(),
+  async (ctx: APIContext<T.TokenRevokeReq>) => {
+    const { token } = ctx.input.body;
+
+    if (OAuthAuthentication.match(token)) {
+      const accessToken = await OAuthAuthentication.findByAccessToken(token);
+      await accessToken?.destroyWithCtx(ctx);
+    }
+
+    if (OAuthAuthentication.matchRefreshToken(token)) {
+      const refreshToken = await OAuthAuthentication.findByRefreshToken(token);
+      await refreshToken?.destroyWithCtx(ctx);
+    }
+
+    // https://datatracker.ietf.org/doc/html/rfc7009#section-2.2
+    // Note: invalid tokens do not cause an error response since the client
+    // cannot handle such an error in a reasonable way
+    ctx.body = {
+      success: true,
+    };
+  }
+);
 
 app.use(requestTracer());
 app.use(oauthErrorHandler());
