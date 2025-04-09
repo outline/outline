@@ -253,7 +253,7 @@ export default abstract class BaseStorage {
       }
     }
 
-    if (filename) {
+    if (filename !== undefined) {
       return `${disposition}; filename="${filename}"`;
     }
 
