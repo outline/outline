@@ -116,7 +116,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
 
   const handlePointerActivity = React.useCallback(() => {
     if (ui.sidebarIsClosed) {
-      //clear the timeout when mouse exits
+      // clear the timeout when mouse exits
       if (hoverTimeoutRef.current) {
         clearTimeout(hoverTimeoutRef.current);
       }
@@ -128,12 +128,12 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
   const handlePointerLeave = React.useCallback(
     (ev) => {
       if (hasPointerMoved) {
-        //to clear any previous timeOut
+        // clear any previous timeout
         if (hoverTimeoutRef.current) {
           clearTimeout(hoverTimeoutRef.current);
         }
 
-        //add a little bit of a delay when mouse exits the sidebar
+        // add a short delay when mouse exits the sidebar before closing
         hoverTimeoutRef.current = setTimeout(() => {
           setHovering(
             document.hasFocus() &&
