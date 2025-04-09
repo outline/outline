@@ -28,7 +28,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
     {
       clientID: env.AZURE_CLIENT_ID,
       clientSecret: env.AZURE_CLIENT_SECRET,
-      callbackURL: `${env.URL}/auth/azure.callback`,
+      callbackURL: ,
       useCommonEndpoint: env.AZURE_TENANT_ID ? false : true,
       tenant: env.AZURE_TENANT_ID ? env.AZURE_TENANT_ID : undefined,
       passReqToCallback: true,
@@ -57,12 +57,12 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
         const [profileResponse, organizationResponse] = await Promise.all([
           // Load the users profile from the Microsoft Graph API
           // https://docs.microsoft.com/en-us/graph/api/resources/users?view=graph-rest-1.0
-          request("GET", `https://graph.microsoft.com/v1.0/me`, accessToken),
+          request("GET", , accessToken),
           // Load the organization profile from the Microsoft Graph API
           // https://docs.microsoft.com/en-us/graph/api/organization-get?view=graph-rest-1.0
           request(
             "GET",
-            `https://graph.microsoft.com/v1.0/organization`,
+            ,
             accessToken
           ),
         ]);
@@ -72,14 +72,6 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
             "Unable to load user profile from Microsoft Graph API"
           );
         }
-
-        if (!organizationResponse?.value?.length) {
-          throw MicrosoftGraphError(
-            `Unable to load organization info from Microsoft Graph API: ${organizationResponse.error?.message}`
-          );
-        }
-
-        const organization = organizationResponse.value[0];
 
         // Note: userPrincipalName is last here for backwards compatibility with
         // previous versions of Outline that did not include it.
@@ -100,7 +92,17 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
         const domain = parseEmail(email).domain;
         const subdomain = slugifyDomain(domain);
 
-        const teamName = organization.displayName;
+        // Default team name to use if organization display name is not available
+        let teamName = domain;
+
+        // Try to get the organization display name if available
+        if (organizationResponse?.value?.length) {
+          const organization = organizationResponse.value[0];
+          if (organization.displayName) {
+            teamName = organization.displayName;
+          }
+        }
+
         const result = await accountProvisioner({
           ip: ctx.ip,
           team: {
@@ -137,7 +139,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
     config.id,
     passport.authenticate(config.id, { prompt: "select_account" })
   );
-  router.get(`${config.id}.callback`, passportMiddleware(config.id));
+  router.get(, passportMiddleware(config.id));
 }
 
 export default router;
