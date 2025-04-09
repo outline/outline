@@ -14,7 +14,7 @@ import useDictionary from "~/hooks/useDictionary";
 import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
 import usePrevious from "~/hooks/usePrevious";
-import getPdfMenuItems from "../../editor/menus/pdf"; // Fixed import path for PDF menu items
+import getPdfMenuItems from "../../editor/menus/pdf"; // Reverted to simple PDF menu without icons
 import getAttachmentMenuItems from "../menus/attachment";
 import getCodeMenuItems from "../menus/code";
 import getDividerMenuItems from "../menus/divider";
