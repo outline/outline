@@ -150,7 +150,7 @@ export default class PdfEmbedComponent extends React.Component<
           onClick={(event) => {
             if (isEditable) {
               event.preventDefault();
-              event.stopPropagation();
+              // Removed event.stopPropagation() to allow selection events to bubble up
             }
           }}
         >
@@ -175,7 +175,7 @@ export default class PdfEmbedComponent extends React.Component<
           onClick={(event) => {
             if (isEditable) {
               event.preventDefault();
-              event.stopPropagation();
+              // Removed event.stopPropagation() to allow selection events to bubble up
             }
           }}
         />
