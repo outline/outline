@@ -5,9 +5,11 @@ import { useTranslation } from "react-i18next";
 import { v4 } from "uuid";
 import { EmbedDescriptor } from "@shared/editor/embeds";
 import { MenuItem } from "@shared/editor/types";
+import { MentionType } from "@shared/types";
 import Integration from "~/models/Integration";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
+import { determineMentionType, isURLMentionable } from "~/utils/mention";
 import SuggestionsMenu, {
   Props as SuggestionsMenuProps,
 } from "./SuggestionsMenu";
@@ -26,13 +28,18 @@ export const PasteMenu = observer(({ pastedText, embeds, ...props }: Props) => {
   const { integrations } = useStores();
   const user = useCurrentUser();
 
+  let mentionType: MentionType | undefined;
   const url = pastedText ? new URL(pastedText) : undefined;
 
-  const mentionType = url
-    ? integrations
-        .find((integration: Integration) => integration.isMentionable(url))
-        ?.getMentionType(url)
-    : undefined;
+  if (url) {
+    const integration = integrations.find((intg: Integration) =>
+      isURLMentionable({ url, integration: intg })
+    );
+
+    mentionType = integration
+      ? determineMentionType({ url, integration })
+      : undefined;
+  }
 
   const embed = React.useMemo(() => {
     for (const e of embeds) {

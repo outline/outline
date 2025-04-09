@@ -1,9 +1,7 @@
 import { JSDOM } from "jsdom";
 import compact from "lodash/compact";
 import flatten from "lodash/flatten";
-import isEqual from "lodash/isEqual";
-import isNil from "lodash/isNil";
-import omitBy from "lodash/omitBy";
+import isMatch from "lodash/isMatch";
 import uniq from "lodash/uniq";
 import { Node, DOMSerializer, Fragment, Mark } from "prosemirror-model";
 import * as React from "react";
@@ -232,7 +230,6 @@ export class ProsemirrorHelper {
       "heading",
       "paragraph",
     ];
-    const mentionWithoutEmptyValues = omitBy(mention, isNil);
 
     const isNodeContainingMention = (node: Node) => {
       let foundMention = false;
@@ -240,7 +237,7 @@ export class ProsemirrorHelper {
       node.descendants((childNode: Node) => {
         if (
           childNode.type.name === "mention" &&
-          isEqual(omitBy(childNode.attrs, isNil), mentionWithoutEmptyValues) // ignore null and undefined values for comparison
+          isMatch(childNode.attrs, mention)
         ) {
           foundMention = true;
           return false;

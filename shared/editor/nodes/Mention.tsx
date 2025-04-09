@@ -201,7 +201,7 @@ export default class Mention extends Node {
             mentionType === MentionType.Issue ||
             mentionType === MentionType.PullRequest
           ) {
-            link = selection.node.attrs.label;
+            link = selection.node.attrs.href;
           } else {
             const { modelId } = selection.node.attrs;
 
