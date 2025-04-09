@@ -37,7 +37,8 @@ export default class S3Storage extends BaseStorage {
     key: string,
     acl: string,
     maxUploadSize: number,
-    contentType = "image"
+    contentType = "image",
+    filename?: string
   ) {
     const params: PresignedPostOptions = {
       Bucket: env.AWS_S3_UPLOAD_BUCKET_NAME as string,
@@ -48,7 +49,10 @@ export default class S3Storage extends BaseStorage {
         ["starts-with", "$Cache-Control", ""],
       ]),
       Fields: {
-        "Content-Disposition": this.getContentDisposition(contentType),
+        "Content-Disposition": this.getContentDisposition(
+          contentType,
+          filename
+        ),
         key,
         acl,
       },
@@ -139,13 +143,18 @@ export default class S3Storage extends BaseStorage {
 
   public getSignedUrl = async (
     key: string,
-    expiresIn = S3Storage.defaultSignedUrlExpires
+    expiresIn = S3Storage.defaultSignedUrlExpires,
+    filename?: string
   ) => {
     const isDocker = env.AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
-    const params = {
+    const params: any = {
       Bucket: this.getBucket(),
       Key: key,
     };
+
+    if (filename) {
+      params.ResponseContentDisposition = `inline; filename="${filename}"`;
+    }
 
     if (isDocker) {
       return `${this.getPublicEndpoint()}/${key}`;

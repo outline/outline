@@ -234,25 +234,30 @@ export default abstract class BaseStorage {
   public abstract deleteFile(key: string): Promise<void>;
 
   /**
-   * Returns the content disposition for a given content type.
+   * Returns the content disposition for a given content type and optional filename.
    *
    * @param contentType The content type
-   * @returns The content disposition
+   * @param filename Optional filename to include
+   * @returns The content disposition header value
    */
-  public getContentDisposition(contentType?: string) {
-    if (!contentType) {
-      return "attachment";
+  public getContentDisposition(contentType?: string, filename?: string) {
+    let disposition = "attachment";
+
+    if (contentType) {
+      if (
+        FileHelper.isAudio(contentType) ||
+        FileHelper.isVideo(contentType) ||
+        this.safeInlineContentTypes.includes(contentType)
+      ) {
+        disposition = "inline";
+      }
     }
 
-    if (
-      FileHelper.isAudio(contentType) ||
-      FileHelper.isVideo(contentType) ||
-      this.safeInlineContentTypes.includes(contentType)
-    ) {
-      return "inline";
+    if (filename) {
+      return `${disposition}; filename="${filename}"`;
     }
 
-    return "attachment";
+    return disposition;
   }
 
   /**
