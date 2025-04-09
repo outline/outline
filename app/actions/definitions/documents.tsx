@@ -29,6 +29,7 @@ import {
   PadlockIcon,
   GlobeIcon,
   LogoutIcon,
+  CaseSensitiveIcon,
 } from "outline-icons";
 import * as React from "react";
 import { toast } from "sonner";
@@ -510,6 +511,25 @@ export const copyDocumentAsMarkdown = createAction({
   },
 });
 
+export const copyDocumentAsPlainText = createAction({
+  name: ({ t }) => t("Copy as text"),
+  section: ActiveDocumentSection,
+  keywords: "clipboard",
+  icon: <CaseSensitiveIcon />,
+  iconInContextMenu: false,
+  visible: ({ activeDocumentId, stores }) =>
+    !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
+  perform: ({ stores, activeDocumentId, t }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (document) {
+      copy(document.toPlainText());
+      toast.success(t("Text copied to clipboard"));
+    }
+  },
+});
+
 export const copyDocumentShareLink = createAction({
   name: ({ t }) => t("Copy public link"),
   section: ActiveDocumentSection,
@@ -555,7 +575,12 @@ export const copyDocument = createAction({
   section: ActiveDocumentSection,
   icon: <CopyIcon />,
   keywords: "clipboard",
-  children: [copyDocumentLink, copyDocumentShareLink, copyDocumentAsMarkdown],
+  children: [
+    copyDocumentLink,
+    copyDocumentShareLink,
+    copyDocumentAsMarkdown,
+    copyDocumentAsPlainText,
+  ],
 });
 
 export const duplicateDocument = createAction({
@@ -1205,6 +1230,7 @@ export const rootDocumentActions = [
   copyDocumentLink,
   copyDocumentShareLink,
   copyDocumentAsMarkdown,
+  copyDocumentAsPlainText,
   starDocument,
   unstarDocument,
   publishDocument,
