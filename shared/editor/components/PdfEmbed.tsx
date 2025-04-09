@@ -1,6 +1,7 @@
 import { AttachmentIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
+import { bytesToHumanReadable } from "../../utils/files";
 import { ComponentProps } from "../types";
 import Widget from "./Widget";
 
@@ -168,6 +169,7 @@ export default class PdfEmbedComponent extends React.Component<
         <Widget
           icon={<AttachmentIcon color={theme.textSecondary} />}
           title={title || "PDF Document"}
+          context={bytesToHumanReadable(node.attrs.size || 0)}
           isSelected={isSelected}
           theme={theme}
           href={memoizedFileUrl} // Always set href to enable hover + pointer
