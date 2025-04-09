@@ -1,6 +1,5 @@
 import * as React from "react";
-import styled, { css, DefaultTheme } from "styled-components";
-// import { s } from "../../styles"; // Removed unused import
+import styled, { css, DefaultTheme } from "styled-components"; // Removed unused imports
 import { sanitizeUrl } from "../../utils/urls";
 
 type Props = {
@@ -11,7 +10,7 @@ type Props = {
   title: React.ReactNode;
   /** Context, displayed to right of title */
   context?: React.ReactNode;
-  /** URL to open when the widget is clicked (optional) */
+  /** URL to open when the widget is clicked */
   href?: string;
   /** Whether the widget is currently selected */
   isSelected: boolean;

@@ -7,32 +7,29 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
 import SearchActions from "~/components/SearchActions";
-import rootActions from "~/actions/root"; // Original import name
+import rootActions from "~/actions/root";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
 import CommandBarResults from "./CommandBarResults";
 import useRecentDocumentActions from "./useRecentDocumentActions";
 import useSettingsAction from "./useSettingsAction";
 import useTemplatesAction from "./useTemplatesAction";
-// Removed pdfActionsDef and useActionContext imports
 
 function CommandBar() {
   const { t } = useTranslation();
   const recentDocumentActions = useRecentDocumentActions();
   const settingsAction = useSettingsAction();
   const templatesAction = useTemplatesAction();
-  // Reverted commandBarActions definition
   const commandBarActions = React.useMemo(
     () => [
       ...recentDocumentActions,
       ...rootActions,
-      // Removed pdfActions
       templatesAction,
       settingsAction,
     ],
-    [recentDocumentActions, settingsAction, templatesAction] // Reverted dependencies
+    [recentDocumentActions, settingsAction, templatesAction]
   );
 
-  useCommandBarActions(commandBarActions); // Pass original structure
+  useCommandBarActions(commandBarActions);
 
   return (
     <>

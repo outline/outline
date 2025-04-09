@@ -128,7 +128,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       });
     },
     [
-      // Add view.state.schema to dependencies if needed, but likely covered by localRef
       localRef, // Accessing view.state.schema through localRef.current.view.state.schema
       props.onFileUploadStart,
       props.onFileUploadStop,

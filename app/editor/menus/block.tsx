@@ -21,7 +21,6 @@ import {
   MathIcon,
   DoneIcon,
   EmbedIcon,
-  FileIcon, // Import FileIcon for PDF
 } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
@@ -124,8 +123,8 @@ export default function blockMenuItems(
     {
       name: "pdf_document", // Use the node name
       title: dictionary.uploadPdf, // Use the new dictionary entry
-      icon: <AttachmentIcon />, // Temporarily use AttachmentIcon to test
-      keywords: "pdf document upload file embed",
+      icon: <AttachmentIcon />, // use AttachmentIcon, should be changed to pdf specific icon for clarity
+      keywords: "pdf document upload file",
     },
     {
       name: "table",
@@ -149,13 +148,13 @@ export default function blockMenuItems(
       title: dictionary.codeBlock,
       icon: <CodeIcon />,
       shortcut: "^ ⇧ c",
-      keywords: "script",
+      keywords: "script python",
     },
     {
       name: "math_block",
       title: dictionary.mathBlock,
       icon: <MathIcon />,
-      keywords: "math katex latex",
+      keywords: "math katex latex equation",
     },
     {
       name: "hr",

@@ -14,7 +14,7 @@ import useDictionary from "~/hooks/useDictionary";
 import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
 import usePrevious from "~/hooks/usePrevious";
-import getPdfMenuItems from "../../editor/menus/pdfMenu"; // Reverted to simple PDF menu without icons
+import getPdfMenuItems from "../../editor/menus/pdfMenu";
 import getAttachmentMenuItems from "../menus/attachment";
 import getCodeMenuItems from "../menus/code";
 import getDividerMenuItems from "../menus/divider";
@@ -57,22 +57,14 @@ function useIsActive(state: EditorState) {
   ) {
     return true;
   }
-  // Temporarily remove command existence check AGAIN for debugging
-  // if (item.name && !commands[item.name]) {
-  //   console.log(
-  //     `Filtering out item "${item.name}" - command not found in:`,
-  //     Object.keys(commands)
-  //   );
-  //   return false;
-  // }
+
   if (selection instanceof NodeSelection && selection.node.type.name === "hr") {
     return true;
   }
   if (
     selection instanceof NodeSelection &&
-    ["image", "attachment", "pdf_document"].includes(selection.node.type.name) // Add pdf_document
+    ["image", "attachment", "pdf_document"].includes(selection.node.type.name) // Add pdf_document to node selection
   ) {
-    // console.log("useIsActive: Matched NodeSelection for", selection.node.type.name); // Remove logging
     return true;
   }
   if (selection instanceof NodeSelection) {
@@ -238,12 +230,7 @@ export default function SelectionToolbar(props: Props) {
     if (item.name === "separator") {
       return true;
     }
-    // Restore command existence check and remove logging
     if (item.name && !commands[item.name]) {
-      // console.log(
-      //   `Filtering out item "${item.name}" - command not found in:`,
-      //   Object.keys(commands)
-      // );
       return false;
     }
     if (item.visible === false) {

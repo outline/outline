@@ -37,8 +37,7 @@ import { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
 import textBetween from "@shared/editor/lib/textBetween";
 import { getTextSerializers } from "@shared/editor/lib/textSerializers";
 import Mark from "@shared/editor/marks/Mark";
-// Use richExtensions which includes Pdf node
-import { richExtensions as extensions } from "@shared/editor/nodes";
+import { richExtensions as extensions } from "@shared/editor/nodes"; // Use richExtensions which includes Pdf node
 import Node from "@shared/editor/nodes/Node";
 import ReactNode from "@shared/editor/nodes/ReactNode";
 import { ComponentProps } from "@shared/editor/types";
