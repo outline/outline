@@ -102,8 +102,21 @@ export default class PdfEmbedComponent extends React.Component<
     this.startDragHeight = this.state.containerHeight;
     this.isResizing = true;
 
-    window.addEventListener("mousemove", this.handleMouseMove);
-    window.addEventListener("mouseup", this.handleMouseUp);
+    // Create overlay to capture all mouse events
+    const overlay = document.createElement("div");
+    overlay.style.position = "fixed";
+    overlay.style.top = "0";
+    overlay.style.left = "0";
+    overlay.style.width = "100vw";
+    overlay.style.height = "100vh";
+    overlay.style.zIndex = "9999";
+    overlay.style.cursor = "nwse-resize";
+    overlay.style.background = "transparent";
+    overlay.id = "pdf-resize-overlay";
+    document.body.appendChild(overlay);
+
+    window.addEventListener("mousemove", this.handleMouseMove, true);
+    window.addEventListener("mouseup", this.handleMouseUp, true);
   };
 
   handleMouseMove = (event: MouseEvent): void => {
@@ -127,8 +140,14 @@ export default class PdfEmbedComponent extends React.Component<
       return;
     }
 
-    window.removeEventListener("mousemove", this.handleMouseMove);
-    window.removeEventListener("mouseup", this.handleMouseUp);
+    window.removeEventListener("mousemove", this.handleMouseMove, true);
+    window.removeEventListener("mouseup", this.handleMouseUp, true);
+
+    // Remove overlay
+    const overlay = document.getElementById("pdf-resize-overlay");
+    if (overlay) {
+      overlay.remove();
+    }
 
     // Read the final height from the DOM
     let finalHeight = this.state.containerHeight;
