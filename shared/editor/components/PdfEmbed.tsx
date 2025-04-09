@@ -8,7 +8,7 @@ import Widget from "./Widget";
 const PdfContainer = styled.div`
   border: 1px solid ${(props) => props.theme.divider};
   border-radius: 4px;
-  padding: 8px;
+  padding: 6px;
   margin: 8px 0;
   max-width: 100%;
   overflow: hidden;
