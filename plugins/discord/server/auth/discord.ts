@@ -94,7 +94,7 @@ if (env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET) {
 
           /** Default user and team names metadata */
           let userName = profile.username;
-          let teamName = "Wiki";
+          let teamName;
           let userAvatarUrl: string = `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.png`;
           let teamAvatarUrl: string | undefined = undefined;
           let subdomain = slugifyDomain(domain);
