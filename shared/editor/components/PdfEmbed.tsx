@@ -113,7 +113,13 @@ export default class PdfEmbedComponent extends React.Component<
 
     const deltaY = event.clientY - this.startDragY;
     const newHeight = Math.max(100, this.startDragHeight + deltaY); // Min height 100px
-    this.setState({ containerHeight: newHeight });
+
+    // Directly update container height style for smooth resize without React re-render
+    if (this.containerRef.current) {
+      this.containerRef.current.querySelector<HTMLElement>(
+        ".pdf-content-area"
+      )!.style.height = `${newHeight}px`;
+    }
   };
 
   handleMouseUp = (): void => {
@@ -121,13 +127,30 @@ export default class PdfEmbedComponent extends React.Component<
       return;
     }
 
-    this.setState({ isResizing: false });
     window.removeEventListener("mousemove", this.handleMouseMove);
     window.removeEventListener("mouseup", this.handleMouseUp);
 
+    // Read the final height from the DOM
+    let finalHeight = this.state.containerHeight;
+    if (this.containerRef.current) {
+      const contentArea =
+        this.containerRef.current.querySelector<HTMLElement>(
+          ".pdf-content-area"
+        );
+      if (contentArea) {
+        const heightStr = contentArea.style.height.replace("px", "");
+        const parsed = parseInt(heightStr, 10);
+        if (!isNaN(parsed)) {
+          finalHeight = parsed;
+        }
+      }
+    }
+
+    this.setState({ isResizing: false, containerHeight: finalHeight });
+
     if (this.props.updateAttributes) {
       this.props.updateAttributes({
-        height: this.state.containerHeight,
+        height: finalHeight,
       });
     }
   };
