@@ -35,7 +35,7 @@ jobs:
           file: Dockerfile.base
           push: true
           tags: ${{ env.BASE_IMAGE_NAME }}:latest
-          platforms: linux/amd64,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x
+          platforms: linux/amd64,linux/arm/v7,linux/arm64
 
       - name: Extract tag version
         id: get_version
@@ -46,6 +46,6 @@ jobs:
         with:
           context: .
           push: true
-          platforms: linux/amd64,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x
+          platforms: linux/amd64,linux/arm/v7,linux/arm64
           tags: |
             ${{ contains(steps.get_version.outputs.VERSION, '-') && format('{0}:{1}', env.IMAGE_NAME, steps.get_version.outputs.VERSION) || format('{0}:{1},{0}:latest', env.IMAGE_NAME, steps.get_version.outputs.VERSION) }}

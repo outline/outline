@@ -6,7 +6,6 @@ WORKDIR $APP_PATH
 COPY ./package.json ./yarn.lock ./
 COPY ./patches ./patches
 
-ENV CXXFLAGS="-Wno-error"
 RUN apt-get update && apt-get install -y cmake
 
 RUN yarn install --no-optional --frozen-lockfile --network-timeout 1000000 && \
