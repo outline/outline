@@ -7,6 +7,7 @@ COPY ./package.json ./yarn.lock ./
 COPY ./patches ./patches
 
 RUN apt-get update && apt-get install -y cmake
+ENV NODE_OPTIONS=--max_old_space_size=8192
 
 RUN yarn install --no-optional --frozen-lockfile --network-timeout 1000000 && \
   yarn cache clean
