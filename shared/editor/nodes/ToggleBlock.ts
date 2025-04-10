@@ -1,6 +1,13 @@
 import isEmpty from "lodash/isEmpty";
 import isNil from "lodash/isNil";
-import { chainCommands, joinForward, wrapIn } from "prosemirror-commands";
+import {
+  chainCommands,
+  createParagraphNear,
+  joinForward,
+  newlineInCode,
+  splitBlock,
+  wrapIn,
+} from "prosemirror-commands";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
 import { Command, Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import {
@@ -17,6 +24,8 @@ import {
   split,
   lift,
   liftAfter,
+  sinkBlockInto,
+  liftLastBlockOutOf,
 } from "../commands/toggleBlock";
 import { chainTransactions } from "../lib/chainTransactions";
 import { findBlockNodes } from "../queries/findChildren";
@@ -373,12 +382,31 @@ export default class ToggleBlock extends Node {
     return [foldPlugin];
   }
 
-  keys(): Record<string, Command> {
+  keys({ type }: { type: NodeType }): Record<string, Command> {
     return {
       Backspace: lift,
-      Enter: chainCommands(createParagraphBefore, split),
+      Enter: chainCommands(createParagraphBefore, split, (state, dispatch) => {
+        const { $from } = state.selection;
+        const parent = $from.node($from.depth - 1);
+        if (parent.type.name !== this.name) {
+          return false;
+        }
+
+        // if cursor lies within immediate first child, ignore the handling here
+        if ($from.index($from.depth - 1) === 0) {
+          return false;
+        }
+
+        return chainTransactions(
+          newlineInCode,
+          createParagraphNear,
+          splitBlock
+        )(state, dispatch);
+      }),
       Delete: (state, dispatch) =>
         chainTransactions(liftAfter, joinForward)(state, dispatch),
+      Tab: sinkBlockInto(type),
+      "Shift-Tab": liftLastBlockOutOf(type),
     };
   }
 
