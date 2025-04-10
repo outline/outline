@@ -15,7 +15,7 @@ import {
   Info,
 } from "./Components";
 
-type Props = Omit<UnfurlResponse[UnfurlResourceType.PR], "type">;
+type Props = Omit<UnfurlResponse[UnfurlResourceType.PR], "type" | "fetchedAt">;
 
 const HoverPreviewPullRequest = React.forwardRef(
   function _HoverPreviewPullRequest(

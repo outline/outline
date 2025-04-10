@@ -10,6 +10,9 @@ class Unfurl<UnfurlType extends UnfurlResourceType> extends Model {
 
   @observable
   data: UnfurlResponse[UnfurlType];
+
+  @observable
+  fetchedAt: string;
 }
 
 export default Unfurl;

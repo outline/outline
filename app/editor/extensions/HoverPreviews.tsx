@@ -16,11 +16,11 @@ interface HoverPreviewsOptions {
 export default class HoverPreviews extends Extension {
   state: {
     activeLinkElement: HTMLElement | null;
-    data: Record<string, any> | null;
+    unfurlId: string | null;
     dataLoading: boolean;
   } = observable({
     activeLinkElement: null,
-    data: null,
+    unfurlId: null,
     dataLoading: false,
   });
 
@@ -62,16 +62,20 @@ export default class HoverPreviews extends Extension {
                     );
 
                     if (url) {
+                      const transformedUrl = url.startsWith("/")
+                        ? env.URL + url
+                        : url;
+
                       this.state.dataLoading = true;
 
                       const unfurl = await stores.unfurls.fetchUnfurl({
-                        url: url.startsWith("/") ? env.URL + url : url,
+                        url: transformedUrl,
                         documentId,
                       });
 
                       if (unfurl) {
                         this.state.activeLinkElement = element;
-                        this.state.data = unfurl.data;
+                        this.state.unfurlId = transformedUrl;
                       } else {
                         this.state.activeLinkElement = null;
                       }
@@ -103,10 +107,11 @@ export default class HoverPreviews extends Extension {
   widget = () => (
     <HoverPreview
       element={this.state.activeLinkElement}
-      data={this.state.data}
+      unfurlId={this.state.unfurlId}
       dataLoading={this.state.dataLoading}
       onClose={action(() => {
         this.state.activeLinkElement = null;
+        this.state.unfurlId = null;
       })}
     />
   );

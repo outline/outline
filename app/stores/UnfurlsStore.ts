@@ -1,3 +1,4 @@
+import { subMinutes } from "date-fns";
 import { action } from "mobx";
 import { UnfurlResourceType } from "@shared/types";
 import Unfurl from "~/models/Unfurl";
@@ -14,23 +15,48 @@ class UnfurlsStore extends Store<Unfurl<any>> {
     super(rootStore, Unfurl);
   }
 
-  @action
-  fetchUnfurl = async <T extends UnfurlResourceType>({
+  fetchUnfurl = async <UnfurlType extends UnfurlResourceType>({
     url,
     documentId,
   }: {
     url: string;
     documentId?: string;
-  }): Promise<Unfurl<T> | undefined> => {
+  }): Promise<Unfurl<UnfurlType> | undefined> => {
     const unfurl = this.get(url);
 
     if (unfurl) {
+      this.refetch({ unfurl: unfurl as Unfurl<UnfurlType>, documentId });
       return unfurl;
     }
 
-    this.isFetching = true;
+    return this.unfurl<UnfurlType>({ url, documentId });
+  };
 
+  private refetch = <UnfurlType extends UnfurlResourceType>({
+    unfurl,
+    documentId,
+  }: {
+    unfurl: Unfurl<UnfurlType>;
+    documentId?: string;
+  }) => {
+    const fiveMinutesAgo = subMinutes(new Date(), 5);
+
+    if (new Date(unfurl.fetchedAt) < fiveMinutesAgo) {
+      void this.unfurl({ url: unfurl.id, documentId });
+    }
+  };
+
+  @action
+  private unfurl = async <UnfurlType extends UnfurlResourceType>({
+    url,
+    documentId,
+  }: {
+    url: string;
+    documentId?: string;
+  }): Promise<Unfurl<UnfurlType> | undefined> => {
     try {
+      this.isFetching = true;
+
       const data = await client.post("/urls.unfurl", {
         url,
         documentId,
@@ -41,7 +67,12 @@ class UnfurlsStore extends Store<Unfurl<any>> {
         return;
       }
 
-      return this.add({ id: url, type: data.type, data } as Unfurl<T>);
+      return this.add({
+        id: url,
+        type: data.type,
+        fetchedAt: data.fetchedAt,
+        data,
+      } as Unfurl<UnfurlType>);
     } catch (err) {
       Logger.error(`Failed to unfurl url ${url}`, err);
       return;
