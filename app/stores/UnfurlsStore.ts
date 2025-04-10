@@ -70,7 +70,7 @@ class UnfurlsStore extends Store<Unfurl<any>> {
       return this.add({
         id: url,
         type: data.type,
-        fetchedAt: data.fetchedAt,
+        fetchedAt: new Date().toISOString(),
         data,
       } as Unfurl<UnfurlType>);
     } catch (err) {

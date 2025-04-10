@@ -13,10 +13,7 @@ import {
   Description,
 } from "./Components";
 
-type Props = Omit<
-  UnfurlResponse[UnfurlResourceType.Document],
-  "type" | "fetchedAt"
->;
+type Props = Omit<UnfurlResponse[UnfurlResourceType.Document], "type">;
 
 const HoverPreviewDocument = React.forwardRef(function _HoverPreviewDocument(
   { url, id, title, summary, lastActivityByViewer }: Props,

@@ -10,35 +10,23 @@ async function presentUnfurl(
   data: Record<string, any>,
   options?: { includeEmail: boolean }
 ) {
-  let unfurl: Omit<UnfurlResponse[keyof UnfurlResponse], "fetchedAt">;
-
   switch (data.type) {
-    case UnfurlResourceType.Mention: {
-      unfurl = await presentMention(data, options);
-      break;
-    }
-    case UnfurlResourceType.Document: {
-      unfurl = presentDocument(data);
-      break;
-    }
-    case UnfurlResourceType.PR: {
-      unfurl = presentPR(data);
-      break;
-    }
-    case UnfurlResourceType.Issue: {
-      unfurl = presentIssue(data);
-      break;
-    }
+    case UnfurlResourceType.Mention:
+      return presentMention(data, options);
+    case UnfurlResourceType.Document:
+      return presentDocument(data);
+    case UnfurlResourceType.PR:
+      return presentPR(data);
+    case UnfurlResourceType.Issue:
+      return presentIssue(data);
     default:
-      unfurl = presentOEmbed(data);
+      return presentOEmbed(data);
   }
-
-  return { ...unfurl, fetchedAt: new Date() };
 }
 
 const presentOEmbed = (
   data: Record<string, any>
-): Omit<UnfurlResponse[UnfurlResourceType.OEmbed], "fetchedAt"> => ({
+): UnfurlResponse[UnfurlResourceType.OEmbed] => ({
   type: UnfurlResourceType.OEmbed,
   url: data.url,
   title: data.title,
@@ -49,7 +37,7 @@ const presentOEmbed = (
 const presentMention = async (
   data: Record<string, any>,
   options?: { includeEmail: boolean }
-): Promise<Omit<UnfurlResponse[UnfurlResourceType.Mention], "fetchedAt">> => {
+): Promise<UnfurlResponse[UnfurlResourceType.Mention]> => {
   const user: User = data.user;
   const document: Document = data.document;
 
@@ -68,7 +56,7 @@ const presentMention = async (
 
 const presentDocument = (
   data: Record<string, any>
-): Omit<UnfurlResponse[UnfurlResourceType.Document], "fetchedAt"> => {
+): UnfurlResponse[UnfurlResourceType.Document] => {
   const document: Document = data.document;
   const viewer: User = data.viewer;
   return {
@@ -83,7 +71,7 @@ const presentDocument = (
 
 const presentPR = (
   data: Record<string, any>
-): Omit<UnfurlResponse[UnfurlResourceType.PR], "fetchedAt"> => ({
+): UnfurlResponse[UnfurlResourceType.PR] => ({
   url: data.html_url,
   type: UnfurlResourceType.PR,
   id: `#${data.number}`,
@@ -102,7 +90,7 @@ const presentPR = (
 
 const presentIssue = (
   data: Record<string, any>
-): Omit<UnfurlResponse[UnfurlResourceType.Issue], "fetchedAt"> => ({
+): UnfurlResponse[UnfurlResourceType.Issue] => ({
   url: data.html_url,
   type: UnfurlResourceType.Issue,
   id: `#${data.number}`,

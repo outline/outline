@@ -377,8 +377,6 @@ export type UnfurlResponse = {
     description: string;
     /** A URL to a thumbnail image representing the resource */
     thumbnailUrl: string;
-    /** Unfurl fetched time */
-    fetchedAt: string;
   };
   [UnfurlResourceType.Mention]: {
     /** The resource type */
@@ -393,8 +391,6 @@ export type UnfurlResponse = {
     color: string;
     /** Mentiond user's recent activity */
     lastActive: string;
-    /** Unfurl fetched time */
-    fetchedAt: string;
   };
   [UnfurlResourceType.Document]: {
     /** The resource type */
@@ -409,8 +405,6 @@ export type UnfurlResponse = {
     summary: string;
     /** Viewer's last activity on this document */
     lastActivityByViewer: string;
-    /** Unfurl fetched time */
-    fetchedAt: string;
   };
   [UnfurlResourceType.Issue]: {
     /** The resource type */
@@ -431,8 +425,6 @@ export type UnfurlResponse = {
     state: { name: string; color: string };
     /** Issue's creation time */
     createdAt: string;
-    /** Unfurl fetched time */
-    fetchedAt: string;
   };
   [UnfurlResourceType.PR]: {
     /** The resource type */
@@ -451,8 +443,6 @@ export type UnfurlResponse = {
     state: { name: string; color: string };
     /** Pull Request creation time */
     createdAt: string;
-    /** Unfurl fetched time */
-    fetchedAt: string;
   };
 };
 

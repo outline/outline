@@ -16,10 +16,7 @@ import {
   Info,
 } from "./Components";
 
-type Props = Omit<
-  UnfurlResponse[UnfurlResourceType.Issue],
-  "type" | "fetchedAt"
->;
+type Props = Omit<UnfurlResponse[UnfurlResourceType.Issue], "type">;
 
 const HoverPreviewIssue = React.forwardRef(function _HoverPreviewIssue(
   { url, id, title, description, author, labels, state, createdAt }: Props,
