@@ -1,4 +1,5 @@
 import filter from "lodash/filter";
+import findIndex from "lodash/findIndex";
 import isNull from "lodash/isNull";
 import isUndefined from "lodash/isUndefined";
 import some from "lodash/some";
@@ -207,7 +208,10 @@ export const sinkBlockInto =
     return true;
   };
 
-const ancestors = (
+export const depth = (ancestor: Node, $cursor: ResolvedPos) =>
+  findIndex(ancestors($cursor), (node) => node.eq(ancestor));
+
+export const ancestors = (
   $from: ResolvedPos,
   pred?: ($cursor: ResolvedPos, ancestor: Node, depth: number) => boolean
 ) => {
@@ -231,7 +235,7 @@ const ancestors = (
   return anc;
 };
 
-const suchThat = (
+export const suchThat = (
   pred: (...args: any[]) => boolean
 ): ((...args: any[]) => boolean) => pred;
 
@@ -239,6 +243,8 @@ const nearest = (ancestors: Node[]) =>
   // Since the ancestors are arranged in increasing order of depth,
   // the last element of the array is the nearest ancestor.
   ancestors.pop();
+
+export const furthest = (ancestors: Node[]) => ancestors.shift();
 
 export const liftLastBlockOutOf =
   (type: NodeType): Command =>
