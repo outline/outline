@@ -264,7 +264,6 @@ describe("accountProvisioner", () => {
             avatarUrl: faker.internet.avatar(),
           },
           team: {
-            name: existingTeam.name,
             avatarUrl: existingTeam.avatarUrl,
             subdomain: faker.internet.domainWord(),
           },
@@ -308,7 +307,6 @@ describe("accountProvisioner", () => {
           avatarUrl: faker.internet.avatar(),
         },
         team: {
-          name: team.name,
           avatarUrl: team.avatarUrl,
           subdomain: faker.internet.domainWord(),
         },

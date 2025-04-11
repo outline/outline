@@ -1112,18 +1112,26 @@ class Document extends ArchivableModel<
   // Delete a document, archived or otherwise.
   delete = (user: User) =>
     this.sequelize.transaction(async (transaction: Transaction) => {
-      if (!this.archivedAt && !this.template && this.collectionId) {
-        // delete any children and remove from the document structure
-        const collection = await Collection.findByPk(this.collectionId, {
+      let deleted = false;
+
+      if (!this.template && this.collectionId) {
+        const collection = await Collection.findByPk(this.collectionId!, {
           transaction,
           lock: transaction.LOCK.UPDATE,
           paranoid: false,
         });
-        await collection?.deleteDocument(this, { transaction });
-      } else {
+
+        if (!this.archivedAt || (this.archivedAt && collection?.archivedAt)) {
+          await collection?.deleteDocument(this, { transaction });
+          deleted = true;
+        }
+      }
+
+      if (!deleted) {
         await this.destroy({
           transaction,
         });
+        deleted = true;
       }
 
       this.lastModifiedById = user.id;

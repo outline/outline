@@ -53,7 +53,7 @@ const handleUnsubscribe = async (
   });
 
   user.setNotificationEventType(eventType, false);
-  await user.save();
+  await user.save({ transaction });
   ctx.redirect(`${user.team.url}/settings/notifications?success`);
 };
 
