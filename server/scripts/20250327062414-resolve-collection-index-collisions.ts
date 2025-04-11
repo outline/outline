@@ -22,10 +22,6 @@ class CollectionIndexCollisionResolver {
       // edge case of last batch
       await this.resolveDuplicates({ transaction });
     });
-
-    console.log(
-      `Resolve collection index collisions complete for team ${this.teamId}; count = ${this.resolvedCollisionsCount}`
-    );
   }
 
   private async processPage(
@@ -87,17 +83,10 @@ class CollectionIndexCollisionResolver {
     nextCollection?: Collection;
     transaction: Transaction;
   }) {
-    console.log(
-      "group",
-      this.currDuplicateGroup.map((col) => ({ id: col.id, index: col.index }))
-    );
-
     if (this.currDuplicateGroup.length <= 1) {
       // no action needed when there aren't more than 1 item in a group.
       return;
     }
-
-    console.log("resolving collisions for the group...");
 
     let prevIndex = this.currDuplicateGroup[0].index;
     const endIndex = nextCollection?.index ?? null;
@@ -107,7 +96,7 @@ class CollectionIndexCollisionResolver {
       const collection = this.currDuplicateGroup[idx];
       const newIndex = fractionalIndex(prevIndex, endIndex);
 
-      console.log(`new index for collection ${collection.id} = ${newIndex}`);
+      console.log(`New index for collection ${collection.id} = ${newIndex}`);
 
       collection.index = newIndex;
       await collection.save({ silent: true, hooks: false, transaction });
