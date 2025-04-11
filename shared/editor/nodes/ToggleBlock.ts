@@ -1,5 +1,6 @@
 import isEmpty from "lodash/isEmpty";
 import isNil from "lodash/isNil";
+import some from "lodash/some";
 import {
   chainCommands,
   createParagraphNear,
@@ -26,6 +27,10 @@ import {
   liftAfter,
   sinkBlockInto,
   liftLastBlockOutOf,
+  ancestors,
+  suchThat,
+  depth,
+  furthest,
 } from "../commands/toggleBlock";
 import { chainTransactions } from "../lib/chainTransactions";
 import { findBlockNodes } from "../queries/findChildren";
@@ -325,37 +330,43 @@ export default class ToggleBlock extends Node {
             foldPlugin.spec.initialDecorationsLoaded = true;
           }
 
-          // if cursor ends up within the hidden range of toggle block while it is folded, immediately unfold it
           const { $cursor } = tr.selection as TextSelection;
           if ($cursor) {
-            const parentNode = $cursor.node($cursor.depth - 1);
-            if (parentNode && parentNode.type.name === this.name) {
-              const posBeforeToggleBlockHead = $cursor.start($cursor.depth - 1);
-              const posAfterToggleBlockHead =
-                posBeforeToggleBlockHead + parentNode.firstChild!.nodeSize;
-              const endOfToggleBlock = $cursor.end($cursor.depth - 1);
-              const posBeforeToggleBlock = $cursor.before($cursor.depth - 1);
-              const posAfterToggleBlock = $cursor.after($cursor.depth - 1);
-              const decosOnParent = ToggleBlock.pluginKey
-                .getState(newState)
-                ?.find(
-                  posBeforeToggleBlock,
-                  posAfterToggleBlock,
-                  (spec) =>
-                    spec.nodeId === parentNode.attrs.id &&
-                    spec.target === parentNode.type.name &&
-                    spec.fold === true
-                );
+            const decosResponsibleForFolding = ToggleBlock.pluginKey
+              .getState(newState)
+              ?.find(undefined, undefined, (spec) => "fold" in spec);
 
-              const toggleBlockFolded = decosOnParent && decosOnParent.length;
+            const ancestor =
+              decosResponsibleForFolding && decosResponsibleForFolding.length
+                ? furthest(
+                    ancestors(
+                      $cursor,
+                      suchThat((_, a) =>
+                        some(
+                          decosResponsibleForFolding,
+                          (deco) =>
+                            deco.spec.nodeId === a.attrs?.id &&
+                            deco.spec.target === a.type.name &&
+                            deco.spec.fold === true
+                        )
+                      )
+                    )
+                  )
+                : undefined;
+
+            if (ancestor) {
+              const posAfterAncestorHead =
+                $cursor.start(depth(ancestor, $cursor)) +
+                ancestor.firstChild!.nodeSize;
+              const endOfAncestor = $cursor.end(depth(ancestor, $cursor));
+
               if (
-                toggleBlockFolded &&
-                $cursor.pos > posAfterToggleBlockHead &&
-                $cursor.pos < endOfToggleBlock
+                $cursor.pos > posAfterAncestorHead &&
+                $cursor.pos < endOfAncestor
               ) {
                 tr.setMeta(ToggleBlock.pluginKey, {
                   type: Action.UNFOLD,
-                  at: posBeforeToggleBlock,
+                  at: $cursor.before(depth(ancestor, $cursor)),
                 });
               }
             }
