@@ -43,11 +43,11 @@ jobs:
           file: Dockerfile.base
           labels: ${{ steps.base_meta.outputs.labels }}
           tags: ${{ env.BASE_IMAGE_NAME }}
-          outputs: type=image,push-by-digest=true,name-canonical=true,push=false
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
           platforms: linux/arm64
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          pull: never
+          pull: false
 
       - name: Docker meta
         id: meta
@@ -71,7 +71,7 @@ jobs:
           platforms: linux/arm64
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          pull: never
+          pull: false
           build-args: |
             BASE_IMAGE=${{ env.BASE_IMAGE_NAME }}@${{ steps.base_build.outputs.digest }}
 
@@ -122,11 +122,11 @@ jobs:
           file: Dockerfile.base
           labels: ${{ steps.base_meta.outputs.labels }}
           tags: ${{ env.BASE_IMAGE_NAME }}
-          outputs: type=image,push-by-digest=true,name-canonical=true,push=false
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
           platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          pull: never
+          pull: false
 
       - name: Docker meta
         id: meta
@@ -150,7 +150,7 @@ jobs:
           platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          pull: never
+          pull: false
           build-args: |
             BASE_IMAGE=${{ env.BASE_IMAGE_NAME }}@${{ steps.base_build.outputs.digest }}
 
