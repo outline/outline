@@ -15,6 +15,7 @@ import { IssueStatusIcon } from "../../components/IssueStatusIcon";
 import { PullRequestIcon } from "../../components/PullRequestIcon";
 import Spinner from "../../components/Spinner";
 import Text from "../../components/Text";
+import useIsMounted from "../../hooks/useIsMounted";
 import useStores from "../../hooks/useStores";
 import theme from "../../styles/theme";
 import type {
@@ -139,23 +140,32 @@ type IssuePrProps = ComponentProps & {
   ) => void;
 };
 
-export const MentionIssue = (props: IssuePrProps) => {
+export const MentionIssue = observer((props: IssuePrProps) => {
   const { unfurls } = useStores();
+  const isMounted = useIsMounted();
   const [loaded, setLoaded] = React.useState(false);
   const onChangeUnfurl = React.useRef(props.onChangeUnfurl).current; // stable reference to callback function.
 
   const { isSelected, node } = props;
-  const { className, unfurl, ...attrs } = getAttributesFromNode(node);
+  const {
+    className,
+    unfurl: unfurlAttr,
+    ...attrs
+  } = getAttributesFromNode(node);
+
+  const unfurl = unfurls.get(attrs.href)?.data ?? unfurlAttr;
 
   React.useEffect(() => {
     const fetchIssue = async () => {
-      const unfurledIssue:
-        | UnfurlResponse[UnfurlResourceType.Issue]
-        | undefined = await unfurls.fetch(attrs.href);
+      const unfurlModel = await unfurls.fetchUnfurl({ url: attrs.href });
 
-      if (unfurledIssue) {
+      if (!isMounted()) {
+        return;
+      }
+
+      if (unfurlModel) {
         onChangeUnfurl({
-          ...unfurledIssue,
+          ...unfurlModel.data,
           description: null,
         } satisfies UnfurlResponse[UnfurlResourceType.Issue]);
       }
@@ -164,7 +174,7 @@ export const MentionIssue = (props: IssuePrProps) => {
     };
 
     void fetchIssue();
-  }, [unfurls, attrs.href, onChangeUnfurl]);
+  }, [unfurls, attrs.href, isMounted, onChangeUnfurl]);
 
   if (!unfurl) {
     return !loaded ? (
@@ -199,24 +209,34 @@ export const MentionIssue = (props: IssuePrProps) => {
       </Flex>
     </a>
   );
-};
+});
 
-export const MentionPullRequest = (props: IssuePrProps) => {
+export const MentionPullRequest = observer((props: IssuePrProps) => {
   const { unfurls } = useStores();
+  const isMounted = useIsMounted();
   const [loaded, setLoaded] = React.useState(false);
   const onChangeUnfurl = React.useRef(props.onChangeUnfurl).current; // stable reference to callback function.
 
   const { isSelected, node } = props;
-  const { className, unfurl, ...attrs } = getAttributesFromNode(node);
+  const {
+    className,
+    unfurl: unfurlAttr,
+    ...attrs
+  } = getAttributesFromNode(node);
+
+  const unfurl = unfurls.get(attrs.href)?.data ?? unfurlAttr;
 
   React.useEffect(() => {
     const fetchPR = async () => {
-      const unfurledPR: UnfurlResponse[UnfurlResourceType.PR] | undefined =
-        await unfurls.fetch(attrs.href);
+      const unfurlModel = await unfurls.fetchUnfurl({ url: attrs.href });
 
-      if (unfurledPR) {
+      if (!isMounted()) {
+        return;
+      }
+
+      if (unfurlModel) {
         onChangeUnfurl({
-          ...unfurledPR,
+          ...unfurlModel.data,
           description: null,
         } satisfies UnfurlResponse[UnfurlResourceType.PR]);
       }
@@ -225,7 +245,7 @@ export const MentionPullRequest = (props: IssuePrProps) => {
     };
 
     void fetchPR();
-  }, [unfurls, attrs.href, onChangeUnfurl]);
+  }, [unfurls, attrs.href, isMounted, onChangeUnfurl]);
 
   if (!unfurl) {
     return !loaded ? (
@@ -260,7 +280,7 @@ export const MentionPullRequest = (props: IssuePrProps) => {
       </Flex>
     </a>
   );
-};
+});
 
 const MentionLoading = ({ className }: { className: string }) => {
   const { t } = useTranslation();

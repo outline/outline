@@ -263,13 +263,7 @@ export default class Mention extends Node {
   }
 
   handleChangeUnfurl =
-    ({
-      node,
-      getPos,
-    }: {
-      node: ProsemirrorNode;
-      getPos: () => number | undefined;
-    }) =>
+    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
     (unfurl: UnfurlResponse[keyof UnfurlResponse]) => {
       const { view } = this.editor;
       const { tr } = view.state;
@@ -285,7 +279,7 @@ export default class Mention extends Node {
 
       const pos = getPos();
 
-      if (pos && !isMatch(node.attrs, overrides)) {
+      if (!isMatch(node.attrs, overrides)) {
         const transaction = tr.setNodeMarkup(pos, undefined, {
           ...node.attrs,
           ...overrides,
