@@ -1,4 +1,4 @@
-import { isMatch } from "lodash";
+import isMatch from "lodash/isMatch";
 import { Token } from "markdown-it";
 import {
   NodeSpec,
