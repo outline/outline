@@ -8,7 +8,7 @@ import validate from "@server/middlewares/validate";
 import { WebhookSubscription } from "@server/models";
 import { authorize } from "@server/policies";
 import pagination from "@server/routes/api/middlewares/pagination";
-import { APIContext } from "@server/types";
+import { APIContext, AuthenticationType } from "@server/types";
 import presentWebhookSubscription from "../presenters/webhookSubscription";
 import * as T from "./schema";
 
@@ -41,7 +41,10 @@ router.post(
 
 router.post(
   "webhookSubscriptions.create",
-  auth({ role: UserRole.Admin }),
+  auth({
+    role: UserRole.Admin,
+    type: [AuthenticationType.API, AuthenticationType.APP],
+  }),
   validate(T.WebhookSubscriptionsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.WebhookSubscriptionsCreateReq>) => {
@@ -68,7 +71,10 @@ router.post(
 
 router.post(
   "webhookSubscriptions.delete",
-  auth({ role: UserRole.Admin }),
+  auth({
+    role: UserRole.Admin,
+    type: [AuthenticationType.API, AuthenticationType.APP],
+  }),
   validate(T.WebhookSubscriptionsDeleteSchema),
   transaction(),
   async (ctx: APIContext<T.WebhookSubscriptionsDeleteReq>) => {
@@ -94,7 +100,10 @@ router.post(
 
 router.post(
   "webhookSubscriptions.update",
-  auth({ role: UserRole.Admin }),
+  auth({
+    role: UserRole.Admin,
+    type: [AuthenticationType.API, AuthenticationType.APP],
+  }),
   validate(T.WebhookSubscriptionsUpdateSchema),
   transaction(),
   async (ctx: APIContext<T.WebhookSubscriptionsUpdateReq>) => {

@@ -17,3 +17,13 @@ export function safeEqual(a?: string, b?: string) {
 
   return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
 }
+
+/**
+ * Hash a string using SHA-256.
+ *
+ * @param input The input string to hash
+ * @returns The hashed input
+ */
+export function hash(input: string) {
+  return crypto.createHash("sha256").update(input).digest("hex");
+}

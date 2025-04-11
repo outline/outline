@@ -56,6 +56,26 @@ export const ImportValidation = {
   maxNameLength: 100,
 };
 
+export const OAuthClientValidation = {
+  /** The maximum length of the OAuth client name */
+  maxNameLength: 100,
+
+  /** The maximum length of the OAuth client description */
+  maxDescriptionLength: 1000,
+
+  /** The maximum length of the OAuth client developer name */
+  maxDeveloperNameLength: 100,
+
+  /** The maximum length of the OAuth client developer URL */
+  maxDeveloperUrlLength: 1000,
+
+  /** The maximum length of the OAuth client avatar URL */
+  maxAvatarUrlLength: 1000,
+
+  /** The maximum length of an OAuth client redirect URI */
+  maxRedirectUriLength: 1000,
+};
+
 export const RevisionValidation = {
   minNameLength: 1,
   maxNameLength: 255,

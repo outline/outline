@@ -12,7 +12,7 @@ type Props = {
   config?: Config;
 };
 
-export default function BackButton({ config }: Props) {
+export function BackButton({ config }: Props) {
   const { t } = useTranslation();
   const isSubdomain = !!config?.hostname;
 
