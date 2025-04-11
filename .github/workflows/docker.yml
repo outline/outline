@@ -36,6 +36,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push base image
+        id: base_build
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -44,6 +45,9 @@ jobs:
           tags: ${{ env.BASE_IMAGE_NAME }}
           outputs: type=image,push-by-digest=true,name-canonical=true,push=false
           platforms: linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          pull: never
 
       - name: Docker meta
         id: meta
@@ -65,8 +69,11 @@ jobs:
           tags: ${{ env.IMAGE_NAME }}
           outputs: type=image,push-by-digest=true,name-canonical=true,push=true
           platforms: linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          pull: never
           build-args: |
-            BASE_IMAGE=${{ env.BASE_IMAGE_NAME }}:${{ steps.base_meta.outputs.version }}
+            BASE_IMAGE=${{ env.BASE_IMAGE_NAME }}@${{ steps.base_build.outputs.digest }}
 
       - name: Export digest
         run: |
@@ -108,6 +115,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push base image
+        id: base_build
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -116,6 +124,9 @@ jobs:
           tags: ${{ env.BASE_IMAGE_NAME }}
           outputs: type=image,push-by-digest=true,name-canonical=true,push=false
           platforms: linux/amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          pull: never
 
       - name: Docker meta
         id: meta
@@ -137,8 +148,11 @@ jobs:
           tags: ${{ env.IMAGE_NAME }}
           outputs: type=image,push-by-digest=true,name-canonical=true,push=true
           platforms: linux/amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          pull: never
           build-args: |
-            BASE_IMAGE=${{ env.BASE_IMAGE_NAME }}:${{ steps.base_meta.outputs.version }}
+            BASE_IMAGE=${{ env.BASE_IMAGE_NAME }}@${{ steps.base_build.outputs.digest }}
 
       - name: Export digest
         run: |
