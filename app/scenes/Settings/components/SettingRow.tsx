@@ -39,7 +39,7 @@ const Column = styled.div`
   flex: 1;
 
   &:first-child {
-    min-width: 70%;
+    min-width: 65%;
   }
 
   &:last-child {
