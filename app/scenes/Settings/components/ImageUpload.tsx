@@ -4,6 +4,7 @@ import * as React from "react";
 import { useState, useRef } from "react";
 import AvatarEditor from "react-avatar-editor";
 import Dropzone from "react-dropzone";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { AttachmentPreset } from "@shared/types";
@@ -26,12 +27,13 @@ export type Props = {
 const ImageUpload: React.FC<Props> = ({
   onSuccess,
   onError,
-  submitText = "Crop Image",
+  submitText,
   borderRadius = 150,
   children,
 }) => {
-  const stores = useStores();
-  const { ui } = stores;
+  const { ui } = useStores();
+  const { t } = useTranslation();
+  submitText || t("Crop image");
 
   const [isUploading, setIsUploading] = useState(false);
   const [isCropping, setIsCropping] = useState(false);
@@ -120,7 +122,7 @@ const ImageUpload: React.FC<Props> = ({
         />
         <br />
         <ButtonLarge fullwidth onClick={handleCrop} disabled={isUploading}>
-          {isUploading ? "Uploading…" : submitText}
+          {isUploading ? `${t(`Uploading`)}…` : submitText}
         </ButtonLarge>
       </Flex>
     </Modal>
