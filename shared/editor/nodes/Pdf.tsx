@@ -1,16 +1,13 @@
 import { Token } from "markdown-it";
-// import { FileIcon } from "outline-icons"; // Removed unused import
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
 import { Command, NodeSelection } from "prosemirror-state";
 import * as React from "react";
 import { lazy, Suspense } from "react";
 import { Primitive } from "utility-types";
-import { getEventFiles } from "../../utils/files"; // Removed unused bytesToHumanReadable
+import { getEventFiles } from "../../utils/files";
 import { sanitizeUrl } from "../../utils/urls";
 import insertFiles from "../commands/insertFiles";
 import toggleWrap from "../commands/toggleWrap";
-// Import Widget directly if needed for fallback, otherwise remove
-// import Widget from "../components/Widget";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import attachmentsRule from "../rules/links"; // Reusing attachment rule for parsing links
 import { ComponentProps } from "../types";
@@ -75,23 +72,18 @@ export default class Pdf extends Node {
             size: parseInt(dom.dataset.size || "0", 10),
           }),
         },
-        // Add a rule to parse the rendered structure if needed
-        // {
-        //   tag: `div[data-nodetype="${this.name}"]`,
-        //   getAttrs: (dom: HTMLElement) => ({ ... })
-        // }
       ],
       toDOM: (node) => [
-        // Represent as a link in the raw DOM for simplicity/fallback
+        // Represent as a link in the raw DOM for fallback
         // The React component handles the actual rendering
         "a",
         {
-          class: `pdf-attachment`, // Specific class
+          class: `pdf-attachment`,
           id: node.attrs.id,
           href: sanitizeUrl(node.attrs.href),
           "data-title": node.attrs.title,
           "data-size": node.attrs.size,
-          "data-height": node.attrs.height, // Add height data attribute
+          "data-height": node.attrs.height,
         },
         String(node.attrs.title),
       ],
@@ -109,7 +101,7 @@ export default class Pdf extends Node {
       view.dispatch(transaction);
     };
 
-  // Use the lazy-loaded component wrapped in Suspense
+  // Use lazy-loaded component wrapped in suspense
   component = (props: ComponentProps) => (
     // Pass props AND the handleSelect method down
     <Suspense fallback={<PdfLoadingFallback />}>
@@ -117,7 +109,6 @@ export default class Pdf extends Node {
     </Suspense>
   );
 
-  // Commands adapted from Attachment (no changes needed here)
   commands({ type }: { type: NodeType }) {
     return {
       createPdfAttachment: (attrs: Record<string, Primitive>) =>
@@ -136,7 +127,7 @@ export default class Pdf extends Node {
         // create an input element and click to trigger picker
         const inputElement = document.createElement("input");
         inputElement.type = "file";
-        inputElement.accept = ".pdf"; // Accept only PDF files
+        inputElement.accept = ".pdf"; // accept only pdfs
         inputElement.onchange = (event) => {
           const files = getEventFiles(event);
           if (files.length > 0) {
@@ -152,18 +143,16 @@ export default class Pdf extends Node {
         };
         inputElement.click();
 
-        // We don't dispatch a transaction immediately, insertFiles handles it
         return true;
       },
 
       // Delete command (same as attachment)
-      // Rename dispatch to _dispatch to satisfy eslint rule for potentially unused arguments
       deletePdfAttachment: (): Command => (state, _dispatch) => {
         _dispatch?.(state.tr.deleteSelection());
         return true;
       },
 
-      // Replace command (similar to attachment, but for PDFs)
+      // Replace command (similar to attachment)
       replacePdfAttachment: (): Command => (state) => {
         if (!(state.selection instanceof NodeSelection)) {
           return false;
@@ -210,8 +199,8 @@ export default class Pdf extends Node {
 
         const link = document.createElement("a");
         link.href = node.attrs.href;
-        link.download = node.attrs.title || "document.pdf"; // Add download attribute
-        link.target = "_blank"; // Open in new tab might be better than forcing download
+        link.download = node.attrs.title || "document.pdf";
+        link.target = "_blank";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -230,7 +219,6 @@ export default class Pdf extends Node {
     state.ensureNewLine();
   }
 
-  // Markdown parsing (look for the specific link text format)
   parseMarkdown() {
     return {
       node: this.name,
@@ -246,7 +234,6 @@ export default class Pdf extends Node {
           size,
         };
       },
-      // Ensure this rule runs before the generic link rule if priorities clash
     };
   }
 }

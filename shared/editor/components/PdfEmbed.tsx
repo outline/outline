@@ -62,7 +62,7 @@ export default class PdfEmbedComponent extends React.Component<
 
   componentDidMount() {
     // No need to update container width for iframe typically
-    window.addEventListener("resize", this.handleWindowResize); // Optional: Recalculate if needed
+    // window.addEventListener("resize", this.handleWindowResize); // Removed unused listener
   }
 
   componentDidUpdate(prevProps: PdfEmbedProps, _prevState: PdfComponentState) {
@@ -83,17 +83,16 @@ export default class PdfEmbedComponent extends React.Component<
   }
 
   componentWillUnmount() {
-    window.removeEventListener("resize", this.handleWindowResize);
+    // window.removeEventListener("resize", this.handleWindowResize); // Removed unused listener
     window.removeEventListener("mousemove", this.handleMouseMove);
     window.removeEventListener("mouseup", this.handleMouseUp);
   }
 
-  // Optional: Handle window resize if needed, e.g., for complex layouts
-  handleWindowResize = () => {
-    // Add logic here if the container size depends on window size
-  };
+  // // Handle window resize if needed, e.g., for complex layouts - Removed as unused
+  // handleWindowResize = () => {
+  // };
 
-  // --- Resizing Logic (Kept as it controls container height) ---
+  // --- Resizing Logic
   handleResize = (event: React.MouseEvent): void => {
     event.preventDefault();
     event.stopPropagation();
@@ -174,7 +173,6 @@ export default class PdfEmbedComponent extends React.Component<
       });
     }
   };
-  // --- End Resizing Logic ---
 
   render() {
     const { node, isSelected, isEditable, theme, onSelect } = this.props;
@@ -241,8 +239,8 @@ export default class PdfEmbedComponent extends React.Component<
             height="100%"
             style={{ border: "none" }} // Remove default iframe border
             title={title || "PDF Document"}
-            // Consider adding sandbox attributes for security if PDFs are from untrusted sources
-            // sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+            // Added sandbox for basic security. Adjust as needed based on trust level of PDF sources.
+            sandbox="allow-same-origin"
           />
           {/* Resize Handle */}
           {isEditable && (

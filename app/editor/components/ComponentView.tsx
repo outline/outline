@@ -118,9 +118,12 @@ export default class ComponentView {
       isSelected: this.isSelected,
       isEditable: this.view.editable,
       getPos: this.getPos,
-      // Add the theme from the editor instance's props
+      /**
+       * Props passed to the React component rendered by this NodeView.
+       * Includes editor context (like theme) and methods to interact
+       * with the ProseMirror node (e.g., `updateAttributes`).
+       */
       theme: this.editor.props.theme,
-      // Function to update node attributes from the React component
       updateAttributes: (attrs: Record<string, Primitive | null>) => {
         const transaction = this.view.state.tr.setNodeMarkup(
           this.getPos(),

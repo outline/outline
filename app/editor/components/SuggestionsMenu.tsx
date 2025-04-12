@@ -390,9 +390,10 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         onFileUploadStop,
         dictionary,
         // Determine node type based on what was accepted
-        nodeType: inputRef.current?.accept === ".pdf" ? view.state.schema.nodes.pdf_document : undefined,
-        // isAttachment logic might need adjustment if nodeType is provided,
-        // or insertFiles handles it. Assuming insertFiles prioritizes nodeType if present.
+        nodeType:
+          inputRef.current?.accept === ".pdf"
+            ? view.state.schema.nodes.pdf_document
+            : undefined,
         isAttachment: inputRef.current?.accept === "*",
       });
     }
@@ -441,7 +442,12 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
       // Some extensions may be disabled, remove corresponding menu items
       // Exclude items handled specially by handleClickItem (image, video, attachment, pdf_document) from this check
-      const isSpecialHandled = ["image", "video", "attachment", "pdf_document"].includes(item.name);
+      const isSpecialHandled = [
+        "image",
+        "video",
+        "attachment",
+        "pdf_document",
+      ].includes(item.name);
       if (
         !isSpecialHandled && // Only apply check if not specially handled
         item.name &&

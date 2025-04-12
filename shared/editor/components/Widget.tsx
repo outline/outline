@@ -21,15 +21,16 @@ type Props = {
   /** Callback fired when the widget is clicked */
   onMouseDown?: React.MouseEventHandler<HTMLElement>;
   /** Callback fired when the widget is clicked */
-  onClick?: React.MouseEventHandler<HTMLElement>;
+  onClick?: React.MouseEventHandler<HTMLElement>; // Use HTMLElement to support both <a> and <div> targets
 };
 
 // Remove ThemeProps<DefaultTheme> from here as theme is now explicitly in Props
 export default function Widget(props: Props) {
   const { theme, isSelected, href, title, context, children, icon } = props;
   const className = isSelected ? "ProseMirror-selectednode widget" : "widget";
-  const sanitizedHref = sanitizeUrl(href);
+  const sanitizedHref = sanitizeUrl(href); // Sanitize href for security
 
+  // Conditionally render as <a> for links or <div> for non-interactive embeds
   if (sanitizedHref) {
     return (
       <Wrapper
@@ -51,6 +52,7 @@ export default function Widget(props: Props) {
       </Wrapper>
     );
   } else {
+    // Render as a simple div if no valid href is provided (e.g., for embedded content)
     return (
       <div
         className={className}
@@ -122,7 +124,7 @@ const Subtitle = styled.span<StyledThemeProps>`
   line-height: 0;
 `;
 
-// Define ThemeProps type for styled components
+// Define ThemeProps type for styled components - ensures theme is consistently available
 type StyledThemeProps = { theme: DefaultTheme };
 
 const Wrapper = styled.a<StyledThemeProps>`

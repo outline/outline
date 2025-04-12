@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/react";
-import { EditorView } from "prosemirror-view";
 import { NodeType } from "prosemirror-model"; // Import NodeType
+import { EditorView } from "prosemirror-view";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import type { Dictionary } from "~/hooks/useDictionary";
@@ -171,10 +171,14 @@ const insertFiles = async function (
           }
 
           const [from, to] = result;
+          // Conditionally create specific node (e.g., PDF) or default attachment.
           let newNode;
 
           // Check if a specific nodeType (like pdf_document) was requested
-          if (options.nodeType && options.nodeType === schema.nodes.pdf_document) {
+          if (
+            options.nodeType &&
+            options.nodeType === schema.nodes.pdf_document
+          ) {
             newNode = options.nodeType.create({
               href: src,
               title: upload.file.name ?? dictionary.untitled,

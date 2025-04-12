@@ -128,7 +128,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       });
     },
     [
-      localRef, // Accessing view.state.schema through localRef.current.view.state.schema
+      localRef,
       props.onFileUploadStart,
       props.onFileUploadStop,
       dictionary,

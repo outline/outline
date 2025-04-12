@@ -58,6 +58,7 @@ function useIsActive(state: EditorState) {
     return true;
   }
 
+  // Don't activate toolbar just for cursor placement in notices.
   if (selection instanceof NodeSelection && selection.node.type.name === "hr") {
     return true;
   }
@@ -168,7 +169,7 @@ export default function SelectionToolbar(props: Props) {
   };
 
   const { isTemplate, rtl, canComment, canUpdate, ...rest } = props;
-  const { state: editorState } = view; // Rename state to avoid shadowing
+  const { state: editorState } = view; // Rename state to editorState to avoid shadowing variable in handleOnSelectLink
   const { selection } = editorState;
   const isDividerSelection = isNodeActive(editorState.schema.nodes.hr)(
     editorState
