@@ -1,12 +1,12 @@
-import { getPrismLangForLanguage, getLabelForLanguage } from "./code";
+import { getRefractorLangForLanguage, getLabelForLanguage } from "./code";
 
-describe("getPrismLangForLanguage", () => {
-  it("should return the correct Prism language identifier for a given language", () => {
-    expect(getPrismLangForLanguage("javascript")).toBe("javascript");
-    expect(getPrismLangForLanguage("mermaidjs")).toBe("mermaid");
-    expect(getPrismLangForLanguage("xml")).toBe("markup");
-    expect(getPrismLangForLanguage("unknown")).toBeUndefined();
-    expect(getPrismLangForLanguage("")).toBeUndefined();
+describe("getRefractorLangForLanguage", () => {
+  it("should return the correct lang identifier for a given language", () => {
+    expect(getRefractorLangForLanguage("javascript")).toBe("javascript");
+    expect(getRefractorLangForLanguage("mermaidjs")).toBe("mermaid");
+    expect(getRefractorLangForLanguage("xml")).toBe("markup");
+    expect(getRefractorLangForLanguage("unknown")).toBeUndefined();
+    expect(getRefractorLangForLanguage("")).toBeUndefined();
   });
 });
 
