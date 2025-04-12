@@ -51,40 +51,38 @@ export const PasteMenu = observer(({ pastedText, embeds, ...props }: Props) => {
     return;
   }, [embeds, pastedText]);
 
-  const items = React.useMemo(() => {
-    const menuItems: MenuItem[] = [
-      {
-        name: "noop",
-        title: t("Keep as link"),
-        icon: <LinkIcon />,
-      },
-      {
-        name: "embed",
-        title: t("Embed"),
-        icon: embed?.icon,
-        keywords: embed?.keywords,
-      },
-    ];
-
-    if (mentionType) {
-      menuItems.push({
-        name: "mention",
-        title: t("Mention"),
-        icon: <EmailIcon />,
-        attrs: {
-          id: v4(),
-          type: mentionType,
-          label: pastedText,
-          href: pastedText,
-          modelId: v4(),
-          actorId: user.id,
+  const items = React.useMemo(
+    () =>
+      [
+        {
+          name: "noop",
+          title: t("Keep as link"),
+          icon: <LinkIcon />,
         },
-        appendSpace: true,
-      });
-    }
-
-    return menuItems;
-  }, [t, embed, mentionType, pastedText, user]);
+        {
+          name: "mention",
+          title: t("Mention"),
+          icon: <EmailIcon />,
+          visible: !!mentionType,
+          attrs: {
+            id: v4(),
+            type: mentionType,
+            label: pastedText,
+            href: pastedText,
+            modelId: v4(),
+            actorId: user.id,
+          },
+          appendSpace: true,
+        },
+        {
+          name: "embed",
+          title: t("Embed"),
+          icon: embed?.icon,
+          keywords: embed?.keywords,
+        },
+      ] satisfies MenuItem[],
+    [t, embed, mentionType, pastedText, user]
+  );
 
   return (
     <SuggestionsMenu
