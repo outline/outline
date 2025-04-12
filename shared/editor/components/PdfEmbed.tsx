@@ -239,8 +239,8 @@ export default class PdfEmbedComponent extends React.Component<
             height="100%"
             style={{ border: "none" }} // Remove default iframe border
             title={title || "PDF Document"}
-            // Added sandbox for basic security. Adjust as needed based on trust level of PDF sources.
-            sandbox="allow-same-origin"
+            // Consider adding sandbox attributes for security if PDFs are from untrusted sources
+            // sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
           />
           {/* Resize Handle */}
           {isEditable && (
