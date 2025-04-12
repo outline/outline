@@ -1,3 +1,4 @@
+import { BrowserIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
 import { Primitive } from "utility-types";
@@ -665,7 +666,7 @@ const embeds: EmbedDescriptor[] = [
     title: "Embed",
     keywords: "iframe webpage",
     placeholder: "Paste a URL to embed",
-    icon: <Img src="/images/embed.png" alt="Embed" />,
+    icon: <BrowserIcon />,
     defaultHidden: false,
     matchOnInput: false,
     regexMatch: [new RegExp("^https?://(.*)$")],
