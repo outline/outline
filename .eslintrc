@@ -65,7 +65,7 @@
     ],
     "padding-line-between-statements": ["error", { "blankLine": "always", "prev": "*", "next": "export" }],
     "lines-between-class-members": ["error", "always", { "exceptAfterSingleLine": true }],
-    "lodash/import-scope": ["warn", "method"],
+    "lodash/import-scope": ["error", "method"],
     "import/no-named-as-default": "off",
     "import/no-named-as-default-member": "off",
     "import/newline-after-import": 2,
