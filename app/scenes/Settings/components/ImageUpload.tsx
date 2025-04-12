@@ -88,51 +88,43 @@ const ImageUpload: React.FC<Props> = ({
     }
   };
 
-  const renderCropping = () => {
-    return (
-      <Modal
-        onRequestClose={handleClose}
-        fullscreen={false}
-        title={<>&nbsp;</>}
-        isOpen
-      >
-        <Flex auto column align="center" justify="center">
-          {isUploading && <LoadingIndicator />}
-          <AvatarEditorContainer>
-            <AvatarEditor
-              ref={avatarEditorRef}
-              image={file!}
-              width={250}
-              height={250}
-              border={25}
-              borderRadius={borderRadius}
-              color={
-                ui.theme === "light" ? [255, 255, 255, 0.6] : [0, 0, 0, 0.6]
-              } // RGBA
-              scale={zoom}
-              rotate={0}
-            />
-          </AvatarEditorContainer>
-          <RangeInput
-            type="range"
-            min="0.1"
-            max="2"
-            step="0.01"
-            defaultValue="1"
-            onChange={handleZoom}
+  const renderCropping = () => (
+    <Modal
+      onRequestClose={handleClose}
+      fullscreen={false}
+      title={<>&nbsp;</>}
+      isOpen
+    >
+      <Flex auto column align="center" justify="center">
+        {isUploading && <LoadingIndicator />}
+        <AvatarEditorContainer>
+          <AvatarEditor
+            ref={avatarEditorRef}
+            image={file!}
+            width={250}
+            height={250}
+            border={25}
+            borderRadius={borderRadius}
+            color={ui.theme === "light" ? [255, 255, 255, 0.6] : [0, 0, 0, 0.6]} // RGBA
+            scale={zoom}
+            rotate={0}
           />
-          <br />
-          <ButtonLarge
-            fullwidth
-            onClick={handleCrop}
-            disabled={isUploading}
-          >
-            {isUploading ? "Uploading…" : submitText}
-          </ButtonLarge>
-        </Flex>
-      </Modal>
-    );
-  };
+        </AvatarEditorContainer>
+        <RangeInput
+          type="range"
+          min="0.1"
+          max="2"
+          step="0.01"
+          defaultValue="1"
+          onChange={handleZoom}
+        />
+        <br />
+        <ButtonLarge fullwidth onClick={handleCrop} disabled={isUploading}>
+          {isUploading ? "Uploading…" : submitText}
+        </ButtonLarge>
+      </Flex>
+    </Modal>
+  );
 
   if (isCropping && file) {
     return renderCropping();
