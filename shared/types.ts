@@ -117,6 +117,7 @@ export enum IntegrationService {
   Matomo = "matomo",
   Umami = "umami",
   GitHub = "github",
+  Linear = "linear",
   Notion = "notion",
 }
 
@@ -169,13 +170,14 @@ export enum DocumentPermission {
 
 export type IntegrationSettings<T> = T extends IntegrationType.Embed
   ? {
-      url: string;
+      url?: string;
       github?: {
         installation: {
           id: number;
           account: { id: number; name: string; avatarUrl: string };
         };
       };
+      linear?: { workspace: { id: string; name: string; logoUrl?: string } };
     }
   : T extends IntegrationType.Analytics
   ? { measurementId: string; instanceUrl?: string; scriptName?: string }
