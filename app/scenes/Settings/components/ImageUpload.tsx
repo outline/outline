@@ -8,7 +8,6 @@ import styled from "styled-components";
 import { s } from "@shared/styles";
 import { AttachmentPreset } from "@shared/types";
 import { AttachmentValidation } from "@shared/validations";
-import RootStore from "~/stores/RootStore";
 import ButtonLarge from "~/components/ButtonLarge";
 import Flex from "~/components/Flex";
 import LoadingIndicator from "~/components/LoadingIndicator";
@@ -33,12 +32,12 @@ const ImageUpload: React.FC<Props> = ({
 }) => {
   const stores = useStores();
   const { ui } = stores;
-  
+
   const [isUploading, setIsUploading] = useState(false);
   const [isCropping, setIsCropping] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [file, setFile] = useState<File | null>(null);
-  
+
   const avatarEditorRef = useRef<AvatarEditor>(null);
 
   const onDropAccepted = async (files: File[]) => {
