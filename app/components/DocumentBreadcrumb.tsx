@@ -18,6 +18,8 @@ type Props = {
   children?: React.ReactNode;
   document: Document;
   onlyText?: boolean;
+  reverse?: boolean;
+  reversedLength?: number;
 };
 
 function useCategory(document: Document): MenuInternalLink | null {
@@ -54,7 +56,7 @@ function useCategory(document: Document): MenuInternalLink | null {
 }
 
 function DocumentBreadcrumb(
-  { document, children, onlyText }: Props,
+  { document, children, onlyText, reverse = false, reversedLength = 2 }: Props,
   ref: React.RefObject<HTMLDivElement> | null
 ) {
   const { collections } = useStores();
@@ -96,15 +98,20 @@ function DocumentBreadcrumb(
   const items = React.useMemo(() => {
     const output = [];
 
-    if (category) {
-      output.push(category);
+    if (!reverse) {
+      if (category) {
+        output.push(category);
+      }
+      if (collectionNode) {
+        output.push(collectionNode);
+      }
     }
 
-    if (collectionNode) {
-      output.push(collectionNode);
-    }
+    const slicedPath = reverse
+      ? path.slice(-reversedLength + output.length, -1)
+      : path.slice(0, -1);
 
-    path.slice(0, -1).forEach((node: NavigationNode) => {
+    slicedPath.forEach((node: NavigationNode) => {
       const title = node.title || t("Untitled");
       output.push({
         type: "route",
@@ -121,21 +128,50 @@ function DocumentBreadcrumb(
         },
       });
     });
+
+    if (reverse) {
+      if (collectionNode && output.length < reversedLength) {
+        output.unshift(collectionNode);
+      }
+      if (category && output.length < reversedLength) {
+        output.unshift(category);
+      }
+    }
+
     return output;
-  }, [t, path, category, sidebarContext, collectionNode]);
+  }, [
+    t,
+    path,
+    category,
+    sidebarContext,
+    collectionNode,
+    reverse,
+    reversedLength,
+  ]);
 
   if (!collections.isLoaded) {
     return null;
   }
 
-  if (onlyText === true) {
+  if (onlyText) {
+    const slicedPath = reverse
+      ? path.slice(-reversedLength - 1, -1)
+      : path.slice(0, -1);
+
+    const showCollection = reverse
+      ? slicedPath.length < reversedLength
+      : !!collection;
+
+    const afterSlash = reverse && slicedPath.length >= reversedLength;
+
     return (
       <>
-        {collection?.name}
-        {path.slice(0, -1).map((node: NavigationNode) => (
+        {showCollection && collection?.name}
+        {slicedPath.map((node: NavigationNode, index: number) => (
           <React.Fragment key={node.id}>
-            <SmallSlash />
+            {!afterSlash && <SmallSlash />}
             {node.title || t("Untitled")}
+            {afterSlash && index !== slicedPath.length - 1 && <SmallSlash />}
           </React.Fragment>
         ))}
       </>
