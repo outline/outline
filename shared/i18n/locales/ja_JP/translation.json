@@ -893,6 +893,8 @@
   "No people left to add": "追加できる人は存在しません",
   "Date created": "作成日時",
   "Upload": "アップロード",
+  "Crop image": "Crop image",
+  "Uploading": "アップロード中",
   "How does this work?": "これはどのように機能しますか?",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>.": "以前にエクスポートした zip ファイルをインポートできます。 {{ appName }} で、サイドバーの <em>エクスポート画面</em> を開き、 <em>データのエクスポート</em> をクリックします。",
   "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload": "{{appName}} の JSON エクスポートオプションから zip ファイルをドラッグ&ドロップするか、クリックしてアップロードします",
@@ -1153,6 +1155,5 @@
   "You updated {{ timeAgo }}": "あなたが {{ timeAgo }} に更新しました",
   "{{ user }} updated {{ timeAgo }}": "{{ user }} が {{ timeAgo }} に更新しました",
   "You created {{ timeAgo }}": "あなたが {{ timeAgo }} に作成しました",
-  "{{ user }} created {{ timeAgo }}": "{{ user }} が {{ timeAgo }} に作成しました",
-  "Uploading": "アップロード中"
+  "{{ user }} created {{ timeAgo }}": "{{ user }} が {{ timeAgo }} に作成しました"
 }
