@@ -14,6 +14,25 @@ type ParsedNode = {
 };
 
 const cache: Record<number, { node: Node; decorations: Decoration[] }> = {};
+const languagesToImport = new Set<string>();
+
+async function loadLanguage(language: string) {
+  if (!language || refractor.registered(language)) {
+    return;
+  }
+  try {
+    // @ts-expect-error we are adding a module to the window object to work
+    // around the fact that refractor doesn't export ESM but import expects it.
+    window.module ??= {};
+    return import(`../../../node_modules/refractor/lang/${language}.js`).then(
+      () => {
+        refractor.register(window.module.exports);
+      }
+    );
+  } catch (err) {
+    // It will retry loading the language on the next render
+  }
+}
 
 function getDecorations({
   doc,
@@ -59,8 +78,16 @@ function getDecorations({
     let startPos = block.pos + 1;
     const language = getPrismLangForLanguage(block.node.attrs.language);
 
-    if (!language || !refractor.registered(language)) {
+    if (!language) {
       return;
+    }
+
+    // If the language isn't registered yet, trigger loading it
+    if (!refractor.registered(language)) {
+      languagesToImport.add(language);
+      return;
+    } else {
+      languagesToImport.delete(language);
     }
 
     const lineDecorations = [];
@@ -156,11 +183,13 @@ export default function Prism({
 
         // @ts-expect-error accessing private field.
         const isPaste = transaction.meta?.paste;
+        const isLanguageLoaded = transaction.getMeta("prism")?.loaded;
 
         if (
           !highlighted ||
           codeBlockChanged ||
           isPaste ||
+          isLanguageLoaded ||
           isRemoteTransaction(transaction)
         ) {
           highlighted = true;
@@ -182,7 +211,19 @@ export default function Prism({
           }
         }, 10);
       }
-      return {};
+      return {
+        update: () => {
+          if (!languagesToImport.size) {
+            return;
+          }
+
+          void Promise.all([...languagesToImport].map(loadLanguage)).then(() =>
+            languagesToImport.size
+              ? view.dispatch(view.state.tr.setMeta("prism", { loaded: true }))
+              : null
+          );
+        },
+      };
     },
     props: {
       decorations(state) {
