@@ -893,6 +893,8 @@
   "No people left to add": "Não sobrou ninguém para adicionar",
   "Date created": "Date created",
   "Upload": "Upload",
+  "Crop image": "Crop image",
+  "Uploading": "A carregar",
   "How does this work?": "Como funciona?",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>.": "Pode importar um ficheiro ZIP que foi exportado anteriormente a partir da opção JSON de outra instância. Em {{ appName }}, abra <em>Exportar</em> na barra lateral de Configurações e clique em <em>Exportar Dados</em>.",
   "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload": "Arraste e solte o ficheiro ZIP da opção de exportação JSON em {{appName}}ou clique para carregar",
@@ -1153,6 +1155,5 @@
   "You updated {{ timeAgo }}": "Atualizou à {{ timeAgo }}",
   "{{ user }} updated {{ timeAgo }}": "{{ user }} atualizado à {{ timeAgo }}",
   "You created {{ timeAgo }}": "Criou à {{ timeAgo }}",
-  "{{ user }} created {{ timeAgo }}": "{{ user }} criado à {{ timeAgo }}",
-  "Uploading": "A carregar"
+  "{{ user }} created {{ timeAgo }}": "{{ user }} criado à {{ timeAgo }}"
 }
