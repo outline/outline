@@ -893,6 +893,8 @@
   "No people left to add": "所有人員都已經被新增",
   "Date created": "創建日期",
   "Upload": "上傳",
+  "Crop image": "Crop image",
+  "Uploading": "正在上傳",
   "How does this work?": "這是如何運作的？",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>.": "你可以輸入自先前其他實例透過JSON選項輸出的zip檔案。在{{ appName }}中，在側邊欄的設定中打開<em>匯出</em>並且選取<em>匯出資料</em>。",
   "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload": "請將從 {{appName}} 的 JSON 匯出選項中匯出的 zip 檔案拖放到此處，或點擊上傳",
@@ -1153,6 +1155,5 @@
   "You updated {{ timeAgo }}": "{{ timeAgo }} 由您更新",
   "{{ user }} updated {{ timeAgo }}": "{{ timeAgo }} 由 {{ user }} 更新",
   "You created {{ timeAgo }}": "{{ timeAgo }} 由您新增",
-  "{{ user }} created {{ timeAgo }}": "{{ timeAgo }} 由 {{ user }} 新增",
-  "Uploading": "正在上傳"
+  "{{ user }} created {{ timeAgo }}": "{{ timeAgo }} 由 {{ user }} 新增"
 }
