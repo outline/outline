@@ -162,3 +162,4 @@ jobs:
       with:
         key: ${{ secrets.RELATIVE_CI_KEY }}
         token: ${{ secrets.GITHUB_TOKEN }}
+        webpackStatsFile: ./build/app/webpack-stats.json
