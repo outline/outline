@@ -1,6 +1,6 @@
 import Storage from "../../utils/Storage";
 
-const RecentStorageKey = "rme-code-language";
+const RecentlyUsedStorageKey = "rme-code-language";
 const StorageKey = "frequent-code-languages";
 const frequentLanguagesToGet = 5;
 const frequentLanguagesToTrack = 10;
@@ -9,7 +9,7 @@ const frequentLanguagesToTrack = 10;
  * List of supported code languages.
  *
  * Object key is the language identifier used in the editor, lang is the
- * language identifier used by Prism. Note mismatches such as `markup` and
+ * language identifier used by Refractor. Note mismatches such as `markup` and
  * `mermaid`.
  */
 export const codeLanguages = {
@@ -19,8 +19,10 @@ export const codeLanguages = {
   cpp: { lang: "cpp", label: "C++" },
   csharp: { lang: "csharp", label: "C#" },
   css: { lang: "css", label: "CSS" },
+  csv: { lang: "csv", label: "CSV" },
   docker: { lang: "docker", label: "Docker" },
   elixir: { lang: "elixir", label: "Elixir" },
+  erb: { lang: "erb", label: "ERB" },
   erlang: { lang: "erlang", label: "Erlang" },
   go: { lang: "go", label: "Go" },
   graphql: { lang: "graphql", label: "GraphQL" },
@@ -34,8 +36,11 @@ export const codeLanguages = {
   json: { lang: "json", label: "JSON" },
   jsx: { lang: "jsx", label: "JSX" },
   kotlin: { lang: "kotlin", label: "Kotlin" },
+  kusto: { lang: "kusto", label: "Kusto" },
   lisp: { lang: "lisp", label: "Lisp" },
   lua: { lang: "lua", label: "Lua" },
+  makefile: { lang: "makefile", label: "Makefile" },
+  markdown: { lang: "markdown", label: "Markdown" },
   mermaidjs: { lang: "mermaid", label: "Mermaid Diagram" },
   nginx: { lang: "nginx", label: "Nginx" },
   nix: { lang: "nix", label: "Nix" },
@@ -47,11 +52,13 @@ export const codeLanguages = {
   protobuf: { lang: "protobuf", label: "Protobuf" },
   python: { lang: "python", label: "Python" },
   r: { lang: "r", label: "R" },
+  regex: { lang: "regex", label: "Regex" },
   ruby: { lang: "ruby", label: "Ruby" },
   rust: { lang: "rust", label: "Rust" },
   scala: { lang: "scala", label: "Scala" },
   sass: { lang: "sass", label: "Sass" },
   scss: { lang: "scss", label: "SCSS" },
+  "splunk-spl": { lang: "splunk-spl", label: "Splunk SPL" },
   sql: { lang: "sql", label: "SQL" },
   solidity: { lang: "solidity", label: "Solidity" },
   swift: { lang: "swift", label: "Swift" },
@@ -79,12 +86,14 @@ export const getLabelForLanguage = (language: string) => {
 };
 
 /**
- * Get the Prism language identifier for a given language.
+ * Get the Refractor language identifier for a given language.
  *
  * @param language The language identifier.
- * @returns The Prism language identifier for the language.
+ * @returns The Refractor language identifier for the language.
  */
-export const getPrismLangForLanguage = (language: string): string | undefined =>
+export const getRefractorLangForLanguage = (
+  language: string
+): string | undefined =>
   codeLanguages[language as keyof typeof codeLanguages]?.lang;
 
 /**
@@ -92,14 +101,14 @@ export const getPrismLangForLanguage = (language: string): string | undefined =>
  *
  * @param language The language identifier.
  */
-export const setRecentCodeLanguage = (language: string) => {
+export const setRecentlyUsedCodeLanguage = (language: string) => {
   const frequentLangs = (Storage.get(StorageKey) ?? {}) as Record<
     string,
     number
   >;
 
   if (Object.keys(frequentLangs).length === 0) {
-    const lastUsedLang = Storage.get(RecentStorageKey);
+    const lastUsedLang = Storage.get(RecentlyUsedStorageKey);
     if (lastUsedLang) {
       frequentLangs[lastUsedLang] = 1;
     }
@@ -121,7 +130,7 @@ export const setRecentCodeLanguage = (language: string) => {
   }
 
   Storage.set(StorageKey, Object.fromEntries(frequentLangEntries));
-  Storage.set(RecentStorageKey, language);
+  Storage.set(RecentlyUsedStorageKey, language);
 };
 
 /**
@@ -129,8 +138,8 @@ export const setRecentCodeLanguage = (language: string) => {
  *
  * @returns The most recent code language used, or undefined if none is set.
  */
-export const getRecentCodeLanguage = () =>
-  Storage.get(RecentStorageKey) as keyof typeof codeLanguages | undefined;
+export const getRecentlyUsedCodeLanguage = () =>
+  Storage.get(RecentlyUsedStorageKey) as keyof typeof codeLanguages | undefined;
 
 /**
  * Get the most frequent code languages used.
@@ -138,7 +147,7 @@ export const getRecentCodeLanguage = () =>
  * @returns An array of the most frequent code languages used.
  */
 export const getFrequentCodeLanguages = () => {
-  const recentLang = Storage.get(RecentStorageKey);
+  const recentLang = Storage.get(RecentlyUsedStorageKey);
   const frequentLangEntries = Object.entries(Storage.get(StorageKey) ?? {}) as [
     keyof typeof codeLanguages,
     number
