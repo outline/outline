@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useState, useEffect, useRef } from "react";
-import styled from "styled-components";
 import { OpenIcon } from "outline-icons";
+import styled from "styled-components";
 import { Optional } from "utility-types";
 import { s } from "../../styles";
 import { sanitizeUrl } from "../../utils/urls";
@@ -48,7 +48,7 @@ function Frame({
   useEffect(() => {
     // Set mounted flag
     mountedRef.current = true;
-    
+
     // Load iframe after a small delay
     const timer = setTimeout(() => {
       if (mountedRef.current) {
