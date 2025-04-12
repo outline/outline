@@ -148,13 +148,13 @@ export default function blockMenuItems(
       title: dictionary.codeBlock,
       icon: <CodeIcon />,
       shortcut: "^ ⇧ c",
-      keywords: "script python",
+      keywords: "script",
     },
     {
       name: "math_block",
       title: dictionary.mathBlock,
       icon: <MathIcon />,
-      keywords: "math katex latex equation",
+      keywords: "math katex latex",
     },
     {
       name: "hr",
