@@ -82,6 +82,10 @@ export default class Mention extends Node {
               actorId: dom.dataset.actorid,
               label: dom.innerText,
               id: dom.id,
+              href: dom.getAttribute("href"),
+              unfurl: dom.dataset.unfurl
+                ? JSON.parse(dom.dataset.unfurl)
+                : undefined,
             };
           },
         },
@@ -107,7 +111,7 @@ export default class Mention extends Node {
             node.attrs.type === MentionType.Issue
               ? node.attrs.href
               : `mention://${node.attrs.id}/${node.attrs.type}/${node.attrs.modelId}`,
-          "data-unfurl": node.attrs.unfurl,
+          "data-unfurl": JSON.stringify(node.attrs.unfurl),
         },
         toPlainText(node),
       ],

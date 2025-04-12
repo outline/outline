@@ -9,6 +9,7 @@ import { Node } from "prosemirror-model";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import styled from "styled-components";
 import Flex from "../../components/Flex";
 import Icon from "../../components/Icon";
 import { IssueStatusIcon } from "../../components/IssueStatusIcon";
@@ -40,7 +41,7 @@ const getAttributesFromNode = (node: Node): Attrs => {
 
   return {
     className: className as Attrs["className"],
-    unfurl: unfurl as Attrs["unfurl"],
+    unfurl: unfurl ? (JSON.parse(unfurl as any) as Attrs["unfurl"]) : undefined,
     ...attrs,
   };
 };
@@ -247,11 +248,17 @@ export const MentionPullRequest = observer((props: IssuePrProps) => {
     void fetchPR();
   }, [unfurls, attrs.href, isMounted, onChangeUnfurl]);
 
+  const sharedProps = {
+    className: cn(className, {
+      "ProseMirror-selectednode": isSelected,
+    }),
+  };
+
   if (!unfurl) {
     return !loaded ? (
-      <MentionLoading className={className} />
+      <MentionLoading {...sharedProps} />
     ) : (
-      <MentionError className={className} />
+      <MentionError {...sharedProps} />
     );
   }
 
@@ -260,9 +267,7 @@ export const MentionPullRequest = observer((props: IssuePrProps) => {
   return (
     <a
       {...attrs}
-      className={cn(className, {
-        "ProseMirror-selectednode": isSelected,
-      })}
+      {...sharedProps}
       href={attrs.href as string}
       target="_blank"
       rel="noopener noreferrer nofollow"
@@ -298,8 +303,12 @@ const MentionError = ({ className }: { className: string }) => {
 
   return (
     <span className={className}>
-      <WarningIcon color={theme.danger} />
+      <StyledWarningIcon size={20} color={theme.danger} />
       <Text type="secondary">{`${t("Error loading data")}`}</Text>
     </span>
   );
 };
+
+const StyledWarningIcon = styled(WarningIcon)`
+  margin: 0 -2px;
+`;
