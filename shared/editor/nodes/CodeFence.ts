@@ -25,9 +25,12 @@ import {
 } from "../commands/codeFence";
 import { selectAll } from "../commands/selectAll";
 import toggleBlockType from "../commands/toggleBlockType";
+import { CodeHighlighting } from "../extensions/CodeHighlighting";
 import Mermaid from "../extensions/Mermaid";
-import Prism from "../extensions/Prism";
-import { getRecentCodeLanguage, setRecentCodeLanguage } from "../lib/code";
+import {
+  getRecentlyUsedCodeLanguage,
+  setRecentlyUsedCodeLanguage,
+} from "../lib/code";
 import { isCode } from "../lib/isCode";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { findNextNewline, findPreviousNewline } from "../queries/findNewlines";
@@ -108,10 +111,10 @@ export default class CodeFence extends Node {
     return {
       code_block: (attrs: Record<string, Primitive>) => {
         if (attrs?.language) {
-          setRecentCodeLanguage(attrs.language as string);
+          setRecentlyUsedCodeLanguage(attrs.language as string);
         }
         return toggleBlockType(type, schema.nodes.paragraph, {
-          language: getRecentCodeLanguage() ?? DEFAULT_LANGUAGE,
+          language: getRecentlyUsedCodeLanguage() ?? DEFAULT_LANGUAGE,
           ...attrs,
         });
       },
@@ -182,7 +185,7 @@ export default class CodeFence extends Node {
 
   get plugins() {
     return [
-      Prism({
+      CodeHighlighting({
         name: this.name,
         lineNumbers: this.showLineNumbers,
       }),
@@ -249,7 +252,7 @@ export default class CodeFence extends Node {
   inputRules({ type }: { type: NodeType }) {
     return [
       textblockTypeInputRule(/^```$/, type, () => ({
-        language: getRecentCodeLanguage() ?? DEFAULT_LANGUAGE,
+        language: getRecentlyUsedCodeLanguage() ?? DEFAULT_LANGUAGE,
       })),
     ];
   }

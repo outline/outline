@@ -1,6 +1,6 @@
 import Storage from "../../utils/Storage";
 
-const RecentStorageKey = "rme-code-language";
+const RecentlyUsedStorageKey = "rme-code-language";
 const StorageKey = "frequent-code-languages";
 const frequentLanguagesToGet = 5;
 const frequentLanguagesToTrack = 10;
@@ -9,7 +9,7 @@ const frequentLanguagesToTrack = 10;
  * List of supported code languages.
  *
  * Object key is the language identifier used in the editor, lang is the
- * language identifier used by Prism. Note mismatches such as `markup` and
+ * language identifier used by Refractor. Note mismatches such as `markup` and
  * `mermaid`.
  */
 export const codeLanguages = {
@@ -86,12 +86,14 @@ export const getLabelForLanguage = (language: string) => {
 };
 
 /**
- * Get the Prism language identifier for a given language.
+ * Get the Refractor language identifier for a given language.
  *
  * @param language The language identifier.
- * @returns The Prism language identifier for the language.
+ * @returns The Refractor language identifier for the language.
  */
-export const getPrismLangForLanguage = (language: string): string | undefined =>
+export const getRefractorLangForLanguage = (
+  language: string
+): string | undefined =>
   codeLanguages[language as keyof typeof codeLanguages]?.lang;
 
 /**
@@ -99,14 +101,14 @@ export const getPrismLangForLanguage = (language: string): string | undefined =>
  *
  * @param language The language identifier.
  */
-export const setRecentCodeLanguage = (language: string) => {
+export const setRecentlyUsedCodeLanguage = (language: string) => {
   const frequentLangs = (Storage.get(StorageKey) ?? {}) as Record<
     string,
     number
   >;
 
   if (Object.keys(frequentLangs).length === 0) {
-    const lastUsedLang = Storage.get(RecentStorageKey);
+    const lastUsedLang = Storage.get(RecentlyUsedStorageKey);
     if (lastUsedLang) {
       frequentLangs[lastUsedLang] = 1;
     }
@@ -128,7 +130,7 @@ export const setRecentCodeLanguage = (language: string) => {
   }
 
   Storage.set(StorageKey, Object.fromEntries(frequentLangEntries));
-  Storage.set(RecentStorageKey, language);
+  Storage.set(RecentlyUsedStorageKey, language);
 };
 
 /**
@@ -136,8 +138,8 @@ export const setRecentCodeLanguage = (language: string) => {
  *
  * @returns The most recent code language used, or undefined if none is set.
  */
-export const getRecentCodeLanguage = () =>
-  Storage.get(RecentStorageKey) as keyof typeof codeLanguages | undefined;
+export const getRecentlyUsedCodeLanguage = () =>
+  Storage.get(RecentlyUsedStorageKey) as keyof typeof codeLanguages | undefined;
 
 /**
  * Get the most frequent code languages used.
@@ -145,7 +147,7 @@ export const getRecentCodeLanguage = () =>
  * @returns An array of the most frequent code languages used.
  */
 export const getFrequentCodeLanguages = () => {
-  const recentLang = Storage.get(RecentStorageKey);
+  const recentLang = Storage.get(RecentlyUsedStorageKey);
   const frequentLangEntries = Object.entries(Storage.get(StorageKey) ?? {}) as [
     keyof typeof codeLanguages,
     number
