@@ -428,6 +428,7 @@
   "Create a new doc": "Maak een nieuw document",
   "{{ userName }} won't be notified, as they do not have access to this document": "{{ userName }} wordt niet verwittigd omdat ze geen toegang hebben tot dit document",
   "Keep as link": "Behoud als link",
+  "Mention": "Mention",
   "Embed": "Insluiten",
   "Add column after": "Kolom toevoegen",
   "Add column before": "Kolom ervoor toevoegen",
@@ -1155,5 +1156,6 @@
   "You updated {{ timeAgo }}": "{{ timeAgo }} door jou bijgewerkt",
   "{{ user }} updated {{ timeAgo }}": "{{ timeAgo }} door {{ user }} bijgewerkt",
   "You created {{ timeAgo }}": "{{ timeAgo }} door jou aangemaakt",
-  "{{ user }} created {{ timeAgo }}": "{{ timeAgo }} door {{ user }} aangemaakt"
+  "{{ user }} created {{ timeAgo }}": "{{ timeAgo }} door {{ user }} aangemaakt",
+  "Error loading data": "Error loading data"
 }
