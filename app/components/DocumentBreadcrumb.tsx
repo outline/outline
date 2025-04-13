@@ -19,7 +19,7 @@ type Props = {
   document: Document;
   onlyText?: boolean;
   reverse?: boolean;
-  reversedLength?: number;
+  maxDepth?: number;
 };
 
 function useCategory(document: Document): MenuInternalLink | null {
@@ -56,7 +56,7 @@ function useCategory(document: Document): MenuInternalLink | null {
 }
 
 function DocumentBreadcrumb(
-  { document, children, onlyText, reverse = false, reversedLength = 2 }: Props,
+  { document, children, onlyText, reverse = false, maxDepth }: Props,
   ref: React.RefObject<HTMLDivElement> | null
 ) {
   const { collections } = useStores();
@@ -93,25 +93,19 @@ function DocumentBreadcrumb(
     };
   }
 
-  const path = document.pathTo;
+  const path = document.pathTo.slice(0, -1);
 
   const items = React.useMemo(() => {
     const output = [];
 
-    if (!reverse) {
-      if (category) {
-        output.push(category);
-      }
-      if (collectionNode) {
-        output.push(collectionNode);
-      }
+    if (category && output.length) {
+      output.push(category);
+    }
+    if (collectionNode) {
+      output.push(collectionNode);
     }
 
-    const slicedPath = reverse
-      ? path.slice(-reversedLength + output.length, -1)
-      : path.slice(0, -1);
-
-    slicedPath.forEach((node: NavigationNode) => {
+    path.forEach((node: NavigationNode) => {
       const title = node.title || t("Untitled");
       output.push({
         type: "route",
@@ -129,16 +123,9 @@ function DocumentBreadcrumb(
       });
     });
 
-    if (reverse) {
-      if (collectionNode && output.length < reversedLength) {
-        output.unshift(collectionNode);
-      }
-      if (category && output.length < reversedLength) {
-        output.unshift(category);
-      }
-    }
-
-    return output;
+    return reverse
+      ? output.slice(maxDepth && -maxDepth)
+      : output.slice(0, maxDepth);
   }, [
     t,
     path,
@@ -146,7 +133,7 @@ function DocumentBreadcrumb(
     sidebarContext,
     collectionNode,
     reverse,
-    reversedLength,
+    maxDepth,
   ]);
 
   if (!collections.isLoaded) {
@@ -155,23 +142,23 @@ function DocumentBreadcrumb(
 
   if (onlyText) {
     const slicedPath = reverse
-      ? path.slice(-reversedLength - 1, -1)
-      : path.slice(0, -1);
+      ? path.slice((maxDepth && -maxDepth))
+      : path.slice(0, maxDepth);
 
-    const showCollection = reverse
-      ? slicedPath.length < reversedLength
-      : !!collection;
-
-    const afterSlash = reverse && slicedPath.length >= reversedLength;
+    const showCollection = collection && (
+      reverse
+        ? !maxDepth || slicedPath.length < maxDepth
+        : maxDepth !== 0
+    );
 
     return (
       <>
         {showCollection && collection?.name}
         {slicedPath.map((node: NavigationNode, index: number) => (
           <React.Fragment key={node.id}>
-            {!afterSlash && <SmallSlash />}
+            {showCollection && <SmallSlash />}
             {node.title || t("Untitled")}
-            {afterSlash && index !== slicedPath.length - 1 && <SmallSlash />}
+            {!showCollection && index !== slicedPath.length - 1 && <SmallSlash />}
           </React.Fragment>
         ))}
       </>

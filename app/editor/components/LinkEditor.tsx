@@ -255,7 +255,7 @@ const LinkEditor: React.FC<Props> = ({
                   selected={index === selectedIndex}
                   key={doc.id}
                   subtitle={
-                    <DocumentBreadcrumb document={doc} onlyText reverse />
+                    <DocumentBreadcrumb document={doc} onlyText reverse maxDepth={2} />
                   }
                   title={doc.title}
                   icon={
@@ -280,7 +280,7 @@ const Wrapper = styled(Flex)`
   gap: 8px;
 `;
 
-const SearchResults = styled(Scrollable) <{ $hasResults: boolean }>`
+const SearchResults = styled(Scrollable)<{ $hasResults: boolean }>`
   background: ${s("menuBackground")};
   box-shadow: ${(props) => (props.$hasResults ? s("menuShadow") : "none")};
   clip-path: inset(0px -100px -100px -100px);

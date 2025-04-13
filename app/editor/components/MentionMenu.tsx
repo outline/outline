@@ -58,7 +58,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
       res.data.documents.map(documents.add);
       res.data.users.map(users.add);
       res.data.collections.map(collections.add);
-    }, [search, documents, users, collections.add])
+    }, [search, documents, users, collections])
   );
 
   React.useEffect(() => {
@@ -114,7 +114,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
                 ),
                 title: doc.title,
                 subtitle: (
-                  <DocumentBreadcrumb document={doc} onlyText reverse />
+                  <DocumentBreadcrumb document={doc} onlyText reverse maxDepth={2} />
                 ),
                 section: DocumentsSection,
                 appendSpace: true,
@@ -179,7 +179,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
       setItems(items);
       setLoaded(true);
     }
-  }, [t, actorId, loading, search, users, documents, maxResultsInSection, React.useEffect]);
+  }, [t, actorId, loading, search, users, documents, maxResultsInSection]);
 
   const handleSelect = React.useCallback(
     async (item: MentionItem) => {
