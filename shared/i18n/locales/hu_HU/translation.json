@@ -428,6 +428,7 @@
   "Create a new doc": "Új doku létrehozása",
   "{{ userName }} won't be notified, as they do not have access to this document": "{{ userName }} won't be notified, as they do not have access to this document",
   "Keep as link": "Keep as link",
+  "Mention": "Mention",
   "Embed": "Beágyazás",
   "Add column after": "Oszlop hozzáadása utána",
   "Add column before": "Oszlop hozzáadása előtte",
@@ -1155,5 +1156,6 @@
   "You updated {{ timeAgo }}": "You updated {{ timeAgo }}",
   "{{ user }} updated {{ timeAgo }}": "{{ user }} updated {{ timeAgo }}",
   "You created {{ timeAgo }}": "You created {{ timeAgo }}",
-  "{{ user }} created {{ timeAgo }}": "{{ user }} created {{ timeAgo }}"
+  "{{ user }} created {{ timeAgo }}": "{{ user }} created {{ timeAgo }}",
+  "Error loading data": "Error loading data"
 }
