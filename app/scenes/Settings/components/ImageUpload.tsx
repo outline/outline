@@ -27,7 +27,7 @@ const ImageUpload: React.FC<Props> = ({
   onSuccess,
   onError,
   submitText,
-  borderRadius = 150,
+  borderRadius,
   children,
 }) => {
   const { dialogs } = useStores();
@@ -78,13 +78,13 @@ const ImageUpload: React.FC<Props> = ({
     async (files: File[]) => {
       setIsCropping(true);
       dialogs.openModal({
-        title: "&nbsp;",
+        title: "",
         content: (
           <AvatarEditorDialog
             file={files[0]}
             onUpload={handleUpload}
             isUploading={isUploading}
-            borderRadius={borderRadius}
+            borderRadius={borderRadius ?? 150}
             submitText={submitText || t("Crop image")}
           />
         ),
