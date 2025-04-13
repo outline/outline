@@ -1,7 +1,9 @@
 import { Hook, PluginManager } from "@server/utils/PluginManager";
+import { Minute } from "@shared/utils/time";
 import config from "../plugin.json";
 import router from "./api/linear";
 import env from "./env";
+import { Linear } from "./linear";
 
 const enabled = !!env.LINEAR_CLIENT_ID && !!env.LINEAR_CLIENT_SECRET;
 
@@ -11,6 +13,10 @@ if (enabled) {
       ...config,
       type: Hook.API,
       value: router,
+    },
+    {
+      type: Hook.UnfurlProvider,
+      value: { unfurl: Linear.unfurl, cacheExpiry: 5 * Minute.seconds },
     },
   ]);
 }
