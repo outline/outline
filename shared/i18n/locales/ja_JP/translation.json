@@ -428,6 +428,7 @@
   "Create a new doc": "ドキュメントを作成",
   "{{ userName }} won't be notified, as they do not have access to this document": "{{ userName }} はこのドキュメントへのアクセス権限がないため、通知されません",
   "Keep as link": "リンクとして保持",
+  "Mention": "Mention",
   "Embed": "埋め込み",
   "Add column after": "後ろに列を挿入",
   "Add column before": "前に列を挿入",
@@ -1155,5 +1156,6 @@
   "You updated {{ timeAgo }}": "あなたが {{ timeAgo }} に更新しました",
   "{{ user }} updated {{ timeAgo }}": "{{ user }} が {{ timeAgo }} に更新しました",
   "You created {{ timeAgo }}": "あなたが {{ timeAgo }} に作成しました",
-  "{{ user }} created {{ timeAgo }}": "{{ user }} が {{ timeAgo }} に作成しました"
+  "{{ user }} created {{ timeAgo }}": "{{ user }} が {{ timeAgo }} に作成しました",
+  "Error loading data": "Error loading data"
 }
