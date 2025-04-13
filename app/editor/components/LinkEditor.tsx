@@ -70,7 +70,7 @@ const LinkEditor: React.FC<Props> = ({
     React.useCallback(async () => {
       const res = await client.post("/suggestions.mention", { query });
       res.data.documents.map(documents.add);
-    }, [query, documents.add])
+    }, [query])
   );
 
   useEffect(() => {
