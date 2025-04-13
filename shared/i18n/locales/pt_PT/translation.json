@@ -428,6 +428,7 @@
   "Create a new doc": "Criar um novo documento",
   "{{ userName }} won't be notified, as they do not have access to this document": "{{ userName }} won't be notified, as they do not have access to this document",
   "Keep as link": "Keep as link",
+  "Mention": "Mention",
   "Embed": "Embed",
   "Add column after": "Adicionar coluna depois",
   "Add column before": "Adicionar coluna antes",
@@ -1155,5 +1156,6 @@
   "You updated {{ timeAgo }}": "Atualizou à {{ timeAgo }}",
   "{{ user }} updated {{ timeAgo }}": "{{ user }} atualizado à {{ timeAgo }}",
   "You created {{ timeAgo }}": "Criou à {{ timeAgo }}",
-  "{{ user }} created {{ timeAgo }}": "{{ user }} criado à {{ timeAgo }}"
+  "{{ user }} created {{ timeAgo }}": "{{ user }} criado à {{ timeAgo }}",
+  "Error loading data": "Error loading data"
 }
