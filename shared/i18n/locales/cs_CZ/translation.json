@@ -428,6 +428,7 @@
   "Create a new doc": "Vytvořit nový dokument",
   "{{ userName }} won't be notified, as they do not have access to this document": "{{ userName }} won't be notified, as they do not have access to this document",
   "Keep as link": "Zachovat jako odkaz",
+  "Mention": "Mention",
   "Embed": "Embed",
   "Add column after": "Přidat sloupec za",
   "Add column before": "Přidat sloupec před",
@@ -1155,5 +1156,6 @@
   "You updated {{ timeAgo }}": "Naposledy aktualizováno před {{ timeAgo }}",
   "{{ user }} updated {{ timeAgo }}": "{{ user }} aktualizoval před {{ timeAgo }}",
   "You created {{ timeAgo }}": "Vytvořili jste před {{ timeAgo }}",
-  "{{ user }} created {{ timeAgo }}": "{{ user }} vytvořil před {{ timeAgo }}"
+  "{{ user }} created {{ timeAgo }}": "{{ user }} vytvořil před {{ timeAgo }}",
+  "Error loading data": "Error loading data"
 }
