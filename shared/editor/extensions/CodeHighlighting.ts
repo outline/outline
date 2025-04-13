@@ -86,19 +86,6 @@ function getDecorations({
   blocks.forEach((block) => {
     let startPos = block.pos + 1;
     const language = getRefractorLangForLanguage(block.node.attrs.language);
-
-    if (!language) {
-      return;
-    }
-
-    // If the language isn't registered yet, trigger loading it
-    if (!refractor.registered(language)) {
-      languagesToImport.add(language);
-      return;
-    } else {
-      languagesToImport.delete(language);
-    }
-
     const lineDecorations = [];
 
     if (!cache[block.pos] || !cache[block.pos].node.eq(block.node)) {
@@ -127,35 +114,48 @@ function getDecorations({
         );
       }
 
-      const nodes = refractor.highlight(block.node.textContent, language);
-      const newDecorations = parseNodes(nodes)
-        .map((node: ParsedNode) => {
-          const from = startPos;
-          const to = from + node.text.length;
-
-          startPos = to;
-
-          return {
-            ...node,
-            from,
-            to,
-          };
-        })
-        .filter((node) => node.classes && node.classes.length)
-        .map((node) =>
-          Decoration.inline(node.from, node.to, {
-            class: node.classes.join(" "),
-          })
-        )
-        .concat(lineDecorations);
-
       cache[block.pos] = {
         node: block.node,
-        decorations: newDecorations,
+        decorations: lineDecorations,
       };
+
+      if (!language) {
+        // do nothing
+      } else if (refractor.registered(language)) {
+        languagesToImport.delete(language);
+
+        const nodes = refractor.highlight(block.node.textContent, language);
+        const newDecorations = parseNodes(nodes)
+          .map((node: ParsedNode) => {
+            const from = startPos;
+            const to = from + node.text.length;
+
+            startPos = to;
+
+            return {
+              ...node,
+              from,
+              to,
+            };
+          })
+          .filter((node) => node.classes && node.classes.length)
+          .map((node) =>
+            Decoration.inline(node.from, node.to, {
+              class: node.classes.join(" "),
+            })
+          )
+          .concat(lineDecorations);
+
+        cache[block.pos] = {
+          node: block.node,
+          decorations: newDecorations,
+        };
+      } else {
+        languagesToImport.add(language);
+      }
     }
 
-    cache[block.pos].decorations.forEach((decoration) => {
+    cache[block.pos]?.decorations.forEach((decoration) => {
       decorations.push(decoration);
     });
   });
