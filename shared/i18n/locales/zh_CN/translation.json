@@ -428,7 +428,7 @@
   "Create a new doc": "新建文档",
   "{{ userName }} won't be notified, as they do not have access to this document": "{{ userName }} 不会被通知，因为他们没有访问此文档的权限",
   "Keep as link": "保留为链接",
-  "Mention": "Mention",
+  "Mention": "提及",
   "Embed": "嵌入",
   "Add column after": "在后面添加列",
   "Add column before": "在前面添加列",
@@ -779,7 +779,7 @@
   "Inline code": "行内代码",
   "Inline LaTeX": "行内公式",
   "Triggers": "触发器",
-  "Mention users and more": "提及用户及更多",
+  "Mention users and more": "提及用户等",
   "Emoji": "表情",
   "Insert block": "插入块",
   "Sign In": "登录",
@@ -894,7 +894,7 @@
   "No people left to add": "没有人可以添加",
   "Date created": "创建日期",
   "Upload": "上传",
-  "Crop image": "Crop image",
+  "Crop image": "裁剪图像",
   "Uploading": "上传中",
   "How does this work?": "这是如何工作的？",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>.": "你可以导入以前从另一个实例中的JSON选项导出的zip文件。在 {{ appName }} 的侧边栏设置中打开 <em>导出</em> ，并点击 <em>导出数据</em>。",
@@ -1157,5 +1157,5 @@
   "{{ user }} updated {{ timeAgo }}": "{{ timeAgo }} 由 {{ user }} 更新",
   "You created {{ timeAgo }}": "{{ timeAgo }} 由你创建",
   "{{ user }} created {{ timeAgo }}": "{{ timeAgo }} 由 {{ user }} 创建",
-  "Error loading data": "Error loading data"
+  "Error loading data": "加载数据时出错"
 }
