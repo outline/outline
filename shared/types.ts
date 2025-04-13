@@ -75,6 +75,8 @@ export enum MentionType {
   User = "user",
   Document = "document",
   Collection = "collection",
+  Issue = "issue",
+  PullRequest = "pull_request",
 }
 
 export type PublicEnv = {
@@ -416,7 +418,7 @@ export type UnfurlResponse = {
     /** Issue title */
     title: string;
     /** Issue description */
-    description: string;
+    description: string | null;
     /** Issue's author */
     author: { name: string; avatarUrl: string };
     /** Issue's labels */
@@ -436,7 +438,7 @@ export type UnfurlResponse = {
     /** Pull Request title */
     title: string;
     /** Pull Request description */
-    description: string;
+    description: string | null;
     /** Pull Request author */
     author: { name: string; avatarUrl: string };
     /** Pull Request status */
