@@ -19,6 +19,11 @@ type Props = {
   document: Document;
   onlyText?: boolean;
   reverse?: boolean;
+  /**
+   * Maximum number of items to show in the breadcrumb.
+   * If value is less than or equals to 0, no items will be shown.
+   * If value is undefined, all items will be shown.
+   */
   maxDepth?: number;
 };
 
@@ -67,6 +72,7 @@ function DocumentBreadcrumb(
     ? collections.get(document.collectionId)
     : undefined;
   const can = usePolicy(collection);
+  const depth = maxDepth === undefined ? undefined : Math.max(0, maxDepth);
 
   React.useEffect(() => {
     void document.loadRelations({ withoutPolicies: true });
@@ -96,7 +102,9 @@ function DocumentBreadcrumb(
   const path = document.pathTo.slice(0, -1);
 
   const items = React.useMemo(() => {
-    const output = [];
+    const output: MenuInternalLink[] = [];
+
+    if (depth === 0) return output;
 
     if (category) {
       output.push(category);
@@ -124,8 +132,8 @@ function DocumentBreadcrumb(
     });
 
     return reverse
-      ? output.slice(maxDepth && -maxDepth)
-      : output.slice(0, maxDepth);
+      ? output.slice(depth && -depth)
+      : output.slice(0, depth);
   }, [
     t,
     path,
@@ -141,19 +149,19 @@ function DocumentBreadcrumb(
   }
 
   if (onlyText) {
+    if (depth === 0) return <></>
+
     const slicedPath = reverse
-      ? path.slice((maxDepth && -maxDepth))
-      : path.slice(0, maxDepth);
+      ? path.slice((depth && -depth))
+      : path.slice(0, depth);
 
     const showCollection = collection && (
-      reverse
-        ? !maxDepth || slicedPath.length < maxDepth
-        : maxDepth !== 0
+      !reverse || depth === undefined || slicedPath.length < depth
     );
 
     return (
       <>
-        {showCollection && collection?.name}
+        {showCollection && collection.name}
         {slicedPath.map((node: NavigationNode, index: number) => (
           <React.Fragment key={node.id}>
             {showCollection && <SmallSlash />}
