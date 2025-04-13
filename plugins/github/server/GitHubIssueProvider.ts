@@ -33,7 +33,7 @@ export class GitHubIssueProvider extends BaseIssueProvider {
     const sources = repos.map<IssueSource>((repo) => ({
       id: String(repo.id),
       name: repo.name,
-      account: { id: String(repo.owner.id), name: repo.owner.login },
+      owner: { id: String(repo.owner.id), name: repo.owner.login },
       service: IntegrationService.GitHub,
     }));
 
@@ -49,7 +49,7 @@ export class GitHubIssueProvider extends BaseIssueProvider {
       where: {
         service: IntegrationService.GitHub,
         teamId: actor.teamId,
-        "settings.github.installation.account.name": source.account.name,
+        "settings.github.installation.account.name": source.owner.name,
       },
     })) as Integration<IntegrationType.Embed> | undefined;
 
@@ -63,7 +63,7 @@ export class GitHubIssueProvider extends BaseIssueProvider {
       );
 
       const { data } = await client.createIssue({
-        owner: source.account.name,
+        owner: source.owner.name,
         repo: source.name,
         title,
       });

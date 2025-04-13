@@ -62,7 +62,7 @@ export default function formattingMenuItems(
   const issueSourcesChildren = recentIssueSources.length
     ? recentIssueSources.map<MenuItem>((source) => ({
         name: "issue",
-        label: `${source.account.name}/${source.name}`,
+        label: `${source.owner.name}/${source.name}`,
         icon: <PluginIcon id={source.service} />,
         attrs: {
           title: selectedText,

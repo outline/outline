@@ -62,7 +62,7 @@ export type ImportTaskOutput = {
 export const IssueSource = z.object({
   id: z.string().nonempty(),
   name: z.string().nonempty(),
-  account: z.object({
+  owner: z.object({
     id: z.string().nonempty(),
     name: z.string().nonempty(),
   }),

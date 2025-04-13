@@ -22,7 +22,6 @@ export default class IntegrationCreatedProcessor extends BaseProcessor {
     // Store the available issue sources in the integration record.
     await CacheIssueSourcesTask.schedule({
       integrationId: integration.id,
-      actorId: event.actorId,
     });
 
     // Clear the cache of unfurled data for the team as it may be stale now.

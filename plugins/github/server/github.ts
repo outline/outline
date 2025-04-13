@@ -108,11 +108,9 @@ const CustomOctokit = Octokit.plugin(requestPlugin);
 
 export class GitHub {
   private static appId = env.GITHUB_APP_ID;
-  // private static appKey = env.GITHUB_APP_PRIVATE_KEY
-  //   ? Buffer.from(env.GITHUB_APP_PRIVATE_KEY, "base64").toString("ascii")
-  //   : undefined;
-
-  private static appKey = env.GITHUB_APP_PRIVATE_KEY;
+  private static appKey = env.GITHUB_APP_PRIVATE_KEY
+    ? Buffer.from(env.GITHUB_APP_PRIVATE_KEY, "base64").toString("ascii")
+    : undefined;
 
   private static clientId = env.GITHUB_CLIENT_ID;
   private static clientSecret = env.GITHUB_CLIENT_SECRET;

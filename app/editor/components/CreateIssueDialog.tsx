@@ -90,7 +90,7 @@ export const CreateIssueDialog = observer(
                 <Trans
                   defaults="Create issue in <em>{{ location }}</em>"
                   values={{
-                    location: `${selectedSource.account.name}/${selectedSource.name} `,
+                    location: `${selectedSource.owner.name}/${selectedSource.name} `,
                   }}
                   components={{
                     em: <strong />,
@@ -131,7 +131,7 @@ const SourceItem = ({
     <Flex align="center" gap={2}>
       <PluginIcon id={source.service} size={20} />
       <SourceAccount type="tertiary" size="xsmall">
-        {source.account.name}
+        {source.owner.name}
       </SourceAccount>
     </Flex>
   </SourceItemWrapper>
