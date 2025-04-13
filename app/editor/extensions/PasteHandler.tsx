@@ -24,7 +24,7 @@ import parseCollectionSlug from "@shared/utils/parseCollectionSlug";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isCollectionUrl, isDocumentUrl, isUrl } from "@shared/utils/urls";
 import stores from "~/stores";
-import PasteMenu from "../components/PasteMenu";
+import { PasteMenu } from "../components/PasteMenu";
 
 export default class PasteHandler extends Extension {
   state: {
@@ -415,6 +415,21 @@ export default class PasteHandler extends Extension {
     });
   };
 
+  private insertMention = () => {
+    const { view } = this.editor;
+    const { state } = view;
+    const result = this.findPlaceholder(state, this.state.pastedText);
+
+    // Remove just the placeholder here.
+    // Mention node will be created by SuggestionsMenu.
+    if (result) {
+      const tr = state.tr.deleteRange(result[0], result[1]);
+      view.dispatch(
+        tr.setSelection(TextSelection.near(tr.doc.resolve(result[0])))
+      );
+    }
+  };
+
   private removePlaceholder = () => {
     const { view } = this.editor;
     const { state } = view;
@@ -448,6 +463,11 @@ export default class PasteHandler extends Extension {
       case "embed": {
         this.hidePasteMenu();
         this.insertEmbed();
+        break;
+      }
+      case "mention": {
+        this.hidePasteMenu();
+        this.insertMention();
         break;
       }
       default:

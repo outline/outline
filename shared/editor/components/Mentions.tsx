@@ -1,17 +1,49 @@
 import { observer } from "mobx-react";
-import { DocumentIcon, EmailIcon, CollectionIcon } from "outline-icons";
+import {
+  DocumentIcon,
+  EmailIcon,
+  CollectionIcon,
+  WarningIcon,
+} from "outline-icons";
 import { Node } from "prosemirror-model";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import styled from "styled-components";
+import Flex from "../../components/Flex";
 import Icon from "../../components/Icon";
+import { IssueStatusIcon } from "../../components/IssueStatusIcon";
+import { PullRequestIcon } from "../../components/PullRequestIcon";
+import Spinner from "../../components/Spinner";
+import Text from "../../components/Text";
+import useIsMounted from "../../hooks/useIsMounted";
 import useStores from "../../hooks/useStores";
+import theme from "../../styles/theme";
+import type {
+  JSONValue,
+  UnfurlResourceType,
+  UnfurlResponse,
+} from "../../types";
 import { cn } from "../styles/utils";
 import { ComponentProps } from "../types";
 
-const getAttributesFromNode = (node: Node) => {
-  const spec = node.type.spec.toDOM?.(node) as any as Record<string, string>[];
-  const { class: className, ...attrs } = spec[1];
-  return { className, ...attrs };
+type Attrs = {
+  className: string;
+  unfurl?: UnfurlResponse[keyof UnfurlResponse];
+} & Record<string, JSONValue>;
+
+const getAttributesFromNode = (node: Node): Attrs => {
+  const spec = node.type.spec.toDOM?.(node) as any as Record<
+    string,
+    JSONValue
+  >[];
+  const { class: className, "data-unfurl": unfurl, ...attrs } = spec[1];
+
+  return {
+    className: className as Attrs["className"],
+    unfurl: unfurl ? (JSON.parse(unfurl as any) as Attrs["unfurl"]) : undefined,
+    ...attrs,
+  };
 };
 
 export const MentionUser = observer(function MentionUser_(
@@ -20,7 +52,7 @@ export const MentionUser = observer(function MentionUser_(
   const { isSelected, node } = props;
   const { users } = useStores();
   const user = users.get(node.attrs.modelId);
-  const { className, ...attrs } = getAttributesFromNode(node);
+  const { className, unfurl, ...attrs } = getAttributesFromNode(node);
 
   return (
     <span
@@ -42,7 +74,7 @@ export const MentionDocument = observer(function MentionDocument_(
   const { documents } = useStores();
   const doc = documents.get(node.attrs.modelId);
   const modelId = node.attrs.modelId;
-  const { className, ...attrs } = getAttributesFromNode(node);
+  const { className, unfurl, ...attrs } = getAttributesFromNode(node);
 
   React.useEffect(() => {
     if (modelId) {
@@ -75,7 +107,7 @@ export const MentionCollection = observer(function MentionCollection_(
   const { collections } = useStores();
   const collection = collections.get(node.attrs.modelId);
   const modelId = node.attrs.modelId;
-  const { className, ...attrs } = getAttributesFromNode(node);
+  const { className, unfurl, ...attrs } = getAttributesFromNode(node);
 
   React.useEffect(() => {
     if (modelId) {
@@ -100,3 +132,183 @@ export const MentionCollection = observer(function MentionCollection_(
     </Link>
   );
 });
+
+type IssuePrProps = ComponentProps & {
+  onChangeUnfurl: (
+    unfurl:
+      | UnfurlResponse[UnfurlResourceType.Issue]
+      | UnfurlResponse[UnfurlResourceType.PR]
+  ) => void;
+};
+
+export const MentionIssue = observer((props: IssuePrProps) => {
+  const { unfurls } = useStores();
+  const isMounted = useIsMounted();
+  const [loaded, setLoaded] = React.useState(false);
+  const onChangeUnfurl = React.useRef(props.onChangeUnfurl).current; // stable reference to callback function.
+
+  const { isSelected, node } = props;
+  const {
+    className,
+    unfurl: unfurlAttr,
+    ...attrs
+  } = getAttributesFromNode(node);
+
+  const unfurl = unfurls.get(attrs.href)?.data ?? unfurlAttr;
+
+  React.useEffect(() => {
+    const fetchIssue = async () => {
+      const unfurlModel = await unfurls.fetchUnfurl({ url: attrs.href });
+
+      if (!isMounted()) {
+        return;
+      }
+
+      if (unfurlModel) {
+        onChangeUnfurl({
+          ...unfurlModel.data,
+          description: null,
+        } satisfies UnfurlResponse[UnfurlResourceType.Issue]);
+      }
+
+      setLoaded(true);
+    };
+
+    void fetchIssue();
+  }, [unfurls, attrs.href, isMounted, onChangeUnfurl]);
+
+  if (!unfurl) {
+    return !loaded ? (
+      <MentionLoading className={className} />
+    ) : (
+      <MentionError className={className} />
+    );
+  }
+
+  const issue = unfurl as UnfurlResponse[UnfurlResourceType.Issue];
+
+  return (
+    <a
+      {...attrs}
+      className={cn(className, {
+        "ProseMirror-selectednode": isSelected,
+      })}
+      href={attrs.href as string}
+      target="_blank"
+      rel="noopener noreferrer nofollow"
+    >
+      <Flex align="center" gap={6}>
+        <IssueStatusIcon
+          size={14}
+          status={issue.state.name}
+          color={issue.state.color}
+        />
+        <Flex align="center" gap={4}>
+          <Text>{issue.title}</Text>
+          <Text type="tertiary">{issue.id}</Text>
+        </Flex>
+      </Flex>
+    </a>
+  );
+});
+
+export const MentionPullRequest = observer((props: IssuePrProps) => {
+  const { unfurls } = useStores();
+  const isMounted = useIsMounted();
+  const [loaded, setLoaded] = React.useState(false);
+  const onChangeUnfurl = React.useRef(props.onChangeUnfurl).current; // stable reference to callback function.
+
+  const { isSelected, node } = props;
+  const {
+    className,
+    unfurl: unfurlAttr,
+    ...attrs
+  } = getAttributesFromNode(node);
+
+  const unfurl = unfurls.get(attrs.href)?.data ?? unfurlAttr;
+
+  React.useEffect(() => {
+    const fetchPR = async () => {
+      const unfurlModel = await unfurls.fetchUnfurl({ url: attrs.href });
+
+      if (!isMounted()) {
+        return;
+      }
+
+      if (unfurlModel) {
+        onChangeUnfurl({
+          ...unfurlModel.data,
+          description: null,
+        } satisfies UnfurlResponse[UnfurlResourceType.PR]);
+      }
+
+      setLoaded(true);
+    };
+
+    void fetchPR();
+  }, [unfurls, attrs.href, isMounted, onChangeUnfurl]);
+
+  const sharedProps = {
+    className: cn(className, {
+      "ProseMirror-selectednode": isSelected,
+    }),
+  };
+
+  if (!unfurl) {
+    return !loaded ? (
+      <MentionLoading {...sharedProps} />
+    ) : (
+      <MentionError {...sharedProps} />
+    );
+  }
+
+  const pullRequest = unfurl as UnfurlResponse[UnfurlResourceType.PR];
+
+  return (
+    <a
+      {...attrs}
+      {...sharedProps}
+      href={attrs.href as string}
+      target="_blank"
+      rel="noopener noreferrer nofollow"
+    >
+      <Flex align="center" gap={6}>
+        <PullRequestIcon
+          size={14}
+          status={pullRequest.state.name}
+          color={pullRequest.state.color}
+        />
+        <Flex align="center" gap={4}>
+          <Text>{pullRequest.title}</Text>
+          <Text type="tertiary">{pullRequest.id}</Text>
+        </Flex>
+      </Flex>
+    </a>
+  );
+});
+
+const MentionLoading = ({ className }: { className: string }) => {
+  const { t } = useTranslation();
+
+  return (
+    <span className={className}>
+      <Spinner />
+      <Text type="tertiary">{`${t("Loading")}…`}</Text>
+    </span>
+  );
+};
+
+const MentionError = ({ className }: { className: string }) => {
+  const { t } = useTranslation();
+
+  return (
+    <span className={className}>
+      <StyledWarningIcon size={20} color={theme.danger} />
+      <Text type="secondary">{`${t("Error loading data")}`}</Text>
+    </span>
+  );
+};
+
+const StyledWarningIcon = styled(WarningIcon)`
+  margin: 0 -2px;
+`;
