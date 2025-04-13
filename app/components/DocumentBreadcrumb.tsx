@@ -98,7 +98,7 @@ function DocumentBreadcrumb(
   const items = React.useMemo(() => {
     const output = [];
 
-    if (category && output.length) {
+    if (category) {
       output.push(category);
     }
     if (collectionNode) {
