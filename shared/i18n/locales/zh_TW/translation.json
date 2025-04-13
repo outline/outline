@@ -428,6 +428,7 @@
   "Create a new doc": "建立新文件",
   "{{ userName }} won't be notified, as they do not have access to this document": "{{ userName }}不會被通知，因為他們沒有這個文件的存取權",
   "Keep as link": "保留為連結",
+  "Mention": "Mention",
   "Embed": "嵌入",
   "Add column after": "在後面增加一欄",
   "Add column before": "在前面增加一欄",
@@ -1155,5 +1156,6 @@
   "You updated {{ timeAgo }}": "{{ timeAgo }} 由您更新",
   "{{ user }} updated {{ timeAgo }}": "{{ timeAgo }} 由 {{ user }} 更新",
   "You created {{ timeAgo }}": "{{ timeAgo }} 由您新增",
-  "{{ user }} created {{ timeAgo }}": "{{ timeAgo }} 由 {{ user }} 新增"
+  "{{ user }} created {{ timeAgo }}": "{{ timeAgo }} 由 {{ user }} 新增",
+  "Error loading data": "Error loading data"
 }
