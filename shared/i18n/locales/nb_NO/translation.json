@@ -428,6 +428,7 @@
   "Create a new doc": "Lag et nytt dokument",
   "{{ userName }} won't be notified, as they do not have access to this document": "{{ userName }} vil ikke bli varslet, da de ikke har tilgang til dette dokumentet",
   "Keep as link": "Behold som lenke",
+  "Mention": "Mention",
   "Embed": "Bygg inn",
   "Add column after": "Legg til kolonne etter",
   "Add column before": "Sett inn kolonne før",
@@ -1155,5 +1156,6 @@
   "You updated {{ timeAgo }}": "Du oppdaterte {{ timeAgo }}",
   "{{ user }} updated {{ timeAgo }}": "{{ user }} oppdaterte {{ timeAgo }}",
   "You created {{ timeAgo }}": "Du opprettet {{ timeAgo }}",
-  "{{ user }} created {{ timeAgo }}": "{{ user }} opprettet {{ timeAgo }}"
+  "{{ user }} created {{ timeAgo }}": "{{ user }} opprettet {{ timeAgo }}",
+  "Error loading data": "Error loading data"
 }
