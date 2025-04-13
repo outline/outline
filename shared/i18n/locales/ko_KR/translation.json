@@ -428,6 +428,7 @@
   "Create a new doc": "새 문서 만들기",
   "{{ userName }} won't be notified, as they do not have access to this document": "{{ userName }} 은(는) 이 문서에 대한 액세스 권한이 없으므로 알림을 받지 않습니다.",
   "Keep as link": "링크로 유지",
+  "Mention": "Mention",
   "Embed": "내장",
   "Add column after": "뒤에 열 추가",
   "Add column before": "앞에 열 추가",
@@ -1155,5 +1156,6 @@
   "You updated {{ timeAgo }}": "{{ timeAgo }} 전에 내가 업데이트 함",
   "{{ user }} updated {{ timeAgo }}": "{{ user }} 업데이트 됨 {{ timeAgo }}",
   "You created {{ timeAgo }}": "{{ timeAgo }} 전에 내가 생성함",
-  "{{ user }} created {{ timeAgo }}": "{{ user }} 이(가) {{ timeAgo }} 전에 생성"
+  "{{ user }} created {{ timeAgo }}": "{{ user }} 이(가) {{ timeAgo }} 전에 생성",
+  "Error loading data": "Error loading data"
 }
