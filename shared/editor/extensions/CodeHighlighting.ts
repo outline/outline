@@ -83,7 +83,8 @@ function getDecorations({
 
   blocks.forEach((block) => {
     let startPos = block.pos + 1;
-    const language = getRefractorLangForLanguage(block.node.attrs.language);
+    const language = block.node.attrs.language;
+    const lang = getRefractorLangForLanguage(language);
     const lineDecorations = [];
 
     if (!cache[block.pos] || !cache[block.pos].node.eq(block.node)) {
@@ -117,12 +118,12 @@ function getDecorations({
         decorations: lineDecorations,
       };
 
-      if (!language) {
+      if (!lang) {
         // do nothing
-      } else if (refractor.registered(language)) {
+      } else if (refractor.registered(lang)) {
         languagesToImport.delete(language);
 
-        const nodes = refractor.highlight(block.node.textContent, language);
+        const nodes = refractor.highlight(block.node.textContent, lang);
         const newDecorations = parseNodes(nodes)
           .map((node: ParsedNode) => {
             const from = startPos;
