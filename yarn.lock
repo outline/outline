@@ -11328,10 +11328,10 @@ levn@~0.3.0:
     prelude-ls "~1.1.2"
     type-check "~0.3.2"
 
-lib0@^0.2.42, lib0@^0.2.46, lib0@^0.2.47, lib0@^0.2.74, lib0@^0.2.85:
-  version "0.2.88"
-  resolved "https://registry.yarnpkg.com/lib0/-/lib0-0.2.88.tgz#18618e0c3b63f6260255eb760f9247d9cc6c6a5b"
-  integrity sha512-KyroiEvCeZcZEMx5Ys+b4u4eEBbA1ch7XUaBhYpwa/nPMrzTjUhI4RfcytmQfYoTBPcdyx+FX6WFNIoNuJzJfQ==
+lib0@^0.2.100, lib0@^0.2.46, lib0@^0.2.47, lib0@^0.2.74, lib0@^0.2.85:
+  version "0.2.104"
+  resolved "https://registry.yarnpkg.com/lib0/-/lib0-0.2.104.tgz#1d9c8d4a8a88897b543a6f81fbd92e8605080282"
+  integrity sha512-1tqKRANSPTcjs/yjPoKh52oRM2u5AYdd8jie8sDiN8/5kpWWiQSHUGgtB4VEXLw1chVL3QPSPp8q9RWqzSn2FA==
   dependencies:
     isomorphic.js "^0.2.4"
 
@@ -16101,12 +16101,12 @@ y-indexeddb@^9.0.11:
   dependencies:
     lib0 "^0.2.74"
 
-y-prosemirror@^1.2.12:
-  version "1.2.12"
-  resolved "https://registry.yarnpkg.com/y-prosemirror/-/y-prosemirror-1.2.12.tgz#3bb3bd9def611a90e8b7ac6a7e46a6230f238746"
-  integrity sha512-UMnUIR5ppVn30n2kzeeBQEaesWGe4fsbnlch1HnNa3/snJMoOn7M7dieuS+o1OQwKs1dqx2eT3gFfGF2aOaQdw==
+y-prosemirror@^1.3.3:
+  version "1.3.3"
+  resolved "https://registry.yarnpkg.com/y-prosemirror/-/y-prosemirror-1.3.3.tgz#599158cc74e7cf98b179ab28d22814e19dcd7aa1"
+  integrity sha512-q//ybL7qw1xzo0UCWtn/FTf3/D35rH6bOpgtunKTE7ZTLU5h9+N2FbqSx0bArg++gqc7Ylkmic/ToI0pHnGjiA==
   dependencies:
-    lib0 "^0.2.42"
+    lib0 "^0.2.100"
 
 y-protocols@^1.0.6:
   version "1.0.6"
