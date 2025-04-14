@@ -6,6 +6,12 @@ const StorageKey = "frequent-code-languages";
 const frequentLanguagesToGet = 5;
 const frequentLanguagesToTrack = 10;
 
+type CodeLanguage = {
+  lang: string;
+  label: string;
+  loader?: () => Promise<RefractorSyntax>;
+};
+
 /**
  * List of supported code languages.
  *
@@ -13,13 +19,7 @@ const frequentLanguagesToTrack = 10;
  * language identifier used by Refractor. Note mismatches such as `markup` and
  * `mermaid`.
  */
-export const codeLanguages: {
-  [key: string]: {
-    lang: string;
-    label: string;
-    loader?: () => Promise<RefractorSyntax>;
-  };
-} = {
+export const codeLanguages: Record<string, CodeLanguage> = {
   none: { lang: "", label: "Plain text" },
   bash: {
     lang: "bash",
