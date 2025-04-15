@@ -114,6 +114,8 @@ const Modal: React.FC<Props> = ({
                 <Small {...props}>
                   <Centered
                     onClick={(ev) => ev.stopPropagation()}
+                    // maxHeight needed for proper overflow behavior in Safari
+                    style={{ maxHeight: "65vh" }}
                     column
                     reverse
                   >
@@ -259,6 +261,7 @@ const Small = styled.div`
   width: 75vw;
   min-width: 350px;
   max-width: 450px;
+  max-height: 65vh;
   z-index: ${depths.modal};
   display: flex;
   justify-content: center;
