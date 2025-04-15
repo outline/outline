@@ -283,6 +283,14 @@ const emailStyle = (props: Props) => css`
 `;
 
 const style = (props: Props) => css`
+--font-size-p: var(--font-size-body);
+--font-size-h1: 28px;
+--font-size-h2: 22px;
+--font-size-h3: 18px;
+--font-size-h4: 16px;
+--font-size-h5: 15px;
+--font-size-h6: 15px;
+
 flex-grow: ${props.grow ? 1 : 0};
 justify-content: start;
 color: ${props.theme.text};
@@ -409,12 +417,12 @@ width: 100%;
 
   // all of heading sizes are stepped down one from global styles, except h1
   // which is between h1 and h2
-  h1 { font-size: 28px; }
-  h2 { font-size: 22px; }
-  h3 { font-size: 18px; }
-  h4 { font-size: 16px; }
-  h5 { font-size: 15px; }
-  h6 { font-size: 15px; }
+  h1 { font-size: var(--font-size-h1); }
+  h2 { font-size: var(--font-size-h2); }
+  h3 { font-size: var(--font-size-h3); }
+  h4 { font-size: var(--font-size-h4); }
+  h5 { font-size: var(--font-size-h5); }
+  h6 { font-size: var(--font-size-h6); }
 
   .ProseMirror-yjs-selection {
     transition: background-color 500ms ease-in-out;
@@ -1961,6 +1969,36 @@ del[data-operation-index] {
   }
 
   > .toggle-block-button {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    &:has(+ .toggle-block-content > .toggle-block-head > p) {
+      --line-height: var(--line-height-p);
+      --font-size: var(--font-size-p);
+    }
+
+    &:has(+ .toggle-block-content > .toggle-block-head > h1) {
+      --line-height: var(--line-height-h);
+      --font-size: var(--font-size-h1);
+    }
+
+    &:has(+ .toggle-block-content > .toggle-block-head > h2) {
+      --line-height: var(--line-height-h);
+      --font-size: var(--font-size-h2);
+    }
+
+    &:has(+ .toggle-block-content > .toggle-block-head > h3) {
+      --line-height: var(--line-height-h);
+      --font-size: var(--font-size-h3);
+    }
+
+    &:has(+ .toggle-block-content > .toggle-block-head > h4) {
+      --line-height: var(--line-height-h);
+      --font-size: var(--font-size-h4);
+    }
+
     color: ${props.theme.text};
     opacity: 0.75;
     cursor: var(--pointer);
@@ -1969,23 +2007,27 @@ del[data-operation-index] {
     border: 0;
     margin: 0;
     padding: 0;
-    /* TODO: For now, this is calculated as lineHeight(h1)*fontSize(h1). Fix it! */
-    max-height: 35px;
+    height: calc(var(--line-height) * var(--font-size));
+    width: 18px;
     &:focus,
     &:hover {
       opacity: 1;
+    }
+    overflow: auto;
+
+    > svg {
+      transition: transform 200ms ease-out;
     }
   }
 
   > .toggle-block-content {
     > .toggle-block-head {
       > * {
-          margin-top: 0
-        }
+        margin-top: 0
       }
-      flex-grow: 1;
-      overflow: auto;
     }
+    flex-grow: 1;
+    overflow: auto;
   }
 }
 `;
