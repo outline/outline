@@ -1,6 +1,7 @@
 import { Node as ProsemirrorNode } from "prosemirror-model";
 import { EditorView, Decoration } from "prosemirror-view";
 import { FunctionComponent } from "react";
+import { Primitive } from "utility-types"; // Added import
 import Extension from "@shared/editor/lib/Extension";
 import { ComponentProps } from "@shared/editor/types";
 import { Editor } from "~/editor";
@@ -117,6 +118,23 @@ export default class ComponentView {
       isSelected: this.isSelected,
       isEditable: this.view.editable,
       getPos: this.getPos,
-    } as ComponentProps;
+      /**
+       * Props passed to the React component rendered by this NodeView.
+       * Includes editor context (like theme) and methods to interact
+       * with the ProseMirror node (e.g., `updateAttributes`).
+       */
+      theme: this.editor.props.theme,
+      updateAttributes: (attrs: Record<string, Primitive | null>) => {
+        const transaction = this.view.state.tr.setNodeMarkup(
+          this.getPos(),
+          undefined,
+          {
+            ...this.node.attrs,
+            ...attrs,
+          }
+        );
+        this.view.dispatch(transaction);
+      },
+    };
   }
 }

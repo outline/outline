@@ -121,6 +121,12 @@ export default function blockMenuItems(
       keywords: "file upload attach",
     },
     {
+      name: "pdf_document", // Use the node name
+      title: dictionary.uploadPdf, // Use the new dictionary entry
+      icon: <AttachmentIcon />, // use AttachmentIcon, should be changed to pdf specific icon for clarity
+      keywords: "pdf document upload file",
+    },
+    {
       name: "table",
       title: dictionary.table,
       icon: <TableIcon />,

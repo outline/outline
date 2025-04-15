@@ -113,4 +113,10 @@ export default createGlobalStyle<Props>`
     outline-offset: -1px;
     outline-width: initial;
   }
+
+  .pdf-attachment:hover {
+    background: ${(props) => props.theme.backgroundSecondary};
+    border-radius: 8px;
+    cursor: pointer;
+  }
 `;
