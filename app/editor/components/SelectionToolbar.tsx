@@ -174,12 +174,12 @@ export default function SelectionToolbar(props: Props) {
   const { isTemplate, rtl, canComment, canUpdate, ...rest } = props;
   const { state } = view;
   const { selection } = state;
-  const isDividerSelection = isNodeActive(state.schema.nodes.hr)(state);
 
   if ((readOnly && !canComment) || isDragging) {
     return null;
   }
 
+  const isDividerSelection = isNodeActive(state.schema.nodes.hr)(state);
   const colIndex = getColumnIndex(state);
   const rowIndex = getRowIndex(state);
   const isTableSelection = colIndex !== undefined && rowIndex !== undefined;
