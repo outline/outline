@@ -408,10 +408,14 @@ export default class Image extends SimpleImage {
         if (!(state.selection instanceof NodeSelection)) {
           return false;
         }
+        let layoutClass: string | null = "full-width";
+        if (state.selection.node.attrs.layoutClass === layoutClass) {
+          layoutClass = null;
+        }
         const attrs = {
           ...state.selection.node.attrs,
           title: null,
-          layoutClass: "full-width",
+          layoutClass,
         };
         const { selection } = state;
         dispatch?.(state.tr.setNodeMarkup(selection.from, undefined, attrs));
