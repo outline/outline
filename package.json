@@ -210,7 +210,7 @@
     "react-merge-refs": "^2.1.1",
     "react-portal": "^4.2.2",
     "react-router-dom": "^5.3.4",
-    "react-virtualized-auto-sizer": "^1.0.21",
+    "react-virtualized-auto-sizer": "^1.0.26",
     "react-waypoint": "^10.3.0",
     "react-window": "^1.8.11",
     "reakit": "^1.3.11",
