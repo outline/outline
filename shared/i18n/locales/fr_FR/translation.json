@@ -428,7 +428,7 @@
   "Create a new doc": "Créer un nouveau doc",
   "{{ userName }} won't be notified, as they do not have access to this document": "{{ userName }} ne sera pas notifié, car il n'a pas accès à ce document",
   "Keep as link": "Garder comme lien",
-  "Mention": "Mention",
+  "Mention": "Mentionner",
   "Embed": "Intégrer",
   "Add column after": "Ajouter une colonne après",
   "Add column before": "Ajouter une colonne avant",
@@ -894,7 +894,7 @@
   "No people left to add": "Plus aucune personne à ajouter",
   "Date created": "Créé le",
   "Upload": "Envoyer",
-  "Crop image": "Crop image",
+  "Crop image": "Rogner l’image",
   "Uploading": "Transfert en cours",
   "How does this work?": "Comment cela fonctionne-t-il ?",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>.": "Vous pouvez importer un fichier zip provenant de l'export JSON d'une autre installation Outline. Dans {{ appName }}, ouvrez <em>Exporter</em> dans les paramètres et cliquez sur <em>Exporter les données</em>.",
@@ -1157,5 +1157,5 @@
   "{{ user }} updated {{ timeAgo }}": "Mis à jour par {{ user }} il y a {{ timeAgo }}",
   "You created {{ timeAgo }}": "Créé par vous il y a {{ timeAgo }}",
   "{{ user }} created {{ timeAgo }}": "Créé par {{ user }} il y a {{ timeAgo }}",
-  "Error loading data": "Error loading data"
+  "Error loading data": "Erreur de chargement des données"
 }
