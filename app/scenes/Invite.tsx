@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { PlusIcon } from "outline-icons";
+import { PlusIcon, CloseIcon } from "outline-icons";
 import pluralize from "pluralize";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
@@ -98,6 +98,14 @@ function Invite({ onSubmit }: Props) {
       return newInvites;
     });
   }, [invites, t]);
+
+  const handleRemove = React.useCallback((index: number) => {
+    setInvites((prevInvites) => {
+      const newInvites = [...prevInvites];
+      newInvites.splice(index, 1);
+      return newInvites;
+    });
+  }, []);
 
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent<HTMLInputElement>) => {
@@ -198,7 +206,12 @@ function Invite({ onSubmit }: Props) {
 
           <ResizingHeightContainer style={{ minHeight: 72, marginBottom: 8 }}>
             {invites.map((invite, index) => (
-              <Flex key={index} gap={8}>
+              <Flex
+                key={index}
+                gap={4}
+                align="flex-end"
+                style={{ flexWrap: "nowrap" }}
+              >
                 <StyledInput
                   type="email"
                   name="email"
@@ -209,8 +222,8 @@ function Invite({ onSubmit }: Props) {
                   placeholder={`name@${predictedDomain}`}
                   value={invite.email}
                   required={index === 0}
-                  autoFocus
-                  flex
+                  autoFocus={index === 0}
+                  style={{ flex: 3 }}
                 />
                 <StyledInput
                   type="text"
@@ -221,8 +234,17 @@ function Invite({ onSubmit }: Props) {
                   onChange={(ev) => handleChange(ev, index)}
                   value={invite.name}
                   required={!!invite.email}
-                  flex
+                  style={{ flex: 2 }}
                 />
+                {index > 0 && (
+                  <RemoveButton
+                    type="button"
+                    onClick={() => handleRemove(index)}
+                    aria-label={t("Remove invite")}
+                  >
+                    <CloseIcon size={18} />
+                  </RemoveButton>
+                )}
               </Flex>
             ))}
           </ResizingHeightContainer>
@@ -257,7 +279,27 @@ function Invite({ onSubmit }: Props) {
 const StyledInput = styled(Input)`
   margin-bottom: -4px;
   min-width: 0;
-  flex-shrink: 1;
+  flex: 2;
+`;
+
+const RemoveButton = styled.button`
+  margin-left: 4px;
+  margin-bottom: -10px;
+  height: 30px;
+  width: 30px;
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${(props) => props.theme.textTertiary};
+  cursor: pointer;
+  align-self: flex-start;
+
+  &:hover {
+    color: ${(props) => props.theme.text};
+    background: ${(props) => props.theme.buttonNeutralBackground};
+  }
 `;
 
 export default observer(Invite);
