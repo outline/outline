@@ -15,30 +15,42 @@ type ParsedNode = {
 
 const cache: Record<number, { node: Node; decorations: Decoration[] }> = {};
 const languagesToImport = new Set<string>();
+const languagePromises: Record<
+  string,
+  Promise<string | undefined> | undefined
+> = {};
 
 async function loadLanguage(language: string) {
   if (!language || refractor.registered(language)) {
     return;
   }
-  try {
-    const loader = getLoaderForLanguage(language);
-    if (!loader) {
-      return;
-    }
 
-    return loader().then((syntax) => {
+  if (languagePromises[language]) {
+    return languagePromises[language];
+  }
+
+  const loader = getLoaderForLanguage(language);
+  if (!loader) {
+    return;
+  }
+
+  languagePromises[language] = loader()
+    .then((syntax) => {
       refractor.register(syntax);
       return language;
+    })
+    .catch((err) => {
+      // It will retry loading the language on the next render
+      // eslint-disable-next-line no-console
+      console.error(
+        `Failed to load language ${language} for code highlighting`,
+        err
+      );
+      delete languagePromises[language]; // Remove failed promise from cache
+      return undefined;
     });
-  } catch (err) {
-    // It will retry loading the language on the next render
-    // eslint-disable-next-line no-console
-    console.error(
-      `Failed to load language ${language} for code highlighting`,
-      err
-    );
-  }
-  return;
+
+  return languagePromises[language];
 }
 
 function getDecorations({
@@ -228,14 +240,15 @@ export function CodeHighlighting({
           }
 
           void Promise.all([...languagesToImport].map(loadLanguage)).then(
-            (language) =>
-              language && languagesToImport.size
-                ? view.dispatch(
-                    view.state.tr.setMeta("codeHighlighting", {
-                      langLoaded: language,
-                    })
-                  )
-                : null
+            (language) => {
+              if (language && languagesToImport.size) {
+                view.dispatch(
+                  view.state.tr.setMeta("codeHighlighting", {
+                    langLoaded: language,
+                  })
+                );
+              }
+            }
           );
         },
       };
