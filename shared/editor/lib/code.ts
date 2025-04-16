@@ -279,7 +279,7 @@ export const codeLanguages: Record<string, CodeLanguage> = {
     loader: () => import("refractor/lang/typescript").then((m) => m.default),
   },
   vb: {
-    lang: "vb",
+    lang: "vbnet",
     label: "Visual Basic",
     loader: () => import("refractor/lang/vbnet").then((m) => m.default),
   },
