@@ -199,7 +199,7 @@ function Invite({ onSubmit }: Props) {
           <ResizingHeightContainer style={{ minHeight: 72, marginBottom: 8 }}>
             {invites.map((invite, index) => (
               <Flex key={index} gap={8}>
-                <StyledInput
+                 <StyledInput
                   type="email"
                   name="email"
                   label={t("Email")}
@@ -209,11 +209,11 @@ function Invite({ onSubmit }: Props) {
                   placeholder={`name@${predictedDomain}`}
                   value={invite.email}
                   required={index === 0}
-                  autoComplete="off"
-                  autoFocus
+                  autoComplete="new-email"
                   data-1p-ignore
                   flex
                 />
+
                 <StyledInput
                   type="text"
                   name="name"
