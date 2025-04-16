@@ -39,6 +39,7 @@ export interface Props extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   location?: Location;
   strict?: boolean;
   to: LocationDescriptor;
+  component?: React.ComponentType;
   onBeforeClick?: () => void;
 }
 
@@ -146,17 +147,22 @@ const NavLink = ({
     setPreActive(undefined);
   }, [currentLocation]);
 
+  const handleKeyDown = React.useCallback(
+    (event: React.KeyboardEvent<HTMLAnchorElement>) => {
+      if (["Enter", " "].includes(event.key)) {
+        navigateTo();
+        event.currentTarget?.blur();
+      }
+    },
+    [navigateTo]
+  );
+
   return (
     <Link
       key={isActive ? "active" : "inactive"}
       ref={linkRef}
       onClick={handleClick}
-      onKeyDown={(event) => {
-        if (["Enter", " "].includes(event.key)) {
-          navigateTo();
-          event.currentTarget?.blur();
-        }
-      }}
+      onKeyDown={handleKeyDown}
       aria-current={(isActive && ariaCurrent) || undefined}
       className={className}
       style={style}
