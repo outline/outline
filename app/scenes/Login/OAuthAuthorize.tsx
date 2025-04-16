@@ -30,11 +30,15 @@ function Authorize() {
   const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const timeoutRef = React.useRef<number>();
-  const clientId = params.get("client_id");
-  const redirectUri = params.get("redirect_uri");
-  const responseType = params.get("response_type");
-  const state = params.get("state");
-  const scope = params.get("scope");
+  const {
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    response_type: responseType,
+    code_challenge: codeChallenge,
+    code_challenge_method: codeChallengeMethod,
+    state,
+    scope,
+  } = Object.fromEntries(params);
   const [scopes] = React.useState(() => scope?.split(" ") ?? []);
   const {
     error: clientError,
@@ -198,6 +202,16 @@ function Authorize() {
           />
           <input type="hidden" name="state" value={state ?? ""} />
           <input type="hidden" name="scope" value={scope ?? ""} />
+          {codeChallenge && (
+            <input type="hidden" name="code_challenge" value={codeChallenge} />
+          )}
+          {codeChallengeMethod && (
+            <input
+              type="hidden"
+              name="code_challenge_method"
+              value={codeChallengeMethod}
+            />
+          )}
           <Flex gap={8} justify="space-between">
             <Button type="button" onClick={handleCancel} neutral>
               {t("Cancel")}
