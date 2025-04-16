@@ -11,23 +11,20 @@ type Props = {
 
 export default class CacheIssueSourcesTask extends BaseTask<Props> {
   async perform({ integrationId }: Props) {
+    const integration = await Integration.findByPk(integrationId);
+    if (!integration) {
+      return;
+    }
+
+    const plugin = plugins.find((p) => p.value.service === integration.service);
+    if (!plugin) {
+      return;
+    }
+
+    const sources = await plugin.value.fetchSources(integration);
+
     await sequelize.transaction(async (transaction) => {
-      const integration = await Integration.findByPk(integrationId, {
-        transaction,
-        lock: transaction.LOCK.UPDATE,
-      });
-      if (!integration) {
-        return;
-      }
-
-      const plugin = plugins.find(
-        (p) => p.value.service === integration.service
-      );
-      if (!plugin) {
-        return;
-      }
-
-      const sources = await plugin.value.fetchSources(integration);
+      await integration.reload({ transaction, lock: transaction.LOCK.UPDATE });
       integration.issueSources = sources;
       await integration.save({ transaction });
     });
