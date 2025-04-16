@@ -1,6 +1,6 @@
 import { JSONObject, UnfurlResourceType } from "@shared/types";
 import Logger from "@server/logging/Logger";
-import { UnfurlSignature } from "@server/types";
+import { UnfurlError, UnfurlSignature } from "@server/types";
 import fetch from "@server/utils/fetch";
 import env from "./env";
 
@@ -10,7 +10,7 @@ class Iframely {
   public static async requestResource(
     url: string,
     type = "oembed"
-  ): Promise<JSONObject | undefined> {
+  ): Promise<JSONObject | UnfurlError> {
     const isDefaultHost = env.IFRAMELY_URL === this.defaultUrl;
 
     // Cloud Iframely requires /api path, while self-hosted does not.
@@ -25,7 +25,7 @@ class Iframely {
       return await res.json();
     } catch (err) {
       Logger.error(`Error fetching data from Iframely for url: ${url}`, err);
-      return;
+      return { error: err.message || "Unknown error" };
     }
   }
 
@@ -36,7 +36,9 @@ class Iframely {
    */
   public static unfurl: UnfurlSignature = async (url: string) => {
     const data = await Iframely.requestResource(url);
-    return { ...data, type: UnfurlResourceType.OEmbed };
+    return "error" in data // In addition to our custom UnfurlError, sometimes iframely returns error in the response body.
+      ? ({ error: data.error } as UnfurlError)
+      : { ...data, type: UnfurlResourceType.OEmbed };
   };
 }
 

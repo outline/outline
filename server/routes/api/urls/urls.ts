@@ -98,11 +98,12 @@ router.post(
     }
 
     for (const plugin of plugins) {
-      const data = await plugin.value.unfurl(url, actor);
-      if (data) {
-        if ("error" in data) {
+      const unfurl = await plugin.value.unfurl(url, actor);
+      if (unfurl) {
+        if (unfurl.error) {
           return (ctx.response.status = 204);
         } else {
+          const data = unfurl as Unfurl;
           await CacheHelper.setData(
             CacheHelper.getUnfurlKey(actor.teamId, url),
             data,
