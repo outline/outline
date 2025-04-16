@@ -145,7 +145,7 @@ jobs:
 
   bundle-size:
     needs: [build, types, changes]
-    if: ${{ needs.changes.outputs.app == 'true' }}
+    if: ${{ needs.changes.outputs.app == 'true' && github.repository == 'outline/outline' }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
