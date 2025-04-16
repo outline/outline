@@ -578,10 +578,12 @@ export type CollectionJSONExport = {
 
 export type Unfurl = { [x: string]: JSONValue; type: UnfurlResourceType };
 
+export type UnfurlError = { error: string };
+
 export type UnfurlSignature = (
   url: string,
   actor?: User
-) => Promise<Unfurl | void>;
+) => Promise<Unfurl | UnfurlError | undefined>;
 
 export type UninstallSignature = (integration: Integration) => Promise<void>;
 

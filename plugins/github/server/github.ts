@@ -206,12 +206,12 @@ export class GitHub {
       );
       const { data } = await client.requestResource(resource);
       if (!data) {
-        return;
+        return { error: "Resource not found" };
       }
       return { ...data, type: resource.type };
     } catch (err) {
       Logger.warn("Failed to fetch resource from GitHub", err);
-      return;
+      return { error: err.message || "Unknown error" };
     }
   };
 }
