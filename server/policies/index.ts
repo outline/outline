@@ -13,6 +13,7 @@ import "./import";
 import "./integration";
 import "./notification";
 import "./oauthClient";
+import "./oauthAuthentication";
 import "./pins";
 import "./reaction";
 import "./revision";
