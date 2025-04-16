@@ -166,7 +166,7 @@ export function useDropToReorderStar(getIndex?: () => string) {
  * @param node The NavigationNode model to drag.
  * @param depth The depth of the node in the sidebar.
  * @param document The related Document model.
- * @param isEditing Whether the document is currently being edited.
+ * @param isEditing Whether the sidebar item is currently being edited.
  */
 export function useDragDocument(
   node: NavigationNode,
