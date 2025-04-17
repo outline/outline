@@ -251,6 +251,10 @@ describe("NotificationHelper", () => {
         userId: subscribedUser.id,
         collectionId: document.collectionId!,
       });
+      await buildSubscription({
+        userId: subscribedUser.id,
+        documentId: document.id,
+      });
 
       const recipients =
         await NotificationHelper.getDocumentNotificationRecipients({

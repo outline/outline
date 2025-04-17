@@ -1,4 +1,5 @@
 import uniq from "lodash/uniq";
+import uniqBy from "lodash/uniqBy";
 import { Op } from "sequelize";
 import {
   NotificationEventType,
@@ -187,7 +188,6 @@ export default class NotificationHelper {
       });
     } else {
       const subscriptions = await Subscription.findAll({
-        attributes: ["userId"],
         where: {
           userId: {
             [Op.ne]: actorId,
@@ -206,17 +206,19 @@ export default class NotificationHelper {
         ],
       });
 
-      recipients = subscriptions.map((s) => s.user);
+      recipients = uniqBy(
+        subscriptions.map((s) => s.user),
+        (user) => user.id
+      );
     }
-
-    recipients = recipients.filter((recipient) =>
-      recipient.subscribedToEventType(notificationType)
-    );
 
     const filtered = [];
 
     for (const recipient of recipients) {
-      if (recipient.isSuspended) {
+      if (
+        recipient.isSuspended ||
+        !recipient.subscribedToEventType(notificationType)
+      ) {
         continue;
       }
 
