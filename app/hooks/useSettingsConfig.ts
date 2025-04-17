@@ -8,7 +8,6 @@ import {
   GlobeIcon,
   TeamIcon,
   BeakerIcon,
-  BuildingBlocksIcon,
   SettingsIcon,
   ExportIcon,
   ImportIcon,
