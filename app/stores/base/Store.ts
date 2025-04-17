@@ -99,7 +99,14 @@ export default abstract class Store<T extends Model> {
     const normalized = deburr((query ?? "").trim().toLocaleLowerCase());
 
     if (!normalized) {
-      return this.orderedData.slice(0, options?.maxResults);
+      return this.orderedData
+        .filter((item) => {
+          if ("deletedAt" in item && item.deletedAt) {
+            return false;
+          }
+          return true;
+        })
+        .slice(0, options?.maxResults);
     }
 
     return this.orderedData
