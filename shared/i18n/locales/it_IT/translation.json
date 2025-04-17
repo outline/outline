@@ -192,7 +192,7 @@
   "Authorization failed": "Autorizzazione fallita",
   "You may have lost access to this document, try reloading": "Potresti aver perso l'accesso a questo documento, prova a ricaricarlo",
   "Too many users connected to document": "Troppi utenti connessi al documento",
-  "Your edits will sync once other users leave the document": "Your edits will sync once other users leave the document",
+  "Your edits will sync once other users leave the document": "Le tue modifiche verranno sincronizzate non appena gli altri utenti avranno lasciato il documento",
   "Server connection lost": "Connessione al server interrotta",
   "Edits you make will sync once you’re online": "Le modifiche apportate verranno sincronizzate una volta che sarai online",
   "Submenu": "Sottomenu",
