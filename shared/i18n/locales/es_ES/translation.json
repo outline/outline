@@ -428,7 +428,7 @@
   "Create a new doc": "Crea un nuevo documento",
   "{{ userName }} won't be notified, as they do not have access to this document": "{{ userName }} no será notificado, ya que no tiene acceso a este documento",
   "Keep as link": "Mantener como enlace",
-  "Mention": "Mention",
+  "Mention": "Mencionar",
   "Embed": "Embed",
   "Add column after": "Agregar columna después",
   "Add column before": "Agregar columna antes",
@@ -894,7 +894,7 @@
   "No people left to add": "No quedan personas para agregar",
   "Date created": "Fecha de creación",
   "Upload": "Subir",
-  "Crop image": "Crop image",
+  "Crop image": "Recortar imagen",
   "Uploading": "Subiendo",
   "How does this work?": "¿Cómo funciona esto?",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>.": "Puedes importar un archivo zip que se exportó previamente desde la opción JSON en otra instancia. En {{ appName }}, abre <em>Exportar</em> en la barra lateral de configuración y haz clic en <em>Exportar datos</em>.",
@@ -1157,5 +1157,5 @@
   "{{ user }} updated {{ timeAgo }}": "{{ user }} lo actualizó {{ timeAgo }}",
   "You created {{ timeAgo }}": "Tú lo creaste {{ timeAgo }}",
   "{{ user }} created {{ timeAgo }}": "{{ user }} lo creó {{ timeAgo }}",
-  "Error loading data": "Error loading data"
+  "Error loading data": "Error al cargar datos"
 }
