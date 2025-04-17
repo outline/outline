@@ -85,16 +85,21 @@ export default class CommentCreatedNotificationsTask extends BaseTask<CommentEve
       )
     ).filter((recipient) => !userIdsMentioned.includes(recipient.id));
 
-    for (const recipient of recipients) {
-      await Notification.create({
-        event: NotificationEventType.CreateComment,
-        userId: recipient.id,
-        actorId: comment.createdById,
-        teamId: document.teamId,
-        commentId: comment.id,
-        documentId: document.id,
-      });
-    }
+    await sequelize.transaction(async (transaction) => {
+      for (const recipient of recipients) {
+        await Notification.create(
+          {
+            event: NotificationEventType.CreateComment,
+            userId: recipient.id,
+            actorId: comment.createdById,
+            teamId: document.teamId,
+            commentId: comment.id,
+            documentId: document.id,
+          },
+          { transaction }
+        );
+      }
+    });
   }
 
   public get options() {
