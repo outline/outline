@@ -100,7 +100,7 @@ router.post(
     for (const plugin of plugins) {
       const unfurl = await plugin.value.unfurl(url, actor);
       if (unfurl) {
-        if (unfurl.error) {
+        if ("error" in unfurl) {
           return (ctx.response.status = 204);
         } else {
           const data = unfurl as Unfurl;

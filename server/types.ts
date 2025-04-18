@@ -10,6 +10,7 @@ import {
   JSONValue,
   UnfurlResourceType,
   ProsemirrorData,
+  UnfurlResponse,
 } from "@shared/types";
 import { BaseSchema } from "@server/routes/api/schema";
 import { AccountProvisionerResult } from "./commands/accountProvisioner";
@@ -576,7 +577,20 @@ export type CollectionJSONExport = {
   };
 };
 
-export type Unfurl = { [x: string]: JSONValue; type: UnfurlResourceType };
+export type UnfurlIssueAndPR = (
+  | UnfurlResponse[UnfurlResourceType.Issue]
+  | UnfurlResponse[UnfurlResourceType.PR]
+) & { transformed_unfurl: true };
+
+export type Unfurl =
+  | UnfurlIssueAndPR
+  | {
+      type: Exclude<
+        UnfurlResourceType,
+        UnfurlResourceType.Issue | UnfurlResourceType.PR
+      >;
+      [x: string]: JSONValue;
+    };
 
 export type UnfurlError = { error: string };
 
