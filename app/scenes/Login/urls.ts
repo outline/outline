@@ -3,6 +3,15 @@ import { parseDomain } from "@shared/utils/domains";
 import env from "~/env";
 import Desktop from "~/utils/Desktop";
 
+function validateAndEncodeSubdomain(subdomain: string): string {
+  const encodedSubdomain = encodeURIComponent(subdomain);
+  const urlPattern = /^[a-z\d-]{1,63}$/;
+  if (!urlPattern.test(encodedSubdomain)) {
+    throw new Error("Invalid subdomain");
+  }
+  return `https://${encodedSubdomain}.getoutline.com`;
+}
+
 /**
  * If we're on a custom domain or a subdomain then the auth must point to the
  * apex (env.URL) for authentication so that the state cookie can be set and read.
@@ -36,7 +45,7 @@ export async function navigateToSubdomain(subdomain: string) {
     .toLowerCase()
     .trim()
     .replace(/^https?:\/\//, "");
-  const host = `https://${normalizedSubdomain}.getoutline.com`;
+  const host = validateAndEncodeSubdomain(normalizedSubdomain);
   await Desktop.bridge?.addCustomHost(host);
   window.location.href = host;
 }
