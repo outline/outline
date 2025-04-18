@@ -335,6 +335,7 @@ const TR = styled.div<{ $columns: string }>`
   grid-template-columns: ${({ $columns }) => `${$columns}`};
   align-items: center;
   border-bottom: 1px solid ${s("divider")};
+  overflow: hidden;
 
   &:last-child {
     border-bottom: 0;
@@ -357,7 +358,8 @@ const TD = styled.span`
   padding: 10px 6px;
   font-size: 14px;
   text-wrap: wrap;
-  word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   &:first-child {
     font-size: 15px;

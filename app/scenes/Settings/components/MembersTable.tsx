@@ -2,6 +2,7 @@ import compact from "lodash/compact";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import Text from "@shared/components/Text";
 import User from "~/models/User";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Badge from "~/components/Badge";
@@ -14,6 +15,7 @@ import {
 import { type Column as TableColumn } from "~/components/Table";
 import Time from "~/components/Time";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useMobile from "~/hooks/useMobile";
 import UserMenu from "~/menus/UserMenu";
 import { FILTER_HEIGHT } from "./StickyFilters";
 
@@ -27,6 +29,7 @@ type Props = Omit<TableProps<User>, "columns" | "rowHeight"> & {
 export function MembersTable({ canManage, ...rest }: Props) {
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
+  const isMobile = useMobile();
 
   const columns = React.useMemo<TableColumn<User>[]>(
     () =>
@@ -38,13 +41,20 @@ export function MembersTable({ canManage, ...rest }: Props) {
           accessor: (user) => user.name,
           component: (user) => (
             <Flex align="center" gap={8}>
-              <Avatar model={user} size={AvatarSize.Large} /> {user.name}{" "}
-              {currentUser.id === user.id && `(${t("You")})`}
+              <Avatar model={user} size={AvatarSize.Large} />{" "}
+              <Flex column>
+                <Text>
+                  {user.name} {currentUser.id === user.id && `(${t("You")})`}
+                </Text>
+                {isMobile && canManage && (
+                  <Text type="tertiary">{user.email}</Text>
+                )}
+              </Flex>
             </Flex>
           ),
           width: "4fr",
         },
-        canManage
+        canManage && !isMobile
           ? {
               type: "data",
               id: "email",
@@ -54,17 +64,19 @@ export function MembersTable({ canManage, ...rest }: Props) {
               width: "4fr",
             }
           : undefined,
-        {
-          type: "data",
-          id: "lastActiveAt",
-          header: t("Last active"),
-          accessor: (user) => user.lastActiveAt,
-          component: (user) =>
-            user.lastActiveAt ? (
-              <Time dateTime={user.lastActiveAt} addSuffix />
-            ) : null,
-          width: "2fr",
-        },
+        isMobile
+          ? undefined
+          : {
+              type: "data",
+              id: "lastActiveAt",
+              header: t("Last active"),
+              accessor: (user) => user.lastActiveAt,
+              component: (user) =>
+                user.lastActiveAt ? (
+                  <Time dateTime={user.lastActiveAt} addSuffix />
+                ) : null,
+              width: "2fr",
+            },
         {
           type: "data",
           id: "role",
@@ -85,7 +97,7 @@ export function MembersTable({ canManage, ...rest }: Props) {
               {user.isSuspended && <Badge>{t("Suspended")}</Badge>}
             </Badges>
           ),
-          width: "2fr",
+          width: "80px",
         },
         canManage
           ? {
@@ -97,7 +109,7 @@ export function MembersTable({ canManage, ...rest }: Props) {
             }
           : undefined,
       ]),
-    [t, currentUser, canManage]
+    [t, currentUser, canManage, isMobile]
   );
 
   return (
