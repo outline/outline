@@ -79,6 +79,8 @@ export enum MentionType {
   PullRequest = "pull_request",
 }
 
+export const MentionPlaceholder = "mention_placeholder";
+
 export type PublicEnv = {
   ROOT_SHARE_ID?: string;
   analytics: {
@@ -144,6 +146,15 @@ export const UserCreatableIntegrationService = {
   GoogleAnalytics: IntegrationService.GoogleAnalytics,
   Matomo: IntegrationService.Matomo,
   Umami: IntegrationService.Umami,
+} as const;
+
+export type IssueProviderIntegrationService = Extract<
+  IntegrationService,
+  IntegrationService.GitHub
+>;
+
+export const IssueProviderIntegrationService = {
+  Notion: IntegrationService.GitHub,
 } as const;
 
 export enum CollectionPermission {

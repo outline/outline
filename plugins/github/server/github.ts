@@ -40,6 +40,32 @@ const requestPlugin = (octokit: Octokit) => ({
       },
     }),
 
+  requestRepos: () =>
+    octokit.paginate(octokit.rest.apps.listReposAccessibleToInstallation, {
+      headers: {
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    }),
+
+  createIssue: async ({
+    owner,
+    repo,
+    title,
+  }: {
+    owner: string;
+    repo: string;
+    title: string;
+  }) =>
+    octokit.request(`POST /repos/{owner}/{repo}/issues`, {
+      owner,
+      repo,
+      title,
+      headers: {
+        Accept: "application/vnd.github.text+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    }),
   /**
    * Fetches app installations accessible to the user
    *

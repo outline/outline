@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import {
   BoldIcon,
   CodeIcon,
@@ -17,8 +18,9 @@ import {
   IndentIcon,
   CopyIcon,
   Heading3Icon,
+  PlusIcon,
 } from "outline-icons";
-import { EditorState } from "prosemirror-state";
+import { EditorState, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import styled from "styled-components";
 import Highlight from "@shared/editor/marks/Highlight";
@@ -28,14 +30,17 @@ import { isInList } from "@shared/editor/queries/isInList";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import { MenuItem } from "@shared/editor/types";
+import { IssueSource } from "@shared/schema";
 import { metaDisplay } from "@shared/utils/keyboard";
 import CircleIcon from "~/components/Icons/CircleIcon";
+import PluginIcon from "~/components/PluginIcon";
 import { Dictionary } from "~/hooks/useDictionary";
 
 export default function formattingMenuItems(
   state: EditorState,
   isTemplate: boolean,
   isMobile: boolean,
+  recentIssueSources: IssueSource[],
   dictionary: Dictionary
 ): MenuItem[] {
   const { schema } = state;
@@ -43,11 +48,38 @@ export default function formattingMenuItems(
   const isCodeBlock = isInCode(state, { onlyBlock: true });
   const isEmpty = state.selection.empty;
 
+  const selectedText =
+    !isEmpty && state.selection instanceof TextSelection
+      ? state.doc.cut(state.selection.from, state.selection.to).textContent
+      : undefined;
+
   const highlight = getMarksBetween(
     state.selection.from,
     state.selection.to,
     state
   ).find(({ mark }) => mark.type.name === "highlight");
+
+  const issueSourcesChildren = recentIssueSources.length
+    ? recentIssueSources.map<MenuItem>((source) => ({
+        name: "issue",
+        label: `${source.owner.name}/${source.name}`,
+        icon: <PluginIcon id={source.service} />,
+        attrs: {
+          title: selectedText,
+          source: JSON.stringify(source),
+        },
+      }))
+    : undefined;
+
+  if (issueSourcesChildren) {
+    issueSourcesChildren.push({
+      name: "issue",
+      label: `${t("Other")}…`,
+      attrs: {
+        title: selectedText,
+      },
+    });
+  }
 
   return [
     {
@@ -258,6 +290,21 @@ export default function formattingMenuItems(
       tooltip: dictionary.copy,
       shortcut: `${metaDisplay}+C`,
       visible: isCode && !isCodeBlock && (!isMobile || !isEmpty),
+    },
+    {
+      name: "separator",
+      visible: !isCode && !isEmpty,
+    },
+    {
+      name: "issue",
+      tooltip: dictionary.createIssue,
+      shortcut: `${metaDisplay}+⌥+I`,
+      icon: <PlusIcon />,
+      attrs: {
+        title: selectedText,
+      },
+      visible: !isCode && !!selectedText,
+      children: issueSourcesChildren,
     },
   ];
 }

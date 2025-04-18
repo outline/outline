@@ -27,6 +27,7 @@ export default function useDictionary() {
       codeInline: t("Code"),
       comment: t("Comment"),
       copy: t("Copy"),
+      createIssue: t("Create issue from selection"),
       createLink: t("Create link"),
       createLinkError: t("Sorry, an error occurred creating the link"),
       createNewDoc: t("Create a new doc"),

@@ -13,4 +13,9 @@ PluginManager.add([
       component: React.lazy(() => import("./Settings")),
     },
   },
+  {
+    ...config,
+    type: Hook.Icon,
+    value: Icon,
+  },
 ]);
