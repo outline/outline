@@ -11,6 +11,7 @@ function validateAndEncodeSubdomain(subdomain: string): string {
   }
   return `https://${encodedSubdomain}.getoutline.com`;
 }
+
 /**
  * If we're on a custom domain or a subdomain then the auth must point to the
  * apex (env.URL) for authentication so that the state cookie can be set and read.
