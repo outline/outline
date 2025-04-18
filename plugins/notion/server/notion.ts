@@ -22,8 +22,6 @@ import { NotionUtils } from "../shared/NotionUtils";
 import { Block, Page, PageType } from "../shared/types";
 import env from "./env";
 
-const emojiRegexp = emojiRegex();
-
 type PageInfo = {
   title: string;
   emoji?: string;
@@ -45,6 +43,7 @@ const AccessTokenResponseSchema = z.object({
     .string()
     .nullish()
     .transform((val) => {
+      const emojiRegexp = emojiRegex();
       if (val && (isUrl(val) || emojiRegexp.test(val))) {
         return val;
       }
