@@ -14,7 +14,8 @@ import {
 } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { Integration, User } from "@server/models";
-import { UnfurlSignature } from "@server/types";
+import { UnfurlIssueAndPR, UnfurlSignature } from "@server/types";
+import { GitHubUtils } from "../shared/GitHubUtils";
 import env from "./env";
 
 const requestPlugin = (octokit: Octokit) => ({
@@ -91,7 +92,10 @@ export class GitHub {
 
   private static appOctokit: Octokit;
 
-  private static supportedResources = Object.values(UnfurlResourceType);
+  private static supportedResources = [
+    UnfurlResourceType.Issue,
+    UnfurlResourceType.PR,
+  ];
 
   /**
    * Parses a given URL and returns resource identifiers for GitHub specific URLs
@@ -208,10 +212,59 @@ export class GitHub {
       if (!data) {
         return { error: "Resource not found" };
       }
-      return { ...data, type: resource.type };
+
+      return GitHub.transformData(data, resource.type);
     } catch (err) {
       Logger.warn("Failed to fetch resource from GitHub", err);
       return { error: err.message || "Unknown error" };
     }
   };
+
+  private static transformData(
+    data: Record<string, any>,
+    type: UnfurlResourceType
+  ) {
+    if (type === UnfurlResourceType.Issue) {
+      return {
+        type: UnfurlResourceType.Issue,
+        url: data.html_url,
+        id: `#${data.number}`,
+        title: data.title,
+        description: data.body_text,
+        author: {
+          name: data.user.login,
+          avatarUrl: data.user.avatar_url,
+        },
+        labels: data.labels.map((label: { name: string; color: string }) => ({
+          name: label.name,
+          color: `#${label.color}`,
+        })),
+        state: {
+          name: data.state,
+          color: GitHubUtils.getColorForStatus(data.state),
+        },
+        createdAt: data.created_at,
+        transformed_unfurl: true,
+      } satisfies UnfurlIssueAndPR;
+    }
+
+    const prState = data.merged ? "merged" : data.state;
+    return {
+      type: UnfurlResourceType.PR,
+      url: data.html_url,
+      id: `#${data.number}`,
+      title: data.title,
+      description: data.body,
+      author: {
+        name: data.user.login,
+        avatarUrl: data.user.avatar_url,
+      },
+      state: {
+        name: prState,
+        color: GitHubUtils.getColorForStatus(prState),
+      },
+      createdAt: data.created_at,
+      transformed_unfurl: true,
+    } satisfies UnfurlIssueAndPR;
+  }
 }
