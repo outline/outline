@@ -24,7 +24,7 @@ export type MenuItem = {
   name?: string;
   title?: string;
   section?: Section;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   shortcut?: string;
   keywords?: string;
   tooltip?: string;
