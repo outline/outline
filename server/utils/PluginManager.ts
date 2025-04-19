@@ -9,6 +9,7 @@ import Logger from "@server/logging/Logger";
 import type BaseProcessor from "@server/queues/processors/BaseProcessor";
 import type BaseTask from "@server/queues/tasks/BaseTask";
 import { UnfurlSignature, UninstallSignature } from "@server/types";
+import { BaseIssueProvider } from "./BaseIssueProvider";
 
 export enum PluginPriority {
   VeryHigh = 0,
@@ -25,6 +26,7 @@ export enum Hook {
   API = "api",
   AuthProvider = "authProvider",
   EmailTemplate = "emailTemplate",
+  IssueProvider = "issueProvider",
   Processor = "processor",
   Task = "task",
   UnfurlProvider = "unfurl",
@@ -39,6 +41,7 @@ type PluginValueMap = {
   [Hook.API]: Router;
   [Hook.AuthProvider]: { router: Router; id: string };
   [Hook.EmailTemplate]: typeof BaseEmail;
+  [Hook.IssueProvider]: BaseIssueProvider;
   [Hook.Processor]: typeof BaseProcessor;
   [Hook.Task]: typeof BaseTask<any>;
   [Hook.Uninstall]: UninstallSignature;

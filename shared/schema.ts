@@ -3,6 +3,7 @@ import {
   CollectionPermission,
   type ImportableIntegrationService,
   IntegrationService,
+  IssueTrackerIntegrationService,
   ProsemirrorDoc,
 } from "./types";
 import { PageType } from "plugins/notion/shared/types";
@@ -57,3 +58,15 @@ export type ImportTaskOutput = {
   createdAt?: Date;
   updatedAt?: Date;
 }[];
+
+export const IssueSource = z.object({
+  id: z.string().nonempty(),
+  name: z.string().nonempty(),
+  owner: z.object({
+    id: z.string().nonempty(),
+    name: z.string().nonempty(),
+  }),
+  service: z.nativeEnum(IssueTrackerIntegrationService),
+});
+
+export type IssueSource = z.infer<typeof IssueSource>;
