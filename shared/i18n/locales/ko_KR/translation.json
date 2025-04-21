@@ -57,8 +57,8 @@
   "Download document": "문서 다운로드",
   "Copy as Markdown": "마크다운으로 복사",
   "Markdown copied to clipboard": "마크다운이 클립보드에 복사됨",
-  "Copy as text": "Copy as text",
-  "Text copied to clipboard": "Text copied to clipboard",
+  "Copy as text": "텍스트로 복사",
+  "Text copied to clipboard": "텍스트가 클립보드에 복사됨",
   "Copy public link": "공개 링크 복사",
   "Link copied to clipboard": "링크가 클립보드로 복사 되었습니다",
   "Copy link": "링크 복사",
@@ -428,7 +428,7 @@
   "Create a new doc": "새 문서 만들기",
   "{{ userName }} won't be notified, as they do not have access to this document": "{{ userName }} 은(는) 이 문서에 대한 액세스 권한이 없으므로 알림을 받지 않습니다.",
   "Keep as link": "링크로 유지",
-  "Mention": "Mention",
+  "Mention": "언급됨",
   "Embed": "내장",
   "Add column after": "뒤에 열 추가",
   "Add column before": "앞에 열 추가",
@@ -893,7 +893,7 @@
   "No people left to add": "추가할 사용자가 없습니다",
   "Date created": "생성 일자",
   "Upload": "업로드",
-  "Crop image": "Crop image",
+  "Crop image": "이미지 자르기",
   "Uploading": "업로드 중",
   "How does this work?": "어떻게 동작합니까?",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>.": "다른 인스턴스의 JSON 옵션에서 이전에 내보낸 압축 파일을 가져올 수 있습니다. {{ appName }} 에서 설정 사이드바에서 <em>내보내기</em>를 열고 <em>데이터 내보내기</em>클릭합니다.",
@@ -1152,5 +1152,5 @@
   "{{ user }} updated {{ timeAgo }}": "{{ user }} 업데이트 됨 {{ timeAgo }}",
   "You created {{ timeAgo }}": "{{ timeAgo }} 전에 내가 생성함",
   "{{ user }} created {{ timeAgo }}": "{{ user }} 이(가) {{ timeAgo }} 전에 생성",
-  "Error loading data": "Error loading data"
+  "Error loading data": "데이터 로딩 오류"
 }
