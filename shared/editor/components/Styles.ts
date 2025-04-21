@@ -128,6 +128,7 @@ const mathStyle = (props: Props) => css`
   math-block .math-src .ProseMirror {
     width: 100%;
     display: block;
+    outline: none;
   }
 
   math-block .katex-display {
@@ -334,7 +335,7 @@ width: 100%;
   box-sizing: content-box;
 }
 
-.ProseMirror {
+& > .ProseMirror {
   position: relative;
   outline: none;
   word-wrap: break-word;
