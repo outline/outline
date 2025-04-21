@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import OAuthClient from "~/models/OAuthClient";
+import OAuthClient from "~/models/oauth/OAuthClient";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import { AvatarVariant } from "~/components/Avatar/Avatar";
 import ListItem from "~/components/List/Item";

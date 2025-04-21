@@ -90,8 +90,8 @@ const useSettingsConfig = () => {
         icon: EmailIcon,
       },
       {
-        name: t("API Keys"),
-        path: settingsPath("personal-api-keys"),
+        name: t("Authorizations"),
+        path: settingsPath("authorizations"),
         component: PersonalApiKeys,
         enabled: can.createApiKey && !can.listApiKeys,
         group: t("Account"),

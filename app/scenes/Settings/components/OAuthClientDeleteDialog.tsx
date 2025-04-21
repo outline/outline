@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import OAuthClient from "~/models/OAuthClient";
+import OAuthClient from "~/models/oauth/OAuthClient";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 
 type Props = {

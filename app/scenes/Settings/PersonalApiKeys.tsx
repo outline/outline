@@ -3,6 +3,7 @@ import { CodeIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import ApiKey from "~/models/ApiKey";
+import OAuthAuthentication from "~/models/oauth/OAuthAuthentication";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
@@ -16,12 +17,13 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import ApiKeyListItem from "./components/ApiKeyListItem";
+import OAuthAuthenticationListItem from "./components/OAuthAuthenticationListItem";
 
 function PersonalApiKeys() {
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const { t } = useTranslation();
-  const { apiKeys } = useStores();
+  const { apiKeys, oauthAuthentications } = useStores();
   const can = usePolicy(team);
   const context = useActionContext();
 
@@ -68,6 +70,17 @@ function PersonalApiKeys() {
         heading={<h2>{t("Personal keys")}</h2>}
         renderItem={(apiKey: ApiKey) => (
           <ApiKeyListItem key={apiKey.id} apiKey={apiKey} />
+        )}
+      />
+      <PaginatedList
+        fetch={oauthAuthentications.fetchPage}
+        items={oauthAuthentications.orderedData}
+        heading={<h2>{t("Authentications")}</h2>}
+        renderItem={(oauthAuthentication: OAuthAuthentication) => (
+          <OAuthAuthenticationListItem
+            key={oauthAuthentication.id}
+            oauthAuthentication={oauthAuthentication}
+          />
         )}
       />
     </Scene>

@@ -34,7 +34,7 @@ router.post(
       FROM oauth_authentications oa
       INNER JOIN oauth_clients oc ON oc.id = oa."oauthClientId"
       WHERE oa."userId" = :userId
-      ORDER BY oa."oauthClientId", oa."scope", oa."createdAt" DESC
+      ORDER BY oa."oauthClientId", oa."scope", oa."lastActiveAt", oa."createdAt" DESC
       LIMIT :limit OFFSET :offset
     `,
       {

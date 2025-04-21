@@ -3,10 +3,10 @@ import { observable, runInAction } from "mobx";
 import queryString from "query-string";
 import env from "~/env";
 import { client } from "~/utils/ApiClient";
-import User from "./User";
-import ParanoidModel from "./base/ParanoidModel";
-import Field from "./decorators/Field";
-import Relation from "./decorators/Relation";
+import User from "../User";
+import ParanoidModel from "../base/ParanoidModel";
+import Field from "../decorators/Field";
+import Relation from "../decorators/Relation";
 
 class OAuthClient extends ParanoidModel {
   static modelName = "OAuthClient";

@@ -18,6 +18,7 @@ import ImportsStore from "./ImportsStore";
 import IntegrationsStore from "./IntegrationsStore";
 import MembershipsStore from "./MembershipsStore";
 import NotificationsStore from "./NotificationsStore";
+import OAuthAuthenticationsStore from "./OAuthAuthenticationsStore";
 import OAuthClientsStore from "./OAuthClientsStore";
 import PinsStore from "./PinsStore";
 import PoliciesStore from "./PoliciesStore";
@@ -49,6 +50,7 @@ export default class RootStore {
   integrations: IntegrationsStore;
   memberships: MembershipsStore;
   notifications: NotificationsStore;
+  oauthAuthentications: OAuthAuthenticationsStore;
   oauthClients: OAuthClientsStore;
   presence: DocumentPresenceStore;
   pins: PinsStore;
@@ -80,6 +82,7 @@ export default class RootStore {
     this.registerStore(IntegrationsStore);
     this.registerStore(MembershipsStore);
     this.registerStore(NotificationsStore);
+    this.registerStore(OAuthAuthenticationsStore, "oauthAuthentications");
     this.registerStore(OAuthClientsStore, "oauthClients");
     this.registerStore(PinsStore);
     this.registerStore(PoliciesStore);

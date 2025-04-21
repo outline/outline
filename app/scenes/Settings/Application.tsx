@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { OAuthClientValidation } from "@shared/validations";
-import OAuthClient from "~/models/OAuthClient";
+import OAuthClient from "~/models/oauth/OAuthClient";
 import Breadcrumb from "~/components/Breadcrumb";
 import Button from "~/components/Button";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
