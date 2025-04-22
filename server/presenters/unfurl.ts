@@ -72,6 +72,7 @@ const presentDocument = (
 const presentPR = (
   data: Record<string, any>
 ): UnfurlResponse[UnfurlResourceType.PR] => {
+  // TODO: For backwards compatibility, remove once cache has expired in next release.
   if (data.transformed_unfurl) {
     delete data.transformed_unfurl;
     return data as UnfurlResponse[UnfurlResourceType.PR]; // this would have been transformed by the unfurl plugin.
@@ -98,6 +99,7 @@ const presentPR = (
 const presentIssue = (
   data: Record<string, any>
 ): UnfurlResponse[UnfurlResourceType.Issue] => {
+  // TODO: For backwards compatibility, remove once cache has expired in next release.
   if (data.transformed_unfurl) {
     delete data.transformed_unfurl;
     return data as UnfurlResponse[UnfurlResourceType.Issue]; // this would have been transformed by the unfurl plugin.
