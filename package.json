@@ -249,7 +249,7 @@
     "validator": "13.12.0",
     "vaul": "^1.1.2",
     "vite": "^5.4.18",
-    "vite-plugin-pwa": "^0.20.3",
+    "vite-plugin-pwa": "^0.21.2",
     "winston": "^3.17.0",
     "ws": "^7.5.10",
     "y-indexeddb": "^9.0.11",
