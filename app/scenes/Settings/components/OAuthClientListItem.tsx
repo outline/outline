@@ -31,18 +31,12 @@ const OAuthClientListItem = ({ oauthClient }: Props) => {
     </>
   );
 
-  const avatarModel = {
-    id: oauthClient.id,
-    initial: oauthClient.name[0],
-    avatarUrl: oauthClient.avatarUrl,
-  };
-
   return (
     <ListItem
       key={oauthClient.id}
       image={
         <Avatar
-          model={avatarModel}
+          model={oauthClient}
           size={AvatarSize.Large}
           variant={AvatarVariant.Square}
         />

@@ -73,6 +73,10 @@ class OAuthClient extends ParanoidModel {
     });
   }
 
+  public get initial() {
+    return this.name[0];
+  }
+
   public get authorizationUrl(): string {
     const params = {
       client_id: this.clientId,
