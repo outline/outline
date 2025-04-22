@@ -24,6 +24,17 @@ type Issue =
   Endpoints["GET /repos/{owner}/{repo}/issues/{issue_number}"]["response"]["data"];
 
 const requestPlugin = (octokit: Octokit) => ({
+  requestRepos: () =>
+    octokit.paginate.iterator(
+      octokit.rest.apps.listReposAccessibleToInstallation,
+      {
+        headers: {
+          Accept: "application/vnd.github+json",
+          "X-GitHub-Api-Version": "2022-11-28",
+        },
+      }
+    ),
+
   requestPR: async (params: NonNullable<ReturnType<typeof GitHub.parseUrl>>) =>
     octokit.request(`GET /repos/{owner}/{repo}/pulls/{pull_number}`, {
       owner: params.owner,

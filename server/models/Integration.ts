@@ -13,6 +13,7 @@ import {
   IsIn,
   AfterDestroy,
 } from "sequelize-typescript";
+import { IssueSource } from "@shared/schema";
 import { IntegrationType, IntegrationService } from "@shared/types";
 import type { IntegrationSettings } from "@shared/types";
 import Collection from "@server/models/Collection";
@@ -52,6 +53,9 @@ class Integration<T = unknown> extends ParanoidModel<
 
   @Column(DataType.ARRAY(DataType.STRING))
   events: string[];
+
+  @Column(DataType.JSONB)
+  issueSources: IssueSource[] | null;
 
   // associations
 

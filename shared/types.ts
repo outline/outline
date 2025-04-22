@@ -129,6 +129,15 @@ export const ImportableIntegrationService = {
   Notion: IntegrationService.Notion,
 } as const;
 
+export type IssueTrackerIntegrationService = Extract<
+  IntegrationService,
+  IntegrationService.GitHub
+>;
+
+export const IssueTrackerIntegrationService = {
+  GitHub: IntegrationService.GitHub,
+} as const;
+
 export type UserCreatableIntegrationService = Extract<
   IntegrationService,
   | IntegrationService.Diagrams
