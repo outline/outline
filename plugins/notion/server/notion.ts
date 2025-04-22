@@ -13,9 +13,11 @@ import {
   RichTextItemResponse,
 } from "@notionhq/client/build/src/api-endpoints";
 import { RateLimit } from "async-sema";
+import emojiRegex from "emoji-regex";
 import compact from "lodash/compact";
 import { z } from "zod";
 import { Second } from "@shared/utils/time";
+import { isUrl } from "@shared/utils/urls";
 import { NotionUtils } from "../shared/NotionUtils";
 import { Block, Page, PageType } from "../shared/types";
 import env from "./env";
@@ -37,7 +39,16 @@ const AccessTokenResponseSchema = z.object({
   bot_id: z.string(),
   workspace_id: z.string(),
   workspace_name: z.string().nullish(),
-  workspace_icon: z.string().url().nullish(),
+  workspace_icon: z
+    .string()
+    .nullish()
+    .transform((val) => {
+      const emojiRegexp = emojiRegex();
+      if (val && (isUrl(val) || emojiRegexp.test(val))) {
+        return val;
+      }
+      return undefined;
+    }),
 });
 
 export class NotionClient {

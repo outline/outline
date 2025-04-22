@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useState, useRef } from "react";
 import AvatarEditor from "react-avatar-editor";
-import Dropzone from "react-dropzone";
+import { useDropzone } from "react-dropzone";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
@@ -12,7 +12,6 @@ import { AttachmentValidation } from "@shared/validations";
 import ButtonLarge from "~/components/ButtonLarge";
 import Flex from "~/components/Flex";
 import LoadingIndicator from "~/components/LoadingIndicator";
-import Modal from "~/components/Modal";
 import useStores from "~/hooks/useStores";
 import { compressImage } from "~/utils/compressImage";
 import { uploadFile, dataUrlToBlob } from "~/utils/files";
@@ -28,81 +27,138 @@ const ImageUpload: React.FC<Props> = ({
   onSuccess,
   onError,
   submitText,
-  borderRadius = 150,
+  borderRadius,
   children,
 }) => {
-  const { ui } = useStores();
+  const { dialogs } = useStores();
   const { t } = useTranslation();
-  submitText || t("Crop image");
 
   const [isUploading, setIsUploading] = useState(false);
   const [isCropping, setIsCropping] = useState(false);
-  const [zoom, setZoom] = useState(1);
-  const [file, setFile] = useState<File | null>(null);
 
-  const avatarEditorRef = useRef<AvatarEditor>(null);
+  const uploadImage = React.useCallback(
+    async (blob: Blob, file: File) => {
+      try {
+        const compressed = await compressImage(blob, {
+          maxHeight: 512,
+          maxWidth: 512,
+        });
+        const attachment = await uploadFile(compressed, {
+          name: file.name,
+          preset: AttachmentPreset.Avatar,
+        });
+        void onSuccess(attachment.url);
+      } catch (err) {
+        onError(err.message);
+      } finally {
+        setIsUploading(false);
+        setIsCropping(false);
+        dialogs.closeAllModals();
+      }
+    },
+    [dialogs, onSuccess, onError]
+  );
 
-  const onDropAccepted = async (files: File[]) => {
-    setIsCropping(true);
-    setFile(files[0]);
-  };
+  const handleUpload = React.useCallback(
+    (blob: Blob, file: File) => {
+      setIsUploading(true);
+      // allow the UI to update before converting the canvas to a Blob
+      // for large images this can cause the page rendering to hang.
+      setTimeout(() => uploadImage(blob, file), 0);
+    },
+    [uploadImage]
+  );
 
-  const handleCrop = () => {
-    setIsUploading(true);
-    // allow the UI to update before converting the canvas to a Blob
-    // for large images this can cause the page rendering to hang.
-    setTimeout(uploadImage, 0);
-  };
-
-  const uploadImage = async () => {
-    const canvas = avatarEditorRef.current?.getImage();
-    invariant(canvas, "canvas is not defined");
-    const imageBlob = dataUrlToBlob(canvas.toDataURL());
-
-    try {
-      const compressed = await compressImage(imageBlob, {
-        maxHeight: 512,
-        maxWidth: 512,
-      });
-      const attachment = await uploadFile(compressed, {
-        name: file!.name,
-        preset: AttachmentPreset.Avatar,
-      });
-      void onSuccess(attachment.url);
-    } catch (err) {
-      onError(err.message);
-    } finally {
-      setIsUploading(false);
-      setIsCropping(false);
-    }
-  };
-
-  const handleClose = () => {
+  const handleClose = React.useCallback(() => {
     setIsUploading(false);
     setIsCropping(false);
-  };
+  }, []);
 
-  const handleZoom = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const target = event.target;
+  const onDropAccepted = React.useCallback(
+    async (files: File[]) => {
+      setIsCropping(true);
+      dialogs.openModal({
+        title: "",
+        content: (
+          <AvatarEditorDialog
+            file={files[0]}
+            onUpload={handleUpload}
+            isUploading={isUploading}
+            borderRadius={borderRadius ?? 150}
+            submitText={submitText || t("Crop image")}
+          />
+        ),
+        onClose: handleClose,
+      });
+    },
+    [
+      t,
+      dialogs,
+      handleUpload,
+      handleClose,
+      isUploading,
+      borderRadius,
+      submitText,
+    ]
+  );
 
-    if (target instanceof HTMLInputElement) {
-      setZoom(parseFloat(target.value));
-    }
-  };
+  const { getRootProps, getInputProps } = useDropzone({
+    accept: AttachmentValidation.avatarContentTypes.join(", "),
+    onDropAccepted,
+  });
 
-  const renderCropping = () => (
-    <Modal
-      onRequestClose={handleClose}
-      fullscreen={false}
-      title={<>&nbsp;</>}
-      isOpen
-    >
+  if (isCropping) {
+    return null; // onDropAccepted would have opened a modal for cropping the image.
+  }
+
+  return (
+    <div {...getRootProps()}>
+      <input {...getInputProps()} />
+      {children}
+    </div>
+  );
+};
+
+type AvatarEditorDialogProps = {
+  file: File;
+  onUpload: (blob: Blob, file: File) => void;
+  isUploading: boolean;
+  borderRadius: number;
+  submitText: string;
+};
+
+const AvatarEditorDialog: React.FC<AvatarEditorDialogProps> = observer(
+  ({ file, onUpload, isUploading, borderRadius, submitText }) => {
+    const { ui } = useStores();
+    const { t } = useTranslation();
+    const [zoom, setZoom] = useState(1);
+    const avatarEditorRef = useRef<AvatarEditor>(null);
+
+    const handleUpload = React.useCallback(() => {
+      const canvas = avatarEditorRef.current?.getImage();
+      invariant(canvas, "canvas is not defined");
+      const blob = dataUrlToBlob(canvas.toDataURL());
+      onUpload(blob, file);
+    }, [file, onUpload]);
+
+    const handleZoom = React.useCallback(
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        const target = event.target;
+
+        if (target instanceof HTMLInputElement) {
+          setZoom(parseFloat(target.value));
+        }
+      },
+      []
+    );
+
+    return (
       <Flex auto column align="center" justify="center">
         {isUploading && <LoadingIndicator />}
         <AvatarEditorContainer>
           <AvatarEditor
             ref={avatarEditorRef}
-            image={file!}
+            image={file}
             width={250}
             height={250}
             border={25}
@@ -121,31 +177,13 @@ const ImageUpload: React.FC<Props> = ({
           onChange={handleZoom}
         />
         <br />
-        <ButtonLarge fullwidth onClick={handleCrop} disabled={isUploading}>
+        <ButtonLarge fullwidth onClick={handleUpload} disabled={isUploading}>
           {isUploading ? `${t(`Uploading`)}…` : submitText}
         </ButtonLarge>
       </Flex>
-    </Modal>
-  );
-
-  if (isCropping && file) {
-    return renderCropping();
+    );
   }
-
-  return (
-    <Dropzone
-      accept={AttachmentValidation.avatarContentTypes.join(", ")}
-      onDropAccepted={onDropAccepted}
-    >
-      {({ getRootProps, getInputProps }) => (
-        <div {...getRootProps()}>
-          <input {...getInputProps()} />
-          {children}
-        </div>
-      )}
-    </Dropzone>
-  );
-};
+);
 
 const AvatarEditorContainer = styled(Flex)`
   margin-bottom: 30px;

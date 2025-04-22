@@ -26,7 +26,7 @@ type Props = Omit<
 export const PasteMenu = observer(({ pastedText, embeds, ...props }: Props) => {
   const { t } = useTranslation();
   const { integrations } = useStores();
-  const user = useCurrentUser();
+  const user = useCurrentUser({ rejectOnEmpty: false });
 
   let mentionType: MentionType | undefined;
   const url = pastedText ? new URL(pastedText) : undefined;
@@ -70,7 +70,7 @@ export const PasteMenu = observer(({ pastedText, embeds, ...props }: Props) => {
             label: pastedText,
             href: pastedText,
             modelId: v4(),
-            actorId: user.id,
+            actorId: user?.id,
           },
           appendSpace: true,
         },

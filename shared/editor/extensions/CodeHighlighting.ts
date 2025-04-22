@@ -4,7 +4,7 @@ import { Node } from "prosemirror-model";
 import { Plugin, PluginKey, Transaction } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import refractor from "refractor/core";
-import { getRefractorLangForLanguage } from "../lib/code";
+import { getLoaderForLanguage, getRefractorLangForLanguage } from "../lib/code";
 import { isRemoteTransaction } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
 
@@ -15,32 +15,42 @@ type ParsedNode = {
 
 const cache: Record<number, { node: Node; decorations: Decoration[] }> = {};
 const languagesToImport = new Set<string>();
+const languagePromises: Record<
+  string,
+  Promise<string | undefined> | undefined
+> = {};
 
 async function loadLanguage(language: string) {
   if (!language || refractor.registered(language)) {
     return;
   }
-  try {
-    // @ts-expect-error we are adding a module to the window object to work
-    // around the fact that refractor doesn't export ESM but import expects it.
-    // See the rules of dynamic imports:
-    // https://github.com/rollup/plugins/blob/e1a5ef99f1578eb38a8c87563cb9651db228f3bd/packages/dynamic-import-vars/README.md#limitations
-    window.module ??= {};
-    return import(`../../../node_modules/refractor/lang/${language}.js`).then(
-      () => {
-        refractor.register(window.module.exports);
-        return language;
-      }
-    );
-  } catch (err) {
-    // It will retry loading the language on the next render
-    // eslint-disable-next-line no-console
-    console.error(
-      `Failed to load language ${language} for code highlighting`,
-      err
-    );
+
+  if (languagePromises[language]) {
+    return languagePromises[language];
   }
-  return;
+
+  const loader = getLoaderForLanguage(language);
+  if (!loader) {
+    return;
+  }
+
+  languagePromises[language] = loader()
+    .then((syntax) => {
+      refractor.register(syntax);
+      return language;
+    })
+    .catch((err) => {
+      // It will retry loading the language on the next render
+      // eslint-disable-next-line no-console
+      console.error(
+        `Failed to load language ${language} for code highlighting`,
+        err
+      );
+      delete languagePromises[language]; // Remove failed promise from cache
+      return undefined;
+    });
+
+  return languagePromises[language];
 }
 
 function getDecorations({
@@ -85,7 +95,8 @@ function getDecorations({
 
   blocks.forEach((block) => {
     let startPos = block.pos + 1;
-    const language = getRefractorLangForLanguage(block.node.attrs.language);
+    const language = block.node.attrs.language;
+    const lang = getRefractorLangForLanguage(language);
     const lineDecorations = [];
 
     if (!cache[block.pos] || !cache[block.pos].node.eq(block.node)) {
@@ -119,12 +130,12 @@ function getDecorations({
         decorations: lineDecorations,
       };
 
-      if (!language) {
+      if (!lang) {
         // do nothing
-      } else if (refractor.registered(language)) {
+      } else if (refractor.registered(lang)) {
         languagesToImport.delete(language);
 
-        const nodes = refractor.highlight(block.node.textContent, language);
+        const nodes = refractor.highlight(block.node.textContent, lang);
         const newDecorations = parseNodes(nodes)
           .map((node: ParsedNode) => {
             const from = startPos;
@@ -229,14 +240,15 @@ export function CodeHighlighting({
           }
 
           void Promise.all([...languagesToImport].map(loadLanguage)).then(
-            (language) =>
-              languagesToImport.size
-                ? view.dispatch(
-                    view.state.tr.setMeta("codeHighlighting", {
-                      langLoaded: language,
-                    })
-                  )
-                : null
+            (language) => {
+              if (language && languagesToImport.size) {
+                view.dispatch(
+                  view.state.tr.setMeta("codeHighlighting", {
+                    langLoaded: language,
+                  })
+                );
+              }
+            }
           );
         },
       };
