@@ -59,8 +59,8 @@ function Linear() {
         <>
           <Text as="p">
             <Trans>
-              Enable previews of Linear issues and pull requests in documents by
-              connecting a Linear workspace to {appName}.
+              Enable previews of Linear issues in documents by connecting a
+              Linear workspace to {appName}.
             </Trans>
           </Text>
           {integrations.linear.length ? (
