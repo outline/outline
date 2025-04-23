@@ -1,6 +1,6 @@
+import queryString from "query-string";
 import env from "@shared/env";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
-import queryString from "query-string";
 
 export type OAuthState = {
   teamId: string;

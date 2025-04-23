@@ -1,8 +1,8 @@
-import { IntegrationService } from "@shared/types";
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { IntegrationService } from "@shared/types";
 import { ConnectedButton } from "~/scenes/Settings/components/ConnectedButton";
 import { AvatarSize } from "~/components/Avatar";
 import Flex from "~/components/Flex";

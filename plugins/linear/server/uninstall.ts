@@ -1,6 +1,6 @@
+import { IntegrationService, IntegrationType } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { Integration } from "@server/models";
-import { IntegrationService, IntegrationType } from "@shared/types";
 import { Linear } from "./linear";
 
 export async function uninstall(

@@ -1,6 +1,6 @@
-import { BaseSchema } from "@server/routes/api/schema";
 import isEmpty from "lodash/isEmpty";
 import { z } from "zod";
+import { BaseSchema } from "@server/routes/api/schema";
 
 export const LinearCallbackSchema = BaseSchema.extend({
   query: z

@@ -1,8 +1,8 @@
+import { IsOptional } from "class-validator";
 import { Environment } from "@server/env";
 import { Public } from "@server/utils/decorators/Public";
 import environment from "@server/utils/environment";
 import { CannotUseWithout } from "@server/utils/validators";
-import { IsOptional } from "class-validator";
 
 class LinearPluginEnvironment extends Environment {
   /**

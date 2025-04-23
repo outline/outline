@@ -1,15 +1,15 @@
+import Router from "koa-router";
+import { IntegrationService, IntegrationType } from "@shared/types";
+import { parseDomain } from "@shared/utils/domains";
 import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { IntegrationAuthentication, Integration, Team } from "@server/models";
 import { APIContext } from "@server/types";
-import { IntegrationService, IntegrationType } from "@shared/types";
-import { parseDomain } from "@shared/utils/domains";
-import Router from "koa-router";
-import { LinearUtils } from "plugins/linear/shared/LinearUtils";
 import { Linear } from "../linear";
 import * as T from "./schema";
+import { LinearUtils } from "plugins/linear/shared/LinearUtils";
 
 const router = new Router();
 

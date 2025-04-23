@@ -1,14 +1,14 @@
 import { LinearClient } from "@linear/sdk";
-import Logger from "@server/logging/Logger";
-import { Integration } from "@server/models";
-import User from "@server/models/User";
-import { UnfurlIssueAndPR, UnfurlSignature } from "@server/types";
+import { z } from "zod";
 import {
   IntegrationService,
   IntegrationType,
   UnfurlResourceType,
 } from "@shared/types";
-import { z } from "zod";
+import Logger from "@server/logging/Logger";
+import { Integration } from "@server/models";
+import User from "@server/models/User";
+import { UnfurlIssueAndPR, UnfurlSignature } from "@server/types";
 import { LinearUtils } from "../shared/LinearUtils";
 import env from "./env";
 
