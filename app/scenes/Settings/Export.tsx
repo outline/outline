@@ -48,7 +48,7 @@ function Export() {
         {t("Export data")}…
       </Button>
       <br />
-      <PaginatedList
+      <PaginatedList<FileOperation>
         items={fileOperations.exports}
         fetch={fileOperations.fetchPage}
         options={{
@@ -59,7 +59,7 @@ function Export() {
             <Trans>Recent exports</Trans>
           </h2>
         }
-        renderItem={(item: FileOperation) => (
+        renderItem={(item) => (
           <FileOperationListItem key={item.id} fileOperation={item} />
         )}
       />

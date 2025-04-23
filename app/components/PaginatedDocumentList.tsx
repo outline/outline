@@ -10,7 +10,7 @@ type Props = {
   fetch: (options: any) => Promise<Document[] | undefined>;
   options?: Record<string, any>;
   heading?: React.ReactNode;
-  empty?: React.ReactNode;
+  empty?: JSX.Element;
   showParentDocuments?: boolean;
   showCollection?: boolean;
   showPublished?: boolean;
@@ -34,7 +34,7 @@ const PaginatedDocumentList = React.memo<Props>(function PaginatedDocumentList({
   const { t } = useTranslation();
 
   return (
-    <PaginatedList
+    <PaginatedList<Document>
       aria-label={t("Documents")}
       items={documents}
       empty={empty}
@@ -42,7 +42,7 @@ const PaginatedDocumentList = React.memo<Props>(function PaginatedDocumentList({
       fetch={fetch}
       options={options}
       renderError={(props) => <Error {...props} />}
-      renderItem={(item: Document, _index) => (
+      renderItem={(item, _index) => (
         <DocumentListItem
           key={item.id}
           document={item}
