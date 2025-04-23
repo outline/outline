@@ -428,7 +428,7 @@
   "Create a new doc": "Lag et nytt dokument",
   "{{ userName }} won't be notified, as they do not have access to this document": "{{ userName }} vil ikke bli varslet, da de ikke har tilgang til dette dokumentet",
   "Keep as link": "Behold som lenke",
-  "Mention": "Mention",
+  "Mention": "Nevn",
   "Embed": "Bygg inn",
   "Add column after": "Legg til kolonne etter",
   "Add column before": "Sett inn kolonne før",
@@ -893,7 +893,7 @@
   "No people left to add": "Ingen flere personer å legge til",
   "Date created": "Dato opprettet",
   "Upload": "Last opp",
-  "Crop image": "Crop image",
+  "Crop image": "Beskjær bilde",
   "Uploading": "Laster opp",
   "How does this work?": "Hvordan fungerer dette?",
   "You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>.": "Du kan importere en zip-fil som tidligere ble eksportert fra JSON-alternativet i en annen instans. I {{ appName }}, åpne <em>Eksport</em> i innstillingssidestolpen og klikk på <em>Eksporter Data</em>.",
@@ -1152,5 +1152,5 @@
   "{{ user }} updated {{ timeAgo }}": "{{ user }} oppdaterte {{ timeAgo }}",
   "You created {{ timeAgo }}": "Du opprettet {{ timeAgo }}",
   "{{ user }} created {{ timeAgo }}": "{{ user }} opprettet {{ timeAgo }}",
-  "Error loading data": "Error loading data"
+  "Error loading data": "Feil ved lasting av data"
 }
