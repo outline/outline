@@ -8,7 +8,7 @@ import { rateLimiter } from "@server/middlewares/rateLimiter";
 import requestTracer from "@server/middlewares/requestTracer";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { OAuthClient } from "@server/models";
+import { OAuthAuthorizationCode, OAuthClient } from "@server/models";
 import OAuthAuthentication from "@server/models/oauth/OAuthAuthentication";
 import { authorize } from "@server/policies";
 import { APIContext } from "@server/types";
@@ -43,6 +43,8 @@ router.post(
 
     const authorizationCode = await oauth.authorize(request, response, {
       allowEmptyState: true,
+      authorizationCodeLifetime:
+        OAuthAuthorizationCode.authorizationCodeLifetime,
       authenticateHandler: {
         // Fetch the current user from the request, so the library knows
         // which user is authorizing the client.
@@ -68,7 +70,10 @@ router.post("/token", async (ctx) => {
   // Note: These objects are mutated by the OAuth2Server library
   const request = new OAuth2Server.Request(ctx.request);
   const response = new OAuth2Server.Response(ctx.response);
-  const token = await oauth.token(request, response);
+  const token = await oauth.token(request, response, {
+    accessTokenLifetime: OAuthAuthentication.accessTokenLifetime,
+    refreshTokenLifetime: OAuthAuthentication.refreshTokenLifetime,
+  });
 
   if (response.headers) {
     ctx.set(response.headers);

@@ -26,6 +26,10 @@ class OAuthAuthorizationCode extends IdModel<
   InferAttributes<OAuthAuthorizationCode>,
   Partial<InferCreationAttributes<OAuthAuthorizationCode>>
 > {
+  /** The lifetime of an authorization code in seconds. */
+  public static authorizationCodeLifetime = 300;
+
+  /** A recognizable prefix for authorization codes. */
   public static authorizationCodePrefix = "ol_ac_";
 
   @Column

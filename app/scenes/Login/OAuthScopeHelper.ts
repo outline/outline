@@ -13,7 +13,7 @@ export class OAuthScopeHelper {
       create: t("write"),
       update: t("write"),
       delete: t("write"),
-      "*": t("manage"),
+      "*": t("read and write"),
     };
 
     const translatedNamespaces = {

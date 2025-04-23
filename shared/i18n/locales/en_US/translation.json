@@ -839,7 +839,7 @@
   "{{ appName }} will be able to access your account and perform the following actions": "{{ appName }} will be able to access your account and perform the following actions",
   "read": "read",
   "write": "write",
-  "manage": "manage",
+  "read and write": "read and write",
   "API keys": "API keys",
   "attachments": "attachments",
   "collections": "collections",
