@@ -20,7 +20,7 @@ jest.mock("dns", () => ({
 
 jest
   .spyOn(Iframely, "requestResource")
-  .mockImplementation(() => Promise.resolve(undefined));
+  .mockImplementation(() => Promise.resolve({}));
 
 const server = getTestServer();
 

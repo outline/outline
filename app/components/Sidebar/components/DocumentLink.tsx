@@ -148,7 +148,12 @@ function InnerDocumentLink(
   const color = document?.color || node.color;
 
   // Draggable
-  const [{ isDragging }, drag] = useDragDocument(node, depth, document);
+  const [{ isDragging }, drag] = useDragDocument(
+    node,
+    depth,
+    document,
+    isEditing
+  );
 
   // Drop to re-parent
   const parentRef = React.useRef<HTMLDivElement>(null);
@@ -270,6 +275,8 @@ function InnerDocumentLink(
           <div ref={dropToReparent}>
             <DropToImport documentId={node.id} activeClassName="activeDropZone">
               <SidebarLink
+                // @ts-expect-error react-router type is wrong, string component is fine.
+                component={isEditing ? "div" : undefined}
                 expanded={hasChildren ? isExpanded : undefined}
                 onDisclosureClick={handleDisclosureClick}
                 onClickIntent={handlePrefetch}
@@ -285,6 +292,7 @@ function InnerDocumentLink(
                   <EditableTitle
                     title={title}
                     onSubmit={handleTitleChange}
+                    isEditing={isEditing}
                     onEditing={setIsEditing}
                     canUpdate={canUpdate}
                     maxLength={DocumentValidation.maxTitleLength}

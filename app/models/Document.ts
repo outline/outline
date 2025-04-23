@@ -17,6 +17,7 @@ import {
   NavigationNodeType,
   NotificationEventType,
 } from "@shared/types";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import Storage from "@shared/utils/Storage";
 import { isRTL } from "@shared/utils/rtl";
 import slugify from "@shared/utils/slugify";
@@ -661,6 +662,24 @@ export default class Document extends ArchivableModel implements Searchable {
       softBreak: true,
     });
     return markdown;
+  };
+
+  /**
+   * Returns the plain text representation of the document derived from the ProseMirror data.
+   *
+   * @returns The plain text representation of the document as a string.
+   */
+  toPlainText = () => {
+    const extensionManager = new ExtensionManager(withComments(richExtensions));
+    const schema = new Schema({
+      nodes: extensionManager.nodes,
+      marks: extensionManager.marks,
+    });
+    const text = ProsemirrorHelper.toPlainText(
+      Node.fromJSON(schema, this.data),
+      schema
+    );
+    return text;
   };
 
   download = (contentType: ExportContentType) =>
