@@ -118,11 +118,22 @@ export class PluginManager {
     }
     const rootDir = env.ENVIRONMENT === "test" ? "" : "build";
 
-    glob
-      .sync(path.join(rootDir, "plugins/*/server/!(*.test|schema).[jt]s"))
-      .forEach((filePath: string) => {
-        require(path.join(process.cwd(), filePath));
-      });
+    // Use normalized path for glob pattern (always use forward slashes)
+    const globPattern = path.posix
+      .join(
+        rootDir.replace(/\\/g, "/"),
+        "plugins/*/server/!(*.test|schema).[jt]s"
+      )
+      .replace(/\\/g, "/");
+
+    const files = glob.sync(globPattern, { windowsPathsNoEscape: true });
+
+    files.forEach((filePath: string) => {
+      // Use path.join for the actual require to ensure proper OS-specific path
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      require(path.join(process.cwd(), filePath));
+    });
+
     this.loaded = true;
   }
 

@@ -3,6 +3,8 @@
 /* eslint-disable no-undef */
 const { exec } = require("child_process");
 const { readdirSync, existsSync } = require("fs");
+const path = require("path");
+const fs = require("fs-extra");
 
 const getDirectories = (source) =>
   readdirSync(source, { withFileTypes: true })
@@ -30,10 +32,14 @@ async function build() {
   // Clean previous build
   console.log("Clean previous build…");
 
-  await Promise.all([
-    execAsync("rm -rf ./build/server"),
-    execAsync("rm -rf ./build/plugins"),
-  ]);
+  try {
+    await Promise.all([
+      fs.remove(path.join(__dirname, "build", "server")),
+      fs.remove(path.join(__dirname, "build", "plugins")),
+    ]);
+  } catch (error) {
+    console.error("Error while cleaning:", error);
+  }
 
   const d = getDirectories("./plugins");
 
@@ -67,23 +73,43 @@ async function build() {
 
   // Copy static files
   console.log("Copying static files…");
-  await Promise.all([
-    execAsync(
-      "cp ./server/collaboration/Procfile ./build/server/collaboration/Procfile"
-    ),
-    execAsync(
-      "cp ./server/static/error.dev.html ./build/server/error.dev.html"
-    ),
-    execAsync(
-      "cp ./server/static/error.prod.html ./build/server/error.prod.html"
-    ),
-    execAsync("cp package.json ./build"),
-    ...d.map(async (plugin) =>
-      execAsync(
-        `mkdir -p ./build/plugins/${plugin} && cp ./plugins/${plugin}/plugin.json ./build/plugins/${plugin}/plugin.json 2>/dev/null || :`
-      )
-    ),
-  ]);
+  try {
+    await Promise.all([
+      fs.copy(
+        path.join(__dirname, "server", "collaboration", "Procfile"),
+        path.join(__dirname, "build", "server", "collaboration", "Procfile")
+      ),
+      fs.copy(
+        path.join(__dirname, "server", "static", "error.dev.html"),
+        path.join(__dirname, "build", "server", "error.dev.html")
+      ),
+      fs.copy(
+        path.join(__dirname, "server", "static", "error.prod.html"),
+        path.join(__dirname, "build", "server", "error.prod.html")
+      ),
+      fs.copy(
+        path.join(__dirname, "package.json"),
+        path.join(__dirname, "build", "package.json")
+      ),
+      ...d.map(async (plugin) => {
+        const pluginJsonPath = path.join(
+          __dirname,
+          "plugins",
+          plugin,
+          "plugin.json"
+        );
+        const destDir = path.join(__dirname, "build", "plugins", plugin);
+        const destPath = path.join(destDir, "plugin.json");
+
+        if (existsSync(pluginJsonPath)) {
+          await fs.ensureDir(destDir);
+          await fs.copy(pluginJsonPath, destPath);
+        }
+      }),
+    ]);
+  } catch (error) {
+    console.error("Error while copying files:", error);
+  }
 
   console.log("Done!");
 }
