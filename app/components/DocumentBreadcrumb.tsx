@@ -104,7 +104,9 @@ function DocumentBreadcrumb(
   const items = React.useMemo(() => {
     const output: MenuInternalLink[] = [];
 
-    if (depth === 0) return output;
+    if (depth === 0) {
+      return output;
+    }
 
     if (category) {
       output.push(category);
@@ -131,33 +133,25 @@ function DocumentBreadcrumb(
       });
     });
 
-    return reverse
-      ? output.slice(depth && -depth)
-      : output.slice(0, depth);
-  }, [
-    t,
-    path,
-    category,
-    sidebarContext,
-    collectionNode,
-    reverse,
-    maxDepth,
-  ]);
+    return reverse ? output.slice(depth && -depth) : output.slice(0, depth);
+  }, [t, path, category, sidebarContext, collectionNode, reverse, depth]);
 
   if (!collections.isLoaded) {
     return null;
   }
 
   if (onlyText) {
-    if (depth === 0) return <></>
+    if (depth === 0) {
+      return <></>;
+    }
 
     const slicedPath = reverse
-      ? path.slice((depth && -depth))
+      ? path.slice(depth && -depth)
       : path.slice(0, depth);
 
-    const showCollection = collection && (
-      !reverse || depth === undefined || slicedPath.length < depth
-    );
+    const showCollection =
+      collection &&
+      (!reverse || depth === undefined || slicedPath.length < depth);
 
     return (
       <>
@@ -166,7 +160,9 @@ function DocumentBreadcrumb(
           <React.Fragment key={node.id}>
             {showCollection && <SmallSlash />}
             {node.title || t("Untitled")}
-            {!showCollection && index !== slicedPath.length - 1 && <SmallSlash />}
+            {!showCollection && index !== slicedPath.length - 1 && (
+              <SmallSlash />
+            )}
           </React.Fragment>
         ))}
       </>

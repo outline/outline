@@ -255,7 +255,12 @@ const LinkEditor: React.FC<Props> = ({
                   selected={index === selectedIndex}
                   key={doc.id}
                   subtitle={
-                    <DocumentBreadcrumb document={doc} onlyText reverse maxDepth={2} />
+                    <DocumentBreadcrumb
+                      document={doc}
+                      onlyText
+                      reverse
+                      maxDepth={2}
+                    />
                   }
                   title={doc.title}
                   icon={

@@ -73,59 +73,64 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
         .findByQuery(search, { maxResults: maxResultsInSection })
         .map(
           (user) =>
-          ({
-            name: "mention",
-            icon: (
-              <Flex
-                align="center"
-                justify="center"
-                style={{ width: 24, height: 24 }}
-              >
-                <Avatar
-                  model={user}
-                  alt={t("Profile picture")}
-                  size={AvatarSize.Small}
-                />
-              </Flex>
-            ),
-            title: user.name,
-            section: UserSection,
-            appendSpace: true,
-            attrs: {
-              id: v4(),
-              type: MentionType.User,
-              modelId: user.id,
-              actorId,
-              label: user.name,
-            },
-          } as MentionItem)
+            ({
+              name: "mention",
+              icon: (
+                <Flex
+                  align="center"
+                  justify="center"
+                  style={{ width: 24, height: 24 }}
+                >
+                  <Avatar
+                    model={user}
+                    alt={t("Profile picture")}
+                    size={AvatarSize.Small}
+                  />
+                </Flex>
+              ),
+              title: user.name,
+              section: UserSection,
+              appendSpace: true,
+              attrs: {
+                id: v4(),
+                type: MentionType.User,
+                modelId: user.id,
+                actorId,
+                label: user.name,
+              },
+            } as MentionItem)
         )
         .concat(
           documents
             .findByQuery(search, { maxResults: maxResultsInSection })
             .map(
               (doc) =>
-              ({
-                name: "mention",
-                icon: doc.icon ? (
-                  <Icon value={doc.icon} color={doc.color ?? undefined} />
-                ) : (
-                  <DocumentIcon />
-                ),
-                title: doc.title,
-                subtitle: (
-                  <DocumentBreadcrumb document={doc} onlyText reverse maxDepth={2} />
-                ),
-                section: DocumentsSection,
-                appendSpace: true,
-                attrs: {
-                  id: v4(),
-                  type: MentionType.Document,
-                  modelId: doc.id,
-                  actorId,
-                  label: doc.title,
-                },
-              } as MentionItem)
+                ({
+                  name: "mention",
+                  icon: doc.icon ? (
+                    <Icon value={doc.icon} color={doc.color ?? undefined} />
+                  ) : (
+                    <DocumentIcon />
+                  ),
+                  title: doc.title,
+                  subtitle: (
+                    <DocumentBreadcrumb
+                      document={doc}
+                      onlyText
+                      reverse
+                      maxDepth={2}
+                    />
+                  ),
+                  section: DocumentsSection,
+                  appendSpace: true,
+                  attrs: {
+                    id: v4(),
+                    type: MentionType.Document,
+                    modelId: doc.id,
+                    actorId,
+                    label: doc.title,
+                  },
+                } as MentionItem)
             )
         )
         .concat(
@@ -133,27 +138,27 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
             .findByQuery(search, { maxResults: maxResultsInSection })
             .map(
               (collection) =>
-              ({
-                name: "mention",
-                icon: collection.icon ? (
-                  <Icon
-                    value={collection.icon}
-                    color={collection.color ?? undefined}
-                  />
-                ) : (
-                  <CollectionIcon />
-                ),
-                title: collection.name,
-                section: CollectionsSection,
-                appendSpace: true,
-                attrs: {
-                  id: v4(),
-                  type: MentionType.Collection,
-                  modelId: collection.id,
-                  actorId,
-                  label: collection.name,
-                },
-              } as MentionItem)
+                ({
+                  name: "mention",
+                  icon: collection.icon ? (
+                    <Icon
+                      value={collection.icon}
+                      color={collection.color ?? undefined}
+                    />
+                  ) : (
+                    <CollectionIcon />
+                  ),
+                  title: collection.name,
+                  section: CollectionsSection,
+                  appendSpace: true,
+                  attrs: {
+                    id: v4(),
+                    type: MentionType.Collection,
+                    modelId: collection.id,
+                    actorId,
+                    label: collection.name,
+                  },
+                } as MentionItem)
             )
         )
         .concat([
