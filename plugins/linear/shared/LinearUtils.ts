@@ -29,8 +29,7 @@ export class LinearUtils {
 
   static callbackUrl(
     { baseUrl, params }: { baseUrl: string; params?: string } = {
-      // baseUrl: `${env.URL}`,
-      baseUrl: "https://redirect-cf-worker.hmacr.workers.dev",
+      baseUrl: `${env.URL}`,
       params: undefined,
     }
   ) {

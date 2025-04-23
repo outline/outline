@@ -17,7 +17,7 @@ if (enabled) {
     },
     {
       type: Hook.UnfurlProvider,
-      value: { unfurl: Linear.unfurl, cacheExpiry: 5 * Minute.seconds },
+      value: { unfurl: Linear.unfurl, cacheExpiry: Minute.seconds },
     },
     {
       type: Hook.Uninstall,

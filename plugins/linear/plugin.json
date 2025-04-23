@@ -2,6 +2,6 @@
   "id": "linear",
   "name": "Linear",
   "priority": 15,
-  "description": "Adds a Linear integration for converting links to mentions and creating issues from selection.",
+  "description": "Adds a Linear integration for link unfurling and converting links to mentions.",
   "after": "github"
 }
