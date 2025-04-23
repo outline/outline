@@ -109,7 +109,7 @@ function Linear() {
                         <ConnectedButton
                           onClick={integration.delete}
                           confirmationMessage={t(
-                            "Disconnecting will prevent creating issues and previewing Linear links from this organization in documents. Are you sure?"
+                            "Disconnecting will prevent previewing Linear links from this workspace in documents. Are you sure?"
                           )}
                         />
                       }
