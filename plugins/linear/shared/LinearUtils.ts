@@ -10,6 +10,7 @@ export class LinearUtils {
   private static oauthScopes = "read,issues:create";
 
   public static tokenUrl = "https://api.linear.app/oauth/token";
+  public static revokeUrl = "https://api.linear.app/oauth/revoke";
   private static authBaseUrl = "https://linear.app/oauth/authorize";
 
   private static settingsUrl = integrationSettingsPath("linear");

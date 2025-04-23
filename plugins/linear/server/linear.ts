@@ -44,6 +44,17 @@ export class Linear {
     return AccessTokenResponseSchema.parse(await res.json());
   }
 
+  static async revokeAccess(accessToken: string) {
+    const headers = {
+      Authorization: `Bearer ${accessToken}`,
+    };
+
+    await fetch(LinearUtils.revokeUrl, {
+      method: "POST",
+      headers,
+    });
+  }
+
   static async getInstalledWorkspace(accessToken: string) {
     const client = new LinearClient({ accessToken });
     return client.organization;

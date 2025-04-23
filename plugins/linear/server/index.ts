@@ -4,6 +4,7 @@ import config from "../plugin.json";
 import router from "./api/linear";
 import env from "./env";
 import { Linear } from "./linear";
+import { uninstall } from "./uninstall";
 
 const enabled = !!env.LINEAR_CLIENT_ID && !!env.LINEAR_CLIENT_SECRET;
 
@@ -17,6 +18,10 @@ if (enabled) {
     {
       type: Hook.UnfurlProvider,
       value: { unfurl: Linear.unfurl, cacheExpiry: 5 * Minute.seconds },
+    },
+    {
+      type: Hook.Uninstall,
+      value: uninstall,
     },
   ]);
 }
