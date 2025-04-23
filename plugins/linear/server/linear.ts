@@ -2,7 +2,7 @@ import { LinearClient } from "@linear/sdk";
 import Logger from "@server/logging/Logger";
 import { Integration } from "@server/models";
 import User from "@server/models/User";
-import { UnfurlSignature } from "@server/types";
+import { UnfurlIssueAndPR, UnfurlSignature } from "@server/types";
 import {
   IntegrationService,
   IntegrationType,
@@ -81,37 +81,36 @@ export class Linear {
       const issue = await client.issue(resource.id);
 
       if (!issue) {
-        return;
+        return { error: "Resource not found" };
       }
 
       const [author, state] = await Promise.all([issue.creator, issue.state]);
 
       if (!author || !state) {
-        return;
+        return { error: "Resource not found" };
       }
 
-      const data = {
-        html_url: issue.url,
+      return {
         type: UnfurlResourceType.Issue,
-        number: issue.identifier,
+        url: issue.url,
+        id: issue.identifier,
         title: issue.title,
-        body_text: issue.description,
-        user: {
-          login: author.name,
-          avatar_url: author.avatarUrl,
+        description: issue.description ?? null,
+        author: {
+          name: author.name,
+          avatarUrl: author.avatarUrl ?? "",
         },
         labels: [],
         state: {
           name: state.name,
           color: state.color,
         },
-        created_at: issue.createdAt.toISOString(),
-      };
-
-      return data;
+        createdAt: issue.createdAt.toISOString(),
+        transformed_unfurl: true,
+      } satisfies UnfurlIssueAndPR;
     } catch (err) {
       Logger.warn("Failed to fetch resource from Linear", err);
-      return;
+      return { error: err.message || "Unknown error" };
     }
   };
 
