@@ -84,10 +84,14 @@ export class Linear {
         return { error: "Resource not found" };
       }
 
-      const [author, state] = await Promise.all([issue.creator, issue.state]);
+      const [author, state, labels] = await Promise.all([
+        issue.creator,
+        issue.state,
+        issue.paginate(issue.labels, {}),
+      ]);
 
-      if (!author || !state) {
-        return { error: "Resource not found" };
+      if (!author || !state || !labels) {
+        return { error: "Failed to fetch auxiliary data from Linear" };
       }
 
       return {
@@ -100,7 +104,10 @@ export class Linear {
           name: author.name,
           avatarUrl: author.avatarUrl ?? "",
         },
-        labels: [],
+        labels: labels.map((label) => ({
+          name: label.name,
+          color: label.color,
+        })),
         state: {
           name: state.name,
           color: state.color,
