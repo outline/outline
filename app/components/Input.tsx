@@ -45,6 +45,10 @@ export const NativeInput = styled.input<{
   ${ellipsis()}
   ${undraggableOnDesktop()}
 
+  &[readOnly] {
+    color: ${s("textSecondary")};
+  }
+
   &:disabled,
   &::placeholder {
     color: ${s("placeholder")};
@@ -126,13 +130,14 @@ export interface Props
     React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement>,
     "prefix"
   > {
-  type?: "text" | "email" | "checkbox" | "search" | "textarea";
+  type?: "text" | "email" | "checkbox" | "search" | "textarea" | "password";
   labelHidden?: boolean;
   label?: string;
   flex?: boolean;
   short?: boolean;
   margin?: string | number;
   error?: string;
+  rows?: number;
   /** Optional component that appears inside the input before the textarea and any icon */
   prefix?: React.ReactNode;
   /** Optional icon that appears inside the input before the textarea */
@@ -176,6 +181,7 @@ function Input(
     if (ev.key === "Enter" && ev.metaKey) {
       if (props.onRequestSubmit) {
         props.onRequestSubmit(ev);
+        return;
       }
     }
 
@@ -230,10 +236,11 @@ function Input(
               ])}
               onBlur={handleBlur}
               onFocus={handleFocus}
-              onKeyDown={handleKeyDown}
               hasIcon={!!icon}
               hasPrefix={!!prefix}
               {...rest}
+              // set it after "rest" to override "onKeyDown" from prop.
+              onKeyDown={handleKeyDown}
             />
           ) : (
             <NativeInput
@@ -243,11 +250,12 @@ function Input(
               ])}
               onBlur={handleBlur}
               onFocus={handleFocus}
-              onKeyDown={handleKeyDown}
               hasIcon={!!icon}
               hasPrefix={!!prefix}
               type={type}
               {...rest}
+              // set it after "rest" to override "onKeyDown" from prop.
+              onKeyDown={handleKeyDown}
             />
           )}
           {children}

@@ -234,7 +234,7 @@ const lineStyle = css`
     width: 1px;
     height: calc(50% - 14px + 8px);
     background: ${s("divider")};
-    mix-blend-mode: multiply;
+    mix-blend-mode: ${(props) => (props.theme.isDark ? "lighten" : "multiply")};
     z-index: 1;
   }
 
@@ -255,7 +255,7 @@ const lineStyle = css`
     width: 1px;
     height: calc(50% - 14px);
     background: ${s("divider")};
-    mix-blend-mode: multiply;
+    mix-blend-mode: ${(props) => (props.theme.isDark ? "lighten" : "multiply")};
     z-index: 1;
   }
 

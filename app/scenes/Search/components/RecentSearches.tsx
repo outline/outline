@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
-import Fade from "~/components/Fade";
+import { ConditionalFade } from "~/components/Fade";
 import useStores from "~/hooks/useStores";
 import RecentSearchListItem from "./RecentSearchListItem";
 
@@ -19,7 +19,6 @@ function RecentSearches(
 ) {
   const { searches } = useStores();
   const { t } = useTranslation();
-  const [isPreloaded] = React.useState(searches.recent.length > 0);
 
   React.useEffect(() => {
     void searches.fetchPage({
@@ -48,7 +47,11 @@ function RecentSearches(
     </>
   ) : null;
 
-  return isPreloaded ? content : <Fade>{content}</Fade>;
+  return (
+    <ConditionalFade animate={!searches.recent.length}>
+      {content}
+    </ConditionalFade>
+  );
 }
 
 const Heading = styled.h2`
@@ -56,7 +59,7 @@ const Heading = styled.h2`
   font-size: 14px;
   line-height: 1.5;
   color: ${s("textSecondary")};
-  margin-bottom: 0;
+  margin: 12px 0 0;
 `;
 
 const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`

@@ -128,6 +128,7 @@ const mathStyle = (props: Props) => css`
   math-block .math-src .ProseMirror {
     width: 100%;
     display: block;
+    outline: none;
   }
 
   math-block .katex-display {
@@ -313,6 +314,10 @@ width: 100%;
     background: ${props.theme.mentionHoverBackground};
   }
 
+  &[data-type="user"] {
+    gap: 0;
+  }
+
   &.mention-user::before {
     content: "@";
   }
@@ -330,7 +335,7 @@ width: 100%;
   box-sizing: content-box;
 }
 
-.ProseMirror {
+& > .ProseMirror {
   position: relative;
   outline: none;
   word-wrap: break-word;
@@ -338,11 +343,6 @@ width: 100%;
   white-space: break-spaces;
   padding: ${props.editorStyle?.padding ?? "initial"};
   margin: ${props.editorStyle?.margin ?? "initial"};
-
-  .ProseMirror {
-    padding: 0;
-    margin: 0;
-  }
 
   & > .ProseMirror-yjs-cursor {
     display: none;
@@ -692,11 +692,30 @@ img.ProseMirror-separator {
   display: none;
 }
 
+.${EditorStyleHelper.imageCaption} {
+  border: 0;
+  display: block;
+  font-style: italic;
+  font-weight: normal;
+  font-size: 13px;
+  color: ${props.theme.textSecondary};
+  padding: 8px 0 4px;
+  line-height: 16px;
+  text-align: center;
+  min-height: 1em;
+  outline: none;
+  background: none;
+  resize: none;
+  user-select: text;
+  margin: 0 auto !important;
+  max-width: 100vw;
+}
+
 .ProseMirror[contenteditable="false"] {
-  .caption {
+  .${EditorStyleHelper.imageCaption} {
     pointer-events: none;
   }
-  .caption:empty {
+  .${EditorStyleHelper.imageCaption}:empty {
     visibility: hidden;
   }
 }
@@ -1316,6 +1335,13 @@ mark {
 
 .code-block {
   position: relative;
+}
+
+.code-block[data-language=none],
+.code-block[data-language=markdown] {
+  pre code {
+    color: ${props.theme.text};
+  }
 }
 
 .code-block[data-language=mermaidjs] {

@@ -33,6 +33,7 @@ export type Props = Omit<React.HTMLAttributes<HTMLAnchorElement>, "title"> & {
   small?: boolean;
   /** Whether to enable keyboard navigation */
   keyboardNavigation?: boolean;
+  ellipsis?: boolean;
 };
 
 const ListItem = (
@@ -45,6 +46,7 @@ const ListItem = (
     border,
     to,
     keyboardNavigation,
+    ellipsis,
     ...rest
   }: Props,
   ref: React.RefObject<HTMLAnchorElement>
@@ -83,7 +85,9 @@ const ListItem = (
         column={!compact}
         $selected={selected}
       >
-        <Heading $small={small}>{title}</Heading>
+        <Heading $small={small} $ellipsis={ellipsis}>
+          {title}
+        </Heading>
         {subtitle && (
           <Subtitle $small={small} $selected={selected}>
             {subtitle}
@@ -105,7 +109,7 @@ const ListItem = (
         $border={border}
         $small={small}
         activeStyle={{
-          background: theme.accent,
+          background: theme.sidebarActiveBackground,
         }}
         {...rest}
         {...rovingTabIndex}
@@ -208,10 +212,10 @@ const Image = styled(Flex)`
   color: ${s("text")};
 `;
 
-const Heading = styled.p<{ $small?: boolean }>`
+const Heading = styled.p<{ $small?: boolean; $ellipsis?: boolean }>`
   font-size: ${(props) => (props.$small ? 14 : 16)}px;
   font-weight: 500;
-  ${ellipsis()}
+  ${(props) => (props.$ellipsis !== false ? ellipsis() : "")}
   line-height: ${(props) => (props.$small ? 1.3 : 1.2)};
   margin: 0;
 `;
@@ -219,14 +223,13 @@ const Heading = styled.p<{ $small?: boolean }>`
 const Content = styled(Flex)<{ $selected: boolean }>`
   flex-direction: column;
   flex-grow: 1;
-  color: ${(props) => (props.$selected ? props.theme.white : props.theme.text)};
+  color: ${s("text")};
 `;
 
 const Subtitle = styled.p<{ $small?: boolean; $selected?: boolean }>`
   margin: 0;
   font-size: ${(props) => (props.$small ? 13 : 14)}px;
-  color: ${(props) =>
-    props.$selected ? props.theme.white50 : props.theme.textTertiary};
+  color: ${s("textTertiary")};
   margin-top: -2px;
 `;
 
@@ -234,8 +237,7 @@ export const Actions = styled(Flex)<{ $selected?: boolean }>`
   align-self: center;
   justify-content: center;
   flex-shrink: 0;
-  color: ${(props) =>
-    props.$selected ? props.theme.white : props.theme.textSecondary};
+  color: ${s("textSecondary")};
 `;
 
 export default React.forwardRef(ListItem);

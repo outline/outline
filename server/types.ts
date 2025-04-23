@@ -10,6 +10,7 @@ import {
   JSONValue,
   UnfurlResourceType,
   ProsemirrorData,
+  UnfurlResponse,
 } from "@shared/types";
 import { BaseSchema } from "@server/routes/api/schema";
 import { AccountProvisionerResult } from "./commands/accountProvisioner";
@@ -35,6 +36,7 @@ import type {
   Notification,
   Share,
   GroupMembership,
+  Import,
 } from "./models";
 
 export enum AuthenticationType {
@@ -464,6 +466,17 @@ export type NotificationEvent = BaseEvent<Notification> & {
   commentId?: string;
   documentId?: string;
   collectionId?: string;
+  membershipId?: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ImportEvent = BaseEvent<Import<any>> & {
+  name:
+    | "imports.create"
+    | "imports.update"
+    | "imports.processed"
+    | "imports.delete";
+  modelId: string;
 };
 
 export type Event =
@@ -491,7 +504,8 @@ export type Event =
   | ViewEvent
   | WebhookSubscriptionEvent
   | NotificationEvent
-  | EmptyTrashEvent;
+  | EmptyTrashEvent
+  | ImportEvent;
 
 export type NotificationMetadata = {
   notificationId?: string;
@@ -563,12 +577,27 @@ export type CollectionJSONExport = {
   };
 };
 
-export type Unfurl = { [x: string]: JSONValue; type: UnfurlResourceType };
+export type UnfurlIssueAndPR = (
+  | UnfurlResponse[UnfurlResourceType.Issue]
+  | UnfurlResponse[UnfurlResourceType.PR]
+) & { transformed_unfurl: true };
+
+export type Unfurl =
+  | UnfurlIssueAndPR
+  | {
+      type: Exclude<
+        UnfurlResourceType,
+        UnfurlResourceType.Issue | UnfurlResourceType.PR
+      >;
+      [x: string]: JSONValue;
+    };
+
+export type UnfurlError = { error: string };
 
 export type UnfurlSignature = (
   url: string,
   actor?: User
-) => Promise<Unfurl | void>;
+) => Promise<Unfurl | UnfurlError | undefined>;
 
 export type UninstallSignature = (integration: Integration) => Promise<void>;
 

@@ -6,6 +6,12 @@ import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
+import {
+  AuthenticationFailed,
+  DocumentTooLarge,
+  EditorUpdateError,
+} from "@shared/collaboration/CloseEvents";
+import EDITOR_VERSION from "@shared/editor/version";
 import { supportsPassiveListener } from "@shared/utils/browser";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import MultiplayerExtension from "~/editor/extensions/Multiplayer";
@@ -65,6 +71,9 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     const name = `document.${documentId}`;
     const localProvider = new IndexeddbPersistence(name, ydoc);
     const provider = new HocuspocusProvider({
+      parameters: {
+        editorVersion: EDITOR_VERSION,
+      },
       url: `${env.COLLABORATION_URL}/collaboration`,
       name,
       document: ydoc,
@@ -99,7 +108,11 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     });
 
     provider.on("awarenessChange", (event: AwarenessChangeEvent) => {
-      presence.updateFromAwarenessChangeEvent(documentId, event);
+      presence.updateFromAwarenessChangeEvent(
+        documentId,
+        provider.awareness.clientID,
+        event
+      );
 
       event.states.forEach(({ user, scrollY }) => {
         if (user) {
@@ -136,8 +149,14 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     provider.on("close", (ev: MessageEvent) => {
       if ("code" in ev.event) {
         provider.shouldConnect =
-          ev.event.code !== 1009 && ev.event.code !== 4401;
+          ev.event.code !== DocumentTooLarge.code &&
+          ev.event.code !== AuthenticationFailed.code &&
+          ev.event.code !== EditorUpdateError.code;
         ui.setMultiplayerStatus("disconnected", ev.event.code);
+
+        if (ev.event.code === EditorUpdateError.code) {
+          window.location.reload();
+        }
       }
     });
 

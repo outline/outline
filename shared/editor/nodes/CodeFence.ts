@@ -9,58 +9,6 @@ import {
 } from "prosemirror-model";
 import { Command, Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import refractor from "refractor/core";
-import bash from "refractor/lang/bash";
-import clike from "refractor/lang/clike";
-import cpp from "refractor/lang/cpp";
-import csharp from "refractor/lang/csharp";
-import css from "refractor/lang/css";
-import docker from "refractor/lang/docker";
-import elixir from "refractor/lang/elixir";
-import erlang from "refractor/lang/erlang";
-import go from "refractor/lang/go";
-import graphql from "refractor/lang/graphql";
-import groovy from "refractor/lang/groovy";
-import haskell from "refractor/lang/haskell";
-import hcl from "refractor/lang/hcl";
-import ini from "refractor/lang/ini";
-import java from "refractor/lang/java";
-import javascript from "refractor/lang/javascript";
-import json from "refractor/lang/json";
-import jsx from "refractor/lang/jsx";
-import kotlin from "refractor/lang/kotlin";
-import lisp from "refractor/lang/lisp";
-import lua from "refractor/lang/lua";
-import markup from "refractor/lang/markup";
-// @ts-expect-error type definition is missing, but package exists
-import mermaid from "refractor/lang/mermaid";
-import nginx from "refractor/lang/nginx";
-import nix from "refractor/lang/nix";
-import objectivec from "refractor/lang/objectivec";
-import ocaml from "refractor/lang/ocaml";
-import perl from "refractor/lang/perl";
-import php from "refractor/lang/php";
-import powershell from "refractor/lang/powershell";
-import protobuf from "refractor/lang/protobuf";
-import python from "refractor/lang/python";
-import r from "refractor/lang/r";
-import ruby from "refractor/lang/ruby";
-import rust from "refractor/lang/rust";
-import sass from "refractor/lang/sass";
-import scala from "refractor/lang/scala";
-import scss from "refractor/lang/scss";
-import solidity from "refractor/lang/solidity";
-import sql from "refractor/lang/sql";
-import swift from "refractor/lang/swift";
-import toml from "refractor/lang/toml";
-import tsx from "refractor/lang/tsx";
-import typescript from "refractor/lang/typescript";
-import verilog from "refractor/lang/verilog";
-import vhdl from "refractor/lang/vhdl";
-import visualbasic from "refractor/lang/visual-basic";
-import yaml from "refractor/lang/yaml";
-import zig from "refractor/lang/zig";
-
 import { toast } from "sonner";
 import { Primitive } from "utility-types";
 import type { Dictionary } from "~/hooks/useDictionary";
@@ -77,9 +25,12 @@ import {
 } from "../commands/codeFence";
 import { selectAll } from "../commands/selectAll";
 import toggleBlockType from "../commands/toggleBlockType";
+import { CodeHighlighting } from "../extensions/CodeHighlighting";
 import Mermaid from "../extensions/Mermaid";
-import Prism from "../extensions/Prism";
-import { getRecentCodeLanguage, setRecentCodeLanguage } from "../lib/code";
+import {
+  getRecentlyUsedCodeLanguage,
+  setRecentlyUsedCodeLanguage,
+} from "../lib/code";
 import { isCode } from "../lib/isCode";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { findNextNewline, findPreviousNewline } from "../queries/findNewlines";
@@ -89,58 +40,6 @@ import { isInCode } from "../queries/isInCode";
 import Node from "./Node";
 
 const DEFAULT_LANGUAGE = "javascript";
-
-[
-  bash,
-  cpp,
-  css,
-  clike,
-  csharp,
-  docker,
-  elixir,
-  erlang,
-  go,
-  graphql,
-  groovy,
-  haskell,
-  hcl,
-  ini,
-  java,
-  javascript,
-  jsx,
-  json,
-  kotlin,
-  lisp,
-  lua,
-  markup,
-  mermaid,
-  nginx,
-  nix,
-  objectivec,
-  ocaml,
-  perl,
-  php,
-  python,
-  powershell,
-  protobuf,
-  r,
-  ruby,
-  rust,
-  scala,
-  sql,
-  solidity,
-  sass,
-  scss,
-  swift,
-  toml,
-  typescript,
-  tsx,
-  verilog,
-  vhdl,
-  visualbasic,
-  yaml,
-  zig,
-].forEach(refractor.register);
 
 export default class CodeFence extends Node {
   constructor(options: {
@@ -173,8 +72,6 @@ export default class CodeFence extends Node {
       defining: true,
       draggable: false,
       parseDOM: [
-        { tag: "code" },
-        { tag: "pre", preserveWhitespace: "full" },
         {
           tag: ".code-block",
           preserveWhitespace: "full",
@@ -183,6 +80,18 @@ export default class CodeFence extends Node {
           getAttrs: (dom: HTMLDivElement) => ({
             language: dom.dataset.language,
           }),
+        },
+        {
+          tag: "code",
+          preserveWhitespace: "full",
+          getAttrs: (dom) => {
+            // Only parse code blocks that contain newlines for code fences,
+            // otherwise the code mark rule will be applied.
+            if (!dom.textContent?.includes("\n")) {
+              return false;
+            }
+            return { language: dom.dataset.language };
+          },
         },
       ],
       toDOM: (node) => [
@@ -202,10 +111,10 @@ export default class CodeFence extends Node {
     return {
       code_block: (attrs: Record<string, Primitive>) => {
         if (attrs?.language) {
-          setRecentCodeLanguage(attrs.language as string);
+          setRecentlyUsedCodeLanguage(attrs.language as string);
         }
         return toggleBlockType(type, schema.nodes.paragraph, {
-          language: getRecentCodeLanguage() ?? DEFAULT_LANGUAGE,
+          language: getRecentlyUsedCodeLanguage() ?? DEFAULT_LANGUAGE,
           ...attrs,
         });
       },
@@ -276,7 +185,7 @@ export default class CodeFence extends Node {
 
   get plugins() {
     return [
-      Prism({
+      CodeHighlighting({
         name: this.name,
         lineNumbers: this.showLineNumbers,
       }),
@@ -343,7 +252,7 @@ export default class CodeFence extends Node {
   inputRules({ type }: { type: NodeType }) {
     return [
       textblockTypeInputRule(/^```$/, type, () => ({
-        language: getRecentCodeLanguage() ?? DEFAULT_LANGUAGE,
+        language: getRecentlyUsedCodeLanguage() ?? DEFAULT_LANGUAGE,
       })),
     ];
   }

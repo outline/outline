@@ -12,6 +12,7 @@ import { sanitizeUrl } from "../../utils/urls";
 import Caption from "../components/Caption";
 import ImageComponent from "../components/Image";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { ComponentProps } from "../types";
 import SimpleImage from "./SimpleImage";
 
@@ -152,11 +153,8 @@ export default class Image extends SimpleImage {
         const className = node.attrs.layoutClass
           ? `image image-${node.attrs.layoutClass}`
           : "image";
-        return [
-          "div",
-          {
-            class: className,
-          },
+
+        const children = [
           [
             "img",
             {
@@ -167,7 +165,22 @@ export default class Image extends SimpleImage {
               contentEditable: "false",
             },
           ],
-          ["p", { class: "caption" }, 0],
+        ];
+
+        if (node.attrs.alt) {
+          children.push([
+            "p",
+            { class: EditorStyleHelper.imageCaption },
+            node.attrs.alt,
+          ]);
+        }
+
+        return [
+          "div",
+          {
+            class: className,
+          },
+          ...children,
         ];
       },
       toPlainText: (node) =>
@@ -395,10 +408,14 @@ export default class Image extends SimpleImage {
         if (!(state.selection instanceof NodeSelection)) {
           return false;
         }
+        let layoutClass: string | null = "full-width";
+        if (state.selection.node.attrs.layoutClass === layoutClass) {
+          layoutClass = null;
+        }
         const attrs = {
           ...state.selection.node.attrs,
           title: null,
-          layoutClass: "full-width",
+          layoutClass,
         };
         const { selection } = state;
         dispatch?.(state.tr.setNodeMarkup(selection.from, undefined, attrs));

@@ -70,7 +70,7 @@ export class ProsemirrorHelper {
       return false;
     }
 
-    if (data.content.length === 1) {
+    if (data.content?.length === 1) {
       const node = data.content[0];
       return (
         node.type === "paragraph" &&
@@ -80,7 +80,7 @@ export class ProsemirrorHelper {
       );
     }
 
-    return data.content.length === 0;
+    return !data.content || data.content.length === 0;
   }
 
   /**
@@ -235,6 +235,46 @@ export class ProsemirrorHelper {
   }
 
   /**
+   * Iterates through the document to find all of the videos.
+   *
+   * @param doc Prosemirror document node
+   * @returns Array<Node> of videos
+   */
+  static getVideos(doc: Node): Node[] {
+    const videos: Node[] = [];
+
+    doc.descendants((node) => {
+      if (node.type.name === "video") {
+        videos.push(node);
+      }
+
+      return true;
+    });
+
+    return videos;
+  }
+
+  /**
+   * Iterates through the document to find all of the attachments.
+   *
+   * @param doc Prosemirror document node
+   * @returns Array<Node> of attachments
+   */
+  static getAttachments(doc: Node): Node[] {
+    const attachments: Node[] = [];
+
+    doc.descendants((node) => {
+      if (node.type.name === "attachment") {
+        attachments.push(node);
+      }
+
+      return true;
+    });
+
+    return attachments;
+  }
+
+  /**
    * Iterates through the document to find all of the tasks and their completion state.
    *
    * @param doc Prosemirror document node
@@ -345,5 +385,35 @@ export class ProsemirrorHelper {
     }
 
     return replace(data);
+  }
+
+  /**
+   * Returns the paragraphs from the data if there are only plain paragraphs
+   * without any formatting. Otherwise returns undefined.
+   *
+   * @param data The ProsemirrorData object
+   * @returns An array of paragraph nodes or undefined
+   */
+  static getPlainParagraphs(data: ProsemirrorData) {
+    const paragraphs: ProsemirrorData[] = [];
+    if (!data.content) {
+      return paragraphs;
+    }
+
+    for (const node of data.content) {
+      if (
+        node.type === "paragraph" &&
+        (!node.content ||
+          !node.content.some(
+            (item) =>
+              item.type !== "text" || (item.marks && item.marks.length > 0)
+          ))
+      ) {
+        paragraphs.push(node);
+      } else {
+        return undefined;
+      }
+    }
+    return paragraphs;
   }
 }

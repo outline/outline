@@ -1,8 +1,9 @@
 import { Optional } from "utility-types";
-import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { TextHelper } from "@shared/utils/TextHelper";
 import { Document, Event, User } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { APIContext } from "@server/types";
 
 type Props = Optional<
@@ -18,6 +19,7 @@ type Props = Optional<
     | "collectionId"
     | "parentDocumentId"
     | "importId"
+    | "apiImportId"
     | "template"
     | "fullWidth"
     | "sourceMetadata"
@@ -50,6 +52,7 @@ export default async function documentCreator({
   templateDocument,
   fullWidth,
   importId,
+  apiImportId,
   createdAt,
   // allows override for import
   updatedAt,
@@ -81,53 +84,59 @@ export default async function documentCreator({
     }
   }
 
-  const document = await Document.create(
-    {
-      id,
-      urlId,
-      parentDocumentId,
-      editorVersion,
-      collectionId,
-      teamId: user.teamId,
-      createdAt,
-      updatedAt: updatedAt ?? createdAt,
-      lastModifiedById: user.id,
-      createdById: user.id,
-      template,
-      templateId,
-      publishedAt,
-      importId,
-      sourceMetadata,
-      fullWidth: templateDocument ? templateDocument.fullWidth : fullWidth,
-      icon: templateDocument ? templateDocument.icon : icon,
-      color: templateDocument ? templateDocument.color : color,
-      title:
-        title ??
-        (templateDocument
-          ? template
-            ? templateDocument.title
-            : TextHelper.replaceTemplateVariables(templateDocument.title, user)
-          : ""),
-      text:
-        text ??
-        (templateDocument
-          ? template
-            ? templateDocument.text
-            : TextHelper.replaceTemplateVariables(templateDocument.text, user)
-          : ""),
-      content: templateDocument
-        ? ProsemirrorHelper.replaceTemplateVariables(
-            await DocumentHelper.toJSON(templateDocument),
-            user
-          )
-        : content,
-      state,
-    },
-    {
-      silent: !!createdAt,
-      transaction,
-    }
-  );
+  const titleWithReplacements =
+    title ??
+    (templateDocument
+      ? template
+        ? templateDocument.title
+        : TextHelper.replaceTemplateVariables(templateDocument.title, user)
+      : "");
+
+  const contentWithReplacements = text
+    ? ProsemirrorHelper.toProsemirror(text).toJSON()
+    : templateDocument
+    ? template
+      ? templateDocument.content
+      : SharedProsemirrorHelper.replaceTemplateVariables(
+          await DocumentHelper.toJSON(templateDocument),
+          user
+        )
+    : content;
+
+  const document = Document.build({
+    id,
+    urlId,
+    parentDocumentId,
+    editorVersion,
+    collectionId,
+    teamId: user.teamId,
+    createdAt,
+    updatedAt: updatedAt ?? createdAt,
+    lastModifiedById: user.id,
+    createdById: user.id,
+    template,
+    templateId,
+    publishedAt,
+    importId,
+    apiImportId,
+    sourceMetadata,
+    fullWidth: fullWidth ?? templateDocument?.fullWidth,
+    icon: icon ?? templateDocument?.icon,
+    color: color ?? templateDocument?.color,
+    title: titleWithReplacements,
+    content: contentWithReplacements,
+    state,
+  });
+
+  document.text = DocumentHelper.toMarkdown(document, {
+    includeTitle: false,
+  });
+
+  await document.save({
+    silent: !!createdAt,
+    transaction,
+  });
+
   await Event.create(
     {
       name: "documents.create",
@@ -136,7 +145,7 @@ export default async function documentCreator({
       teamId: document.teamId,
       actorId: user.id,
       data: {
-        source: importId ? "import" : undefined,
+        source: importId || apiImportId ? "import" : undefined,
         title: document.title,
         templateId,
       },

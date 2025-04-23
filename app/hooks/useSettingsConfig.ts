@@ -8,7 +8,6 @@ import {
   GlobeIcon,
   TeamIcon,
   BeakerIcon,
-  BuildingBlocksIcon,
   SettingsIcon,
   ExportIcon,
   ImportIcon,
@@ -40,7 +39,6 @@ const Notifications = lazy(() => import("~/scenes/Settings/Notifications"));
 const Preferences = lazy(() => import("~/scenes/Settings/Preferences"));
 const Profile = lazy(() => import("~/scenes/Settings/Profile"));
 const Security = lazy(() => import("~/scenes/Settings/Security"));
-const SelfHosted = lazy(() => import("~/scenes/Settings/SelfHosted"));
 const Shares = lazy(() => import("~/scenes/Settings/Shares"));
 const Templates = lazy(() => import("~/scenes/Settings/Templates"));
 const Zapier = lazy(() => import("~/scenes/Settings/Zapier"));
@@ -177,14 +175,6 @@ const useSettingsConfig = () => {
         icon: ExportIcon,
       },
       // Integrations
-      {
-        name: t("Self Hosted"),
-        path: integrationSettingsPath("self-hosted"),
-        component: SelfHosted,
-        enabled: can.update && !isCloudHosted,
-        group: t("Integrations"),
-        icon: BuildingBlocksIcon,
-      },
       {
         name: "Zapier",
         path: integrationSettingsPath("zapier"),

@@ -51,6 +51,16 @@ export const DocumentValidation = {
   maxStateLength: 1500 * 1024,
 };
 
+export const ImportValidation = {
+  /** The maximum length of the import name */
+  maxNameLength: 100,
+};
+
+export const RevisionValidation = {
+  minNameLength: 1,
+  maxNameLength: 255,
+};
+
 export const PinValidation = {
   /** The maximum number of pinned documents on an individual collection or home screen */
   max: 8,

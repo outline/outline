@@ -10,7 +10,7 @@ import NotificationHelper from "@server/models/helpers/NotificationHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
 import { CommentEvent } from "@server/types";
-import { canUserAccessDocument } from "@server/utils/policies";
+import { canUserAccessDocument } from "@server/utils/permissions";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 export default class CommentCreatedNotificationsTask extends BaseTask<CommentEvent> {
@@ -85,16 +85,21 @@ export default class CommentCreatedNotificationsTask extends BaseTask<CommentEve
       )
     ).filter((recipient) => !userIdsMentioned.includes(recipient.id));
 
-    for (const recipient of recipients) {
-      await Notification.create({
-        event: NotificationEventType.CreateComment,
-        userId: recipient.id,
-        actorId: comment.createdById,
-        teamId: document.teamId,
-        commentId: comment.id,
-        documentId: document.id,
-      });
-    }
+    await sequelize.transaction(async (transaction) => {
+      for (const recipient of recipients) {
+        await Notification.create(
+          {
+            event: NotificationEventType.CreateComment,
+            userId: recipient.id,
+            actorId: comment.createdById,
+            teamId: document.teamId,
+            commentId: comment.id,
+            documentId: document.id,
+          },
+          { transaction }
+        );
+      }
+    });
   }
 
   public get options() {

@@ -24,6 +24,10 @@ export { default as Group } from "./Group";
 
 export { default as GroupUser } from "./GroupUser";
 
+export { default as Import } from "./Import";
+
+export { default as ImportTask } from "./ImportTask";
+
 export { default as Integration } from "./Integration";
 
 export { default as IntegrationAuthentication } from "./IntegrationAuthentication";

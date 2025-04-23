@@ -1,55 +1,87 @@
-import { Op } from "sequelize";
 import { GroupUser } from "@server/models";
-import { DocumentGroupEvent, DocumentUserEvent, Event } from "@server/types";
-import DocumentSubscriptionTask from "../tasks/DocumentSubscriptionTask";
+import {
+  CollectionGroupEvent,
+  CollectionUserEvent,
+  DocumentGroupEvent,
+  DocumentUserEvent,
+  Event,
+} from "@server/types";
+import CollectionSubscriptionRemoveUserTask from "../tasks/CollectionSubscriptionRemoveUserTask";
+import DocumentSubscriptionRemoveUserTask from "../tasks/DocumentSubscriptionRemoveUserTask";
 import BaseProcessor from "./BaseProcessor";
+
+type ReceivedEvent =
+  | CollectionUserEvent
+  | CollectionGroupEvent
+  | DocumentUserEvent
+  | DocumentGroupEvent;
 
 export default class DocumentSubscriptionProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
-    "documents.add_user",
+    "collections.remove_user",
+    "collections.remove_group",
     "documents.remove_user",
-    "documents.add_group",
     "documents.remove_group",
   ];
 
-  async perform(event: DocumentUserEvent | DocumentGroupEvent) {
+  async perform(event: ReceivedEvent) {
     switch (event.name) {
-      case "documents.add_user":
-      case "documents.remove_user": {
-        await DocumentSubscriptionTask.schedule(event);
+      case "collections.remove_user": {
+        await CollectionSubscriptionRemoveUserTask.schedule(event);
         return;
       }
 
-      case "documents.add_group":
+      case "collections.remove_group":
+        return this.handleRemoveGroupFromCollection(event);
+
+      case "documents.remove_user": {
+        await DocumentSubscriptionRemoveUserTask.schedule(event);
+        return;
+      }
+
       case "documents.remove_group":
-        return this.handleGroup(event);
+        return this.handleRemoveGroupFromDocument(event);
 
       default:
     }
   }
 
-  private async handleGroup(event: DocumentGroupEvent) {
-    const userEventName: DocumentUserEvent["name"] =
-      event.name === "documents.add_group"
-        ? "documents.add_user"
-        : "documents.remove_user";
-
+  private async handleRemoveGroupFromCollection(event: CollectionGroupEvent) {
     await GroupUser.findAllInBatches<GroupUser>(
       {
         where: {
           groupId: event.modelId,
-          userId: {
-            [Op.ne]: event.actorId,
-          },
         },
         batchLimit: 10,
       },
       async (groupUsers) => {
         await Promise.all(
           groupUsers.map((groupUser) =>
-            DocumentSubscriptionTask.schedule({
+            CollectionSubscriptionRemoveUserTask.schedule({
               ...event,
-              name: userEventName,
+              name: "collections.remove_user",
+              userId: groupUser.userId,
+            })
+          )
+        );
+      }
+    );
+  }
+
+  private async handleRemoveGroupFromDocument(event: DocumentGroupEvent) {
+    await GroupUser.findAllInBatches<GroupUser>(
+      {
+        where: {
+          groupId: event.modelId,
+        },
+        batchLimit: 10,
+      },
+      async (groupUsers) => {
+        await Promise.all(
+          groupUsers.map((groupUser) =>
+            DocumentSubscriptionRemoveUserTask.schedule({
+              ...event,
+              name: "documents.remove_user",
               userId: groupUser.userId,
             })
           )

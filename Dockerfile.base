@@ -1,10 +1,13 @@
 ARG APP_PATH=/opt/outline
-FROM node:20-slim AS deps
+FROM node:20 AS deps
 
 ARG APP_PATH
 WORKDIR $APP_PATH
 COPY ./package.json ./yarn.lock ./
 COPY ./patches ./patches
+
+RUN apt-get update && apt-get install -y cmake
+ENV NODE_OPTIONS="--max-old-space-size=24000"
 
 RUN yarn install --no-optional --frozen-lockfile --network-timeout 1000000 && \
   yarn cache clean

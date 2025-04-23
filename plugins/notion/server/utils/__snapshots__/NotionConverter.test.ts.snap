@@ -1,0 +1,2130 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NotionConverter converts a page 1`] = `
+{
+  "content": [
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Table of contents (it’s a node type)",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Bookmark",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "marks": [
+            {
+              "attrs": {
+                "href": "https://www.google.com/",
+                "title": null,
+              },
+              "type": "link",
+            },
+          ],
+          "text": "Bookmark caption",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Breadcrumb",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Bulleted list item",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "marks": [],
+                  "text": "Bullet list item 1",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "list_item",
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "marks": [],
+                  "text": "Bullet list item 2",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "content": [
+                        {
+                          "marks": [],
+                          "text": "Bullet list item 2.1",
+                          "type": "text",
+                        },
+                      ],
+                      "type": "paragraph",
+                    },
+                    {
+                      "content": [
+                        {
+                          "content": [
+                            {
+                              "content": [
+                                {
+                                  "marks": [],
+                                  "text": "Ordered list item 2.1.1",
+                                  "type": "text",
+                                },
+                              ],
+                              "type": "paragraph",
+                            },
+                          ],
+                          "type": "list_item",
+                        },
+                      ],
+                      "type": "ordered_list",
+                    },
+                  ],
+                  "type": "list_item",
+                },
+              ],
+              "type": "bullet_list",
+            },
+          ],
+          "type": "list_item",
+        },
+      ],
+      "type": "bullet_list",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Callout",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "attrs": {
+        "level": 3,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Basic",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "attrs": {
+        "style": "info",
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "marks": [],
+              "text": "Basic callout with just a paragraph",
+              "type": "text",
+            },
+          ],
+          "type": "paragraph",
+        },
+      ],
+      "type": "container_notice",
+    },
+    {
+      "attrs": {
+        "level": 3,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "With child nodes",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "attrs": {
+        "style": "info",
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "marks": [],
+              "text": "Callout can contain any node which are permissible in a page.",
+              "type": "text",
+            },
+          ],
+          "type": "paragraph",
+        },
+        {
+          "content": [
+            {
+              "marks": [],
+              "text": "An example of including a heading and image below.",
+              "type": "text",
+            },
+          ],
+          "type": "paragraph",
+        },
+        {
+          "attrs": {
+            "level": 2,
+          },
+          "content": [
+            {
+              "marks": [],
+              "text": "Pikachu",
+              "type": "text",
+            },
+          ],
+          "type": "heading",
+        },
+        {
+          "content": [
+            {
+              "attrs": {
+                "alt": "",
+                "src": "https://prod-files-secure.s3.us-west-2.amazonaws.com/2f3fcad6-fc32-434b-b6b2-a03ca7893c4d/55c7611e-6ed9-4765-a99a-705b4f388161/pikachu.jpeg",
+              },
+              "type": "image",
+            },
+          ],
+          "type": "paragraph",
+        },
+      ],
+      "type": "container_notice",
+    },
+    {
+      "content": [],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Child database",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Child page",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Code",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "attrs": {
+        "language": "javascript",
+      },
+      "content": [
+        {
+          "text": "console.log("Hello, world!");",
+          "type": "text",
+        },
+      ],
+      "type": "code_fence",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Column list and column",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "Rendered below is a 2-column list.",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [
+            {
+              "type": "strong",
+            },
+          ],
+          "text": "Column one content",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "It can have any node permissible in the page",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [
+            {
+              "type": "strong",
+            },
+          ],
+          "text": "Column two content",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "style": "info",
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "marks": [],
+              "text": "Callout inside column",
+              "type": "text",
+            },
+          ],
+          "type": "paragraph",
+        },
+      ],
+      "type": "container_notice",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Divider",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "type": "hr",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Embed",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "attrs": {
+        "href": "https://gist.github.com/blak3r/ce20a51c00c960466780062515d1b97d",
+      },
+      "type": "embed",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Equation",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "attrs": {
+        "level": 3,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Block equation",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "text": "E=mc^2",
+          "type": "text",
+        },
+      ],
+      "type": "math_block",
+    },
+    {
+      "attrs": {
+        "level": 3,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Inline equation",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "Mass-energy equivalence formula:  ",
+          "type": "text",
+        },
+        {
+          "content": [
+            {
+              "text": "E=mc^2",
+              "type": "text",
+            },
+          ],
+          "type": "math_inline",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "File",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "attrs": {
+        "level": 3,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Internal (uploaded to notion)",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "attrs": {
+        "href": "https://prod-files-secure.s3.us-west-2.amazonaws.com/2f3fcad6-fc32-434b-b6b2-a03ca7893c4d/cddd2f2f-c99b-499e-9769-de7b9da3b758/pikachu.jpeg",
+        "title": "pikachu.jpeg",
+      },
+      "type": "attachment",
+    },
+    {
+      "attrs": {
+        "level": 3,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "External (linked to a public url)",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "attrs": {
+        "href": "https://images.unsplash.com/photo-1525310072745-f49212b5ac6d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1065&q=80",
+        "title": "flower",
+      },
+      "type": "attachment",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Non-toggleable Heading",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "Some paragraph content below non-toggleable heading.",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Non-toggleable Heading with a ",
+          "type": "text",
+        },
+        {
+          "text": "2025-03-11",
+          "type": "text",
+        },
+        {
+          "marks": [],
+          "text": " mention",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "Some paragraph content below non-toggleable heading with mention.",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Toggleable heading",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Toggleable heading with a ",
+          "type": "text",
+        },
+        {
+          "text": "2025-03-11",
+          "type": "text",
+        },
+        {
+          "marks": [],
+          "text": " mention.",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Image",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "attrs": {
+        "level": 3,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Internal (uploaded to notion)",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "alt": "Pikachu waving Hi!",
+            "src": "https://prod-files-secure.s3.us-west-2.amazonaws.com/2f3fcad6-fc32-434b-b6b2-a03ca7893c4d/06ce6d68-184f-46c4-a744-dfd8fab1e553/pikachu.jpeg",
+          },
+          "type": "image",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "level": 3,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "External (linked to a public url)",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "alt": "",
+            "src": "https://images.unsplash.com/photo-1525310072745-f49212b5ac6d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1065&q=80",
+          },
+          "type": "image",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Link preview",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "attrs": {
+        "level": 3,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Embed / preview",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "marks": [
+            {
+              "attrs": {
+                "href": "https://github.com/outline/outline",
+              },
+              "type": "link",
+            },
+          ],
+          "text": "https://github.com/outline/outline",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "level": 3,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Mention",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "Outline repo: ",
+          "type": "text",
+        },
+        {
+          "marks": [
+            {
+              "attrs": {
+                "href": "https://github.com/outline/outline",
+              },
+              "type": "link",
+            },
+          ],
+          "text": "https://github.com/outline/outline",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Mention",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "Note that if the integration cannot access the mention object (e.g. integration doesn’t have permission to mentioned page), the ",
+          "type": "text",
+        },
+        {
+          "marks": [
+            {
+              "type": "code_inline",
+            },
+          ],
+          "text": "plain_text",
+          "type": "text",
+        },
+        {
+          "marks": [],
+          "text": " and ",
+          "type": "text",
+        },
+        {
+          "marks": [
+            {
+              "type": "code_inline",
+            },
+          ],
+          "text": "href",
+          "type": "text",
+        },
+        {
+          "marks": [],
+          "text": " values in ",
+          "type": "text",
+        },
+        {
+          "marks": [
+            {
+              "type": "em",
+            },
+          ],
+          "text": "rich_text ",
+          "type": "text",
+        },
+        {
+          "marks": [],
+          "text": "object will reset to defaults.",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "level": 3,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Database",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "text": "Test database",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "level": 3,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Page",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "Accessible page: ",
+          "type": "text",
+        },
+        {
+          "attrs": {
+            "label": "Child page of all possible nodes",
+            "modelId": "1b32c2bb-bca8-80a4-aece-c773a563395b",
+            "type": "document",
+          },
+          "type": "mention",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "Non-accessible page: ",
+          "type": "text",
+        },
+        {
+          "attrs": {
+            "label": "Untitled",
+            "modelId": "05325ad4-cef9-4e54-ad94-1b9dd33311f8",
+            "type": "document",
+          },
+          "type": "mention",
+        },
+        {
+          "marks": [],
+          "text": " (",
+          "type": "text",
+        },
+        {
+          "marks": [
+            {
+              "type": "code_inline",
+            },
+          ],
+          "text": "plain_text",
+          "type": "text",
+        },
+        {
+          "marks": [],
+          "text": " is ",
+          "type": "text",
+        },
+        {
+          "marks": [
+            {
+              "type": "em",
+            },
+          ],
+          "text": "Untitled",
+          "type": "text",
+        },
+        {
+          "marks": [],
+          "text": ", but href points to the block url).",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "level": 3,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "User",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "text": "@Anonymous",
+          "type": "text",
+        },
+        {
+          "marks": [],
+          "text": "(",
+          "type": "text",
+        },
+        {
+          "marks": [
+            {
+              "type": "code_inline",
+            },
+          ],
+          "text": "plain_text",
+          "type": "text",
+        },
+        {
+          "marks": [],
+          "text": " is ",
+          "type": "text",
+        },
+        {
+          "marks": [
+            {
+              "type": "em",
+            },
+          ],
+          "text": "User",
+          "type": "text",
+        },
+        {
+          "marks": [],
+          "text": " and href is ",
+          "type": "text",
+        },
+        {
+          "marks": [
+            {
+              "type": "code_inline",
+            },
+          ],
+          "text": "null",
+          "type": "text",
+        },
+        {
+          "marks": [],
+          "text": ").",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "level": 3,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Link mention",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "marks": [
+            {
+              "attrs": {
+                "href": "https://www.youtube.com/watch?v=cCOL7MC4Pl0",
+              },
+              "type": "link",
+            },
+          ],
+          "text": "https://www.youtube.com/watch?v=cCOL7MC4Pl0",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "This isn’t documented, but API returns it 🤷‍♂️.",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "level": 3,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Link preview",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "marks": [
+            {
+              "attrs": {
+                "href": "https://github.com/outline/outline",
+              },
+              "type": "link",
+            },
+          ],
+          "text": "https://github.com/outline/outline",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "level": 3,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Date",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "text": "2025-03-12T09:00:00.000+05:30",
+          "type": "text",
+        },
+        {
+          "marks": [],
+          "text": " ",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "level": 3,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Template mention",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "Doesn’t work... 🤔",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Numbered list",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "marks": [],
+                  "text": "Numbered list item 1",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "list_item",
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "marks": [],
+                  "text": "Numbered list item 2",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "content": [
+                        {
+                          "marks": [],
+                          "text": "Numbered list item 2.1",
+                          "type": "text",
+                        },
+                      ],
+                      "type": "paragraph",
+                    },
+                  ],
+                  "type": "list_item",
+                },
+                {
+                  "content": [
+                    {
+                      "content": [
+                        {
+                          "marks": [],
+                          "text": "Numbered list item 2.2",
+                          "type": "text",
+                        },
+                      ],
+                      "type": "paragraph",
+                    },
+                    {
+                      "content": [
+                        {
+                          "content": [
+                            {
+                              "content": [
+                                {
+                                  "marks": [],
+                                  "text": "Bullet list item 2.2.1",
+                                  "type": "text",
+                                },
+                              ],
+                              "type": "paragraph",
+                            },
+                          ],
+                          "type": "list_item",
+                        },
+                        {
+                          "content": [
+                            {
+                              "content": [
+                                {
+                                  "marks": [],
+                                  "text": "Bullet list item 2.2.2",
+                                  "type": "text",
+                                },
+                              ],
+                              "type": "paragraph",
+                            },
+                          ],
+                          "type": "list_item",
+                        },
+                      ],
+                      "type": "bullet_list",
+                    },
+                  ],
+                  "type": "list_item",
+                },
+              ],
+              "type": "ordered_list",
+            },
+          ],
+          "type": "list_item",
+        },
+      ],
+      "type": "ordered_list",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Paragraph",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "Simple paragraph",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "Paragraph with mention: ",
+          "type": "text",
+        },
+        {
+          "text": "Test database",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "PDF",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "attrs": {
+        "href": "https://prod-files-secure.s3.us-west-2.amazonaws.com/2f3fcad6-fc32-434b-b6b2-a03ca7893c4d/110e05d7-682d-4948-9207-8a0873f45bbe/Empty_file.pdf",
+        "title": "Empty pdf file",
+      },
+      "type": "attachment",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Quote",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "marks": [],
+              "text": "Test quote",
+              "type": "text",
+            },
+          ],
+          "type": "paragraph",
+        },
+      ],
+      "type": "blockquote",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Synced block",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "attrs": {
+        "level": 3,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Source",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "Synced block content. It can contain any node permissible in the page.",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "For example, a callout.",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "style": "info",
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "marks": [],
+              "text": "This is inside a synced block",
+              "type": "text",
+            },
+          ],
+          "type": "paragraph",
+        },
+      ],
+      "type": "container_notice",
+    },
+    {
+      "attrs": {
+        "level": 3,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Copy",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "Synced block content. It can contain any node permissible in the page.",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "For example, a callout.",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "style": "info",
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "marks": [],
+              "text": "This is inside a synced block",
+              "type": "text",
+            },
+          ],
+          "type": "paragraph",
+        },
+      ],
+      "type": "container_notice",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Table",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [],
+                  "type": "paragraph",
+                },
+              ],
+              "type": "th",
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "marks": [],
+                      "text": "Col Header 1",
+                      "type": "text",
+                    },
+                  ],
+                  "type": "paragraph",
+                },
+              ],
+              "type": "th",
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "marks": [],
+                      "text": "Col Header 2",
+                      "type": "text",
+                    },
+                  ],
+                  "type": "paragraph",
+                },
+              ],
+              "type": "th",
+            },
+          ],
+          "type": "tr",
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "marks": [],
+                      "text": "Row Header 1",
+                      "type": "text",
+                    },
+                  ],
+                  "type": "paragraph",
+                },
+              ],
+              "type": "th",
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "marks": [],
+                      "text": "R1 C1",
+                      "type": "text",
+                    },
+                  ],
+                  "type": "paragraph",
+                },
+              ],
+              "type": "td",
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "marks": [],
+                      "text": "R1 C2",
+                      "type": "text",
+                    },
+                  ],
+                  "type": "paragraph",
+                },
+              ],
+              "type": "td",
+            },
+          ],
+          "type": "tr",
+        },
+        {
+          "content": [
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "marks": [],
+                      "text": "Row Header 2",
+                      "type": "text",
+                    },
+                  ],
+                  "type": "paragraph",
+                },
+              ],
+              "type": "th",
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "marks": [],
+                      "text": "R2 C1",
+                      "type": "text",
+                    },
+                  ],
+                  "type": "paragraph",
+                },
+              ],
+              "type": "td",
+            },
+            {
+              "content": [
+                {
+                  "content": [
+                    {
+                      "marks": [],
+                      "text": "R2 C2",
+                      "type": "text",
+                    },
+                  ],
+                  "type": "paragraph",
+                },
+              ],
+              "type": "td",
+            },
+          ],
+          "type": "tr",
+        },
+      ],
+      "type": "table",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Template",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "This is an “unsupported” node in the API response.",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "Looks like it was deprecated ",
+          "type": "text",
+        },
+        {
+          "marks": [
+            {
+              "attrs": {
+                "href": "https://developers.notion.com/reference/block#template",
+              },
+              "type": "link",
+            },
+          ],
+          "text": "https://developers.notion.com/reference/block#template",
+          "type": "text",
+        },
+        {
+          "marks": [],
+          "text": ". Notice that the attached link works as an ",
+          "type": "text",
+        },
+        {
+          "marks": [
+            {
+              "type": "em",
+            },
+          ],
+          "text": "inline_link",
+          "type": "text",
+        },
+        {
+          "marks": [],
+          "text": " rich_text object 😉.",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "To do",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "attrs": {
+            "checked": true,
+          },
+          "content": [
+            {
+              "content": [
+                {
+                  "marks": [],
+                  "text": "Todo item 1",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+          ],
+          "type": "checkbox_item",
+        },
+        {
+          "attrs": {
+            "checked": false,
+          },
+          "content": [
+            {
+              "content": [
+                {
+                  "marks": [],
+                  "text": "Todo item 2",
+                  "type": "text",
+                },
+              ],
+              "type": "paragraph",
+            },
+            {
+              "content": [
+                {
+                  "attrs": {
+                    "checked": false,
+                  },
+                  "content": [
+                    {
+                      "content": [
+                        {
+                          "marks": [],
+                          "text": "Todo item 2.1",
+                          "type": "text",
+                        },
+                      ],
+                      "type": "paragraph",
+                    },
+                    {
+                      "content": [
+                        {
+                          "content": [
+                            {
+                              "content": [
+                                {
+                                  "marks": [],
+                                  "text": "Numbered item 2.1.1",
+                                  "type": "text",
+                                },
+                              ],
+                              "type": "paragraph",
+                            },
+                          ],
+                          "type": "list_item",
+                        },
+                        {
+                          "content": [
+                            {
+                              "content": [
+                                {
+                                  "marks": [],
+                                  "text": "bulleted item 2.1.2",
+                                  "type": "text",
+                                },
+                              ],
+                              "type": "paragraph",
+                            },
+                          ],
+                          "type": "list_item",
+                        },
+                      ],
+                      "type": "ordered_list",
+                    },
+                  ],
+                  "type": "checkbox_item",
+                },
+                {
+                  "attrs": {
+                    "checked": false,
+                  },
+                  "content": [
+                    {
+                      "content": [
+                        {
+                          "marks": [],
+                          "text": "Todo item 2.2",
+                          "type": "text",
+                        },
+                      ],
+                      "type": "paragraph",
+                    },
+                    {
+                      "content": [
+                        {
+                          "marks": [],
+                          "text": "Nested content inside todo item 2.2.",
+                          "type": "text",
+                        },
+                      ],
+                      "type": "paragraph",
+                    },
+                  ],
+                  "type": "checkbox_item",
+                },
+              ],
+              "type": "checkbox_list",
+            },
+          ],
+          "type": "checkbox_item",
+        },
+      ],
+      "type": "checkbox_list",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Toggle",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "When ",
+          "type": "text",
+        },
+        {
+          "marks": [
+            {
+              "type": "em",
+            },
+          ],
+          "text": "type",
+          "type": "text",
+        },
+        {
+          "marks": [],
+          "text": " is ",
+          "type": "text",
+        },
+        {
+          "marks": [
+            {
+              "type": "code_inline",
+            },
+          ],
+          "text": "toggle",
+          "type": "text",
+        },
+        {
+          "marks": [],
+          "text": ", it means it’s a toggle list",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "Toggle list item 1",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "style": "info",
+      },
+      "content": [
+        {
+          "content": [
+            {
+              "marks": [],
+              "text": "Callout inside toggle list item 1",
+              "type": "text",
+            },
+          ],
+          "type": "paragraph",
+        },
+      ],
+      "type": "container_notice",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "Toggle list item 2",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [],
+          "text": "Some content inside toggle list item 2",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "level": 2,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Video",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "attrs": {
+        "level": 3,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "Internal (uploaded to notion)",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "attrs": {
+        "src": "https://prod-files-secure.s3.us-west-2.amazonaws.com/2f3fcad6-fc32-434b-b6b2-a03ca7893c4d/c15768c4-949b-42d1-9ac4-f8a42799f892/pin_bug.mp4",
+        "title": "",
+      },
+      "type": "video",
+    },
+    {
+      "attrs": {
+        "level": 3,
+      },
+      "content": [
+        {
+          "marks": [],
+          "text": "External (linked to a public url)",
+          "type": "text",
+        },
+      ],
+      "type": "heading",
+    },
+    {
+      "attrs": {
+        "href": "https://www.youtube.com/watch?v=cCOL7MC4Pl0",
+      },
+      "type": "embed",
+    },
+    {
+      "content": [],
+      "type": "paragraph",
+    },
+  ],
+  "type": "doc",
+}
+`;
+
+exports[`NotionConverter converts a page with empty text nodes 1`] = `
+{
+  "content": [
+    {
+      "content": [],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "language": "javascript",
+      },
+      "content": undefined,
+      "type": "code_fence",
+    },
+    {
+      "content": [],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "content": [
+            {
+              "text": "E",
+              "type": "text",
+            },
+          ],
+          "type": "math_inline",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [
+            {
+              "attrs": {
+                "href": "http://github.com/outline/",
+              },
+              "type": "link",
+            },
+          ],
+          "text": "http://github.com/outline/",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [
+            {
+              "attrs": {
+                "href": "https://github.com/outline/outline",
+              },
+              "type": "link",
+            },
+          ],
+          "text": "https://github.com/outline/outline",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [],
+      "type": "paragraph",
+    },
+    {
+      "content": undefined,
+      "type": "math_block",
+    },
+    {
+      "content": [],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [
+            {
+              "attrs": {
+                "href": "https://google.com",
+                "title": null,
+              },
+              "type": "link",
+            },
+          ],
+          "text": "https://google.com",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [],
+      "type": "paragraph",
+    },
+    {
+      "content": [
+        {
+          "marks": [
+            {
+              "attrs": {
+                "href": "https://github.com/outline/outline",
+              },
+              "type": "link",
+            },
+          ],
+          "text": "https://github.com/outline/outline",
+          "type": "text",
+        },
+      ],
+      "type": "paragraph",
+    },
+    {
+      "content": [],
+      "type": "paragraph",
+    },
+    {
+      "attrs": {
+        "href": "https://prod-files-secure.s3.us-west-2.amazonaws.com/2f3fcad6-fc32-434b-b6b2-a03ca7893c4d/49bfa851-95c1-458b-abb0-88ed591f7712/Empty_pdf.pdf",
+        "title": "",
+      },
+      "type": "attachment",
+    },
+    {
+      "content": [],
+      "type": "paragraph",
+    },
+  ],
+  "type": "doc",
+}
+`;

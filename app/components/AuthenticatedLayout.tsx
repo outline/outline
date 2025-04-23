@@ -1,15 +1,22 @@
 import { AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { Switch, Route, useLocation, matchPath } from "react-router-dom";
+import {
+  Switch,
+  Route,
+  useLocation,
+  matchPath,
+  Redirect,
+} from "react-router-dom";
 import { TeamPreference } from "@shared/types";
-import ErrorSuspended from "~/scenes/ErrorSuspended";
+import ErrorSuspended from "~/scenes/Errors/ErrorSuspended";
 import Layout from "~/components/Layout";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import Sidebar from "~/components/Sidebar";
 import SidebarRight from "~/components/Sidebar/Right";
 import SettingsSidebar from "~/components/Sidebar/Settings";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import { usePostLoginPath } from "~/hooks/useLastVisitedPath";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
@@ -48,6 +55,7 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
   const can = usePolicy(ui.activeDocumentId);
   const canCollection = usePolicy(ui.activeCollectionId);
   const team = useCurrentTeam();
+  const [spendPostLoginPath] = usePostLoginPath();
 
   const goToSearch = (ev: KeyboardEvent) => {
     if (!ev.metaKey && !ev.ctrlKey) {
@@ -70,6 +78,11 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
 
   if (auth.isSuspended) {
     return <ErrorSuspended />;
+  }
+
+  const postLoginPath = spendPostLoginPath();
+  if (postLoginPath) {
+    return <Redirect to={postLoginPath} />;
   }
 
   const sidebar = (

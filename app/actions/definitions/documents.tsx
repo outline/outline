@@ -29,6 +29,7 @@ import {
   PadlockIcon,
   GlobeIcon,
   LogoutIcon,
+  CaseSensitiveIcon,
 } from "outline-icons";
 import * as React from "react";
 import { toast } from "sonner";
@@ -510,6 +511,25 @@ export const copyDocumentAsMarkdown = createAction({
   },
 });
 
+export const copyDocumentAsPlainText = createAction({
+  name: ({ t }) => t("Copy as text"),
+  section: ActiveDocumentSection,
+  keywords: "clipboard",
+  icon: <CaseSensitiveIcon />,
+  iconInContextMenu: false,
+  visible: ({ activeDocumentId, stores }) =>
+    !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
+  perform: ({ stores, activeDocumentId, t }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (document) {
+      copy(document.toPlainText());
+      toast.success(t("Text copied to clipboard"));
+    }
+  },
+});
+
 export const copyDocumentShareLink = createAction({
   name: ({ t }) => t("Copy public link"),
   section: ActiveDocumentSection,
@@ -555,7 +575,12 @@ export const copyDocument = createAction({
   section: ActiveDocumentSection,
   icon: <CopyIcon />,
   keywords: "clipboard",
-  children: [copyDocumentLink, copyDocumentShareLink, copyDocumentAsMarkdown],
+  children: [
+    copyDocumentLink,
+    copyDocumentShareLink,
+    copyDocumentAsMarkdown,
+    copyDocumentAsPlainText,
+  ],
 });
 
 export const duplicateDocument = createAction({
@@ -683,6 +708,7 @@ export const searchInDocument = createAction({
   name: ({ t }) => t("Search in document"),
   analyticsName: "Search document",
   section: ActiveDocumentSection,
+  shortcut: [`Meta+/`],
   icon: <SearchIcon />,
   visible: ({ stores, activeDocumentId }) => {
     if (!activeDocumentId) {
@@ -692,7 +718,7 @@ export const searchInDocument = createAction({
     return !!document?.isActive;
   },
   perform: ({ activeDocumentId }) => {
-    history.push(searchPath(undefined, { documentId: activeDocumentId }));
+    history.push(searchPath({ documentId: activeDocumentId }));
   },
 });
 
@@ -805,15 +831,15 @@ export const openRandomDocument = createAction({
   },
 });
 
-export const searchDocumentsForQuery = (searchQuery: string) =>
+export const searchDocumentsForQuery = (query: string) =>
   createAction({
     id: "search",
     name: ({ t }) =>
-      t(`Search documents for "{{searchQuery}}"`, { searchQuery }),
+      t(`Search documents for "{{searchQuery}}"`, { searchQuery: query }),
     analyticsName: "Search documents",
     section: DocumentSection,
     icon: <SearchIcon />,
-    perform: () => history.push(searchPath(searchQuery)),
+    perform: () => history.push(searchPath({ query })),
     visible: ({ location }) => location.pathname !== searchPath(),
   });
 
@@ -1204,12 +1230,14 @@ export const rootDocumentActions = [
   copyDocumentLink,
   copyDocumentShareLink,
   copyDocumentAsMarkdown,
+  copyDocumentAsPlainText,
   starDocument,
   unstarDocument,
   publishDocument,
   unpublishDocument,
   subscribeDocument,
   unsubscribeDocument,
+  searchInDocument,
   duplicateDocument,
   leaveDocument,
   moveTemplateToWorkspace,

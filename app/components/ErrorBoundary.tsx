@@ -7,6 +7,7 @@ import { s } from "@shared/styles";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import Button from "~/components/Button";
 import CenteredContent from "~/components/CenteredContent";
+import Heading from "~/components/Heading";
 import PageTitle from "~/components/PageTitle";
 import Text from "~/components/Text";
 import env from "~/env";
@@ -77,9 +78,9 @@ class ErrorBoundary extends React.Component<Props> {
             {showTitle && (
               <>
                 <PageTitle title={t("Module failed to load")} />
-                <h1>
+                <Heading>
                   <Trans>Loading Failed</Trans>
-                </h1>
+                </Heading>
               </>
             )}
             <Text as="p" type="secondary">
@@ -101,9 +102,9 @@ class ErrorBoundary extends React.Component<Props> {
           {showTitle && (
             <>
               <PageTitle title={t("Something Unexpected Happened")} />
-              <h1>
+              <Heading>
                 <Trans>Something Unexpected Happened</Trans>
-              </h1>
+              </Heading>
             </>
           )}
           <Text as="p" type="secondary">

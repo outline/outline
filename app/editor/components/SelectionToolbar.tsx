@@ -4,6 +4,7 @@ import * as React from "react";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { getMarkRange } from "@shared/editor/queries/getMarkRange";
 import { isInCode } from "@shared/editor/queries/isInCode";
+import { isInNotice } from "@shared/editor/queries/isInNotice";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import { getColumnIndex, getRowIndex } from "@shared/editor/queries/table";
@@ -18,6 +19,7 @@ import getCodeMenuItems from "../menus/code";
 import getDividerMenuItems from "../menus/divider";
 import getFormattingMenuItems from "../menus/formatting";
 import getImageMenuItems from "../menus/image";
+import getNoticeMenuItems from "../menus/notice";
 import getReadOnlyMenuItems from "../menus/readOnly";
 import getTableMenuItems from "../menus/table";
 import getTableColMenuItems from "../menus/tableCol";
@@ -52,6 +54,10 @@ function useIsActive(state: EditorState) {
       isNodeActive(state.schema.nodes.code_fence)(state)) &&
     selection.from > 0
   ) {
+    return true;
+  }
+
+  if (isInNotice(state) && selection.from > 0) {
     return true;
   }
 
@@ -168,12 +174,12 @@ export default function SelectionToolbar(props: Props) {
   const { isTemplate, rtl, canComment, canUpdate, ...rest } = props;
   const { state } = view;
   const { selection } = state;
-  const isDividerSelection = isNodeActive(state.schema.nodes.hr)(state);
 
   if ((readOnly && !canComment) || isDragging) {
     return null;
   }
 
+  const isDividerSelection = isNodeActive(state.schema.nodes.hr)(state);
   const colIndex = getColumnIndex(state);
   const rowIndex = getRowIndex(state);
   const isTableSelection = colIndex !== undefined && rowIndex !== undefined;
@@ -184,6 +190,7 @@ export default function SelectionToolbar(props: Props) {
     selection instanceof NodeSelection &&
     selection.node.type.name === "attachment";
   const isCodeSelection = isInCode(state, { onlyBlock: true });
+  const isNoticeSelection = isInNotice(state);
 
   let items: MenuItem[] = [];
 
@@ -203,6 +210,8 @@ export default function SelectionToolbar(props: Props) {
     items = getDividerMenuItems(state, dictionary);
   } else if (readOnly) {
     items = getReadOnlyMenuItems(state, !!canUpdate, dictionary);
+  } else if (isNoticeSelection && selection.empty) {
+    items = getNoticeMenuItems(state, readOnly, dictionary);
   } else {
     items = getFormattingMenuItems(state, isTemplate, isMobile, dictionary);
   }

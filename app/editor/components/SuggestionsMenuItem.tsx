@@ -1,3 +1,4 @@
+import { transparentize } from "polished";
 import * as React from "react";
 import scrollIntoView from "scroll-into-view-if-needed";
 import styled from "styled-components";
@@ -11,6 +12,8 @@ export type Props = {
   disabled?: boolean;
   /** Callback when the item is clicked */
   onClick: (event: React.SyntheticEvent) => void;
+  /** Callback when the item is hovered */
+  onPointerMove?: (event: React.SyntheticEvent) => void;
   /** An optional icon for the item */
   icon?: React.ReactNode;
   /** The title of the item */
@@ -25,6 +28,7 @@ function SuggestionsMenuItem({
   selected,
   disabled,
   onClick,
+  onPointerMove,
   title,
   subtitle,
   shortcut,
@@ -53,6 +57,7 @@ function SuggestionsMenuItem({
       ref={ref}
       active={selected}
       onClick={disabled ? undefined : onClick}
+      onPointerMove={disabled ? undefined : onPointerMove}
       icon={icon}
     >
       {title}
@@ -64,12 +69,16 @@ function SuggestionsMenuItem({
 
 const Subtitle = styled.span<{ $active?: boolean }>`
   color: ${(props) =>
-    props.$active ? props.theme.white50 : props.theme.textTertiary};
+    props.$active
+      ? transparentize(0.35, props.theme.accentText)
+      : props.theme.textTertiary};
 `;
 
 const Shortcut = styled.span<{ $active?: boolean }>`
   color: ${(props) =>
-    props.$active ? props.theme.white50 : props.theme.textTertiary};
+    props.$active
+      ? transparentize(0.35, props.theme.accentText)
+      : props.theme.textTertiary};
   flex-grow: 1;
   text-align: right;
 `;

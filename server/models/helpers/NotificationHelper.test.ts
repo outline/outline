@@ -1,5 +1,6 @@
 import { NotificationEventType } from "@shared/types";
 import {
+  buildComment,
   buildDocument,
   buildSubscription,
   buildUser,
@@ -7,8 +8,8 @@ import {
 import NotificationHelper from "./NotificationHelper";
 
 describe("NotificationHelper", () => {
-  describe("getDocumentNotificationRecipients", () => {
-    it("should return all users who have notification enabled for the event", async () => {
+  describe("getCommentNotificationRecipients", () => {
+    it("should only return users who have notification enabled for comment creation and are subscribed to the document in case of new thread", async () => {
       const documentAuthor = await buildUser();
       const document = await buildDocument({
         userId: documentAuthor.id,
@@ -16,21 +17,199 @@ describe("NotificationHelper", () => {
       });
       const notificationEnabledUser = await buildUser({
         teamId: document.teamId,
-        notificationSettings: { [NotificationEventType.UpdateDocument]: true },
+        notificationSettings: { [NotificationEventType.CreateComment]: true },
+      });
+      const notificationDisabledUser = await buildUser({
+        teamId: document.teamId,
+        notificationSettings: { [NotificationEventType.CreateComment]: false },
+      });
+      await Promise.all([
+        buildSubscription({
+          userId: documentAuthor.id,
+          documentId: document.id,
+        }),
+        buildSubscription({
+          userId: notificationEnabledUser.id,
+          documentId: document.id,
+        }),
+        buildSubscription({
+          userId: notificationDisabledUser.id,
+          documentId: document.id,
+        }),
+      ]);
+
+      const comment = await buildComment({
+        documentId: document.id,
+        userId: documentAuthor.id,
       });
 
       const recipients =
-        await NotificationHelper.getDocumentNotificationRecipients({
+        await NotificationHelper.getCommentNotificationRecipients(
           document,
-          notificationType: NotificationEventType.UpdateDocument,
-          onlySubscribers: false,
-          actorId: documentAuthor.id,
-        });
+          comment,
+          comment.createdById
+        );
 
       expect(recipients.length).toEqual(1);
       expect(recipients[0].id).toEqual(notificationEnabledUser.id);
     });
 
+    it("should only return users who have notification enabled for comment creation and are in the thread in case of child comment", async () => {
+      const documentAuthor = await buildUser();
+      const document = await buildDocument({
+        userId: documentAuthor.id,
+        teamId: documentAuthor.teamId,
+      });
+      const notificationEnabledUserInThread = await buildUser({
+        teamId: document.teamId,
+        notificationSettings: { [NotificationEventType.CreateComment]: true },
+      });
+      const notificationEnabledUserNotInThread = await buildUser({
+        teamId: document.teamId,
+        notificationSettings: { [NotificationEventType.CreateComment]: true },
+      });
+      const notificationDisabledUser = await buildUser({
+        teamId: document.teamId,
+        notificationSettings: {
+          [NotificationEventType.CreateComment]: false,
+        },
+      });
+      await Promise.all([
+        buildSubscription({
+          userId: documentAuthor.id,
+          documentId: document.id,
+        }),
+        buildSubscription({
+          userId: notificationEnabledUserInThread.id,
+          documentId: document.id,
+        }),
+        buildSubscription({
+          userId: notificationEnabledUserNotInThread.id,
+          documentId: document.id,
+        }),
+        buildSubscription({
+          userId: notificationDisabledUser.id,
+          documentId: document.id,
+        }),
+      ]);
+      const parentComment = await buildComment({
+        documentId: document.id,
+        userId: notificationEnabledUserInThread.id,
+      });
+      const childComment = await buildComment({
+        documentId: document.id,
+        userId: documentAuthor.id,
+        parentCommentId: parentComment.id,
+      });
+
+      const recipients =
+        await NotificationHelper.getCommentNotificationRecipients(
+          document,
+          childComment,
+          childComment.createdById
+        );
+
+      expect(recipients.length).toEqual(1);
+      expect(recipients[0].id).toEqual(notificationEnabledUserInThread.id);
+    });
+
+    it("should not return users who have notification disabled for comment creation and are in the thread in case of child comment", async () => {
+      const documentAuthor = await buildUser();
+      const document = await buildDocument({
+        userId: documentAuthor.id,
+        teamId: documentAuthor.teamId,
+      });
+      const notificationEnabledUserInThread = await buildUser({
+        teamId: document.teamId,
+        notificationSettings: { [NotificationEventType.CreateComment]: false },
+      });
+      const notificationEnabledUserNotInThread = await buildUser({
+        teamId: document.teamId,
+        notificationSettings: { [NotificationEventType.CreateComment]: true },
+      });
+      const notificationDisabledUser = await buildUser({
+        teamId: document.teamId,
+        notificationSettings: {
+          [NotificationEventType.CreateComment]: false,
+        },
+      });
+      await Promise.all([
+        buildSubscription({
+          userId: documentAuthor.id,
+          documentId: document.id,
+        }),
+        buildSubscription({
+          userId: notificationEnabledUserInThread.id,
+          documentId: document.id,
+        }),
+        buildSubscription({
+          userId: notificationEnabledUserNotInThread.id,
+          documentId: document.id,
+        }),
+        buildSubscription({
+          userId: notificationDisabledUser.id,
+          documentId: document.id,
+        }),
+      ]);
+      const parentComment = await buildComment({
+        documentId: document.id,
+        userId: notificationEnabledUserInThread.id,
+      });
+      const childComment = await buildComment({
+        documentId: document.id,
+        userId: documentAuthor.id,
+        parentCommentId: parentComment.id,
+      });
+
+      const recipients =
+        await NotificationHelper.getCommentNotificationRecipients(
+          document,
+          childComment,
+          childComment.createdById
+        );
+
+      expect(recipients.length).toEqual(0);
+    });
+
+    it("should return users who have notification enabled and are in the thread but not explicitly subscribed to document", async () => {
+      const documentAuthor = await buildUser();
+      const document = await buildDocument({
+        userId: documentAuthor.id,
+        teamId: documentAuthor.teamId,
+      });
+      const notificationEnabledUserInThread = await buildUser({
+        teamId: document.teamId,
+        notificationSettings: { [NotificationEventType.CreateComment]: true },
+      });
+      await buildUser({
+        teamId: document.teamId,
+        notificationSettings: {
+          [NotificationEventType.CreateComment]: false,
+        },
+      });
+      const parentComment = await buildComment({
+        documentId: document.id,
+        userId: notificationEnabledUserInThread.id,
+      });
+      const childComment = await buildComment({
+        documentId: document.id,
+        userId: documentAuthor.id,
+        parentCommentId: parentComment.id,
+      });
+
+      const recipients =
+        await NotificationHelper.getCommentNotificationRecipients(
+          document,
+          childComment,
+          childComment.createdById
+        );
+
+      expect(recipients.length).toEqual(1);
+      expect(recipients[0].id).toEqual(notificationEnabledUserInThread.id);
+    });
+  });
+
+  describe("getDocumentNotificationRecipients", () => {
     it("should return users who have subscribed to the document", async () => {
       const documentAuthor = await buildUser();
       const document = await buildDocument({
@@ -43,11 +222,17 @@ describe("NotificationHelper", () => {
         documentId: document.id,
       });
 
+      const deletedUser = await buildUser({ teamId: document.teamId });
+      await buildSubscription({
+        userId: deletedUser.id,
+        documentId: document.id,
+      });
+      await deletedUser.destroy();
+
       const recipients =
         await NotificationHelper.getDocumentNotificationRecipients({
           document,
           notificationType: NotificationEventType.UpdateDocument,
-          onlySubscribers: true,
           actorId: documentAuthor.id,
         });
 
@@ -66,12 +251,15 @@ describe("NotificationHelper", () => {
         userId: subscribedUser.id,
         collectionId: document.collectionId!,
       });
+      await buildSubscription({
+        userId: subscribedUser.id,
+        documentId: document.id,
+      });
 
       const recipients =
         await NotificationHelper.getDocumentNotificationRecipients({
           document,
           notificationType: NotificationEventType.UpdateDocument,
-          onlySubscribers: true,
           actorId: documentAuthor.id,
         });
 
@@ -109,7 +297,6 @@ describe("NotificationHelper", () => {
         await NotificationHelper.getDocumentNotificationRecipients({
           document,
           notificationType: NotificationEventType.UpdateDocument,
-          onlySubscribers: true,
           actorId: documentAuthor.id,
         });
 
@@ -128,20 +315,19 @@ describe("NotificationHelper", () => {
       });
       const notificationEnabledUser = await buildUser({
         teamId: document.teamId,
-        notificationSettings: { [NotificationEventType.UpdateDocument]: true },
+        notificationSettings: { [NotificationEventType.PublishDocument]: true },
       });
       // suspended user
       await buildUser({
         suspendedAt: new Date(),
         teamId: document.teamId,
-        notificationSettings: { [NotificationEventType.UpdateDocument]: true },
+        notificationSettings: { [NotificationEventType.PublishDocument]: true },
       });
 
       const recipients =
         await NotificationHelper.getDocumentNotificationRecipients({
           document,
-          notificationType: NotificationEventType.UpdateDocument,
-          onlySubscribers: false,
+          notificationType: NotificationEventType.PublishDocument,
           actorId: documentAuthor.id,
         });
 

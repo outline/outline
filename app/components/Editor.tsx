@@ -6,7 +6,9 @@ import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import { Optional } from "utility-types";
 import insertFiles from "@shared/editor/commands/insertFiles";
+import EditorContainer from "@shared/editor/components/Styles";
 import { AttachmentPreset } from "@shared/types";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { getDataTransferFiles } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
 import ClickablePadding from "~/components/ClickablePadding";
@@ -183,22 +185,46 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     [updateComments]
   );
 
+  const paragraphs = React.useMemo(() => {
+    if (props.readOnly && typeof props.value === "object") {
+      return ProsemirrorHelper.getPlainParagraphs(props.value);
+    }
+    return undefined;
+  }, [props.readOnly, props.value]);
+
   return (
     <ErrorBoundary component="div" reloadOnChunkMissing>
       <>
-        <LazyLoadedEditor
-          key={props.extensions?.length || 0}
-          ref={mergeRefs([ref, localRef, handleRefChanged])}
-          uploadFile={handleUploadFile}
-          embeds={embeds}
-          userPreferences={preferences}
-          dictionary={dictionary}
-          {...props}
-          onClickLink={handleClickLink}
-          onChange={handleChange}
-          placeholder={props.placeholder || ""}
-          defaultValue={props.defaultValue || ""}
-        />
+        {paragraphs ? (
+          <EditorContainer
+            rtl={props.dir === "rtl"}
+            grow={props.grow}
+            style={props.style}
+            editorStyle={props.editorStyle}
+          >
+            <div className="ProseMirror">
+              {paragraphs.map((paragraph, index) => (
+                <p key={index} dir="auto">
+                  {paragraph.content?.map((content) => content.text)}
+                </p>
+              ))}
+            </div>
+          </EditorContainer>
+        ) : (
+          <LazyLoadedEditor
+            key={props.extensions?.length || 0}
+            ref={mergeRefs([ref, localRef, handleRefChanged])}
+            uploadFile={handleUploadFile}
+            embeds={embeds}
+            userPreferences={preferences}
+            dictionary={dictionary}
+            {...props}
+            onClickLink={handleClickLink}
+            onChange={handleChange}
+            placeholder={props.placeholder || ""}
+            defaultValue={props.defaultValue || ""}
+          />
+        )}
         {props.editorStyle?.paddingBottom && !props.readOnly && (
           <ClickablePadding
             onClick={props.readOnly ? undefined : focusAtEnd}

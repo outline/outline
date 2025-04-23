@@ -7,7 +7,7 @@ import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { FileOperation, Team } from "@server/models";
 import { authorize } from "@server/policies";
-import { presentFileOperation } from "@server/presenters";
+import { presentFileOperation, presentPolicies } from "@server/presenters";
 import FileStorage from "@server/storage/files";
 import { APIContext } from "@server/types";
 import pagination from "../middlewares/pagination";
@@ -51,7 +51,7 @@ router.post(
     const team = await Team.findByPk(user.teamId);
     authorize(user, "update", team);
 
-    const [exports, total] = await Promise.all([
+    const [fileOperations, total] = await Promise.all([
       FileOperation.findAll({
         where,
         order: [[sort, direction]],
@@ -65,7 +65,8 @@ router.post(
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
-      data: exports.map(presentFileOperation),
+      data: fileOperations.map(presentFileOperation),
+      policies: presentPolicies(user, fileOperations),
     };
   }
 );

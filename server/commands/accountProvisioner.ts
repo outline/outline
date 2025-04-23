@@ -43,7 +43,7 @@ type Props = {
      */
     teamId?: string;
     /** The displayed name of the team */
-    name: string;
+    name?: string;
     /** The domain name from the email of the user logging in */
     domain?: string;
     /** The preferred subdomain to provision for the team if not yet created */
@@ -92,6 +92,7 @@ async function accountProvisioner({
 
   try {
     result = await teamProvisioner({
+      name: "Wiki",
       ...teamParams,
       authenticationProvider: authenticationProviderParams,
       ip,
@@ -102,7 +103,7 @@ async function accountProvisioner({
     if (err.id === "invalid_authentication") {
       const authenticationProvider = await AuthenticationProvider.findOne({
         where: {
-          name: authenticationProviderParams.name, // example: "google"
+          name: authenticationProviderParams.name,
           teamId: teamParams.teamId,
         },
         include: [
@@ -112,6 +113,7 @@ async function accountProvisioner({
             required: true,
           },
         ],
+        order: [["enabled", "DESC"]],
       });
 
       if (authenticationProvider) {

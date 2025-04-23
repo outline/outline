@@ -190,6 +190,56 @@ describe("accountProvisioner", () => {
       expect(error).toBeTruthy();
     });
 
+    it("should prioritize enabled authentication provider", async () => {
+      const existingTeam = await buildTeam();
+      const existingProviders = await existingTeam.$get(
+        "authenticationProviders"
+      );
+
+      const team2 = await buildTeam();
+
+      const providers = await team2.$get("authenticationProviders");
+      const authenticationProvider = providers[0];
+      await authenticationProvider.update({
+        enabled: false,
+        providerId: existingProviders[0].providerId,
+      });
+
+      const existing = await buildUser({
+        teamId: existingTeam.id,
+      });
+      const authentications = await existing.$get("authentications");
+      const authentication = authentications[0];
+      const { isNewUser, isNewTeam } = await accountProvisioner({
+        ip,
+        user: {
+          name: existing.name,
+          email: existing.email!,
+          avatarUrl: existing.avatarUrl,
+        },
+        team: {
+          name: existingTeam.name,
+          avatarUrl: existingTeam.avatarUrl,
+          subdomain: faker.internet.domainWord(),
+        },
+        authenticationProvider: {
+          name: authenticationProvider.name,
+          providerId: authenticationProvider.providerId,
+        },
+        authentication: {
+          providerId: authentication.providerId,
+          accessToken: "123",
+          scopes: ["read"],
+        },
+      });
+      const auth = await UserAuthentication.findByPk(authentication.id);
+      expect(auth?.accessToken).toEqual("123");
+      expect(auth?.scopes.length).toEqual(1);
+      expect(auth?.scopes[0]).toEqual("read");
+      expect(isNewTeam).toEqual(false);
+      expect(isNewUser).toEqual(false);
+    });
+
     it("should throw an error when the domain is not allowed", async () => {
       const existingTeam = await buildTeam();
       const admin = await buildAdmin({ teamId: existingTeam.id });
@@ -214,7 +264,6 @@ describe("accountProvisioner", () => {
             avatarUrl: faker.internet.avatar(),
           },
           team: {
-            name: existingTeam.name,
             avatarUrl: existingTeam.avatarUrl,
             subdomain: faker.internet.domainWord(),
           },
@@ -258,7 +307,6 @@ describe("accountProvisioner", () => {
           avatarUrl: faker.internet.avatar(),
         },
         team: {
-          name: team.name,
           avatarUrl: team.avatarUrl,
           subdomain: faker.internet.domainWord(),
         },

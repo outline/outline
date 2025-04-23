@@ -1,4 +1,3 @@
-import fractionalIndex from "fractional-index";
 import invariant from "invariant";
 import Router from "koa-router";
 import { Sequelize, Op, WhereOptions } from "sequelize";
@@ -42,7 +41,6 @@ import {
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { collectionIndexing } from "@server/utils/indexing";
-import removeIndexCollision from "@server/utils/removeIndexCollision";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -55,22 +53,20 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.CollectionsCreateReq>) => {
     const { transaction } = ctx.state;
-    const { name, color, description, data, permission, sharing, icon, sort } =
-      ctx.input.body;
-    let { index } = ctx.input.body;
+    const {
+      name,
+      color,
+      description,
+      data,
+      permission,
+      sharing,
+      icon,
+      sort,
+      index,
+    } = ctx.input.body;
 
     const { user } = ctx.state.auth;
     authorize(user, "createCollection", user.team);
-
-    if (index) {
-      index = await removeIndexCollision(user.teamId, index, { transaction });
-    } else {
-      const first = await Collection.findFirstCollectionForUser(user, {
-        attributes: ["id", "index"],
-        transaction,
-      });
-      index = fractionalIndex(null, first ? first.index : null);
-    }
 
     const collection = Collection.build({
       name,
@@ -601,6 +597,7 @@ router.post(
           createdById: user.id,
         },
         transaction,
+        hooks: false,
       });
     }
 
@@ -702,7 +699,7 @@ router.post(
   pagination(),
   transaction(),
   async (ctx: APIContext<T.CollectionsListReq>) => {
-    const { includeListOnly, statusFilter } = ctx.input.body;
+    const { includeListOnly, query, statusFilter } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
     const collectionIds = await user.collectionIds({ transaction });
@@ -728,6 +725,12 @@ router.post(
       where[Op.and].push({ id: collectionIds });
     }
 
+    if (query) {
+      where[Op.and].push(
+        Sequelize.literal(`unaccent(LOWER(name)) like unaccent(LOWER(:query))`)
+      );
+    }
+
     const statusQuery = [];
     if (statusFilter?.includes(CollectionStatusFilter.Archived)) {
       statusQuery.push({
@@ -743,6 +746,8 @@ router.post(
       });
     }
 
+    const replacements = { query: `%${query}%` };
+
     const [collections, total] = await Promise.all([
       Collection.scope(
         statusFilter?.includes(CollectionStatusFilter.Archived)
@@ -757,6 +762,7 @@ router.post(
             }
       ).findAll({
         where,
+        replacements,
         order: [
           Sequelize.literal('"collection"."index" collate "C"'),
           ["updatedAt", "DESC"],
@@ -765,7 +771,12 @@ router.post(
         limit: ctx.state.pagination.limit,
         transaction,
       }),
-      Collection.count({ where, transaction }),
+      Collection.count({
+        where,
+        // @ts-expect-error Types are incorrect for count
+        replacements,
+        transaction,
+      }),
     ]);
 
     const nullIndex = collections.findIndex(
@@ -945,18 +956,16 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.CollectionsMoveReq>) => {
     const { transaction } = ctx.state;
-    const { id } = ctx.input.body;
-    let { index } = ctx.input.body;
+    const { id, index } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    const collection = await Collection.findByPk(id, {
+    let collection = await Collection.findByPk(id, {
       transaction,
       lock: transaction.LOCK.UPDATE,
     });
     authorize(user, "move", collection);
 
-    index = await removeIndexCollision(user.teamId, index, { transaction });
-    await collection.update(
+    collection = await collection.update(
       {
         index,
       },
@@ -968,14 +977,14 @@ router.post(
       name: "collections.move",
       collectionId: collection.id,
       data: {
-        index,
+        index: collection.index,
       },
     });
 
     ctx.body = {
       success: true,
       data: {
-        index,
+        index: collection.index,
       },
     };
   }

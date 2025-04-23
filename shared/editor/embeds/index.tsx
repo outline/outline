@@ -1,3 +1,4 @@
+import { BrowserIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
 import { Primitive } from "utility-types";
@@ -322,7 +323,6 @@ const embeds: EmbedDescriptor[] = [
     regexMatch: [new RegExp("^https?://www\\.google\\.com/maps/embed\\?(.*)$")],
     transformMatch: (matches: RegExpMatchArray) => matches[0],
     icon: <Img src="/images/google-maps.png" alt="Google Maps" />,
-    visible: true,
   }),
   new EmbedDescriptor({
     title: "Google Drawings",
@@ -590,7 +590,7 @@ const embeds: EmbedDescriptor[] = [
     title: "Tldraw",
     keywords: "draw schematics diagrams",
     regexMatch: [
-      new RegExp("^https?://(beta|www|old)\\.tldraw\\.com/[rsvo]+/(.*)"),
+      new RegExp("^https?://(beta|www|old)\\.tldraw\\.com/[rsvopf]+/(.*)"),
     ],
     transformMatch: (matches: RegExpMatchArray) => matches[0],
     icon: <Img src="/images/tldraw.png" alt="Tldraw" />,
@@ -666,7 +666,7 @@ const embeds: EmbedDescriptor[] = [
     title: "Embed",
     keywords: "iframe webpage",
     placeholder: "Paste a URL to embed",
-    icon: <Img src="/images/embed.png" alt="Embed" />,
+    icon: <BrowserIcon />,
     defaultHidden: false,
     matchOnInput: false,
     regexMatch: [new RegExp("^https?://(.*)$")],

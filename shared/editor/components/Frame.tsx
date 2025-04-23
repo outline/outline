@@ -1,13 +1,15 @@
-import { observable } from "mobx";
-import { observer } from "mobx-react";
 import { OpenIcon } from "outline-icons";
 import * as React from "react";
+import { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import { Optional } from "utility-types";
 import { s } from "../../styles";
 import { sanitizeUrl } from "../../utils/urls";
 
-type Props = Omit<Optional<HTMLIFrameElement>, "children" | "style"> & {
+type Props = Omit<
+  Optional<React.ComponentProps<typeof Iframe>>,
+  "children" | "style"
+> & {
   /** The URL to load in the iframe */
   src?: string;
   /** Whether to display a border, defaults to true */
@@ -30,85 +32,79 @@ type PropsWithRef = Props & {
   forwardedRef: React.Ref<HTMLIFrameElement>;
 };
 
-@observer
-class Frame extends React.Component<PropsWithRef> {
-  mounted: boolean;
+const Frame = ({
+  border,
+  style = {},
+  forwardedRef,
+  icon,
+  title,
+  canonicalUrl,
+  isSelected,
+  referrerPolicy,
+  className = "",
+  src,
+  ...rest
+}: PropsWithRef) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const mountedRef = useRef(true);
 
-  @observable
-  isLoaded = false;
+  useEffect(() => {
+    // Set mounted flag
+    mountedRef.current = true;
 
-  componentDidMount() {
-    this.mounted = true;
-    setTimeout(this.loadIframe, 0);
-  }
+    // Load iframe after a small delay
+    const timer = setTimeout(() => {
+      if (mountedRef.current) {
+        setIsLoaded(true);
+      }
+    }, 0);
 
-  componentWillUnmount() {
-    this.mounted = false;
-  }
+    // Cleanup function
+    return () => {
+      mountedRef.current = false;
+      clearTimeout(timer);
+    };
+  }, []);
 
-  loadIframe = () => {
-    if (!this.mounted) {
-      return;
-    }
-    this.isLoaded = true;
-  };
+  const showBottomBar = !!(icon || canonicalUrl);
 
-  render() {
-    const {
-      border,
-      style = {},
-      forwardedRef,
-      icon,
-      title,
-      canonicalUrl,
-      isSelected,
-      referrerPolicy,
-      className = "",
-      src,
-    } = this.props;
-    const showBottomBar = !!(icon || canonicalUrl);
-
-    return (
-      <Rounded
-        style={style}
-        $showBottomBar={showBottomBar}
-        $border={border}
-        className={
-          isSelected ? `ProseMirror-selectednode ${className}` : className
-        }
-      >
-        {this.isLoaded && (
-          <Iframe
-            ref={forwardedRef}
-            $showBottomBar={showBottomBar}
-            sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-downloads allow-storage-access-by-user-activation"
-            style={style}
-            frameBorder="0"
-            title="embed"
-            loading="lazy"
-            src={sanitizeUrl(src)}
-            referrerPolicy={referrerPolicy}
-            allowFullScreen
-          />
-        )}
-        {showBottomBar && (
-          <Bar>
-            {icon} <Title>{title}</Title>
-            {canonicalUrl && (
-              <Open
-                href={canonicalUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <OpenIcon size={18} /> Open
-              </Open>
-            )}
-          </Bar>
-        )}
-      </Rounded>
-    );
-  }
-}
+  return (
+    <Rounded
+      style={style}
+      $showBottomBar={showBottomBar}
+      $border={border}
+      className={
+        isSelected ? `ProseMirror-selectednode ${className}` : className
+      }
+    >
+      {isLoaded && (
+        <Iframe
+          ref={forwardedRef}
+          $showBottomBar={showBottomBar}
+          sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-downloads allow-storage-access-by-user-activation"
+          style={style}
+          frameBorder="0"
+          title="embed"
+          loading="lazy"
+          src={sanitizeUrl(src)}
+          referrerPolicy={referrerPolicy}
+          allowFullScreen
+          {...rest}
+        />
+      )}
+      {showBottomBar && (
+        <Bar>
+          {icon} <Title>{title}</Title>
+          {canonicalUrl && (
+            <Open href={canonicalUrl} target="_blank" rel="noopener noreferrer">
+              <OpenIcon size={18} /> Open
+            </Open>
+          )}
+        </Bar>
+      )}
+    </Rounded>
+  );
+};
 
 const Iframe = styled.iframe<{ $showBottomBar: boolean }>`
   border-radius: ${(props) => (props.$showBottomBar ? "3px 3px 0 0" : "3px")};

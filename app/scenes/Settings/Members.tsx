@@ -9,7 +9,7 @@ import styled from "styled-components";
 import UsersStore, { queriedUsers } from "~/stores/UsersStore";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
-import Fade from "~/components/Fade";
+import { ConditionalFade } from "~/components/Fade";
 import Heading from "~/components/Heading";
 import InputSearch from "~/components/InputSearch";
 import Scene from "~/components/Scene";
@@ -22,7 +22,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
-import { PeopleTable } from "./components/PeopleTable";
+import { MembersTable } from "./components/MembersTable";
 import { StickyFilters } from "./components/StickyFilters";
 import UserRoleFilter from "./components/UserRoleFilter";
 import UserStatusFilter from "./components/UserStatusFilter";
@@ -163,8 +163,8 @@ function Members() {
           onSelect={handleRoleFilter}
         />
       </StickyFilters>
-      <Fade>
-        <PeopleTable
+      <ConditionalFade animate={!data}>
+        <MembersTable
           data={data ?? []}
           sort={sort}
           canManage={can.update}
@@ -174,7 +174,7 @@ function Members() {
             fetchNext: next,
           }}
         />
-      </Fade>
+      </ConditionalFade>
     </Scene>
   );
 }
@@ -194,7 +194,7 @@ function getFilteredUsers({
 
   switch (filter) {
     case "all":
-      filteredUsers = users.orderedData;
+      filteredUsers = users.all;
       break;
     case "suspended":
       filteredUsers = users.suspended;

@@ -1,3 +1,4 @@
+import { ProsemirrorData } from "../types";
 import { CommentMark, ProsemirrorHelper } from "./ProsemirrorHelper";
 
 describe("ProsemirrorHelper", () => {
@@ -85,6 +86,151 @@ describe("ProsemirrorHelper", () => {
         "test-comment-id"
       );
       expect(returnedAnchorText).toBeUndefined();
+    });
+  });
+
+  describe("getPlainParagraphs", () => {
+    it("should return an array of plain paragraphs", async () => {
+      const data = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: "some content in a paragraph",
+              },
+            ],
+          },
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: "some content in another paragraph",
+              },
+            ],
+          },
+        ],
+      } as ProsemirrorData;
+
+      const paragraphs = ProsemirrorHelper.getPlainParagraphs(data);
+
+      expect(paragraphs).toEqual([
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "some content in a paragraph",
+            },
+          ],
+        },
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "text",
+              text: "some content in another paragraph",
+            },
+          ],
+        },
+      ]);
+    });
+
+    it("should return undefined when data contains inline nodes", async () => {
+      const data = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: "some content in a paragraph",
+              },
+              {
+                type: "emoji",
+                attrs: {
+                  "data-name": "😆",
+                },
+              },
+            ],
+          },
+        ],
+      } as ProsemirrorData;
+
+      const paragraphs = ProsemirrorHelper.getPlainParagraphs(data);
+      expect(paragraphs).toBeUndefined();
+    });
+
+    it("should return undefined when data contains block nodes", async () => {
+      const data = {
+        type: "doc",
+        content: [
+          {
+            type: "blockquote",
+            content: [
+              {
+                type: "paragraph",
+                content: [
+                  {
+                    type: "text",
+                    text: "some content in a paragraph",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      } as ProsemirrorData;
+
+      const paragraphs = ProsemirrorHelper.getPlainParagraphs(data);
+      expect(paragraphs).toBeUndefined();
+    });
+
+    it("should return undefined when data contains marks", async () => {
+      const data = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: "some content in a paragraph",
+                marks: [
+                  {
+                    type: "bold",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      } as ProsemirrorData;
+
+      const paragraphs = ProsemirrorHelper.getPlainParagraphs(data);
+      expect(paragraphs).toBeUndefined();
+    });
+
+    it("should handle paragraph without content", async () => {
+      const data = {
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+          },
+        ],
+      } as ProsemirrorData;
+
+      const paragraphs = ProsemirrorHelper.getPlainParagraphs(data);
+      expect(paragraphs).toEqual([
+        {
+          type: "paragraph",
+        },
+      ]);
     });
   });
 });

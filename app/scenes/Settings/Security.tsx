@@ -10,7 +10,7 @@ import { TeamPreference } from "@shared/types";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
-import InputSelect from "~/components/InputSelect";
+import { InputSelectNew, Option } from "~/components/InputSelectNew";
 import PluginIcon from "~/components/PluginIcon";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
@@ -43,6 +43,23 @@ function Security() {
     loading,
     request,
   } = useRequest(authenticationProviders.fetchPage);
+
+  const userRoleOptions: Option[] = React.useMemo(
+    () =>
+      [
+        {
+          type: "item",
+          label: t("Editor"),
+          value: "member",
+        },
+        {
+          type: "item",
+          label: t("Viewer"),
+          value: "viewer",
+        },
+      ] satisfies Option[],
+    [t]
+  );
 
   React.useEffect(() => {
     if (!providers && !loading) {
@@ -229,21 +246,13 @@ function Security() {
           )}
           border={false}
         >
-          <InputSelect
-            id="defaultUserRole"
+          <InputSelectNew
             value={data.defaultUserRole}
-            options={[
-              {
-                label: t("Editor"),
-                value: "member",
-              },
-              {
-                label: t("Viewer"),
-                value: "viewer",
-              },
-            ]}
+            options={userRoleOptions}
             onChange={handleDefaultRoleChange}
             ariaLabel={t("Default role")}
+            label={t("Default role")}
+            hideLabel
             short
           />
         </SettingRow>
