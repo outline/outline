@@ -1,12 +1,15 @@
+import { OpenIcon } from "outline-icons";
 import * as React from "react";
 import { useState, useEffect, useRef } from "react";
-import { OpenIcon } from "outline-icons";
 import styled from "styled-components";
 import { Optional } from "utility-types";
 import { s } from "../../styles";
 import { sanitizeUrl } from "../../utils/urls";
 
-type Props = Omit<Optional<HTMLIFrameElement>, "children" | "style"> & {
+type Props = Omit<
+  Optional<React.ComponentProps<typeof Iframe>>,
+  "children" | "style"
+> & {
   /** The URL to load in the iframe */
   src?: string;
   /** Whether to display a border, defaults to true */
@@ -29,7 +32,7 @@ type PropsWithRef = Props & {
   forwardedRef: React.Ref<HTMLIFrameElement>;
 };
 
-function Frame({
+const Frame = ({
   border,
   style = {},
   forwardedRef,
@@ -41,7 +44,7 @@ function Frame({
   className = "",
   src,
   ...rest
-}: PropsWithRef) {
+}: PropsWithRef) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const mountedRef = useRef(true);
 
@@ -93,11 +96,7 @@ function Frame({
         <Bar>
           {icon} <Title>{title}</Title>
           {canonicalUrl && (
-            <Open
-              href={canonicalUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <Open href={canonicalUrl} target="_blank" rel="noopener noreferrer">
               <OpenIcon size={18} /> Open
             </Open>
           )}
@@ -105,7 +104,7 @@ function Frame({
       )}
     </Rounded>
   );
-}
+};
 
 const Iframe = styled.iframe<{ $showBottomBar: boolean }>`
   border-radius: ${(props) => (props.$showBottomBar ? "3px 3px 0 0" : "3px")};
