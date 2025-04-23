@@ -109,6 +109,7 @@ export class Linear {
           color: label.color,
         })),
         state: {
+          type: state.type,
           name: state.name,
           color: state.color,
         },
