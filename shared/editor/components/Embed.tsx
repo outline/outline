@@ -17,10 +17,10 @@ type Props = ComponentProps & {
 
 const Embed = (props: Props) => {
   const ref = React.useRef<HTMLIFrameElement>(null);
-  const { node, isEditable, onChangeSize } = props;
+  const { node, isEditable, embedsDisabled, onChangeSize } = props;
   const naturalWidth = 0;
   const naturalHeight = 400;
-  const isResizable = !!onChangeSize;
+  const isResizable = !!onChangeSize && !embedsDisabled;
 
   const { width, height, setSize, handlePointerDown, dragging } = useDragResize(
     {

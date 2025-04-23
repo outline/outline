@@ -69,7 +69,6 @@ function CollectionDescription({ collection }: Props) {
             readOnly={!can.update}
             userId={user.id}
             editorStyle={editorStyle}
-            embedsDisabled
           />
           <div ref={childRef} />
         </React.Suspense>
