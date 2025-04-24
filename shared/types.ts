@@ -178,7 +178,9 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
           account: { id: number; name: string; avatarUrl: string };
         };
       };
-      linear?: { workspace: { id: string; name: string; logoUrl?: string } };
+      linear?: {
+        workspace: { id: string; name: string; key: string; logoUrl?: string };
+      };
     }
   : T extends IntegrationType.Analytics
   ? { measurementId: string; instanceUrl?: string; scriptName?: string }

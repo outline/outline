@@ -33,7 +33,7 @@ export const isURLMentionable = ({
 
       return (
         hostname === "linear.app" &&
-        settings.linear?.workspace.name === pathParts[1] // ensure installed workspace name matches with the provided url.
+        settings.linear?.workspace.key === pathParts[1] // ensure installed workspace key matches with the provided url.
       );
     }
 

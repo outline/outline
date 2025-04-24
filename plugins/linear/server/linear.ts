@@ -77,7 +77,7 @@ export class Linear {
       where: {
         service: IntegrationService.Linear,
         teamId: actor.teamId,
-        "settings.linear.workspace.name": resource.workspace,
+        "settings.linear.workspace.key": resource.workspaceKey,
       },
     })) as Integration<IntegrationType.Embed>;
 
@@ -137,7 +137,7 @@ export class Linear {
    * Parses a given URL and returns resource identifiers for Linear specific URLs
    *
    * @param url URL to parse
-   * @returns {object} Containing resource identifiers - `workspace`, `type`, `id` and `name`.
+   * @returns {object} Containing resource identifiers - `workspaceKey`, `type`, `id` and `name`.
    */
   private static parseUrl(url: string) {
     const { hostname, pathname } = new URL(url);
@@ -146,7 +146,7 @@ export class Linear {
     }
 
     const parts = pathname.split("/");
-    const workspace = parts[1];
+    const workspaceKey = parts[1];
     const type = parts[2] ? (parts[2] as UnfurlResourceType) : undefined;
     const id = parts[3];
     const name = parts[4];
@@ -155,6 +155,6 @@ export class Linear {
       return;
     }
 
-    return { workspace, type, id, name };
+    return { workspaceKey, type, id, name };
   }
 }

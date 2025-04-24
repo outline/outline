@@ -94,6 +94,7 @@ router.get(
             workspace: {
               id: workspace.id,
               name: workspace.name,
+              key: workspace.urlKey,
               logoUrl: workspace.logoUrl,
             },
           },
