@@ -28,9 +28,11 @@ function SettingsSidebar() {
   const history = useHistory();
   const location = useLocation();
   let configs = useSettingsConfig();
+
   configs = configs.filter((item) =>
-    item.group === "Integrations" ? item.isActive : true
+    item.group === t("Integrations") ? item.isActive : true
   );
+
   const groupedConfig = groupBy(configs, "group");
 
   const returnToApp = React.useCallback(() => {

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
+import styled from "styled-components";
 import Flex from "@shared/components/Flex";
 
 import Heading from "~/components/Heading";
@@ -32,11 +33,16 @@ export function Integrations() {
         </Trans>
       </Text>
 
-      <Flex gap={30} style={{ marginTop: 20, width: "100%" }} wrap>
+      <CardsFlex gap={30} wrap>
         {items.map((item) => (
           <IntegrationCard key={item.path} integration={item} />
         ))}
-      </Flex>
+      </CardsFlex>
     </Scene>
   );
 }
+
+const CardsFlex = styled(Flex)`
+  margin-top: 20px;
+  width: "100%";
+`;

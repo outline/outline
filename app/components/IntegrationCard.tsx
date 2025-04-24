@@ -47,12 +47,10 @@ const Card = styled.div`
   flex-grow: 1;
   padding: 20px;
   width: 300px;
-  height: auto;
   background: ${s("background")};
   border: 1px solid ${s("inputBorder")};
   border-radius: 8px;
   transition: box-shadow 200ms ease;
-  cursor: default;
 `;
 
 const Name = styled.h3`
