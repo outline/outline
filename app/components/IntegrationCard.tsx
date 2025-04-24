@@ -13,24 +13,25 @@ type Props = {
 
 function IntegrationCard({ integration }: Props) {
   const { t } = useTranslation();
-
   return (
     <Card>
       <Flex justify="space-between" align="center">
         <Flex align="center" gap={20}>
           <integration.icon size={50} />
-          <Name>{integration.name}</Name>
-        </Flex>
+          <Flex column gap={4}>
+            <Name>{integration.name}</Name>
 
-        <Status isActive={integration.isActive || false}>
-          {integration.isActive ? t("Connected") : t("Not Connected")}
-        </Status>
+            {integration.isActive && (
+              <Status isActive={integration.isActive}>{t("Connected")}</Status>
+            )}
+          </Flex>
+        </Flex>
       </Flex>
 
       <Description>{integration.description}</Description>
 
       <Footer>
-        <Button as={Link} to={integration.path}>
+        <Button as={Link} to={integration.path} neutral>
           {integration.isActive ? t("Configure") : t("Install")}
         </Button>
       </Footer>
@@ -43,8 +44,9 @@ export default IntegrationCard;
 const Card = styled.div`
   display: flex;
   flex-direction: column;
+  flex-grow: 1;
   padding: 20px;
-  width: 100%;
+  width: 300px;
   height: auto;
   background: ${s("background")};
   border: 1px solid ${s("inputBorder")};
@@ -56,6 +58,7 @@ const Card = styled.div`
 const Name = styled.h3`
   margin: 0;
   font-size: 16px;
+  font-weight: 600;
   color: ${s("text")};
   ${ellipsis()}
 `;
@@ -78,5 +81,5 @@ const Status = styled.span<{ isActive: boolean }>`
   font-size: 12px;
   margin-right: 8px;
   color: ${(props) =>
-    props.isActive ? props.theme.success : props.theme.danger};
+    props.isActive ? props.theme.brand.green : props.theme.danger};
 `;

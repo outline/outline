@@ -32,7 +32,7 @@ export function Integrations() {
         </Trans>
       </Text>
 
-      <Flex column gap={30} style={{ marginTop: 20 }}>
+      <Flex gap={30} style={{ marginTop: 20, width: "100%" }} wrap>
         {items.map((item) => (
           <IntegrationCard key={item.path} integration={item} />
         ))}
