@@ -1,87 +1,62 @@
 import * as React from "react";
-import styled, { useTheme } from "styled-components";
-import Icon from "@shared/components/Icon";
-import Squircle from "@shared/components/Squircle";
-import { s, hover, ellipsis } from "@shared/styles";
-import Button from "~/components/ActionButton";
-
-export type Integration = {
-  id: string;
-  name: string;
-  icon?: string;
-  description: string;
-  isActive: boolean;
-};
+import { Link } from "react-router-dom";
+import styled from "styled-components";
+import { s, ellipsis } from "@shared/styles";
+import { ConfigItem } from "~/hooks/useSettingsConfig";
+import Flex from "./Flex";
 
 type Props = {
-  integration: Integration;
-  onInstall: (id: string) => void;
-  onConfigure: (id: string) => void;
+  integration: ConfigItem;
 };
 
-const IntegrationCard: React.FC<Props> = ({
-  integration,
-  onInstall,
-  onConfigure,
-}) => {
-  const theme = useTheme();
-
+function IntegrationCard({ integration }: Props) {
+  const actionText = integration.isActive ? "Configure" : "Install";
   return (
-    <Card>
-      <IconWrapper>
-        {integration.icon ? (
-          <Squircle color={theme.slateLight}>
-            <Icon value={integration.icon} size={24} />
-          </Squircle>
-        ) : (
-          <Squircle color={theme.slateLight}>
-            <Icon value="puzzle" size={24} />
-          </Squircle>
-        )}
-      </IconWrapper>
-      <Content>
+    <Card tabIndex={0}>
+      <Flex align="center" gap={20}>
+        <integration.icon size={50} />
         <Name>{integration.name}</Name>
-        <Description>{integration.description}</Description>
+      </Flex>
+
+      <Content>
+        {/* <Description>{integration.description}</Description> */}
       </Content>
+
       <Footer>
-        <Status isActive={integration.isActive}>
-          {integration.isActive ? "isActive" : "Not isActive"}
+        <Status isActive={integration.isActive || false}>
+          {integration.isActive ? "Active" : "Not Active"}
         </Status>
-        {integration.isActive ? (
-          <ActionButton onClick={() => onConfigure(integration.id)}>
-            Configure
-          </ActionButton>
-        ) : (
-          <ActionButton onClick={() => onInstall(integration.id)}>
-            Install
-          </ActionButton>
-        )}
+        <ActionLink
+          to={integration.path}
+          onClick={(e) => {
+            if (!integration.isActive) {
+              e.preventDefault();
+            }
+            // Otherwise let the <Link> navigate to the configure route
+          }}
+        >
+          {actionText}
+        </ActionLink>
       </Footer>
     </Card>
   );
-};
+}
 
 export default IntegrationCard;
+
+// — styled-components — //
 
 const Card = styled.div`
   display: flex;
   flex-direction: column;
   padding: 12px;
-  width: 200px;
-  height: 220px;
+  width: 100%;
+  height: auto;
   background: ${s("background")};
   border: 1px solid ${s("inputBorder")};
   border-radius: 8px;
   transition: box-shadow 200ms ease;
-  cursor: pointer;
-
-  &: ${hover} {
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  }
-`;
-
-const IconWrapper = styled.div`
-  margin-bottom: 12px;
+  cursor: default;
 `;
 
 const Content = styled.div`
@@ -96,12 +71,12 @@ const Name = styled.h3`
   ${ellipsis()}
 `;
 
-const Description = styled.p`
-  margin: 4px 0 0;
-  font-size: 14px;
-  color: ${s("textTertiary")};
-  ${ellipsis()}
-`;
+// const Description = styled.p`
+//   margin: 4px 0 0;
+//   font-size: 14px;
+//   color: ${s("textTertiary")};
+//   ${ellipsis()}
+// `;
 
 const Footer = styled.div`
   display: flex;
@@ -116,7 +91,14 @@ const Status = styled.span<{ isActive: boolean }>`
     props.isActive ? props.theme.success : props.theme.danger};
 `;
 
-const ActionButton = styled(Button)`
+const ActionLink = styled(Link)`
+  display: inline-block;
   padding: 4px 8px;
   font-size: 14px;
+  background: ${s("brand")};
+  color: ${s("white")};
+  border-radius: 4px;
+  text-decoration: none;
+  text-align: center;
+  transition: background 150ms ease;
 `;

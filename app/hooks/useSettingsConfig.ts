@@ -230,10 +230,7 @@ const useSettingsConfig = () => {
     return items;
   }, [t, can.createApiKey, can.update, can.createImport, can.createExport]);
 
-  return config.filter(
-    (item) =>
-      item.enabled && (item.group === "Integrations" ? item.isActive : true)
-  );
+  return config.filter((item) => item.enabled);
 };
 
 export default useSettingsConfig;
