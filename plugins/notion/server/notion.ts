@@ -9,13 +9,8 @@ import {
 import {
   BlockObjectResponse,
   DatabaseObjectResponse,
-  ListBlockChildrenResponse,
   PageObjectResponse,
-  PartialBlockObjectResponse,
-  PartialDatabaseObjectResponse,
-  PartialPageObjectResponse,
   RichTextItemResponse,
-  SearchResponse,
 } from "@notionhq/client/build/src/api-endpoints";
 import { RateLimit } from "async-sema";
 import emojiRegex from "emoji-regex";
@@ -123,7 +118,7 @@ export class NotionClient {
           pages.push({
             type: item.object === "page" ? PageType.Page : PageType.Database,
             id: item.id,
-            name: this.parseTitle(item, item.object === "database"),
+            name: this.parseTitle(item, true),
             emoji: this.parseEmoji(item),
           });
         }
@@ -169,7 +164,6 @@ export class NotionClient {
       cursor = response.next_cursor ?? undefined;
     }
 
-    // Recursive fetch when direct children have their own children.
     await Promise.all(
       blocks.map(async (block) => {
         if (
@@ -274,15 +268,12 @@ export class NotionClient {
         return user.name;
       }
 
-      // bot belongs to a user, get the user's name.
       if (user.bot.owner.type === "user" && isFullUser(user.bot.owner.user)) {
         return user.bot.owner.user.name;
       }
 
-      // bot belongs to a workspace, fallback to bot's name.
       return user.name;
     } catch (error) {
-      // Handle the case where a user can't be found
       if (
         error instanceof APIResponseError &&
         error.code === APIErrorCode.ObjectNotFound
@@ -307,7 +298,6 @@ export class NotionClient {
 
     const title = richTexts.map((richText) => richText.plain_text).join("");
     
-    // Use the appropriate validation limit based on context
     const maxLength = isCollection 
       ? CollectionValidation.maxNameLength 
       : DocumentValidation.maxTitleLength;
@@ -316,7 +306,6 @@ export class NotionClient {
   }
 
   private parseEmoji(item: PageObjectResponse | DatabaseObjectResponse) {
-    // Other icon types return a url to download from, which we don't support.
     return item.icon?.type === "emoji" ? item.icon.emoji : undefined;
   }
 }
