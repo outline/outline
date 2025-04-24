@@ -12,7 +12,6 @@ enum StateType {
   Canceled = "canceled",
 }
 
-/** Renders an icon for a specific workflow state type, animating the change of state type and completion percentage. */
 export function LinearIssueStatusIcon(props: BaseIconProps) {
   const theme = useTheme();
   const { state } = props;
@@ -22,7 +21,7 @@ export function LinearIssueStatusIcon(props: BaseIconProps) {
     state.type === StateType.Unstarted
       ? 0
       : state.type === StateType.Started
-      ? 0.5
+      ? state.completionPercentage ?? 0.5
       : 1;
   const isTriage = state.type === StateType.Triage;
   const isBacklog = state.type === StateType.Backlog;
@@ -30,6 +29,7 @@ export function LinearIssueStatusIcon(props: BaseIconProps) {
   // Due to some rendering issues and differences between browsers, the logical constant 4 in the rendering below
   // needs to be a bit less to make 50% look like half a circle.
   const magicFour = isSafari() ? 3.895 : 3.98;
+
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
       <circle

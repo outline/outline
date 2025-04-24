@@ -1,4 +1,5 @@
 import { LinearClient } from "@linear/sdk";
+import sortBy from "lodash/sortBy";
 import { z } from "zod";
 import {
   IntegrationService,
@@ -105,6 +106,34 @@ export class Linear {
         return { error: "Failed to fetch auxiliary data from Linear" };
       }
 
+      let completionPercentage = 0.5; // fallback when we cannot determine actual value.
+
+      if (state.type === "started") {
+        const team = await issue.team;
+
+        if (team) {
+          const allStates = await client.paginate(client.workflowStates, {
+            filter: {
+              team: { id: { eq: team.id } },
+              type: { eq: "started" },
+            },
+          });
+          const states = sortBy(
+            allStates.map((s) => ({
+              name: s.name,
+              position: s.position,
+            })),
+            (s) => s.position
+          );
+
+          const idx = states.findIndex((s) => s.name === state.name);
+
+          if (idx !== -1) {
+            completionPercentage = (idx + 1) / (states.length + 1); // add 1 to states for the "done" state.
+          }
+        }
+      }
+
       return {
         type: UnfurlResourceType.Issue,
         url: issue.url,
@@ -123,6 +152,7 @@ export class Linear {
           type: state.type,
           name: state.name,
           color: state.color,
+          completionPercentage,
         },
         createdAt: issue.createdAt.toISOString(),
         transformed_unfurl: true,

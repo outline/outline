@@ -438,7 +438,12 @@ export type UnfurlResponse = {
     /** Issue's labels */
     labels: Array<{ name: string; color: string }>;
     /** Issue's status */
-    state: { type?: string; name: string; color: string };
+    state: {
+      type?: string;
+      name: string;
+      color: string;
+      completionPercentage?: number;
+    };
     /** Issue's creation time */
     createdAt: string;
   };
