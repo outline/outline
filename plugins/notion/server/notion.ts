@@ -248,7 +248,7 @@ export class NotionClient {
     const author = await this.fetchUsername(database.created_by.id);
 
     return {
-      title: this.parseTitle(database, true),
+      title: this.parseTitle(database),
       emoji: this.parseEmoji(database),
       author: author ?? undefined,
       createdAt: !database.created_time
