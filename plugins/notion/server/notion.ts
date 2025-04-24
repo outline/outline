@@ -302,7 +302,6 @@ export class NotionClient {
 
     const title = richTexts.map((richText) => richText.plain_text).join("");
 
-    // Truncate title to fit within validation limits
     return truncate(title, { length: DocumentValidation.maxTitleLength });
   }
 
