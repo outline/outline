@@ -118,13 +118,12 @@ export class NotionClient {
           pages.push({
             type: item.object === "page" ? PageType.Page : PageType.Database,
             id: item.id,
-            name: this.parseTitle(
-              item,
-              { maxLength: item.object === "database"
-                ? CollectionValidation.maxNameLength
-                : DocumentValidation.maxTitleLength
-              }
-            ),
+            name: this.parseTitle(item, {
+              maxLength:
+                item.object === "database"
+                  ? CollectionValidation.maxNameLength
+                  : DocumentValidation.maxTitleLength,
+            }),
             emoji: this.parseEmoji(item),
           });
         }
@@ -210,7 +209,9 @@ export class NotionClient {
           return {
             type: PageType.Page,
             id: item.id,
-            name: this.parseTitle(item, { maxLength: DocumentValidation.maxTitleLength }),
+            name: this.parseTitle(item, {
+              maxLength: DocumentValidation.maxTitleLength,
+            }),
             emoji: this.parseEmoji(item),
           };
         })
@@ -234,7 +235,9 @@ export class NotionClient {
     const author = await this.fetchUsername(page.created_by.id);
 
     return {
-      title: this.parseTitle(page, { maxLength: DocumentValidation.maxTitleLength }),
+      title: this.parseTitle(page, {
+        maxLength: DocumentValidation.maxTitleLength,
+      }),
       emoji: this.parseEmoji(page),
       author: author ?? undefined,
       createdAt: !page.created_time ? undefined : new Date(page.created_time),
@@ -253,7 +256,9 @@ export class NotionClient {
     const author = await this.fetchUsername(database.created_by.id);
 
     return {
-      title: this.parseTitle(database, { maxLength: CollectionValidation.maxNameLength }),
+      title: this.parseTitle(database, {
+        maxLength: CollectionValidation.maxNameLength,
+      }),
       emoji: this.parseEmoji(database),
       author: author ?? undefined,
       createdAt: !database.created_time
@@ -292,7 +297,9 @@ export class NotionClient {
 
   private parseTitle(
     item: PageObjectResponse | DatabaseObjectResponse,
-    { maxLength = DocumentValidation.maxTitleLength }: { maxLength?: number } = {}
+    {
+      maxLength = DocumentValidation.maxTitleLength,
+    }: { maxLength?: number } = {}
   ) {
     let richTexts: RichTextItemResponse[];
 
