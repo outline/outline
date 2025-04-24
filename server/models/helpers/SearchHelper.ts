@@ -330,7 +330,7 @@ export default class SearchHelper {
     if (query) {
       // Default values for recency boosting
       const boostRecent = searchConfig?.boostRecent ?? false;
-      const boostRecentMonths = searchConfig?.boostRecentMonths ?? 6;
+      const boostRecentMonths = searchConfig?.boostRecentMonths ?? 2;
       const maxRecentBoost = searchConfig?.maxRecentBoost ?? 2.0;
 
       if (boostRecent) {
