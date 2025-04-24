@@ -1,4 +1,4 @@
-import { LinearClient } from "@linear/sdk";
+import { Issue, LinearClient, WorkflowState } from "@linear/sdk";
 import sortBy from "lodash/sortBy";
 import { z } from "zod";
 import {
@@ -106,33 +106,11 @@ export class Linear {
         return { error: "Failed to fetch auxiliary data from Linear" };
       }
 
-      let completionPercentage = 0.5; // fallback when we cannot determine actual value.
-
-      if (state.type === "started") {
-        const team = await issue.team;
-
-        if (team) {
-          const allStates = await client.paginate(client.workflowStates, {
-            filter: {
-              team: { id: { eq: team.id } },
-              type: { eq: "started" },
-            },
-          });
-          const states = sortBy(
-            allStates.map((s) => ({
-              name: s.name,
-              position: s.position,
-            })),
-            (s) => s.position
-          );
-
-          const idx = states.findIndex((s) => s.name === state.name);
-
-          if (idx !== -1) {
-            completionPercentage = (idx + 1) / (states.length + 1); // add 1 to states for the "done" state.
-          }
-        }
-      }
+      const completionPercentage = await Linear.completionPercentage(
+        client,
+        issue,
+        state
+      );
 
       return {
         type: UnfurlResourceType.Issue,
@@ -162,6 +140,42 @@ export class Linear {
       return { error: err.message || "Unknown error" };
     }
   };
+
+  private static async completionPercentage(
+    client: LinearClient,
+    issue: Issue,
+    state: WorkflowState
+  ) {
+    const defaultCompletionPercentage = 0.5; // fallback when we cannot determine actual value.
+
+    if (state.type !== "started") {
+      return defaultCompletionPercentage;
+    }
+
+    const team = await issue.team;
+    if (!team) {
+      return defaultCompletionPercentage;
+    }
+
+    const allStates = await client.paginate(client.workflowStates, {
+      filter: {
+        team: { id: { eq: team.id } },
+        type: { eq: "started" },
+      },
+    });
+    const states = sortBy(
+      allStates.map((s) => ({
+        name: s.name,
+        position: s.position,
+      })),
+      (s) => s.position
+    );
+
+    const idx = states.findIndex((s) => s.name === state.name);
+    return idx !== -1
+      ? (idx + 1) / (states.length + 1) // add 1 to states for the "done" state.
+      : defaultCompletionPercentage;
+  }
 
   /**
    * Parses a given URL and returns resource identifiers for Linear specific URLs
