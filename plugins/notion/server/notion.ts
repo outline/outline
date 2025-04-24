@@ -284,7 +284,10 @@ export class NotionClient {
     }
   }
 
-  private parseTitle(item: PageObjectResponse | DatabaseObjectResponse, isCollection = false) {
+  private parseTitle(
+    item: PageObjectResponse | DatabaseObjectResponse,
+    isCollection = false
+  ) {
     let richTexts: RichTextItemResponse[];
 
     if (item.object === "page") {
@@ -297,9 +300,9 @@ export class NotionClient {
     }
 
     const title = richTexts.map((richText) => richText.plain_text).join("");
-    
-    const maxLength = isCollection 
-      ? CollectionValidation.maxNameLength 
+
+    const maxLength = isCollection
+      ? CollectionValidation.maxNameLength
       : DocumentValidation.maxTitleLength;
 
     return truncate(title, { length: maxLength });
