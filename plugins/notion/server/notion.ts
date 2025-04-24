@@ -15,9 +15,11 @@ import {
 import { RateLimit } from "async-sema";
 import emojiRegex from "emoji-regex";
 import compact from "lodash/compact";
+import truncate from "lodash/truncate";
 import { z } from "zod";
 import { Second } from "@shared/utils/time";
 import { isUrl } from "@shared/utils/urls";
+import { DocumentValidation } from "@shared/validations";
 import { NotionUtils } from "../shared/NotionUtils";
 import { Block, Page, PageType } from "../shared/types";
 import env from "./env";
@@ -298,7 +300,10 @@ export class NotionClient {
       richTexts = item.title;
     }
 
-    return richTexts.map((richText) => richText.plain_text).join("");
+    const title = richTexts.map((richText) => richText.plain_text).join("");
+    
+    // Truncate title to fit within validation limits
+    return truncate(title, { length: DocumentValidation.maxTitleLength });
   }
 
   private parseEmoji(item: PageObjectResponse | DatabaseObjectResponse) {
