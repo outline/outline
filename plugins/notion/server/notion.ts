@@ -120,9 +120,10 @@ export class NotionClient {
             id: item.id,
             name: this.parseTitle(
               item,
-              item.object === "database"
+              { maxLength: item.object === "database"
                 ? CollectionValidation.maxNameLength
                 : DocumentValidation.maxTitleLength
+              }
             ),
             emoji: this.parseEmoji(item),
           });
@@ -209,7 +210,7 @@ export class NotionClient {
           return {
             type: PageType.Page,
             id: item.id,
-            name: this.parseTitle(item, DocumentValidation.maxTitleLength),
+            name: this.parseTitle(item, { maxLength: DocumentValidation.maxTitleLength }),
             emoji: this.parseEmoji(item),
           };
         })
@@ -233,7 +234,7 @@ export class NotionClient {
     const author = await this.fetchUsername(page.created_by.id);
 
     return {
-      title: this.parseTitle(page, DocumentValidation.maxTitleLength),
+      title: this.parseTitle(page, { maxLength: DocumentValidation.maxTitleLength }),
       emoji: this.parseEmoji(page),
       author: author ?? undefined,
       createdAt: !page.created_time ? undefined : new Date(page.created_time),
@@ -252,7 +253,7 @@ export class NotionClient {
     const author = await this.fetchUsername(database.created_by.id);
 
     return {
-      title: this.parseTitle(database, CollectionValidation.maxNameLength),
+      title: this.parseTitle(database, { maxLength: CollectionValidation.maxNameLength }),
       emoji: this.parseEmoji(database),
       author: author ?? undefined,
       createdAt: !database.created_time
@@ -291,7 +292,7 @@ export class NotionClient {
 
   private parseTitle(
     item: PageObjectResponse | DatabaseObjectResponse,
-    maxLength: number = DocumentValidation.maxTitleLength
+    { maxLength = DocumentValidation.maxTitleLength }: { maxLength?: number } = {}
   ) {
     let richTexts: RichTextItemResponse[];
 
@@ -306,10 +307,12 @@ export class NotionClient {
 
     const title = richTexts.map((richText) => richText.plain_text).join("");
 
+    // Truncate title to fit within validation limits
     return truncate(title, { length: maxLength });
   }
 
   private parseEmoji(item: PageObjectResponse | DatabaseObjectResponse) {
+    // Other icon types return a url to download from, which we don't support.
     return item.icon?.type === "emoji" ? item.icon.emoji : undefined;
   }
 }
