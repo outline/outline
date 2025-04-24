@@ -1,8 +1,10 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { s, ellipsis } from "@shared/styles";
 import { ConfigItem } from "~/hooks/useSettingsConfig";
+import Button from "./Button";
 import Flex from "./Flex";
 
 type Props = {
@@ -10,33 +12,27 @@ type Props = {
 };
 
 function IntegrationCard({ integration }: Props) {
-  const actionText = integration.isActive ? "Configure" : "Install";
+  const { t } = useTranslation();
+
   return (
-    <Card tabIndex={0}>
-      <Flex align="center" gap={20}>
-        <integration.icon size={50} />
-        <Name>{integration.name}</Name>
+    <Card>
+      <Flex justify="space-between" align="center">
+        <Flex align="center" gap={20}>
+          <integration.icon size={50} />
+          <Name>{integration.name}</Name>
+        </Flex>
+
+        <Status isActive={integration.isActive || false}>
+          {integration.isActive ? t("Connected") : t("Not Connected")}
+        </Status>
       </Flex>
 
-      <Content>
-        <Description>{integration.description}</Description>
-      </Content>
+      <Description>{integration.description}</Description>
 
       <Footer>
-        <Status isActive={integration.isActive || false}>
-          {integration.isActive ? "Active" : "Not Active"}
-        </Status>
-        <ActionLink
-          to={integration.path}
-          onClick={(e) => {
-            if (!integration.isActive) {
-              e.preventDefault();
-            }
-            // Otherwise let the <Link> navigate to the configure route
-          }}
-        >
-          {actionText}
-        </ActionLink>
+        <Button as={Link} to={integration.path}>
+          {integration.isActive ? t("Configure") : t("Install")}
+        </Button>
       </Footer>
     </Card>
   );
@@ -44,12 +40,10 @@ function IntegrationCard({ integration }: Props) {
 
 export default IntegrationCard;
 
-// — styled-components — //
-
 const Card = styled.div`
   display: flex;
   flex-direction: column;
-  padding: 12px;
+  padding: 20px;
   width: 100%;
   height: auto;
   background: ${s("background")};
@@ -57,11 +51,6 @@ const Card = styled.div`
   border-radius: 8px;
   transition: box-shadow 200ms ease;
   cursor: default;
-`;
-
-const Content = styled.div`
-  flex: 1;
-  min-width: 0;
 `;
 
 const Name = styled.h3`
@@ -81,24 +70,13 @@ const Description = styled.p`
 const Footer = styled.div`
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-top: 16px;
 `;
 
 const Status = styled.span<{ isActive: boolean }>`
   font-size: 12px;
+  margin-right: 8px;
   color: ${(props) =>
     props.isActive ? props.theme.success : props.theme.danger};
-`;
-
-const ActionLink = styled(Link)`
-  display: inline-block;
-  padding: 4px 8px;
-  font-size: 14px;
-  background: ${s("brand")};
-  color: ${s("white")};
-  border-radius: 4px;
-  text-decoration: none;
-  text-align: center;
-  transition: background 150ms ease;
 `;
