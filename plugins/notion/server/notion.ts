@@ -118,7 +118,7 @@ export class NotionClient {
           pages.push({
             type: item.object === "page" ? PageType.Page : PageType.Database,
             id: item.id,
-            name: this.parseTitle(item, true),
+            name: this.parseTitle(item, item.object === "database" ? CollectionValidation.maxNameLength : DocumentValidation.maxTitleLength),
             emoji: this.parseEmoji(item),
           });
         }
@@ -164,7 +164,6 @@ export class NotionClient {
       cursor = response.next_cursor ?? undefined;
     }
 
-    // Recursive fetch when direct children have their own children.
     await Promise.all(
       blocks.map(async (block) => {
         if (
@@ -205,7 +204,7 @@ export class NotionClient {
           return {
             type: PageType.Page,
             id: item.id,
-            name: this.parseTitle(item),
+            name: this.parseTitle(item, DocumentValidation.maxTitleLength),
             emoji: this.parseEmoji(item),
           };
         })
@@ -229,7 +228,7 @@ export class NotionClient {
     const author = await this.fetchUsername(page.created_by.id);
 
     return {
-      title: this.parseTitle(page),
+      title: this.parseTitle(page, DocumentValidation.maxTitleLength),
       emoji: this.parseEmoji(page),
       author: author ?? undefined,
       createdAt: !page.created_time ? undefined : new Date(page.created_time),
@@ -248,7 +247,7 @@ export class NotionClient {
     const author = await this.fetchUsername(database.created_by.id);
 
     return {
-      title: this.parseTitle(database),
+      title: this.parseTitle(database, CollectionValidation.maxNameLength),
       emoji: this.parseEmoji(database),
       author: author ?? undefined,
       createdAt: !database.created_time
@@ -269,15 +268,12 @@ export class NotionClient {
         return user.name;
       }
 
-      // bot belongs to a user, get the user's name.
       if (user.bot.owner.type === "user" && isFullUser(user.bot.owner.user)) {
         return user.bot.owner.user.name;
       }
 
-      // bot belongs to a workspace, fallback to bot's name.
       return user.name;
     } catch (error) {
-      // Handle the case where a user can't be found
       if (
         error instanceof APIResponseError &&
         error.code === APIErrorCode.ObjectNotFound
@@ -290,7 +286,7 @@ export class NotionClient {
 
   private parseTitle(
     item: PageObjectResponse | DatabaseObjectResponse,
-    isCollection = false
+    maxLength: number = DocumentValidation.maxTitleLength
   ) {
     let richTexts: RichTextItemResponse[];
 
@@ -305,15 +301,10 @@ export class NotionClient {
 
     const title = richTexts.map((richText) => richText.plain_text).join("");
 
-    const maxLength = isCollection
-      ? CollectionValidation.maxNameLength
-      : DocumentValidation.maxTitleLength;
-
     return truncate(title, { length: maxLength });
   }
 
   private parseEmoji(item: PageObjectResponse | DatabaseObjectResponse) {
-    // Other icon types return a url to download from, which we don't support.
     return item.icon?.type === "emoji" ? item.icon.emoji : undefined;
   }
 }
