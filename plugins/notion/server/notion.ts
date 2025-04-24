@@ -118,7 +118,12 @@ export class NotionClient {
           pages.push({
             type: item.object === "page" ? PageType.Page : PageType.Database,
             id: item.id,
-            name: this.parseTitle(item, item.object === "database" ? CollectionValidation.maxNameLength : DocumentValidation.maxTitleLength),
+            name: this.parseTitle(
+              item,
+              item.object === "database"
+                ? CollectionValidation.maxNameLength
+                : DocumentValidation.maxTitleLength
+            ),
             emoji: this.parseEmoji(item),
           });
         }
