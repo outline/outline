@@ -10,6 +10,7 @@ import styled from "styled-components";
 import Icon from "@shared/components/Icon";
 import { hideScrollbars, s } from "@shared/styles";
 import { isInternalUrl, sanitizeUrl } from "@shared/utils/urls";
+import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import Flex from "~/components/Flex";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Scrollable from "~/components/Scrollable";
@@ -253,7 +254,14 @@ const LinkEditor: React.FC<Props> = ({
                   onPointerMove={() => setSelectedIndex(index)}
                   selected={index === selectedIndex}
                   key={doc.id}
-                  subtitle={doc.collection?.name}
+                  subtitle={
+                    <DocumentBreadcrumb
+                      document={doc}
+                      onlyText
+                      reverse
+                      maxDepth={2}
+                    />
+                  }
                   title={doc.title}
                   icon={
                     doc.icon ? (
