@@ -96,6 +96,7 @@ router.get(
     ctx.set("Accept-Ranges", "bytes");
     ctx.set("Cache-Control", cacheHeader);
     ctx.set("Content-Type", contentType);
+    ctx.set("Content-Security-Policy", "sandbox");
     ctx.attachment(fileName, {
       type: forceDownload
         ? "attachment"
