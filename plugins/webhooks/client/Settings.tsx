@@ -52,18 +52,18 @@ function Webhooks() {
           in near real-time.
         </Trans>
       </Text>
-      <PaginatedList
+      <PaginatedList<WebhookSubscription>
         fetch={webhookSubscriptions.fetchPage}
         items={webhookSubscriptions.enabled}
         heading={<h2>{t("Active")}</h2>}
-        renderItem={(webhook: WebhookSubscription) => (
+        renderItem={(webhook) => (
           <WebhookSubscriptionListItem key={webhook.id} webhook={webhook} />
         )}
       />
-      <PaginatedList
+      <PaginatedList<WebhookSubscription>
         items={webhookSubscriptions.disabled}
         heading={<h2>{t("Inactive")}</h2>}
-        renderItem={(webhook: WebhookSubscription) => (
+        renderItem={(webhook) => (
           <WebhookSubscriptionListItem key={webhook.id} webhook={webhook} />
         )}
       />

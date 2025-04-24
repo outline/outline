@@ -10,7 +10,7 @@ type Props = {
   fetch: (options: Record<string, any> | undefined) => Promise<Event[]>;
   options?: Record<string, any>;
   heading?: React.ReactNode;
-  empty?: React.ReactNode;
+  empty?: JSX.Element;
 };
 
 const PaginatedEventList = React.memo<Props>(function PaginatedEventList({

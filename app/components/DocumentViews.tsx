@@ -46,10 +46,10 @@ function DocumentViews({ document, isOpen }: Props) {
   return (
     <>
       {isOpen && (
-        <PaginatedList
+        <PaginatedList<User>
           aria-label={t("Viewers")}
           items={users}
-          renderItem={(model: User) => {
+          renderItem={(model) => {
             const view = documentViews.find((v) => v.userId === model.id);
             const isPresent = presentIds.includes(model.id);
             const isEditing = editingIds.includes(model.id);
