@@ -119,10 +119,7 @@ export class NotionClient {
             type: item.object === "page" ? PageType.Page : PageType.Database,
             id: item.id,
             name: this.parseTitle(item, {
-              maxLength:
-                item.object === "database"
-                  ? CollectionValidation.maxNameLength
-                  : DocumentValidation.maxTitleLength,
+              maxLength: CollectionValidation.maxNameLength,
             }),
             emoji: this.parseEmoji(item),
           });
@@ -257,7 +254,7 @@ export class NotionClient {
 
     return {
       title: this.parseTitle(database, {
-        maxLength: CollectionValidation.maxNameLength,
+        maxLength: DocumentValidation.maxTitleLength,
       }),
       emoji: this.parseEmoji(database),
       author: author ?? undefined,
@@ -279,12 +276,15 @@ export class NotionClient {
         return user.name;
       }
 
+      // bot belongs to a user, get the user's name
       if (user.bot.owner.type === "user" && isFullUser(user.bot.owner.user)) {
         return user.bot.owner.user.name;
       }
 
+      // bot belongs to a workspace, fallback to bot's name
       return user.name;
     } catch (error) {
+      // Handle the case where a user can't be found
       if (
         error instanceof APIResponseError &&
         error.code === APIErrorCode.ObjectNotFound
