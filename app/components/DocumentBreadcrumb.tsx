@@ -133,7 +133,13 @@ function DocumentBreadcrumb(
       });
     });
 
-    return reverse ? output.slice(depth && -depth) : output.slice(0, depth);
+    return reverse
+      ? depth !== undefined
+        ? output.slice(-depth)
+        : output
+      : depth !== undefined
+      ? output.slice(0, depth)
+      : output;
   }, [t, path, category, sidebarContext, collectionNode, reverse, depth]);
 
   if (!collections.isLoaded) {
