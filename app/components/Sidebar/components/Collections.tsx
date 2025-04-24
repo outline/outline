@@ -54,7 +54,7 @@ function Collections() {
       <Flex column>
         <Header id="collections" title={t("Collections")}>
           <Relative>
-            <PaginatedList
+            <PaginatedList<Collection>
               options={params}
               aria-label={t("Collections")}
               items={collections.allActive}
@@ -69,7 +69,7 @@ function Collections() {
                 ) : undefined
               }
               renderError={(props) => <StyledError {...props} />}
-              renderItem={(item: Collection, index) => (
+              renderItem={(item, index) => (
                 <DraggableCollectionLink
                   key={item.id}
                   collection={item}

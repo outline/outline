@@ -79,11 +79,11 @@ function Notifications(
         </Header>
         <React.Suspense fallback={null}>
           <Scrollable ref={ref} flex topShadow>
-            <PaginatedList
+            <PaginatedList<Notification>
               fetch={notifications.fetchPage}
               options={{ archived: false }}
               items={isOpen ? notifications.orderedData : undefined}
-              renderItem={(item: Notification) => (
+              renderItem={(item) => (
                 <NotificationListItem
                   key={item.id}
                   notification={item}

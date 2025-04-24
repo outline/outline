@@ -82,12 +82,12 @@ function ArchiveLink() {
         </div>
         {expanded === true ? (
           <Relative>
-            <PaginatedList
+            <PaginatedList<Collection>
               aria-label={t("Archived collections")}
               items={collections.archived}
               loading={<PlaceholderCollections />}
               renderError={(props) => <StyledError {...props} />}
-              renderItem={(item: Collection) => (
+              renderItem={(item) => (
                 <ArchivedCollectionLink
                   key={item.id}
                   depth={1}
