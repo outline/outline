@@ -33,6 +33,18 @@ export function isWindows(): boolean {
   return window.navigator.platform === "Win32";
 }
 
+export function isSafari(): boolean {
+  if (!isBrowser) {
+    return false;
+  }
+  const userAgent = window.navigator.userAgent;
+  return (
+    userAgent.includes("Safari") &&
+    !userAgent.includes("Chrome") &&
+    !userAgent.includes("Chromium")
+  );
+}
+
 let supportsPassive = false;
 
 try {

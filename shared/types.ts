@@ -117,6 +117,7 @@ export enum IntegrationService {
   Matomo = "matomo",
   Umami = "umami",
   GitHub = "github",
+  Linear = "linear",
   Notion = "notion",
 }
 
@@ -131,11 +132,12 @@ export const ImportableIntegrationService = {
 
 export type IssueTrackerIntegrationService = Extract<
   IntegrationService,
-  IntegrationService.GitHub
+  IntegrationService.GitHub | IntegrationService.Linear
 >;
 
 export const IssueTrackerIntegrationService = {
   GitHub: IntegrationService.GitHub,
+  Linear: IntegrationService.Linear,
 } as const;
 
 export type UserCreatableIntegrationService = Extract<
@@ -169,12 +171,15 @@ export enum DocumentPermission {
 
 export type IntegrationSettings<T> = T extends IntegrationType.Embed
   ? {
-      url: string;
+      url?: string;
       github?: {
         installation: {
           id: number;
           account: { id: number; name: string; avatarUrl: string };
         };
+      };
+      linear?: {
+        workspace: { id: string; name: string; key: string; logoUrl?: string };
       };
     }
   : T extends IntegrationType.Analytics
@@ -433,7 +438,12 @@ export type UnfurlResponse = {
     /** Issue's labels */
     labels: Array<{ name: string; color: string }>;
     /** Issue's status */
-    state: { name: string; color: string };
+    state: {
+      type?: string;
+      name: string;
+      color: string;
+      completionPercentage?: number;
+    };
     /** Issue's creation time */
     createdAt: string;
   };

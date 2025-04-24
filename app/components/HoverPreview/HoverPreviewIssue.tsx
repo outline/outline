@@ -1,7 +1,11 @@
 import * as React from "react";
 import { Trans } from "react-i18next";
 import { IssueStatusIcon } from "@shared/components/IssueStatusIcon";
-import { UnfurlResourceType, UnfurlResponse } from "@shared/types";
+import {
+  IntegrationService,
+  UnfurlResourceType,
+  UnfurlResponse,
+} from "@shared/types";
 import { Avatar } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import Text from "../Text";
@@ -23,6 +27,11 @@ const HoverPreviewIssue = React.forwardRef(function _HoverPreviewIssue(
   ref: React.Ref<HTMLDivElement>
 ) {
   const authorName = author.name;
+  const urlObj = new URL(url);
+  const service =
+    urlObj.hostname === "github.com"
+      ? IntegrationService.GitHub
+      : IntegrationService.Linear;
 
   return (
     <Preview as="a" href={url} target="_blank" rel="noopener noreferrer">
@@ -31,7 +40,7 @@ const HoverPreviewIssue = React.forwardRef(function _HoverPreviewIssue(
           <CardContent>
             <Flex gap={2} column>
               <Title>
-                <IssueStatusIcon status={state.name} color={state.color} />
+                <IssueStatusIcon service={service} state={state} />
                 <span>
                   {title}&nbsp;<Text type="tertiary">{id}</Text>
                 </span>

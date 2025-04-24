@@ -1,0 +1,7 @@
+{
+  "id": "linear",
+  "name": "Linear",
+  "priority": 15,
+  "description": "Adds a Linear integration for link unfurling and converting links to mentions.",
+  "after": "github"
+}
