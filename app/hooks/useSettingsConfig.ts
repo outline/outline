@@ -50,6 +50,7 @@ export type ConfigItem = {
   path: string;
   icon: React.FC<ComponentProps<typeof Icon>>;
   component: React.ComponentType;
+  description?: string;
   enabled: boolean;
   group: string;
   isActive?: boolean;
@@ -216,6 +217,7 @@ const useSettingsConfig = () => {
             : settingsPath(plugin.id),
         group: t(group),
         component: plugin.value.component,
+        description: plugin.value.description,
         enabled: plugin.value.enabled
           ? plugin.value.enabled(team, user)
           : can.update,

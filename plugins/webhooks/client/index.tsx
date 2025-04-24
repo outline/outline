@@ -11,6 +11,8 @@ PluginManager.add([
       group: "Integrations",
       icon: Icon,
       component: React.lazy(() => import("./Settings")),
+      description:
+        "Automate downstream workflows with real-time JSON POSTs, subscribe to document events in Outline so external systems can react instantly to creations, updates, or deletions.",
     },
   },
 ]);

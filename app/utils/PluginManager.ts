@@ -29,6 +29,8 @@ type PluginValueMap = {
     icon: React.ElementType;
     /** The settings screen somponent, should be lazy loaded. */
     component: React.LazyExoticComponent<React.ComponentType>;
+    /** The description that will show on the plugins card. */
+    description?: string;
     /** Whether the plugin is enabled in the current context. */
     enabled?: (team: Team, user: User) => boolean;
   };

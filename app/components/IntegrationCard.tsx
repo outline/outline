@@ -19,7 +19,7 @@ function IntegrationCard({ integration }: Props) {
       </Flex>
 
       <Content>
-        {/* <Description>{integration.description}</Description> */}
+        <Description>{integration.description}</Description>
       </Content>
 
       <Footer>
@@ -71,12 +71,12 @@ const Name = styled.h3`
   ${ellipsis()}
 `;
 
-// const Description = styled.p`
-//   margin: 4px 0 0;
-//   font-size: 14px;
-//   color: ${s("textTertiary")};
-//   ${ellipsis()}
-// `;
+const Description = styled.p`
+  margin: 4px 0 0;
+  font-size: 14px;
+  max-width: 100%;
+  color: ${s("textTertiary")};
+`;
 
 const Footer = styled.div`
   display: flex;

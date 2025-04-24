@@ -12,6 +12,8 @@ PluginManager.add([
       group: "Integrations",
       icon: Icon,
       component: React.lazy(() => import("./Settings")),
+      description:
+        "Track your docs with a self-hosted, open-source analytics platform, link Outline to Matomo for 100% data ownership, GDPR compliance, and deep usage insights on your own servers.",
       enabled: (_, user) => user.role === UserRole.Admin,
     },
   },

@@ -11,6 +11,8 @@ PluginManager.add([
       group: "Integrations",
       icon: Icon,
       component: React.lazy(() => import("./Settings")),
+      description:
+        "Measure adoption and engagement by streaming document view data into your existing GA4 property, see which guides drive the most value in your familiar analytics dashboard.",
     },
   },
 ]);
