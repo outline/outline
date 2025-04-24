@@ -9,8 +9,13 @@ import {
 import {
   BlockObjectResponse,
   DatabaseObjectResponse,
+  ListBlockChildrenResponse,
   PageObjectResponse,
+  PartialBlockObjectResponse,
+  PartialDatabaseObjectResponse,
+  PartialPageObjectResponse,
   RichTextItemResponse,
+  SearchResponse,
 } from "@notionhq/client/build/src/api-endpoints";
 import { RateLimit } from "async-sema";
 import emojiRegex from "emoji-regex";
@@ -19,7 +24,7 @@ import truncate from "lodash/truncate";
 import { z } from "zod";
 import { Second } from "@shared/utils/time";
 import { isUrl } from "@shared/utils/urls";
-import { DocumentValidation } from "@shared/validations";
+import { CollectionValidation, DocumentValidation } from "@shared/validations";
 import { NotionUtils } from "../shared/NotionUtils";
 import { Block, Page, PageType } from "../shared/types";
 import env from "./env";
@@ -118,7 +123,7 @@ export class NotionClient {
           pages.push({
             type: item.object === "page" ? PageType.Page : PageType.Database,
             id: item.id,
-            name: this.parseTitle(item),
+            name: this.parseTitle(item, item.object === "database"),
             emoji: this.parseEmoji(item),
           });
         }
@@ -248,7 +253,7 @@ export class NotionClient {
     const author = await this.fetchUsername(database.created_by.id);
 
     return {
-      title: this.parseTitle(database),
+      title: this.parseTitle(database, true),
       emoji: this.parseEmoji(database),
       author: author ?? undefined,
       createdAt: !database.created_time
@@ -288,7 +293,7 @@ export class NotionClient {
     }
   }
 
-  private parseTitle(item: PageObjectResponse | DatabaseObjectResponse) {
+  private parseTitle(item: PageObjectResponse | DatabaseObjectResponse, isCollection = false) {
     let richTexts: RichTextItemResponse[];
 
     if (item.object === "page") {
@@ -301,8 +306,13 @@ export class NotionClient {
     }
 
     const title = richTexts.map((richText) => richText.plain_text).join("");
+    
+    // Use the appropriate validation limit based on context
+    const maxLength = isCollection 
+      ? CollectionValidation.maxNameLength 
+      : DocumentValidation.maxTitleLength;
 
-    return truncate(title, { length: DocumentValidation.maxTitleLength });
+    return truncate(title, { length: maxLength });
   }
 
   private parseEmoji(item: PageObjectResponse | DatabaseObjectResponse) {
