@@ -1091,6 +1091,10 @@ p a {
   }
 }
 
+.heading-content a {
+  font-weight: inherit;
+}
+
 a {
   color: ${props.theme.link};
   cursor: pointer;
