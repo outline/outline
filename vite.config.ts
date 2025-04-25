@@ -145,6 +145,7 @@ export default () =>
         },
       }),
       // Generate a stats.json file for webpack that will be consumed by RelativeCI
+      // @ts-expect-error Type mismatch with latest versions but Plugin runs without issue
       webpackStats(),
     ],
     optimizeDeps: {
