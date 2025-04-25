@@ -3,12 +3,12 @@ import path from "path";
 import react from "@vitejs/plugin-react";
 import browserslistToEsbuild from "browserslist-to-esbuild";
 import webpackStats from "rollup-plugin-webpack-stats";
-import { CommonServerOptions, defineConfig } from "vite";
+import { ServerOptions, defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import environment from "./server/utils/environment";
 
-let httpsConfig: CommonServerOptions["https"] | undefined;
+let httpsConfig: ServerOptions["https"] | undefined;
 let host: string | undefined;
 
 if (environment.NODE_ENV === "development") {
@@ -145,6 +145,7 @@ export default () =>
         },
       }),
       // Generate a stats.json file for webpack that will be consumed by RelativeCI
+      // @ts-expect-error Type mismatch with latest versions but Plugin runs without issue
       webpackStats(),
     ],
     optimizeDeps: {
@@ -175,6 +176,13 @@ export default () =>
         keep_fnames: true,
       },
       rollupOptions: {
+        onwarn(warning, warn) {
+          // Suppress noisy warnings about module-level directives, e.g. "use client"
+          if (warning.code === "MODULE_LEVEL_DIRECTIVE") {
+            return;
+          }
+          warn(warning);
+        },
         input: {
           index: "./app/index.tsx",
         },
