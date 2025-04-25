@@ -117,6 +117,7 @@ export const RESERVED_SUBDOMAINS = [
   "localhost",
   "mail",
   "marketing",
+  "mcp",
   "mobile",
   "multiplayer",
   "new",
