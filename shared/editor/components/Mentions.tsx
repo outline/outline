@@ -10,6 +10,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { Backticks } from "../../components/Backticks";
 import Flex from "../../components/Flex";
 import Icon from "../../components/Icon";
 import { IssueStatusIcon } from "../../components/IssueStatusIcon";
@@ -207,7 +208,9 @@ export const MentionIssue = observer((props: IssuePrProps) => {
       <Flex align="center" gap={6}>
         <IssueStatusIcon size={14} service={service} state={issue.state} />
         <Flex align="center" gap={4}>
-          <Text>{issue.title}</Text>
+          <Text>
+            <Backticks content={issue.title} />
+          </Text>
           <Text type="tertiary">{issue.id}</Text>
         </Flex>
       </Flex>
@@ -282,7 +285,9 @@ export const MentionPullRequest = observer((props: IssuePrProps) => {
           color={pullRequest.state.color}
         />
         <Flex align="center" gap={4}>
-          <Text>{pullRequest.title}</Text>
+          <Text>
+            <Backticks content={pullRequest.title} />
+          </Text>
           <Text type="tertiary">{pullRequest.id}</Text>
         </Flex>
       </Flex>

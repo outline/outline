@@ -2,15 +2,15 @@ import React from "react";
 import { BaseIconProps } from ".";
 
 export function GitHubIssueStatusIcon(props: BaseIconProps) {
-  const { state, className } = props;
+  const { state, className, size = 16 } = props;
 
   switch (state.name) {
     case "open":
       return (
         <svg
           viewBox="0 0 16 16"
-          width="16"
-          height="16"
+          width={size}
+          height={size}
           fill={state.color}
           className={className}
         >
@@ -22,8 +22,8 @@ export function GitHubIssueStatusIcon(props: BaseIconProps) {
       return (
         <svg
           viewBox="0 0 16 16"
-          width="16"
-          height="16"
+          width={size}
+          height={size}
           fill={state.color}
           className={className}
         >
@@ -35,8 +35,8 @@ export function GitHubIssueStatusIcon(props: BaseIconProps) {
       return (
         <svg
           viewBox="0 0 16 16"
-          width="16"
-          height="16"
+          width={size}
+          height={size}
           fill={state.color}
           className={className}
         >
