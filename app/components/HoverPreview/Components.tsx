@@ -33,7 +33,7 @@ export const Title = styled(Text).attrs({ as: "h2", size: "large" })`
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
-  gap: 4px;
+  gap: 6px;
 `;
 
 export const Info = styled(StyledText).attrs(() => ({

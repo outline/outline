@@ -40,13 +40,13 @@ const HoverPreviewIssue = React.forwardRef(function _HoverPreviewIssue(
           <CardContent>
             <Flex gap={2} column>
               <Title>
-                <IssueStatusIcon service={service} state={state} />
+                <IssueStatusIcon service={service} state={state} size={18} />
                 <span>
                   {title}&nbsp;<Text type="tertiary">{id}</Text>
                 </span>
               </Title>
-              <Flex align="center" gap={4}>
-                <Avatar src={author.avatarUrl} />
+              <Flex align="center" gap={6}>
+                <Avatar src={author.avatarUrl} size={18} />
                 <Info>
                   <Trans>
                     {{ authorName }} created{" "}

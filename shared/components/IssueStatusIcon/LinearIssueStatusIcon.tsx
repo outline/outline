@@ -14,7 +14,7 @@ enum StateType {
 
 export function LinearIssueStatusIcon(props: BaseIconProps) {
   const theme = useTheme();
-  const { state } = props;
+  const { state, size = 16 } = props;
   const percentage =
     state.type === StateType.Triage ||
     state.type === StateType.Backlog ||
@@ -31,7 +31,7 @@ export function LinearIssueStatusIcon(props: BaseIconProps) {
   const magicFour = isSafari() ? 3.895 : 3.98;
 
   return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+    <svg width={size} height={size} viewBox="0 0 14 14" fill="none">
       <circle
         cx={7}
         cy={7}
