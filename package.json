@@ -249,7 +249,7 @@
     "uuid": "^8.3.2",
     "validator": "13.12.0",
     "vaul": "^1.1.2",
-    "vite": "^6.3.3",
+    "vite": "^5.4.18",
     "vite-plugin-pwa": "^0.21.2",
     "winston": "^3.17.0",
     "ws": "^7.5.10",
@@ -364,11 +364,11 @@
     "rollup-plugin-webpack-stats": "^2.0.3",
     "terser": "^5.39.0",
     "typescript": "^5.8.3",
-    "vite-plugin-static-copy": "^1.0.1",
+    "vite-plugin-static-copy": "^0.17.0",
     "yarn-deduplicate": "^6.0.2"
   },
   "resolutions": {
-    "i18next-parser/cheerio": "^1.0.0-rc.2",
+    "vite": "npm:rolldown-vite@latest",
     "prosemirror-transform": "1.10.0",
     "body-scroll-lock": "^4.0.0-beta.0",
     "d3": "^7.0.0",
