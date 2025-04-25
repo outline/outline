@@ -133,14 +133,22 @@ export class NotionClient {
     return pages;
   }
 
-  async fetchPage(pageId: string) {
-    const pageInfo = await this.fetchPageInfo(pageId);
+  async fetchPage(
+    pageId: string,
+    { titleMaxLength }: { titleMaxLength: number }
+  ) {
+    const pageInfo = await this.fetchPageInfo(pageId, { titleMaxLength });
     const blocks = await this.fetchBlockChildren(pageId);
     return { ...pageInfo, blocks };
   }
 
-  async fetchDatabase(databaseId: string) {
-    const databaseInfo = await this.fetchDatabaseInfo(databaseId);
+  async fetchDatabase(
+    databaseId: string,
+    { titleMaxLength }: { titleMaxLength: number }
+  ) {
+    const databaseInfo = await this.fetchDatabaseInfo(databaseId, {
+      titleMaxLength,
+    });
     const pages = await this.queryDatabase(databaseId);
     return { ...databaseInfo, pages };
   }
@@ -223,7 +231,10 @@ export class NotionClient {
     return pages;
   }
 
-  private async fetchPageInfo(pageId: string): Promise<PageInfo> {
+  private async fetchPageInfo(
+    pageId: string,
+    { titleMaxLength }: { titleMaxLength: number }
+  ): Promise<PageInfo> {
     await this.limiter();
     const page = (await this.client.pages.retrieve({
       page_id: pageId,
@@ -233,7 +244,7 @@ export class NotionClient {
 
     return {
       title: this.parseTitle(page, {
-        maxLength: DocumentValidation.maxTitleLength,
+        maxLength: titleMaxLength,
       }),
       emoji: this.parseEmoji(page),
       author: author ?? undefined,
@@ -244,7 +255,10 @@ export class NotionClient {
     };
   }
 
-  private async fetchDatabaseInfo(databaseId: string): Promise<PageInfo> {
+  private async fetchDatabaseInfo(
+    databaseId: string,
+    { titleMaxLength }: { titleMaxLength: number }
+  ): Promise<PageInfo> {
     await this.limiter();
     const database = (await this.client.databases.retrieve({
       database_id: databaseId,
@@ -254,7 +268,7 @@ export class NotionClient {
 
     return {
       title: this.parseTitle(database, {
-        maxLength: DocumentValidation.maxTitleLength,
+        maxLength: titleMaxLength,
       }),
       emoji: this.parseEmoji(database),
       author: author ?? undefined,
