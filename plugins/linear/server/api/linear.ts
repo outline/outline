@@ -6,9 +6,9 @@ import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { IntegrationAuthentication, Integration, Team } from "@server/models";
-import UploadLinearWorkspaceLogoTask from "@server/queues/tasks/UploadLinearWorkspaceLogoTask";
 import { APIContext } from "@server/types";
 import { Linear } from "../linear";
+import UploadLinearWorkspaceLogoTask from "../tasks/UploadLinearWorkspaceLogoTask";
 import * as T from "./schema";
 import { LinearUtils } from "plugins/linear/shared/LinearUtils";
 
