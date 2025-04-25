@@ -279,7 +279,8 @@ export class GitHub {
       },
       state: {
         name: prState,
-        color: GitHubUtils.getColorForStatus(prState),
+        color: GitHubUtils.getColorForStatus(prState, !!pr.draft),
+        draft: pr.draft,
       },
       createdAt: pr.created_at,
       transformed_unfurl: true,

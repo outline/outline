@@ -279,11 +279,7 @@ export const MentionPullRequest = observer((props: IssuePrProps) => {
       rel="noopener noreferrer nofollow"
     >
       <Flex align="center" gap={6}>
-        <PullRequestIcon
-          size={14}
-          status={pullRequest.state.name}
-          color={pullRequest.state.color}
-        />
+        <PullRequestIcon size={14} state={pullRequest.state} />
         <Flex align="center" gap={4}>
           <Text>
             <Backticks content={pullRequest.title} />
