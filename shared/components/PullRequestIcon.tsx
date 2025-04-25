@@ -11,9 +11,9 @@ type Props = {
 /**
  * Issue status icon based on GitHub pull requests, but can be used for any git-style integration.
  */
-export function PullRequestIcon({ size, ...rest }: Props) {
+export function PullRequestIcon({ size, className, ...rest }: Props) {
   return (
-    <Icon size={size}>
+    <Icon size={size} className={className}>
       <BaseIcon {...rest} />
     </Icon>
   );

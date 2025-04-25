@@ -20,7 +20,11 @@ type Props = BaseIconProps & {
 };
 
 export function IssueStatusIcon(props: Props) {
-  return <Icon size={props.size}>{getIcon(props)}</Icon>;
+  return (
+    <Icon size={props.size} className={props.className}>
+      {getIcon(props)}
+    </Icon>
+  );
 }
 
 function getIcon(props: Props) {
