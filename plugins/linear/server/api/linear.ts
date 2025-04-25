@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import { v4 as uuidv4 } from "uuid";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import Logger from "@server/logging/Logger";
@@ -6,6 +7,8 @@ import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { IntegrationAuthentication, Integration, Team } from "@server/models";
+import { Buckets } from "@server/models/helpers/AttachmentHelper";
+import FileStorage from "@server/storage/files";
 import { APIContext } from "@server/types";
 import { Linear } from "../linear";
 import * as T from "./schema";
@@ -72,6 +75,18 @@ router.get(
     const oauth = await Linear.oauthAccess(code!);
     const workspace = await Linear.getInstalledWorkspace(oauth.access_token);
 
+    let logoUrl: string | undefined;
+
+    if (workspace.logoUrl) {
+      const res = await FileStorage.storeFromUrl(
+        workspace.logoUrl,
+        `${Buckets.avatars}/${user.teamId}/${uuidv4()}`,
+        "public-read",
+        { headers: { Authorization: `Bearer ${oauth.access_token}` } }
+      );
+      logoUrl = res ? res.url : workspace.logoUrl;
+    }
+
     const authentication = await IntegrationAuthentication.create(
       {
         service: IntegrationService.Linear,
@@ -95,7 +110,7 @@ router.get(
               id: workspace.id,
               name: workspace.name,
               key: workspace.urlKey,
-              logoUrl: workspace.logoUrl,
+              logoUrl,
             },
           },
         },
