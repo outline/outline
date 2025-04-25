@@ -351,7 +351,7 @@
     "eslint-plugin-react": "^7.37.3",
     "eslint-plugin-react-hooks": "^4.6.2",
     "husky": "^8.0.3",
-    "i18next-parser": "^9.3.0",
+    "i18next-parser": "^8.13.0",
     "jest-cli": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "jest-fetch-mock": "^3.0.3",
@@ -368,6 +368,7 @@
     "yarn-deduplicate": "^6.0.2"
   },
   "resolutions": {
+    "i18next-parser/cheerio": "^1.0.0-rc.2",
     "prosemirror-transform": "1.10.0",
     "body-scroll-lock": "^4.0.0-beta.0",
     "d3": "^7.0.0",
