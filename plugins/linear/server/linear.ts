@@ -172,9 +172,16 @@ export class Linear {
     );
 
     const idx = states.findIndex((s) => s.name === state.name);
-    return idx !== -1
-      ? (idx + 1) / (states.length + 1) // add 1 to states for the "done" state.
-      : defaultCompletionPercentage;
+
+    if (idx === -1) {
+      return defaultCompletionPercentage;
+    } else if (states.length === 1) {
+      return 0.5;
+    } else if (states.length === 2) {
+      return idx === 0 ? 0.5 : 0.75;
+    } else {
+      return (idx + 1) / (states.length + 1); // add 1 to states for the "done" state.
+    }
   }
 
   /**
