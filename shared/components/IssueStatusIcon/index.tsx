@@ -12,23 +12,27 @@ import { LinearIssueStatusIcon } from "./LinearIssueStatusIcon";
 export type BaseIconProps = {
   state: UnfurlResponse[UnfurlResourceType.Issue]["state"];
   className?: string;
+  size?: number;
 };
 
 type Props = BaseIconProps & {
-  size?: number;
   service: IssueTrackerIntegrationService;
 };
 
 export function IssueStatusIcon(props: Props) {
-  return <Icon size={props.size}>{getIcon(props)}</Icon>;
+  return (
+    <Icon size={props.size} className={props.className}>
+      {getIcon(props)}
+    </Icon>
+  );
 }
 
-function getIcon({ service, ...rest }: Props) {
-  switch (service) {
+function getIcon(props: Props) {
+  switch (props.service) {
     case IntegrationService.GitHub:
-      return <GitHubIssueStatusIcon {...rest} />;
+      return <GitHubIssueStatusIcon {...props} />;
     case IntegrationService.Linear:
-      return <LinearIssueStatusIcon {...rest} />;
+      return <LinearIssueStatusIcon {...props} />;
   }
 }
 
