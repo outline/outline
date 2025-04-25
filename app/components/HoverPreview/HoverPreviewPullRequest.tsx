@@ -33,11 +33,7 @@ const HoverPreviewPullRequest = React.forwardRef(
             <CardContent>
               <Flex gap={2} column>
                 <Title>
-                  <StyledPullRequestIcon
-                    status={state.name}
-                    color={state.color}
-                    size={18}
-                  />
+                  <StyledPullRequestIcon size={18} state={state} />
                   <span>
                     <Backticks content={title} />
                     &nbsp;<Text type="tertiary">{id}</Text>

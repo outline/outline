@@ -461,7 +461,7 @@ export type UnfurlResponse = {
     /** Pull Request author */
     author: { name: string; avatarUrl: string };
     /** Pull Request status */
-    state: { name: string; color: string };
+    state: { name: string; color: string; draft?: boolean };
     /** Pull Request creation time */
     createdAt: string;
   };
