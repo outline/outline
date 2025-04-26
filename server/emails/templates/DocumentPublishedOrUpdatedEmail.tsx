@@ -24,8 +24,8 @@ type InputProps = EmailProps & {
   revisionId?: string;
   actorName: string;
   eventType:
-    | NotificationEventType.PublishDocument
-    | NotificationEventType.UpdateDocument;
+  | NotificationEventType.PublishDocument
+  | NotificationEventType.UpdateDocument;
   teamUrl: string;
 };
 
@@ -34,6 +34,7 @@ type BeforeSend = {
   collection: Collection | null;
   unsubscribeUrl: string;
   body: string | undefined;
+  breadcrumb: string;
 };
 
 type Props = InputProps & BeforeSend;
@@ -51,49 +52,39 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
   }
 
   protected async beforeSend(props: InputProps) {
-    const { documentId, revisionId } = props;
-    const document = await Document.unscoped().findByPk(documentId, {
-      includeState: true,
+    const document = await Document.findByPk(props.documentId, {
+      paranoid: false,
     });
     if (!document) {
       return false;
     }
 
-    const [collection, team] = await Promise.all([
-      document.$get("collection"),
-      document.$get("team"),
-    ]);
+    const collection = document.collectionId
+      ? await Collection.findByPk(document.collectionId)
+      : null;
 
+    // Get the breadcrumb string
+    const breadcrumb = await DocumentHelper.getBreadcrumbString(document);
+
+    // If this is an update notification then fetch the previous revision to create a diff
     let body;
-    if (revisionId && team?.getPreference(TeamPreference.PreviewsInEmails)) {
-      body = await CacheHelper.getDataOrSet<string>(
-        `diff:${revisionId}`,
-        async () => {
-          // generate the diff html for the email
-          const revision = await Revision.findByPk(revisionId);
-
-          if (revision) {
-            const before = await revision.before();
-            const content = await DocumentHelper.toEmailDiff(before, revision, {
-              includeTitle: false,
-              centered: false,
-              signedUrls: 4 * Day.seconds,
-              baseUrl: props.teamUrl,
-            });
-
-            // inline all css so that it works in as many email providers as possible.
-            return content ? await HTMLHelper.inlineCSS(content) : undefined;
-          }
-          return;
-        },
-        30,
-        10000
-      );
+    if (props.revisionId) {
+      const revision = await Revision.findByPk(props.revisionId);
+      if (revision) {
+        const previous = await Revision.findOne({
+          where: {
+            documentId: document.id,
+          },
+          order: [["createdAt", "DESC"]],
+        });
+        body = await DocumentHelper.toEmailDiff(previous, revision);
+      }
     }
 
     return {
       document,
       collection,
+      breadcrumb,
       body,
       unsubscribeUrl: this.unsubscribeUrl(props),
     };
@@ -147,67 +138,67 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
     return `
 "${document.titleWithDefault}" ${eventName}
 
-${actorName} ${eventName} the document "${document.titleWithDefault}"${
-      collection?.name ? `, in the ${collection.name} collection` : ""
-    }.
+${actorName} ${eventName} the document "${document.titleWithDefault}"${collection?.name ? `, in the ${collection.name} collection` : ""
+      }.
 
 Open Document: ${teamUrl}${document.url}
 `;
   }
 
   protected render(props: Props) {
-    const {
-      document,
-      actorName,
-      collection,
-      eventType,
-      teamUrl,
-      unsubscribeUrl,
-      body,
-    } = props;
-    const documentLink = `${teamUrl}${document.url}?ref=notification-email`;
-    const eventName = this.eventName(eventType);
+    const { document, collection, actorName, teamUrl, eventType, breadcrumb } = props;
 
     return (
-      <EmailTemplate
-        previewText={this.preview(props)}
-        goToAction={{ url: documentLink, name: "View Document" }}
-      >
+      <EmailTemplate>
         <Header />
 
         <Body>
           <Heading>
-            “{document.titleWithDefault}” {eventName}
+            {eventType === NotificationEventType.PublishDocument
+              ? "Document published"
+              : "Document updated"}
           </Heading>
+
+          <p style={{ fontSize: "16px", margin: "16px 0", color: "#666" }}>
+            {breadcrumb}
+          </p>
+
           <p>
-            {actorName} {eventName} the document{" "}
-            <a href={documentLink}>{document.titleWithDefault}</a>
-            {collection?.name ? <>, in the {collection.name} collection</> : ""}
+            {actorName}{" "}
+            {eventType === NotificationEventType.PublishDocument
+              ? "published"
+              : "updated"}{" "}
+            the document{" "}
+            <a href={`${teamUrl}${document.url}`}>{document.title}</a>
+            {collection && (
+              <>
+                {" "}
+                in the{" "}
+                <a href={`${teamUrl}${collection.url}`}>{collection.name}</a>{" "}
+                collection
+              </>
+            )}
             .
           </p>
-          {body && (
+
+          {props.body && (
             <>
               <EmptySpace height={20} />
-              <Diff>
-                <div dangerouslySetInnerHTML={{ __html: body }} />
-              </Diff>
-              <EmptySpace height={20} />
+              <Diff>{props.body}</Diff>
             </>
           )}
+
+          <EmptySpace height={20} />
+
           <p>
-            <Button href={documentLink}>Open Document</Button>
+            <Button href={`${teamUrl}${document.url}`}>
+              Open Document
+            </Button>
           </p>
         </Body>
 
-        <Footer unsubscribeUrl={unsubscribeUrl}>
-          <Link
-            href={SubscriptionHelper.unsubscribeUrl(
-              props.userId,
-              props.documentId
-            )}
-          >
-            Unsubscribe from this doc
-          </Link>
+        <Footer>
+          <Link href={props.unsubscribeUrl}>Unsubscribe from notifications</Link>
         </Footer>
       </EmailTemplate>
     );
