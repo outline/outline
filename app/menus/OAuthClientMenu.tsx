@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuState } from "reakit/Menu";
-import OAuthClient from "~/models/OAuthClient";
+import OAuthClient from "~/models/oauth/OAuthClient";
 import OAuthClientDeleteDialog from "~/scenes/Settings/components/OAuthClientDeleteDialog";
 import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";

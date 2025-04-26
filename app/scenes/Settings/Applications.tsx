@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import { InternetIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import OAuthClient from "~/models/OAuthClient";
+import OAuthClient from "~/models/oauth/OAuthClient";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
@@ -57,10 +57,10 @@ function Applications() {
           }}
         />
       </Text>
-      <PaginatedList
+      <PaginatedList<OAuthClient>
         fetch={oauthClients.fetchPage}
         items={oauthClients.orderedData}
-        renderItem={(oauthClient: OAuthClient) => (
+        renderItem={(oauthClient) => (
           <OAuthClientListItem key={oauthClient.id} oauthClient={oauthClient} />
         )}
       />

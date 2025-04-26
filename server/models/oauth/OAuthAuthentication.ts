@@ -12,7 +12,6 @@ import {
   BelongsTo,
   ForeignKey,
   Table,
-  BeforeCreate,
   IsDate,
   Unique,
 } from "sequelize-typescript";
@@ -114,13 +113,6 @@ class OAuthAuthentication extends ParanoidModel<
 
     return this.save({ silent: true });
   };
-
-  // hooks
-
-  @BeforeCreate
-  static async setLastActiveAt(model: OAuthAuthentication) {
-    model.lastActiveAt = new Date();
-  }
 
   // instance methods
 

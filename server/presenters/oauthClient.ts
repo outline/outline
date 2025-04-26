@@ -31,6 +31,7 @@ export default function presentOAuthClient(oauthClient: OAuthClient) {
  */
 export function presentPublishedOAuthClient(oauthClient: OAuthClient) {
   return {
+    id: oauthClient.id,
     name: oauthClient.name,
     description: oauthClient.description,
     developerName: oauthClient.developerName,

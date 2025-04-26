@@ -18,6 +18,7 @@ import ImportsStore from "./ImportsStore";
 import IntegrationsStore from "./IntegrationsStore";
 import MembershipsStore from "./MembershipsStore";
 import NotificationsStore from "./NotificationsStore";
+import OAuthAuthenticationsStore from "./OAuthAuthenticationsStore";
 import OAuthClientsStore from "./OAuthClientsStore";
 import PinsStore from "./PinsStore";
 import PoliciesStore from "./PoliciesStore";
@@ -50,6 +51,7 @@ export default class RootStore {
   integrations: IntegrationsStore;
   memberships: MembershipsStore;
   notifications: NotificationsStore;
+  oauthAuthentications: OAuthAuthenticationsStore;
   oauthClients: OAuthClientsStore;
   presence: DocumentPresenceStore;
   pins: PinsStore;
@@ -82,6 +84,7 @@ export default class RootStore {
     this.registerStore(IntegrationsStore);
     this.registerStore(MembershipsStore);
     this.registerStore(NotificationsStore);
+    this.registerStore(OAuthAuthenticationsStore, "oauthAuthentications");
     this.registerStore(OAuthClientsStore, "oauthClients");
     this.registerStore(PinsStore);
     this.registerStore(PoliciesStore);
@@ -113,8 +116,9 @@ export default class RootStore {
    */
   public getStoreForModelName<K extends keyof RootStore>(modelName: string) {
     const storeName = this.getStoreNameForModelName(modelName);
+    invariant(storeName, `No store found for model name "${modelName}"`);
+
     const store = this[storeName];
-    invariant(store, `No store found for model name "${modelName}"`);
     return store as RootStore[K];
   }
 
@@ -142,10 +146,24 @@ export default class RootStore {
     // @ts-expect-error TS thinks we are instantiating an abstract class.
     const store = new StoreClass(this);
     const storeName = name ?? this.getStoreNameForModelName(store.modelName);
+    invariant(storeName, `No store found for model name "${store.modelName}"`);
+
     this[storeName] = store;
   }
 
   private getStoreNameForModelName(modelName: string) {
-    return pluralize(lowerFirst(modelName)) as keyof RootStore;
+    for (const key of Object.keys(this)) {
+      const store = this[key as keyof RootStore];
+      if ("modelName" in store && store.modelName === modelName) {
+        return key as keyof RootStore;
+      }
+    }
+
+    const storeName = pluralize(lowerFirst(modelName)) as keyof RootStore;
+    if (storeName) {
+      return storeName;
+    }
+
+    return undefined;
   }
 }

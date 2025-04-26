@@ -30,7 +30,7 @@ import usePolicy from "./usePolicy";
 
 const ApiKeys = lazy(() => import("~/scenes/Settings/ApiKeys"));
 const Applications = lazy(() => import("~/scenes/Settings/Applications"));
-const PersonalApiKeys = lazy(() => import("~/scenes/Settings/PersonalApiKeys"));
+const APIAndApps = lazy(() => import("~/scenes/Settings/APIAndApps"));
 const Details = lazy(() => import("~/scenes/Settings/Details"));
 const Export = lazy(() => import("~/scenes/Settings/Export"));
 const Features = lazy(() => import("~/scenes/Settings/Features"));
@@ -88,12 +88,12 @@ const useSettingsConfig = () => {
         icon: EmailIcon,
       },
       {
-        name: t("API Keys"),
-        path: settingsPath("personal-api-keys"),
-        component: PersonalApiKeys,
-        enabled: can.createApiKey && !can.listApiKeys,
+        name: t("API & Apps"),
+        path: settingsPath("api-and-apps"),
+        component: APIAndApps,
+        enabled: true,
         group: t("Account"),
-        icon: CodeIcon,
+        icon: PadlockIcon,
       },
       // Workspace
       {
