@@ -8,6 +8,7 @@ import validate from "@server/middlewares/validate";
 import { IntegrationAuthentication, Integration, Team } from "@server/models";
 import { APIContext } from "@server/types";
 import { Linear } from "../linear";
+import UploadLinearWorkspaceLogoTask from "../tasks/UploadLinearWorkspaceLogoTask";
 import * as T from "./schema";
 import { LinearUtils } from "plugins/linear/shared/LinearUtils";
 
@@ -82,7 +83,9 @@ router.get(
       },
       { transaction }
     );
-    await Integration.create<Integration<IntegrationType.Embed>>(
+    const integration = await Integration.create<
+      Integration<IntegrationType.Embed>
+    >(
       {
         service: IntegrationService.Linear,
         type: IntegrationType.Embed,
@@ -102,6 +105,13 @@ router.get(
       },
       { transaction }
     );
+
+    transaction.afterCommit(async () => {
+      await UploadLinearWorkspaceLogoTask.schedule({
+        integrationId: integration.id,
+        logoUrl: workspace.logoUrl,
+      });
+    });
 
     ctx.redirect(LinearUtils.successUrl());
   }
