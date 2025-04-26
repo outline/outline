@@ -8,6 +8,7 @@ import { AvatarVariant } from "~/components/Avatar/Avatar";
 import ListItem from "~/components/List/Item";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
+import OAuthAuthenticationMenu from "~/menus/OAuthAuthenticationMenu";
 
 type Props = {
   /** The OAuthAuthentication to display */
@@ -19,14 +20,18 @@ const OAuthAuthenticationListItem = ({ oauthAuthentication }: Props) => {
 
   const subtitle = (
     <>
-      {oauthAuthentication.lastActiveAt && (
-        <Text type="tertiary">
-          {t("Accessed data")}{" "}
-          <Time dateTime={oauthAuthentication.lastActiveAt} addSuffix />{" "}
-          &middot;{" "}
-        </Text>
-      )}
       <Text type="tertiary">
+        {oauthAuthentication.lastActiveAt ? (
+          <>
+            {t("Last active")}{" "}
+            <Time dateTime={oauthAuthentication.lastActiveAt} addSuffix />
+          </>
+        ) : (
+          t("Never used")
+        )}{" "}
+        &middot;{" "}
+      </Text>
+      <Text type="tertiary" ellipsis>
         {OAuthScopeHelper.normalizeScopes(oauthAuthentication.scope, t).join(
           ", "
         )}
@@ -46,6 +51,9 @@ const OAuthAuthenticationListItem = ({ oauthAuthentication }: Props) => {
       }
       title={oauthAuthentication.oauthClient.name}
       subtitle={subtitle}
+      actions={
+        <OAuthAuthenticationMenu oauthAuthentication={oauthAuthentication} />
+      }
     />
   );
 };

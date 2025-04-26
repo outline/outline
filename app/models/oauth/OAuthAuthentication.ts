@@ -1,4 +1,5 @@
-import { observable } from "mobx";
+import { action, observable } from "mobx";
+import { client } from "~/utils/ApiClient";
 import User from "../User";
 import ParanoidModel from "../base/ParanoidModel";
 import Field from "../decorators/Field";
@@ -24,6 +25,16 @@ class OAuthAuthentication extends ParanoidModel {
   oauthClientId: string;
 
   lastActiveAt: string;
+
+  @action
+  public async deleteAll() {
+    await client.post(`/${this.store.apiEndpoint}.delete`, {
+      oauthClientId: this.oauthClientId,
+      scope: this.scope,
+    });
+
+    return this.store.remove(this.id);
+  }
 }
 
 export default OAuthAuthentication;
