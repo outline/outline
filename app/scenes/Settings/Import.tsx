@@ -183,7 +183,7 @@ function Import() {
         ))}
       </div>
       <br />
-      <PaginatedList
+      <PaginatedList<ImportModel | FileOperation>
         items={allImports}
         fetch={fetchImports}
         heading={
@@ -191,7 +191,7 @@ function Import() {
             <Trans>Recent imports</Trans>
           </h2>
         }
-        renderItem={(item: ImportModel | FileOperation) =>
+        renderItem={(item) =>
           item instanceof ImportModel ? (
             <ImportListItem key={item.id} importModel={item} />
           ) : (

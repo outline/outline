@@ -61,12 +61,12 @@ function PersonalApiKeys() {
           }}
         />
       </Text>
-      <PaginatedList
+      <PaginatedList<ApiKey>
         fetch={apiKeys.fetchPage}
         items={apiKeys.personalApiKeys}
         options={{ userId: user.id }}
         heading={<h2>{t("Personal keys")}</h2>}
-        renderItem={(apiKey: ApiKey) => (
+        renderItem={(apiKey) => (
           <ApiKeyListItem key={apiKey.id} apiKey={apiKey} />
         )}
       />

@@ -11,6 +11,7 @@ import { MenuItem } from "@shared/editor/types";
 import { MentionType } from "@shared/types";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { Avatar, AvatarSize } from "~/components/Avatar";
+import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import Flex from "~/components/Flex";
 import {
   DocumentsSection,
@@ -57,7 +58,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
       res.data.documents.map(documents.add);
       res.data.users.map(users.add);
       res.data.collections.map(collections.add);
-    }, [search, documents, users])
+    }, [search, documents, users, collections])
   );
 
   React.useEffect(() => {
@@ -68,7 +69,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
 
   React.useEffect(() => {
     if (actorId && !loading) {
-      const items = users
+      const items: MentionItem[] = users
         .findByQuery(search, { maxResults: maxResultsInSection })
         .map(
           (user) =>
@@ -112,7 +113,14 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
                     <DocumentIcon />
                   ),
                   title: doc.title,
-                  subtitle: doc.collection?.name,
+                  subtitle: (
+                    <DocumentBreadcrumb
+                      document={doc}
+                      onlyText
+                      reverse
+                      maxDepth={2}
+                    />
+                  ),
                   section: DocumentsSection,
                   appendSpace: true,
                   attrs: {

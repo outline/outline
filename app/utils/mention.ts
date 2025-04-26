@@ -27,6 +27,16 @@ export const isURLMentionable = ({
       );
     }
 
+    case IntegrationService.Linear: {
+      const settings =
+        integration.settings as IntegrationSettings<IntegrationType.Embed>;
+
+      return (
+        hostname === "linear.app" &&
+        settings.linear?.workspace.key === pathParts[1] // ensure installed workspace key matches with the provided url.
+      );
+    }
+
     default:
       return false;
   }
@@ -50,6 +60,11 @@ export const determineMentionType = ({
         : type === "issues"
         ? MentionType.Issue
         : undefined;
+    }
+
+    case IntegrationService.Linear: {
+      const type = pathParts[2];
+      return type === "issue" ? MentionType.Issue : undefined;
     }
 
     default:
