@@ -5,6 +5,7 @@ import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
 
+import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import Heading from "~/components/Heading";
 
 import IntegrationCard from "~/components/IntegrationCard";
@@ -20,7 +21,7 @@ export function Integrations() {
     (item) =>
       item.group === "Integrations" &&
       item.enabled &&
-      item.name !== t("All Integrations")
+      item.path !== integrationSettingsPath("all")
   );
 
   return (

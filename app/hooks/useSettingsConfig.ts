@@ -13,7 +13,7 @@ import {
   ImportIcon,
   ShapesIcon,
   Icon,
-  ToolsIcon,
+  PlusIcon,
 } from "outline-icons";
 import React, { ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
@@ -194,12 +194,12 @@ const useSettingsConfig = () => {
         icon: ZapierIcon,
       },
       {
-        name: t("All Integrations"),
+        name: t("Install integration…"),
         path: integrationSettingsPath("all"),
         component: Integrations,
         enabled: true,
         group: t("Integrations"),
-        icon: ToolsIcon,
+        icon: PlusIcon,
         isActive: true,
       },
     ];
