@@ -154,7 +154,7 @@ export default class RootStore {
   private getStoreNameForModelName(modelName: string) {
     for (const key of Object.keys(this)) {
       const store = this[key as keyof RootStore];
-      if ("modelName" in store && store.modelName === modelName) {
+      if (store && "modelName" in store && store.modelName === modelName) {
         return key as keyof RootStore;
       }
     }

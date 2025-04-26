@@ -19,7 +19,7 @@ class OAuthAuthentication extends ParanoidModel {
 
   userId: string;
 
-  oauthClient: Pick<OAuthClient, "id" | "name" | "clientId">;
+  oauthClient: Pick<OAuthClient, "id" | "name" | "clientId" | "avatarUrl">;
 
   oauthClientId: string;
 

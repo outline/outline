@@ -30,6 +30,7 @@ router.post(
         oa.*,
         oc.id AS "oauthClient.id",
         oc.name AS "oauthClient.name",
+        oc."avatarUrl" AS "oauthClient.avatarUrl",
         oc."clientId" AS "oauthClient.clientId"
       FROM oauth_authentications oa
       INNER JOIN oauth_clients oc ON oc.id = oa."oauthClientId"
