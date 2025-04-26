@@ -24,14 +24,13 @@ export default function presentOAuthClient(oauthClient: OAuthClient) {
 
 /**
  * Important: This function is used to present the OAuth client to users
- * that are not in the same workspace as the client. Be very careful about
+ * that are NOT in the same workspace as the client. Be very careful about
  * what you expose here.
  *
  * @param oauthClient The OAuth client to present
  */
 export function presentPublishedOAuthClient(oauthClient: OAuthClient) {
   return {
-    id: oauthClient.id,
     name: oauthClient.name,
     description: oauthClient.description,
     developerName: oauthClient.developerName,
