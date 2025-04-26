@@ -6,6 +6,7 @@ import { s, ellipsis } from "@shared/styles";
 import { ConfigItem } from "~/hooks/useSettingsConfig";
 import Button from "./Button";
 import Flex from "./Flex";
+import Text from "./Text";
 
 type Props = {
   integration: ConfigItem;
@@ -53,7 +54,7 @@ const Card = styled.div`
   transition: box-shadow 200ms ease;
 `;
 
-const Name = styled.h3`
+const Name = styled(Text)`
   margin: 0;
   font-size: 16px;
   font-weight: 600;
@@ -61,7 +62,7 @@ const Name = styled.h3`
   ${ellipsis()}
 `;
 
-const Description = styled.p`
+const Description = styled(Text)`
   margin: 4px 0 0;
   font-size: 14px;
   max-width: 100%;
