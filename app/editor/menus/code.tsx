@@ -41,6 +41,15 @@ export default function codeMenuItems(
 
   return [
     {
+      name: "expandCodeBlock",
+      icon: <ExpandedIcon />,
+      tooltip: node.attrs.expanded ? "Collapse" : "Expand",
+    },
+    {
+      name: "separator",
+      visible: !readOnly,
+    },
+    {
       name: "copyToClipboard",
       icon: <CopyIcon />,
       label: readOnly ? dictionary.copy : undefined,

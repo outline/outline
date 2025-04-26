@@ -1331,10 +1331,6 @@ mark {
   height: 16px;
 }
 
-.code-block {
-  position: relative;
-}
-
 .code-block[data-language=mermaidjs] {
   margin: 0.75em 0;
 
@@ -1883,6 +1879,21 @@ del[data-operation-index] {
   img {
     opacity: .5;
   }
+}
+  
+.code-block {
+  max-height: calc(1.4em * 17); /* Default height limit */
+  overflow: hidden; /* Default state: overflow hidden */
+  position:relative;
+  -webkit-mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
+}
+
+.code-block.expanded {
+  max-height: none; /* Remove the height limit when expanded */
+  -webkit-mask-image: none;
+  mask-image: none;
+  position:relative;
 }
 
 @media print {

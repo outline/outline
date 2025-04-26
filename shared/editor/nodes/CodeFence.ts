@@ -165,6 +165,9 @@ export default class CodeFence extends Node {
           default: DEFAULT_LANGUAGE,
           validate: "string",
         },
+        expanded: {
+          default: false, // default value NOT expanded
+        },
       },
       content: "text*",
       marks: "comment",
@@ -180,6 +183,7 @@ export default class CodeFence extends Node {
             node.querySelector("code") || node,
           getAttrs: (dom: HTMLDivElement) => ({
             language: dom.dataset.language,
+            expanded: dom.classList.contains("expanded"),
           }),
         },
         {
@@ -198,7 +202,7 @@ export default class CodeFence extends Node {
       toDOM: (node) => [
         "div",
         {
-          class: `code-block ${
+          class: `code-block ${node.attrs.expanded ? "expanded" : ""} ${
             this.showLineNumbers ? "with-line-numbers" : ""
           }`,
           "data-language": node.attrs.language,
@@ -218,6 +222,28 @@ export default class CodeFence extends Node {
           language: getRecentCodeLanguage() ?? DEFAULT_LANGUAGE,
           ...attrs,
         });
+      },
+      expandCodeBlock: (): Command => (state, dispatch) => {
+        const { selection } = state;
+        const codeBlock = findParentNode(isCode)(selection);
+
+        if (!codeBlock) return false;
+
+        const { node, pos } = codeBlock;
+        console.log("this is the value of expanded:", node.attrs.expanded);
+
+        const expanded = !(node.attrs.expanded ?? false); // toggle the expanded variable
+
+        if (dispatch) {
+          const newAttrs = {
+            ...node.attrs,
+            expanded,
+          };
+          const tr = state.tr.setNodeMarkup(pos, undefined, newAttrs);
+          dispatch(tr);
+        }
+
+        return true;
       },
       copyToClipboard: (): Command => (state, dispatch) => {
         const codeBlock = findParentNode(isCode)(state.selection);
