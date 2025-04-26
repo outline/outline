@@ -195,21 +195,27 @@ const PaginatedList = <T extends PaginatedItem>({
     }
   }, [allowLoadMore, isFetching, items?.length, renderCount, fetchResults]);
 
-  React.useEffect(() => {
-    void fetchResults();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const prevFetch = usePrevious(fetch);
   const prevOptions = usePrevious(options);
 
-  // Equivalent to componentDidUpdate
+  // Initial fetch on mount
   React.useEffect(() => {
+    if (fetch) {
+      void fetchResults();
+    }
+  }, [fetch]);
+
+  // Handle updates to fetch or options
+  React.useEffect(() => {
+    if (!prevFetch || !prevOptions) {
+      return; // Skip on initial mount since it's handled by the above effect
+    }
+
     if (prevFetch !== fetch || !isEqual(prevOptions, options)) {
       reset();
       void fetchResults();
     }
-  }, [fetch, options, reset, prevFetch, prevOptions, fetchResults]);
+  }, [fetch, options, reset, fetchResults, prevFetch, prevOptions]);
 
   // Computed property equivalent
   const itemsToRender = React.useMemo(
