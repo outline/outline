@@ -19,8 +19,7 @@ class OAuthAuthentication extends ParanoidModel {
 
   userId: string;
 
-  @Relation(() => OAuthClient)
-  oauthClient: OAuthClient;
+  oauthClient: Pick<OAuthClient, "id" | "name" | "clientId">;
 
   oauthClientId: string;
 

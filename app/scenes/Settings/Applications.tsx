@@ -57,10 +57,10 @@ function Applications() {
           }}
         />
       </Text>
-      <PaginatedList
+      <PaginatedList<OAuthClient>
         fetch={oauthClients.fetchPage}
         items={oauthClients.orderedData}
-        renderItem={(oauthClient: OAuthClient) => (
+        renderItem={(oauthClient) => (
           <OAuthClientListItem key={oauthClient.id} oauthClient={oauthClient} />
         )}
       />
