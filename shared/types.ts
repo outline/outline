@@ -84,6 +84,8 @@ export enum MentionType {
   User = "user",
   Document = "document",
   Collection = "collection",
+  Issue = "issue",
+  PullRequest = "pull_request",
 }
 
 export type PublicEnv = {
@@ -124,6 +126,7 @@ export enum IntegrationService {
   Matomo = "matomo",
   Umami = "umami",
   GitHub = "github",
+  Linear = "linear",
   Notion = "notion",
 }
 
@@ -134,6 +137,16 @@ export type ImportableIntegrationService = Extract<
 
 export const ImportableIntegrationService = {
   Notion: IntegrationService.Notion,
+} as const;
+
+export type IssueTrackerIntegrationService = Extract<
+  IntegrationService,
+  IntegrationService.GitHub | IntegrationService.Linear
+>;
+
+export const IssueTrackerIntegrationService = {
+  GitHub: IntegrationService.GitHub,
+  Linear: IntegrationService.Linear,
 } as const;
 
 export type UserCreatableIntegrationService = Extract<
@@ -167,12 +180,15 @@ export enum DocumentPermission {
 
 export type IntegrationSettings<T> = T extends IntegrationType.Embed
   ? {
-      url: string;
+      url?: string;
       github?: {
         installation: {
           id: number;
           account: { id: number; name: string; avatarUrl: string };
         };
+      };
+      linear?: {
+        workspace: { id: string; name: string; key: string; logoUrl?: string };
       };
     }
   : T extends IntegrationType.Analytics
@@ -425,13 +441,18 @@ export type UnfurlResponse = {
     /** Issue title */
     title: string;
     /** Issue description */
-    description: string;
+    description: string | null;
     /** Issue's author */
     author: { name: string; avatarUrl: string };
     /** Issue's labels */
     labels: Array<{ name: string; color: string }>;
     /** Issue's status */
-    state: { name: string; color: string };
+    state: {
+      type?: string;
+      name: string;
+      color: string;
+      completionPercentage?: number;
+    };
     /** Issue's creation time */
     createdAt: string;
   };
@@ -445,11 +466,11 @@ export type UnfurlResponse = {
     /** Pull Request title */
     title: string;
     /** Pull Request description */
-    description: string;
+    description: string | null;
     /** Pull Request author */
     author: { name: string; avatarUrl: string };
     /** Pull Request status */
-    state: { name: string; color: string };
+    state: { name: string; color: string; draft?: boolean };
     /** Pull Request creation time */
     createdAt: string;
   };

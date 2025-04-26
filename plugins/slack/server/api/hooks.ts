@@ -227,6 +227,9 @@ router.post(
     const options = {
       query: text,
       limit: 5,
+      searchConfig: {
+        boostRecent: true,
+      },
     };
 
     if (!user) {

@@ -16,6 +16,7 @@ import {
   IsDate,
   Unique,
 } from "sequelize-typescript";
+import env from "@server/env";
 import User from "@server/models/User";
 import ParanoidModel from "@server/models/base/ParanoidModel";
 import { SkipChangeset } from "@server/models/decorators/Changeset";
@@ -33,7 +34,17 @@ class OAuthAuthentication extends ParanoidModel<
   InferAttributes<OAuthAuthentication>,
   Partial<InferCreationAttributes<OAuthAuthentication>>
 > {
+  /** The lifetime of an access token in seconds. */
+  public static accessTokenLifetime = env.OAUTH_PROVIDER_ACCESS_TOKEN_LIFETIME;
+
+  /** The lifetime of a refresh token in seconds. */
+  public static refreshTokenLifetime =
+    env.OAUTH_PROVIDER_REFRESH_TOKEN_LIFETIME;
+
+  /** A recognizable prefix for access tokens. */
   public static accessTokenPrefix = "ol_at_";
+
+  /** A recognizable prefix for refresh tokens. */
   public static refreshTokenPrefix = "ol_rt_";
 
   @Unique

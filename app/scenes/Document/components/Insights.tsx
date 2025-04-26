@@ -144,10 +144,10 @@ function Insights() {
                     small
                   />
                 )}
-                <PaginatedList
+                <PaginatedList<User>
                   aria-label={t("Contributors")}
                   items={document.collaborators}
-                  renderItem={(model: User) => (
+                  renderItem={(model) => (
                     <ListItem
                       key={model.id}
                       title={model.name}

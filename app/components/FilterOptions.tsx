@@ -56,7 +56,7 @@ const FilterOptions = ({
     : "";
 
   const renderItem = React.useCallback(
-    (option: TFilterOption) => (
+    (option) => (
       <MenuItem
         key={option.key}
         onClick={() => {
@@ -174,7 +174,7 @@ const FilterOptions = ({
         )}
       </MenuButton>
       <ContextMenu aria-label={defaultLabel} minHeight={66} {...menu}>
-        <PaginatedList
+        <PaginatedList<TFilterOption>
           listRef={listRef}
           options={{ query, ...fetchQueryOptions }}
           items={filteredOptions}

@@ -1060,6 +1060,9 @@ router.post(
         limit,
         snippetMinWords,
         snippetMaxWords,
+        searchConfig: {
+          boostRecent: true,
+        },
       });
     }
 
