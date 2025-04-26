@@ -37,14 +37,6 @@ type SearchResponse = {
   total: number;
 };
 
-type SearchConfig = {
-  boostRecent?: boolean;
-  /** Time window in months for recent content boosting. When set, enables recency boosting. */
-  boostRecentMonths?: number;
-  /** Maximum boost multiplier for recent content */
-  maxRecentBoost?: number;
-};
-
 type SearchOptions = {
   /** The query limit for pagination */
   limit?: number;
@@ -68,8 +60,6 @@ type SearchOptions = {
   snippetMinWords?: number;
   /** The maximum number of words to be returned in the contextual snippet */
   snippetMaxWords?: number;
-  /** Configuration for search behavior */
-  searchConfig?: SearchConfig;
 };
 
 type RankedDocument = Document & {
@@ -89,7 +79,7 @@ export default class SearchHelper {
     team: Team,
     options: SearchOptions = {}
   ): Promise<SearchResponse> {
-    const { limit = 15, offset = 0, query, searchConfig } = options;
+    const { limit = 15, offset = 0, query } = options;
 
     const where = await this.buildWhere(team, {
       ...options,
@@ -111,7 +101,7 @@ export default class SearchHelper {
       });
     }
 
-    const findOptions = this.buildFindOptions(query, searchConfig);
+    const findOptions = this.buildFindOptions(query);
 
     try {
       const resultsQuery = Document.unscoped().findAll({
@@ -246,11 +236,11 @@ export default class SearchHelper {
     user: User,
     options: SearchOptions = {}
   ): Promise<SearchResponse> {
-    const { limit = 15, offset = 0, query, searchConfig } = options;
+    const { limit = 15, offset = 0, query } = options;
 
     const where = await this.buildWhere(user, options);
 
-    const findOptions = this.buildFindOptions(query, searchConfig);
+    const findOptions = this.buildFindOptions(query);
 
     const include = [
       {
@@ -319,46 +309,18 @@ export default class SearchHelper {
     }
   }
 
-  private static buildFindOptions(
-    query?: string,
-    searchConfig?: SearchConfig
-  ): FindOptions {
+  private static buildFindOptions(query?: string): FindOptions {
     const attributes: FindAttributeOptions = ["id"];
     const replacements: BindOrReplacements = {};
     const order: Order = [["updatedAt", "DESC"]];
 
     if (query) {
-      // Default values for recency boosting
-      const boostRecent = searchConfig?.boostRecent ?? false;
-      const boostRecentMonths = searchConfig?.boostRecentMonths ?? 2;
-      const maxRecentBoost = searchConfig?.maxRecentBoost ?? 2.0;
-
-      if (boostRecent) {
-        // Calculate ranking with recency boost
-        // The formula creates a multiplier between 1.0 and maxRecentBoost based on document age
-        attributes.push([
-          Sequelize.literal(
-            `(
-              ts_rank("searchVector", to_tsquery('english', :query)) *
-              (1 + (LEAST(
-                ${maxRecentBoost - 1},
-                (1 - EXTRACT(EPOCH FROM (NOW() - document."updatedAt")) /
-                    EXTRACT(EPOCH FROM INTERVAL '${boostRecentMonths} months'))
-              ) * ${maxRecentBoost}))
-            )`
-          ),
-          "searchRanking",
-        ]);
-      } else {
-        // Original ranking without recency boost
-        attributes.push([
-          Sequelize.literal(
-            `ts_rank("searchVector", to_tsquery('english', :query))`
-          ),
-          "searchRanking",
-        ]);
-      }
-
+      attributes.push([
+        Sequelize.literal(
+          `ts_rank("searchVector", to_tsquery('english', :query))`
+        ),
+        "searchRanking",
+      ]);
       replacements["query"] = this.webSearchQuery(query);
       order.unshift(["searchRanking", "DESC"]);
     }
