@@ -9,6 +9,7 @@ import {
   Length,
 } from "sequelize-typescript";
 import { OAuthClientValidation } from "@shared/validations";
+import env from "@server/env";
 import User from "@server/models/User";
 import IdModel from "@server/models/base/IdModel";
 import { SkipChangeset } from "@server/models/decorators/Changeset";
@@ -27,7 +28,8 @@ class OAuthAuthorizationCode extends IdModel<
   Partial<InferCreationAttributes<OAuthAuthorizationCode>>
 > {
   /** The lifetime of an authorization code in seconds. */
-  public static authorizationCodeLifetime = 300;
+  public static authorizationCodeLifetime =
+    env.OAUTH_PROVIDER_AUTHORIZATION_CODE_LIFETIME;
 
   /** A recognizable prefix for authorization codes. */
   public static authorizationCodePrefix = "ol_ac_";
