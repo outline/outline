@@ -16,7 +16,7 @@ function IntegrationCard({ integration }: Props) {
   return (
     <Card>
       <Flex justify="space-between" align="center">
-        <Flex align="center" gap={20}>
+        <Flex align="center" gap={8}>
           <integration.icon size={50} />
           <Flex column gap={4}>
             <Name>{integration.name}</Name>
