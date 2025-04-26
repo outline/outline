@@ -37,6 +37,7 @@ import type {
   Share,
   GroupMembership,
   Import,
+  OAuthClient,
 } from "./models";
 
 export enum AuthenticationType {
@@ -470,6 +471,11 @@ export type NotificationEvent = BaseEvent<Notification> & {
   membershipId?: string;
 };
 
+export type OAuthClientEvent = BaseEvent<OAuthClient> & {
+  name: "oauthClients.create" | "oauthClients.update" | "oauthClients.delete";
+  modelId: string;
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ImportEvent = BaseEvent<Import<any>> & {
   name:
@@ -505,6 +511,7 @@ export type Event =
   | ViewEvent
   | WebhookSubscriptionEvent
   | NotificationEvent
+  | OAuthClientEvent
   | EmptyTrashEvent
   | ImportEvent;
 

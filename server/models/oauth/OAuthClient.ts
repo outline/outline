@@ -35,6 +35,8 @@ class OAuthClient extends ParanoidModel<
   InferAttributes<OAuthClient>,
   Partial<InferCreationAttributes<OAuthClient>>
 > {
+  static eventNamespace = "oauthClients";
+
   public static clientSecretPrefix = "ol_sk_";
 
   @NotContainsUrl

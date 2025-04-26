@@ -27,6 +27,8 @@ class OAuthAuthorizationCode extends IdModel<
   InferAttributes<OAuthAuthorizationCode>,
   Partial<InferCreationAttributes<OAuthAuthorizationCode>>
 > {
+  static eventNamespace = "oauthAuthorizationCodes";
+
   /** The lifetime of an authorization code in seconds. */
   public static authorizationCodeLifetime =
     env.OAUTH_PROVIDER_AUTHORIZATION_CODE_LIFETIME;

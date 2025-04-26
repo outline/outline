@@ -160,7 +160,7 @@ module.exports = {
         },
         lastActiveAt: {
           type: Sequelize.DATE,
-          allowNull: false
+          allowNull: true
         },
         scope: {
           type: Sequelize.ARRAY(Sequelize.STRING),

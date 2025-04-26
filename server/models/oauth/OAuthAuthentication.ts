@@ -33,6 +33,8 @@ class OAuthAuthentication extends ParanoidModel<
   InferAttributes<OAuthAuthentication>,
   Partial<InferCreationAttributes<OAuthAuthentication>>
 > {
+  static eventNamespace = "oauthAuthentications";
+
   /** The lifetime of an access token in seconds. */
   public static accessTokenLifetime = env.OAUTH_PROVIDER_ACCESS_TOKEN_LIFETIME;
 
