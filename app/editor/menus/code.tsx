@@ -43,7 +43,7 @@ export default function codeMenuItems(
     {
       name: "expandCodeBlock",
       icon: <ExpandedIcon />,
-      tooltip: node.attrs.expanded ? "Collapse" : "Expand",
+      tooltip: "Expand",
     },
     {
       name: "separator",

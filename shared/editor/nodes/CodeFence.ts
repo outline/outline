@@ -88,6 +88,7 @@ import { getMarkRange } from "../queries/getMarkRange";
 import { isInCode } from "../queries/isInCode";
 import Node from "./Node";
 
+let expandClicked = false;
 const DEFAULT_LANGUAGE = "javascript";
 
 [
@@ -165,9 +166,6 @@ export default class CodeFence extends Node {
           default: DEFAULT_LANGUAGE,
           validate: "string",
         },
-        expanded: {
-          default: false, // default value NOT expanded
-        },
       },
       content: "text*",
       marks: "comment",
@@ -183,7 +181,6 @@ export default class CodeFence extends Node {
             node.querySelector("code") || node,
           getAttrs: (dom: HTMLDivElement) => ({
             language: dom.dataset.language,
-            expanded: dom.classList.contains("expanded"),
           }),
         },
         {
@@ -202,7 +199,7 @@ export default class CodeFence extends Node {
       toDOM: (node) => [
         "div",
         {
-          class: `code-block ${node.attrs.expanded ? "expanded" : ""} ${
+          class: `code-block ${
             this.showLineNumbers ? "with-line-numbers" : ""
           }`,
           "data-language": node.attrs.language,
@@ -223,26 +220,9 @@ export default class CodeFence extends Node {
           ...attrs,
         });
       },
+
       expandCodeBlock: (): Command => (state, dispatch) => {
-        const { selection } = state;
-        const codeBlock = findParentNode(isCode)(selection);
-
-        if (!codeBlock) return false;
-
-        const { node, pos } = codeBlock;
-        console.log("this is the value of expanded:", node.attrs.expanded);
-
-        const expanded = !(node.attrs.expanded ?? false); // toggle the expanded variable
-
-        if (dispatch) {
-          const newAttrs = {
-            ...node.attrs,
-            expanded,
-          };
-          const tr = state.tr.setNodeMarkup(pos, undefined, newAttrs);
-          dispatch(tr);
-        }
-
+        expandClicked = !expandClicked;
         return true;
       },
       copyToClipboard: (): Command => (state, dispatch) => {
@@ -253,7 +233,6 @@ export default class CodeFence extends Node {
           toast.message(this.options.dictionary.codeCopied);
           return true;
         }
-
         const { doc, tr } = state;
         const range =
           getMarkRange(
@@ -352,6 +331,25 @@ export default class CodeFence extends Node {
 
               return false;
             },
+          },
+        },
+      }),
+      new Plugin({
+        key: new PluginKey("expand-collapse-code-block"),
+        props: {
+          decorations(state) {
+            const codeBlock = findParentNode(isCode)(state.selection);
+
+            if (!codeBlock || !expandClicked) {
+              return null;
+            }
+
+            const decoration = Decoration.node(
+              codeBlock.pos,
+              codeBlock.pos + codeBlock.node.nodeSize,
+              { class: "expanded" }
+            );
+            return DecorationSet.create(state.doc, [decoration]);
           },
         },
       }),

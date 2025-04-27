@@ -1882,9 +1882,9 @@ del[data-operation-index] {
 }
   
 .code-block {
-  max-height: calc(1.4em * 17); /* Default height limit */
-  overflow: hidden; /* Default state: overflow hidden */
   position:relative;
+  max-height: calc(1.4em * 17); /* Default height limit */
+  overflow: hidden; /* Default state: overflow hidden */  
   -webkit-mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
   mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
 }
