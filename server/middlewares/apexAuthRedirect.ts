@@ -3,6 +3,14 @@ import { parseDomain } from "@shared/utils/domains";
 import { Team } from "@server/models";
 import { APIContext } from "@server/types";
 
+/**
+ * An authentication middleware that should be used on routes that return from external auth flows
+ * to the apex domain. In these cases the user will be redirected to the correct subdomain where
+ * they are authenticated.
+ *
+ * @param options Options for the middleware
+ * @returns Koa middleware function
+ */
 export default function apexAuthRedirect<T>({
   getTeamId,
   getRedirectPath,
