@@ -106,12 +106,14 @@ router.get(
       { transaction }
     );
 
-    transaction.afterCommit(async () => {
-      await UploadLinearWorkspaceLogoTask.schedule({
-        integrationId: integration.id,
-        logoUrl: workspace.logoUrl,
+    if (workspace.logoUrl) {
+      transaction.afterCommit(async () => {
+        await UploadLinearWorkspaceLogoTask.schedule({
+          integrationId: integration.id,
+          logoUrl: workspace.logoUrl,
+        });
       });
-    });
+    }
 
     ctx.redirect(LinearUtils.successUrl());
   }
