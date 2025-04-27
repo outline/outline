@@ -4,16 +4,15 @@ import Router from "koa-router";
 import { Profile } from "passport";
 import { Strategy as SlackStrategy } from "passport-slack-oauth2";
 import { IntegrationService, IntegrationType } from "@shared/types";
-import { parseDomain } from "@shared/utils/domains";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import { ValidationError } from "@server/errors";
+import apexAuthRedirect from "@server/middlewares/apexAuthRedirect";
 import auth from "@server/middlewares/authentication";
 import passportMiddleware from "@server/middlewares/passport";
 import validate from "@server/middlewares/validate";
 import {
   IntegrationAuthentication,
   Integration,
-  Team,
   User,
   Collection,
 } from "@server/models";
@@ -126,6 +125,15 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
     "slack.post",
     auth({ optional: true }),
     validate(T.SlackPostSchema),
+    apexAuthRedirect<T.SlackPostReq>({
+      getTeamId: (ctx) => SlackUtils.parseState(ctx.input.query.state)?.teamId,
+      getRedirectPath: (ctx, team) =>
+        SlackUtils.connectUrl({
+          baseUrl: team.url,
+          params: ctx.request.querystring,
+        }),
+      getErrorPath: () => SlackUtils.errorUrl("unauthenticated"),
+    }),
     async (ctx: APIContext<T.SlackPostReq>) => {
       const { code, error, state } = ctx.input.query;
       const { user } = ctx.state.auth;
@@ -144,31 +152,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
         throw ValidationError("Invalid state");
       }
 
-      const { teamId, collectionId, type } = parsedState;
-
-      // This code block accounts for the root domain being unable to access authentication for
-      // subdomains. We must forward to the appropriate subdomain to complete the OAuth flow.
-      if (!user) {
-        if (teamId) {
-          try {
-            const team = await Team.findByPk(teamId, {
-              rejectOnEmpty: true,
-            });
-            return parseDomain(ctx.host).teamSubdomain === team.subdomain
-              ? ctx.redirect("/")
-              : ctx.redirectOnClient(
-                  SlackUtils.connectUrl({
-                    baseUrl: team.url,
-                    params: ctx.request.querystring,
-                  })
-                );
-          } catch (err) {
-            return ctx.redirect(SlackUtils.errorUrl("unauthenticated"));
-          }
-        } else {
-          return ctx.redirect(SlackUtils.errorUrl("unauthenticated"));
-        }
-      }
+      const { collectionId, type } = parsedState;
 
       switch (type) {
         case IntegrationType.Post: {
