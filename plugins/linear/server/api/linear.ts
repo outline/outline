@@ -1,11 +1,10 @@
 import Router from "koa-router";
 import { IntegrationService, IntegrationType } from "@shared/types";
-import { parseDomain } from "@shared/utils/domains";
-import Logger from "@server/logging/Logger";
+import apexAuthRedirect from "@server/middlewares/apexAuthRedirect";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { IntegrationAuthentication, Integration, Team } from "@server/models";
+import { IntegrationAuthentication, Integration } from "@server/models";
 import { APIContext } from "@server/types";
 import { Linear } from "../linear";
 import UploadLinearWorkspaceLogoTask from "../tasks/UploadLinearWorkspaceLogoTask";
@@ -20,48 +19,20 @@ router.get(
     optional: true,
   }),
   validate(T.LinearCallbackSchema),
+  apexAuthRedirect<T.LinearCallbackReq>({
+    getTeamId: (ctx) => LinearUtils.parseState(ctx.input.query.state)?.teamId,
+    getRedirectPath: (ctx, team) =>
+      LinearUtils.callbackUrl({
+        baseUrl: team.url,
+        params: ctx.request.querystring,
+      }),
+    getErrorPath: () => LinearUtils.errorUrl("unauthenticated"),
+  }),
   transaction(),
   async (ctx: APIContext<T.LinearCallbackReq>) => {
-    const { code, state, error } = ctx.input.query;
+    const { code, error } = ctx.input.query;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
-
-    let parsedState;
-    try {
-      parsedState = LinearUtils.parseState(state);
-    } catch {
-      ctx.redirect(LinearUtils.errorUrl("invalid_state"));
-      return;
-    }
-
-    const { teamId } = parsedState;
-
-    // this code block accounts for the root domain being unable to
-    // access authentication for subdomains. We must forward to the appropriate
-    // subdomain to complete the oauth flow
-    if (!user) {
-      if (teamId) {
-        try {
-          const team = await Team.findByPk(teamId, {
-            rejectOnEmpty: true,
-            transaction,
-          });
-          return parseDomain(ctx.host).teamSubdomain === team.subdomain
-            ? ctx.redirect("/")
-            : ctx.redirectOnClient(
-                LinearUtils.callbackUrl({
-                  baseUrl: team.url,
-                  params: ctx.request.querystring,
-                })
-              );
-        } catch (err) {
-          Logger.error(`Error fetching team for teamId: ${teamId}!`, err);
-          return ctx.redirect(LinearUtils.errorUrl("unauthenticated"));
-        }
-      } else {
-        return ctx.redirect(LinearUtils.errorUrl("unauthenticated"));
-      }
-    }
 
     // Check error after any sub-domain redirection. Otherwise, the user will be redirected to the root domain.
     if (error) {
