@@ -46,7 +46,7 @@ export class LinearUtils {
       scope: this.oauthScopes,
       response_type: "code",
       prompt: "consent",
-      actor: "application",
+      actor: "app",
     };
     return `${this.authBaseUrl}?${queryString.stringify(params)}`;
   }
