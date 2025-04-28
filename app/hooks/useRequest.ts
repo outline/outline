@@ -59,7 +59,7 @@ export default function useRequest<T = unknown>(
     if (makeRequestOnMount) {
       void request();
     }
-  }, [request, makeRequestOnMount]);
+  }, []);
 
   return { data, loading, loaded, error, request };
 }

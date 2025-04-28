@@ -819,6 +819,8 @@
   "Authentication failed – this login method was disabled by a workspace admin.": "Authentication failed – this login method was disabled by a workspace admin.",
   "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.": "The workspace you are trying to join requires an invite before you can create an account.<1></1>Please request an invite from your workspace admin and try again.",
   "Sorry, an unknown error occurred.": "Sorry, an unknown error occurred.",
+  "Choose a workspace": "Choose a workspace",
+  "Choose an existing {{ appName }} workspace or login to continue connecting this app": "Choose an existing {{ appName }} workspace or login to continue connecting this app",
   "Login": "Login",
   "Error": "Error",
   "Failed to load configuration.": "Failed to load configuration.",

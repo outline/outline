@@ -1,23 +1,44 @@
-import { MoreIcon } from "outline-icons";
 import React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
 import { s } from "@shared/styles";
-import { Avatar, AvatarSize } from "~/components/Avatar";
-import { AvatarVariant } from "~/components/Avatar/Avatar";
+import { parseDomain } from "@shared/utils/domains";
 import ButtonLarge from "~/components/ButtonLarge";
 import Heading from "~/components/Heading";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import PageTitle from "~/components/PageTitle";
 import Text from "~/components/Text";
+import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useQuery from "~/hooks/useQuery";
 import useRequest from "~/hooks/useRequest";
 import { client } from "~/utils/ApiClient";
+import isCloudHosted from "~/utils/isCloudHosted";
+import Login from "./Login";
 import { OAuthScopeHelper } from "./OAuthScopeHelper";
 import { Background } from "./components/Background";
 import { Centered } from "./components/Centered";
+import { ConnectHeader } from "./components/ConnectHeader";
+import { TeamSwitcher } from "./components/TeamSwitcher";
+
+export default function OAuthAuthorize() {
+  const team = useCurrentTeam({ rejectOnEmpty: false });
+
+  // We're self-hosted or on a team subdomain already, just show the authorize screen.
+  if (team) {
+    return <Authorize />;
+  }
+
+  // Cloud hosted and on root domain – show the workspace switcher.
+  const isAppRoot =
+    parseDomain(window.location.hostname).host === parseDomain(env.URL).host;
+  if (isCloudHosted && isAppRoot) {
+    return <TeamSwitcher />;
+  }
+
+  return <Login />;
+}
 
 /**
  * Authorize component is responsible for handling the OAuth authorization process.
@@ -40,17 +61,10 @@ function Authorize() {
     scope,
   } = Object.fromEntries(params);
   const [scopes] = React.useState(() => scope?.split(" ") ?? []);
-  const {
-    error: clientError,
-    data: response,
-    request,
-  } = useRequest(() => client.post("/oauthClients.info", { clientId }));
-
-  React.useEffect(() => {
-    if (clientId) {
-      void request();
-    }
-  }, []);
+  const { error: clientError, data: response } = useRequest(
+    () => client.post("/oauthClients.info", { clientId }),
+    true
+  );
 
   const handleCancel = () => {
     if (window.history.length) {
@@ -119,28 +133,7 @@ function Authorize() {
     <Background>
       <PageTitle title={t("Authorize")} />
       <Centered gap={12}>
-        <Text type="tertiary">
-          <Flex gap={12} align="center">
-            <Avatar
-              variant={AvatarVariant.Square}
-              model={{
-                avatarUrl: response.data.avatarUrl,
-                initial: response.data.name[0],
-              }}
-              size={AvatarSize.XXLarge}
-              alt={response.data.name}
-            />
-
-            <MoreIcon />
-
-            <Avatar
-              variant={AvatarVariant.Square}
-              model={team}
-              size={AvatarSize.XXLarge}
-              alt={team.name}
-            />
-          </Flex>
-        </Text>
+        <ConnectHeader team={team} oauthClient={response.data} />
         <StyledHeading>
           {t(`{{ appName }} wants to access {{ teamName }}`, {
             appName: name,
@@ -244,5 +237,3 @@ const Pre = styled.pre`
   font-size: 12px;
   white-space: pre-wrap;
 `;
-
-export default Authorize;
