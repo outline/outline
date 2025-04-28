@@ -42,9 +42,10 @@ import { getRedirectUrl, navigateToSubdomain } from "./urls";
 
 type Props = {
   children?: (config?: Config) => React.ReactNode;
+  onBack?: () => void;
 };
 
-function Login({ children }: Props) {
+function Login({ children, onBack }: Props) {
   const location = useLocation();
   const query = useQuery();
   const notice = query.get("notice");
@@ -110,7 +111,7 @@ function Login({ children }: Props) {
   if (error) {
     return (
       <Background>
-        <BackButton />
+        <BackButton onBack={onBack} />
         <ChangeLanguage locale={detectLanguage()} />
         <Centered>
           <PageTitle title={t("Login")} />
@@ -142,7 +143,7 @@ function Login({ children }: Props) {
   if (isCloudHosted && isCustomDomain && !config.name) {
     return (
       <Background>
-        <BackButton config={config} />
+        <BackButton onBack={onBack} config={config} />
         <ChangeLanguage locale={detectLanguage()} />
         <Centered>
           <PageTitle title={t("Custom domain setup")} />
@@ -160,7 +161,7 @@ function Login({ children }: Props) {
   if (Desktop.isElectron() && notice === "domain-required") {
     return (
       <Background>
-        <BackButton config={config} />
+        <BackButton onBack={onBack} config={config} />
         <ChangeLanguage locale={detectLanguage()} />
 
         <Centered as="form" onSubmit={handleGoSubdomain}>
@@ -199,7 +200,7 @@ function Login({ children }: Props) {
   if (emailLinkSentTo) {
     return (
       <Background>
-        <BackButton config={config} />
+        <BackButton onBack={onBack} config={config} />
         <Centered>
           <PageTitle title={t("Check your email")} />
           <CheckEmailIcon size={38} />
@@ -234,7 +235,7 @@ function Login({ children }: Props) {
 
   return (
     <Background>
-      <BackButton config={config} />
+      <BackButton onBack={onBack} config={config} />
       <ChangeLanguage locale={detectLanguage()} />
 
       <Centered gap={12}>

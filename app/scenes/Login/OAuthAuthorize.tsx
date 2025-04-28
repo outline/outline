@@ -5,16 +5,19 @@ import Flex from "@shared/components/Flex";
 import { s } from "@shared/styles";
 import { parseDomain } from "@shared/utils/domains";
 import ButtonLarge from "~/components/ButtonLarge";
+import ChangeLanguage from "~/components/ChangeLanguage";
 import Heading from "~/components/Heading";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import PageTitle from "~/components/PageTitle";
 import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import { useLoggedInSessions } from "~/hooks/useLoggedInSessions";
 import useQuery from "~/hooks/useQuery";
 import useRequest from "~/hooks/useRequest";
 import { client } from "~/utils/ApiClient";
 import isCloudHosted from "~/utils/isCloudHosted";
+import { detectLanguage } from "~/utils/language";
 import Login from "./Login";
 import { OAuthScopeHelper } from "./OAuthScopeHelper";
 import { Background } from "./components/Background";
@@ -24,6 +27,7 @@ import { TeamSwitcher } from "./components/TeamSwitcher";
 
 export default function OAuthAuthorize() {
   const team = useCurrentTeam({ rejectOnEmpty: false });
+  const sessions = useLoggedInSessions();
 
   // We're self-hosted or on a team subdomain already, just show the authorize screen.
   if (team) {
@@ -33,8 +37,9 @@ export default function OAuthAuthorize() {
   // Cloud hosted and on root domain – show the workspace switcher.
   const isAppRoot =
     parseDomain(window.location.hostname).host === parseDomain(env.URL).host;
-  if (isCloudHosted && isAppRoot) {
-    return <TeamSwitcher />;
+  const hasLoggedInSessions = Object.keys(sessions).length > 0;
+  if (isCloudHosted && hasLoggedInSessions && isAppRoot) {
+    return <TeamSwitcher sessions={sessions} />;
   }
 
   return <Login />;
@@ -131,6 +136,7 @@ function Authorize() {
 
   return (
     <Background>
+      <ChangeLanguage locale={detectLanguage()} />
       <PageTitle title={t("Authorize")} />
       <Centered gap={12}>
         <ConnectHeader team={team} oauthClient={response.data} />
