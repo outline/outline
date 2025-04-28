@@ -6,6 +6,7 @@ import { v4 } from "uuid";
 import { EmbedDescriptor } from "@shared/editor/embeds";
 import { MenuItem } from "@shared/editor/types";
 import { MentionType } from "@shared/types";
+import { isUrl } from "@shared/utils/urls";
 import Integration from "~/models/Integration";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
@@ -29,9 +30,9 @@ export const PasteMenu = observer(({ pastedText, embeds, ...props }: Props) => {
   const user = useCurrentUser({ rejectOnEmpty: false });
 
   let mentionType: MentionType | undefined;
-  const url = pastedText ? new URL(pastedText) : undefined;
 
-  if (url) {
+  if (pastedText && isUrl(pastedText)) {
+    const url = new URL(pastedText);
     const integration = integrations.find((intg: Integration) =>
       isURLMentionable({ url, integration: intg })
     );
