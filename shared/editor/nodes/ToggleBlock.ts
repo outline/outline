@@ -9,6 +9,7 @@ import {
   splitBlock,
   wrapIn,
 } from "prosemirror-commands";
+import { ParseSpec } from "prosemirror-markdown";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
 import { Command, Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import {
@@ -33,7 +34,9 @@ import {
   furthest,
 } from "../commands/toggleBlock";
 import { chainTransactions } from "../lib/chainTransactions";
+import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { findBlockNodes } from "../queries/findChildren";
+import toggleBlocksRule from "../rules/toggleBlocks";
 import Node from "./Node";
 
 enum Action {
@@ -48,7 +51,7 @@ export default class ToggleBlock extends Node {
   static pluginKey = new PluginKey<DecorationSet>("toggleBlockPlugin");
 
   get name() {
-    return "toggle_block";
+    return "container_toggle_block";
   }
 
   get schema(): NodeSpec {
@@ -393,6 +396,10 @@ export default class ToggleBlock extends Node {
     return [foldPlugin];
   }
 
+  get rulePlugins() {
+    return [toggleBlocksRule];
+  }
+
   keys({ type }: { type: NodeType }): Record<string, Command> {
     return {
       Backspace: lift,
@@ -424,7 +431,33 @@ export default class ToggleBlock extends Node {
   commands({ type }: { type: NodeType }) {
     return () => wrapIn(type);
   }
+
+  toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
+    state.write(state.repeat("+", 3 + height(node)) + "\n");
+    state.renderContent(node);
+    state.write(state.repeat("+", 3 + height(node)) + "\n");
+  }
+
+  parseMarkdown(): ParseSpec | void {
+    return {
+      block: "container_toggle_block",
+    };
+  }
 }
+
+const height = (node: ProsemirrorNode) => {
+  if (node.isLeaf) {
+    return 0;
+  }
+
+  let h = 0;
+  for (let i = 0; i < node.childCount; i++) {
+    const child = node.child(i);
+    h = Math.max(h, height(child));
+  }
+
+  return 1 + h;
+};
 
 class ToggleBlockView implements NodeView {
   dom: HTMLDivElement;
