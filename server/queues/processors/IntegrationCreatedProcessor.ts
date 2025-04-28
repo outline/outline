@@ -3,6 +3,7 @@ import { Integration } from "@server/models";
 import BaseProcessor from "@server/queues/processors/BaseProcessor";
 import { IntegrationEvent, Event } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
+import { TaskScheduler } from "../TaskScheduler";
 import CacheIssueSourcesTask from "../tasks/CacheIssueSourcesTask";
 
 export default class IntegrationCreatedProcessor extends BaseProcessor {
@@ -20,7 +21,7 @@ export default class IntegrationCreatedProcessor extends BaseProcessor {
     }
 
     // Store the available issue sources in the integration record.
-    await CacheIssueSourcesTask.schedule({
+    await TaskScheduler.schedule(CacheIssueSourcesTask, {
       integrationId: integration.id,
     });
 

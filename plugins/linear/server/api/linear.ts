@@ -5,6 +5,7 @@ import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { IntegrationAuthentication, Integration } from "@server/models";
+import { TaskScheduler } from "@server/queues/TaskScheduler";
 import { APIContext } from "@server/types";
 import { Linear } from "../linear";
 import UploadLinearWorkspaceLogoTask from "../tasks/UploadLinearWorkspaceLogoTask";
@@ -77,14 +78,14 @@ router.get(
       { transaction }
     );
 
-    if (workspace.logoUrl) {
-      transaction.afterCommit(async () => {
-        await UploadLinearWorkspaceLogoTask.schedule({
+    transaction.afterCommit(async () => {
+      if (workspace.logoUrl) {
+        await TaskScheduler.schedule(UploadLinearWorkspaceLogoTask, {
           integrationId: integration.id,
           logoUrl: workspace.logoUrl,
         });
-      });
-    }
+      }
+    });
 
     ctx.redirect(LinearUtils.successUrl());
   }
