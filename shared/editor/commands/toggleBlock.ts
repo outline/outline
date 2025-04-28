@@ -35,7 +35,8 @@ export const lift: Command = (state, dispatch) => {
   return true;
 };
 
-const isToggleBlock = (node: Node) => node.type.name === "toggle_block";
+const isToggleBlock = (node: Node) =>
+  node.type.name === "container_toggle_block";
 
 const withinToggleBlock = ($cursor: ResolvedPos | null) =>
   $cursor && some(ancestors($cursor), isToggleBlock);
@@ -101,7 +102,7 @@ export const split: Command = (state, dispatch) => {
   const toggleBlockHead = toggleBlock.firstChild!;
 
   const tr = state.tr;
-  const newToggleBlock = state.schema.nodes.toggle_block.create(
+  const newToggleBlock = state.schema.nodes["container_toggle_block"].create(
     undefined,
     toggleBlockHead.type.create(
       undefined,
@@ -153,7 +154,7 @@ export const liftAfter: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;
   const nextSibling = maybeNextSibling($cursor);
 
-  if (!(nextSibling && nextSibling.type.name === "toggle_block")) {
+  if (!(nextSibling && nextSibling.type.name === "container_toggle_block")) {
     return false;
   }
 
