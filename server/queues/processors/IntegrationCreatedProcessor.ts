@@ -20,7 +20,7 @@ export default class IntegrationCreatedProcessor extends BaseProcessor {
     }
 
     // Store the available issue sources in the integration record.
-    await CacheIssueSourcesTask.schedule({
+    await new CacheIssueSourcesTask().schedule({
       integrationId: integration.id,
     });
 

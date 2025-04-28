@@ -77,14 +77,14 @@ router.get(
       { transaction }
     );
 
-    if (workspace.logoUrl) {
-      transaction.afterCommit(async () => {
-        await UploadLinearWorkspaceLogoTask.schedule({
+    transaction.afterCommit(async () => {
+      if (workspace.logoUrl) {
+        await new UploadLinearWorkspaceLogoTask().schedule({
           integrationId: integration.id,
           logoUrl: workspace.logoUrl,
         });
-      });
-    }
+      }
+    });
 
     ctx.redirect(LinearUtils.successUrl());
   }
