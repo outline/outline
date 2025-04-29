@@ -396,11 +396,13 @@ export class NotionConverter {
   }
 
   private static pdf(item: PdfBlockObjectResponse) {
+    const caption = item.pdf.caption.map(this.rich_text_to_plaintext).join("");
+
     return {
       type: "attachment",
       attrs: {
         href: "file" in item.pdf ? item.pdf.file.url : item.pdf.external.url,
-        title: item.pdf.caption.map(this.rich_text_to_plaintext).join(""),
+        title: caption || "PDF",
       },
     };
   }
@@ -436,6 +438,10 @@ export class NotionConverter {
   }
 
   private static image(item: ImageBlockObjectResponse) {
+    const caption = item.image.caption
+      .map(this.rich_text_to_plaintext)
+      .join("");
+
     return {
       type: "paragraph",
       content: [
@@ -446,7 +452,7 @@ export class NotionConverter {
               "file" in item.image
                 ? item.image.file.url
                 : item.image.external.url,
-            alt: item.image.caption.map(this.rich_text_to_plaintext).join(""),
+            alt: caption || "Image",
           },
         },
       ],
@@ -567,12 +573,16 @@ export class NotionConverter {
   }
 
   private static video(item: VideoBlockObjectResponse) {
+    const caption = item.video.caption
+      .map(this.rich_text_to_plaintext)
+      .join("");
+
     if (item.video.type === "file") {
       return {
         type: "video",
         attrs: {
           src: item.video.file.url,
-          title: item.video.caption.map(this.rich_text_to_plaintext).join(""),
+          title: caption || "Video",
         },
       };
     }
