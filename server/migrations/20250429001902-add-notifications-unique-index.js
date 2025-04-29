@@ -12,7 +12,7 @@ module.exports = {
           SELECT id
           FROM (
             SELECT id,
-                  ROW_NUMBER() OVER (PARTITION BY "userId", "commentId" ORDER BY "createdAt" DESC) as row_num
+                  ROW_NUMBER() OVER (PARTITION BY "userId", "commentId", "event" ORDER BY "createdAt" DESC) as row_num
             FROM notifications
             WHERE "commentId" IS NOT NULL
           ) sub
@@ -23,12 +23,12 @@ module.exports = {
       `);
     }
 
-    await queryInterface.addIndex("notifications", ["userId", "commentId"], {
+    await queryInterface.addIndex("notifications", ["userId", "commentId", "event"], {
       unique: true,
     });
   },
 
   async down (queryInterface, Sequelize) {
-    await queryInterface.removeIndex("notifications", ["userId", "commentId"]);
+    await queryInterface.removeIndex("notifications", ["userId", "commentId", "event"]);
   }
 };
