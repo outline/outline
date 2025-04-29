@@ -302,36 +302,36 @@ export default class ToggleBlock extends Node {
         },
       },
       appendTransaction: (transactions, _oldState, newState) => {
+        const blocks = findBlockNodes(newState.doc, true);
+        let tr = newState.tr;
+        for (const block of blocks) {
+          if (block.node.type.name === this.name && !block.node.attrs.id) {
+            tr = tr.setNodeAttribute(block.pos, "id", v4());
+          }
+        }
+
+        if (!foldPlugin.spec.initialDecorationsLoaded) {
+          const positions = [];
+          for (const block of blocks) {
+            if (block.node.type.name === this.name) {
+              positions.push(block.pos);
+            }
+          }
+          tr.setMeta(ToggleBlock.pluginKey, {
+            type: Action.INIT,
+            positions,
+          });
+          foldPlugin.spec.initialDecorationsLoaded = true;
+        }
+
         const docChanged = transactions.some(
           (transaction) => transaction.docChanged
         );
-        let tr = null;
-        if (docChanged) {
-          const blocks = findBlockNodes(newState.doc, true);
-          tr = newState.tr;
-          for (const block of blocks) {
-            if (block.node.type.name === this.name && !block.node.attrs.id) {
-              tr = tr.setNodeAttribute(block.pos, "id", v4());
-            }
-          }
 
+        if (docChanged) {
           tr = tr.setMeta(ToggleBlock.pluginKey, {
             type: Action.CHANGE,
           });
-
-          if (!foldPlugin.spec.initialDecorationsLoaded) {
-            const positions = [];
-            for (const block of blocks) {
-              if (block.node.type.name === this.name) {
-                positions.push(block.pos);
-              }
-            }
-            tr.setMeta(ToggleBlock.pluginKey, {
-              type: Action.INIT,
-              positions,
-            });
-            foldPlugin.spec.initialDecorationsLoaded = true;
-          }
 
           const { $cursor } = tr.selection as TextSelection;
           if ($cursor) {
