@@ -1082,13 +1082,18 @@ export const openDocumentComments = createAction({
   analyticsName: "Open comments",
   section: ActiveDocumentSection,
   icon: <CommentIcon />,
-  visible: ({ activeDocumentId, stores }) => {
+  visible: ({ activeCollectionId, activeDocumentId, stores }) => {
     const can = stores.policies.abilities(activeDocumentId ?? "");
-    return (
-      !!activeDocumentId &&
-      can.comment &&
-      !!stores.auth.team?.getPreference(TeamPreference.Commenting)
+    const teamCommentingEnabled = !!stores.auth.team?.getPreference(
+      TeamPreference.Commenting
     );
+    let commentingEnabled = teamCommentingEnabled;
+    if (activeCollectionId) {
+      const collection = stores.collections.get(activeCollectionId);
+      commentingEnabled =
+        collection?.commenting !== null && !!collection?.commenting;
+    }
+    return !!activeDocumentId && can.comment && commentingEnabled;
   },
   perform: ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {
