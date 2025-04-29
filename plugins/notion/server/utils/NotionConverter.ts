@@ -438,7 +438,9 @@ export class NotionConverter {
   }
 
   private static image(item: ImageBlockObjectResponse) {
-    const caption = item.image.caption.map(this.rich_text_to_plaintext).join("");
+    const caption = item.image.caption
+      .map(this.rich_text_to_plaintext)
+      .join("");
 
     return {
       type: "paragraph",
@@ -571,7 +573,9 @@ export class NotionConverter {
   }
 
   private static video(item: VideoBlockObjectResponse) {
-    const caption = item.video.caption.map(this.rich_text_to_plaintext).join("");
+    const caption = item.video.caption
+      .map(this.rich_text_to_plaintext)
+      .join("");
 
     if (item.video.type === "file") {
       return {
