@@ -61,7 +61,7 @@ export default class DocumentSubscriptionProcessor extends BaseProcessor {
               ...event,
               name: "collections.remove_user",
               userId: groupUser.userId,
-            })
+            } as CollectionUserEvent)
           )
         );
       }
@@ -83,7 +83,7 @@ export default class DocumentSubscriptionProcessor extends BaseProcessor {
               ...event,
               name: "documents.remove_user",
               userId: groupUser.userId,
-            })
+            } as DocumentUserEvent)
           )
         );
       }

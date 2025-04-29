@@ -1549,6 +1549,7 @@ router.post(
       collectionId,
       parentDocumentId,
       publish,
+      ip: ctx.request.ip,
     });
     const response: DocumentImportTaskResponse = await job.finished();
     if ("error" in response) {

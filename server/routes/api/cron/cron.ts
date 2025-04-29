@@ -29,6 +29,7 @@ const cronHandler = async (ctx: APIContext<T.CronSchemaReq>) => {
   for (const name in tasks) {
     const TaskClass = tasks[name];
     if (TaskClass.cron === period) {
+      // @ts-expect-error We won't instantiate an abstract class
       await new TaskClass().schedule({ limit });
 
       // Backwards compatibility for installations that have not set up
@@ -38,12 +39,14 @@ const cronHandler = async (ctx: APIContext<T.CronSchemaReq>) => {
       !receivedPeriods.has(TaskSchedule.Minute) &&
       (period === TaskSchedule.Hour || period === TaskSchedule.Day)
     ) {
+      // @ts-expect-error We won't instantiate an abstract class
       await new TaskClass().schedule({ limit });
     } else if (
       TaskClass.cron === TaskSchedule.Hour &&
       !receivedPeriods.has(TaskSchedule.Hour) &&
       period === TaskSchedule.Day
     ) {
+      // @ts-expect-error We won't instantiate an abstract class
       await new TaskClass().schedule({ limit });
     }
   }

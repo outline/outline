@@ -7,6 +7,7 @@ export default function init() {
     for (const name in tasks) {
       const TaskClass = tasks[name];
       if (TaskClass.cron === schedule) {
+        // @ts-expect-error We won't instantiate an abstract class
         await new TaskClass().schedule({ limit: 10000 });
       }
     }

@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import { GroupUser } from "@server/models";
-import { DocumentGroupEvent } from "@server/types";
+import { DocumentGroupEvent, DocumentUserEvent } from "@server/types";
 import BaseTask, { TaskPriority } from "./BaseTask";
 import DocumentAddUserNotificationsTask from "./DocumentAddUserNotificationsTask";
 
@@ -21,9 +21,10 @@ export default class DocumentAddGroupNotificationsTask extends BaseTask<Document
           groupUsers.map(async (groupUser) => {
             await new DocumentAddUserNotificationsTask().schedule({
               ...event,
+              name: "documents.add_user",
               modelId: event.data.membershipId,
               userId: groupUser.userId,
-            });
+            } as DocumentUserEvent);
           })
         );
       }
