@@ -29,8 +29,12 @@ describe("WebhookProcessor", () => {
 
     await processor.perform(event);
 
-    expect(DeliverWebhookTask.schedule).toHaveBeenCalled();
-    expect(DeliverWebhookTask.schedule).toHaveBeenCalledWith({
+    expect(
+      jest.mocked(DeliverWebhookTask.prototype.schedule)
+    ).toHaveBeenCalled();
+    expect(
+      jest.mocked(DeliverWebhookTask.prototype.schedule)
+    ).toHaveBeenCalledWith({
       event,
       subscriptionId: subscription.id,
     });
@@ -53,7 +57,9 @@ describe("WebhookProcessor", () => {
 
     await processor.perform(event);
 
-    expect(DeliverWebhookTask.schedule).toHaveBeenCalledTimes(0);
+    expect(
+      jest.mocked(DeliverWebhookTask.prototype.schedule)
+    ).toHaveBeenCalledTimes(0);
   });
 
   it("it schedules a delivery for the event for each subscription", async () => {
@@ -79,13 +85,21 @@ describe("WebhookProcessor", () => {
 
     await processor.perform(event);
 
-    expect(DeliverWebhookTask.schedule).toHaveBeenCalled();
-    expect(DeliverWebhookTask.schedule).toHaveBeenCalledTimes(2);
-    expect(DeliverWebhookTask.schedule).toHaveBeenCalledWith({
+    expect(
+      jest.mocked(DeliverWebhookTask.prototype.schedule)
+    ).toHaveBeenCalled();
+    expect(
+      jest.mocked(DeliverWebhookTask.prototype.schedule)
+    ).toHaveBeenCalledTimes(2);
+    expect(
+      jest.mocked(DeliverWebhookTask.prototype.schedule)
+    ).toHaveBeenCalledWith({
       event,
       subscriptionId: subscription.id,
     });
-    expect(DeliverWebhookTask.schedule).toHaveBeenCalledWith({
+    expect(
+      jest.mocked(DeliverWebhookTask.prototype.schedule)
+    ).toHaveBeenCalledWith({
       event,
       subscriptionId: subscriptionTwo.id,
     });

@@ -24,7 +24,7 @@ type Props = {
   /** Position of moved document within document structure */
   index?: number;
   /** The IP address of the user moving the document */
-  ip: string;
+  ip: string | null;
   /** The database transaction to run within */
   transaction?: Transaction;
 };
