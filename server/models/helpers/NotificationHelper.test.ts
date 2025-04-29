@@ -1,7 +1,9 @@
-import { NotificationEventType } from "@shared/types";
+import { DocumentPermission, NotificationEventType } from "@shared/types";
+import { UserMembership } from "@server/models";
 import {
   buildComment,
   buildDocument,
+  buildDraftDocument,
   buildSubscription,
   buildUser,
 } from "@server/test/factories";
@@ -52,6 +54,78 @@ describe("NotificationHelper", () => {
 
       expect(recipients.length).toEqual(1);
       expect(recipients[0].id).toEqual(notificationEnabledUser.id);
+    });
+
+    it("should only return users who have notification enabled for comment creation and are subscribed to the document in case of new thread in draft", async () => {
+      const documentAuthor = await buildUser();
+
+      // create a draft
+      const document = await buildDraftDocument({
+        userId: documentAuthor.id,
+        teamId: documentAuthor.teamId,
+        collectionId: null,
+      });
+
+      // add a bunch of users as direct members
+      const user = await buildUser({
+        teamId: document.teamId,
+        notificationSettings: { [NotificationEventType.CreateComment]: true },
+      });
+      const user2 = await buildUser({
+        teamId: document.teamId,
+        notificationSettings: { [NotificationEventType.CreateComment]: true },
+      });
+      const user3 = await buildUser({
+        teamId: document.teamId,
+        notificationSettings: { [NotificationEventType.CreateComment]: true },
+      });
+      await UserMembership.create({
+        documentId: document.id,
+        userId: user.id,
+        permission: DocumentPermission.Read,
+        createdById: user.id,
+      });
+      await UserMembership.create({
+        documentId: document.id,
+        userId: user2.id,
+        permission: DocumentPermission.Read,
+        createdById: user.id,
+      });
+      await UserMembership.create({
+        documentId: document.id,
+        userId: user3.id,
+        permission: DocumentPermission.Read,
+        createdById: user.id,
+      });
+
+      // Add a subscription for only one of those users
+      await Promise.all([
+        buildSubscription({
+          userId: user.id,
+        }),
+        buildSubscription({
+          userId: user2.id,
+        }),
+        buildSubscription({
+          userId: user3.id,
+          documentId: document.id,
+        }),
+      ]);
+
+      const comment = await buildComment({
+        documentId: document.id,
+        userId: documentAuthor.id,
+      });
+
+      const recipients =
+        await NotificationHelper.getCommentNotificationRecipients(
+          document,
+          comment,
+          comment.createdById
+        );
+
+      expect(recipients.length).toEqual(1);
+      expect(recipients[0].id).toEqual(user3.id);
     });
 
     it("should only return users who have notification enabled for comment creation and are in the thread in case of child comment", async () => {
