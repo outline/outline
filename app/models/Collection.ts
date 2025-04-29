@@ -68,6 +68,13 @@ export default class Collection extends ParanoidModel {
     direction: "asc" | "desc";
   };
 
+  /** Whether commenting is enabled for the collection.
+   * true = enabled, false = disabled, null = use workspace default.
+   */
+  @Field
+  @observable
+  commenting?: boolean | null;
+
   /** The child documents of the collection. */
   @observable
   documents?: NavigationNode[];
