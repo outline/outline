@@ -152,20 +152,36 @@ export default class ToggleBlock extends Node {
                       spec.target === this.name
                   ).length > 0;
                 if (!decoOnToggleBlockExists) {
-                  decosToApply.push(
-                    Decoration.node(
-                      toggleBlockStart,
-                      toggleBlockEnd,
-                      {},
-                      {
-                        target: this.name,
-                        nodeId: toggleBlock.node.attrs.id,
-                        fold: true,
-                      }
-                    )
-                  );
                   const key = `${toggleBlock.node.attrs.id}:${this.editor.props.userId}`;
-                  Storage.set(key, { fold: true });
+                  const foldState = Storage.get(key);
+                  if (isNil(foldState)) {
+                    decosToApply.push(
+                      Decoration.node(
+                        toggleBlockStart,
+                        toggleBlockEnd,
+                        {},
+                        {
+                          target: this.name,
+                          nodeId: toggleBlock.node.attrs.id,
+                          fold: true,
+                        }
+                      )
+                    );
+                    Storage.set(key, { fold: true });
+                  } else {
+                    decosToApply.push(
+                      Decoration.node(
+                        toggleBlockStart,
+                        toggleBlockEnd,
+                        {},
+                        {
+                          target: this.name,
+                          nodeId: toggleBlock.node.attrs.id,
+                          fold: foldState.fold,
+                        }
+                      )
+                    );
+                  }
                 }
                 const toggleBlockHeadStart = toggleBlock.pos + 1;
                 const toggleBlockHeadEnd =
