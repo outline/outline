@@ -408,7 +408,7 @@ class Team extends ParanoidModel<
       });
 
       if (attachment) {
-        await DeleteAttachmentTask.schedule({
+        await new DeleteAttachmentTask().schedule({
           attachmentId: attachment.id,
           teamId: model.id,
         });

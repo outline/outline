@@ -12,7 +12,7 @@ type Props = {
   sourceMetadata: Pick<Required<SourceMetadata>, "fileName" | "mimeType">;
   publish?: boolean;
   collectionId?: string;
-  parentDocumentId?: string;
+  parentDocumentId?: string | null;
   ip: string;
   key: string;
 };

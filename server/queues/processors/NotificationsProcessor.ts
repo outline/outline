@@ -62,25 +62,25 @@ export default class NotificationsProcessor extends BaseProcessor {
       return;
     }
 
-    await DocumentPublishedNotificationsTask.schedule(event);
+    await new DocumentPublishedNotificationsTask().schedule(event);
   }
 
   async documentAddUser(event: DocumentUserEvent) {
     if (!event.data.isNew || event.userId === event.actorId) {
       return;
     }
-    await DocumentAddUserNotificationsTask.schedule(event);
+    await new DocumentAddUserNotificationsTask().schedule(event);
   }
 
   async documentAddGroup(event: DocumentGroupEvent) {
     if (!event.data.isNew) {
       return;
     }
-    await DocumentAddGroupNotificationsTask.schedule(event);
+    await new DocumentAddGroupNotificationsTask().schedule(event);
   }
 
   async revisionCreated(event: RevisionEvent) {
-    await RevisionCreatedNotificationsTask.schedule(event);
+    await new RevisionCreatedNotificationsTask().schedule(event);
   }
 
   async collectionCreated(event: CollectionEvent) {
@@ -93,7 +93,7 @@ export default class NotificationsProcessor extends BaseProcessor {
       return;
     }
 
-    await CollectionCreatedNotificationsTask.schedule(event);
+    await new CollectionCreatedNotificationsTask().schedule(event);
   }
 
   async collectionAddUser(event: CollectionUserEvent) {
@@ -101,14 +101,14 @@ export default class NotificationsProcessor extends BaseProcessor {
       return;
     }
 
-    await CollectionAddUserNotificationsTask.schedule(event);
+    await new CollectionAddUserNotificationsTask().schedule(event);
   }
 
   async commentCreated(event: CommentEvent) {
-    await CommentCreatedNotificationsTask.schedule(event);
+    await new CommentCreatedNotificationsTask().schedule(event);
   }
 
   async commentUpdated(event: CommentEvent) {
-    await CommentUpdatedNotificationsTask.schedule(event);
+    await new CommentUpdatedNotificationsTask().schedule(event);
   }
 }

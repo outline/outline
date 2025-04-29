@@ -67,7 +67,7 @@ export default async function documentPermanentDeleter(documents: Document[]) {
             "commands",
             `Attachment ${attachmentId} scheduled for deletion`
           );
-          await DeleteAttachmentTask.schedule({
+          await new DeleteAttachmentTask().schedule({
             attachmentId,
             teamId: document.teamId,
           });

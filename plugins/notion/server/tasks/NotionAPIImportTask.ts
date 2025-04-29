@@ -77,7 +77,7 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
   protected async scheduleNextTask(
     importTask: ImportTask<IntegrationService.Notion>
   ) {
-    await NotionAPIImportTask.schedule({ importTaskId: importTask.id });
+    await new NotionAPIImportTask().schedule({ importTaskId: importTask.id });
     return;
   }
 

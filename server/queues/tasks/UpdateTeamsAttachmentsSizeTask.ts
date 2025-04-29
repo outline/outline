@@ -38,7 +38,7 @@ export default class UpdateTeamsAttachmentsSizeTask extends BaseTask<Props> {
         const teamIds = rows.map((row) => row.teamId);
 
         for (const teamId of teamIds) {
-          await UpdateTeamAttachmentsSizeTask.schedule({ teamId });
+          await new UpdateTeamAttachmentsSizeTask().schedule({ teamId });
         }
       }
     );

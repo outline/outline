@@ -7,7 +7,7 @@ import BaseTask from "./BaseTask";
 type Props = {
   collectionId: string;
   actorId: string;
-  ip: string;
+  ip: string | null;
 };
 
 export default class DetachDraftsFromCollectionTask extends BaseTask<Props> {
