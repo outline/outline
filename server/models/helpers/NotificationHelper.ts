@@ -193,10 +193,16 @@ export default class NotificationHelper {
             [Op.ne]: actorId,
           },
           event: SubscriptionType.Document,
-          [Op.or]: [
-            { collectionId: document.collectionId },
-            { documentId: document.id },
-          ],
+          ...(document.collectionId
+            ? {
+                [Op.or]: [
+                  { collectionId: document.collectionId },
+                  { documentId: document.id },
+                ],
+              }
+            : {
+                documentId: document.id,
+              }),
         },
         include: [
           {
