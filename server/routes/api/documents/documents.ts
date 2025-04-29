@@ -1539,7 +1539,7 @@ router.post(
       acl,
     });
 
-    const job = await DocumentImportTask.schedule({
+    const job = await new DocumentImportTask().schedule({
       key,
       sourceMetadata: {
         fileName,
@@ -2062,7 +2062,7 @@ router.post(
     });
 
     if (documents.length) {
-      await EmptyTrashTask.schedule({
+      await new EmptyTrashTask().schedule({
         documentIds: documents.map((doc) => doc.id),
       });
     }

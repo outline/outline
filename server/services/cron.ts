@@ -7,7 +7,7 @@ export default function init() {
     for (const name in tasks) {
       const TaskClass = tasks[name];
       if (TaskClass.cron === schedule) {
-        await TaskClass.schedule({ limit: 10000 });
+        await new TaskClass().schedule({ limit: 10000 });
       }
     }
   }
