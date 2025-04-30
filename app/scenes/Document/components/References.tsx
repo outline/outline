@@ -18,7 +18,7 @@ type Props = {
 };
 
 function References({ document }: Props) {
-  const { collections, documents } = useStores();
+  const { documents } = useStores();
   const user = useCurrentUser();
   const location = useLocation();
   const locationSidebarContext = useLocationSidebarContext();
@@ -27,10 +27,8 @@ function References({ document }: Props) {
     void documents.fetchBacklinks(document.id);
   }, [documents, document.id]);
 
-  const backlinks = documents.getBacklinkedDocuments(document.id);
-  const collection = document.collectionId
-    ? collections.get(document.collectionId)
-    : undefined;
+  const backlinks = document.backlinks;
+  const collection = document.collection;
   const children = collection
     ? collection.getChildrenForDocument(document.id)
     : [];
