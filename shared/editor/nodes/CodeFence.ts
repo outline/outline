@@ -88,7 +88,7 @@ import { getMarkRange } from "../queries/getMarkRange";
 import { isInCode } from "../queries/isInCode";
 import Node from "./Node";
 
-let expandClicked = false;
+const expandFlags = new Map<string, boolean>();
 const DEFAULT_LANGUAGE = "javascript";
 
 [
@@ -222,9 +222,21 @@ export default class CodeFence extends Node {
       },
 
       expandCodeBlock: (): Command => (state, dispatch) => {
-        expandClicked = !expandClicked;
+        const codeBlock = findParentNode(isCode)(state.selection);
+        if (!codeBlock) {
+          return false;
+        }
+
+        const key = `codeblock-${codeBlock.pos}`;
+        if (!expandFlags.has(key)) {
+          return false;
+        }
+
+        expandFlags.set(key, !expandFlags.get(key));
+
         return true;
       },
+
       copyToClipboard: (): Command => (state, dispatch) => {
         const codeBlock = findParentNode(isCode)(state.selection);
 
@@ -338,18 +350,28 @@ export default class CodeFence extends Node {
         key: new PluginKey("expand-collapse-code-block"),
         props: {
           decorations(state) {
-            const codeBlock = findParentNode(isCode)(state.selection);
+            const decorations: Decoration[] = [];
 
-            if (!codeBlock || !expandClicked) {
-              return null;
+            for (const [key, value] of expandFlags.entries()) {
+              if (!value) continue;
+              const match = key.match(/^codeblock-(\d+)$/);
+
+              if (!match) continue;
+
+              const pos = parseInt(match[1], 10);
+
+              const node = state.doc.nodeAt(pos);
+
+              if (!node || node.type.name !== "code_fence") continue;
+
+              decorations.push(
+                Decoration.node(pos, pos + node.nodeSize, {
+                  class: "expanded",
+                })
+              );
             }
 
-            const decoration = Decoration.node(
-              codeBlock.pos,
-              codeBlock.pos + codeBlock.node.nodeSize,
-              { class: "expanded" }
-            );
-            return DecorationSet.create(state.doc, [decoration]);
+            return DecorationSet.create(state.doc, decorations);
           },
         },
       }),
@@ -360,6 +382,12 @@ export default class CodeFence extends Node {
 
             if (!codeBlock) {
               return null;
+            }
+
+            const key = `codeblock-${codeBlock.pos}`;
+
+            if (!expandFlags.has(key)) {
+              expandFlags.set(key, false);
             }
 
             const decoration = Decoration.node(
