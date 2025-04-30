@@ -29,7 +29,6 @@ const Drafts = lazy(() => import("~/scenes/Drafts"));
 const Home = lazy(() => import("~/scenes/Home"));
 const Search = lazy(() => import("~/scenes/Search"));
 const Trash = lazy(() => import("~/scenes/Trash"));
-const OAuthAuthorize = lazy(() => import("~/scenes/Login/OAuthAuthorize"));
 
 const RedirectDocument = ({
   match,
@@ -53,8 +52,6 @@ function AuthenticatedRoutes() {
 
   return (
     <Switch>
-      <Route exact path="/oauth/authorize" component={OAuthAuthorize} />
-
       <WebsocketProvider>
         <AuthenticatedLayout>
           <React.Suspense
