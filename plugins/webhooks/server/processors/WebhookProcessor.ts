@@ -24,7 +24,10 @@ export default class WebhookProcessor extends BaseProcessor {
 
     await Promise.all(
       applicableSubscriptions.map((subscription) =>
-        DeliverWebhookTask.schedule({ event, subscriptionId: subscription.id })
+        new DeliverWebhookTask().schedule({
+          event,
+          subscriptionId: subscription.id,
+        })
       )
     );
   }

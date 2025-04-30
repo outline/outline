@@ -29,7 +29,7 @@ export default class CleanupDeletedTeamsTask extends BaseTask<Props> {
     });
 
     for (const team of teams) {
-      await CleanupDeletedTeamTask.schedule({
+      await new CleanupDeletedTeamTask().schedule({
         teamId: team.id,
       });
     }

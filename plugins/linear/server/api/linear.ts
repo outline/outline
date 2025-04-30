@@ -79,7 +79,7 @@ router.get(
 
     if (workspace.logoUrl) {
       transaction.afterCommit(async () => {
-        await UploadLinearWorkspaceLogoTask.schedule({
+        await new UploadLinearWorkspaceLogoTask().schedule({
           integrationId: integration.id,
           logoUrl: workspace.logoUrl,
         });

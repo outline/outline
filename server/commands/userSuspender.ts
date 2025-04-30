@@ -56,5 +56,5 @@ export default async function userSuspender({
     }
   );
 
-  await CleanupDemotedUserTask.schedule({ userId: user.id });
+  await new CleanupDemotedUserTask().schedule({ userId: user.id });
 }

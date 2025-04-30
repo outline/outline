@@ -37,7 +37,7 @@ export default class RevisionsProcessor extends BaseProcessor {
           return;
         }
 
-        await DocumentUpdateTextTask.schedule(event);
+        await new DocumentUpdateTextTask().schedule(event);
 
         const user = await User.findByPk(event.actorId, {
           paranoid: false,
