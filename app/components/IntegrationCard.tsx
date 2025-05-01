@@ -22,9 +22,7 @@ function IntegrationCard({ integration }: Props) {
           <Flex column gap={4}>
             <Name>{integration.name}</Name>
 
-            {integration.isActive && (
-              <Status isActive={integration.isActive}>{t("Connected")}</Status>
-            )}
+            {integration.isActive && <Status>{t("Connected")}</Status>}
           </Flex>
         </Flex>
       </Flex>
@@ -76,9 +74,26 @@ const Footer = styled.div`
   margin-top: 16px;
 `;
 
-const Status = styled.span<{ isActive: boolean }>`
-  font-size: 12px;
-  margin-right: 8px;
-  color: ${(props) =>
-    props.isActive ? props.theme.brand.green : props.theme.danger};
+const Status = styled(Text).attrs({
+  type: "secondary",
+  size: "small",
+  as: "span",
+})`
+  display: inline-flex;
+  align-items: center;
+
+  &::before {
+    content: "";
+    display: inline-block;
+    width: 17px;
+    height: 17px;
+    margin-right: 6px;
+
+    background: radial-gradient(
+      circle at center,
+      ${s("accent")} 0 33%,
+      transparent 33%
+    );
+    border-radius: 50%;
+  }
 `;
