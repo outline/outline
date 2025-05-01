@@ -887,6 +887,8 @@
   "Manage which third-party and internal applications have been granted access to your {{ appName }} account.": "Manage which third-party and internal applications have been granted access to your {{ appName }} account.",
   "API": "API",
   "API keys can be used to authenticate with the API and programatically control\n          your workspace's data. For more details see the <em>developer documentation</em>.": "API keys can be used to authenticate with the API and programatically control\n          your workspace's data. For more details see the <em>developer documentation</em>.",
+  "Application published": "Application published",
+  "Application updated": "Application updated",
   "Client secret rotated": "Client secret rotated",
   "Rotate secret": "Rotate secret",
   "Rotating the client secret will invalidate the current secret. Make sure to update any applications using these credentials.": "Rotating the client secret will invalidate the current secret. Make sure to update any applications using these credentials.",

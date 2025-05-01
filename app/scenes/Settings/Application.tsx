@@ -80,11 +80,16 @@ const Application = observer(function Application({ oauthClient }: Props) {
     async (data: FormData) => {
       try {
         await oauthClient.save(data);
+        toast.success(
+          oauthClient.published
+            ? t("Application published")
+            : t("Application updated")
+        );
       } catch (error) {
         toast.error(error.message);
       }
     },
-    [oauthClient]
+    [oauthClient, t]
   );
 
   const handleRotateSecret = React.useCallback(async () => {
@@ -173,7 +178,6 @@ const Application = observer(function Application({ oauthClient }: Props) {
           <Input
             type="text"
             {...register("description", {
-              required: true,
               maxLength: OAuthClientValidation.maxDescriptionLength,
             })}
             flex
