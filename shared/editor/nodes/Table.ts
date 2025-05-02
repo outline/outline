@@ -1,5 +1,7 @@
 import { chainCommands } from "prosemirror-commands";
+import { InputRule } from "prosemirror-inputrules";
 import { NodeSpec, Node as ProsemirrorNode } from "prosemirror-model";
+import { TextSelection } from "prosemirror-state";
 import {
   addColumnAfter,
   addRowAfter,
@@ -23,6 +25,7 @@ import {
   deleteColSelection,
   deleteRowSelection,
   moveOutOfTable,
+  createTableInner,
 } from "../commands/table";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { FixTablesPlugin } from "../plugins/FixTables";
@@ -99,6 +102,18 @@ export default class Table extends Node {
       ArrowDown: moveOutOfTable(1),
       ArrowUp: moveOutOfTable(-1),
     };
+  }
+
+  inputRules() {
+    return [
+      new InputRule(/^(\|--)$/, (state, _, start, end) => {
+        const nodes = createTableInner(state, 2, 2);
+        const tr = state.tr.replaceWith(start - 1, end, nodes).scrollIntoView();
+        const resolvedPos = tr.doc.resolve(start + 1);
+        tr.setSelection(TextSelection.near(resolvedPos));
+        return tr;
+      }),
+    ];
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
