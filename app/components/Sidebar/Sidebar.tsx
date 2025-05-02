@@ -321,6 +321,7 @@ const Container = styled(Flex)<ContainerProps>`
   z-index: ${depths.mobileSidebar};
   max-width: 80%;
   min-width: 280px;
+  padding-left: var(--sal);
   ${fadeOnDesktopBackgrounded()}
 
   @media print {
