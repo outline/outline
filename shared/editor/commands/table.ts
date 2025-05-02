@@ -44,11 +44,11 @@ export function createTable({
   };
 }
 
-function createTableInner(
+export function createTableInner(
   state: EditorState,
   rowsCount: number,
   colsCount: number,
-  colWidth: number,
+  colWidth?: number,
   withHeaderRow = true,
   cellContent?: Node
 ) {
