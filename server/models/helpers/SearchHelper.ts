@@ -182,18 +182,7 @@ export default class SearchHelper {
       },
     ];
 
-    return Document.scope([
-      "withDrafts",
-      {
-        method: ["withViews", user.id],
-      },
-      {
-        method: ["withCollectionPermissions", user.id],
-      },
-      {
-        method: ["withMembership", user.id],
-      },
-    ]).findAll({
+    return Document.defaultScopeWithUser(user.id).findAll({
       where,
       subQuery: false,
       order: [["updatedAt", "DESC"]],
@@ -273,18 +262,7 @@ export default class SearchHelper {
 
       // Final query to get associated document data
       const [documents, count] = await Promise.all([
-        Document.scope([
-          "withDrafts",
-          {
-            method: ["withViews", user.id],
-          },
-          {
-            method: ["withCollectionPermissions", user.id],
-          },
-          {
-            method: ["withMembership", user.id],
-          },
-        ]).findAll({
+        Document.defaultScopeWithUser(user.id).findAll({
           where: {
             teamId: user.teamId,
             id: map(results, "id"),
