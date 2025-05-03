@@ -1,8 +1,8 @@
+import crypto from "crypto";
 import {
   RefreshTokenModel,
   AuthorizationCodeModel,
 } from "@node-oauth/oauth2-server";
-import rs from "randomstring";
 import { Required } from "utility-types";
 import { Scope } from "@shared/types";
 import { isUrl } from "@shared/utils/urls";
@@ -41,17 +41,21 @@ export const OAuthInterface: RefreshTokenModel &
   grants: ["authorization_code", "refresh_token"],
 
   async generateAccessToken() {
-    return `${OAuthAuthentication.accessTokenPrefix}${rs.generate(32)}`;
+    return `${OAuthAuthentication.accessTokenPrefix}${crypto
+      .randomBytes(32)
+      .toString("hex")}`;
   },
 
   async generateRefreshToken() {
-    return `${OAuthAuthentication.refreshTokenPrefix}${rs.generate(32)}`;
+    return `${OAuthAuthentication.refreshTokenPrefix}${crypto
+      .randomBytes(32)
+      .toString("hex")}`;
   },
 
   async generateAuthorizationCode() {
-    return `${OAuthAuthorizationCode.authorizationCodePrefix}${rs.generate(
-      32
-    )}`;
+    return `${OAuthAuthorizationCode.authorizationCodePrefix}${crypto
+      .randomBytes(32)
+      .toString("hex")}`;
   },
 
   async getAccessToken(accessToken: string) {
@@ -235,13 +239,13 @@ export const OAuthInterface: RefreshTokenModel &
    * @returns True if the URI is valid, false otherwise.
    */
   async validateRedirectUri(uri, client) {
-    if (uri.includes("#")) {
+    if (uri.includes("#") || uri.includes("*")) {
       return false;
     }
     if (!client.redirectUris?.includes(uri)) {
       return false;
     }
-    if (!isUrl(uri)) {
+    if (!isUrl(uri, { requireHttps: true })) {
       return false;
     }
 
