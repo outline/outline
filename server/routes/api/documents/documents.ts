@@ -268,7 +268,7 @@ router.post(
     }
 
     const [documents, total] = await Promise.all([
-      Document.withUserScope(user.id).findAll({
+      Document.withMembershipScope(user.id).findAll({
         where,
         order: [
           [
@@ -348,7 +348,7 @@ router.post(
       };
     }
 
-    const documents = await Document.withUserScope(user.id).findAll({
+    const documents = await Document.withMembershipScope(user.id).findAll({
       where,
       order: [
         [
@@ -535,7 +535,7 @@ router.post(
       delete where.updatedAt;
     }
 
-    const documents = await Document.withUserScope(user.id)
+    const documents = await Document.withMembershipScope(user.id)
       .scope("withDrafts")
       .findAll({
         where,

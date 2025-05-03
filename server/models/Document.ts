@@ -632,7 +632,7 @@ class Document extends ArchivableModel<
     return uniq(membershipUserIds);
   }
 
-  static withUserScope(userId: string, options?: FindOptions<Document>) {
+  static withMembershipScope(userId: string, options?: FindOptions<Document>) {
     return this.scope([
       "defaultScope",
       {

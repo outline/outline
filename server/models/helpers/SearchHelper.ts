@@ -182,7 +182,7 @@ export default class SearchHelper {
       },
     ];
 
-    return Document.withUserScope(user.id)
+    return Document.withMembershipScope(user.id)
       .scope("withDrafts")
       .findAll({
         where,
@@ -264,7 +264,7 @@ export default class SearchHelper {
 
       // Final query to get associated document data
       const [documents, count] = await Promise.all([
-        Document.withUserScope(user.id)
+        Document.withMembershipScope(user.id)
           .scope("withDrafts")
           .findAll({
             where: {
