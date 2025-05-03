@@ -24,6 +24,7 @@ router.post(
   async (ctx: APIContext<T.GroupMembershipsListReq>) => {
     const { groupId } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const userId = user.id;
 
     const memberships = await GroupMembership.findAll({
       where: {
@@ -44,7 +45,7 @@ router.post(
               association: "groupUsers",
               required: true,
               where: {
-                userId: user.id,
+                userId,
               },
             },
           ],
@@ -57,15 +58,13 @@ router.post(
     const documentIds = memberships
       .map((p) => p.documentId)
       .filter(Boolean) as string[];
-    const documents = await Document.scope([
-      "withDrafts",
-      { method: ["withMembership", user.id] },
-      { method: ["withCollectionPermissions", user.id] },
-    ]).findAll({
-      where: {
-        id: documentIds,
-      },
-    });
+    const documents = await Document.withMembershipScope(userId)
+      .scope("withDrafts")
+      .findAll({
+        where: {
+          id: documentIds,
+        },
+      });
 
     const groups = uniqBy(
       memberships.map((membership) => membership.group),

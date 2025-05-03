@@ -13,7 +13,6 @@ import {
   Transaction,
   Op,
   FindOptions,
-  ScopeOptions,
   WhereOptions,
   EmptyResultError,
 } from "sequelize";
@@ -106,20 +105,6 @@ type AdditionalFindOptions = {
   },
 }))
 @Scopes(() => ({
-  withCollectionPermissions: (userId: string, paranoid = true) => ({
-    include: [
-      {
-        attributes: ["id", "permission", "sharing", "teamId", "deletedAt"],
-        model: userId
-          ? Collection.scope({
-              method: ["withMembership", userId],
-            })
-          : Collection,
-        as: "collection",
-        paranoid,
-      },
-    ],
-  }),
   withoutState: {
     attributes: {
       exclude: ["state"],
@@ -169,13 +154,23 @@ type AdditionalFindOptions = {
       ],
     };
   },
-  withMembership: (userId: string) => {
+  withMembership: (userId: string, paranoid = true) => {
     if (!userId) {
       return {};
     }
 
     return {
       include: [
+        {
+          attributes: ["id", "permission", "sharing", "teamId", "deletedAt"],
+          model: userId
+            ? Collection.scope({
+                method: ["withMembership", userId],
+              })
+            : Collection,
+          as: "collection",
+          paranoid,
+        },
         {
           association: "memberships",
           where: {
@@ -637,21 +632,15 @@ class Document extends ArchivableModel<
     return uniq(membershipUserIds);
   }
 
-  static defaultScopeWithUser(userId: string) {
-    const collectionScope: Readonly<ScopeOptions> = {
-      method: ["withCollectionPermissions", userId],
-    };
-    const viewScope: Readonly<ScopeOptions> = {
-      method: ["withViews", userId],
-    };
-    const membershipScope: Readonly<ScopeOptions> = {
-      method: ["withMembership", userId],
-    };
+  static withMembershipScope(userId: string, options?: FindOptions<Document>) {
     return this.scope([
       "defaultScope",
-      collectionScope,
-      viewScope,
-      membershipScope,
+      {
+        method: ["withViews", userId],
+      },
+      {
+        method: ["withMembership", userId, options?.paranoid],
+      },
     ]);
   }
 
@@ -685,14 +674,12 @@ class Document extends ArchivableModel<
     // almost every endpoint needs the collection membership to determine policy permissions.
     const scope = this.scope([
       "withDrafts",
-      {
-        method: ["withCollectionPermissions", userId, rest.paranoid],
-      },
+      options.includeState ? "withState" : "withoutState",
       {
         method: ["withViews", userId],
       },
       {
-        method: ["withMembership", userId],
+        method: ["withMembership", userId, rest.paranoid],
       },
     ]);
 
@@ -750,9 +737,6 @@ class Document extends ArchivableModel<
     const user = userId ? await User.findByPk(userId) : null;
     const documents = await this.scope([
       "withDrafts",
-      {
-        method: ["withCollectionPermissions", userId, rest.paranoid],
-      },
       {
         method: ["withViews", userId],
       },

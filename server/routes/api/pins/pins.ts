@@ -113,7 +113,7 @@ router.post(
       user.collectionIds(),
     ]);
 
-    const documents = await Document.defaultScopeWithUser(user.id).findAll({
+    const documents = await Document.withMembershipScope(user.id).findAll({
       where: {
         id: pins.map((pin) => pin.documentId),
         collectionId: collectionIds,
