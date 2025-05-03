@@ -25,7 +25,7 @@ const oauth = new OAuth2Server({
 
 router.post(
   "/authorize",
-  rateLimiter(RateLimiterStrategy.FiftyPerHour),
+  rateLimiter(RateLimiterStrategy.OneHundredPerHour),
   auth(),
   async (ctx) => {
     const { user } = ctx.state.auth;
@@ -42,7 +42,8 @@ router.post(
     const response = new OAuth2Server.Response(ctx.response);
 
     const authorizationCode = await oauth.authorize(request, response, {
-      allowEmptyState: true,
+      // Require state to prevent CSRF attacks
+      allowEmptyState: false,
       authorizationCodeLifetime:
         OAuthAuthorizationCode.authorizationCodeLifetime,
       authenticateHandler: {
@@ -66,35 +67,39 @@ router.post(
   }
 );
 
-router.post("/token", async (ctx) => {
-  // Note: These objects are mutated by the OAuth2Server library
-  const request = new OAuth2Server.Request(ctx.request);
-  const response = new OAuth2Server.Response(ctx.response);
-  const token = await oauth.token(request, response, {
-    accessTokenLifetime: OAuthAuthentication.accessTokenLifetime,
-    refreshTokenLifetime: OAuthAuthentication.refreshTokenLifetime,
-  });
+router.post(
+  "/token",
+  rateLimiter(RateLimiterStrategy.OneHundredPerHour),
+  async (ctx) => {
+    // Note: These objects are mutated by the OAuth2Server library
+    const request = new OAuth2Server.Request(ctx.request);
+    const response = new OAuth2Server.Response(ctx.response);
+    const token = await oauth.token(request, response, {
+      accessTokenLifetime: OAuthAuthentication.accessTokenLifetime,
+      refreshTokenLifetime: OAuthAuthentication.refreshTokenLifetime,
+    });
 
-  if (response.headers) {
-    ctx.set(response.headers);
+    if (response.headers) {
+      ctx.set(response.headers);
+    }
+
+    ctx.body = {
+      access_token: token.accessToken,
+      refresh_token: token.refreshToken,
+      // OAuth2 spec says that the expires_in should be in seconds.
+      expires_in: token.accessTokenExpiresAt
+        ? Math.round((token.accessTokenExpiresAt.getTime() - Date.now()) / 1000)
+        : undefined,
+      token_type: "Bearer",
+      // OAuth2 spec says that the scope should be a space-separated list.
+      scope: token.scope?.join(" "),
+    };
   }
-
-  ctx.body = {
-    access_token: token.accessToken,
-    refresh_token: token.refreshToken,
-    // OAuth2 spec says that the expires_in should be in seconds.
-    expires_in: token.accessTokenExpiresAt
-      ? Math.round((token.accessTokenExpiresAt.getTime() - Date.now()) / 1000)
-      : undefined,
-    token_type: "Bearer",
-    // OAuth2 spec says that the scope should be a space-separated list.
-    scope: token.scope?.join(" "),
-  };
-});
+);
 
 router.post(
   "/revoke",
-  rateLimiter(RateLimiterStrategy.FiftyPerHour),
+  rateLimiter(RateLimiterStrategy.OneHundredPerHour),
   validate(T.TokenRevokeSchema),
   transaction(),
   async (ctx: APIContext<T.TokenRevokeReq>) => {

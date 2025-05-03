@@ -103,6 +103,7 @@ function Authorize() {
     !redirectUri && "redirect_uri",
     !responseType && "response_type",
     !scope && "scope",
+    !state && "state",
   ].filter(Boolean);
 
   if (missingParams.length || clientError) {
