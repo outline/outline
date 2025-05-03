@@ -94,6 +94,9 @@ export default () =>
           modifyURLPrefix: {
             "": `${environment.CDN_URL ?? ""}/static/`,
           },
+          skipWaiting: true,
+          clientsClaim: true,
+          cleanupOutdatedCaches: true,
           runtimeCaching: [
             {
               urlPattern: /api\/urls\.unfurl$/,
@@ -106,6 +109,34 @@ export default () =>
                 },
                 cacheableResponse: {
                   statuses: [0, 200],
+                },
+              },
+            },
+            {
+              urlPattern: /api\/attachments\.redirect/,
+              handler: "CacheFirst",
+              options: {
+                cacheName: "attachments-redirect-cache",
+                expiration: {
+                  maxEntries: 100,
+                  maxAgeSeconds: 120, // 120 seconds
+                },
+                cacheableResponse: {
+                  statuses: [0, 200, 302], // Include redirects
+                },
+              },
+            },
+            {
+              urlPattern: /api\/files\.get/,
+              handler: "CacheFirst",
+              options: {
+                cacheName: "files-cache",
+                expiration: {
+                  maxEntries: 50,
+                  maxAgeSeconds: 604800, // 7 days
+                },
+                cacheableResponse: {
+                  statuses: [0, 200, 206], // Include partial content for range requests
                 },
               },
             },
