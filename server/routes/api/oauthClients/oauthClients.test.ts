@@ -148,6 +148,46 @@ describe("oauthClients.info", () => {
     expect(body.data.id).toBeUndefined();
     expect(body.data.redirectUris).toBeUndefined();
   });
+
+  it("should validate redirectUri parameter", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser();
+
+    const client = await OAuthClient.create({
+      teamId: team.id,
+      createdById: admin.id,
+      name: "Test Client",
+      redirectUris: [
+        "https://example.com/callback",
+        "https://another.com/callback",
+      ],
+      published: true,
+    });
+
+    // Test with valid redirectUri
+    const validRes = await server.post("/api/oauthClients.info", {
+      body: {
+        token: user.getJwtToken(),
+        clientId: client.clientId,
+        redirectUri: "https://example.com/callback",
+      },
+    });
+
+    const validBody = await validRes.json();
+    expect(validRes.status).toEqual(200);
+    expect(validBody.data.name).toEqual("Test Client");
+
+    // Test with invalid redirectUri
+    const invalidRes = await server.post("/api/oauthClients.info", {
+      body: {
+        token: user.getJwtToken(),
+        clientId: client.clientId,
+        redirectUri: "https://malicious.com/callback",
+      },
+    });
+    expect(invalidRes.status).toEqual(400);
+  });
 });
 
 describe("oauthClients.create", () => {

@@ -4,6 +4,7 @@ import styled from "styled-components";
 import Flex from "@shared/components/Flex";
 import { s } from "@shared/styles";
 import { parseDomain } from "@shared/utils/domains";
+import type OAuthClient from "~/models/oauth/OAuthClient";
 import ButtonLarge from "~/components/ButtonLarge";
 import ChangeLanguage from "~/components/ChangeLanguage";
 import Heading from "~/components/Heading";
@@ -16,6 +17,7 @@ import { useLoggedInSessions } from "~/hooks/useLoggedInSessions";
 import useQuery from "~/hooks/useQuery";
 import useRequest from "~/hooks/useRequest";
 import { client } from "~/utils/ApiClient";
+import { BadRequestError, NotFoundError } from "~/utils/errors";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { detectLanguage } from "~/utils/language";
 import Login from "./Login";
@@ -66,12 +68,17 @@ function Authorize() {
     scope,
   } = Object.fromEntries(params);
   const [scopes] = React.useState(() => scope?.split(" ") ?? []);
-  const { error: clientError, data: response } = useRequest(
-    () => client.post("/oauthClients.info", { clientId }),
-    true
-  );
+  const { error: clientError, data: response } = useRequest<{
+    data: OAuthClient;
+  }>(() => client.post("/oauthClients.info", { clientId, redirectUri }), true);
 
   const handleCancel = () => {
+    if (redirectUri && !clientError) {
+      const url = new URL(redirectUri);
+      url.searchParams.set("error", "access_denied");
+      window.location.href = url.toString();
+      return;
+    }
     if (window.history.length) {
       window.history.back();
     } else {
@@ -103,12 +110,19 @@ function Authorize() {
       <Background>
         <Centered>
           <StyledHeading>{t("An error occurred")}</StyledHeading>
-          {clientError ? (
+          {clientError instanceof NotFoundError ? (
             <Text as="p" type="secondary">
               {t(
                 "The OAuth client could not be found, please check the provided client ID"
               )}
               <Pre>{clientId}</Pre>
+            </Text>
+          ) : clientError instanceof BadRequestError ? (
+            <Text as="p" type="secondary">
+              {t(
+                "The OAuth client could not be loaded, please check the redirect URI is valid"
+              )}
+              <Pre>{redirectUri}</Pre>
             </Text>
           ) : (
             <Text as="p" type="secondary">

@@ -1,5 +1,6 @@
 import Router from "koa-router";
 import { UserRole } from "@shared/types";
+import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -49,7 +50,7 @@ router.post(
   auth(),
   validate(T.OAuthClientsInfoSchema),
   async (ctx: APIContext<T.OAuthClientsInfoReq>) => {
-    const { id, clientId } = ctx.input.body;
+    const { id, clientId, redirectUri } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const oauthClient = await OAuthClient.findOne({
@@ -57,6 +58,10 @@ router.post(
       rejectOnEmpty: true,
     });
     authorize(user, "read", oauthClient);
+
+    if (redirectUri && !oauthClient.redirectUris.includes(redirectUri)) {
+      throw ValidationError("redirect_uri is invalid");
+    }
 
     const isInternalApp = oauthClient.teamId === user.teamId;
 

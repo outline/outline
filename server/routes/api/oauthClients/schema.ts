@@ -10,6 +10,8 @@ export const OAuthClientsInfoSchema = BaseSchema.extend({
 
       /** OAuth clientId */
       clientId: z.string().optional(),
+
+      redirectUri: z.string().optional(),
     })
     .refine((data) => data.id || data.clientId, {
       message: "Either id or clientId is required",
