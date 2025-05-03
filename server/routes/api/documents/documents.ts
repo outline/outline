@@ -268,7 +268,7 @@ router.post(
     }
 
     const [documents, total] = await Promise.all([
-      Document.defaultScopeWithUser(user.id).findAll({
+      Document.withUserScope(user.id).findAll({
         where,
         order: [
           [
@@ -348,7 +348,7 @@ router.post(
       };
     }
 
-    const documents = await Document.defaultScopeWithUser(user.id).findAll({
+    const documents = await Document.withUserScope(user.id).findAll({
       where,
       order: [
         [
@@ -535,12 +535,14 @@ router.post(
       delete where.updatedAt;
     }
 
-    const documents = await Document.defaultScopeWithUser(user.id).findAll({
-      where,
-      order: [[sort, direction]],
-      offset: ctx.state.pagination.offset,
-      limit: ctx.state.pagination.limit,
-    });
+    const documents = await Document.withUserScope(user.id)
+      .scope("withDrafts")
+      .findAll({
+        where,
+        order: [[sort, direction]],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      });
     const data = await Promise.all(
       documents.map((document) => presentDocument(ctx, document))
     );
@@ -2029,7 +2031,7 @@ router.post(
     const collectionIds = await user.collectionIds({
       paranoid: false,
     });
-    const documents = await Document.defaultScopeWithUser(user.id).findAll({
+    const documents = await Document.scope("withDrafts").findAll({
       attributes: ["id"],
       where: {
         deletedAt: {

@@ -13,7 +13,6 @@ import {
   Transaction,
   Op,
   FindOptions,
-  ScopeOptions,
   WhereOptions,
   EmptyResultError,
 } from "sequelize";
@@ -633,14 +632,16 @@ class Document extends ArchivableModel<
     return uniq(membershipUserIds);
   }
 
-  static defaultScopeWithUser(userId: string) {
-    const viewScope: Readonly<ScopeOptions> = {
-      method: ["withViews", userId],
-    };
-    const membershipScope: Readonly<ScopeOptions> = {
-      method: ["withMembership", userId],
-    };
-    return this.scope(["defaultScope", viewScope, membershipScope]);
+  static withUserScope(userId: string, options?: FindOptions<Document>) {
+    return this.scope([
+      "defaultScope",
+      {
+        method: ["withViews", userId],
+      },
+      {
+        method: ["withMembership", userId, options?.paranoid],
+      },
+    ]);
   }
 
   /**
