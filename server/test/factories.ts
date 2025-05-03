@@ -756,15 +756,19 @@ export async function buildOAuthAuthorizationCode(
 }
 
 export async function buildOAuthAuthentication({
+  oauthClientId,
   user,
   scope,
 }: {
+  oauthClientId?: string;
   user: User;
   scope: string[];
 }) {
-  const oauthClient = await buildOAuthClient({
-    teamId: user.teamId,
-  });
+  const oauthClient = oauthClientId
+    ? await OAuthClient.findByPk(oauthClientId, { rejectOnEmpty: true })
+    : await buildOAuthClient({
+        teamId: user.teamId,
+      });
   const oauthInterfaceClient = {
     id: oauthClient.clientId,
     grants: ["authorization_code"],

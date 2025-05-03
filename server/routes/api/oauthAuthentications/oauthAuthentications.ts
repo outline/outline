@@ -66,12 +66,12 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.OAuthAuthenticationsDeleteReq>) => {
     const { user } = ctx.state.auth;
-    const { oauthClientId, scope } = ctx.request.body;
+    const { oauthClientId, scope } = ctx.input.body;
     const oauthAuthentications = await OAuthAuthentication.findAll({
       where: {
         userId: user.id,
         oauthClientId,
-        scope,
+        ...(scope ? { scope } : {}),
       },
       transaction: ctx.state.transaction,
     });

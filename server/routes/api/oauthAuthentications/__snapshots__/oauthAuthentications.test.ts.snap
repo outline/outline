@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`oauthAuthentications.delete should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;
+
+exports[`oauthAuthentications.list should require authentication 1`] = `
+{
+  "error": "authentication_required",
+  "message": "Authentication required",
+  "ok": false,
+  "status": 401,
+}
+`;

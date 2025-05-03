@@ -139,10 +139,12 @@ export const OAuthInterface: RefreshTokenModel &
   },
 
   async saveToken(token, client, user) {
-    const accessToken = token.accessToken;
-    const refreshToken = token.refreshToken;
-    const accessTokenExpiresAt = token.accessTokenExpiresAt;
-    const refreshTokenExpiresAt = token.refreshTokenExpiresAt;
+    const {
+      accessToken,
+      refreshToken,
+      accessTokenExpiresAt,
+      refreshTokenExpiresAt,
+    } = token;
     const accessTokenHash = hash(accessToken);
     const refreshTokenHash = refreshToken ? hash(refreshToken) : undefined;
 
