@@ -1,6 +1,7 @@
 import {
   ApiKey,
   GroupUser,
+  OAuthAuthentication,
   Star,
   Subscription,
   UserAuthentication,
@@ -41,6 +42,12 @@ export default class UserDeletedProcessor extends BaseProcessor {
         transaction,
       });
       await ApiKey.destroy({
+        where: {
+          userId: event.userId,
+        },
+        transaction,
+      });
+      await OAuthAuthentication.destroy({
         where: {
           userId: event.userId,
         },

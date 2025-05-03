@@ -12,7 +12,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import OrganizationMenu from "~/menus/OrganizationMenu";
+import TeamMenu from "~/menus/TeamMenu";
 import { homePath, searchPath } from "~/utils/routeHelpers";
 import TeamLogo from "../TeamLogo";
 import Tooltip from "../Tooltip";
@@ -62,7 +62,7 @@ function AppSidebar() {
         <DndProvider backend={HTML5Backend} options={html5Options}>
           <DragPlaceholder />
 
-          <OrganizationMenu>
+          <TeamMenu>
             {(props: SidebarButtonProps) => (
               <SidebarButton
                 {...props}
@@ -91,7 +91,7 @@ function AppSidebar() {
                 </Tooltip>
               </SidebarButton>
             )}
-          </OrganizationMenu>
+          </TeamMenu>
           <Overflow>
             <Section>
               <SidebarLink

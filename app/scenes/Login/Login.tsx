@@ -13,7 +13,6 @@ import { Config } from "~/stores/AuthStore";
 import { AvatarSize } from "~/components/Avatar";
 import ButtonLarge from "~/components/ButtonLarge";
 import ChangeLanguage from "~/components/ChangeLanguage";
-import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import OutlineIcon from "~/components/Icons/OutlineIcon";
@@ -30,21 +29,23 @@ import {
 } from "~/hooks/useLastVisitedPath";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
-import { draggableOnDesktop } from "~/styles";
 import Desktop from "~/utils/Desktop";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { detectLanguage } from "~/utils/language";
 import { homePath } from "~/utils/routeHelpers";
 import AuthenticationProvider from "./components/AuthenticationProvider";
-import BackButton from "./components/BackButton";
-import Notices from "./components/Notices";
+import { BackButton } from "./components/BackButton";
+import { Background } from "./components/Background";
+import { Centered } from "./components/Centered";
+import { Notices } from "./components/Notices";
 import { getRedirectUrl, navigateToSubdomain } from "./urls";
 
 type Props = {
   children?: (config?: Config) => React.ReactNode;
+  onBack?: () => void;
 };
 
-function Login({ children }: Props) {
+function Login({ children, onBack }: Props) {
   const location = useLocation();
   const query = useQuery();
   const notice = query.get("notice");
@@ -110,9 +111,9 @@ function Login({ children }: Props) {
   if (error) {
     return (
       <Background>
-        <BackButton />
+        <BackButton onBack={onBack} />
         <ChangeLanguage locale={detectLanguage()} />
-        <Centered align="center" justify="center" column auto>
+        <Centered>
           <PageTitle title={t("Login")} />
           <Heading centered>{t("Error")}</Heading>
           <Note>
@@ -142,9 +143,9 @@ function Login({ children }: Props) {
   if (isCloudHosted && isCustomDomain && !config.name) {
     return (
       <Background>
-        <BackButton config={config} />
+        <BackButton onBack={onBack} config={config} />
         <ChangeLanguage locale={detectLanguage()} />
-        <Centered align="center" justify="center" column auto>
+        <Centered>
           <PageTitle title={t("Custom domain setup")} />
           <Heading centered>{t("Almost there")}…</Heading>
           <Note>
@@ -160,17 +161,10 @@ function Login({ children }: Props) {
   if (Desktop.isElectron() && notice === "domain-required") {
     return (
       <Background>
-        <BackButton config={config} />
+        <BackButton onBack={onBack} config={config} />
         <ChangeLanguage locale={detectLanguage()} />
 
-        <Centered
-          as="form"
-          onSubmit={handleGoSubdomain}
-          align="center"
-          justify="center"
-          column
-          auto
-        >
+        <Centered as="form" onSubmit={handleGoSubdomain}>
           <Heading centered>{t("Choose workspace")}</Heading>
           <Note>
             {t(
@@ -206,8 +200,8 @@ function Login({ children }: Props) {
   if (emailLinkSentTo) {
     return (
       <Background>
-        <BackButton config={config} />
-        <Centered align="center" justify="center" column auto>
+        <BackButton onBack={onBack} config={config} />
+        <Centered>
           <PageTitle title={t("Check your email")} />
           <CheckEmailIcon size={38} />
           <Heading centered>{t("Check your email")}</Heading>
@@ -241,10 +235,10 @@ function Login({ children }: Props) {
 
   return (
     <Background>
-      <BackButton config={config} />
+      <BackButton onBack={onBack} config={config} />
       <ChangeLanguage locale={detectLanguage()} />
 
-      <Centered align="center" justify="center" gap={12} column auto>
+      <Centered gap={12}>
         <PageTitle
           title={config.name ? `${config.name} – ${t("Login")}` : t("Login")}
         />
@@ -336,14 +330,6 @@ const CheckEmailIcon = styled(EmailIcon)`
   margin-bottom: -1.5em;
 `;
 
-const Background = styled(Fade)`
-  width: 100vw;
-  height: 100%;
-  background: ${s("background")};
-  display: flex;
-  ${draggableOnDesktop()}
-`;
-
 const Logo = styled.div`
   margin-bottom: -4px;
 `;
@@ -387,14 +373,6 @@ const Or = styled.hr`
     border-radius: 2px;
     padding: 0 4px;
   }
-`;
-
-const Centered = styled(Flex)`
-  user-select: none;
-  width: 90vw;
-  height: 100%;
-  max-width: 320px;
-  margin: 0 auto;
 `;
 
 export default observer(Login);

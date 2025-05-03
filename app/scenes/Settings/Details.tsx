@@ -108,7 +108,16 @@ function Details() {
         toast.error(err.message);
       }
     },
-    [team, name, subdomain, defaultCollectionId, publicBranding, customTheme, t]
+    [
+      tocPosition,
+      team,
+      name,
+      subdomain,
+      defaultCollectionId,
+      publicBranding,
+      customTheme,
+      t,
+    ]
   );
 
   const handleNameChange = React.useCallback(

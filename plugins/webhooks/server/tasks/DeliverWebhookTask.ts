@@ -237,6 +237,11 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "imports.delete":
         // Ignored
         return;
+      case "oauthClients.create":
+      case "oauthClients.update":
+      case "oauthClients.delete":
+        // Ignored
+        return;
       default:
         assertUnreachable(event);
     }

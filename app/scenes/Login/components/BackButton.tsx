@@ -10,11 +10,20 @@ import isCloudHosted from "~/utils/isCloudHosted";
 
 type Props = {
   config?: Config;
+  onBack?: () => void;
 };
 
-export default function BackButton({ config }: Props) {
+export function BackButton({ onBack, config }: Props) {
   const { t } = useTranslation();
   const isSubdomain = !!config?.hostname;
+
+  if (onBack) {
+    return (
+      <Link onClick={onBack}>
+        <BackIcon /> {t("Back")}
+      </Link>
+    );
+  }
 
   if (!isCloudHosted || parseDomain(window.location.origin).custom) {
     return null;

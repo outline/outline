@@ -2,6 +2,7 @@ import "./bootstrap";
 import { Transaction } from "sequelize";
 import { ApiKey } from "@server/models";
 import { sequelize } from "@server/storage/database";
+import { hash } from "@server/utils/crypto";
 
 let page = parseInt(process.argv[2], 10);
 page = Number.isNaN(page) ? 0 : page;
@@ -25,7 +26,7 @@ export default async function main(exit = false, limit = 100) {
           if (!apiKey.hash) {
             console.log(`Migrating ${apiKey.id}…`);
             apiKey.value = apiKey.secret;
-            apiKey.hash = ApiKey.hash(apiKey.secret);
+            apiKey.hash = hash(apiKey.secret);
             // @ts-expect-error secret is deprecated
             apiKey.secret = null;
             await apiKey.save({ transaction });

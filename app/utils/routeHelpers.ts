@@ -27,8 +27,8 @@ export function trashPath(): string {
   return "/trash";
 }
 
-export function settingsPath(section?: string): string {
-  return "/settings" + (section ? `/${section}` : "");
+export function settingsPath(...args: string[]): string {
+  return "/settings" + (args.length > 0 ? `/${args.join("/")}` : "");
 }
 
 export function commentPath(document: Document, comment: Comment): string {

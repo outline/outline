@@ -43,8 +43,14 @@ import {
   Pin,
   Comment,
   Import,
+  OAuthAuthorizationCode,
+  OAuthClient,
+  AuthenticationProvider,
+  OAuthAuthentication,
 } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
+import { hash } from "@server/utils/crypto";
+import { OAuthInterface } from "@server/utils/oauth/OAuthInterface";
 
 export async function buildApiKey(overrides: Partial<ApiKey> = {}) {
   if (!overrides.userId) {
@@ -137,7 +143,11 @@ export async function buildSubscription(overrides: Partial<Subscription> = {}) {
   });
 }
 
-export function buildTeam(overrides: Record<string, any> = {}) {
+export function buildTeam(
+  overrides: Omit<Partial<Team>, "authenticationProviders"> & {
+    authenticationProviders?: Partial<AuthenticationProvider>[];
+  } = {}
+) {
   return Team.create(
     {
       name: faker.company.name(),
@@ -689,6 +699,106 @@ export async function buildPin(overrides: Partial<Pin> = {}): Promise<Pin> {
   }
 
   return Pin.create(overrides);
+}
+
+export async function buildOAuthClient(overrides: Partial<OAuthClient> = {}) {
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
+  if (!overrides.createdById) {
+    const user = await buildUser({
+      teamId: overrides.teamId,
+    });
+    overrides.createdById = user.id;
+  }
+
+  return OAuthClient.create({
+    name: faker.company.name(),
+    description: faker.lorem.paragraph(),
+    redirectUris: ["https://example.com/oauth/callback"],
+    published: true,
+    ...overrides,
+  });
+}
+
+export async function buildOAuthAuthorizationCode(
+  overrides: Partial<OAuthAuthorizationCode> = {}
+) {
+  if (!overrides.userId) {
+    const user = await buildUser();
+    overrides.userId = user.id;
+  }
+
+  if (!overrides.expiresAt) {
+    overrides.expiresAt = new Date();
+  }
+
+  const code = randomstring.generate(32);
+
+  let client;
+  if (overrides.oauthClientId) {
+    client = await OAuthClient.findByPk(overrides.oauthClientId, {
+      rejectOnEmpty: true,
+    });
+  } else {
+    client = await buildOAuthClient();
+    overrides.oauthClientId = client.id;
+  }
+
+  return OAuthAuthorizationCode.create({
+    authorizationCodeHash: hash(code),
+    scope: ["read"],
+    redirectUri: client.redirectUris[0],
+    ...overrides,
+  });
+}
+
+export async function buildOAuthAuthentication({
+  oauthClientId,
+  user,
+  scope,
+}: {
+  oauthClientId?: string;
+  user: User;
+  scope: string[];
+}) {
+  const oauthClient = oauthClientId
+    ? await OAuthClient.findByPk(oauthClientId, { rejectOnEmpty: true })
+    : await buildOAuthClient({
+        teamId: user.teamId,
+      });
+  const oauthInterfaceClient = {
+    id: oauthClient.clientId,
+    grants: ["authorization_code"],
+    redirectUris: ["https://example.com/oauth/callback"],
+  };
+  const oauthInterfaceUser = {
+    id: user.id,
+  };
+
+  const accessToken = await OAuthInterface.generateAccessToken(
+    oauthInterfaceClient,
+    oauthInterfaceUser,
+    scope
+  );
+  const refreshToken = await OAuthInterface.generateRefreshToken(
+    oauthInterfaceClient,
+    oauthInterfaceUser,
+    scope
+  );
+  return OAuthAuthentication.create({
+    userId: user.id,
+    oauthClientId: oauthClient.id,
+    accessToken,
+    accessTokenHash: hash(accessToken),
+    accessTokenExpiresAt: new Date(Date.now() + 1000 * 60 * 60),
+    refreshToken,
+    refreshTokenHash: hash(refreshToken),
+    refreshTokenExpiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
+    scope,
+  });
 }
 
 export function buildProseMirrorDoc(content: DeepPartial<ProsemirrorData>[]) {

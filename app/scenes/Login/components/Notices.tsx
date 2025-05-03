@@ -123,7 +123,7 @@ function Message({ notice }: { notice: string }) {
   }
 }
 
-export default function Notices() {
+export function Notices() {
   const query = useQuery();
   const notice = query.get("notice");
 

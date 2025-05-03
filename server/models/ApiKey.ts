@@ -1,4 +1,3 @@
-import crypto from "crypto";
 import { Matches } from "class-validator";
 import { subMinutes } from "date-fns";
 import randomstring from "randomstring";
@@ -16,10 +15,12 @@ import {
   BeforeSave,
 } from "sequelize-typescript";
 import { ApiKeyValidation } from "@shared/validations";
+import { hash } from "@server/utils/crypto";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import { SkipChangeset } from "./decorators/Changeset";
 import Fix from "./decorators/Fix";
+import AuthenticationHelper from "./helpers/AuthenticationHelper";
 import Length from "./validators/Length";
 
 @Table({ tableName: "apiKeys", modelName: "apiKey" })
@@ -41,7 +42,7 @@ class ApiKey extends ParanoidModel<
   @Column
   name: string;
 
-  /** A space-separated list of scopes that this API key has access to */
+  /** A list of scopes that this API key has access to */
   @Matches(/[\/\.\w\s]*/, {
     each: true,
   })
@@ -96,7 +97,7 @@ class ApiKey extends ParanoidModel<
     if (!model.hash) {
       const secret = `${ApiKey.prefix}${randomstring.generate(38)}`;
       model.value = model.secret || secret;
-      model.hash = this.hash(model.value);
+      model.hash = hash(model.value);
     }
   }
 
@@ -109,18 +110,8 @@ class ApiKey extends ParanoidModel<
   }
 
   /**
-   * Generates a hashed API key for the given input key.
-   *
-   * @param key The input string to hash
-   * @returns The hashed API key
-   */
-  public static hash(key: string) {
-    return crypto.createHash("sha256").update(key).digest("hex");
-  }
-
-  /**
-   * Validates that the input touch could be an API key, this does not check
-   * that the key exists in the database.
+   * Validates that the input text _could_ be an API key, this does not check
+   * that the key actually exists in the database.
    *
    * @param text The text to validate
    * @returns True if likely an API key
@@ -140,7 +131,7 @@ class ApiKey extends ParanoidModel<
   public static findByToken(input: string) {
     return this.findOne({
       where: {
-        [Op.or]: [{ secret: input }, { hash: this.hash(input) }],
+        [Op.or]: [{ secret: input }, { hash: hash(input) }],
       },
     });
   }
@@ -174,22 +165,7 @@ class ApiKey extends ParanoidModel<
       return true;
     }
 
-    // strip any query string from the path
-    path = path.split("?")[0];
-
-    const resource = path.split("/").pop() ?? "";
-    const [namespace, method] = resource.split(".");
-
-    return this.scope.some((scope) => {
-      const [scopeNamespace, scopeMethod] = scope
-        .replace("/api/", "")
-        .split(".");
-      return (
-        scope.startsWith("/api/") &&
-        (namespace === scopeNamespace || scopeNamespace === "*") &&
-        (method === scopeMethod || scopeMethod === "*")
-      );
-    });
+    return AuthenticationHelper.canAccess(path, this.scope);
   };
 }
 

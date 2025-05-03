@@ -6,14 +6,15 @@ import FullscreenLoading from "~/components/FullscreenLoading";
 import Route from "~/components/ProfiledRoute";
 import env from "~/env";
 import useQueryNotices from "~/hooks/useQueryNotices";
-import lazyWithRetry from "~/utils/lazyWithRetry";
+import lazy from "~/utils/lazyWithRetry";
 import { matchDocumentSlug as slug } from "~/utils/routeHelpers";
 
-const Authenticated = lazyWithRetry(() => import("~/components/Authenticated"));
-const AuthenticatedRoutes = lazyWithRetry(() => import("./authenticated"));
-const SharedDocument = lazyWithRetry(() => import("~/scenes/Document/Shared"));
-const Login = lazyWithRetry(() => import("~/scenes/Login"));
-const Logout = lazyWithRetry(() => import("~/scenes/Logout"));
+const Authenticated = lazy(() => import("~/components/Authenticated"));
+const AuthenticatedRoutes = lazy(() => import("./authenticated"));
+const SharedDocument = lazy(() => import("~/scenes/Document/Shared"));
+const Login = lazy(() => import("~/scenes/Login"));
+const Logout = lazy(() => import("~/scenes/Logout"));
+const OAuthAuthorize = lazy(() => import("~/scenes/Login/OAuthAuthorize"));
 
 export default function Routes() {
   useQueryNotices();
@@ -43,6 +44,7 @@ export default function Routes() {
           <Route exact path="/create" component={Login} />
           <Route exact path="/logout" component={Logout} />
           <Route exact path="/desktop-redirect" component={DesktopRedirect} />
+          <Route exact path="/oauth/authorize" component={OAuthAuthorize} />
 
           <Redirect exact from="/share/:shareId" to="/s/:shareId" />
           <Route exact path="/s/:shareId" component={SharedDocument} />

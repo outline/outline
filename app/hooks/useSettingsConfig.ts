@@ -13,6 +13,7 @@ import {
   ImportIcon,
   ShapesIcon,
   Icon,
+  InternetIcon,
 } from "outline-icons";
 import React, { ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
@@ -28,7 +29,8 @@ import useCurrentUser from "./useCurrentUser";
 import usePolicy from "./usePolicy";
 
 const ApiKeys = lazy(() => import("~/scenes/Settings/ApiKeys"));
-const PersonalApiKeys = lazy(() => import("~/scenes/Settings/PersonalApiKeys"));
+const Applications = lazy(() => import("~/scenes/Settings/Applications"));
+const APIAndApps = lazy(() => import("~/scenes/Settings/APIAndApps"));
 const Details = lazy(() => import("~/scenes/Settings/Details"));
 const Export = lazy(() => import("~/scenes/Settings/Export"));
 const Features = lazy(() => import("~/scenes/Settings/Features"));
@@ -86,12 +88,12 @@ const useSettingsConfig = () => {
         icon: EmailIcon,
       },
       {
-        name: t("API Keys"),
-        path: settingsPath("personal-api-keys"),
-        component: PersonalApiKeys,
-        enabled: can.createApiKey && !can.listApiKeys,
+        name: t("API & Apps"),
+        path: settingsPath("api-and-apps"),
+        component: APIAndApps,
+        enabled: true,
         group: t("Account"),
-        icon: CodeIcon,
+        icon: PadlockIcon,
       },
       // Workspace
       {
@@ -149,6 +151,14 @@ const useSettingsConfig = () => {
         enabled: can.listApiKeys,
         group: t("Workspace"),
         icon: CodeIcon,
+      },
+      {
+        name: t("Applications"),
+        path: settingsPath("applications"),
+        component: Applications,
+        enabled: can.listOAuthClients,
+        group: t("Workspace"),
+        icon: InternetIcon,
       },
       {
         name: t("Shared Links"),

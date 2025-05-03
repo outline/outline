@@ -13,6 +13,11 @@ export enum AvatarSize {
   Upload = 64,
 }
 
+export enum AvatarVariant {
+  Round = "round",
+  Square = "square",
+}
+
 export interface IAvatar {
   avatarUrl: string | null;
   color?: string;
@@ -23,6 +28,8 @@ export interface IAvatar {
 type Props = {
   /** The size of the avatar */
   size: AvatarSize;
+  /** The variant of the avatar */
+  variant?: AvatarVariant;
   /** The source of the avatar image, if not passing a model. */
   src?: string;
   /** The avatar model, if not passing a source. */
@@ -38,14 +45,14 @@ type Props = {
 };
 
 function Avatar(props: Props) {
-  const { model, style, ...rest } = props;
+  const { model, style, variant = AvatarVariant.Round, ...rest } = props;
   const src = props.src || model?.avatarUrl;
   const [error, handleError] = useBoolean(false);
 
   return (
-    <Relative style={style}>
+    <Relative style={style} $variant={variant} $size={props.size}>
       {src && !error ? (
-        <CircleImg onError={handleError} src={src} {...rest} />
+        <Image onError={handleError} src={src} {...rest} />
       ) : model ? (
         <Initials color={model.color} {...rest}>
           {model.initial}
@@ -61,19 +68,19 @@ Avatar.defaultProps = {
   size: AvatarSize.Medium,
 };
 
-const Relative = styled.div`
+const Relative = styled.div<{ $variant: AvatarVariant; $size: AvatarSize }>`
   position: relative;
   user-select: none;
   flex-shrink: 0;
+  border-radius: ${(props) =>
+    props.$variant === AvatarVariant.Round ? "50%" : `${props.$size / 8}px`};
+  overflow: hidden;
 `;
 
-const CircleImg = styled.img<{ size: number }>`
+const Image = styled.img<{ size: number }>`
   display: block;
   width: ${(props) => props.size}px;
   height: ${(props) => props.size}px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  overflow: hidden;
 `;
 
 export default Avatar;

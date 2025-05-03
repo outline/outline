@@ -1,8 +1,8 @@
 import { Context, Next } from "koa";
 import { addTags, getRootSpanFromRequestContext } from "@server/logging/tracer";
 
-export default function apiTracer() {
-  return async function apiTracerMiddleware(ctx: Context, next: Next) {
+export default function requestTracer() {
+  return async function requestTracerMiddleware(ctx: Context, next: Next) {
     const params = ctx.request.body ?? ctx.request.query;
 
     for (const key in params) {

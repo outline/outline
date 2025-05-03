@@ -7,6 +7,7 @@ import useSettingsConfig from "~/hooks/useSettingsConfig";
 import lazy from "~/utils/lazyWithRetry";
 import { matchDocumentSlug, settingsPath } from "~/utils/routeHelpers";
 
+const Application = lazy(() => import("~/scenes/Settings/Application"));
 const Document = lazy(() => import("~/scenes/Document"));
 
 export default function SettingsRoutes() {
@@ -22,6 +23,12 @@ export default function SettingsRoutes() {
           component={config.component}
         />
       ))}
+      {/* TODO: Refactor these exceptions into config? */}
+      <Route
+        exact
+        path={`${settingsPath("applications")}/:id`}
+        component={Application}
+      />
       <Route
         exact
         path={`${settingsPath("templates")}/${matchDocumentSlug}`}
