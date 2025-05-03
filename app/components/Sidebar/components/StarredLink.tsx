@@ -38,10 +38,10 @@ function StarredLink({ star }: Props) {
   const { ui, collections, documents } = useStores();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const { documentId, collectionId } = star;
-  const collection = collections.get(collectionId);
+  const collection = collectionId ? collections.get(collectionId) : undefined;
   const locationSidebarContext = useLocationSidebarContext();
   const sidebarContext = starredSidebarContext(
-    star.documentId ?? star.collectionId
+    star.documentId ?? star.collectionId ?? ""
   );
   const [expanded, setExpanded] = useState(
     (star.documentId

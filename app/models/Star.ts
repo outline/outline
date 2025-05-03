@@ -22,7 +22,7 @@ class Star extends Model {
   document?: Document;
 
   /** The collection ID that is starred. */
-  collectionId: string;
+  collectionId?: string;
 
   /** The collection that is starred. */
   @Relation(() => Collection, { onDelete: "cascade" })
