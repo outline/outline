@@ -99,10 +99,7 @@ export const getDocumentPermission = async ({
   documentId: string;
   skipMembershipId?: string;
 }): Promise<DocumentPermission | undefined> => {
-  const document = await Document.scope({
-    method: ["withCollectionPermissions", userId],
-  }).findOne({ where: { id: documentId } });
-
+  const document = await Document.findByPk(documentId, { userId });
   const permissions: DocumentPermission[] = [];
 
   const collection = document?.collection;

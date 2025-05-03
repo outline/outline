@@ -66,7 +66,6 @@ const CollectionScene = observer(function _CollectionScene() {
   const location = useLocation();
   const { t } = useTranslation();
   const { documents, collections, ui } = useStores();
-  const [isFetching, setFetching] = React.useState(false);
   const [error, setError] = React.useState<Error | undefined>();
   const currentPath = location.pathname;
   const [, setLastVisitedPath] = useLastVisitedPath();
@@ -120,21 +119,16 @@ const CollectionScene = observer(function _CollectionScene() {
 
   React.useEffect(() => {
     async function fetchData() {
-      if ((!can || !collection) && !error && !isFetching) {
-        try {
-          setError(undefined);
-          setFetching(true);
-          await collections.fetch(id);
-        } catch (err) {
-          setError(err);
-        } finally {
-          setFetching(false);
-        }
+      try {
+        setError(undefined);
+        await collections.fetch(id);
+      } catch (err) {
+        setError(err);
       }
     }
 
     void fetchData();
-  }, [collections, isFetching, collection, error, id, can]);
+  }, []);
 
   useCommandBarActions([editCollection], [ui.activeCollectionId ?? "none"]);
 

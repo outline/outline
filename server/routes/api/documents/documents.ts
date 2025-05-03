@@ -268,7 +268,7 @@ router.post(
     }
 
     const [documents, total] = await Promise.all([
-      Document.defaultScopeWithUser(user.id).findAll({
+      Document.withMembershipScope(user.id).findAll({
         where,
         order: [
           [
@@ -348,7 +348,7 @@ router.post(
       };
     }
 
-    const documents = await Document.defaultScopeWithUser(user.id).findAll({
+    const documents = await Document.withMembershipScope(user.id).findAll({
       where,
       order: [
         [
@@ -397,15 +397,11 @@ router.post(
     const membershipScope: Readonly<ScopeOptions> = {
       method: ["withMembership", user.id],
     };
-    const collectionScope: Readonly<ScopeOptions> = {
-      method: ["withCollectionPermissions", user.id],
-    };
     const viewScope: Readonly<ScopeOptions> = {
       method: ["withViews", user.id],
     };
     const documents = await Document.scope([
       membershipScope,
-      collectionScope,
       viewScope,
       "withDrafts",
     ]).findAll({
@@ -539,12 +535,14 @@ router.post(
       delete where.updatedAt;
     }
 
-    const documents = await Document.defaultScopeWithUser(user.id).findAll({
-      where,
-      order: [[sort, direction]],
-      offset: ctx.state.pagination.offset,
-      limit: ctx.state.pagination.limit,
-    });
+    const documents = await Document.withMembershipScope(user.id)
+      .scope("withDrafts")
+      .findAll({
+        where,
+        order: [[sort, direction]],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      });
     const data = await Promise.all(
       documents.map((document) => presentDocument(ctx, document))
     );
@@ -2033,13 +2031,7 @@ router.post(
     const collectionIds = await user.collectionIds({
       paranoid: false,
     });
-    const collectionScope: Readonly<ScopeOptions> = {
-      method: ["withCollectionPermissions", user.id],
-    };
-    const documents = await Document.scope([
-      collectionScope,
-      "withDrafts",
-    ]).findAll({
+    const documents = await Document.scope("withDrafts").findAll({
       attributes: ["id"],
       where: {
         deletedAt: {
