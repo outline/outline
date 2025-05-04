@@ -634,21 +634,17 @@ class Document extends ArchivableModel<
 
   static withMembershipScope(
     userId: string,
-    scopeOrOptions?: string[] | FindOptions<Document>,
-    opts?: FindOptions<Document>
+    options?: FindOptions<Document> & { includeDrafts?: boolean }
   ) {
-    const scopes = Array.isArray(scopeOrOptions) ? scopeOrOptions : [];
-    const options = Array.isArray(scopeOrOptions) ? opts : scopeOrOptions;
-
     return this.scope([
-      "defaultScope",
+      options?.includeDrafts ? "withDrafts" : "defaultScope",
+      "withoutState",
       {
         method: ["withViews", userId],
       },
       {
         method: ["withMembership", userId, options?.paranoid],
       },
-      ...scopes,
     ]);
   }
 
