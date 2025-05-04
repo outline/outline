@@ -535,14 +535,14 @@ router.post(
       delete where.updatedAt;
     }
 
-    const documents = await Document.withMembershipScope(user.id)
-      .scope("withDrafts")
-      .findAll({
-        where,
-        order: [[sort, direction]],
-        offset: ctx.state.pagination.offset,
-        limit: ctx.state.pagination.limit,
-      });
+    const documents = await Document.withMembershipScope(user.id, [
+      "withDrafts",
+    ]).findAll({
+      where,
+      order: [[sort, direction]],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    });
     const data = await Promise.all(
       documents.map((document) => presentDocument(ctx, document))
     );
