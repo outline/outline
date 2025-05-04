@@ -58,13 +58,13 @@ router.post(
     const documentIds = memberships
       .map((p) => p.documentId)
       .filter(Boolean) as string[];
-    const documents = await Document.withMembershipScope(userId)
-      .scope("withDrafts")
-      .findAll({
-        where: {
-          id: documentIds,
-        },
-      });
+    const documents = await Document.withMembershipScope(userId, [
+      "withDrafts",
+    ]).findAll({
+      where: {
+        id: documentIds,
+      },
+    });
 
     const groups = uniqBy(
       memberships.map((membership) => membership.group),

@@ -632,7 +632,14 @@ class Document extends ArchivableModel<
     return uniq(membershipUserIds);
   }
 
-  static withMembershipScope(userId: string, options?: FindOptions<Document>) {
+  static withMembershipScope(
+    userId: string,
+    scopeOrOptions?: string[] | FindOptions<Document>,
+    opts?: FindOptions<Document>
+  ) {
+    const scopes = Array.isArray(scopeOrOptions) ? scopeOrOptions : [];
+    const options = Array.isArray(scopeOrOptions) ? opts : scopeOrOptions;
+
     return this.scope([
       "defaultScope",
       {
@@ -641,6 +648,7 @@ class Document extends ArchivableModel<
       {
         method: ["withMembership", userId, options?.paranoid],
       },
+      ...scopes,
     ]);
   }
 
