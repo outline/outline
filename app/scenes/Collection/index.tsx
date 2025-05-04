@@ -20,7 +20,6 @@ import Collection from "~/models/Collection";
 import { Action } from "~/components/Actions";
 import CenteredContent from "~/components/CenteredContent";
 import { CollectionBreadcrumb } from "~/components/CollectionBreadcrumb";
-import CollectionDescription from "~/components/CollectionDescription";
 import Heading from "~/components/Heading";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import InputSearchPage from "~/components/InputSearchPage";
@@ -46,6 +45,7 @@ import DropToImport from "./components/DropToImport";
 import Empty from "./components/Empty";
 import MembershipPreview from "./components/MembershipPreview";
 import Notices from "./components/Notices";
+import Overview from "./components/Overview";
 import ShareButton from "./components/ShareButton";
 
 const IconPicker = React.lazy(() => import("~/components/IconPicker"));
@@ -259,7 +259,7 @@ const CollectionScene = observer(function _CollectionScene() {
                 path={collectionPath(collection.path, CollectionPath.Overview)}
               >
                 {hasOverview ? (
-                  <CollectionDescription collection={collection} />
+                  <Overview collection={collection} />
                 ) : (
                   <Redirect
                     to={{
