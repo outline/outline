@@ -6,15 +6,18 @@ import { toast } from "sonner";
 import styled from "styled-components";
 import { richExtensions } from "@shared/editor/nodes";
 import { s } from "@shared/styles";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { CollectionValidation } from "@shared/validations";
 import Collection from "~/models/Collection";
+import Document from "~/models/Document";
 import Editor from "~/components/Editor";
 import LoadingIndicator from "~/components/LoadingIndicator";
+import Text from "~/components/Text";
 import { withUIExtensions } from "~/editor/extensions";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import Text from "./Text";
+import { Properties } from "~/types";
 
 const extensions = withUIExtensions(richExtensions);
 
@@ -22,8 +25,8 @@ type Props = {
   collection: Collection;
 };
 
-function CollectionDescription({ collection }: Props) {
-  const { collections } = useStores();
+function Overview({ collection }: Props) {
+  const { documents, collections } = useStores();
   const { t } = useTranslation();
   const user = useCurrentUser({ rejectOnEmpty: true });
   const can = usePolicy(collection);
@@ -54,6 +57,24 @@ function CollectionDescription({ collection }: Props) {
     [childOffsetHeight]
   );
 
+  const onCreateLink = React.useCallback(
+    async (params: Properties<Document>) => {
+      const newDocument = await documents.create(
+        {
+          collectionId: collection.id,
+          data: ProsemirrorHelper.getEmptyDocument(),
+          ...params,
+        },
+        {
+          publish: true,
+        }
+      );
+
+      return newDocument.url;
+    },
+    [collection, documents]
+  );
+
   return (
     <>
       {collections.isSaving && <LoadingIndicator />}
@@ -65,6 +86,7 @@ function CollectionDescription({ collection }: Props) {
             placeholder={`${t("Add a description")}…`}
             extensions={extensions}
             maxLength={CollectionValidation.maxDescriptionLength}
+            onCreateLink={onCreateLink}
             canUpdate={can.update}
             readOnly={!can.update}
             userId={user.id}
@@ -83,4 +105,4 @@ const Placeholder = styled(Text)`
   min-height: 27px;
 `;
 
-export default observer(CollectionDescription);
+export default observer(Overview);
