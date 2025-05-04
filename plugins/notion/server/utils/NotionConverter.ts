@@ -288,7 +288,7 @@ export class NotionConverter {
       if (item.mention.type === "link_mention") {
         return {
           type: "text",
-          text: item.plain_text,
+          text: item.plain_text || item.mention.link_mention.href,
           marks: [
             {
               type: "link",
@@ -302,7 +302,7 @@ export class NotionConverter {
       if (item.mention.type === "link_preview") {
         return {
           type: "text",
-          text: item.plain_text,
+          text: item.plain_text || item.mention.link_preview.url,
           marks: [
             {
               type: "link",
@@ -314,14 +314,14 @@ export class NotionConverter {
         };
       }
 
-      if (!item.plain_text) {
-        return undefined;
+      if (item.plain_text) {
+        return {
+          type: "text",
+          text: item.plain_text,
+        };
       }
 
-      return {
-        type: "text",
-        text: item.plain_text,
-      };
+      return undefined;
     }
 
     if (item.type === "equation") {
@@ -336,20 +336,20 @@ export class NotionConverter {
       };
     }
 
-    if (!item.text.content) {
-      return undefined;
+    if (item.text.content) {
+      return {
+        type: "text",
+        text: item.text.content,
+        marks: [
+          ...mapAttrs(),
+          ...(item.text.link
+            ? [{ type: "link", attrs: { href: item.text.link.url } }]
+            : []),
+        ].filter(Boolean),
+      };
     }
 
-    return {
-      type: "text",
-      text: item.text.content,
-      marks: [
-        ...mapAttrs(),
-        ...(item.text.link
-          ? [{ type: "link", attrs: { href: item.text.link.url } }]
-          : []),
-      ].filter(Boolean),
-    };
+    return undefined;
   }
 
   private static rich_text_to_plaintext(item: RichTextItemResponse) {
