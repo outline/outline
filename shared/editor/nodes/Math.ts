@@ -6,12 +6,6 @@ import {
 } from "@benrbray/prosemirror-math";
 import { PluginSimple } from "markdown-it";
 import {
-  chainCommands,
-  deleteSelection,
-  selectNodeBackward,
-  joinBackward,
-} from "prosemirror-commands";
-import {
   NodeSpec,
   NodeType,
   Schema,
@@ -51,12 +45,7 @@ export default class Math extends Node {
   keys({ type }: { type: NodeType }) {
     return {
       "Mod-Space": insertMathCmd(type),
-      Backspace: chainCommands(
-        deleteSelection,
-        mathBackspaceCmd,
-        joinBackward,
-        selectNodeBackward
-      ),
+      Backspace: mathBackspaceCmd,
     };
   }
 

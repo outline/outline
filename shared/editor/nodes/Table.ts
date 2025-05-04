@@ -24,8 +24,10 @@ import {
   setTableAttr,
   deleteColSelection,
   deleteRowSelection,
+  deleteCellSelection,
   moveOutOfTable,
   createTableInner,
+  deleteTableIfSelected,
 } from "../commands/table";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { FixTablesPlugin } from "../plugins/FixTables";
@@ -96,8 +98,16 @@ export default class Table extends Node {
       "Shift-Tab": goToNextCell(-1),
       "Mod-Enter": addRowAndMoveSelection(),
       "Mod-Backspace": chainCommands(
+        deleteCellSelection,
         deleteColSelection(),
-        deleteRowSelection()
+        deleteRowSelection(),
+        deleteTableIfSelected()
+      ),
+      Backspace: chainCommands(
+        deleteCellSelection,
+        deleteColSelection(),
+        deleteRowSelection(),
+        deleteTableIfSelected()
       ),
       ArrowDown: moveOutOfTable(1),
       ArrowUp: moveOutOfTable(-1),
