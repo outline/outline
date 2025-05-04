@@ -535,9 +535,9 @@ router.post(
       delete where.updatedAt;
     }
 
-    const documents = await Document.withMembershipScope(user.id, [
-      "withDrafts",
-    ]).findAll({
+    const documents = await Document.withMembershipScope(user.id, {
+      includeDrafts: true,
+    }).findAll({
       where,
       order: [[sort, direction]],
       offset: ctx.state.pagination.offset,
