@@ -1,5 +1,10 @@
+import concat from "lodash/concat";
+import filter from "lodash/filter";
+import flatten from "lodash/flatten";
+import forEach from "lodash/forEach";
 import isEmpty from "lodash/isEmpty";
 import isNil from "lodash/isNil";
+import map from "lodash/map";
 import some from "lodash/some";
 import {
   chainCommands,
@@ -70,54 +75,108 @@ export default class ToggleBlock extends Node {
   }
 
   get plugins() {
+    const initPlugin = new Plugin({
+      state: {
+        init: () => {
+          initPlugin.spec.docLoaded = false;
+          return null;
+        },
+        apply: (_, value) => value,
+      },
+      appendTransaction: (transactions, _oldState, newState) => {
+        const docChanged = transactions.some(
+          (transaction) => transaction.docChanged
+        );
+        let tr = newState.tr;
+
+        if (docChanged) {
+          // detect toggle blocks(newly created) with missing id
+          // and assign them a new id
+          forEach(
+            filter(
+              findBlockNodes(tr.doc, true),
+              (block) =>
+                block.node.type.name === this.name && !block.node.attrs.id
+            ),
+            (toggleBlock) => {
+              tr = tr.setNodeAttribute(toggleBlock.pos, "id", v4());
+            }
+          );
+        }
+
+        // mark the newly created toggle blocks as folded
+        forEach(
+          filter(
+            findBlockNodes(tr.doc, true),
+            (block) => block.node.type.name === this.name
+          ),
+          (toggleBlock) => {
+            const key = `${toggleBlock.node.attrs.id}:${this.editor.props.userId}`;
+            const foldState = Storage.get(key);
+            if (isNil(foldState)) {
+              Storage.set(key, { fold: true });
+            }
+          }
+        );
+
+        if (!initPlugin.spec.docLoaded) {
+          tr.setMeta(ToggleBlock.pluginKey, {
+            type: Action.INIT,
+          });
+          initPlugin.spec.docLoaded = true;
+        }
+
+        return tr;
+      },
+    });
     const foldPlugin: Plugin<DecorationSet> = new Plugin({
       key: ToggleBlock.pluginKey,
       state: {
-        init: () => {
-          foldPlugin.spec.initialDecorationsLoaded = false;
-          return DecorationSet.empty;
-        },
+        init: () => DecorationSet.empty,
         apply: (tr, value) => {
-          const decosToRestore: Decoration[] = [];
+          let decosToRestore: Decoration[] = [];
           value = value.map(tr.mapping, tr.doc, {
             onRemove: (decorationSpec) => {
-              if (
-                decorationSpec &&
-                "target" in decorationSpec &&
-                decorationSpec.target.startsWith(this.name)
-              ) {
-                const toggleBlock = findBlockNodes(tr.doc, true).find(
-                  (block) =>
-                    block.node.type.name === this.name &&
-                    block.node.attrs.id === decorationSpec.nodeId
-                );
-                if (!isNil(toggleBlock)) {
-                  if (decorationSpec.target === this.name) {
-                    const start = toggleBlock.pos;
-                    const end = toggleBlock.pos + toggleBlock.node.nodeSize;
-                    decosToRestore.push(
-                      Decoration.node(start, end, {}, decorationSpec)
-                    );
-                  } else {
-                    const start = toggleBlock.pos + 1;
-                    const end = start + toggleBlock.node.firstChild!.nodeSize;
-                    decosToRestore.push(
-                      Decoration.node(
-                        start,
-                        end,
+              const toggleBlock =
+                decorationSpec && "nodeId" in decorationSpec
+                  ? findBlockNodes(tr.doc, true).find(
+                      (block) =>
+                        block.node.type.name === this.name &&
+                        block.node.attrs.id === decorationSpec.nodeId
+                    )
+                  : undefined;
+
+              decosToRestore = filter(
+                concat(
+                  decosToRestore,
+                  isNil(toggleBlock)
+                    ? undefined
+                    : decorationSpec.target === this.name
+                    ? Decoration.node(
+                        toggleBlock.pos,
+                        toggleBlock.pos + toggleBlock.node.nodeSize,
+                        {},
+                        decorationSpec
+                      )
+                    : Decoration.node(
+                        toggleBlock.pos + 1,
+                        toggleBlock.pos +
+                          1 +
+                          toggleBlock.node.firstChild!.nodeSize,
                         {
                           nodeName: "div",
                           class: "toggle-block-head",
                         },
                         decorationSpec
                       )
-                    );
-                  }
-                } else {
-                  const key = `${decorationSpec.nodeId}:${this.editor.props.userId}`;
-                  Storage.remove(key);
-                }
-              }
+                ),
+                (deco) => !isNil(deco)
+              );
+
+              isNil(toggleBlock) &&
+                Storage.remove(
+                  `${decorationSpec.nodeId}:${this.editor.props.userId}`
+                );
             },
           });
 
@@ -128,187 +187,148 @@ export default class ToggleBlock extends Node {
           const action = tr.getMeta(ToggleBlock.pluginKey);
           if (action) {
             if (action.type === Action.CHANGE) {
-              const decosToRemove = value.find(
-                undefined,
-                undefined,
-                (spec) => spec.target === `${this.name}>:firstChild`
-              );
-              value = value.remove(decosToRemove);
-
-              const decosToApply = [];
-              const toggleBlocks = findBlockNodes(tr.doc, true).filter(
-                (block) => block.node.type.name === this.name
-              );
-              for (const toggleBlock of toggleBlocks) {
-                const toggleBlockStart = toggleBlock.pos;
-                const toggleBlockEnd =
-                  toggleBlockStart + toggleBlock.node.nodeSize;
-                const decoOnToggleBlockExists =
+              value = value
+                .remove(
                   value.find(
-                    toggleBlockStart,
-                    toggleBlockEnd,
+                    undefined,
+                    undefined,
                     (spec) =>
-                      spec.nodeId === toggleBlock.node.attrs.id &&
+                      spec.target === `${this.name}>:firstChild` ||
                       spec.target === this.name
-                  ).length > 0;
-                if (!decoOnToggleBlockExists) {
-                  const key = `${toggleBlock.node.attrs.id}:${this.editor.props.userId}`;
-                  const foldState = Storage.get(key);
-                  if (isNil(foldState)) {
-                    decosToApply.push(
-                      Decoration.node(
-                        toggleBlockStart,
-                        toggleBlockEnd,
-                        {},
-                        {
-                          target: this.name,
-                          nodeId: toggleBlock.node.attrs.id,
-                          fold: true,
-                        }
-                      )
-                    );
-                    Storage.set(key, { fold: true });
-                  } else {
-                    decosToApply.push(
-                      Decoration.node(
-                        toggleBlockStart,
-                        toggleBlockEnd,
-                        {},
-                        {
-                          target: this.name,
-                          nodeId: toggleBlock.node.attrs.id,
-                          fold: foldState.fold,
-                        }
-                      )
-                    );
-                  }
-                }
-                const toggleBlockHeadStart = toggleBlock.pos + 1;
-                const toggleBlockHeadEnd =
-                  toggleBlockHeadStart + toggleBlock.node.firstChild!.nodeSize;
-                const decoOnToggleBlockHeadExists =
-                  value.find(
-                    toggleBlockHeadStart,
-                    toggleBlockHeadEnd,
-                    (spec) =>
-                      spec.nodeId === toggleBlock.node.attrs.id &&
-                      spec.target === `${this.name}>:firstChild`
-                  ).length > 0;
-                if (!decoOnToggleBlockHeadExists) {
-                  decosToApply.push(
-                    Decoration.node(
-                      toggleBlockHeadStart,
-                      toggleBlockHeadEnd,
-                      {
-                        nodeName: "div",
-                        class: "toggle-block-head",
-                      },
-                      {
-                        target: `${this.name}>:firstChild`,
-                        nodeId: toggleBlock.node.attrs.id,
-                      }
+                  )
+                )
+                .add(
+                  tr.doc,
+                  flatten(
+                    map(
+                      filter(
+                        findBlockNodes(tr.doc, true),
+                        (block) => block.node.type.name === this.name
+                      ),
+                      (toggleBlock) => [
+                        Decoration.node(
+                          toggleBlock.pos + 1,
+                          toggleBlock.pos +
+                            1 +
+                            toggleBlock.node.firstChild!.nodeSize,
+                          {
+                            nodeName: "div",
+                            class: "toggle-block-head",
+                          },
+                          {
+                            target: `${this.name}>:firstChild`,
+                            nodeId: toggleBlock.node.attrs.id,
+                          }
+                        ),
+                        Decoration.node(
+                          toggleBlock.pos,
+                          toggleBlock.pos + toggleBlock.node.nodeSize,
+                          {},
+                          {
+                            target: `${this.name}`,
+                            nodeId: toggleBlock.node.attrs.id,
+                            fold: Storage.get(
+                              `${toggleBlock.node.attrs.id}:${this.editor.props.userId}`
+                            ).fold,
+                          }
+                        ),
+                      ]
                     )
-                  );
-                }
-              }
-              value = value.add(tr.doc, decosToApply);
+                  )
+                );
             }
             if (action.type === Action.INIT) {
-              for (const pos of action.positions) {
-                const node = tr.doc.nodeAt(pos)!;
-                const key = `${node.attrs.id}:${this.editor.props.userId}`;
-                value = value.add(tr.doc, [
+              value = value.add(
+                tr.doc,
+                flatten(
+                  map(
+                    filter(
+                      findBlockNodes(tr.doc, true),
+                      (block) => block.node.type.name === this.name
+                    ),
+                    (toggleBlock) => [
+                      Decoration.node(
+                        toggleBlock.pos + 1,
+                        toggleBlock.pos +
+                          1 +
+                          toggleBlock.node.firstChild!.nodeSize,
+                        {
+                          nodeName: "div",
+                          class: "toggle-block-head",
+                        },
+                        {
+                          target: `${this.name}>:firstChild`,
+                          nodeId: toggleBlock.node.attrs.id,
+                        }
+                      ),
+                      Decoration.node(
+                        toggleBlock.pos,
+                        toggleBlock.pos + toggleBlock.node.nodeSize,
+                        {},
+                        {
+                          target: `${this.name}`,
+                          nodeId: toggleBlock.node.attrs.id,
+                          fold: Storage.get(
+                            `${toggleBlock.node.attrs.id}:${this.editor.props.userId}`
+                          ).fold,
+                        }
+                      ),
+                    ]
+                  )
+                )
+              );
+            } else if (action.type === Action.FOLD) {
+              const node = tr.doc.nodeAt(action.at)!;
+              value = value
+                .remove(
+                  value.find(
+                    action.at,
+                    action.at + node.nodeSize,
+                    (spec) =>
+                      spec.nodeId === node.attrs.id &&
+                      spec.target === node.type.name &&
+                      spec.fold === false
+                  )
+                )
+                .add(tr.doc, [
                   Decoration.node(
-                    pos + 1,
-                    pos + 1 + node.firstChild!.nodeSize,
+                    action.at,
+                    action.at + node.nodeSize,
+                    {},
                     {
-                      nodeName: "div",
-                      class: "toggle-block-head",
-                    },
-                    {
-                      target: `${node.type.name}>:firstChild`,
+                      target: `${node.type.name}`,
                       nodeId: node.attrs.id,
+                      fold: true,
                     }
                   ),
                 ]);
-                const foldState = Storage.get(key);
-                if (isNil(foldState)) {
-                  value = value.add(tr.doc, [
-                    Decoration.node(
-                      pos,
-                      pos + node.nodeSize,
-                      {},
-                      {
-                        target: `${node.type.name}`,
-                        nodeId: node.attrs.id,
-                        fold: true,
-                      }
-                    ),
-                  ]);
-                  Storage.set(key, { fold: true });
-                } else {
-                  value = value.add(tr.doc, [
-                    Decoration.node(
-                      pos,
-                      pos + node.nodeSize,
-                      {},
-                      {
-                        target: `${node.type.name}`,
-                        nodeId: node.attrs.id,
-                        fold: foldState.fold,
-                      }
-                    ),
-                  ]);
-                }
-              }
-            } else if (action.type === Action.FOLD) {
-              const node = tr.doc.nodeAt(action.at)!;
-              const decos = value.find(
-                action.at,
-                action.at + node.nodeSize,
-                (spec) =>
-                  spec.nodeId === node.attrs.id &&
-                  spec.target === node.type.name &&
-                  spec.fold === false
-              );
-              value = value.remove(decos);
-              value = value.add(tr.doc, [
-                Decoration.node(
-                  action.at,
-                  action.at + node.nodeSize,
-                  {},
-                  {
-                    target: `${node.type.name}`,
-                    nodeId: node.attrs.id,
-                    fold: true,
-                  }
-                ),
-              ]);
               const key = `${node.attrs.id}:${this.editor.props.userId}`;
               Storage.set(key, { fold: true });
             } else if (action.type === Action.UNFOLD) {
               const node = tr.doc.nodeAt(action.at)!;
-              const decos = value.find(
-                action.at,
-                action.at + node.nodeSize,
-                (spec) =>
-                  spec.nodeId === node.attrs.id &&
-                  spec.target === node.type.name &&
-                  spec.fold === true
-              );
-              value = value.remove(decos);
-              value = value.add(tr.doc, [
-                Decoration.node(
-                  action.at,
-                  action.at + node.nodeSize,
-                  {},
-                  {
-                    target: `${node.type.name}`,
-                    nodeId: node.attrs.id,
-                    fold: false,
-                  }
-                ),
-              ]);
+              value = value
+                .remove(
+                  value.find(
+                    action.at,
+                    action.at + node.nodeSize,
+                    (spec) =>
+                      spec.nodeId === node.attrs.id &&
+                      spec.target === node.type.name &&
+                      spec.fold === true
+                  )
+                )
+                .add(tr.doc, [
+                  Decoration.node(
+                    action.at,
+                    action.at + node.nodeSize,
+                    {},
+                    {
+                      target: `${node.type.name}`,
+                      nodeId: node.attrs.id,
+                      fold: false,
+                    }
+                  ),
+                ]);
               const key = `${node.attrs.id}:${this.editor.props.userId}`;
               Storage.set(key, { fold: false });
             }
@@ -318,34 +338,13 @@ export default class ToggleBlock extends Node {
         },
       },
       appendTransaction: (transactions, _oldState, newState) => {
-        const blocks = findBlockNodes(newState.doc, true);
-        let tr = newState.tr;
-        for (const block of blocks) {
-          if (block.node.type.name === this.name && !block.node.attrs.id) {
-            tr = tr.setNodeAttribute(block.pos, "id", v4());
-          }
-        }
-
-        if (!foldPlugin.spec.initialDecorationsLoaded) {
-          const positions = [];
-          for (const block of blocks) {
-            if (block.node.type.name === this.name) {
-              positions.push(block.pos);
-            }
-          }
-          tr.setMeta(ToggleBlock.pluginKey, {
-            type: Action.INIT,
-            positions,
-          });
-          foldPlugin.spec.initialDecorationsLoaded = true;
-        }
-
         const docChanged = transactions.some(
           (transaction) => transaction.docChanged
         );
+        let tr = null;
 
         if (docChanged) {
-          tr = tr.setMeta(ToggleBlock.pluginKey, {
+          tr = newState.tr.setMeta(ToggleBlock.pluginKey, {
             type: Action.CHANGE,
           });
 
@@ -409,7 +408,7 @@ export default class ToggleBlock extends Node {
       },
     });
 
-    return [foldPlugin];
+    return [initPlugin, foldPlugin];
   }
 
   get rulePlugins() {
