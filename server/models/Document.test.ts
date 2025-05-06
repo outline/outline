@@ -11,7 +11,6 @@ import {
   buildUser,
   buildGuestUser,
 } from "@server/test/factories";
-import Collection from "./Collection";
 import UserMembership from "./UserMembership";
 
 beforeEach(() => {
@@ -96,10 +95,8 @@ describe("#delete", () => {
 
     await document.delete(user);
     const [newDocument, newCollection] = await Promise.all([
-      Document.findByPk(document.id, {
-        paranoid: false,
-      }),
-      Collection.findByPk(collection.id),
+      document.reload({ paranoid: false }),
+      collection.reload(),
     ]);
 
     expect(newDocument?.lastModifiedById).toEqual(user.id);
