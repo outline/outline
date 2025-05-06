@@ -297,7 +297,7 @@ describe("#updateDocument", () => {
     newDocument.title = "Updated title";
     await newDocument.save();
     await collection.updateDocument(newDocument);
-    const reloaded = await Collection.findByPk(collection.id);
+    const reloaded = await collection.reload();
     expect(reloaded!.documentStructure![0].children[0].title).toBe(
       "Updated title"
     );
@@ -380,7 +380,7 @@ describe("#removeDocument", () => {
     expect(collection.documentStructure![0].children.length).toBe(1);
     // Remove the document
     await collection.deleteDocument(newDocument);
-    const reloaded = await Collection.findByPk(collection.id);
+    const reloaded = await collection.reload();
     expect(reloaded!.documentStructure!.length).toBe(1);
     expect(reloaded!.documentStructure![0].children.length).toBe(0);
     const collectionDocuments = await Document.findAndCountAll({

@@ -37,6 +37,7 @@ import {
   AllowNull,
   BeforeCreate,
   BeforeUpdate,
+  DefaultScope,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import type { CollectionSort, ProsemirrorData } from "@shared/types";
@@ -69,6 +70,11 @@ type AdditionalFindOptions = {
   rejectOnEmpty?: boolean | Error;
 };
 
+@DefaultScope(() => ({
+  attributes: {
+    exclude: ["documentStructure"],
+  },
+}))
 @Scopes(() => ({
   withAllMemberships: {
     include: [
@@ -120,6 +126,12 @@ type AdditionalFindOptions = {
         association: "archivedBy",
       },
     ],
+  }),
+  withDocumentStructure: () => ({
+    attributes: {
+      // resets to include the documentStructure column
+      exclude: [],
+    },
   }),
   withMembership: (userId: string) => {
     if (!userId) {

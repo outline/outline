@@ -310,7 +310,7 @@ export async function buildCollection(
     overrides.permission = CollectionPermission.ReadWrite;
   }
 
-  return Collection.create({
+  return Collection.scope("withDocumentStructure").create({
     name: faker.lorem.words(2),
     description: faker.lorem.words(4),
     createdById: overrides.userId,
