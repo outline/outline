@@ -250,6 +250,7 @@ class Collection extends ParanoidModel<
   @Column
   maintainerApprovalRequired: boolean;
 
+  @Default(null)
   @Column(DataType.JSONB)
   documentStructure: NavigationNode[] | null;
 
@@ -649,6 +650,8 @@ class Collection extends ParanoidModel<
       save?: boolean;
     }
   ) {
+    this.guardDocumentStructure();
+
     if (!this.documentStructure) {
       return;
     }
@@ -737,7 +740,9 @@ class Collection extends ParanoidModel<
     updatedDocument: Document,
     options?: { transaction?: Transaction | null | undefined }
   ) {
-    if (!this.documentStructure) {
+    this.guardDocumentStructure();
+
+    if (this.documentStructure === null) {
       return;
     }
 
@@ -781,6 +786,8 @@ class Collection extends ParanoidModel<
       includeArchived?: boolean;
     } = {}
   ) {
+    this.guardDocumentStructure();
+
     if (!this.documentStructure) {
       this.documentStructure = [];
     }
@@ -835,6 +842,18 @@ class Collection extends ParanoidModel<
     }
 
     return this;
+  };
+
+  private guardDocumentStructure = (): boolean => {
+    if (
+      // @ts-expect-error private sequelize API
+      !this._options?.attributes ||
+      // @ts-expect-error private sequelize API
+      this._options?.attributes?.includes("documentStructure")
+    ) {
+      return true;
+    }
+    throw new Error("Document structure was not loaded");
   };
 }
 
