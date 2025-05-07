@@ -10,6 +10,7 @@ import {
   chainCommands,
   createParagraphNear,
   joinForward,
+  joinTextblockBackward,
   newlineInCode,
   splitBlock,
   wrapIn,
@@ -417,7 +418,24 @@ export default class ToggleBlock extends Node {
 
   keys({ type }: { type: NodeType }): Record<string, Command> {
     return {
-      Backspace: lift,
+      Backspace: chainCommands(lift, (state, dispatch) => {
+        const { $cursor } = state.selection as TextSelection;
+        if (!$cursor) {
+          return false;
+        }
+
+        if (!$cursor.node().isTextblock) {
+          return false;
+        }
+
+        const $cut = state.doc.resolve($cursor.before());
+
+        if (!$cut.nodeBefore || $cut.nodeBefore.type.name !== this.name) {
+          return false;
+        }
+
+        return joinTextblockBackward(state, dispatch);
+      }),
       Enter: chainCommands(createParagraphBefore, split, (state, dispatch) => {
         const { $from } = state.selection;
         const parent = $from.node($from.depth - 1);
