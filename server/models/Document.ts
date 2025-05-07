@@ -162,11 +162,13 @@ type AdditionalFindOptions = {
     return {
       include: [
         {
-          attributes: ["id", "permission", "sharing", "teamId", "deletedAt"],
           model: userId
-            ? Collection.scope({
-                method: ["withMembership", userId],
-              })
+            ? Collection.scope([
+                "defaultScope",
+                {
+                  method: ["withMembership", userId],
+                },
+              ])
             : Collection,
           as: "collection",
           paranoid,
@@ -414,10 +416,13 @@ class Document extends ArchivableModel<
       return;
     }
 
-    const collection = await Collection.findByPk(model.collectionId, {
-      transaction,
-      lock: Transaction.LOCK.UPDATE,
-    });
+    const collection = await Collection.scope("withDocumentStructure").findByPk(
+      model.collectionId,
+      {
+        transaction,
+        lock: Transaction.LOCK.UPDATE,
+      }
+    );
     if (!collection) {
       return;
     }
@@ -438,7 +443,9 @@ class Document extends ArchivableModel<
     }
 
     return this.sequelize!.transaction(async (transaction: Transaction) => {
-      const collection = await Collection.findByPk(model.collectionId!, {
+      const collection = await Collection.scope(
+        "withDocumentStructure"
+      ).findByPk(model.collectionId!, {
         transaction,
         lock: transaction.LOCK.UPDATE,
       });
@@ -926,7 +933,9 @@ class Document extends ArchivableModel<
     }
 
     if (!this.template && this.collectionId) {
-      const collection = await Collection.findByPk(this.collectionId, {
+      const collection = await Collection.scope(
+        "withDocumentStructure"
+      ).findByPk(this.collectionId, {
         transaction,
         lock: Transaction.LOCK.UPDATE,
       });
@@ -993,10 +1002,13 @@ class Document extends ArchivableModel<
 
     await this.sequelize.transaction(async (transaction: Transaction) => {
       const collection = this.collectionId
-        ? await Collection.findByPk(this.collectionId, {
-            transaction,
-            lock: transaction.LOCK.UPDATE,
-          })
+        ? await Collection.scope("withDocumentStructure").findByPk(
+            this.collectionId,
+            {
+              transaction,
+              lock: transaction.LOCK.UPDATE,
+            }
+          )
         : undefined;
 
       if (collection) {
@@ -1027,10 +1039,13 @@ class Document extends ArchivableModel<
   archive = async (user: User, options?: FindOptions) => {
     const { transaction } = { ...options };
     const collection = this.collectionId
-      ? await Collection.findByPk(this.collectionId, {
-          transaction,
-          lock: transaction?.LOCK.UPDATE,
-        })
+      ? await Collection.scope("withDocumentStructure").findByPk(
+          this.collectionId,
+          {
+            transaction,
+            lock: transaction?.LOCK.UPDATE,
+          }
+        )
       : undefined;
 
     if (collection) {
@@ -1051,7 +1066,7 @@ class Document extends ArchivableModel<
   ) => {
     const { transaction } = { ...options };
     const collection = collectionId
-      ? await Collection.findByPk(collectionId, {
+      ? await Collection.scope("withDocumentStructure").findByPk(collectionId, {
           transaction,
           lock: transaction?.LOCK.UPDATE,
         })
@@ -1103,7 +1118,9 @@ class Document extends ArchivableModel<
       let deleted = false;
 
       if (!this.template && this.collectionId) {
-        const collection = await Collection.findByPk(this.collectionId!, {
+        const collection = await Collection.scope(
+          "withDocumentStructure"
+        ).findByPk(this.collectionId!, {
           transaction,
           lock: transaction.LOCK.UPDATE,
           paranoid: false,

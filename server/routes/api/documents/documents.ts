@@ -133,15 +133,19 @@ router.post(
     // if a specific collection is passed then we need to check auth to view it
     if (collectionId) {
       where[Op.and].push({ collectionId: [collectionId] });
-      const collection = await Collection.scope({
-        method: ["withMembership", user.id],
-      }).findByPk(collectionId);
+      const collection = await Collection.scope([
+        sort === "index" ? "withDocumentStructure" : "defaultScope",
+        {
+          method: ["withMembership", user.id],
+        },
+      ]).findByPk(collectionId);
+
       authorize(user, "readDocument", collection);
 
       // index sort is special because it uses the order of the documents in the
       // collection.documentStructure rather than a database column
       if (sort === "index") {
-        documentIds = (collection?.documentStructure || [])
+        documentIds = (collection.documentStructure || [])
           .map((node) => node.id)
           .slice(ctx.state.pagination.offset, ctx.state.pagination.limit);
         where[Op.and].push({ id: documentIds });

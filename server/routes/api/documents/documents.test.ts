@@ -977,7 +977,7 @@ describe("#documents.list", () => {
     const res = await server.post("/api/documents.list", {
       body: {
         token: user.getJwtToken(),
-        collection: document.collectionId,
+        collectionId: document.collectionId,
       },
     });
     const body = await res.json();
@@ -1013,7 +1013,7 @@ describe("#documents.list", () => {
     const res = await server.post("/api/documents.list", {
       body: {
         token: user.getJwtToken(),
-        collection: collection.id,
+        collectionId: collection.id,
       },
     });
     const body = await res.json();

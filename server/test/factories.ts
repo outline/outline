@@ -310,7 +310,7 @@ export async function buildCollection(
     overrides.permission = CollectionPermission.ReadWrite;
   }
 
-  return Collection.create({
+  return Collection.scope("withDocumentStructure").create({
     name: faker.lorem.words(2),
     description: faker.lorem.words(4),
     createdById: overrides.userId,
@@ -416,7 +416,9 @@ export async function buildDocument(
 
   if (overrides.collectionId && overrides.publishedAt !== null) {
     collection = collection
-      ? await Collection.findByPk(overrides.collectionId)
+      ? await Collection.scope("withDocumentStructure").findByPk(
+          overrides.collectionId
+        )
       : undefined;
 
     await collection?.addDocumentToStructure(document, 0);
