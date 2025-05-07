@@ -403,7 +403,8 @@ export default class ToggleBlock extends Node {
               view,
               getPos,
               decorations,
-              innerDecorations
+              innerDecorations,
+              this.editor.props
             ),
         },
       },
@@ -497,13 +498,18 @@ class ToggleBlockView implements NodeView {
   contentDOM: HTMLDivElement;
   button: HTMLButtonElement;
   folded: boolean;
+  node: ProsemirrorNode;
+  view: EditorView;
+  getPos: () => number | undefined;
+  editorProps: Record<string, any>;
 
   constructor(
-    _node: ProsemirrorNode,
+    node: ProsemirrorNode,
     view: EditorView,
     getPos: () => number | undefined,
     decorations: readonly Decoration[],
-    _innerDecorations: DecorationSource
+    _innerDecorations: DecorationSource,
+    editorProps: Record<string, any>
   ) {
     this.button = document.createElement("button");
     this.button.className = "toggle-block-button";
@@ -515,7 +521,7 @@ class ToggleBlockView implements NodeView {
       if (event.button !== 0) {
         return;
       }
-      this.toggleFold(view, getPos);
+      this.toggleFold();
     });
     this.contentDOM = document.createElement("div");
     this.contentDOM.className = "toggle-block-content";
@@ -527,13 +533,40 @@ class ToggleBlockView implements NodeView {
     this.dom.appendChild(this.contentDOM);
 
     this.setFolded(decorations.some((deco) => deco.spec.fold));
+
+    this.node = node;
+    this.view = view;
+    this.getPos = getPos;
+
+    this.editorProps = editorProps;
+
+    window.addEventListener("storage", this.broadcastFoldState.bind(this));
   }
 
-  update(_node: ProsemirrorNode, decorations: readonly Decoration[]) {
+  broadcastFoldState(event: StorageEvent) {
+    if (
+      event.key &&
+      event.key === `${this.node.attrs.id}:${this.editorProps.userId}`
+    ) {
+      if (!event.newValue || !event.oldValue) {
+        return;
+      }
+
+      const newFoldState = JSON.parse(event.newValue);
+      const oldFoldState = JSON.parse(event.oldValue);
+
+      if (newFoldState.fold !== oldFoldState.fold) {
+        this.toggleFold();
+      }
+    }
+  }
+
+  update(node: ProsemirrorNode, decorations: readonly Decoration[]) {
     const fold = decorations.some((deco) => deco.spec.fold);
     if (fold !== this.folded) {
       this.setFolded(fold);
     }
+    this.node = node;
     return true;
   }
 
@@ -546,24 +579,28 @@ class ToggleBlockView implements NodeView {
     }
   }
 
-  private toggleFold(view: EditorView, getPos: () => number | undefined) {
+  private toggleFold() {
     const actionType = this.folded ? Action.UNFOLD : Action.FOLD;
-    const tr = view.state.tr.setMeta(ToggleBlock.pluginKey, {
+    const tr = this.view.state.tr.setMeta(ToggleBlock.pluginKey, {
       type: actionType,
-      at: getPos(),
+      at: this.getPos(),
     });
 
     if (actionType === Action.FOLD) {
-      const { $anchor } = view.state.selection;
-      const node = view.state.doc.nodeAt(getPos()!)!;
-      const startOfNode = getPos()! + 1;
+      const { $anchor } = this.view.state.selection;
+      const node = this.view.state.doc.nodeAt(this.getPos()!)!;
+      const startOfNode = this.getPos()! + 1;
       const endOfFirstChild = startOfNode + node.firstChild!.nodeSize;
       const endOfNode = startOfNode + node.nodeSize - 1;
       if ($anchor.pos > endOfFirstChild && $anchor.pos < endOfNode) {
-        const $endOfFirstChild = view.state.doc.resolve(endOfFirstChild);
+        const $endOfFirstChild = this.view.state.doc.resolve(endOfFirstChild);
         tr.setSelection(TextSelection.near($endOfFirstChild, -1));
       }
     }
-    view.dispatch(tr);
+    this.view.dispatch(tr);
+  }
+
+  destroy() {
+    window.removeEventListener("storage", this.broadcastFoldState);
   }
 }
