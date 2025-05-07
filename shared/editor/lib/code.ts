@@ -308,6 +308,11 @@ export const codeLanguages: Record<string, CodeLanguage> = {
     label: "Zig",
     loader: () => import("refractor/lang/zig").then((m) => m.default),
   },
+  promql: {
+    lang: "promql",
+    label: "PromQL",
+    loader: () => import("refractor/lang/sql").then((m) => m.default),
+  },
 };
 
 /**
