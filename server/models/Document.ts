@@ -72,12 +72,20 @@ import Length from "./validators/Length";
 
 export const DOCUMENT_VERSION = 2;
 
+// If content (JSON) is null then we still need to return the state column (BINARY)
+// as it's used as a fallback for content deserialization for older documents.
+// This can be removed if content is 100% backfilled.
+const stateIfContentEmpty = Sequelize.literal(
+  `CASE WHEN document.content IS NULL THEN document.state ELSE NULL END AS state`
+);
+
 type AdditionalFindOptions = {
   userId?: string;
   includeState?: boolean;
   rejectOnEmpty?: boolean | Error;
 };
 
+// @ts-expect-error Type 'Literal' is not assignable to type 'string | ProjectionAlias'.
 @DefaultScope(() => ({
   include: [
     {
@@ -102,21 +110,14 @@ type AdditionalFindOptions = {
     },
   },
   attributes: {
-    exclude: ["state"],
+    include: [stateIfContentEmpty],
   },
 }))
 // @ts-expect-error Type 'Literal' is not assignable to type 'string | ProjectionAlias'.
 @Scopes(() => ({
   withoutState: {
     attributes: {
-      include: [
-        Sequelize.literal(
-          // If content (JSON) is null then we still need to return the state column (BINARY)
-          // as it's used as a fallback for content deserialization for older documents.
-          // This can be removed if content is 100% backfilled.
-          `CASE WHEN document.content IS NULL THEN document.state ELSE NULL END AS state`
-        ),
-      ],
+      include: [stateIfContentEmpty],
     },
   },
   withCollection: {
@@ -130,7 +131,7 @@ type AdditionalFindOptions = {
   withState: {
     attributes: {
       // resets to include the state column
-      exclude: [],
+      include: [],
     },
   },
   withDrafts: {
