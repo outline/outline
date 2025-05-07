@@ -134,7 +134,7 @@ router.post(
     if (collectionId) {
       where[Op.and].push({ collectionId: [collectionId] });
       const collection = await Collection.scope([
-        ...(sort === "index" ? ["withDocumentStructure"] : []),
+        sort === "index" ? "withDocumentStructure" : "defaultScope",
         {
           method: ["withMembership", user.id],
         },

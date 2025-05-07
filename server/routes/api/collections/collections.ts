@@ -141,7 +141,6 @@ router.post(
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
     const collection = await Collection.scope([
-      "withDocumentStructure",
       {
         method: ["withMembership", user.id],
       },

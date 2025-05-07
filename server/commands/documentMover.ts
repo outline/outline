@@ -149,7 +149,6 @@ async function documentMover({
       if (collectionId) {
         // Reload the collection to get relationship data
         newCollection = await Collection.scope([
-          "withDocumentStructure",
           {
             method: ["withMembership", user.id],
           },

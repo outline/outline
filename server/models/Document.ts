@@ -162,11 +162,13 @@ type AdditionalFindOptions = {
     return {
       include: [
         {
-          attributes: ["id", "permission", "sharing", "teamId", "deletedAt"],
           model: userId
-            ? Collection.scope({
-                method: ["withMembership", userId],
-              })
+            ? Collection.scope([
+                "defaultScope",
+                {
+                  method: ["withMembership", userId],
+                },
+              ])
             : Collection,
           as: "collection",
           paranoid,

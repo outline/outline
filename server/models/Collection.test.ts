@@ -473,7 +473,7 @@ describe("#findByPk", () => {
   it("should not return documentStructure by default", async () => {
     const collection = await buildCollection();
     const response = await Collection.findByPk(collection.id);
-    expect(response!.documentStructure).toBeUndefined();
+    expect(() => response!.documentStructure).toThrow();
   });
 
   it("should return collection when urlId is present", async () => {
