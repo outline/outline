@@ -198,6 +198,12 @@ export const codeLanguages: Record<string, CodeLanguage> = {
     label: "Powershell",
     loader: () => import("refractor/lang/powershell").then((m) => m.default),
   },
+  promql: {
+    lang: "promql",
+    label: "PromQL",
+    // @ts-expect-error PromQL is not in types but exists
+    loader: () => import("refractor/lang/promql").then((m) => m.default),
+  },
   protobuf: {
     lang: "protobuf",
     label: "Protobuf",
@@ -307,11 +313,6 @@ export const codeLanguages: Record<string, CodeLanguage> = {
     lang: "zig",
     label: "Zig",
     loader: () => import("refractor/lang/zig").then((m) => m.default),
-  },
-  promql: {
-    lang: "promql",
-    label: "PromQL",
-    loader: () => import("refractor/lang/sql").then((m) => m.default),
   },
 };
 
