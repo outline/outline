@@ -44,11 +44,13 @@ export default abstract class ExportTask extends BaseTask<Props> {
       ? [fileOperation.collectionId]
       : await user.collectionIds();
 
-    const collections = await Collection.findAll({
-      where: {
-        id: collectionIds,
-      },
-    });
+    const collections = await Collection.scope("withDocumentStructure").findAll(
+      {
+        where: {
+          id: collectionIds,
+        },
+      }
+    );
 
     let filePath: string | undefined;
 

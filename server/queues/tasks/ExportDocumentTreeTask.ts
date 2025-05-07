@@ -171,7 +171,8 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
   /**
    * Generates a map of document urls to their path in the zip file.
    *
-   * @param collections
+   * @param collections The collections to generate the path map for.
+   * @param format The format of the exported documents.
    */
   private createPathMap(
     collections: Collection[],
