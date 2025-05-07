@@ -285,7 +285,6 @@ class Collection extends ParanoidModel<
   sort: CollectionSort;
 
   /** Whether the collection is archived, and if so when. */
-  @Default(null)
   @IsDate
   @Column
   archivedAt: Date | null;
@@ -739,7 +738,7 @@ class Collection extends ParanoidModel<
     updatedDocument: Document,
     options?: { transaction?: Transaction | null | undefined }
   ) {
-    if (this.documentStructure === null) {
+    if (!this.documentStructure) {
       return;
     }
 
