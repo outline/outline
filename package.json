@@ -228,6 +228,7 @@
     "sequelize": "^6.37.3",
     "sequelize-cli": "^6.6.2",
     "sequelize-encrypted": "^1.0.0",
+    "sequelize-strict-attributes": "^1.0.2",
     "sequelize-typescript": "^2.1.6",
     "slug": "^5.3.0",
     "slugify": "^1.6.6",

@@ -140,9 +140,11 @@ router.post(
   async (ctx: APIContext<T.CollectionsDocumentsReq>) => {
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const collection = await Collection.scope({
-      method: ["withMembership", user.id],
-    }).findByPk(id);
+    const collection = await Collection.scope([
+      {
+        method: ["withMembership", user.id],
+      },
+    ]).findByPk(id);
 
     authorize(user, "readDocument", collection);
 
