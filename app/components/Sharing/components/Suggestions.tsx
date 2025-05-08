@@ -93,11 +93,13 @@ export const Suggestions = observer(
     const suggestions = React.useMemo(() => {
       const filtered: Suggestion[] = (
         document
-          ? users.notInDocument(document.id, query)
+          ? users
+              .notInDocument(document.id, query)
+              .filter((u) => u.id !== user.id)
           : collection
           ? users.notInCollection(collection.id, query)
           : users.activeOrInvited
-      ).filter((u) => !u.isSuspended && u.id !== user.id);
+      ).filter((u) => !u.isSuspended);
 
       if (isEmail(query)) {
         filtered.push(getSuggestionForEmail(query));
