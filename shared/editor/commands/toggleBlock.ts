@@ -19,6 +19,7 @@ import {
 import { liftTarget, ReplaceAroundStep } from "prosemirror-transform";
 import ToggleBlock from "../nodes/ToggleBlock";
 
+// Commands
 export const lift: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;
 
@@ -34,38 +35,6 @@ export const lift: Command = (state, dispatch) => {
   }
   return true;
 };
-
-const isToggleBlock = (node: Node) =>
-  node.type.name === "container_toggle_block";
-
-const withinToggleBlock = ($cursor: ResolvedPos | null) =>
-  $cursor && some(ancestors($cursor), isToggleBlock);
-
-const withinToggleBlockHead = ($cursor: ResolvedPos | null) =>
-  withinToggleBlock($cursor) && $cursor!.index($cursor!.depth - 1) === 0;
-
-const atStartOfToggleBlockHead = ($cursor: ResolvedPos | null) =>
-  withinToggleBlockHead($cursor) && $cursor!.parentOffset === 0;
-
-const inMiddleOrAtEndOfToggleBlockHead = ($cursor: ResolvedPos | null) =>
-  withinToggleBlockHead($cursor) && $cursor!.parentOffset > 0;
-
-const headIsEmpty = (toggleBlock: Node) =>
-  toggleBlock.firstChild!.content.size === 0;
-
-const folded = (toggleBlock: Node, state: EditorState) =>
-  some(
-    ToggleBlock.pluginKey
-      .getState(state)
-      ?.find(
-        undefined,
-        undefined,
-        (spec) =>
-          spec.nodeId === toggleBlock.attrs.id &&
-          spec.target === toggleBlock.type.name &&
-          spec.fold === true
-      )
-  );
 
 export const createParagraphBefore: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;
@@ -119,38 +88,7 @@ export const split: Command = (state, dispatch) => {
   return true;
 };
 
-const maybeNextSibling = ($cursor: ResolvedPos | null) => {
-  if (!$cursor) {
-    return null;
-  }
-
-  const parentOfNearestAncestor = $cursor.node($cursor.depth - 1);
-  const indexOfNearestAncestor = $cursor.index($cursor.depth - 1);
-  const siblingOfNearestAncestor = parentOfNearestAncestor.maybeChild(
-    indexOfNearestAncestor + 1
-  );
-  return siblingOfNearestAncestor;
-};
-
-const liftToggleBlockAt = (pos: number, tr: Transaction): Transaction => {
-  const node = tr.doc.nodeAt(pos);
-  const start = pos + 1;
-  const end = start + node!.content.size;
-  const $start = tr.doc.resolve(start);
-  const $end = tr.doc.resolve(end);
-  const range = $start.blockRange($end);
-  if (isNull(range)) {
-    return tr;
-  }
-  const target = liftTarget(range);
-  if (isNull(target)) {
-    return tr;
-  }
-
-  return tr.lift(range, target);
-};
-
-export const liftAfter: Command = (state, dispatch) => {
+export const liftNext: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;
   const nextSibling = maybeNextSibling($cursor);
 
@@ -165,15 +103,6 @@ export const liftAfter: Command = (state, dispatch) => {
   }
 
   return true;
-};
-
-const prevSibling = ($from: ResolvedPos, depth?: number) => {
-  const ancestor = $from.node(depth);
-  const index = $from.index(depth);
-  if (index === 0) {
-    return null;
-  }
-  return ancestor.child(index - 1);
 };
 
 export const sinkBlockInto =
@@ -208,44 +137,6 @@ export const sinkBlockInto =
 
     return true;
   };
-
-export const depth = (ancestor: Node, $cursor: ResolvedPos) =>
-  findIndex(ancestors($cursor), (node) => node.eq(ancestor));
-
-export const ancestors = (
-  $from: ResolvedPos,
-  pred?: ($cursor: ResolvedPos, ancestor: Node, depth: number) => boolean
-) => {
-  const anc = [];
-
-  // Notice that ancestors are arranged in increasing order of depth
-  // within the array, which implies that the index of an ancestor
-  // within the array actually represents its depth within the document.
-  for (let depth = 0; depth <= $from.depth; depth++) {
-    anc.push($from!.node(depth));
-  }
-
-  if (pred) {
-    return filter(anc, (ancestor, index) =>
-      // `index` represents the depth of the ancestor within the document,
-      // so we simply pass it as `depth` to the predicate function.
-      pred($from, ancestor, index)
-    );
-  }
-
-  return anc;
-};
-
-export const suchThat = (
-  pred: (...args: any[]) => boolean
-): ((...args: any[]) => boolean) => pred;
-
-const nearest = (ancestors: Node[]) =>
-  // Since the ancestors are arranged in increasing order of depth,
-  // the last element of the array is the nearest ancestor.
-  ancestors.pop();
-
-export const furthest = (ancestors: Node[]) => ancestors.shift();
 
 export const liftLastBlockOutOf =
   (type: NodeType): Command =>
@@ -285,3 +176,114 @@ export const liftLastBlockOutOf =
     }
     return true;
   };
+
+// Utils
+const isToggleBlock = (node: Node) =>
+  node.type.name === "container_toggle_block";
+
+const withinToggleBlock = ($cursor: ResolvedPos | null) =>
+  $cursor && some(ancestors($cursor), isToggleBlock);
+
+const withinToggleBlockHead = ($cursor: ResolvedPos | null) =>
+  withinToggleBlock($cursor) && $cursor!.index($cursor!.depth - 1) === 0;
+
+const atStartOfToggleBlockHead = ($cursor: ResolvedPos | null) =>
+  withinToggleBlockHead($cursor) && $cursor!.parentOffset === 0;
+
+const inMiddleOrAtEndOfToggleBlockHead = ($cursor: ResolvedPos | null) =>
+  withinToggleBlockHead($cursor) && $cursor!.parentOffset > 0;
+
+const headIsEmpty = (toggleBlock: Node) =>
+  toggleBlock.firstChild!.content.size === 0;
+
+const folded = (toggleBlock: Node, state: EditorState) =>
+  some(
+    ToggleBlock.pluginKey
+      .getState(state)
+      ?.find(
+        undefined,
+        undefined,
+        (spec) =>
+          spec.nodeId === toggleBlock.attrs.id &&
+          spec.target === toggleBlock.type.name &&
+          spec.fold === true
+      )
+  );
+
+const maybeNextSibling = ($cursor: ResolvedPos | null) => {
+  if (!$cursor) {
+    return null;
+  }
+
+  const parentOfNearestAncestor = $cursor.node($cursor.depth - 1);
+  const indexOfNearestAncestor = $cursor.index($cursor.depth - 1);
+  const siblingOfNearestAncestor = parentOfNearestAncestor.maybeChild(
+    indexOfNearestAncestor + 1
+  );
+  return siblingOfNearestAncestor;
+};
+
+const liftToggleBlockAt = (pos: number, tr: Transaction): Transaction => {
+  const node = tr.doc.nodeAt(pos);
+  const start = pos + 1;
+  const end = start + node!.content.size;
+  const $start = tr.doc.resolve(start);
+  const $end = tr.doc.resolve(end);
+  const range = $start.blockRange($end);
+  if (isNull(range)) {
+    return tr;
+  }
+  const target = liftTarget(range);
+  if (isNull(target)) {
+    return tr;
+  }
+
+  return tr.lift(range, target);
+};
+
+const prevSibling = ($from: ResolvedPos, depth?: number) => {
+  const ancestor = $from.node(depth);
+  const index = $from.index(depth);
+  if (index === 0) {
+    return null;
+  }
+  return ancestor.child(index - 1);
+};
+
+export const depth = (ancestor: Node, $cursor: ResolvedPos) =>
+  findIndex(ancestors($cursor), (node) => node.eq(ancestor));
+
+export const ancestors = (
+  $from: ResolvedPos,
+  pred?: ($cursor: ResolvedPos, ancestor: Node, depth: number) => boolean
+) => {
+  const anc = [];
+
+  // Notice that ancestors are arranged in increasing order of depth
+  // within the array, which implies that the index of an ancestor
+  // within the array actually represents its depth within the document.
+  for (let depth = 0; depth <= $from.depth; depth++) {
+    anc.push($from!.node(depth));
+  }
+
+  if (pred) {
+    return filter(anc, (ancestor, index) =>
+      // `index` represents the depth of the ancestor within the document,
+      // so we simply pass it as `depth` to the predicate function.
+      pred($from, ancestor, index)
+    );
+  }
+
+  return anc;
+};
+
+export const suchThat = (
+  pred: (...args: any[]) => boolean
+): ((...args: any[]) => boolean) => pred;
+
+const nearest = (ancestors: Node[]) =>
+  // Since the ancestors are arranged in increasing order of depth,
+  // the last element of the array is the nearest ancestor.
+  ancestors.pop();
+
+export const furthest = (ancestors: Node[]) => ancestors.shift();

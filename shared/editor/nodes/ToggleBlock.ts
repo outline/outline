@@ -31,7 +31,7 @@ import {
   createParagraphBefore,
   split,
   lift,
-  liftAfter,
+  liftNext,
   sinkBlockInto,
   liftLastBlockOutOf,
   ancestors,
@@ -46,11 +46,10 @@ import toggleBlocksRule from "../rules/toggleBlocks";
 import Node from "./Node";
 
 enum Action {
-  CHANGE,
   INIT,
+  CHANGE,
   FOLD,
   UNFOLD,
-  DESTROY,
 }
 
 export default class ToggleBlock extends Node {
@@ -456,7 +455,7 @@ export default class ToggleBlock extends Node {
         )(state, dispatch);
       }),
       Delete: (state, dispatch) =>
-        chainTransactions(liftAfter, joinForward)(state, dispatch),
+        chainTransactions(liftNext, joinForward)(state, dispatch),
       Tab: sinkBlockInto(type),
       "Shift-Tab": liftLastBlockOutOf(type),
     };
