@@ -55,7 +55,7 @@ const mathStyle = (props: Props) => css`
     cursor: auto;
     white-space: pre-wrap;
     overflow-x: auto;
-    overflow-y: none;
+    overflow-y: hidden;
   }
 
   .math-node.empty-math .math-render::before {
