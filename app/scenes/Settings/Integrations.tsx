@@ -4,10 +4,8 @@ import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
-
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import Heading from "~/components/Heading";
-
 import IntegrationCard from "~/components/IntegrationCard";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
@@ -17,12 +15,14 @@ export function Integrations() {
   const { t } = useTranslation();
   let items = useSettingsConfig();
 
-  items = items.filter(
-    (item) =>
-      item.group === "Integrations" &&
-      item.enabled &&
-      item.path !== integrationSettingsPath("all")
-  );
+  items = items
+    .filter(
+      (item) =>
+        item.group === "Integrations" &&
+        item.enabled &&
+        item.path !== integrationSettingsPath("all")
+    )
+    .sort((item) => (item.isActive ? -1 : 1));
 
   return (
     <Scene title={t("Integrations")}>

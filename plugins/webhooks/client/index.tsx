@@ -8,7 +8,8 @@ PluginManager.add([
     ...config,
     type: Hook.Settings,
     value: {
-      group: "Integrations",
+      group: "Workspace",
+      after: "Shared Links",
       icon: Icon,
       component: React.lazy(() => import("./Settings")),
       description:

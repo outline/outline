@@ -194,7 +194,7 @@ const useSettingsConfig = () => {
         icon: ZapierIcon,
       },
       {
-        name: t("Install integration…"),
+        name: `${t("Install")}…`,
         path: integrationSettingsPath("all"),
         component: Integrations,
         enabled: true,
@@ -225,7 +225,7 @@ const useSettingsConfig = () => {
         icon: plugin.value.icon,
         isActive: integrations.orderedData.some(
           (integration) =>
-            integration.service.toLowerCase() === plugin.name.toLowerCase()
+            integration.service.toLowerCase() === plugin.id.toLowerCase()
         ),
       } as ConfigItem);
     });

@@ -19,9 +19,8 @@ function IntegrationCard({ integration }: Props) {
       <Flex justify="space-between" align="center">
         <Flex align="center" gap={8}>
           <integration.icon size={48} />
-          <Flex column gap={4}>
+          <Flex column>
             <Name>{integration.name}</Name>
-
             {integration.isActive && <Status>{t("Connected")}</Status>}
           </Flex>
         </Flex>
@@ -82,12 +81,11 @@ const Status = styled(Text).attrs({
   display: inline-flex;
   align-items: center;
 
-  &::before {
+  &::after {
     content: "";
     display: inline-block;
     width: 17px;
     height: 17px;
-    margin-right: 6px;
 
     background: radial-gradient(
       circle at center,
