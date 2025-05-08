@@ -2,7 +2,6 @@ import {
   TrashIcon,
   InsertAboveIcon,
   InsertBelowIcon,
-  MoreIcon,
   TableHeaderRowIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
@@ -17,33 +16,28 @@ export default function tableRowMenuItems(
 ): MenuItem[] {
   return [
     {
-      icon: <MoreIcon />,
-      children: [
-        {
-          name: "toggleHeaderRow",
-          label: dictionary.toggleHeader,
-          icon: <TableHeaderRowIcon />,
-          visible: index === 0,
-        },
-        {
-          name: "addRowBefore",
-          label: dictionary.addRowBefore,
-          icon: <InsertAboveIcon />,
-          attrs: { index },
-        },
-        {
-          name: "addRowAfter",
-          label: dictionary.addRowAfter,
-          icon: <InsertBelowIcon />,
-          attrs: { index },
-        },
-        {
-          name: "deleteRow",
-          label: dictionary.deleteRow,
-          dangerous: true,
-          icon: <TrashIcon />,
-        },
-      ],
+      name: "toggleHeaderRow",
+      tooltip: dictionary.toggleHeader,
+      icon: <TableHeaderRowIcon />,
+      visible: index === 0,
+    },
+    {
+      name: "addRowBefore",
+      tooltip: dictionary.addRowBefore,
+      icon: <InsertAboveIcon />,
+      attrs: { index },
+    },
+    {
+      name: "addRowAfter",
+      tooltip: dictionary.addRowAfter,
+      icon: <InsertBelowIcon />,
+      attrs: { index },
+    },
+    {
+      name: "deleteRow",
+      tooltip: dictionary.deleteRow,
+      icon: <TrashIcon />,
+      dangerous: true,
     },
   ];
 }
