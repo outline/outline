@@ -41,6 +41,7 @@ function useKeyboardShortcuts({
   useKeyDown(
     (ev) =>
       isModKey(ev) &&
+      !popover.visible &&
       ev.code === "KeyF" &&
       // Keyboard handler is through the AppMenu on Desktop v1.2.0+
       !(Desktop.bridge && "onFindInPage" in Desktop.bridge),
