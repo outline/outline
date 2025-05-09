@@ -16,23 +16,18 @@ function IntegrationCard({ integration }: Props) {
   const { t } = useTranslation();
   return (
     <Card>
-      <Flex justify="space-between" align="center">
-        <Flex align="center" gap={8}>
-          <integration.icon size={48} />
-          <Flex column>
-            <Name>{integration.name}</Name>
-            {integration.isActive && <Status>{t("Connected")}</Status>}
-          </Flex>
+      <Flex align="center" gap={8}>
+        <integration.icon size={48} />
+        <Flex auto column>
+          <Name>{integration.name}</Name>
+          {integration.isActive && <Status>{t("Connected")}</Status>}
         </Flex>
-      </Flex>
-
-      <Description>{integration.description}</Description>
-
-      <Footer>
         <Button as={Link} to={integration.path} neutral>
           {integration.isActive ? t("Configure") : t("Install")}
         </Button>
-      </Footer>
+      </Flex>
+
+      <Description>{integration.description}</Description>
     </Card>
   );
 }
@@ -60,17 +55,10 @@ const Name = styled(Text)`
 `;
 
 const Description = styled(Text)`
-  margin: 4px 0 0;
-  font-size: 14px;
+  margin: 8px 0 0;
+  font-size: 15px;
   max-width: 100%;
   color: ${s("textTertiary")};
-`;
-
-const Footer = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  margin-top: 16px;
 `;
 
 const Status = styled(Text).attrs({

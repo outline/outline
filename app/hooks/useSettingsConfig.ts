@@ -195,7 +195,7 @@ const useSettingsConfig = () => {
       },
       {
         name: `${t("Install")}…`,
-        path: integrationSettingsPath("all"),
+        path: settingsPath("integrations"),
         component: Integrations,
         enabled: true,
         group: t("Integrations"),

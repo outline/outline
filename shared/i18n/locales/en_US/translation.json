@@ -967,7 +967,7 @@
   "Enterprise": "Enterprise",
   "Quickly transfer your existing documents, pages, and files from other tools and services into {{appName}}. You can also drag and drop any HTML, Markdown, and text documents directly into Collections in the app.": "Quickly transfer your existing documents, pages, and files from other tools and services into {{appName}}. You can also drag and drop any HTML, Markdown, and text documents directly into Collections in the app.",
   "Recent imports": "Recent imports",
-  "Enable and configure your favorite third-party integrations with Outline.": "Enable and configure your favorite third-party integrations with Outline.",
+  "Enable and configure a variety of integrations with Outline.": "Enable and configure a variety of integrations with Outline.",
   "Could not load members": "Could not load members",
   "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {{signinMethods}} but haven’t signed in yet.": "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {{signinMethods}} but haven’t signed in yet.",
   "Receive a notification whenever a new document is published": "Receive a notification whenever a new document is published",

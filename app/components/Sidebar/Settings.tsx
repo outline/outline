@@ -69,7 +69,7 @@ function SettingsSidebar() {
                     key={item.path}
                     to={item.path}
                     active={
-                      item.path !== settingsPath()
+                      item.path.startsWith(settingsPath("templates"))
                         ? location.pathname.startsWith(item.path)
                         : undefined
                     }

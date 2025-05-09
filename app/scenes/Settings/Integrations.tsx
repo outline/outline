@@ -1,15 +1,13 @@
-// app/scenes/Settings/Integrations.tsx
-
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
-import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import Heading from "~/components/Heading";
 import IntegrationCard from "~/components/IntegrationCard";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import useSettingsConfig from "~/hooks/useSettingsConfig";
+import { settingsPath } from "~/utils/routeHelpers";
 
 export function Integrations() {
   const { t } = useTranslation();
@@ -20,7 +18,7 @@ export function Integrations() {
       (item) =>
         item.group === "Integrations" &&
         item.enabled &&
-        item.path !== integrationSettingsPath("all")
+        item.path !== settingsPath("integrations")
     )
     .sort((item) => (item.isActive ? -1 : 1));
 
@@ -29,8 +27,7 @@ export function Integrations() {
       <Heading>{t("Integrations")}</Heading>
       <Text type="secondary">
         <Trans>
-          Enable and configure your favorite third-party integrations with
-          Outline.
+          Enable and configure a variety of integrations with Outline.
         </Trans>
       </Text>
 
