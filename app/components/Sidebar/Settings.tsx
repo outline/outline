@@ -30,7 +30,7 @@ function SettingsSidebar() {
   let configs = useSettingsConfig();
 
   configs = configs.filter((item) =>
-    item.group === t("Integrations") ? item.isActive : true
+    "isActive" in item ? item.isActive : true
   );
 
   const groupedConfig = groupBy(configs, "group");

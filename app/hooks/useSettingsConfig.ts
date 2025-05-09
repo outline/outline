@@ -200,7 +200,6 @@ const useSettingsConfig = () => {
         enabled: true,
         group: t("Integrations"),
         icon: PlusIcon,
-        isActive: true,
       },
     ];
 
