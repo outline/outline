@@ -4,9 +4,9 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { s, ellipsis } from "@shared/styles";
 import { ConfigItem } from "~/hooks/useSettingsConfig";
-import Button from "./Button";
-import Flex from "./Flex";
-import Text from "./Text";
+import Button from "../../../components/Button";
+import Flex from "../../../components/Flex";
+import Text from "../../../components/Text";
 
 type Props = {
   integration: ConfigItem;
@@ -23,7 +23,7 @@ function IntegrationCard({ integration }: Props) {
           {integration.isActive && <Status>{t("Connected")}</Status>}
         </Flex>
         <Button as={Link} to={integration.path} neutral>
-          {integration.isActive ? t("Configure") : t("Install")}
+          {integration.isActive ? t("Configure") : t("Connect")}
         </Button>
       </Flex>
 
