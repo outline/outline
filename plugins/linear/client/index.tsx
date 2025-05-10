@@ -10,6 +10,8 @@ PluginManager.add([
     value: {
       group: "Integrations",
       icon: Icon,
+      description:
+        "Connect your Linear account to Outline to enable rich, realtime, issue previews inside documents.",
       component: createLazyComponent(() => import("./Settings")),
     },
   },
