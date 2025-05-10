@@ -11,7 +11,7 @@ PluginManager.add([
       group: "Integrations",
       icon: Icon,
       description:
-        "Measure adoption and engagement by streaming document view data into your existing GA4 property, see which guides drive the most value in your familiar analytics dashboard.",
+        "Measure adoption and engagement by sending view and event analytics directly to your GA4 dashboard.",
       component: createLazyComponent(() => import("./Settings")),
     },
   },

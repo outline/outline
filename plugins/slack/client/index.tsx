@@ -12,7 +12,7 @@ PluginManager.add([
       group: "Integrations",
       icon: Icon,
       description:
-        "Surface and search your knowledge base directly in Slack, get /outline search, rich link previews, and automatic notifications on new or updated docs to keep conversations informed without switching apps.",
+        "Search your knowledge base directly in Slack, get /outline search, rich link previews, and notifications on new or updated docs.",
       component: createLazyComponent(() => import("./Settings")),
       enabled: (_, user) =>
         [UserRole.Member, UserRole.Admin].includes(user.role),

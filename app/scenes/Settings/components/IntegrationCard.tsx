@@ -15,7 +15,7 @@ type Props = {
 function IntegrationCard({ integration }: Props) {
   const { t } = useTranslation();
   return (
-    <Card>
+    <Card as={Link} to={integration.path}>
       <Flex align="center" gap={8}>
         <integration.icon size={48} />
         <Flex auto column>
@@ -42,8 +42,14 @@ const Card = styled.div`
   width: 300px;
   background: ${s("background")};
   border: 1px solid ${s("inputBorder")};
+  color: ${s("text")};
   border-radius: 8px;
   transition: box-shadow 200ms ease;
+  cursor: var(--pointer);
+
+  &:hover {
+    box-shadow: rgba(0, 0, 0, 0.08) 0px 2px 4px, rgba(0, 0, 0, 0.06) 0px 4px 8px;
+  }
 `;
 
 const Name = styled(Text)`
