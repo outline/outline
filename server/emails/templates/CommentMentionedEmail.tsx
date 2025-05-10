@@ -1,6 +1,6 @@
 import * as React from "react";
-import { NotificationEventType } from "@shared/types";
-import { Collection, Comment, Document } from "@server/models";
+import { MentionType, NotificationEventType } from "@shared/types";
+import { Collection, Comment, Document, User } from "@server/models";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { can } from "@server/policies";
@@ -60,6 +60,24 @@ export default class CommentMentionedEmail extends BaseEmail<
     ]);
     if (!comment || !team) {
       return false;
+    }
+
+    for (const block of comment.data.content || []) {
+      if (block.type === "paragraph") {
+        for (const node of block.content || []) {
+          if (
+            node.type === "mention" &&
+            node.attrs?.type === MentionType.User
+          ) {
+            const user = await User.findByPk(node.attrs?.id as string);
+
+            node.attrs = {
+              ...node.attrs,
+              label: user?.name || "unknown",
+            };
+          }
+        }
+      }
     }
 
     const body = await this.htmlForData(
