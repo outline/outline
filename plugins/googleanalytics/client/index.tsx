@@ -10,6 +10,8 @@ PluginManager.add([
     value: {
       group: "Integrations",
       icon: Icon,
+      description:
+        "Measure adoption and engagement by sending view and event analytics directly to your GA4 dashboard.",
       component: createLazyComponent(() => import("./Settings")),
     },
   },

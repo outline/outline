@@ -27,7 +27,12 @@ function SettingsSidebar() {
   const { t } = useTranslation();
   const history = useHistory();
   const location = useLocation();
-  const configs = useSettingsConfig();
+  let configs = useSettingsConfig();
+
+  configs = configs.filter((item) =>
+    "isActive" in item ? item.isActive : true
+  );
+
   const groupedConfig = groupBy(configs, "group");
 
   const returnToApp = React.useCallback(() => {
@@ -65,7 +70,7 @@ function SettingsSidebar() {
                     to={item.path}
                     onClickIntent={item.preload}
                     active={
-                      item.path !== settingsPath()
+                      item.path.startsWith(settingsPath("templates"))
                         ? location.pathname.startsWith(item.path)
                         : undefined
                     }

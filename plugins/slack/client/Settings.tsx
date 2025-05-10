@@ -6,6 +6,7 @@ import { IntegrationService, IntegrationType } from "@shared/types";
 import Collection from "~/models/Collection";
 import Integration from "~/models/Integration";
 import { ConnectedButton } from "~/scenes/Settings/components/ConnectedButton";
+import { IntegrationScene } from "~/scenes/Settings/components/IntegrationScene";
 import SettingRow from "~/scenes/Settings/components/SettingRow";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
@@ -13,7 +14,6 @@ import CollectionIcon from "~/components/Icons/CollectionIcon";
 import List from "~/components/List";
 import ListItem from "~/components/List/Item";
 import Notice from "~/components/Notice";
-import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -67,7 +67,7 @@ function Slack() {
   const appName = env.APP_NAME;
 
   return (
-    <Scene title="Slack" icon={<SlackIcon />}>
+    <IntegrationScene title="Slack" icon={<SlackIcon />}>
       <Heading>Slack</Heading>
 
       {error === "access_denied" && (
@@ -205,7 +205,7 @@ function Slack() {
           </List>
         </>
       )}
-    </Scene>
+    </IntegrationScene>
   );
 }
 
