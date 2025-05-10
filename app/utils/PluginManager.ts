@@ -3,6 +3,7 @@ import sortBy from "lodash/sortBy";
 import { action, observable } from "mobx";
 import Team from "~/models/Team";
 import User from "~/models/User";
+import { LazyComponent } from "~/components/LazyLoad";
 import { useComputed } from "~/hooks/useComputed";
 import Logger from "./Logger";
 import isCloudHosted from "./isCloudHosted";
@@ -28,7 +29,7 @@ type PluginValueMap = {
     /** The displayed icon of the plugin. */
     icon: React.ElementType;
     /** The settings screen somponent, should be lazy loaded. */
-    component: React.LazyExoticComponent<React.ComponentType>;
+    component: LazyComponent<React.ComponentType>;
     /** Whether the plugin is enabled in the current context. */
     enabled?: (team: Team, user: User) => boolean;
   };

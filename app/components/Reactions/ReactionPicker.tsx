@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { PopoverDisclosure, usePopoverState } from "reakit";
 import EventBoundary from "@shared/components/EventBoundary";
 import Flex from "~/components/Flex";
+import { createLazyComponent } from "~/components/LazyLoad";
 import NudeButton from "~/components/NudeButton";
 import PlaceholderText from "~/components/PlaceholderText";
 import Popover from "~/components/Popover";
@@ -12,7 +13,7 @@ import useOnClickOutside from "~/hooks/useOnClickOutside";
 import useWindowSize from "~/hooks/useWindowSize";
 import Tooltip from "../Tooltip";
 
-const EmojiPanel = React.lazy(
+const EmojiPanel = createLazyComponent(
   () => import("~/components/IconPicker/components/EmojiPanel")
 );
 
@@ -104,6 +105,7 @@ const ReactionPicker: React.FC<Props> = ({
               aria-label={t("Reaction picker")}
               className={className}
               onClick={handlePopoverButtonClick}
+              onMouseEnter={() => EmojiPanel.preload()}
               size={size}
             >
               <ReactionIcon size={22} />
@@ -123,7 +125,7 @@ const ReactionPicker: React.FC<Props> = ({
         {popover.visible && (
           <React.Suspense fallback={<Placeholder />}>
             <EventBoundary>
-              <EmojiPanel
+              <EmojiPanel.Component
                 height={300}
                 panelWidth={panelWidth}
                 query={query}
