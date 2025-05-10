@@ -20,10 +20,8 @@ import React, { ComponentProps } from "react";
 import { useTranslation } from "react-i18next";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import { Integrations } from "~/scenes/Settings/Integrations";
-import ZapierIcon from "~/components/Icons/ZapierIcon";
 import { createLazyComponent as lazy } from "~/components/LazyLoad";
 import { Hook, PluginManager } from "~/utils/PluginManager";
-import isCloudHosted from "~/utils/isCloudHosted";
 import { settingsPath } from "~/utils/routeHelpers";
 import { useComputed } from "./useComputed";
 import useCurrentTeam from "./useCurrentTeam";
@@ -46,7 +44,6 @@ const Profile = lazy(() => import("~/scenes/Settings/Profile"));
 const Security = lazy(() => import("~/scenes/Settings/Security"));
 const Shares = lazy(() => import("~/scenes/Settings/Shares"));
 const Templates = lazy(() => import("~/scenes/Settings/Templates"));
-const Zapier = lazy(() => import("~/scenes/Settings/Zapier"));
 
 export type ConfigItem = {
   name: string;
@@ -211,15 +208,6 @@ const useSettingsConfig = () => {
         icon: ExportIcon,
       },
       // Integrations
-      {
-        name: "Zapier",
-        path: integrationSettingsPath("zapier"),
-        component: Zapier.Component,
-        preload: Zapier.preload,
-        enabled: can.update && isCloudHosted,
-        group: t("Integrations"),
-        icon: ZapierIcon,
-      },
       {
         name: `${t("Install")}…`,
         path: settingsPath("integrations"),
