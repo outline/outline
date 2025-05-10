@@ -41,7 +41,7 @@ export default class ZipHelper {
           prefix: "export-",
           postfix: ".zip",
         },
-        (err, path) => {
+        (err, filePath) => {
           if (err) {
             return reject(err);
           }
@@ -51,28 +51,24 @@ export default class ZipHelper {
             currentFile: null,
           };
 
-          const cleanup = (error?: Error) => {
-            fs.remove(path)
+          const handleError = (error: Error) => {
+            dest.destroy();
+            fs.remove(filePath)
               .catch((rmErr) => {
                 Logger.error("Failed to remove tmp file", rmErr);
               })
               .finally(() => {
-                if (error) {
-                  reject(error);
-                }
+                reject(error);
               });
           };
 
           const dest = fs
-            .createWriteStream(path)
+            .createWriteStream(filePath)
             .on("finish", () => {
-              Logger.debug("utils", "Writing zip complete", { path });
-              return resolve(path);
+              Logger.debug("utils", "Writing zip complete", { path: filePath });
+              return resolve(filePath);
             })
-            .on("error", (error) => {
-              dest.destroy();
-              cleanup(error);
-            });
+            .on("error", handleError);
 
           zip
             .generateNodeStream(
@@ -100,15 +96,9 @@ export default class ZipHelper {
                 }
               }
             )
-            .on("error", (error) => {
-              dest.destroy();
-              cleanup(error);
-            })
+            .on("error", handleError)
             .pipe(dest)
-            .on("error", (error) => {
-              dest.destroy();
-              cleanup(error);
-            });
+            .on("error", handleError);
         }
       );
     });
