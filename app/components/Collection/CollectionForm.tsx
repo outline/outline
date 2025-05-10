@@ -6,7 +6,7 @@ import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
 import { randomElement } from "@shared/random";
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, TeamPreference } from "@shared/types";
 import { IconLibrary } from "@shared/utils/IconLibrary";
 import { colorPalette } from "@shared/utils/collections";
 import { CollectionValidation } from "@shared/validations";
@@ -31,6 +31,7 @@ export interface FormData {
   color: string | null;
   sharing: boolean;
   permission: CollectionPermission | undefined;
+  commenting?: boolean | null;
 }
 
 const useIconColor = (collection?: Collection) => {
@@ -83,6 +84,7 @@ export const CollectionForm = observer(function CollectionForm_({
       icon: collection?.icon,
       sharing: collection?.sharing ?? true,
       permission: collection?.permission,
+      commenting: collection?.commenting ?? null,
       color: iconColor,
     },
   });
@@ -189,7 +191,25 @@ export const CollectionForm = observer(function CollectionForm_({
           {...register("sharing")}
         />
       )}
-
+      <Controller
+        control={control}
+        name="commenting"
+        render={({ field }) => (
+          <Switch
+            id="commenting"
+            label={t("Commenting")}
+            note={t("Enable or disable comments for this collection.")}
+            checked={
+              field.value === null
+                ? team.getPreference(TeamPreference.Commenting)
+                : field.value
+            }
+            onChange={(e) => {
+              field.onChange(e.currentTarget.checked);
+            }}
+          />
+        )}
+      />
       <Flex justify="flex-end">
         <Button
           type="submit"

@@ -8,7 +8,6 @@ import {
   matchPath,
   Redirect,
 } from "react-router-dom";
-import { TeamPreference } from "@shared/types";
 import ErrorSuspended from "~/scenes/Errors/ErrorSuspended";
 import Layout from "~/components/Layout";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
@@ -49,7 +48,7 @@ type Props = {
 };
 
 const AuthenticatedLayout: React.FC = ({ children }: Props) => {
-  const { ui, auth } = useStores();
+  const { ui, auth, collections } = useStores();
   const location = useLocation();
   const layoutRef = React.useRef<HTMLDivElement>(null);
   const can = usePolicy(ui.activeDocumentId);
@@ -108,7 +107,7 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
     can.comment &&
     ui.activeDocumentId &&
     ui.commentsExpanded &&
-    team.getPreference(TeamPreference.Commenting);
+    collections.canComment(ui.activeCollectionId ?? undefined);
 
   const sidebarRight = (
     <AnimatePresence

@@ -9,6 +9,7 @@ import {
   CollectionStatusFilter,
   FileOperationFormat,
   SubscriptionType,
+  TeamPreference,
 } from "@shared/types";
 import Collection from "~/models/Collection";
 import { PaginationParams, Properties } from "~/types";
@@ -19,6 +20,26 @@ import Store from "./base/Store";
 export default class CollectionsStore extends Store<Collection> {
   constructor(rootStore: RootStore) {
     super(rootStore, Collection);
+  }
+
+  /**
+   * Return whether comments should be enabled, using the
+   * per-collection override if present, otherwise falling back
+   * to the team's workspace default.
+   */
+  canComment(collectionId?: string): boolean {
+    const teamCommentingEnabled = !!this.rootStore.auth.team?.getPreference(
+      TeamPreference.Commenting
+    );
+
+    if (collectionId) {
+      const col = this.data.get(collectionId);
+      if (col?.commenting !== null && col?.commenting !== undefined) {
+        return col.commenting;
+      }
+    }
+
+    return teamCommentingEnabled;
   }
 
   /**
