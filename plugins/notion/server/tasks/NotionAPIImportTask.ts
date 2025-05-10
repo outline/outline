@@ -2,6 +2,7 @@ import { APIResponseError, APIErrorCode } from "@notionhq/client";
 import { ImportTaskInput, ImportTaskOutput } from "@shared/schema";
 import { IntegrationService, ProsemirrorDoc } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { CollectionValidation, DocumentValidation } from "@shared/validations";
 import Logger from "@server/logging/Logger";
 import { Integration } from "@server/models";
 import ImportTask from "@server/models/ImportTask";
@@ -76,7 +77,7 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
   protected async scheduleNextTask(
     importTask: ImportTask<IntegrationService.Notion>
   ) {
-    await NotionAPIImportTask.schedule({ importTaskId: importTask.id });
+    await new NotionAPIImportTask().schedule({ importTaskId: importTask.id });
     return;
   }
 
@@ -95,12 +96,17 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
     client: NotionClient;
   }): Promise<ParsePageOutput | null> {
     const collectionExternalId = item.collectionExternalId ?? item.externalId;
+    const titleMaxLength =
+      item.externalId === collectionExternalId // This means it's a root page which will be imported as a collection
+        ? CollectionValidation.maxNameLength
+        : DocumentValidation.maxTitleLength;
 
     try {
       // Convert Notion database to an empty page with "pages in database" as its children.
       if (item.type === PageType.Database) {
         const { pages, ...databaseInfo } = await client.fetchDatabase(
-          item.externalId
+          item.externalId,
+          { titleMaxLength }
         );
 
         return {
@@ -115,7 +121,9 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
         };
       }
 
-      const { blocks, ...pageInfo } = await client.fetchPage(item.externalId);
+      const { blocks, ...pageInfo } = await client.fetchPage(item.externalId, {
+        titleMaxLength,
+      });
 
       return {
         ...pageInfo,

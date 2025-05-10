@@ -21,7 +21,7 @@ export default abstract class BaseTask<T extends Record<string, any>> {
   static cron: TaskSchedule | undefined;
 
   /**
-   * Schedule this task type to be processed asyncronously by a worker.
+   * Schedule this task type to be processed asynchronously by a worker.
    *
    * @param props Properties to be used by the task
    * @returns A promise that resolves once the job is placed on the task queue
@@ -36,6 +36,23 @@ export default abstract class BaseTask<T extends Record<string, any>> {
         props,
       },
       { ...options, ...task.options }
+    );
+  }
+
+  /**
+   * Schedule this task type to be processed asynchronously by a worker.
+   *
+   * @param props Properties to be used by the task
+   * @param options Job options such as priority and retry strategy, as defined by Bull.
+   * @returns A promise that resolves once the job is placed on the task queue
+   */
+  public schedule(props: T, options?: JobOptions): Promise<Job> {
+    return taskQueue.add(
+      {
+        name: this.constructor.name,
+        props,
+      },
+      { ...options, ...this.options }
     );
   }
 

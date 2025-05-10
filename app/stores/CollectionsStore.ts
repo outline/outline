@@ -186,6 +186,13 @@ export default class CollectionsStore extends Store<Collection> {
       statusFilter: [CollectionStatusFilter.Archived],
     });
 
+  get(id: string): Collection | undefined {
+    return (
+      this.data.get(id) ??
+      this.orderedData.find((collection) => id.endsWith(collection.urlId))
+    );
+  }
+
   @computed
   get archived(): Collection[] {
     return orderBy(this.orderedData, "archivedAt", "desc").filter(

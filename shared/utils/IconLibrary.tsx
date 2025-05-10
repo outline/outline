@@ -7,6 +7,16 @@ import {
   faWebAwesome,
   faXTwitter,
   faBluesky,
+  faGithub,
+  faGitlab,
+  faDiscord,
+  faDocker,
+  faCodepen,
+  faDropbox,
+  faPaypal,
+  faShopify,
+  faSwift,
+  faSlack,
 } from "@fortawesome/free-brands-svg-icons";
 import {
   faBagShopping,
@@ -551,6 +561,16 @@ export class IconLibrary {
         faPython,
         faXTwitter,
         faBluesky,
+        faGithub,
+        faGitlab,
+        faDiscord,
+        faDocker,
+        faCodepen,
+        faDropbox,
+        faPaypal,
+        faShopify,
+        faSwift,
+        faSlack,
       ].map((icon) => [
         icon.iconName,
         {

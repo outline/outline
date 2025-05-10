@@ -1,4 +1,4 @@
-import * as React from "react";
+import { createLazyComponent } from "~/components/LazyLoad";
 import { Hook, PluginManager } from "~/utils/PluginManager";
 import config from "../plugin.json";
 import Icon from "./Icon";
@@ -10,9 +10,9 @@ PluginManager.add([
     value: {
       group: "Integrations",
       icon: Icon,
-      component: React.lazy(() => import("./Settings")),
       description:
         "Embed live issue and pull-request previews in your documentation, hover over GitHub links in Outline to see current status, titles, and descriptions without context-switching.",
+      component: createLazyComponent(() => import("./Settings")),
     },
   },
 ]);

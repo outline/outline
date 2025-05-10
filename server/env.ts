@@ -15,6 +15,7 @@ import {
 } from "class-validator";
 import uniq from "lodash/uniq";
 import { languages } from "@shared/i18n";
+import { Day, Hour } from "@shared/utils/time";
 import { CannotUseWith, CannotUseWithout } from "@server/utils/validators";
 import Deprecated from "./models/decorators/Deprecated";
 import { getArg } from "./utils/args";
@@ -608,6 +609,31 @@ export class Environment {
   @IsNumber()
   public MAXIMUM_EXPORT_SIZE =
     this.toOptionalNumber(environment.MAXIMUM_EXPORT_SIZE) ?? os.totalmem();
+
+  /**
+   * The number of seconds access tokens issue by the OAuth provider are valid.
+   */
+  @IsNumber()
+  public OAUTH_PROVIDER_ACCESS_TOKEN_LIFETIME =
+    this.toOptionalNumber(environment.OAUTH_PROVIDER_ACCESS_TOKEN_LIFETIME) ??
+    Hour.seconds;
+
+  /**
+   * The number of seconds refresh tokens issue by the OAuth provider are valid.
+   */
+  @IsNumber()
+  public OAUTH_PROVIDER_REFRESH_TOKEN_LIFETIME =
+    this.toOptionalNumber(environment.OAUTH_PROVIDER_REFRESH_TOKEN_LIFETIME) ??
+    30 * Day.seconds;
+
+  /**
+   * The number of seconds authorization codes issue by the OAuth provider are valid.
+   */
+  @IsNumber()
+  public OAUTH_PROVIDER_AUTHORIZATION_CODE_LIFETIME =
+    this.toOptionalNumber(
+      environment.OAUTH_PROVIDER_AUTHORIZATION_CODE_LIFETIME
+    ) ?? 300;
 
   /**
    * Enable unsafe-inline in script-src CSP directive

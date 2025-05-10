@@ -18,6 +18,13 @@ type Props = {
   children?: React.ReactNode;
   document: Document;
   onlyText?: boolean;
+  reverse?: boolean;
+  /**
+   * Maximum number of items to show in the breadcrumb.
+   * If value is less than or equals to 0, no items will be shown.
+   * If value is undefined, all items will be shown.
+   */
+  maxDepth?: number;
 };
 
 function useCategory(document: Document): MenuInternalLink | null {
@@ -54,7 +61,7 @@ function useCategory(document: Document): MenuInternalLink | null {
 }
 
 function DocumentBreadcrumb(
-  { document, children, onlyText }: Props,
+  { document, children, onlyText, reverse = false, maxDepth }: Props,
   ref: React.RefObject<HTMLDivElement> | null
 ) {
   const { collections } = useStores();
@@ -65,6 +72,7 @@ function DocumentBreadcrumb(
     ? collections.get(document.collectionId)
     : undefined;
   const can = usePolicy(collection);
+  const depth = maxDepth === undefined ? undefined : Math.max(0, maxDepth);
 
   React.useEffect(() => {
     void document.loadRelations({ withoutPolicies: true });
@@ -91,20 +99,23 @@ function DocumentBreadcrumb(
     };
   }
 
-  const path = document.pathTo;
+  const path = document.pathTo.slice(0, -1);
 
   const items = React.useMemo(() => {
-    const output = [];
+    const output: MenuInternalLink[] = [];
+
+    if (depth === 0) {
+      return output;
+    }
 
     if (category) {
       output.push(category);
     }
-
     if (collectionNode) {
       output.push(collectionNode);
     }
 
-    path.slice(0, -1).forEach((node: NavigationNode) => {
+    path.forEach((node: NavigationNode) => {
       const title = node.title || t("Untitled");
       output.push({
         type: "route",
@@ -121,21 +132,43 @@ function DocumentBreadcrumb(
         },
       });
     });
-    return output;
-  }, [t, path, category, sidebarContext, collectionNode]);
+
+    return reverse
+      ? depth !== undefined
+        ? output.slice(-depth)
+        : output
+      : depth !== undefined
+      ? output.slice(0, depth)
+      : output;
+  }, [t, path, category, sidebarContext, collectionNode, reverse, depth]);
 
   if (!collections.isLoaded) {
     return null;
   }
 
-  if (onlyText === true) {
+  if (onlyText) {
+    if (depth === 0) {
+      return <></>;
+    }
+
+    const slicedPath = reverse
+      ? path.slice(depth && -depth)
+      : path.slice(0, depth);
+
+    const showCollection =
+      collection &&
+      (!reverse || depth === undefined || slicedPath.length < depth);
+
     return (
       <>
-        {collection?.name}
-        {path.slice(0, -1).map((node: NavigationNode) => (
+        {showCollection && collection.name}
+        {slicedPath.map((node: NavigationNode, index: number) => (
           <React.Fragment key={node.id}>
-            <SmallSlash />
+            {showCollection && <SmallSlash />}
             {node.title || t("Untitled")}
+            {!showCollection && index !== slicedPath.length - 1 && (
+              <SmallSlash />
+            )}
           </React.Fragment>
         ))}
       </>

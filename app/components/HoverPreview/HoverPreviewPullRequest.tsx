@@ -1,5 +1,7 @@
 import * as React from "react";
 import { Trans } from "react-i18next";
+import styled from "styled-components";
+import { Backticks } from "@shared/components/Backticks";
 import { PullRequestIcon } from "@shared/components/PullRequestIcon";
 import { UnfurlResourceType, UnfurlResponse } from "@shared/types";
 import { Avatar } from "~/components/Avatar";
@@ -31,13 +33,14 @@ const HoverPreviewPullRequest = React.forwardRef(
             <CardContent>
               <Flex gap={2} column>
                 <Title>
-                  <PullRequestIcon status={state.name} color={state.color} />
+                  <StyledPullRequestIcon size={18} state={state} />
                   <span>
-                    {title}&nbsp;<Text type="tertiary">{id}</Text>
+                    <Backticks content={title} />
+                    &nbsp;<Text type="tertiary">{id}</Text>
                   </span>
                 </Title>
-                <Flex align="center" gap={4}>
-                  <Avatar src={author.avatarUrl} />
+                <Flex align="center" gap={6}>
+                  <Avatar src={author.avatarUrl} size={18} />
                   <Info>
                     <Trans>
                       {{ authorName }} opened{" "}
@@ -54,5 +57,9 @@ const HoverPreviewPullRequest = React.forwardRef(
     );
   }
 );
+
+const StyledPullRequestIcon = styled(PullRequestIcon)`
+  margin-top: 2px;
+`;
 
 export default HoverPreviewPullRequest;

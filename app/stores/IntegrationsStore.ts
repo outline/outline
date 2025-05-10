@@ -21,6 +21,13 @@ class IntegrationsStore extends Store<Integration> {
       (integration) => integration.service === IntegrationService.GitHub
     );
   }
+
+  @computed
+  get linear(): Integration<IntegrationType.Embed>[] {
+    return this.orderedData.filter(
+      (integration) => integration.service === IntegrationService.Linear
+    );
+  }
 }
 
 export default IntegrationsStore;

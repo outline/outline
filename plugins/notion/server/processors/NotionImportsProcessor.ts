@@ -66,6 +66,6 @@ export class NotionImportsProcessor extends ImportsProcessor<IntegrationService.
   protected async scheduleTask(
     importTask: ImportTask<IntegrationService.Notion>
   ): Promise<void> {
-    await NotionAPIImportTask.schedule({ importTaskId: importTask.id });
+    await new NotionAPIImportTask().schedule({ importTaskId: importTask.id });
   }
 }

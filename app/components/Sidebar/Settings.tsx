@@ -68,6 +68,7 @@ function SettingsSidebar() {
                   <SidebarLink
                     key={item.path}
                     to={item.path}
+                    onClickIntent={item.preload}
                     active={
                       item.path.startsWith(settingsPath("templates"))
                         ? location.pathname.startsWith(item.path)

@@ -10,6 +10,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { Backticks } from "../../components/Backticks";
 import Flex from "../../components/Flex";
 import Icon from "../../components/Icon";
 import { IssueStatusIcon } from "../../components/IssueStatusIcon";
@@ -19,10 +20,11 @@ import Text from "../../components/Text";
 import useIsMounted from "../../hooks/useIsMounted";
 import useStores from "../../hooks/useStores";
 import theme from "../../styles/theme";
-import type {
-  JSONValue,
-  UnfurlResourceType,
-  UnfurlResponse,
+import {
+  IntegrationService,
+  type JSONValue,
+  type UnfurlResourceType,
+  type UnfurlResponse,
 } from "../../types";
 import { cn } from "../styles/utils";
 import { ComponentProps } from "../types";
@@ -187,6 +189,12 @@ export const MentionIssue = observer((props: IssuePrProps) => {
 
   const issue = unfurl as UnfurlResponse[UnfurlResourceType.Issue];
 
+  const url = new URL(issue.url);
+  const service =
+    url.hostname === "github.com"
+      ? IntegrationService.GitHub
+      : IntegrationService.Linear;
+
   return (
     <a
       {...attrs}
@@ -198,13 +206,11 @@ export const MentionIssue = observer((props: IssuePrProps) => {
       rel="noopener noreferrer nofollow"
     >
       <Flex align="center" gap={6}>
-        <IssueStatusIcon
-          size={14}
-          status={issue.state.name}
-          color={issue.state.color}
-        />
+        <IssueStatusIcon size={14} service={service} state={issue.state} />
         <Flex align="center" gap={4}>
-          <Text>{issue.title}</Text>
+          <Text>
+            <Backticks content={issue.title} />
+          </Text>
           <Text type="tertiary">{issue.id}</Text>
         </Flex>
       </Flex>
@@ -273,13 +279,11 @@ export const MentionPullRequest = observer((props: IssuePrProps) => {
       rel="noopener noreferrer nofollow"
     >
       <Flex align="center" gap={6}>
-        <PullRequestIcon
-          size={14}
-          status={pullRequest.state.name}
-          color={pullRequest.state.color}
-        />
+        <PullRequestIcon size={14} state={pullRequest.state} />
         <Flex align="center" gap={4}>
-          <Text>{pullRequest.title}</Text>
+          <Text>
+            <Backticks content={pullRequest.title} />
+          </Text>
           <Text type="tertiary">{pullRequest.id}</Text>
         </Flex>
       </Flex>

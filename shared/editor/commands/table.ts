@@ -1,6 +1,11 @@
 import { GapCursor } from "prosemirror-gapcursor";
-import { Node, NodeType } from "prosemirror-model";
-import { Command, EditorState, TextSelection } from "prosemirror-state";
+import { Node, NodeType, Slice } from "prosemirror-model";
+import {
+  Command,
+  EditorState,
+  TextSelection,
+  Transaction,
+} from "prosemirror-state";
 import {
   CellSelection,
   addRow,
@@ -11,11 +16,16 @@ import {
   addColumn,
   deleteRow,
   deleteColumn,
+  deleteTable,
 } from "prosemirror-tables";
 import { ProsemirrorHelper } from "../../utils/ProsemirrorHelper";
 import { CSVHelper } from "../../utils/csv";
 import { chainTransactions } from "../lib/chainTransactions";
-import { getCellsInColumn, isHeaderEnabled } from "../queries/table";
+import {
+  getCellsInColumn,
+  isHeaderEnabled,
+  isTableSelected,
+} from "../queries/table";
 import { TableLayout } from "../types";
 import { collapseSelection } from "./collapseSelection";
 
@@ -44,11 +54,11 @@ export function createTable({
   };
 }
 
-function createTableInner(
+export function createTableInner(
   state: EditorState,
   rowsCount: number,
   colsCount: number,
-  colWidth: number,
+  colWidth?: number,
   withHeaderRow = true,
   cellContent?: Node
 ) {
@@ -543,4 +553,47 @@ export function moveOutOfTable(direction: 1 | -1): Command {
     }
     return false;
   };
+}
+
+/**
+ * A command that deletes the entire table if all cells are selected.
+ *
+ * @returns The command
+ */
+export function deleteTableIfSelected(): Command {
+  return (state, dispatch): boolean => {
+    if (isTableSelected(state)) {
+      return deleteTable(state, dispatch);
+    }
+    return false;
+  };
+}
+
+export function deleteCellSelection(
+  state: EditorState,
+  dispatch?: (tr: Transaction) => void
+): boolean {
+  const sel = state.selection;
+  if (!(sel instanceof CellSelection)) {
+    return false;
+  }
+  if (dispatch) {
+    const tr = state.tr;
+    const baseContent = tableNodeTypes(state.schema).cell.createAndFill()!
+      .content;
+    sel.forEachCell((cell, pos) => {
+      if (!cell.content.eq(baseContent)) {
+        tr.replace(
+          tr.mapping.map(pos + 1),
+          tr.mapping.map(pos + cell.nodeSize - 1),
+          new Slice(baseContent, 0, 0)
+        );
+      }
+    });
+    if (tr.docChanged) {
+      dispatch(tr);
+      return true;
+    }
+  }
+  return false;
 }

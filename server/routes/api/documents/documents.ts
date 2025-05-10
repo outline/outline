@@ -133,15 +133,19 @@ router.post(
     // if a specific collection is passed then we need to check auth to view it
     if (collectionId) {
       where[Op.and].push({ collectionId: [collectionId] });
-      const collection = await Collection.scope({
-        method: ["withMembership", user.id],
-      }).findByPk(collectionId);
+      const collection = await Collection.scope([
+        sort === "index" ? "withDocumentStructure" : "defaultScope",
+        {
+          method: ["withMembership", user.id],
+        },
+      ]).findByPk(collectionId);
+
       authorize(user, "readDocument", collection);
 
       // index sort is special because it uses the order of the documents in the
       // collection.documentStructure rather than a database column
       if (sort === "index") {
-        documentIds = (collection?.documentStructure || [])
+        documentIds = (collection.documentStructure || [])
           .map((node) => node.id)
           .slice(ctx.state.pagination.offset, ctx.state.pagination.limit);
         where[Op.and].push({ id: documentIds });
@@ -268,7 +272,7 @@ router.post(
     }
 
     const [documents, total] = await Promise.all([
-      Document.defaultScopeWithUser(user.id).findAll({
+      Document.withMembershipScope(user.id).findAll({
         where,
         order: [
           [
@@ -348,7 +352,7 @@ router.post(
       };
     }
 
-    const documents = await Document.defaultScopeWithUser(user.id).findAll({
+    const documents = await Document.withMembershipScope(user.id).findAll({
       where,
       order: [
         [
@@ -397,15 +401,11 @@ router.post(
     const membershipScope: Readonly<ScopeOptions> = {
       method: ["withMembership", user.id],
     };
-    const collectionScope: Readonly<ScopeOptions> = {
-      method: ["withCollectionPermissions", user.id],
-    };
     const viewScope: Readonly<ScopeOptions> = {
       method: ["withViews", user.id],
     };
     const documents = await Document.scope([
       membershipScope,
-      collectionScope,
       viewScope,
       "withDrafts",
     ]).findAll({
@@ -539,7 +539,9 @@ router.post(
       delete where.updatedAt;
     }
 
-    const documents = await Document.defaultScopeWithUser(user.id).findAll({
+    const documents = await Document.withMembershipScope(user.id, {
+      includeDrafts: true,
+    }).findAll({
       where,
       order: [[sort, direction]],
       offset: ctx.state.pagination.offset,
@@ -1539,7 +1541,7 @@ router.post(
       acl,
     });
 
-    const job = await DocumentImportTask.schedule({
+    const job = await new DocumentImportTask().schedule({
       key,
       sourceMetadata: {
         fileName,
@@ -1549,6 +1551,7 @@ router.post(
       collectionId,
       parentDocumentId,
       publish,
+      ip: ctx.request.ip,
     });
     const response: DocumentImportTaskResponse = await job.finished();
     if ("error" in response) {
@@ -2032,13 +2035,7 @@ router.post(
     const collectionIds = await user.collectionIds({
       paranoid: false,
     });
-    const collectionScope: Readonly<ScopeOptions> = {
-      method: ["withCollectionPermissions", user.id],
-    };
-    const documents = await Document.scope([
-      collectionScope,
-      "withDrafts",
-    ]).findAll({
+    const documents = await Document.scope("withDrafts").findAll({
       attributes: ["id"],
       where: {
         deletedAt: {
@@ -2062,7 +2059,7 @@ router.post(
     });
 
     if (documents.length) {
-      await EmptyTrashTask.schedule({
+      await new EmptyTrashTask().schedule({
         documentIds: documents.map((doc) => doc.id),
       });
     }

@@ -45,10 +45,10 @@ export class GitHubUtils {
     return `${this.url}?install_request=true`;
   }
 
-  public static getColorForStatus(status: string) {
+  public static getColorForStatus(status: string, isDraftPR: boolean = false) {
     switch (status) {
       case "open":
-        return "#238636";
+        return isDraftPR ? "#848d97" : "#238636";
       case "done":
         return "#a371f7";
       case "closed":
