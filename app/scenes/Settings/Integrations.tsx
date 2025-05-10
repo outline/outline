@@ -1,3 +1,4 @@
+import groupBy from "lodash/groupBy";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -7,28 +8,34 @@ import InputSearch from "~/components/InputSearch";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import useSettingsConfig from "~/hooks/useSettingsConfig";
+import useStores from "~/hooks/useStores";
 import { settingsPath } from "~/utils/routeHelpers";
 import IntegrationCard from "./components/IntegrationCard";
 import { StickyFilters } from "./components/StickyFilters";
 
 export function Integrations() {
   const { t } = useTranslation();
-  let items = useSettingsConfig();
+  const { integrations } = useStores();
+  const items = useSettingsConfig();
   const [query, setQuery] = React.useState("");
 
   const handleQuery = (event: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(event.target.value);
   };
 
-  items = items
-    .filter(
+  const groupedItems = groupBy(
+    items.filter(
       (item) =>
         item.group === "Integrations" &&
         item.enabled &&
         item.path !== settingsPath("integrations") &&
         item.name.toLowerCase().includes(query.toLowerCase())
-    )
-    .sort((item) => (item.isActive ? -1 : 1));
+    ),
+    (item) =>
+      item.pluginId && integrations.findByService(item.pluginId)
+        ? "connected"
+        : "available"
+  );
 
   return (
     <Scene title={t("Integrations")}>
@@ -47,16 +54,19 @@ export function Integrations() {
         />
       </StickyFilters>
 
-      <CardsFlex gap={30} wrap>
-        {items.map((item) => (
+      <Cards gap={30} wrap>
+        {groupedItems.connected.map((item) => (
+          <IntegrationCard key={item.path} integration={item} isConnected />
+        ))}
+        {groupedItems.available.map((item) => (
           <IntegrationCard key={item.path} integration={item} />
         ))}
-      </CardsFlex>
+      </Cards>
     </Scene>
   );
 }
 
-const CardsFlex = styled(Flex)`
+const Cards = styled(Flex)`
   margin-top: 20px;
   width: "100%";
 `;
