@@ -54,7 +54,7 @@ export type ConfigItem = {
   preload?: () => void;
   enabled: boolean;
   group: string;
-  isActive?: boolean;
+  pluginId?: string;
 };
 
 const useSettingsConfig = () => {
@@ -231,6 +231,7 @@ const useSettingsConfig = () => {
             ? integrationSettingsPath(plugin.id)
             : settingsPath(plugin.id),
         group: t(group),
+        pluginId: plugin.id,
         description: plugin.value.description,
         component: plugin.value.component.Component,
         preload: plugin.value.component.preload,
@@ -238,10 +239,6 @@ const useSettingsConfig = () => {
           ? plugin.value.enabled(team, user)
           : can.update,
         icon: plugin.value.icon,
-        isActive: integrations.orderedData.some(
-          (integration) =>
-            integration.service.toLowerCase() === plugin.id.toLowerCase()
-        ),
       } as ConfigItem);
     });
 

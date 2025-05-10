@@ -43,12 +43,6 @@ function Matomo() {
   });
 
   React.useEffect(() => {
-    void integrations.fetchPage({
-      type: IntegrationType.Analytics,
-    });
-  }, [integrations]);
-
-  React.useEffect(() => {
     reset({
       measurementId: integration?.settings.measurementId,
       instanceUrl: integration?.settings.instanceUrl,
