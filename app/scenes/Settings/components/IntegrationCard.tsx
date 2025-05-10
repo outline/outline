@@ -10,20 +10,22 @@ import Text from "../../../components/Text";
 
 type Props = {
   integration: ConfigItem;
+  isConnected?: boolean;
 };
 
-function IntegrationCard({ integration }: Props) {
+function IntegrationCard({ integration, isConnected }: Props) {
   const { t } = useTranslation();
+
   return (
     <Card as={Link} to={integration.path}>
       <Flex align="center" gap={8}>
         <integration.icon size={48} />
         <Flex auto column>
           <Name>{integration.name}</Name>
-          {integration.isActive && <Status>{t("Connected")}</Status>}
+          {isConnected && <Status>{t("Connected")}</Status>}
         </Flex>
-        <Button as={Link} to={integration.path} neutral>
-          {integration.isActive ? t("Configure") : t("Connect")}
+        <Button as="span" neutral>
+          {isConnected ? t("Configure") : t("Connect")}
         </Button>
       </Flex>
 

@@ -23,17 +23,20 @@ import ToggleButton from "./components/ToggleButton";
 import Version from "./components/Version";
 
 function SettingsSidebar() {
-  const { ui } = useStores();
+  const { ui, integrations } = useStores();
   const { t } = useTranslation();
   const history = useHistory();
   const location = useLocation();
-  let configs = useSettingsConfig();
+  const configs = useSettingsConfig();
 
-  configs = configs.filter((item) =>
-    "isActive" in item ? item.isActive : true
+  const groupedConfig = groupBy(
+    configs.filter((item) =>
+      item.group === "Integrations" && item.pluginId
+        ? integrations.findByService(item.pluginId)
+        : true
+    ),
+    "group"
   );
-
-  const groupedConfig = groupBy(configs, "group");
 
   const returnToApp = React.useCallback(() => {
     history.push("/home");

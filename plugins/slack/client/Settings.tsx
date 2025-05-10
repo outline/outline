@@ -34,13 +34,7 @@ function Slack() {
   const error = query.get("error");
 
   React.useEffect(() => {
-    void collections.fetchPage({
-      limit: 100,
-    });
-    void integrations.fetchPage({
-      service: IntegrationService.Slack,
-      limit: 100,
-    });
+    void collections.fetchAll();
   }, [collections, integrations]);
 
   const commandIntegration = integrations.find({

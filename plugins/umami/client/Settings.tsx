@@ -45,12 +45,6 @@ function Umami() {
   });
 
   React.useEffect(() => {
-    void integrations.fetchPage({
-      type: IntegrationType.Analytics,
-    });
-  }, [integrations]);
-
-  React.useEffect(() => {
     reset({
       umamiWebsiteId: integration?.settings.measurementId,
       umamiDomain: integration?.settings.instanceUrl,
