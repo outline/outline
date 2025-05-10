@@ -15,6 +15,7 @@ import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import InputSelectPermission from "~/components/InputSelectPermission";
+import { createLazyComponent } from "~/components/LazyLoad";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
@@ -22,7 +23,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import { EmptySelectValue } from "~/types";
 
-const IconPicker = React.lazy(() => import("~/components/IconPicker"));
+const IconPicker = createLazyComponent(() => import("~/components/IconPicker"));
 
 export interface FormData {
   name: string;
@@ -87,6 +88,11 @@ export const CollectionForm = observer(function CollectionForm_({
   });
 
   const values = watch();
+
+  // Preload the IconPicker component on mount
+  React.useEffect(() => {
+    void IconPicker.preload();
+  }, []);
 
   React.useEffect(() => {
     // If the user hasn't picked an icon yet, go ahead and suggest one based on
@@ -202,7 +208,7 @@ export const CollectionForm = observer(function CollectionForm_({
   );
 });
 
-const StyledIconPicker = styled(IconPicker)`
+const StyledIconPicker = styled(IconPicker.Component)`
   margin-left: 4px;
   margin-right: 4px;
 `;
