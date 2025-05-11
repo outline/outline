@@ -1,0 +1,6 @@
+{
+  "id": "adfs",
+  "name": "ADFS",
+  "priority": 100,
+  "description": "Adds an ADFS authentication provider."
+}

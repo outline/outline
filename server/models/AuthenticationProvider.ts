@@ -28,6 +28,7 @@ import Length from "./validators/Length";
 import AzureClient from "plugins/azure/server/azure";
 import GoogleClient from "plugins/google/server/google";
 import OIDCClient from "plugins/oidc/server/oidc";
+import ADFSClient from "plugins/oidc/server/adfs";
 
 @Scopes(() => ({
   withUserAuthentication: (userId: string) => ({
@@ -107,6 +108,8 @@ class AuthenticationProvider extends Model<
         return new AzureClient();
       case "oidc":
         return new OIDCClient();
+      case "adfs":
+        return new ADFSClient();
       default:
         return undefined;
     }
@@ -144,12 +147,12 @@ class AuthenticationProvider extends Model<
   enable: (
     options?: InstanceUpdateOptions<InferAttributes<AuthenticationProvider>>
   ) => Promise<AuthenticationProvider> = (options) =>
-    this.update(
-      {
-        enabled: true,
-      },
-      options
-    );
+      this.update(
+        {
+          enabled: true,
+        },
+        options
+      );
 }
 
 export default AuthenticationProvider;
