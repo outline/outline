@@ -55,10 +55,10 @@ export function Integrations() {
       </StickyFilters>
 
       <Cards gap={30} wrap>
-        {groupedItems.connected.map((item) => (
+        {groupedItems.connected?.map((item) => (
           <IntegrationCard key={item.path} integration={item} isConnected />
         ))}
-        {groupedItems.available.map((item) => (
+        {groupedItems.available?.map((item) => (
           <IntegrationCard key={item.path} integration={item} />
         ))}
       </Cards>
