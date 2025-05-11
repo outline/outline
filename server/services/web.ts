@@ -50,6 +50,10 @@ if (env.CDN_URL) {
   defaultSrc.push(env.CDN_URL);
 }
 
+if (env.CUSTOM_SCRIPT_BASE_URL) {
+  scriptSrc.push(env.CUSTOM_SCRIPT_BASE_URL);
+}
+
 export default function init(app: Koa = new Koa(), server?: Server) {
   void initI18n();
 
