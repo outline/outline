@@ -18,112 +18,42 @@ jobs:
           script: |
             const now = new Date();
             const TWO_WEEKS = 14 * 24 * 60 * 60 * 1000; // 14 days in milliseconds
-            
-            async function getAllPRs() {
-              const prs = [];
-              let page = 1;
-              while (true) {
-                try {
-                  const response = await github.rest.pulls.list({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    state: 'open',
-                    per_page: 100,
-                    page: page
-                  });
-                  if (response.data.length === 0) break;
-                  prs.push(...response.data);
-                  page++;
-                } catch (error) {
-                  console.error(`Error fetching PRs page ${page}:`, error);
-                  if (error.status === 403) {
-                    console.log('Rate limit reached, waiting before retrying...');
-                    await new Promise(resolve => setTimeout(resolve, 60000));
-                    page--; // Retry this page
-                    continue;
-                  }
-                  break;
-                }
-              }
-              return prs;
-            }
-            
-            async function getAllComments(prNumber) {
-              const comments = [];
-              let page = 1;
-              while (true) {
-                try {
-                  const response = await github.rest.issues.listComments({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    issue_number: prNumber,
-                    per_page: 100,
-                    page: page
-                  });
-                  if (response.data.length === 0) break;
-                  comments.push(...response.data);
-                  page++;
-                } catch (error) {
-                  console.error(`Error fetching comments for PR #${prNumber} page ${page}:`, error);
-                  if (error.status === 403) {
-                    console.log('Rate limit reached, waiting before retrying...');
-                    await new Promise(resolve => setTimeout(resolve, 60000));
-                    page--; // Retry this page
-                    continue;
-                  }
-                  break;
-                }
-              }
-              return comments;
-            }
-            
-            async function closePR(pr) {
-              try {
+
+            const prs = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open'
+            });
+
+            for (const pr of prs.data) {
+              const prCreatedAt = new Date(pr.created_at);
+              const prAge = now - prCreatedAt;
+
+              if (prAge < TWO_WEEKS) continue;
+
+              const comments = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number
+              });
+
+              const hasNotSignedComment = comments.data.some(comment =>
+                comment.body.toLowerCase().includes('https://cla-assistant.io/pull/badge/not_signed')
+              );
+
+              if (hasNotSignedComment) {
                 await github.rest.pulls.update({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   pull_number: pr.number,
                   state: 'closed'
                 });
-                
+
                 await github.rest.issues.createComment({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   issue_number: pr.number,
                   body: 'This PR has been automatically closed because it has been open for more than 14 days and has not accepted the CLA.'
                 });
-                
-                console.log(`Successfully closed PR #${pr.number}`);
-              } catch (error) {
-                console.error(`Error closing PR #${pr.number}:`, error);
               }
-            }
-            
-            try {
-              const prs = await getAllPRs();
-              console.log(`Found ${prs.length} open PRs to process`);
-              
-              for (const pr of prs) {
-                try {
-                  const prCreatedAt = new Date(pr.created_at);
-                  const prAge = now - prCreatedAt;
-                  
-                  if (prAge < TWO_WEEKS) continue;
-                  
-                  const comments = await getAllComments(pr.number);
-                  const hasNotSignedComment = comments.some(comment => 
-                    comment.body.toLowerCase().includes('not_signed')
-                  );
-                  
-                  if (hasNotSignedComment) {
-                    await closePR(pr);
-                  }
-                } catch (error) {
-                  console.error(`Error processing PR #${pr.number}:`, error);
-                  continue; // Continue with next PR even if this one fails
-                }
-              }
-            } catch (error) {
-              console.error('Fatal error in workflow:', error);
-              core.setFailed(error.message);
             }
