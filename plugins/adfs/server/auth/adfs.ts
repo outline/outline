@@ -48,12 +48,6 @@ if (
         state: true,
         pkce: false,
       },
-      // OpenID Connect standard profile claims can be found in the official
-      // specification.
-      // https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
-      // Non-standard claims may be configured by individual identity providers.
-      // Any claim supplied in response to the userinfo request will be
-      // available on the `profile` parameter
       async function (
         ctx: Context,
         accessToken: string,
@@ -67,6 +61,9 @@ if (
         ) => void
       ) {
         try {
+          // ADFS' /userinfo endpoint only returns a `sub` claim,
+          // so we will decode the id_token directly and pull the 
+          // claims we want
           const profile: {
             email: string;
             preferred_username: string;
@@ -85,18 +82,18 @@ if (
           // Only a single OIDC provider is supported – find the existing, if any.
           const authenticationProvider = team
             ? (await AuthenticationProvider.findOne({
-                where: {
-                  name: "adfs",
-                  teamId: team.id,
-                  providerId: domain,
-                },
-              })) ??
-              (await AuthenticationProvider.findOne({
-                where: {
-                  name: "adfs",
-                  teamId: team.id,
-                },
-              }))
+              where: {
+                name: "adfs",
+                teamId: team.id,
+                providerId: domain,
+              },
+            })) ??
+            (await AuthenticationProvider.findOne({
+              where: {
+                name: "adfs",
+                teamId: team.id,
+              },
+            }))
             : undefined;
 
           // Derive a providerId from the OIDC location if there is no existing provider.
