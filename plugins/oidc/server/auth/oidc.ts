@@ -95,6 +95,7 @@ if (
               `An email field was not returned in the profile or id_token parameter, but is required.`
             );
           }
+
           const team = await getTeamFromContext(ctx);
           const client = getClientFromContext(ctx);
           const { domain } = parseEmail(email);
@@ -130,6 +131,7 @@ if (
 
           // Claim name can be overriden using an env variable.
           // Default is 'preferred_username' as per OIDC spec.
+          // This will default to the profile.preferred_username, but will fall back to preferred_username from the id_token
           const username = get(profile, env.OIDC_USERNAME_CLAIM)
             ? get(profile, env.OIDC_USERNAME_CLAIM)
             : get(token, env.OIDC_USERNAME_CLAIM);
