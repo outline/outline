@@ -883,7 +883,6 @@
   "Please try again or contact support if the problem persists": "Spróbuj ponownie lub skontaktuj się z pomocą techniczną, jeśli problem będzie się powtarzał.",
   "No documents found for your search filters.": "Nie znaleziono dokumentów dla Twoich filtrów wyszukiwania.",
   "Create personal API keys to authenticate with the API and programatically control\n      your workspace's data. For more details see the <em>developer documentation</em>.": "Utwórz klucze API, aby uwierzytelniać się w API i programowo zarządzać danymi obszaru roboczego. Więcej informacji znajdziesz w <em>dokumentacji dla deweloperów</em>.",
-  "{t(\"API keys have been disabled by an admin for your account\")}": "{t(\"Klucze API zostały wyłączone dla Twojego konta przez administratora\")}",
   "API keys have been disabled by an admin for your account": "Klucze API zostały wyłączone dla Twojego konta przez administratora",
   "Application access": "Dostęp aplikacji",
   "Manage which third-party and internal applications have been granted access to your {{ appName }} account.": "Zarządzaj aplikacjami zewnętrznymi i wewnętrznymi, które uzyskały dostęp do Twojego konta {{ appName }}.",
