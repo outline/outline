@@ -10,23 +10,14 @@ import { fadeAndScaleIn } from "~/styles/animations";
 
 type Props = PopoverProps & {
   children: React.ReactNode;
-  /** The width of the popover, defaults to 380px. */
   width?: number;
-  /** The minimum width of the popover, use instead of width if contents adjusts size. */
   minWidth?: number;
-  /** Shrink the padding of the popover */
   shrink?: boolean;
-  /** Make the popover flex */
   flex?: boolean;
-  /** The tab index of the popover */
   tabIndex?: number;
-  /** Whether the popover should be scrollable, defaults to true. */
   scrollable?: boolean;
-  /** The position of the popover on mobile, defaults to "top". */
   mobilePosition?: "top" | "bottom";
-  /** Function to show the popover */
   show: () => void;
-  /** Function to hide the popover */
   hide: () => void;
 };
 
@@ -45,14 +36,28 @@ const Popover = (
 ) => {
   const isMobile = useMobile();
 
-  // Custom Escape handler rather than using hideOnEsc from reakit so we can
-  // prevent default behavior of exiting fullscreen.
+  // Filter out unstable Reakit props and non-HTML props (including `place`)
+  const {
+    unstable_referenceRef,
+    unstable_popoverRef,
+    unstable_arrowRef,
+    unstable_popoverStyles,
+    unstable_arrowStyles,
+    unstable_originalPlacement,
+    unstable_update,
+    place, // Exclude `place` from being passed to the DOM
+    mobilePosition: _mobilePosition, // Exclude this as well
+    show: _show, 
+    hide: _hide, 
+    ...cleanRest
+  } = rest;
+
   useKeyDown(
     "Escape",
     (event) => {
-      if (rest.visible && rest.hideOnEsc !== false) {
+      if (cleanRest.visible && cleanRest.hideOnEsc !== false) {
         event.preventDefault();
-        rest.hide();
+        cleanRest.hide();
       }
     },
     {
@@ -62,7 +67,7 @@ const Popover = (
 
   if (isMobile) {
     return (
-      <Dialog {...rest} modal>
+      <Dialog {...cleanRest} modal>
         <Contents
           ref={ref}
           $shrink={shrink}
@@ -77,7 +82,7 @@ const Popover = (
   }
 
   return (
-    <StyledPopover {...rest} hideOnEsc={false} hideOnClickOutside>
+    <StyledPopover {...cleanRest} hideOnEsc={false} hideOnClickOutside>
       <Contents
         ref={ref}
         $shrink={shrink}
@@ -130,8 +135,6 @@ const Contents = styled.div<ContentsProps>`
   ${breakpoint("mobile", "tablet")`
     position: fixed;
     z-index: ${depths.menu};
-
-    // 50 is a magic number that positions us nicely under the top bar
     top: ${(props: ContentsProps) =>
       props.$mobilePosition === "bottom" ? "auto" : "50px"};
     bottom: ${(props: ContentsProps) =>
