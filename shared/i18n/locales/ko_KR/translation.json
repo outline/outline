@@ -883,7 +883,6 @@
   "Please try again or contact support if the problem persists": "다시 한 번 시도해 보시고 문제가 계속된다면 문의해주세요",
   "No documents found for your search filters.": "검색조건과 맞는 문서를 찾을 수 없습니다.",
   "Create personal API keys to authenticate with the API and programatically control\n      your workspace's data. For more details see the <em>developer documentation</em>.": "개인 API 키를 생성하여 API를 인증하고 작업 공간 데이터를 프로그래밍 방식으로 제어하세요.\n      자세한 내용은 <em>개발자 문서</em>를 참조하세요.",
-  "{t(\"API keys have been disabled by an admin for your account\")}": "{t(\"관리자가 귀하의 계정에 대한 API 키를 비활성화했습니다.\")}",
   "API keys have been disabled by an admin for your account": "관리자가 귀하의 계정에 대한 API 키를 비활성화했습니다.",
   "Application access": "애플리케이션 액세스",
   "Manage which third-party and internal applications have been granted access to your {{ appName }} account.": "{{ appName }} 계정에 대한 액세스 권한이 부여된 타사 및 내부 애플리케이션을 관리합니다.",
