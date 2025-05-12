@@ -40,6 +40,7 @@
   "engines": {
     "node": ">= 18 <=20"
   },
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/outline/outline.git"
