@@ -883,7 +883,6 @@
   "Please try again or contact support if the problem persists": "Veuillez réessayer ou contacter le support si le problème persiste",
   "No documents found for your search filters.": "Aucun document trouvé pour vos critères de recherche.",
   "Create personal API keys to authenticate with the API and programatically control\n      your workspace's data. For more details see the <em>developer documentation</em>.": "Créez des clés d'API personnelles pour vous authentifier avec l'API et contrôlez par programmation\n      les données de votre espace de travail. Pour plus de détails, consultez la <em>documentation développeur</em>.",
-  "{t(\"API keys have been disabled by an admin for your account\")}": "{t(\"Les clés API ont été désactivées par un administrateur pour votre compte\")}",
   "API keys have been disabled by an admin for your account": "Les clés API ont été désactivées par un administrateur pour votre compte",
   "Application access": "Accès a l'application",
   "Manage which third-party and internal applications have been granted access to your {{ appName }} account.": "Gérer quelles applications tierces et internes ont été autorisées à accéder à votre compte {{ appName }}.",
