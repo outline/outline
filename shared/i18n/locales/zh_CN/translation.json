@@ -883,7 +883,6 @@
   "Please try again or contact support if the problem persists": "如果问题持续存在，请重试或联系支持人员。",
   "No documents found for your search filters.": "没有为你的搜索筛选找到文档。",
   "Create personal API keys to authenticate with the API and programatically control\n      your workspace's data. For more details see the <em>developer documentation</em>.": "创建个人 API 密钥以便通过 API 进行身份验证，并以编程方式管控您工作区的数据。详见 <em>开发者文档</em>。",
-  "{t(\"API keys have been disabled by an admin for your account\")}": "你账户的 API 密钥已被管理员删除",
   "API keys have been disabled by an admin for your account": "你账户的 API 密钥已被管理员禁用",
   "Application access": "应用权限",
   "Manage which third-party and internal applications have been granted access to your {{ appName }} account.": "管理第三方及内部应用对您 {{ appName }} 账户的访问权限。",
