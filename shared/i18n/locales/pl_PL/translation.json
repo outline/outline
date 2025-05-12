@@ -1192,7 +1192,7 @@
   "It looks like you haven’t linked your {{ appName }} account to Slack yet": "Wygląda na to, że nie połączyłeś jeszcze swojego konta {{ appName }} ze Slack",
   "Link your account": "Połącz swoje konto",
   "Link your account in {{ appName }} settings to search from Slack": "Połącz swoje konto w ustawieniach {{ appName }} , aby wyszukać ze Slack",
-  "Configure a Umami installation to send views and analytics from the workspace to your own Umami instance.": "Skonfiguruj instalację Umami, aby wysyłać widoki i analizy z obszaru roboczego na własną instancję Unami.",
+  "Configure a Umami installation to send views and analytics from the workspace to your own Umami instance.": "Skonfiguruj instalację Umami, aby wysyłać widoki i analizy z obszaru roboczego na własną instancję Umami.",
   "The URL of your Umami instance. If you are using Umami Cloud it will begin with {{ url }}": "Adres URL twojej instancji Umami. Jeśli używasz Umami Cloud zaczyna się od {{ url }}",
   "Script name": "Nazwa skryptu",
   "The name of the script file that Umami uses to track analytics.": "Nazwa pliku skryptu, który Umami wykorzystuje do śledzenia analiz.",
