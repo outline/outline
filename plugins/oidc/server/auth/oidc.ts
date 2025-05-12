@@ -81,12 +81,27 @@ if (
 
           // Some providers, namely ADFS, don't provide anything more than the `sub` claim in the userinfo endpoint
           // So, we'll decode the params.id_token and see if that contains what we need.
-          const id_token = JWT.decode(params.id_token);
-          const token = id_token as {
-            email?: string;
-            preferred_username?: string;
-            sub?: string;
-          };
+          const token = (() => {
+            try {
+              const decoded = JWT.decode(params.id_token);
+
+              if (!decoded || typeof decoded !== "object") {
+                throw AuthenticationError(
+                  `Decoded token is not a valid object.`
+                );
+              }
+
+              return decoded as {
+                email?: string;
+                preferred_username?: string;
+                sub?: string;
+              };
+            } catch (err) {
+              throw AuthenticationError(
+                `Unable to decode id_token from identity provider.`
+              );
+            }
+          })();
 
           const email = profile.email ?? token.email ?? null;
 
