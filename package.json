@@ -58,7 +58,7 @@
     "@babel/plugin-transform-class-properties": "^7.27.1",
     "@babel/plugin-transform-destructuring": "^7.27.1",
     "@babel/plugin-transform-regenerator": "^7.27.1",
-    "@babel/preset-env": "^7.27.1",
+    "@babel/preset-env": "^7.27.2",
     "@babel/preset-react": "^7.27.1",
     "@benrbray/prosemirror-math": "^0.2.2",
     "@bull-board/api": "^6.7.10",
@@ -263,7 +263,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@babel/cli": "^7.27.1",
+    "@babel/cli": "^7.27.2",
     "@babel/preset-typescript": "^7.27.1",
     "@faker-js/faker": "^8.4.1",
     "@relative-ci/agent": "^4.3.0",
