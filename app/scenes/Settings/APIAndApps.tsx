@@ -67,9 +67,7 @@ function APIAndApps() {
           />
         </Text>
       ) : (
-        <Trans>
-          {t("API keys have been disabled by an admin for your account")}
-        </Trans>
+        <Trans>API keys have been disabled by an admin for your account</Trans>
       )}
       <PaginatedList<ApiKey>
         fetch={apiKeys.fetchPage}
