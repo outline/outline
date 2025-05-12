@@ -1,5 +1,7 @@
 {
   "name": "outline",
+  "type": "module",
+  "description": "Open source wiki and knowledge base for growing teams",
   "private": true,
   "license": "Business Source License 1.1",
   "main": "index.js",
@@ -40,7 +42,6 @@
   "engines": {
     "node": ">= 18 <=20"
   },
-  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/outline/outline.git"
