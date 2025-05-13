@@ -69,7 +69,6 @@ function EditableTitle(
 
       if (trimmedValue === originalValue || trimmedValue.length === 0) {
         setValue(originalValue);
-        setIsEditing(false);
         onCancel?.();
         return;
       }
@@ -77,12 +76,12 @@ function EditableTitle(
       try {
         await onSubmit(trimmedValue);
         setOriginalValue(trimmedValue);
-        setIsEditing(false);
       } catch (error) {
         setValue(originalValue);
-        setIsEditing(false);
         toast.error(error.message);
         throw error;
+      } finally {
+        setIsEditing(false);
       }
     },
     [originalValue, value, onCancel, onSubmit]
