@@ -38,6 +38,7 @@ import {
   BeforeCreate,
   BeforeUpdate,
   DefaultScope,
+  AfterSave,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import type { CollectionSort, ProsemirrorData } from "@shared/types";
@@ -47,6 +48,7 @@ import { sortNavigationNodes } from "@shared/utils/collections";
 import slugify from "@shared/utils/slugify";
 import { CollectionValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
+import { CacheHelper } from "@server/utils/CacheHelper";
 import removeIndexCollision from "@server/utils/removeIndexCollision";
 import { generateUrlId } from "@server/utils/url";
 import { ValidateIndex } from "@server/validation";
@@ -331,6 +333,22 @@ class Collection extends ParanoidModel<
   static async onBeforeSave(model: Collection) {
     if (!model.content) {
       model.content = await DocumentHelper.toJSON(model);
+    }
+    if (model.changed("documentStructure")) {
+      await CacheHelper.clearData(
+        CacheHelper.getCollectionDocumentsKey(model.id)
+      );
+    }
+  }
+
+  @AfterSave
+  static async cacheDocumentStructure(model: Collection) {
+    if (model.changed("documentStructure")) {
+      await CacheHelper.setData(
+        CacheHelper.getCollectionDocumentsKey(model.id),
+        model.documentStructure,
+        60
+      );
     }
   }
 
