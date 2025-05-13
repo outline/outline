@@ -1,42 +1,40 @@
 import { observer } from "mobx-react";
-import { CodeIcon } from "outline-icons";
+import { InternetIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import ApiKey from "~/models/ApiKey";
+import OAuthClient from "~/models/oauth/OAuthClient";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
 import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
-import { createApiKey } from "~/actions/definitions/apiKeys";
+import { createOAuthClient } from "~/actions/definitions/oauthClients";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
-import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import ApiKeyListItem from "./components/ApiKeyListItem";
+import OAuthClientListItem from "./components/OAuthClientListItem";
 
-function PersonalApiKeys() {
+function Applications() {
   const team = useCurrentTeam();
-  const user = useCurrentUser();
   const { t } = useTranslation();
-  const { apiKeys } = useStores();
+  const { oauthClients } = useStores();
   const can = usePolicy(team);
   const context = useActionContext();
 
   return (
     <Scene
-      title={t("API")}
-      icon={<CodeIcon />}
+      title={t("Applications")}
+      icon={<InternetIcon />}
       actions={
         <>
-          {can.createApiKey && (
+          {can.createOAuthClient && (
             <Action>
               <Button
                 type="submit"
-                value={`${t("New API key")}…`}
-                action={createApiKey}
+                value={`${t("New App")}…`}
+                action={createOAuthClient}
                 context={context}
               />
             </Action>
@@ -44,12 +42,10 @@ function PersonalApiKeys() {
         </>
       }
     >
-      <Heading>{t("API")}</Heading>
+      <Heading>{t("Applications")}</Heading>
       <Text as="p" type="secondary">
         <Trans
-          defaults="Create personal API keys to authenticate with the API and programatically control
-          your workspace's data. API keys have the same permissions as your user account.
-          For more details see the <em>developer documentation</em>."
+          defaults="Applications allow you to build internal or public integrations with Outline and provide secure access via OAuth. For more details see the <em>developer documentation</em>."
           components={{
             em: (
               <a
@@ -61,17 +57,15 @@ function PersonalApiKeys() {
           }}
         />
       </Text>
-      <PaginatedList<ApiKey>
-        fetch={apiKeys.fetchPage}
-        items={apiKeys.personalApiKeys}
-        options={{ userId: user.id }}
-        heading={<h2>{t("Personal keys")}</h2>}
-        renderItem={(apiKey) => (
-          <ApiKeyListItem key={apiKey.id} apiKey={apiKey} />
+      <PaginatedList<OAuthClient>
+        fetch={oauthClients.fetchPage}
+        items={oauthClients.orderedData}
+        renderItem={(oauthClient) => (
+          <OAuthClientListItem key={oauthClient.id} oauthClient={oauthClient} />
         )}
       />
     </Scene>
   );
 }
 
-export default observer(PersonalApiKeys);
+export default observer(Applications);

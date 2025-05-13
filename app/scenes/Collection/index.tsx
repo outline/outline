@@ -20,7 +20,6 @@ import Collection from "~/models/Collection";
 import { Action } from "~/components/Actions";
 import CenteredContent from "~/components/CenteredContent";
 import { CollectionBreadcrumb } from "~/components/CollectionBreadcrumb";
-import CollectionDescription from "~/components/CollectionDescription";
 import Heading from "~/components/Heading";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import InputSearchPage from "~/components/InputSearchPage";
@@ -46,6 +45,7 @@ import DropToImport from "./components/DropToImport";
 import Empty from "./components/Empty";
 import MembershipPreview from "./components/MembershipPreview";
 import Notices from "./components/Notices";
+import Overview from "./components/Overview";
 import ShareButton from "./components/ShareButton";
 
 const IconPicker = React.lazy(() => import("~/components/IconPicker"));
@@ -66,7 +66,6 @@ const CollectionScene = observer(function _CollectionScene() {
   const location = useLocation();
   const { t } = useTranslation();
   const { documents, collections, ui } = useStores();
-  const [isFetching, setFetching] = React.useState(false);
   const [error, setError] = React.useState<Error | undefined>();
   const currentPath = location.pathname;
   const [, setLastVisitedPath] = useLastVisitedPath();
@@ -120,21 +119,16 @@ const CollectionScene = observer(function _CollectionScene() {
 
   React.useEffect(() => {
     async function fetchData() {
-      if ((!can || !collection) && !error && !isFetching) {
-        try {
-          setError(undefined);
-          setFetching(true);
-          await collections.fetch(id);
-        } catch (err) {
-          setError(err);
-        } finally {
-          setFetching(false);
-        }
+      try {
+        setError(undefined);
+        await collections.fetch(id);
+      } catch (err) {
+        setError(err);
       }
     }
 
     void fetchData();
-  }, [collections, isFetching, collection, error, id, can]);
+  }, []);
 
   useCommandBarActions([editCollection], [ui.activeCollectionId ?? "none"]);
 
@@ -265,7 +259,7 @@ const CollectionScene = observer(function _CollectionScene() {
                 path={collectionPath(collection.path, CollectionPath.Overview)}
               >
                 {hasOverview ? (
-                  <CollectionDescription collection={collection} />
+                  <Overview collection={collection} />
                 ) : (
                   <Redirect
                     to={{

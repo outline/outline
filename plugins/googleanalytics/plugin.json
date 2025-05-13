@@ -1,5 +1,5 @@
 {
-  "id": "googleanalytics",
+  "id": "google-analytics",
   "name": "Google Analytics",
   "priority": 30,
   "description": "Adds support for reporting analytics to a Google."

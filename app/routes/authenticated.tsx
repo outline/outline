@@ -42,55 +42,77 @@ const RedirectDocument = ({
   />
 );
 
+/**
+ * The authenticated routes are all the routes of the application that require
+ * the user to be logged in.
+ */
 function AuthenticatedRoutes() {
   const team = useCurrentTeam();
   const can = usePolicy(team);
 
   return (
-    <WebsocketProvider>
-      <AuthenticatedLayout>
-        <React.Suspense
-          fallback={
-            <CenteredContent>
-              <PlaceholderDocument />
-            </CenteredContent>
-          }
-        >
-          <Switch>
-            {can.createDocument && (
-              <Route exact path={draftsPath()} component={Drafts} />
-            )}
-            {can.createDocument && (
-              <Route exact path={archivePath()} component={Archive} />
-            )}
-            {can.createDocument && (
-              <Route exact path={trashPath()} component={Trash} />
-            )}
-            <Route path={`${homePath()}/:tab?`} component={Home} />
-            <Redirect from="/dashboard" to={homePath()} />
-            <Redirect exact from="/starred" to={homePath()} />
-            <Redirect exact from="/templates" to={settingsPath("templates")} />
-            <Redirect exact from="/collections/*" to="/collection/*" />
-            <Route exact path="/collection/:id/new" component={DocumentNew} />
-            <Route exact path="/collection/:id/:tab?" component={Collection} />
-            <Route exact path="/doc/new" component={DocumentNew} />
-            <Route exact path={`/d/${slug}`} component={RedirectDocument} />
-            <Route
-              exact
-              path={`/doc/${slug}/history/:revisionId?`}
-              component={Document}
-            />
-            <Route exact path={`/doc/${slug}/insights`} component={Document} />
-            <Route exact path={`/doc/${slug}/edit`} component={Document} />
-            <Route path={`/doc/${slug}`} component={Document} />
-            <Route exact path={`${searchPath()}/:query?`} component={Search} />
-            <Route path="/404" component={Error404} />
-            <SettingsRoutes />
-            <Route component={Error404} />
-          </Switch>
-        </React.Suspense>
-      </AuthenticatedLayout>
-    </WebsocketProvider>
+    <Switch>
+      <WebsocketProvider>
+        <AuthenticatedLayout>
+          <React.Suspense
+            fallback={
+              <CenteredContent>
+                <PlaceholderDocument />
+              </CenteredContent>
+            }
+          >
+            <Switch>
+              {can.createDocument && (
+                <Route exact path={draftsPath()} component={Drafts} />
+              )}
+              {can.createDocument && (
+                <Route exact path={archivePath()} component={Archive} />
+              )}
+              {can.createDocument && (
+                <Route exact path={trashPath()} component={Trash} />
+              )}
+              <Route path={`${homePath()}/:tab?`} component={Home} />
+              <Redirect from="/dashboard" to={homePath()} />
+              <Redirect exact from="/starred" to={homePath()} />
+              <Redirect
+                exact
+                from="/templates"
+                to={settingsPath("templates")}
+              />
+              <Redirect exact from="/collections/*" to="/collection/*" />
+              <Route exact path="/collection/:id/new" component={DocumentNew} />
+              <Route
+                exact
+                path="/collection/:id/:tab?"
+                component={Collection}
+              />
+              <Route exact path="/doc/new" component={DocumentNew} />
+              <Route exact path={`/d/${slug}`} component={RedirectDocument} />
+              <Route
+                exact
+                path={`/doc/${slug}/history/:revisionId?`}
+                component={Document}
+              />
+              <Route
+                exact
+                path={`/doc/${slug}/insights`}
+                component={Document}
+              />
+              <Route exact path={`/doc/${slug}/edit`} component={Document} />
+              <Route path={`/doc/${slug}`} component={Document} />
+              <Route
+                exact
+                path={`${searchPath()}/:query?`}
+                component={Search}
+              />
+              <Route path="/404" component={Error404} />
+              <SettingsRoutes />
+              <Route component={Error404} />
+            </Switch>
+          </React.Suspense>
+        </AuthenticatedLayout>
+      </WebsocketProvider>
+    </Switch>
   );
 }
 

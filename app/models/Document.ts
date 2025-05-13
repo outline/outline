@@ -332,6 +332,16 @@ export default class Document extends ArchivableModel implements Searchable {
   }
 
   /**
+   * Returns the documents that link to this document.
+   *
+   * @returns documents that link to this document
+   */
+  @computed
+  get backlinks(): Document[] {
+    return this.store.getBacklinkedDocuments(this.id);
+  }
+
+  /**
    * Returns users that have been individually given access to the document.
    *
    * @returns users that have been individually given access to the document

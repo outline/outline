@@ -7,6 +7,7 @@ import { isCode } from "@shared/editor/lib/isCode";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { depths, s } from "@shared/styles";
+import { getSafeAreaInsets } from "@shared/utils/browser";
 import { HEADER_HEIGHT } from "~/components/Header";
 import { Portal } from "~/components/Portal";
 import useEventListener from "~/hooks/useEventListener";
@@ -241,12 +242,16 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
 
     if (props.active) {
       const rect = document.body.getBoundingClientRect();
+      const safeAreaInsets = getSafeAreaInsets();
+
       return (
         <ReactPortal>
           <MobileWrapper
             ref={menuRef}
             style={{
-              bottom: `calc(100% - ${height - rect.y}px)`,
+              bottom: `calc(100% - ${
+                height - rect.y - safeAreaInsets.bottom
+              }px)`,
             }}
           >
             {props.children}

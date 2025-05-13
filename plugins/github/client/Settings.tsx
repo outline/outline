@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { IntegrationService } from "@shared/types";
 import { ConnectedButton } from "~/scenes/Settings/components/ConnectedButton";
+import { IntegrationScene } from "~/scenes/Settings/components/IntegrationScene";
 import { AvatarSize } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
@@ -11,7 +12,6 @@ import List from "~/components/List";
 import ListItem from "~/components/List/Item";
 import Notice from "~/components/Notice";
 import PlaceholderText from "~/components/PlaceholderText";
-import Scene from "~/components/Scene";
 import TeamLogo from "~/components/TeamLogo";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
@@ -38,7 +38,7 @@ function GitHub() {
   }, [integrations]);
 
   return (
-    <Scene title="GitHub" icon={<GitHubIcon />}>
+    <IntegrationScene title="GitHub" icon={<GitHubIcon />}>
       <Heading>GitHub</Heading>
 
       {error === "access_denied" && (
@@ -146,7 +146,7 @@ function GitHub() {
           </Trans>
         </Notice>
       )}
-    </Scene>
+    </IntegrationScene>
   );
 }
 

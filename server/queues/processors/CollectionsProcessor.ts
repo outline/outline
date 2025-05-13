@@ -12,7 +12,7 @@ export default class CollectionsProcessor extends BaseProcessor {
   ];
 
   async perform(event: CollectionEvent) {
-    await DetachDraftsFromCollectionTask.schedule({
+    await new DetachDraftsFromCollectionTask().schedule({
       collectionId: event.collectionId,
       actorId: event.actorId,
       ip: event.ip,

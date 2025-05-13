@@ -1,3 +1,4 @@
+import uniq from "lodash/uniq";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -14,13 +15,15 @@ import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import InputSelectPermission from "~/components/InputSelectPermission";
+import { createLazyComponent } from "~/components/LazyLoad";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useStores from "~/hooks/useStores";
 import { EmptySelectValue } from "~/types";
 
-const IconPicker = React.lazy(() => import("~/components/IconPicker"));
+const IconPicker = createLazyComponent(() => import("~/components/IconPicker"));
 
 export interface FormData {
   name: string;
@@ -29,6 +32,26 @@ export interface FormData {
   sharing: boolean;
   permission: CollectionPermission | undefined;
 }
+
+const useIconColor = (collection?: Collection) => {
+  const { collections } = useStores();
+  const hasMultipleCollections = collections.orderedData.length > 1;
+  const collectionColors = uniq(
+    collections.orderedData.map((c) => c.color).filter(Boolean)
+  ) as string[];
+
+  const iconColor = React.useMemo(
+    () =>
+      collection?.color ??
+      // If all the existing collections have the same color, use that color,
+      // otherwise pick a random color from the palette
+      (hasMultipleCollections && collectionColors.length === 1
+        ? collectionColors[0]
+        : randomElement(colorPalette)),
+    [collection?.color]
+  );
+  return iconColor;
+};
 
 export const CollectionForm = observer(function CollectionForm_({
   handleSubmit,
@@ -42,11 +65,7 @@ export const CollectionForm = observer(function CollectionForm_({
 
   const [hasOpenedIconPicker, setHasOpenedIconPicker] = useBoolean(false);
 
-  const iconColor = React.useMemo(
-    () => collection?.color ?? randomElement(colorPalette),
-    [collection?.color]
-  );
-
+  const iconColor = useIconColor(collection);
   const fallbackIcon = <Icon value="collection" color={iconColor} />;
 
   const {
@@ -69,6 +88,11 @@ export const CollectionForm = observer(function CollectionForm_({
   });
 
   const values = watch();
+
+  // Preload the IconPicker component on mount
+  React.useEffect(() => {
+    void IconPicker.preload();
+  }, []);
 
   React.useEffect(() => {
     // If the user hasn't picked an icon yet, go ahead and suggest one based on
@@ -184,7 +208,7 @@ export const CollectionForm = observer(function CollectionForm_({
   );
 });
 
-const StyledIconPicker = styled(IconPicker)`
+const StyledIconPicker = styled(IconPicker.Component)`
   margin-left: 4px;
   margin-right: 4px;
 `;

@@ -6,11 +6,11 @@ import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import { IntegrationType, IntegrationService } from "@shared/types";
 import Integration from "~/models/Integration";
+import { IntegrationScene } from "~/scenes/Settings/components/IntegrationScene";
 import SettingRow from "~/scenes/Settings/components/SettingRow";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
 import Input from "~/components/Input";
-import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import Icon from "./Icon";
@@ -43,12 +43,6 @@ function Umami() {
       umamiWebsiteId: integration?.settings.measurementId,
     },
   });
-
-  React.useEffect(() => {
-    void integrations.fetchPage({
-      type: IntegrationType.Analytics,
-    });
-  }, [integrations]);
 
   React.useEffect(() => {
     reset({
@@ -85,7 +79,7 @@ function Umami() {
   );
 
   return (
-    <Scene title="Umami" icon={<Icon />}>
+    <IntegrationScene title="Umami" icon={<Icon />}>
       <Heading>Umami</Heading>
 
       <Text as="p" type="secondary">
@@ -145,7 +139,7 @@ function Umami() {
           {formState.isSubmitting ? `${t("Saving")}…` : t("Save")}
         </Button>
       </form>
-    </Scene>
+    </IntegrationScene>
   );
 }
 

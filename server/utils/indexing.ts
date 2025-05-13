@@ -11,7 +11,6 @@ export async function collectionIndexing(
     where: {
       teamId,
     },
-    attributes: ["id", "index", "name", "teamId"],
     transaction,
   });
 

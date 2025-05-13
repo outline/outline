@@ -18,8 +18,7 @@ export default function useEmbeds(loadIfMissing = false) {
   React.useEffect(() => {
     async function fetchEmbedIntegrations() {
       try {
-        await integrations.fetchPage({
-          limit: 100,
+        await integrations.fetchAll({
           type: IntegrationType.Embed,
         });
       } catch (err) {

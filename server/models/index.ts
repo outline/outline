@@ -34,6 +34,12 @@ export { default as IntegrationAuthentication } from "./IntegrationAuthenticatio
 
 export { default as Notification } from "./Notification";
 
+export { default as OAuthAuthentication } from "./oauth/OAuthAuthentication";
+
+export { default as OAuthAuthorizationCode } from "./oauth/OAuthAuthorizationCode";
+
+export { default as OAuthClient } from "./oauth/OAuthClient";
+
 export { default as Pin } from "./Pin";
 
 export { default as Reaction } from "./Reaction";

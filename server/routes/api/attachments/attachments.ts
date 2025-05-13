@@ -166,7 +166,7 @@ router.post(
       )
     );
 
-    const job = await UploadAttachmentFromUrlTask.schedule({
+    const job = await new UploadAttachmentFromUrlTask().schedule({
       attachmentId: attachment.id,
       url,
     });

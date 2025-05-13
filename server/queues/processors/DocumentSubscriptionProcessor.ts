@@ -27,7 +27,7 @@ export default class DocumentSubscriptionProcessor extends BaseProcessor {
   async perform(event: ReceivedEvent) {
     switch (event.name) {
       case "collections.remove_user": {
-        await CollectionSubscriptionRemoveUserTask.schedule(event);
+        await new CollectionSubscriptionRemoveUserTask().schedule(event);
         return;
       }
 
@@ -35,7 +35,7 @@ export default class DocumentSubscriptionProcessor extends BaseProcessor {
         return this.handleRemoveGroupFromCollection(event);
 
       case "documents.remove_user": {
-        await DocumentSubscriptionRemoveUserTask.schedule(event);
+        await new DocumentSubscriptionRemoveUserTask().schedule(event);
         return;
       }
 
@@ -57,11 +57,11 @@ export default class DocumentSubscriptionProcessor extends BaseProcessor {
       async (groupUsers) => {
         await Promise.all(
           groupUsers.map((groupUser) =>
-            CollectionSubscriptionRemoveUserTask.schedule({
+            new CollectionSubscriptionRemoveUserTask().schedule({
               ...event,
               name: "collections.remove_user",
               userId: groupUser.userId,
-            })
+            } as CollectionUserEvent)
           )
         );
       }
@@ -79,11 +79,11 @@ export default class DocumentSubscriptionProcessor extends BaseProcessor {
       async (groupUsers) => {
         await Promise.all(
           groupUsers.map((groupUser) =>
-            DocumentSubscriptionRemoveUserTask.schedule({
+            new DocumentSubscriptionRemoveUserTask().schedule({
               ...event,
               name: "documents.remove_user",
               userId: groupUser.userId,
-            })
+            } as DocumentUserEvent)
           )
         );
       }

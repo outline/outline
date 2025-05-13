@@ -6,12 +6,12 @@ import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import { IntegrationType, IntegrationService } from "@shared/types";
 import Integration from "~/models/Integration";
+import { IntegrationScene } from "~/scenes/Settings/components/IntegrationScene";
 import SettingRow from "~/scenes/Settings/components/SettingRow";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
 import GoogleIcon from "~/components/Icons/GoogleIcon";
 import Input from "~/components/Input";
-import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 
@@ -39,12 +39,6 @@ function GoogleAnalytics() {
       measurementId: integration?.settings.measurementId,
     },
   });
-
-  React.useEffect(() => {
-    void integrations.fetchPage({
-      type: IntegrationType.Analytics,
-    });
-  }, [integrations]);
 
   React.useEffect(() => {
     reset({ measurementId: integration?.settings.measurementId });
@@ -75,7 +69,7 @@ function GoogleAnalytics() {
   );
 
   return (
-    <Scene title={t("Google Analytics")} icon={<GoogleIcon />}>
+    <IntegrationScene title={t("Google Analytics")} icon={<GoogleIcon />}>
       <Heading>{t("Google Analytics")}</Heading>
 
       <Text as="p" type="secondary">
@@ -100,7 +94,7 @@ function GoogleAnalytics() {
           {formState.isSubmitting ? `${t("Saving")}…` : t("Save")}
         </Button>
       </form>
-    </Scene>
+    </IntegrationScene>
   );
 }
 

@@ -98,7 +98,15 @@ export function isCollectionUrl(url: string) {
  * @param options Parsing options.
  * @returns True if a url, false otherwise.
  */
-export function isUrl(text: string, options?: { requireHostname: boolean }) {
+export function isUrl(
+  text: string,
+  options?: {
+    /** Require the url to have a hostname. */
+    requireHostname?: boolean;
+    /** Require the url not to use HTTP, custom protocols are ok. */
+    requireHttps?: boolean;
+  }
+) {
   if (text.match(/\n/)) {
     return false;
   }
@@ -112,6 +120,9 @@ export function isUrl(text: string, options?: { requireHostname: boolean }) {
     }
     if (url.hostname) {
       return true;
+    }
+    if (options?.requireHttps && url.protocol === "http:") {
+      return false;
     }
 
     return (
