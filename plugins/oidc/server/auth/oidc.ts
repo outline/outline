@@ -10,6 +10,7 @@ import {
   OIDCMalformedUserInfoError,
   AuthenticationError,
 } from "@server/errors";
+import Logger from "@server/logging/Logger";
 import passportMiddleware from "@server/middlewares/passport";
 import { AuthenticationProvider, User } from "@server/models";
 import { AuthenticationResult } from "@server/types";
@@ -86,9 +87,8 @@ if (
               const decoded = JWT.decode(params.id_token);
 
               if (!decoded || typeof decoded !== "object") {
-                throw AuthenticationError(
-                  `Decoded token is not a valid object.`
-                );
+                Logger.warn("Decoded id_token is not a valid object");
+                return {};
               }
 
               return decoded as {
@@ -97,9 +97,8 @@ if (
                 sub?: string;
               };
             } catch (err) {
-              throw AuthenticationError(
-                `Unable to decode id_token from identity provider.`
-              );
+              Logger.error("id_token decode threw error: ", err);
+              return {};
             }
           })();
 
@@ -147,7 +146,9 @@ if (
           // Claim name can be overriden using an env variable.
           // Default is 'preferred_username' as per OIDC spec.
           // This will default to the profile.preferred_username, but will fall back to preferred_username from the id_token
-          const username = get(profile, env.OIDC_USERNAME_CLAIM) ?? get(token, env.OIDC_USERNAME_CLAIM);
+          const username =
+            get(profile, env.OIDC_USERNAME_CLAIM) ??
+            get(token, env.OIDC_USERNAME_CLAIM);
           const name = profile.name || username || profile.username;
           const profileId = profile.sub ? profile.sub : profile.id;
 
