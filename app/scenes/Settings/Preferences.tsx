@@ -182,6 +182,23 @@ function Preferences() {
         />
       </SettingRow>
 
+      {/* Numbered Headings*/}
+      <SettingRow
+        name={UserPreference.NumberedHeadings}
+        label={t("Numbered headings")}
+        description={t(
+          "Automatically numbers headings (e.g., 1.1, 2.3) in documents"
+        )}
+        border={false}
+      >
+        <Switch
+          id={UserPreference.NumberedHeadings}
+          name={UserPreference.NumberedHeadings}
+          checked={user.getPreference(UserPreference.NumberedHeadings)}
+          onChange={handlePreferenceChange(false)}
+        />
+      </SettingRow>
+
       {can.delete && (
         <>
           <Heading as="h2">{t("Danger")}</Heading>

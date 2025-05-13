@@ -32,10 +32,14 @@ type PersistedData = Pick<
   | "sidebarRightWidth"
   | "sidebarCollapsed"
   | "tocVisible"
+  | "numberedHeadings"
 >;
 
 class UiStore {
   // has the user seen the prompt to change the UI language and actioned it
+  @observable
+  public numberedHeadings = false;
+
   @observable
   languagePromptDismissed: boolean | undefined;
 
@@ -248,6 +252,12 @@ class UiStore {
     this.mobileSidebarVisible = false;
   };
 
+  @action
+  setNumberedHeadings = (numberedHeadings: boolean) => {
+    this.numberedHeadings = numberedHeadings;
+    this.persist();
+  };
+
   @computed
   get readyToShow() {
     return (
@@ -285,6 +295,7 @@ class UiStore {
       languagePromptDismissed: this.languagePromptDismissed,
       commentsExpanded: this.commentsExpanded,
       theme: this.theme,
+      numberedHeadings: this.numberedHeadings,
     };
   }
 

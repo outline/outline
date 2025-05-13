@@ -1900,6 +1900,72 @@ del[data-operation-index] {
   blockquote {
     font-family: "SF Pro Text", ${props.theme.fontFamily};
   }
+
+  /* Numbered headings */
+[data-numbered="true"][data-level="1"] {
+  counter-increment: heading-1;
+  counter-reset: heading-2 heading-3 heading-4 heading-5 heading-6;
+}
+
+[data-numbered="true"][data-level="2"] {
+  counter-increment: heading-2;
+  counter-reset: heading-3 heading-4 heading-5 heading-6;
+}
+
+[data-numbered="true"][data-level="3"] {
+  counter-increment: heading-3;
+  counter-reset: heading-4 heading-5 heading-6;
+}
+
+[data-numbered="true"][data-level="4"] {
+  counter-increment: heading-4;
+  counter-reset: heading-5 heading-6;
+}
+
+[data-numbered="true"][data-level="5"] {
+  counter-increment: heading-5;
+  counter-reset: heading-6;
+}
+
+[data-numbered="true"][data-level="6"] {
+  counter-increment: heading-6;
+}
+
+[data-numbered="true"][data-level="1"]::before,
+[data-numbered="true"][data-level="2"]::before,
+[data-numbered="true"][data-level="3"]::before,
+[data-numbered="true"][data-level="4"]::before,
+[data-numbered="true"][data-level="5"]::before,
+[data-numbered="true"][data-level="6"]::before {
+  content: "";
+  display: inline-block;
+  margin-right: 8px;
+  color: ${props.theme.textTertiary};
+  font-weight: normal;
+}
+
+[data-numbered="true"][data-level="1"]::before {
+  content: counter(heading-1) ".";
+}
+
+[data-numbered="true"][data-level="2"]::before {
+  content: counter(heading-1) "." counter(heading-2) ".";
+}
+
+[data-numbered="true"][data-level="3"]::before {
+  content: counter(heading-1) "." counter(heading-2) "." counter(heading-3) ".";
+}
+
+[data-numbered="true"][data-level="4"]::before {
+  content: counter(heading-1) "." counter(heading-2) "." counter(heading-3) "." counter(heading-4) ".";
+}
+
+[data-numbered="true"][data-level="5"]::before {
+  content: counter(heading-1) "." counter(heading-2) "." counter(heading-3) "." counter(heading-4) "." counter(heading-5) ".";
+}
+
+[data-numbered="true"][data-level="6"]::before {
+  content: counter(heading-1) "." counter(heading-2) "." counter(heading-3) "." counter(heading-4) "." counter(heading-5) "." counter(heading-6) ".";
 }
 `;
 

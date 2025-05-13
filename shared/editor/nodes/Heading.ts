@@ -6,7 +6,7 @@ import {
   NodeType,
   Schema,
 } from "prosemirror-model";
-import { Command, Plugin, Selection } from "prosemirror-state";
+import { Command, Plugin, PluginKey, Selection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { toast } from "sonner";
 import { Primitive } from "utility-types";
@@ -30,6 +30,7 @@ export default class Heading extends Node {
     return {
       levels: [1, 2, 3, 4],
       collapsed: undefined,
+      numberedHeadings: false,
     };
   }
 
@@ -91,6 +92,18 @@ export default class Heading extends Node {
             },
             ...(anchor ? [anchor, fold] : []),
           ],
+          this.options.numberedHeadings // If numberedHeadings is true, render numbers
+            ? [
+                "span",
+                {
+                  class: `heading-number heading-number-${node.attrs.level}`,
+                  "data-numbered": "true",
+                  "data-level": node.attrs.level,
+                },
+                "", // Will be populated by plugin
+              ]
+            : null,
+
           [
             "span",
             {
@@ -112,7 +125,7 @@ export default class Heading extends Node {
   parseMarkdown() {
     return {
       block: "heading",
-      getAttrs: (token: Record<string, any>) => ({
+      getAttrs: (token: { tag: string }) => ({
         level: +token.tag.slice(1),
       }),
     };
@@ -195,6 +208,51 @@ export default class Heading extends Node {
 
     toast.message(this.options.dictionary.linkCopied);
   };
+
+  generateHeadingNumbers(doc: ProsemirrorNode) {
+    const counters: number[] = [];
+    const decorations: Decoration[] = [];
+    doc.descendants((node, pos) => {
+      if (node.type.name !== this.name) {
+        return;
+      }
+      const level = node.attrs.level;
+      counters.length = level;
+      counters[level - 1] = (counters[level - 1] || 0) + 1;
+      const numberStr = counters.slice(0, level).join(".");
+      decorations.push(
+        Decoration.widget(pos + 1, () => {
+          const span = document.createElement("span");
+          span.className = `heading-number heading-number-${level}`;
+          span.textContent = numberStr;
+          return span;
+        })
+      );
+    });
+    return DecorationSet.create(doc, decorations);
+  }
+
+  // Plugin to apply the numbering
+  numberingPlugin(options: { numberedHeadings: boolean }): Plugin {
+    return new Plugin({
+      key: new PluginKey("headingNumbering"),
+      state: {
+        init: (_, state) =>
+          options.numberedHeadings
+            ? this.generateHeadingNumbers(state.doc)
+            : DecorationSet.empty,
+        apply: (tr, oldState) =>
+          tr.docChanged && options.numberedHeadings
+            ? this.generateHeadingNumbers(tr.doc)
+            : oldState,
+      },
+      props: {
+        decorations(state) {
+          return this.getState(state);
+        },
+      },
+    });
+  }
 
   keys({ type, schema }: { type: NodeType; schema: Schema }) {
     const options = this.options.levels.reduce(

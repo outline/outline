@@ -173,6 +173,8 @@ export enum UserPreference {
   SortCommentsByOrderInDocument = "sortCommentsByOrderInDocument",
   /** Whether smart text replacements should be enabled. */
   EnableSmartText = "enableSmartText",
+  /** Whether headings should be automatically numbered in documents. */
+  NumberedHeadings = "numberedHeadings",
 }
 
 export type UserPreferences = { [key in UserPreference]?: boolean };

@@ -30,6 +30,7 @@ export const TeamPreferenceDefaults: TeamPreferences = {
 
 export const UserPreferenceDefaults: UserPreferences = {
   [UserPreference.RememberLastPath]: true,
+  [UserPreference.NumberedHeadings]: false,
   [UserPreference.UseCursorPointer]: true,
   [UserPreference.CodeBlockLineNumers]: true,
   [UserPreference.SortCommentsByOrderInDocument]: false,
