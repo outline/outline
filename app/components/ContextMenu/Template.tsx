@@ -138,7 +138,7 @@ function Template({ items, actions, context, showIcons, ...menu }: Props) {
               as={Link}
               id={`${item.title}-${index}`}
               to={item.to}
-              key={index}
+              key={`${item.type}-${item.title}-${index}`}
               disabled={item.disabled}
               selected={item.selected}
               icon={showIcons !== false ? item.icon : undefined}
@@ -154,7 +154,7 @@ function Template({ items, actions, context, showIcons, ...menu }: Props) {
             <MenuItem
               id={`${item.title}-${index}`}
               href={item.href}
-              key={index}
+              key={`${item.type}-${item.title}-${index}`}
               disabled={item.disabled}
               selected={item.selected}
               level={item.level}
@@ -176,7 +176,7 @@ function Template({ items, actions, context, showIcons, ...menu }: Props) {
               disabled={item.disabled}
               selected={item.selected}
               dangerous={item.dangerous}
-              key={index}
+              key={`${item.type}-${item.title}-${index}`}
               icon={showIcons !== false ? item.icon : undefined}
               {...menu}
             >
@@ -185,18 +185,24 @@ function Template({ items, actions, context, showIcons, ...menu }: Props) {
           );
 
           return item.tooltip ? (
-            <Tooltip content={item.tooltip} placement={"bottom"}>
+            <Tooltip
+              content={item.tooltip}
+              placement={"bottom"}
+              key={`tooltip-${item.title}-${index}`}
+            >
               <div>{menuItem}</div>
             </Tooltip>
           ) : (
-            <>{menuItem}</>
+            <React.Fragment key={`${item.type}-${item.title}-${index}`}>
+              {menuItem}
+            </React.Fragment>
           );
         }
 
         if (item.type === "submenu") {
           return (
             <BaseMenuItem
-              key={index}
+              key={`${item.type}-${item.title}-${index}`}
               as={SubMenu}
               id={`${item.title}-${index}`}
               templateItems={item.items}
@@ -213,11 +219,13 @@ function Template({ items, actions, context, showIcons, ...menu }: Props) {
         }
 
         if (item.type === "separator") {
-          return <Separator key={index} />;
+          return <Separator key={`separator-${index}`} />;
         }
 
         if (item.type === "heading") {
-          return <Header key={index}>{item.title}</Header>;
+          return (
+            <Header key={`heading-${item.title}-${index}`}>{item.title}</Header>
+          );
         }
 
         const _exhaustiveCheck: never = item;
