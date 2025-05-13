@@ -598,6 +598,32 @@ iframe.embed {
     object-position: center;
   }
 }
+  ol.numbered-outline {
+  list-style-type: none;
+  counter-reset: item;
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+
+ol.numbered-outline > li {
+  position: relative;
+  counter-increment: item;
+  margin-bottom: 0.5em;
+}
+
+ol.numbered-outline > li::before {
+  content: counters(item, ".") ". ";
+  position: absolute;
+  left: -1.5em;
+  width: 1.5em;
+  text-align: right;
+  color: var(--text-secondary);
+}
+
+ol.numbered-outline ol {
+  counter-reset: item;
+  margin-top: 0.5em;
+}
 
 .${EditorStyleHelper.tableFullWidth} {
   transform: translateX(calc(50% + ${
@@ -1902,7 +1928,6 @@ del[data-operation-index] {
   }
 }
 `;
-
 const EditorContainer = styled.div<Props>`
   ${style}
   ${mathStyle}

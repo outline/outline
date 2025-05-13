@@ -34,6 +34,7 @@ import MathBlock from "./MathBlock";
 import Mention from "./Mention";
 import Node from "./Node";
 import Notice from "./Notice";
+import NumberedOutline from "./NumberedOutline";
 import OrderedList from "./OrderedList";
 import Paragraph from "./Paragraph";
 import SimpleImage from "./SimpleImage";
@@ -67,6 +68,7 @@ export const basicExtensions: Nodes = [
   Placeholder,
   MaxLength,
   DateTime,
+  NumberedOutline as unknown as typeof Node,
 ];
 
 export const listExtensions: Nodes = [
