@@ -190,10 +190,10 @@ function InnerDocumentLink(
 
     return collection && insertDraftDocument
       ? sortNavigationNodes(
-          [activeDocument?.asNavigationNode, ...node.children],
-          collection.sort,
-          false
-        )
+        [activeDocument?.asNavigationNode, ...node.children],
+        collection.sort,
+        false
+      )
       : node.children;
   }, [
     activeDocument?.isActive,
@@ -322,9 +322,9 @@ function InnerDocumentLink(
                 ref={ref}
                 menu={
                   document &&
-                  !isMoving &&
-                  !isEditing &&
-                  !isDraggingAnyDocument ? (
+                    !isMoving &&
+                    !isEditing &&
+                    !isDraggingAnyDocument ? (
                     <Fade>
                       {can.createChildDocument && (
                         <Tooltip content={t("New doc")}>
@@ -357,7 +357,11 @@ function InnerDocumentLink(
           </div>
         </Draggable>
         {isDraggingAnyDocument && collection?.isManualSort && (
-          <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
+          <DropCursor
+            isActiveDrop={isOverReorder}
+            innerRef={dropToReorder}
+            depth={depth}
+          />
         )}
       </Relative>
       {isAddingNewChild && (

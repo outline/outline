@@ -34,7 +34,7 @@ function DraggableCollectionLink({
   const { ui, policies, collections } = useStores();
   const [expanded, setExpanded] = React.useState(
     collection.id === ui.activeCollectionId &&
-      sidebarContext === locationSidebarContext
+    sidebarContext === locationSidebarContext
   );
   const belowCollectionIndex = belowCollection ? belowCollection.index : null;
 
@@ -125,6 +125,7 @@ function DraggableCollectionLink({
           <DropCursor
             isActiveDrop={isCollectionDropping}
             innerRef={dropToReorderCollection}
+            depth={collection.depth || 0}
           />
         )}
       </Relative>
@@ -132,7 +133,7 @@ function DraggableCollectionLink({
   );
 }
 
-const Draggable = styled("div")<{ $isDragging: boolean }>`
+const Draggable = styled("div") <{ $isDragging: boolean }>`
   transition: opacity 250ms ease;
   opacity: ${(props) => (props.$isDragging ? 0.1 : 1)};
   pointer-events: ${(props) => (props.$isDragging ? "none" : "auto")};
