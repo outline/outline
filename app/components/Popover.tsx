@@ -17,8 +17,16 @@ type Props = PopoverProps & {
   tabIndex?: number;
   scrollable?: boolean;
   mobilePosition?: "top" | "bottom";
+  place?: string;
   show: () => void;
   hide: () => void;
+  unstable_referenceRef?: React.RefObject<HTMLElement>;
+  unstable_popoverRef?: React.RefObject<HTMLElement>;
+  unstable_arrowRef?: React.RefObject<HTMLElement>;
+  unstable_popoverStyles?: React.CSSProperties;
+  unstable_arrowStyles?: React.CSSProperties;
+  unstable_originalPlacement?: string;
+  unstable_update?: () => void;
 };
 
 const Popover = (
@@ -30,13 +38,14 @@ const Popover = (
     scrollable = true,
     flex,
     mobilePosition,
+    place,
     ...rest
   }: Props,
   ref: React.Ref<HTMLDivElement>
 ) => {
   const isMobile = useMobile();
 
-  // Filter out unstable Reakit props and non-HTML props (including `place`)
+  // Filter out unstable Reakit props to avoid passing them to DOM
   const {
     unstable_referenceRef,
     unstable_popoverRef,
@@ -45,10 +54,6 @@ const Popover = (
     unstable_arrowStyles,
     unstable_originalPlacement,
     unstable_update,
-    place, // Exclude `place` from being passed to the DOM
-    mobilePosition: _mobilePosition, // Exclude this as well
-    show: _show, 
-    hide: _hide, 
     ...cleanRest
   } = rest;
 
