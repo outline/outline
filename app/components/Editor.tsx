@@ -6,7 +6,6 @@ import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import { Optional } from "utility-types";
 import insertFiles from "@shared/editor/commands/insertFiles";
-import Heading from "@shared/editor/nodes/Heading";
 import { AttachmentPreset, UserPreference } from "@shared/types";
 import { getDataTransferFiles } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
@@ -54,21 +53,9 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const previousCommentIds = React.useRef<string[]>();
   const user = useCurrentUser();
 
-  // numberedHeadings: user preference
-
+  // Add this computed property
   const numberedHeadings =
     user?.getPreference(UserPreference.NumberedHeadings) ?? false;
-  const extensionsWithNumbering = (props.extensions || []).map(
-    (Ext: unknown) => {
-      // Check if the extension is a heading and add the numberedHeadings prop
-      if (Ext.name === "heading") {
-        return new Heading({
-          numberedHeadings,
-        });
-      }
-      return Ext;
-    }
-  );
 
   const handleUploadFile = React.useCallback(
     async (file: File | string) => {
@@ -212,7 +199,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
           key={props.extensions?.length || 0}
           ref={mergeRefs([ref, localRef, handleRefChanged])}
           numberedHeadings={numberedHeadings}
-          extensions={extensionsWithNumbering}
           uploadFile={handleUploadFile}
           embeds={embeds}
           userPreferences={preferences}
