@@ -14,9 +14,9 @@ describe("admin", () => {
     const admin = await buildAdmin({ teamId: team.id });
     const collection = await buildCollection({ teamId: team.id });
     // reload to get membership
-    const reloaded = await Collection.scope({
-      method: ["withMembership", admin.id],
-    }).findByPk(collection.id);
+    const reloaded = await Collection.findByPk(collection.id, {
+      userId: admin.id,
+    });
     const abilities = serialize(admin, reloaded);
     expect(abilities.read).toBeTruthy();
     expect(abilities.update).toBeTruthy();
@@ -36,9 +36,9 @@ describe("admin", () => {
       permission: null,
     });
     // reload to get membership
-    const reloaded = await Collection.scope({
-      method: ["withMembership", user.id],
-    }).findByPk(collection.id);
+    const reloaded = await Collection.findByPk(collection.id, {
+      userId: user.id,
+    });
     const abilities = serialize(user, reloaded);
     expect(abilities.readDocument).toEqual(false);
     expect(abilities.updateDocument).toEqual(false);
@@ -59,9 +59,9 @@ describe("admin", () => {
       permission: CollectionPermission.Read,
     });
     // reload to get membership
-    const reloaded = await Collection.scope({
-      method: ["withMembership", user.id],
-    }).findByPk(collection.id);
+    const reloaded = await Collection.findByPk(collection.id, {
+      userId: user.id,
+    });
     const abilities = serialize(user, reloaded);
     expect(abilities.readDocument).toBeTruthy();
     expect(abilities.updateDocument).toBeTruthy();
@@ -87,9 +87,9 @@ describe("member", () => {
         },
       });
       // reload to get membership
-      const reloaded = await Collection.scope({
-        method: ["withMembership", member.id],
-      }).findByPk(collection.id);
+      const reloaded = await Collection.findByPk(collection.id, {
+        userId: member.id,
+      });
       const abilities = serialize(member, reloaded);
       expect(abilities.read).toBeTruthy();
       expect(abilities.update).toBeTruthy();
@@ -116,9 +116,9 @@ describe("member", () => {
         },
       });
       // reload to get membership
-      const reloaded = await Collection.scope({
-        method: ["withMembership", member.id],
-      }).findByPk(collection.id);
+      const reloaded = await Collection.findByPk(collection.id, {
+        userId: member.id,
+      });
       const abilities = serialize(member, reloaded);
       expect(abilities.read).toBeTruthy();
       expect(abilities.update).toBe(false);
@@ -161,9 +161,9 @@ describe("member", () => {
         permission: CollectionPermission.Read,
       });
       // reload to get membership
-      const reloaded = await Collection.scope({
-        method: ["withMembership", user.id],
-      }).findByPk(collection.id);
+      const reloaded = await Collection.findByPk(collection.id, {
+        userId: user.id,
+      });
       const abilities = serialize(user, reloaded);
       expect(abilities.read).toBeTruthy();
       expect(abilities.readDocument).toBeTruthy();
@@ -189,9 +189,9 @@ describe("member", () => {
         },
       });
       // reload to get membership
-      const reloaded = await Collection.scope({
-        method: ["withMembership", member.id],
-      }).findByPk(collection.id);
+      const reloaded = await Collection.findByPk(collection.id, {
+        userId: member.id,
+      });
       const abilities = serialize(member, reloaded);
       expect(abilities.read).toBeTruthy();
       expect(abilities.update).not.toBeTruthy();
@@ -232,9 +232,9 @@ describe("member", () => {
         },
       });
       // reload to get membership
-      const reloaded = await Collection.scope({
-        method: ["withMembership", member.id],
-      }).findByPk(collection.id);
+      const reloaded = await Collection.findByPk(collection.id, {
+        userId: member.id,
+      });
       const abilities = serialize(member, reloaded);
       expect(abilities.read).toBeTruthy();
       expect(abilities.readDocument).toBeTruthy();
@@ -279,9 +279,9 @@ describe("member", () => {
         permission: CollectionPermission.ReadWrite,
       });
       // reload to get membership
-      const reloaded = await Collection.scope({
-        method: ["withMembership", user.id],
-      }).findByPk(collection.id);
+      const reloaded = await Collection.findByPk(collection.id, {
+        userId: user.id,
+      });
       const abilities = serialize(user, reloaded);
       expect(abilities.read).toBeTruthy();
       expect(abilities.readDocument).toBeTruthy();
@@ -331,9 +331,9 @@ describe("viewer", () => {
         permission: CollectionPermission.ReadWrite,
       });
       // reload to get membership
-      const reloaded = await Collection.scope({
-        method: ["withMembership", user.id],
-      }).findByPk(collection.id);
+      const reloaded = await Collection.findByPk(collection.id, {
+        userId: user.id,
+      });
       const abilities = serialize(user, reloaded);
       expect(abilities.read).toBeTruthy();
       expect(abilities.readDocument).toBeTruthy();
@@ -361,9 +361,9 @@ describe("viewer", () => {
         permission: CollectionPermission.ReadWrite,
       });
       // reload to get membership
-      const reloaded = await Collection.scope({
-        method: ["withMembership", user.id],
-      }).findByPk(collection.id);
+      const reloaded = await Collection.findByPk(collection.id, {
+        userId: user.id,
+      });
       const abilities = serialize(user, reloaded);
       expect(abilities.read).toBeTruthy();
       expect(abilities.readDocument).toBeTruthy();
@@ -409,9 +409,9 @@ describe("viewer", () => {
         permission: CollectionPermission.ReadWrite,
       });
       // reload to get membership
-      const reloaded = await Collection.scope({
-        method: ["withMembership", user.id],
-      }).findByPk(collection.id);
+      const reloaded = await Collection.findByPk(collection.id, {
+        userId: user.id,
+      });
       const abilities = serialize(user, reloaded);
       expect(abilities.read).toBeTruthy();
       expect(abilities.readDocument).toBeTruthy();
@@ -462,9 +462,9 @@ describe("guest", () => {
       permission: CollectionPermission.Read,
     });
     // reload to get membership
-    const reloaded = await Collection.scope({
-      method: ["withMembership", user.id],
-    }).findByPk(collection.id);
+    const reloaded = await Collection.findByPk(collection.id, {
+      userId: user.id,
+    });
     const abilities = serialize(user, reloaded);
     expect(abilities.read).toBeTruthy();
     expect(abilities.readDocument).toBeTruthy();
