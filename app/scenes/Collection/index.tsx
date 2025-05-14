@@ -12,7 +12,7 @@ import {
 } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import Icon, { IconTitleWrapper } from "@shared/components/Icon";
+import { IconTitleWrapper } from "@shared/components/Icon";
 import { s } from "@shared/styles";
 import { StatusFilter } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
@@ -139,11 +139,7 @@ const CollectionScene = observer(function _CollectionScene() {
   const hasOverview = can.update || collection?.hasDescription;
 
   const fallbackIcon = collection ? (
-    <Icon
-      value={collection.icon ?? "collection"}
-      color={collection.color || undefined}
-      size={40}
-    />
+    <CollectionIcon collection={collection} size={40} expanded />
   ) : null;
 
   const tabProps = (path: CollectionPath) => ({
@@ -162,7 +158,7 @@ const CollectionScene = observer(function _CollectionScene() {
       left={
         collection.isArchived ? (
           <CollectionBreadcrumb collection={collection} />
-        ) : collection.isEmpty ? undefined : (
+        ) : (
           <InputSearchPage
             source="collection"
             placeholder={`${t("Search in collection")}…`}
@@ -206,7 +202,9 @@ const CollectionScene = observer(function _CollectionScene() {
                     popoverPosition="bottom-start"
                     onChange={handleIconChange}
                     borderOnHover
-                  />
+                  >
+                    {fallbackIcon}
+                  </IconPicker>
                 </React.Suspense>
               ) : (
                 fallbackIcon
