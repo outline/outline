@@ -416,6 +416,10 @@ function KeyboardShortcuts() {
             label: t("Horizontal divider"),
           },
           {
+            shortcut: <Key>{"|--"}</Key>,
+            label: t("Table"),
+          },
+          {
             shortcut: <Key>{"```"}</Key>,
             label: t("Code block"),
           },
