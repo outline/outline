@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react";
 import invariant from "invariant";
 import find from "lodash/find";
 import { action, observable } from "mobx";
@@ -134,6 +135,15 @@ class WebsocketProvider extends React.Component<Props> {
       throw err;
     });
 
+    // add a listener for all events that logs a sentry breadcrumb
+    this.socket.onAny((event: string, data: Record<string, unknown>) => {
+      Sentry.addBreadcrumb({
+        category: "websocket",
+        message: `Received event: ${event}`,
+        data,
+      });
+    });
+
     this.socket.on(
       "entities",
       action(async (event: WebsocketEntitiesEvent) => {
@@ -251,8 +261,10 @@ class WebsocketProvider extends React.Component<Props> {
           }
           policies.remove(document.id);
 
-          const collection = collections.get(event.collectionId);
-          collection?.removeDocument(document.id);
+          if (event.collectionId) {
+            const collection = collections.get(event.collectionId);
+            collection?.removeDocument(document.id);
+          }
         }
       )
     );
