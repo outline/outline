@@ -191,9 +191,9 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
     // user is joining a collection channel, because their permissions have
     // changed, granting them access.
     if (event.collectionId) {
-      const collection = await Collection.scope({
-        method: ["withMembership", user.id],
-      }).findByPk(event.collectionId);
+      const collection = await Collection.findByPk(event.collectionId, {
+        userId: user.id,
+      });
 
       if (can(user, "read", collection)) {
         await socket.join(`collection-${event.collectionId}`);
