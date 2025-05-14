@@ -67,6 +67,8 @@ import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
 
 type AdditionalFindOptions = {
+  userId?: string;
+  includeDocumentStructure?: boolean;
   rejectOnEmpty?: boolean | Error;
 };
 
@@ -466,9 +468,9 @@ class Collection extends ParanoidModel<
    * @returns userIds
    */
   static async membershipUserIds(collectionId: string) {
-    const collection = await this.scope("withAllMemberships").findByPk(
-      collectionId
-    );
+    const collection = await this.scope("withAllMemberships").findOne({
+      where: { id: collectionId },
+    });
     if (!collection) {
       return [];
     }
@@ -485,6 +487,7 @@ class Collection extends ParanoidModel<
 
   /**
    * Overrides the standard findByPk behavior to allow also querying by urlId
+   * and loading memberships for a user passed in by `userId`
    *
    * @param id uuid or urlId
    * @param options FindOptions
@@ -506,16 +509,25 @@ class Collection extends ParanoidModel<
       return null;
     }
 
+    const { includeDocumentStructure, userId, ...rest } = options;
+
+    const scope = this.scope([
+      includeDocumentStructure ? "withDocumentStructure" : "defaultScope",
+      {
+        method: ["withMembership", userId],
+      },
+    ]);
+
     if (isUUID(id)) {
-      const collection = await this.findOne({
+      const collection = await scope.findOne({
         where: {
           id,
         },
-        ...options,
+        ...rest,
         rejectOnEmpty: false,
       });
 
-      if (!collection && options.rejectOnEmpty) {
+      if (!collection && rest.rejectOnEmpty) {
         throw new EmptyResultError(`Collection doesn't exist with id: ${id}`);
       }
 
@@ -524,7 +536,7 @@ class Collection extends ParanoidModel<
 
     const match = id.match(UrlHelper.SLUG_URL_REGEX);
     if (match) {
-      const collection = await this.findOne({
+      const collection = await scope.findOne({
         where: {
           urlId: match[1],
         },
@@ -532,7 +544,7 @@ class Collection extends ParanoidModel<
         rejectOnEmpty: false,
       });
 
-      if (!collection && options.rejectOnEmpty) {
+      if (!collection && rest.rejectOnEmpty) {
         throw new EmptyResultError(`Collection doesn't exist with id: ${id}`);
       }
 

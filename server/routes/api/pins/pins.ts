@@ -33,9 +33,10 @@ router.post(
     authorize(user, "read", document);
 
     if (collectionId) {
-      const collection = await Collection.scope({
-        method: ["withMembership", user.id],
-      }).findByPk(collectionId, { transaction });
+      const collection = await Collection.findByPk(collectionId, {
+        userId: user.id,
+        transaction,
+      });
       authorize(user, "update", collection);
       authorize(user, "pin", document);
     } else {

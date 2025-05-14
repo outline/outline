@@ -116,12 +116,10 @@ export default async function loadDocument({
 
     if (canReadDocument) {
       if (document.collectionId) {
-        collection = await Collection.scope("withDocumentStructure").findByPk(
-          document.collectionId,
-          {
-            rejectOnEmpty: true,
-          }
-        );
+        collection = await Collection.findByPk(document.collectionId, {
+          includeDocumentStructure: true,
+          rejectOnEmpty: true,
+        });
       }
 
       return {
@@ -140,12 +138,10 @@ export default async function loadDocument({
 
     // It is possible to disable sharing at the collection so we must check
     if (document.collectionId) {
-      collection = await Collection.scope("withDocumentStructure").findByPk(
-        document.collectionId,
-        {
-          rejectOnEmpty: true,
-        }
-      );
+      collection = await Collection.findByPk(document.collectionId, {
+        includeDocumentStructure: true,
+        rejectOnEmpty: true,
+      });
     }
 
     if (!collection?.sharing) {

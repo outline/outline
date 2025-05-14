@@ -16,9 +16,9 @@ export default class CollectionSubscriptionRemoveUserTask extends BaseTask<Colle
       return;
     }
 
-    const collection = await Collection.scope({
-      method: ["withMembership", user.id],
-    }).findByPk(event.collectionId);
+    const collection = await Collection.findByPk(event.collectionId, {
+      userId: user.id,
+    });
 
     if (can(user, "read", collection)) {
       Logger.debug(

@@ -416,9 +416,9 @@ export async function buildDocument(
 
   if (overrides.collectionId && overrides.publishedAt !== null) {
     collection = collection
-      ? await Collection.scope("withDocumentStructure").findByPk(
-          overrides.collectionId
-        )
+      ? await Collection.findByPk(overrides.collectionId, {
+          includeDocumentStructure: true,
+        })
       : undefined;
 
     await collection?.addDocumentToStructure(document, 0);

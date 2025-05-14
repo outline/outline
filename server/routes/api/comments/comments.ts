@@ -154,7 +154,9 @@ router.post(
       ]);
       comments.forEach((comment) => (comment.document = document));
     } else if (collectionId) {
-      const collection = await Collection.findByPk(collectionId);
+      const collection = await Collection.findByPk(collectionId, {
+        userId: user.id,
+      });
       authorize(user, "read", collection);
       const include = [
         {

@@ -34,9 +34,10 @@ router.post(
     };
 
     if (collectionId) {
-      const collection = await Collection.scope({
-        method: ["withMembership", user.id],
-      }).findByPk(collectionId);
+      const collection = await Collection.findByPk(collectionId, {
+        userId: user.id,
+        transaction: ctx.state.transaction,
+      });
       authorize(user, "read", collection);
 
       where.collectionId = collectionId;
@@ -78,9 +79,9 @@ router.post(
     };
 
     if (collectionId) {
-      const collection = await Collection.scope({
-        method: ["withMembership", user.id],
-      }).findByPk(collectionId);
+      const collection = await Collection.findByPk(collectionId, {
+        userId: user.id,
+      });
       authorize(user, "read", collection);
 
       where.collectionId = collectionId;
@@ -116,9 +117,9 @@ router.post(
     const { event, collectionId, documentId } = ctx.input.body;
 
     if (collectionId) {
-      const collection = await Collection.scope({
-        method: ["withMembership", user.id],
-      }).findByPk(collectionId);
+      const collection = await Collection.findByPk(collectionId, {
+        userId: user.id,
+      });
 
       authorize(user, "subscribe", collection);
     } else {
