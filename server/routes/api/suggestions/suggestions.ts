@@ -1,6 +1,7 @@
 import Router from "koa-router";
 import { Op } from "sequelize";
 import { Sequelize } from "sequelize-typescript";
+import { StatusFilter } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { User } from "@server/models";
@@ -28,6 +29,7 @@ router.post(
         query,
         offset,
         limit,
+        statusFilter: [StatusFilter.Published],
       }),
       User.findAll({
         where: {
