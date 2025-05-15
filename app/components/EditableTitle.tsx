@@ -69,6 +69,7 @@ function EditableTitle(
 
       if (trimmedValue === originalValue || trimmedValue.length === 0) {
         setValue(originalValue);
+        setIsEditing(false);
         onCancel?.();
         return;
       }
