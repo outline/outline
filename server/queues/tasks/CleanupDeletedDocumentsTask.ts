@@ -17,8 +17,10 @@ export default class CleanupDeletedDocumentsTask extends BaseTask<Props> {
       "task",
       `Permanently destroying upto ${limit} documents older than 30 days…`
     );
-    const documents = await Document.scope("withDrafts").findAll({
-      attributes: ["id", "teamId", "content", "text", "deletedAt"],
+    const documents = await Document.scope([
+      "withDrafts",
+      "withoutState",
+    ]).findAll({
       where: {
         deletedAt: {
           [Op.lt]: subDays(new Date(), 30),
