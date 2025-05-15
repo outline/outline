@@ -13,11 +13,16 @@ import {
   joinTextblockBackward,
   newlineInCode,
   splitBlock,
-  wrapIn,
 } from "prosemirror-commands";
 import { ParseSpec } from "prosemirror-markdown";
-import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
+import {
+  NodeSpec,
+  NodeType,
+  Node as ProsemirrorNode,
+  Schema,
+} from "prosemirror-model";
 import { Command, Plugin, PluginKey, TextSelection } from "prosemirror-state";
+import { findWrapping } from "prosemirror-transform";
 import {
   Decoration,
   DecorationSet,
@@ -39,6 +44,7 @@ import {
   depth,
   furthest,
 } from "../commands/toggleBlock";
+import { CommandFactory } from "../lib/Extension";
 import { chainTransactions } from "../lib/chainTransactions";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { findBlockNodes } from "../queries/findChildren";
@@ -83,31 +89,13 @@ export default class ToggleBlock extends Node {
         },
         apply: (_, value) => value,
       },
-      appendTransaction: (transactions, _oldState, newState) => {
-        const docChanged = transactions.some(
-          (transaction) => transaction.docChanged
-        );
-        let tr = newState.tr;
-
-        if (docChanged) {
-          // detect toggle blocks(newly created) with missing id
-          // and assign them a new id
-          forEach(
-            filter(
-              findBlockNodes(tr.doc, true),
-              (block) =>
-                block.node.type.name === this.name && !block.node.attrs.id
-            ),
-            (toggleBlock) => {
-              tr = tr.setNodeAttribute(toggleBlock.pos, "id", v4());
-            }
-          );
-        }
+      appendTransaction: (_transactions, _oldState, newState) => {
+        let tr = null;
 
         // mark the newly created toggle blocks as folded
         forEach(
           filter(
-            findBlockNodes(tr.doc, true),
+            findBlockNodes(newState.doc, true),
             (block) => block.node.type.name === this.name
           ),
           (toggleBlock) => {
@@ -120,7 +108,7 @@ export default class ToggleBlock extends Node {
         );
 
         if (!initPlugin.spec.docLoaded) {
-          tr.setMeta(ToggleBlock.pluginKey, {
+          tr = newState.tr.setMeta(ToggleBlock.pluginKey, {
             type: Action.INIT,
           });
           initPlugin.spec.docLoaded = true;
@@ -461,8 +449,17 @@ export default class ToggleBlock extends Node {
     };
   }
 
-  commands({ type }: { type: NodeType }) {
-    return () => wrapIn(type);
+  commands({ type }: { type: NodeType; schema: Schema }): CommandFactory {
+    return () => (state, dispatch) => {
+      const { $from, $to } = state.selection;
+      const range = $from.blockRange($to),
+        wrapping = range && findWrapping(range, type, { id: v4() });
+      if (!wrapping) {
+        return false;
+      }
+      dispatch?.(state.tr.wrap(range!, wrapping).scrollIntoView());
+      return true;
+    };
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
@@ -594,6 +591,14 @@ class ToggleBlockView implements NodeView {
       if ($anchor.pos > endOfFirstChild && $anchor.pos < endOfNode) {
         const $endOfFirstChild = this.view.state.doc.resolve(endOfFirstChild);
         tr.setSelection(TextSelection.near($endOfFirstChild, -1));
+      }
+    } else {
+      // append an empty paragraph if the toggle block's body is empty
+      if (this.node.childCount === 1) {
+        tr.insert(
+          this.getPos()! + 1 + this.node.content.size,
+          this.view.state.schema.nodes.paragraph.create({})
+        );
       }
     }
     this.view.dispatch(tr);
