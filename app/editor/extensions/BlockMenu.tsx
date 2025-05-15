@@ -49,7 +49,6 @@ export default class BlockMenuExtension extends Suggestion {
 
             const decorations: Decoration[] = [];
             const isEmptyNode = parent && parent.node.content.size === 0;
-            const isSlash = parent && parent.node.textContent === "/";
 
             if (isEmptyNode) {
               decorations.push(
@@ -68,27 +67,6 @@ export default class BlockMenuExtension extends Suggestion {
                     key: "block-trigger",
                   }
                 )
-              );
-
-              const isEmptyDoc = state.doc.textContent === "";
-              if (!isEmptyDoc) {
-                decorations.push(
-                  Decoration.node(
-                    parent.pos,
-                    parent.pos + parent.node.nodeSize,
-                    {
-                      class: "placeholder",
-                      "data-empty-text": this.options.dictionary.newLineEmpty,
-                    }
-                  )
-                );
-              }
-            } else if (isSlash) {
-              decorations.push(
-                Decoration.node(parent.pos, parent.pos + parent.node.nodeSize, {
-                  class: "placeholder",
-                  "data-empty-text": `  ${this.options.dictionary.newLineWithSlash}`,
-                })
               );
             }
 
