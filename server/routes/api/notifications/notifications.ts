@@ -24,11 +24,11 @@ import * as T from "./schema";
 const router = new Router();
 const pixel = Buffer.from(
   "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
-  "base64",
+  "base64"
 );
 
 const handleUnsubscribe = async (
-  ctx: APIContext<T.NotificationsUnsubscribeReq>,
+  ctx: APIContext<T.NotificationsUnsubscribeReq>
 ) => {
   const { transaction } = ctx.state;
   const eventType = (ctx.input.body.eventType ??
@@ -38,7 +38,7 @@ const handleUnsubscribe = async (
 
   const unsubscribeToken = NotificationSettingsHelper.unsubscribeToken(
     userId,
-    eventType,
+    eventType
   );
 
   if (unsubscribeToken !== token) {
@@ -71,14 +71,14 @@ router.get(
     }
 
     return handleUnsubscribe(ctx);
-  },
+  }
 );
 
 router.post(
   "notifications.unsubscribe",
   validate(T.NotificationsUnsubscribeSchema),
   transaction(),
-  handleUnsubscribe,
+  handleUnsubscribe
 );
 
 router.post(
@@ -133,13 +133,13 @@ router.post(
       data: {
         notifications: await Promise.all(
           notifications.map((notification) =>
-            presentNotification(ctx, notification),
-          ),
+            presentNotification(ctx, notification)
+          )
         ),
         unseen,
       },
     };
-  },
+  }
 );
 
 router.get(
@@ -171,14 +171,14 @@ router.get(
           }),
           {
             viewedAt: new Date(),
-          },
+          }
         );
       }
     }
 
     ctx.response.set("Content-Type", "image/gif");
     ctx.body = pixel;
-  },
+  }
 );
 
 router.post(
@@ -213,7 +213,7 @@ router.post(
       data: await presentNotification(ctx, notification),
       policies: presentPolicies(user, [notification]),
     };
-  },
+  }
 );
 
 router.post(
@@ -251,10 +251,10 @@ router.post(
         async (results) => {
           await Promise.all(
             results.map((notification) =>
-              notification.updateWithCtx(ctx, values),
-            ),
+              notification.updateWithCtx(ctx, values)
+            )
           );
-        },
+        }
       );
     }
 
@@ -262,7 +262,7 @@ router.post(
       success: true,
       data: { total },
     };
-  },
+  }
 );
 
 export default router;

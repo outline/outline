@@ -62,7 +62,7 @@ router.post(
       pagination: ctx.state.pagination,
       data: subscriptions.map(presentSubscription),
     };
-  },
+  }
 );
 
 router.post(
@@ -104,7 +104,7 @@ router.post(
     ctx.body = {
       data: presentSubscription(subscription),
     };
-  },
+  }
 );
 
 router.post(
@@ -141,7 +141,7 @@ router.post(
     ctx.body = {
       data: presentSubscription(subscription),
     };
-  },
+  }
 );
 
 router.get(
@@ -161,7 +161,7 @@ router.get(
 
     const unsubscribeToken = SubscriptionHelper.unsubscribeToken(
       userId,
-      documentId,
+      documentId
     );
 
     if (unsubscribeToken !== token) {
@@ -224,11 +224,11 @@ router.get(
         collectionSubscription
           ? QueryNotices.UnsubscribeCollection
           : documentSubscription
-            ? QueryNotices.UnsubscribeDocument
-            : ""
-      }`,
+          ? QueryNotices.UnsubscribeDocument
+          : ""
+      }`
     );
-  },
+  }
 );
 
 router.post(
@@ -253,7 +253,7 @@ router.post(
     ctx.body = {
       success: true,
     };
-  },
+  }
 );
 
 export default router;

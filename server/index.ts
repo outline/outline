@@ -35,7 +35,7 @@ if (env.SERVICES.includes("collaboration")) {
   if (webProcessCount !== 1) {
     Logger.info(
       "lifecycle",
-      "Note: Restricting process count to 1 due to use of collaborative service",
+      "Note: Restricting process count to 1 due to use of collaborative service"
     );
   }
 
@@ -70,7 +70,7 @@ async function start(_id: number, disconnect: () => void) {
     useHTTPS
       ? https.createServer(ssl, app.callback())
       : http.createServer(app.callback()),
-    ShutdownHelper.connectionGraceTimeout,
+    ShutdownHelper.connectionGraceTimeout
   );
   const router = new Router();
 
@@ -90,7 +90,7 @@ async function start(_id: number, disconnect: () => void) {
   /** Perform a redirect on the browser so that the user's auth cookies are included in the request. */
   app.context.redirectOnClient = function (
     url: string,
-    method: "GET" | "POST" = "GET",
+    method: "GET" | "POST" = "GET"
   ) {
     this.type = "text/html";
 
@@ -172,7 +172,7 @@ async function start(_id: number, disconnect: () => void) {
     if ("code" in err && err.code === "EACCES") {
       Logger.error(
         `Port ${normalizedPort} requires elevated privileges. Exiting…`,
-        err,
+        err
       );
       process.exit(0);
     }
@@ -187,7 +187,7 @@ async function start(_id: number, disconnect: () => void) {
       "lifecycle",
       `Listening on ${useHTTPS ? "https" : "http"}://localhost:${port} / ${
         env.URL
-      }`,
+      }`
     );
   });
 
@@ -211,7 +211,7 @@ async function start(_id: number, disconnect: () => void) {
             resolve(gracefully);
           }
         });
-      }),
+      })
   );
 
   ShutdownHelper.add("metrics", ShutdownOrder.last, () => Metrics.flush());

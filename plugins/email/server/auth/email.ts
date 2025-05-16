@@ -83,7 +83,7 @@ router.post(
     ctx.body = {
       success: true,
     };
-  },
+  }
 );
 
 router.get(
@@ -145,7 +145,7 @@ router.get(
       isNewUser: false,
       client,
     });
-  },
+  }
 );
 
 export default router;
