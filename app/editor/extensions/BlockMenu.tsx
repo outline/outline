@@ -1,10 +1,12 @@
 import { action } from "mobx";
 import { PlusIcon } from "outline-icons";
-import { Plugin } from "prosemirror-state";
+import { Node } from "prosemirror-model";
+import { EditorState, Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
 import { WidgetProps } from "@shared/editor/lib/Extension";
+import { PlaceholderPlugin } from "@shared/editor/plugins/PlaceholderPlugin";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
 import Suggestion from "~/editor/extensions/Suggestion";
 import BlockMenu from "../components/BlockMenu";
@@ -74,6 +76,41 @@ export default class BlockMenuExtension extends Suggestion {
           },
         },
       }),
+      new PlaceholderPlugin([
+        {
+          cond: (
+            node: Node,
+            pos: number,
+            _parent: Node | null,
+            state: EditorState
+          ) => {
+            const $start = state.doc.resolve(pos + 1);
+            return (
+              $start.depth === 1 &&
+              node.textContent === "" &&
+              !!state.doc.textContent &&
+              state.selection.$from.pos === $start.pos + node.content.size
+            );
+          },
+          text: this.options.dictionary.newLineEmpty,
+        },
+        {
+          cond: (
+            node: Node,
+            pos: number,
+            _parent: Node,
+            state: EditorState
+          ) => {
+            const $start = state.doc.resolve(pos + 1);
+            return (
+              $start.depth === 1 &&
+              node.textContent === "/" &&
+              state.selection.$from.pos === $start.pos + node.content.size
+            );
+          },
+          text: `  ${this.options.dictionary.newLineWithSlash}`,
+        },
+      ]),
     ];
   }
 
