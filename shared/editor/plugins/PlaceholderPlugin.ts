@@ -7,7 +7,7 @@ import { Decoration, DecorationSet } from "prosemirror-view";
 
 type Config = Array<{
   /** Condition to meet for the placeholder to be applied to a node */
-  cond: (
+  condition: (
     /** Node to which the placeholder is expected to be applied */
     node: Node,
     /** Position of node to which the placeholder is expected to be applied */
@@ -60,7 +60,7 @@ export class PlaceholderPlugin extends Plugin {
     return filter(
       map(paras, (para) => {
         const condMet = find(this.config, (conf) =>
-          conf.cond(para.node, para.pos, para.parent, state)
+          conf.condition(para.node, para.pos, para.parent, state)
         );
 
         return condMet

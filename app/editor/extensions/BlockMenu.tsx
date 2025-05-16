@@ -78,7 +78,7 @@ export default class BlockMenuExtension extends Suggestion {
       }),
       new PlaceholderPlugin([
         {
-          cond: (
+          condition: (
             node: Node,
             pos: number,
             _parent: Node | null,
@@ -95,7 +95,7 @@ export default class BlockMenuExtension extends Suggestion {
           text: this.options.dictionary.newLineEmpty,
         },
         {
-          cond: (
+          condition: (
             node: Node,
             pos: number,
             _parent: Node,

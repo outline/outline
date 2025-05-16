@@ -19,7 +19,7 @@ export default class Doc extends Node {
     return [
       new PlaceholderPlugin([
         {
-          cond: (
+          condition: (
             node: ProsemirrorNode,
             pos: number,
             parent: ProsemirrorNode | null,
