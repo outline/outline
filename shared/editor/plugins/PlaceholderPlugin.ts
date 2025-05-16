@@ -30,14 +30,10 @@ export class PlaceholderPlugin extends Plugin {
           const decorations: Decoration[] = map(
             this.placeholders(state),
             (placeholder) =>
-              Decoration.node(
-                placeholder.pos,
-                placeholder.pos + placeholder.node.nodeSize,
-                {
-                  class: "placeholder",
-                  "data-empty-text": placeholder.text,
-                }
-              )
+              Decoration.node(placeholder.from, placeholder.to, {
+                class: "placeholder",
+                "data-empty-text": placeholder.text,
+              })
           );
           return DecorationSet.create(state.doc, decorations);
         },
@@ -65,8 +61,8 @@ export class PlaceholderPlugin extends Plugin {
 
         return condMet
           ? {
-              node: para.node,
-              pos: para.$start.pos - 1,
+              from: para.$start.pos - 1,
+              to: para.$start.pos - 1 + para.node.nodeSize,
               text: condMet.text,
             }
           : undefined;
