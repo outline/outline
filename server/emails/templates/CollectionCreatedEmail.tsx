@@ -37,9 +37,10 @@ export default class CollectionCreatedEmail extends BaseEmail<
   }
 
   protected async beforeSend(props: InputProps) {
-    const collection = await Collection.scope("withUser").findByPk(
-      props.collectionId
-    );
+    const collection = await Collection.findByPk(props.collectionId, {
+      includeOwner: true,
+    });
+
     if (!collection) {
       return false;
     }

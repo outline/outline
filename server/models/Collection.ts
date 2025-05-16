@@ -14,6 +14,7 @@ import {
   EmptyResultError,
   type CreateOptions,
   type UpdateOptions,
+  ScopeOptions,
 } from "sequelize";
 import {
   Sequelize,
@@ -69,6 +70,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
 type AdditionalFindOptions = {
   userId?: string;
   includeDocumentStructure?: boolean;
+  includeOwner?: boolean;
   rejectOnEmpty?: boolean | Error;
 };
 
@@ -509,14 +511,20 @@ class Collection extends ParanoidModel<
       return null;
     }
 
-    const { includeDocumentStructure, userId, ...rest } = options;
+    const { includeDocumentStructure, includeOwner, userId, ...rest } = options;
 
-    const scope = this.scope([
+    const scopes: (string | ScopeOptions)[] = [
       includeDocumentStructure ? "withDocumentStructure" : "defaultScope",
       {
         method: ["withMembership", userId],
       },
-    ]);
+    ];
+
+    if (includeOwner) {
+      scopes.push("withUser");
+    }
+
+    const scope = this.scope(scopes);
 
     if (isUUID(id)) {
       const collection = await scope.findOne({
