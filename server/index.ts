@@ -125,7 +125,8 @@ async function start(_id: number, disconnect: () => void) {
 <html>
 <head>
 <meta http-equiv="refresh" content="0;URL='${url}'"/>
-</head>`;
+</head>
+</html>`;
     }
   };
 
