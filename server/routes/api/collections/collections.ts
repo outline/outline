@@ -40,6 +40,7 @@ import {
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { collectionIndexing } from "@server/utils/indexing";
+import removeIndexCollision from "@server/utils/removeIndexCollision";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -920,6 +921,13 @@ router.post(
       }
     );
 
+    collection.index = await removeIndexCollision(
+      collection.teamId,
+      collection.index!,
+      {
+        transaction,
+      }
+    );
     collection.archivedAt = null;
     collection.archivedById = null;
     await collection.save({ transaction });
