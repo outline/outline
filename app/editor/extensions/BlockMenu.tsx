@@ -1,6 +1,6 @@
 import { action } from "mobx";
 import { PlusIcon } from "outline-icons";
-import { Node } from "prosemirror-model";
+import { Node, ResolvedPos } from "prosemirror-model";
 import { EditorState, Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
@@ -80,34 +80,26 @@ export default class BlockMenuExtension extends Suggestion {
         {
           condition: (
             node: Node,
-            pos: number,
+            $start: ResolvedPos,
             _parent: Node | null,
             state: EditorState
-          ) => {
-            const $start = state.doc.resolve(pos + 1);
-            return (
-              $start.depth === 1 &&
-              node.textContent === "" &&
-              !!state.doc.textContent &&
-              state.selection.$from.pos === $start.pos + node.content.size
-            );
-          },
+          ) =>
+            $start.depth === 1 &&
+            node.textContent === "" &&
+            !!state.doc.textContent &&
+            state.selection.$from.pos === $start.pos + node.content.size,
           text: this.options.dictionary.newLineEmpty,
         },
         {
           condition: (
             node: Node,
-            pos: number,
+            $start: ResolvedPos,
             _parent: Node,
             state: EditorState
-          ) => {
-            const $start = state.doc.resolve(pos + 1);
-            return (
-              $start.depth === 1 &&
-              node.textContent === "/" &&
-              state.selection.$from.pos === $start.pos + node.content.size
-            );
-          },
+          ) =>
+            $start.depth === 1 &&
+            node.textContent === "/" &&
+            state.selection.$from.pos === $start.pos + node.content.size,
           text: `  ${this.options.dictionary.newLineWithSlash}`,
         },
       ]),

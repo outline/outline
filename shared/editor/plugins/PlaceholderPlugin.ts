@@ -1,7 +1,7 @@
 import filter from "lodash/filter";
 import find from "lodash/find";
 import map from "lodash/map";
-import { Node } from "prosemirror-model";
+import { Node, ResolvedPos } from "prosemirror-model";
 import { EditorState, Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 
@@ -10,8 +10,8 @@ type Config = Array<{
   condition: (
     /** Node to which the placeholder is expected to be applied */
     node: Node,
-    /** Position of node to which the placeholder is expected to be applied */
-    pos: number,
+    /** Resolved position corresponding to start of node */
+    $start: ResolvedPos,
     /** Parent of node to which the placeholder is expected to be applied */
     parent: Node | null,
     state: EditorState
@@ -49,24 +49,24 @@ export class PlaceholderPlugin extends Plugin {
   private placeholders(state: EditorState) {
     const paras: Array<{
       node: Node;
-      pos: number;
+      $start: ResolvedPos;
       parent: Node | null;
     }> = [];
     state.doc.descendants((node, pos, parent) => {
       if (node.type.name === "paragraph") {
-        paras.push({ node, pos, parent });
+        paras.push({ node, $start: state.doc.resolve(pos + 1), parent });
       }
     });
     return filter(
       map(paras, (para) => {
         const condMet = find(this.config, (conf) =>
-          conf.condition(para.node, para.pos, para.parent, state)
+          conf.condition(para.node, para.$start, para.parent, state)
         );
 
         return condMet
           ? {
               node: para.node,
-              pos: para.pos,
+              pos: para.$start.pos - 1,
               text: condMet.text,
             }
           : undefined;
