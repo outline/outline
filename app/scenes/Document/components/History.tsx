@@ -50,6 +50,7 @@ function History() {
           name: "revisions.create",
           actorId: data.createdBy.id,
           createdAt: data.createdAt,
+          deletedAt: data.deletedAt,
           latest: false,
         } satisfies Event;
       }

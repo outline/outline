@@ -48,10 +48,12 @@ export type DocumentEvent = {
   userId: string;
 };
 
-export type Event = { id: string; actorId: string; createdAt: string } & (
-  | RevisionEvent
-  | DocumentEvent
-);
+export type Event = {
+  id: string;
+  actorId: string;
+  createdAt: string;
+  deletedAt?: string;
+} & (RevisionEvent | DocumentEvent);
 
 type Props = {
   document: Document;
@@ -185,7 +187,7 @@ const EventListItem = ({ event, document, ...rest }: Props) => {
     <RevisionItem
       small
       exact
-      to={to}
+      to={event.deletedAt ? undefined : to}
       title={
         <Time
           dateTime={event.createdAt}
@@ -198,7 +200,13 @@ const EventListItem = ({ event, document, ...rest }: Props) => {
           onClick={handleTimeClick}
         />
       }
-      image={<Avatar model={actor} size={AvatarSize.Large} />}
+      image={
+        event.deletedAt ? (
+          <TrashIcon />
+        ) : (
+          <Avatar model={actor} size={AvatarSize.Large} />
+        )
+      }
       subtitle={meta}
       actions={
         isRevision && isActive && !event.latest ? (

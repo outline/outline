@@ -1,5 +1,5 @@
 import copy from "copy-to-clipboard";
-import { LinkIcon, RestoreIcon } from "outline-icons";
+import { LinkIcon, RestoreIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
 import { matchPath } from "react-router-dom";
 import { toast } from "sonner";
@@ -39,6 +39,30 @@ export const restoreRevision = createAction({
       restore: true,
       revisionId,
     });
+  },
+});
+
+export const deleteRevision = createAction({
+  name: ({ t }) => t("Delete revision"),
+  analyticsName: "Delete revision",
+  icon: <TrashIcon />,
+  section: RevisionSection,
+  visible: ({ activeDocumentId }) =>
+    !!activeDocumentId && stores.policies.abilities(activeDocumentId).update,
+  perform: async ({ event, location, activeDocumentId }) => {
+    event?.preventDefault();
+    if (!activeDocumentId) {
+      return;
+    }
+
+    const match = matchPath<{ revisionId: string }>(location.pathname, {
+      path: matchDocumentHistory,
+    });
+    const revisionId = match?.params.revisionId;
+    if (revisionId) {
+      const revision = stores.revisions.get(revisionId);
+      await revision?.delete();
+    }
   },
 });
 

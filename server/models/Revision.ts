@@ -13,12 +13,13 @@ import {
   Table,
   IsNumeric,
   Length as SimpleLength,
+  BeforeDestroy,
 } from "sequelize-typescript";
 import type { ProsemirrorData } from "@shared/types";
 import { DocumentValidation, RevisionValidation } from "@shared/validations";
 import Document from "./Document";
 import User from "./User";
-import IdModel from "./base/IdModel";
+import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
@@ -34,7 +35,7 @@ import Length from "./validators/Length";
 }))
 @Table({ tableName: "revisions", modelName: "revision" })
 @Fix
-class Revision extends IdModel<
+class Revision extends ParanoidModel<
   InferAttributes<Revision>,
   Partial<InferCreationAttributes<Revision>>
 > {
@@ -74,7 +75,7 @@ class Revision extends IdModel<
    * and is no longer being written.
    */
   @Column(DataType.TEXT)
-  text: string;
+  text: string | null;
 
   /** The content of the revision as JSON. */
   @Column(DataType.JSONB)
@@ -108,6 +109,15 @@ class Revision extends IdModel<
   @ForeignKey(() => User)
   @Column(DataType.UUID)
   userId: string;
+
+  // hooks
+
+  @BeforeDestroy
+  static async clearData(model: Revision) {
+    model.content = null;
+    model.text = null;
+    model.title = "";
+  }
 
   // static methods
 

@@ -9,6 +9,7 @@ import Template from "~/components/ContextMenu/Template";
 import { actionToMenuItem } from "~/actions";
 import {
   copyLinkToRevision,
+  deleteRevision,
   restoreRevision,
 } from "~/actions/definitions/revisions";
 import useActionContext from "~/hooks/useActionContext";
@@ -43,6 +44,8 @@ function RevisionMenu({ document, className }: Props) {
             actionToMenuItem(restoreRevision, context),
             separator(),
             actionToMenuItem(copyLinkToRevision, context),
+            separator(),
+            actionToMenuItem(deleteRevision, context),
           ]}
         />
       </ContextMenu>
