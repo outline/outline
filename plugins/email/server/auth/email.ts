@@ -83,7 +83,7 @@ router.post(
     ctx.body = {
       success: true,
     };
-  }
+  },
 );
 
 router.get(
@@ -97,7 +97,7 @@ router.get(
     // and spending the token before the user clicks on it. Instead we redirect
     // to the same URL with the follow query param added from the client side.
     if (!follow) {
-      return ctx.redirectOnClient(ctx.request.href + "&follow=true");
+      return ctx.redirectOnClient(ctx.request.href + "&follow=true", "POST");
     }
 
     let user!: User;
@@ -145,7 +145,7 @@ router.get(
       isNewUser: false,
       client,
     });
-  }
+  },
 );
 
 export default router;

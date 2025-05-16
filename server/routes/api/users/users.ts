@@ -129,10 +129,10 @@ router.post(
         [Op.and]: {
           [Op.or]: [
             Sequelize.literal(
-              `unaccent(LOWER(email)) like unaccent(LOWER(:query))`
+              `unaccent(LOWER(email)) like unaccent(LOWER(:query))`,
             ),
             Sequelize.literal(
-              `unaccent(LOWER(name)) like unaccent(LOWER(:query))`
+              `unaccent(LOWER(name)) like unaccent(LOWER(:query))`,
             ),
           ],
         },
@@ -176,11 +176,11 @@ router.post(
         presentUser(user, {
           includeEmail: !!can(actor, "readEmail", user),
           includeDetails: !!can(actor, "readDetails", user),
-        })
+        }),
       ),
       policies: presentPolicies(actor, users),
     };
-  }
+  },
 );
 
 router.post(
@@ -200,7 +200,7 @@ router.post(
       }),
       policies: presentPolicies(actor, [user]),
     };
-  }
+  },
 );
 
 router.post(
@@ -241,7 +241,7 @@ router.post(
     ctx.body = {
       success: true,
     };
-  }
+  },
 );
 
 router.get(
@@ -260,10 +260,8 @@ router.get(
 
     // The link in the email does not include the follow query param, this
     // is to help prevent anti-virus, and email clients from pre-fetching the link
-    // and spending the token before the user clicks on it. Instead we redirect
-    // to the same URL with the follow query param added from the client side.
     if (!follow) {
-      return ctx.redirectOnClient(ctx.request.href + "&follow=true");
+      return ctx.redirectOnClient(ctx.request.href + "&follow=true", "POST");
     }
     let user: User;
     let email: string;
@@ -302,7 +300,7 @@ router.get(
     await user.save({ transaction });
 
     ctx.redirect(settingsPath());
-  }
+  },
 );
 
 router.post(
@@ -357,7 +355,7 @@ router.post(
         includeDetails,
       }),
     };
-  }
+  },
 );
 
 // Admin specific
@@ -382,7 +380,7 @@ router.post(
     };
 
     return updateRole(forward);
-  }
+  },
 );
 
 /**
@@ -405,7 +403,7 @@ router.post(
     };
 
     return updateRole(forward);
-  }
+  },
 );
 
 router.post(
@@ -413,7 +411,7 @@ router.post(
   auth({ role: UserRole.Admin }),
   validate(T.UsersChangeRoleSchema),
   transaction(),
-  updateRole
+  updateRole,
 );
 
 async function updateRole(ctx: APIContext<T.UsersChangeRoleReq>) {
@@ -501,7 +499,7 @@ router.post(
       }),
       policies: presentPolicies(actor, [user]),
     };
-  }
+  },
 );
 
 router.post(
@@ -534,7 +532,7 @@ router.post(
       }),
       policies: presentPolicies(actor, [user]),
     };
-  }
+  },
 );
 
 router.post(
@@ -548,7 +546,7 @@ router.post(
 
     if (invites.length > UserValidation.maxInvitesPerRequest) {
       throw ValidationError(
-        `You can only invite up to ${UserValidation.maxInvitesPerRequest} users at a time`
+        `You can only invite up to ${UserValidation.maxInvitesPerRequest} users at a time`,
       );
     }
 
@@ -566,11 +564,11 @@ router.post(
       data: {
         sent: response.sent,
         users: response.users.map((user) =>
-          presentUser(user, { includeEmail: !!can(actor, "readEmail", user) })
+          presentUser(user, { includeEmail: !!can(actor, "readEmail", user) }),
         ),
       },
     };
-  }
+  },
 );
 
 router.post(
@@ -610,14 +608,14 @@ router.post(
         "email",
         `Sign in immediately: ${
           env.URL
-        }/auth/email.callback?token=${user.getEmailSigninToken()}`
+        }/auth/email.callback?token=${user.getEmailSigninToken()}`,
       );
     }
 
     ctx.body = {
       success: true,
     };
-  }
+  },
 );
 
 router.post(
@@ -642,7 +640,7 @@ router.post(
     ctx.body = {
       success: true,
     };
-  }
+  },
 );
 
 router.post(
@@ -685,7 +683,7 @@ router.post(
     ctx.body = {
       success: true,
     };
-  }
+  },
 );
 
 router.post(
@@ -709,7 +707,7 @@ router.post(
     ctx.body = {
       data: presentUser(user, { includeDetails: true }),
     };
-  }
+  },
 );
 
 router.post(
@@ -733,7 +731,7 @@ router.post(
     ctx.body = {
       data: presentUser(user, { includeDetails: true }),
     };
-  }
+  },
 );
 
 export default router;

@@ -35,7 +35,7 @@ if (env.SERVICES.includes("collaboration")) {
   if (webProcessCount !== 1) {
     Logger.info(
       "lifecycle",
-      "Note: Restricting process count to 1 due to use of collaborative service"
+      "Note: Restricting process count to 1 due to use of collaborative service",
     );
   }
 
@@ -70,7 +70,7 @@ async function start(_id: number, disconnect: () => void) {
     useHTTPS
       ? https.createServer(ssl, app.callback())
       : http.createServer(app.callback()),
-    ShutdownHelper.connectionGraceTimeout
+    ShutdownHelper.connectionGraceTimeout,
   );
   const router = new Router();
 
@@ -88,13 +88,45 @@ async function start(_id: number, disconnect: () => void) {
   app.use(defaultRateLimiter());
 
   /** Perform a redirect on the browser so that the user's auth cookies are included in the request. */
-  app.context.redirectOnClient = function (url: string) {
+  app.context.redirectOnClient = function (
+    url: string,
+    method: "GET" | "POST" = "GET",
+  ) {
     this.type = "text/html";
-    this.body = `
+
+    if (method === "POST") {
+      // For POST method, create a form that auto-submits
+      const urlObj = new URL(url);
+      const formAction = `${urlObj.origin}${urlObj.pathname}`;
+      const searchParams = urlObj.searchParams;
+
+      let formFields = "";
+      searchParams.forEach((value, key) => {
+        formFields += `<input type="hidden" name="${key}" value="${value}" />`;
+      });
+
+      this.body = `
+<html>
+<head>
+  <title>Redirecting…</title>
+</head>
+<body>
+  <form id="redirect-form" method="POST" action="${formAction}">
+    ${formFields}
+  </form>
+  <script>
+    document.getElementById('redirect-form').submit();
+  </script>
+</body>
+</html>`;
+    } else {
+      // Default GET method using meta refresh
+      this.body = `
 <html>
 <head>
 <meta http-equiv="refresh" content="0;URL='${url}'"/>
 </head>`;
+    }
   };
 
   // Add a health check endpoint to all services
@@ -140,7 +172,7 @@ async function start(_id: number, disconnect: () => void) {
     if ("code" in err && err.code === "EACCES") {
       Logger.error(
         `Port ${normalizedPort} requires elevated privileges. Exiting…`,
-        err
+        err,
       );
       process.exit(0);
     }
@@ -155,7 +187,7 @@ async function start(_id: number, disconnect: () => void) {
       "lifecycle",
       `Listening on ${useHTTPS ? "https" : "http"}://localhost:${port} / ${
         env.URL
-      }`
+      }`,
     );
   });
 
@@ -179,7 +211,7 @@ async function start(_id: number, disconnect: () => void) {
             resolve(gracefully);
           }
         });
-      })
+      }),
   );
 
   ShutdownHelper.add("metrics", ShutdownOrder.last, () => Metrics.flush());
