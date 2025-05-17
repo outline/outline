@@ -13,6 +13,7 @@ import Router from "koa-router";
 import { AddressInfo } from "net";
 import stoppable from "stoppable";
 import throng from "throng";
+import escape from "lodash/escape";
 import Logger from "./logging/Logger";
 import services from "./services";
 import { getArg } from "./utils/args";
@@ -102,7 +103,7 @@ async function start(_id: number, disconnect: () => void) {
 
       let formFields = "";
       searchParams.forEach((value, key) => {
-        formFields += `<input type="hidden" name="${key}" value="${value}" />`;
+        formFields += `<input type="hidden" name="${escape(key)}" value="${escape(value)}" />`;
       });
 
       this.body = `
