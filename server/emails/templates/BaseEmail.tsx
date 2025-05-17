@@ -296,7 +296,12 @@ export default abstract class BaseEmail<
       return undefined;
     }
 
-    let content = ProsemirrorHelper.toHTML(node, {
+    // Process user mentions to ensure they are uptodate with database
+    const processedNode = ProsemirrorHelper.toProsemirror(
+      await ProsemirrorHelper.processMentions(node)
+    );
+
+    let content = ProsemirrorHelper.toHTML(processedNode, {
       centered: false,
     });
 
