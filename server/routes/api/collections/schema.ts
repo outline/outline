@@ -43,6 +43,7 @@ export const CollectionsCreateSchema = BaseSchema.extend({
         message: `Must be ${ValidateIndex.maxLength} or fewer characters long`,
       })
       .optional(),
+    commenting: z.boolean().nullish(),
   }),
 });
 
@@ -170,6 +171,7 @@ export const CollectionsUpdateSchema = BaseSchema.extend({
       })
       .optional(),
     sharing: z.boolean().optional(),
+    commenting: z.boolean().nullish(),
   }),
 });
 

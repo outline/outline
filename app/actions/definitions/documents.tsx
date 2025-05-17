@@ -34,11 +34,7 @@ import {
 import * as React from "react";
 import { toast } from "sonner";
 import Icon from "@shared/components/Icon";
-import {
-  ExportContentType,
-  TeamPreference,
-  NavigationNode,
-} from "@shared/types";
+import { ExportContentType, NavigationNode } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import UserMembership from "~/models/UserMembership";
 import DocumentDelete from "~/scenes/DocumentDelete";
@@ -1082,12 +1078,13 @@ export const openDocumentComments = createAction({
   analyticsName: "Open comments",
   section: ActiveDocumentSection,
   icon: <CommentIcon />,
-  visible: ({ activeDocumentId, stores }) => {
+  visible: ({ activeCollectionId, activeDocumentId, stores }) => {
     const can = stores.policies.abilities(activeDocumentId ?? "");
+
     return (
       !!activeDocumentId &&
       can.comment &&
-      !!stores.auth.team?.getPreference(TeamPreference.Commenting)
+      stores.collections.canComment(activeCollectionId)
     );
   },
   perform: ({ activeDocumentId, stores }) => {
