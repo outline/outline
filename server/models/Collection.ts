@@ -396,8 +396,11 @@ class Collection extends ParanoidModel<
     model: Collection,
     options: UpdateOptions<Collection>
   ) {
-    if (model.index && model.changed("index")) {
-      model.index = await removeIndexCollision(model.teamId, model.index, {
+    if (
+      (model.index && model.changed("index")) ||
+      (!model.archivedAt && model.changed("archivedAt"))
+    ) {
+      model.index = await removeIndexCollision(model.teamId, model.index!, {
         transaction: options.transaction,
       });
     }
