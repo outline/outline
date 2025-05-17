@@ -98,7 +98,7 @@ async function start(_id: number, disconnect: () => void) {
     if (method === "POST") {
       // For POST method, create a form that auto-submits
       const urlObj = new URL(url);
-      const formAction = `${urlObj.origin}${urlObj.pathname}`;
+      const formAction = escape(`${urlObj.origin}${urlObj.pathname}`);
       const searchParams = urlObj.searchParams;
 
       let formFields = "";
@@ -127,7 +127,7 @@ async function start(_id: number, disconnect: () => void) {
       this.body = `
 <html>
 <head>
-<meta http-equiv="refresh" content="0;URL='${url}'"/>
+<meta http-equiv="refresh" content="0;URL='${escape(url)}'" />
 </head>
 </html>`;
     }
