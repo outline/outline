@@ -103,7 +103,9 @@ async function start(_id: number, disconnect: () => void) {
 
       let formFields = "";
       searchParams.forEach((value, key) => {
-        formFields += `<input type="hidden" name="${escape(key)}" value="${escape(value)}" />`;
+        formFields += `<input type="hidden" name="${escape(
+          key
+        )}" value="${escape(value)}" />`;
       });
 
       this.body = `
