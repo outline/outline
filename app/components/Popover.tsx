@@ -48,26 +48,14 @@ const Popover = (
 ) => {
   const isMobile = useMobile();
 
-  // Filter out unstable Reakit props to avoid passing them to DOM
-  const {
-    unstable_referenceRef,
-    unstable_popoverRef,
-    unstable_arrowRef,
-    unstable_popoverStyles,
-    unstable_arrowStyles,
-    unstable_originalPlacement,
-    unstable_update,
-    ...cleanRest
-  } = rest;
-
   // Custom Escape handler rather than using hideOnEsc from reakit so we can
   // prevent default behavior of exiting fullscreen.
   useKeyDown(
     "Escape",
     (event) => {
-      if (cleanRest.visible && cleanRest.hideOnEsc !== false) {
+      if (rest.visible && rest.hideOnEsc !== false) {
         event.preventDefault();
-        cleanRest.hide();
+        rest.hide();
       }
     },
     {
@@ -77,7 +65,7 @@ const Popover = (
 
   if (isMobile) {
     return (
-      <Dialog {...cleanRest} modal>
+      <Dialog {...rest} modal>
         <Contents
           ref={ref}
           $shrink={shrink}
@@ -92,7 +80,7 @@ const Popover = (
   }
 
   return (
-    <StyledPopover {...cleanRest} hideOnEsc={false} hideOnClickOutside>
+    <StyledPopover {...rest} hideOnEsc={false} hideOnClickOutside>
       <Contents
         ref={ref}
         $shrink={shrink}
