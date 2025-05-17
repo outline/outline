@@ -21,6 +21,7 @@ import { schema, parser } from "@server/editor";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import Attachment from "@server/models/Attachment";
+import User from "@server/models/User";
 import FileStorage from "@server/storage/files";
 
 export type HTMLOptions = {
@@ -557,5 +558,40 @@ export class ProsemirrorHelper {
     }
 
     return dom.serialize();
+  }
+
+  /**
+   * Processes user mentions in the Prosemirror data, ensuring that mentions
+   * for deleted users are displayed as "@unknown".
+   *
+   * @param data The ProsemirrorData object to process
+   * @returns The processed ProsemirrorData with updated user mentions
+   */
+  static async processUserMentions(data: ProsemirrorData | Node) {
+    const json = "toJSON" in data ? (data.toJSON() as ProsemirrorData) : data;
+
+    async function processUserMentionsInner(node: ProsemirrorData) {
+      if (
+        node.type === "mention" &&
+        node.attrs?.type === MentionType.User &&
+        node.attrs?.id
+      ) {
+        const user = await User.findByPk(node.attrs.id as string);
+        node.attrs = {
+          ...node.attrs,
+          label: user?.name || "unknown",
+        };
+      }
+
+      if (node.content) {
+        for (const child of node.content) {
+          await processUserMentionsInner(child);
+        }
+      }
+
+      return node;
+    }
+
+    return await processUserMentionsInner(json);
   }
 }
