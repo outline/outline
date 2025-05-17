@@ -63,6 +63,8 @@ export default function init(app: Koa = new Koa(), server?: Server) {
   });
 
   app.use(mount("/api", api));
+
+  // Apply CSP middleware after API as these responses are rendered in the browser
   app.use(csp());
 
   // Allow DNS prefetching for performance, we do not care about leaking requests

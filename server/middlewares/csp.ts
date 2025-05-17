@@ -1,15 +1,20 @@
 import crypto from "crypto";
 import { Context, Next } from "koa";
 import { contentSecurityPolicy } from "koa-helmet";
+import uniq from "lodash/uniq";
 import env from "@server/env";
 
+/**
+ * Create a Content Security Policy middleware for the application.
+ */
 export default function createCSPMiddleware() {
-  // Construct scripts CSP based on services in use by this installation
+  // Construct scripts CSP based on options in use
   const defaultSrc = ["'self'"];
-  const scriptSrc = ["'self'", "www.googletagmanager.com"];
+  const scriptSrc = ["'self'"];
   const styleSrc = ["'self'", "'unsafe-inline'"];
 
   if (env.isCloudHosted) {
+    scriptSrc.push("www.googletagmanager.com");
     scriptSrc.push("cdn.zapier.com");
     styleSrc.push("cdn.zapier.com");
   }
@@ -21,6 +26,7 @@ export default function createCSPMiddleware() {
   }
 
   if (env.GOOGLE_ANALYTICS_ID) {
+    scriptSrc.push("www.googletagmanager.com");
     scriptSrc.push("www.google-analytics.com");
   }
 
@@ -38,7 +44,7 @@ export default function createCSPMiddleware() {
         defaultSrc,
         styleSrc,
         scriptSrc: [
-          ...scriptSrc,
+          ...uniq(scriptSrc),
           env.DEVELOPMENT_UNSAFE_INLINE_CSP
             ? "'unsafe-inline'"
             : `'nonce-${ctx.state.cspNonce}'`,

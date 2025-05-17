@@ -90,7 +90,12 @@ async function start(_id: number, disconnect: () => void) {
 
   /** Perform a redirect on the browser so that the user's auth cookies are included in the request. */
   app.context.redirectOnClient = function (
+    /** The URL to redirect to */
     url: string,
+    /**
+     * The HTTP method to use for the redirect. Use POST when preventing links in emails from being
+     * clicked by bots. Otherwise, use GET.
+     */
     method: "GET" | "POST" = "GET"
   ) {
     this.type = "text/html";
