@@ -296,12 +296,12 @@ export default abstract class BaseEmail<
       return undefined;
     }
 
-    // Process user mentions to ensure deleted users are displayed as "@unknown"
-    const processedNode = await ProsemirrorHelper.processUserMentions(node);
-    const processedProsemirrorNode =
-      ProsemirrorHelper.toProsemirror(processedNode);
+    // Process user mentions to ensure they are uptodate with database
+    const processedNode = ProsemirrorHelper.toProsemirror(
+      await ProsemirrorHelper.processMentions(node)
+    );
 
-    let content = ProsemirrorHelper.toHTML(processedProsemirrorNode, {
+    let content = ProsemirrorHelper.toHTML(processedNode, {
       centered: false,
     });
 

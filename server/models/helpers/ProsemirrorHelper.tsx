@@ -561,13 +561,14 @@ export class ProsemirrorHelper {
   }
 
   /**
-   * Processes user mentions in the Prosemirror data, ensuring that mentions
-   * for deleted users are displayed as "@unknown".
+   * Processes mentions in the Prosemirror data, ensuring that mentions
+   * for deleted users are displayed as "@unknown" and updated names are
+   * displayed correctly.
    *
    * @param data The ProsemirrorData object to process
-   * @returns The processed ProsemirrorData with updated user mentions
+   * @returns The processed ProsemirrorData with updated mentions
    */
-  static async processUserMentions(data: ProsemirrorData | Node) {
+  static async processMentions(data: ProsemirrorData | Node) {
     const json = "toJSON" in data ? (data.toJSON() as ProsemirrorData) : data;
 
     async function processUserMentionsInner(node: ProsemirrorData) {
@@ -576,10 +577,12 @@ export class ProsemirrorHelper {
         node.attrs?.type === MentionType.User &&
         node.attrs?.id
       ) {
-        const user = await User.findByPk(node.attrs.id as string);
+        const user = await User.findByPk(node.attrs.modelId as string, {
+          attributes: ["name"],
+        });
         node.attrs = {
           ...node.attrs,
-          label: user?.name || "unknown",
+          label: user?.name || "Unknown",
         };
       }
 
