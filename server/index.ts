@@ -117,7 +117,7 @@ async function start(_id: number, disconnect: () => void) {
   <form id="redirect-form" method="POST" action="${formAction}">
     ${formFields}
   </form>
-  <script>
+  <script nonce="${this.state.cspNonce}">
     document.getElementById('redirect-form').submit();
   </script>
 </body>

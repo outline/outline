@@ -76,10 +76,6 @@ export default function init(app: Koa = new Koa(), server?: Server) {
 
   app.use(compress());
 
-  app.use(mount("/oauth", oauth));
-  app.use(mount("/auth", auth));
-  app.use(mount("/api", api));
-
   // Monitor server connections
   if (server) {
     setInterval(() => {
@@ -135,6 +131,9 @@ export default function init(app: Koa = new Koa(), server?: Server) {
     })
   );
 
+  app.use(mount("/oauth", oauth));
+  app.use(mount("/auth", auth));
+  app.use(mount("/api", api));
   app.use(mount(routes));
 
   return app;
