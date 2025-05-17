@@ -209,7 +209,7 @@ export class ValidateKey {
       .slice(0, -1)
       .filter((part) => part !== "" && part !== ".." && part !== ".")
       .join("/")
-      .concat(`/${sanitize(filename)}`);
+      .concat(`/${sanitize(filename.replace(/#/g, ""))}`);
   };
 
   public static message = "Must be of the form <bucket>/<uuid>/<uuid>/<name>";
