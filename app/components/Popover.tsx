@@ -24,6 +24,8 @@ type Props = PopoverProps & {
   scrollable?: boolean;
   /** The position of the popover on mobile, defaults to "top". */
   mobilePosition?: "top" | "bottom";
+  /** Place prop from Reakit that should not be passed to DOM */
+  place?: string;
   /** Function to show the popover */
   show: () => void;
   /** Function to hide the popover */
@@ -39,20 +41,33 @@ const Popover = (
     scrollable = true,
     flex,
     mobilePosition,
+    place,
     ...rest
   }: Props,
   ref: React.Ref<HTMLDivElement>
 ) => {
   const isMobile = useMobile();
 
+  // Filter out unstable Reakit props to avoid passing them to DOM
+  const {
+    unstable_referenceRef,
+    unstable_popoverRef,
+    unstable_arrowRef,
+    unstable_popoverStyles,
+    unstable_arrowStyles,
+    unstable_originalPlacement,
+    unstable_update,
+    ...cleanRest
+  } = rest;
+
   // Custom Escape handler rather than using hideOnEsc from reakit so we can
   // prevent default behavior of exiting fullscreen.
   useKeyDown(
     "Escape",
     (event) => {
-      if (rest.visible && rest.hideOnEsc !== false) {
+      if (cleanRest.visible && cleanRest.hideOnEsc !== false) {
         event.preventDefault();
-        rest.hide();
+        cleanRest.hide();
       }
     },
     {
@@ -62,7 +77,7 @@ const Popover = (
 
   if (isMobile) {
     return (
-      <Dialog {...rest} modal>
+      <Dialog {...cleanRest} modal>
         <Contents
           ref={ref}
           $shrink={shrink}
@@ -77,7 +92,7 @@ const Popover = (
   }
 
   return (
-    <StyledPopover {...rest} hideOnEsc={false} hideOnClickOutside>
+    <StyledPopover {...cleanRest} hideOnEsc={false} hideOnClickOutside>
       <Contents
         ref={ref}
         $shrink={shrink}
