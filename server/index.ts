@@ -98,7 +98,7 @@ async function start(_id: number, disconnect: () => void) {
     if (method === "POST") {
       // For POST method, create a form that auto-submits
       const urlObj = new URL(url);
-      const formAction = escape(`${urlObj.origin}${urlObj.pathname}`);
+      const formAction = `${urlObj.origin}${urlObj.pathname}`;
       const searchParams = urlObj.searchParams;
 
       let formFields = "";
@@ -169,10 +169,7 @@ async function start(_id: number, disconnect: () => void) {
 
   server.on("error", (err) => {
     if ("code" in err && err.code === "EADDRINUSE") {
-      Logger.error(
-        `Port ${normalizedPort}  is already in use. Exiting���`,
-        err
-      );
+      Logger.error(`Port ${normalizedPort} is already in use. Exiting…`, err);
       process.exit(0);
     }
 
