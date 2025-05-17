@@ -10,7 +10,7 @@ import fetch, { chromeUserAgent, RequestInit } from "@server/utils/fetch";
 
 export default abstract class BaseStorage {
   /** The default number of seconds until a signed URL expires. */
-  public static defaultSignedUrlExpires = 60;
+  public static defaultSignedUrlExpires = 300;
 
   /**
    * Returns a presigned post for uploading files to the storage provider.
