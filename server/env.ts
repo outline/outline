@@ -649,6 +649,47 @@ export class Environment {
   @Public
   public APP_NAME = "Outline";
 
+  @IsOptional()
+  @IsUrl({ require_tld: false })
+  public CUSTOM_SCRIPT_BASE_URL = this.toOptionalString(
+    environment.CUSTOM_SCRIPT_BASE_URL
+  );
+
+  @IsOptional()
+  public CUSTOM_SCRIPT_PATHS = this.toOptionalCommaList(
+    environment.CUSTOM_SCRIPT_PATHS
+  );
+
+  @IsOptional()
+  public CUSTOM_SCRIPT_JWT_SECRET = this.toOptionalString(
+    environment.CUSTOM_SCRIPT_JWT_SECRET
+  );
+
+  @IsOptional()
+  @IsIn([
+    "HS256",
+    "HS384",
+    "HS512",
+    "RS256",
+    "RS384",
+    "RS512",
+    "ES256",
+    "ES384",
+    "ES512",
+    "PS256",
+    "PS384",
+    "PS512",
+    "none",
+  ])
+  public CUSTOM_SCRIPT_JWT_ALGORITHM = this.toOptionalString(
+    environment.CUSTOM_SCRIPT_JWT_ALGORITHM
+  );
+
+  @IsOptional()
+  public CUSTOM_SCRIPT_JWT_EXPIRATION_SECONDS = this.toOptionalNumber(
+    environment.CUSTOM_SCRIPT_JWT_EXPIRATION_SECONDS
+  );
+
   /**
    * Returns true if the current installation is the cloud hosted version at
    * getoutline.com

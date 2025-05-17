@@ -11,6 +11,7 @@ import documentLoader from "@server/commands/documentLoader";
 import env from "@server/env";
 import { Integration } from "@server/models";
 import presentEnv from "@server/presenters/env";
+import createCustomScriptJwt from "@server/utils/CustomScript";
 import { getTeamFromContext } from "@server/utils/passport";
 import prefetchTags from "@server/utils/prefetchTags";
 import readManifestFile from "@server/utils/readManifestFile";
@@ -97,11 +98,13 @@ export const renderApp = async (
     ? ""
     : '<meta name="robots" content="noindex, nofollow">';
 
-  const scriptTags = env.isProduction
-    ? `<script type="module" nonce="${ctx.state.cspNonce}" src="${
-        env.CDN_URL || ""
-      }/static/${readManifestFile()[entry]["file"]}"></script>`
-    : `<script type="module" nonce="${ctx.state.cspNonce}">
+  let scriptTags = "";
+  if (env.isProduction) {
+    scriptTags += `<script type="module" nonce="${ctx.state.cspNonce}" src="${
+      env.CDN_URL || ""
+    }/static/${readManifestFile()[entry]["file"]}"></script>`;
+  } else {
+    scriptTags += `<script type="module" nonce="${ctx.state.cspNonce}">
         import RefreshRuntime from "${viteHost}/static/@react-refresh"
         RefreshRuntime.injectIntoGlobalHook(window)
         window.$RefreshReg$ = () => { }
@@ -111,6 +114,25 @@ export const renderApp = async (
       <script type="module" nonce="${ctx.state.cspNonce}" src="${viteHost}/static/@vite/client"></script>
       <script type="module" nonce="${ctx.state.cspNonce}" src="${viteHost}/static/${entry}"></script>
     `;
+  }
+  if (env.CUSTOM_SCRIPT_BASE_URL && env.CUSTOM_SCRIPT_PATHS) {
+    if (
+      env.CUSTOM_SCRIPT_JWT_SECRET &&
+      env.CUSTOM_SCRIPT_JWT_ALGORITHM &&
+      env.CUSTOM_SCRIPT_JWT_EXPIRATION_SECONDS
+    ) {
+      const customScriptJwt = await createCustomScriptJwt(
+        ctx.cookies,
+        env.CUSTOM_SCRIPT_JWT_SECRET,
+        env.CUSTOM_SCRIPT_JWT_EXPIRATION_SECONDS,
+        env.CUSTOM_SCRIPT_JWT_ALGORITHM
+      );
+      scriptTags += `<script nonce="${ctx.state.cspNonce}">const customScriptJwt = "${customScriptJwt}";</script>`;
+    }
+    for (const path of env.CUSTOM_SCRIPT_PATHS) {
+      scriptTags += `<script nonce="${ctx.state.cspNonce}" src="${env.CUSTOM_SCRIPT_BASE_URL}${path}"></script>`;
+    }
+  }
 
   // Ensure no caching is performed
   ctx.response.set("Cache-Control", "no-cache, must-revalidate");
