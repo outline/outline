@@ -13,6 +13,7 @@ import Router from "koa-router";
 import { AddressInfo } from "net";
 import stoppable from "stoppable";
 import throng from "throng";
+import escape from "lodash/escape";
 import Logger from "./logging/Logger";
 import services from "./services";
 import { getArg } from "./utils/args";
@@ -88,13 +89,53 @@ async function start(_id: number, disconnect: () => void) {
   app.use(defaultRateLimiter());
 
   /** Perform a redirect on the browser so that the user's auth cookies are included in the request. */
-  app.context.redirectOnClient = function (url: string) {
+  app.context.redirectOnClient = function (
+    /** The URL to redirect to */
+    url: string,
+    /**
+     * The HTTP method to use for the redirect. Use POST when preventing links in emails from being
+     * clicked by bots. Otherwise, use GET.
+     */
+    method: "GET" | "POST" = "GET"
+  ) {
     this.type = "text/html";
-    this.body = `
+
+    if (method === "POST") {
+      // For POST method, create a form that auto-submits
+      const urlObj = new URL(url);
+      const formAction = `${urlObj.origin}${urlObj.pathname}`;
+      const searchParams = urlObj.searchParams;
+
+      let formFields = "";
+      searchParams.forEach((value, key) => {
+        formFields += `<input type="hidden" name="${escape(
+          key
+        )}" value="${escape(value)}" />`;
+      });
+
+      this.body = `
 <html>
 <head>
-<meta http-equiv="refresh" content="0;URL='${url}'"/>
-</head>`;
+  <title>Redirecting…</title>
+</head>
+<body>
+  <form id="redirect-form" method="POST" action="${formAction}">
+    ${formFields}
+  </form>
+  <script nonce="${this.state.cspNonce}">
+    document.getElementById('redirect-form').submit();
+  </script>
+</body>
+</html>`;
+    } else {
+      // Default GET method using meta refresh
+      this.body = `
+<html>
+<head>
+<meta http-equiv="refresh" content="0;URL='${escape(url)}'" />
+</head>
+</html>`;
+    }
   };
 
   // Add a health check endpoint to all services
@@ -133,7 +174,7 @@ async function start(_id: number, disconnect: () => void) {
 
   server.on("error", (err) => {
     if ("code" in err && err.code === "EADDRINUSE") {
-      Logger.error(`Port ${normalizedPort}  is already in use. Exiting…`, err);
+      Logger.error(`Port ${normalizedPort} is already in use. Exiting…`, err);
       process.exit(0);
     }
 
