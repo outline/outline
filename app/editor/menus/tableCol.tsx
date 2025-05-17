@@ -6,7 +6,6 @@ import {
   InsertLeftIcon,
   InsertRightIcon,
   ArrowIcon,
-  MoreIcon,
   TableHeaderColumnIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
@@ -77,33 +76,28 @@ export default function tableColMenuItems(
       name: "separator",
     },
     {
-      icon: <MoreIcon />,
-      children: [
-        {
-          name: "toggleHeaderColumn",
-          label: dictionary.toggleHeader,
-          icon: <TableHeaderColumnIcon />,
-          visible: index === 0,
-        },
-        {
-          name: rtl ? "addColumnAfter" : "addColumnBefore",
-          label: rtl ? dictionary.addColumnAfter : dictionary.addColumnBefore,
-          icon: <InsertLeftIcon />,
-          attrs: { index },
-        },
-        {
-          name: rtl ? "addColumnBefore" : "addColumnAfter",
-          label: rtl ? dictionary.addColumnBefore : dictionary.addColumnAfter,
-          icon: <InsertRightIcon />,
-          attrs: { index },
-        },
-        {
-          name: "deleteColumn",
-          dangerous: true,
-          label: dictionary.deleteColumn,
-          icon: <TrashIcon />,
-        },
-      ],
+      name: "toggleHeaderColumn",
+      tooltip: dictionary.toggleHeader,
+      icon: <TableHeaderColumnIcon />,
+      visible: index === 0,
+    },
+    {
+      name: rtl ? "addColumnAfter" : "addColumnBefore",
+      tooltip: rtl ? dictionary.addColumnAfter : dictionary.addColumnBefore,
+      icon: <InsertLeftIcon />,
+      attrs: { index },
+    },
+    {
+      name: rtl ? "addColumnBefore" : "addColumnAfter",
+      tooltip: rtl ? dictionary.addColumnBefore : dictionary.addColumnAfter,
+      icon: <InsertRightIcon />,
+      attrs: { index },
+    },
+    {
+      name: "deleteColumn",
+      tooltip: dictionary.deleteColumn,
+      icon: <TrashIcon />,
+      dangerous: true,
     },
   ];
 }
