@@ -14,6 +14,7 @@
     "dev:backend": "NODE_ENV=development nodemon --exec \"yarn build:server && yarn dev\" -e js,ts,tsx --ignore *.test.ts --ignore data/ --ignore build/ --ignore app/ --ignore shared/editor --ignore server/migrations",
     "dev:watch": "NODE_ENV=development yarn concurrently -n backend,frontend \"yarn dev:backend\" \"yarn vite:dev\"",
     "lint": "eslint app server shared plugins",
+    "lint:changed": "git diff --name-only --diff-filter=ACMRTUXB | grep -E '\\.(js|jsx|ts|tsx)$' | xargs -r yarn eslint --fix",
     "prepare": "husky install",
     "postinstall": "yarn patch-package",
     "install-local-ssl": "node ./server/scripts/install-local-ssl.js",
