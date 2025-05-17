@@ -575,7 +575,7 @@ export class ProsemirrorHelper {
       if (
         node.type === "mention" &&
         node.attrs?.type === MentionType.User &&
-        node.attrs?.id
+        node.attrs?.modelId
       ) {
         const user = await User.findByPk(node.attrs.modelId as string, {
           attributes: ["name"],
