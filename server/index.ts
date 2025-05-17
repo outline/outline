@@ -169,7 +169,7 @@ async function start(_id: number, disconnect: () => void) {
 
   server.on("error", (err) => {
     if ("code" in err && err.code === "EADDRINUSE") {
-      Logger.error(`Port ${normalizedPort}  is already in use. Exiting…`, err);
+      Logger.error(`Port ${normalizedPort}  is already in use. Exiting���`, err);
       process.exit(0);
     }
 
