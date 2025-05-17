@@ -1917,4 +1917,34 @@ describe("#collections.restore", () => {
     expect(body.data.archivedAt).toBe(null);
     expect(collection.documentStructure).not.toBe(null);
   });
+
+  it("should resolve index collision when restoring", async () => {
+    const admin = await buildAdmin();
+    let collection = await buildCollection({
+      teamId: admin.teamId,
+    });
+    let archivedCollection = await buildCollection({
+      teamId: admin.teamId,
+      archivedAt: new Date(),
+      archivedById: admin.id,
+    });
+    [collection, archivedCollection] = await Promise.all([
+      collection.update({ index: "P" }, { hooks: false }),
+      archivedCollection.update({ index: "P" }, { hooks: false }),
+    ]);
+    expect(collection.index).toEqual("P");
+    expect(archivedCollection.index).toEqual("P");
+
+    const res = await server.post("/api/collections.restore", {
+      body: {
+        token: admin.getJwtToken(),
+        id: archivedCollection.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.archivedAt).toBe(null);
+    expect(body.data.index).not.toBe("P");
+  });
 });
