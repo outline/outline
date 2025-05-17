@@ -571,30 +571,67 @@ export class ProsemirrorHelper {
   static async processMentions(data: ProsemirrorData | Node) {
     const json = "toJSON" in data ? (data.toJSON() as ProsemirrorData) : data;
 
-    async function processUserMentionsInner(node: ProsemirrorData) {
+    // First pass: collect all user IDs from mentions
+    const userIds: string[] = [];
+
+    function collectUserIds(node: ProsemirrorData) {
       if (
         node.type === "mention" &&
         node.attrs?.type === MentionType.User &&
         node.attrs?.modelId
       ) {
-        const user = await User.findByPk(node.attrs.modelId as string, {
-          attributes: ["name"],
-        });
+        userIds.push(node.attrs.modelId as string);
+      }
+
+      if (node.content) {
+        for (const child of node.content) {
+          collectUserIds(child);
+        }
+      }
+    }
+
+    collectUserIds(json);
+
+    // Load all users in a single query
+    const uniqueUserIds = [...new Set(userIds)];
+    const users = uniqueUserIds.length
+      ? await User.findAll({
+          where: {
+            id: uniqueUserIds,
+          },
+          attributes: ["id", "name"],
+        })
+      : [];
+
+    // Create a map for quick lookup
+    const userMap = new Map();
+    users.forEach((user) => {
+      userMap.set(user.id, user.name);
+    });
+
+    // Second pass: transform mentions with loaded user data
+    function transformMentions(node: ProsemirrorData) {
+      if (
+        node.type === "mention" &&
+        node.attrs?.type === MentionType.User &&
+        node.attrs?.modelId
+      ) {
+        const userId = node.attrs.modelId as string;
         node.attrs = {
           ...node.attrs,
-          label: user?.name || "Unknown",
+          label: userMap.get(userId) || "Unknown",
         };
       }
 
       if (node.content) {
         for (const child of node.content) {
-          await processUserMentionsInner(child);
+          transformMentions(child);
         }
       }
 
       return node;
     }
 
-    return await processUserMentionsInner(json);
+    return transformMentions(json);
   }
 }
