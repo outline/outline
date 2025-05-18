@@ -71,7 +71,7 @@ function History() {
       return [];
     }
 
-    const [revisionsArr, eventsArr] = await Promise.all([
+    await Promise.all([
       revisions.fetchPage({
         documentId: document.id,
         offset: offset.revisions,
@@ -86,7 +86,10 @@ function History() {
     ]);
 
     const pageEvents = orderBy(
-      [...revisionsArr, ...eventsArr].map(toEvent),
+      [
+        ...revisions.getByDocumentId(document.id),
+        ...events.getByDocumentId(document.id),
+      ].map(toEvent),
       "createdAt",
       "desc"
     ).slice(0, Pagination.defaultLimit);

@@ -13,7 +13,7 @@ import {
 } from "~/utils/routeHelpers";
 
 export const restoreRevision = createAction({
-  name: ({ t }) => t("Restore revision"),
+  name: ({ t }) => t("Restore"),
   analyticsName: "Restore revision",
   icon: <RestoreIcon />,
   section: RevisionSection,
@@ -43,15 +43,21 @@ export const restoreRevision = createAction({
 });
 
 export const deleteRevision = createAction({
-  name: ({ t }) => t("Delete revision"),
+  name: ({ t }) => t("Delete"),
   analyticsName: "Delete revision",
   icon: <TrashIcon />,
   section: RevisionSection,
+  dangerous: true,
   visible: ({ activeDocumentId }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).update,
-  perform: async ({ event, location, activeDocumentId }) => {
+  perform: async ({ t, event, location, activeDocumentId }) => {
     event?.preventDefault();
     if (!activeDocumentId) {
+      return;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+    if (!document) {
       return;
     }
 
@@ -62,6 +68,8 @@ export const deleteRevision = createAction({
     if (revisionId) {
       const revision = stores.revisions.get(revisionId);
       await revision?.delete();
+      toast.success(t("This version of the document was deleted"));
+      history.push(documentHistoryPath(document));
     }
   },
 });

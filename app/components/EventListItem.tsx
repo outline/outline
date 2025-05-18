@@ -87,6 +87,7 @@ const EventListItem = ({ event, document, ...rest }: Props) => {
     if (
       !document.isDeleted &&
       event.name === "revisions.create" &&
+      !event.deletedAt &&
       !isDerivedFromDocument &&
       !revisionLoadedRef.current
     ) {
@@ -97,24 +98,31 @@ const EventListItem = ({ event, document, ...rest }: Props) => {
 
   switch (event.name) {
     case "revisions.create":
-      icon = <EditIcon size={16} />;
-      meta = event.latest ? (
-        <>
-          {t("Current version")} &middot; {actor?.name}
-        </>
-      ) : (
-        t("{{userName}} edited", opts)
-      );
-      to = {
-        pathname: documentHistoryPath(
-          document,
-          isDerivedFromDocument ? "latest" : event.id
-        ),
-        state: {
-          sidebarContext,
-          retainScrollPosition: true,
-        },
-      };
+      {
+        if (event.deletedAt) {
+          icon = <TrashIcon />;
+          meta = t("Revision deleted");
+        } else {
+          icon = <EditIcon size={16} />;
+          meta = event.latest ? (
+            <>
+              {t("Current version")} &middot; {actor?.name}
+            </>
+          ) : (
+            t("{{userName}} edited", opts)
+          );
+          to = {
+            pathname: documentHistoryPath(
+              document,
+              isDerivedFromDocument ? "latest" : event.id
+            ),
+            state: {
+              sidebarContext,
+              retainScrollPosition: true,
+            },
+          };
+        }
+      }
       break;
 
     case "documents.archive":
@@ -183,11 +191,11 @@ const EventListItem = ({ event, document, ...rest }: Props) => {
     to = undefined;
   }
 
-  return event.name === "revisions.create" ? (
+  return event.name === "revisions.create" && !event.deletedAt ? (
     <RevisionItem
       small
       exact
-      to={event.deletedAt ? undefined : to}
+      to={to}
       title={
         <Time
           dateTime={event.createdAt}
@@ -200,13 +208,7 @@ const EventListItem = ({ event, document, ...rest }: Props) => {
           onClick={handleTimeClick}
         />
       }
-      image={
-        event.deletedAt ? (
-          <TrashIcon />
-        ) : (
-          <Avatar model={actor} size={AvatarSize.Large} />
-        )
-      }
+      image={<Avatar model={actor} size={AvatarSize.Large} />}
       subtitle={meta}
       actions={
         isRevision && isActive && !event.latest ? (
@@ -226,7 +228,12 @@ const EventListItem = ({ event, document, ...rest }: Props) => {
       </IconWrapper>
       <Text size="xsmall" type="secondary">
         {meta} &middot;{" "}
-        <Time dateTime={event.createdAt} relative shorten addSuffix />
+        <Time
+          dateTime={event.deletedAt ?? event.createdAt}
+          relative
+          shorten
+          addSuffix
+        />
       </Text>
     </EventItem>
   );

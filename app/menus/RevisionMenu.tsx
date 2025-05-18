@@ -42,10 +42,9 @@ function RevisionMenu({ document, className }: Props) {
           {...menu}
           items={[
             actionToMenuItem(restoreRevision, context),
+            actionToMenuItem(deleteRevision, context),
             separator(),
             actionToMenuItem(copyLinkToRevision, context),
-            separator(),
-            actionToMenuItem(deleteRevision, context),
           ]}
         />
       </ContextMenu>
