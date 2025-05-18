@@ -38,6 +38,7 @@ import {
   presentFileOperation,
 } from "@server/presenters";
 import { APIContext } from "@server/types";
+import { CacheHelper } from "@server/utils/CacheHelper";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { collectionIndexing } from "@server/utils/indexing";
 import pagination from "../middlewares/pagination";
@@ -143,13 +144,25 @@ router.post(
     const { user } = ctx.state.auth;
     const collection = await Collection.findByPk(id, {
       userId: user.id,
-      includeDocumentStructure: true,
     });
 
     authorize(user, "readDocument", collection);
 
+    const documentStructure = await CacheHelper.getDataOrSet(
+      CacheHelper.getCollectionDocumentsKey(collection.id),
+      async () =>
+        (
+          await Collection.findByPk(collection.id, {
+            attributes: ["documentStructure"],
+            includeDocumentStructure: true,
+            rejectOnEmpty: true,
+          })
+        ).documentStructure,
+      60
+    );
+
     ctx.body = {
-      data: collection.documentStructure || [],
+      data: documentStructure || [],
     };
   }
 );

@@ -125,4 +125,8 @@ export class CacheHelper {
   public static getUnfurlKey(teamId: string, url = "") {
     return `unfurl:${teamId}:${url}`;
   }
+
+  public static getCollectionDocumentsKey(collectionId: string) {
+    return `cd:${collectionId}`;
+  }
 }
