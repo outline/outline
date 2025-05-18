@@ -14,7 +14,8 @@ import {
   EmptyResultError,
   type CreateOptions,
   type UpdateOptions,
-  ScopeOptions,
+  type ScopeOptions,
+  type SaveOptions,
 } from "sequelize";
 import {
   Sequelize,
@@ -344,13 +345,25 @@ class Collection extends ParanoidModel<
   }
 
   @AfterSave
-  static async cacheDocumentStructure(model: Collection) {
+  static async cacheDocumentStructure(
+    model: Collection,
+    options: SaveOptions<Collection>
+  ) {
     if (model.changed("documentStructure")) {
-      await CacheHelper.setData(
-        CacheHelper.getCollectionDocumentsKey(model.id),
-        model.documentStructure,
-        60
-      );
+      const setData = () =>
+        CacheHelper.setData(
+          CacheHelper.getCollectionDocumentsKey(model.id),
+          model.documentStructure,
+          60
+        );
+
+      if (options.transaction) {
+        return (options.transaction.parent || options.transaction).afterCommit(
+          setData
+        );
+      }
+
+      await setData();
     }
   }
 
