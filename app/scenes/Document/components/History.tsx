@@ -71,7 +71,7 @@ function History() {
       return [];
     }
 
-    await Promise.all([
+    const [revisionsPage, eventsPage] = await Promise.all([
       revisions.fetchPage({
         documentId: document.id,
         offset: offset.revisions,
@@ -86,10 +86,7 @@ function History() {
     ]);
 
     const pageEvents = orderBy(
-      [
-        ...revisions.getByDocumentId(document.id),
-        ...events.getByDocumentId(document.id),
-      ].map(toEvent),
+      [...revisionsPage, ...eventsPage].map(toEvent),
       "createdAt",
       "desc"
     ).slice(0, Pagination.defaultLimit);
@@ -114,11 +111,8 @@ function History() {
 
     const latestRevisionId = RevisionHelper.latestId(document.id);
     return revisions
-      .filter(
-        (revision: Revision) =>
-          revision.id !== latestRevisionId &&
-          revision.documentId === document.id
-      )
+      .getByDocumentId(document.id)
+      .filter((revision: Revision) => revision.id !== latestRevisionId)
       .slice(0, offset.revisions)
       .map(toEvent);
   }, [document, revisions, offset.revisions, toEvent]);
@@ -127,7 +121,7 @@ function History() {
     () =>
       document
         ? events
-            .filter({ documentId: document.id })
+            .getByDocumentId(document.id)
             .slice(0, offset.events)
             .map(toEvent)
         : [],
