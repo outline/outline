@@ -22,7 +22,7 @@ import SidebarContext from "./SidebarContext";
 function Collections() {
   const { documents, collections } = useStores();
   const { t } = useTranslation();
-  const orderedCollections = collections.orderedData;
+  const orderedCollections = collections.allActive;
 
   const params = React.useMemo(
     () => ({

@@ -49,6 +49,10 @@ export const languageOptions: LanguageOption[] = [
     value: "ko_KR",
   },
   {
+    label: "Magyar (Hungarian)",
+    value: "hu_HU",
+  },
+  {
     label: "Nederland (Dutch, Netherlands)",
     value: "nl_NL",
   },

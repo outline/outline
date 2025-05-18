@@ -145,6 +145,7 @@ router.post(
     const collection = await Collection.findByPk(id, {
       userId: user.id,
     });
+
     authorize(user, "readDocument", collection);
 
     const documentStructure = await CacheHelper.getDataOrSet(

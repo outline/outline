@@ -14,6 +14,7 @@ import {
   EmptyResultError,
   type CreateOptions,
   type UpdateOptions,
+  ScopeOptions,
 } from "sequelize";
 import {
   Sequelize,
@@ -71,6 +72,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
 type AdditionalFindOptions = {
   userId?: string;
   includeDocumentStructure?: boolean;
+  includeOwner?: boolean;
   rejectOnEmpty?: boolean | Error;
 };
 
@@ -412,8 +414,11 @@ class Collection extends ParanoidModel<
     model: Collection,
     options: UpdateOptions<Collection>
   ) {
-    if (model.index && model.changed("index")) {
-      model.index = await removeIndexCollision(model.teamId, model.index, {
+    if (
+      (model.index && model.changed("index")) ||
+      (!model.archivedAt && model.changed("archivedAt"))
+    ) {
+      model.index = await removeIndexCollision(model.teamId, model.index!, {
         transaction: options.transaction,
       });
     }
@@ -527,14 +532,20 @@ class Collection extends ParanoidModel<
       return null;
     }
 
-    const { includeDocumentStructure, userId, ...rest } = options;
+    const { includeDocumentStructure, includeOwner, userId, ...rest } = options;
 
-    const scope = this.scope([
+    const scopes: (string | ScopeOptions)[] = [
       includeDocumentStructure ? "withDocumentStructure" : "defaultScope",
       {
         method: ["withMembership", userId],
       },
-    ]);
+    ];
+
+    if (includeOwner) {
+      scopes.push("withUser");
+    }
+
+    const scope = this.scope(scopes);
 
     if (isUUID(id)) {
       const collection = await scope.findOne({

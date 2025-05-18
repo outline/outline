@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import { NotificationEventType } from "@shared/types";
+import { Client, NotificationEventType } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
 import SigninEmail from "@server/emails/templates/SigninEmail";
@@ -86,66 +86,64 @@ router.post(
   }
 );
 
-router.get(
-  "email.callback",
-  validate(T.EmailCallbackSchema),
-  async (ctx: APIContext<T.EmailCallbackReq>) => {
-    const { token, client, follow } = ctx.input.query;
+const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
+  const token = ctx.input.query?.token || ctx.input.body?.token;
+  const client = ctx.input.query?.client || ctx.input.body?.client;
+  const follow = ctx.input.query?.follow || ctx.input.body?.follow;
 
-    // The link in the email does not include the follow query param, this
-    // is to help prevent anti-virus, and email clients from pre-fetching the link
-    // and spending the token before the user clicks on it. Instead we redirect
-    // to the same URL with the follow query param added from the client side.
-    if (!follow) {
-      return ctx.redirectOnClient(ctx.request.href + "&follow=true");
-    }
+  // The link in the email does not include the follow query param, this
+  // is to help prevent anti-virus, and email clients from pre-fetching the link
+  // and spending the token before the user clicks on it. Instead we redirect
+  // to the same URL with the follow query param added from the client side.
+  if (!follow) {
+    return ctx.redirectOnClient(ctx.request.href + "&follow=true", "POST");
+  }
 
-    let user!: User;
+  let user!: User;
 
-    try {
-      user = await getUserForEmailSigninToken(token as string);
-    } catch (err) {
-      ctx.redirect(`/?notice=expired-token`);
-      return;
-    }
+  try {
+    user = await getUserForEmailSigninToken(token as string);
+  } catch (err) {
+    ctx.redirect(`/?notice=expired-token`);
+    return;
+  }
 
-    if (!user.team.emailSigninEnabled) {
-      return ctx.redirect("/?notice=auth-error");
-    }
+  if (!user.team.emailSigninEnabled) {
+    return ctx.redirect("/?notice=auth-error");
+  }
 
-    if (user.isSuspended) {
-      return ctx.redirect("/?notice=user-suspended");
-    }
+  if (user.isSuspended) {
+    return ctx.redirect("/?notice=user-suspended");
+  }
 
-    if (user.isInvited) {
-      await new WelcomeEmail({
-        to: user.email,
-        role: user.role,
+  if (user.isInvited) {
+    await new WelcomeEmail({
+      to: user.email,
+      role: user.role,
+      teamUrl: user.team.url,
+    }).schedule();
+
+    const inviter = await user.$get("invitedBy");
+    if (inviter?.subscribedToEventType(NotificationEventType.InviteAccepted)) {
+      await new InviteAcceptedEmail({
+        to: inviter.email,
+        inviterId: inviter.id,
+        invitedName: user.name,
         teamUrl: user.team.url,
       }).schedule();
-
-      const inviter = await user.$get("invitedBy");
-      if (
-        inviter?.subscribedToEventType(NotificationEventType.InviteAccepted)
-      ) {
-        await new InviteAcceptedEmail({
-          to: inviter.email,
-          inviterId: inviter.id,
-          invitedName: user.name,
-          teamUrl: user.team.url,
-        }).schedule();
-      }
     }
-
-    // set cookies on response and redirect to team subdomain
-    await signIn(ctx, "email", {
-      user,
-      team: user.team,
-      isNewTeam: false,
-      isNewUser: false,
-      client,
-    });
   }
-);
+
+  // set cookies on response and redirect to team subdomain
+  await signIn(ctx, "email", {
+    user,
+    team: user.team,
+    isNewTeam: false,
+    isNewUser: false,
+    client: client ?? Client.Web,
+  });
+};
+router.get("email.callback", validate(T.EmailCallbackSchema), emailCallback);
+router.post("email.callback", validate(T.EmailCallbackSchema), emailCallback);
 
 export default router;

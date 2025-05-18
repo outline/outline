@@ -45,6 +45,7 @@ type Props = {
   onChange: (icon: string | null, color: string | null) => void;
   onOpen?: () => void;
   onClose?: () => void;
+  children?: React.ReactNode;
 };
 
 const IconPicker = ({
@@ -59,6 +60,7 @@ const IconPicker = ({
   onOpen,
   onClose,
   borderOnHover,
+  children,
 }: Props) => {
   const { t } = useTranslation();
 
@@ -174,7 +176,9 @@ const IconPicker = ({
             onClick={handlePopoverButtonClick}
             $borderOnHover={borderOnHover}
           >
-            {iconType && icon ? (
+            {children ? (
+              children
+            ) : iconType && icon ? (
               <Icon value={icon} color={color} size={size} initial={initial} />
             ) : (
               <StyledSmileyIcon color={theme.placeholder} size={size} />
