@@ -146,6 +146,13 @@ class DocumentScene extends React.Component<Props> {
     }
   }
 
+  /**
+   * Replaces the given selection with a template, if no selection is provided
+   * then the template is inserted at the beginning of the document.
+   *
+   * @param template The template to use
+   * @param selection The selection to replace, if any
+   */
   replaceSelection = (
     template: Document | Revision,
     selection?: TextSelection | AllSelection
