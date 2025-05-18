@@ -387,6 +387,7 @@ function DocumentHeader({
                     neutral
                   />
                 )}
+                onSelectTemplate={onSelectTemplate}
                 onFindAndReplace={editor?.commands.openFindAndReplace}
                 showToggleEmbeds={canToggleEmbeds}
                 showDisplayOptions
