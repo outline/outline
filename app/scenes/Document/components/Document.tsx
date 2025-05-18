@@ -4,7 +4,7 @@ import isEqual from "lodash/isEqual";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
 import { Node } from "prosemirror-model";
-import { AllSelection } from "prosemirror-state";
+import { AllSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import { WithTranslation, withTranslation } from "react-i18next";
 import {
@@ -146,7 +146,10 @@ class DocumentScene extends React.Component<Props> {
     }
   }
 
-  replaceDocument = (template: Document | Revision) => {
+  replaceSelection = (
+    template: Document | Revision,
+    selection?: TextSelection | AllSelection
+  ) => {
     const editorRef = this.editor.current;
 
     if (!editorRef) {
@@ -154,6 +157,7 @@ class DocumentScene extends React.Component<Props> {
     }
 
     const { view, schema } = editorRef;
+    const sel = selection ?? TextSelection.near(view.state.doc.resolve(0));
     const doc = Node.fromJSON(
       schema,
       ProsemirrorHelper.replaceTemplateVariables(
@@ -163,11 +167,7 @@ class DocumentScene extends React.Component<Props> {
     );
 
     if (doc) {
-      view.dispatch(
-        view.state.tr
-          .setSelection(new AllSelection(view.state.doc))
-          .replaceSelectionWith(doc)
-      );
+      view.dispatch(view.state.tr.setSelection(sel).replaceSelectionWith(doc));
     }
 
     this.isEditorDirty = true;
@@ -217,7 +217,10 @@ class DocumentScene extends React.Component<Props> {
     });
 
     if (response) {
-      await this.replaceDocument(response.data);
+      await this.replaceSelection(
+        response.data,
+        new AllSelection(editorRef.view.state.doc)
+      );
       toast.success(t("Document restored"));
       history.replace(this.props.document.url, history.location.state);
     }
@@ -518,7 +521,7 @@ class DocumentScene extends React.Component<Props> {
               }
               savingIsDisabled={document.isSaving || this.isEmpty}
               sharedTree={this.props.sharedTree}
-              onSelectTemplate={this.replaceDocument}
+              onSelectTemplate={this.replaceSelection}
               onSave={this.onSave}
             />
             <Main fullWidth={document.fullWidth} tocPosition={tocPos}>

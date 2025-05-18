@@ -200,7 +200,7 @@ function Template({ items, actions, context, showIcons, ...menu }: Props) {
         }
 
         if (item.type === "submenu") {
-          return (
+          return item.items.length > 0 ? (
             <BaseMenuItem
               key={`${item.type}-${item.title}-${index}`}
               as={SubMenu}
@@ -215,7 +215,7 @@ function Template({ items, actions, context, showIcons, ...menu }: Props) {
               }
               {...menu}
             />
-          );
+          ) : null;
         }
 
         if (item.type === "separator") {
