@@ -17,7 +17,7 @@ import {
   Transaction,
 } from "prosemirror-state";
 import { liftTarget, ReplaceAroundStep } from "prosemirror-transform";
-import ToggleBlock from "../nodes/ToggleBlock";
+import ToggleBlock, { Action, On } from "../nodes/ToggleBlock";
 
 // Commands
 export const lift: Command = (state, dispatch) => {
@@ -194,16 +194,57 @@ export const unfold: Command = (state, dispatch) => {
     return false;
   }
 
-  const tr = state.tr;
-  if (toggleBlock.childCount === 1) {
-    tr.insert($cursor!.after(), state.schema.nodes.paragraph.create({}));
+  if (toggleBlock.childCount > 1) {
+    return false;
   }
+
+  const tr = state.tr.insert(
+    $cursor!.after(),
+    state.schema.nodes.paragraph.create({})
+  );
 
   dispatch?.(
     tr
       .setSelection(TextSelection.near(tr.doc.resolve($cursor!.after())))
       .scrollIntoView()
   );
+  return true;
+};
+
+export const toggle: Command = (state, dispatch) => {
+  const { $cursor } = state.selection as TextSelection;
+  if (!withinToggleBlock($cursor)) {
+    return false;
+  }
+
+  const toggleBlock = nearest(
+    ancestors($cursor!, (_$cursor, anc, _depth) => isToggleBlock(anc))
+  );
+
+  const pos = $cursor!.before(depth(toggleBlock!, $cursor!));
+
+  dispatch?.(
+    folded(toggleBlock!, state)
+      ? state.tr
+          .setMeta(ToggleBlock.actionPluginKey, {
+            type: Action.UNFOLD,
+            at: pos,
+          })
+          .setMeta(ToggleBlock.eventPluginKey, {
+            type: On.UNFOLD,
+            at: pos,
+          })
+      : state.tr
+          .setMeta(ToggleBlock.actionPluginKey, {
+            type: Action.FOLD,
+            at: pos,
+          })
+          .setMeta(ToggleBlock.eventPluginKey, {
+            type: On.FOLD,
+            at: pos,
+          })
+  );
+
   return true;
 };
 
@@ -247,7 +288,7 @@ const atEndOfToggleBlockHead = ($cursor: ResolvedPos | null) =>
 
 export const folded = (toggleBlock: Node, state: EditorState) =>
   some(
-    ToggleBlock.pluginKey
+    ToggleBlock.actionPluginKey
       .getState(state)
       ?.find(
         undefined,
