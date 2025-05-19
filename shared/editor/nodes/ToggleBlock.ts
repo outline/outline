@@ -55,6 +55,7 @@ import {
   unfold,
   bodyIsEmpty,
   folded,
+  toggle,
 } from "../commands/toggleBlock";
 import { CommandFactory } from "../lib/Extension";
 import { chainTransactions } from "../lib/chainTransactions";
@@ -64,15 +65,24 @@ import { findBlockNodes } from "../queries/findChildren";
 import toggleBlocksRule from "../rules/toggleBlocks";
 import Node from "./Node";
 
-enum Action {
+export enum Action {
   INIT,
   CHANGE,
   FOLD,
   UNFOLD,
 }
 
+export enum On {
+  FOLD,
+  UNFOLD,
+}
+
 export default class ToggleBlock extends Node {
-  static pluginKey = new PluginKey<DecorationSet>("toggleBlockPlugin");
+  static actionPluginKey = new PluginKey<DecorationSet>(
+    "toggleBlockActionPlugin"
+  );
+
+  static eventPluginKey = new PluginKey("toggleBlockEventPlugin");
 
   get name() {
     return "container_toggle_block";
@@ -121,7 +131,7 @@ export default class ToggleBlock extends Node {
         );
 
         if (!initPlugin.spec.docLoaded) {
-          tr = newState.tr.setMeta(ToggleBlock.pluginKey, {
+          tr = newState.tr.setMeta(ToggleBlock.actionPluginKey, {
             type: Action.INIT,
           });
           initPlugin.spec.docLoaded = true;
@@ -130,8 +140,8 @@ export default class ToggleBlock extends Node {
         return tr;
       },
     });
-    const foldPlugin: Plugin<DecorationSet> = new Plugin({
-      key: ToggleBlock.pluginKey,
+    const actionPlugin: Plugin<DecorationSet> = new Plugin({
+      key: ToggleBlock.actionPluginKey,
       state: {
         init: () => DecorationSet.empty,
         apply: (tr, value) => {
@@ -185,7 +195,7 @@ export default class ToggleBlock extends Node {
             value = value.add(tr.doc, decosToRestore);
           }
 
-          const action = tr.getMeta(ToggleBlock.pluginKey);
+          const action = tr.getMeta(ToggleBlock.actionPluginKey);
           if (action) {
             if (action.type === Action.CHANGE) {
               value = value
@@ -345,15 +355,65 @@ export default class ToggleBlock extends Node {
         let tr = null;
 
         if (docChanged) {
-          tr = newState.tr.setMeta(ToggleBlock.pluginKey, {
+          tr = newState.tr.setMeta(ToggleBlock.actionPluginKey, {
             type: Action.CHANGE,
           });
+        }
+
+        return tr;
+      },
+      props: {
+        decorations: (state) => ToggleBlock.actionPluginKey.getState(state),
+        nodeViews: {
+          [this.name]: (node, view, getPos, decorations, innerDecorations) =>
+            new ToggleBlockView(
+              node,
+              view,
+              getPos,
+              decorations,
+              innerDecorations,
+              this.editor.props
+            ),
+        },
+      },
+    });
+    const eventPlugin = new Plugin({
+      key: ToggleBlock.eventPluginKey,
+      appendTransaction: (transactions, _oldState, newState) => {
+        const transaction = transactions.find((tr) =>
+          tr.getMeta(ToggleBlock.eventPluginKey)
+        );
+
+        let tr = null;
+
+        if (transaction) {
+          const event = transaction.getMeta(ToggleBlock.eventPluginKey);
+          const node = newState.doc.nodeAt(event.at)!;
+          if (event.type === On.FOLD) {
+            const { $anchor } = newState.selection;
+            const startOfNode = event.at + 1;
+            const endOfFirstChild = startOfNode + node.firstChild!.nodeSize;
+            const endOfNode = startOfNode + node.nodeSize - 1;
+            if ($anchor.pos > endOfFirstChild && $anchor.pos < endOfNode) {
+              const $endOfFirstChild = newState.doc.resolve(endOfFirstChild);
+              tr = newState.tr.setSelection(
+                TextSelection.near($endOfFirstChild, -1)
+              );
+            }
+          } else {
+            if (node.childCount === 1) {
+              tr = newState.tr.insert(
+                event.at + 1 + node.content.size,
+                newState.schema.nodes.paragraph.create({})
+              );
+            }
+          }
         }
 
         tr = tr ? tr : newState.tr;
         const { $cursor } = tr.selection as TextSelection;
         if ($cursor) {
-          const decosResponsibleForFolding = ToggleBlock.pluginKey
+          const decosResponsibleForFolding = ToggleBlock.actionPluginKey
             .getState(newState)
             ?.find(undefined, undefined, (spec) => "fold" in spec);
 
@@ -385,7 +445,7 @@ export default class ToggleBlock extends Node {
               $cursor.pos > posAfterAncestorHead &&
               $cursor.pos < endOfAncestor
             ) {
-              tr.setMeta(ToggleBlock.pluginKey, {
+              tr.setMeta(ToggleBlock.actionPluginKey, {
                 type: Action.UNFOLD,
                 at: $cursor.before(depth(ancestor, $cursor)),
               });
@@ -395,25 +455,12 @@ export default class ToggleBlock extends Node {
 
         return tr;
       },
-      props: {
-        decorations: (state) => ToggleBlock.pluginKey.getState(state),
-        nodeViews: {
-          [this.name]: (node, view, getPos, decorations, innerDecorations) =>
-            new ToggleBlockView(
-              node,
-              view,
-              getPos,
-              decorations,
-              innerDecorations,
-              this.editor.props
-            ),
-        },
-      },
     });
 
     return [
       initPlugin,
-      foldPlugin,
+      actionPlugin,
+      eventPlugin,
       new Plugin({
         appendTransaction: (transactions, _oldState, newState) => {
           const docChanged = transactions.some(
@@ -430,7 +477,7 @@ export default class ToggleBlock extends Node {
                   !folded(block.node, newState)
               ),
               (toggleBlock) => {
-                tr = newState.tr.setMeta(ToggleBlock.pluginKey, {
+                tr = newState.tr.setMeta(ToggleBlock.actionPluginKey, {
                   type: Action.FOLD,
                   at: toggleBlock.pos,
                 });
@@ -523,6 +570,7 @@ export default class ToggleBlock extends Node {
         chainTransactions(liftNext, joinForward)(state, dispatch),
       Tab: sinkBlockInto(type),
       "Shift-Tab": liftLastBlockOutOf(type),
+      "Mod-Enter": toggle,
     };
   }
 
@@ -538,15 +586,8 @@ export default class ToggleBlock extends Node {
       if (!wrapping) {
         return false;
       }
-      const tr = state.tr.wrap(range!, wrapping);
-      dispatch?.(
-        tr
-          .insert(
-            tr.selection.from + 1,
-            state.schema.nodes.paragraph.create({})
-          )
-          .scrollIntoView()
-      );
+
+      dispatch?.(state.tr.wrap(range!, wrapping).scrollIntoView());
       return true;
     };
   }
@@ -665,32 +706,27 @@ class ToggleBlockView implements NodeView {
   }
 
   private toggleFold() {
-    const actionType = this.folded ? Action.UNFOLD : Action.FOLD;
-    const tr = this.view.state.tr.setMeta(ToggleBlock.pluginKey, {
-      type: actionType,
-      at: this.getPos(),
-    });
-
-    if (actionType === Action.FOLD) {
-      const { $anchor } = this.view.state.selection;
-      const node = this.view.state.doc.nodeAt(this.getPos()!)!;
-      const startOfNode = this.getPos()! + 1;
-      const endOfFirstChild = startOfNode + node.firstChild!.nodeSize;
-      const endOfNode = startOfNode + node.nodeSize - 1;
-      if ($anchor.pos > endOfFirstChild && $anchor.pos < endOfNode) {
-        const $endOfFirstChild = this.view.state.doc.resolve(endOfFirstChild);
-        tr.setSelection(TextSelection.near($endOfFirstChild, -1));
-      }
-    } else {
-      // append an empty paragraph if the toggle block's body is empty
-      if (this.node.childCount === 1) {
-        tr.insert(
-          this.getPos()! + 1 + this.node.content.size,
-          this.view.state.schema.nodes.paragraph.create({})
-        );
-      }
-    }
-    this.view.dispatch(tr);
+    this.view.dispatch(
+      this.folded
+        ? this.view.state.tr
+            .setMeta(ToggleBlock.actionPluginKey, {
+              type: Action.UNFOLD,
+              at: this.getPos(),
+            })
+            .setMeta(ToggleBlock.eventPluginKey, {
+              type: On.UNFOLD,
+              at: this.getPos(),
+            })
+        : this.view.state.tr
+            .setMeta(ToggleBlock.actionPluginKey, {
+              type: Action.FOLD,
+              at: this.getPos(),
+            })
+            .setMeta(ToggleBlock.eventPluginKey, {
+              type: On.FOLD,
+              at: this.getPos(),
+            })
+    );
   }
 
   destroy() {
