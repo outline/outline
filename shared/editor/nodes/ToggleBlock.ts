@@ -15,6 +15,7 @@ import {
   newlineInCode,
   splitBlock,
 } from "prosemirror-commands";
+import { wrappingInputRule } from "prosemirror-inputrules";
 import { ParseSpec } from "prosemirror-markdown";
 import {
   NodeSpec,
@@ -523,6 +524,10 @@ export default class ToggleBlock extends Node {
       Tab: sinkBlockInto(type),
       "Shift-Tab": liftLastBlockOutOf(type),
     };
+  }
+
+  inputRules({ type }: { type: NodeType }) {
+    return [wrappingInputRule(/^\s*\+\+\+\s$/, type)];
   }
 
   commands({ type }: { type: NodeType; schema: Schema }): CommandFactory {
