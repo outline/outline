@@ -43,6 +43,7 @@ import {
   suchThat,
   depth,
   furthest,
+  unfold,
 } from "../commands/toggleBlock";
 import { CommandFactory } from "../lib/Extension";
 import { chainTransactions } from "../lib/chainTransactions";
@@ -335,46 +336,47 @@ export default class ToggleBlock extends Node {
           tr = newState.tr.setMeta(ToggleBlock.pluginKey, {
             type: Action.CHANGE,
           });
+        }
 
-          const { $cursor } = tr.selection as TextSelection;
-          if ($cursor) {
-            const decosResponsibleForFolding = ToggleBlock.pluginKey
-              .getState(newState)
-              ?.find(undefined, undefined, (spec) => "fold" in spec);
+        tr = tr ? tr : newState.tr;
+        const { $cursor } = tr.selection as TextSelection;
+        if ($cursor) {
+          const decosResponsibleForFolding = ToggleBlock.pluginKey
+            .getState(newState)
+            ?.find(undefined, undefined, (spec) => "fold" in spec);
 
-            const ancestor =
-              decosResponsibleForFolding && decosResponsibleForFolding.length
-                ? furthest(
-                    ancestors(
-                      $cursor,
-                      suchThat((_, a) =>
-                        some(
-                          decosResponsibleForFolding,
-                          (deco) =>
-                            deco.spec.nodeId === a.attrs?.id &&
-                            deco.spec.target === a.type.name &&
-                            deco.spec.fold === true
-                        )
+          const ancestor =
+            decosResponsibleForFolding && decosResponsibleForFolding.length
+              ? furthest(
+                  ancestors(
+                    $cursor,
+                    suchThat((_, a) =>
+                      some(
+                        decosResponsibleForFolding,
+                        (deco) =>
+                          deco.spec.nodeId === a.attrs?.id &&
+                          deco.spec.target === a.type.name &&
+                          deco.spec.fold === true
                       )
                     )
                   )
-                : undefined;
+                )
+              : undefined;
 
-            if (ancestor) {
-              const posAfterAncestorHead =
-                $cursor.start(depth(ancestor, $cursor)) +
-                ancestor.firstChild!.nodeSize;
-              const endOfAncestor = $cursor.end(depth(ancestor, $cursor));
+          if (ancestor) {
+            const posAfterAncestorHead =
+              $cursor.start(depth(ancestor, $cursor)) +
+              ancestor.firstChild!.nodeSize;
+            const endOfAncestor = $cursor.end(depth(ancestor, $cursor));
 
-              if (
-                $cursor.pos > posAfterAncestorHead &&
-                $cursor.pos < endOfAncestor
-              ) {
-                tr.setMeta(ToggleBlock.pluginKey, {
-                  type: Action.UNFOLD,
-                  at: $cursor.before(depth(ancestor, $cursor)),
-                });
-              }
+            if (
+              $cursor.pos > posAfterAncestorHead &&
+              $cursor.pos < endOfAncestor
+            ) {
+              tr.setMeta(ToggleBlock.pluginKey, {
+                type: Action.UNFOLD,
+                at: $cursor.before(depth(ancestor, $cursor)),
+              });
             }
           }
         }
@@ -424,24 +426,29 @@ export default class ToggleBlock extends Node {
 
         return joinTextblockBackward(state, dispatch);
       }),
-      Enter: chainCommands(createParagraphBefore, split, (state, dispatch) => {
-        const { $from } = state.selection;
-        const parent = $from.node($from.depth - 1);
-        if (parent.type.name !== this.name) {
-          return false;
-        }
+      Enter: chainCommands(
+        createParagraphBefore,
+        unfold,
+        split,
+        (state, dispatch) => {
+          const { $from } = state.selection;
+          const parent = $from.node($from.depth - 1);
+          if (parent.type.name !== this.name) {
+            return false;
+          }
 
-        // if cursor lies within immediate first child, ignore the handling here
-        if ($from.index($from.depth - 1) === 0) {
-          return false;
-        }
+          // if cursor lies within immediate first child, ignore the handling here
+          if ($from.index($from.depth - 1) === 0) {
+            return false;
+          }
 
-        return chainTransactions(
-          newlineInCode,
-          createParagraphNear,
-          splitBlock
-        )(state, dispatch);
-      }),
+          return chainTransactions(
+            newlineInCode,
+            createParagraphNear,
+            splitBlock
+          )(state, dispatch);
+        }
+      ),
       Delete: (state, dispatch) =>
         chainTransactions(liftNext, joinForward)(state, dispatch),
       Tab: sinkBlockInto(type),
@@ -457,7 +464,15 @@ export default class ToggleBlock extends Node {
       if (!wrapping) {
         return false;
       }
-      dispatch?.(state.tr.wrap(range!, wrapping).scrollIntoView());
+      const tr = state.tr.wrap(range!, wrapping);
+      dispatch?.(
+        tr
+          .insert(
+            tr.selection.from + 1,
+            state.schema.nodes.paragraph.create({})
+          )
+          .scrollIntoView()
+      );
       return true;
     };
   }
@@ -591,14 +606,6 @@ class ToggleBlockView implements NodeView {
       if ($anchor.pos > endOfFirstChild && $anchor.pos < endOfNode) {
         const $endOfFirstChild = this.view.state.doc.resolve(endOfFirstChild);
         tr.setSelection(TextSelection.near($endOfFirstChild, -1));
-      }
-    } else {
-      // append an empty paragraph if the toggle block's body is empty
-      if (this.node.childCount === 1) {
-        tr.insert(
-          this.getPos()! + 1 + this.node.content.size,
-          this.view.state.schema.nodes.paragraph.create({})
-        );
       }
     }
     this.view.dispatch(tr);
