@@ -26,7 +26,7 @@ export function assertArray(
   message?: string
 ): asserts value {
   if (!isArrayLike(value)) {
-    throw ValidationError(message);
+    throw ValidationError(message ?? `${String(value)} is not an array`);
   }
 }
 
@@ -55,13 +55,11 @@ export function assertKeysIn(
   Object.keys(obj).forEach((key) => assertIn(key, Object.values(type)));
 }
 
-export const assertSort = (
-  value: string,
-  model: any,
-  message = "Invalid sort parameter"
-) => {
+export const assertSort = (value: string, model: any, message?: string) => {
   if (!Object.keys(model.rawAttributes).includes(value)) {
-    throw ValidationError(message);
+    throw ValidationError(
+      message ?? `${String(value)} is not a valid sort field`
+    );
   }
 };
 
@@ -72,7 +70,7 @@ export function assertNotEmpty(
   assertPresent(value, message);
 
   if (typeof value === "string" && value.trim() === "") {
-    throw ValidationError(message);
+    throw ValidationError(message ?? `${String(value)} is empty`);
   }
 }
 
@@ -81,7 +79,7 @@ export function assertEmail(
   message?: string
 ): asserts value {
   if (typeof value !== "string" || !validator.isEmail(value)) {
-    throw ValidationError(message);
+    throw ValidationError(message ?? `${String(value)} is not a valid email`);
   }
 }
 
@@ -121,10 +119,12 @@ export function assertUuid(
   message?: string
 ): asserts value {
   if (typeof value !== "string") {
-    throw ValidationError(message);
+    throw ValidationError(
+      message ?? `${String(value)} is not a string, expected UUID`
+    );
   }
   if (!validator.isUUID(value)) {
-    throw ValidationError(message);
+    throw ValidationError(message ?? `${String(value)} is not a valid UUID`);
   }
 }
 
@@ -137,13 +137,17 @@ export const assertPositiveInteger = (
       min: 0,
     })
   ) {
-    throw ValidationError(message);
+    throw ValidationError(
+      message ?? `${String(value)} is not a positive integer`
+    );
   }
 };
 
 export const assertHexColor = (value: string, message?: string) => {
   if (!validateColorHex(value)) {
-    throw ValidationError(message);
+    throw ValidationError(
+      message ?? `${String(value)} is not a valid hex color`
+    );
   }
 };
 
@@ -153,7 +157,9 @@ export const assertValueInArray = (
   message?: string
 ) => {
   if (!values.includes(value)) {
-    throw ValidationError(message);
+    throw ValidationError(
+      message ?? `${String(value)} is not in the allowed values`
+    );
   }
 };
 
@@ -162,7 +168,7 @@ export const assertIndexCharacters = (
   message = "index must be between x20 to x7E ASCII"
 ) => {
   if (!validateIndexCharacters(value)) {
-    throw ValidationError(message);
+    throw ValidationError(message ?? `${String(value)} is not a valid index`);
   }
 };
 
