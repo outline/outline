@@ -59,7 +59,9 @@ export const createParagraphBefore: Command = (state, dispatch) => {
 export const split: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;
 
-  if (!inMiddleOrAtEndOfToggleBlockHead($cursor)) {
+  if (
+    !(inMiddleOfToggleBlockHead($cursor) || atEndOfToggleBlockHead($cursor))
+  ) {
     return false;
   }
 
@@ -177,6 +179,34 @@ export const liftLastBlockOutOf =
     return true;
   };
 
+export const unfold: Command = (state, dispatch) => {
+  const { $cursor } = state.selection as TextSelection;
+  if (!withinToggleBlockHead($cursor)) {
+    return false;
+  }
+
+  if (!atEndOfToggleBlockHead($cursor)) {
+    return false;
+  }
+
+  const toggleBlock = $cursor!.node($cursor!.depth - 1);
+  if (!bodyIsEmpty(toggleBlock)) {
+    return false;
+  }
+
+  const tr = state.tr;
+  if (toggleBlock.childCount === 1) {
+    tr.insert($cursor!.after(), state.schema.nodes.paragraph.create({}));
+  }
+
+  dispatch?.(
+    tr
+      .setSelection(TextSelection.near(tr.doc.resolve($cursor!.after())))
+      .scrollIntoView()
+  );
+  return true;
+};
+
 // Utils
 const isToggleBlock = (node: Node) =>
   node.type.name === "container_toggle_block";
@@ -190,11 +220,30 @@ const withinToggleBlockHead = ($cursor: ResolvedPos | null) =>
 const atStartOfToggleBlockHead = ($cursor: ResolvedPos | null) =>
   withinToggleBlockHead($cursor) && $cursor!.parentOffset === 0;
 
-const inMiddleOrAtEndOfToggleBlockHead = ($cursor: ResolvedPos | null) =>
-  withinToggleBlockHead($cursor) && $cursor!.parentOffset > 0;
+const inMiddleOfToggleBlockHead = ($cursor: ResolvedPos | null) =>
+  withinToggleBlockHead($cursor) &&
+  $cursor!.parentOffset > 0 &&
+  $cursor!.parentOffset < $cursor!.node().content.size;
 
 const headIsEmpty = (toggleBlock: Node) =>
   toggleBlock.firstChild!.content.size === 0;
+
+const bodyIsEmpty = (toggleBlock: Node) => {
+  let bodyContent = "";
+  toggleBlock.forEach((child, _, index) => {
+    if (index === 0) {
+      return;
+    }
+
+    bodyContent += child.textContent.trim();
+  });
+
+  return bodyContent.length === 0;
+};
+
+const atEndOfToggleBlockHead = ($cursor: ResolvedPos | null) =>
+  withinToggleBlockHead($cursor) &&
+  $cursor!.parentOffset === $cursor?.node().content.size;
 
 const folded = (toggleBlock: Node, state: EditorState) =>
   some(
