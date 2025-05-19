@@ -228,7 +228,7 @@ const inMiddleOfToggleBlockHead = ($cursor: ResolvedPos | null) =>
 const headIsEmpty = (toggleBlock: Node) =>
   toggleBlock.firstChild!.content.size === 0;
 
-const bodyIsEmpty = (toggleBlock: Node) => {
+export const bodyIsEmpty = (toggleBlock: Node) => {
   let bodyContent = "";
   toggleBlock.forEach((child, _, index) => {
     if (index === 0) {
@@ -245,7 +245,7 @@ const atEndOfToggleBlockHead = ($cursor: ResolvedPos | null) =>
   withinToggleBlockHead($cursor) &&
   $cursor!.parentOffset === $cursor?.node().content.size;
 
-const folded = (toggleBlock: Node, state: EditorState) =>
+export const folded = (toggleBlock: Node, state: EditorState) =>
   some(
     ToggleBlock.pluginKey
       .getState(state)
