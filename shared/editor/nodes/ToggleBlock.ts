@@ -4,6 +4,7 @@ import flatten from "lodash/flatten";
 import forEach from "lodash/forEach";
 import isEmpty from "lodash/isEmpty";
 import isNil from "lodash/isNil";
+import isNull from "lodash/isNull";
 import map from "lodash/map";
 import some from "lodash/some";
 import {
@@ -19,9 +20,16 @@ import {
   NodeSpec,
   NodeType,
   Node as ProsemirrorNode,
+  ResolvedPos,
   Schema,
 } from "prosemirror-model";
-import { Command, Plugin, PluginKey, TextSelection } from "prosemirror-state";
+import {
+  Command,
+  EditorState,
+  Plugin,
+  PluginKey,
+  TextSelection,
+} from "prosemirror-state";
 import { findWrapping } from "prosemirror-transform";
 import {
   Decoration,
@@ -44,10 +52,13 @@ import {
   depth,
   furthest,
   unfold,
+  bodyIsEmpty,
+  folded,
 } from "../commands/toggleBlock";
 import { CommandFactory } from "../lib/Extension";
 import { chainTransactions } from "../lib/chainTransactions";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { PlaceholderPlugin } from "../plugins/PlaceholderPlugin";
 import { findBlockNodes } from "../queries/findChildren";
 import toggleBlocksRule from "../rules/toggleBlocks";
 import Node from "./Node";
@@ -399,7 +410,65 @@ export default class ToggleBlock extends Node {
       },
     });
 
-    return [initPlugin, foldPlugin];
+    return [
+      initPlugin,
+      foldPlugin,
+      new Plugin({
+        appendTransaction: (transactions, _oldState, newState) => {
+          const docChanged = transactions.some(
+            (transaction) => transaction.docChanged
+          );
+          let tr = null;
+          docChanged &&
+            forEach(
+              filter(
+                findBlockNodes(newState.doc, true),
+                (block) =>
+                  block.node.type.name === this.name &&
+                  block.node.childCount === 1 &&
+                  !folded(block.node, newState)
+              ),
+              (toggleBlock) => {
+                tr = newState.tr.setMeta(ToggleBlock.pluginKey, {
+                  type: Action.FOLD,
+                  at: toggleBlock.pos,
+                });
+              }
+            );
+          return tr;
+        },
+      }),
+      new PlaceholderPlugin([
+        {
+          condition: (
+            node: ProsemirrorNode,
+            $start: ResolvedPos,
+            parent: ProsemirrorNode | null,
+            _state: EditorState
+          ) =>
+            !isNull(parent) &&
+            parent.type.name === "container_toggle_block" &&
+            $start.index($start.depth - 1) === 0 &&
+            node.textContent === "",
+          text: this.options.dictionary.emptyToggleBlockHead,
+        },
+        {
+          condition: (
+            _node: ProsemirrorNode,
+            $start: ResolvedPos,
+            parent: ProsemirrorNode | null,
+            state: EditorState
+          ) =>
+            !isNull(parent) &&
+            parent.type.name === "container_toggle_block" &&
+            $start.index($start.depth - 1) === 1 &&
+            bodyIsEmpty(parent) &&
+            (state.selection.$from.pos < $start.pos ||
+              state.selection.$from.pos > $start.end($start.depth - 1)),
+          text: this.options.dictionary.emptyToggleBlockBody,
+        },
+      ]),
+    ];
   }
 
   get rulePlugins() {
@@ -606,6 +675,14 @@ class ToggleBlockView implements NodeView {
       if ($anchor.pos > endOfFirstChild && $anchor.pos < endOfNode) {
         const $endOfFirstChild = this.view.state.doc.resolve(endOfFirstChild);
         tr.setSelection(TextSelection.near($endOfFirstChild, -1));
+      }
+    } else {
+      // append an empty paragraph if the toggle block's body is empty
+      if (this.node.childCount === 1) {
+        tr.insert(
+          this.getPos()! + 1 + this.node.content.size,
+          this.view.state.schema.nodes.paragraph.create({})
+        );
       }
     }
     this.view.dispatch(tr);
