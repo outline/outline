@@ -190,7 +190,7 @@ export const unfold: Command = (state, dispatch) => {
   }
 
   const toggleBlock = $cursor!.node($cursor!.depth - 1);
-  if (!bodyIsEmpty(toggleBlock)) {
+  if (headIsEmpty(toggleBlock) || !bodyIsEmpty(toggleBlock)) {
     return false;
   }
 
