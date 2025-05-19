@@ -66,7 +66,7 @@ export const split: Command = (state, dispatch) => {
   }
 
   const toggleBlock = $cursor!.node($cursor!.depth - 1);
-  if (!folded(toggleBlock, state)) {
+  if (!folded(toggleBlock, state) || bodyIsEmpty(toggleBlock)) {
     return false;
   }
 
