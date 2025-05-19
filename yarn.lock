@@ -4594,12 +4594,12 @@
     magic-string "^0.25.0"
     string.prototype.matchall "^4.0.6"
 
-"@tanstack/react-table@^8.20.6":
-  version "8.20.6"
-  resolved "https://registry.yarnpkg.com/@tanstack/react-table/-/react-table-8.20.6.tgz#a1f3103327aa59aa621931f4087a7604a21054d0"
-  integrity sha512-w0jluT718MrOKthRcr2xsjqzx+oEM7B7s/XXyfs19ll++hlId3fjTm+B2zrR3ijpANpkzBAr15j1XGVOMxpggQ==
+"@tanstack/react-table@^8.21.3":
+  version "8.21.3"
+  resolved "https://registry.yarnpkg.com/@tanstack/react-table/-/react-table-8.21.3.tgz#2c38c747a5731c1a07174fda764b9c2b1fb5e91b"
+  integrity sha512-5nNMTSETP4ykGegmVkhjcS8tTLW6Vl4axfEGQN3v0zdHYbK4UfoqfPChclTrJ4EoK9QynqAu9oUf8VEmrpZ5Ww==
   dependencies:
-    "@tanstack/table-core" "8.20.5"
+    "@tanstack/table-core" "8.21.3"
 
 "@tanstack/react-virtual@^3.13.6":
   version "3.13.6"
@@ -4608,10 +4608,10 @@
   dependencies:
     "@tanstack/virtual-core" "3.13.6"
 
-"@tanstack/table-core@8.20.5":
-  version "8.20.5"
-  resolved "https://registry.yarnpkg.com/@tanstack/table-core/-/table-core-8.20.5.tgz#3974f0b090bed11243d4107283824167a395cf1d"
-  integrity sha512-P9dF7XbibHph2PFRz8gfBKEXEY/HJPOhym8CHmjF8y3q5mWpKx9xtZapXQUWCgkqvsK0R46Azuz+VaxD4Xl+Tg==
+"@tanstack/table-core@8.21.3":
+  version "8.21.3"
+  resolved "https://registry.yarnpkg.com/@tanstack/table-core/-/table-core-8.21.3.tgz#2977727d8fc8dfa079112d9f4d4c019110f1732c"
+  integrity sha512-ldZXEhOBb8Is7xLs01fR3YEc3DERiz5silj8tnGkFZytt1abEvl/GhUmCE0PMLaMPTa3Jk4HbKmRlHmu+gCftg==
 
 "@tanstack/virtual-core@3.13.6":
   version "3.13.6"
