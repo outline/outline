@@ -1,6 +1,6 @@
 import noop from "lodash/noop";
 import { observer } from "mobx-react";
-import * as React from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
@@ -37,8 +37,8 @@ function CollectionLinkChildren({
   const { documents } = useStores();
   const { t } = useTranslation();
   const childDocuments = useCollectionDocuments(collection, documents.active);
-  const [showing, setShowing] = React.useState(pageSize);
-  const dummyRef = React.useRef<HTMLDivElement>(null);
+  const [showing, setShowing] = useState(pageSize);
+  const dummyRef = useRef<HTMLDivElement>(null);
 
   const [{ isOver, canDrop }, dropRef] = useDropToChangeCollection(
     collection,
@@ -46,13 +46,13 @@ function CollectionLinkChildren({
     dummyRef
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!expanded) {
       setShowing(pageSize);
     }
   }, [expanded]);
 
-  const showMore = React.useCallback(() => {
+  const showMore = useCallback(() => {
     if (childDocuments && childDocuments.length > showing) {
       setShowing((value) => value + pageSize);
     }

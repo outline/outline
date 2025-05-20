@@ -1,4 +1,3 @@
-import React from "react";
 import styled, { useTheme } from "styled-components";
 
 const cleanPercentage = (percentage: number) => {

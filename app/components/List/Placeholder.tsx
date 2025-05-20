@@ -1,5 +1,4 @@
 import times from "lodash/times";
-import * as React from "react";
 import styled from "styled-components";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";

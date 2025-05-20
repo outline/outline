@@ -1,5 +1,5 @@
 import noop from "lodash/noop";
-import React from "react";
+import * as React from "react";
 
 type MenuContextType = {
   isMenuOpen: boolean;

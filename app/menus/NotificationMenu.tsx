@@ -1,6 +1,6 @@
 import { t } from "i18next";
 import { MoreIcon } from "outline-icons";
-import React from "react";
+import * as React from "react";
 import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
 import { s, hover } from "@shared/styles";

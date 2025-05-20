@@ -1,5 +1,4 @@
 import { Location } from "history";
-import * as React from "react";
 import CenteredContent from "~/components/CenteredContent";
 import PageTitle from "~/components/PageTitle";
 import PlaceholderDocument from "~/components/PlaceholderDocument";

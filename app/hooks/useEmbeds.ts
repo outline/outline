@@ -1,5 +1,5 @@
 import find from "lodash/find";
-import * as React from "react";
+import { useEffect, useMemo } from "react";
 import embeds from "@shared/editor/embeds";
 import { IntegrationType } from "@shared/types";
 import Integration from "~/models/Integration";
@@ -15,7 +15,7 @@ import useStores from "./useStores";
 export default function useEmbeds(loadIfMissing = false) {
   const { integrations } = useStores();
 
-  React.useEffect(() => {
+  useEffect(() => {
     async function fetchEmbedIntegrations() {
       try {
         await integrations.fetchAll({
@@ -31,7 +31,7 @@ export default function useEmbeds(loadIfMissing = false) {
     }
   }, [integrations, loadIfMissing]);
 
-  return React.useMemo(
+  return useMemo(
     () =>
       embeds.map((e) => {
         // Find any integrations that match this embed and inject the settings

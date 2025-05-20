@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import { SearchIcon, HomeIcon, SidebarIcon } from "outline-icons";
-import * as React from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { useTranslation } from "react-i18next";
@@ -38,7 +38,7 @@ function AppSidebar() {
   const user = useCurrentUser();
   const can = usePolicy(team);
 
-  React.useEffect(() => {
+  useEffect(() => {
     void collections.fetchAll();
 
     if (!user.isViewer) {
@@ -46,9 +46,9 @@ function AppSidebar() {
     }
   }, [documents, collections, user.isViewer]);
 
-  const [dndArea, setDndArea] = React.useState();
-  const handleSidebarRef = React.useCallback((node) => setDndArea(node), []);
-  const html5Options = React.useMemo(
+  const [dndArea, setDndArea] = useState();
+  const handleSidebarRef = useCallback((node) => setDndArea(node), []);
+  const html5Options = useMemo(
     () => ({
       rootElement: dndArea,
     }),

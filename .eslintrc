@@ -2,7 +2,9 @@
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "sourceType": "module",
-    "extraFileExtensions": [".json"],
+    "extraFileExtensions": [
+      ".json"
+    ],
     "project": "./tsconfig.json",
     "ecmaFeatures": {
       "jsx": true
@@ -17,6 +19,7 @@
   ],
   "plugins": [
     "es",
+    "react",
     "@typescript-eslint",
     "eslint-plugin-import",
     "eslint-plugin-node",
@@ -27,21 +30,30 @@
     "eqeqeq": 2,
     "curly": 2,
     "no-console": "error",
-    "arrow-body-style": ["error", "as-needed"],
+    "arrow-body-style": [
+      "error",
+      "as-needed"
+    ],
     "spaced-comment": "error",
     "object-shorthand": "error",
     "no-mixed-operators": "off",
     "no-useless-escape": "off",
     "no-shadow": "off",
     "es/no-regexp-lookbehind-assertions": "error",
-    "react/self-closing-comp": ["error", {
-      "component": true,
-      "html": true
-    }],
+    "react/react-in-jsx-scope": "off",
+    "react/self-closing-comp": [
+      "error",
+      {
+        "component": true,
+        "html": true
+      }
+    ],
     "@typescript-eslint/no-shadow": [
       "warn",
       {
-        "allow": ["transaction"],
+        "allow": [
+          "transaction"
+        ],
         "hoist": "all",
         "ignoreTypeValueShadow": true
       }
@@ -63,9 +75,25 @@
         "ignoreRestSiblings": true
       }
     ],
-    "padding-line-between-statements": ["error", { "blankLine": "always", "prev": "*", "next": "export" }],
-    "lines-between-class-members": ["error", "always", { "exceptAfterSingleLine": true }],
-    "lodash/import-scope": ["error", "method"],
+    "padding-line-between-statements": [
+      "error",
+      {
+        "blankLine": "always",
+        "prev": "*",
+        "next": "export"
+      }
+    ],
+    "lines-between-class-members": [
+      "error",
+      "always",
+      {
+        "exceptAfterSingleLine": true
+      }
+    ],
+    "lodash/import-scope": [
+      "error",
+      "method"
+    ],
     "import/no-named-as-default": "off",
     "import/no-named-as-default-member": "off",
     "import/newline-after-import": 2,
@@ -134,7 +162,10 @@
       "version": "detect"
     },
     "import/parsers": {
-      "@typescript-eslint/parser": [".ts", ".tsx"]
+      "@typescript-eslint/parser": [
+        ".ts",
+        ".tsx"
+      ]
     },
     "import/resolver": {
       "typescript": {}

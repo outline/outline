@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import { ShapesIcon } from "outline-icons";
 import queryString from "query-string";
-import * as React from "react";
+import { useEffect } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Action } from "~/components/Actions";
 import Empty from "~/components/Empty";
@@ -23,7 +23,7 @@ function Templates() {
   const { fetchTemplates, templates, templatesAlphabetical } = documents;
   const sort = param.get("sort") || "recent";
 
-  React.useEffect(() => {
+  useEffect(() => {
     void documents.fetchDrafts();
   }, [documents]);
 

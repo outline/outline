@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useRef, useEffect } from "react";
 
 /**
  * A hook to get the previous value of a variable.
@@ -8,9 +8,9 @@ import * as React from "react";
  * @returns The previous value of the variable.
  */
 export default function usePrevious<T>(value: T, onlyTruthy = false): T | void {
-  const ref = React.useRef<T>();
+  const ref = useRef<T>();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (onlyTruthy && !value) {
       return;
     }

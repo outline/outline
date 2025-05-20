@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import { TableOfContentsIcon } from "outline-icons";
-import * as React from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
@@ -24,7 +24,7 @@ function TableOfContentsMenu() {
     Infinity
   );
 
-  const items: MenuItem[] = React.useMemo(() => {
+  const items: MenuItem[] = useMemo(() => {
     const i = [
       {
         type: "heading",

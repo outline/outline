@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import { CollectionIcon as SVGCollectionIcon } from "outline-icons";
-import * as React from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import FilterOptions from "~/components/FilterOptions";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
@@ -17,7 +17,7 @@ function CollectionFilter(props: Props) {
   const { t } = useTranslation();
   const { collections } = useStores();
   const { onSelect, collectionId } = props;
-  const options = React.useMemo(() => {
+  const options = useMemo(() => {
     const collectionOptions = collections.orderedData.map((collection) => ({
       key: collection.id,
       label: collection.name,

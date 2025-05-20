@@ -1,6 +1,6 @@
 import isEqual from "lodash/isEqual";
 import { action, computed, observable } from "mobx";
-import React, { FunctionComponent } from "react";
+import { FunctionComponent } from "react";
 import { createPortal } from "react-dom";
 
 export class NodeViewRenderer<T extends object> {

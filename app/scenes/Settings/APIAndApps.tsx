@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import { PadlockIcon } from "outline-icons";
-import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import ApiKey from "~/models/ApiKey";
 import OAuthAuthentication from "~/models/oauth/OAuthAuthentication";

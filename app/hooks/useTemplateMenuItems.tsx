@@ -1,5 +1,5 @@
 import { DocumentIcon } from "outline-icons";
-import * as React from "react";
+import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import Icon from "@shared/components/Icon";
 import { TextHelper } from "@shared/utils/TextHelper";
@@ -31,7 +31,7 @@ export function useTemplateMenuItems({ document, onSelectTemplate }: Props) {
   const { documents } = useStores();
   const { t } = useTranslation();
 
-  const templateToMenuItem = React.useCallback(
+  const templateToMenuItem = useCallback(
     (template: Document): MenuItem => ({
       type: "button",
       title: TextHelper.replaceTemplateVariables(
@@ -64,7 +64,7 @@ export function useTemplateMenuItems({ document, onSelectTemplate }: Props) {
     .filter((tmpl) => tmpl.isWorkspaceTemplate)
     .map(templateToMenuItem);
 
-  const workspaceItems: MenuItem[] = React.useMemo(
+  const workspaceItems: MenuItem[] = useMemo(
     () =>
       workspaceTemplates.length
         ? [{ type: "heading", title: t("Workspace") }, ...workspaceTemplates]

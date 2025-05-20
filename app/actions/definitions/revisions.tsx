@@ -1,6 +1,5 @@
 import copy from "copy-to-clipboard";
 import { LinkIcon, RestoreIcon } from "outline-icons";
-import * as React from "react";
 import { matchPath } from "react-router-dom";
 import { toast } from "sonner";
 import stores from "~/stores";

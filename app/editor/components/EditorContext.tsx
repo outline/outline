@@ -1,8 +1,8 @@
-import * as React from "react";
+import { createContext, useContext } from "react";
 import { Editor } from "../";
 
-const EditorContext = React.createContext<Editor>({} as Editor);
+const EditorContext = createContext<Editor>({} as Editor);
 
-export const useEditor = () => React.useContext(EditorContext);
+export const useEditor = () => useContext(EditorContext);
 
 export default EditorContext;

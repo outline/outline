@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import { SubscribeIcon } from "outline-icons";
-import * as React from "react";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import useStores from "~/hooks/useStores";

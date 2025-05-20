@@ -16,7 +16,8 @@ import {
   PlusIcon,
   InternetIcon,
 } from "outline-icons";
-import React, { ComponentProps } from "react";
+import { ComponentProps } from "react";
+import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import { Integrations } from "~/scenes/Settings/Integrations";

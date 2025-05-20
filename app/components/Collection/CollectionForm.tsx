@@ -1,6 +1,6 @@
 import uniq from "lodash/uniq";
 import { observer } from "mobx-react";
-import * as React from "react";
+import { useMemo, useEffect, useCallback, Suspense } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -40,7 +40,7 @@ const useIconColor = (collection?: Collection) => {
     collections.orderedData.map((c) => c.color).filter(Boolean)
   ) as string[];
 
-  const iconColor = React.useMemo(
+  const iconColor = useMemo(
     () =>
       collection?.color ??
       // If all the existing collections have the same color, use that color,
@@ -90,11 +90,11 @@ export const CollectionForm = observer(function CollectionForm_({
   const values = watch();
 
   // Preload the IconPicker component on mount
-  React.useEffect(() => {
+  useEffect(() => {
     void IconPicker.preload();
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // If the user hasn't picked an icon yet, go ahead and suggest one based on
     // the name of the collection. It's the little things sometimes.
     if (!hasOpenedIconPicker && !collection) {
@@ -107,11 +107,11 @@ export const CollectionForm = observer(function CollectionForm_({
     }
   }, [collection, hasOpenedIconPicker, setValue, values.name, values.icon]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setTimeout(() => setFocus("name", { shouldSelect: true }), 100);
   }, [setFocus]);
 
-  const handleIconChange = React.useCallback(
+  const handleIconChange = useCallback(
     (icon: string, color: string | null) => {
       if (icon !== values.icon) {
         setFocus("name");
@@ -140,7 +140,7 @@ export const CollectionForm = observer(function CollectionForm_({
             maxLength: CollectionValidation.maxNameLength,
           })}
           prefix={
-            <React.Suspense fallback={fallbackIcon}>
+            <Suspense fallback={fallbackIcon}>
               <StyledIconPicker
                 icon={values.icon}
                 color={values.color ?? iconColor}
@@ -149,7 +149,7 @@ export const CollectionForm = observer(function CollectionForm_({
                 onOpen={setHasOpenedIconPicker}
                 onChange={handleIconChange}
               />
-            </React.Suspense>
+            </Suspense>
           }
           autoComplete="off"
           autoFocus

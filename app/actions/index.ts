@@ -1,5 +1,4 @@
 import flattenDeep from "lodash/flattenDeep";
-import * as React from "react";
 import { toast } from "sonner";
 import { Optional } from "utility-types";
 import { v4 as uuidv4 } from "uuid";

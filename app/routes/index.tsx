@@ -1,4 +1,4 @@
-import * as React from "react";
+import { Suspense } from "react";
 import { Switch, Redirect } from "react-router-dom";
 import DesktopRedirect from "~/scenes/DesktopRedirect";
 import DelayedMount from "~/components/DelayedMount";
@@ -20,7 +20,7 @@ export default function Routes() {
   useQueryNotices();
 
   return (
-    <React.Suspense
+    <Suspense
       fallback={
         <DelayedMount delay={2000}>
           <FullscreenLoading />
@@ -65,6 +65,6 @@ export default function Routes() {
           </Authenticated>
         </Switch>
       )}
-    </React.Suspense>
+    </Suspense>
   );
 }

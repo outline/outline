@@ -1,5 +1,5 @@
 import { ReactionIcon } from "outline-icons";
-import React from "react";
+import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { PopoverDisclosure, usePopoverState } from "reakit";
 import EventBoundary from "@shared/components/EventBoundary";

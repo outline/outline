@@ -1,5 +1,5 @@
 import compact from "lodash/compact";
-import * as React from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import Share from "~/models/Share";
@@ -27,7 +27,7 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
   const language = useUserLocale();
   const hasDomain = data.some((share) => share.domain);
 
-  const columns = React.useMemo<TableColumn<Share>[]>(
+  const columns = useMemo<TableColumn<Share>[]>(
     () =>
       compact<TableColumn<Share>>([
         {
