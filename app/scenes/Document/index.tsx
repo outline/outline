@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useEffect } from "react";
 import { StaticContext, useHistory } from "react-router";
 import { RouteComponentProps } from "react-router-dom";
 import { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
@@ -29,13 +29,13 @@ export default function DocumentScene(props: Props) {
   const currentPath = props.location.pathname;
   const [, setLastVisitedPath] = useLastVisitedPath();
 
-  React.useEffect(() => {
+  useEffect(() => {
     setLastVisitedPath(currentPath);
   }, [currentPath, setLastVisitedPath]);
 
-  React.useEffect(() => () => ui.clearActiveDocument(), [ui]);
+  useEffect(() => () => ui.clearActiveDocument(), [ui]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // When opening a document directly on app load, sidebarContext will not be set.
     if (!props.location.state?.sidebarContext) {
       history.replace({

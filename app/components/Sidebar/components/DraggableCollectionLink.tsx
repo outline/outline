@@ -1,6 +1,6 @@
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
-import * as React from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useDrop, useDrag, DropTargetMonitor } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
 import styled from "styled-components";
@@ -32,7 +32,7 @@ function DraggableCollectionLink({
   const locationSidebarContext = useLocationSidebarContext();
   const sidebarContext = useSidebarContext();
   const { ui, policies, collections } = useStores();
-  const [expanded, setExpanded] = React.useState(
+  const [expanded, setExpanded] = useState(
     collection.id === ui.activeCollectionId &&
       sidebarContext === locationSidebarContext
   );
@@ -73,13 +73,13 @@ function DraggableCollectionLink({
     }),
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     preview(getEmptyImage(), { captureDraggingState: false });
   }, [preview]);
 
   // If the current collection is active and relevant to the sidebar section we
   // are in then expand it automatically
-  React.useEffect(() => {
+  useEffect(() => {
     if (
       collection.id === ui.activeCollectionId &&
       sidebarContext === locationSidebarContext
@@ -93,7 +93,7 @@ function DraggableCollectionLink({
     locationSidebarContext,
   ]);
 
-  const handleDisclosureClick = React.useCallback((ev) => {
+  const handleDisclosureClick = useCallback((ev) => {
     ev?.preventDefault();
     setExpanded((e) => !e);
   }, []);

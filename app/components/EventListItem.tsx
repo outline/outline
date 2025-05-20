@@ -11,7 +11,7 @@ import {
   UserIcon,
   CrossIcon,
 } from "outline-icons";
-import * as React from "react";
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import styled, { css } from "styled-components";
@@ -65,7 +65,7 @@ const EventListItem = ({ event, document, ...rest }: Props) => {
   const user = "userId" in event ? users.get(event.userId) : undefined;
   const location = useLocation();
   const sidebarContext = useLocationSidebarContext();
-  const revisionLoadedRef = React.useRef(false);
+  const revisionLoadedRef = useRef(false);
   const opts = {
     userName: actor?.name,
   };
@@ -74,7 +74,7 @@ const EventListItem = ({ event, document, ...rest }: Props) => {
     event.id === RevisionHelper.latestId(document.id);
   let meta, icon, to: LocationDescriptor | undefined;
 
-  const ref = React.useRef<HTMLAnchorElement>(null);
+  const ref = useRef<HTMLAnchorElement>(null);
   // the time component tends to steal focus when clicked
   // ...so forward the focus back to the parent item
   const handleTimeClick = () => {

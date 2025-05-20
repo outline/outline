@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Badge from "~/components/Badge";
@@ -8,10 +8,10 @@ import { version as currentVersion } from "../../../../package.json";
 import SidebarLink from "./SidebarLink";
 
 export default function Version() {
-  const [versionsBehind, setVersionsBehind] = React.useState(-1);
+  const [versionsBehind, setVersionsBehind] = useState(-1);
   const { t } = useTranslation();
 
-  React.useEffect(() => {
+  useEffect(() => {
     async function loadVersionInfo() {
       try {
         // Fetch version info from the server-side proxy

@@ -1,4 +1,4 @@
-import React from "react";
+import { useState, useRef, useEffect } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
@@ -56,8 +56,8 @@ function Authorize() {
   const team = useCurrentTeam();
   const params = useQuery();
   const { t } = useTranslation();
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const timeoutRef = React.useRef<number>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const timeoutRef = useRef<number>();
   const {
     client_id: clientId,
     redirect_uri: redirectUri,
@@ -67,7 +67,7 @@ function Authorize() {
     state,
     scope,
   } = Object.fromEntries(params);
-  const [scopes] = React.useState(() => scope?.split(" ") ?? []);
+  const [scopes] = useState(() => scope?.split(" ") ?? []);
   const { error: clientError, data: response } = useRequest<{
     data: OAuthClient;
   }>(() => client.post("/oauthClients.info", { clientId, redirectUri }), true);
@@ -91,7 +91,7 @@ function Authorize() {
     timeoutRef.current = window.setTimeout(() => setIsSubmitting(false), 5000);
   };
 
-  React.useEffect(
+  useEffect(
     () => () => {
       timeoutRef.current && window.clearTimeout(timeoutRef.current);
     },

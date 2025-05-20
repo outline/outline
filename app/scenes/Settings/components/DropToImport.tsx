@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import { NewDocumentIcon } from "outline-icons";
-import * as React from "react";
+import { useState, useCallback } from "react";
 import Dropzone from "react-dropzone";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -28,10 +28,11 @@ type Props = {
 function DropToImport({ disabled, onSubmit, children, format }: Props) {
   const { t } = useTranslation();
   const { collections } = useStores();
-  const [file, setFile] = React.useState<File | null>(null);
-  const [isImporting, setImporting] = React.useState(false);
-  const [permission, setPermission] =
-    React.useState<CollectionPermission | null>(CollectionPermission.ReadWrite);
+  const [file, setFile] = useState<File | null>(null);
+  const [isImporting, setImporting] = useState(false);
+  const [permission, setPermission] = useState<CollectionPermission | null>(
+    CollectionPermission.ReadWrite
+  );
 
   const handleFiles = (files: File[]) => {
     if (files.length > 1) {
@@ -66,7 +67,7 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
     }
   };
 
-  const handleRejection = React.useCallback(() => {
+  const handleRejection = useCallback(() => {
     toast.error(t("File not supported – please upload a valid ZIP file"));
   }, [t]);
 

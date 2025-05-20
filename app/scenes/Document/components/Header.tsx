@@ -7,7 +7,7 @@ import {
   MoreIcon,
   SunIcon,
 } from "outline-icons";
-import * as React from "react";
+import { useRef, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
@@ -93,7 +93,7 @@ function DocumentHeader({
   const isEditingFocus = useEditingFocus();
   const { hasHeadings, editor } = useDocumentContext();
   const sidebarContext = useLocationSidebarContext();
-  const ref = React.useRef<HTMLDivElement | null>(null);
+  const ref = useRef<HTMLDivElement | null>(null);
   const size = useComponentSize(ref);
   const isMobile = isMobileMedia || size.width < 700;
   const isShare = !!shareId;
@@ -101,15 +101,15 @@ function DocumentHeader({
   // We cache this value for as long as the component is mounted so that if you
   // apply a template there is still the option to replace it until the user
   // navigates away from the doc
-  const [isNew] = React.useState(document.isPersistedOnce);
+  const [isNew] = useState(document.isPersistedOnce);
 
-  const handleSave = React.useCallback(() => {
+  const handleSave = useCallback(() => {
     onSave({
       done: true,
     });
   }, [onSave]);
 
-  const handleToggle = React.useCallback(() => {
+  const handleToggle = useCallback(() => {
     // Public shares, by default, show ToC on load.
     if (isShare && ui.tocVisible === undefined) {
       ui.set({ tocVisible: false });

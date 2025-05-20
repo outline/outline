@@ -1,6 +1,5 @@
 import { m, AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react";
-import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { depths } from "@shared/styles";

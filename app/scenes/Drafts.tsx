@@ -1,7 +1,6 @@
 import { observer } from "mobx-react";
 import { DraftsIcon } from "outline-icons";
 import queryString from "query-string";
-import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";

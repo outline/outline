@@ -1,4 +1,3 @@
-import * as React from "react";
 import styled from "styled-components";
 import Empty from "~/components/Empty";
 import Fade from "~/components/Fade";

@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import * as React from "react";
+import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuState } from "reakit/Menu";
 import OAuthAuthentication from "~/models/oauth/OAuthAuthentication";
@@ -21,7 +21,7 @@ function OAuthAuthenticationMenu({ oauthAuthentication }: Props) {
   const { dialogs } = useStores();
   const { t } = useTranslation();
 
-  const handleRevoke = React.useCallback(() => {
+  const handleRevoke = useCallback(() => {
     dialogs.openModal({
       title: t("Revoke {{ appName }}", {
         appName: oauthAuthentication.oauthClient.name,

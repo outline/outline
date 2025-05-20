@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useRef, useEffect } from "react";
 
 type Callback = () => void;
 
@@ -9,15 +9,15 @@ type Callback = () => void;
  * @param delay The delay in milliseconds.
  */
 export default function useInterval(callback: Callback, delay: number) {
-  const savedCallback = React.useRef<Callback>();
+  const savedCallback = useRef<Callback>();
 
   // Remember the latest callback.
-  React.useEffect(() => {
+  useEffect(() => {
     savedCallback.current = callback;
   }, [callback]);
 
   // Set up the interval.
-  React.useEffect(() => {
+  useEffect(() => {
     function tick() {
       savedCallback.current?.();
     }

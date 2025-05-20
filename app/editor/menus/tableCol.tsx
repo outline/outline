@@ -10,7 +10,6 @@ import {
   TableHeaderColumnIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
-import * as React from "react";
 import styled from "styled-components";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import { MenuItem } from "@shared/editor/types";

@@ -1,7 +1,7 @@
 import { isEmail } from "class-validator";
 import { observer } from "mobx-react";
 import { DocumentIcon, PlusIcon, CollectionIcon } from "outline-icons";
-import * as React from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
@@ -42,8 +42,8 @@ type Props = Omit<
 >;
 
 function MentionMenu({ search, isActive, ...rest }: Props) {
-  const [loaded, setLoaded] = React.useState(false);
-  const [items, setItems] = React.useState<MentionItem[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const [items, setItems] = useState<MentionItem[]>([]);
   const { t } = useTranslation();
   const { auth, documents, users, collections } = useStores();
   const actorId = auth.currentUserId;
@@ -52,7 +52,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
   const maxResultsInSection = search ? 25 : 5;
 
   const { loading, request } = useRequest(
-    React.useCallback(async () => {
+    useCallback(async () => {
       const res = await client.post("/suggestions.mention", { query: search });
 
       res.data.documents.map(documents.add);
@@ -61,13 +61,13 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
     }, [search, documents, users, collections])
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isActive) {
       void request();
     }
   }, [request, isActive]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (actorId && !loading) {
       const items: MentionItem[] = users
         .findByQuery(search, { maxResults: maxResultsInSection })
@@ -186,7 +186,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
     }
   }, [t, actorId, loading, search, users, documents, maxResultsInSection]);
 
-  const handleSelect = React.useCallback(
+  const handleSelect = useCallback(
     async (item: MentionItem) => {
       if (
         item.attrs.type === MentionType.Document ||

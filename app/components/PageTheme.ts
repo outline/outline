@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useEffect } from "react";
 import { useTheme } from "styled-components";
 import useStores from "~/hooks/useStores";
 
@@ -6,7 +6,7 @@ export default function PageTheme() {
   const { ui } = useStores();
   const theme = useTheme();
 
-  React.useEffect(() => {
+  useEffect(() => {
     // wider page background beyond the React root
     if (document.body) {
       document.body.style.background = theme.background;

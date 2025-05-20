@@ -1,4 +1,3 @@
-import * as React from "react";
 import { Trans } from "react-i18next";
 import { FileOperationFormat } from "@shared/types";
 import env from "~/env";

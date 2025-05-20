@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import { ArchiveIcon } from "outline-icons";
-import * as React from "react";
 import { useTranslation } from "react-i18next";
 import Empty from "~/components/Empty";
 import Heading from "~/components/Heading";

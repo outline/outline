@@ -7,7 +7,6 @@ import {
   TrashIcon,
   UserIcon,
 } from "outline-icons";
-import * as React from "react";
 import { toast } from "sonner";
 import { createAction } from "~/actions";
 import { DeveloperSection } from "~/actions/sections";

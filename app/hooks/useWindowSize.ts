@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useState, useEffect } from "react";
 import useEventListener from "./useEventListener";
 import useThrottledCallback from "./useThrottledCallback";
 
@@ -9,7 +9,7 @@ import useThrottledCallback from "./useThrottledCallback";
  * @returns An object containing width and height of the current window
  */
 export default function useWindowSize() {
-  const [windowSize, setWindowSize] = React.useState({
+  const [windowSize, setWindowSize] = useState({
     width: window.visualViewport?.width || window.innerWidth,
     height: window.visualViewport?.height || window.innerHeight,
   });
@@ -31,7 +31,7 @@ export default function useWindowSize() {
   useEventListener("resize", handleResize, window.visualViewport);
 
   // Call handler right away so state gets updated with initial window size
-  React.useEffect(() => {
+  useEffect(() => {
     handleResize();
   }, [handleResize]);
 

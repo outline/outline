@@ -1,8 +1,8 @@
-import * as React from "react";
+import { useEffect } from "react";
 import Desktop from "~/utils/Desktop";
 
 export const useDesktopTitlebar = () => {
-  React.useEffect(() => {
+  useEffect(() => {
     if (!Desktop.bridge) {
       return;
     }

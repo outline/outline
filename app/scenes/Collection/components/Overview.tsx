@@ -1,6 +1,6 @@
 import debounce from "lodash/debounce";
 import { observer } from "mobx-react";
-import * as React from "react";
+import { useMemo, useRef, useCallback, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
@@ -31,7 +31,7 @@ function Overview({ collection }: Props) {
   const user = useCurrentUser({ rejectOnEmpty: true });
   const can = usePolicy(collection);
 
-  const handleSave = React.useMemo(
+  const handleSave = useMemo(
     () =>
       debounce(async (getValue) => {
         try {
@@ -46,9 +46,9 @@ function Overview({ collection }: Props) {
     [collection, t]
   );
 
-  const childRef = React.useRef<HTMLDivElement>(null);
+  const childRef = useRef<HTMLDivElement>(null);
   const childOffsetHeight = childRef.current?.offsetHeight || 0;
-  const editorStyle = React.useMemo(
+  const editorStyle = useMemo(
     () => ({
       padding: "0 32px",
       margin: "0 -32px",
@@ -57,7 +57,7 @@ function Overview({ collection }: Props) {
     [childOffsetHeight]
   );
 
-  const onCreateLink = React.useCallback(
+  const onCreateLink = useCallback(
     async (params: Properties<Document>) => {
       const newDocument = await documents.create(
         {
@@ -79,7 +79,7 @@ function Overview({ collection }: Props) {
     <>
       {collections.isSaving && <LoadingIndicator />}
       {(collection.hasDescription || can.update) && (
-        <React.Suspense fallback={<Placeholder>Loading…</Placeholder>}>
+        <Suspense fallback={<Placeholder>Loading…</Placeholder>}>
           <Editor
             defaultValue={collection.data}
             onChange={handleSave}
@@ -93,7 +93,7 @@ function Overview({ collection }: Props) {
             editorStyle={editorStyle}
           />
           <div ref={childRef} />
-        </React.Suspense>
+        </Suspense>
       )}
     </>
   );

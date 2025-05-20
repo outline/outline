@@ -3,14 +3,14 @@
  */
 
 import { CheckmarkIcon } from "outline-icons";
-import React from "react";
+import { forwardRef } from "react";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import Button, { Inner } from "~/components/Button";
 import Flex from "~/components/Flex";
 
-export const SelectItem = React.forwardRef<
+export const SelectItem = forwardRef<
   HTMLDivElement,
   React.ComponentPropsWithoutRef<"div">
 >((props, ref) => {
@@ -31,7 +31,7 @@ export const SelectItem = React.forwardRef<
 });
 SelectItem.displayName = "SelectItem";
 
-export const SelectItemIndicator = React.forwardRef<
+export const SelectItemIndicator = forwardRef<
   HTMLSpanElement,
   React.ComponentPropsWithoutRef<"span">
 >((props, ref) => (

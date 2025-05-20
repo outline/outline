@@ -1,5 +1,5 @@
 import { ColumnSort } from "@tanstack/react-table";
-import * as React from "react";
+import { useCallback } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import useQuery from "~/hooks/useQuery";
 import lazyWithRetry from "~/utils/lazyWithRetry";
@@ -14,7 +14,7 @@ export function SortableTable<T>(props: Props<T>) {
   const history = useHistory();
   const params = useQuery();
 
-  const handleChangeSort = React.useCallback(
+  const handleChangeSort = useCallback(
     (sort: ColumnSort) => {
       params.set("sort", sort.id);
       params.set("direction", sort.desc ? "desc" : "asc");

@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import { MoreIcon, PlusIcon } from "outline-icons";
-import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import Collection from "~/models/Collection";

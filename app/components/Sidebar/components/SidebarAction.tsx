@@ -1,6 +1,5 @@
 import invariant from "invariant";
 import { observer } from "mobx-react";
-import * as React from "react";
 import { actionToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
 import { Action } from "~/types";

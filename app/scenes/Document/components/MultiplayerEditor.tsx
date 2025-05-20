@@ -1,6 +1,12 @@
 import { HocuspocusProvider, WebSocketStatus } from "@hocuspocus/provider";
 import throttle from "lodash/throttle";
-import * as React from "react";
+import {
+  useState,
+  useLayoutEffect,
+  useMemo,
+  useEffect,
+  forwardRef,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
@@ -51,12 +57,12 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const { presence, auth, ui } = useStores();
-  const [showCursorNames, setShowCursorNames] = React.useState(false);
+  const [showCursorNames, setShowCursorNames] = useState(false);
   const [remoteProvider, setRemoteProvider] =
-    React.useState<HocuspocusProvider | null>(null);
-  const [isLocalSynced, setLocalSynced] = React.useState(false);
-  const [isRemoteSynced, setRemoteSynced] = React.useState(false);
-  const [ydoc] = React.useState(() => new Y.Doc());
+    useState<HocuspocusProvider | null>(null);
+  const [isLocalSynced, setLocalSynced] = useState(false);
+  const [isRemoteSynced, setRemoteSynced] = useState(false);
+  const [ydoc] = useState(() => new Y.Doc());
   const token = auth.collaborationToken;
   const isIdle = useIdle();
   const isVisible = usePageVisibility();
@@ -66,7 +72,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   // or useMemo as both of these are ran twice in React StrictMode resulting in
   // an orphaned websocket connection.
   // see: https://github.com/facebook/react/issues/20090#issuecomment-715926549
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     const debug = env.ENVIRONMENT === "development";
     const name = `document.${documentId}`;
     const localProvider = new IndexeddbPersistence(name, ydoc);
@@ -209,7 +215,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     auth,
   ]);
 
-  const user = React.useMemo(
+  const user = useMemo(
     () => ({
       id: currentUser.id,
       name: currentUser.name,
@@ -218,7 +224,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     [currentUser.id, currentUser.color, currentUser.name]
   );
 
-  const extensions = React.useMemo(() => {
+  const extensions = useMemo(() => {
     if (!remoteProvider) {
       return props.extensions;
     }
@@ -233,7 +239,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     ];
   }, [remoteProvider, user, ydoc, props.extensions]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isLocalSynced && isRemoteSynced) {
       void onSynced?.();
     }
@@ -241,7 +247,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
 
   // Disconnect the realtime connection while idle. `isIdle` also checks for
   // page visibility and will immediately disconnect when a tab is hidden.
-  React.useEffect(() => {
+  useEffect(() => {
     if (!remoteProvider) {
       return;
     }
@@ -265,7 +271,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   // Certain emoji combinations trigger this error in YJS, while waiting for a fix
   // we must prevent the user from continuing to edit as their changes will not
   // be persisted. See: https://github.com/yjs/yjs/issues/303
-  React.useEffect(() => {
+  useEffect(() => {
     function onUnhandledError(event: ErrorEvent) {
       if (event.message.includes("URIError: URI malformed")) {
         toast.error(
@@ -321,6 +327,4 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   );
 }
 
-export default React.forwardRef<typeof MultiplayerEditor, Props>(
-  MultiplayerEditor
-);
+export default forwardRef<typeof MultiplayerEditor, Props>(MultiplayerEditor);

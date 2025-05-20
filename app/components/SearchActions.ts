@@ -1,5 +1,5 @@
 import { useKBar } from "kbar";
-import * as React from "react";
+import { useEffect } from "react";
 import { searchDocumentsForQuery } from "~/actions/definitions/documents";
 import { navigateToRecentSearchQuery } from "~/actions/definitions/navigation";
 
@@ -9,7 +9,7 @@ import useStores from "~/hooks/useStores";
 export default function SearchActions() {
   const { searches } = useStores();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!searches.isLoaded && !searches.isFetching) {
       void searches.fetchPage({
         source: "app",
