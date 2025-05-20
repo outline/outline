@@ -20,7 +20,7 @@ export default class FontAwesome extends Extension {
     this.registerIcons();
 
     // Updated regex pattern to capture the icon type (fas, far, or fab)
-    const fontAwesomeRegex = /\[\[(fas|far|fab)\s+(fa-[a-z-]+)]]/g;
+    const fontAwesomeRegex = /\[\[(fas|fa-solid|far|fa-regular|fab|fa-brands)\s+(fa-[a-z-]+)]]/g;
 
     // Store a reference to 'this' to use inside the callback
     const self = this;
@@ -45,7 +45,7 @@ export default class FontAwesome extends Extension {
               while ((match = fontAwesomeRegex.exec(text)) !== null) {
                 const start = pos + match.index;
                 const end = start + match[0].length;
-                const iconType = match[1] as "fas" | "far" | "fab";
+                const iconType = self.matchIconType(match[1]);
                 const iconClass = match[2];
 
                 // Create widget decoration to render the icon
@@ -168,5 +168,20 @@ export default class FontAwesome extends Extension {
 
     // Register all icons
     library.add(...solidIconsArray, ...regularIconsArray, ...brandIconsArray);
+  }
+
+  private matchIconType(iconType: string): "fas" | "far" | "fab" {
+    switch (iconType) {
+      default:
+      case "fas":
+      case "fa-solid":
+        return "fas";
+      case "far":
+      case "fa-regular":
+        return "far";
+      case "fab":
+      case "fa-brands":
+        return "fab";
+    }
   }
 }
