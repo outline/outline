@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "alwaysStrict": true,
     "esModuleInterop": true,
@@ -8,7 +9,7 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "baseUrl": ".",
-    "jsx": "react",
+    "jsx": "react-jsx",
     "lib": ["dom", "es2020", "dom.iterable", "esnext.asynciterable"],
     "module": "esnext",
     "moduleResolution": "node",
