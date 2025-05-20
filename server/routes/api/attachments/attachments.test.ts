@@ -33,15 +33,44 @@ describe("#attachments.list", () => {
     });
 
     const res = await server.post("/api/attachments.list", {
-      body: {},
-      user,
+      body: {
+        token: user.getJwtToken(),
+      },
     });
     const body = await res.json();
 
     expect(res.status).toEqual(200);
+    expect(body.pagination.total).toEqual(2);
     expect(body.data.length).toEqual(2);
-    expect(body.data[0].id).toEqual(attachment2.id);
-    expect(body.data[1].id).toEqual(attachment.id);
+    expect(body.data[0].id).toEqual(attachment.id);
+    expect(body.data[1].id).toEqual(attachment2.id);
+  });
+
+  it("should allow filtering by userId when user is an admin", async () => {
+    const admin = await buildAdmin();
+    const user = await buildUser({ teamId: admin.teamId });
+    // Attachments for user
+    const attachment1 = await buildAttachment({
+      teamId: admin.teamId,
+      userId: user.id,
+    });
+    // Attachment for admin
+    await buildAttachment({
+      teamId: admin.teamId,
+      userId: admin.id,
+    });
+
+    const res = await server.post("/api/attachments.list", {
+      body: {
+        userId: user.id,
+        token: admin.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(attachment1.id);
   });
 
   it("should filter by documentId", async () => {
@@ -61,8 +90,10 @@ describe("#attachments.list", () => {
     });
 
     const res = await server.post("/api/attachments.list", {
-      body: { documentId: document.id },
-      user,
+      body: {
+        documentId: document.id,
+        token: user.getJwtToken(),
+      },
     });
     const body = await res.json();
 
@@ -82,8 +113,9 @@ describe("#attachments.list", () => {
     });
 
     const res = await server.post("/api/attachments.list", {
-      body: {},
-      user,
+      body: {
+        token: user.getJwtToken(),
+      },
     });
     const body = await res.json();
 

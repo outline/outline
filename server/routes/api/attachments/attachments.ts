@@ -17,7 +17,7 @@ import validate from "@server/middlewares/validate";
 import { Attachment, Document } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { authorize } from "@server/policies";
-import { presentAttachment } from "@server/presenters";
+import { presentAttachment, presentPolicies } from "@server/presenters";
 import UploadAttachmentFromUrlTask from "@server/queues/tasks/UploadAttachmentFromUrlTask";
 import pagination from "@server/routes/api/middlewares/pagination";
 import { sequelize } from "@server/storage/database";
@@ -36,14 +36,19 @@ router.post(
   pagination(),
   validate(T.AttachmentsListSchema),
   async (ctx: APIContext<T.AttachmentsListReq>) => {
-    const { documentId } = ctx.input.body;
+    const { documentId, userId } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    // Always filter by the current user
     const where: WhereOptions<Attachment> = {
-      userId: user.id,
       teamId: user.teamId,
     };
+
+    // If a specific user is passed then add to filters
+    if (userId && user.isAdmin) {
+      where.userId = userId;
+    } else {
+      where.userId = user.id;
+    }
 
     // If a specific document is passed then add to filters
     if (documentId) {
@@ -54,16 +59,22 @@ router.post(
       where.documentId = documentId;
     }
 
-    const attachments = await Attachment.findAll({
-      where,
-      order: [["createdAt", "DESC"]],
-      offset: ctx.state.pagination.offset,
-      limit: ctx.state.pagination.limit,
-    });
+    const [attachments, total] = await Promise.all([
+      Attachment.findAll({
+        where,
+        order: [["createdAt", "DESC"]],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      }),
+      Attachment.count({
+        where,
+      }),
+    ]);
 
     ctx.body = {
-      pagination: ctx.state.pagination,
+      pagination: { ...ctx.state.pagination, total },
       data: attachments.map(presentAttachment),
+      policies: presentPolicies(user, attachments),
     };
   }
 );
@@ -305,5 +316,3 @@ router.post(
 );
 
 export default router;
-// Fix TypeScript error
-// Fix TypeScript error
