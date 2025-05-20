@@ -85,7 +85,7 @@ export default class ToggleBlock extends Node {
   static eventPluginKey = new PluginKey("toggleBlockEventPlugin");
 
   get name() {
-    return "container_toggle_block";
+    return "container_toggle";
   }
 
   get schema(): NodeSpec {
@@ -495,7 +495,7 @@ export default class ToggleBlock extends Node {
             _state: EditorState
           ) =>
             !isNull(parent) &&
-            parent.type.name === "container_toggle_block" &&
+            parent.type.name === "container_toggle" &&
             $start.index($start.depth - 1) === 0 &&
             node.textContent === "",
           text: this.options.dictionary.emptyToggleBlockHead,
@@ -508,7 +508,7 @@ export default class ToggleBlock extends Node {
             state: EditorState
           ) =>
             !isNull(parent) &&
-            parent.type.name === "container_toggle_block" &&
+            parent.type.name === "container_toggle" &&
             $start.index($start.depth - 1) === 1 &&
             bodyIsEmpty(parent) &&
             (state.selection.$from.pos < $start.pos ||
@@ -590,7 +590,7 @@ export default class ToggleBlock extends Node {
 
   parseMarkdown(): ParseSpec | void {
     return {
-      block: "container_toggle_block",
+      block: "container_toggle",
     };
   }
 }
