@@ -65,13 +65,7 @@ const CollectionLink: React.FC<Props> = ({
 
   const handleExpand = React.useCallback(() => {
     if (!expanded) {
-      // Create a synthetic event to pass to onDisclosureClick
-      const syntheticEvent = {
-        preventDefault: () => {},
-        stopPropagation: () => {},
-      } as React.MouseEvent<HTMLButtonElement>;
-      
-      onDisclosureClick(syntheticEvent);
+      onDisclosureClick();
     }
   }, [expanded, onDisclosureClick]);
 
