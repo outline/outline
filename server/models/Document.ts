@@ -387,6 +387,11 @@ class Document extends ArchivableModel<
       return `/doc/untitled-${this.urlId}`;
     }
     const slugifiedTitle = slugify(this.title);
+    // If the slugified title is empty (e.g., title only had special characters),
+    // use "untitled" as a fallback to prevent empty URL segments
+    if (!slugifiedTitle) {
+      return `/doc/untitled-${this.urlId}`;
+    }
     return `/doc/${slugifiedTitle}-${this.urlId}`;
   }
 
@@ -400,7 +405,13 @@ class Document extends ArchivableModel<
     if (!title.length) {
       return `/doc/untitled-${urlId}`;
     }
-    return `/doc/${slugify(title)}-${urlId}`;
+    const slugifiedTitle = slugify(title);
+    // If the slugified title is empty (e.g., title only had special characters),
+    // use "untitled" as a fallback to prevent empty URL segments
+    if (!slugifiedTitle) {
+      return `/doc/untitled-${urlId}`;
+    }
+    return `/doc/${slugifiedTitle}-${urlId}`;
   }
 
   // hooks
