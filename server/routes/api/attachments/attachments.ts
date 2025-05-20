@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import { WhereOptions } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
 import { AttachmentPreset } from "@shared/types";
 import { bytesToHumanReadable, getFileNameFromUrl } from "@shared/utils/files";
@@ -39,7 +40,7 @@ router.post(
     const { user } = ctx.state.auth;
 
     // Always filter by the current user
-    const where = {
+    const where: WhereOptions<Attachment> = {
       userId: user.id,
       teamId: user.teamId,
     };
