@@ -78,9 +78,9 @@ function StarredLink({ star }: Props) {
   }, [documentId, documents]);
 
   const handleDisclosureClick = React.useCallback(
-    (ev: React.MouseEvent<HTMLButtonElement>) => {
-      ev.preventDefault();
-      ev.stopPropagation();
+    (ev?: React.MouseEvent<HTMLButtonElement>) => {
+      ev?.preventDefault();
+      ev?.stopPropagation();
       setExpanded((prevExpanded) => !prevExpanded);
     },
     []
