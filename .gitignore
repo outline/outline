@@ -14,4 +14,3 @@ data/*
 *.pem
 *.key
 *.cert
-var/
