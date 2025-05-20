@@ -112,13 +112,31 @@ export default class ToggleBlock extends Node {
         },
         apply: (_, value) => value,
       },
-      appendTransaction: (_transactions, _oldState, newState) => {
+      appendTransaction: (transactions, _oldState, newState) => {
+        const docChanged = transactions.some(
+          (transaction) => transaction.docChanged
+        );
         let tr = null;
+
+        if (docChanged) {
+          // assign ids to toggle blocks that don't have one
+          tr = newState.tr;
+          forEach(
+            filter(
+              findBlockNodes(newState.doc, true),
+              (block) =>
+                block.node.type.name === this.name && !block.node.attrs.id
+            ),
+            (toggleBlock) => {
+              tr!.setNodeAttribute(toggleBlock.pos, "id", v4());
+            }
+          );
+        }
 
         // mark the newly created toggle blocks as folded
         forEach(
           filter(
-            findBlockNodes(newState.doc, true),
+            findBlockNodes(tr ? tr.doc : newState.doc, true),
             (block) => block.node.type.name === this.name
           ),
           (toggleBlock) => {
@@ -131,9 +149,13 @@ export default class ToggleBlock extends Node {
         );
 
         if (!initPlugin.spec.docLoaded) {
-          tr = newState.tr.setMeta(ToggleBlock.actionPluginKey, {
-            type: Action.INIT,
-          });
+          tr = tr
+            ? tr.setMeta(ToggleBlock.actionPluginKey, {
+                type: Action.INIT,
+              })
+            : newState.tr.setMeta(ToggleBlock.actionPluginKey, {
+                type: Action.INIT,
+              });
           initPlugin.spec.docLoaded = true;
         }
 
