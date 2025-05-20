@@ -17,7 +17,7 @@ import {
 import fractionalIndex from "fractional-index";
 import { AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react";
-import * as React from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Pin from "~/models/Pin";
@@ -44,12 +44,12 @@ function PinnedDocuments({
   ...rest
 }: Props) {
   const { documents } = useStores();
-  const [items, setItems] = React.useState(pins.map((pin) => pin.documentId));
-  const showPlaceholderRef = React.useRef(true);
+  const [items, setItems] = useState(pins.map((pin) => pin.documentId));
+  const showPlaceholderRef = useRef(true);
   const showPlaceholder =
     placeholderCount && !items.length && showPlaceholderRef.current;
 
-  React.useEffect(() => {
+  useEffect(() => {
     setItems(pins.map((pin) => pin.documentId));
   }, [pins]);
 
@@ -65,7 +65,7 @@ function PinnedDocuments({
     })
   );
 
-  const handleDragEnd = React.useCallback(
+  const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
 

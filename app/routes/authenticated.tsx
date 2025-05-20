@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import * as React from "react";
+import { Suspense } from "react";
 import { Switch, Redirect, RouteComponentProps } from "react-router-dom";
 import DocumentNew from "~/scenes/DocumentNew";
 import Error404 from "~/scenes/Errors/Error404";
@@ -54,7 +54,7 @@ function AuthenticatedRoutes() {
     <Switch>
       <WebsocketProvider>
         <AuthenticatedLayout>
-          <React.Suspense
+          <Suspense
             fallback={
               <CenteredContent>
                 <PlaceholderDocument />
@@ -109,7 +109,7 @@ function AuthenticatedRoutes() {
               <SettingsRoutes />
               <Route component={Error404} />
             </Switch>
-          </React.Suspense>
+          </Suspense>
         </AuthenticatedLayout>
       </WebsocketProvider>
     </Switch>

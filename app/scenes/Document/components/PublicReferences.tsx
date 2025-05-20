@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import * as React from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { NavigationNode } from "@shared/types";
 import Subheading from "~/components/Subheading";
@@ -18,7 +18,7 @@ function PublicReferences(props: Props) {
   // The sharedTree is the entire document tree starting at the shared document
   // we must filter down the tree to only the part with the document we're
   // currently viewing
-  const children = React.useMemo(() => {
+  const children = useMemo(() => {
     let result: NavigationNode[];
 
     function findChildren(node?: NavigationNode) {

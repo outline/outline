@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import { CopyIcon, InternetIcon, ReplaceIcon } from "outline-icons";
-import * as React from "react";
+import { useEffect, useCallback } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
@@ -39,7 +39,7 @@ const LoadingState = observer(function LoadingState() {
   const oauthClient = oauthClients.get(id);
   const { request } = useRequest(() => oauthClients.fetch(id));
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!oauthClient) {
       void request();
     }
@@ -76,7 +76,7 @@ const Application = observer(function Application({ oauthClient }: Props) {
     },
   });
 
-  const handleSubmit = React.useCallback(
+  const handleSubmit = useCallback(
     async (data: FormData) => {
       try {
         await oauthClient.save(data);
@@ -92,7 +92,7 @@ const Application = observer(function Application({ oauthClient }: Props) {
     [oauthClient, t]
   );
 
-  const handleRotateSecret = React.useCallback(async () => {
+  const handleRotateSecret = useCallback(async () => {
     const onDelete = async () => {
       try {
         await oauthClient.rotateClientSecret();

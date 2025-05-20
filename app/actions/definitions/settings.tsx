@@ -1,5 +1,4 @@
 import { SunIcon, MoonIcon, BrowserIcon } from "outline-icons";
-import * as React from "react";
 import stores from "~/stores";
 import { Theme } from "~/stores/UiStore";
 import { createAction } from "~/actions";

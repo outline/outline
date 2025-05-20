@@ -1,4 +1,4 @@
-import * as React from "react";
+import { Suspense } from "react";
 import { dateToRelative } from "@shared/utils/date";
 import type { Props as LocaleTimeProps } from "~/components/LocaleTime";
 import lazyWithRetry from "~/utils/lazyWithRetry";
@@ -17,13 +17,13 @@ function Time({ onClick, ...props }: Props) {
 
   return (
     <span onClick={onClick}>
-      <React.Suspense
+      <Suspense
         fallback={
           <time dateTime={props.dateTime}>{props.children || content}</time>
         }
       >
         <LocaleTime {...props} />
-      </React.Suspense>
+      </Suspense>
     </span>
   );
 }

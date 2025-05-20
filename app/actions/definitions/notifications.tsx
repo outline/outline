@@ -1,5 +1,4 @@
 import { ArchiveIcon, MarkAsReadIcon } from "outline-icons";
-import * as React from "react";
 import { createAction } from "..";
 import { NotificationSection } from "../sections";
 

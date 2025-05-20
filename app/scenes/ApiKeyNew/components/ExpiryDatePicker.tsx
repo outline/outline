@@ -1,6 +1,6 @@
 import { format as formatDate } from "date-fns";
 import { CalendarIcon } from "outline-icons";
-import React from "react";
+import * as React from "react";
 import { DayPicker } from "react-day-picker";
 import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit";

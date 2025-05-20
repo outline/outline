@@ -7,6 +7,9 @@
   "plugins": [
     "eslint-plugin-react-hooks"
   ],
+  "rules": {
+    "react/react-in-jsx-scope": "off"
+  },
   "env": {
     "jest": true,
     "browser": true

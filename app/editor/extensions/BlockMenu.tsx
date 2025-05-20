@@ -3,7 +3,6 @@ import { PlusIcon } from "outline-icons";
 import { Node, ResolvedPos } from "prosemirror-model";
 import { EditorState, Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import * as React from "react";
 import ReactDOM from "react-dom";
 import { WidgetProps } from "@shared/editor/lib/Extension";
 import { PlaceholderPlugin } from "@shared/editor/plugins/PlaceholderPlugin";

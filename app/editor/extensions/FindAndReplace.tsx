@@ -4,7 +4,6 @@ import { observable } from "mobx";
 import { Node } from "prosemirror-model";
 import { Command, Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import * as React from "react";
 import scrollIntoView from "scroll-into-view-if-needed";
 import Extension, { WidgetProps } from "@shared/editor/lib/Extension";
 import FindAndReplace from "../components/FindAndReplace";

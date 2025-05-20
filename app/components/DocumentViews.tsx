@@ -1,7 +1,7 @@
 import compact from "lodash/compact";
 import sortBy from "lodash/sortBy";
 import { observer } from "mobx-react";
-import * as React from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { dateLocale, dateToRelative } from "@shared/utils/date";
 import Document from "~/models/Document";
@@ -38,7 +38,7 @@ function DocumentViews({ document, isOpen }: Props) {
     documentViews,
     (view) => !presentIds.includes(view.userId)
   );
-  const users = React.useMemo(
+  const users = useMemo(
     () => compact(sortedViews.map((v) => v.user)),
     [sortedViews]
   );

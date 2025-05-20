@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useCallback } from "react";
 import { getCookie, removeCookie, setCookie } from "tiny-cookie";
 import usePersistedState from "~/hooks/usePersistedState";
 import Logger from "~/utils/Logger";
@@ -18,7 +18,7 @@ export function useLastVisitedPath(): [string, (path: string) => void] {
     { listen: false }
   );
 
-  const setPathAsLastVisitedPath = React.useCallback(
+  const setPathAsLastVisitedPath = useCallback(
     (path: string) => {
       if (isAllowedLoginRedirect(path) && path !== lastVisitedPath) {
         setLastVisitedPath(path);
@@ -58,7 +58,7 @@ export function setPostLoginPath(path: string) {
 export function usePostLoginPath() {
   const key = "postLoginRedirectPath";
 
-  const getter = React.useCallback(() => {
+  const getter = useCallback(() => {
     let path;
     try {
       path = sessionStorage.getItem(key) || getCookie(key);

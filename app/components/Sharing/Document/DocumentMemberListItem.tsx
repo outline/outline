@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import * as React from "react";
+import { useCallback, Fragment } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
@@ -31,7 +31,7 @@ const DocumentMemberListItem = ({
 }: Props) => {
   const { t } = useTranslation();
 
-  const handleChange = React.useCallback(
+  const handleChange = useCallback(
     (permission: DocumentPermission | typeof EmptySelectValue) => {
       if (permission === EmptySelectValue) {
         onRemove?.();
@@ -68,7 +68,7 @@ const DocumentMemberListItem = ({
   if (!currentPermission) {
     return null;
   }
-  const MaybeLink = membership?.source ? StyledLink : React.Fragment;
+  const MaybeLink = membership?.source ? StyledLink : Fragment;
 
   return (
     <ListItem

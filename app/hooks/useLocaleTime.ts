@@ -1,5 +1,5 @@
 import { format as formatDate } from "date-fns";
-import * as React from "react";
+import { useState, useRef, useEffect } from "react";
 import { dateLocale, dateToRelative, locales } from "@shared/utils/date";
 import useUserLocale from "~/hooks/useUserLocale";
 
@@ -44,10 +44,10 @@ export const useLocaleTime = ({
     "MMMM do, yyyy h:mm a";
   // @ts-expect-error fallback to formatLocaleLong
   const formatLocale = format?.[userLocale] ?? formatLocaleLong;
-  const [_, setMinutesMounted] = React.useState(0); // eslint-disable-line @typescript-eslint/no-unused-vars
-  const callback = React.useRef<() => void>();
+  const [_, setMinutesMounted] = useState(0); // eslint-disable-line @typescript-eslint/no-unused-vars
+  const callback = useRef<() => void>();
 
-  React.useEffect(() => {
+  useEffect(() => {
     callback.current = eachMinute(() => {
       setMinutesMounted((state) => ++state);
     });

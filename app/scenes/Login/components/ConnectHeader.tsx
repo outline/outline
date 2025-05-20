@@ -1,5 +1,4 @@
 import { MoreIcon } from "outline-icons";
-import * as React from "react";
 import Flex from "@shared/components/Flex";
 import Text from "@shared/components/Text";
 import type Team from "~/models/Team";

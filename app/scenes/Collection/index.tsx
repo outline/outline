@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import * as React from "react";
+import { lazy, useState, useCallback, useEffect, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import {
   useParams,
@@ -48,7 +48,7 @@ import Notices from "./components/Notices";
 import Overview from "./components/Overview";
 import ShareButton from "./components/ShareButton";
 
-const IconPicker = React.lazy(() => import("~/components/IconPicker"));
+const IconPicker = lazy(() => import("~/components/IconPicker"));
 
 enum CollectionPath {
   Overview = "overview",
@@ -66,7 +66,7 @@ const CollectionScene = observer(function _CollectionScene() {
   const location = useLocation();
   const { t } = useTranslation();
   const { documents, collections, ui } = useStores();
-  const [error, setError] = React.useState<Error | undefined>();
+  const [error, setError] = useState<Error | undefined>();
   const currentPath = location.pathname;
   const [, setLastVisitedPath] = useLastVisitedPath();
   const sidebarContext = useLocationSidebarContext();
@@ -89,17 +89,17 @@ const CollectionScene = observer(function _CollectionScene() {
     }
   );
 
-  const handleIconChange = React.useCallback(
+  const handleIconChange = useCallback(
     (icon: string | null, color: string | null) =>
       collection?.save({ icon, color }),
     [collection]
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     setLastVisitedPath(currentPath);
   }, [currentPath, setLastVisitedPath]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (collection?.name) {
       const canonicalUrl = updateCollectionPath(match.url, collection);
 
@@ -109,7 +109,7 @@ const CollectionScene = observer(function _CollectionScene() {
     }
   }, [collection, collection?.name, history, id, match.url]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (collection) {
       ui.setActiveCollection(collection.id);
     }
@@ -117,7 +117,7 @@ const CollectionScene = observer(function _CollectionScene() {
     return () => ui.setActiveCollection(undefined);
   }, [ui, collection]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     async function fetchData() {
       try {
         setError(undefined);
@@ -193,7 +193,7 @@ const CollectionScene = observer(function _CollectionScene() {
           <CollectionHeading>
             <IconTitleWrapper>
               {can.update ? (
-                <React.Suspense fallback={fallbackIcon}>
+                <Suspense fallback={fallbackIcon}>
                   <IconPicker
                     icon={collection.icon ?? "collection"}
                     color={collection.color ?? colorPalette[0]}
@@ -205,7 +205,7 @@ const CollectionScene = observer(function _CollectionScene() {
                   >
                     {fallbackIcon}
                   </IconPicker>
-                </React.Suspense>
+                </Suspense>
               ) : (
                 fallbackIcon
               )}

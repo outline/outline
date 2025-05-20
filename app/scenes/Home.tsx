@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import { HomeIcon } from "outline-icons";
-import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Switch, Route } from "react-router-dom";
 import styled from "styled-components";

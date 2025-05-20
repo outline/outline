@@ -1,5 +1,4 @@
 import { action } from "mobx";
-import * as React from "react";
 import { WidgetProps } from "@shared/editor/lib/Extension";
 import Suggestion from "~/editor/extensions/Suggestion";
 import MentionMenu from "../components/MentionMenu";

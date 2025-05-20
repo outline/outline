@@ -1,6 +1,6 @@
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { transparentize } from "polished";
-import React from "react";
+import * as React from "react";
 import styled from "styled-components";
 import Text from "~/components/Text";
 import useMobile from "~/hooks/useMobile";

@@ -1,5 +1,4 @@
 import { PlusIcon } from "outline-icons";
-import * as React from "react";
 import stores from "~/stores";
 import ApiKeyNew from "~/scenes/ApiKeyNew";
 import { createAction } from "..";

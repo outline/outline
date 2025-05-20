@@ -1,5 +1,4 @@
 import { observer } from "mobx-react";
-import * as React from "react";
 import Guide from "~/components/Guide";
 import Modal from "~/components/Modal";
 import useStores from "~/hooks/useStores";

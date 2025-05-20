@@ -1,5 +1,4 @@
 import { DoneIcon, SmileyIcon, TrashIcon } from "outline-icons";
-import * as React from "react";
 import { toast } from "sonner";
 import stores from "~/stores";
 import Comment from "~/models/Comment";

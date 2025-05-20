@@ -1,7 +1,7 @@
 import debounce from "lodash/debounce";
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
-import React from "react";
+import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";

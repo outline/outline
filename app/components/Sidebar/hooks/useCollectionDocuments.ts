@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useMemo } from "react";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
@@ -7,7 +7,7 @@ export default function useCollectionDocuments(
   collection: Collection | undefined,
   activeDocument: Document | undefined
 ) {
-  return React.useMemo(() => {
+  return useMemo(() => {
     if (!collection?.sortedDocuments) {
       return undefined;
     }

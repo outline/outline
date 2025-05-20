@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import React from "react";
+import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { AvatarSize } from "~/components/Avatar";
@@ -26,7 +26,7 @@ const SelectLocation = ({ defaultCollectionId, onSelect }: Props) => {
   const can = usePolicy(team);
 
   const { loading, error } = useRequest(
-    React.useCallback(async () => {
+    useCallback(async () => {
       if (!collections.isLoaded) {
         await collections.fetchAll({
           limit: 100,
@@ -47,7 +47,7 @@ const SelectLocation = ({ defaultCollectionId, onSelect }: Props) => {
       }
     : null;
 
-  const collectionOptions: Option[] = React.useMemo(
+  const collectionOptions: Option[] = useMemo(
     () =>
       collections.orderedData.reduce<Option[]>((memo, collection) => {
         const canCollection = policies.abilities(collection.id);
@@ -84,7 +84,7 @@ const SelectLocation = ({ defaultCollectionId, onSelect }: Props) => {
       : [workspaceOption]
     : collectionOptions;
 
-  const handleSelection = React.useCallback(
+  const handleSelection = useCallback(
     (value: string | null) => {
       onSelect(value === "workspace" ? null : value);
     },

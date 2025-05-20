@@ -1,5 +1,4 @@
 import { ArchiveIcon } from "outline-icons";
-import * as React from "react";
 import { useTranslation } from "react-i18next";
 import Collection from "~/models/Collection";
 import ErrorBoundary from "~/components/ErrorBoundary";

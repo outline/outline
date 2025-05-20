@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import { CodeIcon } from "outline-icons";
-import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import ApiKey from "~/models/ApiKey";
 import { Action } from "~/components/Actions";

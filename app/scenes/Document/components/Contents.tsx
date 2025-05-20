@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import { transparentize } from "polished";
-import * as React from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -13,13 +13,13 @@ import { decodeURIComponentSafe } from "~/utils/urls";
 const HEADING_OFFSET = 20;
 
 function Contents() {
-  const [activeSlug, setActiveSlug] = React.useState<string>();
+  const [activeSlug, setActiveSlug] = useState<string>();
   const scrollPosition = useWindowScrollPosition({
     throttle: 100,
   });
   const { headings } = useDocumentContext();
 
-  React.useEffect(() => {
+  useEffect(() => {
     let activeId = headings.length > 0 ? headings[0].id : undefined;
 
     for (let key = 0; key < headings.length; key++) {

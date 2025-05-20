@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import * as React from "react";
+import { useEffect, useRef, Fragment } from "react";
 import { Trans } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import styled from "styled-components";
@@ -23,7 +23,7 @@ function References({ document }: Props) {
   const location = useLocation();
   const locationSidebarContext = useLocationSidebarContext();
 
-  React.useEffect(() => {
+  useEffect(() => {
     void documents.fetchBacklinks(document.id);
   }, [documents, document.id]);
 
@@ -34,10 +34,10 @@ function References({ document }: Props) {
     : [];
   const showBacklinks = !!backlinks.length;
   const showChildDocuments = !!children.length;
-  const shouldFade = React.useRef(!showBacklinks && !showChildDocuments);
+  const shouldFade = useRef(!showBacklinks && !showChildDocuments);
   const isBacklinksTab = location.hash === "#backlinks" || !showChildDocuments;
   const height = Math.max(backlinks.length, children.length) * 40;
-  const Component = shouldFade.current ? Fade : React.Fragment;
+  const Component = shouldFade.current ? Fade : Fragment;
 
   return showBacklinks || showChildDocuments ? (
     <Component>

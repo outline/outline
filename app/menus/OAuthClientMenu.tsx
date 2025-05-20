@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import * as React from "react";
+import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuState } from "reakit/Menu";
 import OAuthClient from "~/models/oauth/OAuthClient";
@@ -24,7 +24,7 @@ function OAuthClientMenu({ oauthClient, showEdit }: Props) {
   const { dialogs } = useStores();
   const { t } = useTranslation();
 
-  const handleDelete = React.useCallback(() => {
+  const handleDelete = useCallback(() => {
     dialogs.openModal({
       title: t("Delete app"),
       content: (

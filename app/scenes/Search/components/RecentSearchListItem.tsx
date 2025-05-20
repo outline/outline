@@ -3,7 +3,7 @@ import {
   useRovingTabIndex,
 } from "@getoutline/react-roving-tabindex";
 import { CloseIcon } from "outline-icons";
-import * as React from "react";
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
@@ -20,7 +20,7 @@ type Props = {
 function RecentSearchListItem({ searchQuery }: Props) {
   const { t } = useTranslation();
 
-  const ref = React.useRef<HTMLAnchorElement>(null);
+  const ref = useRef<HTMLAnchorElement>(null);
 
   const { focused, ...rovingTabIndex } = useRovingTabIndex(ref, false);
   useFocusEffect(focused, ref);

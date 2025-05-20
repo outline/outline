@@ -1,6 +1,5 @@
 import { differenceInDays } from "date-fns";
 import { TrashIcon, ArchiveIcon, ShapesIcon, InputIcon } from "outline-icons";
-import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Document from "~/models/Document";

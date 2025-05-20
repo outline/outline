@@ -1,7 +1,7 @@
 import groupBy from "lodash/groupBy";
 import { observer } from "mobx-react";
 import { BackIcon, SidebarIcon } from "outline-icons";
-import * as React from "react";
+import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
@@ -38,7 +38,7 @@ function SettingsSidebar() {
     "group"
   );
 
-  const returnToApp = React.useCallback(() => {
+  const returnToApp = useCallback(() => {
     history.push("/home");
   }, [history]);
 

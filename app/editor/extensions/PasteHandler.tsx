@@ -8,7 +8,6 @@ import {
   TextSelection,
 } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import * as React from "react";
 import { v4 } from "uuid";
 import Extension, { WidgetProps } from "@shared/editor/lib/Extension";
 import { codeLanguages } from "@shared/editor/lib/code";

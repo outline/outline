@@ -1,4 +1,3 @@
-import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import Flex from "@shared/components/Flex";
 import Button from "~/components/Button";

@@ -1,7 +1,7 @@
 import { ColumnSort } from "@tanstack/react-table";
 import { observer } from "mobx-react";
 import { GlobeIcon, WarningIcon } from "outline-icons";
-import * as React from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Link, useHistory, useLocation } from "react-router-dom";
 import { toast } from "sonner";
@@ -28,9 +28,9 @@ function Shares() {
   const canShareDocuments = auth.team && auth.team.sharing;
   const can = usePolicy(team);
   const params = useQuery();
-  const [query, setQuery] = React.useState("");
+  const [query, setQuery] = useState("");
 
-  const reqParams = React.useMemo(
+  const reqParams = useMemo(
     () => ({
       query: params.get("query") || undefined,
       sort: params.get("sort") || "createdAt",
@@ -41,7 +41,7 @@ function Shares() {
     [params]
   );
 
-  const sort: ColumnSort = React.useMemo(
+  const sort: ColumnSort = useMemo(
     () => ({
       id: reqParams.sort,
       desc: reqParams.direction === "DESC",
@@ -56,7 +56,7 @@ function Shares() {
     reqParams,
   });
 
-  const updateParams = React.useCallback(
+  const updateParams = useCallback(
     (name: string, value: string) => {
       if (value) {
         params.set(name, value);
@@ -72,18 +72,18 @@ function Shares() {
     [params, history, location.pathname]
   );
 
-  const handleSearch = React.useCallback((event) => {
+  const handleSearch = useCallback((event) => {
     const { value } = event.target;
     setQuery(value);
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (error) {
       toast.error(t("Could not load shares"));
     }
   }, [t, error]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const timeout = setTimeout(() => updateParams("query", query), 250);
     return () => clearTimeout(timeout);
   }, [query, updateParams]);

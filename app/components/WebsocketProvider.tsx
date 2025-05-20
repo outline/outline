@@ -3,7 +3,7 @@ import invariant from "invariant";
 import find from "lodash/find";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
-import * as React from "react";
+import { createContext, Component } from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { io, Socket } from "socket.io-client";
 import { toast } from "sonner";
@@ -44,13 +44,14 @@ type SocketWithAuthentication = Socket & {
   authenticated?: boolean;
 };
 
-export const WebsocketContext =
-  React.createContext<SocketWithAuthentication | null>(null);
+export const WebsocketContext = createContext<SocketWithAuthentication | null>(
+  null
+);
 
 type Props = WithTranslation & RootStore;
 
 @observer
-class WebsocketProvider extends React.Component<Props> {
+class WebsocketProvider extends Component<Props> {
   @observable
   socket: SocketWithAuthentication | null;
 

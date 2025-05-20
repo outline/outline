@@ -1,5 +1,4 @@
 import times from "lodash/times";
-import * as React from "react";
 import { AvatarSize } from "~/components/Avatar";
 import Fade from "~/components/Fade";
 import PlaceholderText from "~/components/PlaceholderText";

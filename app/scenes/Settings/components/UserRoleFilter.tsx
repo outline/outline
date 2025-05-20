@@ -1,6 +1,6 @@
 import compact from "lodash/compact";
 import { observer } from "mobx-react";
-import * as React from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { UserRole } from "@shared/types";
 import FilterOptions from "~/components/FilterOptions";
@@ -13,7 +13,7 @@ type Props = {
 const UserRoleFilter = ({ activeKey, onSelect, ...rest }: Props) => {
   const { t } = useTranslation();
 
-  const options = React.useMemo(
+  const options = useMemo(
     () =>
       compact([
         {

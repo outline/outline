@@ -1,5 +1,5 @@
 import { NewDocumentIcon, ShapesIcon } from "outline-icons";
-import * as React from "react";
+import { useEffect, useMemo } from "react";
 import Icon from "@shared/components/Icon";
 import { createAction } from "~/actions";
 import {
@@ -14,11 +14,11 @@ import { newDocumentPath } from "~/utils/routeHelpers";
 const useTemplatesAction = () => {
   const { documents } = useStores();
 
-  React.useEffect(() => {
+  useEffect(() => {
     void documents.fetchAllTemplates();
   }, [documents]);
 
-  const actions = React.useMemo(
+  const actions = useMemo(
     () =>
       documents.templatesAlphabetical.map((template) =>
         createAction({
@@ -61,7 +61,7 @@ const useTemplatesAction = () => {
     [documents.templatesAlphabetical]
   );
 
-  const newFromTemplate = React.useMemo(
+  const newFromTemplate = useMemo(
     () =>
       createAction({
         id: "templates",

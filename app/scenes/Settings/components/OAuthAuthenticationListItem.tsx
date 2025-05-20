@@ -1,5 +1,4 @@
 import { observer } from "mobx-react";
-import * as React from "react";
 import { useTranslation } from "react-i18next";
 import OAuthAuthentication from "~/models/oauth/OAuthAuthentication";
 import { OAuthScopeHelper } from "~/scenes/Login/OAuthScopeHelper";

@@ -1,7 +1,7 @@
 import { LocationDescriptor } from "history";
 import { observer, useObserver } from "mobx-react";
 import { CommentIcon } from "outline-icons";
-import * as React from "react";
+import { useRef, Fragment } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
@@ -33,10 +33,10 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
   const documentViews = useObserver(() => views.inDocument(document.id));
   const totalViewers = documentViews.length;
   const onlyYou = totalViewers === 1 && documentViews[0].userId;
-  const viewsLoadedOnMount = React.useRef(totalViewers > 0);
+  const viewsLoadedOnMount = useRef(totalViewers > 0);
   const can = usePolicy(document);
 
-  const Wrapper = viewsLoadedOnMount.current ? React.Fragment : Fade;
+  const Wrapper = viewsLoadedOnMount.current ? Fragment : Fade;
 
   const insightsPath = documentInsightsPath(document);
   const commentsCount = comments.unresolvedCommentsInDocumentCount(document.id);

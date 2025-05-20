@@ -2,7 +2,6 @@ import "../stores";
 import { render } from "@testing-library/react";
 import { TFunction } from "i18next";
 import { Provider } from "mobx-react";
-import * as React from "react";
 import { getI18n } from "react-i18next";
 import { Pagination } from "@shared/constants";
 import PaginatedList from "./PaginatedList";

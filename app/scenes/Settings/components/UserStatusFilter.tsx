@@ -1,6 +1,6 @@
 import compact from "lodash/compact";
 import { observer } from "mobx-react";
-import * as React from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import FilterOptions from "~/components/FilterOptions";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -14,7 +14,7 @@ const UserStatusFilter = ({ activeKey, onSelect, ...rest }: Props) => {
   const { t } = useTranslation();
   const user = useCurrentUser();
 
-  const options = React.useMemo(
+  const options = useMemo(
     () =>
       compact([
         {

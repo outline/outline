@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import { InternetIcon } from "outline-icons";
-import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import OAuthClient from "~/models/oauth/OAuthClient";
 import { Action } from "~/components/Actions";

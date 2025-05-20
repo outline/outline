@@ -1,5 +1,5 @@
 import { BackIcon } from "outline-icons";
-import React from "react";
+import * as React from "react";
 import styled from "styled-components";
 import { breakpoints, s, hover } from "@shared/styles";
 import { colorPalette } from "@shared/utils/collections";

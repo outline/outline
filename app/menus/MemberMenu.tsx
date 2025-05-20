@@ -1,4 +1,3 @@
-import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuState } from "reakit/Menu";
 import User from "~/models/User";

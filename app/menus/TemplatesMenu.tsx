@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import { ShapesIcon } from "outline-icons";
-import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
 import Document from "~/models/Document";

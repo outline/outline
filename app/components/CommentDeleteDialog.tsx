@@ -1,5 +1,4 @@
 import { observer } from "mobx-react";
-import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import Comment from "~/models/Comment";

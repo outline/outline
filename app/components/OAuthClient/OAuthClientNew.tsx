@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import * as React from "react";
+import { useCallback } from "react";
 import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import useStores from "~/hooks/useStores";
@@ -16,7 +16,7 @@ export const OAuthClientNew = observer(function OAuthClientNew_({
   const { oauthClients } = useStores();
   const history = useHistory();
 
-  const handleSubmit = React.useCallback(
+  const handleSubmit = useCallback(
     async (data: FormData) => {
       try {
         const oauthClient = await oauthClients.save(data);

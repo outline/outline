@@ -19,7 +19,6 @@ import {
   Heading3Icon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
-import * as React from "react";
 import styled from "styled-components";
 import Highlight from "@shared/editor/marks/Highlight";
 import { getMarksBetween } from "@shared/editor/queries/getMarksBetween";

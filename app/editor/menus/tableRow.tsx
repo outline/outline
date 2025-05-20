@@ -6,7 +6,6 @@ import {
   TableHeaderRowIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
-import * as React from "react";
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
 

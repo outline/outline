@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import { transparentize } from "polished";
-import React from "react";
+import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
 import { s, hover } from "@shared/styles";

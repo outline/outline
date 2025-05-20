@@ -31,7 +31,6 @@ import {
   LogoutIcon,
   CaseSensitiveIcon,
 } from "outline-icons";
-import * as React from "react";
 import { toast } from "sonner";
 import Icon from "@shared/components/Icon";
 import {

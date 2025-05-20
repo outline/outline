@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
@@ -13,7 +13,7 @@ const DesktopRedirect = () => {
   const token = params.get("token");
   const { t } = useTranslation();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (token) {
       window.open(
         `outline://${window.location.host}/auth/redirect?token=${token}`,

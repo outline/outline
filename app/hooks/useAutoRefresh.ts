@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useState } from "react";
 import { Minute } from "@shared/utils/time";
 import Logger from "~/utils/Logger";
 import useIdle from "./useIdle";
@@ -14,7 +14,7 @@ let isReloaded = false;
  * Hook to reload the app around once a day to stop old code from running.
  */
 export default function useAutoRefresh() {
-  const [minutes, setMinutes] = React.useState(0);
+  const [minutes, setMinutes] = useState(0);
   const isVisible = usePageVisibility();
   const isIdle = useIdle(15 * Minute.ms);
 

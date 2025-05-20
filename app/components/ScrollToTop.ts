@@ -1,5 +1,5 @@
 // based on: https://reacttraining.com/react-router/web/guides/scroll-restoration
-import * as React from "react";
+import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import usePrevious from "~/hooks/usePrevious";
 import { useScrollContext } from "./ScrollContext";
@@ -13,7 +13,7 @@ export default function ScrollToTop({ children }: Props) {
   const previousLocationPathname = usePrevious(location.pathname);
   const scrollContainerRef = useScrollContext();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (
       location.pathname === previousLocationPathname ||
       location.state?.retainScrollPosition

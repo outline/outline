@@ -1,7 +1,6 @@
 import { TFunction } from "i18next";
 import { observer } from "mobx-react";
 import { DoneIcon } from "outline-icons";
-import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
 import Document from "~/models/Document";

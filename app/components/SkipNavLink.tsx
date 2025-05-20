@@ -1,4 +1,3 @@
-import * as React from "react";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
 import { id } from "~/components/SkipNavContent";

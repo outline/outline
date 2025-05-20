@@ -1,6 +1,6 @@
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
-import * as React from "react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Pagination } from "@shared/constants";
@@ -38,7 +38,7 @@ function SharedWithMe() {
     fractionalIndex(null, user.documentMemberships[0].index)
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (error) {
       toast.error(t("Could not load shared documents"));
     }

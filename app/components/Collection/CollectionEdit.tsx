@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import * as React from "react";
+import { useCallback } from "react";
 import { toast } from "sonner";
 import useStores from "~/hooks/useStores";
 import { CollectionForm, FormData } from "./CollectionForm";
@@ -16,7 +16,7 @@ export const CollectionEdit = observer(function CollectionEdit_({
   const { collections } = useStores();
   const collection = collections.get(collectionId);
 
-  const handleSubmit = React.useCallback(
+  const handleSubmit = useCallback(
     async (data: FormData) => {
       try {
         await collection?.save(data);

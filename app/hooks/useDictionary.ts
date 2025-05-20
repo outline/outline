@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 /**
@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 export default function useDictionary() {
   const { t } = useTranslation();
 
-  return React.useMemo(
+  return useMemo(
     () => ({
       addColumnAfter: t("Add column after"),
       addColumnBefore: t("Add column before"),

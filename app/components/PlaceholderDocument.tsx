@@ -1,4 +1,3 @@
-import * as React from "react";
 import styled from "styled-components";
 import DelayedMount from "~/components/DelayedMount";
 import Fade from "~/components/Fade";

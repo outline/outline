@@ -1,7 +1,6 @@
 import { CopyIcon, ExpandedIcon } from "outline-icons";
 import { Node as ProseMirrorNode } from "prosemirror-model";
 import { EditorState } from "prosemirror-state";
-import * as React from "react";
 import {
   getFrequentCodeLanguages,
   codeLanguages,

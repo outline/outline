@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import { StarredIcon, UnstarredIcon } from "outline-icons";
-import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
 import { hover } from "@shared/styles";

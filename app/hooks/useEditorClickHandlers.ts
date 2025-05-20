@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useCallback } from "react";
 import { useHistory } from "react-router-dom";
 import { isModKey } from "@shared/utils/keyboard";
 import { isDocumentUrl, isInternalUrl } from "@shared/utils/urls";
@@ -14,7 +14,7 @@ type Params = {
 export default function useEditorClickHandlers({ shareId }: Params) {
   const history = useHistory();
   const { documents } = useStores();
-  const handleClickLink = React.useCallback(
+  const handleClickLink = useCallback(
     (href: string, event?: MouseEvent) => {
       // on page hash
       if (isHash(href)) {

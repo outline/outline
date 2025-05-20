@@ -1,6 +1,6 @@
 import sortBy from "lodash/sortBy";
 import { observer } from "mobx-react";
-import * as React from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { PAGINATION_SYMBOL } from "~/stores/base/Store";
 import Collection from "~/models/Collection";
@@ -18,16 +18,16 @@ type Props = {
 };
 
 const MembershipPreview = ({ collection, limit = 8 }: Props) => {
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [usersCount, setUsersCount] = React.useState(0);
-  const [groupsCount, setGroupsCount] = React.useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [usersCount, setUsersCount] = useState(0);
+  const [groupsCount, setGroupsCount] = useState(0);
   const { t } = useTranslation();
   const { memberships, groupMemberships, users } = useStores();
   const collectionUsers = users.inCollection(collection.id);
   const context = useActionContext();
   const isMobile = useMobile();
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchData = async () => {
       if (collection.permission || isMobile) {
         return;

@@ -1,4 +1,3 @@
-import * as React from "react";
 import { RouteComponentProps, Switch } from "react-router-dom";
 import DocumentNew from "~/scenes/DocumentNew";
 import Error404 from "~/scenes/Errors/Error404";

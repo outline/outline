@@ -1,5 +1,4 @@
 import { observer } from "mobx-react";
-import * as React from "react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation, useRouteMatch } from "react-router-dom";

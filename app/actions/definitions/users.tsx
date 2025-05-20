@@ -1,5 +1,4 @@
 import { PlusIcon } from "outline-icons";
-import * as React from "react";
 import { UserRole } from "@shared/types";
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import stores from "~/stores";

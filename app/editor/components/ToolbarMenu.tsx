@@ -1,5 +1,5 @@
 import { TippyProps } from "@tippyjs/react";
-import * as React from "react";
+import { useMemo } from "react";
 import { useMenuState } from "reakit";
 import { MenuButton } from "reakit/Menu";
 import styled from "styled-components";
@@ -28,7 +28,7 @@ function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
   const { item } = props;
   const { state } = view;
 
-  const items: TMenuItem[] = React.useMemo(() => {
+  const items: TMenuItem[] = useMemo(() => {
     const handleClick = (menuItem: MenuItem) => () => {
       if (!menuItem.name) {
         return;

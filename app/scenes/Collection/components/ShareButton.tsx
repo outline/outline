@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import { GlobeIcon, PadlockIcon } from "outline-icons";
-import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import Collection from "~/models/Collection";

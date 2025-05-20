@@ -1,5 +1,4 @@
 import { observer } from "mobx-react";
-import * as React from "react";
 import { Toaster } from "sonner";
 import styled, { useTheme } from "styled-components";
 import useStores from "~/hooks/useStores";

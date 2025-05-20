@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { StatusFilter as TStatusFilter } from "@shared/types";
 import FilterOptions from "~/components/FilterOptions";
@@ -12,7 +12,7 @@ type Props = {
 
 const DocumentTypeFilter = ({ statusFilter, onSelect }: Props) => {
   const { t } = useTranslation();
-  const options = React.useMemo(
+  const options = useMemo(
     () => [
       {
         key: TStatusFilter.Published,

@@ -1,6 +1,6 @@
 import { ColumnSort } from "@tanstack/react-table";
 import orderBy from "lodash/orderBy";
-import React from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import {
   FetchPageParams,
   PaginatedResponse,
@@ -31,19 +31,19 @@ export function useTableRequest<T extends { id: string }>({
   reqFn,
   reqParams,
 }: Props<T>): Response<T> {
-  const [total, setTotal] = React.useState<number>();
-  const [offset, setOffset] = React.useState({ value: INITIAL_OFFSET });
-  const prevParamsRef = React.useRef(reqParams);
-  const sortRef = React.useRef<ColumnSort>(sort);
+  const [total, setTotal] = useState<number>();
+  const [offset, setOffset] = useState({ value: INITIAL_OFFSET });
+  const prevParamsRef = useRef(reqParams);
+  const sortRef = useRef<ColumnSort>(sort);
 
-  const fetchPage = React.useCallback(
+  const fetchPage = useCallback(
     () => reqFn({ ...reqParams, offset: offset.value, limit: PAGE_SIZE }),
     [reqFn, reqParams, offset]
   );
 
   const { request, loading, error } = useRequest(fetchPage);
 
-  const nextPage = React.useCallback(
+  const nextPage = useCallback(
     () =>
       setOffset((prev) => ({
         value: prev.value + PAGE_SIZE,
@@ -60,7 +60,7 @@ export function useTableRequest<T extends { id: string }>({
       ? nextPage
       : undefined;
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (prevParamsRef.current !== reqParams) {
       prevParamsRef.current = reqParams;
       setOffset({ value: INITIAL_OFFSET });

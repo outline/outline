@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import { UserIcon } from "outline-icons";
-import * as React from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { Avatar, AvatarSize } from "~/components/Avatar";
@@ -21,7 +21,7 @@ function UserFilter(props: Props) {
   const { t } = useTranslation();
   const { users } = useStores();
 
-  const options = React.useMemo(() => {
+  const options = useMemo(() => {
     const userOptions = users.all.map((user) => ({
       key: user.id,
       label: user.name,
