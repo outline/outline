@@ -74,7 +74,7 @@ export const split: Command = (state, dispatch) => {
   const toggleBlockHead = toggleBlock.firstChild!;
 
   const tr = state.tr;
-  const newToggleBlock = state.schema.nodes["container_toggle_block"].create(
+  const newToggleBlock = state.schema.nodes["container_toggle"].create(
     { id: v4() },
     toggleBlockHead.type.create(
       undefined,
@@ -95,7 +95,7 @@ export const liftNext: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;
   const nextSibling = maybeNextSibling($cursor);
 
-  if (!(nextSibling && nextSibling.type.name === "container_toggle_block")) {
+  if (!(nextSibling && nextSibling.type.name === "container_toggle")) {
     return false;
   }
 
@@ -250,8 +250,7 @@ export const toggle: Command = (state, dispatch) => {
 };
 
 // Utils
-const isToggleBlock = (node: Node) =>
-  node.type.name === "container_toggle_block";
+const isToggleBlock = (node: Node) => node.type.name === "container_toggle";
 
 const withinToggleBlock = ($cursor: ResolvedPos | null) =>
   $cursor && some(ancestors($cursor), isToggleBlock);
