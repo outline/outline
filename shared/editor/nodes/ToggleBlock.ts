@@ -14,6 +14,7 @@ import {
   joinTextblockBackward,
   newlineInCode,
   splitBlock,
+  wrapIn,
 } from "prosemirror-commands";
 import { wrappingInputRule } from "prosemirror-inputrules";
 import { ParseSpec } from "prosemirror-markdown";
@@ -31,7 +32,6 @@ import {
   PluginKey,
   TextSelection,
 } from "prosemirror-state";
-import { findWrapping } from "prosemirror-transform";
 import {
   Decoration,
   DecorationSet,
@@ -579,17 +579,7 @@ export default class ToggleBlock extends Node {
   }
 
   commands({ type }: { type: NodeType; schema: Schema }): CommandFactory {
-    return () => (state, dispatch) => {
-      const { $from, $to } = state.selection;
-      const range = $from.blockRange($to),
-        wrapping = range && findWrapping(range, type, { id: v4() });
-      if (!wrapping) {
-        return false;
-      }
-
-      dispatch?.(state.tr.wrap(range!, wrapping).scrollIntoView());
-      return true;
-    };
+    return () => wrapIn(type, { id: v4() });
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
