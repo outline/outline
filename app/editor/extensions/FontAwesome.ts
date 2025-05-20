@@ -1,4 +1,3 @@
-// app/editor/extensions/FontAwesomeExtension.ts
 import { Node as ProsemirrorNode } from "prosemirror-model";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
@@ -17,7 +16,7 @@ const iconMap: Record<string, any> = {
   // Add more icons as needed
 };
 
-export default class FontAwesomeExtension extends Extension {
+export default class FontAwesome extends Extension {
   get name() {
     return "fontAwesome";
   }

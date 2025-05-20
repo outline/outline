@@ -11,7 +11,7 @@ import MentionMenuExtension from "~/editor/extensions/MentionMenu";
 import PasteHandler from "~/editor/extensions/PasteHandler";
 import PreventTab from "~/editor/extensions/PreventTab";
 import SmartText from "~/editor/extensions/SmartText";
-import FontAwesomeExtension from "~/editor/extensions/FontAwesomeExtension";
+import FontAwesome from "~/editor/extensions/FontAwesome";
 
 type Nodes = (typeof Node | typeof Mark | typeof Extension)[];
 
@@ -28,5 +28,5 @@ export const withUIExtensions = (nodes: Nodes) => [
   // Order these default key handlers last
   PreventTab,
   Keys,
-  FontAwesomeExtension
+  FontAwesome
 ];
