@@ -20,6 +20,7 @@ import Spotify from "./Spotify";
 import Trello from "./Trello";
 import Vimeo from "./Vimeo";
 import YouTube from "./YouTube";
+import FontAwesomeEmbed from "./FontAwesome";
 
 export type EmbedProps = {
   isSelected: boolean;
@@ -407,6 +408,16 @@ const embeds: EmbedDescriptor[] = [
     icon: (
       <Img src="/images/google-lookerstudio.png" alt="Google Looker Studio" />
     ),
+  }),
+  new EmbedDescriptor({
+    title: "FontAwesome Icon",
+    keywords: "icon fontawesome symbol",
+    placeholder: "Paste a FontAwesome URL (e.g., https://fontawesome.com/icons/house?f=classic&s=solid)",
+    icon: <Img src="/images/fontawesome.png" alt="FontAwesome" />,
+    regexMatch: [
+      new RegExp("^https?://fontawesome\\.com/icons/([a-z0-9-]+)(\\?.*)?$"),
+    ],
+    component: FontAwesomeEmbed,
   }),
   new EmbedDescriptor({
     title: "Grist",
