@@ -9,16 +9,13 @@ import styled from "styled-components";
 // Add all icons to the library
 library.add(fas, fab);
 
-const Container = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1em;
-`;
-
-const IconContainer = styled.div`
-    font-size: ${(props) => props.size || "3em"};
-    color: ${(props) => props.color || "currentColor"};
+// Styled component for inline display
+const InlineIconWrapper = styled.span`
+	display: inline-flex;
+	align-items: center;
+	vertical-align: middle;
+	margin: 0 0.1em;
+	color: ${(props) => props.color || "currentColor"};
 `;
 
 // Mapping from fontawesome URL style parameters to icon prefixes
@@ -46,7 +43,7 @@ const FontAwesomeEmbed = React.forwardRef((props: EmbedProps, ref) => {
 		const family = url.searchParams.get("f") || "classic";
 
 		// Get size and color from optional parameters
-		const size = url.searchParams.get("size") || "3x";
+		const size = url.searchParams.get("size") || "1x"; // Default to smaller size for inline
 		const color = url.searchParams.get("color") || undefined;
 
 		// Map style to proper prefix
@@ -56,20 +53,16 @@ const FontAwesomeEmbed = React.forwardRef((props: EmbedProps, ref) => {
 		const iconArray = [prefix, iconName] as const;
 
 		return (
-			<Container ref={ref}>
-				<IconContainer size={size} color={color}>
-					<FontAwesomeIcon icon={iconArray} size={size as any} />
-				</IconContainer>
-			</Container>
+			<InlineIconWrapper ref={ref} color={color}>
+				<FontAwesomeIcon icon={iconArray} size={size as any} />
+			</InlineIconWrapper>
 		);
 	} catch (error) {
 		// Fallback if URL parsing fails
 		return (
-			<Container ref={ref}>
-				<IconContainer>
-					<FontAwesomeIcon icon={["fas", "question"]} />
-				</IconContainer>
-			</Container>
+			<InlineIconWrapper ref={ref}>
+				<FontAwesomeIcon icon={["fas", "question"]} />
+			</InlineIconWrapper>
 		);
 	}
 });

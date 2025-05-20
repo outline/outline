@@ -415,7 +415,7 @@ const embeds: EmbedDescriptor[] = [
     placeholder: "Paste a FontAwesome URL (e.g., https://fontawesome.com/icons/house?f=classic&s=solid)",
     icon: <Img src="/images/fontawesome.png" alt="FontAwesome" />,
     regexMatch: [
-      new RegExp("^https?://fontawesome\\.com/icons/([a-z0-9-]+)(\\?.*)?$"),
+      new RegExp("^https?://xawesome\\.com/icons/([a-z0-9-]+)(\\?.*)?$"),
     ],
     component: FontAwesomeEmbed,
   }),
