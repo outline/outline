@@ -17,6 +17,7 @@ import {
   Transaction,
 } from "prosemirror-state";
 import { liftTarget, ReplaceAroundStep } from "prosemirror-transform";
+import { v4 } from "uuid";
 import ToggleBlock, { Action, On } from "../nodes/ToggleBlock";
 
 // Commands
@@ -74,7 +75,7 @@ export const split: Command = (state, dispatch) => {
 
   const tr = state.tr;
   const newToggleBlock = state.schema.nodes["container_toggle_block"].create(
-    undefined,
+    { id: v4() },
     toggleBlockHead.type.create(
       undefined,
       tr.doc.slice($cursor!.pos, $cursor!.end()).content
