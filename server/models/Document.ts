@@ -383,11 +383,10 @@ class Document extends ArchivableModel<
 
   /** The frontend path to this document. */
   get path() {
-    if (!this.title) {
-      return `/doc/untitled-${this.urlId}`;
-    }
-    const slugifiedTitle = slugify(this.title);
-    return `/doc/${slugifiedTitle}-${this.urlId}`;
+    return Document.getPath({
+      title: this.title,
+      urlId: this.urlId,
+    });
   }
 
   get tasks() {
@@ -400,7 +399,13 @@ class Document extends ArchivableModel<
     if (!title.length) {
       return `/doc/untitled-${urlId}`;
     }
-    return `/doc/${slugify(title)}-${urlId}`;
+    const slugifiedTitle = slugify(title);
+    // If the slugified title is empty (e.g., title only had special characters),
+    // use "untitled" as a fallback to prevent empty URL segments
+    if (!slugifiedTitle) {
+      return `/doc/untitled-${urlId}`;
+    }
+    return `/doc/${slugifiedTitle}-${urlId}`;
   }
 
   // hooks
@@ -867,6 +872,7 @@ class Document extends ArchivableModel<
   /**
    * Find all of the child documents for this document
    *
+   * @param where Omit<WhereOptions<Document>, "parentDocumentId">
    * @param options FindOptions
    * @returns A promise that resolve to a list of documents
    */
