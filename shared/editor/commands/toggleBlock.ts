@@ -256,7 +256,15 @@ const withinToggleBlock = ($cursor: ResolvedPos | null) =>
   $cursor && some(ancestors($cursor), isToggleBlock);
 
 const withinToggleBlockHead = ($cursor: ResolvedPos | null) =>
-  withinToggleBlock($cursor) && $cursor!.index($cursor!.depth - 1) === 0;
+  withinToggleBlock($cursor) &&
+  $cursor!.index(
+    depth(
+      nearest(
+        ancestors($cursor!, (_$cursor, anc, _depth) => isToggleBlock(anc))
+      )!,
+      $cursor!
+    )
+  ) === 0;
 
 const atStartOfToggleBlockHead = ($cursor: ResolvedPos | null) =>
   withinToggleBlockHead($cursor) && $cursor!.parentOffset === 0;
