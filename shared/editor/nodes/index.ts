@@ -105,7 +105,6 @@ export const richExtensions: Nodes = [
   HorizontalRule,
   Highlight,
   TemplatePlaceholder,
-  ToggleBlock,
   Math,
   MathBlock,
   Mention,
@@ -113,6 +112,7 @@ export const richExtensions: Nodes = [
   // the container nodes first.
   ...listExtensions,
   ...tableExtensions,
+  ToggleBlock,
 ];
 
 /**
