@@ -597,7 +597,14 @@ export default class ToggleBlock extends Node {
   }
 
   inputRules({ type }: { type: NodeType }) {
-    return [wrappingInputRule(/^\s*\+\+\+\s$/, type)];
+    return [
+      wrappingInputRule(
+        /^\s*\+\+\+\s$/,
+        type,
+        undefined,
+        (_match, _node) => false
+      ),
+    ];
   }
 
   commands({ type }: { type: NodeType; schema: Schema }): CommandFactory {
