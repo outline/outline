@@ -1969,6 +1969,7 @@ del[data-operation-index] {
   }
 
   > .toggle-block-button {
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
