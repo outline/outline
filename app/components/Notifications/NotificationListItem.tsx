@@ -8,7 +8,7 @@ import { s, hover, truncateMultiline } from "@shared/styles";
 import Notification from "~/models/Notification";
 import CommentEditor from "~/scenes/Document/components/CommentEditor";
 import useStores from "~/hooks/useStores";
-import { Avatar, AvatarSize } from "../Avatar";
+import { Avatar, AvatarSize, AvatarVariant } from "../Avatar";
 import Flex from "../Flex";
 import Text from "../Text";
 import Time from "../Time";
@@ -41,7 +41,7 @@ function NotificationListItem({ notification, onNavigate }: Props) {
   return (
     <StyledLink to={notification.path ?? ""} onClick={handleClick}>
       <Container gap={8} $unread={!notification.viewedAt}>
-        <StyledAvatar model={notification.actor} size={AvatarSize.Large} />
+        <StyledAvatar model={notification.actor} />
         <Flex column>
           <Text as="div" size="small">
             <Text weight="bold">
@@ -79,7 +79,10 @@ const StyledCommentEditor = styled(CommentEditor)`
   ${truncateMultiline(3)}
 `;
 
-const StyledAvatar = styled(Avatar)`
+const StyledAvatar = styled(Avatar).attrs({
+  variant: AvatarVariant.Round,
+  size: AvatarSize.Medium,
+})`
   margin-top: 4px;
 `;
 
