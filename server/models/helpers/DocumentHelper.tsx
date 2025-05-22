@@ -104,7 +104,7 @@ export class DocumentHelper {
     } else if (document instanceof Collection) {
       doc = parser.parse(document.description ?? "");
     } else {
-      doc = parser.parse(document.text);
+      doc = parser.parse(document.text ?? "");
     }
 
     if (doc && options?.signedUrls && options?.teamId) {
