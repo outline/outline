@@ -69,11 +69,13 @@ export default class WebsocketsProcessor {
               updatedAt: document.updatedAt,
             },
           ],
-          collectionIds: [
-            {
-              id: document.collectionId,
-            },
-          ],
+          collectionIds: document.collectionId
+            ? [
+                {
+                  id: document.collectionId,
+                },
+              ]
+            : [],
         });
       }
 
