@@ -6,7 +6,6 @@ import {
   WarningIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
-import * as React from "react";
 import { NoticeTypes } from "@shared/editor/nodes/Notice";
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";

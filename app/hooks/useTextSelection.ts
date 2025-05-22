@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useState } from "react";
 import useEventListener from "./useEventListener";
 
 /**
@@ -7,7 +7,7 @@ import useEventListener from "./useEventListener";
  * @returns The selected text
  */
 export default function useTextSelection() {
-  const [selection, setSelection] = React.useState<string>("");
+  const [selection, setSelection] = useState<string>("");
 
   useEventListener(
     "selectionchange",

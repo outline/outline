@@ -1,5 +1,5 @@
 import uniqBy from "lodash/uniqBy";
-import * as React from "react";
+import { useState, useEffect, useCallback } from "react";
 import { PaginationParams } from "~/types";
 import useRequest from "./useRequest";
 
@@ -34,13 +34,13 @@ export default function usePaginatedRequest<T = unknown>(
   requestFn: (params?: PaginationParams | undefined) => Promise<T[]>,
   params: PaginationParams = {}
 ): RequestResponse<T> {
-  const [data, setData] = React.useState<T[]>();
-  const [offset, setOffset] = React.useState(INITIAL_OFFSET);
-  const [page, setPage] = React.useState(0);
-  const [end, setEnd] = React.useState(false);
+  const [data, setData] = useState<T[]>();
+  const [offset, setOffset] = useState(INITIAL_OFFSET);
+  const [page, setPage] = useState(0);
+  const [end, setEnd] = useState(false);
   const displayLimit = params.limit || DEFAULT_LIMIT;
   const fetchLimit = displayLimit + 1;
-  const [paginatedReq, setPaginatedReq] = React.useState(
+  const [paginatedReq, setPaginatedReq] = useState(
     () => () =>
       requestFn({
         ...params,
@@ -56,11 +56,11 @@ export default function usePaginatedRequest<T = unknown>(
     request,
   } = useRequest<T[]>(paginatedReq);
 
-  React.useEffect(() => {
+  useEffect(() => {
     void request();
   }, [request]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (response && !loading) {
       setData((prev) =>
         uniqBy((prev ?? []).concat(response.slice(0, displayLimit)), "id")
@@ -70,7 +70,7 @@ export default function usePaginatedRequest<T = unknown>(
     }
   }, [response, displayLimit, loading]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (offset) {
       setPaginatedReq(
         () => () =>
@@ -83,11 +83,11 @@ export default function usePaginatedRequest<T = unknown>(
     }
   }, [offset, fetchLimit, requestFn]);
 
-  const next = React.useCallback(() => {
+  const next = useCallback(() => {
     setOffset((prev) => prev + displayLimit);
   }, [displayLimit]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setEnd(false);
     setData(undefined);
     setPage(0);

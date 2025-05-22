@@ -3,7 +3,7 @@ import isEqual from "lodash/isEqual";
 import orderBy from "lodash/orderBy";
 import uniq from "lodash/uniq";
 import { observer } from "mobx-react";
-import * as React from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import Document from "~/models/Document";
@@ -31,7 +31,7 @@ function Collaborators(props: Props) {
   const { t } = useTranslation();
   const user = useCurrentUser();
   const currentUserId = user?.id;
-  const [requestedUserIds, setRequestedUserIds] = React.useState<string[]>([]);
+  const [requestedUserIds, setRequestedUserIds] = useState<string[]>([]);
   const { users, presence, ui } = useStores();
   const { document } = props;
   const documentPresence = presence.get(document.id);
@@ -45,7 +45,7 @@ function Collaborators(props: Props) {
     .map((p) => p.userId);
 
   // ensure currently present via websocket are always ordered first
-  const collaborators = React.useMemo(
+  const collaborators = useMemo(
     () =>
       orderBy(
         filter(
@@ -62,7 +62,7 @@ function Collaborators(props: Props) {
   );
 
   // load any users we don't yet have in memory
-  React.useEffect(() => {
+  useEffect(() => {
     const ids = uniq([...document.collaboratorIds, ...presentIds])
       .filter((userId) => !users.get(userId))
       .sort();
@@ -78,7 +78,7 @@ function Collaborators(props: Props) {
     placement: "bottom-end",
   });
 
-  const renderAvatar = React.useCallback(
+  const renderAvatar = useCallback(
     ({ model: collaborator, ...rest }) => {
       const isPresent = presentIds.includes(collaborator.id);
       const isEditing = editingIds.includes(collaborator.id);

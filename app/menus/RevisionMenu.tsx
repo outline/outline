@@ -1,5 +1,4 @@
 import { observer } from "mobx-react";
-import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuState } from "reakit/Menu";
 import Document from "~/models/Document";
@@ -9,7 +8,6 @@ import Template from "~/components/ContextMenu/Template";
 import { actionToMenuItem } from "~/actions";
 import {
   copyLinkToRevision,
-  deleteRevision,
   restoreRevision,
 } from "~/actions/definitions/revisions";
 import useActionContext from "~/hooks/useActionContext";
@@ -42,7 +40,6 @@ function RevisionMenu({ document, className }: Props) {
           {...menu}
           items={[
             actionToMenuItem(restoreRevision, context),
-            actionToMenuItem(deleteRevision, context),
             separator(),
             actionToMenuItem(copyLinkToRevision, context),
           ]}

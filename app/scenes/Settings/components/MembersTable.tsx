@@ -1,5 +1,5 @@
 import compact from "lodash/compact";
-import * as React from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Text from "@shared/components/Text";
@@ -31,7 +31,7 @@ export function MembersTable({ canManage, ...rest }: Props) {
   const currentUser = useCurrentUser();
   const isMobile = useMobile();
 
-  const columns = React.useMemo<TableColumn<User>[]>(
+  const columns = useMemo<TableColumn<User>[]>(
     () =>
       compact<TableColumn<User>>([
         {

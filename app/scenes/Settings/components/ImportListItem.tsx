@@ -1,7 +1,7 @@
 import capitalize from "lodash/capitalize";
 import { observer } from "mobx-react";
 import { CrossIcon, DoneIcon, WarningIcon } from "outline-icons";
-import React from "react";
+import { useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useTheme } from "styled-components";
@@ -35,7 +35,7 @@ export const ImportListItem = observer(({ importModel }: Props) => {
     importModel.state === ImportState.Errored &&
     !!importModel.error;
 
-  const stateMap = React.useMemo(
+  const stateMap = useMemo(
     () => ({
       [ImportState.Created]: t("Processing"),
       [ImportState.InProgress]: t("Processing"),
@@ -47,7 +47,7 @@ export const ImportListItem = observer(({ importModel }: Props) => {
     [t]
   );
 
-  const iconMap = React.useMemo(
+  const iconMap = useMemo(
     () => ({
       [ImportState.Created]: <Spinner />,
       [ImportState.InProgress]: <Spinner />,
@@ -59,7 +59,7 @@ export const ImportListItem = observer(({ importModel }: Props) => {
     [theme]
   );
 
-  const handleCancel = React.useCallback(async () => {
+  const handleCancel = useCallback(async () => {
     const onCancel = async () => {
       try {
         await importModel.cancel();
@@ -86,7 +86,7 @@ export const ImportListItem = observer(({ importModel }: Props) => {
     });
   }, [t, dialogs, importModel]);
 
-  const handleDelete = React.useCallback(async () => {
+  const handleDelete = useCallback(async () => {
     const onDelete = async () => {
       try {
         await importModel.delete();

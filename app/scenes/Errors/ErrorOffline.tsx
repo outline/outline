@@ -1,4 +1,3 @@
-import * as React from "react";
 import { useTranslation } from "react-i18next";
 import CenteredContent from "~/components/CenteredContent";
 import Empty from "~/components/Empty";

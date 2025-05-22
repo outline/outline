@@ -3,7 +3,7 @@ import "vite/modulepreload-polyfill";
 import { LazyMotion } from "framer-motion";
 import { KBarProvider } from "kbar";
 import { Provider } from "mobx-react";
-import * as React from "react";
+import { StrictMode } from "react";
 import { render } from "react-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { Router } from "react-router-dom";
@@ -48,7 +48,7 @@ const commandBarOptions = {
 
 if (element) {
   const App = () => (
-    <React.StrictMode>
+    <StrictMode>
       <HelmetProvider>
         <Provider {...stores}>
           <Analytics>
@@ -76,7 +76,7 @@ if (element) {
           </Analytics>
         </Provider>
       </HelmetProvider>
-    </React.StrictMode>
+    </StrictMode>
   );
 
   render(<App />, element);

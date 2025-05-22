@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import * as React from "react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import Star from "~/models/Star";
@@ -30,7 +30,7 @@ function Starred() {
   const [reorderStarProps, dropToReorder] = useDropToReorderStar();
   const [createStarProps, dropToStarRef] = useDropToCreateStar();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (error) {
       toast.error(t("Could not load starred documents"));
     }

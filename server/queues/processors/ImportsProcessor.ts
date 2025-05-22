@@ -146,7 +146,9 @@ export default abstract class ImportsProcessor<
     importModel.state = ImportState.InProgress;
     await importModel.save({ transaction });
 
-    transaction.afterCommit(() => this.scheduleTask(importTasks[0]));
+    if (importTasks.length > 0) {
+      transaction.afterCommit(() => this.scheduleTask(importTasks[0]));
+    }
   }
 
   /**

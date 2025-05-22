@@ -1,5 +1,5 @@
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import React from "react";
+import * as React from "react";
 import styled from "styled-components";
 import { Drawer as DrawerPrimitive } from "vaul";
 import { depths, s } from "@shared/styles";

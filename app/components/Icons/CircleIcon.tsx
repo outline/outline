@@ -1,5 +1,3 @@
-import * as React from "react";
-
 type Props = {
   /** The size of the icon, 24px is default to match standard icons */
   size?: number;

@@ -1,5 +1,3 @@
-import * as React from "react";
-
 export function LanguageIcon({ className }: { className?: string }) {
   return (
     <svg

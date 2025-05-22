@@ -1,7 +1,7 @@
 import { AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react";
 import { ArrowIcon } from "outline-icons";
-import * as React from "react";
+import { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
@@ -39,10 +39,10 @@ function Comments() {
   const focusedComment = useFocusedComment();
   const can = usePolicy(document);
 
-  const scrollableRef = React.useRef<HTMLDivElement | null>(null);
-  const prevThreadCount = React.useRef(0);
-  const isAtBottom = React.useRef(true);
-  const [showJumpToRecentBtn, setShowJumpToRecentBtn] = React.useState(false);
+  const scrollableRef = useRef<HTMLDivElement | null>(null);
+  const prevThreadCount = useRef(0);
+  const isAtBottom = useRef(true);
+  const [showJumpToRecentBtn, setShowJumpToRecentBtn] = useState(false);
 
   useKeyDown("Escape", () => document && ui.set({ commentsExpanded: false }));
 
@@ -91,7 +91,7 @@ function Comments() {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Handles: 1. on refresh 2. when switching sort setting
     const readyToDisplay = Boolean(document && isEditorInitialized);
     if (
@@ -103,7 +103,7 @@ function Comments() {
     }
   }, [sortOption.type, document, isEditorInitialized, viewingResolved]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setShowJumpToRecentBtn(false);
     if (sortOption.type === CommentSortType.MostRecent && !viewingResolved) {
       const commentsAdded = threads.length > prevThreadCount.current;

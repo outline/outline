@@ -1,6 +1,6 @@
 import compact from "lodash/compact";
 import { GroupIcon } from "outline-icons";
-import React from "react";
+import { useCallback, useMemo } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
@@ -30,7 +30,7 @@ export function GroupsTable(props: Props) {
   const { t } = useTranslation();
   const { dialogs } = useStores();
 
-  const handleViewMembers = React.useCallback(
+  const handleViewMembers = useCallback(
     (group: Group) => {
       dialogs.openModal({
         title: t("Group members"),
@@ -41,7 +41,7 @@ export function GroupsTable(props: Props) {
     [t, dialogs]
   );
 
-  const columns = React.useMemo<TableColumn<Group>[]>(
+  const columns = useMemo<TableColumn<Group>[]>(
     () =>
       compact<TableColumn<Group>>([
         {

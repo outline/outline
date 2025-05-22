@@ -1,7 +1,7 @@
 import isUndefined from "lodash/isUndefined";
 import { observer } from "mobx-react";
 import { ArchiveIcon } from "outline-icons";
-import * as React from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import Flex from "@shared/components/Flex";
 import Collection from "~/models/Collection";
@@ -21,43 +21,43 @@ function ArchiveLink() {
   const { collections } = useStores();
   const { t } = useTranslation();
 
-  const [disclosure, setDisclosure] = React.useState<boolean>(false);
-  const [expanded, setExpanded] = React.useState<boolean | undefined>();
+  const [disclosure, setDisclosure] = useState<boolean>(false);
+  const [expanded, setExpanded] = useState<boolean | undefined>();
 
   const { request, data, loading, error } = useRequest(
     collections.fetchArchived,
     true
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isUndefined(data) && !loading && isUndefined(error)) {
       setDisclosure(data.length > 0);
     }
   }, [data, loading, error]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setDisclosure(collections.archived.length > 0);
   }, [collections.archived]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (disclosure && isUndefined(expanded)) {
       setExpanded(false);
     }
   }, [disclosure]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (expanded) {
       void request();
     }
   }, [expanded, request]);
 
-  const handleDisclosureClick = React.useCallback((ev) => {
+  const handleDisclosureClick = useCallback((ev) => {
     ev.preventDefault();
     ev.stopPropagation();
     setExpanded((e) => !e);
   }, []);
 
-  const handleClick = React.useCallback(() => {
+  const handleClick = useCallback(() => {
     setExpanded(true);
   }, []);
 

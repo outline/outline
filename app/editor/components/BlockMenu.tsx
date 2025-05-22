@@ -1,4 +1,3 @@
-import React from "react";
 import useDictionary from "~/hooks/useDictionary";
 import getMenuItems from "../menus/block";
 import { useEditor } from "./EditorContext";

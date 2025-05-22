@@ -3,6 +3,17 @@ import { z } from "zod";
 import { AttachmentPreset } from "@shared/types";
 import { BaseSchema } from "@server/routes/api/schema";
 
+export const AttachmentsListSchema = BaseSchema.extend({
+  body: z.object({
+    /** Id of the document to which the Attachment belongs */
+    documentId: z.string().uuid().optional(),
+    /** Id of the user that uploaded the Attachment */
+    userId: z.string().uuid().optional(),
+  }),
+});
+
+export type AttachmentsListReq = z.infer<typeof AttachmentsListSchema>;
+
 export const AttachmentsCreateSchema = BaseSchema.extend({
   body: z.object({
     /** Attachment name */

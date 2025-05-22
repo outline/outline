@@ -7,6 +7,11 @@ require("@server/storage/database");
 
 jest.mock("bull");
 
+// Enable mocks for Redis-related modules
+jest.mock("@server/storage/redis");
+jest.mock("@server/utils/MutexLock");
+jest.mock("@server/utils/CacheHelper");
+
 // This is needed for the relative manual mock to be picked up
 jest.mock("../queues");
 
@@ -34,7 +39,9 @@ jest.mock("@aws-sdk/s3-request-presigner", () => ({
   getSignedUrl: jest.fn(),
 }));
 
-afterAll(() => Redis.defaultClient.disconnect());
+afterAll(() => {
+  Redis.defaultClient.disconnect();
+});
 
 beforeEach(() => {
   env.URL = sharedEnv.URL = "https://app.outline.dev";

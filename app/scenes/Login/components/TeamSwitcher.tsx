@@ -1,5 +1,5 @@
 import { ArrowIcon } from "outline-icons";
-import React from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Text from "@shared/components/Text";
@@ -20,7 +20,7 @@ type Props = { sessions: Sessions };
 
 export function TeamSwitcher({ sessions }: Props) {
   const { t } = useTranslation();
-  const [showLogin, setShowLogin] = React.useState(false);
+  const [showLogin, setShowLogin] = useState(false);
   const url = new URL(window.location.href);
   const appName = env.APP_NAME;
 

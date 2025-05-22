@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import { WhereOptions } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
 import { AttachmentPreset } from "@shared/types";
 import { bytesToHumanReadable, getFileNameFromUrl } from "@shared/utils/files";
@@ -16,8 +17,9 @@ import validate from "@server/middlewares/validate";
 import { Attachment, Document } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { authorize } from "@server/policies";
-import { presentAttachment } from "@server/presenters";
+import { presentAttachment, presentPolicies } from "@server/presenters";
 import UploadAttachmentFromUrlTask from "@server/queues/tasks/UploadAttachmentFromUrlTask";
+import pagination from "@server/routes/api/middlewares/pagination";
 import { sequelize } from "@server/storage/database";
 import FileStorage from "@server/storage/files";
 import BaseStorage from "@server/storage/files/BaseStorage";
@@ -27,6 +29,55 @@ import { assertIn } from "@server/validation";
 import * as T from "./schema";
 
 const router = new Router();
+
+router.post(
+  "attachments.list",
+  auth(),
+  pagination(),
+  validate(T.AttachmentsListSchema),
+  async (ctx: APIContext<T.AttachmentsListReq>) => {
+    const { documentId, userId } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const where: WhereOptions<Attachment> = {
+      teamId: user.teamId,
+    };
+
+    // If a specific user is passed then add to filters
+    if (userId && user.isAdmin) {
+      where.userId = userId;
+    } else {
+      where.userId = user.id;
+    }
+
+    // If a specific document is passed then add to filters
+    if (documentId) {
+      const document = await Document.findByPk(documentId, {
+        userId: user.id,
+      });
+      authorize(user, "read", document);
+      where.documentId = documentId;
+    }
+
+    const [attachments, total] = await Promise.all([
+      Attachment.findAll({
+        where,
+        order: [["createdAt", "DESC"]],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      }),
+      Attachment.count({
+        where,
+      }),
+    ]);
+
+    ctx.body = {
+      pagination: { ...ctx.state.pagination, total },
+      data: attachments.map(presentAttachment),
+      policies: presentPolicies(user, attachments),
+    };
+  }
+);
 
 router.post(
   "attachments.create",

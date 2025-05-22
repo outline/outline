@@ -1,5 +1,5 @@
 import { DocumentIcon } from "outline-icons";
-import * as React from "react";
+import { useMemo } from "react";
 import Icon from "@shared/components/Icon";
 import { createAction } from "~/actions";
 import { RecentSection } from "~/actions/sections";
@@ -10,7 +10,7 @@ import { documentPath } from "~/utils/routeHelpers";
 const useRecentDocumentActions = (count = 6) => {
   const { documents, ui } = useStores();
 
-  return React.useMemo(
+  return useMemo(
     () =>
       documents.recentlyViewed
         .filter((document) => document.id !== ui.activeDocumentId)

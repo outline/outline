@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import * as React from "react";
+import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { OAuthClientValidation } from "@shared/validations";
@@ -49,7 +49,7 @@ export const OAuthClientForm = observer(function OAuthClientForm_({
     },
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     setTimeout(() => setFocus("name", { shouldSelect: true }), 100);
   }, [setFocus]);
 
