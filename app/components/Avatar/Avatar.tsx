@@ -45,12 +45,23 @@ type Props = {
 };
 
 function Avatar(props: Props) {
-  const { model, style, variant = AvatarVariant.Round, ...rest } = props;
+  const {
+    model,
+    style,
+    variant = AvatarVariant.Round,
+    className,
+    ...rest
+  } = props;
   const src = props.src || model?.avatarUrl;
   const [error, handleError] = useBoolean(false);
 
   return (
-    <Relative style={style} $variant={variant} $size={props.size}>
+    <Relative
+      style={style}
+      $variant={variant}
+      $size={props.size}
+      className={className}
+    >
       {src && !error ? (
         <Image onError={handleError} src={src} {...rest} />
       ) : model ? (
@@ -75,6 +86,8 @@ const Relative = styled.div<{ $variant: AvatarVariant; $size: AvatarSize }>`
   border-radius: ${(props) =>
     props.$variant === AvatarVariant.Round ? "50%" : `${props.$size / 8}px`};
   overflow: hidden;
+  width: ${(props) => props.$size}px;
+  height: ${(props) => props.$size}px;
 `;
 
 const Image = styled.img<{ size: number }>`
