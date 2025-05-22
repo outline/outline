@@ -55,6 +55,7 @@ export class EventHelper {
     "pins.update",
     "pins.delete",
     "revisions.create",
+    "revisions.delete",
     "shares.create",
     "shares.update",
     "shares.revoke",

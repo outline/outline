@@ -1,5 +1,3 @@
-import orderBy from "lodash/orderBy";
-import { computed } from "mobx";
 import Event from "~/models/Event";
 import RootStore from "./RootStore";
 import Store, { RPCAction } from "./base/Store";
@@ -11,8 +9,12 @@ export default class EventsStore extends Store<Event<any>> {
     super(rootStore, Event);
   }
 
-  @computed
-  get orderedData(): Event<any>[] {
-    return orderBy(Array.from(this.data.values()), "createdAt", "desc");
-  }
+  /**
+   * Retrieves all events for a given document ID
+   *
+   * @param documentId - The ID of the document to retrieve events for
+   * @returns An array of events for the specified document ID
+   */
+  getByDocumentId = (documentId: string): Event<any>[] =>
+    this.orderedData.filter((event) => event.documentId === documentId);
 }
