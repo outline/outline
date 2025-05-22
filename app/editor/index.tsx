@@ -53,7 +53,7 @@ import Logger from "~/utils/Logger";
 import ComponentView from "./components/ComponentView";
 import EditorContext from "./components/EditorContext";
 import { NodeViewRenderer } from "./components/NodeViewRenderer";
-import SelectionToolbar from "./components/SelectionToolbar";
+import SelectionToolbarExtension from "./extensions/SelectionToolbarExtension";
 import WithTheme from "./components/WithTheme";
 
 export type Props = {
@@ -144,8 +144,6 @@ type State = {
   isRTL: boolean;
   /** If the editor is currently focused */
   isEditorFocused: boolean;
-  /** If the toolbar for a text selection is visible */
-  selectionToolbarOpen: boolean;
 };
 
 /**
@@ -174,7 +172,6 @@ export class Editor extends React.PureComponent<
   state: State = {
     isRTL: false,
     isEditorFocused: false,
-    selectionToolbarOpen: false,
   };
 
   isInitialized = false;
@@ -261,19 +258,12 @@ export class Editor extends React.PureComponent<
       this.calculateDir();
     }
 
-    if (
-      !this.isBlurred &&
-      !this.state.isEditorFocused &&
-      !this.state.selectionToolbarOpen
-    ) {
+    if (!this.isBlurred && !this.state.isEditorFocused) {
       this.isBlurred = true;
       this.props.onBlur?.();
     }
 
-    if (
-      this.isBlurred &&
-      (this.state.isEditorFocused || this.state.selectionToolbarOpen)
-    ) {
+    if (this.isBlurred && this.state.isEditorFocused) {
       this.isBlurred = false;
       this.props.onFocus?.();
     }
@@ -305,7 +295,8 @@ export class Editor extends React.PureComponent<
   }
 
   private createExtensions() {
-    return new ExtensionManager(this.props.extensions, this);
+    const extensions = [...this.props.extensions, new SelectionToolbarExtension()];
+    return new ExtensionManager(extensions, this);
   }
 
   private createPlugins() {
@@ -754,23 +745,6 @@ export class Editor extends React.PureComponent<
     return false;
   };
 
-  private handleOpenSelectionToolbar = () => {
-    this.setState((state) => ({
-      ...state,
-      selectionToolbarOpen: true,
-    }));
-  };
-
-  private handleCloseSelectionToolbar = () => {
-    if (!this.state.selectionToolbarOpen) {
-      return;
-    }
-    this.setState((state) => ({
-      ...state,
-      selectionToolbarOpen: false,
-    }));
-  };
-
   public render() {
     const { readOnly, canUpdate, grow, style, className, onKeyDown } =
       this.props;
@@ -799,18 +773,6 @@ export class Editor extends React.PureComponent<
               ref={this.elementRef}
               lang=""
             />
-            {this.view && (
-              <SelectionToolbar
-                rtl={isRTL}
-                readOnly={readOnly}
-                canUpdate={this.props.canUpdate}
-                canComment={this.props.canComment}
-                isTemplate={this.props.template === true}
-                onOpen={this.handleOpenSelectionToolbar}
-                onClose={this.handleCloseSelectionToolbar}
-                onClickLink={this.props.onClickLink}
-              />
-            )}
             {this.widgets &&
               Object.values(this.widgets).map((Widget, index) => (
                 <Widget key={String(index)} rtl={isRTL} readOnly={readOnly} />

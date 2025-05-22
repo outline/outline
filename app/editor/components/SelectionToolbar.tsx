@@ -9,11 +9,8 @@ import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import { getColumnIndex, getRowIndex } from "@shared/editor/queries/table";
 import { MenuItem } from "@shared/editor/types";
-import useBoolean from "~/hooks/useBoolean";
 import useDictionary from "~/hooks/useDictionary";
-import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
-import usePrevious from "~/hooks/usePrevious";
 import getAttachmentMenuItems from "../menus/attachment";
 import getCodeMenuItems from "../menus/code";
 import getDividerMenuItems from "../menus/divider";
@@ -35,121 +32,30 @@ type Props = {
   readOnly?: boolean;
   canComment?: boolean;
   canUpdate?: boolean;
-  onOpen: () => void;
-  onClose: () => void;
+  active: boolean;
   onClickLink: (
     href: string,
     event: MouseEvent | React.MouseEvent<HTMLButtonElement>
   ) => void;
 };
 
-function useIsActive(state: EditorState) {
-  const { selection, doc } = state;
-
-  if (isMarkActive(state.schema.marks.link)(state)) {
-    return true;
-  }
-  if (
-    (isNodeActive(state.schema.nodes.code_block)(state) ||
-      isNodeActive(state.schema.nodes.code_fence)(state)) &&
-    selection.from > 0
-  ) {
-    return true;
-  }
-
-  if (isInNotice(state) && selection.from > 0) {
-    return true;
-  }
-
-  if (!selection || selection.empty) {
-    return false;
-  }
-  if (selection instanceof NodeSelection && selection.node.type.name === "hr") {
-    return true;
-  }
-  if (
-    selection instanceof NodeSelection &&
-    ["image", "attachment"].includes(selection.node.type.name)
-  ) {
-    return true;
-  }
-  if (selection instanceof NodeSelection) {
-    return false;
-  }
-
-  const selectionText = doc.cut(selection.from, selection.to).textContent;
-  if (selection instanceof TextSelection && !selectionText) {
-    return false;
-  }
-
-  const slice = selection.content();
-  const fragment = slice.content;
-  const nodes = (fragment as any).content;
-
-  return some(nodes, (n) => n.content.size);
-}
-
-function useIsDragging() {
-  const [isDragging, setDragging, setNotDragging] = useBoolean();
-  useEventListener("dragstart", setDragging);
-  useEventListener("dragend", setNotDragging);
-  useEventListener("drop", setNotDragging);
-  return isDragging;
-}
-
 export default function SelectionToolbar(props: Props) {
-  const { onClose, readOnly, onOpen } = props;
+  const {
+    rtl,
+    isTemplate,
+    readOnly,
+    canComment,
+    canUpdate,
+    active, // Added
+    // onOpen, // Removed
+    // onClose, // Removed
+    onClickLink, // Stays
+    ...rest
+  } = props;
   const { view, commands } = useEditor();
   const dictionary = useDictionary();
   const menuRef = React.useRef<HTMLDivElement | null>(null);
   const isMobile = useMobile();
-  const isActive = useIsActive(view.state) || isMobile;
-  const isDragging = useIsDragging();
-  const previousIsActive = usePrevious(isActive);
-
-  React.useEffect(() => {
-    // Trigger callbacks when the toolbar is opened or closed
-    if (previousIsActive && !isActive) {
-      onClose();
-    }
-    if (!previousIsActive && isActive) {
-      onOpen();
-    }
-  }, [isActive, onClose, onOpen, previousIsActive]);
-
-  React.useEffect(() => {
-    const handleClickOutside = (ev: MouseEvent): void => {
-      if (
-        ev.target instanceof HTMLElement &&
-        menuRef.current &&
-        menuRef.current.contains(ev.target)
-      ) {
-        return;
-      }
-      if (view.dom.contains(ev.target as HTMLElement)) {
-        return;
-      }
-
-      if (!isActive || document.activeElement?.tagName === "INPUT") {
-        return;
-      }
-
-      if (!window.getSelection()?.isCollapsed) {
-        return;
-      }
-
-      const { dispatch } = view;
-      dispatch(
-        view.state.tr.setSelection(new TextSelection(view.state.doc.resolve(0)))
-      );
-    };
-
-    window.addEventListener("mouseup", handleClickOutside);
-
-    return () => {
-      window.removeEventListener("mouseup", handleClickOutside);
-    };
-  }, [isActive, previousIsActive, readOnly, view]);
 
   const handleOnSelectLink = ({
     href,
@@ -171,13 +77,8 @@ export default function SelectionToolbar(props: Props) {
     );
   };
 
-  const { isTemplate, rtl, canComment, canUpdate, ...rest } = props;
   const { state } = view;
   const { selection } = state;
-
-  if ((readOnly && !canComment) || isDragging) {
-    return null;
-  }
 
   const isDividerSelection = isNodeActive(state.schema.nodes.hr)(state);
   const colIndex = getColumnIndex(state);
@@ -240,7 +141,7 @@ export default function SelectionToolbar(props: Props) {
 
   return (
     <FloatingToolbar
-      active={isActive}
+      active={props.active}
       ref={menuRef}
       width={showLinkToolbar ? 336 : undefined}
     >
