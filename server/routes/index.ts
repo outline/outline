@@ -171,6 +171,10 @@ router.get("*", shareDomains(), async (ctx, next) => {
     : [];
 
   return renderApp(ctx, next, {
+    title:
+      team?.getPreference(TeamPreference.PublicBranding) && team.name
+        ? team.name
+        : undefined,
     analytics,
     shortcutIcon:
       team?.getPreference(TeamPreference.PublicBranding) && team.avatarUrl
