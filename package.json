@@ -260,7 +260,7 @@
     "y-prosemirror": "^1.2.12",
     "y-protocols": "^1.0.6",
     "yauzl": "^2.10.0",
-    "yjs": "^13.6.1",
+    "yjs": "^13.6.27",
     "zod": "^3.24.2"
   },
   "devDependencies": {
