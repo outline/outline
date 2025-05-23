@@ -1,10 +1,5 @@
 import isNull from "lodash/isNull";
-import {
-  NodeSpec,
-  Node as ProsemirrorNode,
-  ResolvedPos,
-} from "prosemirror-model";
-import { EditorState } from "prosemirror-state";
+import { NodeSpec } from "prosemirror-model";
 import { PlaceholderPlugin } from "../plugins/PlaceholderPlugin";
 import Node from "./Node";
 
@@ -23,13 +18,8 @@ export default class Doc extends Node {
     return [
       new PlaceholderPlugin([
         {
-          condition: (
-            node: ProsemirrorNode,
-            $start: ResolvedPos,
-            parent: ProsemirrorNode | null,
-            state: EditorState
-          ) =>
-            node.textContent === "" &&
+          condition: ({ $start, parent, state, textContent }) =>
+            textContent === "" &&
             !isNull(parent) &&
             parent.type === state.doc.type &&
             parent.childCount === 1 &&

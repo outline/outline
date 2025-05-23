@@ -7,42 +7,47 @@ import { Decoration, DecorationSet } from "prosemirror-view";
 
 type Config = Array<{
   /** Condition to meet for the placeholder to be applied to a node */
-  condition: (
+  condition: (args: {
     /** Node to which the placeholder is expected to be applied */
-    node: Node,
+    node: Node;
     /** Resolved position corresponding to start of node */
-    $start: ResolvedPos,
+    $start: ResolvedPos;
     /** Parent of node to which the placeholder is expected to be applied */
-    parent: Node | null,
-    state: EditorState
-  ) => boolean;
+    parent: Node | null;
+    /** Current editor state */
+    state: EditorState;
+    /** Text content of the document */
+    textContent: string;
+  }) => boolean;
   /** Placeholder text */
   text: string;
 }>;
 
 export class PlaceholderPlugin extends Plugin {
-  private config: Config;
-
   constructor(config: Config) {
     super({
+      state: {
+        init: (_, state: EditorState) => ({
+          decorations: this.createDecorations(state, config),
+        }),
+        apply: (tr, pluginState, oldState, newState) => {
+          // Only recompute if doc or selection changed
+          if (tr.docChanged || tr.selectionSet) {
+            return { decorations: this.createDecorations(newState, config) };
+          }
+          return pluginState;
+        },
+      },
       props: {
         decorations: (state) => {
-          const decorations: Decoration[] = map(
-            this.placeholders(state),
-            (placeholder) =>
-              Decoration.node(placeholder.from, placeholder.to, {
-                class: "placeholder",
-                "data-empty-text": placeholder.text,
-              })
-          );
-          return DecorationSet.create(state.doc, decorations);
+          const pluginState = this.getState(state);
+          return pluginState ? pluginState.decorations : null;
         },
       },
     });
-    this.config = config;
   }
 
-  private placeholders(state: EditorState) {
+  private createDecorations(state: EditorState, config: Config) {
     const paras: Array<{
       node: Node;
       $start: ResolvedPos;
@@ -51,23 +56,36 @@ export class PlaceholderPlugin extends Plugin {
     state.doc.descendants((node, pos, parent) => {
       if (node.type.name === "paragraph") {
         paras.push({ node, $start: state.doc.resolve(pos + 1), parent });
+        return false;
       }
+      return true;
     });
-    return filter(
-      map(paras, (para) => {
-        const condMet = find(this.config, (conf) =>
-          conf.condition(para.node, para.$start, para.parent, state)
-        );
 
+    const textContent = state.doc.textContent;
+    const decorations: Decoration[] = filter(
+      map(paras, (para) => {
+        const condMet = find(config, (conf) =>
+          conf.condition({
+            node: para.node,
+            $start: para.$start,
+            parent: para.parent,
+            state,
+            textContent,
+          })
+        );
         return condMet
-          ? {
-              from: para.$start.pos - 1,
-              to: para.$start.pos - 1 + para.node.nodeSize,
-              text: condMet.text,
-            }
+          ? Decoration.node(
+              para.$start.pos - 1,
+              para.$start.pos - 1 + para.node.nodeSize,
+              {
+                class: "placeholder",
+                "data-empty-text": condMet.text,
+              }
+            )
           : undefined;
       }),
-      (placeholder) => placeholder !== undefined
+      (decoration) => decoration !== undefined
     );
+    return DecorationSet.create(state.doc, decorations);
   }
 }
