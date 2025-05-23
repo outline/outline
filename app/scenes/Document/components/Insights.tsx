@@ -194,7 +194,7 @@ function Insights() {
                     </Text>
                     {documentViews.length > 1 && (
                       <ListSpacing>
-                        <DocumentViews document={document} isOpen />
+                        <DocumentViews document={document} />
                       </ListSpacing>
                     )}
                   </>
