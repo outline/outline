@@ -33,10 +33,10 @@ import { isModKey } from "@shared/utils/keyboard";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
+import ConnectionStatus from "~/scenes/Document/components/ConnectionStatus";
 import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPublish from "~/scenes/DocumentPublish";
 import Branding from "~/components/Branding";
-import ConnectionStatus from "~/components/ConnectionStatus";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import PageTitle from "~/components/PageTitle";
@@ -48,7 +48,6 @@ import type { Editor as TEditor } from "~/editor";
 import { Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { emojiToUrl } from "~/utils/emoji";
-
 import {
   documentHistoryPath,
   documentEditPath,
@@ -64,6 +63,7 @@ import Notices from "./Notices";
 import PublicReferences from "./PublicReferences";
 import References from "./References";
 import RevisionViewer from "./RevisionViewer";
+import { SizeWarning } from "./SizeWarning";
 
 const AUTOSAVE_DELAY = 3000;
 
@@ -630,6 +630,7 @@ class DocumentScene extends React.Component<Props> {
             <Footer>
               <KeyboardShortcutsButton />
               <ConnectionStatus />
+              <SizeWarning document={document} />
             </Footer>
           )}
         </MeasuredContainer>
@@ -741,11 +742,14 @@ const RevisionContainer = styled.div<RevisionContainerProps>`
 `;
 
 const Footer = styled.div`
-  position: absolute;
+  position: fixed;
   width: 100%;
+  bottom: 12px;
+  right: 20px;
   text-align: right;
   display: flex;
   justify-content: flex-end;
+  gap: 20px;
 `;
 
 const Background = styled(Container)`

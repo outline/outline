@@ -74,10 +74,6 @@ function ConnectionStatus() {
 
 const Button = styled(NudeButton)`
   display: none;
-  position: fixed;
-  bottom: 0;
-  margin: 20px;
-  transform: translateX(-32px);
 
   ${breakpoint("tablet")`
     display: block;
