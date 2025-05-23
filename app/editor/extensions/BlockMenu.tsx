@@ -1,7 +1,6 @@
 import { action } from "mobx";
 import { PlusIcon } from "outline-icons";
-import { Node, ResolvedPos } from "prosemirror-model";
-import { EditorState, Plugin } from "prosemirror-state";
+import { Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import ReactDOM from "react-dom";
 import { WidgetProps } from "@shared/editor/lib/Extension";
@@ -77,28 +76,18 @@ export default class BlockMenuExtension extends Suggestion {
       }),
       new PlaceholderPlugin([
         {
-          condition: (
-            node: Node,
-            $start: ResolvedPos,
-            _parent: Node | null,
-            state: EditorState
-          ) =>
+          condition: ({ node, $start, textContent, state }) =>
             $start.depth === 1 &&
-            node.textContent === "" &&
-            !!state.doc.textContent &&
-            state.selection.$from.pos === $start.pos + node.content.size,
+            state.selection.$from.pos === $start.pos + node.content.size &&
+            !!textContent &&
+            node.textContent === "",
           text: this.options.dictionary.newLineEmpty,
         },
         {
-          condition: (
-            node: Node,
-            $start: ResolvedPos,
-            _parent: Node,
-            state: EditorState
-          ) =>
+          condition: ({ node, $start, state }) =>
             $start.depth === 1 &&
-            node.textContent === "/" &&
-            state.selection.$from.pos === $start.pos + node.content.size,
+            state.selection.$from.pos === $start.pos + node.content.size &&
+            node.textContent === "/",
           text: `  ${this.options.dictionary.newLineWithSlash}`,
         },
       ]),
