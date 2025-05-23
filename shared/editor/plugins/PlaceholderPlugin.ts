@@ -24,8 +24,6 @@ type Config = Array<{
 }>;
 
 export class PlaceholderPlugin extends Plugin {
-  private config: Config;
-
   constructor(config: Config) {
     super({
       state: {
