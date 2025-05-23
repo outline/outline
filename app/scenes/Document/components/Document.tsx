@@ -744,7 +744,7 @@ const RevisionContainer = styled.div<RevisionContainerProps>`
 const Footer = styled.div`
   position: fixed;
   width: 100%;
-  bottom: 8px;
+  bottom: 12px;
   right: 20px;
   text-align: right;
   display: flex;
