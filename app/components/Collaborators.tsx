@@ -34,55 +34,94 @@ function Collaborators(props: Props) {
   const [requestedUserIds, setRequestedUserIds] = useState<string[]>([]);
   const { users, presence, ui } = useStores();
   const { document } = props;
+  const { observingUserId } = ui;
   const documentPresence = presence.get(document.id);
   const documentPresenceArray = documentPresence
     ? Array.from(documentPresence.values())
     : [];
 
-  const presentIds = documentPresenceArray.map((p) => p.userId);
-  const editingIds = documentPresenceArray
-    .filter((p) => p.isEditing)
-    .map((p) => p.userId);
+  // Use Set for O(1) lookups and stable references
+  const presentIds = useMemo(
+    () => new Set(documentPresenceArray.map((p) => p.userId)),
+    [documentPresenceArray]
+  );
+  const editingIds = useMemo(
+    () =>
+      new Set(
+        documentPresenceArray.filter((p) => p.isEditing).map((p) => p.userId)
+      ),
+    [documentPresenceArray]
+  );
 
   // ensure currently present via websocket are always ordered first
+  // Memoize collaboratorIds as a Set for efficient lookup
+  const collaboratorIdsSet = useMemo(
+    () => new Set(document.collaboratorIds),
+    [document.collaboratorIds]
+  );
   const collaborators = useMemo(
     () =>
       orderBy(
         filter(
           users.all,
           (u) =>
-            (presentIds.includes(u.id) ||
-              document.collaboratorIds.includes(u.id)) &&
+            (presentIds.has(u.id) || collaboratorIdsSet.has(u.id)) &&
             !u.isSuspended
         ),
-        [(u) => presentIds.includes(u.id), "id"],
+        [(u) => presentIds.has(u.id), "id"],
         ["asc", "asc"]
       ),
-    [document.collaboratorIds, users.all, presentIds]
+    [collaboratorIdsSet, users.all, presentIds]
   );
 
   // load any users we don't yet have in memory
-  useEffect(() => {
-    const ids = uniq([...document.collaboratorIds, ...presentIds])
-      .filter((userId) => !users.get(userId))
-      .sort();
+  // Memoize ids to avoid unnecessary effect executions
+  const missingUserIds = useMemo(
+    () =>
+      uniq([...document.collaboratorIds, ...Array.from(presentIds)])
+        .filter((userId) => !users.get(userId))
+        .sort(),
+    [document.collaboratorIds, presentIds, users]
+  );
 
-    if (!isEqual(requestedUserIds, ids) && ids.length > 0) {
-      setRequestedUserIds(ids);
-      void users.fetchPage({ ids, limit: 100 });
+  useEffect(() => {
+    if (
+      !isEqual(requestedUserIds, missingUserIds) &&
+      missingUserIds.length > 0
+    ) {
+      setRequestedUserIds(missingUserIds);
+      void users.fetchPage({ ids: missingUserIds, limit: 100 });
     }
-  }, [document, users, presentIds, document.collaboratorIds, requestedUserIds]);
+  }, [missingUserIds, requestedUserIds, users]);
 
   const popover = usePopoverState({
     gutter: 0,
     placement: "bottom-end",
   });
 
+  // Memoize onClick handler to avoid inline function creation
+  const handleAvatarClick = useCallback(
+    (
+        collaboratorId: string,
+        isPresent: boolean,
+        isObserving: boolean,
+        isObservable: boolean
+      ) =>
+      (ev: React.MouseEvent) => {
+        if (isObservable && isPresent) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          ui.setObservingUser(isObserving ? undefined : collaboratorId);
+        }
+      },
+    [ui]
+  );
+
   const renderAvatar = useCallback(
     ({ model: collaborator, ...rest }) => {
-      const isPresent = presentIds.includes(collaborator.id);
-      const isEditing = editingIds.includes(collaborator.id);
-      const isObserving = ui.observingUserId === collaborator.id;
+      const isPresent = presentIds.has(collaborator.id);
+      const isEditing = editingIds.has(collaborator.id);
+      const isObserving = observingUserId === collaborator.id;
       const isObservable = collaborator.id !== currentUserId;
 
       return (
@@ -96,21 +135,18 @@ function Collaborators(props: Props) {
           isCurrentUser={currentUserId === collaborator.id}
           onClick={
             isObservable
-              ? (ev) => {
-                  if (isPresent) {
-                    ev.preventDefault();
-                    ev.stopPropagation();
-                    ui.setObservingUser(
-                      isObserving ? undefined : collaborator.id
-                    );
-                  }
-                }
+              ? handleAvatarClick(
+                  collaborator.id,
+                  isPresent,
+                  isObserving,
+                  isObservable
+                )
               : undefined
           }
         />
       );
     },
-    [presentIds, ui, currentUserId, editingIds]
+    [presentIds, editingIds, observingUserId, currentUserId, handleAvatarClick]
   );
 
   return (
@@ -133,7 +169,7 @@ function Collaborators(props: Props) {
         )}
       </PopoverDisclosure>
       <Popover {...popover} width={300} aria-label={t("Viewers")} tabIndex={0}>
-        <DocumentViews document={document} isOpen={popover.visible} />
+        {popover.visible && <DocumentViews document={document} />}
       </Popover>
     </>
   );
