@@ -7,15 +7,18 @@ import { Decoration, DecorationSet } from "prosemirror-view";
 
 type Config = Array<{
   /** Condition to meet for the placeholder to be applied to a node */
-  condition: (
+  condition: (args: {
     /** Node to which the placeholder is expected to be applied */
-    node: Node,
+    node: Node;
     /** Resolved position corresponding to start of node */
-    $start: ResolvedPos,
+    $start: ResolvedPos;
     /** Parent of node to which the placeholder is expected to be applied */
-    parent: Node | null,
-    state: EditorState
-  ) => boolean;
+    parent: Node | null;
+    /** Current editor state */
+    state: EditorState;
+    /** Text content of the document */
+    textContent: string;
+  }) => boolean;
   /** Placeholder text */
   text: string;
 }>;
@@ -56,12 +59,22 @@ export class PlaceholderPlugin extends Plugin {
     state.doc.descendants((node, pos, parent) => {
       if (node.type.name === "paragraph") {
         paras.push({ node, $start: state.doc.resolve(pos + 1), parent });
+        return false;
       }
+      return true;
     });
+
+    const textContent = state.doc.textContent;
     const decorations: Decoration[] = filter(
       map(paras, (para) => {
         const condMet = find(config, (conf) =>
-          conf.condition(para.node, para.$start, para.parent, state)
+          conf.condition({
+            node: para.node,
+            $start: para.$start,
+            parent: para.parent,
+            state,
+            textContent,
+          })
         );
         return condMet
           ? Decoration.node(
