@@ -57,6 +57,11 @@ export class NotionClient {
   private client: Client;
   private limiter: ReturnType<typeof RateLimit>;
   private pageSize = 25;
+  private skipChildrenForBlock = [
+    "unsupported",
+    "child_page",
+    "child_database",
+  ];
 
   constructor(
     accessToken: string,
@@ -178,8 +183,7 @@ export class NotionClient {
       blocks.map(async (block) => {
         if (
           block.has_children &&
-          block.type !== "child_page" &&
-          block.type !== "child_database"
+          !this.skipChildrenForBlock.includes(block.type)
         ) {
           block.children = await this.fetchBlockChildren(block.id);
         }
