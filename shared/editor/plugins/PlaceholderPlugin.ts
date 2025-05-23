@@ -47,7 +47,6 @@ export class PlaceholderPlugin extends Plugin {
         },
       },
     });
-    this.config = config;
   }
 
   private createDecorations(state: EditorState, config: Config) {
