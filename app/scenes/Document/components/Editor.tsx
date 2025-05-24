@@ -57,7 +57,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const { t } = useTranslation();
   const match = useRouteMatch();
   const focusedComment = useFocusedComment();
-  const { ui, comments } = useStores();
+  const { ui, comments, collections } = useStores();
   const user = useCurrentUser({ rejectOnEmpty: false });
   const team = useCurrentTeam({ rejectOnEmpty: false });
   const history = useHistory();
@@ -75,6 +75,15 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     ...rest
   } = props;
   const can = usePolicy(document);
+
+  // Check collection-level commenting setting
+  const collection = document.collectionId
+    ? collections.get(document.collectionId)
+    : undefined;
+  const collectionCommentingEnabled =
+    collection?.canCreateComment ??
+    !!team?.getPreference(TeamPreference.Commenting);
+
   const iconColor = document.color ?? (last(colorPalette) as string);
   const childRef = React.useRef<HTMLDivElement>(null);
   const focusAtStart = React.useCallback(() => {
@@ -244,12 +253,12 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         focusedCommentId={focusedComment?.id}
         onClickCommentMark={handleClickComment}
         onCreateCommentMark={
-          team?.getPreference(TeamPreference.Commenting) && can.comment
+          collectionCommentingEnabled && can.comment
             ? handleDraftComment
             : undefined
         }
         onDeleteCommentMark={
-          team?.getPreference(TeamPreference.Commenting) && can.comment
+          collectionCommentingEnabled && can.comment
             ? handleRemoveComment
             : undefined
         }

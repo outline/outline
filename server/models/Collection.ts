@@ -296,6 +296,12 @@ class Collection extends ParanoidModel<
   @Column
   archivedAt: Date | null;
 
+  /** Allows the configuration of commenting per collection. */
+  @AllowNull(true)
+  @Default(null)
+  @Column(DataType.BOOLEAN)
+  commenting: boolean | null;
+
   // getters
 
   /**
