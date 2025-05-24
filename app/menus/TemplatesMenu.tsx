@@ -1,11 +1,12 @@
 import { observer } from "mobx-react";
 import { ShapesIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
-import { MenuButton, useMenuState } from "reakit/Menu";
+import { MenuButton } from "reakit/Menu";
 import Document from "~/models/Document";
 import Button from "~/components/Button";
 import ContextMenu from "~/components/ContextMenu";
 import Template from "~/components/ContextMenu/Template";
+import { useMenuState } from "~/hooks/useMenuState";
 import { useTemplateMenuItems } from "~/hooks/useTemplateMenuItems";
 
 type Props = {

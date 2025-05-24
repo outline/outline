@@ -27,6 +27,20 @@
     "eslint-plugin-lodash"
   ],
   "rules": {
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          {
+            "name": "reakit/Menu",
+            "importNames": [
+              "useMenuState"
+            ],
+            "message": "Do not use useMenuState from reakit/Menu. Use useMenuState instead."
+          }
+        ]
+      }
+    ],
     "eqeqeq": 2,
     "curly": 2,
     "no-console": "error",

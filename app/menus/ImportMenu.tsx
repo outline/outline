@@ -2,11 +2,11 @@ import { observer } from "mobx-react";
 import { CrossIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useMenuState } from "reakit/Menu";
 import Import from "~/models/Import";
 import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import Template from "~/components/ContextMenu/Template";
+import { useMenuState } from "~/hooks/useMenuState";
 import usePolicy from "~/hooks/usePolicy";
 import { MenuItem } from "~/types";
 

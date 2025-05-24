@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import { useTranslation } from "react-i18next";
-import { useMenuState } from "reakit/Menu";
 import Document from "~/models/Document";
 import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
@@ -11,6 +10,7 @@ import {
   restoreRevision,
 } from "~/actions/definitions/revisions";
 import useActionContext from "~/hooks/useActionContext";
+import { useMenuState } from "~/hooks/useMenuState";
 import separator from "./separator";
 
 type Props = {

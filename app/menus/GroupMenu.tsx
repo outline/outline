@@ -2,7 +2,6 @@ import { observer } from "mobx-react";
 import { EditIcon, GroupIcon, TrashIcon } from "outline-icons";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useMenuState } from "reakit/Menu";
 import Group from "~/models/Group";
 import {
   DeleteGroupDialog,
@@ -12,6 +11,7 @@ import {
 import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import Template from "~/components/ContextMenu/Template";
+import { useMenuState } from "~/hooks/useMenuState";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 
