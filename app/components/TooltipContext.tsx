@@ -16,18 +16,21 @@ type Props = {
   /** Prevents the tooltip from opening */
   disableHoverableContent?: boolean;
   /** Props to pass to the Tippy component - kept for backward compatibility */
-  tippyProps?: any;
+  tippyProps?: {
+    delay?: number;
+    [key: string]: unknown;
+  };
 };
 
 /**
  * Wrap a collection of tooltips in a provider to allow them to share the same provider instance.
  */
-export function TooltipProvider({ 
-  children, 
+export function TooltipProvider({
+  children,
   delayDuration = 500,
   skipDelayDuration = 300,
   disableHoverableContent = false,
-  tippyProps 
+  tippyProps,
 }: Props) {
   // Handle backward compatibility with tippyProps
   const finalDelayDuration = tippyProps?.delay ?? delayDuration;
@@ -38,9 +41,7 @@ export function TooltipProvider({
       skipDelayDuration={skipDelayDuration}
       disableHoverableContent={disableHoverableContent}
     >
-      <TooltipContext.Provider value={true}>
-        {children}
-      </TooltipContext.Provider>
+      <TooltipContext.Provider value={true}>{children}</TooltipContext.Provider>
     </TooltipPrimitive.Provider>
   );
 }

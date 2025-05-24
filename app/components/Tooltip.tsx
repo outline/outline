@@ -6,6 +6,55 @@ import { s } from "@shared/styles";
 import useMobile from "~/hooks/useMobile";
 import { useTooltipContext } from "./TooltipContext";
 
+// Define keyframes before they're used
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const slideUpAndFade = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const slideRightAndFade = keyframes`
+  from {
+    opacity: 0;
+    transform: translateX(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+`;
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const slideDownAndFade = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const slideLeftAndFade = keyframes`
+  from {
+    opacity: 0;
+    transform: translateX(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+`;
+
 export type Props = {
   /** The content to display in the tooltip. */
   content?: React.ReactChild | React.ReactChild[];
@@ -26,7 +75,9 @@ export type Props = {
   /** The element used as the collision boundary */
   collisionBoundary?: Element | null | Array<Element | null>;
   /** The distance in pixels from the boundary edges where collision detection should occur */
-  collisionPadding?: number | Partial<Record<"top" | "right" | "bottom" | "left", number>>;
+  collisionPadding?:
+    | number
+    | Partial<Record<"top" | "right" | "bottom" | "left", number>>;
   /** Whether the tooltip should be open by default */
   defaultOpen?: boolean;
   /** The controlled open state of the tooltip */
@@ -46,13 +97,25 @@ export type Props = {
   /** Custom offset for the tooltip */
   offset?: [number, number];
   /** Placement prop for backward compatibility with Tippy */
-  placement?: "top" | "right" | "bottom" | "left" | "top-start" | "top-end" | "right-start" | "right-end" | "bottom-start" | "bottom-end" | "left-start" | "left-end";
+  placement?:
+    | "top"
+    | "right"
+    | "bottom"
+    | "left"
+    | "top-start"
+    | "top-end"
+    | "right-start"
+    | "right-end"
+    | "bottom-start"
+    | "bottom-end"
+    | "left-start"
+    | "left-end";
   /** Delay prop for backward compatibility with Tippy */
   delay?: number | [number, number];
 };
 
 /**
- * A tooltip component that wraps Radix UI Tooltip and provides a consistent look and feel. 
+ * A tooltip component that wraps Radix UI Tooltip and provides a consistent look and feel.
  * Optionally displays a keyboard shortcut next to the content.
  *
  * Wrap this component in a TooltipProvider to allow multiple tooltips to share the same
@@ -148,9 +211,7 @@ function Tooltip({
       delayDuration={isInProvider ? 0 : finalDelayDuration}
       disableHoverableContent={disableHoverableContent}
     >
-      <TooltipPrimitive.Trigger asChild>
-        {children}
-      </TooltipPrimitive.Trigger>
+      <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
       <TooltipPrimitive.Portal>
         <StyledContent
           side={finalSide}
@@ -213,7 +274,7 @@ const StyledContent = styled(TooltipPrimitive.Content)`
   padding: 5px 9px;
   z-index: 1;
   max-width: calc(100vw - 10px);
-  
+
   /* Animation */
   &[data-state="delayed-open"][data-side="top"] {
     animation: slideDownAndFade 200ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -233,50 +294,6 @@ const StyledArrow = styled(TooltipPrimitive.Arrow)`
   width: 16px;
   height: 16px;
   fill: ${s("tooltipBackground")};
-`;
-
-const slideUpAndFade = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(2px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`;
-
-const slideRightAndFade = keyframes`
-  from {
-    opacity: 0;
-    transform: translateX(-2px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-`;
-
-const slideDownAndFade = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(-2px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`;
-
-const slideLeftAndFade = keyframes`
-  from {
-    opacity: 0;
-    transform: translateX(2px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
 `;
 
 export const TooltipStyles = createGlobalStyle`
