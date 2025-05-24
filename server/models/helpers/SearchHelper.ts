@@ -497,16 +497,17 @@ export default class SearchHelper {
       const iLikeQueries = [...quotedQueries, ...likelyUrls].slice(0, 3);
 
       for (const match of iLikeQueries) {
+        const escapedMatch = this.escapeQuery(match);
         where[Op.and].push({
           [Op.or]: [
             {
               title: {
-                [Op.iLike]: `%${match}%`,
+                [Op.iLike]: `%${escapedMatch}%`,
               },
             },
             {
               text: {
-                [Op.iLike]: `%${match}%`,
+                [Op.iLike]: `%${escapedMatch}%`,
               },
             },
           ],
