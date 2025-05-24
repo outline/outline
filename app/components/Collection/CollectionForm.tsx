@@ -6,7 +6,7 @@ import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
 import { randomElement } from "@shared/random";
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, TeamPreference } from "@shared/types";
 import { IconLibrary } from "@shared/utils/IconLibrary";
 import { colorPalette } from "@shared/utils/collections";
 import { CollectionValidation } from "@shared/validations";
@@ -84,7 +84,7 @@ export const CollectionForm = observer(function CollectionForm_({
       icon: collection?.icon,
       sharing: collection?.sharing ?? true,
       permission: collection?.permission,
-      commenting: collection?.commenting ?? null,
+      commenting: collection?.commenting ?? true,
       color: iconColor,
     },
   });
@@ -192,14 +192,14 @@ export const CollectionForm = observer(function CollectionForm_({
         />
       )}
 
-      <Switch
-        id="commenting"
-        label={t("Document commenting")}
-        note={t(
-          "Allow commenting on documents within this collection. Leave unset to use workspace default."
-        )}
-        {...register("commenting")}
-      />
+      {team.getPreference(TeamPreference.Commenting) && (
+        <Switch
+          id="commenting"
+          label={t("Commenting")}
+          note={t("Allow commenting on documents within this collection.")}
+          {...register("commenting")}
+        />
+      )}
 
       <Flex justify="flex-end">
         <Button
