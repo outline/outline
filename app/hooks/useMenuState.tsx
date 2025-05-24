@@ -4,6 +4,7 @@ import {
   useMenuState as reakitUseMenuState,
   MenuStateReturn,
 } from "reakit/Menu";
+import { v4 } from "uuid";
 import useMenuContext from "./useMenuContext";
 
 /**
@@ -15,11 +16,7 @@ export function useMenuState(
 ): MenuStateReturn {
   const menuState = reakitUseMenuState(options);
   const { registerMenu, unregisterMenu, closeOtherMenus } = useMenuContext();
-
-  // Generate a unique ID for this menu instance
-  const menuId = React.useRef(
-    `menu-${Math.random().toString(36).substr(2, 9)}`
-  ).current;
+  const menuId = React.useRef(`menu-${v4()}`).current;
 
   // Register this menu instance on mount and unregister on unmount
   React.useEffect(() => {
@@ -27,19 +24,14 @@ export function useMenuState(
     return () => unregisterMenu(menuId);
   }, [menuId, menuState.hide, registerMenu, unregisterMenu]);
 
-  // Override the show method to close other menus first
   const coordinatedShow = React.useCallback(() => {
     closeOtherMenus(menuId);
     menuState.show();
   }, [closeOtherMenus, menuId, menuState]);
 
   const coordinatedToggle = React.useCallback(() => {
-    if (menuState.visible) {
-      menuState.hide();
-    } else {
-      closeOtherMenus(menuId);
-      menuState.show();
-    }
+    closeOtherMenus(menuId);
+    menuState.toggle();
   }, [menuId, menuState, closeOtherMenus]);
 
   // Return the menu state with the coordinated show method
