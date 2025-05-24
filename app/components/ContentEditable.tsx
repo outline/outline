@@ -106,12 +106,7 @@ const ContentEditable = React.forwardRef(function _ContentEditable(
 
       const text = event.currentTarget.textContent || "";
 
-      if (
-        maxLength &&
-        "key" in event &&
-        isPrintableKeyEvent(event as React.KeyboardEvent<HTMLSpanElement>) &&
-        text.length >= maxLength
-      ) {
+      if (maxLength && 'key' in event && isPrintableKeyEvent(event as React.KeyboardEvent<HTMLSpanElement>) && text.length >= maxLength) {
         event?.preventDefault();
         return;
       }
@@ -121,7 +116,16 @@ const ContentEditable = React.forwardRef(function _ContentEditable(
         onChange?.(text);
       }
 
-      callback?.(event as any);
+      // Type assertion to handle the union type callback
+      if (callback) {
+        if ('key' in event) {
+          (callback as React.KeyboardEventHandler<HTMLSpanElement>)(event as React.KeyboardEvent<HTMLSpanElement>);
+        } else if ('relatedTarget' in event) {
+          (callback as React.FocusEventHandler<HTMLSpanElement>)(event as React.FocusEvent<HTMLSpanElement>);
+        } else {
+          (callback as React.FormEventHandler<HTMLSpanElement>)(event as React.FormEvent<HTMLSpanElement>);
+        }
+      }
     };
 
   // This is to account for being within a React.Suspense boundary, in this

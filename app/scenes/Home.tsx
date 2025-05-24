@@ -21,6 +21,7 @@ import { usePinnedDocuments } from "~/hooks/usePinnedDocuments";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import NewDocumentMenu from "~/menus/NewDocumentMenu";
+import { PaginationParams } from "~/types";
 
 function Home() {
   const { documents, ui } = useStores();
@@ -79,7 +80,7 @@ function Home() {
               fetch={documents.fetchOwned}
               options={{
                 userId,
-              }}
+              } as PaginationParams}
               empty={
                 <Empty>{t("You haven’t created any documents yet")}</Empty>
               }

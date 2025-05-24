@@ -288,6 +288,9 @@ const CollectionScene = observer(function _CollectionScene() {
                       fetch={documents.fetchAlphabetical}
                       options={{
                         collectionId: collection.id,
+                        parentDocumentId: null,
+                        sort: collection.sort.field,
+                        direction: collection.sort.direction.toUpperCase() as "ASC" | "DESC",
                       }}
                     />
                   </Route>
@@ -302,6 +305,9 @@ const CollectionScene = observer(function _CollectionScene() {
                       fetch={documents.fetchLeastRecentlyUpdated}
                       options={{
                         collectionId: collection.id,
+                        parentDocumentId: null,
+                        sort: collection.sort.field,
+                        direction: collection.sort.direction.toUpperCase() as "ASC" | "DESC",
                       }}
                     />
                   </Route>
@@ -319,8 +325,11 @@ const CollectionScene = observer(function _CollectionScene() {
                       fetch={documents.fetchRecentlyPublished}
                       options={{
                         collectionId: collection.id,
+                        parentDocumentId: null,
+                        sort: collection.sort.field,
+                        direction: collection.sort.direction.toUpperCase() as "ASC" | "DESC",
+                        showPublished: true,
                       }}
-                      showPublished
                     />
                   </Route>
                   <Route
@@ -337,6 +346,9 @@ const CollectionScene = observer(function _CollectionScene() {
                       fetch={documents.fetchRecentlyUpdated}
                       options={{
                         collectionId: collection.id,
+                        parentDocumentId: null,
+                        sort: collection.sort.field,
+                        direction: collection.sort.direction.toUpperCase() as "ASC" | "DESC",
                       }}
                     />
                   </Route>
@@ -354,7 +366,7 @@ const CollectionScene = observer(function _CollectionScene() {
                         collectionId: collection.id,
                         parentDocumentId: null,
                         sort: collection.sort.field,
-                        direction: collection.sort.direction,
+                        direction: collection.sort.direction.toUpperCase() as "ASC" | "DESC",
                       }}
                       showParentDocuments
                     />
@@ -372,7 +384,7 @@ const CollectionScene = observer(function _CollectionScene() {
                       collectionId: collection.id,
                       parentDocumentId: null,
                       sort: collection.sort.field,
-                      direction: collection.sort.direction,
+                      direction: collection.sort.direction.toUpperCase() as "ASC" | "DESC",
                       statusFilter: [StatusFilter.Archived],
                     }}
                     showParentDocuments

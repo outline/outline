@@ -17,6 +17,7 @@ import Subheading from "~/components/Subheading";
 import useStores from "~/hooks/useStores";
 import NewDocumentMenu from "~/menus/NewDocumentMenu";
 import DateFilter from "./Search/components/DateFilter";
+import { PaginationParams } from "~/types";
 
 function Drafts() {
   const { t } = useTranslation();
@@ -43,7 +44,7 @@ function Drafts() {
   };
 
   const isFiltered = collectionId || dateFilter;
-  const options = {
+  const options: PaginationParams = {
     dateFilter,
     collectionId,
   };

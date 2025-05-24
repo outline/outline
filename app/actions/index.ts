@@ -15,7 +15,7 @@ function resolve<T>(
   value: T | ((context: ActionContext) => T),
   context: ActionContext
 ): T {
-  return typeof value === "function" ? value(context) : value;
+  return typeof value === "function" ? (value as (context: ActionContext) => T)(context) : value;
 }
 
 export function createAction(definition: Optional<Action, "id">): Action {
@@ -93,19 +93,11 @@ export function actionToKBar(
     return [];
   }
 
-  const resolvedIcon = action.icon
-    ? resolve<React.ReactElement>(action.icon, context)
-    : undefined;
-  const resolvedChildren = action.children
-    ? resolve<Action[]>(action.children, context)
-    : undefined;
-  const resolvedSection = action.section
-    ? resolve<string>(action.section, context)
-    : undefined;
+  const resolvedIcon = action.icon ? resolve<React.ReactNode>(action.icon, context) : undefined;
+  const resolvedChildren = action.children ? resolve<Action[]>(action.children, context) : undefined;
+  const resolvedSection = action.section ? resolve<string>(action.section, context) : undefined;
   const resolvedName = resolve<string>(action.name, context);
-  const resolvedPlaceholder = action.placeholder
-    ? resolve<string>(action.placeholder, context)
-    : undefined;
+  const resolvedPlaceholder = action.placeholder ? resolve<string>(action.placeholder, context) : undefined;
 
   const children = resolvedChildren
     ? flattenDeep(resolvedChildren.map((a) => actionToKBar(a, context))).filter(
