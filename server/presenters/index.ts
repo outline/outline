@@ -5,6 +5,7 @@ import presentAvailableTeam from "./availableTeam";
 import presentCollection from "./collection";
 import presentComment from "./comment";
 import presentDocument from "./document";
+import presentEmoji from "./emoji";
 import presentEvent from "./event";
 import presentFileOperation from "./fileOperation";
 import presentGroup from "./group";
@@ -36,6 +37,7 @@ export {
   presentCollection,
   presentComment,
   presentDocument,
+  presentEmoji,
   presentEvent,
   presentFileOperation,
   presentGroup,
