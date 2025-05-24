@@ -138,9 +138,10 @@ export default class Collection extends ParanoidModel {
    */
   @computed
   get canCreateComment(): boolean {
-    const teamCommentingEnabled = !!this.store.rootStore.auth.team?.getPreference(
-      TeamPreference.Commenting
-    );
+    const teamCommentingEnabled =
+      !!this.store.rootStore.auth.team?.getPreference(
+        TeamPreference.Commenting
+      );
 
     if (this.commenting !== null && this.commenting !== undefined) {
       return this.commenting;

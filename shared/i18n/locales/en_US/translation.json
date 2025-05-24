@@ -163,6 +163,8 @@
   "The default access for workspace members, you can share with more users or groups later.": "The default access for workspace members, you can share with more users or groups later.",
   "Public document sharing": "Public document sharing",
   "Allow documents within this collection to be shared publicly on the internet.": "Allow documents within this collection to be shared publicly on the internet.",
+  "Document commenting": "Document commenting",
+  "Allow commenting on documents within this collection. Leave unset to use workspace default.": "Allow commenting on documents within this collection. Leave unset to use workspace default.",
   "Saving": "Saving",
   "Save": "Save",
   "Creating": "Creating",
