@@ -3,7 +3,6 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import {
-  useMenuState,
   MenuButton,
   MenuItem as BaseMenuItem,
   MenuStateReturn,
@@ -13,6 +12,7 @@ import MenuIconWrapper from "~/components/ContextMenu/MenuIconWrapper";
 import Flex from "~/components/Flex";
 import { actionToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
+import useCoordinatedMenuState from "~/hooks/useCoordinatedMenuState";
 import {
   Action,
   ActionContext,
@@ -52,7 +52,7 @@ const SubMenu = React.forwardRef(function _Template(
 ) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const menu = useMenuState();
+  const menu = useCoordinatedMenuState();
 
   return (
     <>

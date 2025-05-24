@@ -11,7 +11,7 @@ import {
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
-import { useMenuState, MenuButton, MenuButtonHTMLProps } from "reakit/Menu";
+import { MenuButton, MenuButtonHTMLProps } from "reakit/Menu";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import { toast } from "sonner";
 import { SubscriptionType } from "@shared/types";
@@ -36,6 +36,7 @@ import {
   unsubscribeCollection,
 } from "~/actions/definitions/collections";
 import useActionContext from "~/hooks/useActionContext";
+import useCoordinatedMenuState from "~/hooks/useCoordinatedMenuState";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
@@ -62,7 +63,7 @@ function CollectionMenu({
   onOpen,
   onClose,
 }: Props) {
-  const menu = useMenuState({
+  const menu = useCoordinatedMenuState({
     modal,
     placement,
   });
