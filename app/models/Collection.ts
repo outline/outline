@@ -69,8 +69,8 @@ export default class Collection extends ParanoidModel {
     direction: "asc" | "desc";
   };
 
-  /** Whether commenting is enabled for the collection.
-   * true = enabled, false = disabled, null = use workspace default.
+  /**
+   * Whether commenting is enabled for the collection.
    */
   @Field
   @observable
@@ -131,8 +131,6 @@ export default class Collection extends ParanoidModel {
 
   /**
    * Returns whether comments should be enabled for this collection,
-   * using the per-collection override if present, otherwise falling back
-   * to the team's workspace default.
    *
    * @returns boolean
    */
@@ -143,11 +141,7 @@ export default class Collection extends ParanoidModel {
         TeamPreference.Commenting
       );
 
-    if (this.commenting !== null && this.commenting !== undefined) {
-      return this.commenting;
-    }
-
-    return teamCommentingEnabled;
+    return teamCommentingEnabled && this.commenting !== false;
   }
 
   /** Returns whether the collection description is not empty. */
