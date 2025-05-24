@@ -21,6 +21,7 @@ export default async function presentCollection(
     index: collection.index,
     color: collection.color,
     permission: collection.permission,
+    commenting: collection.commenting,
     sharing: collection.sharing,
     createdAt: collection.createdAt,
     updatedAt: collection.updatedAt,

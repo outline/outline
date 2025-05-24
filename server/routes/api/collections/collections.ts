@@ -63,6 +63,7 @@ router.post(
       icon,
       sort,
       index,
+      commenting,
     } = ctx.input.body;
 
     const { user } = ctx.state.auth;
@@ -80,6 +81,7 @@ router.post(
       sharing,
       sort,
       index,
+      commenting,
     });
 
     if (data) {
@@ -580,6 +582,7 @@ router.post(
       color,
       sort,
       sharing,
+      commenting,
     } = ctx.input.body;
 
     const { user } = ctx.state.auth;
@@ -648,6 +651,10 @@ router.post(
 
     if (sort !== undefined) {
       collection.sort = sort;
+    }
+
+    if (commenting !== undefined) {
+      collection.commenting = commenting;
     }
 
     await collection.save({ transaction });

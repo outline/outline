@@ -31,6 +31,7 @@ export interface FormData {
   color: string | null;
   sharing: boolean;
   permission: CollectionPermission | undefined;
+  commenting?: boolean | null;
 }
 
 const useIconColor = (collection?: Collection) => {
@@ -83,6 +84,7 @@ export const CollectionForm = observer(function CollectionForm_({
       icon: collection?.icon,
       sharing: collection?.sharing ?? true,
       permission: collection?.permission,
+      commenting: collection?.commenting ?? null,
       color: iconColor,
     },
   });
@@ -189,6 +191,15 @@ export const CollectionForm = observer(function CollectionForm_({
           {...register("sharing")}
         />
       )}
+
+      <Switch
+        id="commenting"
+        label={t("Document commenting")}
+        note={t(
+          "Allow commenting on documents within this collection. Leave unset to use workspace default."
+        )}
+        {...register("commenting")}
+      />
 
       <Flex justify="flex-end">
         <Button
