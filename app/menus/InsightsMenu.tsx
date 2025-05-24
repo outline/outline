@@ -10,7 +10,7 @@ import NudeButton from "~/components/NudeButton";
 import { actionToMenuItem } from "~/actions";
 import { toggleViewerInsights } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
-import useMenuState from "~/hooks/useMenuState";
+import { useMenuState } from "~/hooks/useMenuState";
 import { MenuItem } from "~/types";
 
 const InsightsMenu: React.FC = () => {

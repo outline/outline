@@ -9,7 +9,7 @@ import Button, { Inner } from "~/components/Button";
 import ContextMenu from "~/components/ContextMenu";
 import MenuItem from "~/components/ContextMenu/MenuItem";
 import Text from "~/components/Text";
-import useMenuState from "~/hooks/useMenuState";
+import { useMenuState } from "~/hooks/useMenuState";
 import Input, { NativeInput, Outline } from "./Input";
 import PaginatedList, { PaginatedItem } from "./PaginatedList";
 

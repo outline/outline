@@ -14,7 +14,7 @@ import {
   desktopLoginTeam,
 } from "~/actions/definitions/teams";
 import useActionContext from "~/hooks/useActionContext";
-import useMenuState from "~/hooks/useMenuState";
+import { useMenuState } from "~/hooks/useMenuState";
 import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
 import separator from "~/menus/separator";

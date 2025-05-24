@@ -18,7 +18,7 @@ import {
   updateUserRoleActionFactory,
 } from "~/actions/definitions/users";
 import useActionContext from "~/hooks/useActionContext";
-import useMenuState from "~/hooks/useMenuState";
+import { useMenuState } from "~/hooks/useMenuState";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 

@@ -10,7 +10,7 @@ import useMenuContext from "./useMenuContext";
  * A hook that wraps Reakit's useMenuState with coordination logic to ensure
  * only one context menu can be open at a time across the application.
  */
-export default function useMenuState(
+export function useMenuState(
   options?: Parameters<typeof reakitUseMenuState>[0]
 ): MenuStateReturn {
   const menuState = reakitUseMenuState(options);

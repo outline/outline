@@ -12,7 +12,7 @@ import MenuIconWrapper from "~/components/ContextMenu/MenuIconWrapper";
 import Flex from "~/components/Flex";
 import { actionToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
-import useMenuState from "~/hooks/useMenuState";
+import { useMenuState } from "~/hooks/useMenuState";
 import {
   Action,
   ActionContext,

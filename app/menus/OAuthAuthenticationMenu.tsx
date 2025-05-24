@@ -6,7 +6,7 @@ import ConfirmationDialog from "~/components/ConfirmationDialog";
 import ContextMenu from "~/components/ContextMenu";
 import MenuItem from "~/components/ContextMenu/MenuItem";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
-import useMenuState from "~/hooks/useMenuState";
+import { useMenuState } from "~/hooks/useMenuState";
 import useStores from "~/hooks/useStores";
 
 type Props = {

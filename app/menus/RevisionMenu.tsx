@@ -10,7 +10,7 @@ import {
   restoreRevision,
 } from "~/actions/definitions/revisions";
 import useActionContext from "~/hooks/useActionContext";
-import useMenuState from "~/hooks/useMenuState";
+import { useMenuState } from "~/hooks/useMenuState";
 import separator from "./separator";
 
 type Props = {

@@ -17,7 +17,7 @@ import {
   viewCommentReactionsFactory,
 } from "~/actions/definitions/comments";
 import useActionContext from "~/hooks/useActionContext";
-import useMenuState from "~/hooks/useMenuState";
+import { useMenuState } from "~/hooks/useMenuState";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { commentPath, urlify } from "~/utils/routeHelpers";

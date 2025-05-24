@@ -6,7 +6,7 @@ import Document from "~/models/Document";
 import Button from "~/components/Button";
 import ContextMenu from "~/components/ContextMenu";
 import Template from "~/components/ContextMenu/Template";
-import useMenuState from "~/hooks/useMenuState";
+import { useMenuState } from "~/hooks/useMenuState";
 import { useTemplateMenuItems } from "~/hooks/useTemplateMenuItems";
 
 type Props = {
