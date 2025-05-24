@@ -750,7 +750,7 @@ export const importDocument = createAction({
 
     return false;
   },
-  perform: ({ activeDocumentId, stores }) => {
+  perform: ({ activeDocumentId, activeCollectionId, stores }) => {
     const { documents } = stores;
     const input = document.createElement("input");
     input.type = "file";
