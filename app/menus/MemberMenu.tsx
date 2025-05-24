@@ -1,10 +1,10 @@
 import { useTranslation } from "react-i18next";
-import { useMenuState } from "reakit/Menu";
 import User from "~/models/User";
 import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import Template from "~/components/ContextMenu/Template";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import { useMenuState } from "~/hooks/useMenuState";
 
 type Props = {
   user: User;

@@ -3,7 +3,6 @@ import { observer } from "mobx-react";
 import { CopyIcon, EditIcon } from "outline-icons";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useMenuState } from "reakit/Menu";
 import { toast } from "sonner";
 import EventBoundary from "@shared/components/EventBoundary";
 import Comment from "~/models/Comment";
@@ -18,6 +17,7 @@ import {
   viewCommentReactionsFactory,
 } from "~/actions/definitions/comments";
 import useActionContext from "~/hooks/useActionContext";
+import { useMenuState } from "~/hooks/useMenuState";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { commentPath, urlify } from "~/utils/routeHelpers";

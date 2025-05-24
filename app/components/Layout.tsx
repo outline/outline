@@ -38,39 +38,41 @@ const Layout = React.forwardRef(function Layout_(
   });
 
   return (
-    <Container column auto ref={ref}>
-      <Helmet>
-        <title>{title ? title : env.APP_NAME}</title>
-      </Helmet>
+    <MenuProvider>
+      <Container column auto ref={ref}>
+        <Helmet>
+          <title>{title ? title : env.APP_NAME}</title>
+        </Helmet>
 
-      <SkipNavLink />
+        <SkipNavLink />
 
-      {ui.progressBarVisible && <LoadingIndicatorBar />}
+        {ui.progressBarVisible && <LoadingIndicatorBar />}
 
-      <Container auto>
-        <MenuProvider>{sidebar}</MenuProvider>
+        <Container auto>
+          <MenuProvider>{sidebar}</MenuProvider>
 
-        <SkipNavContent />
-        <Content
-          auto
-          justify="center"
-          $isResizing={ui.sidebarIsResizing}
-          $sidebarCollapsed={sidebarCollapsed}
-          $hasSidebar={!!sidebar}
-          style={
-            sidebarCollapsed
-              ? undefined
-              : {
-                  marginLeft: `${ui.sidebarWidth}px`,
-                }
-          }
-        >
-          {children}
-        </Content>
+          <SkipNavContent />
+          <Content
+            auto
+            justify="center"
+            $isResizing={ui.sidebarIsResizing}
+            $sidebarCollapsed={sidebarCollapsed}
+            $hasSidebar={!!sidebar}
+            style={
+              sidebarCollapsed
+                ? undefined
+                : {
+                    marginLeft: `${ui.sidebarWidth}px`,
+                  }
+            }
+          >
+            {children}
+          </Content>
 
-        {sidebarRight}
+          {sidebarRight}
+        </Container>
       </Container>
-    </Container>
+    </MenuProvider>
   );
 });
 
