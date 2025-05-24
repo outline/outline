@@ -4,9 +4,15 @@ import * as React from "react";
 type MenuContextType = {
   isMenuOpen: boolean;
   setIsMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  registerMenu: (menuId: string, hideFunction: () => void) => void;
+  unregisterMenu: (menuId: string) => void;
+  closeOtherMenus: (excludeMenuId: string) => void;
 };
 
 const MenuContext = React.createContext<MenuContextType | null>(null);
+
+// Registry to track all active menu instances
+const menuRegistry = new Map();
 
 type Props = {
   children?: React.ReactNode;
@@ -14,12 +20,35 @@ type Props = {
 
 export const MenuProvider: React.FC = ({ children }: Props) => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+
+  const registerMenu = React.useCallback(
+    (menuId: string, hideFunction: () => void) => {
+      menuRegistry.set(menuId, hideFunction);
+    },
+    []
+  );
+
+  const unregisterMenu = React.useCallback((menuId: string) => {
+    menuRegistry.delete(menuId);
+  }, []);
+
+  const closeOtherMenus = React.useCallback((excludeMenuId: string) => {
+    menuRegistry.forEach((hideFunction, menuId) => {
+      if (menuId !== excludeMenuId) {
+        hideFunction();
+      }
+    });
+  }, []);
+
   const memoized = React.useMemo(
     () => ({
       isMenuOpen,
       setIsMenuOpen,
+      registerMenu,
+      unregisterMenu,
+      closeOtherMenus,
     }),
-    [isMenuOpen, setIsMenuOpen]
+    [isMenuOpen, setIsMenuOpen, registerMenu, unregisterMenu, closeOtherMenus]
   );
 
   return (
@@ -29,7 +58,15 @@ export const MenuProvider: React.FC = ({ children }: Props) => {
 
 const useMenuContext: () => MenuContextType = () => {
   const value = React.useContext(MenuContext);
-  return value ? value : { isMenuOpen: false, setIsMenuOpen: noop };
+  return value
+    ? value
+    : {
+        isMenuOpen: false,
+        setIsMenuOpen: noop,
+        registerMenu: noop,
+        unregisterMenu: noop,
+        closeOtherMenus: noop,
+      };
 };
 
 export default useMenuContext;

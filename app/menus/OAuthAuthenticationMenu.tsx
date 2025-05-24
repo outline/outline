@@ -1,12 +1,12 @@
 import { observer } from "mobx-react";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useMenuState } from "reakit/Menu";
 import OAuthAuthentication from "~/models/oauth/OAuthAuthentication";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import ContextMenu from "~/components/ContextMenu";
 import MenuItem from "~/components/ContextMenu/MenuItem";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
+import { useMenuState } from "~/hooks/useMenuState";
 import useStores from "~/hooks/useStores";
 
 type Props = {
