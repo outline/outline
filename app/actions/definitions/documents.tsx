@@ -750,7 +750,7 @@ export const importDocument = createAction({
 
     return false;
   },
-  perform: ({ activeCollectionId, activeDocumentId, stores }) => {
+  perform: ({ activeDocumentId, activeCollectionId, stores }) => {
     const { documents } = stores;
     const input = document.createElement("input");
     input.type = "file";
@@ -1081,12 +1081,17 @@ export const openDocumentComments = createAction({
   analyticsName: "Open comments",
   section: ActiveDocumentSection,
   icon: <CommentIcon />,
-  visible: ({ activeDocumentId, stores }) => {
+  visible: ({ activeCollectionId, activeDocumentId, stores }) => {
     const can = stores.policies.abilities(activeDocumentId ?? "");
+    const collection = activeCollectionId
+      ? stores.collections.get(activeCollectionId)
+      : undefined;
+
     return (
       !!activeDocumentId &&
       can.comment &&
-      !!stores.auth.team?.getPreference(TeamPreference.Commenting)
+      (collection?.canCreateComment ??
+        !!stores.auth.team?.getPreference(TeamPreference.Commenting))
     );
   },
   perform: ({ activeDocumentId, stores }) => {
