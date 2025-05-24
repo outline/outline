@@ -4,7 +4,7 @@ import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Emoji, Team, User } from "@server/models";
+import { Emoji, User } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentEmoji, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
@@ -20,20 +20,10 @@ router.post(
   pagination(),
   validate(T.EmojisListSchema),
   async (ctx: APIContext<T.EmojisListReq>) => {
-    const { teamId } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    // Use provided teamId or default to user's team
-    const targetTeamId = teamId || user.teamId;
-
-    // Verify user has access to the team
-    if (targetTeamId !== user.teamId && !user.isAdmin) {
-      const team = await Team.findByPk(targetTeamId);
-      authorize(user, "read", team);
-    }
-
     const where: WhereOptions<Emoji> = {
-      teamId: targetTeamId,
+      teamId: user.teamId,
     };
 
     const include = [
@@ -73,8 +63,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.EmojisCreateReq>) => {
     const { name, url } = ctx.input.body;
-    const { auth: authState, transaction } = ctx.state;
-    const { user } = authState;
+    const { user } = ctx.state.auth;
 
     // Check if emoji name already exists for this team
     const existingEmoji = await Emoji.findOne({
@@ -82,24 +71,19 @@ router.post(
         teamId: user.teamId,
         name,
       },
-      transaction,
+      transaction: ctx.state.transaction,
     });
 
     if (existingEmoji) {
       ctx.throw(400, `An emoji with the name "${name}" already exists`);
     }
 
-    const emoji = await Emoji.create(
-      {
-        name,
-        url,
-        teamId: user.teamId,
-        createdById: user.id,
-      },
-      {
-        transaction,
-      }
-    );
+    const emoji = await Emoji.createWithCtx(ctx, {
+      name,
+      url,
+      teamId: user.teamId,
+      createdById: user.id,
+    });
 
     // Load the created emoji with associations
     const emojiWithAssociations = await Emoji.findByPk(emoji.id, {
@@ -110,7 +94,7 @@ router.post(
           required: true,
         },
       ],
-      transaction,
+      transaction: ctx.state.transaction,
     });
 
     ctx.body = {
@@ -127,11 +111,10 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.EmojisDeleteReq>) => {
     const { id } = ctx.input.body;
-    const { auth: authState, transaction } = ctx.state;
-    const { user } = authState;
+    const { user } = ctx.state.auth;
 
     const emoji = await Emoji.findByPk(id, {
-      transaction,
+      transaction: ctx.state.transaction,
     });
 
     if (!emoji) {
@@ -141,7 +124,7 @@ router.post(
     // Check if user has permission to delete this emoji
     authorize(user, "delete", emoji);
 
-    await emoji.destroy({ transaction });
+    await emoji.destroyWithCtx(ctx);
 
     ctx.body = {
       success: true,

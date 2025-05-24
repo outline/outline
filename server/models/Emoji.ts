@@ -7,6 +7,7 @@ import {
   Index,
   Table,
 } from "sequelize-typescript";
+import { EmojiValidation } from "@shared/validations";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
@@ -20,15 +21,15 @@ class Emoji extends IdModel<
   Partial<InferCreationAttributes<Emoji>>
 > {
   @Length({
-    max: 50,
-    msg: `name must be 50 characters or less`,
+    max: EmojiValidation.maxNameLength,
+    msg: `name must be ${EmojiValidation.maxNameLength} characters or less`,
   })
   @Column(DataType.STRING)
   name: string;
 
   @Length({
-    max: 500,
-    msg: `url must be 500 characters or less`,
+    max: EmojiValidation.maxUrlLength,
+    msg: `url must be ${EmojiValidation.maxUrlLength} characters or less`,
   })
   @Column(DataType.STRING)
   url: string;

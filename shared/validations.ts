@@ -54,6 +54,14 @@ export const DocumentValidation = {
   maxRecommendedLength: 250000,
 };
 
+export const EmojiValidation = {
+  /** The maximum length of the emoji name */
+  maxNameLength: 50,
+
+  /** The maximum length of the emoji URL */
+  maxUrlLength: 500,
+};
+
 export const ImportValidation = {
   /** The maximum length of the import name */
   maxNameLength: 100,

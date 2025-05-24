@@ -1,19 +1,17 @@
 import { z } from "zod";
+import { EmojiValidation } from "@shared/validations";
 import { BaseSchema } from "../schema";
 
 export const EmojisListSchema = BaseSchema.extend({
-  body: z.object({
-    /** Optional team ID to filter emojis. Defaults to user's team. */
-    teamId: z.string().uuid().optional(),
-  }),
+  body: z.object({}),
 });
 
 export const EmojisCreateSchema = BaseSchema.extend({
   body: z.object({
     /** Name/shortcode for the emoji (e.g., "awesome") */
-    name: z.string().min(1).max(50),
+    name: z.string().min(1).max(EmojiValidation.maxNameLength),
     /** URL to the emoji image */
-    url: z.string().url().max(500),
+    url: z.string().url().max(EmojiValidation.maxUrlLength),
   }),
 });
 
