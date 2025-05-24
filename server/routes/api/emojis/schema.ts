@@ -1,3 +1,17 @@
+export const EmojisInfoSchema = BaseSchema.extend({
+  body: z
+    .object({
+      /** ID of the emoji to fetch */
+      id: z.string().uuid().optional(),
+      /** Name of the emoji to fetch */
+      name: z.string().min(1).max(EmojiValidation.maxNameLength).optional(),
+    })
+    .refine((data) => data.id || data.name, {
+      message: "Either id or name is required",
+    }),
+});
+
+export type EmojisInfoReq = z.infer<typeof EmojisInfoSchema>;
 import { z } from "zod";
 import { EmojiValidation } from "@shared/validations";
 import { BaseSchema } from "../schema";

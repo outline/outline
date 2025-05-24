@@ -56,7 +56,7 @@ export const DocumentValidation = {
 
 export const EmojiValidation = {
   /** The maximum length of the emoji name */
-  maxNameLength: 50,
+  maxNameLength: 25,
 
   /** The maximum length of the emoji URL */
   maxUrlLength: 500,

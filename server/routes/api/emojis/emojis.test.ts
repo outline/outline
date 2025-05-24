@@ -1,3 +1,4 @@
+import { v4 } from "uuid";
 import { Emoji } from "@server/models";
 import {
   buildAdmin,
@@ -10,6 +11,29 @@ import { getTestServer } from "@server/test/support";
 const server = getTestServer();
 
 describe("#emojis.info", () => {
+  it("should return emoji info by name", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const emoji = await buildEmoji({
+      teamId: team.id,
+      createdById: user.id,
+      name: "testemoji",
+    });
+
+    const res = await server.post("/api/emojis.info", {
+      body: {
+        token: user.getJwtToken(),
+        name: emoji.name,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(emoji.id);
+    expect(body.data.name).toEqual(emoji.name);
+    expect(body.data.url).toEqual(emoji.url);
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/emojis.info");
     const body = await res.json();
@@ -383,7 +407,7 @@ describe("#emojis.delete", () => {
     const res = await server.post("/api/emojis.delete", {
       body: {
         token: user.getJwtToken(),
-        id: "non-existent-id",
+        id: v4(), // Non-existent UUID
       },
     });
 

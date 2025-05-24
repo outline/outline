@@ -15,6 +15,48 @@ import * as T from "./schema";
 const router = new Router();
 
 router.post(
+  "emojis.info",
+  auth(),
+  validate(T.EmojisInfoSchema),
+  async (ctx: APIContext<T.EmojisInfoReq>) => {
+    const { id, name } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const include = [
+      {
+        model: User,
+        as: "createdBy",
+        paranoid: false,
+      },
+    ];
+
+    let emoji;
+    if (id) {
+      emoji = await Emoji.findByPk(id, {
+        rejectOnEmpty: true,
+        include,
+      });
+    } else if (name) {
+      emoji = await Emoji.findOne({
+        where: {
+          name,
+          teamId: user.teamId,
+        },
+        include,
+        rejectOnEmpty: true,
+      });
+    }
+
+    authorize(user, "read", emoji);
+
+    ctx.body = {
+      data: presentEmoji(emoji),
+      policies: presentPolicies(user, [emoji]),
+    };
+  }
+);
+
+router.post(
   "emojis.list",
   auth(),
   pagination(),
@@ -26,18 +68,16 @@ router.post(
       teamId: user.teamId,
     };
 
-    const include = [
-      {
-        model: User,
-        as: "createdBy",
-        required: true,
-      },
-    ];
-
     const [emojis, total] = await Promise.all([
       Emoji.findAll({
         where,
-        include,
+        include: [
+          {
+            model: User,
+            as: "createdBy",
+            paranoid: false,
+          },
+        ],
         order: [["createdAt", "DESC"]],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
@@ -115,13 +155,8 @@ router.post(
 
     const emoji = await Emoji.findByPk(id, {
       transaction: ctx.state.transaction,
+      rejectOnEmpty: true,
     });
-
-    if (!emoji) {
-      ctx.throw(404, "Emoji not found");
-    }
-
-    // Check if user has permission to delete this emoji
     authorize(user, "delete", emoji);
 
     await emoji.destroyWithCtx(ctx);
