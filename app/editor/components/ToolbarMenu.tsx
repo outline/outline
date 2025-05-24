@@ -1,6 +1,5 @@
 import { TippyProps } from "@tippyjs/react";
 import { useMemo } from "react";
-import { useMenuState } from "reakit";
 import { MenuButton } from "reakit/Menu";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -9,6 +8,7 @@ import { s } from "@shared/styles";
 import ContextMenu from "~/components/ContextMenu";
 import Template from "~/components/ContextMenu/Template";
 import { TooltipProvider } from "~/components/TooltipContext";
+import useMenuState from "~/hooks/useMenuState";
 import { MenuItem as TMenuItem } from "~/types";
 import { useEditor } from "./EditorContext";
 import ToolbarButton from "./ToolbarButton";

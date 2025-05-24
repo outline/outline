@@ -58,8 +58,8 @@ import {
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import useBoolean from "~/hooks/useBoolean";
-import useCoordinatedMenuState from "~/hooks/useCoordinatedMenuState";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useMenuState from "~/hooks/useMenuState";
 import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
@@ -412,7 +412,7 @@ function DocumentMenu({
   onClose,
 }: Props) {
   const { collections, documents } = useStores();
-  const menuState = useCoordinatedMenuState({
+  const menuState = useMenuState({
     modal,
     unstable_preventOverflow: true,
     unstable_fixed: true,

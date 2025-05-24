@@ -36,8 +36,8 @@ import {
   unsubscribeCollection,
 } from "~/actions/definitions/collections";
 import useActionContext from "~/hooks/useActionContext";
-import useCoordinatedMenuState from "~/hooks/useCoordinatedMenuState";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useMenuState from "~/hooks/useMenuState";
 import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
@@ -63,7 +63,7 @@ function CollectionMenu({
   onOpen,
   onClose,
 }: Props) {
-  const menu = useCoordinatedMenuState({
+  const menu = useMenuState({
     modal,
     placement,
   });

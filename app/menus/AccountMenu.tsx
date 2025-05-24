@@ -16,7 +16,7 @@ import {
   logout,
 } from "~/actions/definitions/navigation";
 import { changeTheme } from "~/actions/definitions/settings";
-import useCoordinatedMenuState from "~/hooks/useCoordinatedMenuState";
+import useMenuState from "~/hooks/useMenuState";
 import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
 import separator from "~/menus/separator";
@@ -26,7 +26,7 @@ type Props = {
 };
 
 const AccountMenu: React.FC = ({ children }: Props) => {
-  const menu = useCoordinatedMenuState({
+  const menu = useMenuState({
     placement: "bottom-end",
     modal: true,
   });

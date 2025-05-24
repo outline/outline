@@ -9,7 +9,7 @@ import Button, { Inner } from "~/components/Button";
 import ContextMenu from "~/components/ContextMenu";
 import MenuItem from "~/components/ContextMenu/MenuItem";
 import Text from "~/components/Text";
-import useCoordinatedMenuState from "~/hooks/useCoordinatedMenuState";
+import useMenuState from "~/hooks/useMenuState";
 import Input, { NativeInput, Outline } from "./Input";
 import PaginatedList, { PaginatedItem } from "./PaginatedList";
 
@@ -44,7 +44,7 @@ const FilterOptions = ({
   const { t } = useTranslation();
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const listRef = React.useRef<HTMLDivElement | null>(null);
-  const menu = useCoordinatedMenuState({
+  const menu = useMenuState({
     modal: false,
   });
   const selectedItems = options.filter((option) =>

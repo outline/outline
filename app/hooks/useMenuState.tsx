@@ -1,15 +1,19 @@
 import * as React from "react";
-import { useMenuState, MenuStateReturn } from "reakit/Menu";
+import {
+  // eslint-disable-next-line no-restricted-imports
+  useMenuState as reakitUseMenuState,
+  MenuStateReturn,
+} from "reakit/Menu";
 import useMenuContext from "./useMenuContext";
 
 /**
  * A hook that wraps Reakit's useMenuState with coordination logic to ensure
  * only one context menu can be open at a time across the application.
  */
-export default function useCoordinatedMenuState(
-  options?: Parameters<typeof useMenuState>[0]
+export default function useMenuState(
+  options?: Parameters<typeof reakitUseMenuState>[0]
 ): MenuStateReturn {
-  const menuState = useMenuState(options);
+  const menuState = reakitUseMenuState(options);
   const { registerMenu, unregisterMenu, closeOtherMenus } = useMenuContext();
 
   // Generate a unique ID for this menu instance
@@ -29,9 +33,19 @@ export default function useCoordinatedMenuState(
     menuState.show();
   }, [closeOtherMenus, menuId, menuState]);
 
+  const coordinatedToggle = React.useCallback(() => {
+    if (menuState.visible) {
+      menuState.hide();
+    } else {
+      closeOtherMenus(menuId);
+      menuState.show();
+    }
+  }, [menuId, menuState, closeOtherMenus]);
+
   // Return the menu state with the coordinated show method
   return {
     ...menuState,
+    toggle: coordinatedToggle,
     show: coordinatedShow,
   };
 }

@@ -12,7 +12,7 @@ import MenuIconWrapper from "~/components/ContextMenu/MenuIconWrapper";
 import Flex from "~/components/Flex";
 import { actionToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
-import useCoordinatedMenuState from "~/hooks/useCoordinatedMenuState";
+import useMenuState from "~/hooks/useMenuState";
 import {
   Action,
   ActionContext,
@@ -52,7 +52,7 @@ const SubMenu = React.forwardRef(function _Template(
 ) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const menu = useCoordinatedMenuState();
+  const menu = useMenuState();
 
   return (
     <>
