@@ -1,5 +1,10 @@
-import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
+  InferAttributes,
+  InferCreationAttributes,
+  type SaveOptions,
+} from "sequelize";
+import {
+  BeforeCreate,
   BelongsTo,
   Column,
   DataType,
@@ -8,10 +13,12 @@ import {
   Table,
 } from "sequelize-typescript";
 import { EmojiValidation } from "@shared/validations";
+import { ValidationError } from "@server/errors";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
+import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
 
 @Table({ tableName: "emojis", modelName: "emoji" })
@@ -27,6 +34,7 @@ class Emoji extends IdModel<
   @Column(DataType.STRING)
   name: string;
 
+  @IsUrlOrRelativePath
   @Length({
     max: EmojiValidation.maxUrlLength,
     msg: `url must be ${EmojiValidation.maxUrlLength} characters or less`,
@@ -51,6 +59,26 @@ class Emoji extends IdModel<
   @Index
   @Column(DataType.UUID)
   createdById: string;
+
+  // hooks
+
+  @BeforeCreate
+  static async checkUniqueName(
+    model: Emoji,
+    options: SaveOptions<Emoji>
+  ): Promise<void> {
+    const existingEmoji = await this.findOne({
+      where: {
+        name: model.name,
+        teamId: model.teamId,
+      },
+      transaction: options.transaction,
+    });
+
+    if (existingEmoji) {
+      throw ValidationError(`Emoji with name "${model.name}" already exists.`);
+    }
+  }
 }
 
 export default Emoji;

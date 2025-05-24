@@ -105,19 +105,6 @@ router.post(
     const { name, url } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    // Check if emoji name already exists for this team
-    const existingEmoji = await Emoji.findOne({
-      where: {
-        teamId: user.teamId,
-        name,
-      },
-      transaction: ctx.state.transaction,
-    });
-
-    if (existingEmoji) {
-      ctx.throw(400, `An emoji with the name "${name}" already exists`);
-    }
-
     const emoji = await Emoji.createWithCtx(ctx, {
       name,
       url,
@@ -125,21 +112,11 @@ router.post(
       createdById: user.id,
     });
 
-    // Load the created emoji with associations
-    const emojiWithAssociations = await Emoji.findByPk(emoji.id, {
-      include: [
-        {
-          model: User,
-          as: "createdBy",
-          required: true,
-        },
-      ],
-      transaction: ctx.state.transaction,
-    });
+    emoji.createdBy = user;
 
     ctx.body = {
-      data: presentEmoji(emojiWithAssociations!),
-      policies: presentPolicies(user, [emojiWithAssociations!]),
+      data: presentEmoji(emoji!),
+      policies: presentPolicies(user, [emoji!]),
     };
   }
 );

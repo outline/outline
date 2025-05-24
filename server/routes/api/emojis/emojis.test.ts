@@ -212,9 +212,7 @@ describe("#emojis.create", () => {
 
     expect(res.status).toEqual(400);
     const body = await res.json();
-    expect(body.message).toContain(
-      'emoji with the name "awesome" already exists'
-    );
+    expect(body.message).toContain("already exists");
   });
 
   it("should allow same emoji name in different teams", async () => {
