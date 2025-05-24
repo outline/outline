@@ -74,8 +74,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     multiplayer,
     ...rest
   } = props;
-  const can = usePolicy(props.document);
-  const { document } = props;
+  const can = usePolicy(document);
 
   // Check collection-level commenting setting
   const collection = document.collectionId
