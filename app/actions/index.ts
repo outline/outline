@@ -11,7 +11,10 @@ import {
 } from "~/types";
 import Analytics from "~/utils/Analytics";
 
-function resolve<T>(value: any, context: ActionContext): T {
+function resolve<T>(
+  value: T | ((context: ActionContext) => T),
+  context: ActionContext
+): T {
   return typeof value === "function" ? value(context) : value;
 }
 
@@ -43,7 +46,7 @@ export function actionToMenuItem(
   action: Action,
   context: ActionContext
 ): MenuItemButton | MenuItemWithChildren {
-  const resolvedIcon = resolve<React.ReactElement<any>>(action.icon, context);
+  const resolvedIcon = resolve<React.ReactNode>(action.icon, context);
   const resolvedChildren = resolve<Action[]>(action.children, context);
   const visible = action.visible ? action.visible(context) : true;
   const title = resolve<string>(action.name, context);

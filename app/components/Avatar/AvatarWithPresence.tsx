@@ -138,11 +138,11 @@ const AvatarPresence = styled.div<AvatarWrapperProps>`
         border: 2px solid transparent;
         pointer-events: none;
 
-        ${(props) =>
-          props.$isObserving &&
+        ${(innerProps) =>
+          innerProps.$isObserving &&
           css`
-            border: 2px solid ${props.$color};
-            box-shadow: inset 0 0 0 2px ${props.theme.background};
+            border: 2px solid ${innerProps.$color};
+            box-shadow: inset 0 0 0 2px ${innerProps.theme.background};
 
             &:hover {
               top: -1px;
@@ -154,7 +154,7 @@ const AvatarPresence = styled.div<AvatarWrapperProps>`
       }
 
       &:hover:after {
-        border: 2px solid ${(props) => props.$color};
+        border: 2px solid ${(hoverProps) => hoverProps.$color};
         box-shadow: inset 0 0 0 2px ${s("background")};
       }
     `}

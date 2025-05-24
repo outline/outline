@@ -20,7 +20,9 @@ const defaultOptions: ThrottleSettings = {
  * @param dependencies The dependencies to watch for changes
  * @param options The throttle options
  */
-export default function useThrottledCallback<T extends (...args: any[]) => any>(
+export default function useThrottledCallback<
+  T extends (...args: unknown[]) => unknown
+>(
   fn: T,
   wait = 250,
   dependencies: React.DependencyList = [],

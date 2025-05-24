@@ -94,7 +94,12 @@ const ContentEditable = React.forwardRef(function _ContentEditable(
         | React.KeyboardEventHandler<HTMLSpanElement>
         | undefined
     ) =>
-    (event: any) => {
+    (
+      event:
+        | React.FocusEvent<HTMLSpanElement>
+        | React.FormEvent<HTMLSpanElement>
+        | React.KeyboardEvent<HTMLSpanElement>
+    ) => {
       if (readOnly) {
         return;
       }
