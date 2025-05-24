@@ -46,8 +46,12 @@ export function actionToMenuItem(
   action: Action,
   context: ActionContext
 ): MenuItemButton | MenuItemWithChildren {
-  const resolvedIcon = resolve<React.ReactNode>(action.icon, context);
-  const resolvedChildren = resolve<Action[]>(action.children, context);
+  const resolvedIcon = action.icon
+    ? resolve<React.ReactNode>(action.icon, context)
+    : undefined;
+  const resolvedChildren = action.children
+    ? resolve<Action[]>(action.children, context)
+    : undefined;
   const visible = action.visible ? action.visible(context) : true;
   const title = resolve<string>(action.name, context);
   const icon =
@@ -89,11 +93,20 @@ export function actionToKBar(
     return [];
   }
 
-  const resolvedIcon = resolve<React.ReactElement>(action.icon, context);
-  const resolvedChildren = resolve<Action[]>(action.children, context);
-  const resolvedSection = resolve<string>(action.section, context);
+  const resolvedIcon = action.icon
+    ? resolve<React.ReactElement>(action.icon, context)
+    : undefined;
+  const resolvedChildren = action.children
+    ? resolve<Action[]>(action.children, context)
+    : undefined;
+  const resolvedSection = action.section
+    ? resolve<string>(action.section, context)
+    : undefined;
   const resolvedName = resolve<string>(action.name, context);
-  const resolvedPlaceholder = resolve<string>(action.placeholder, context);
+  const resolvedPlaceholder = action.placeholder
+    ? resolve<string>(action.placeholder, context)
+    : undefined;
+
   const children = resolvedChildren
     ? flattenDeep(resolvedChildren.map((a) => actionToKBar(a, context))).filter(
         (a) => !!a

@@ -108,11 +108,10 @@ if ("serviceWorker" in navigator && env.ENVIRONMENT !== "development") {
     if (maybePromise?.then) {
       maybePromise
         .then((registration) => {
-          Logger.debug(
-            "lifecycle",
-            "[ServiceWorker] Registered.",
-            registration
-          );
+          Logger.debug("lifecycle", "[ServiceWorker] Registered.", {
+            scope: registration.scope,
+            active: !!registration.active,
+          });
         })
         .catch((registrationError) => {
           Logger.debug(

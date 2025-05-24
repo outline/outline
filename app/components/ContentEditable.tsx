@@ -97,8 +97,8 @@ const ContentEditable = React.forwardRef(function _ContentEditable(
     (
       event:
         | React.FocusEvent<HTMLSpanElement>
-        | React.FormEvent<HTMLSpanElement>
         | React.KeyboardEvent<HTMLSpanElement>
+        | React.FormEvent<HTMLSpanElement>
     ) => {
       if (readOnly) {
         return;
@@ -106,7 +106,12 @@ const ContentEditable = React.forwardRef(function _ContentEditable(
 
       const text = event.currentTarget.textContent || "";
 
-      if (maxLength && isPrintableKeyEvent(event) && text.length >= maxLength) {
+      if (
+        maxLength &&
+        "key" in event &&
+        isPrintableKeyEvent(event as React.KeyboardEvent<HTMLSpanElement>) &&
+        text.length >= maxLength
+      ) {
         event?.preventDefault();
         return;
       }
@@ -116,7 +121,7 @@ const ContentEditable = React.forwardRef(function _ContentEditable(
         onChange?.(text);
       }
 
-      callback?.(event);
+      callback?.(event as any);
     };
 
   // This is to account for being within a React.Suspense boundary, in this

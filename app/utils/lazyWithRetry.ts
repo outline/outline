@@ -1,9 +1,8 @@
 import * as React from "react";
 
-type ComponentPromise<T extends React.ComponentType<Record<string, unknown>>> =
-  Promise<{
-    default: T;
-  }>;
+type ComponentPromise<T extends React.ComponentType<any>> = Promise<{
+  default: T;
+}>;
 
 /**
  * Lazy load a component with automatic retry on failure.
@@ -13,9 +12,7 @@ type ComponentPromise<T extends React.ComponentType<Record<string, unknown>>> =
  * @param interval The interval between retries in milliseconds, defaults to 1000.
  * @returns A lazy component.
  */
-export default function lazyWithRetry<
-  T extends React.ComponentType<Record<string, unknown>>
->(
+export default function lazyWithRetry<T extends React.ComponentType<any>>(
   component: () => ComponentPromise<T>,
   retries?: number,
   interval?: number
@@ -23,7 +20,7 @@ export default function lazyWithRetry<
   return React.lazy(() => retry(component, retries, interval));
 }
 
-function retry<T extends React.ComponentType<Record<string, unknown>>>(
+function retry<T extends React.ComponentType<any>>(
   fn: () => ComponentPromise<T>,
   retriesLeft = 3,
   interval = 1000

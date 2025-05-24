@@ -162,7 +162,12 @@ export type PaginationParams = {
   limit?: number;
   offset?: number;
   sort?: string;
-  direction?: "ASC" | "DESC";
+  direction?: "ASC" | "DESC" | "asc" | "desc";
+  collectionId?: string;
+  userId?: string;
+  parentDocumentId?: string | null;
+  statusFilter?: any[];
+  dateFilter?: any;
 };
 
 export type SearchResult = {
