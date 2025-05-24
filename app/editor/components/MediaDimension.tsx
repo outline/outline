@@ -46,7 +46,7 @@ export function MediaDimension() {
       getComputedStyle(ref.current).getPropertyValue("--document-width")
     );
     const maxWidth = docWidth - EditorStyleHelper.padding * 2;
-    const maxHeight = maxWidth * aspectRatio;
+    const maxHeight = Math.round(maxWidth * aspectRatio);
     boundsRef.current = {
       width: { min: 50, max: maxWidth },
       height: { min: 50, max: maxHeight },
