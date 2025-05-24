@@ -133,10 +133,19 @@ describe("SearchHelper", () => {
 
     test("should handle backslashes in search term", async () => {
       const team = await buildTeam();
-      const { results } = await SearchHelper.searchForTeam(team, {
-        query: "\\\\",
+      const collection = await buildCollection({
+        teamId: team.id,
       });
-      expect(results.length).toBe(0);
+      const document = await buildDocument({
+        teamId: team.id,
+        collectionId: collection.id,
+        title: "test with backslash \\",
+      });
+      const { results } = await SearchHelper.searchForTeam(team, {
+        query: "test with backslash \\",
+      });
+      expect(results.length).toBe(1);
+      expect(results[0].document?.id).toBe(document.id);
     });
 
     test("should return the total count of search results", async () => {
