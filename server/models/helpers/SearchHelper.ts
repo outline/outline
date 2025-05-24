@@ -487,7 +487,7 @@ export default class SearchHelper {
       );
 
       // Escape the URLs
-      likelyUrls = likelyUrls.map(url => this.escapeQuery(url));
+      likelyUrls = likelyUrls.map((url) => this.escapeQuery(url));
 
       // Extract quoted queries and add them to the where clause, up to a maximum of 3 total.
       const quotedQueries = Array.from(limitedQuery.matchAll(/"([^"]*)"/g)).map(
