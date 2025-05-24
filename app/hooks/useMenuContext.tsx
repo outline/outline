@@ -11,6 +11,9 @@ type MenuContextType = {
 
 const MenuContext = React.createContext<MenuContextType | null>(null);
 
+// Registry to track all active menu instances
+const menuRegistry = new Map();
+
 type Props = {
   children?: React.ReactNode;
 };
@@ -18,22 +21,19 @@ type Props = {
 export const MenuProvider: React.FC = ({ children }: Props) => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
-  // Registry to track all active menu instances
-  const menuRegistry = React.useRef<Map<string, () => void>>(new Map());
-
   const registerMenu = React.useCallback(
     (menuId: string, hideFunction: () => void) => {
-      menuRegistry.current.set(menuId, hideFunction);
+      menuRegistry.set(menuId, hideFunction);
     },
     []
   );
 
   const unregisterMenu = React.useCallback((menuId: string) => {
-    menuRegistry.current.delete(menuId);
+    menuRegistry.delete(menuId);
   }, []);
 
   const closeOtherMenus = React.useCallback((excludeMenuId: string) => {
-    menuRegistry.current.forEach((hideFunction, menuId) => {
+    menuRegistry.forEach((hideFunction, menuId) => {
       if (menuId !== excludeMenuId) {
         hideFunction();
       }

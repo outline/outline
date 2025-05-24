@@ -11,7 +11,7 @@ import { actionToMenuItem, performAction } from "~/actions";
 import { navigateToNotificationSettings } from "~/actions/definitions/navigation";
 import { markNotificationsAsArchived } from "~/actions/definitions/notifications";
 import useActionContext from "~/hooks/useActionContext";
-import useMenuState from "~/hooks/useMenuState";
+import { useMenuState } from "~/hooks/useMenuState";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 import { MenuItem } from "~/types";
 

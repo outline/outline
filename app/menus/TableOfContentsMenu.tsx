@@ -8,7 +8,7 @@ import Button from "~/components/Button";
 import ContextMenu from "~/components/ContextMenu";
 import Template from "~/components/ContextMenu/Template";
 import { useDocumentContext } from "~/components/DocumentContext";
-import useMenuState from "~/hooks/useMenuState";
+import { useMenuState } from "~/hooks/useMenuState";
 import { MenuItem } from "~/types";
 
 function TableOfContentsMenu() {

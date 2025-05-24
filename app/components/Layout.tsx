@@ -49,7 +49,7 @@ const Layout = React.forwardRef(function Layout_(
         {ui.progressBarVisible && <LoadingIndicatorBar />}
 
         <Container auto>
-          {sidebar}
+          <MenuProvider>{sidebar}</MenuProvider>
 
           <SkipNavContent />
           <Content

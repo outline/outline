@@ -8,7 +8,7 @@ import { getEmojiVariants } from "@shared/utils/emoji";
 import { Emoji } from "~/components/Emoji";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
-import useMenuState from "~/hooks/useMenuState";
+import { useMenuState } from "~/hooks/useMenuState";
 import { IconButton } from "./IconButton";
 
 const SkinTonePicker = ({

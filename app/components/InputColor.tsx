@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { MenuButton } from "reakit/Menu";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import useMenuState from "~/hooks/useMenuState";
+import { useMenuState } from "~/hooks/useMenuState";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import ContextMenu from "./ContextMenu";
 import DelayedMount from "./DelayedMount";
