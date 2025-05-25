@@ -26,7 +26,7 @@ export async function fetchOIDCConfiguration(
     const normalizedIssuer = issuerUrl.replace(/\/$/, "");
     const wellKnownUrl = `${normalizedIssuer}/.well-known/openid-configuration`;
 
-    Logger.info("oidc", `Fetching OIDC configuration from ${wellKnownUrl}`);
+    Logger.info("plugins", `Fetching OIDC configuration from ${wellKnownUrl}`);
 
     const response = await fetch(wellKnownUrl, {
       method: "GET",
@@ -56,7 +56,7 @@ export async function fetchOIDCConfiguration(
       throw new Error("Missing userinfo_endpoint in OIDC configuration");
     }
 
-    Logger.info("oidc", "Successfully fetched OIDC configuration", {
+    Logger.info("plugins", "Successfully fetched OIDC configuration", {
       issuer: config.issuer,
       authorization_endpoint: config.authorization_endpoint,
       token_endpoint: config.token_endpoint,

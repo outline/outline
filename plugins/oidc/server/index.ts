@@ -1,4 +1,3 @@
-import Router from "koa-router";
 import Logger from "@server/logging/Logger";
 import { PluginManager, Hook } from "@server/utils/PluginManager";
 import config from "../plugin.json";
@@ -33,41 +32,45 @@ if (enabled) {
       value: { router, id: config.id },
       name: env.OIDC_DISPLAY_NAME || config.name,
     });
-    Logger.info("oidc", "OIDC plugin registered with manual configuration");
+    Logger.info("plugins", "OIDC plugin registered with manual configuration");
   } else if (hasIssuerConfig) {
-    // Create empty router and register plugin immediately
-    const discoveryRouter = new Router();
-    PluginManager.add({
-      ...config,
-      type: Hook.AuthProvider,
-      value: { router: discoveryRouter, id: config.id },
-      name: env.OIDC_DISPLAY_NAME || config.name,
-    });
-
-    // Asynchronously discover configuration and mount endpoints
-    void (async () => {
+    // Register async initializer for automatic discovery
+    PluginManager.addAsyncInitializer(async () => {
       try {
-        Logger.info("oidc", "Starting OIDC configuration discovery");
+        Logger.info("plugins", "Starting OIDC configuration discovery");
 
         const oidcConfig = await fetchOIDCConfiguration(env.OIDC_ISSUER!);
 
-        // Mount endpoints into the existing router
-        createOIDCRouter(discoveryRouter, {
+        // Create router with discovered configuration
+        const discoveredRouter = createOIDCRouter({
           authorizationURL: oidcConfig.authorization_endpoint,
           tokenURL: oidcConfig.token_endpoint,
           userInfoURL: oidcConfig.userinfo_endpoint,
           logoutURL: oidcConfig.end_session_endpoint,
         });
 
-        Logger.info("oidc", "OIDC endpoints mounted after discovery", {
-          issuer: oidcConfig.issuer,
-          authorization_endpoint: oidcConfig.authorization_endpoint,
-          token_endpoint: oidcConfig.token_endpoint,
-          userinfo_endpoint: oidcConfig.userinfo_endpoint,
+        // Register the plugin with discovered configuration
+        PluginManager.add({
+          ...config,
+          type: Hook.AuthProvider,
+          value: { router: discoveredRouter, id: config.id },
+          name: env.OIDC_DISPLAY_NAME || config.name,
         });
+
+        Logger.info(
+          "plugins",
+          "OIDC plugin registered with discovered configuration",
+          {
+            issuer: oidcConfig.issuer,
+            authorization_endpoint: oidcConfig.authorization_endpoint,
+            token_endpoint: oidcConfig.token_endpoint,
+            userinfo_endpoint: oidcConfig.userinfo_endpoint,
+          }
+        );
       } catch (error) {
-        Logger.error("Failed to discover OIDC configuration", error);
+        Logger.error("Failed to initialize OIDC plugin with discovery", error);
+        throw new Error(`OIDC discovery failed: ${error.message}`);
       }
-    })();
+    });
   }
 }
