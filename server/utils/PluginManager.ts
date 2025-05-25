@@ -130,22 +130,4 @@ export class PluginManager {
   }
 
   private static loaded = false;
-
-  /**
-   * Load all plugins from the plugins directory
-   */
-  public static async load() {
-    const plugins = await this.discover();
-    this.register(plugins);
-  }
-
-  private static async discover() {
-    const rootDir = env.ENVIRONMENT === "test" ? "" : "build";
-
-    return glob
-      .sync(path.join(rootDir, "plugins/*/server/!(*.test|schema).[jt]s"))
-      .map((filePath: string) => {
-        return require(path.join(process.cwd(), filePath));
-      });
-  }
 }
