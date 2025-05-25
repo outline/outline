@@ -6,55 +6,6 @@ import { s } from "@shared/styles";
 import useMobile from "~/hooks/useMobile";
 import { useTooltipContext } from "./TooltipContext";
 
-// Define keyframes before they're used
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const slideUpAndFade = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(2px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`;
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const slideRightAndFade = keyframes`
-  from {
-    opacity: 0;
-    transform: translateX(-2px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-`;
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const slideDownAndFade = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(-2px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`;
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const slideLeftAndFade = keyframes`
-  from {
-    opacity: 0;
-    transform: translateX(2px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-`;
-
 export type Props = {
   /** The content to display in the tooltip. */
   content?: React.ReactChild | React.ReactChild[];
@@ -209,7 +160,7 @@ function Tooltip({
       defaultOpen={defaultOpen}
       open={open}
       onOpenChange={onOpenChange}
-      delayDuration={isInProvider ? 0 : finalDelayDuration}
+      delayDuration={isInProvider ? undefined : finalDelayDuration}
       disableHoverableContent={disableHoverableContent}
     >
       <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
@@ -225,7 +176,6 @@ function Tooltip({
           {...rest}
         >
           {content}
-          <StyledArrow />
         </StyledContent>
       </TooltipPrimitive.Portal>
     </TooltipPrimitive.Root>
@@ -246,6 +196,50 @@ function Tooltip({
     </TooltipPrimitive.Provider>
   );
 }
+
+const slideUpAndFade = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const slideRightAndFade = keyframes`
+  from {
+    opacity: 0;
+    transform: translateX(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+`;
+
+const slideDownAndFade = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const slideLeftAndFade = keyframes`
+  from {
+    opacity: 0;
+    transform: translateX(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+`;
 
 const Shortcut = styled.kbd`
   position: relative;
@@ -273,28 +267,22 @@ const StyledContent = styled(TooltipPrimitive.Content)`
   white-space: normal;
   outline: 0;
   padding: 5px 9px;
-  z-index: 1;
+  z-index: 9999;
   max-width: calc(100vw - 10px);
 
   /* Animation */
   &[data-state="delayed-open"][data-side="top"] {
-    animation: slideDownAndFade 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    animation: ${slideDownAndFade} 200ms cubic-bezier(0.16, 1, 0.3, 1);
   }
   &[data-state="delayed-open"][data-side="right"] {
-    animation: slideLeftAndFade 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    animation: ${slideLeftAndFade} 200ms cubic-bezier(0.16, 1, 0.3, 1);
   }
   &[data-state="delayed-open"][data-side="bottom"] {
-    animation: slideUpAndFade 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    animation: ${slideUpAndFade} 200ms cubic-bezier(0.16, 1, 0.3, 1);
   }
   &[data-state="delayed-open"][data-side="left"] {
-    animation: slideRightAndFade 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    animation: ${slideRightAndFade} 200ms cubic-bezier(0.16, 1, 0.3, 1);
   }
-`;
-
-const StyledArrow = styled(TooltipPrimitive.Arrow)`
-  width: 16px;
-  height: 16px;
-  fill: ${s("tooltipBackground")};
 `;
 
 export const TooltipStyles = createGlobalStyle`
