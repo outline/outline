@@ -80,18 +80,6 @@ export class PluginManager {
     this.register(plugins);
   }
 
-  /**
-   * Register an async initializer function that will be called during
-   * async plugin initialization phase.
-   *
-   * @param initializer Function that returns a Promise
-   */
-
-  /**
-   * Run all registered async initializers. This should be called after
-   * synchronous plugin loading but before the server starts accepting requests.
-   */
-
   private static register<T extends Hook>(plugin: Plugin<T>) {
     if (!this.plugins.has(plugin.type)) {
       this.plugins.set(plugin.type, []);
@@ -142,4 +130,22 @@ export class PluginManager {
   }
 
   private static loaded = false;
+
+  /**
+   * Load all plugins from the plugins directory
+   */
+  public static async load() {
+    const plugins = await this.discover();
+    this.register(plugins);
+  }
+
+  private static async discover() {
+    const rootDir = env.ENVIRONMENT === "test" ? "" : "build";
+
+    return glob
+      .sync(path.join(rootDir, "plugins/*/server/!(*.test|schema).[jt]s"))
+      .map((filePath: string) => {
+        return require(path.join(process.cwd(), filePath));
+      });
+  }
 }

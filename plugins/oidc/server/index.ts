@@ -16,7 +16,7 @@ const hasManualConfig = !!(
 const hasIssuerConfig = !!(
   env.OIDC_CLIENT_ID &&
   env.OIDC_CLIENT_SECRET &&
-  env.OIDC_ISSUER
+  env.OIDC_ISSUER_URL
 );
 
 const enabled = hasManualConfig || hasIssuerConfig;
@@ -29,5 +29,5 @@ if (enabled) {
     value: { router, id: config.id },
     name: env.OIDC_DISPLAY_NAME || config.name,
   });
-  Logger.info("oidc", "OIDC plugin registered");
+  Logger.info("plugins", "OIDC plugin registered");
 }

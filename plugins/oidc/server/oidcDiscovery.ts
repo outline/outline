@@ -22,9 +22,16 @@ export async function fetchOIDCConfiguration(
   issuerUrl: string
 ): Promise<OIDCConfiguration> {
   try {
-    // Ensure the issuer URL doesn't end with a slash
-    const normalizedIssuer = issuerUrl.replace(/\/$/, "");
-    const wellKnownUrl = `${normalizedIssuer}/.well-known/openid-configuration`;
+    // Handle both cases: issuer URL with or without well-known path
+    let wellKnownUrl: string;
+    if (issuerUrl.includes('/.well-known/openid-configuration')) {
+      // URL already contains the well-known path
+      wellKnownUrl = issuerUrl;
+    } else {
+      // Ensure the issuer URL doesn't end with a slash and append well-known path
+      const normalizedIssuer = issuerUrl.replace(/\/$/, "");
+      wellKnownUrl = `${normalizedIssuer}/.well-known/openid-configuration`;
+    }
 
     Logger.info("plugins", `Fetching OIDC configuration from ${wellKnownUrl}`);
 

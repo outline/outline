@@ -20,7 +20,7 @@ const hasManualConfig = !!(
 const hasIssuerConfig = !!(
   env.OIDC_CLIENT_ID &&
   env.OIDC_CLIENT_SECRET &&
-  env.OIDC_ISSUER
+  env.OIDC_ISSUER_URL
 );
 
 if (hasManualConfig) {
@@ -31,14 +31,14 @@ if (hasManualConfig) {
     userInfoURL: env.OIDC_USERINFO_URI!,
     logoutURL: env.OIDC_LOGOUT_URI,
   });
-  Logger.info("oidc", "OIDC endpoints mounted with manual configuration");
+  Logger.info("plugins", "OIDC endpoints mounted with manual configuration");
 } else if (hasIssuerConfig) {
   // Asynchronously discover configuration and mount endpoints
   void (async () => {
     try {
-      Logger.info("oidc", "Starting OIDC configuration discovery");
+      Logger.info("plugins", "Starting OIDC configuration discovery");
 
-      const oidcConfig = await fetchOIDCConfiguration(env.OIDC_ISSUER!);
+      const oidcConfig = await fetchOIDCConfiguration(env.OIDC_ISSUER_URL!);
 
       // Mount endpoints into the existing router
       createOIDCRouter(router, {
@@ -48,7 +48,7 @@ if (hasManualConfig) {
         logoutURL: oidcConfig.end_session_endpoint,
       });
 
-      Logger.info("oidc", "OIDC endpoints mounted after discovery", {
+      Logger.info("plugins", "OIDC endpoints mounted after discovery", {
         issuer: oidcConfig.issuer,
         authorization_endpoint: oidcConfig.authorization_endpoint,
         token_endpoint: oidcConfig.token_endpoint,

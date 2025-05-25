@@ -29,7 +29,7 @@ class OIDCPluginEnvironment extends Environment {
     require_tld: false,
     allow_underscores: true,
   })
-  public OIDC_ISSUER = this.toOptionalString(environment.OIDC_ISSUER);
+  public OIDC_ISSUER_URL = this.toOptionalString(environment.OIDC_ISSUER_URL);
 
   /**
    * The name of the OIDC provider, eg "GitLab" – this will be displayed on the
