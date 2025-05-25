@@ -128,11 +128,11 @@ function StarredLink({ star }: Props) {
       return null;
     }
 
-    const collection = document.collectionId
+    const documentCollection = document.collectionId
       ? collections.get(document.collectionId)
       : undefined;
-    const childDocuments = collection
-      ? collection.getChildrenForDocument(documentId)
+    const childDocuments = documentCollection
+      ? documentCollection.getChildrenForDocument(documentId)
       : [];
     const hasChildDocuments = childDocuments.length > 0;
 
@@ -176,7 +176,7 @@ function StarredLink({ star }: Props) {
                 <DocumentLink
                   key={node.id}
                   node={node}
-                  collection={collection}
+                  collection={documentCollection}
                   activeDocument={documents.active}
                   prefetchDocument={documents.prefetchDocument}
                   isDraft={node.isDraft}

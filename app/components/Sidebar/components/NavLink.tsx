@@ -75,7 +75,7 @@ const NavLink = ({
   );
   const { pathname: path } = toLocation;
 
-  const match = path
+  const pathMatch = path
     ? matchPath(currentLocation.pathname, {
         // Regex taken from: https://github.com/pillarjs/path-to-regexp/blob/master/index.js#L202
         path: path.replace(/([.+*?=^!:${}()[\]|/\\])/g, "\\$1"),
@@ -86,7 +86,7 @@ const NavLink = ({
 
   const isActive =
     preActive ??
-    !!(isActiveProp ? isActiveProp(match, currentLocation) : match);
+    !!(isActiveProp ? isActiveProp(pathMatch, currentLocation) : pathMatch);
   const className = isActive
     ? joinClassnames(classNameProp, activeClassName)
     : classNameProp;

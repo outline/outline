@@ -69,8 +69,8 @@ const Modal: React.FC<Props> = ({
 
   return (
     <DialogBackdrop {...dialog}>
-      {(props) => (
-        <Backdrop $fullscreen={fullscreen} {...props}>
+      {(backdropProps) => (
+        <Backdrop $fullscreen={fullscreen} {...backdropProps}>
           <Dialog
             {...dialog}
             aria-label={typeof title === "string" ? title : undefined}
@@ -79,7 +79,7 @@ const Modal: React.FC<Props> = ({
             hideOnClickOutside={!fullscreen}
             hide={onRequestClose}
           >
-            {(props) =>
+            {(dialogProps) =>
               fullscreen || isMobile ? (
                 <Fullscreen
                   $nested={!!depth}
@@ -90,7 +90,7 @@ const Modal: React.FC<Props> = ({
                           marginLeft: `${depth * 12}px`,
                         }
                   }
-                  {...props}
+                  {...dialogProps}
                 >
                   <Content>
                     <Centered onClick={(ev) => ev.stopPropagation()} column>
@@ -111,7 +111,7 @@ const Modal: React.FC<Props> = ({
                   </Back>
                 </Fullscreen>
               ) : (
-                <Small {...props}>
+                <Small {...dialogProps}>
                   <Centered
                     onClick={(ev) => ev.stopPropagation()}
                     // maxHeight needed for proper overflow behavior in Safari

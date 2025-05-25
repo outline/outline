@@ -15,7 +15,7 @@ function CopyToClipboard(props: Props, ref: React.Ref<HTMLElement>) {
 
   const onClick = React.useCallback(
     (ev: React.MouseEvent<HTMLElement>) => {
-      const elem = React.Children.only(children);
+      const childElem = React.Children.only(children);
 
       copy(text, {
         debug: env.ENVIRONMENT !== "production",
@@ -24,8 +24,12 @@ function CopyToClipboard(props: Props, ref: React.Ref<HTMLElement>) {
 
       onCopy?.();
 
-      if (elem && elem.props && typeof elem.props.onClick === "function") {
-        elem.props.onClick(ev);
+      if (
+        childElem &&
+        childElem.props &&
+        typeof childElem.props.onClick === "function"
+      ) {
+        childElem.props.onClick(ev);
       } else {
         ev.preventDefault();
         ev.stopPropagation();
