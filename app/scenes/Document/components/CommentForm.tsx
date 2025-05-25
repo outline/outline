@@ -1,10 +1,10 @@
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { m } from "framer-motion";
 import { action } from "mobx";
 import { observer } from "mobx-react";
 import { ImageIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { VisuallyHidden } from "reakit";
 import { toast } from "sonner";
 import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
@@ -266,7 +266,7 @@ function CommentForm({
       {...presence}
       {...rest}
     >
-      <VisuallyHidden>
+      <VisuallyHidden.Root>
         <input
           ref={file}
           type="file"
@@ -274,7 +274,7 @@ function CommentForm({
           accept={AttachmentValidation.imageContentTypes.join(", ")}
           tabIndex={-1}
         />
-      </VisuallyHidden>
+      </VisuallyHidden.Root>
       <Flex gap={8} align="flex-start" reverse={dir === "rtl"}>
         <Avatar model={user} size={24} style={{ marginTop: 8 }} />
         <Bubble

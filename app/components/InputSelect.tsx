@@ -1,3 +1,4 @@
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import {
   Select,
   SelectOption,
@@ -7,7 +8,6 @@ import {
 } from "@renderlesskit/react";
 import { CheckmarkIcon } from "outline-icons";
 import * as React from "react";
-import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
 import Button, { Props as ButtonProps, Inner } from "~/components/Button";
@@ -213,7 +213,7 @@ const InputSelect = (props: Props, ref: React.RefObject<InputSelectRef>) => {
       <Wrapper short={short}>
         {label &&
           (labelHidden ? (
-            <VisuallyHidden>{wrappedLabel}</VisuallyHidden>
+            <VisuallyHidden.Root>{wrappedLabel}</VisuallyHidden.Root>
           ) : (
             wrappedLabel
           ))}
