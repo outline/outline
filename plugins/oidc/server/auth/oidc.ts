@@ -1,8 +1,10 @@
+import Router from "koa-router";
 import env from "../env";
 import { createOIDCRouter } from "./oidcRouter";
 
-// Create router with manual configuration from environment variables
-const router = createOIDCRouter({
+// Create router and mount endpoints with manual configuration from environment variables
+const router = new Router();
+createOIDCRouter(router, {
   authorizationURL: env.OIDC_AUTH_URI!,
   tokenURL: env.OIDC_TOKEN_URI!,
   userInfoURL: env.OIDC_USERINFO_URI!,

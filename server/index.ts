@@ -60,9 +60,6 @@ async function start(_id: number, disconnect: () => void) {
   // Ensure plugins are loaded
   PluginManager.loadPlugins();
 
-  // Run async plugin initializers
-  await PluginManager.runAsyncInitializers();
-
   // Find if SSL certs are available
   const ssl = getSSLOptions();
   const useHTTPS = !!ssl.key && !!ssl.cert;

@@ -32,10 +32,12 @@ export interface OIDCEndpoints {
 }
 
 /**
- * Creates an OIDC router with the provided endpoints
+ * Creates OIDC routes and mounts them into the provided router
  */
-export function createOIDCRouter(endpoints: OIDCEndpoints): Router {
-  const router = new Router();
+export function createOIDCRouter(
+  router: Router,
+  endpoints: OIDCEndpoints
+): void {
   const scopes = env.OIDC_SCOPES.split(" ");
 
   if (
@@ -206,6 +208,4 @@ export function createOIDCRouter(endpoints: OIDCEndpoints): Router {
     router.get(`${config.id}.callback`, passportMiddleware(config.id));
     router.post(`${config.id}.callback`, passportMiddleware(config.id));
   }
-
-  return router;
 }
