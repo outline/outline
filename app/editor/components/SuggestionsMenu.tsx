@@ -1,9 +1,9 @@
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import commandScore from "command-score";
 import capitalize from "lodash/capitalize";
 import orderBy from "lodash/orderBy";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { VisuallyHidden } from "reakit/VisuallyHidden";
 import { toast } from "sonner";
 import styled from "styled-components";
 import insertFiles from "@shared/editor/commands/insertFiles";
@@ -672,7 +672,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
               </List>
             )}
             {uploadFile && (
-              <VisuallyHidden>
+              <VisuallyHidden.Root>
                 <label>
                   <Trans>Import document</Trans>
                   <input
@@ -682,7 +682,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                     multiple
                   />
                 </label>
-              </VisuallyHidden>
+              </VisuallyHidden.Root>
             )}
           </>
         )}

@@ -1,3 +1,4 @@
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import capitalize from "lodash/capitalize";
 import isEmpty from "lodash/isEmpty";
 import noop from "lodash/noop";
@@ -13,7 +14,6 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { MenuButton, MenuButtonHTMLProps } from "reakit/Menu";
-import { VisuallyHidden } from "reakit/VisuallyHidden";
 import { toast } from "sonner";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -469,7 +469,7 @@ function DocumentMenu({
 
   return (
     <>
-      <VisuallyHidden>
+      <VisuallyHidden.Root>
         <label>
           {t("Import document")}
           <input
@@ -481,7 +481,7 @@ function DocumentMenu({
             tabIndex={-1}
           />
         </label>
-      </VisuallyHidden>
+      </VisuallyHidden.Root>
       <MenuContext.Provider value={{ model: document, menuState }}>
         <MenuTrigger label={label} onTrigger={showMenu} />
         {isMenuVisible ? (
