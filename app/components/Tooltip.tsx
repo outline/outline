@@ -115,7 +115,8 @@ export type Props = {
 };
 
 /**
- * A tooltip component that wraps Radix UI Tooltip and provides a consistent look and feel.
+ * Tooltip component using Radix UI primitives.
+ * Displays a tooltip with optional keyboard shortcut.
  * Optionally displays a keyboard shortcut next to the content.
  *
  * Wrap this component in a TooltipProvider to allow multiple tooltips to share the same
@@ -144,7 +145,7 @@ function Tooltip({
   placement,
   delay,
   ...rest
-}: Props) {
+}: Props): React.ReactElement | null {
   const isMobile = useMobile();
   const isInProvider = useTooltipContext();
 
@@ -180,7 +181,7 @@ function Tooltip({
   let content = <>{tooltip}</>;
 
   if (!tooltip || isMobile || disabled) {
-    return children ?? null;
+    return (children as React.ReactElement) ?? null;
   }
 
   if (shortcut) {
@@ -260,55 +261,6 @@ const Shortcut = styled.kbd`
   border: 1px solid ${(props) => transparentize(0.75, props.theme.tooltipText)};
   vertical-align: middle;
   border-radius: 3px;
-`;
-
-// Define keyframes before using them in styled components
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const slideUpAndFade = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(2px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`;
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const slideRightAndFade = keyframes`
-  from {
-    opacity: 0;
-    transform: translateX(-2px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-`;
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const slideDownAndFade = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(-2px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`;
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const slideLeftAndFade = keyframes`
-  from {
-    opacity: 0;
-    transform: translateX(2px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
 `;
 
 const StyledContent = styled(TooltipPrimitive.Content)`
