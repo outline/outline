@@ -1,3 +1,4 @@
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import capitalize from "lodash/capitalize";
 import isEmpty from "lodash/isEmpty";
 import noop from "lodash/noop";
@@ -13,7 +14,6 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { MenuButton, MenuButtonHTMLProps } from "reakit/Menu";
-import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { toast } from "sonner";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";

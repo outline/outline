@@ -1,10 +1,10 @@
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { m } from "framer-motion";
 import { action } from "mobx";
 import { observer } from "mobx-react";
 import { ImageIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { toast } from "sonner";
 import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
