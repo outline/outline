@@ -66,6 +66,7 @@ export type Plugin<T extends Hook> = {
  */
 export class PluginManager {
   private static plugins = new Map<Hook, Plugin<Hook>[]>();
+  private static asyncInitializers: Array<() => Promise<void>> = [];
 
   /**
    * Add plugins to the manager.
@@ -78,6 +79,38 @@ export class PluginManager {
     }
 
     this.register(plugins);
+  }
+
+  /**
+   * Register an async initializer function that will be called during
+   * async plugin initialization phase.
+   *
+   * @param initializer Function that returns a Promise
+   */
+  public static addAsyncInitializer(initializer: () => Promise<void>) {
+    this.asyncInitializers.push(initializer);
+  }
+
+  /**
+   * Run all registered async initializers. This should be called after
+   * synchronous plugin loading but before the server starts accepting requests.
+   */
+  public static async runAsyncInitializers() {
+    Logger.debug(
+      "plugins",
+      `Running ${this.asyncInitializers.length} async initializers`
+    );
+
+    for (const initializer of this.asyncInitializers) {
+      try {
+        await initializer();
+      } catch (error) {
+        Logger.error("Failed to run async plugin initializer", error);
+        throw error;
+      }
+    }
+
+    Logger.debug("plugins", "All async initializers completed successfully");
   }
 
   private static register<T extends Hook>(plugin: Plugin<T>) {
