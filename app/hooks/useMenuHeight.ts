@@ -23,11 +23,11 @@ const useMenuHeight = ({
 
   React.useLayoutEffect(() => {
     if (visible && !isMobile) {
-      const maxHeight = (windowHeight / 100) * maxViewportHeight;
+      const calculatedMaxHeight = (windowHeight / 100) * maxViewportHeight;
 
       setMaxHeight(
         Math.min(
-          maxHeight,
+          calculatedMaxHeight,
           elementRef?.current
             ? windowHeight -
                 elementRef.current.getBoundingClientRect().bottom -
