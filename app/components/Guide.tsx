@@ -36,8 +36,8 @@ const Guide: React.FC<Props> = ({
 
   return (
     <DialogBackdrop {...dialog}>
-      {(props) => (
-        <Backdrop {...props}>
+      {(backdropProps) => (
+        <Backdrop {...backdropProps}>
           <Dialog
             {...dialog}
             aria-label={title}
@@ -45,8 +45,8 @@ const Guide: React.FC<Props> = ({
             hideOnEsc
             hide={onRequestClose}
           >
-            {(props) => (
-              <Scene {...props} {...rest}>
+            {(dialogProps) => (
+              <Scene {...dialogProps} {...rest}>
                 <Content>
                   {title && <Header>{title}</Header>}
                   {children}

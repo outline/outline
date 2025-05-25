@@ -61,13 +61,13 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
       // suppresses text selection
       event.preventDefault();
       // this is simple because the sidebar is always against the left edge
-      const width = Math.min(event.pageX - offset, maxWidth);
-      const isSmallerThanCollapsePoint = width < minWidth / 2;
+      const newWidth = Math.min(event.pageX - offset, maxWidth);
+      const isSmallerThanCollapsePoint = newWidth < minWidth / 2;
 
       ui.set({
         sidebarWidth: isSmallerThanCollapsePoint
           ? theme.sidebarCollapsedWidth
-          : width,
+          : newWidth,
       });
     },
     [ui, theme, offset, minWidth, maxWidth]

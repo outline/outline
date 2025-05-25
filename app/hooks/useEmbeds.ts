@@ -36,10 +36,7 @@ export default function useEmbeds(loadIfMissing = false) {
       embeds.map((e) => {
         // Find any integrations that match this embed and inject the settings
         const integration: Integration<IntegrationType.Embed> | undefined =
-          find(
-            integrations.orderedData,
-            (integration) => integration.service === e.name
-          );
+          find(integrations.orderedData, (i) => i.service === e.name);
 
         if (integration?.settings) {
           e.settings = integration.settings;

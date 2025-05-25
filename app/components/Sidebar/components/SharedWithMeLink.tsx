@@ -86,9 +86,12 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
   );
 
   const parentRef = React.useRef<HTMLDivElement>(null);
-  const node = React.useMemo(() => document?.asNavigationNode, [document]);
+  const reparentableNode = React.useMemo(
+    () => document?.asNavigationNode,
+    [document]
+  );
   const [{ isOverReparent, canDropToReparent }, dropToReparent] =
-    useDropToReparentDocument(node, setExpanded, parentRef);
+    useDropToReparentDocument(reparentableNode, setExpanded, parentRef);
 
   const { icon } = useSidebarLabelAndIcon(membership);
   const [{ isDragging }, draggableRef] = useDragMembership(membership);
@@ -172,10 +175,10 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
           </Draggable>
         </Relative>
         <Folder expanded={displayChildDocuments}>
-          {childDocuments.map((node, index) => (
+          {childDocuments.map((childNode, index) => (
             <DocumentLink
-              key={node.id}
-              node={node}
+              key={childNode.id}
+              node={childNode}
               collection={collection}
               activeDocument={documents.active}
               isDraft={node.isDraft}
