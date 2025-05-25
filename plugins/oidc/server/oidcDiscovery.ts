@@ -27,7 +27,7 @@ export async function fetchOIDCConfiguration(
     const wellKnownPath = "/.well-known/openid-configuration";
     const wellKnownUrl = issuerUrl.includes(wellKnownPath)
       ? issuerUrl
-      : path.join(issuerUrl, wellKnownPath);
+      : new URL(wellKnownPath, issuerUrl).toString();
 
     Logger.info("plugins", `Fetching OIDC configuration from ${wellKnownUrl}`);
 
