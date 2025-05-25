@@ -49,6 +49,34 @@ export const DocumentValidation = {
 
   /** The maximum size of the collaborative document state */
   maxStateLength: 1500 * 1024,
+
+  /** The maximum recommended size of the document content */
+  maxRecommendedLength: 250000,
+};
+
+export const ImportValidation = {
+  /** The maximum length of the import name */
+  maxNameLength: 100,
+};
+
+export const OAuthClientValidation = {
+  /** The maximum length of the OAuth client name */
+  maxNameLength: 100,
+
+  /** The maximum length of the OAuth client description */
+  maxDescriptionLength: 1000,
+
+  /** The maximum length of the OAuth client developer name */
+  maxDeveloperNameLength: 100,
+
+  /** The maximum length of the OAuth client developer URL */
+  maxDeveloperUrlLength: 1000,
+
+  /** The maximum length of the OAuth client avatar URL */
+  maxAvatarUrlLength: 1000,
+
+  /** The maximum length of an OAuth client redirect URI */
+  maxRedirectUriLength: 1000,
 };
 
 export const RevisionValidation = {

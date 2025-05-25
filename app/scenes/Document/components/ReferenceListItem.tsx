@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import { DocumentIcon } from "outline-icons";
-import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";

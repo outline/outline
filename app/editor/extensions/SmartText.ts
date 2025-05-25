@@ -2,7 +2,8 @@ import Extension from "@shared/editor/lib/Extension";
 import { InputRule } from "@shared/editor/lib/InputRule";
 
 const rightArrow = new InputRule(/->$/, "→");
-const emdash = new InputRule(/--$/, "—");
+// Note that the suppression of pipe here prevents conflict with table creation rule.
+const emdash = new InputRule(/(?:^|[^\|])(--)$/, "—");
 const oneHalf = new InputRule(/(?:^|\s)(1\/2)$/, "½");
 const threeQuarters = new InputRule(/(?:^|\s)(3\/4)$/, "¾");
 const copyright = new InputRule(/\(c\)$/, "©️");

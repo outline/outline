@@ -1,14 +1,15 @@
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
-import * as React from "react";
+import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { MenuButton, useMenuState } from "reakit/Menu";
+import { MenuButton } from "reakit/Menu";
 import Button from "~/components/Button";
 import ContextMenu from "~/components/ContextMenu";
 import Template from "~/components/ContextMenu/Template";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import TeamLogo from "~/components/TeamLogo";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import { useMenuState } from "~/hooks/useMenuState";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { MenuItem } from "~/types";
@@ -22,7 +23,7 @@ function NewTemplateMenu() {
   const team = useCurrentTeam();
   const { collections, policies } = useStores();
   const can = usePolicy(team);
-  React.useEffect(() => {
+  useEffect(() => {
     void collections.fetchPage({
       limit: 100,
     });
@@ -37,7 +38,7 @@ function NewTemplateMenu() {
       }
     : null;
 
-  const collectionItems = React.useMemo(
+  const collectionItems = useMemo(
     () =>
       collections.orderedData.reduce<MenuItem[]>((filtered, collection) => {
         const can = policies.abilities(collection.id);
@@ -56,7 +57,7 @@ function NewTemplateMenu() {
     [collections.orderedData, policies]
   );
 
-  const collectionItemsWithHeader: MenuItem[] = React.useMemo(
+  const collectionItemsWithHeader: MenuItem[] = useMemo(
     () =>
       collectionItems.length
         ? [

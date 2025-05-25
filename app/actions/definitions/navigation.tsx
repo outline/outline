@@ -13,7 +13,6 @@ import {
   ShapesIcon,
   DraftsIcon,
 } from "outline-icons";
-import * as React from "react";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { isMac } from "@shared/utils/browser";
 import stores from "~/stores";

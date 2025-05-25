@@ -1,18 +1,14 @@
 import { observer } from "mobx-react";
-import { DocumentIcon, ShapesIcon } from "outline-icons";
-import * as React from "react";
+import { ShapesIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
-import { MenuButton, useMenuState } from "reakit/Menu";
-import Icon from "@shared/components/Icon";
-import { TextHelper } from "@shared/utils/TextHelper";
+import { MenuButton } from "reakit/Menu";
 import Document from "~/models/Document";
 import Template from "~/models/Template";
 import Button from "~/components/Button";
 import ContextMenu from "~/components/ContextMenu";
 import ContextMenuTemplate from "~/components/ContextMenu/Template";
-import useCurrentUser from "~/hooks/useCurrentUser";
-import useStores from "~/hooks/useStores";
-import { MenuItem } from "~/types";
+import { useMenuState } from "~/hooks/useMenuState";
+import { useTemplateMenuItems } from "~/hooks/useTemplateMenuItems";
 
 type Props = {
   /** The document to which the templates will be applied */
@@ -24,59 +20,12 @@ type Props = {
 };
 
 function TemplatesMenu({ isCompact, onSelectTemplate, document }: Props) {
+  const { t } = useTranslation();
   const menu = useMenuState({
     modal: true,
   });
-  const user = useCurrentUser();
-  const { templates } = useStores();
-  const { t } = useTranslation();
 
-  const templateToMenuItem = React.useCallback(
-    (template: Template): MenuItem => ({
-      type: "button",
-      title: TextHelper.replaceTemplateVariables(
-        template.titleWithDefault,
-        user
-      ),
-      icon: template.icon ? (
-        <Icon value={template.icon} color={template.color ?? undefined} />
-      ) : (
-        <DocumentIcon />
-      ),
-      onClick: () => onSelectTemplate(template),
-    }),
-    [user, onSelectTemplate]
-  );
-
-  const collectionItems = templates.orderedData
-    .filter(
-      (template) =>
-        !template.isWorkspaceTemplate &&
-        template.collectionId === document.collectionId
-    )
-    .map(templateToMenuItem);
-
-  const workspaceTemplates = templates.orderedData
-    .filter((template) => template.isWorkspaceTemplate)
-    .map(templateToMenuItem);
-
-  const workspaceItems: MenuItem[] = React.useMemo(
-    () =>
-      workspaceTemplates.length
-        ? [{ type: "heading", title: t("Workspace") }, ...workspaceTemplates]
-        : [],
-    [t, workspaceTemplates]
-  );
-
-  const items = collectionItems
-    ? workspaceItems.length
-      ? [
-          ...collectionItems,
-          { type: "separator" } as MenuItem,
-          ...workspaceItems,
-        ]
-      : collectionItems
-    : workspaceItems;
+  const items = useTemplateMenuItems({ onSelectTemplate, document });
 
   if (!items.length) {
     return null;

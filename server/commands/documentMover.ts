@@ -1,4 +1,3 @@
-import invariant from "invariant";
 import { Transaction } from "sequelize";
 import { createContext } from "@server/context";
 import { traceFunction } from "@server/logging/tracing";
@@ -24,7 +23,7 @@ type Props = {
   /** Position of moved document within document structure */
   index?: number;
   /** The IP address of the user moving the document */
-  ip: string;
+  ip: string | null;
   /** The database transaction to run within */
   transaction?: Transaction;
 };
@@ -67,6 +66,7 @@ async function documentMover({
   } else {
     // Load the current and the next collection upfront and lock them
     const collection = await Collection.findByPk(document.collectionId!, {
+      includeDocumentStructure: true,
       transaction,
       lock: Transaction.LOCK.UPDATE,
       paranoid: false,
@@ -76,6 +76,7 @@ async function documentMover({
     if (collectionChanged) {
       if (collectionId) {
         newCollection = await Collection.findByPk(collectionId, {
+          includeDocumentStructure: true,
           transaction,
           lock: Transaction.LOCK.UPDATE,
         });
@@ -144,12 +145,12 @@ async function documentMover({
 
       if (collectionId) {
         // Reload the collection to get relationship data
-        newCollection = await Collection.scope({
-          method: ["withMembership", user.id],
-        }).findByPk(collectionId, {
+        newCollection = await Collection.findByPk(collectionId, {
+          userId: user.id,
+          includeDocumentStructure: true,
+          rejectOnEmpty: true,
           transaction,
         });
-        invariant(newCollection, "Collection not found");
 
         result.collections.push(newCollection);
 

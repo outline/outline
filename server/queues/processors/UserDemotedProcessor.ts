@@ -6,6 +6,6 @@ export default class UserDemotedProcessor extends BaseProcessor {
   static applicableEvents: TEvent["name"][] = ["users.demote"];
 
   async perform(event: UserEvent) {
-    await CleanupDemotedUserTask.schedule({ userId: event.userId });
+    await new CleanupDemotedUserTask().schedule({ userId: event.userId });
   }
 }

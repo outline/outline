@@ -13,7 +13,6 @@ import {
   UnstarredIcon,
   UnsubscribeIcon,
 } from "outline-icons";
-import * as React from "react";
 import { toast } from "sonner";
 import Collection from "~/models/Collection";
 import { CollectionEdit } from "~/components/Collection/CollectionEdit";

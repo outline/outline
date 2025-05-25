@@ -1,8 +1,6 @@
 import { observer } from "mobx-react";
 import { DuplicateIcon, EditIcon } from "outline-icons";
-import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useMenuState } from "reakit/Menu";
 import Template from "~/models/Template";
 import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
@@ -10,6 +8,7 @@ import ContextMenuTemplate from "~/components/ContextMenu/Template";
 import { actionToMenuItem } from "~/actions";
 import { deleteTemplate } from "~/actions/definitions/templates";
 import useActionContext from "~/hooks/useActionContext";
+import { useMenuState } from "~/hooks/useMenuState";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 

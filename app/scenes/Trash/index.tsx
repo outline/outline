@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import { TrashIcon } from "outline-icons";
-import * as React from "react";
 import { useTranslation } from "react-i18next";
 import Button from "~/components/Button";
 import Empty from "~/components/Empty";

@@ -10,6 +10,12 @@ class IntegrationsStore extends Store<Integration> {
     super(rootStore, Integration);
   }
 
+  findByService(service: string) {
+    return this.orderedData.find(
+      (integration) => integration.service === service
+    );
+  }
+
   @computed
   get orderedData(): Integration[] {
     return naturalSort(Array.from(this.data.values()), "name");
@@ -19,6 +25,13 @@ class IntegrationsStore extends Store<Integration> {
   get github(): Integration<IntegrationType.Embed>[] {
     return this.orderedData.filter(
       (integration) => integration.service === IntegrationService.GitHub
+    );
+  }
+
+  @computed
+  get linear(): Integration<IntegrationType.Embed>[] {
+    return this.orderedData.filter(
+      (integration) => integration.service === IntegrationService.Linear
     );
   }
 }

@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import * as React from "react";
+import { lazy, useState, useCallback, useEffect, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import {
   useParams,
@@ -12,7 +12,7 @@ import {
 } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import Icon, { IconTitleWrapper } from "@shared/components/Icon";
+import { IconTitleWrapper } from "@shared/components/Icon";
 import { s } from "@shared/styles";
 import { StatusFilter } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
@@ -20,7 +20,6 @@ import Collection from "~/models/Collection";
 import { Action } from "~/components/Actions";
 import CenteredContent from "~/components/CenteredContent";
 import { CollectionBreadcrumb } from "~/components/CollectionBreadcrumb";
-import CollectionDescription from "~/components/CollectionDescription";
 import Heading from "~/components/Heading";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import InputSearchPage from "~/components/InputSearchPage";
@@ -46,9 +45,10 @@ import DropToImport from "./components/DropToImport";
 import Empty from "./components/Empty";
 import MembershipPreview from "./components/MembershipPreview";
 import Notices from "./components/Notices";
+import Overview from "./components/Overview";
 import ShareButton from "./components/ShareButton";
 
-const IconPicker = React.lazy(() => import("~/components/IconPicker"));
+const IconPicker = lazy(() => import("~/components/IconPicker"));
 
 enum CollectionPath {
   Overview = "overview",
@@ -66,8 +66,7 @@ const CollectionScene = observer(function _CollectionScene() {
   const location = useLocation();
   const { t } = useTranslation();
   const { documents, collections, ui } = useStores();
-  const [isFetching, setFetching] = React.useState(false);
-  const [error, setError] = React.useState<Error | undefined>();
+  const [error, setError] = useState<Error | undefined>();
   const currentPath = location.pathname;
   const [, setLastVisitedPath] = useLastVisitedPath();
   const sidebarContext = useLocationSidebarContext();
@@ -90,17 +89,17 @@ const CollectionScene = observer(function _CollectionScene() {
     }
   );
 
-  const handleIconChange = React.useCallback(
+  const handleIconChange = useCallback(
     (icon: string | null, color: string | null) =>
       collection?.save({ icon, color }),
     [collection]
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     setLastVisitedPath(currentPath);
   }, [currentPath, setLastVisitedPath]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (collection?.name) {
       const canonicalUrl = updateCollectionPath(match.url, collection);
 
@@ -110,7 +109,7 @@ const CollectionScene = observer(function _CollectionScene() {
     }
   }, [collection, collection?.name, history, id, match.url]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (collection) {
       ui.setActiveCollection(collection.id);
     }
@@ -118,23 +117,18 @@ const CollectionScene = observer(function _CollectionScene() {
     return () => ui.setActiveCollection(undefined);
   }, [ui, collection]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     async function fetchData() {
-      if ((!can || !collection) && !error && !isFetching) {
-        try {
-          setError(undefined);
-          setFetching(true);
-          await collections.fetch(id);
-        } catch (err) {
-          setError(err);
-        } finally {
-          setFetching(false);
-        }
+      try {
+        setError(undefined);
+        await collections.fetch(id);
+      } catch (err) {
+        setError(err);
       }
     }
 
     void fetchData();
-  }, [collections, isFetching, collection, error, id, can]);
+  }, []);
 
   useCommandBarActions([editCollection], [ui.activeCollectionId ?? "none"]);
 
@@ -145,11 +139,7 @@ const CollectionScene = observer(function _CollectionScene() {
   const hasOverview = can.update || collection?.hasDescription;
 
   const fallbackIcon = collection ? (
-    <Icon
-      value={collection.icon ?? "collection"}
-      color={collection.color || undefined}
-      size={40}
-    />
+    <CollectionIcon collection={collection} size={40} expanded />
   ) : null;
 
   const tabProps = (path: CollectionPath) => ({
@@ -168,7 +158,7 @@ const CollectionScene = observer(function _CollectionScene() {
       left={
         collection.isArchived ? (
           <CollectionBreadcrumb collection={collection} />
-        ) : collection.isEmpty ? undefined : (
+        ) : (
           <InputSearchPage
             source="collection"
             placeholder={`${t("Search in collection")}…`}
@@ -203,7 +193,7 @@ const CollectionScene = observer(function _CollectionScene() {
           <CollectionHeading>
             <IconTitleWrapper>
               {can.update ? (
-                <React.Suspense fallback={fallbackIcon}>
+                <Suspense fallback={fallbackIcon}>
                   <IconPicker
                     icon={collection.icon ?? "collection"}
                     color={collection.color ?? colorPalette[0]}
@@ -212,8 +202,10 @@ const CollectionScene = observer(function _CollectionScene() {
                     popoverPosition="bottom-start"
                     onChange={handleIconChange}
                     borderOnHover
-                  />
-                </React.Suspense>
+                  >
+                    {fallbackIcon}
+                  </IconPicker>
+                </Suspense>
               ) : (
                 fallbackIcon
               )}
@@ -265,7 +257,7 @@ const CollectionScene = observer(function _CollectionScene() {
                 path={collectionPath(collection.path, CollectionPath.Overview)}
               >
                 {hasOverview ? (
-                  <CollectionDescription collection={collection} />
+                  <Overview collection={collection} />
                 ) : (
                   <Redirect
                     to={{

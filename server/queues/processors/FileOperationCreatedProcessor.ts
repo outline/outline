@@ -6,7 +6,6 @@ import ExportJSONTask from "../tasks/ExportJSONTask";
 import ExportMarkdownZipTask from "../tasks/ExportMarkdownZipTask";
 import ImportJSONTask from "../tasks/ImportJSONTask";
 import ImportMarkdownZipTask from "../tasks/ImportMarkdownZipTask";
-import ImportNotionTask from "../tasks/ImportNotionTask";
 import BaseProcessor from "./BaseProcessor";
 
 export default class FileOperationCreatedProcessor extends BaseProcessor {
@@ -21,17 +20,12 @@ export default class FileOperationCreatedProcessor extends BaseProcessor {
     if (fileOperation.type === FileOperationType.Import) {
       switch (fileOperation.format) {
         case FileOperationFormat.MarkdownZip:
-          await ImportMarkdownZipTask.schedule({
-            fileOperationId: event.modelId,
-          });
-          break;
-        case FileOperationFormat.Notion:
-          await ImportNotionTask.schedule({
+          await new ImportMarkdownZipTask().schedule({
             fileOperationId: event.modelId,
           });
           break;
         case FileOperationFormat.JSON:
-          await ImportJSONTask.schedule({
+          await new ImportJSONTask().schedule({
             fileOperationId: event.modelId,
           });
           break;
@@ -42,17 +36,17 @@ export default class FileOperationCreatedProcessor extends BaseProcessor {
     if (fileOperation.type === FileOperationType.Export) {
       switch (fileOperation.format) {
         case FileOperationFormat.HTMLZip:
-          await ExportHTMLZipTask.schedule({
+          await new ExportHTMLZipTask().schedule({
             fileOperationId: event.modelId,
           });
           break;
         case FileOperationFormat.MarkdownZip:
-          await ExportMarkdownZipTask.schedule({
+          await new ExportMarkdownZipTask().schedule({
             fileOperationId: event.modelId,
           });
           break;
         case FileOperationFormat.JSON:
-          await ExportJSONTask.schedule({
+          await new ExportJSONTask().schedule({
             fileOperationId: event.modelId,
           });
           break;

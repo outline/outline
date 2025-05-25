@@ -245,19 +245,14 @@ export default class DocumentsStore extends Store<Document> {
 
   @action
   fetchBacklinks = async (documentId: string): Promise<void> => {
-    const res = await client.post(`/documents.list`, {
+    const documents = await this.fetchAll({
       backlinkDocumentId: documentId,
     });
-    invariant(res?.data, "Document list not available");
-    const { data } = res;
 
     runInAction("DocumentsStore#fetchBacklinks", () => {
-      data.forEach(this.add);
-      this.addPolicies(res.policies);
-
       this.backlinks.set(
         documentId,
-        data.map((doc: Partial<Document>) => doc.id)
+        documents.map((doc) => doc.id)
       );
     });
   };
@@ -266,8 +261,8 @@ export default class DocumentsStore extends Store<Document> {
     const documentIds = this.backlinks.get(documentId) || [];
     return orderBy(
       compact(documentIds.map((id) => this.data.get(id))),
-      "updatedAt",
-      "desc"
+      "title",
+      "asc"
     );
   }
 

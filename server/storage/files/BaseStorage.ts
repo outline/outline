@@ -1,6 +1,7 @@
 import { Blob } from "buffer";
 import { Readable } from "stream";
 import { PresignedPost } from "@aws-sdk/s3-presigned-post";
+import omit from "lodash/omit";
 import FileHelper from "@shared/editor/lib/FileHelper";
 import { isBase64Url, isInternalUrl } from "@shared/utils/urls";
 import env from "@server/env";
@@ -9,7 +10,7 @@ import fetch, { chromeUserAgent, RequestInit } from "@server/utils/fetch";
 
 export default abstract class BaseStorage {
   /** The default number of seconds until a signed URL expires. */
-  public static defaultSignedUrlExpires = 60;
+  public static defaultSignedUrlExpires = 300;
 
   /**
    * Returns a presigned post for uploading files to the storage provider.
@@ -162,6 +163,12 @@ export default abstract class BaseStorage {
       buffer = Buffer.from(match[2], "base64");
     } else {
       try {
+        const headers = {
+          "User-Agent": chromeUserAgent,
+          ...init?.headers,
+        };
+        const initWithoutHeaders = omit(init, ["headers"]);
+
         const res = await fetch(url, {
           follow: 3,
           redirect: "follow",
@@ -169,11 +176,9 @@ export default abstract class BaseStorage {
             options?.maxUploadSize ?? Infinity,
             env.FILE_STORAGE_UPLOAD_MAX_SIZE
           ),
-          headers: {
-            "User-Agent": chromeUserAgent,
-          },
+          headers,
           timeout: 10000,
-          ...init,
+          ...initWithoutHeaders,
         });
 
         if (!res.ok) {

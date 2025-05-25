@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useEffect } from "react";
 import Model from "~/models/base/Model";
 import useCurrentUser from "./useCurrentUser";
 import useStores from "./useStores";
@@ -18,8 +18,9 @@ export default function usePolicy(entity?: string | Model | null) {
       ? entity
       : entity.id
     : "";
+  const policy = policies.get(entityId);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (
       entity &&
       typeof entity !== "string" &&
@@ -28,11 +29,11 @@ export default function usePolicy(entity?: string | Model | null) {
     ) {
       // The policy for this model is missing and we have an authenticated session, attempt to
       // reload relationships for this model.
-      if (!policies.get(entity.id) && user) {
+      if (!policy && user) {
         void entity.loadRelations();
       }
     }
-  }, [policies, user, entity]);
+  }, [policies, policy, user, entity]);
 
   return policies.abilities(entityId);
 }

@@ -1,4 +1,3 @@
-import * as React from "react";
 import { Switch } from "react-router-dom";
 import Error404 from "~/scenes/Errors/Error404";
 import Route from "~/components/ProfiledRoute";
@@ -7,6 +6,7 @@ import lazy from "~/utils/lazyWithRetry";
 import { matchDocumentSlug, settingsPath } from "~/utils/routeHelpers";
 
 const Template = lazy(() => import("~/scenes/Settings/components/Template"));
+const Application = lazy(() => import("~/scenes/Settings/Application"));
 
 export default function SettingsRoutes() {
   const configs = useSettingsConfig();
@@ -21,6 +21,12 @@ export default function SettingsRoutes() {
           component={config.component}
         />
       ))}
+      {/* TODO: Refactor these exceptions into config? */}
+      <Route
+        exact
+        path={`${settingsPath("applications")}/:id`}
+        component={Application}
+      />
       <Route
         exact
         path={`${settingsPath("templates")}/${matchDocumentSlug}`}

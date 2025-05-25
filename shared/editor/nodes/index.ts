@@ -1,7 +1,6 @@
 import DateTime from "../extensions/DateTime";
 import History from "../extensions/History";
 import MaxLength from "../extensions/MaxLength";
-import Placeholder from "../extensions/Placeholder";
 import TrailingNode from "../extensions/TrailingNode";
 import Extension from "../lib/Extension";
 import Bold from "../marks/Bold";
@@ -56,15 +55,14 @@ export const basicExtensions: Nodes = [
   Emoji,
   Text,
   SimpleImage,
-  Bold,
   Code,
+  Bold,
   Italic,
   Underline,
   Link,
   Strikethrough,
   History,
   TrailingNode,
-  Placeholder,
   MaxLength,
   DateTime,
 ];

@@ -2,11 +2,17 @@ import capitalize from "lodash/capitalize";
 import isEmpty from "lodash/isEmpty";
 import noop from "lodash/noop";
 import { observer } from "mobx-react";
-import { EditIcon, InputIcon, RestoreIcon, SearchIcon } from "outline-icons";
+import {
+  EditIcon,
+  InputIcon,
+  RestoreIcon,
+  SearchIcon,
+  ShapesIcon,
+} from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
-import { useMenuState, MenuButton, MenuButtonHTMLProps } from "reakit/Menu";
+import { MenuButton, MenuButtonHTMLProps } from "reakit/Menu";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import { toast } from "sonner";
 import styled from "styled-components";
@@ -15,10 +21,11 @@ import { s } from "@shared/styles";
 import { SubscriptionType, UserPreference } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import Document from "~/models/Document";
+import Template from "~/models/Template";
 import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import Separator from "~/components/ContextMenu/Separator";
-import Template from "~/components/ContextMenu/Template";
+import MenuTemplate from "~/components/ContextMenu/Template";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import Switch from "~/components/Switch";
 import { actionToMenuItem } from "~/actions";
@@ -53,10 +60,12 @@ import {
 import useActionContext from "~/hooks/useActionContext";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import { useMenuState } from "~/hooks/useMenuState";
 import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
+import { useTemplateMenuItems } from "~/hooks/useTemplateMenuItems";
 import { MenuItem, MenuItemButton } from "~/types";
 import { documentEditPath } from "~/utils/routeHelpers";
 import { MenuContext, useMenuContext } from "./MenuContext";
@@ -76,6 +85,8 @@ type Props = {
   label?: (props: MenuButtonHTMLProps) => React.ReactNode;
   /** Invoked when the "Find and replace" menu item is clicked */
   onFindAndReplace?: () => void;
+  /** Invoked when the "Apply template" menu item is clicked */
+  onSelectTemplate?: (template: Template) => void;
   /** Invoked when the "Rename" menu item is clicked */
   onRename?: () => void;
   /** Invoked when menu is opened */
@@ -147,6 +158,7 @@ type MenuContentProps = {
   onOpen?: () => void;
   onClose?: () => void;
   onFindAndReplace?: () => void;
+  onSelectTemplate?: (template: Template) => void;
   onRename?: () => void;
   showDisplayOptions?: boolean;
   showToggleEmbeds?: boolean;
@@ -156,6 +168,7 @@ const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
   onOpen,
   onClose,
   onFindAndReplace,
+  onSelectTemplate,
   onRename,
   showDisplayOptions,
   showToggleEmbeds,
@@ -218,6 +231,11 @@ const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
     [collections.orderedData, handleRestore, policies]
   );
 
+  const templateMenuItems = useTemplateMenuItems({
+    document,
+    onSelectTemplate,
+  });
+
   return !isEmpty(can) ? (
     <ContextMenu
       {...menuState}
@@ -225,7 +243,7 @@ const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
       onOpen={onOpen}
       onClose={onClose}
     >
-      <Template
+      <MenuTemplate
         {...menuState}
         items={[
           {
@@ -307,6 +325,12 @@ const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
           actionToMenuItem(archiveDocument, context),
           actionToMenuItem(moveDocument, context),
           actionToMenuItem(moveTemplate, context),
+          {
+            type: "submenu",
+            title: t("Apply template"),
+            icon: <ShapesIcon />,
+            items: templateMenuItems,
+          },
           actionToMenuItem(pinDocument, context),
           actionToMenuItem(createDocumentFromTemplate, context),
           {
@@ -380,6 +404,7 @@ function DocumentMenu({
   modal = true,
   showToggleEmbeds,
   showDisplayOptions,
+  onSelectTemplate,
   label,
   onRename,
   onOpen,
@@ -463,6 +488,7 @@ function DocumentMenu({
             onOpen={onOpen}
             onClose={onClose}
             onRename={onRename}
+            onSelectTemplate={onSelectTemplate}
             showDisplayOptions={showDisplayOptions}
             showToggleEmbeds={showToggleEmbeds}
           />

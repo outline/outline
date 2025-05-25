@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import { SearchIcon, HomeIcon, SidebarIcon } from "outline-icons";
-import * as React from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { useTranslation } from "react-i18next";
@@ -12,7 +12,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import OrganizationMenu from "~/menus/OrganizationMenu";
+import TeamMenu from "~/menus/TeamMenu";
 import { homePath, searchPath } from "~/utils/routeHelpers";
 import TeamLogo from "../TeamLogo";
 import Tooltip from "../Tooltip";
@@ -38,7 +38,7 @@ function AppSidebar() {
   const user = useCurrentUser();
   const can = usePolicy(team);
 
-  React.useEffect(() => {
+  useEffect(() => {
     void collections.fetchAll();
 
     if (!user.isViewer) {
@@ -46,9 +46,9 @@ function AppSidebar() {
     }
   }, [documents, collections, user.isViewer]);
 
-  const [dndArea, setDndArea] = React.useState();
-  const handleSidebarRef = React.useCallback((node) => setDndArea(node), []);
-  const html5Options = React.useMemo(
+  const [dndArea, setDndArea] = useState();
+  const handleSidebarRef = useCallback((node) => setDndArea(node), []);
+  const html5Options = useMemo(
     () => ({
       rootElement: dndArea,
     }),
@@ -62,7 +62,7 @@ function AppSidebar() {
         <DndProvider backend={HTML5Backend} options={html5Options}>
           <DragPlaceholder />
 
-          <OrganizationMenu>
+          <TeamMenu>
             {(props: SidebarButtonProps) => (
               <SidebarButton
                 {...props}
@@ -91,7 +91,7 @@ function AppSidebar() {
                 </Tooltip>
               </SidebarButton>
             )}
-          </OrganizationMenu>
+          </TeamMenu>
           <Overflow>
             <Section>
               <SidebarLink

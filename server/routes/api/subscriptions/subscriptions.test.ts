@@ -1,10 +1,13 @@
-import { SubscriptionType } from "@shared/types";
-import { Event } from "@server/models";
+import queryString from "query-string";
+import { QueryNotices, SubscriptionType } from "@shared/types";
+import { Event, Subscription } from "@server/models";
+import SubscriptionHelper from "@server/models/helpers/SubscriptionHelper";
 import {
   buildUser,
   buildSubscription,
   buildDocument,
   buildCollection,
+  buildDraftDocument,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
@@ -704,126 +707,220 @@ describe("#subscriptions.list", () => {
 });
 
 describe("#subscriptions.delete", () => {
-  it("should delete user's subscription", async () => {
-    const user = await buildUser();
-
-    const document = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
-    });
-
-    const subscription = await buildSubscription({
-      userId: user.id,
-      documentId: document.id,
-    });
-
-    const res = await server.post("/api/subscriptions.delete", {
-      body: {
+  describe("GET", () => {
+    it("should delete user's document subscription", async () => {
+      const user = await buildUser();
+      const document = await buildDraftDocument({
         userId: user.id,
-        id: subscription.id,
-        token: user.getJwtToken(),
-      },
+        teamId: user.teamId,
+      });
+      const subscription = await buildSubscription({
+        userId: user.id,
+        documentId: document.id,
+      });
+
+      const res = await server.get(
+        `/api/subscriptions.delete?${queryString.stringify({
+          userId: user.id,
+          documentId: document.id,
+          follow: true,
+          token: SubscriptionHelper.unsubscribeToken(user.id, document.id),
+        })}`,
+        {
+          redirect: "manual",
+        }
+      );
+
+      expect(res.status).toEqual(302);
+      expect(res.headers.get("location")).toContain(
+        `/home?notice=${QueryNotices.UnsubscribeDocument}`
+      );
+      expect(await Subscription.findByPk(subscription.id)).toBeNull();
     });
 
-    const body = await res.json();
+    it("should delete user's collection subscription", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const subscription = await buildSubscription({
+        userId: user.id,
+        collectionId: document.collectionId,
+      });
 
-    expect(res.status).toEqual(200);
-    expect(body.ok).toEqual(true);
-    expect(body.success).toEqual(true);
+      const res = await server.get(
+        `/api/subscriptions.delete?${queryString.stringify({
+          userId: user.id,
+          documentId: document.id,
+          follow: true,
+          token: SubscriptionHelper.unsubscribeToken(user.id, document.id),
+        })}`,
+        {
+          redirect: "manual",
+        }
+      );
+
+      expect(res.status).toEqual(302);
+      expect(res.headers.get("location")).toContain(
+        `/home?notice=${QueryNotices.UnsubscribeCollection}`
+      );
+      expect(await Subscription.findByPk(subscription.id)).toBeNull();
+    });
+
+    it("should not fail if subscription is already deleted", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const subscription = await buildSubscription({
+        userId: user.id,
+        documentId: document.id,
+      });
+
+      await subscription.destroy();
+
+      const res = await server.get(
+        `/api/subscriptions.delete?${queryString.stringify({
+          userId: user.id,
+          documentId: document.id,
+          follow: true,
+          token: SubscriptionHelper.unsubscribeToken(user.id, document.id),
+        })}`,
+        {
+          redirect: "manual",
+        }
+      );
+
+      expect(res.status).toEqual(302);
+      expect(res.headers.get("location")).toContain(`/home`);
+      expect(await Subscription.findByPk(subscription.id)).toBeNull();
+    });
   });
 
-  it("should emit event", async () => {
-    const user = await buildUser();
-
-    const document = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
-    });
-
-    const subscription = await buildSubscription({
-      userId: user.id,
-      documentId: document.id,
-    });
-
-    const res = await server.post("/api/subscriptions.delete", {
-      body: {
+  describe("POST", () => {
+    it("should delete user's document subscription", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
         userId: user.id,
-        id: subscription.id,
-        token: user.getJwtToken(),
-      },
-    });
-
-    const events = await Event.findAll({
-      where: {
-        teamId: document.teamId,
-      },
-    });
-
-    expect(events.length).toEqual(1);
-    expect(events[0].name).toEqual("subscriptions.delete");
-    expect(events[0].modelId).toEqual(subscription.id);
-    expect(events[0].actorId).toEqual(user.id);
-    expect(events[0].documentId).toEqual(document.id);
-
-    const body = await res.json();
-
-    expect(res.status).toEqual(200);
-    expect(body.ok).toEqual(true);
-    expect(body.success).toEqual(true);
-  });
-
-  it("users should not be able to delete other's subscriptions on document", async () => {
-    const subscriber0 = await buildUser();
-    // `subscriber1` belongs to `subscriber0`'s team.
-    const subscriber1 = await buildUser({ teamId: subscriber0.teamId });
-
-    // `subscriber0` created a document.
-    const document = await buildDocument({
-      userId: subscriber0.id,
-      teamId: subscriber0.teamId,
-    });
-
-    // `subscriber0` wants to be notified about
-    // changes on this document.
-    await server.post("/api/subscriptions.create", {
-      body: {
-        token: subscriber0.getJwtToken(),
+        teamId: user.teamId,
+      });
+      const subscription = await buildSubscription({
+        userId: user.id,
         documentId: document.id,
-        event: "documents.update",
-      },
+      });
+
+      const res = await server.post("/api/subscriptions.delete", {
+        body: {
+          id: subscription.id,
+          token: user.getJwtToken(),
+        },
+      });
+
+      const body = await res.json();
+
+      expect(res.status).toEqual(200);
+      expect(body.ok).toEqual(true);
+      expect(body.success).toEqual(true);
+
+      const events = await Event.findAll({
+        where: {
+          teamId: document.teamId,
+        },
+      });
+
+      expect(events.length).toEqual(1);
+      expect(events[0].name).toEqual("subscriptions.delete");
+      expect(events[0].modelId).toEqual(subscription.id);
+      expect(events[0].actorId).toEqual(user.id);
+      expect(events[0].documentId).toEqual(document.id);
     });
 
-    // `subscriber1` wants to be notified about
-    // changes on this document.
-    const resp = await server.post("/api/subscriptions.create", {
-      body: {
-        token: subscriber1.getJwtToken(),
-        documentId: document.id,
-        event: "documents.update",
-      },
+    it("should delete user's collection subscription", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({ userId: user.id });
+      const subscription = await buildSubscription({
+        userId: user.id,
+        collectionId: collection.id,
+      });
+
+      const res = await server.post("/api/subscriptions.delete", {
+        body: {
+          id: subscription.id,
+          token: user.getJwtToken(),
+        },
+      });
+
+      const body = await res.json();
+
+      expect(res.status).toEqual(200);
+      expect(body.ok).toEqual(true);
+      expect(body.success).toEqual(true);
+
+      const events = await Event.findAll({
+        where: {
+          teamId: user.teamId,
+        },
+      });
+
+      expect(events.length).toEqual(1);
+      expect(events[0].name).toEqual("subscriptions.delete");
+      expect(events[0].modelId).toEqual(subscription.id);
+      expect(events[0].actorId).toEqual(user.id);
+      expect(events[0].collectionId).toEqual(collection.id);
     });
 
-    const subscription1 = await resp.json();
-    const subscription1Id = subscription1.data.id;
+    it("users should not be able to delete other's subscriptions on document", async () => {
+      const subscriber0 = await buildUser();
+      // `subscriber1` belongs to `subscriber0`'s team.
+      const subscriber1 = await buildUser({ teamId: subscriber0.teamId });
 
-    // `subscriber0` wants to change `subscriber1`'s
-    // subscription for this document.
-    const res = await server.post("/api/subscriptions.delete", {
-      body: {
-        // `subscriber0`
+      // `subscriber0` created a document.
+      const document = await buildDocument({
         userId: subscriber0.id,
-        // subscription id of `subscriber1`
-        id: subscription1Id,
-        token: subscriber0.getJwtToken(),
-      },
+        teamId: subscriber0.teamId,
+      });
+
+      // `subscriber0` wants to be notified about
+      // changes on this document.
+      await server.post("/api/subscriptions.create", {
+        body: {
+          token: subscriber0.getJwtToken(),
+          documentId: document.id,
+          event: "documents.update",
+        },
+      });
+
+      // `subscriber1` wants to be notified about
+      // changes on this document.
+      const resp = await server.post("/api/subscriptions.create", {
+        body: {
+          token: subscriber1.getJwtToken(),
+          documentId: document.id,
+          event: "documents.update",
+        },
+      });
+
+      const subscription1 = await resp.json();
+      const subscription1Id = subscription1.data.id;
+
+      // `subscriber0` wants to change `subscriber1`'s
+      // subscription for this document.
+      const res = await server.post("/api/subscriptions.delete", {
+        body: {
+          id: subscription1Id,
+          token: subscriber0.getJwtToken(),
+        },
+      });
+
+      const body = await res.json();
+
+      // `subscriber0` should be unauthorized.
+      expect(res.status).toEqual(403);
+      expect(body.ok).toEqual(false);
+      expect(body.error).toEqual("authorization_error");
+      expect(body.message).toEqual("Authorization error");
     });
-
-    const body = await res.json();
-
-    // `subscriber0` should be unauthorized.
-    expect(res.status).toEqual(403);
-    expect(body.ok).toEqual(false);
-    expect(body.error).toEqual("authorization_error");
-    expect(body.message).toEqual("Authorization error");
   });
 });

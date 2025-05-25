@@ -8,10 +8,9 @@ import {
   TextSelection,
 } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import * as React from "react";
 import { v4 } from "uuid";
-import { LANGUAGES } from "@shared/editor/extensions/Prism";
 import Extension, { WidgetProps } from "@shared/editor/lib/Extension";
+import { codeLanguages } from "@shared/editor/lib/code";
 import isMarkdown from "@shared/editor/lib/isMarkdown";
 import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
 import { isRemoteTransaction } from "@shared/editor/lib/multiplayer";
@@ -24,7 +23,7 @@ import parseCollectionSlug from "@shared/utils/parseCollectionSlug";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isCollectionUrl, isDocumentUrl, isUrl } from "@shared/utils/urls";
 import stores from "~/stores";
-import PasteMenu from "../components/PasteMenu";
+import { PasteMenu } from "../components/PasteMenu";
 
 export default class PasteHandler extends Extension {
   state: {
@@ -88,7 +87,7 @@ export default class PasteHandler extends Extension {
 
             // If the users selection is currently in a code block then paste
             // as plain text, ignore all formatting and HTML content.
-            if (isInCode(state)) {
+            if (isInCode(state, { inclusive: true })) {
               event.preventDefault();
               view.dispatch(state.tr.insertText(text));
               return true;
@@ -122,6 +121,8 @@ export default class PasteHandler extends Extension {
                 }
 
                 // Is the link a link to a document? If so, we can grab the title and insert it.
+                const containsHash = text.includes("#");
+
                 if (isDocumentUrl(text)) {
                   const slug = parseDocumentSlug(text);
 
@@ -133,7 +134,7 @@ export default class PasteHandler extends Extension {
                           return;
                         }
                         if (document) {
-                          if (state.schema.nodes.mention) {
+                          if (state.schema.nodes.mention && !containsHash) {
                             view.dispatch(
                               view.state.tr.replaceWith(
                                 state.selection.from,
@@ -178,7 +179,7 @@ export default class PasteHandler extends Extension {
                           return;
                         }
                         if (collection) {
-                          if (state.schema.nodes.mention) {
+                          if (state.schema.nodes.mention && !containsHash) {
                             view.dispatch(
                               view.state.tr.replaceWith(
                                 state.selection.from,
@@ -226,7 +227,7 @@ export default class PasteHandler extends Extension {
                     state.tr
                       .replaceSelectionWith(
                         state.schema.nodes.code_block.create({
-                          language: Object.keys(LANGUAGES).includes(
+                          language: Object.keys(codeLanguages).includes(
                             vscodeMeta.mode
                           )
                             ? vscodeMeta.mode
@@ -413,6 +414,21 @@ export default class PasteHandler extends Extension {
     });
   };
 
+  private insertMention = () => {
+    const { view } = this.editor;
+    const { state } = view;
+    const result = this.findPlaceholder(state, this.state.pastedText);
+
+    // Remove just the placeholder here.
+    // Mention node will be created by SuggestionsMenu.
+    if (result) {
+      const tr = state.tr.deleteRange(result[0], result[1]);
+      view.dispatch(
+        tr.setSelection(TextSelection.near(tr.doc.resolve(result[0])))
+      );
+    }
+  };
+
   private removePlaceholder = () => {
     const { view } = this.editor;
     const { state } = view;
@@ -446,6 +462,11 @@ export default class PasteHandler extends Extension {
       case "embed": {
         this.hidePasteMenu();
         this.insertEmbed();
+        break;
+      }
+      case "mention": {
+        this.hidePasteMenu();
+        this.insertMention();
         break;
       }
       default:

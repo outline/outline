@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { QueryNotices } from "@shared/types";
@@ -14,11 +14,19 @@ export default function useQueryNotices() {
   const { t } = useTranslation();
   const notice = query.get("notice") as QueryNotices;
 
-  React.useEffect(() => {
+  useEffect(() => {
     switch (notice) {
       case QueryNotices.UnsubscribeDocument: {
         toast.success(
           t("Unsubscribed from document", {
+            type: "success",
+          })
+        );
+        break;
+      }
+      case QueryNotices.UnsubscribeCollection: {
+        toast.success(
+          t("Unsubscribed from collection", {
             type: "success",
           })
         );

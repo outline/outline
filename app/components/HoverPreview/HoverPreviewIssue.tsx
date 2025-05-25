@@ -1,9 +1,15 @@
 import * as React from "react";
 import { Trans } from "react-i18next";
-import { UnfurlResourceType, UnfurlResponse } from "@shared/types";
+import styled from "styled-components";
+import { Backticks } from "@shared/components/Backticks";
+import { IssueStatusIcon } from "@shared/components/IssueStatusIcon";
+import {
+  IntegrationService,
+  UnfurlResourceType,
+  UnfurlResponse,
+} from "@shared/types";
 import { Avatar } from "~/components/Avatar";
 import Flex from "~/components/Flex";
-import { IssueStatusIcon } from "../Icons/IssueStatusIcon";
 import Text from "../Text";
 import Time from "../Time";
 import {
@@ -23,6 +29,11 @@ const HoverPreviewIssue = React.forwardRef(function _HoverPreviewIssue(
   ref: React.Ref<HTMLDivElement>
 ) {
   const authorName = author.name;
+  const urlObj = new URL(url);
+  const service =
+    urlObj.hostname === "github.com"
+      ? IntegrationService.GitHub
+      : IntegrationService.Linear;
 
   return (
     <Preview as="a" href={url} target="_blank" rel="noopener noreferrer">
@@ -31,13 +42,18 @@ const HoverPreviewIssue = React.forwardRef(function _HoverPreviewIssue(
           <CardContent>
             <Flex gap={2} column>
               <Title>
-                <IssueStatusIcon status={state.name} color={state.color} />
+                <StyledIssueStatusIcon
+                  service={service}
+                  state={state}
+                  size={18}
+                />
                 <span>
-                  {title}&nbsp;<Text type="tertiary">{id}</Text>
+                  <Backticks content={title} />
+                  &nbsp;<Text type="tertiary">{id}</Text>
                 </span>
               </Title>
-              <Flex align="center" gap={4}>
-                <Avatar src={author.avatarUrl} />
+              <Flex align="center" gap={6}>
+                <Avatar src={author.avatarUrl} size={18} />
                 <Info>
                   <Trans>
                     {{ authorName }} created{" "}
@@ -61,5 +77,9 @@ const HoverPreviewIssue = React.forwardRef(function _HoverPreviewIssue(
     </Preview>
   );
 });
+
+const StyledIssueStatusIcon = styled(IssueStatusIcon)`
+  margin-top: 2px;
+`;
 
 export default HoverPreviewIssue;

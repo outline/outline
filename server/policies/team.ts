@@ -2,7 +2,7 @@ import { Team, User } from "@server/models";
 import { allow } from "./cancan";
 import { and, isCloudHosted, isTeamAdmin, isTeamModel, or } from "./utils";
 
-allow(User, "read", Team, isTeamModel);
+allow(User, ["read", "readTemplate"], Team, isTeamModel);
 
 allow(User, "share", Team, (actor, team) =>
   and(

@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useState } from "react";
 import useEventListener from "./useEventListener";
 
 /**
@@ -7,7 +7,7 @@ import useEventListener from "./useEventListener";
  * @returns boolean if the page is visible
  */
 export default function usePageVisibility(): boolean {
-  const [visible, setVisible] = React.useState(true);
+  const [visible, setVisible] = useState(true);
 
   useEventListener(
     "visibilitychange",

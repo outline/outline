@@ -1,8 +1,7 @@
 import { observer } from "mobx-react";
 import { EditIcon, GroupIcon, TrashIcon } from "outline-icons";
-import * as React from "react";
+import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useMenuState } from "reakit/Menu";
 import Group from "~/models/Group";
 import {
   DeleteGroupDialog,
@@ -12,6 +11,7 @@ import {
 import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import Template from "~/components/ContextMenu/Template";
+import { useMenuState } from "~/hooks/useMenuState";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 
@@ -27,7 +27,7 @@ function GroupMenu({ group }: Props) {
   });
   const can = usePolicy(group);
 
-  const handleViewMembers = React.useCallback(() => {
+  const handleViewMembers = useCallback(() => {
     dialogs.openModal({
       title: t("Group members"),
       content: <ViewGroupMembersDialog group={group} />,
@@ -35,7 +35,7 @@ function GroupMenu({ group }: Props) {
     });
   }, [t, group, dialogs]);
 
-  const handleEditGroup = React.useCallback(() => {
+  const handleEditGroup = useCallback(() => {
     dialogs.openModal({
       title: t("Edit group"),
       content: (
@@ -44,7 +44,7 @@ function GroupMenu({ group }: Props) {
     });
   }, [t, group, dialogs]);
 
-  const handleDeleteGroup = React.useCallback(() => {
+  const handleDeleteGroup = useCallback(() => {
     dialogs.openModal({
       title: t("Delete group"),
       content: (

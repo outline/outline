@@ -1,0 +1,59 @@
+name: Auto Close Unsigned PRs
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Run daily at midnight UTC
+
+jobs:
+  close-unsigned-prs:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Close unsigned PRs
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const now = new Date();
+            const TWO_WEEKS = 14 * 24 * 60 * 60 * 1000; // 14 days in milliseconds
+
+            const prs = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open'
+            });
+
+            for (const pr of prs.data) {
+              const prCreatedAt = new Date(pr.created_at);
+              const prAge = now - prCreatedAt;
+
+              if (prAge < TWO_WEEKS) continue;
+
+              const comments = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number
+              });
+
+              const hasNotSignedComment = comments.data.some(comment =>
+                comment.body.toLowerCase().includes('https://cla-assistant.io/pull/badge/not_signed')
+              );
+
+              if (hasNotSignedComment) {
+                await github.rest.pulls.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: pr.number,
+                  state: 'closed'
+                });
+
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pr.number,
+                  body: 'This PR has been automatically closed because it has been open for more than 14 days and has not accepted the CLA.'
+                });
+              }
+            }

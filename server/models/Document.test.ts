@@ -65,6 +65,32 @@ describe("#delete", () => {
     expect(newDocument?.deletedAt).toBeTruthy();
   });
 
+  test("should soft delete archived document in an archived collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      archivedAt: new Date(),
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const document = await buildDocument({
+      archivedAt: new Date(),
+      collectionId: collection.id,
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    await collection.addDocumentToStructure(document, 0);
+
+    await document.delete(user);
+    const [newDocument, newCollection] = await Promise.all([
+      document.reload({ paranoid: false }),
+      collection.reload(),
+    ]);
+
+    expect(newDocument?.lastModifiedById).toEqual(user.id);
+    expect(newDocument?.deletedAt).toBeTruthy();
+    expect(newCollection?.documentStructure).toEqual([]);
+  });
+
   it("should delete draft without collection", async () => {
     const user = await buildUser();
     const document = await buildDraftDocument();

@@ -29,8 +29,8 @@ import {
   PadlockIcon,
   GlobeIcon,
   LogoutIcon,
+  CaseSensitiveIcon,
 } from "outline-icons";
-import * as React from "react";
 import { toast } from "sonner";
 import Icon from "@shared/components/Icon";
 import {
@@ -505,6 +505,25 @@ export const copyDocumentAsMarkdown = createAction({
   },
 });
 
+export const copyDocumentAsPlainText = createAction({
+  name: ({ t }) => t("Copy as text"),
+  section: ActiveDocumentSection,
+  keywords: "clipboard",
+  icon: <CaseSensitiveIcon />,
+  iconInContextMenu: false,
+  visible: ({ activeDocumentId, stores }) =>
+    !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
+  perform: ({ stores, activeDocumentId, t }) => {
+    const document = activeDocumentId
+      ? stores.documents.get(activeDocumentId)
+      : undefined;
+    if (document) {
+      copy(document.toPlainText());
+      toast.success(t("Text copied to clipboard"));
+    }
+  },
+});
+
 export const copyDocumentShareLink = createAction({
   name: ({ t }) => t("Copy public link"),
   section: ActiveDocumentSection,
@@ -550,7 +569,12 @@ export const copyDocument = createAction({
   section: ActiveDocumentSection,
   icon: <CopyIcon />,
   keywords: "clipboard",
-  children: [copyDocumentLink, copyDocumentShareLink, copyDocumentAsMarkdown],
+  children: [
+    copyDocumentLink,
+    copyDocumentShareLink,
+    copyDocumentAsMarkdown,
+    copyDocumentAsPlainText,
+  ],
 });
 
 export const duplicateDocument = createAction({
@@ -721,7 +745,7 @@ export const importDocument = createAction({
 
     return false;
   },
-  perform: ({ activeCollectionId, activeDocumentId, stores }) => {
+  perform: ({ activeDocumentId, activeCollectionId, stores }) => {
     const { documents } = stores;
     const input = document.createElement("input");
     input.type = "file";
@@ -1042,12 +1066,17 @@ export const openDocumentComments = createAction({
   analyticsName: "Open comments",
   section: ActiveDocumentSection,
   icon: <CommentIcon />,
-  visible: ({ activeDocumentId, stores }) => {
+  visible: ({ activeCollectionId, activeDocumentId, stores }) => {
     const can = stores.policies.abilities(activeDocumentId ?? "");
+    const collection = activeCollectionId
+      ? stores.collections.get(activeCollectionId)
+      : undefined;
+
     return (
       !!activeDocumentId &&
       can.comment &&
-      !!stores.auth.team?.getPreference(TeamPreference.Commenting)
+      (collection?.canCreateComment ??
+        !!stores.auth.team?.getPreference(TeamPreference.Commenting))
     );
   },
   perform: ({ activeDocumentId, stores }) => {
@@ -1185,6 +1214,7 @@ export const rootDocumentActions = [
   copyDocumentLink,
   copyDocumentShareLink,
   copyDocumentAsMarkdown,
+  copyDocumentAsPlainText,
   starDocument,
   unstarDocument,
   publishDocument,

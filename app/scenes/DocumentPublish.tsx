@@ -1,6 +1,6 @@
 import flatten from "lodash/flatten";
 import { observer } from "mobx-react";
-import * as React from "react";
+import { useState, useMemo } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
@@ -24,10 +24,8 @@ function DocumentPublish({ document }: Props) {
   const { dialogs, policies } = useStores();
   const { t } = useTranslation();
   const collectionTrees = useCollectionTrees();
-  const [selectedPath, selectPath] = React.useState<NavigationNode | null>(
-    null
-  );
-  const publishOptions = React.useMemo(
+  const [selectedPath, selectPath] = useState<NavigationNode | null>(null);
+  const publishOptions = useMemo(
     () =>
       flatten(collectionTrees.map(flattenTree)).filter((node) =>
         node.collectionId

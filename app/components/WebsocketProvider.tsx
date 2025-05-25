@@ -1,15 +1,17 @@
+import * as Sentry from "@sentry/react";
 import invariant from "invariant";
 import find from "lodash/find";
-import isObject from "lodash/isObject";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
-import * as React from "react";
+import { createContext, Component } from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
-import semver from "semver";
 import { io, Socket } from "socket.io-client";
 import { toast } from "sonner";
-import EDITOR_VERSION from "@shared/editor/version";
-import { FileOperationState, FileOperationType } from "@shared/types";
+import {
+  FileOperationState,
+  FileOperationType,
+  ImportState,
+} from "@shared/types";
 import RootStore from "~/stores/RootStore";
 import Collection from "~/models/Collection";
 import Comment from "~/models/Comment";
@@ -18,6 +20,7 @@ import FileOperation from "~/models/FileOperation";
 import Group from "~/models/Group";
 import GroupMembership from "~/models/GroupMembership";
 import GroupUser from "~/models/GroupUser";
+import Import from "~/models/Import";
 import Membership from "~/models/Membership";
 import Notification from "~/models/Notification";
 import Pin from "~/models/Pin";
@@ -41,13 +44,14 @@ type SocketWithAuthentication = Socket & {
   authenticated?: boolean;
 };
 
-export const WebsocketContext =
-  React.createContext<SocketWithAuthentication | null>(null);
+export const WebsocketContext = createContext<SocketWithAuthentication | null>(
+  null
+);
 
 type Props = WithTranslation & RootStore;
 
 @observer
-class WebsocketProvider extends React.Component<Props> {
+class WebsocketProvider extends Component<Props> {
   @observable
   socket: SocketWithAuthentication | null;
 
@@ -103,6 +107,7 @@ class WebsocketProvider extends React.Component<Props> {
       subscriptions,
       fileOperations,
       notifications,
+      imports,
     } = this.props;
 
     const currentUserId = auth?.user?.id;
@@ -117,22 +122,9 @@ class WebsocketProvider extends React.Component<Props> {
       }
     });
 
-    this.socket.on("authenticated", (data) => {
+    this.socket.on("authenticated", () => {
       if (this.socket) {
         this.socket.authenticated = true;
-      }
-      if (isObject(data) && "editorVersion" in data) {
-        const parsedClientVersion = semver.parse(EDITOR_VERSION);
-        const parsedCurrentVersion = semver.parse(String(data.editorVersion));
-
-        if (
-          parsedClientVersion &&
-          parsedCurrentVersion &&
-          (parsedClientVersion.major < parsedCurrentVersion.major ||
-            parsedClientVersion.minor < parsedCurrentVersion.minor)
-        ) {
-          window.location.reload();
-        }
       }
     });
 
@@ -142,6 +134,15 @@ class WebsocketProvider extends React.Component<Props> {
       }
       toast.error(err.message);
       throw err;
+    });
+
+    // add a listener for all events that logs a sentry breadcrumb
+    this.socket.onAny((event: string, data: Record<string, unknown>) => {
+      Sentry.addBreadcrumb({
+        category: "websocket",
+        message: `Received event: ${event}`,
+        data,
+      });
     });
 
     this.socket.on(
@@ -261,8 +262,10 @@ class WebsocketProvider extends React.Component<Props> {
           }
           policies.remove(document.id);
 
-          const collection = collections.get(event.collectionId);
-          collection?.removeDocument(document.id);
+          if (event.collectionId) {
+            const collection = collections.get(event.collectionId);
+            collection?.removeDocument(document.id);
+          }
         }
       )
     );
@@ -636,6 +639,23 @@ class WebsocketProvider extends React.Component<Props> {
       }
     );
 
+    this.socket.on("imports.create", (event: PartialExcept<Import, "id">) => {
+      imports.add(event);
+    });
+
+    this.socket.on("imports.update", (event: PartialExcept<Import, "id">) => {
+      imports.add(event);
+
+      if (
+        event.state === ImportState.Completed &&
+        event.createdBy?.id === auth.user?.id
+      ) {
+        toast.success(event.name, {
+          description: this.props.t("Your import completed"),
+        });
+      }
+    });
+
     this.socket.on(
       "subscriptions.create",
       (event: PartialExcept<Subscription, "id">) => {
@@ -659,6 +679,10 @@ class WebsocketProvider extends React.Component<Props> {
         documents.all.forEach((document) => policies.remove(document.id));
         await collections.fetchAll();
       }
+    });
+
+    this.socket.on("users.delete", (event: WebsocketEntityDeletedEvent) => {
+      users.remove(event.modelId);
     });
 
     this.socket.on(

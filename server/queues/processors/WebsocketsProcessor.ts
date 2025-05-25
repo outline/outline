@@ -17,6 +17,7 @@ import {
   Notification,
   UserMembership,
   User,
+  Import,
 } from "@server/models";
 import { cannot } from "@server/policies";
 import {
@@ -33,6 +34,7 @@ import {
   presentUser,
   presentGroupMembership,
   presentGroupUser,
+  presentImport,
 } from "@server/presenters";
 import presentNotification from "@server/presenters/notification";
 import { Event } from "../../types";
@@ -49,7 +51,10 @@ export default class WebsocketsProcessor {
         if (!document) {
           return;
         }
-        if (event.name === "documents.create" && document.importId) {
+        if (
+          event.name === "documents.create" &&
+          event.data.source === "import"
+        ) {
           return;
         }
 
@@ -64,11 +69,13 @@ export default class WebsocketsProcessor {
               updatedAt: document.updatedAt,
             },
           ],
-          collectionIds: [
-            {
-              id: document.collectionId,
-            },
-          ],
+          collectionIds: document.collectionId
+            ? [
+                {
+                  id: document.collectionId,
+                },
+              ]
+            : [],
         });
       }
 
@@ -348,9 +355,9 @@ export default class WebsocketsProcessor {
 
       case "collections.remove_user": {
         const [collection, user] = await Promise.all([
-          Collection.scope({
-            method: ["withMembership", event.userId],
-          }).findByPk(event.collectionId),
+          Collection.findByPk(event.collectionId, {
+            userId: event.userId,
+          }),
           User.findByPk(event.userId),
         ]);
         if (!user) {
@@ -419,9 +426,9 @@ export default class WebsocketsProcessor {
           async (groupUsers) => {
             for (const groupUser of groupUsers) {
               const [collection, user] = await Promise.all([
-                Collection.scope({
-                  method: ["withMembership", groupUser.userId],
-                }).findByPk(event.collectionId),
+                Collection.findByPk(event.collectionId, {
+                  userId: groupUser.userId,
+                }),
                 User.findByPk(groupUser.userId),
               ]);
               if (!user) {
@@ -451,6 +458,18 @@ export default class WebsocketsProcessor {
         return socketio
           .to(`user-${event.actorId}`)
           .emit(event.name, presentFileOperation(fileOperation));
+      }
+
+      case "imports.create":
+      case "imports.update": {
+        const importModel = await Import.findByPk(event.modelId);
+        if (!importModel) {
+          return;
+        }
+
+        return socketio
+          .to(`user-${event.actorId}`)
+          .emit(event.name, presentImport(importModel));
       }
 
       case "pins.create":
@@ -699,9 +718,12 @@ export default class WebsocketsProcessor {
                   presentGroupMembership(groupMembership)
                 );
 
-              const collection = await Collection.scope({
-                method: ["withMembership", event.userId],
-              }).findByPk(groupMembership.collectionId);
+              const collection = await Collection.findByPk(
+                groupMembership.collectionId,
+                {
+                  userId: event.userId,
+                }
+              );
 
               if (cannot(user, "read", collection)) {
                 // tell any user clients to disconnect from the websocket channel for the collection
@@ -755,9 +777,12 @@ export default class WebsocketsProcessor {
                     .to(`user-${groupUser.userId}`)
                     .emit("collections.remove_group", payload);
 
-                  const collection = await Collection.scope({
-                    method: ["withMembership", groupUser.userId],
-                  }).findByPk(groupMembership.collectionId);
+                  const collection = await Collection.findByPk(
+                    groupMembership.collectionId,
+                    {
+                      userId: groupUser.userId,
+                    }
+                  );
 
                   if (cannot(groupUser.user, "read", collection)) {
                     // tell any user clients to disconnect from the websocket channel for the collection
@@ -826,6 +851,12 @@ export default class WebsocketsProcessor {
         return socketio
           .to(`user-${event.userId}`)
           .emit(event.name, { id: event.userId });
+      }
+
+      case "users.delete": {
+        return socketio
+          .to(`team-${event.teamId}`)
+          .emit(event.name, { modelId: event.userId });
       }
 
       case "userMemberships.update": {

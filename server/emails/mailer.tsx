@@ -33,7 +33,7 @@ export class Mailer {
   transporter: Transporter | undefined;
 
   constructor() {
-    if (env.SMTP_HOST) {
+    if (env.SMTP_HOST || env.SMTP_SERVICE) {
       this.transporter = nodemailer.createTransport(this.getOptions());
     }
     if (useTestEmailService) {
@@ -198,6 +198,17 @@ export class Mailer {
   };
 
   private getOptions(): SMTPTransport.Options {
+    // nodemailer will use the service config to determine host/port
+    if (env.SMTP_SERVICE) {
+      return {
+        service: env.SMTP_SERVICE,
+        auth: {
+          user: env.SMTP_USERNAME,
+          pass: env.SMTP_PASSWORD,
+        },
+      };
+    }
+
     return {
       name: env.SMTP_NAME,
       host: env.SMTP_HOST,

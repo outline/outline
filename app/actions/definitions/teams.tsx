@@ -1,5 +1,4 @@
 import { ArrowIcon, PlusIcon } from "outline-icons";
-import * as React from "react";
 import styled from "styled-components";
 import { stringToColor } from "@shared/utils/color";
 import RootStore from "~/stores/RootStore";
@@ -11,7 +10,7 @@ import { ActionContext } from "~/types";
 import Desktop from "~/utils/Desktop";
 import { TeamSection } from "../sections";
 
-export const createTeamsList = ({ stores }: { stores: RootStore }) =>
+export const switchTeamsList = ({ stores }: { stores: RootStore }) =>
   stores.auth.availableTeams?.map((session) => ({
     id: `switch-${session.id}`,
     name: session.name,
@@ -44,7 +43,7 @@ export const switchTeam = createAction({
   section: TeamSection,
   visible: ({ stores }) =>
     !!stores.auth.availableTeams && stores.auth.availableTeams?.length > 1,
-  children: createTeamsList,
+  children: switchTeamsList,
 });
 
 export const createTeam = createAction({

@@ -1,11 +1,10 @@
 import { observer } from "mobx-react";
-import * as React from "react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Redirect } from "react-router-dom";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import { changeLanguage } from "~/utils/language";
-import { logoutPath } from "~/utils/routeHelpers";
 import LoadingIndicator from "./LoadingIndicator";
 
 type Props = {
@@ -20,7 +19,7 @@ const Authenticated = ({ children }: Props) => {
 
   // Watching for language changes here as this is the earliest point we might have the user
   // available and means we can start loading translations faster
-  React.useEffect(() => {
+  useEffect(() => {
     void changeLanguage(language, i18n);
   }, [i18n, language]);
 
@@ -33,7 +32,7 @@ const Authenticated = ({ children }: Props) => {
   }
 
   void auth.logout(true);
-  return <Redirect to={logoutPath()} />;
+  return <Redirect to="/" />;
 };
 
 export default observer(Authenticated);

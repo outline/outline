@@ -6,11 +6,11 @@ import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import { IntegrationType, IntegrationService } from "@shared/types";
 import Integration from "~/models/Integration";
+import { IntegrationScene } from "~/scenes/Settings/components/IntegrationScene";
 import SettingRow from "~/scenes/Settings/components/SettingRow";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
 import Input from "~/components/Input";
-import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import Icon from "./Icon";
@@ -41,12 +41,6 @@ function Matomo() {
       measurementId: integration?.settings.measurementId,
     },
   });
-
-  React.useEffect(() => {
-    void integrations.fetchPage({
-      type: IntegrationType.Analytics,
-    });
-  }, [integrations]);
 
   React.useEffect(() => {
     reset({
@@ -82,7 +76,7 @@ function Matomo() {
   );
 
   return (
-    <Scene title="Matomo" icon={<Icon />}>
+    <IntegrationScene title="Matomo" icon={<Icon />}>
       <Heading>Matomo</Heading>
 
       <Text as="p" type="secondary">
@@ -121,7 +115,7 @@ function Matomo() {
           {formState.isSubmitting ? `${t("Saving")}…` : t("Save")}
         </Button>
       </form>
-    </Scene>
+    </IntegrationScene>
   );
 }
 

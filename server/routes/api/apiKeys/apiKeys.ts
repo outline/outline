@@ -15,7 +15,10 @@ const router = new Router();
 
 router.post(
   "apiKeys.create",
-  auth({ role: UserRole.Member, type: AuthenticationType.APP }),
+  auth({
+    role: UserRole.Member,
+    type: AuthenticationType.APP,
+  }),
   validate(T.APIKeysCreateSchema),
   transaction(),
   async (ctx: APIContext<T.APIKeysCreateReq>) => {
@@ -90,7 +93,10 @@ router.post(
 
 router.post(
   "apiKeys.delete",
-  auth({ role: UserRole.Member }),
+  auth({
+    role: UserRole.Member,
+    type: AuthenticationType.APP,
+  }),
   validate(T.APIKeysDeleteSchema),
   transaction(),
   async (ctx: APIContext<T.APIKeysDeleteReq>) => {

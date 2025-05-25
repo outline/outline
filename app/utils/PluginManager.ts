@@ -3,6 +3,7 @@ import sortBy from "lodash/sortBy";
 import { action, observable } from "mobx";
 import Team from "~/models/Team";
 import User from "~/models/User";
+import { LazyComponent } from "~/components/LazyLoad";
 import { useComputed } from "~/hooks/useComputed";
 import Logger from "./Logger";
 import isCloudHosted from "./isCloudHosted";
@@ -12,6 +13,7 @@ import isCloudHosted from "./isCloudHosted";
  */
 export enum Hook {
   Settings = "settings",
+  Imports = "imports",
   Icon = "icon",
 }
 
@@ -26,10 +28,22 @@ type PluginValueMap = {
     after?: string;
     /** The displayed icon of the plugin. */
     icon: React.ElementType;
-    /** The settings screen somponent, should be lazy loaded. */
-    component: React.LazyExoticComponent<React.ComponentType>;
+    /** The lazy loaded settings screen component. */
+    component: LazyComponent<React.ComponentType>;
+    /** The description that will show on the plugins card. */
+    description?: string;
     /** Whether the plugin is enabled in the current context. */
     enabled?: (team: Team, user: User) => boolean;
+  };
+  [Hook.Imports]: {
+    /** The title of the import. */
+    title: string;
+    /** The auxiliary descriptive text of the import. */
+    subtitle: string;
+    /** An icon to denote the kind of import. */
+    icon: React.ReactElement;
+    /** Trigger for the import. */
+    action: React.ReactElement;
   };
   [Hook.Icon]: React.ElementType;
 };

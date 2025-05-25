@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useMemo, useState, useCallback, memo, Fragment } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
@@ -10,7 +10,7 @@ import Key from "~/components/Key";
 
 function KeyboardShortcuts() {
   const { t } = useTranslation();
-  const categories = React.useMemo(
+  const categories = useMemo(
     () => [
       {
         title: t("Navigation"),
@@ -416,6 +416,10 @@ function KeyboardShortcuts() {
             label: t("Horizontal divider"),
           },
           {
+            shortcut: <Key>{"|--"}</Key>,
+            label: t("Table"),
+          },
+          {
             shortcut: <Key>{"```"}</Key>,
             label: t("Code block"),
           },
@@ -477,13 +481,13 @@ function KeyboardShortcuts() {
     ],
     [t]
   );
-  const [searchTerm, setSearchTerm] = React.useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const normalizedSearchTerm = searchTerm.toLocaleLowerCase();
-  const handleChange = React.useCallback((event) => {
+  const handleChange = useCallback((event) => {
     setSearchTerm(event.target.value);
   }, []);
 
-  const handleKeyDown = React.useCallback((event) => {
+  const handleKeyDown = useCallback((event) => {
     if (event.currentTarget.value && event.key === "Escape") {
       event.preventDefault();
       event.stopPropagation();
@@ -512,19 +516,19 @@ function KeyboardShortcuts() {
         }
 
         return (
-          <React.Fragment key={x}>
+          <Fragment key={x}>
             <Header>{category.title}</Header>
             <List>
               {filtered.map((item) => (
-                <React.Fragment key={item.label}>
+                <Fragment key={item.label}>
                   <Keys>
                     <span>{item.shortcut}</span>
                   </Keys>
                   <Label>{item.label}</Label>
-                </React.Fragment>
+                </Fragment>
               ))}
             </List>
-          </React.Fragment>
+          </Fragment>
         );
       })}
     </Flex>
@@ -578,4 +582,4 @@ const Label = styled.dd`
   color: ${s("textSecondary")};
 `;
 
-export default React.memo(KeyboardShortcuts);
+export default memo(KeyboardShortcuts);

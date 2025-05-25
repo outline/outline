@@ -1,12 +1,12 @@
 import { observer } from "mobx-react";
-import * as React from "react";
+import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useMenuState } from "reakit/Menu";
 import ApiKey from "~/models/ApiKey";
 import ApiKeyRevokeDialog from "~/scenes/Settings/components/ApiKeyRevokeDialog";
 import ContextMenu from "~/components/ContextMenu";
 import MenuItem from "~/components/ContextMenu/MenuItem";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
+import { useMenuState } from "~/hooks/useMenuState";
 import useStores from "~/hooks/useStores";
 
 type Props = {
@@ -21,7 +21,7 @@ function ApiKeyMenu({ apiKey }: Props) {
   const { dialogs } = useStores();
   const { t } = useTranslation();
 
-  const handleRevoke = React.useCallback(() => {
+  const handleRevoke = useCallback(() => {
     dialogs.openModal({
       title: t("Revoke token"),
       content: (

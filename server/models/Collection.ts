@@ -1,4 +1,5 @@
 /* eslint-disable lines-between-class-members */
+import fractionalIndex from "fractional-index";
 import find from "lodash/find";
 import findIndex from "lodash/findIndex";
 import remove from "lodash/remove";
@@ -11,6 +12,10 @@ import {
   InferAttributes,
   InferCreationAttributes,
   EmptyResultError,
+  type CreateOptions,
+  type UpdateOptions,
+  type ScopeOptions,
+  type SaveOptions,
 } from "sequelize";
 import {
   Sequelize,
@@ -32,6 +37,10 @@ import {
   BeforeDestroy,
   IsDate,
   AllowNull,
+  BeforeCreate,
+  BeforeUpdate,
+  DefaultScope,
+  AfterSave,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import type { CollectionSort, ProsemirrorData } from "@shared/types";
@@ -41,12 +50,16 @@ import { sortNavigationNodes } from "@shared/utils/collections";
 import slugify from "@shared/utils/slugify";
 import { CollectionValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
+import { CacheHelper } from "@server/utils/CacheHelper";
+import removeIndexCollision from "@server/utils/removeIndexCollision";
 import { generateUrlId } from "@server/utils/url";
+import { ValidateIndex } from "@server/validation";
 import Document from "./Document";
 import FileOperation from "./FileOperation";
 import Group from "./Group";
 import GroupMembership from "./GroupMembership";
 import GroupUser from "./GroupUser";
+import Import from "./Import";
 import Team from "./Team";
 import User from "./User";
 import UserMembership from "./UserMembership";
@@ -58,9 +71,17 @@ import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
 
 type AdditionalFindOptions = {
+  userId?: string;
+  includeDocumentStructure?: boolean;
+  includeOwner?: boolean;
   rejectOnEmpty?: boolean | Error;
 };
 
+@DefaultScope(() => ({
+  attributes: {
+    exclude: ["documentStructure"],
+  },
+}))
 @Scopes(() => ({
   withAllMemberships: {
     include: [
@@ -112,6 +133,12 @@ type AdditionalFindOptions = {
         association: "archivedBy",
       },
     ],
+  }),
+  withDocumentStructure: () => ({
+    attributes: {
+      // resets to include the documentStructure column
+      exclude: [],
+    },
   }),
   withMembership: (userId: string) => {
     if (!userId) {
@@ -216,8 +243,8 @@ class Collection extends ParanoidModel<
   color: string | null;
 
   @Length({
-    max: 256,
-    msg: `index must be 256 characters or less`,
+    max: ValidateIndex.maxLength,
+    msg: `index must be ${ValidateIndex.maxLength} characters or less`,
   })
   @Column
   index: string | null;
@@ -230,6 +257,7 @@ class Collection extends ParanoidModel<
   @Column
   maintainerApprovalRequired: boolean;
 
+  @Default(null)
   @Column(DataType.JSONB)
   documentStructure: NavigationNode[] | null;
 
@@ -267,6 +295,12 @@ class Collection extends ParanoidModel<
   @IsDate
   @Column
   archivedAt: Date | null;
+
+  /** Allows the configuration of commenting per collection. */
+  @AllowNull(true)
+  @Default(null)
+  @Column(DataType.BOOLEAN)
+  commenting: boolean | null;
 
   // getters
 
@@ -309,6 +343,34 @@ class Collection extends ParanoidModel<
     if (!model.content) {
       model.content = await DocumentHelper.toJSON(model);
     }
+    if (model.changed("documentStructure")) {
+      await CacheHelper.clearData(
+        CacheHelper.getCollectionDocumentsKey(model.id)
+      );
+    }
+  }
+
+  @AfterSave
+  static async cacheDocumentStructure(
+    model: Collection,
+    options: SaveOptions<Collection>
+  ) {
+    if (model.changed("documentStructure")) {
+      const setData = () =>
+        CacheHelper.setData(
+          CacheHelper.getCollectionDocumentsKey(model.id),
+          model.documentStructure,
+          60
+        );
+
+      if (options.transaction) {
+        return (options.transaction.parent || options.transaction).afterCommit(
+          setData
+        );
+      }
+
+      await setData();
+    }
   }
 
   @BeforeDestroy
@@ -321,6 +383,30 @@ class Collection extends ParanoidModel<
     if (total === 1) {
       throw ValidationError("Cannot delete last collection");
     }
+  }
+
+  @BeforeCreate
+  static async setIndex(model: Collection, options: CreateOptions<Collection>) {
+    if (model.index) {
+      model.index = await removeIndexCollision(model.teamId, model.index, {
+        transaction: options.transaction,
+      });
+      return;
+    }
+
+    const firstCollectionForTeam = await this.findOne({
+      where: {
+        teamId: model.teamId,
+      },
+      order: [
+        // using LC_COLLATE:"C" because we need byte order to drive the sorting
+        Sequelize.literal('"collection"."index" collate "C"'),
+        ["updatedAt", "DESC"],
+      ],
+      ...options,
+    });
+
+    model.index = fractionalIndex(null, firstCollectionForTeam?.index ?? null);
   }
 
   @AfterCreate
@@ -342,6 +428,21 @@ class Collection extends ParanoidModel<
     });
   }
 
+  @BeforeUpdate
+  static async checkIndex(
+    model: Collection,
+    options: UpdateOptions<Collection>
+  ) {
+    if (
+      (model.index && model.changed("index")) ||
+      (!model.archivedAt && model.changed("archivedAt"))
+    ) {
+      model.index = await removeIndexCollision(model.teamId, model.index!, {
+        transaction: options.transaction,
+      });
+    }
+  }
+
   // associations
 
   @BelongsTo(() => FileOperation, "importId")
@@ -350,6 +451,13 @@ class Collection extends ParanoidModel<
   @ForeignKey(() => FileOperation)
   @Column(DataType.UUID)
   importId: string | null;
+
+  @BelongsTo(() => Import, "apiImportId")
+  apiImport: Import<any> | null;
+
+  @ForeignKey(() => Import)
+  @Column(DataType.UUID)
+  apiImportId: string | null;
 
   @BelongsTo(() => User, "archivedById")
   archivedBy?: User | null;
@@ -402,9 +510,9 @@ class Collection extends ParanoidModel<
    * @returns userIds
    */
   static async membershipUserIds(collectionId: string) {
-    const collection = await this.scope("withAllMemberships").findByPk(
-      collectionId
-    );
+    const collection = await this.scope("withAllMemberships").findOne({
+      where: { id: collectionId },
+    });
     if (!collection) {
       return [];
     }
@@ -421,6 +529,7 @@ class Collection extends ParanoidModel<
 
   /**
    * Overrides the standard findByPk behavior to allow also querying by urlId
+   * and loading memberships for a user passed in by `userId`
    *
    * @param id uuid or urlId
    * @param options FindOptions
@@ -442,16 +551,31 @@ class Collection extends ParanoidModel<
       return null;
     }
 
+    const { includeDocumentStructure, includeOwner, userId, ...rest } = options;
+
+    const scopes: (string | ScopeOptions)[] = [
+      includeDocumentStructure ? "withDocumentStructure" : "defaultScope",
+      {
+        method: ["withMembership", userId],
+      },
+    ];
+
+    if (includeOwner) {
+      scopes.push("withUser");
+    }
+
+    const scope = this.scope(scopes);
+
     if (isUUID(id)) {
-      const collection = await this.findOne({
+      const collection = await scope.findOne({
         where: {
           id,
         },
-        ...options,
+        ...rest,
         rejectOnEmpty: false,
       });
 
-      if (!collection && options.rejectOnEmpty) {
+      if (!collection && rest.rejectOnEmpty) {
         throw new EmptyResultError(`Collection doesn't exist with id: ${id}`);
       }
 
@@ -460,7 +584,7 @@ class Collection extends ParanoidModel<
 
     const match = id.match(UrlHelper.SLUG_URL_REGEX);
     if (match) {
-      const collection = await this.findOne({
+      const collection = await scope.findOne({
         where: {
           urlId: match[1],
         },
@@ -468,7 +592,7 @@ class Collection extends ParanoidModel<
         rejectOnEmpty: false,
       });
 
-      if (!collection && options.rejectOnEmpty) {
+      if (!collection && rest.rejectOnEmpty) {
         throw new EmptyResultError(`Collection doesn't exist with id: ${id}`);
       }
 
@@ -713,6 +837,7 @@ class Collection extends ParanoidModel<
     index?: number,
     options: FindOptions & {
       save?: boolean;
+      silent?: boolean;
       documentJson?: NavigationNode;
       includeArchived?: boolean;
     } = {}

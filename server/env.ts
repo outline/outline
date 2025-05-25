@@ -15,7 +15,8 @@ import {
 } from "class-validator";
 import uniq from "lodash/uniq";
 import { languages } from "@shared/i18n";
-import { CannotUseWithout } from "@server/utils/validators";
+import { Day, Hour } from "@shared/utils/time";
+import { CannotUseWith, CannotUseWithout } from "@server/utils/validators";
 import Deprecated from "./models/decorators/Deprecated";
 import { getArg } from "./utils/args";
 import { Public, PublicEnvironmentRegister } from "./utils/decorators/Public";
@@ -291,10 +292,19 @@ export class Environment {
   /**
    * The host of your SMTP server for enabling emails.
    */
-  public SMTP_HOST = environment.SMTP_HOST;
+  @CannotUseWith("SMTP_SERVICE")
+  public SMTP_HOST = this.toOptionalString(environment.SMTP_HOST);
+
+  /**
+   * The service name of a well-known SMTP service for nodemailer.
+   * See https://community.nodemailer.com/2-0-0-beta/setup-smtp/well-known-services/
+   */
+  @CannotUseWith("SMTP_HOST")
+  public SMTP_SERVICE = this.toOptionalString(environment.SMTP_SERVICE);
 
   @Public
-  public EMAIL_ENABLED = !!this.SMTP_HOST || this.isDevelopment;
+  public EMAIL_ENABLED =
+    !!(this.SMTP_HOST || this.SMTP_SERVICE) || this.isDevelopment;
 
   /**
    * Optional hostname of the client, used for identifying to the server
@@ -307,6 +317,7 @@ export class Environment {
    */
   @IsNumber()
   @IsOptional()
+  @CannotUseWith("SMTP_SERVICE")
   public SMTP_PORT = this.toOptionalNumber(environment.SMTP_PORT);
 
   /**
@@ -598,6 +609,31 @@ export class Environment {
   @IsNumber()
   public MAXIMUM_EXPORT_SIZE =
     this.toOptionalNumber(environment.MAXIMUM_EXPORT_SIZE) ?? os.totalmem();
+
+  /**
+   * The number of seconds access tokens issue by the OAuth provider are valid.
+   */
+  @IsNumber()
+  public OAUTH_PROVIDER_ACCESS_TOKEN_LIFETIME =
+    this.toOptionalNumber(environment.OAUTH_PROVIDER_ACCESS_TOKEN_LIFETIME) ??
+    Hour.seconds;
+
+  /**
+   * The number of seconds refresh tokens issue by the OAuth provider are valid.
+   */
+  @IsNumber()
+  public OAUTH_PROVIDER_REFRESH_TOKEN_LIFETIME =
+    this.toOptionalNumber(environment.OAUTH_PROVIDER_REFRESH_TOKEN_LIFETIME) ??
+    30 * Day.seconds;
+
+  /**
+   * The number of seconds authorization codes issue by the OAuth provider are valid.
+   */
+  @IsNumber()
+  public OAUTH_PROVIDER_AUTHORIZATION_CODE_LIFETIME =
+    this.toOptionalNumber(
+      environment.OAUTH_PROVIDER_AUTHORIZATION_CODE_LIFETIME
+    ) ?? 300;
 
   /**
    * Enable unsafe-inline in script-src CSP directive

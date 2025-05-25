@@ -1,5 +1,4 @@
 import { observer } from "mobx-react";
-import * as React from "react";
 import Guide from "~/components/Guide";
 import Modal from "~/components/Modal";
 import useStores from "~/hooks/useStores";
@@ -23,7 +22,10 @@ function Dialogs() {
           key={id}
           isOpen={modal.isOpen}
           fullscreen={modal.fullscreen ?? false}
-          onRequestClose={() => dialogs.closeModal(id)}
+          onRequestClose={() => {
+            modal.onClose?.();
+            dialogs.closeModal(id);
+          }}
           title={modal.title}
           style={modal.style}
         >

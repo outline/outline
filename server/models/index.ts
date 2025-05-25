@@ -24,11 +24,21 @@ export { default as Group } from "./Group";
 
 export { default as GroupUser } from "./GroupUser";
 
+export { default as Import } from "./Import";
+
+export { default as ImportTask } from "./ImportTask";
+
 export { default as Integration } from "./Integration";
 
 export { default as IntegrationAuthentication } from "./IntegrationAuthentication";
 
 export { default as Notification } from "./Notification";
+
+export { default as OAuthAuthentication } from "./oauth/OAuthAuthentication";
+
+export { default as OAuthAuthorizationCode } from "./oauth/OAuthAuthorizationCode";
+
+export { default as OAuthClient } from "./oauth/OAuthClient";
 
 export { default as Pin } from "./Pin";
 

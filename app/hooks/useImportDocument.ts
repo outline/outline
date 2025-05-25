@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import * as React from "react";
+import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
@@ -16,10 +16,10 @@ export default function useImportDocument(
   isImporting: boolean;
 } {
   const { documents } = useStores();
-  const [isImporting, setImporting] = React.useState(false);
+  const [isImporting, setImporting] = useState(false);
   const { t } = useTranslation();
   const history = useHistory();
-  const handleFiles = React.useCallback(
+  const handleFiles = useCallback(
     async (files = []) => {
       if (importingLock) {
         return;

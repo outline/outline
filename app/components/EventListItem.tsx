@@ -11,7 +11,7 @@ import {
   UserIcon,
   CrossIcon,
 } from "outline-icons";
-import * as React from "react";
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import styled, { css } from "styled-components";
@@ -48,10 +48,12 @@ export type DocumentEvent = {
   userId: string;
 };
 
-export type Event = { id: string; actorId: string; createdAt: string } & (
-  | RevisionEvent
-  | DocumentEvent
-);
+export type Event = {
+  id: string;
+  actorId: string;
+  createdAt: string;
+  deletedAt?: string;
+} & (RevisionEvent | DocumentEvent);
 
 type Props = {
   document: Document;
@@ -65,7 +67,7 @@ const EventListItem = ({ event, document, ...rest }: Props) => {
   const user = "userId" in event ? users.get(event.userId) : undefined;
   const location = useLocation();
   const sidebarContext = useLocationSidebarContext();
-  const revisionLoadedRef = React.useRef(false);
+  const revisionLoadedRef = useRef(false);
   const opts = {
     userName: actor?.name,
   };
@@ -74,7 +76,7 @@ const EventListItem = ({ event, document, ...rest }: Props) => {
     event.id === RevisionHelper.latestId(document.id);
   let meta, icon, to: LocationDescriptor | undefined;
 
-  const ref = React.useRef<HTMLAnchorElement>(null);
+  const ref = useRef<HTMLAnchorElement>(null);
   // the time component tends to steal focus when clicked
   // ...so forward the focus back to the parent item
   const handleTimeClick = () => {
@@ -85,6 +87,7 @@ const EventListItem = ({ event, document, ...rest }: Props) => {
     if (
       !document.isDeleted &&
       event.name === "revisions.create" &&
+      !event.deletedAt &&
       !isDerivedFromDocument &&
       !revisionLoadedRef.current
     ) {
@@ -95,24 +98,31 @@ const EventListItem = ({ event, document, ...rest }: Props) => {
 
   switch (event.name) {
     case "revisions.create":
-      icon = <EditIcon size={16} />;
-      meta = event.latest ? (
-        <>
-          {t("Current version")} &middot; {actor?.name}
-        </>
-      ) : (
-        t("{{userName}} edited", opts)
-      );
-      to = {
-        pathname: documentHistoryPath(
-          document,
-          isDerivedFromDocument ? "latest" : event.id
-        ),
-        state: {
-          sidebarContext,
-          retainScrollPosition: true,
-        },
-      };
+      {
+        if (event.deletedAt) {
+          icon = <TrashIcon />;
+          meta = t("Revision deleted");
+        } else {
+          icon = <EditIcon size={16} />;
+          meta = event.latest ? (
+            <>
+              {t("Current version")} &middot; {actor?.name}
+            </>
+          ) : (
+            t("{{userName}} edited", opts)
+          );
+          to = {
+            pathname: documentHistoryPath(
+              document,
+              isDerivedFromDocument ? "latest" : event.id
+            ),
+            state: {
+              sidebarContext,
+              retainScrollPosition: true,
+            },
+          };
+        }
+      }
       break;
 
     case "documents.archive":
@@ -181,7 +191,7 @@ const EventListItem = ({ event, document, ...rest }: Props) => {
     to = undefined;
   }
 
-  return event.name === "revisions.create" ? (
+  return event.name === "revisions.create" && !event.deletedAt ? (
     <RevisionItem
       small
       exact
@@ -218,7 +228,12 @@ const EventListItem = ({ event, document, ...rest }: Props) => {
       </IconWrapper>
       <Text size="xsmall" type="secondary">
         {meta} &middot;{" "}
-        <Time dateTime={event.createdAt} relative shorten addSuffix />
+        <Time
+          dateTime={event.deletedAt ?? event.createdAt}
+          relative
+          shorten
+          addSuffix
+        />
       </Text>
     </EventItem>
   );

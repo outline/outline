@@ -64,11 +64,12 @@ function EditableTitle(
     async (ev) => {
       ev.preventDefault();
       ev.stopPropagation();
-      setIsEditing(false);
+
       const trimmedValue = value.trim();
 
       if (trimmedValue === originalValue || trimmedValue.length === 0) {
         setValue(originalValue);
+        setIsEditing(false);
         onCancel?.();
         return;
       }
@@ -80,6 +81,8 @@ function EditableTitle(
         setValue(originalValue);
         toast.error(error.message);
         throw error;
+      } finally {
+        setIsEditing(false);
       }
     },
     [originalValue, value, onCancel, onSubmit]

@@ -1,265 +1,315 @@
 import isEqual from "lodash/isEqual";
-import { observable, action, computed } from "mobx";
-import { observer } from "mobx-react";
 import * as React from "react";
-import { withTranslation, WithTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { Waypoint } from "react-waypoint";
 import { Pagination } from "@shared/constants";
-import RootStore from "~/stores/RootStore";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import DelayedMount from "~/components/DelayedMount";
 import PlaceholderList from "~/components/List/Placeholder";
-import withStores from "~/components/withStores";
+import useCurrentUser from "~/hooks/useCurrentUser";
+import usePrevious from "~/hooks/usePrevious";
 import { dateToHeading } from "~/utils/date";
 
+/**
+ * Base interface for items that can be paginated
+ * @interface PaginatedItem
+ */
 export interface PaginatedItem {
+  /** Unique identifier for the item */
   id?: string;
+  /** Last update timestamp of the item */
   updatedAt?: string;
+  /** Creation timestamp of the item */
   createdAt?: string;
 }
 
-type Props<T> = WithTranslation &
-  RootStore &
-  React.HTMLAttributes<HTMLDivElement> & {
-    fetch?: (
-      options: Record<string, any> | undefined
-    ) => Promise<T[] | undefined> | undefined;
-    options?: Record<string, any>;
-    heading?: React.ReactNode;
-    empty?: React.ReactNode;
-    loading?: React.ReactElement;
-    items?: T[];
-    className?: string;
-    renderItem: (item: T, index: number) => React.ReactNode;
-    renderError?: (options: {
-      error: Error;
-      retry: () => void;
-    }) => React.ReactNode;
-    renderHeading?: (name: React.ReactElement<any> | string) => React.ReactNode;
-    onEscape?: (ev: React.KeyboardEvent<HTMLDivElement>) => void;
-    listRef?: React.RefObject<HTMLDivElement>;
-  };
+/**
+ * Props for the PaginatedList component
+ * @template T Type of items in the list, must extend PaginatedItem
+ */
+interface Props<T extends PaginatedItem>
+  extends React.HTMLAttributes<HTMLDivElement> {
+  /**
+   * Function to fetch paginated data. Should return a promise resolving to an array of items
+   * @param options Pagination and other query options
+   */
+  fetch?: (
+    options: Record<string, any> | undefined
+  ) => Promise<unknown[] | undefined> | undefined;
 
-@observer
-class PaginatedList<T extends PaginatedItem> extends React.PureComponent<
-  Props<T>
-> {
-  @observable
-  error?: Error;
+  /** Additional options to pass to the fetch function */
+  options?: Record<string, any>;
 
-  @observable
-  isFetchingMore = false;
+  /** Optional header content to display above the list */
+  heading?: React.ReactNode;
 
-  @observable
-  isFetching = false;
+  /** Content to display when the list is empty */
+  empty?: JSX.Element | null;
 
-  @observable
-  isFetchingInitial = !this.props.items?.length;
+  /** Optional loading state content */
+  loading?: JSX.Element | null;
 
-  @observable
-  fetchCounter = 0;
+  /** Array of items to display in the list */
+  items?: T[];
 
-  @observable
-  renderCount = Pagination.defaultLimit;
+  /** CSS class name to apply to the list container */
+  className?: string;
 
-  @observable
-  offset = 0;
+  /**
+   * Function to render each individual item in the list
+   * @param item The item to render
+   * @param index The index of the item in the list
+   */
+  renderItem: (item: T, index: number) => React.ReactNode;
 
-  @observable
-  allowLoadMore = true;
+  /**
+   * Function to render error state
+   * @param options Object containing error details and retry function
+   */
+  renderError?: (options: {
+    /** Details of the error */
+    error: Error;
+    /** Function to retry the fetch operation */
+    retry: () => void;
+  }) => JSX.Element;
 
-  componentDidMount() {
-    void this.fetchResults();
-  }
+  /**
+   * Function to render section headings (typically date-based)
+   * @param name The heading text or element to render
+   */
+  renderHeading?: (name: React.ReactElement<any> | string) => React.ReactNode;
 
-  componentDidUpdate(prevProps: Props<T>) {
-    if (
-      prevProps.fetch !== this.props.fetch ||
-      !isEqual(prevProps.options, this.props.options)
-    ) {
-      this.reset();
-      void this.fetchResults();
-    }
-  }
+  /**
+   * Handler for escape key press
+   * @param ev Keyboard event object
+   */
+  onEscape?: (ev: React.KeyboardEvent<HTMLDivElement>) => void;
 
-  reset = () => {
-    this.offset = 0;
-    this.allowLoadMore = true;
-    this.renderCount = Pagination.defaultLimit;
-    this.isFetching = false;
-    this.isFetchingInitial = false;
-    this.isFetchingMore = false;
-  };
+  /** Reference to the list container element */
+  listRef?: React.RefObject<HTMLDivElement>;
+}
 
-  @action
-  fetchResults = async () => {
-    if (!this.props.fetch) {
+/**
+ * A reusable component that renders a paginated list with infinite scrolling
+ * and optional date-based section headings.
+ *
+ * @template T Type of the list items, must extend PaginatedItem
+ */
+const PaginatedList = <T extends PaginatedItem>({
+  fetch,
+  options,
+  heading,
+  empty = null,
+  loading = null,
+  items = [],
+  className,
+  renderItem,
+  renderError,
+  renderHeading,
+  onEscape,
+  listRef,
+  ...rest
+}: Props<T>): JSX.Element | null => {
+  const user = useCurrentUser({ rejectOnEmpty: false });
+  const { t } = useTranslation();
+
+  const [error, setError] = React.useState<Error | undefined>();
+  const [isFetchingMore, setIsFetchingMore] = React.useState(false);
+  const [isFetching, setIsFetching] = React.useState(false);
+  const [isFetchingInitial, setIsFetchingInitial] = React.useState(
+    !items?.length
+  );
+  const [fetchCounter, setFetchCounter] = React.useState(0);
+  const [renderCount, setRenderCount] = React.useState(Pagination.defaultLimit);
+  const [offset, setOffset] = React.useState(0);
+  const [allowLoadMore, setAllowLoadMore] = React.useState(true);
+
+  const reset = React.useCallback(() => {
+    setOffset(0);
+    setAllowLoadMore(true);
+    setRenderCount(Pagination.defaultLimit);
+    setIsFetching(false);
+    setIsFetchingInitial(false);
+    setIsFetchingMore(false);
+  }, []);
+
+  const fetchResults = React.useCallback(async () => {
+    if (!fetch) {
       return;
     }
-    this.isFetching = true;
-    const counter = ++this.fetchCounter;
-    const limit = this.props.options?.limit ?? Pagination.defaultLimit;
-    this.error = undefined;
+
+    setIsFetching(true);
+    const counter = fetchCounter + 1;
+    setFetchCounter(counter);
+    const limit = options?.limit ?? Pagination.defaultLimit;
+    setError(undefined);
 
     try {
-      const results = await this.props.fetch({
+      const results = await fetch({
         limit,
-        offset: this.offset,
-        ...this.props.options,
+        offset,
+        ...options,
       });
 
-      if (this.offset !== 0) {
-        this.renderCount += limit;
+      if (offset !== 0) {
+        setRenderCount((prevCount) => prevCount + limit);
       }
 
       if (results && (results.length === 0 || results.length < limit)) {
-        this.allowLoadMore = false;
+        setAllowLoadMore(false);
       } else {
-        this.offset += limit;
+        setOffset((prevOffset) => prevOffset + limit);
       }
 
-      this.isFetchingInitial = false;
+      setIsFetchingInitial(false);
     } catch (err) {
-      this.error = err;
+      setError(err);
     } finally {
       // only the most recent fetch should end the loading state
-      if (counter >= this.fetchCounter) {
-        this.isFetching = false;
-        this.isFetchingMore = false;
+      if (counter >= fetchCounter) {
+        setIsFetching(false);
+        setIsFetchingMore(false);
       }
     }
-  };
+  }, [fetch, fetchCounter, offset, options]);
 
-  @action
-  loadMoreResults = async () => {
-    // Don't paginate if there aren't more results or we’re currently fetching
-    if (!this.allowLoadMore || this.isFetching) {
+  const loadMoreResults = React.useCallback(async () => {
+    // Don't paginate if there aren't more results or we're currently fetching
+    if (!allowLoadMore || isFetching) {
       return;
     }
+
     // If there are already cached results that we haven't yet rendered because
     // of lazy rendering then show another page.
-    const leftToRender = (this.props.items?.length ?? 0) - this.renderCount;
+    const leftToRender = (items?.length ?? 0) - renderCount;
 
     if (leftToRender > 0) {
-      this.renderCount += Pagination.defaultLimit;
+      setRenderCount((prevCount) => prevCount + Pagination.defaultLimit);
     }
 
     // If there are less than a pages results in the cache go ahead and fetch
     // another page from the server
     if (leftToRender <= Pagination.defaultLimit) {
-      this.isFetchingMore = true;
-      await this.fetchResults();
+      setIsFetchingMore(true);
+      await fetchResults();
     }
-  };
+  }, [allowLoadMore, isFetching, items?.length, renderCount, fetchResults]);
 
-  @computed
-  get itemsToRender() {
-    return this.props.items?.slice(0, this.renderCount) ?? [];
-  }
+  const prevFetch = usePrevious(fetch);
+  const prevOptions = usePrevious(options);
 
-  render() {
-    const {
-      items = [],
-      heading,
-      auth,
-      empty = null,
-      renderHeading,
-      renderError,
-      onEscape,
-    } = this.props;
+  // Initial fetch on mount
+  React.useEffect(() => {
+    if (fetch) {
+      void fetchResults();
+    }
+  }, [fetch]);
 
-    const showLoading =
-      this.isFetching &&
-      !this.isFetchingMore &&
-      (!items?.length || (this.fetchCounter <= 1 && this.isFetchingInitial));
-
-    if (showLoading) {
-      return (
-        this.props.loading || (
-          <DelayedMount>
-            <div className={this.props.className}>
-              <PlaceholderList count={5} />
-            </div>
-          </DelayedMount>
-        )
-      );
+  // Handle updates to fetch or options
+  React.useEffect(() => {
+    if (!prevFetch || !prevOptions) {
+      return; // Skip on initial mount since it's handled by the above effect
     }
 
-    if (items?.length === 0) {
-      if (this.error && renderError) {
-        return renderError({ error: this.error, retry: this.fetchResults });
-      }
-
-      return empty;
+    if (prevFetch !== fetch || !isEqual(prevOptions, options)) {
+      reset();
+      void fetchResults();
     }
+  }, [fetch, options, reset, fetchResults, prevFetch, prevOptions]);
 
+  // Computed property equivalent
+  const itemsToRender = React.useMemo(
+    () => items?.slice(0, renderCount) ?? [],
+    [items, renderCount]
+  );
+
+  const showLoading =
+    isFetching &&
+    !isFetchingMore &&
+    (!items?.length || (fetchCounter <= 1 && isFetchingInitial));
+
+  if (showLoading) {
     return (
-      <>
-        {heading}
-        <ArrowKeyNavigation
-          aria-label={this.props["aria-label"]}
-          onEscape={onEscape}
-          className={this.props.className}
-          items={this.itemsToRender}
-          ref={this.props.listRef}
-        >
-          {() => {
-            let previousHeading = "";
-            return this.itemsToRender.map((item, index) => {
-              const children = this.props.renderItem(item, index);
-
-              // If there is no renderHeading method passed then no date
-              // headings are rendered
-              if (!renderHeading) {
-                return children;
-              }
-
-              // Our models have standard date fields, updatedAt > createdAt.
-              // Get what a heading would look like for this item
-              const currentDate =
-                "updatedAt" in item && item.updatedAt
-                  ? item.updatedAt
-                  : "createdAt" in item && item.createdAt
-                  ? item.createdAt
-                  : previousHeading;
-              const currentHeading = dateToHeading(
-                currentDate,
-                this.props.t,
-                auth.user?.language
-              );
-
-              // If the heading is different to any previous heading then we
-              // should render it, otherwise the item can go under the previous
-              // heading
-              if (
-                children &&
-                (!previousHeading || currentHeading !== previousHeading)
-              ) {
-                previousHeading = currentHeading;
-                return (
-                  <React.Fragment
-                    key={"id" in item && item.id ? item.id : index}
-                  >
-                    {renderHeading(currentHeading)}
-                    {children}
-                  </React.Fragment>
-                );
-              }
-
-              return children;
-            });
-          }}
-        </ArrowKeyNavigation>
-        {this.allowLoadMore && (
-          <div style={{ height: "1px" }}>
-            <Waypoint key={this.renderCount} onEnter={this.loadMoreResults} />
+      loading || (
+        <DelayedMount>
+          <div className={className}>
+            <PlaceholderList count={5} />
           </div>
-        )}
-      </>
+        </DelayedMount>
+      )
     );
   }
-}
 
-export const Component = PaginatedList;
+  if (items?.length === 0) {
+    if (error && renderError) {
+      return renderError({ error, retry: fetchResults });
+    }
 
-export default withTranslation()(withStores(PaginatedList));
+    return empty;
+  }
+
+  return (
+    <React.Fragment>
+      {heading}
+      <ArrowKeyNavigation
+        aria-label={rest["aria-label"]}
+        onEscape={onEscape}
+        className={className}
+        items={itemsToRender}
+        ref={listRef}
+      >
+        {() => {
+          let previousHeading = "";
+          return itemsToRender.map((item, index) => {
+            const children = renderItem(item, index);
+
+            // If there is no renderHeading method passed then no date
+            // headings are rendered
+            if (!renderHeading) {
+              return children;
+            }
+
+            // Our models have standard date fields, updatedAt > createdAt.
+            // Get what a heading would look like for this item
+            const currentDate =
+              "updatedAt" in item && item.updatedAt
+                ? item.updatedAt
+                : "createdAt" in item && item.createdAt
+                ? item.createdAt
+                : previousHeading;
+            const currentHeading = dateToHeading(
+              currentDate,
+              t,
+              user?.language
+            );
+
+            // If the heading is different to any previous heading then we
+            // should render it, otherwise the item can go under the previous
+            // heading
+            if (
+              children &&
+              (!previousHeading || currentHeading !== previousHeading)
+            ) {
+              previousHeading = currentHeading;
+              return (
+                <React.Fragment key={"id" in item && item.id ? item.id : index}>
+                  {renderHeading(currentHeading)}
+                  {children}
+                </React.Fragment>
+              );
+            }
+
+            return children;
+          });
+        }}
+      </ArrowKeyNavigation>
+      {allowLoadMore && (
+        <div style={{ height: "1px" }}>
+          <Waypoint key={renderCount} onEnter={loadMoreResults} />
+        </div>
+      )}
+    </React.Fragment>
+  );
+};
+
+export default PaginatedList;

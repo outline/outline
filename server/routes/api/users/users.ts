@@ -30,7 +30,6 @@ import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
 const router = new Router();
-const emailEnabled = !!(env.SMTP_HOST || env.isDevelopment);
 
 router.post(
   "users.list",
@@ -210,7 +209,7 @@ router.post(
   auth(),
   validate(T.UsersUpdateEmailSchema),
   async (ctx: APIContext<T.UsersUpdateEmailReq>) => {
-    if (!emailEnabled) {
+    if (!env.EMAIL_ENABLED) {
       throw ValidationError("Email support is not setup for this instance");
     }
 
@@ -252,7 +251,7 @@ router.get(
   transaction(),
   validate(T.UsersUpdateEmailConfirmSchema),
   async (ctx: APIContext<T.UsersUpdateEmailConfirmReq>) => {
-    if (!emailEnabled) {
+    if (!env.EMAIL_ENABLED) {
       throw ValidationError("Email support is not setup for this instance");
     }
 
@@ -261,8 +260,6 @@ router.get(
 
     // The link in the email does not include the follow query param, this
     // is to help prevent anti-virus, and email clients from pre-fetching the link
-    // and spending the token before the user clicks on it. Instead we redirect
-    // to the same URL with the follow query param added from the client side.
     if (!follow) {
       return ctx.redirectOnClient(ctx.request.href + "&follow=true");
     }
@@ -626,7 +623,7 @@ router.post(
   rateLimiter(RateLimiterStrategy.FivePerHour),
   auth(),
   async (ctx: APIContext) => {
-    if (!emailEnabled) {
+    if (!env.EMAIL_ENABLED) {
       throw ValidationError("Email support is not setup for this instance");
     }
 
@@ -671,7 +668,7 @@ router.post(
 
     // If we're attempting to delete our own account then a confirmation code
     // is required. This acts as CSRF protection.
-    if ((!id || id === actor.id) && emailEnabled) {
+    if ((!id || id === actor.id) && env.EMAIL_ENABLED) {
       const deleteConfirmationCode = user.deleteConfirmationCode;
 
       if (!safeEqual(code, deleteConfirmationCode)) {

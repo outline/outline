@@ -1,10 +1,15 @@
-import * as React from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+/**
+ * Hook that provides a dictionary of translated UI strings.
+ *
+ * @returns An object containing all translated UI strings used throughout the application
+ */
 export default function useDictionary() {
   const { t } = useTranslation();
 
-  return React.useMemo(
+  return useMemo(
     () => ({
       addColumnAfter: t("Add column after"),
       addColumnBefore: t("Add column before"),

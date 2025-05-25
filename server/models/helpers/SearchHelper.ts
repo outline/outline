@@ -182,18 +182,9 @@ export default class SearchHelper {
       },
     ];
 
-    return Document.scope([
-      "withDrafts",
-      {
-        method: ["withViews", user.id],
-      },
-      {
-        method: ["withCollectionPermissions", user.id],
-      },
-      {
-        method: ["withMembership", user.id],
-      },
-    ]).findAll({
+    return Document.withMembershipScope(user.id, {
+      includeDrafts: true,
+    }).findAll({
       where,
       subQuery: false,
       order: [["updatedAt", "DESC"]],
@@ -273,18 +264,7 @@ export default class SearchHelper {
 
       // Final query to get associated document data
       const [documents, count] = await Promise.all([
-        Document.scope([
-          "withDrafts",
-          {
-            method: ["withViews", user.id],
-          },
-          {
-            method: ["withCollectionPermissions", user.id],
-          },
-          {
-            method: ["withMembership", user.id],
-          },
-        ]).findAll({
+        Document.withMembershipScope(user.id, { includeDrafts: true }).findAll({
           where: {
             teamId: user.teamId,
             id: map(results, "id"),
@@ -496,7 +476,7 @@ export default class SearchHelper {
     if (options.query) {
       // find words that look like urls, these should be treated separately as the postgres full-text
       // index will generally not match them.
-      const likelyUrls = getUrls(options.query);
+      let likelyUrls = getUrls(options.query);
 
       // remove likely urls, and escape the rest of the query.
       let limitedQuery = this.escapeQuery(
@@ -505,6 +485,9 @@ export default class SearchHelper {
           .slice(0, this.maxQueryLength)
           .trim()
       );
+
+      // Escape the URLs
+      likelyUrls = likelyUrls.map((url) => this.escapeQuery(url));
 
       // Extract quoted queries and add them to the where clause, up to a maximum of 3 total.
       const quotedQueries = Array.from(limitedQuery.matchAll(/"([^"]*)"/g)).map(

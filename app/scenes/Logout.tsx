@@ -1,4 +1,3 @@
-import * as React from "react";
 import { Redirect } from "react-router-dom";
 import env from "~/env";
 import useStores from "~/hooks/useStores";

@@ -37,9 +37,10 @@ router.post(
     }
 
     if (collectionId) {
-      const collection = await Collection.scope({
-        method: ["withMembership", user.id],
-      }).findByPk(collectionId, { transaction });
+      const collection = await Collection.findByPk(collectionId, {
+        userId: user.id,
+        transaction,
+      });
       authorize(user, "star", collection);
     }
 
@@ -94,7 +95,7 @@ router.post(
       .map((star) => star.documentId)
       .filter(Boolean) as string[];
     const documents = documentIds.length
-      ? await Document.defaultScopeWithUser(user.id).findAll({
+      ? await Document.withMembershipScope(user.id).findAll({
           where: {
             id: documentIds,
             collectionId: collectionIds,

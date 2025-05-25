@@ -1,16 +1,5 @@
 import { useState, useLayoutEffect } from "react";
 
-const defaultRect = {
-  top: 0,
-  left: 0,
-  bottom: 0,
-  right: 0,
-  x: 0,
-  y: 0,
-  width: 0,
-  height: 0,
-};
-
 /**
  * A hook that returns the size of an element or ref.
  *
@@ -19,19 +8,11 @@ const defaultRect = {
  */
 export function useComponentSize(
   input: HTMLElement | null | React.RefObject<HTMLElement | null>
-): DOMRect | typeof defaultRect {
+) {
   const element = input instanceof HTMLElement ? input : input?.current;
-  const [size, setSize] = useState(() => element?.getBoundingClientRect());
-
-  useLayoutEffect(() => {
-    const sizeObserver = new ResizeObserver(() => {
-      element?.dispatchEvent(new CustomEvent("resize"));
-    });
-    if (element) {
-      sizeObserver.observe(element);
-    }
-    return () => sizeObserver.disconnect();
-  }, [element]);
+  const [size, setSize] = useState<DOMRect | undefined>(
+    () => element?.getBoundingClientRect() || new DOMRect()
+  );
 
   useLayoutEffect(() => {
     const handleResize = () => {
@@ -55,6 +36,7 @@ export function useComponentSize(
     window.addEventListener("click", handleResize);
     window.addEventListener("resize", handleResize);
     element?.addEventListener("resize", handleResize);
+    handleResize();
 
     return () => {
       window.removeEventListener("click", handleResize);
@@ -63,5 +45,15 @@ export function useComponentSize(
     };
   });
 
-  return size ?? defaultRect;
+  useLayoutEffect(() => {
+    const sizeObserver = new ResizeObserver(() => {
+      element?.dispatchEvent(new CustomEvent("resize"));
+    });
+    if (element) {
+      sizeObserver.observe(element);
+    }
+    return () => sizeObserver.disconnect();
+  }, [element]);
+
+  return size ?? new DOMRect();
 }

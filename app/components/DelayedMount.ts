@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useState, useEffect } from "react";
 
 type Props = {
   delay?: number;
@@ -6,9 +6,9 @@ type Props = {
 };
 
 export default function DelayedMount({ delay = 250, children }: Props) {
-  const [isShowing, setShowing] = React.useState(false);
+  const [isShowing, setShowing] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const timeout = setTimeout(() => setShowing(true), delay);
     return () => {
       clearTimeout(timeout);

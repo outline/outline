@@ -1,7 +1,7 @@
 import { t } from "i18next";
 import { MoreIcon } from "outline-icons";
-import React from "react";
-import { MenuButton, useMenuState } from "reakit/Menu";
+import * as React from "react";
+import { MenuButton } from "reakit/Menu";
 import styled from "styled-components";
 import { s, hover } from "@shared/styles";
 import ContextMenu from "~/components/ContextMenu";
@@ -10,6 +10,7 @@ import NudeButton from "~/components/NudeButton";
 import { actionToMenuItem } from "~/actions";
 import { toggleViewerInsights } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
+import { useMenuState } from "~/hooks/useMenuState";
 import { MenuItem } from "~/types";
 
 const InsightsMenu: React.FC = () => {

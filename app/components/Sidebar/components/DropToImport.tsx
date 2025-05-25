@@ -1,6 +1,6 @@
 import invariant from "invariant";
 import { observer } from "mobx-react";
-import * as React from "react";
+import { useCallback } from "react";
 import Dropzone from "react-dropzone";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -33,7 +33,7 @@ function DropToImport({ disabled, children, collectionId, documentId }: Props) {
   const canCollection = usePolicy(collectionId);
   const canDocument = usePolicy(documentId);
 
-  const handleRejection = React.useCallback(() => {
+  const handleRejection = useCallback(() => {
     toast.error(
       t("Document not supported – try Markdown, Plain text, HTML, or Word")
     );

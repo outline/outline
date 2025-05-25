@@ -1,6 +1,6 @@
 import chunk from "lodash/chunk";
 import compact from "lodash/compact";
-import React from "react";
+import * as React from "react";
 import styled from "styled-components";
 import { IconType } from "@shared/types";
 import { IconLibrary } from "@shared/utils/IconLibrary";

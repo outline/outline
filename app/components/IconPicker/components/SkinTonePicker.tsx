@@ -1,6 +1,6 @@
-import React from "react";
+import { useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { Menu, MenuButton, MenuItem, useMenuState } from "reakit";
+import { Menu, MenuButton, MenuItem } from "reakit";
 import styled from "styled-components";
 import { depths, s, hover } from "@shared/styles";
 import { EmojiSkinTone } from "@shared/types";
@@ -8,6 +8,7 @@ import { getEmojiVariants } from "@shared/utils/emoji";
 import { Emoji } from "~/components/Emoji";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
+import { useMenuState } from "~/hooks/useMenuState";
 import { IconButton } from "./IconButton";
 
 const SkinTonePicker = ({
@@ -19,16 +20,13 @@ const SkinTonePicker = ({
 }) => {
   const { t } = useTranslation();
 
-  const handEmojiVariants = React.useMemo(
-    () => getEmojiVariants({ id: "hand" }),
-    []
-  );
+  const handEmojiVariants = useMemo(() => getEmojiVariants({ id: "hand" }), []);
 
   const menu = useMenuState({
     placement: "bottom-end",
   });
 
-  const handleSkinClick = React.useCallback(
+  const handleSkinClick = useCallback(
     (emojiSkin) => {
       menu.hide();
       onChange(emojiSkin);
@@ -36,7 +34,7 @@ const SkinTonePicker = ({
     [menu, onChange]
   );
 
-  const menuItems = React.useMemo(
+  const menuItems = useMemo(
     () =>
       Object.entries(handEmojiVariants).map(([eskin, emoji]) => (
         <MenuItem {...menu} key={emoji.value}>

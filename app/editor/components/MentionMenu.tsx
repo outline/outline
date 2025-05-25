@@ -1,7 +1,7 @@
 import { isEmail } from "class-validator";
 import { observer } from "mobx-react";
 import { DocumentIcon, PlusIcon, CollectionIcon } from "outline-icons";
-import * as React from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
@@ -11,6 +11,7 @@ import { MenuItem } from "@shared/editor/types";
 import { MentionType } from "@shared/types";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { Avatar, AvatarSize } from "~/components/Avatar";
+import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import Flex from "~/components/Flex";
 import {
   DocumentsSection,
@@ -41,8 +42,8 @@ type Props = Omit<
 >;
 
 function MentionMenu({ search, isActive, ...rest }: Props) {
-  const [loaded, setLoaded] = React.useState(false);
-  const [items, setItems] = React.useState<MentionItem[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const [items, setItems] = useState<MentionItem[]>([]);
   const { t } = useTranslation();
   const { auth, documents, users, collections } = useStores();
   const actorId = auth.currentUserId;
@@ -51,24 +52,24 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
   const maxResultsInSection = search ? 25 : 5;
 
   const { loading, request } = useRequest(
-    React.useCallback(async () => {
+    useCallback(async () => {
       const res = await client.post("/suggestions.mention", { query: search });
 
       res.data.documents.map(documents.add);
       res.data.users.map(users.add);
       res.data.collections.map(collections.add);
-    }, [search, documents, users])
+    }, [search, documents, users, collections])
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isActive) {
       void request();
     }
   }, [request, isActive]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (actorId && !loading) {
-      const items = users
+      const items: MentionItem[] = users
         .findByQuery(search, { maxResults: maxResultsInSection })
         .map(
           (user) =>
@@ -112,7 +113,14 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
                     <DocumentIcon />
                   ),
                   title: doc.title,
-                  subtitle: doc.collection?.name,
+                  subtitle: (
+                    <DocumentBreadcrumb
+                      document={doc}
+                      onlyText
+                      reverse
+                      maxDepth={2}
+                    />
+                  ),
                   section: DocumentsSection,
                   appendSpace: true,
                   attrs: {
@@ -178,7 +186,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
     }
   }, [t, actorId, loading, search, users, documents, maxResultsInSection]);
 
-  const handleSelect = React.useCallback(
+  const handleSelect = useCallback(
     async (item: MentionItem) => {
       if (
         item.attrs.type === MentionType.Document ||

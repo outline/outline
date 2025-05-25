@@ -103,6 +103,7 @@ allow(User, "manageUsers", Document, (actor, document) =>
     can(actor, "update", document),
     or(
       includesMembership(document, [DocumentPermission.Admin]),
+      and(isTeamAdmin(actor, document), can(actor, "read", document)),
       can(actor, "updateDocument", document?.collection),
       !!document?.isDraft && actor.id === document?.createdById
     )
@@ -114,6 +115,7 @@ allow(User, "duplicate", Document, (actor, document) =>
     can(actor, "update", document),
     or(
       includesMembership(document, [DocumentPermission.Admin]),
+      and(isTeamAdmin(actor, document), can(actor, "read", document)),
       can(actor, "updateDocument", document?.collection),
       !!document?.isDraft && actor.id === document?.createdById
     )
@@ -186,6 +188,7 @@ allow(User, "archive", Document, (actor, document) =>
     can(actor, "update", document),
     or(
       includesMembership(document, [DocumentPermission.Admin]),
+      and(isTeamAdmin(actor, document), can(actor, "read", document)),
       can(actor, "updateDocument", document?.collection)
     )
   )

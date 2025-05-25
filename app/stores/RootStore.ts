@@ -14,9 +14,12 @@ import FileOperationsStore from "./FileOperationsStore";
 import GroupMembershipsStore from "./GroupMembershipsStore";
 import GroupUsersStore from "./GroupUsersStore";
 import GroupsStore from "./GroupsStore";
+import ImportsStore from "./ImportsStore";
 import IntegrationsStore from "./IntegrationsStore";
 import MembershipsStore from "./MembershipsStore";
 import NotificationsStore from "./NotificationsStore";
+import OAuthAuthenticationsStore from "./OAuthAuthenticationsStore";
+import OAuthClientsStore from "./OAuthClientsStore";
 import PinsStore from "./PinsStore";
 import PoliciesStore from "./PoliciesStore";
 import RevisionsStore from "./RevisionsStore";
@@ -26,6 +29,7 @@ import StarsStore from "./StarsStore";
 import SubscriptionsStore from "./SubscriptionsStore";
 import TemplatesStore from "./TemplatesStore";
 import UiStore from "./UiStore";
+import UnfurlsStore from "./UnfurlsStore";
 import UserMembershipsStore from "./UserMembershipsStore";
 import UsersStore from "./UsersStore";
 import ViewsStore from "./ViewsStore";
@@ -44,9 +48,12 @@ export default class RootStore {
   events: EventsStore;
   groups: GroupsStore;
   groupUsers: GroupUsersStore;
+  imports: ImportsStore;
   integrations: IntegrationsStore;
   memberships: MembershipsStore;
   notifications: NotificationsStore;
+  oauthAuthentications: OAuthAuthenticationsStore;
+  oauthClients: OAuthClientsStore;
   presence: DocumentPresenceStore;
   pins: PinsStore;
   policies: PoliciesStore;
@@ -54,6 +61,7 @@ export default class RootStore {
   searches: SearchesStore;
   shares: SharesStore;
   ui: UiStore;
+  unfurls: UnfurlsStore;
   stars: StarsStore;
   subscriptions: SubscriptionsStore;
   templates: TemplatesStore;
@@ -74,9 +82,12 @@ export default class RootStore {
     this.registerStore(EventsStore);
     this.registerStore(GroupsStore);
     this.registerStore(GroupUsersStore);
+    this.registerStore(ImportsStore);
     this.registerStore(IntegrationsStore);
     this.registerStore(MembershipsStore);
     this.registerStore(NotificationsStore);
+    this.registerStore(OAuthAuthenticationsStore, "oauthAuthentications");
+    this.registerStore(OAuthClientsStore, "oauthClients");
     this.registerStore(PinsStore);
     this.registerStore(PoliciesStore);
     this.registerStore(RevisionsStore);
@@ -85,6 +96,7 @@ export default class RootStore {
     this.registerStore(StarsStore);
     this.registerStore(SubscriptionsStore);
     this.registerStore(TemplatesStore);
+    this.registerStore(UnfurlsStore);
     this.registerStore(UsersStore);
     this.registerStore(ViewsStore);
     this.registerStore(FileOperationsStore);
@@ -107,8 +119,9 @@ export default class RootStore {
    */
   public getStoreForModelName<K extends keyof RootStore>(modelName: string) {
     const storeName = this.getStoreNameForModelName(modelName);
+    invariant(storeName, `No store found for model name "${modelName}"`);
+
     const store = this[storeName];
-    invariant(store, `No store found for model name "${modelName}"`);
     return store as RootStore[K];
   }
 
@@ -136,10 +149,24 @@ export default class RootStore {
     // @ts-expect-error TS thinks we are instantiating an abstract class.
     const store = new StoreClass(this);
     const storeName = name ?? this.getStoreNameForModelName(store.modelName);
+    invariant(storeName, `No store found for model name "${store.modelName}"`);
+
     this[storeName] = store;
   }
 
   private getStoreNameForModelName(modelName: string) {
-    return pluralize(lowerFirst(modelName)) as keyof RootStore;
+    for (const key of Object.keys(this)) {
+      const store = this[key as keyof RootStore];
+      if (store && "modelName" in store && store.modelName === modelName) {
+        return key as keyof RootStore;
+      }
+    }
+
+    const storeName = pluralize(lowerFirst(modelName)) as keyof RootStore;
+    if (storeName) {
+      return storeName;
+    }
+
+    return undefined;
   }
 }

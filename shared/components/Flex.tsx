@@ -5,14 +5,26 @@ type JustifyValues = CSSProperties["justifyContent"];
 
 type AlignValues = CSSProperties["alignItems"];
 
+/**
+ * Flex is a styled component that provides a flexible box layout with convenient props.
+ * It simplifies the use of flexbox CSS properties with a clean, declarative API.
+ */
 const Flex = styled.div<{
+  /** Makes the component grow to fill available space */
   auto?: boolean;
+  /** Changes flex direction to column */
   column?: boolean;
+  /** Sets the align-items CSS property */
   align?: AlignValues;
+  /** Sets the justify-content CSS property */
   justify?: JustifyValues;
+  /** Enables flex-wrap */
   wrap?: boolean;
+  /** Controls flex-shrink behavior */
   shrink?: boolean;
+  /** Reverses the direction (row-reverse or column-reverse) */
   reverse?: boolean;
+  /** Sets gap between flex items in pixels */
   gap?: number;
 }>`
   display: flex;

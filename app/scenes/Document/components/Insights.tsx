@@ -1,5 +1,4 @@
 import { observer } from "mobx-react";
-import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
@@ -144,10 +143,10 @@ function Insights() {
                     small
                   />
                 )}
-                <PaginatedList
+                <PaginatedList<User>
                   aria-label={t("Contributors")}
                   items={document.collaborators}
-                  renderItem={(model: User) => (
+                  renderItem={(model) => (
                     <ListItem
                       key={model.id}
                       title={model.name}
@@ -195,7 +194,7 @@ function Insights() {
                     </Text>
                     {documentViews.length > 1 && (
                       <ListSpacing>
-                        <DocumentViews document={document} isOpen />
+                        <DocumentViews document={document} />
                       </ListSpacing>
                     )}
                   </>

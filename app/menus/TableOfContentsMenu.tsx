@@ -1,13 +1,14 @@
 import { observer } from "mobx-react";
 import { TableOfContentsIcon } from "outline-icons";
-import * as React from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { MenuButton, useMenuState } from "reakit/Menu";
+import { MenuButton } from "reakit/Menu";
 import styled from "styled-components";
 import Button from "~/components/Button";
 import ContextMenu from "~/components/ContextMenu";
 import Template from "~/components/ContextMenu/Template";
 import { useDocumentContext } from "~/components/DocumentContext";
+import { useMenuState } from "~/hooks/useMenuState";
 import { MenuItem } from "~/types";
 
 function TableOfContentsMenu() {
@@ -24,7 +25,7 @@ function TableOfContentsMenu() {
     Infinity
   );
 
-  const items: MenuItem[] = React.useMemo(() => {
+  const items: MenuItem[] = useMemo(() => {
     const i = [
       {
         type: "heading",

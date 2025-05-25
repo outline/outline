@@ -78,17 +78,13 @@ router.get(
     const { isPublicBucket, fileName } = AttachmentHelper.parseKey(key);
     const skipAuthorize = isPublicBucket || isSignedRequest;
     const cacheHeader = "max-age=604800, immutable";
-
-    const attachment = await Attachment.findOne({
-      where: { key },
-    });
-
-    // Attachment is requested with a key, but it was not found
-    if (!attachment && !!ctx.input.query.key) {
-      throw NotFoundError();
-    }
+    const attachment = await Attachment.findByKey(key);
 
     if (!skipAuthorize) {
+      if (!attachment && !!ctx.input.query.key) {
+        throw NotFoundError();
+      }
+
       authorize(actor, "read", attachment);
     }
 
@@ -100,6 +96,7 @@ router.get(
     ctx.set("Accept-Ranges", "bytes");
     ctx.set("Cache-Control", cacheHeader);
     ctx.set("Content-Type", contentType);
+    ctx.set("Content-Security-Policy", "sandbox");
     ctx.attachment(fileName, {
       type: forceDownload
         ? "attachment"

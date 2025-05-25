@@ -1,4 +1,4 @@
-import * as React from "react";
+import { createLazyComponent } from "~/components/LazyLoad";
 import { Hook, PluginManager } from "~/utils/PluginManager";
 import config from "../plugin.json";
 import Icon from "./Icon";
@@ -10,7 +10,9 @@ PluginManager.add([
     value: {
       group: "Integrations",
       icon: Icon,
-      component: React.lazy(() => import("./Settings")),
+      description:
+        "Connect your GitHub account to Outline to enable rich, realtime, issue and pull request previews inside documents.",
+      component: createLazyComponent(() => import("./Settings")),
     },
   },
 ]);

@@ -19,6 +19,7 @@ async function presentRevision(revision: Revision, diff?: string) {
     html: diff,
     createdAt: revision.createdAt,
     createdBy: presentUser(revision.user),
+    deletedAt: revision.deletedAt,
   };
 }
 

@@ -54,7 +54,12 @@ router.post(
       });
       authorize(user, "read", document);
 
-      const collection = await document.$get("collection");
+      const collection = document.collectionId
+        ? await Collection.findByPk(document.collectionId, {
+            userId: user.id,
+            includeDocumentStructure: true,
+          })
+        : undefined;
       const parentIds = collection?.getDocumentParents(documentId);
       const parentShare = parentIds
         ? await Share.scope({

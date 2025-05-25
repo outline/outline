@@ -1,16 +1,19 @@
 import { DefaultState } from "koa";
 import randomstring from "randomstring";
+import { Scope } from "@shared/types";
 import {
   buildUser,
   buildTeam,
   buildAdmin,
   buildApiKey,
+  buildOAuthAuthentication,
 } from "@server/test/factories";
+import { AuthenticationType } from "@server/types";
 import auth from "./authentication";
 
 describe("Authentication middleware", () => {
-  describe("with JWT", () => {
-    it("should authenticate with correct token", async () => {
+  describe("with session JWT", () => {
+    it("should authenticate with correct session token", async () => {
       const state = {} as DefaultState;
       const user = await buildUser();
       const authMiddleware = auth();
@@ -28,7 +31,7 @@ describe("Authentication middleware", () => {
       expect(state.auth.user.id).toEqual(user.id);
     });
 
-    it("should return error with invalid token", async () => {
+    it("should return error with invalid session token", async () => {
       const state = {} as DefaultState;
       const user = await buildUser();
       const authMiddleware = auth();
@@ -49,7 +52,32 @@ describe("Authentication middleware", () => {
         expect(e.message).toBe("Invalid token");
       }
     });
+
+    it("should return error if AuthenticationType mismatches", async () => {
+      const state = {} as DefaultState;
+      const user = await buildUser();
+      const authMiddleware = auth({
+        type: AuthenticationType.API,
+      });
+
+      try {
+        await authMiddleware(
+          {
+            // @ts-expect-error mock request
+            request: {
+              get: jest.fn(() => `Bearer ${user.getJwtToken()}`),
+            },
+            state,
+            cache: {},
+          },
+          jest.fn()
+        );
+      } catch (e) {
+        expect(e.message).toBe("Invalid authentication type");
+      }
+    });
   });
+
   describe("with API key", () => {
     it("should authenticate user with valid API key", async () => {
       const state = {} as DefaultState;
@@ -87,6 +115,90 @@ describe("Authentication middleware", () => {
         );
       } catch (e) {
         expect(e.message).toBe("Invalid API key");
+      }
+    });
+  });
+
+  describe("with OAuth access token", () => {
+    it("should authenticate user with valid OAuth access token", async () => {
+      const state = {} as DefaultState;
+      const user = await buildUser();
+      const authMiddleware = auth();
+      const authentication = await buildOAuthAuthentication({
+        user,
+        scope: [Scope.Read],
+      });
+
+      await authMiddleware(
+        {
+          // @ts-expect-error mock request
+          request: {
+            url: "/api/users.info",
+            get: jest.fn(() => `Bearer ${authentication.accessToken}`),
+          },
+          state,
+          cache: {},
+        },
+        jest.fn()
+      );
+      expect(state.auth.user.id).toEqual(user.id);
+    });
+
+    it("should return error with invalid scope", async () => {
+      const state = {} as DefaultState;
+      const user = await buildUser();
+      const authMiddleware = auth();
+      const authentication = await buildOAuthAuthentication({
+        user,
+        scope: [Scope.Read],
+      });
+
+      try {
+        await authMiddleware(
+          {
+            // @ts-expect-error mock request
+            request: {
+              url: "/api/documents.create",
+              get: jest.fn(() => `Bearer ${authentication.accessToken}`),
+            },
+            state,
+            cache: {},
+          },
+          jest.fn()
+        );
+      } catch (e) {
+        expect(e.message).toContain("does not have access to this resource");
+      }
+    });
+
+    it("should return error with OAuth access token in body", async () => {
+      const state = {} as DefaultState;
+      const user = await buildUser();
+      const authMiddleware = auth();
+      const authentication = await buildOAuthAuthentication({
+        user,
+        scope: [Scope.Read],
+      });
+      try {
+        await authMiddleware(
+          {
+            request: {
+              url: "/api/users.info",
+              // @ts-expect-error mock request
+              get: jest.fn(() => null),
+              body: {
+                token: authentication.accessToken,
+              },
+            },
+            state,
+            cache: {},
+          },
+          jest.fn()
+        );
+      } catch (e) {
+        expect(e.message).toContain(
+          "must be passed in the Authorization header"
+        );
       }
     });
   });

@@ -1,5 +1,5 @@
 import * as InputSelectPrimitive from "@radix-ui/react-select";
-import React from "react";
+import * as React from "react";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
 import { Props as ButtonProps } from "~/components/Button";
