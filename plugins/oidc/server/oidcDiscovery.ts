@@ -1,4 +1,3 @@
-import path from "path";
 import { InternalError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import fetch from "@server/utils/fetch";

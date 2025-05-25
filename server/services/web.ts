@@ -80,8 +80,8 @@ export default function init(app: Koa = new Koa(), server?: Server) {
     })
   );
 
-  app.use(mount("/oauth", oauth));
   app.use(mount("/auth", auth));
+  app.use(mount("/oauth", oauth));
   app.use(mount(routes));
 
   return app;

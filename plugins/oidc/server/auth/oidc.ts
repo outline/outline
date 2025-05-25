@@ -4,8 +4,8 @@ import env from "../env";
 import { fetchOIDCConfiguration } from "../oidcDiscovery";
 import { createOIDCRouter } from "./oidcRouter";
 
-// Create router
 const router = new Router();
+let routerPromise = Promise.resolve(router);
 
 // Check if we have manual configuration
 const hasManualConfig = !!(
@@ -34,9 +34,9 @@ if (hasManualConfig) {
   Logger.info("plugins", "OIDC endpoints mounted with manual configuration");
 } else if (hasIssuerConfig) {
   // Asynchronously discover configuration and mount endpoints
-  void (async () => {
+  routerPromise = (async () => {
     try {
-      Logger.info("plugins", "Starting OIDC configuration discovery");
+      Logger.debug("plugins", "Starting OIDC configuration discovery");
 
       const oidcConfig = await fetchOIDCConfiguration(env.OIDC_ISSUER_URL!);
 
@@ -54,10 +54,13 @@ if (hasManualConfig) {
         token_endpoint: oidcConfig.token_endpoint,
         userinfo_endpoint: oidcConfig.userinfo_endpoint,
       });
+
+      return router;
     } catch (error) {
-      Logger.error("Failed to discover OIDC configuration", error);
+      Logger.fatal("Failed to discover OIDC configuration", error);
+      throw error;
     }
   })();
 }
 
-export default router;
+export default routerPromise;
