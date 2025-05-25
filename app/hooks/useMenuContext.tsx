@@ -6,7 +6,7 @@ type MenuContextType = {
   setIsMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
   registerMenu: (menuId: string, hideFunction: () => void) => void;
   unregisterMenu: (menuId: string) => void;
-  closeOtherMenus: (excludeMenuId: string) => void;
+  closeOtherMenus: (...menuIds: (string | undefined)[]) => void;
 };
 
 const MenuContext = React.createContext<MenuContextType | null>(null);
@@ -32,13 +32,16 @@ export const MenuProvider: React.FC = ({ children }: Props) => {
     menuRegistry.delete(menuId);
   }, []);
 
-  const closeOtherMenus = React.useCallback((excludeMenuId: string) => {
-    menuRegistry.forEach((hideFunction, menuId) => {
-      if (menuId !== excludeMenuId) {
-        hideFunction();
-      }
-    });
-  }, []);
+  const closeOtherMenus = React.useCallback(
+    (...menuIds: (string | undefined)[]) => {
+      menuRegistry.forEach((hideFunction, menuId) => {
+        if (!menuIds.includes(menuId)) {
+          hideFunction();
+        }
+      });
+    },
+    []
+  );
 
   const memoized = React.useMemo(
     () => ({

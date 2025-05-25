@@ -4,19 +4,21 @@ import {
   useMenuState as reakitUseMenuState,
   MenuStateReturn,
 } from "reakit/Menu";
-import { v4 } from "uuid";
 import useMenuContext from "./useMenuContext";
+
+type Props = Parameters<typeof reakitUseMenuState>[0] & {
+  parentId?: string;
+};
 
 /**
  * A hook that wraps Reakit's useMenuState with coordination logic to ensure
  * only one context menu can be open at a time across the application.
  */
-export function useMenuState(
-  options?: Parameters<typeof reakitUseMenuState>[0]
-): MenuStateReturn {
+export function useMenuState(options?: Props): MenuStateReturn {
   const menuState = reakitUseMenuState(options);
   const { registerMenu, unregisterMenu, closeOtherMenus } = useMenuContext();
-  const menuId = React.useRef(`menu-${v4()}`).current;
+  const menuId = menuState.baseId;
+  const parentId = options?.parentId;
 
   // Register this menu instance on mount and unregister on unmount
   React.useEffect(() => {
@@ -25,19 +27,22 @@ export function useMenuState(
   }, [menuId, menuState.hide, registerMenu, unregisterMenu]);
 
   const coordinatedShow = React.useCallback(() => {
-    closeOtherMenus(menuId);
+    closeOtherMenus(menuId, parentId);
     menuState.show();
-  }, [closeOtherMenus, menuId, menuState]);
+  }, [closeOtherMenus, menuId, menuState, parentId]);
 
   const coordinatedToggle = React.useCallback(() => {
-    closeOtherMenus(menuId);
+    closeOtherMenus(menuId, parentId);
     menuState.toggle();
-  }, [menuId, menuState, closeOtherMenus]);
+  }, [menuId, menuState, closeOtherMenus, parentId]);
 
   // Return the menu state with the coordinated show method
-  return {
-    ...menuState,
-    toggle: coordinatedToggle,
-    show: coordinatedShow,
-  };
+  return React.useMemo(
+    () => ({
+      ...menuState,
+      toggle: coordinatedToggle,
+      show: coordinatedShow,
+    }),
+    [menuState, coordinatedToggle, coordinatedShow]
+  );
 }
