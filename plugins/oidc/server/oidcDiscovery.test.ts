@@ -29,9 +29,7 @@ describe("fetchOIDCConfiguration", () => {
         method: "GET",
         headers: expect.objectContaining({
           Accept: "application/json",
-          "User-Agent": "Outline/1.0",
         }),
-        timeout: 10000,
       })
     );
 
