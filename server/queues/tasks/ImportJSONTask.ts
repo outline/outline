@@ -132,7 +132,6 @@ export default class ImportJSONTask extends ImportTask {
 
       output.collections.push({
         ...item.collection,
-        data: item.collection.data,
         id: collectionId,
         externalId: item.collection.id,
       });
