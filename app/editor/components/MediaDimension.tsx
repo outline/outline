@@ -41,11 +41,13 @@ export function MediaDimension() {
   });
 
   if (!boundsRef.current && ref.current) {
-    const aspectRatio = height / width;
     const docWidth = parseInt(
       getComputedStyle(ref.current).getPropertyValue("--document-width")
     );
     const maxWidth = docWidth - EditorStyleHelper.padding * 2;
+    const constrainedWidth = Math.min(width, maxWidth); // Ensure media width does not exceed the max width of the editor.
+    const aspectRatio = height / constrainedWidth;
+
     const maxHeight = Math.round(maxWidth * aspectRatio);
     boundsRef.current = {
       width: { min: 50, max: maxWidth },
@@ -79,16 +81,12 @@ export function MediaDimension() {
         return;
       }
 
-      const valueAsNumber = Number(value);
-
-      if (isOutsideBounds(type, valueAsNumber)) {
-        setError((prev) => ({
-          ...prev,
-          [type]: true,
-        }));
-      } else {
-        setError({ width: false, height: false });
-      }
+      setError((prev) => {
+        if (!prev.width && !prev.height) {
+          return prev;
+        }
+        return { width: false, height: false };
+      });
 
       setLocalDimension((prev) => {
         if (type === "width") {
@@ -105,32 +103,43 @@ export function MediaDimension() {
         };
       });
     },
-    [isOutsideBounds]
+    []
   );
 
   const handleBlur = useCallback(() => {
-    if (!localDimension.width || !localDimension.height) {
+    const localWidthAsNumber = localDimension.width
+        ? parseInt(localDimension.width, 10)
+        : undefined,
+      localHeightAsNumber = localDimension.height
+        ? parseInt(localDimension.height, 10)
+        : undefined;
+
+    const isUnchanged =
+      !localWidthAsNumber ||
+      !localHeightAsNumber ||
+      (localWidthAsNumber === width && localHeightAsNumber === height);
+
+    const isError =
+      error.width ||
+      error.height ||
+      (localDimension.changed === "width" &&
+        localWidthAsNumber &&
+        isOutsideBounds("width", localWidthAsNumber)); // check width bounds here since 'onChange' error checker is debounced.
+
+    if (isUnchanged || isError) {
       reset();
       return;
     }
 
-    const localWidthAsNumber = parseInt(localDimension.width, 10),
-      localHeightAsNumber = parseInt(localDimension.height, 10);
-    if (localWidthAsNumber === width && localHeightAsNumber === height) {
-      reset();
-      return;
-    }
-
-    if (
-      isOutsideBounds("width", localWidthAsNumber) ||
-      isOutsideBounds("height", localHeightAsNumber)
-    ) {
-      reset();
-      return;
-    }
+    const maxWidth = boundsRef.current!.width.max;
+    // For images resized to the full width of the editor, natural width will be shown in the toolbar.
+    // So, we constrain it here for computing aspect ratio.
+    const constrainedWidth = Math.min(width, maxWidth);
 
     const aspectRatio =
-      localDimension.changed === "width" ? height / width : width / height;
+      localDimension.changed === "width"
+        ? height / constrainedWidth
+        : constrainedWidth / height;
 
     const finalWidth =
       localDimension.changed === "width"
@@ -147,15 +156,7 @@ export function MediaDimension() {
         height: finalHeight,
       });
     }
-  }, [
-    commands,
-    width,
-    height,
-    localDimension,
-    nodeType,
-    isOutsideBounds,
-    reset,
-  ]);
+  }, [commands, width, height, localDimension, nodeType, error, reset]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -168,6 +169,7 @@ export function MediaDimension() {
     [handleBlur, reset]
   );
 
+  // Sync dimension changes from outside.
   useEffect(() => {
     if (
       width !== Number(localDimension.width) ||
@@ -176,6 +178,29 @@ export function MediaDimension() {
       reset();
     }
   }, [width, height, reset]);
+
+  // hacky debounce for checking error.
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      const isWidthError = localDimension.width
+        ? Number(localDimension.width) !== width &&
+          isOutsideBounds("width", Number(localDimension.width))
+        : false;
+      const isHeightError = localDimension.height
+        ? Number(localDimension.height) !== height &&
+          isOutsideBounds("height", Number(localDimension.height))
+        : false;
+
+      if (isWidthError || isHeightError) {
+        setError({
+          width: isWidthError,
+          height: isHeightError,
+        });
+      }
+    }, 200);
+
+    return () => clearTimeout(timeout);
+  }, [width, height, localDimension, isOutsideBounds]);
 
   return (
     <StyledFlex ref={ref} align="center">
