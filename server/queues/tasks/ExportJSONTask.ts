@@ -126,7 +126,7 @@ export default class ExportJSONTask extends ExportTask {
           title: document.title,
           icon: document.icon,
           color: document.color,
-          data: DocumentHelper.toProsemirror(document),
+          data: DocumentHelper.toProsemirror(document).toJSON(),
           createdById: document.createdById,
           createdByName: document.createdBy.name,
           createdByEmail: document.createdBy.email,

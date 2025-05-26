@@ -76,9 +76,7 @@ export default class ImportJSONTask extends ImportTask {
         output.documents.push({
           ...node,
           path: "",
-          // populate text to maintain consistency with existing data.
-          // moving forward, `data` field will be used.
-          text: serializer.serialize(Node.fromJSON(schema, node.data)),
+          text: "",
           data: node.data,
           icon: node.icon ?? node.emoji,
           color: node.color,
@@ -131,14 +129,9 @@ export default class ImportJSONTask extends ImportTask {
       }
 
       const collectionId = uuidv4();
-      const data = item.collection.description ?? item.collection.data;
 
       output.collections.push({
         ...item.collection,
-        description:
-          data && typeof data === "object"
-            ? serializer.serialize(Node.fromJSON(schema, data))
-            : data,
         id: collectionId,
         externalId: item.collection.id,
       });
@@ -222,10 +215,17 @@ export default class ImportJSONTask extends ImportTask {
       return Fragment.fromArray(nodes);
     };
 
+    for (const collection of output.collections) {
+      const node = Node.fromJSON(schema, collection.data);
+      const transformedNode = node.copy(transformFragment(node.content));
+      collection.description = serializer.serialize(transformedNode);
+      collection.data = transformedNode.toJSON();
+    }
+
     for (const document of output.documents) {
       const node = Node.fromJSON(schema, document.data);
       const transformedNode = node.copy(transformFragment(node.content));
-      document.data = transformedNode;
+      document.data = transformedNode.toJSON();
       document.text = serializer.serialize(transformedNode);
     }
   }
