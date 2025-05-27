@@ -14,8 +14,8 @@ import {
 import processors from "../queues/processors";
 import tasks from "../queues/tasks";
 
-export default function init() {
-  void initI18n();
+export default async function init() {
+  await initI18n();
 
   // This queue processes the global event bus
   globalEventQueue

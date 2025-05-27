@@ -39,7 +39,7 @@ export enum Hook {
  */
 type PluginValueMap = {
   [Hook.API]: Router;
-  [Hook.AuthProvider]: { router: Router; id: string };
+  [Hook.AuthProvider]: { router: Router | Promise<Router>; id: string };
   [Hook.EmailTemplate]: typeof BaseEmail;
   [Hook.IssueProvider]: BaseIssueProvider;
   [Hook.Processor]: typeof BaseProcessor;
