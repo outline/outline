@@ -45,6 +45,7 @@ function RevisionViewer(props: Props) {
         dangerouslySetInnerHTML={{ __html: revision.html }}
         dir={revision.dir}
         rtl={revision.rtl}
+        readOnly
       />
       {children}
     </Flex>
