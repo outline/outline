@@ -16,16 +16,8 @@ export default class EmojisStore extends Store<Emoji> {
   }
 
   @computed
-  get teamEmojis() {
-    const teamId = this.rootStore.auth.team?.id;
-    return teamId
-      ? this.orderedData.filter((emoji) => emoji.teamId === teamId)
-      : [];
-  }
-
-  @computed
   get emojisByName() {
-    return this.teamEmojis.reduce((acc, emoji) => {
+    return this.orderedData.reduce((acc, emoji) => {
       acc[emoji.name] = emoji;
       return acc;
     }, {} as Record<string, Emoji>);

@@ -2,6 +2,7 @@ import { observable } from "mobx";
 import User from "./User";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
+import Relation from "./decorators/Relation";
 
 class Emoji extends Model {
   static modelName = "Emoji";
@@ -16,12 +17,8 @@ class Emoji extends Model {
   @observable
   url: string;
 
-  /** The team ID this emoji belongs to */
-  @Field
-  @observable
-  teamId: string;
-
   /** The user who created this emoji */
+  @Relation(() => User)
   @observable
   createdBy?: User;
 
