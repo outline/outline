@@ -4,7 +4,7 @@ import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
 import { AuthenticationError } from "@server/errors";
-import auth from "@server/middlewares/authentication";
+import authMiddleware from "@server/middlewares/authentication";
 import coalesceBody from "@server/middlewares/coaleseBody";
 import { Collection, Team, View } from "@server/models";
 import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
@@ -15,12 +15,17 @@ const router = new Router();
 
 router.use(passport.initialize());
 
-// dynamically load available authentication provider routes
-AuthenticationHelper.providers.forEach((provider) => {
-  router.use("/", provider.value.router.routes());
-});
+// dynamically register available authentication provider routes
+void (async () => {
+  for (const provider of AuthenticationHelper.providers) {
+    const resolvedRouter = await provider.value.router;
+    if (resolvedRouter) {
+      router.use("/", resolvedRouter.routes());
+    }
+  }
+})();
 
-router.get("/redirect", auth(), async (ctx: APIContext) => {
+router.get("/redirect", authMiddleware(), async (ctx: APIContext) => {
   const { user } = ctx.state.auth;
   const jwtToken = user.getJwtToken();
 
