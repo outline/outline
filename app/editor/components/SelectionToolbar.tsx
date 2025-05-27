@@ -1,5 +1,6 @@
 import some from "lodash/some";
 import { EditorState, NodeSelection, TextSelection } from "prosemirror-state";
+import { CellSelection } from "prosemirror-tables";
 import * as React from "react";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { getMarkRange } from "@shared/editor/queries/getMarkRange";
@@ -24,6 +25,7 @@ import getReadOnlyMenuItems from "../menus/readOnly";
 import getTableMenuItems from "../menus/table";
 import getTableColMenuItems from "../menus/tableCol";
 import getTableRowMenuItems from "../menus/tableRow";
+import getTableCellMenuItems from "../menus/tableCell";
 import { useEditor } from "./EditorContext";
 import FloatingToolbar from "./FloatingToolbar";
 import LinkEditor from "./LinkEditor";
@@ -183,6 +185,7 @@ export default function SelectionToolbar(props: Props) {
   const colIndex = getColumnIndex(state);
   const rowIndex = getRowIndex(state);
   const isTableSelection = colIndex !== undefined && rowIndex !== undefined;
+  const isCellSelection = selection instanceof CellSelection;
   const link = getMarkRange(selection.$from, state.schema.marks.link);
   const isImageSelection =
     selection instanceof NodeSelection && selection.node.type.name === "image";
@@ -196,6 +199,8 @@ export default function SelectionToolbar(props: Props) {
 
   if (isCodeSelection && selection.empty) {
     items = getCodeMenuItems(state, readOnly, dictionary);
+  } else if (isCellSelection) {
+    items = getTableCellMenuItems(state, dictionary);
   } else if (isTableSelection) {
     items = getTableMenuItems(state, dictionary);
   } else if (colIndex !== undefined) {
