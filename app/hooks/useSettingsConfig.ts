@@ -15,7 +15,7 @@ import {
   Icon,
   PlusIcon,
   InternetIcon,
-  EmojiIcon,
+  SmileyIcon,
 } from "outline-icons";
 import { ComponentProps } from "react";
 import * as React from "react";
@@ -172,7 +172,7 @@ const useSettingsConfig = () => {
         preload: Emojis.preload,
         enabled: can.update,
         group: t("Workspace"),
-        icon: EmojiIcon,
+        icon: SmileyIcon,
       },
       {
         name: t("API Keys"),

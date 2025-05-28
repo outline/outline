@@ -1,135 +1,98 @@
-import {
-  ColumnDef,
-  ColumnSort,
-  getCoreRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import compact from "lodash/compact";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import Flex from "@shared/components/Flex";
 import { s } from "@shared/styles";
 import Emoji from "~/models/Emoji";
-import Avatar from "~/components/Avatar";
-import Table from "~/components/Table";
+import { Avatar, AvatarSize } from "~/components/Avatar";
+import { HEADER_HEIGHT } from "~/components/Header";
+import {
+  type Props as TableProps,
+  SortableTable,
+} from "~/components/SortableTable";
+import { type Column as TableColumn } from "~/components/Table";
 import Time from "~/components/Time";
 import EmojiMenu from "~/menus/EmojiMenu";
+import { FILTER_HEIGHT } from "./StickyFilters";
 
-type Props = {
-  data: Emoji[];
-  sort: ColumnSort;
+const ROW_HEIGHT = 60;
+const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
+
+type Props = Omit<TableProps<Emoji>, "columns" | "rowHeight"> & {
   canManage: boolean;
-  loading?: boolean;
-  page?: {
-    hasNext: boolean;
-    fetchNext: () => Promise<void>;
-  };
 };
 
 export const EmojisTable = observer(function EmojisTable({
-  data,
-  sort,
   canManage,
-  loading,
-  page,
+  ...rest
 }: Props) {
   const { t } = useTranslation();
 
   const columns = React.useMemo(
-    (): ColumnDef<Emoji>[] => [
-      {
-        id: "emoji",
-        header: t("Emoji"),
-        accessorKey: "url",
-        cell: ({ row }) => (
-          <EmojiPreview>
-            <EmojiImage src={row.original.url} alt={row.original.name} />
-            <span>:{row.original.name}:</span>
-          </EmojiPreview>
-        ),
-        enableSorting: false,
-        size: 120,
-      },
-      {
-        id: "name",
-        header: t("Name"),
-        accessorKey: "name",
-        cell: ({ getValue }) => <strong>{getValue<string>()}</strong>,
-        size: 200,
-      },
-      {
-        id: "createdBy",
-        header: t("Created by"),
-        accessorKey: "createdBy",
-        cell: ({ row }) => {
-          const createdBy = row.original.createdBy;
-          return createdBy ? (
-            <Avatar
-              model={createdBy}
-              size={24}
-              showBorder={false}
-              style={{ marginRight: 8 }}
-            />
-          ) : (
-            t("Unknown")
-          );
+    (): TableColumn<Emoji>[] =>
+      compact([
+        {
+          type: "data",
+          id: "emoji",
+          header: t("Emoji"),
+          accessor: (emoji) => emoji.url,
+          component: (emoji) => (
+            <EmojiPreview>
+              <EmojiImage src={emoji.url} alt={emoji.name} />
+              <span>:{emoji.name}:</span>
+            </EmojiPreview>
+          ),
+          width: "1fr",
         },
-        enableSorting: false,
-        size: 120,
-      },
-      {
-        id: "createdAt",
-        header: t("Created"),
-        accessorKey: "createdAt",
-        cell: ({ getValue }) => <Time dateTime={getValue<string>()} />,
-        size: 120,
-      },
-      ...(canManage
-        ? [
-            {
-              id: "actions",
-              header: "",
-              cell: ({ row }: { row: { original: Emoji } }) => (
-                <EmojiMenu emoji={row.original} />
-              ),
-              enableSorting: false,
-              size: 40,
-            } as ColumnDef<Emoji>,
-          ]
-        : []),
-    ],
+        {
+          type: "data",
+          id: "createdBy",
+          header: t("Added by"),
+          accessor: (emoji) => emoji.createdBy,
+          sortable: false,
+          component: (emoji) => (
+            <Flex align="center" gap={8}>
+              {emoji.createdBy && (
+                <>
+                  <Avatar model={emoji.createdBy} size={AvatarSize.Small} />
+                  {emoji.createdBy.name}
+                </>
+              )}
+            </Flex>
+          ),
+          width: "2fr",
+        },
+        {
+          type: "data",
+          id: "createdAt",
+          header: t("Date added"),
+          accessor: (emoji) => emoji.createdAt,
+          component: (emoji) =>
+            emoji.createdAt ? (
+              <Time dateTime={emoji.createdAt} addSuffix />
+            ) : null,
+          width: "1fr",
+        },
+        canManage
+          ? {
+              type: "action",
+              id: "action",
+              component: (emoji) => <EmojiMenu emoji={emoji} />,
+              width: "50px",
+            }
+          : undefined,
+      ]),
     [t, canManage]
   );
 
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    manualSorting: true,
-    initialState: {
-      sorting: [sort],
-    },
-  });
-
   return (
-    <Table
-      table={table}
-      loading={loading}
-      page={page}
-      empty={
-        data.length === 0 ? (
-          <div>
-            <h2>{t("No custom emojis yet")}</h2>
-            <p>
-              {t(
-                "Custom emojis will appear here once they have been uploaded."
-              )}
-            </p>
-          </div>
-        ) : undefined
-      }
+    <SortableTable
+      columns={columns}
+      rowHeight={ROW_HEIGHT}
+      stickyOffset={STICKY_OFFSET}
+      {...rest}
     />
   );
 });

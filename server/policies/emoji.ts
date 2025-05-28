@@ -1,14 +1,11 @@
-import { User, Emoji } from "@server/models";
+import { User, Emoji, Team } from "@server/models";
 import { allow } from "./cancan";
-import { isOwner, isTeamAdmin, isTeamMember, or } from "./utils";
+import { isOwner, isTeamAdmin, isTeamModel, or } from "./utils";
 
-// Team members can create emojis
-allow(User, "create", Emoji, isTeamMember);
+allow(User, "createEmoji", Team, isTeamModel);
 
-// Team members can read emojis
-allow(User, "read", Emoji, isTeamMember);
+allow(User, "read", Emoji, isTeamModel);
 
-// Emoji creators and team admins can delete emojis
 allow(User, "delete", Emoji, (actor, emoji) =>
   or(isOwner(actor, emoji), isTeamAdmin(actor, emoji))
 );

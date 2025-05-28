@@ -17,7 +17,9 @@ import { EmojiValidation } from "@shared/validations";
 import { BaseSchema } from "../schema";
 
 export const EmojisListSchema = BaseSchema.extend({
-  body: z.object({}),
+  body: z.object({
+    query: z.string().optional(),
+  }),
 });
 
 export const EmojisCreateSchema = BaseSchema.extend({
@@ -25,7 +27,7 @@ export const EmojisCreateSchema = BaseSchema.extend({
     /** Name/shortcode for the emoji (e.g., "awesome") */
     name: z.string().min(1).max(EmojiValidation.maxNameLength),
     /** URL to the emoji image */
-    url: z.string().url().max(EmojiValidation.maxUrlLength),
+    url: z.string().max(EmojiValidation.maxUrlLength),
   }),
 });
 

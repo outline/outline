@@ -31,9 +31,7 @@ export function EmojiUploadDialog({ onSubmit }: Props) {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: {
-      "image/*": [".png", ".jpg", ".jpeg", ".gif", ".webp"],
-    },
+    accept: [".png", ".jpg", ".jpeg", ".gif", ".webp"],
     maxFiles: 1,
     maxSize: 1024 * 1024, // 1MB
   });
@@ -145,7 +143,7 @@ const DropZone = styled.div`
   transition: border-color 0.2s;
 
   &:hover {
-    border-color: ${s("primary")};
+    border-color: ${s("accent")};
   }
 `;
 

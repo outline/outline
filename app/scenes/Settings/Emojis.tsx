@@ -1,6 +1,6 @@
 import { ColumnSort } from "@tanstack/react-table";
 import { observer } from "mobx-react";
-import { PlusIcon, EmojiIcon } from "outline-icons";
+import { PlusIcon, SmileyIcon } from "outline-icons";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
@@ -98,7 +98,7 @@ function Emojis() {
   return (
     <Scene
       title={t("Emojis")}
-      icon={<EmojiIcon />}
+      icon={<SmileyIcon />}
       actions={
         <>
           {can.createEmoji && (
@@ -123,7 +123,7 @@ function Emojis() {
       <Heading>{t("Emojis")}</Heading>
       <Text as="p" type="secondary">
         {t(
-          "Custom emojis can be used throughout your workspace in documents, comments, and reactions. Upload images to create your own emoji."
+          "Custom emojis can be used throughout your workspace in documents, comments, and reactions."
         )}
       </Text>
       <StickyFilters gap={8}>
