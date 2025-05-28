@@ -23,9 +23,9 @@ import getImageMenuItems from "../menus/image";
 import getNoticeMenuItems from "../menus/notice";
 import getReadOnlyMenuItems from "../menus/readOnly";
 import getTableMenuItems from "../menus/table";
+import getTableCellMenuItems from "../menus/tableCell";
 import getTableColMenuItems from "../menus/tableCol";
 import getTableRowMenuItems from "../menus/tableRow";
-import getTableCellMenuItems from "../menus/tableCell";
 import { useEditor } from "./EditorContext";
 import FloatingToolbar from "./FloatingToolbar";
 import LinkEditor from "./LinkEditor";
@@ -199,14 +199,14 @@ export default function SelectionToolbar(props: Props) {
 
   if (isCodeSelection && selection.empty) {
     items = getCodeMenuItems(state, readOnly, dictionary);
-  } else if (isCellSelection) {
-    items = getTableCellMenuItems(state, dictionary);
   } else if (isTableSelection) {
     items = getTableMenuItems(state, dictionary);
   } else if (colIndex !== undefined) {
     items = getTableColMenuItems(state, colIndex, rtl, dictionary);
   } else if (rowIndex !== undefined) {
     items = getTableRowMenuItems(state, rowIndex, dictionary);
+  } else if (isCellSelection) {
+    items = getTableCellMenuItems(state, dictionary);
   } else if (isImageSelection) {
     items = readOnly ? [] : getImageMenuItems(state, dictionary);
   } else if (isAttachmentSelection) {

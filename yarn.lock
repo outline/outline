@@ -12663,10 +12663,10 @@ os-tmpdir@~1.0.2:
   resolved "https://registry.yarnpkg.com/os-tmpdir/-/os-tmpdir-1.0.2.tgz#bbe67406c79aa85c5cfec766fe5734555dfa1274"
   integrity "sha1-u+Z0BseaqFxc/sdm/lc0VV36EnQ= sha512-D2FR03Vir7FIu45XBY20mTb+/ZSWB00sjU9jdQXt83gDrI4Ztz5Fs7/yy74g2N5SVQY4xY1qDr4rNddwYRVX0g=="
 
-outline-icons@^3.10.0:
-  version "3.10.0"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-3.10.0.tgz#625ee232a807ccbc1cca2eda87849cf77ca25160"
-  integrity sha512-LSHIlZRgNtFoFHj5lDG6hfflNpVpO5kQl/jV7dYSytTcVVjfOECEDACSFsQ34JP7HT1vFaubp1EZSVrKFnIyVw==
+outline-icons@^3.11.0:
+  version "3.11.0"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-3.11.0.tgz#ef5601040114f1275a744ad86827514648491d10"
+  integrity sha512-1XfvvvptRzZ0AouQJfFa5uhLh9NCr9NaYmkI2Wvw8s4ihDCDmeVALUo+ZCRNMtdjYxgR8DVOULmvjPI0CiC8HQ==
 
 own-keys@^1.0.0:
   version "1.0.1"

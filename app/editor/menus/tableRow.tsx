@@ -4,8 +4,11 @@ import {
   InsertBelowIcon,
   MoreIcon,
   TableHeaderRowIcon,
+  TableSplitCellsIcon,
+  TableMergeCellsIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
+import { CellSelection } from "prosemirror-tables";
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
 
@@ -14,6 +17,11 @@ export default function tableRowMenuItems(
   index: number,
   dictionary: Dictionary
 ): MenuItem[] {
+  const { selection } = state;
+  if (!(selection instanceof CellSelection)) {
+    return [];
+  }
+
   return [
     {
       icon: <MoreIcon />,
@@ -35,6 +43,23 @@ export default function tableRowMenuItems(
           label: dictionary.addRowAfter,
           icon: <InsertBelowIcon />,
           attrs: { index },
+        },
+        {
+          name: "mergeCells",
+          label: dictionary.mergeCells,
+          icon: <TableMergeCellsIcon />,
+          visible:
+            selection.isColSelection() ||
+            selection.isRowSelection() ||
+            selection.$anchorCell.pos !== selection.$headCell.pos,
+        },
+        {
+          name: "splitCell",
+          label: dictionary.splitCell,
+          icon: <TableSplitCellsIcon />,
+        },
+        {
+          name: "separator",
         },
         {
           name: "deleteRow",
