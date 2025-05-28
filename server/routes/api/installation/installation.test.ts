@@ -1,29 +1,22 @@
+import { faker } from "@faker-js/faker";
 import { buildUser, buildTeam } from "@server/test/factories";
-import { getTestServer } from "@server/test/support";
+import { getTestServer, setSelfHosted } from "@server/test/support";
 
+setSelfHosted();
 const server = getTestServer();
 
 describe("installation.create", () => {
   it("should create a team when no teams exist", async () => {
     const res = await server.post("/api/installation.create", {
       body: {
-        teamName: "Test Team",
-        userName: "Test User",
-        userEmail: "test@example.com",
+        teamName: faker.company.name(),
+        userName: faker.person.fullName(),
+        userEmail: faker.internet.email(),
       },
+      redirect: "manual",
     });
-
-    const body = await res.json();
-
-    expect(res.status).toEqual(200);
-    expect(body.data).not.toBeFalsy();
-    expect(body.data.team).not.toBeFalsy();
-    expect(body.data.user).not.toBeFalsy();
-    expect(body.data.team.name).toBe("Test Team");
-    expect(body.data.user.name).toBe("Test User");
-    expect(body.data.user.email).toBe("test@example.com");
-    expect(body.data.isNewTeam).toBe(true);
-    expect(body.data.isNewUser).toBe(true);
+    expect(res.headers.get("location")).not.toBeNull();
+    expect(res.status).toEqual(302);
   });
 
   it("should fail when teams already exist", async () => {
@@ -31,9 +24,9 @@ describe("installation.create", () => {
 
     const res = await server.post("/api/installation.create", {
       body: {
-        teamName: "Test Team",
-        userName: "Test User",
-        userEmail: "test@example.com",
+        teamName: faker.company.name(),
+        userName: faker.person.fullName(),
+        userEmail: faker.internet.email(),
       },
     });
 
