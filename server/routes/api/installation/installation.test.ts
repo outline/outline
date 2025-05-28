@@ -1,4 +1,5 @@
 import { faker } from "@faker-js/faker";
+import { sequelize } from "@server/storage/database";
 import { buildUser, buildTeam } from "@server/test/factories";
 import { getTestServer, setSelfHosted } from "@server/test/support";
 
@@ -7,6 +8,11 @@ const server = getTestServer();
 
 describe("installation.create", () => {
   it("should create a team when no teams exist", async () => {
+    // Ensure any existing teams are cleared, including related constraints
+    await sequelize.query(
+      "TRUNCATE TABLE teams, users, team_domains, user_authentications RESTART IDENTITY CASCADE"
+    );
+
     const res = await server.post("/api/installation.create", {
       body: {
         teamName: faker.company.name(),
