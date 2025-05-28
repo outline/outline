@@ -15,6 +15,7 @@ import {
   Icon,
   PlusIcon,
   InternetIcon,
+  SmileyIcon,
 } from "outline-icons";
 import { ComponentProps } from "react";
 import * as React from "react";
@@ -34,6 +35,7 @@ const ApiKeys = lazy(() => import("~/scenes/Settings/ApiKeys"));
 const Applications = lazy(() => import("~/scenes/Settings/Applications"));
 const APIAndApps = lazy(() => import("~/scenes/Settings/APIAndApps"));
 const Details = lazy(() => import("~/scenes/Settings/Details"));
+const Emojis = lazy(() => import("~/scenes/Settings/Emojis"));
 const Export = lazy(() => import("~/scenes/Settings/Export"));
 const Features = lazy(() => import("~/scenes/Settings/Features"));
 const Groups = lazy(() => import("~/scenes/Settings/Groups"));
@@ -162,6 +164,15 @@ const useSettingsConfig = () => {
         enabled: can.readTemplate,
         group: t("Workspace"),
         icon: ShapesIcon,
+      },
+      {
+        name: t("Emojis"),
+        path: settingsPath("emojis"),
+        component: Emojis.Component,
+        preload: Emojis.preload,
+        enabled: can.update,
+        group: t("Workspace"),
+        icon: SmileyIcon,
       },
       {
         name: t("API Keys"),

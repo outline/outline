@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import { WhereOptions } from "sequelize";
+import { WhereOptions, Op } from "sequelize";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -63,10 +63,20 @@ router.post(
   validate(T.EmojisListSchema),
   async (ctx: APIContext<T.EmojisListReq>) => {
     const { user } = ctx.state.auth;
+    const { query } = ctx.input.body;
 
-    const where: WhereOptions<Emoji> = {
+    let where: WhereOptions<Emoji> = {
       teamId: user.teamId,
     };
+
+    if (query) {
+      where = {
+        ...where,
+        name: {
+          [Op.iLike]: `${query}%`,
+        },
+      };
+    }
 
     const [emojis, total] = await Promise.all([
       Emoji.findAll({
