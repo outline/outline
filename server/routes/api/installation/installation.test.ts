@@ -11,12 +11,12 @@ describe("installation.create", () => {
       body: {
         teamName: faker.company.name(),
         userName: faker.person.fullName(),
-        userEmail: faker.internet.email(),
+        userEmail: faker.internet.email().toLowerCase(),
       },
       redirect: "manual",
     });
-    expect(res.headers.get("location")).not.toBeNull();
     expect(res.status).toEqual(302);
+    expect(res.headers.get("location")).not.toBeNull();
   });
 
   it("should fail when teams already exist", async () => {
@@ -26,7 +26,7 @@ describe("installation.create", () => {
       body: {
         teamName: faker.company.name(),
         userName: faker.person.fullName(),
-        userEmail: faker.internet.email(),
+        userEmail: faker.internet.email().toLowerCase(),
       },
     });
 
