@@ -22,16 +22,9 @@ import {
   NodeSpec,
   NodeType,
   Node as ProsemirrorNode,
-  ResolvedPos,
   Schema,
 } from "prosemirror-model";
-import {
-  Command,
-  EditorState,
-  Plugin,
-  PluginKey,
-  TextSelection,
-} from "prosemirror-state";
+import { Command, Plugin, PluginKey, TextSelection } from "prosemirror-state";
 import {
   Decoration,
   DecorationSet,
@@ -510,12 +503,7 @@ export default class ToggleBlock extends Node {
       }),
       new PlaceholderPlugin([
         {
-          condition: (
-            node: ProsemirrorNode,
-            $start: ResolvedPos,
-            parent: ProsemirrorNode | null,
-            _state: EditorState
-          ) =>
+          condition: ({ node, $start, parent }) =>
             !isNull(parent) &&
             parent.type.name === "container_toggle" &&
             $start.index($start.depth - 1) === 0 &&
@@ -523,12 +511,7 @@ export default class ToggleBlock extends Node {
           text: this.options.dictionary.emptyToggleBlockHead,
         },
         {
-          condition: (
-            _node: ProsemirrorNode,
-            $start: ResolvedPos,
-            parent: ProsemirrorNode | null,
-            state: EditorState
-          ) =>
+          condition: ({ parent, $start, state }) =>
             !isNull(parent) &&
             parent.type.name === "container_toggle" &&
             $start.index($start.depth - 1) === 1 &&
