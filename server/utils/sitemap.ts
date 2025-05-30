@@ -1,3 +1,4 @@
+import escape from "lodash/escape";
 import { NavigationNode } from "@shared/types";
 
 /**
@@ -27,7 +28,8 @@ export function navigationNodeToSitemap(
   // Build XML
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
     .map(
-      (url) => `  <url><loc>${url}</loc><changefreq>weekly</changefreq></url>`
+      (url) =>
+        `  <url><loc>${escape(url)}</loc><changefreq>weekly</changefreq></url>`
     )
     .join("\n")}\n</urlset>`;
 }
