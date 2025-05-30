@@ -11,6 +11,7 @@ import {
 import {
   cs,
   de,
+  enGB,
   enUS,
   es,
   faIR,
@@ -164,6 +165,7 @@ export function getCurrentDateTimeAsString(locale?: Intl.LocalesArgument) {
 const locales = {
   cs_CZ: cs,
   de_DE: de,
+  en_GB: enGB,
   en_US: enUS,
   es_ES: es,
   fa_IR: faIR,
