@@ -52,7 +52,7 @@ export function createDatabaseInstance(
     return instance;
   } catch (error) {
     Logger.fatal(
-      "Could not connect to database",
+      env.isDevelopment ? error.message : "Could not connect to database",
       databaseUrl
         ? new Error(
             `Failed to parse: "${databaseUrl}". Ensure special characters in database URL are encoded`
