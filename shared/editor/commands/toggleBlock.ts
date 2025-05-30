@@ -141,19 +141,17 @@ export const sinkBlockInto =
     return true;
   };
 
-export const liftLastBlockOutOf =
+export const liftBlocksOutOf =
   (type: NodeType): Command =>
   (state, dispatch) => {
-    const { $from, $to } = state.selection as TextSelection;
+    const { $from } = state.selection as TextSelection;
 
     const ancestor = nearest(
       ancestors(
         $from,
         suchThat(
           ($fr, anc, depth) =>
-            anc.type === type &&
-            anc.childCount > 0 &&
-            $fr.index(depth) === anc.childCount - 1
+            anc.type === type && anc.childCount > 0 && $fr.index(depth) > 0
         )
       )
     );
@@ -162,7 +160,10 @@ export const liftLastBlockOutOf =
       return false;
     }
 
-    const range = $from.blockRange($to, (node) => node.eq(ancestor));
+    const range = $from.blockRange(
+      state.doc.resolve($from.end(depth(ancestor, $from)) - 1),
+      (node) => node.eq(ancestor)
+    );
     if (isNull(range)) {
       return false;
     }
@@ -255,7 +256,7 @@ const isToggleBlock = (node: Node) => node.type.name === "container_toggle";
 const withinToggleBlock = ($cursor: ResolvedPos | null) =>
   $cursor && some(ancestors($cursor), isToggleBlock);
 
-const withinToggleBlockHead = ($cursor: ResolvedPos | null) =>
+export const withinToggleBlockHead = ($cursor: ResolvedPos | null) =>
   withinToggleBlock($cursor) &&
   $cursor!.index(
     depth(
