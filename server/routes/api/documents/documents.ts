@@ -73,6 +73,7 @@ import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import ZipHelper from "@server/utils/ZipHelper";
 import { getTeamFromContext } from "@server/utils/passport";
+import { navigationNodeToSitemap } from "@server/utils/sitemap";
 import { assertPresent } from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -688,6 +689,29 @@ router.post(
       data: users.map((user) => presentUser(user)),
       policies: presentPolicies(actor, users),
     };
+  }
+);
+
+router.get(
+  "documents.sitemap",
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
+  auth({ optional: true }),
+  validate(T.DocumentsSitemapSchema),
+  async (ctx: APIContext<T.DocumentsSitemapReq>) => {
+    const { shareId } = ctx.input.query;
+    const { collection, share } = await documentLoader({
+      shareId,
+    });
+
+    let tree;
+    if (share && share.includeChildDocuments && share.allowIndexing) {
+      tree = collection?.getDocumentTree(share.documentId);
+    }
+
+    const baseUrl = `${process.env.URL}/s/${shareId}`;
+
+    ctx.set("Content-Type", "application/xml");
+    ctx.body = navigationNodeToSitemap(tree, baseUrl);
   }
 );
 
