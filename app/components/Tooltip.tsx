@@ -200,7 +200,7 @@ function Tooltip({
 const slideUpAndFade = keyframes`
   from {
     opacity: 0;
-    transform: translateY(2px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -211,7 +211,7 @@ const slideUpAndFade = keyframes`
 const slideRightAndFade = keyframes`
   from {
     opacity: 0;
-    transform: translateX(-2px);
+    transform: translateX(-8px);
   }
   to {
     opacity: 1;
@@ -222,7 +222,7 @@ const slideRightAndFade = keyframes`
 const slideDownAndFade = keyframes`
   from {
     opacity: 0;
-    transform: translateY(-2px);
+    transform: translateY(-8px);
   }
   to {
     opacity: 1;
@@ -233,7 +233,7 @@ const slideDownAndFade = keyframes`
 const slideLeftAndFade = keyframes`
   from {
     opacity: 0;
-    transform: translateX(2px);
+    transform: translateX(8px);
   }
   to {
     opacity: 1;
@@ -272,13 +272,13 @@ const StyledContent = styled(TooltipPrimitive.Content)`
 
   /* Animation */
   &[data-state="delayed-open"][data-side="top"] {
-    animation: ${slideDownAndFade} 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    animation: ${slideUpAndFade} 200ms cubic-bezier(0.16, 1, 0.3, 1);
   }
   &[data-state="delayed-open"][data-side="right"] {
     animation: ${slideLeftAndFade} 200ms cubic-bezier(0.16, 1, 0.3, 1);
   }
   &[data-state="delayed-open"][data-side="bottom"] {
-    animation: ${slideUpAndFade} 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    animation: ${slideDownAndFade} 200ms cubic-bezier(0.16, 1, 0.3, 1);
   }
   &[data-state="delayed-open"][data-side="left"] {
     animation: ${slideRightAndFade} 200ms cubic-bezier(0.16, 1, 0.3, 1);
