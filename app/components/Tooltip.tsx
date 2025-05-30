@@ -1,42 +1,138 @@
-import Tippy, { TippyProps } from "@tippyjs/react";
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { transparentize } from "polished";
 import * as React from "react";
-import styled, { createGlobalStyle } from "styled-components";
-import { roundArrow } from "tippy.js";
+import styled, { createGlobalStyle, keyframes } from "styled-components";
 import { s } from "@shared/styles";
 import useMobile from "~/hooks/useMobile";
 import { useTooltipContext } from "./TooltipContext";
 
-export type Props = Omit<TippyProps, "content" | "theme"> & {
+export type Props = {
   /** The content to display in the tooltip. */
   content?: React.ReactChild | React.ReactChild[];
   /** A keyboard shortcut to display next to the content */
   shortcut?: React.ReactNode;
   /** Whether to show the shortcut on a new line */
   shortcutOnNewline?: boolean;
+  /** The preferred side of the trigger to render against when open */
+  side?: "top" | "right" | "bottom" | "left";
+  /** The distance in pixels from the trigger */
+  sideOffset?: number;
+  /** The preferred alignment against the trigger */
+  align?: "start" | "center" | "end";
+  /** An offset in pixels from the "start" or "end" alignment options */
+  alignOffset?: number;
+  /** When true, overrides the side and align preferences to prevent collisions with boundary edges */
+  avoidCollisions?: boolean;
+  /** The element used as the collision boundary */
+  collisionBoundary?: Element | null | Array<Element | null>;
+  /** The distance in pixels from the boundary edges where collision detection should occur */
+  collisionPadding?:
+    | number
+    | Partial<Record<"top" | "right" | "bottom" | "left", number>>;
+  /** Whether the tooltip should be open by default */
+  defaultOpen?: boolean;
+  /** The controlled open state of the tooltip */
+  open?: boolean;
+  /** Event handler called when the open state of the tooltip changes */
+  onOpenChange?: (open: boolean) => void;
+  /** The duration from when the mouse enters the trigger until the tooltip gets opened */
+  delayDuration?: number;
+  /** How much time a user has to enter another trigger without incurring a delay again */
+  skipDelayDuration?: number;
+  /** Prevents the tooltip from opening */
+  disableHoverableContent?: boolean;
+  /** The children that will trigger the tooltip */
+  children?: React.ReactNode;
+  /** Whether to disable the tooltip entirely */
+  disabled?: boolean;
+  /** Custom offset for the tooltip */
+  offset?: [number, number];
+  /** Placement prop for backward compatibility with Tippy */
+  placement?:
+    | "top"
+    | "right"
+    | "bottom"
+    | "left"
+    | "top-start"
+    | "top-end"
+    | "right-start"
+    | "right-end"
+    | "bottom-start"
+    | "bottom-end"
+    | "left-start"
+    | "left-end";
+  /** Delay prop for backward compatibility with Tippy */
+  delay?: number | [number, number];
 };
 
 /**
- * A tooltip component that wraps Tippy and provides a consistent look and feel. Optionally
- * displays a keyboard shortcut next to the content.
+ * Tooltip component using Radix UI primitives.
+ * Displays a tooltip with optional keyboard shortcut.
+ * Optionally displays a keyboard shortcut next to the content.
  *
  * Wrap this component in a TooltipProvider to allow multiple tooltips to share the same
- * singleton instance (delay, animation, etc).
+ * provider instance (delay, animation, etc).
  */
 function Tooltip({
   shortcut,
   shortcutOnNewline,
   content: tooltip,
-  delay = 500,
+  side = "top",
+  sideOffset = 8,
+  align = "center",
+  alignOffset = 0,
+  avoidCollisions = true,
+  collisionBoundary,
+  collisionPadding = 8,
+  defaultOpen,
+  open,
+  onOpenChange,
+  delayDuration = 500,
+  skipDelayDuration = 300,
+  disableHoverableContent = false,
+  children,
+  disabled = false,
+  offset,
+  placement,
+  delay,
   ...rest
-}: Props) {
+}: Props): React.ReactElement | null {
   const isMobile = useMobile();
-  const singleton = useTooltipContext();
+  const isInProvider = useTooltipContext();
+
+  // Handle backward compatibility with Tippy props
+  let finalSide = side;
+  let finalAlign = align;
+  let finalDelayDuration = delayDuration;
+  let finalSideOffset = sideOffset;
+
+  // Convert placement prop to side/align for backward compatibility
+  if (placement) {
+    const [placementSide, placementAlign] = placement.split("-");
+    finalSide = placementSide as "top" | "right" | "bottom" | "left";
+    if (placementAlign) {
+      finalAlign = placementAlign as "start" | "center" | "end";
+    }
+  }
+
+  // Handle delay prop for backward compatibility
+  if (delay !== undefined) {
+    if (typeof delay === "number") {
+      finalDelayDuration = delay;
+    } else if (Array.isArray(delay)) {
+      finalDelayDuration = delay[0];
+    }
+  }
+
+  // Handle offset prop for backward compatibility
+  if (offset) {
+    finalSideOffset = offset[1] || sideOffset;
+  }
 
   let content = <>{tooltip}</>;
 
-  if (!tooltip || isMobile) {
-    return rest.children ?? null;
+  if (!tooltip || isMobile || disabled) {
+    return (children as React.ReactElement) ?? null;
   }
 
   if (shortcut) {
@@ -59,19 +155,91 @@ function Tooltip({
     );
   }
 
+  const tooltipContent = (
+    <TooltipPrimitive.Root
+      defaultOpen={defaultOpen}
+      open={open}
+      onOpenChange={onOpenChange}
+      delayDuration={isInProvider ? undefined : finalDelayDuration}
+      disableHoverableContent={disableHoverableContent}
+    >
+      <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
+      <TooltipPrimitive.Portal>
+        <StyledContent
+          side={finalSide}
+          sideOffset={finalSideOffset}
+          align={finalAlign}
+          alignOffset={alignOffset}
+          avoidCollisions={avoidCollisions}
+          collisionBoundary={collisionBoundary}
+          collisionPadding={collisionPadding}
+          {...rest}
+        >
+          {content}
+        </StyledContent>
+      </TooltipPrimitive.Portal>
+    </TooltipPrimitive.Root>
+  );
+
+  // If we're already in a provider, don't wrap with another one
+  if (isInProvider) {
+    return tooltipContent;
+  }
+
+  // Otherwise, wrap with a provider for standalone usage
   return (
-    <Tippy
-      arrow={roundArrow}
-      content={content}
-      delay={delay}
-      animation="shift-away"
-      singleton={singleton}
-      duration={[200, 150]}
-      inertia
-      {...rest}
-    />
+    <TooltipPrimitive.Provider
+      delayDuration={finalDelayDuration}
+      skipDelayDuration={skipDelayDuration}
+    >
+      {tooltipContent}
+    </TooltipPrimitive.Provider>
   );
 }
+
+const slideUpAndFade = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const slideRightAndFade = keyframes`
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+`;
+
+const slideDownAndFade = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const slideLeftAndFade = keyframes`
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+`;
 
 const Shortcut = styled.kbd`
   position: relative;
@@ -89,140 +257,36 @@ const Shortcut = styled.kbd`
   border-radius: 3px;
 `;
 
-export const TooltipStyles = createGlobalStyle`
- .tippy-box[data-animation=fade][data-state=hidden]{
-    opacity:0
-  }
-  [data-tippy-root]{
-      max-width:calc(100vw - 10px)
-  }
-  .tippy-box{
-      position:relative;
-      background-color: ${s("tooltipBackground")};
-      color: ${s("tooltipText")};
-      border-radius:4px;
-      font-size:13px;
-      line-height:1.4;
-      white-space:normal;
-      outline:0;
-      transition-property:transform,visibility,opacity
-  }
-  .tippy-box[data-placement^=top]>.tippy-arrow{
-      bottom:0
-  }
-  .tippy-box[data-placement^=top]>.tippy-arrow:before{
-      bottom:-7px;
-      left:0;
-      border-width:8px 8px 0;
-      border-top-color:initial;
-      transform-origin:center top
-  }
-  .tippy-box[data-placement^=bottom]>.tippy-arrow{
-      top:0
-  }
-  .tippy-box[data-placement^=bottom]>.tippy-arrow:before{
-      top:-7px;
-      left:0;
-      border-width:0 8px 8px;
-      border-bottom-color:initial;
-      transform-origin:center bottom
-  }
-  .tippy-box[data-placement^=left]>.tippy-arrow{
-      right:0
-  }
-  .tippy-box[data-placement^=left]>.tippy-arrow:before{
-      border-width:8px 0 8px 8px;
-      border-left-color:initial;
-      right:-7px;
-      transform-origin:center left
-  }
-  .tippy-box[data-placement^=right]>.tippy-arrow{
-      left:0
-  }
-  .tippy-box[data-placement^=right]>.tippy-arrow:before{
-      left:-7px;
-      border-width:8px 8px 8px 0;
-      border-right-color:initial;
-      transform-origin:center right
-  }
-  .tippy-box[data-inertia][data-state=visible]{
-      transition-timing-function:cubic-bezier(.54,1.5,.38,1.11)
-  }
-  .tippy-arrow{
-      width:16px;
-      height:16px;
-      color: ${s("tooltipBackground")};
-  }
-  .tippy-arrow:before{
-      content:"";
-      position:absolute;
-      border-color:transparent;
-      border-style:solid
-  }
-  .tippy-content{
-      position:relative;
-      padding:5px 9px;
-      z-index:1
-  }
-
-  /* Arrow Styles */
-  .tippy-box[data-placement^=top]>.tippy-svg-arrow{
-    bottom:0
-  }
-  .tippy-box[data-placement^=top]>.tippy-svg-arrow:after,.tippy-box[data-placement^=top]>.tippy-svg-arrow>svg{
-      top:16px;
-      transform:rotate(180deg)
-  }
-  .tippy-box[data-placement^=bottom]>.tippy-svg-arrow{
-      top:0
-  }
-  .tippy-box[data-placement^=bottom]>.tippy-svg-arrow>svg{
-      bottom:16px
-  }
-  .tippy-box[data-placement^=left]>.tippy-svg-arrow{
-      right:0
-  }
-  .tippy-box[data-placement^=left]>.tippy-svg-arrow:after,.tippy-box[data-placement^=left]>.tippy-svg-arrow>svg{
-      transform:rotate(90deg);
-      top:calc(50% - 3px);
-      left:11px
-  }
-  .tippy-box[data-placement^=right]>.tippy-svg-arrow{
-      left:0
-  }
-  .tippy-box[data-placement^=right]>.tippy-svg-arrow:after,.tippy-box[data-placement^=right]>.tippy-svg-arrow>svg{
-      transform:rotate(-90deg);
-      top:calc(50% - 3px);
-      right:11px
-  }
-  .tippy-svg-arrow{
-      width:16px;
-      height:16px;
-      fill: ${s("tooltipBackground")};
-      text-align:initial
-  }
-  .tippy-svg-arrow,.tippy-svg-arrow>svg{
-      position:absolute
-  }
+const StyledContent = styled(TooltipPrimitive.Content)`
+  position: relative;
+  background-color: ${s("tooltipBackground")};
+  color: ${s("tooltipText")};
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: normal;
+  outline: 0;
+  padding: 5px 9px;
+  z-index: 9999;
+  max-width: calc(100vw - 10px);
 
   /* Animation */
-  .tippy-box[data-animation=shift-away][data-state=hidden]{opacity:0}.tippy-box[data-animation=shift-away][data-state=hidden][data-placement^=top]{transform:translateY(10px)}.tippy-box[data-animation=shift-away][data-state=hidden][data-placement^=bottom]{transform:translateY(-10px)}.tippy-box[data-animation=shift-away][data-state=hidden][data-placement^=left]{transform:translateX(10px)}.tippy-box[data-animation=shift-away][data-state=hidden][data-placement^=right]{transform:translateX(-10px)}
+  &[data-state="delayed-open"][data-side="top"] {
+    animation: ${slideUpAndFade} 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  &[data-state="delayed-open"][data-side="right"] {
+    animation: ${slideLeftAndFade} 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  &[data-state="delayed-open"][data-side="bottom"] {
+    animation: ${slideDownAndFade} 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  &[data-state="delayed-open"][data-side="left"] {
+    animation: ${slideRightAndFade} 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+`;
 
-  .tippy-box[data-animation=shift-away][data-state=hidden]{
-    opacity:0
-  }
-  .tippy-box[data-animation=shift-away][data-state=hidden][data-placement^=top]{
-      transform:translateY(10px)
-  }
-  .tippy-box[data-animation=shift-away][data-state=hidden][data-placement^=bottom]{
-      transform:translateY(-10px)
-  }
-  .tippy-box[data-animation=shift-away][data-state=hidden][data-placement^=left]{
-      transform:translateX(10px)
-  }
-  .tippy-box[data-animation=shift-away][data-state=hidden][data-placement^=right]{
-      transform:translateX(-10px)
-  }
+export const TooltipStyles = createGlobalStyle`
+  /* Legacy styles for backward compatibility - can be removed after migration */
 `;
 
 export default Tooltip;

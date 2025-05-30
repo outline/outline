@@ -1,4 +1,3 @@
-import { TippyProps } from "@tippyjs/react";
 import { useMemo } from "react";
 import { useMenuState } from "reakit";
 import { MenuButton } from "reakit/Menu";
@@ -77,8 +76,6 @@ function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
   );
 }
 
-const tippyProps = { placement: "top" } as TippyProps;
-
 function ToolbarMenu(props: Props) {
   const { commands, view } = useEditor();
   const { items } = props;
@@ -95,7 +92,7 @@ function ToolbarMenu(props: Props) {
   };
 
   return (
-    <TooltipProvider tippyProps={tippyProps}>
+    <TooltipProvider>
       <FlexibleWrapper>
         {items.map((item, index) => {
           if (item.name === "separator" && item.visible !== false) {
