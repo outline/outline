@@ -452,3 +452,11 @@ export const DocumentsMembershipsSchema = BaseSchema.extend({
 export type DocumentsMembershipsReq = z.infer<
   typeof DocumentsMembershipsSchema
 >;
+
+export const DocumentsSitemapSchema = BaseSchema.extend({
+  query: z.object({
+    shareId: z.string(),
+  }),
+});
+
+export type DocumentsSitemapReq = z.infer<typeof DocumentsSitemapSchema>;
