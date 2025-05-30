@@ -12,9 +12,9 @@ import {
   createParagraphNear,
   joinForward,
   joinTextblockBackward,
+  liftEmptyBlock,
   newlineInCode,
   splitBlock,
-  wrapIn,
 } from "prosemirror-commands";
 import { wrappingInputRule } from "prosemirror-inputrules";
 import { ParseSpec } from "prosemirror-markdown";
@@ -25,6 +25,7 @@ import {
   Schema,
 } from "prosemirror-model";
 import { Command, Plugin, PluginKey, TextSelection } from "prosemirror-state";
+import { findWrapping } from "prosemirror-transform";
 import {
   Decoration,
   DecorationSet,
@@ -40,7 +41,6 @@ import {
   lift,
   liftNext,
   sinkBlockInto,
-  liftLastBlockOutOf,
   ancestors,
   suchThat,
   depth,
@@ -49,6 +49,8 @@ import {
   bodyIsEmpty,
   folded,
   toggle,
+  withinToggleBlockHead,
+  liftBlocksOutOf,
 } from "../commands/toggleBlock";
 import { CommandFactory } from "../lib/Extension";
 import { chainTransactions } from "../lib/chainTransactions";
@@ -136,7 +138,7 @@ export default class ToggleBlock extends Node {
             const key = `${toggleBlock.node.attrs.id}:${this.editor.props.userId}`;
             const foldState = Storage.get(key);
             if (isNil(foldState)) {
-              Storage.set(key, { fold: true });
+              Storage.set(key, { fold: false });
             }
           }
         );
@@ -554,14 +556,14 @@ export default class ToggleBlock extends Node {
         split,
         (state, dispatch) => {
           const { $from } = state.selection;
-          const parent = $from.node($from.depth - 1);
-          if (parent.type.name !== this.name) {
+          if (!withinToggleBlockHead($from)) {
             return false;
           }
 
-          // if cursor lies within immediate first child, ignore the handling here
-          if ($from.index($from.depth - 1) === 0) {
-            return false;
+          const toggleBlock = $from.node($from.depth - 1);
+
+          if (toggleBlock.childCount === 1 && toggleBlock.textContent === "") {
+            return liftEmptyBlock(state, dispatch);
           }
 
           return chainTransactions(
@@ -574,7 +576,7 @@ export default class ToggleBlock extends Node {
       Delete: (state, dispatch) =>
         chainTransactions(liftNext, joinForward)(state, dispatch),
       Tab: sinkBlockInto(type),
-      "Shift-Tab": liftLastBlockOutOf(type),
+      "Shift-Tab": liftBlocksOutOf(type),
       "Mod-Enter": toggle,
     };
   }
@@ -590,8 +592,27 @@ export default class ToggleBlock extends Node {
     ];
   }
 
-  commands({ type }: { type: NodeType; schema: Schema }): CommandFactory {
-    return () => wrapIn(type, { id: v4() });
+  commands({
+    type,
+    schema,
+  }: {
+    type: NodeType;
+    schema: Schema;
+  }): CommandFactory {
+    return () => (state, dispatch) => {
+      const { $from, $to } = state.selection;
+      const range = $from.blockRange($to),
+        wrapping = range && findWrapping(range, type, { id: v4() });
+      if (!wrapping) {
+        return false;
+      }
+
+      const tr = state.tr.wrap(range!, wrapping);
+      dispatch?.(
+        tr.insert(tr.selection.$from.after(), schema.nodes.paragraph.create({}))
+      );
+      return true;
+    };
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
