@@ -8,10 +8,10 @@ const WrappedTooltip: React.FC<Props> = ({
   ...rest
 }: Props) => (
   <Tooltip
-    offset={[0, 16]}
-    delay={150}
+    sideOffset={16}
+    delayDuration={150}
     content={content}
-    placement="top"
+    side="top"
     shortcutOnNewline
     {...rest}
   >

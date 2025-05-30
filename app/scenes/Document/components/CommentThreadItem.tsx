@@ -294,7 +294,7 @@ const ResolveButton = ({
   const { t } = useTranslation();
 
   return (
-    <Tooltip content={t("Mark as resolved")} placement="top" hideOnClick>
+    <Tooltip content={t("Mark as resolved")} placement="top">
       <Action
         as={NudeButton}
         context={context}
