@@ -281,7 +281,11 @@ export class ProsemirrorHelper {
     }
 
     function replaceUrl(url: string) {
-      return url.replace(`/doc/`, `${basePath}/doc/`);
+      // Only replace if the URL starts with /doc/ (not already in a share path)
+      if (url.startsWith("/doc/")) {
+        return `${basePath}${url}`;
+      }
+      return url;
     }
 
     function replaceInternalUrlsInner(node: ProsemirrorData) {
