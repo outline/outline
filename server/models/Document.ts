@@ -58,6 +58,7 @@ import Group from "./Group";
 import GroupMembership from "./GroupMembership";
 import GroupUser from "./GroupUser";
 import Import from "./Import";
+import Mention from "./Mention";
 import Revision from "./Revision";
 import Star from "./Star";
 import Team from "./Team";
@@ -619,6 +620,9 @@ class Document extends ArchivableModel<
 
   @HasMany(() => Backlink)
   backlinks: Backlink[];
+
+  @HasMany(() => Mention)
+  mentions: Mention[];
 
   @HasMany(() => Star)
   starred: Star[];
