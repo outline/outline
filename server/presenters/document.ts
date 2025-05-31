@@ -14,6 +14,8 @@ type Options = {
   includeText?: boolean;
   /** Always include the data of the document in the payload. */
   includeData?: boolean;
+
+  includeUpdatedAt?: boolean;
 };
 
 async function presentDocument(
@@ -73,6 +75,10 @@ async function presentDocument(
 
   if (!!document.views && document.views.length > 0) {
     res.lastViewedAt = document.views[0].updatedAt;
+  }
+
+  if (options.isPublic && !options.includeUpdatedAt) {
+    delete res.updatedAt;
   }
 
   if (!options.isPublic) {

@@ -114,6 +114,14 @@ class Share extends IdModel<
   @Column
   domain: string | null;
 
+  @Default(true)
+  @Column
+  allowIndexing: boolean;
+
+  @Default(false)
+  @Column
+  showLastUpdated: boolean;
+
   // hooks
 
   @BeforeUpdate
@@ -184,10 +192,6 @@ class Share extends IdModel<
   @ForeignKey(() => Document)
   @Column(DataType.UUID)
   documentId: string;
-
-  @Default(true)
-  @Column
-  allowIndexing: boolean;
 
   revoke(ctx: APIContext) {
     const { user } = ctx.context.auth;

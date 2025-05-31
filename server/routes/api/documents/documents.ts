@@ -579,6 +579,7 @@ router.post(
       presentDocument(ctx, document, {
         isPublic,
         shareId,
+        includeUpdatedAt: share?.showLastUpdated,
       }),
       teamFromCtx?.id === document.teamId ? teamFromCtx : document.$get("team"),
     ]);
