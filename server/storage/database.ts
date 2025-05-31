@@ -1,7 +1,7 @@
 import path from "path";
 import { InferAttributes, InferCreationAttributes } from "sequelize";
 import sequelizeStrictAttributes from "sequelize-strict-attributes";
-import { Sequelize } from "sequelize-typescript";
+import { Sequelize, SequelizeOptions } from "sequelize-typescript";
 import { Umzug, SequelizeStorage, MigrationError } from "umzug";
 import env from "@server/env";
 import Model from "@server/models/base/Model";
@@ -53,7 +53,7 @@ export function createDatabaseInstance(
     let instance;
 
     // Common options for both URL and object configurations
-    const commonOptions = {
+    const commonOptions: SequelizeOptions = {
       logging: (msg) =>
         process.env.DEBUG?.includes("database") &&
         Logger.debug("database", msg),
@@ -95,7 +95,7 @@ export function createDatabaseInstance(
             `Failed to parse: "${databaseConfig}". Ensure special characters in database URL are encoded`
           )
         : new Error(
-            `Failed to connect using individual database components. Please check DATABASE_HOST, DATABASE_NAME, DATABASE_USER configuration.`
+            `Failed to connect using database credentials. Please check DATABASE_HOST, DATABASE_NAME, DATABASE_USER configuration`
           )
     );
     process.exit(1);
