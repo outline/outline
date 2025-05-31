@@ -75,7 +75,12 @@ export const renderApp = async (
 
   // Use team description if public branding is enabled and no custom description is provided
   let finalDescription = description;
-  if (team && team.getPreference(TeamPreference.PublicBranding) && team.description && !options.description) {
+  if (
+    team &&
+    team.getPreference(TeamPreference.PublicBranding) &&
+    team.description &&
+    !options.description
+  ) {
     finalDescription = team.description;
   }
 

@@ -216,9 +216,7 @@ function Details() {
           <SettingRow
             label={t("Description")}
             name="description"
-            description={t(
-              "A brief description of your workspace."
-            )}
+            description={t("A brief description of your workspace.")}
           >
             <Input
               id="description"
