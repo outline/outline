@@ -57,3 +57,33 @@ export function CannotUseWith(
     });
   };
 }
+
+export function CannotUseWithAny(
+  properties: string[],
+  validationOptions?: ValidationOptions
+) {
+  return function (object: Object, propertyName: string) {
+    registerDecorator({
+      name: "cannotUseWithAny",
+      target: object.constructor,
+      propertyName,
+      constraints: properties,
+      options: validationOptions,
+      validator: {
+        validate<T>(value: T, args: ValidationArguments) {
+          if (value === undefined) {
+            return true;
+          }
+          const obj = args.object as unknown as T;
+          const forbiddenProperties = args.constraints as (keyof T)[];
+          return forbiddenProperties.every((prop) => obj[prop] === undefined);
+        },
+        defaultMessage(args: ValidationArguments) {
+          return `${propertyName} cannot be used with any of: ${args.constraints.join(
+            ", "
+          )}.`;
+        },
+      },
+    });
+  };
+}
