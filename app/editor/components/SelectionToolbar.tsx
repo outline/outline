@@ -221,6 +221,9 @@ export default function SelectionToolbar(props: Props) {
     if (item.name === "separator") {
       return true;
     }
+    if (item.name === "dimensions") {
+      return item.visible ?? false;
+    }
     if (item.name && !commands[item.name]) {
       return false;
     }

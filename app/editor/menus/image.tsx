@@ -60,6 +60,15 @@ export default function imageMenuItems(
       name: "separator",
     },
     {
+      name: "dimensions",
+      tooltip: dictionary.dimensions,
+      visible: !isFullWidthAligned(state),
+      skipIcon: true,
+    },
+    {
+      name: "separator",
+    },
+    {
       name: "downloadImage",
       tooltip: dictionary.downloadImage,
       icon: <DownloadIcon />,
