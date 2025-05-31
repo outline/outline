@@ -109,12 +109,18 @@ class CollectionIndexCollisionResolver {
 }
 
 export default async function main(exit = false) {
-  await Team.findAllInBatches<Team>({ batchLimit: 5 }, async (teams) => {
-    for (const team of teams) {
-      const resolver = new CollectionIndexCollisionResolver(team.id);
-      await resolver.process();
+  await Team.findAllInBatches<Team>(
+    {
+      attributes: ["id"],
+      batchLimit: 5,
+    },
+    async (teams) => {
+      for (const team of teams) {
+        const resolver = new CollectionIndexCollisionResolver(team.id);
+        await resolver.process();
+      }
     }
-  });
+  );
 
   if (exit) {
     process.exit(0);
