@@ -621,7 +621,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
       case ImportValidationBehavior.Abort:
       default: {
-        throw new ValidationError(
+        throw ValidationError(
           `Document "${document.title}" exceeds validation limits. ` +
             `Title: ${document.title.length}/${DocumentValidation.maxTitleLength}, ` +
             `Text: ${document.text.length}/${DocumentValidation.maxRecommendedLength} characters`

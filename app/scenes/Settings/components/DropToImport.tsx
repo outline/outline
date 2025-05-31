@@ -131,6 +131,7 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
       <div>
         <InputSelect
           value={validationBehavior}
+          ariaLabel={t("Import validation behavior")}
           options={[
             {
               label: t("Skip invalid documents"),
@@ -145,7 +146,11 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
               value: ImportValidationBehavior.Abort,
             },
           ]}
-          onChange={setValidationBehavior}
+          onChange={(value) => {
+            if (value) {
+              setValidationBehavior(value as ImportValidationBehavior);
+            }
+          }}
         />
         <Text as="span" type="secondary">
           {t(
