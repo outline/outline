@@ -62,6 +62,7 @@ export default class WebsocketsProcessor {
 
         return socketio.to(channels).emit("entities", {
           event: event.name,
+          invalidatedPolicies: [document.id],
           documentIds: [
             {
               id: document.id,

@@ -148,6 +148,12 @@ class WebsocketProvider extends Component<Props> {
     this.socket.on(
       "entities",
       action(async (event: WebsocketEntitiesEvent) => {
+        if (event.invalidatedPolicies) {
+          event.invalidatedPolicies.forEach((policyId) => {
+            policies.remove(policyId);
+          });
+        }
+
         if (event.documentIds) {
           for (const documentDescriptor of event.documentIds) {
             const documentId = documentDescriptor.id;
