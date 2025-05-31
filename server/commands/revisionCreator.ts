@@ -26,6 +26,9 @@ export default async function revisionCreator({
         createdAt: document.updatedAt,
         ip: event.ip ?? user.lastActiveIp,
         authType: event.authType,
+        data: {
+          collaboratorIds: revision.collaboratorIds,
+        },
       },
       {
         transaction,

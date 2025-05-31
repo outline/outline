@@ -110,6 +110,10 @@ class Revision extends ParanoidModel<
   @Column(DataType.UUID)
   userId: string;
 
+  /** Array of user IDs who collaborated on this revision */
+  @Column(DataType.ARRAY(DataType.UUID))
+  collaboratorIds: string[] = [];
+
   // hooks
 
   @BeforeDestroy
@@ -152,6 +156,7 @@ class Revision extends ParanoidModel<
       editorVersion: document.editorVersion,
       version: document.version,
       documentId: document.id,
+      collaboratorIds: document.collaboratorIds || [],
       // revision time is set to the last time document was touched as this
       // handler can be debounced in the case of an update
       createdAt: document.updatedAt,

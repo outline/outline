@@ -39,6 +39,9 @@ class Revision extends ParanoidModel {
   @Relation(() => User)
   createdBy: User;
 
+  /** Array of user IDs who collaborated on this revision */
+  collaboratorIds: string[] = [];
+
   /**
    * Returns the direction of the revision text, either "rtl" or "ltr"
    */
