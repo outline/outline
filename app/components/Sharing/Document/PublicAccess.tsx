@@ -64,6 +64,19 @@ function PublicAccess({ document, share, sharedParent }: Props) {
     [share]
   );
 
+  const handleShowLastModifiedChanged = React.useCallback(
+    async (event) => {
+      try {
+        await share?.save({
+          showLastUpdated: event.currentTarget.checked,
+        });
+      } catch (err) {
+        toast.error(err.message);
+      }
+    },
+    [share]
+  );
+
   const handlePublishedChange = React.useCallback(
     async (event) => {
       try {
@@ -186,6 +199,32 @@ function PublicAccess({ document, share, sharedParent }: Props) {
                 aria-label={t("Search engine indexing")}
                 checked={share?.allowIndexing ?? false}
                 onChange={handleIndexingChanged}
+                width={26}
+                height={14}
+              />
+            }
+          />
+        )}
+
+        {share?.published && (
+          <ListItem
+            title={
+              <Text type="tertiary" as={Flex}>
+                {t("Show last modified")}&nbsp;
+                <Tooltip
+                  content={t(
+                    "Display the last modified timestamp on the shared page"
+                  )}
+                >
+                  <QuestionMarkIcon size={18} />
+                </Tooltip>
+              </Text>
+            }
+            actions={
+              <Switch
+                aria-label={t("Show last modified")}
+                checked={share?.showLastUpdated ?? false}
+                onChange={handleShowLastModifiedChanged}
                 width={26}
                 height={14}
               />
