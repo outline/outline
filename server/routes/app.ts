@@ -59,11 +59,25 @@ export const renderApp = async (
 ) => {
   const {
     title = env.APP_NAME,
-    description = "A modern team knowledge base for your internal documentation, product specs, support answers, meeting notes, onboarding, &amp; more…",
+    description = "A modern team knowledge base for your internal documentation, product specs, support answers, meeting notes, onboarding, &amp; more\u2026",
     canonical = "",
     shortcutIcon = `${env.CDN_URL || ""}/images/favicon-32.png`,
     allowIndexing = true,
   } = options;
+
+  // Get team context to potentially use team description for public branding
+  let team;
+  try {
+    team = await getTeamFromContext(ctx);
+  } catch (err) {
+    // Team context is optional for renderApp
+  }
+
+  // Use team description if public branding is enabled and no custom description is provided
+  let finalDescription = description;
+  if (team && team.getPreference(TeamPreference.PublicBranding) && team.description && !options.description) {
+    finalDescription = team.description;
+  }
 
   if (ctx.request.path === "/realtime/") {
     return next();
@@ -121,7 +135,7 @@ export const renderApp = async (
     .replace(/\{env\}/g, environment)
     .replace(/\{lang\}/g, unicodeCLDRtoISO639(env.DEFAULT_LANGUAGE))
     .replace(/\{title\}/g, escape(title))
-    .replace(/\{description\}/g, escape(description))
+    .replace(/\{description\}/g, escape(finalDescription))
     .replace(/\{noindex\}/g, noIndexTag)
     .replace(
       /\{manifest-url\}/g,

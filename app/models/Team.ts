@@ -14,6 +14,10 @@ class Team extends Model {
 
   @Field
   @observable
+  description: string | null;
+
+  @Field
+  @observable
   avatarUrl: string;
 
   @Field

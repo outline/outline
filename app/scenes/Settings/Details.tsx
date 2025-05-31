@@ -44,6 +44,7 @@ function Details() {
     team.preferences?.customTheme?.accentText
   );
   const [name, setName] = useState(team.name);
+  const [description, setDescription] = useState(team.description || "");
   const [subdomain, setSubdomain] = useState(team.subdomain);
   const [publicBranding, setPublicBranding] = useState(
     team.preferences?.publicBranding
@@ -94,6 +95,7 @@ function Details() {
       try {
         await team.save({
           name,
+          description,
           subdomain,
           defaultCollectionId,
           preferences: {
@@ -112,6 +114,7 @@ function Details() {
       tocPosition,
       team,
       name,
+      description,
       subdomain,
       defaultCollectionId,
       publicBranding,
@@ -208,6 +211,21 @@ function Details() {
               value={name}
               onChange={handleNameChange}
               required
+            />
+          </SettingRow>
+          <SettingRow
+            label={t("Description")}
+            name="description"
+            description={t(
+              "A brief description of your workspace."
+            )}
+          >
+            <Input
+              id="description"
+              value={description}
+              onChange={(ev: React.ChangeEvent<HTMLInputElement>) => {
+                setDescription(ev.target.value);
+              }}
             />
           </SettingRow>
           <SettingRow
