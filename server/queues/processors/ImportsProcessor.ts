@@ -181,10 +181,11 @@ export default abstract class ImportsProcessor<
           },
           async (documents) => {
             for (const document of documents) {
-              await collection.addDocumentToStructure(document, 0, {
+              await collection.addDocumentToStructure(document, undefined, {
                 save: false,
                 silent: true,
                 transaction,
+                insertOrder: "append",
               });
             }
           }
