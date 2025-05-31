@@ -45,10 +45,6 @@ export class Environment {
   }
 
   /**
-   * Custom validation to ensure either DATABASE_URL or individual components are provided
-   */
-
-  /**
    * Returns an object consisting of env vars annotated with `@Public` decorator
    */
   get public() {
@@ -734,8 +730,6 @@ export class Environment {
   public get isTest() {
     return this.ENVIRONMENT === "test";
   }
-
-  /**
 
   protected toOptionalString(value: string | undefined) {
     return value ? value : undefined;
