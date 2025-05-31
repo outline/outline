@@ -62,7 +62,6 @@ export default class WebsocketsProcessor {
 
         return socketio.to(channels).emit("entities", {
           event: event.name,
-          fetchIfMissing: true,
           documentIds: [
             {
               id: document.id,
@@ -124,7 +123,6 @@ export default class WebsocketsProcessor {
 
         return socketio.to(channels).emit("entities", {
           event: event.name,
-          fetchIfMissing: true,
           documentIds: [
             {
               id: document.id,
