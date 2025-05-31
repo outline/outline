@@ -16,7 +16,11 @@ import {
 import uniq from "lodash/uniq";
 import { languages } from "@shared/i18n";
 import { Day, Hour } from "@shared/utils/time";
-import { CannotUseWith, CannotUseWithout } from "@server/utils/validators";
+import {
+  CannotUseWith,
+  CannotUseWithout,
+  CannotUseWithAny,
+} from "@server/utils/validators";
 import Deprecated from "./models/decorators/Deprecated";
 import { getArg } from "./utils/args";
 import { Public, PublicEnvironmentRegister } from "./utils/decorators/Public";
@@ -35,9 +39,40 @@ export class Environment {
           process.exit(1);
         }
       });
+
+      // Custom validation for database configuration
+      this.validateDatabaseConfiguration();
     });
 
     PublicEnvironmentRegister.registerEnv(this);
+  }
+
+  /**
+   * Custom validation to ensure either DATABASE_URL or individual components are provided
+   */
+  private validateDatabaseConfiguration() {
+    const hasUrl = !!this.DATABASE_URL;
+    const hasIndividualComponents = !!(
+      this.DATABASE_HOST &&
+      this.DATABASE_NAME &&
+      this.DATABASE_USER
+    );
+
+    if (!hasUrl && !hasIndividualComponents) {
+      console.warn(
+        "Environment configuration is invalid, please check the following:\n\n" +
+          "- Either DATABASE_URL must be provided, or all of DATABASE_HOST, DATABASE_NAME, and DATABASE_USER must be provided."
+      );
+      process.exit(1);
+    }
+
+    if (hasUrl && hasIndividualComponents) {
+      console.warn(
+        "Environment configuration is invalid, please check the following:\n\n" +
+          "- DATABASE_URL cannot be used together with individual database components (DATABASE_HOST, DATABASE_NAME, DATABASE_USER, DATABASE_PASSWORD, DATABASE_PORT)."
+      );
+      process.exit(1);
+    }
   }
 
   /**
@@ -79,7 +114,52 @@ export class Environment {
     allow_underscores: true,
     protocols: ["postgres", "postgresql"],
   })
+  @CannotUseWithAny([
+    "DATABASE_HOST",
+    "DATABASE_PORT",
+    "DATABASE_NAME",
+    "DATABASE_USER",
+    "DATABASE_PASSWORD",
+  ])
   public DATABASE_URL = environment.DATABASE_URL ?? "";
+
+  /**
+   * Database host for individual component configuration.
+   */
+  @IsOptional()
+  @CannotUseWith("DATABASE_URL")
+  public DATABASE_HOST = this.toOptionalString(environment.DATABASE_HOST);
+
+  /**
+   * Database port for individual component configuration.
+   */
+  @IsOptional()
+  @IsNumber()
+  @CannotUseWith("DATABASE_URL")
+  public DATABASE_PORT = this.toOptionalNumber(environment.DATABASE_PORT);
+
+  /**
+   * Database name for individual component configuration.
+   */
+  @IsOptional()
+  @CannotUseWith("DATABASE_URL")
+  public DATABASE_NAME = this.toOptionalString(environment.DATABASE_NAME);
+
+  /**
+   * Database user for individual component configuration.
+   */
+  @IsOptional()
+  @CannotUseWith("DATABASE_URL")
+  public DATABASE_USER = this.toOptionalString(environment.DATABASE_USER);
+
+  /**
+   * Database password for individual component configuration.
+   */
+  @IsOptional()
+  @CannotUseWith("DATABASE_URL")
+  public DATABASE_PASSWORD = this.toOptionalString(
+    environment.DATABASE_PASSWORD
+  );
 
   /**
    * An optional database schema.
@@ -680,6 +760,31 @@ export class Environment {
    */
   public get isTest() {
     return this.ENVIRONMENT === "test";
+  }
+
+  /**
+   * Returns the effective database URL, either from DATABASE_URL or constructed
+   * from individual database components.
+   */
+  public get effectiveDatabaseUrl(): string {
+    if (this.DATABASE_URL) {
+      return this.DATABASE_URL;
+    }
+
+    // If using individual components, all required fields must be present
+    if (this.DATABASE_HOST && this.DATABASE_NAME && this.DATABASE_USER) {
+      const port = this.DATABASE_PORT || 5432;
+      const password = this.DATABASE_PASSWORD
+        ? `:${encodeURIComponent(this.DATABASE_PASSWORD)}`
+        : "";
+      return `postgresql://${encodeURIComponent(
+        this.DATABASE_USER
+      )}${password}@${this.DATABASE_HOST}:${port}/${encodeURIComponent(
+        this.DATABASE_NAME
+      )}`;
+    }
+
+    return "";
   }
 
   protected toOptionalString(value: string | undefined) {

@@ -11,7 +11,7 @@ import * as models from "../models";
 const isSSLDisabled = env.PGSSLMODE === "disable";
 const poolMax = env.DATABASE_CONNECTION_POOL_MAX ?? 5;
 const poolMin = env.DATABASE_CONNECTION_POOL_MIN ?? 0;
-const url = env.DATABASE_CONNECTION_POOL_URL || env.DATABASE_URL;
+const url = env.DATABASE_CONNECTION_POOL_URL || env.effectiveDatabaseUrl;
 const schema = env.DATABASE_SCHEMA;
 
 export function createDatabaseInstance(
@@ -57,7 +57,9 @@ export function createDatabaseInstance(
         ? new Error(
             `Failed to parse: "${databaseUrl}". Ensure special characters in database URL are encoded`
           )
-        : new Error(`DATABASE_URL is not set.`)
+        : new Error(
+            `DATABASE_URL is not set or individual database components (DATABASE_HOST, DATABASE_NAME, DATABASE_USER) are not properly configured.`
+          )
     );
     process.exit(1);
   }
