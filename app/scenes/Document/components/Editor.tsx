@@ -40,6 +40,11 @@ type Props = Omit<EditorProps, "editorStyle"> & {
   document: Document;
   isDraft: boolean;
   multiplayer?: boolean;
+  share?: {
+    id: string;
+    allowIndexing: boolean;
+    showLastModified: boolean;
+  };
   onSave: (options: {
     done?: boolean;
     autosave?: boolean;
@@ -72,6 +77,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     readOnly,
     children,
     multiplayer,
+    share,
     ...rest
   } = props;
   const can = usePolicy(document);
@@ -229,7 +235,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         onBlur={handleBlur}
         placeholder={t("Untitled")}
       />
-      {!shareId && (
+      {(!shareId || share?.showLastModified) && (
         <DocumentMeta
           document={document}
           to={{

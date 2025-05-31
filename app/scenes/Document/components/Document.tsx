@@ -89,6 +89,11 @@ type Props = WithTranslation &
     revision?: Revision;
     readOnly: boolean;
     shareId?: string;
+    share?: {
+      id: string;
+      allowIndexing: boolean;
+      showLastModified: boolean;
+    };
     tocPosition?: TOCPosition | false;
     onCreateLink?: (
       params: Properties<Document>,
@@ -440,6 +445,7 @@ class DocumentScene extends React.Component<Props> {
       auth,
       ui,
       shareId,
+      share,
       tocPosition,
       t,
     } = this.props;
@@ -573,6 +579,7 @@ class DocumentScene extends React.Component<Props> {
                         ref={this.editor}
                         multiplayer={multiplayerEditor}
                         shareId={shareId}
+                        share={share}
                         isDraft={document.isDraft}
                         template={document.isTemplate}
                         document={document}

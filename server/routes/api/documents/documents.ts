@@ -599,6 +599,13 @@ router.post(
               share && share.includeChildDocuments
                 ? collection?.getDocumentTree(share.documentId)
                 : null,
+            share: share
+              ? {
+                  id: share.id,
+                  allowIndexing: share.allowIndexing,
+                  showLastModified: share.showLastModified,
+                }
+              : undefined,
           }
         : serializedDocument;
     ctx.body = {

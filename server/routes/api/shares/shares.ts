@@ -235,7 +235,7 @@ router.post(
   validate(T.SharesUpdateSchema),
   transaction(),
   async (ctx: APIContext<T.SharesUpdateReq>) => {
-    const { id, includeChildDocuments, published, urlId, allowIndexing } =
+    const { id, includeChildDocuments, published, urlId, allowIndexing, showLastModified } =
       ctx.input.body;
 
     const { user } = ctx.state.auth;
@@ -265,6 +265,10 @@ router.post(
 
     if (allowIndexing !== undefined) {
       share.allowIndexing = allowIndexing;
+    }
+
+    if (showLastModified !== undefined) {
+      share.showLastModified = showLastModified;
     }
 
     await share.saveWithCtx(ctx);
