@@ -101,6 +101,9 @@ export default function useDictionary() {
       video: t("Video"),
       untitled: t("Untitled"),
       none: t("None"),
+      toggleBlock: t("Toggle block"),
+      emptyToggleBlockHead: t("Toggle"),
+      emptyToggleBlockBody: `${t("Click to type here")}…`,
     }),
     [t]
   );
