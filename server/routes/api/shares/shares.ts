@@ -235,8 +235,14 @@ router.post(
   validate(T.SharesUpdateSchema),
   transaction(),
   async (ctx: APIContext<T.SharesUpdateReq>) => {
-    const { id, includeChildDocuments, published, urlId, allowIndexing, showLastModified } =
-      ctx.input.body;
+    const {
+      id,
+      includeChildDocuments,
+      published,
+      urlId,
+      allowIndexing,
+      showLastModified,
+    } = ctx.input.body;
 
     const { user } = ctx.state.auth;
     authorize(user, "share", user.team);
