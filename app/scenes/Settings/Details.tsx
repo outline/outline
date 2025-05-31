@@ -216,7 +216,7 @@ function Details() {
           <SettingRow
             label={t("Description")}
             name="description"
-            description={t("A brief description of your workspace.")}
+            description={t("A short description of your workspace.")}
           >
             <Input
               id="description"
@@ -262,12 +262,12 @@ function Details() {
               flex
             />
           </SettingRow>
-          {team.avatarUrl && (
+          {(team.avatarUrl || team.description) && (
             <SettingRow
               name={TeamPreference.PublicBranding}
               label={t("Public branding")}
               description={t(
-                "Show your team’s logo on public pages like login and shared documents."
+                "Show your workspace logo, description, and branding on publicly shared pages."
               )}
             >
               <Switch

@@ -81,8 +81,8 @@ class Team extends ParanoidModel<
 
   @AllowNull
   @Length({
-    max: 500,
-    msg: "Team description must be 500 characters or less",
+    max: TeamValidation.maxDescriptionLength,
+    msg: `Team description must be ${TeamValidation.maxDescriptionLength} characters or less`,
   })
   @Column(DataType.TEXT)
   description: string | null;

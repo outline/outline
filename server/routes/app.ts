@@ -59,30 +59,11 @@ export const renderApp = async (
 ) => {
   const {
     title = env.APP_NAME,
-    description = "A modern team knowledge base for your internal documentation, product specs, support answers, meeting notes, onboarding, &amp; more\u2026",
+    description = "A modern team knowledge base for your internal documentation, product specs, support answers, meeting notes, onboarding, &amp; more…",
     canonical = "",
     shortcutIcon = `${env.CDN_URL || ""}/images/favicon-32.png`,
     allowIndexing = true,
   } = options;
-
-  // Get team context to potentially use team description for public branding
-  let team;
-  try {
-    team = await getTeamFromContext(ctx);
-  } catch (err) {
-    // Team context is optional for renderApp
-  }
-
-  // Use team description if public branding is enabled and no custom description is provided
-  let finalDescription = description;
-  if (
-    team &&
-    team.getPreference(TeamPreference.PublicBranding) &&
-    team.description &&
-    !options.description
-  ) {
-    finalDescription = team.description;
-  }
 
   if (ctx.request.path === "/realtime/") {
     return next();
@@ -140,7 +121,7 @@ export const renderApp = async (
     .replace(/\{env\}/g, environment)
     .replace(/\{lang\}/g, unicodeCLDRtoISO639(env.DEFAULT_LANGUAGE))
     .replace(/\{title\}/g, escape(title))
-    .replace(/\{description\}/g, escape(finalDescription))
+    .replace(/\{description\}/g, escape(description))
     .replace(/\{noindex\}/g, noIndexTag)
     .replace(
       /\{manifest-url\}/g,
@@ -209,14 +190,18 @@ export const renderShare = async (ctx: Context, next: Next) => {
   // Allow shares to be embedded in iframes on other websites
   ctx.remove("X-Frame-Options");
 
+  const publicBranding =
+    team?.getPreference(TeamPreference.PublicBranding) ?? false;
+
   // Inject share information in SSR HTML
   return renderApp(ctx, next, {
-    title: document?.title,
-    description: document?.getSummary(),
+    title:
+      document?.title || (publicBranding && team?.name ? team.name : undefined),
+    description:
+      document?.getSummary() ||
+      (publicBranding && team?.description ? team.description : undefined),
     shortcutIcon:
-      team?.getPreference(TeamPreference.PublicBranding) && team.avatarUrl
-        ? team.avatarUrl
-        : undefined,
+      publicBranding && team?.avatarUrl ? team.avatarUrl : undefined,
     analytics,
     isShare: true,
     rootShareId,
