@@ -170,16 +170,16 @@ router.get("*", shareDomains(), async (ctx, next) => {
       })
     : [];
 
+  const publicBranding =
+    team?.getPreference(TeamPreference.PublicBranding) ?? false;
+
   return renderApp(ctx, next, {
-    title:
-      team?.getPreference(TeamPreference.PublicBranding) && team.name
-        ? team.name
-        : undefined,
+    title: publicBranding && team?.name ? team.name : undefined,
+    description:
+      publicBranding && team?.description ? team.description : undefined,
     analytics,
     shortcutIcon:
-      team?.getPreference(TeamPreference.PublicBranding) && team.avatarUrl
-        ? team.avatarUrl
-        : undefined,
+      publicBranding && team?.avatarUrl ? team.avatarUrl : undefined,
   });
 });
 

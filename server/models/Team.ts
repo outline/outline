@@ -79,6 +79,14 @@ class Team extends ParanoidModel<
   @Column
   name: string;
 
+  @AllowNull
+  @Length({
+    max: TeamValidation.maxDescriptionLength,
+    msg: `Team description must be ${TeamValidation.maxDescriptionLength} characters or less`,
+  })
+  @Column(DataType.TEXT)
+  description: string | null;
+
   @IsLowercase
   @Unique
   @Length({

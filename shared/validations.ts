@@ -95,6 +95,9 @@ export const TeamValidation = {
 
   /** The maximum length of the team name */
   maxNameLength: 255,
+
+  /** The maximum length of the team description */
+  maxDescriptionLength: 1000,
 };
 
 export const UserValidation = {

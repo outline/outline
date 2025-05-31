@@ -6,6 +6,8 @@ export const TeamsUpdateSchema = BaseSchema.extend({
   body: z.object({
     /** Team name */
     name: z.string().optional(),
+    /** Team description */
+    description: z.string().nullish(),
     /** Avatar URL */
     avatarUrl: z.string().nullish(),
     /** The subdomain to access the team */
