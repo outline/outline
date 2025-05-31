@@ -4,6 +4,7 @@ import {
   CollectionPermission,
   CollectionStatusFilter,
   FileOperationFormat,
+  ImportValidationBehavior,
 } from "@shared/types";
 import { Collection } from "@server/models";
 import { zodIconType, zodIdType } from "@server/utils/zod";
@@ -73,6 +74,9 @@ export const CollectionsImportSchema = BaseSchema.extend({
     format: z
       .nativeEnum(FileOperationFormat)
       .default(FileOperationFormat.MarkdownZip),
+    validationBehavior: z
+      .nativeEnum(ImportValidationBehavior)
+      .default(ImportValidationBehavior.Truncate),
   }),
 });
 

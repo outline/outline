@@ -9,9 +9,10 @@ import {
   CollectionPermission,
   CollectionSort,
   FileOperationState,
+  ImportValidationBehavior,
   ProsemirrorData,
 } from "@shared/types";
-import { CollectionValidation } from "@shared/validations";
+import { CollectionValidation, DocumentValidation } from "@shared/validations";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import documentCreator from "@server/commands/documentCreator";
 import { createContext } from "@server/context";
@@ -423,14 +424,29 @@ export default abstract class ImportTask extends BaseTask<Props> {
           collections.set(item.id, collection);
 
           // Documents
-          for (const item of data.documents.filter(
+          for (const docItem of data.documents.filter(
             (d) => d.collectionId === collection.id
           )) {
             Logger.debug(
               "task",
-              `ImportTask persisting document ${item.title} (${item.id})`
+              `ImportTask persisting document ${docItem.title} (${docItem.id})`
             );
-            let text = item.text;
+
+            // Apply validation behavior
+            const validationBehavior =
+              fileOperation.options?.validationBehavior ||
+              ImportValidationBehavior.Truncate;
+            const processedDocument = this.validateAndProcessDocument(
+              docItem,
+              validationBehavior
+            );
+
+            // Skip this document if validation behavior is Skip and document failed validation
+            if (!processedDocument) {
+              continue;
+            }
+
+            let text = processedDocument.text;
 
             // Check all of the attachments we've created against urls in the text
             // and replace them out with attachment redirect urls before saving.
@@ -452,26 +468,30 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
             const document = await documentCreator({
               sourceMetadata: {
-                fileName: path.basename(item.path),
-                mimeType: item.mimeType,
-                externalId: item.externalId,
-                createdByName: item.createdByName,
+                fileName: path.basename(processedDocument.path),
+                mimeType: processedDocument.mimeType,
+                externalId: processedDocument.externalId,
+                createdByName: processedDocument.createdByName,
               },
-              id: item.id,
-              title: item.title,
-              urlId: item.urlId,
+              id: processedDocument.id,
+              title: processedDocument.title,
+              urlId: processedDocument.urlId,
               text,
-              content: item.data,
-              collectionId: item.collectionId,
-              createdAt: item.createdAt,
-              updatedAt: item.updatedAt ?? item.createdAt,
-              publishedAt: item.updatedAt ?? item.createdAt ?? new Date(),
-              parentDocumentId: item.parentDocumentId,
+              content: processedDocument.data,
+              collectionId: processedDocument.collectionId,
+              createdAt: processedDocument.createdAt,
+              updatedAt:
+                processedDocument.updatedAt ?? processedDocument.createdAt,
+              publishedAt:
+                processedDocument.updatedAt ??
+                processedDocument.createdAt ??
+                new Date(),
+              parentDocumentId: processedDocument.parentDocumentId,
               importId: fileOperation.id,
               user,
               ctx: createContext({ user, transaction }),
             });
-            documents.set(item.id, document);
+            documents.set(processedDocument.id, document);
 
             await collection.addDocumentToStructure(document, undefined, {
               transaction,
@@ -533,6 +553,81 @@ export default abstract class ImportTask extends BaseTask<Props> {
       documents,
       attachments,
     };
+  }
+
+  /**
+   * Validates a document and applies the appropriate behavior based on validation settings.
+   *
+   * @param document The document to validate
+   * @param validationBehavior The behavior to apply when validation fails
+   * @returns The processed document or null if it should be skipped
+   */
+  private validateAndProcessDocument(
+    document: StructuredImportData["documents"][number],
+    validationBehavior: ImportValidationBehavior
+  ): StructuredImportData["documents"][number] | null {
+    const titleTooLong =
+      document.title.length > DocumentValidation.maxTitleLength;
+    const textTooLong =
+      document.text.length > DocumentValidation.maxRecommendedLength;
+    const stateTooLarge =
+      JSON.stringify(document.data || {}).length >
+      DocumentValidation.maxStateLength;
+
+    const hasValidationIssues = titleTooLong || textTooLong || stateTooLarge;
+
+    if (!hasValidationIssues) {
+      return document;
+    }
+
+    switch (validationBehavior) {
+      case ImportValidationBehavior.Skip: {
+        Logger.info(
+          "task",
+          `Skipping document "${document.title}" due to validation issues`
+        );
+        return null;
+      }
+
+      case ImportValidationBehavior.Truncate: {
+        const processedDocument = { ...document };
+
+        if (titleTooLong) {
+          processedDocument.title = truncate(document.title, {
+            length: DocumentValidation.maxTitleLength,
+            omission: "...",
+          });
+        }
+
+        if (textTooLong) {
+          processedDocument.text = truncate(document.text, {
+            length: DocumentValidation.maxRecommendedLength,
+            omission: "\n\n[Content truncated due to size limits]",
+          });
+        }
+
+        if (stateTooLarge && document.data) {
+          // For ProseMirror data, we need to be more careful about truncation
+          // For now, we'll just remove the data and rely on the text
+          processedDocument.data = undefined;
+        }
+
+        Logger.info(
+          "task",
+          `Truncated document "${document.title}" due to validation issues`
+        );
+        return processedDocument;
+      }
+
+      case ImportValidationBehavior.Abort:
+      default: {
+        throw new ValidationError(
+          `Document "${document.title}" exceeds validation limits. ` +
+            `Title: ${document.title.length}/${DocumentValidation.maxTitleLength}, ` +
+            `Text: ${document.text.length}/${DocumentValidation.maxRecommendedLength} characters`
+        );
+      }
+    }
   }
 
   /**

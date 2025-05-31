@@ -6,10 +6,15 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import { AttachmentPreset, CollectionPermission } from "@shared/types";
+import {
+  AttachmentPreset,
+  CollectionPermission,
+  ImportValidationBehavior,
+} from "@shared/types";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
+import InputSelect from "~/components/InputSelect";
 import InputSelectPermission from "~/components/InputSelectPermission";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import Text from "~/components/Text";
@@ -33,6 +38,8 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
   const [permission, setPermission] = useState<CollectionPermission | null>(
     CollectionPermission.ReadWrite
   );
+  const [validationBehavior, setValidationBehavior] =
+    useState<ImportValidationBehavior>(ImportValidationBehavior.Truncate);
 
   const handleFiles = (files: File[]) => {
     if (files.length > 1) {
@@ -53,7 +60,11 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
         name: file.name,
         preset: AttachmentPreset.WorkspaceImport,
       });
-      await collections.import(attachment.id, { format, permission });
+      await collections.import(attachment.id, {
+        format,
+        permission,
+        validationBehavior,
+      });
       onSubmit();
       toast.message(file.name, {
         description: t(
@@ -113,6 +124,32 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
         <Text as="span" type="secondary">
           {t(
             "Set the default permission level for collections created from the import"
+          )}
+          .
+        </Text>
+      </div>
+      <div>
+        <InputSelect
+          value={validationBehavior}
+          options={[
+            {
+              label: t("Skip invalid documents"),
+              value: ImportValidationBehavior.Skip,
+            },
+            {
+              label: t("Truncate oversized documents"),
+              value: ImportValidationBehavior.Truncate,
+            },
+            {
+              label: t("Abort import on validation errors"),
+              value: ImportValidationBehavior.Abort,
+            },
+          ]}
+          onChange={setValidationBehavior}
+        />
+        <Text as="span" type="secondary">
+          {t(
+            "Choose how to handle documents that fail validation during import"
           )}
           .
         </Text>
