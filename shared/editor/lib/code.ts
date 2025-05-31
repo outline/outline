@@ -76,11 +76,6 @@ export const codeLanguages: Record<string, CodeLanguage> = {
     label: "Erlang",
     loader: () => import("refractor/lang/erlang").then((m) => m.default),
   },
-  flutter: {
-    lang: "dart",
-    label: "Flutter",
-    loader: () => import("refractor/lang/dart").then((m) => m.default),
-  },
   go: {
     lang: "go",
     label: "Go",
