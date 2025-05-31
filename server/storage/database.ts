@@ -8,10 +8,33 @@ import Model from "@server/models/base/Model";
 import Logger from "../logging/Logger";
 import * as models from "../models";
 
+/**
+ * Returns the effective database URL, either from DATABASE_URL or constructed
+ * from individual database components.
+ */
+function getEffectiveDatabaseUrl(): string {
+  if (env.DATABASE_URL) {
+    return env.DATABASE_URL;
+  }
+
+  // If using individual components, all required fields must be present
+  if (env.DATABASE_HOST && env.DATABASE_NAME && env.DATABASE_USER) {
+    const port = env.DATABASE_PORT || 5432;
+    const password = env.DATABASE_PASSWORD
+      ? `:${encodeURIComponent(env.DATABASE_PASSWORD)}`
+      : "";
+    return `postgresql://${encodeURIComponent(env.DATABASE_USER)}${password}@${
+      env.DATABASE_HOST
+    }:${port}/${encodeURIComponent(env.DATABASE_NAME)}`;
+  }
+
+  return "";
+}
+
 const isSSLDisabled = env.PGSSLMODE === "disable";
 const poolMax = env.DATABASE_CONNECTION_POOL_MAX ?? 5;
 const poolMin = env.DATABASE_CONNECTION_POOL_MIN ?? 0;
-const url = env.DATABASE_CONNECTION_POOL_URL || env.effectiveDatabaseUrl;
+const url = env.DATABASE_CONNECTION_POOL_URL || getEffectiveDatabaseUrl();
 const schema = env.DATABASE_SCHEMA;
 
 export function createDatabaseInstance(
