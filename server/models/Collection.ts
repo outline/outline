@@ -840,6 +840,7 @@ class Collection extends ParanoidModel<
       silent?: boolean;
       documentJson?: NavigationNode;
       includeArchived?: boolean;
+      insertOrder?: "prepend" | "append";
     } = {}
   ) {
     if (!this.documentStructure) {
@@ -856,24 +857,36 @@ class Collection extends ParanoidModel<
       ...options.documentJson,
     };
 
+    // Determine the insertion index based on order parameter or explicit index
+    let insertionIndex: number;
+
+    if (index !== undefined) {
+      // Explicit index takes precedence
+      insertionIndex = index;
+    } else if (options.insertOrder === "prepend") {
+      // Prepend to the beginning
+      insertionIndex = 0;
+    } else {
+      // Default behavior: append to the end (maintains backward compatibility)
+      insertionIndex = this.documentStructure.length;
+    }
+
     if (!document.parentDocumentId) {
       // Note: Index is supported on DB level but it's being ignored
       // by the API presentation until we build product support for it.
-      this.documentStructure.splice(
-        index !== undefined ? index : this.documentStructure.length,
-        0,
-        documentJson
-      );
+      this.documentStructure.splice(insertionIndex, 0, documentJson);
     } else {
       // Recursively place document
       const placeDocument = (documentList: NavigationNode[]) =>
         documentList.map((childDocument) => {
           if (document.parentDocumentId === childDocument.id) {
-            childDocument.children.splice(
-              index !== undefined ? index : childDocument.children.length,
-              0,
-              documentJson
-            );
+            const childInsertionIndex =
+              index !== undefined
+                ? index
+                : options.insertOrder === "prepend"
+                ? 0
+                : childDocument.children.length;
+            childDocument.children.splice(childInsertionIndex, 0, documentJson);
           } else {
             childDocument.children = placeDocument(childDocument.children);
           }
