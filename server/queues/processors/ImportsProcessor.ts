@@ -185,7 +185,7 @@ export default abstract class ImportsProcessor<
                 save: false,
                 silent: true,
                 transaction,
-                order: "append",
+                insertOrder: "append",
               });
             }
           }

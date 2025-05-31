@@ -476,7 +476,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
             await collection.addDocumentToStructure(document, undefined, {
               transaction,
               save: false,
-              order: "append",
+              insertOrder: "append",
             });
           }
 

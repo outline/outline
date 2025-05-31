@@ -840,7 +840,7 @@ class Collection extends ParanoidModel<
       silent?: boolean;
       documentJson?: NavigationNode;
       includeArchived?: boolean;
-      order?: "prepend" | "append";
+      insertOrder?: "prepend" | "append";
     } = {}
   ) {
     if (!this.documentStructure) {
@@ -863,7 +863,7 @@ class Collection extends ParanoidModel<
     if (index !== undefined) {
       // Explicit index takes precedence
       insertionIndex = index;
-    } else if (options.order === "prepend") {
+    } else if (options.insertOrder === "prepend") {
       // Prepend to the beginning
       insertionIndex = 0;
     } else {
@@ -883,7 +883,7 @@ class Collection extends ParanoidModel<
             const childInsertionIndex =
               index !== undefined
                 ? index
-                : options.order === "prepend"
+                : options.insertOrder === "prepend"
                 ? 0
                 : childDocument.children.length;
             childDocument.children.splice(childInsertionIndex, 0, documentJson);
