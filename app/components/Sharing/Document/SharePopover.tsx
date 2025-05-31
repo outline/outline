@@ -11,6 +11,7 @@ import Group from "~/models/Group";
 import User from "~/models/User";
 import { Avatar, GroupAvatar, AvatarSize } from "~/components/Avatar";
 import NudeButton from "~/components/NudeButton";
+import { TooltipProvider } from "~/components/TooltipContext";
 import { createAction } from "~/actions";
 import { UserSection } from "~/actions/sections";
 import useBoolean from "~/hooks/useBoolean";
@@ -345,42 +346,44 @@ function SharePopover({ document, onRequestClose, visible }: Props) {
   );
 
   return (
-    <Wrapper>
-      {can.manageUsers && (
-        <SearchInput
-          ref={searchInputRef}
-          onChange={handleQuery}
-          onClick={showPicker}
-          onKeyDown={handleKeyDown}
-          query={query}
-          back={backButton}
-          action={rightButton}
-        />
-      )}
+    <TooltipProvider>
+      <Wrapper>
+        {can.manageUsers && (
+          <SearchInput
+            ref={searchInputRef}
+            onChange={handleQuery}
+            onClick={showPicker}
+            onKeyDown={handleKeyDown}
+            query={query}
+            back={backButton}
+            action={rightButton}
+          />
+        )}
 
-      {picker && (
-        <Suggestions
-          ref={suggestionsRef}
-          document={document}
-          query={query}
-          pendingIds={pendingIds}
-          addPendingId={handleAddPendingId}
-          removePendingId={handleRemovePendingId}
-          onEscape={handleEscape}
-        />
-      )}
+        {picker && (
+          <Suggestions
+            ref={suggestionsRef}
+            document={document}
+            query={query}
+            pendingIds={pendingIds}
+            addPendingId={handleAddPendingId}
+            removePendingId={handleRemovePendingId}
+            onEscape={handleEscape}
+          />
+        )}
 
-      <div style={{ display: picker ? "none" : "block" }}>
-        <AccessControlList
-          document={document}
-          invitedInSession={invitedInSession}
-          share={share}
-          sharedParent={sharedParent}
-          visible={visible}
-          onRequestClose={onRequestClose}
-        />
-      </div>
-    </Wrapper>
+        <div style={{ display: picker ? "none" : "block" }}>
+          <AccessControlList
+            document={document}
+            invitedInSession={invitedInSession}
+            share={share}
+            sharedParent={sharedParent}
+            visible={visible}
+            onRequestClose={onRequestClose}
+          />
+        </div>
+      </Wrapper>
+    </TooltipProvider>
   );
 }
 

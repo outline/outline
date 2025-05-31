@@ -11,6 +11,7 @@ import Group from "~/models/Group";
 import User from "~/models/User";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import NudeButton from "~/components/NudeButton";
+import { TooltipProvider } from "~/components/TooltipContext";
 import { createAction } from "~/actions";
 import { UserSection } from "~/actions/sections";
 import useBoolean from "~/hooks/useBoolean";
@@ -335,38 +336,40 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
   );
 
   return (
-    <Wrapper>
-      {can.update && (
-        <SearchInput
-          ref={searchInputRef}
-          onChange={handleQuery}
-          onClick={showPicker}
-          onKeyDown={handleKeyDown}
-          query={query}
-          back={backButton}
-          action={rightButton}
-        />
-      )}
+    <TooltipProvider>
+      <Wrapper>
+        {can.update && (
+          <SearchInput
+            ref={searchInputRef}
+            onChange={handleQuery}
+            onClick={showPicker}
+            onKeyDown={handleKeyDown}
+            query={query}
+            back={backButton}
+            action={rightButton}
+          />
+        )}
 
-      {picker && (
-        <Suggestions
-          ref={suggestionsRef}
-          query={query}
-          collection={collection}
-          pendingIds={pendingIds}
-          addPendingId={handleAddPendingId}
-          removePendingId={handleRemovePendingId}
-          onEscape={handleEscape}
-        />
-      )}
+        {picker && (
+          <Suggestions
+            ref={suggestionsRef}
+            query={query}
+            collection={collection}
+            pendingIds={pendingIds}
+            addPendingId={handleAddPendingId}
+            removePendingId={handleRemovePendingId}
+            onEscape={handleEscape}
+          />
+        )}
 
-      <div style={{ display: picker ? "none" : "block" }}>
-        <AccessControlList
-          collection={collection}
-          invitedInSession={invitedInSession}
-        />
-      </div>
-    </Wrapper>
+        <div style={{ display: picker ? "none" : "block" }}>
+          <AccessControlList
+            collection={collection}
+            invitedInSession={invitedInSession}
+          />
+        </div>
+      </Wrapper>
+    </TooltipProvider>
   );
 }
 
