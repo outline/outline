@@ -7,6 +7,7 @@ import {
   Table,
 } from "sequelize-typescript";
 import { MentionType } from "@shared/types";
+import { can } from "@server/policies";
 import Document from "./Document";
 import User from "./User";
 import IdModel from "./base/IdModel";
@@ -68,7 +69,7 @@ class Mention extends IdModel<
     const accessibleMentions = [];
     for (const mention of mentions) {
       if (mention.document) {
-        const hasAccess = await mention.document.authorize(user, "read");
+        const hasAccess = can(user, "read", mention.document);
         if (hasAccess) {
           accessibleMentions.push(mention);
         }

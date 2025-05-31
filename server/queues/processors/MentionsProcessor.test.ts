@@ -7,18 +7,18 @@ describe("MentionsProcessor", () => {
     const user = await buildUser();
     const mentionedUser = await buildUser({ teamId: user.teamId });
     const document = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
+      userId: user.id!,
+      teamId: user.teamId!,
       text: `Hello @${mentionedUser.name}!`,
     });
 
     const processor = new MentionsProcessor();
     await processor.perform({
       name: "documents.publish",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: user.id,
+      documentId: document.id!,
+      collectionId: document.collectionId!,
+      teamId: document.teamId!,
+      actorId: user.id!,
       data: {
         title: document.title,
       },
@@ -38,8 +38,8 @@ describe("MentionsProcessor", () => {
     const user = await buildUser();
     const mentionedUser = await buildUser({ teamId: user.teamId });
     const document = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
+      userId: user.id!,
+      teamId: user.teamId!,
       text: `Hello @${mentionedUser.name}!`,
       publishedAt: null,
     });
@@ -47,12 +47,15 @@ describe("MentionsProcessor", () => {
     const processor = new MentionsProcessor();
     await processor.perform({
       name: "documents.update",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: user.id,
+      documentId: document.id!,
+      collectionId: document.collectionId!,
+      teamId: document.teamId!,
+      createdAt: new Date().toISOString(),
+      actorId: user.id!,
       data: {
         title: document.title,
+        autosave: false,
+        done: true,
       },
       ip: "127.0.0.1",
     });
@@ -71,18 +74,18 @@ describe("MentionsProcessor", () => {
     const mentionedUser = await buildUser({ teamId: user.teamId });
     const anotherMentionedUser = await buildUser({ teamId: user.teamId });
     const document = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
+      userId: user.id!,
+      teamId: user.teamId!,
       text: `Hello @${mentionedUser.name}!`,
     });
 
     const processor = new MentionsProcessor();
     await processor.perform({
       name: "documents.publish",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: user.id,
+      documentId: document.id!,
+      collectionId: document.collectionId!,
+      teamId: document.teamId!,
+      actorId: user.id!,
       data: {
         title: document.title,
       },
@@ -95,12 +98,15 @@ describe("MentionsProcessor", () => {
 
     await processor.perform({
       name: "documents.update",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: user.id,
+      documentId: document.id!,
+      collectionId: document.collectionId!,
+      teamId: document.teamId!,
+      actorId: user.id!,
+      createdAt: new Date().toISOString(),
       data: {
         title: document.title,
+        autosave: false,
+        done: true,
       },
       ip: "127.0.0.1",
     });
@@ -119,18 +125,18 @@ describe("MentionsProcessor", () => {
     const user = await buildUser();
     const mentionedUser = await buildUser({ teamId: user.teamId });
     const document = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
+      userId: user.id!,
+      teamId: user.teamId!,
       text: `Hello @${mentionedUser.name}!`,
     });
 
     const processor = new MentionsProcessor();
     await processor.perform({
       name: "documents.publish",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: user.id,
+      documentId: document.id!,
+      collectionId: document.collectionId!,
+      teamId: document.teamId!,
+      actorId: user.id!,
       data: {
         title: document.title,
       },
@@ -151,18 +157,18 @@ describe("MentionsProcessor", () => {
     const mentionedUser = await buildUser({ teamId: user.teamId });
     const anotherMentionedUser = await buildUser({ teamId: user.teamId });
     const document = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
+      userId: user.id!,
+      teamId: user.teamId!,
       text: `Hello @${mentionedUser.name} and @${anotherMentionedUser.name}!`,
     });
 
     const processor = new MentionsProcessor();
     await processor.perform({
       name: "documents.publish",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: user.id,
+      documentId: document.id!,
+      collectionId: document.collectionId!,
+      teamId: document.teamId!,
+      actorId: user.id!,
       data: {
         title: document.title,
       },
@@ -175,12 +181,15 @@ describe("MentionsProcessor", () => {
 
     await processor.perform({
       name: "documents.update",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: user.id,
+      documentId: document.id!,
+      collectionId: document.collectionId!,
+      teamId: document.teamId!,
+      actorId: user.id!,
+      createdAt: new Date().toISOString(),
       data: {
         title: document.title,
+        autosave: false,
+        done: true,
       },
       ip: "127.0.0.1",
     });
@@ -199,18 +208,18 @@ describe("MentionsProcessor", () => {
     const user = await buildUser();
     const mentionedUser = await buildUser({ teamId: user.teamId });
     const document = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
+      userId: user.id!,
+      teamId: user.teamId!,
       text: `Hello @${mentionedUser.name}!`,
     });
 
     const processor = new MentionsProcessor();
     await processor.perform({
       name: "documents.publish",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: user.id,
+      documentId: document.id!,
+      collectionId: document.collectionId!,
+      teamId: document.teamId!,
+      actorId: user.id!,
       data: {
         title: document.title,
       },
@@ -219,10 +228,10 @@ describe("MentionsProcessor", () => {
 
     await processor.perform({
       name: "documents.delete",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: user.id,
+      documentId: document.id!,
+      collectionId: document.collectionId!,
+      teamId: document.teamId!,
+      actorId: user.id!,
       data: {
         title: document.title,
       },
