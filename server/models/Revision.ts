@@ -114,6 +114,28 @@ class Revision extends ParanoidModel<
   @Column(DataType.ARRAY(DataType.UUID))
   collaboratorIds: string[] = [];
 
+  /**
+   * Get the collaborators for this revision.
+   */
+  get collaborators() {
+    const otherCollaboratorIds = this.collaboratorIds.filter(
+      (id) => id !== this.userId
+    );
+
+    if (otherCollaboratorIds.length === 0) {
+      return [this.user];
+    }
+
+    return User.findAll({
+      where: {
+        id: {
+          [Op.in]: otherCollaboratorIds,
+        },
+      },
+      paranoid: false,
+    }).then((others) => [this.user, ...others]);
+  }
+
   // hooks
 
   @BeforeDestroy

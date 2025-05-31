@@ -27,6 +27,7 @@ import useStores from "~/hooks/useStores";
 import RevisionMenu from "~/menus/RevisionMenu";
 import Logger from "~/utils/Logger";
 import { documentHistoryPath } from "~/utils/routeHelpers";
+import Facepile from "./Facepile";
 import Text from "./Text";
 
 export type RevisionEvent = {
@@ -191,6 +192,8 @@ const EventListItem = ({ event, document, ...rest }: Props) => {
     to = undefined;
   }
 
+  const revision = isRevision ? revisions.get(event.id) : undefined;
+
   return event.name === "revisions.create" && !event.deletedAt ? (
     <RevisionItem
       small
@@ -208,7 +211,13 @@ const EventListItem = ({ event, document, ...rest }: Props) => {
           onClick={handleTimeClick}
         />
       }
-      image={<Avatar model={actor} size={AvatarSize.Large} />}
+      image={
+        revision?.collaborators ? (
+          <Facepile users={revision?.collaborators} limit={3} />
+        ) : (
+          <Avatar model={actor} size={AvatarSize.Large} />
+        )
+      }
       subtitle={meta}
       actions={
         isRevision && isActive && !event.latest ? (
