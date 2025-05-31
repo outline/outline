@@ -51,6 +51,11 @@ export const codeLanguages: Record<string, CodeLanguage> = {
     label: "CSV",
     loader: () => import("refractor/lang/csv").then((m) => m.default),
   },
+  dart: {
+    lang: "dart",
+    label: "Dart",
+    loader: () => import("refractor/lang/dart").then((m) => m.default),
+  },
   docker: {
     lang: "docker",
     label: "Docker",
