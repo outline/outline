@@ -9,36 +9,39 @@ import Logger from "../logging/Logger";
 import * as models from "../models";
 
 /**
- * Returns the effective database URL, either from DATABASE_URL or constructed
- * from individual database components.
+ * Returns database configuration for Sequelize constructor.
+ * Either uses DATABASE_URL or constructs options from individual components.
  */
-function getEffectiveDatabaseUrl(): string {
+function getDatabaseConfig() {
   if (env.DATABASE_URL) {
     return env.DATABASE_URL;
   }
 
-  // If using individual components, all required fields must be present
+  // If using individual components, return Sequelize options object
   if (env.DATABASE_HOST && env.DATABASE_NAME && env.DATABASE_USER) {
-    const port = env.DATABASE_PORT || 5432;
-    const password = env.DATABASE_PASSWORD
-      ? `:${encodeURIComponent(env.DATABASE_PASSWORD)}`
-      : "";
-    return `postgresql://${encodeURIComponent(env.DATABASE_USER)}${password}@${
-      env.DATABASE_HOST
-    }:${port}/${encodeURIComponent(env.DATABASE_NAME)}`;
+    return {
+      database: env.DATABASE_NAME,
+      username: env.DATABASE_USER,
+      password: env.DATABASE_PASSWORD || undefined,
+      host: env.DATABASE_HOST,
+      port: env.DATABASE_PORT || 5432,
+      dialect: "postgres" as const,
+    };
   }
 
-  return "";
+  throw new Error(
+    "DATABASE_URL is not set or individual database components (DATABASE_HOST, DATABASE_NAME, DATABASE_USER) are not properly configured."
+  );
 }
 
 const isSSLDisabled = env.PGSSLMODE === "disable";
 const poolMax = env.DATABASE_CONNECTION_POOL_MAX ?? 5;
 const poolMin = env.DATABASE_CONNECTION_POOL_MIN ?? 0;
-const url = env.DATABASE_CONNECTION_POOL_URL || getEffectiveDatabaseUrl();
+const databaseConfig = env.DATABASE_CONNECTION_POOL_URL || getDatabaseConfig();
 const schema = env.DATABASE_SCHEMA;
 
 export function createDatabaseInstance(
-  databaseUrl: string,
+  databaseConfig: string | object,
   input: {
     [key: string]: typeof Model<
       InferAttributes<Model>,
@@ -47,7 +50,10 @@ export function createDatabaseInstance(
   }
 ): Sequelize {
   try {
-    const instance = new Sequelize(databaseUrl, {
+    let instance;
+
+    // Common options for both URL and object configurations
+    const commonOptions = {
       logging: (msg) =>
         process.env.DEBUG?.includes("database") &&
         Logger.debug("database", msg),
@@ -70,18 +76,26 @@ export function createDatabaseInstance(
         idle: 10000,
       },
       schema,
-    });
+    };
+
+    // If databaseConfig is a string, it's a URL; if it's an object, merge with common options
+    if (typeof databaseConfig === "string") {
+      instance = new Sequelize(databaseConfig, commonOptions);
+    } else {
+      instance = new Sequelize({ ...databaseConfig, ...commonOptions });
+    }
+
     sequelizeStrictAttributes(instance);
     return instance;
   } catch (error) {
     Logger.fatal(
       "Could not connect to database",
-      databaseUrl
+      typeof databaseConfig === "string"
         ? new Error(
-            `Failed to parse: "${databaseUrl}". Ensure special characters in database URL are encoded`
+            `Failed to parse: "${databaseConfig}". Ensure special characters in database URL are encoded`
           )
         : new Error(
-            `DATABASE_URL is not set or individual database components (DATABASE_HOST, DATABASE_NAME, DATABASE_USER) are not properly configured.`
+            `Failed to connect using individual database components. Please check DATABASE_HOST, DATABASE_NAME, DATABASE_USER configuration.`
           )
     );
     process.exit(1);
@@ -156,7 +170,7 @@ export function createMigrationRunner(
   });
 }
 
-export const sequelize = createDatabaseInstance(url, models);
+export const sequelize = createDatabaseInstance(databaseConfig, models);
 
 export const migrations = createMigrationRunner(sequelize, [
   "migrations/*.js",
