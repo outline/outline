@@ -120,7 +120,7 @@ class Share extends IdModel<
 
   @Default(false)
   @Column
-  showLastModified: boolean;
+  showLastUpdated: boolean;
 
   // hooks
 

@@ -579,6 +579,7 @@ router.post(
       presentDocument(ctx, document, {
         isPublic,
         shareId,
+        includeUpdatedAt: share?.showLastUpdated,
       }),
       teamFromCtx?.id === document.teamId ? teamFromCtx : document.$get("team"),
     ]);
@@ -599,13 +600,6 @@ router.post(
               share && share.includeChildDocuments
                 ? collection?.getDocumentTree(share.documentId)
                 : null,
-            share: share
-              ? {
-                  id: share.id,
-                  allowIndexing: share.allowIndexing,
-                  showLastModified: share.showLastModified,
-                }
-              : undefined,
           }
         : serializedDocument;
     ctx.body = {

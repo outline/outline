@@ -39,11 +39,6 @@ type Response = {
   document?: DocumentModel;
   team?: PublicTeam;
   sharedTree?: NavigationNode | undefined;
-  share?: {
-    id: string;
-    allowIndexing: boolean;
-    showLastModified: boolean;
-  };
 };
 
 type Props = RouteComponentProps<{
@@ -246,7 +241,6 @@ const SharedDocument = observer(
         document={response.document}
         sharedTree={response.sharedTree}
         shareId={shareId}
-        share={response.share}
         tocPosition={tocPosition}
         readOnly
       />

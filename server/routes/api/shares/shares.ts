@@ -241,7 +241,7 @@ router.post(
       published,
       urlId,
       allowIndexing,
-      showLastModified,
+      showLastUpdated,
     } = ctx.input.body;
 
     const { user } = ctx.state.auth;
@@ -273,8 +273,8 @@ router.post(
       share.allowIndexing = allowIndexing;
     }
 
-    if (showLastModified !== undefined) {
-      share.showLastModified = showLastModified;
+    if (showLastUpdated !== undefined) {
+      share.showLastUpdated = showLastUpdated;
     }
 
     await share.saveWithCtx(ctx);

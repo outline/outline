@@ -68,7 +68,7 @@ function PublicAccess({ document, share, sharedParent }: Props) {
     async (event) => {
       try {
         await share?.save({
-          showLastModified: event.currentTarget.checked,
+          showLastUpdated: event.currentTarget.checked,
         });
       } catch (err) {
         toast.error(err.message);
@@ -223,7 +223,7 @@ function PublicAccess({ document, share, sharedParent }: Props) {
             actions={
               <Switch
                 aria-label={t("Show last modified")}
-                checked={share?.showLastModified ?? false}
+                checked={share?.showLastUpdated ?? false}
                 onChange={handleShowLastModifiedChanged}
                 width={26}
                 height={14}
