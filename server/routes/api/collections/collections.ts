@@ -177,7 +177,8 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.CollectionsImportReq>) => {
     const { transaction } = ctx.state;
-    const { attachmentId, permission, format } = ctx.input.body;
+    const { attachmentId, permission, format, validationBehavior } =
+      ctx.input.body;
     const { user } = ctx.state.auth;
     authorize(user, "importCollection", user.team);
 
@@ -196,6 +197,7 @@ router.post(
       teamId: user.teamId,
       options: {
         permission,
+        validationBehavior,
       },
     });
 

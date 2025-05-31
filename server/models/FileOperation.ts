@@ -18,6 +18,7 @@ import {
   FileOperationFormat,
   FileOperationState,
   FileOperationType,
+  ImportValidationBehavior,
 } from "@shared/types";
 import FileStorage from "@server/storage/files";
 import Collection from "./Collection";
@@ -29,6 +30,7 @@ import Fix from "./decorators/Fix";
 export type FileOperationOptions = {
   includeAttachments?: boolean;
   permission?: CollectionPermission | null;
+  validationBehavior?: ImportValidationBehavior;
 };
 
 @DefaultScope(() => ({
