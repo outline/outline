@@ -10,17 +10,12 @@ import { trace } from "@server/logging/tracing";
 import Document from "@server/models/Document";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
+import Redis from "@server/storage/redis";
 import documentCollaborativeUpdater from "../commands/documentCollaborativeUpdater";
 import { withContext } from "./types";
 
 @trace()
 export default class PersistenceExtension implements Extension {
-  /**
-   * Map of documentId -> userIds that have modified the document since it
-   * was last persisted to the database. The map is cleared on every save.
-   */
-  documentCollaboratorIds = new Map<string, Set<string>>();
-
   async onLoadDocument({
     documentName,
     ...data
@@ -81,16 +76,17 @@ export default class PersistenceExtension implements Extension {
   }
 
   async onChange({ context, documentName }: withContext<onChangePayload>) {
+    const [, documentId] = documentName.split(".");
+
     Logger.debug(
       "multiplayer",
       `${context.user?.name} changed ${documentName}`
     );
 
-    const state = this.documentCollaboratorIds.get(documentName) ?? new Set();
     if (context.user) {
-      state.add(context.user.id);
+      const key = Document.getCollaboratorKey(documentId);
+      await Redis.defaultClient.sadd(key, context.user.id);
     }
-    this.documentCollaboratorIds.set(documentName, state);
   }
 
   async onStoreDocument({
@@ -101,18 +97,12 @@ export default class PersistenceExtension implements Extension {
   }: onStoreDocumentPayload) {
     const [, documentId] = documentName.split(".");
 
-    // Find the collaborators that have modified the document since it was last
-    // persisted and clear the map, if there's no collaborators then we don't
-    // need to persist the document.
-    const documentCollaboratorIds =
-      this.documentCollaboratorIds.get(documentName);
-    if (!documentCollaboratorIds) {
+    const key = Document.getCollaboratorKey(documentId);
+    const sessionCollaboratorIds = await Redis.defaultClient.smembers(key);
+    if (!sessionCollaboratorIds || sessionCollaboratorIds.length === 0) {
       Logger.debug("multiplayer", `No changes for ${documentName}`);
       return;
     }
-
-    const sessionCollaboratorIds = Array.from(documentCollaboratorIds.values());
-    this.documentCollaboratorIds.delete(documentName);
 
     try {
       await documentCollaborativeUpdater({

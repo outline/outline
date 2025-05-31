@@ -156,7 +156,6 @@ class Revision extends ParanoidModel<
       editorVersion: document.editorVersion,
       version: document.version,
       documentId: document.id,
-      collaboratorIds: document.collaboratorIds || [],
       // revision time is set to the last time document was touched as this
       // handler can be debounced in the case of an update
       createdAt: document.updatedAt,
@@ -167,14 +166,21 @@ class Revision extends ParanoidModel<
    * Create a Revision model from a Document model and save it to the database
    *
    * @param document The document to create from
+   * @param collaboratorIds Optional array of user IDs who authored this revision
    * @param options Options passed to the save method
    * @returns A Promise that resolves when saved
    */
   static createFromDocument(
     document: Document,
+    collaboratorIds?: string[],
     options?: SaveOptions<InferAttributes<Revision>>
   ) {
     const revision = this.buildFromDocument(document);
+
+    if (collaboratorIds) {
+      revision.collaboratorIds = collaboratorIds;
+    }
+
     return revision.save(options);
   }
 
