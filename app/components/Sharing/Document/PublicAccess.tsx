@@ -190,7 +190,9 @@ function PublicAccess({ document, share, sharedParent }: Props) {
                     "Disable this setting to discourage search engines from indexing the page"
                   )}
                 >
-                  <QuestionMarkIcon size={18} />
+                  <NudeButton size={18}>
+                    <QuestionMarkIcon size={18} />
+                  </NudeButton>
                 </Tooltip>
               </Text>
             }
