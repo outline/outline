@@ -60,7 +60,7 @@ export default async function documentDuplicator({
 
   async function duplicateChildDocuments(
     original: Document,
-    duplicated: Document
+    duplicatedDocument: Document
   ) {
     const childDocuments = await original.findChildDocuments(
       {
@@ -77,7 +77,7 @@ export default async function documentDuplicator({
 
     for (const childDocument of childDocuments) {
       const duplicatedChildDocument = await documentCreator({
-        parentDocumentId: duplicated.id,
+        parentDocumentId: duplicatedDocument.id,
         icon: childDocument.icon,
         color: childDocument.color,
         title: childDocument.title,

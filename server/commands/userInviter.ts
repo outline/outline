@@ -46,7 +46,9 @@ export default async function userInviter({
       email: emails,
     },
   });
-  const existingEmails = existingUsers.map((user) => user.email);
+  const existingEmails = existingUsers.map(
+    (existingUser) => existingUser.email
+  );
   const filteredInvites = normalizedInvites.filter(
     (invite) => !existingEmails.includes(invite.email)
   );
