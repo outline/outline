@@ -182,7 +182,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
         }
       );
     }
-  } catch (err) {
+  } catch (_err) {
     // If the share or document does not exist, return a 404.
     ctx.status = 404;
   }

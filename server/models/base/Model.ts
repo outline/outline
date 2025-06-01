@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import isEqual from "fast-deep-equal";
 import isArray from "lodash/isArray";
 import isObject from "lodash/isObject";
@@ -43,8 +42,8 @@ type EventOptions = EventOverrideOptions & {
 export type HookContext = APIContext["context"] & { event?: EventOptions };
 
 class Model<
-  TModelAttributes extends {} = any,
-  TCreationAttributes extends {} = TModelAttributes
+  TModelAttributes extends object = any,
+  TCreationAttributes extends object = TModelAttributes
 > extends SequelizeModel<TModelAttributes, TCreationAttributes> {
   /**
    * The namespace to use for events - defaults to the table name if none is provided.

@@ -129,8 +129,10 @@ export default class RootStore {
     Object.getOwnPropertyNames(this)
       .filter((key) => ["auth", "ui"].includes(key) === false)
       .forEach((key: keyof RootStore) => {
-        // @ts-expect-error clear exists on all stores
-        "clear" in this[key] && this[key].clear();
+        if ("clear" in this[key]) {
+          // @ts-expect-error clear exists on all stores
+          this[key].clear();
+        }
       });
   }
 

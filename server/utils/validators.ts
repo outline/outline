@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import {
   registerDecorator,
   ValidationArguments,
@@ -9,7 +8,7 @@ export function CannotUseWithout(
   property: string,
   validationOptions?: ValidationOptions
 ) {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       name: "cannotUseWithout",
       target: object.constructor,
@@ -34,7 +33,7 @@ export function CannotUseWith(
   property: string,
   validationOptions?: ValidationOptions
 ) {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       name: "cannotUseWith",
       target: object.constructor,
@@ -62,7 +61,7 @@ export function CannotUseWithAny(
   properties: string[],
   validationOptions?: ValidationOptions
 ) {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       name: "cannotUseWithAny",
       target: object.constructor,

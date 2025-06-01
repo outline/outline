@@ -37,7 +37,7 @@ export default class ImportHelper {
 
     try {
       stats = await fs.stat(filePath);
-    } catch (e) {
+    } catch (_err) {
       return null;
     }
 

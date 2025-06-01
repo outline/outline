@@ -299,7 +299,7 @@ export default class FindAndReplaceExtension extends Extension {
 
           this.results.push({ from, to, type });
         }
-      } catch (e) {
+      } catch (_err) {
         // Invalid RegExp
       }
     });

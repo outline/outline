@@ -41,7 +41,7 @@ const ReactionList: React.FC<Props> = ({
     const loadReactedUsersData = async () => {
       try {
         await model.loadReactedUsersData();
-      } catch (err) {
+      } catch (_err) {
         Logger.warn("Could not prefetch reaction data");
       }
     };

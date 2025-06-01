@@ -79,7 +79,7 @@ function DocumentCopy({ document, onSubmit }: Props) {
 
       toast.success(t("Document copied"));
       onSubmit(result);
-    } catch (err) {
+    } catch (_err) {
       toast.error(t("Couldn’t copy the document, try again?"));
     }
   };

@@ -148,7 +148,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
         parsedState = SlackUtils.parseState<{
           collectionId: string;
         }>(state);
-      } catch (err) {
+      } catch (_err) {
         throw ValidationError("Invalid state");
       }
 

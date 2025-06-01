@@ -12,7 +12,7 @@ import Desktop from "./Desktop";
 export function formatNumber(number: number, locale: string) {
   try {
     return new Intl.NumberFormat(locale).format(number);
-  } catch (e) {
+  } catch (_err) {
     return number.toString();
   }
 }

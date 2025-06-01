@@ -39,7 +39,7 @@ export const canUserAccessDocument = async (user: User, documentId: string) => {
     });
     authorize(user, "read", document);
     return true;
-  } catch (err) {
+  } catch (_err) {
     return false;
   }
 };

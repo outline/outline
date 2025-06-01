@@ -246,7 +246,7 @@ export class Mailer {
           pass: testAccount.pass,
         },
       };
-    } catch (err) {
+    } catch (_err) {
       return undefined;
     }
   }

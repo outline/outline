@@ -20,7 +20,7 @@ export const UrlsUnfurlSchema = BaseSchema.extend({
                 return ValidateURL.isValidMentionUrl(val);
               }
               return isUrl(val);
-            } catch (err) {
+            } catch (_err) {
               return false;
             }
           },

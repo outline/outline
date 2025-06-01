@@ -15,7 +15,7 @@ export default function parseCollectionSlug(url: string) {
 
   try {
     parsed = new URL(url).pathname;
-  } catch (err) {
+  } catch (_err) {
     return;
   }
 

@@ -13,7 +13,7 @@ const MATH_PLUGIN_KEY = new PluginKey<IMathPluginState>("prosemirror-math");
 export function createMathView(displayMode: boolean): NodeViewConstructor {
   return (node, view, getPos) => {
     // dynamically load katex styles and fonts
-    import("katex/dist/katex.min.css");
+    void import("katex/dist/katex.min.css");
 
     const pluginState = MATH_PLUGIN_KEY.getState(view.state);
     if (!pluginState) {

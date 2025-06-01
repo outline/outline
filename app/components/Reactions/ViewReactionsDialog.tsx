@@ -29,7 +29,7 @@ const ViewReactionsDialog: React.FC<Props> = ({ model }) => {
     const loadReactedUsersData = async () => {
       try {
         await model.loadReactedUsersData();
-      } catch (err) {
+      } catch (_err) {
         toast.error(t("Could not load reactions"));
       }
     };

@@ -97,7 +97,7 @@ export class RecreateTransform {
         try {
           toDoc = this.schema.nodeFromJSON(afterStepJSON);
           toDoc.check();
-        } catch (error) {
+        } catch (_err) {
           toDoc = null;
           if (this.ops.length > 0) {
             op = this.ops.shift() as Operation;

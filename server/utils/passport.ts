@@ -82,7 +82,7 @@ export async function request(
 
   try {
     return JSON.parse(text);
-  } catch (err) {
+  } catch (_err) {
     throw InternalError(
       `Failed to parse response from ${endpoint}. Expected JSON, got: ${text}`
     );

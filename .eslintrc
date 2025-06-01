@@ -72,6 +72,7 @@
         "ignoreTypeValueShadow": true
       }
     ],
+    "@typescript-eslint/no-require-imports": "off",
     "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/no-floating-promises": "error",
     "@typescript-eslint/await-thenable": "error",
@@ -85,6 +86,7 @@
       "error",
       {
         "argsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_",
         "args": "after-used",
         "ignoreRestSiblings": true
       }

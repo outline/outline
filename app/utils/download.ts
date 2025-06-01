@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 // download.js v3.0, by dandavis; 2008-2014. [CCBY2] see http://danml.com/download.html for tests/usage
 // v1 landed a FF+Chrome compat way of downloading strings to local un-named files, upgraded to use a hidden frame and optional mime
 // v2 added named files via a[download], msSaveBlob, IE (10+) support, and window.URL support for larger+faster saves than dataURLs
@@ -53,7 +54,7 @@ export default function download(
         : new B([x], {
             type: m,
           });
-  } catch (y) {
+  } catch (_err) {
     if (BB) {
       b = new BB();
       b.append([x]);
@@ -112,7 +113,7 @@ export default function download(
     ) {
       try {
         return saver("data:" + m + ";base64," + self.btoa(blob));
-      } catch (y) {
+      } catch (_err) {
         return saver("data:" + m + "," + encodeURIComponent(blob));
       }
     }

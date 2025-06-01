@@ -171,7 +171,9 @@ const InnerContextMenu = (props: InnerContextMenuProps) => {
       });
     }
     return () => {
-      scrollElement && !props.isSubMenu && enableBodyScroll(scrollElement);
+      if (scrollElement && !props.isSubMenu) {
+        enableBodyScroll(scrollElement);
+      }
     };
   }, [props.isSubMenu, props.visible]);
 

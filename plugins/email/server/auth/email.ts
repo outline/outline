@@ -103,7 +103,7 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
 
   try {
     user = await getUserForEmailSigninToken(token as string);
-  } catch (err) {
+  } catch (_err) {
     ctx.redirect(`/?notice=expired-token`);
     return;
   }
