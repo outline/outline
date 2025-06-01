@@ -38,6 +38,7 @@ import { BackButton } from "./components/BackButton";
 import { Background } from "./components/Background";
 import { Centered } from "./components/Centered";
 import { Notices } from "./components/Notices";
+import WorkspaceSetup from "./components/WorkspaceSetup";
 import { getRedirectUrl, navigateToSubdomain } from "./urls";
 
 type Props = {
@@ -191,11 +192,17 @@ function Login({ children, onBack }: Props) {
     );
   }
 
+  const firstRun =
+    config.providers.length === 0 && !isCloudHosted && !config.name;
   const hasMultipleProviders = config.providers.length > 1;
   const defaultProvider = find(
     config.providers,
     (provider) => provider.id === auth.lastSignedIn && !isCreate
   );
+
+  if (firstRun) {
+    return <WorkspaceSetup onBack={onBack} />;
+  }
 
   if (emailLinkSentTo) {
     return (
