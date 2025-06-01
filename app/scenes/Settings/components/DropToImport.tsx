@@ -118,8 +118,8 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
         </Text>
       </div>
       <Flex justify="flex-end">
-        <Button disabled={!file} onClick={handleStartImport}>
-          {t("Start import")}
+        <Button disabled={!file || isImporting} onClick={handleStartImport}>
+          {isImporting ? t("Uploading…") : t("Start import")}
         </Button>
       </Flex>
     </Flex>
