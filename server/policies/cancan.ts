@@ -122,7 +122,7 @@ export class CanCan {
 
         try {
           response = this.can(performer, ability.action, target);
-        } catch (err) {
+        } catch (_err) {
           response = false;
         }
 

@@ -190,7 +190,7 @@ const LinkEditor: React.FC<Props> = ({
 
     try {
       onClickLink(getHref(), event);
-    } catch (err) {
+    } catch (_err) {
       toast.error(dictionary.openLinkError);
     }
   };

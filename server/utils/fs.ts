@@ -75,6 +75,7 @@ export function requireDirectory<T>(dirName: string): [T, string][] {
   return getFilenamesInDirectory(dirName).map((fileName) => {
     const filePath = path.join(dirName, fileName);
     const name = path.basename(filePath.replace(/\.[jt]s$/, ""));
+
     return [require(filePath), name];
   });
 }

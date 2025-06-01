@@ -99,15 +99,17 @@ export default class GroupMembershipsStore extends Store<GroupMembership> {
     documentId?: string;
     groupId: string;
   }) {
-    collectionId
-      ? await client.post("/collections.remove_group", {
-          id: collectionId,
-          groupId,
-        })
-      : await client.post("/documents.remove_group", {
-          id: documentId,
-          groupId,
-        });
+    if (collectionId) {
+      await client.post("/collections.remove_group", {
+        id: collectionId,
+        groupId,
+      });
+    } else {
+      await client.post("/documents.remove_group", {
+        id: documentId,
+        groupId,
+      });
+    }
 
     this.removeAll(
       collectionId

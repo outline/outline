@@ -165,7 +165,7 @@ function CommentThreadItem({
       setReadOnly();
       comment.data = data;
       await comment.save();
-    } catch (error) {
+    } catch (_err) {
       setEditing();
       toast.error(t("Error updating comment"));
     }

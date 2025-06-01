@@ -49,7 +49,7 @@ export function parseDomain(url: string): Domain {
   try {
     const parsedUrl = new URL(url);
     port = parsedUrl.port || undefined;
-  } catch (e) {
+  } catch (_err) {
     // ignore
   }
 

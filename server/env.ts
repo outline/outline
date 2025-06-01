@@ -758,7 +758,7 @@ export class Environment {
   protected toBoolean(value: string) {
     try {
       return value ? !!JSON.parse(value) : false;
-    } catch (err) {
+    } catch (_err) {
       throw new Error(
         `"${value}" could not be parsed as a boolean, must be "true" or "false"`
       );
@@ -780,7 +780,7 @@ export class Environment {
   protected toOptionalBoolean(value: string | undefined) {
     try {
       return value ? !!JSON.parse(value) : undefined;
-    } catch (err) {
+    } catch (_err) {
       return undefined;
     }
   }

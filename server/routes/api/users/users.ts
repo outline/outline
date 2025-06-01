@@ -273,7 +273,7 @@ router.get(
       });
       user = res.user;
       email = res.email;
-    } catch (err) {
+    } catch (_err) {
       ctx.redirect(`/?notice=expired-token`);
       return;
     }
