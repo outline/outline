@@ -22,7 +22,7 @@ import { NotificationMetadata } from "@server/types";
 export enum EmailMessageCategory {
   Authentication = "authentication",
   Invitation = "invitation",
-  NotificationType = "notification",
+  Notification = "notification",
   Marketing = "marketing",
 }
 
