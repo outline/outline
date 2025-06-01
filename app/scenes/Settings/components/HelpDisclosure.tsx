@@ -7,15 +7,14 @@ import Text from "~/components/Text";
 
 type Props = {
   children?: React.ReactNode;
-  title: React.ReactNode;
+  title: string;
 };
 
 const HelpDisclosure: React.FC<Props> = ({ title, children }: Props) => {
-  const [open, setOpen] = React.useState(false);
   const theme = useTheme();
 
   return (
-    <Collapsible.Root open={open} onOpenChange={setOpen}>
+    <Collapsible.Root>
       <Collapsible.Trigger asChild>
         <StyledButton
           icon={<QuestionMarkIcon color={theme.textSecondary} />}
@@ -40,11 +39,36 @@ const StyledButton = styled(Button)`
 `;
 
 const HelpContent = styled(Collapsible.Content)`
-  transition: opacity 250ms ease-in-out;
-  opacity: 0;
+  overflow: hidden;
 
   &[data-state="open"] {
-    opacity: 1;
+    animation: slideDown 250ms ease-out;
+  }
+
+  &[data-state="closed"] {
+    animation: slideUp 250ms ease-out;
+  }
+
+  @keyframes slideDown {
+    from {
+      height: 0;
+      opacity: 0;
+    }
+    to {
+      height: var(--radix-collapsible-content-height);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      height: var(--radix-collapsible-content-height);
+      opacity: 1;
+    }
+    to {
+      height: 0;
+      opacity: 0;
+    }
   }
 `;
 
