@@ -1,9 +1,8 @@
+import * as Dialog from "@radix-ui/react-dialog";
 import * as React from "react";
-import { Dialog, DialogBackdrop, useDialogState } from "reakit/Dialog";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
 import Scrollable from "~/components/Scrollable";
-import usePrevious from "~/hooks/usePrevious";
 
 type Props = {
   children?: React.ReactNode;
@@ -18,47 +17,25 @@ const Guide: React.FC<Props> = ({
   title = "Untitled",
   onRequestClose,
   ...rest
-}: Props) => {
-  const dialog = useDialogState({
-    animated: 250,
-  });
-  const wasOpen = usePrevious(isOpen);
-
-  React.useEffect(() => {
-    if (!wasOpen && isOpen) {
-      dialog.show();
-    }
-
-    if (wasOpen && !isOpen) {
-      dialog.hide();
-    }
-  }, [dialog, wasOpen, isOpen]);
-
-  return (
-    <DialogBackdrop {...dialog}>
-      {(backdropProps) => (
-        <Backdrop {...backdropProps}>
-          <Dialog
-            {...dialog}
-            aria-label={title}
-            preventBodyScroll
-            hideOnEsc
-            hide={onRequestClose}
-          >
-            {(dialogProps) => (
-              <Scene {...dialogProps} {...rest}>
-                <Content>
-                  {title && <Header>{title}</Header>}
-                  {children}
-                </Content>
-              </Scene>
-            )}
-          </Dialog>
-        </Backdrop>
-      )}
-    </DialogBackdrop>
-  );
-};
+}: Props) => (
+  <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onRequestClose()}>
+    <Dialog.Portal>
+      <StyledOverlay>
+        <StyledContent
+          onEscapeKeyDown={onRequestClose}
+          aria-describedby={undefined}
+        >
+          <Scene {...rest}>
+            <Content>
+              {title && <Header>{title}</Header>}
+              {children}
+            </Content>
+          </Scene>
+        </StyledContent>
+      </StyledOverlay>
+    </Dialog.Portal>
+  </Dialog.Root>
+);
 
 const Header = styled.h1`
   font-size: 18px;
@@ -66,7 +43,7 @@ const Header = styled.h1`
   margin-bottom: 1em;
 `;
 
-const Backdrop = styled.div`
+const StyledOverlay = styled(Dialog.Overlay)`
   position: fixed;
   top: 0;
   left: 0;
@@ -77,12 +54,12 @@ const Backdrop = styled.div`
   transition: opacity 200ms ease-in-out;
   opacity: 0;
 
-  &[data-enter] {
+  &[data-state="open"] {
     opacity: 1;
   }
 `;
 
-const Scene = styled.div`
+const StyledContent = styled(Dialog.Content)`
   position: absolute;
   top: 0;
   right: 0;
@@ -100,10 +77,17 @@ const Scene = styled.div`
   transform: translateX(16px);
   transition: transform 250ms ease, opacity 250ms ease;
 
-  &[data-enter] {
+  &[data-state="open"] {
     opacity: 1;
     transform: translateX(0px);
   }
+`;
+
+const Scene = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
 `;
 
 const Content = styled(Scrollable)`

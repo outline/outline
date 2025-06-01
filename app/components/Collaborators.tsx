@@ -5,14 +5,15 @@ import uniq from "lodash/uniq";
 import { observer } from "mobx-react";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import Document from "~/models/Document";
 import { AvatarSize, AvatarWithPresence } from "~/components/Avatar";
 import DocumentViews from "~/components/DocumentViews";
 import Facepile from "~/components/Facepile";
 import NudeButton from "~/components/NudeButton";
 import Popover from "~/components/Popover";
+import PopoverDisclosure from "~/components/PopoverDisclosure";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import usePopoverState from "~/hooks/usePopoverState";
 import useStores from "~/hooks/useStores";
 
 type Props = {
