@@ -1,3 +1,4 @@
+import * as Popover from "@radix-ui/react-popover";
 import filter from "lodash/filter";
 import isEqual from "lodash/isEqual";
 import orderBy from "lodash/orderBy";
@@ -5,15 +6,16 @@ import uniq from "lodash/uniq";
 import { observer } from "mobx-react";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
+import styled from "styled-components";
+import { depths, s } from "@shared/styles";
 import Document from "~/models/Document";
 import { AvatarSize, AvatarWithPresence } from "~/components/Avatar";
 import DocumentViews from "~/components/DocumentViews";
 import Facepile from "~/components/Facepile";
 import NudeButton from "~/components/NudeButton";
-import Popover from "~/components/Popover";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
+import { fadeAndScaleIn } from "~/styles/animations";
 
 type Props = {
   /** The document to display live collaborators for */
@@ -21,6 +23,21 @@ type Props = {
   /** The maximum number of collaborators to display, defaults to 6 */
   limit?: number;
 };
+
+// Styled components to match the original Popover styling
+const StyledPopoverContent = styled(Popover.Content)`
+  animation: ${fadeAndScaleIn} 200ms ease;
+  transform-origin: 75% 0;
+  background: ${s("menuBackground")};
+  border-radius: 6px;
+  padding: 12px 24px;
+  max-height: 75vh;
+  box-shadow: ${s("menuShadow")};
+  z-index: ${depths.modal};
+  overflow-x: hidden;
+  overflow-y: auto;
+  outline: none;
+`;
 
 /**
  * Displays a list of live collaborators for a document, including their avatars
@@ -32,6 +49,7 @@ function Collaborators(props: Props) {
   const user = useCurrentUser();
   const currentUserId = user?.id;
   const [requestedUserIds, setRequestedUserIds] = useState<string[]>([]);
+  const [popoverOpen, setPopoverOpen] = useState(false);
   const { users, presence, ui } = useStores();
   const { document } = props;
   const { observingUserId } = ui;
@@ -94,11 +112,6 @@ function Collaborators(props: Props) {
     }
   }, [missingUserIds, requestedUserIds, users]);
 
-  const popover = usePopoverState({
-    gutter: 0,
-    placement: "bottom-end",
-  });
-
   // Memoize onClick handler to avoid inline function creation
   const handleAvatarClick = useCallback(
     (
@@ -150,28 +163,33 @@ function Collaborators(props: Props) {
   );
 
   return (
-    <>
-      <PopoverDisclosure {...popover}>
-        {(popoverProps) => (
-          <NudeButton
-            width={Math.min(collaborators.length, limit) * AvatarSize.Large}
-            height={AvatarSize.Large}
-            {...popoverProps}
-          >
-            <Facepile
-              size={AvatarSize.Large}
-              limit={limit}
-              overflow={Math.max(0, collaborators.length - limit)}
-              users={collaborators}
-              renderAvatar={renderAvatar}
-            />
-          </NudeButton>
-        )}
-      </PopoverDisclosure>
-      <Popover {...popover} width={300} aria-label={t("Viewers")} tabIndex={0}>
-        {popover.visible && <DocumentViews document={document} />}
-      </Popover>
-    </>
+    <Popover.Root open={popoverOpen} onOpenChange={setPopoverOpen}>
+      <Popover.Trigger asChild>
+        <NudeButton
+          width={Math.min(collaborators.length, limit) * AvatarSize.Large}
+          height={AvatarSize.Large}
+        >
+          <Facepile
+            size={AvatarSize.Large}
+            limit={limit}
+            overflow={Math.max(0, collaborators.length - limit)}
+            users={collaborators}
+            renderAvatar={renderAvatar}
+          />
+        </NudeButton>
+      </Popover.Trigger>
+      <Popover.Portal>
+        <StyledPopoverContent
+          side="bottom"
+          align="end"
+          sideOffset={0}
+          aria-label={t("Viewers")}
+          style={{ width: 300 }}
+        >
+          <DocumentViews document={document} />
+        </StyledPopoverContent>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }
 
