@@ -216,7 +216,7 @@ export const ViewGroupMembersDialog = observer(function ({
             icon: <Avatar model={user} size={AvatarSize.Toast} />,
           }
         );
-      } catch (err) {
+      } catch (_err) {
         toast.error(t("Could not remove user"));
       }
     },
@@ -326,7 +326,7 @@ const AddPeopleToGroupDialog = observer(function ({
             icon: <Avatar model={user} size={AvatarSize.Toast} />,
           }
         );
-      } catch (err) {
+      } catch (_err) {
         toast.error(t("Could not add user"));
       }
     },

@@ -100,7 +100,9 @@ function wrapInNativeError(err: any): Error {
     try {
       errMsg = JSON.stringify(err);
       // eslint-disable-next-line no-empty
-    } catch (e) {}
+    } catch (_err) {
+      // Ignore
+    }
   }
   const newError = InternalError(`Non-error thrown: ${errMsg}`);
   // err maybe an object, try to copy the name, message and stack to the new error instance

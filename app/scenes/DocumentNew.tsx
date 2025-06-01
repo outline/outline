@@ -61,7 +61,7 @@ function DocumentNew({ template }: Props) {
             : documentEditPath(document),
           location.state
         );
-      } catch (err) {
+      } catch (_err) {
         toast.error(t("Couldn’t create the document, try again?"));
         history.goBack();
       }

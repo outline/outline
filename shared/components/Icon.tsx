@@ -61,10 +61,8 @@ const Icon = ({
     }
 
     return <EmojiIcon emoji={icon} size={size} className={className} />;
-  } catch (err) {
-    // Logger.warn("Failed to render icon", {
-    //   icon,
-    // });
+  } catch (_err) {
+    // Ignore
   }
 
   return null;

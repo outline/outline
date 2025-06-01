@@ -54,7 +54,7 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
             })
           );
         }
-      } catch (err) {
+      } catch (_err) {
         toast.error(t("Could not remove user"));
       }
     },
@@ -74,7 +74,7 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
             userName: userToUpdate.name,
           })
         );
-      } catch (err) {
+      } catch (_err) {
         toast.error(t("Could not update user"));
       }
     },

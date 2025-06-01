@@ -18,7 +18,7 @@ export const readManifestFile = (file = "./build/app/.vite/manifest.json") => {
 
   try {
     manifest = fs.readFileSync(absoluteFilePath, "utf8") as string;
-  } catch (err) {
+  } catch (_err) {
     Logger.warn(
       `Can not find ${absoluteFilePath}. Try executing "yarn vite:build" before running in production mode.`
     );

@@ -21,7 +21,9 @@ function MarkAsViewed(props: Props) {
     }, MARK_AS_VIEWED_AFTER);
 
     return () => {
-      viewTimeout.current && clearTimeout(viewTimeout.current);
+      if (viewTimeout.current) {
+        clearTimeout(viewTimeout.current);
+      }
     };
   }, [document]);
 

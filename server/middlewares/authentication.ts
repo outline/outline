@@ -79,7 +79,7 @@ export default function auth(options: AuthenticationOptions = {}) {
           authentication = await OAuthAuthentication.findByAccessToken(token, {
             rejectOnEmpty: true,
           });
-        } catch (err) {
+        } catch (_err) {
           throw AuthenticationError("Invalid access token");
         }
         if (!authentication) {
@@ -114,7 +114,7 @@ export default function auth(options: AuthenticationOptions = {}) {
 
         try {
           apiKey = await ApiKey.findByToken(token);
-        } catch (err) {
+        } catch (_err) {
           throw AuthenticationError("Invalid API key");
         }
 
