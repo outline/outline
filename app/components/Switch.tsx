@@ -142,6 +142,7 @@ const StyledSwitchRoot = styled(RadixSwitch.Root)<{
   border: none;
   cursor: var(--pointer);
   transition: background-color 0.4s;
+  padding: 0 4px;
   flex-shrink: 0;
 
   &:focus {
@@ -169,11 +170,11 @@ const StyledSwitchThumb = styled(RadixSwitch.Thumb)<{
   background-color: white;
   border-radius: 50%;
   transition: transform 0.4s;
-  transform: translateX(4px);
+  transform: translateX(0);
   will-change: transform;
 
   &[data-state="checked"] {
-    transform: translateX(${(props) => props.width - props.height + 4}px);
+    transform: translateX(${(props) => props.width - props.height}px);
   }
 `;
 
