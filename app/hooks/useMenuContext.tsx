@@ -2,8 +2,8 @@ import noop from "lodash/noop";
 import * as React from "react";
 
 type MenuContextType = {
-  isMenuOpen: boolean;
-  setIsMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  openMenuHideFn: (() => void) | null;
+  setOpenMenuHideFn: React.Dispatch<React.SetStateAction<(() => void) | null>>;
 };
 
 const MenuContext = React.createContext<MenuContextType | null>(null);
@@ -13,13 +13,13 @@ type Props = {
 };
 
 export const MenuProvider: React.FC = ({ children }: Props) => {
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const [openMenuHideFn, setOpenMenuHideFn] = React.useState<(() => void) | null>(null);
   const memoized = React.useMemo(
     () => ({
-      isMenuOpen,
-      setIsMenuOpen,
+      openMenuHideFn,
+      setOpenMenuHideFn,
     }),
-    [isMenuOpen, setIsMenuOpen]
+    [openMenuHideFn, setOpenMenuHideFn]
   );
 
   return (
@@ -29,7 +29,7 @@ export const MenuProvider: React.FC = ({ children }: Props) => {
 
 const useMenuContext: () => MenuContextType = () => {
   const value = React.useContext(MenuContext);
-  return value ? value : { isMenuOpen: false, setIsMenuOpen: noop };
+  return value ? value : { openMenuHideFn: null, setOpenMenuHideFn: noop };
 };
 
 export default useMenuContext;

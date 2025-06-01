@@ -67,28 +67,25 @@ const ContextMenu: React.FC<Props> = ({
   const previousVisible = usePrevious(rest.visible);
   const { ui } = useStores();
   const { t } = useTranslation();
-  const { setIsMenuOpen } = useMenuContext();
+  const { openMenuHideFn, setOpenMenuHideFn } = useMenuContext();
   const isMobile = useMobile();
   const isSubMenu = !!parentMenuState;
-
-  useUnmount(() => {
-    setIsMenuOpen(false);
-  });
 
   React.useEffect(() => {
     if (rest.visible && !previousVisible) {
       onOpen?.();
 
-      if (!isSubMenu) {
-        setIsMenuOpen(true);
+      if (openMenuHideFn && openMenuHideFn !== rest.hide) {
+        openMenuHideFn();
       }
+      setOpenMenuHideFn(() => rest.hide);
     }
 
     if (!rest.visible && previousVisible) {
       onClose?.();
 
-      if (!isSubMenu) {
-        setIsMenuOpen(false);
+      if (openMenuHideFn === rest.hide) {
+        setOpenMenuHideFn(null);
       }
     }
   }, [
@@ -97,9 +94,11 @@ const ContextMenu: React.FC<Props> = ({
     previousVisible,
     rest.visible,
     ui.sidebarCollapsed,
-    setIsMenuOpen,
     isSubMenu,
     t,
+    openMenuHideFn,
+    setOpenMenuHideFn,
+    rest.hide,
   ]);
 
   // Perf win – don't render anything until the menu has been opened
