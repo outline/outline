@@ -62,7 +62,7 @@ export default class WebsocketsProcessor {
 
         return socketio.to(channels).emit("entities", {
           event: event.name,
-          fetchIfMissing: true,
+          invalidatedPolicies: [document.id],
           documentIds: [
             {
               id: document.id,
@@ -124,7 +124,7 @@ export default class WebsocketsProcessor {
 
         return socketio.to(channels).emit("entities", {
           event: event.name,
-          fetchIfMissing: true,
+          invalidatedPolicies: [document.id],
           documentIds: [
             {
               id: document.id,
@@ -177,6 +177,7 @@ export default class WebsocketsProcessor {
         documents.forEach((document) => {
           socketio.to(`collection-${document.collectionId}`).emit("entities", {
             event: event.name,
+            invalidatedPolicies: [document.id],
             documentIds: [
               {
                 id: document.id,
