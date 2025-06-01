@@ -1,42 +1,34 @@
+import * as Collapsible from "@radix-ui/react-collapsible";
 import { QuestionMarkIcon } from "outline-icons";
 import * as React from "react";
-import {
-  useDisclosureState,
-  Disclosure,
-  DisclosureContent,
-} from "reakit/Disclosure";
 import styled, { useTheme } from "styled-components";
 import Button from "~/components/Button";
 import Text from "~/components/Text";
 
 type Props = {
   children?: React.ReactNode;
-  title: React.ReactNode;
+  title: string;
 };
 
 const HelpDisclosure: React.FC<Props> = ({ title, children }: Props) => {
-  const disclosure = useDisclosureState({ animated: true });
   const theme = useTheme();
 
   return (
-    <>
-      <Disclosure {...disclosure}>
-        {(props) => (
-          <StyledButton
-            icon={<QuestionMarkIcon color={theme.textSecondary} />}
-            neutral
-            aria-label={title}
-            borderOnHover
-            {...props}
-          />
-        )}
-      </Disclosure>
-      <HelpContent {...disclosure}>
+    <Collapsible.Root>
+      <Collapsible.Trigger asChild>
+        <StyledButton
+          icon={<QuestionMarkIcon color={theme.textSecondary} />}
+          neutral
+          aria-label={title}
+          borderOnHover
+        />
+      </Collapsible.Trigger>
+      <HelpContent>
         <Text as="p" type="secondary">
           {children}
         </Text>
       </HelpContent>
-    </>
+    </Collapsible.Root>
   );
 };
 
@@ -46,12 +38,37 @@ const StyledButton = styled(Button)`
   right: 50px;
 `;
 
-const HelpContent = styled(DisclosureContent)`
-  transition: opacity 250ms ease-in-out;
-  opacity: 0;
+const HelpContent = styled(Collapsible.Content)`
+  overflow: hidden;
 
-  &[data-enter] {
-    opacity: 1;
+  &[data-state="open"] {
+    animation: slideDown 250ms ease-out;
+  }
+
+  &[data-state="closed"] {
+    animation: slideUp 250ms ease-out;
+  }
+
+  @keyframes slideDown {
+    from {
+      height: 0;
+      opacity: 0;
+    }
+    to {
+      height: var(--radix-collapsible-content-height);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      height: var(--radix-collapsible-content-height);
+      opacity: 1;
+    }
+    to {
+      height: 0;
+      opacity: 0;
+    }
   }
 `;
 
