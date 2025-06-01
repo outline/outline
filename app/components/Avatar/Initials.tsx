@@ -20,8 +20,6 @@ const Initials = styled(Flex)<{
       ? s("black50")
       : s("white75")};
   background-color: ${(props) => props.color ?? props.theme.textTertiary};
-  width: ${(props) => props.size}px;
-  height: ${(props) => props.size}px;
   flex-shrink: 0;
 
   // adjust font size down for each additional character

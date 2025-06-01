@@ -1,6 +1,6 @@
+import * as AvatarPrimitive from "@radix-ui/react-avatar";
 import * as React from "react";
 import styled from "styled-components";
-import useBoolean from "~/hooks/useBoolean";
 import Initials from "./Initials";
 
 export enum AvatarSize {
@@ -37,7 +37,7 @@ type Props = {
   /** The alt text for the image */
   alt?: string;
   /** Optional click handler */
-  onClick?: React.MouseEventHandler<HTMLImageElement>;
+  onClick?: React.MouseEventHandler<HTMLDivElement>;
   /** Optional class name */
   className?: string;
   /** Optional style */
@@ -50,28 +50,37 @@ function Avatar(props: Props) {
     style,
     variant = AvatarVariant.Round,
     className,
-    ...rest
+    onClick,
+    alt,
+    size,
   } = props;
   const src = props.src || model?.avatarUrl;
-  const [error, handleError] = useBoolean(false);
 
   return (
-    <Relative
+    <StyledAvatarRoot
       style={style}
       $variant={variant}
-      $size={props.size}
+      $size={size}
       className={className}
+      onClick={onClick}
     >
-      {src && !error ? (
-        <Image onError={handleError} src={src} {...rest} />
-      ) : model ? (
-        <Initials color={model.color} {...rest}>
-          {model.initial}
-        </Initials>
-      ) : (
-        <Initials {...rest} />
+      {src && (
+        <StyledAvatarImage
+          src={src}
+          alt={alt || (model ? `${model.initial || "User"} avatar` : "Avatar")}
+          $size={size}
+        />
       )}
-    </Relative>
+      <StyledAvatarFallback $size={size}>
+        {model ? (
+          <Initials color={model.color} size={size}>
+            {model.initial}
+          </Initials>
+        ) : (
+          <Initials size={size} />
+        )}
+      </StyledAvatarFallback>
+    </StyledAvatarRoot>
   );
 }
 
@@ -79,7 +88,10 @@ Avatar.defaultProps = {
   size: AvatarSize.Medium,
 };
 
-const Relative = styled.div<{ $variant: AvatarVariant; $size: AvatarSize }>`
+const StyledAvatarRoot = styled(AvatarPrimitive.Root)<{
+  $variant: AvatarVariant;
+  $size: AvatarSize;
+}>`
   position: relative;
   user-select: none;
   flex-shrink: 0;
@@ -88,12 +100,27 @@ const Relative = styled.div<{ $variant: AvatarVariant; $size: AvatarSize }>`
   overflow: hidden;
   width: ${(props) => props.$size}px;
   height: ${(props) => props.$size}px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 `;
 
-const Image = styled.img<{ size: number }>`
-  display: block;
-  width: ${(props) => props.size}px;
-  height: ${(props) => props.size}px;
+const StyledAvatarImage = styled(AvatarPrimitive.Image)<{ $size: number }>`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+`;
+
+const StyledAvatarFallback = styled(AvatarPrimitive.Fallback)<{
+  $size: number;
+}>`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: inherit;
 `;
 
 export default Avatar;

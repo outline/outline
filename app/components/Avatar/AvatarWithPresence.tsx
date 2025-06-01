@@ -22,7 +22,7 @@ type Props = {
   /** Whether this avatar represents the current user */
   isCurrentUser: boolean;
   /** Optional click handler for the avatar */
-  onClick?: React.MouseEventHandler<HTMLImageElement>;
+  onClick?: React.MouseEventHandler<HTMLDivElement>;
   /** Size of the avatar, defaults to AvatarSize.Large */
   size?: AvatarSize;
   /** Optional inline styles to apply to the avatar wrapper */
@@ -138,11 +138,11 @@ const AvatarPresence = styled.div<AvatarWrapperProps>`
         border: 2px solid transparent;
         pointer-events: none;
 
-        ${(props) =>
-          props.$isObserving &&
+        ${(innerProps) =>
+          innerProps.$isObserving &&
           css`
-            border: 2px solid ${props.$color};
-            box-shadow: inset 0 0 0 2px ${props.theme.background};
+            border: 2px solid ${innerProps.$color};
+            box-shadow: inset 0 0 0 2px ${innerProps.theme.background};
 
             &:hover {
               top: -1px;
@@ -154,7 +154,7 @@ const AvatarPresence = styled.div<AvatarWrapperProps>`
       }
 
       &:hover:after {
-        border: 2px solid ${(props) => props.$color};
+        border: 2px solid ${(innerProps) => innerProps.$color};
         box-shadow: inset 0 0 0 2px ${s("background")};
       }
     `}
