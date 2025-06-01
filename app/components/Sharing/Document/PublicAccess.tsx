@@ -218,7 +218,9 @@ function PublicAccess({ document, share, sharedParent }: Props) {
                     "Display the last modified timestamp on the shared page"
                   )}
                 >
-                  <QuestionMarkIcon size={18} />
+                  <NudeButton size={18}>
+                    <QuestionMarkIcon size={18} />
+                  </NudeButton>
                 </Tooltip>
               </Text>
             }
