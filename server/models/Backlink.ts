@@ -7,6 +7,7 @@ import {
   Table,
 } from "sequelize-typescript";
 import Document from "./Document";
+import Relationship, { RelationshipType } from "./Relationship";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
@@ -48,19 +49,50 @@ class Backlink extends IdModel<
     documentId: string,
     user: User
   ) {
-    const backlinks = await this.findAll({
-      attributes: ["reverseDocumentId"],
-      where: {
-        documentId,
+    // Delegate to Relationship model for actual implementation
+    return Relationship.findSourceDocumentIdsForUser(documentId, user);
+  }
+
+  /**
+   * Create a new backlink relationship
+   */
+  public static async findOrCreate(options: any) {
+    // Delegate to Relationship model with backlink type
+    return Relationship.findOrCreate({
+      ...options,
+      defaults: {
+        ...options.defaults,
+        type: RelationshipType.Backlink,
       },
     });
+  }
 
-    const documents = await Document.findByIds(
-      backlinks.map((backlink) => backlink.reverseDocumentId),
-      { userId: user.id }
-    );
+  /**
+   * Find all backlinks matching criteria
+   */
+  public static async findAll(options: any) {
+    // Delegate to Relationship model with backlink type filter
+    return Relationship.findAll({
+      ...options,
+      where: {
+        ...options.where,
+        type: RelationshipType.Backlink,
+      },
+    });
+  }
 
-    return documents.map((doc) => doc.id);
+  /**
+   * Destroy backlinks matching criteria
+   */
+  public static async destroy(options: any) {
+    // Delegate to Relationship model with backlink type filter
+    return Relationship.destroy({
+      ...options,
+      where: {
+        ...options.where,
+        type: RelationshipType.Backlink,
+      },
+    });
   }
 }
 

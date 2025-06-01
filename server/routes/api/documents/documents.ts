@@ -36,7 +36,7 @@ import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import {
   Attachment,
-  Backlink,
+  Relationship,
   Collection,
   Document,
   Event,
@@ -44,10 +44,6 @@ import {
   SearchQuery,
   User,
   View,
-  UserMembership,
-  Group,
-  GroupUser,
-  GroupMembership,
 } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -209,7 +205,7 @@ router.post(
     }
 
     if (backlinkDocumentId) {
-      const sourceDocumentIds = await Backlink.findSourceDocumentIdsForUser(
+      const sourceDocumentIds = await Relationship.findSourceDocumentIdsForUser(
         backlinkDocumentId,
         user
       );

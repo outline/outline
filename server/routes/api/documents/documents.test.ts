@@ -13,12 +13,12 @@ import {
   Document,
   View,
   Revision,
-  Backlink,
   UserMembership,
   SearchQuery,
   Event,
   User,
   GroupMembership,
+  Relationship,
 } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import {
@@ -1033,8 +1033,9 @@ describe("#documents.list", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await Backlink.create({
+    await Relationship.create({
       reverseDocumentId: anotherDoc.id,
+      type: "backlink",
       documentId: document.id,
       userId: user.id,
     });
