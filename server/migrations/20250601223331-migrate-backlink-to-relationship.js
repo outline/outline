@@ -13,11 +13,6 @@ module.exports = {
       defaultValue: 'backlink',
     });
 
-    // Update all existing rows to have type='backlink'
-    await queryInterface.sequelize.query(`
-      UPDATE relationships SET type = 'backlink' WHERE type IS NULL;
-    `);
-
     // Add new indexes for performance (the old indexes on documentId and reverseDocumentId should still exist)
     await queryInterface.addIndex("relationships", ["type"]);
     await queryInterface.addIndex("relationships", ["documentId", "type"]);
@@ -49,4 +44,3 @@ module.exports = {
     await queryInterface.renameTable("relationships", "backlinks");
   }
 };
-
