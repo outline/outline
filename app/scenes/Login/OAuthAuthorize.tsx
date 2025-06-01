@@ -93,7 +93,9 @@ function Authorize() {
 
   useEffect(
     () => () => {
-      timeoutRef.current && window.clearTimeout(timeoutRef.current);
+      if (timeoutRef.current) {
+        window.clearTimeout(timeoutRef.current);
+      }
     },
     []
   );

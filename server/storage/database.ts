@@ -87,7 +87,7 @@ export function createDatabaseInstance(
 
     sequelizeStrictAttributes(instance);
     return instance;
-  } catch (error) {
+  } catch (_err) {
     Logger.fatal(
       "Could not connect to database",
       typeof databaseConfig === "string"
@@ -137,7 +137,7 @@ export function createMigrationRunner(
     migrations: {
       glob,
       resolve: ({ name, path, context }) => {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const migration = require(path as string);
         return {
           name,
