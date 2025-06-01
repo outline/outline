@@ -7,7 +7,6 @@ import {
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { usePopoverState } from "reakit/Popover";
 import styled, { useTheme } from "styled-components";
 import { depths, s } from "@shared/styles";
 import { altDisplay, isModKey, metaDisplay } from "@shared/utils/keyboard";
@@ -20,19 +19,18 @@ import { Portal } from "~/components/Portal";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Tooltip from "~/components/Tooltip";
 import useKeyDown from "~/hooks/useKeyDown";
-import useOnClickOutside from "~/hooks/useOnClickOutside";
 import Desktop from "~/utils/Desktop";
 import { useEditor } from "./EditorContext";
 
 type KeyboardShortcutsProps = {
-  popover: ReturnType<typeof usePopoverState>;
+  isOpen: boolean;
   handleOpen: ({ withReplace }: { withReplace: boolean }) => void;
   handleCaseSensitive: () => void;
   handleRegex: () => void;
 };
 
 function useKeyboardShortcuts({
-  popover,
+  isOpen,
   handleOpen,
   handleCaseSensitive,
   handleRegex,
@@ -41,7 +39,7 @@ function useKeyboardShortcuts({
   useKeyDown(
     (ev) =>
       isModKey(ev) &&
-      !popover.visible &&
+      !isOpen &&
       ev.code === "KeyF" &&
       // Keyboard handler is through the AppMenu on Desktop v1.2.0+
       !(Desktop.bridge && "onFindInPage" in Desktop.bridge),
@@ -54,7 +52,7 @@ function useKeyboardShortcuts({
 
   // Enable/disable case sensitive search
   useKeyDown(
-    (ev) => isModKey(ev) && ev.altKey && ev.code === "KeyC" && popover.visible,
+    (ev) => isModKey(ev) && ev.altKey && ev.code === "KeyC" && isOpen,
     (ev) => {
       ev.preventDefault();
       handleCaseSensitive();
@@ -64,7 +62,7 @@ function useKeyboardShortcuts({
 
   // Enable/disable regex search
   useKeyDown(
-    (ev) => isModKey(ev) && ev.altKey && ev.code === "KeyR" && popover.visible,
+    (ev) => isModKey(ev) && ev.altKey && ev.code === "KeyR" && isOpen,
     (ev) => {
       ev.preventDefault();
       handleRegex();
@@ -97,9 +95,6 @@ export default function FindAndReplace({
   totalResults,
 }: Props) {
   const editor = useEditor();
-  const finalFocusRef = React.useRef<HTMLElement>(
-    editor.view.dom.parentElement
-  );
   const selectionRef = React.useRef<string | undefined>();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const inputReplaceRef = React.useRef<HTMLInputElement>(null);
@@ -110,12 +105,11 @@ export default function FindAndReplace({
   const [regexEnabled, setRegex] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [replaceTerm, setReplaceTerm] = React.useState("");
-  const popover = usePopoverState();
-  const { show } = popover;
+  const [isOpen, setIsOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
-      show();
+      setIsOpen(true);
     }
   }, [open]);
 
@@ -127,16 +121,16 @@ export default function FindAndReplace({
     if ("onFindInPage" in Desktop.bridge) {
       Desktop.bridge.onFindInPage(() => {
         selectionRef.current = window.getSelection()?.toString();
-        show();
+        setIsOpen(true);
       });
     }
     if ("onReplaceInPage" in Desktop.bridge) {
       Desktop.bridge.onReplaceInPage(() => {
         setShowReplace(true);
-        show();
+        setIsOpen(true);
       });
     }
-  }, [show]);
+  }, []);
 
   // Callbacks
   const selectInputText = React.useCallback(() => {
@@ -159,7 +153,7 @@ export default function FindAndReplace({
       const shouldShowReplace = !readOnly && withReplace;
 
       // If already open, switch focus to corresponding input text.
-      if (popover.visible) {
+      if (isOpen) {
         if (shouldShowReplace) {
           setShowReplace(true);
           selectInputReplaceText();
@@ -171,13 +165,13 @@ export default function FindAndReplace({
       }
 
       selectionRef.current = window.getSelection()?.toString();
-      popover.show();
+      setIsOpen(true);
 
       if (shouldShowReplace) {
         setShowReplace(true);
       }
     },
-    [popover, readOnly, selectInputText, selectInputReplaceText]
+    [isOpen, readOnly, selectInputText, selectInputReplaceText]
   );
 
   const handleMore = React.useCallback(() => {
@@ -213,40 +207,9 @@ export default function FindAndReplace({
     });
   }, [caseSensitive, editor.commands, searchTerm]);
 
-  const handleKeyDown = React.useCallback(
-    (ev: React.KeyboardEvent<HTMLInputElement>) => {
-      function nextPrevious() {
-        if (ev.shiftKey) {
-          editor.commands.prevSearchMatch();
-        } else {
-          editor.commands.nextSearchMatch();
-        }
-      }
-
-      switch (ev.key) {
-        case "Enter": {
-          ev.preventDefault();
-          nextPrevious();
-          return;
-        }
-        case "g": {
-          if (ev.metaKey) {
-            ev.preventDefault();
-            nextPrevious();
-            selectInputText();
-          }
-          return;
-        }
-        case "F3": {
-          ev.preventDefault();
-          nextPrevious();
-          selectInputText();
-          return;
-        }
-      }
-    },
-    [editor.commands, selectInputText]
-  );
+  const handlePopoverOpenChange = React.useCallback((openState: boolean) => {
+    setIsOpen(openState);
+  }, []);
 
   const handleReplace = React.useCallback(
     (ev) => {
@@ -295,10 +258,43 @@ export default function FindAndReplace({
     [handleReplace]
   );
 
-  useOnClickOutside(popover.unstable_referenceRef, popover.hide);
+  const handleKeyDown = React.useCallback(
+    (ev: React.KeyboardEvent<HTMLInputElement>) => {
+      function nextPrevious() {
+        if (ev.shiftKey) {
+          editor.commands.prevSearchMatch();
+        } else {
+          editor.commands.nextSearchMatch();
+        }
+      }
+
+      switch (ev.key) {
+        case "Enter": {
+          ev.preventDefault();
+          nextPrevious();
+          return;
+        }
+        case "g": {
+          if (ev.metaKey) {
+            ev.preventDefault();
+            nextPrevious();
+            selectInputText();
+          }
+          return;
+        }
+        case "F3": {
+          ev.preventDefault();
+          nextPrevious();
+          selectInputText();
+          return;
+        }
+      }
+    },
+    [editor.commands, selectInputText]
+  );
 
   useKeyboardShortcuts({
-    popover,
+    isOpen,
     handleOpen,
     handleCaseSensitive,
     handleRegex,
@@ -316,7 +312,7 @@ export default function FindAndReplace({
   );
 
   React.useEffect(() => {
-    if (popover.visible) {
+    if (isOpen) {
       onOpen();
       const startSearchText = selectionRef.current || searchTerm;
 
@@ -339,7 +335,7 @@ export default function FindAndReplace({
       editor.commands.clearSearch();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [popover.visible]);
+  }, [isOpen]);
 
   const disabled = totalResults === 0;
   const navigation = (
@@ -370,8 +366,8 @@ export default function FindAndReplace({
   return (
     <Portal>
       <Popover
-        {...popover}
-        unstable_finalFocusRef={finalFocusRef}
+        open={isOpen}
+        onOpenChange={handlePopoverOpenChange}
         style={style}
         aria-label={t("Find and replace")}
         scrollable={false}
