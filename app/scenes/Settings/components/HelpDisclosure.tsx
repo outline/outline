@@ -1,10 +1,6 @@
+import * as Collapsible from "@radix-ui/react-collapsible";
 import { QuestionMarkIcon } from "outline-icons";
 import * as React from "react";
-import {
-  useDisclosureState,
-  Disclosure,
-  DisclosureContent,
-} from "reakit/Disclosure";
 import styled, { useTheme } from "styled-components";
 import Button from "~/components/Button";
 import Text from "~/components/Text";
@@ -15,28 +11,25 @@ type Props = {
 };
 
 const HelpDisclosure: React.FC<Props> = ({ title, children }: Props) => {
-  const disclosure = useDisclosureState({ animated: true });
+  const [open, setOpen] = React.useState(false);
   const theme = useTheme();
 
   return (
-    <>
-      <Disclosure {...disclosure}>
-        {(props) => (
-          <StyledButton
-            icon={<QuestionMarkIcon color={theme.textSecondary} />}
-            neutral
-            aria-label={title}
-            borderOnHover
-            {...props}
-          />
-        )}
-      </Disclosure>
-      <HelpContent {...disclosure}>
+    <Collapsible.Root open={open} onOpenChange={setOpen}>
+      <Collapsible.Trigger asChild>
+        <StyledButton
+          icon={<QuestionMarkIcon color={theme.textSecondary} />}
+          neutral
+          aria-label={title}
+          borderOnHover
+        />
+      </Collapsible.Trigger>
+      <HelpContent>
         <Text as="p" type="secondary">
           {children}
         </Text>
       </HelpContent>
-    </>
+    </Collapsible.Root>
   );
 };
 
@@ -46,11 +39,11 @@ const StyledButton = styled(Button)`
   right: 50px;
 `;
 
-const HelpContent = styled(DisclosureContent)`
+const HelpContent = styled(Collapsible.Content)`
   transition: opacity 250ms ease-in-out;
   opacity: 0;
 
-  &[data-enter] {
+  &[data-state="open"] {
     opacity: 1;
   }
 `;
