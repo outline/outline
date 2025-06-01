@@ -38,8 +38,8 @@ import { BackButton } from "./components/BackButton";
 import { Background } from "./components/Background";
 import { Centered } from "./components/Centered";
 import { Notices } from "./components/Notices";
+import WorkspaceSetup from "./components/WorkspaceSetup";
 import { getRedirectUrl, navigateToSubdomain } from "./urls";
-import { client } from "~/utils/ApiClient";
 
 type Props = {
   children?: (config?: Config) => React.ReactNode;
@@ -192,7 +192,8 @@ function Login({ children, onBack }: Props) {
     );
   }
 
-  const firstRun = config.providers.length === 0 && !isCloudHosted && !config.name;
+  const firstRun =
+    config.providers.length === 0 && !isCloudHosted && !config.name;
   const hasMultipleProviders = config.providers.length > 1;
   const defaultProvider = find(
     config.providers,
@@ -200,48 +201,7 @@ function Login({ children, onBack }: Props) {
   );
 
   if (firstRun) {
-    return (
-      <Background>
-        <BackButton onBack={onBack} config={config} />
-        <ChangeLanguage locale={detectLanguage()} />
-
-        <Centered as="form" action="/api/installation.create" method="POST" gap={12}>
-          <StyledHeading centered>{t("Create workspace")}</StyledHeading>
-          <Content>
-            {t(
-              "Setup your workspace by providing a name and details for admin login. You can change these later.",
-            )}
-          </Content>
-          <Flex column gap={12} style={{ width: "100%" }}>
-            <Input
-              name="teamName"
-              type="text"
-              label={t("Workspace name")}
-              placeholder="Acme, Inc"
-              required
-              autoFocus
-              flex
-            />
-            <Input
-              name="userName"
-              type="text"
-              label={t("Admin name")}
-              required
-              flex
-            />
-            <Input
-              name="userEmail"
-              type="email"
-              label={t("Admin email")}
-              required
-              flex
-            /></Flex>
-          <ButtonLarge type="submit" fullwidth>
-            {t("Continue")}
-          </ButtonLarge>
-        </Centered>
-      </Background>
-    );
+    return <WorkspaceSetup onBack={onBack} />;
   }
 
   if (emailLinkSentTo) {
