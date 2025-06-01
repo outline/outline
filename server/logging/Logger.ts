@@ -26,7 +26,7 @@ type LogCategory =
   | "database"
   | "utils"
   | "plugins";
-type Extra = Record<string, any>;
+type Extra = Record<string, unknown>;
 
 class Logger {
   output: winston.Logger;

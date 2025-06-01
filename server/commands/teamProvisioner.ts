@@ -83,7 +83,7 @@ async function teamProvisioner({
     }
 
     // This team + auth provider combination has not been seen before in self hosted
-    const team = await Team.findByPk(teamId, {
+    const existingTeam = await Team.findByPk(teamId, {
       rejectOnEmpty: true,
     });
 
@@ -91,14 +91,14 @@ async function teamProvisioner({
     // new team is allowed then assign the authentication provider to the
     // existing team
     if (domain) {
-      if (await team.isDomainAllowed(domain)) {
-        authP = await team.$create<AuthenticationProvider>(
+      if (await existingTeam.isDomainAllowed(domain)) {
+        authP = await existingTeam.$create<AuthenticationProvider>(
           "authenticationProvider",
           authenticationProvider
         );
         return {
           authenticationProvider: authP,
-          team,
+          team: existingTeam,
           isNewTeam: false,
         };
       }

@@ -22,7 +22,7 @@ import { NotificationMetadata } from "@server/types";
 export enum EmailMessageCategory {
   Authentication = "authentication",
   Invitation = "invitation",
-  Notification = "notification",
+  NotificationType = "notification",
   Marketing = "marketing",
 }
 
@@ -35,7 +35,7 @@ export interface EmailProps {
 
 export default abstract class BaseEmail<
   T extends EmailProps,
-  S extends Record<string, any> | void = void
+  S extends Record<string, unknown> | void = void
 > {
   private props: T;
   private metadata?: NotificationMetadata;
