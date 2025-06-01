@@ -1,10 +1,11 @@
 import * as Popover from "@radix-ui/react-popover";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
-import { fadeAndScaleIn } from "~/styles/animations";
+import { fadeAndSlideUp } from "~/styles/animations";
 import Notifications from "./Notifications";
 
 type Props = {
@@ -14,25 +15,27 @@ type Props = {
 const NotificationsPopover: React.FC = ({ children }: Props) => {
   const { t } = useTranslation();
   const scrollableRef = React.useRef<HTMLDivElement>(null);
-  const [open, setOpen] = React.useState(false);
+  const closeRef = React.useRef<HTMLButtonElement>(null);
 
-  // Reset scroll position to the top when popover is opened
-  React.useEffect(() => {
-    if (open && scrollableRef.current) {
-      scrollableRef.current.scrollTop = 0;
+  const handleRequestClose = React.useCallback(() => {
+    if (closeRef.current) {
+      closeRef.current.click();
     }
-  }, [open]);
+  }, []);
 
-  const handleOpenChange = (newOpen: boolean) => {
-    setOpen(newOpen);
-  };
+  const handleAutoFocus = React.useCallback((event: Event) => {
+    // Prevent focus from moving to the popover content
+    event.preventDefault();
 
-  const handleRequestClose = () => {
-    setOpen(false);
-  };
+    // Reset scroll position to the top when popover is opened
+    if (scrollableRef.current) {
+      scrollableRef.current.scrollTop = 0;
+      scrollableRef.current.focus();
+    }
+  }, []);
 
   return (
-    <Popover.Root open={open} onOpenChange={handleOpenChange}>
+    <Popover.Root>
       <Popover.Trigger asChild>{children}</Popover.Trigger>
       <Popover.Portal>
         <StyledContent
@@ -41,14 +44,15 @@ const NotificationsPopover: React.FC = ({ children }: Props) => {
           sideOffset={0}
           avoidCollisions={true}
           aria-label={t("Notifications")}
-          onEscapeKeyDown={handleRequestClose}
-          onPointerDownOutside={handleRequestClose}
+          onOpenAutoFocus={handleAutoFocus}
         >
           <Notifications
             onRequestClose={handleRequestClose}
-            isOpen={open}
             ref={scrollableRef}
           />
+          <VisuallyHidden>
+            <Popover.Close ref={closeRef} />
+          </VisuallyHidden>
         </StyledContent>
       </Popover.Portal>
     </Popover.Root>
@@ -58,7 +62,7 @@ const NotificationsPopover: React.FC = ({ children }: Props) => {
 const StyledContent = styled(Popover.Content)`
   z-index: ${depths.menu};
   display: flex;
-  animation: ${fadeAndScaleIn} 200ms ease;
+  animation: ${fadeAndSlideUp} 200ms ease;
   transform-origin: 75% 0;
   background: ${s("menuBackground")};
   border-radius: 6px;
