@@ -70,7 +70,7 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
       </div>
       <Flex justify="flex-end">
         <Button onClick={handleStartImport} disabled={submitting}>
-          {t("Start import")}
+          {submitting ? t("Uploading") + "…" : t("Start import")}
         </Button>
       </Flex>
     </Flex>
