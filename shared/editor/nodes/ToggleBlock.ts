@@ -200,10 +200,11 @@ export default class ToggleBlock extends Node {
                 (deco) => !isNil(deco)
               );
 
-              isNil(toggleBlock) &&
+              if (isNil(toggleBlock)) {
                 Storage.remove(
                   `${decorationSpec.nodeId}:${this.editor.props.userId}`
                 );
+              }
             },
           });
 
@@ -483,7 +484,8 @@ export default class ToggleBlock extends Node {
             (transaction) => transaction.docChanged
           );
           let tr = null;
-          docChanged &&
+
+          if (docChanged) {
             forEach(
               filter(
                 findBlockNodes(newState.doc, true),
@@ -499,6 +501,8 @@ export default class ToggleBlock extends Node {
                 });
               }
             );
+          }
+
           return tr;
         },
       }),
