@@ -12,7 +12,6 @@ import {
   createParagraphNear,
   joinForward,
   joinTextblockBackward,
-  liftEmptyBlock,
   newlineInCode,
   splitBlock,
 } from "prosemirror-commands";
@@ -556,17 +555,20 @@ export default class ToggleBlock extends Node {
         split,
         (state, dispatch) => {
           const { $from } = state.selection;
-          if (!withinToggleBlockHead($from)) {
+
+          const parent = $from.node($from.depth - 1);
+          if (parent.type !== type) {
             return false;
           }
 
-          const toggleBlock = $from.node($from.depth - 1);
-
-          if (toggleBlock.childCount === 1 && toggleBlock.textContent === "") {
-            return liftEmptyBlock(state, dispatch);
+          if (
+            withinToggleBlockHead($from) &&
+            parent.textContent.trim() === ""
+          ) {
+            return lift(state, dispatch);
           }
 
-          return chainTransactions(
+          return chainCommands(
             newlineInCode,
             createParagraphNear,
             splitBlock
