@@ -3,27 +3,29 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {
-    // Rename the existing backlinks table to relationships
-    await queryInterface.renameTable("backlinks", "relationships");
+    await queryInterface.sequelize.transaction(async (transaction) => {
+      // Rename the existing backlinks table to relationships
+      await queryInterface.renameTable("backlinks", "relationships", { transaction });
 
-    // Add the type column with default value
-    await queryInterface.addColumn("relationships", "type", {
-      type: Sequelize.ENUM('backlink'),
-      allowNull: false,
-      defaultValue: 'backlink',
+      // Add the type column with default value
+      await queryInterface.addColumn("relationships", "type", {
+        type: Sequelize.ENUM('backlink'),
+        allowNull: false,
+        defaultValue: 'backlink',
+      }, { transaction });
+
+      // Add new indexes for performance (the old indexes on documentId and reverseDocumentId should still exist)
+      await queryInterface.addIndex("relationships", ["type"], { transaction });
+      await queryInterface.addIndex("relationships", ["documentId", "type"], { transaction });
+
+      // Create a view for backward compatibility
+      await queryInterface.sequelize.query(`
+        CREATE VIEW backlinks AS
+        SELECT id, "userId", "documentId", "reverseDocumentId", "createdAt", "updatedAt"
+        FROM relationships
+        WHERE type = 'backlink';
+      `, { transaction });
     });
-
-    // Add new indexes for performance (the old indexes on documentId and reverseDocumentId should still exist)
-    await queryInterface.addIndex("relationships", ["type"]);
-    await queryInterface.addIndex("relationships", ["documentId", "type"]);
-
-    // Create a view for backward compatibility
-    await queryInterface.sequelize.query(`
-      CREATE VIEW backlinks AS
-      SELECT id, "userId", "documentId", "reverseDocumentId", "createdAt", "updatedAt"
-      FROM relationships
-      WHERE type = 'backlink';
-    `);
   },
 
   async down (queryInterface, Sequelize) {
