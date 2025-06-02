@@ -29,20 +29,22 @@ module.exports = {
   },
 
   async down (queryInterface, Sequelize) {
-    // Drop the view
-    await queryInterface.sequelize.query('DROP VIEW IF EXISTS backlinks;');
-    
-    // Remove the type-specific indexes
-    await queryInterface.removeIndex("relationships", ["type"]);
-    await queryInterface.removeIndex("relationships", ["documentId", "type"]);
-    
-    // Remove the type column
-    await queryInterface.removeColumn("relationships", "type");
-    
-    // Drop the enum type
-    await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_relationships_type";');
-    
-    // Rename the table back to backlinks
-    await queryInterface.renameTable("relationships", "backlinks");
+    await queryInterface.sequelize.transaction(async (transaction) => {
+      // Drop the view
+      await queryInterface.sequelize.query('DROP VIEW IF EXISTS backlinks;', { transaction });
+      
+      // Remove the type-specific indexes
+      await queryInterface.removeIndex("relationships", ["type"], { transaction });
+      await queryInterface.removeIndex("relationships", ["documentId", "type"], { transaction });
+      
+      // Remove the type column
+      await queryInterface.removeColumn("relationships", "type", { transaction });
+      
+      // Drop the enum type
+      await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_relationships_type";', { transaction });
+      
+      // Rename the table back to backlinks
+      await queryInterface.renameTable("relationships", "backlinks", { transaction });
+    });
   }
 };

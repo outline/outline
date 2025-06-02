@@ -74,34 +74,6 @@ class Relationship extends IdModel<
 
     return documents.map((doc) => doc.id);
   }
-
-  /**
-   * Find all relationships of a specific type for a document
-   *
-   * @param documentId The document ID to find relationships for
-   * @param type The type of relationship to find
-   * @param user The user to check access for
-   */
-  public static async findByTypeForUser(
-    documentId: string,
-    type: RelationshipType,
-    user: User
-  ) {
-    const relationships = await this.findAll({
-      attributes: ["reverseDocumentId"],
-      where: {
-        documentId,
-        type,
-      },
-    });
-
-    const documents = await Document.findByIds(
-      relationships.map((relationship) => relationship.reverseDocumentId),
-      { userId: user.id }
-    );
-
-    return documents;
-  }
 }
 
 export default Relationship;
