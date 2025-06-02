@@ -525,6 +525,15 @@ export default class ToggleBlock extends Node {
               state.selection.$from.pos > $start.end($start.depth - 1)),
           text: this.options.dictionary.emptyToggleBlockBody,
         },
+        {
+          condition: ({ node, parent, $start, state }) =>
+            !isNull(parent) &&
+            parent.type.name === "container_toggle" &&
+            node.isTextblock &&
+            node.textContent === "" &&
+            (state.selection as TextSelection).$cursor?.pos === $start.pos,
+          text: this.options.dictionary.emptyTextBlockWithinToggleBlock,
+        },
       ]),
     ];
   }
