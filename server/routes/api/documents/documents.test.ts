@@ -20,6 +20,7 @@ import {
   GroupMembership,
   Relationship,
 } from "@server/models";
+import { RelationshipType } from "@server/models/Relationship";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import {
   buildShare,
@@ -1035,7 +1036,7 @@ describe("#documents.list", () => {
     });
     await Relationship.create({
       reverseDocumentId: anotherDoc.id,
-      type: "backlink",
+      type: RelationshipType.Backlink,
       documentId: document.id,
       userId: user.id,
     });
