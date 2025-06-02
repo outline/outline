@@ -44,6 +44,10 @@ import {
   SearchQuery,
   User,
   View,
+  UserMembership,
+  Group,
+  GroupUser,
+  GroupMembership,
 } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
