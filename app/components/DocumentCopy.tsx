@@ -46,19 +46,13 @@ function DocumentCopy({ document, onSubmit }: Props) {
     return nodes;
   }, [policies, collectionTrees, document.isTemplate]);
 
-  const handlePublishChange = React.useCallback(
-    (ev: React.ChangeEvent<HTMLInputElement>) => {
-      setPublish(ev.target.checked);
-    },
-    []
-  );
+  const handlePublishChange = React.useCallback((checked: boolean) => {
+    setPublish(checked);
+  }, []);
 
-  const handleRecursiveChange = React.useCallback(
-    (ev: React.ChangeEvent<HTMLInputElement>) => {
-      setRecursive(ev.target.checked);
-    },
-    []
-  );
+  const handleRecursiveChange = React.useCallback((checked: boolean) => {
+    setRecursive(checked);
+  }, []);
 
   const copy = async () => {
     if (!selectedPath) {
