@@ -8,6 +8,7 @@ import ImageInput from "~/scenes/Settings/components/ImageInput";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input, { LabelText } from "~/components/Input";
+import { createSwitchRegister } from "~/utils/forms";
 import isCloudHosted from "~/utils/isCloudHosted";
 import Switch from "../Switch";
 
@@ -48,21 +49,6 @@ export const OAuthClientForm = observer(function OAuthClientForm_({
       published: oauthClient?.published ?? false,
     },
   });
-
-  const createSwitchRegister = (fieldName: keyof FormData) => {
-    const { onChange, ...rest } = register(fieldName);
-    return {
-      ...rest,
-      onChange: (checked: boolean) => {
-        // Create synthetic event for react-hook-form compatibility
-        const syntheticEvent = {
-          target: { name: fieldName, value: checked, checked },
-          type: "change",
-        };
-        void onChange(syntheticEvent);
-      },
-    };
-  };
 
   useEffect(() => {
     setTimeout(() => setFocus("name", { shouldSelect: true }), 100);
@@ -131,7 +117,7 @@ export const OAuthClientForm = observer(function OAuthClientForm_({
         />
         {isCloudHosted && (
           <Switch
-            {...createSwitchRegister("published")}
+            {...createSwitchRegister(register, "published")}
             label={t("Published")}
             note={t("Allow this app to be installed by other workspaces")}
           />

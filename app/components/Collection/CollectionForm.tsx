@@ -22,6 +22,7 @@ import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import { EmptySelectValue } from "~/types";
+import { createSwitchRegister } from "~/utils/forms";
 
 const IconPicker = createLazyComponent(() => import("~/components/IconPicker"));
 
@@ -114,7 +115,7 @@ export const CollectionForm = observer(function CollectionForm_({
   }, [setFocus]);
 
   const handleIconChange = useCallback(
-    (icon: string, color: string | null) => {
+    (icon: string, color: string) => {
       if (icon !== values.icon) {
         setFocus("name");
       }
@@ -125,28 +126,12 @@ export const CollectionForm = observer(function CollectionForm_({
     [setFocus, setValue, values.icon]
   );
 
-  const createSwitchRegister = (fieldName: keyof FormData) => {
-    const { onChange, ...rest } = register(fieldName);
-    return {
-      ...rest,
-      onChange: (checked: boolean) => {
-        // Create synthetic event for react-hook-form compatibility
-        const syntheticEvent = {
-          target: { name: fieldName, value: checked, checked },
-          type: "change",
-        };
-        void onChange(syntheticEvent);
-      },
-    };
-  };
-
   return (
     <form onSubmit={formHandleSubmit(handleSubmit)}>
       <Text as="p">
         <Trans>
           Collections are used to group documents and choose permissions
         </Trans>
-        .
       </Text>
       <Flex gap={8}>
         <Input
@@ -203,7 +188,7 @@ export const CollectionForm = observer(function CollectionForm_({
           note={t(
             "Allow documents within this collection to be shared publicly on the internet."
           )}
-          {...createSwitchRegister("sharing")}
+          {...createSwitchRegister(register, "sharing")}
         />
       )}
 
@@ -212,7 +197,7 @@ export const CollectionForm = observer(function CollectionForm_({
           id="commenting"
           label={t("Commenting")}
           note={t("Allow commenting on documents within this collection.")}
-          {...createSwitchRegister("commenting")}
+          {...createSwitchRegister(register, "commenting")}
         />
       )}
 
