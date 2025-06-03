@@ -135,7 +135,7 @@ export const CollectionForm = observer(function CollectionForm_({
           target: { name: fieldName, value: checked, checked },
           type: "change",
         };
-        onChange(syntheticEvent);
+        void onChange(syntheticEvent);
       },
     };
   };
