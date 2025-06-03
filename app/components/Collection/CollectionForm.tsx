@@ -125,6 +125,21 @@ export const CollectionForm = observer(function CollectionForm_({
     [setFocus, setValue, values.icon]
   );
 
+  const createSwitchRegister = (fieldName: keyof FormData) => {
+    const { onChange, ...rest } = register(fieldName);
+    return {
+      ...rest,
+      onChange: (checked: boolean) => {
+        // Create synthetic event for react-hook-form compatibility
+        const syntheticEvent = {
+          target: { name: fieldName, value: checked, checked },
+          type: "change",
+        };
+        onChange(syntheticEvent);
+      },
+    };
+  };
+
   return (
     <form onSubmit={formHandleSubmit(handleSubmit)}>
       <Text as="p">
@@ -188,7 +203,7 @@ export const CollectionForm = observer(function CollectionForm_({
           note={t(
             "Allow documents within this collection to be shared publicly on the internet."
           )}
-          {...register("sharing")}
+          {...createSwitchRegister("sharing")}
         />
       )}
 
@@ -197,7 +212,7 @@ export const CollectionForm = observer(function CollectionForm_({
           id="commenting"
           label={t("Commenting")}
           note={t("Allow commenting on documents within this collection.")}
-          {...register("commenting")}
+          {...createSwitchRegister("commenting")}
         />
       )}
 

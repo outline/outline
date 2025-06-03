@@ -27,12 +27,9 @@ function DocumentTemplatizeDialog({ documentId }: Props) {
     document.collectionId ?? null
   );
 
-  const handlePublishChange = React.useCallback(
-    (ev: React.ChangeEvent<HTMLInputElement>) => {
-      setPublish(ev.target.checked);
-    },
-    []
-  );
+  const handlePublishChange = React.useCallback((checked: boolean) => {
+    setPublish(checked);
+  }, []);
 
   const handleSubmit = React.useCallback(async () => {
     const template = await document?.templatize({

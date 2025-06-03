@@ -114,6 +114,21 @@ const Application = observer(function Application({ oauthClient }: Props) {
     });
   }, [t, dialogs, oauthClient]);
 
+  const createSwitchRegister = (fieldName: keyof FormData) => {
+    const { onChange, ...rest } = register(fieldName);
+    return {
+      ...rest,
+      onChange: (checked: boolean) => {
+        // Create synthetic event for react-hook-form compatibility
+        const syntheticEvent = {
+          target: { name: fieldName, value: checked, checked },
+          type: "change",
+        };
+        void onChange(syntheticEvent);
+      },
+    };
+  };
+
   return (
     <Scene
       title={oauthClient.name}
@@ -218,7 +233,7 @@ const Application = observer(function Application({ oauthClient }: Props) {
             )}
             border={false}
           >
-            <Switch id="published" {...register("published")} />
+            <Switch id="published" {...createSwitchRegister("published")} />
           </SettingRow>
         )}
 

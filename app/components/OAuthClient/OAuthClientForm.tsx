@@ -49,6 +49,21 @@ export const OAuthClientForm = observer(function OAuthClientForm_({
     },
   });
 
+  const createSwitchRegister = (fieldName: keyof FormData) => {
+    const { onChange, ...rest } = register(fieldName);
+    return {
+      ...rest,
+      onChange: (checked: boolean) => {
+        // Create synthetic event for react-hook-form compatibility
+        const syntheticEvent = {
+          target: { name: fieldName, value: checked, checked },
+          type: "change",
+        };
+        void onChange(syntheticEvent);
+      },
+    };
+  };
+
   useEffect(() => {
     setTimeout(() => setFocus("name", { shouldSelect: true }), 100);
   }, [setFocus]);
@@ -116,7 +131,7 @@ export const OAuthClientForm = observer(function OAuthClientForm_({
         />
         {isCloudHosted && (
           <Switch
-            {...register("published")}
+            {...createSwitchRegister("published")}
             label={t("Published")}
             note={t("Allow this app to be installed by other workspaces")}
           />
