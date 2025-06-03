@@ -51,13 +51,13 @@ function Switch(
       if (onChange) {
         // Create a synthetic event to maintain compatibility with existing code
         const syntheticEvent = {
-          target: { checked: checkedState },
+          target: { id: props.id, name: props.name, checked: checkedState },
           currentTarget: { checked: checkedState },
         } as React.ChangeEvent<HTMLInputElement>;
         onChange(syntheticEvent);
       }
     },
-    [onChange]
+    [onChange, props.id, props.name]
   );
 
   const component = (
