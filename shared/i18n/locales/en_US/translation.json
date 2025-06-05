@@ -497,6 +497,8 @@
   "Toggle header": "Toggle header",
   "Math inline (LaTeX)": "Math inline (LaTeX)",
   "Math block (LaTeX)": "Math block (LaTeX)",
+  "Merge cells": "Merge cells",
+  "Split cell": "Split cell",
   "Tip": "Tip",
   "Tip notice": "Tip notice",
   "Warning": "Warning",
