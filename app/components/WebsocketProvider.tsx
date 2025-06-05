@@ -217,6 +217,12 @@ class WebsocketProvider extends Component<Props> {
               continue;
             }
 
+            if (event.invalidatedPolicies) {
+              event.invalidatedPolicies.forEach((policyId) => {
+                policies.remove(policyId);
+              });
+            }
+
             try {
               await collection?.fetchDocuments({
                 force: true,
