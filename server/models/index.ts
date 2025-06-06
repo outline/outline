@@ -4,7 +4,7 @@ export { default as Attachment } from "./Attachment";
 
 export { default as AuthenticationProvider } from "./AuthenticationProvider";
 
-export { default as Backlink } from "./Backlink";
+export { default as Relationship } from "./Relationship";
 
 export { default as Collection } from "./Collection";
 

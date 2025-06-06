@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
-import { Document, Backlink } from "@server/models";
+import { Document, Relationship } from "@server/models";
+import { RelationshipType } from "@server/models/Relationship";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { Event, DocumentEvent, RevisionEvent } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
@@ -27,13 +28,15 @@ export default class BacklinksProcessor extends BaseProcessor {
               return;
             }
 
-            await Backlink.findOrCreate({
+            await Relationship.findOrCreate({
               where: {
                 documentId: linkedDocument.id,
                 reverseDocumentId: event.documentId,
+                type: RelationshipType.Backlink,
               },
               defaults: {
                 userId: document.lastModifiedById,
+                type: RelationshipType.Backlink,
               },
             });
           })
@@ -64,13 +67,15 @@ export default class BacklinksProcessor extends BaseProcessor {
               return;
             }
 
-            await Backlink.findOrCreate({
+            await Relationship.findOrCreate({
               where: {
                 documentId: linkedDocument.id,
                 reverseDocumentId: event.documentId,
+                type: RelationshipType.Backlink,
               },
               defaults: {
                 userId: document.lastModifiedById,
+                type: RelationshipType.Backlink,
               },
             });
             linkedDocumentIds.push(linkedDocument.id);
@@ -78,19 +83,20 @@ export default class BacklinksProcessor extends BaseProcessor {
         );
 
         // delete any backlinks that no longer exist
-        await Backlink.destroy({
+        await Relationship.destroy({
           where: {
             documentId: {
               [Op.notIn]: linkedDocumentIds,
             },
             reverseDocumentId: event.documentId,
+            type: RelationshipType.Backlink,
           },
         });
         break;
       }
 
       case "documents.delete": {
-        await Backlink.destroy({
+        await Relationship.destroy({
           where: {
             [Op.or]: [
               {
@@ -100,6 +106,7 @@ export default class BacklinksProcessor extends BaseProcessor {
                 documentId: event.documentId,
               },
             ],
+            type: RelationshipType.Backlink,
           },
         });
         break;
