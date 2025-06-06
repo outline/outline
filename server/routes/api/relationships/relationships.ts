@@ -1,9 +1,7 @@
 import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
-import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Document, Relationship } from "@server/models";
-import { authorize } from "@server/policies";
 import {
   presentRelationship,
   presentDocument,
@@ -14,67 +12,6 @@ import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
 const router = new Router();
-
-router.post(
-  "relationships.create",
-  auth(),
-  validate(T.RelationshipsCreateSchema),
-  transaction(),
-  async (ctx: APIContext<T.RelationshipsCreateReq>) => {
-    const { transaction } = ctx.state;
-    const { type, documentId, reverseDocumentId } = ctx.input.body;
-    const { user } = ctx.state.auth;
-
-    // Verify both documents exist and user has access
-    const [document, reverseDocument] = await Promise.all([
-      Document.findByPk(documentId, {
-        userId: user.id,
-        transaction,
-      }),
-      Document.findByPk(reverseDocumentId, {
-        userId: user.id,
-        transaction,
-      }),
-    ]);
-
-    if (!document) {
-      ctx.throw(404, "Document not found");
-    }
-    if (!reverseDocument) {
-      ctx.throw(404, "Reverse document not found");
-    }
-
-    // Check if relationship already exists
-    const existingRelationship = await Relationship.findOne({
-      where: {
-        type,
-        documentId,
-        reverseDocumentId,
-        userId: user.id,
-      },
-      transaction,
-    });
-
-    if (existingRelationship) {
-      ctx.throw(400, "Relationship already exists");
-    }
-
-    const relationship = await Relationship.create(
-      {
-        type,
-        documentId,
-        reverseDocumentId,
-        userId: user.id,
-      },
-      { transaction }
-    );
-
-    ctx.body = {
-      data: presentRelationship(relationship),
-      policies: presentPolicies(user, [relationship]),
-    };
-  }
-);
 
 router.post(
   "relationships.list",
@@ -139,33 +76,5 @@ router.post(
   }
 );
 
-router.post(
-  "relationships.delete",
-  auth(),
-  validate(T.RelationshipsDeleteSchema),
-  transaction(),
-  async (ctx: APIContext<T.RelationshipsDeleteReq>) => {
-    const { id } = ctx.input.body;
-    const { user } = ctx.state.auth;
-    const { transaction } = ctx.state;
-
-    const relationship = await Relationship.findByPk(id, {
-      transaction,
-      lock: transaction.LOCK.UPDATE,
-    });
-
-    if (!relationship) {
-      ctx.throw(404, "Relationship not found");
-    }
-
-    authorize(user, "delete", relationship);
-
-    await relationship.destroyWithCtx(ctx);
-
-    ctx.body = {
-      success: true,
-    };
-  }
-);
-
 export default router;
+
