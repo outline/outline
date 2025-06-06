@@ -46,10 +46,6 @@ function DocumentCopy({ document, onSubmit }: Props) {
     return nodes;
   }, [policies, collectionTrees, document.isTemplate]);
 
-  const handlePublishChange = React.useCallback((checked: boolean) => {
-    setPublish(checked);
-  }, []);
-
   const handleRecursiveChange = React.useCallback((checked: boolean) => {
     setRecursive(checked);
   }, []);
@@ -96,7 +92,7 @@ function DocumentCopy({ document, onSubmit }: Props) {
                   label={t("Publish")}
                   labelPosition="right"
                   checked={publish}
-                  onChange={handlePublishChange}
+                  onChange={setPublish}
                 />
               </Text>
             )}

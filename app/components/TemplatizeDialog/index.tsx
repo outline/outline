@@ -27,10 +27,6 @@ function DocumentTemplatizeDialog({ documentId }: Props) {
     document.collectionId ?? null
   );
 
-  const handlePublishChange = React.useCallback((checked: boolean) => {
-    setPublish(checked);
-  }, []);
-
   const handleSubmit = React.useCallback(async () => {
     const template = await document?.templatize({
       collectionId,
@@ -69,7 +65,7 @@ function DocumentTemplatizeDialog({ documentId }: Props) {
           label={t("Published")}
           note={t("Enable other members to use the template immediately")}
           checked={publish}
-          onChange={handlePublishChange}
+          onChange={setPublish}
         />
       </Flex>
     </ConfirmationDialog>
