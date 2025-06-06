@@ -14,6 +14,54 @@ import * as T from "./schema";
 const router = new Router();
 
 router.post(
+  "relationships.info",
+  auth(),
+  validate(T.RelationshipsInfoSchema),
+  async (ctx: APIContext<T.RelationshipsInfoReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    // Find the relationship
+    const relationship = await Relationship.findByPk(id);
+
+    if (!relationship) {
+      ctx.throw(404, "Relationship not found");
+    }
+
+    // Use Document.findByPk to authorize access to the related document
+    const document = await Document.findByPk(relationship.documentId, {
+      userId: user.id,
+    });
+
+    if (!document) {
+      ctx.throw(404, "Document not found or access denied");
+    }
+
+    // Get the reverse document if user has access
+    const reverseDocument = await Document.findByPk(relationship.reverseDocumentId, {
+      userId: user.id,
+    });
+
+    const documents = [document];
+    if (reverseDocument) {
+      documents.push(reverseDocument);
+    }
+
+    const policies = presentPolicies(user, [relationship, ...documents]);
+
+    ctx.body = {
+      data: {
+        relationship: presentRelationship(relationship),
+        documents: await Promise.all(
+          documents.map((doc: Document) => presentDocument(ctx, doc))
+        ),
+      },
+      policies,
+    };
+  }
+);
+
+router.post(
   "relationships.list",
   auth(),
   pagination(),
@@ -77,4 +125,3 @@ router.post(
 );
 
 export default router;
-
