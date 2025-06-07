@@ -51,13 +51,13 @@ import slugify from "@shared/utils/slugify";
 import { DocumentValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
 import { generateUrlId } from "@server/utils/url";
-import Backlink from "./Backlink";
 import Collection from "./Collection";
 import FileOperation from "./FileOperation";
 import Group from "./Group";
 import GroupMembership from "./GroupMembership";
 import GroupUser from "./GroupUser";
 import Import from "./Import";
+import Relationship from "./Relationship";
 import Revision from "./Revision";
 import Star from "./Star";
 import Team from "./Team";
@@ -617,8 +617,8 @@ class Document extends ArchivableModel<
   @HasMany(() => Revision)
   revisions: Revision[];
 
-  @HasMany(() => Backlink)
-  backlinks: Backlink[];
+  @HasMany(() => Relationship)
+  relationships: Relationship[];
 
   @HasMany(() => Star)
   starred: Star[];
