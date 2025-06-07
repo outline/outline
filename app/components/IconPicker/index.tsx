@@ -1,27 +1,19 @@
+import * as Popover from "@radix-ui/react-popover";
+import * as Tabs from "@radix-ui/react-tabs";
 import { SmileyIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import {
-  PopoverDisclosure,
-  Tab,
-  TabList,
-  TabPanel,
-  usePopoverState,
-  useTabState,
-} from "reakit";
 import styled, { css } from "styled-components";
 import Icon from "@shared/components/Icon";
-import { s, hover } from "@shared/styles";
+import { s, hover, depths } from "@shared/styles";
 import theme from "@shared/styles/theme";
 import { IconType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
-import Popover from "~/components/Popover";
 import useMobile from "~/hooks/useMobile";
-import useOnClickOutside from "~/hooks/useOnClickOutside";
-import usePrevious from "~/hooks/usePrevious";
 import useWindowSize from "~/hooks/useWindowSize";
+import { fadeAndScaleIn } from "~/styles/animations";
 import EmojiPanel from "./components/EmojiPanel";
 import IconPanel from "./components/IconPanel";
 import { PopoverButton } from "./components/PopoverButton";
@@ -30,6 +22,8 @@ const TAB_NAMES = {
   Icon: "icon",
   Emoji: "emoji",
 } as const;
+
+type TabName = (typeof TAB_NAMES)[keyof typeof TAB_NAMES];
 
 const POPOVER_WIDTH = 408;
 
@@ -69,7 +63,7 @@ const IconPicker = ({
 
   const [query, setQuery] = React.useState("");
   const [chosenColor, setChosenColor] = React.useState(color);
-  const contentRef = React.useRef<HTMLDivElement | null>(null);
+  const [isOpen, setIsOpen] = React.useState(false);
 
   const iconType = determineIconType(icon);
   const defaultTab = React.useMemo(
@@ -78,32 +72,24 @@ const IconPicker = ({
     [iconType]
   );
 
-  const popover = usePopoverState({
-    placement: popoverPosition,
-    modal: true,
-    unstable_offset: [0, 0],
-  });
-  const { hide, show, visible } = popover;
-  const tab = useTabState({ selectedId: defaultTab });
-  const previouslyVisible = usePrevious(popover.visible);
+  const [selectedTab, setSelectedTab] = React.useState<TabName>(defaultTab);
 
   const popoverWidth = isMobile ? windowWidth : POPOVER_WIDTH;
   // In mobile, popover is absolutely positioned to leave 8px on both sides.
   const panelWidth = isMobile ? windowWidth - 16 : popoverWidth;
 
   const resetDefaultTab = React.useCallback(() => {
-    tab.select(defaultTab);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setSelectedTab(defaultTab);
   }, [defaultTab]);
 
   const handleIconChange = React.useCallback(
     (ic: string) => {
-      hide();
+      setIsOpen(false);
       const icType = determineIconType(ic);
       const finalColor = icType === IconType.SVG ? chosenColor : null;
       onChange(ic, finalColor);
     },
-    [hide, onChange, chosenColor]
+    [onChange, chosenColor]
   );
 
   const handleIconColorChange = React.useCallback(
@@ -120,135 +106,109 @@ const IconPicker = ({
   );
 
   const handleIconRemove = React.useCallback(() => {
-    hide();
+    setIsOpen(false);
     onChange(null, null);
-  }, [hide, onChange]);
+  }, [onChange]);
 
-  const handlePopoverButtonClick = React.useCallback(
-    (ev: React.MouseEvent) => {
-      ev.stopPropagation();
-      if (visible) {
-        hide();
+  const handleOpenChange = React.useCallback(
+    (open: boolean) => {
+      setIsOpen(open);
+      if (open) {
+        onOpen?.();
       } else {
-        show();
+        onClose?.();
+        setQuery("");
+        resetDefaultTab();
       }
     },
-    [hide, show, visible]
+    [onOpen, onClose, resetDefaultTab]
   );
 
-  // Popover open effect
+  const handleTabChange = React.useCallback((value: string) => {
+    setSelectedTab(value as TabName);
+  }, []);
+
+  // Update selected tab when default tab changes
   React.useEffect(() => {
-    if (visible && !previouslyVisible) {
-      onOpen?.();
-    } else if (!visible && previouslyVisible) {
-      onClose?.();
-      setQuery("");
-      resetDefaultTab();
-    }
-  }, [visible, previouslyVisible, onOpen, onClose, resetDefaultTab]);
-
-  // Custom click outside handling rather than using `hideOnClickOutside` from reakit so that we can
-  // prevent event bubbling.
-  useOnClickOutside(
-    contentRef,
-    (event) => {
-      if (
-        popover.visible &&
-        !popover.unstable_disclosureRef.current?.contains(event.target as Node)
-      ) {
-        event.stopPropagation();
-        event.preventDefault();
-        popover.hide();
-      }
-    },
-    { capture: true }
-  );
+    setSelectedTab(defaultTab);
+  }, [defaultTab]);
 
   return (
-    <>
-      <PopoverDisclosure {...popover}>
-        {(props) => (
-          <PopoverButton
-            {...props}
-            aria-label={t("Show menu")}
-            className={className}
-            size={size}
-            onClick={handlePopoverButtonClick}
-            $borderOnHover={borderOnHover}
-          >
-            {children ? (
-              children
-            ) : iconType && icon ? (
-              <Icon value={icon} color={color} size={size} initial={initial} />
-            ) : (
-              <StyledSmileyIcon color={theme.placeholder} size={size} />
-            )}
-          </PopoverButton>
-        )}
-      </PopoverDisclosure>
-      <Popover
-        {...popover}
-        ref={contentRef}
-        width={popoverWidth}
-        shrink
-        aria-label={t("Icon Picker")}
-        onClick={(e) => e.stopPropagation()}
-        hideOnClickOutside={false}
-      >
-        <>
-          <TabActionsWrapper justify="space-between" align="center">
-            <TabList {...tab}>
-              <StyledTab
-                {...tab}
-                id={TAB_NAMES["Icon"]}
-                aria-label={t("Icons")}
-                $active={tab.selectedId === TAB_NAMES["Icon"]}
-              >
-                {t("Icons")}
-              </StyledTab>
-              <StyledTab
-                {...tab}
-                id={TAB_NAMES["Emoji"]}
-                aria-label={t("Emojis")}
-                $active={tab.selectedId === TAB_NAMES["Emoji"]}
-              >
-                {t("Emojis")}
-              </StyledTab>
-            </TabList>
-            {allowDelete && icon && (
-              <RemoveButton onClick={handleIconRemove}>
-                {t("Remove")}
-              </RemoveButton>
-            )}
-          </TabActionsWrapper>
-          <StyledTabPanel {...tab}>
-            <IconPanel
-              panelWidth={panelWidth}
-              initial={initial ?? "?"}
-              color={chosenColor}
-              query={query}
-              panelActive={
-                popover.visible && tab.selectedId === TAB_NAMES["Icon"]
-              }
-              onIconChange={handleIconChange}
-              onColorChange={handleIconColorChange}
-              onQueryChange={setQuery}
-            />
-          </StyledTabPanel>
-          <StyledTabPanel {...tab}>
-            <EmojiPanel
-              panelWidth={panelWidth}
-              query={query}
-              panelActive={
-                popover.visible && tab.selectedId === TAB_NAMES["Emoji"]
-              }
-              onEmojiChange={handleIconChange}
-              onQueryChange={setQuery}
-            />
-          </StyledTabPanel>
-        </>
-      </Popover>
-    </>
+    <Popover.Root open={isOpen} onOpenChange={handleOpenChange}>
+      <Popover.Trigger asChild>
+        <PopoverButton
+          aria-label={t("Show menu")}
+          className={className}
+          size={size}
+          $borderOnHover={borderOnHover}
+        >
+          {children ? (
+            children
+          ) : iconType && icon ? (
+            <Icon value={icon} color={color} size={size} initial={initial} />
+          ) : (
+            <StyledSmileyIcon color={theme.placeholder} size={size} />
+          )}
+        </PopoverButton>
+      </Popover.Trigger>
+      <Popover.Portal>
+        <StyledPopoverContent
+          side={popoverPosition === "right" ? "right" : "bottom"}
+          align={popoverPosition === "bottom-start" ? "start" : "center"}
+          sideOffset={0}
+          width={popoverWidth}
+          aria-label={t("Icon Picker")}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Tabs.Root value={selectedTab} onValueChange={handleTabChange}>
+            <TabActionsWrapper justify="space-between" align="center">
+              <Tabs.List>
+                <StyledTab
+                  value={TAB_NAMES["Icon"]}
+                  aria-label={t("Icons")}
+                  $active={selectedTab === TAB_NAMES["Icon"]}
+                >
+                  {t("Icons")}
+                </StyledTab>
+                <StyledTab
+                  value={TAB_NAMES["Emoji"]}
+                  aria-label={t("Emojis")}
+                  $active={selectedTab === TAB_NAMES["Emoji"]}
+                >
+                  {t("Emojis")}
+                </StyledTab>
+              </Tabs.List>
+              {allowDelete && icon && (
+                <RemoveButton onClick={handleIconRemove}>
+                  {t("Remove")}
+                </RemoveButton>
+              )}
+            </TabActionsWrapper>
+            <StyledTabContent value={TAB_NAMES["Icon"]}>
+              <IconPanel
+                panelWidth={panelWidth}
+                initial={initial ?? "?"}
+                color={chosenColor}
+                query={query}
+                panelActive={isOpen && selectedTab === TAB_NAMES["Icon"]}
+                onIconChange={handleIconChange}
+                onColorChange={handleIconColorChange}
+                onQueryChange={setQuery}
+              />
+            </StyledTabContent>
+            <StyledTabContent value={TAB_NAMES["Emoji"]}>
+              <EmojiPanel
+                panelWidth={panelWidth}
+                query={query}
+                panelActive={isOpen && selectedTab === TAB_NAMES["Emoji"]}
+                onEmojiChange={handleIconChange}
+                onQueryChange={setQuery}
+              />
+            </StyledTabContent>
+          </Tabs.Root>
+        </StyledPopoverContent>
+      </Popover.Portal>
+    </Popover.Root>
   );
 };
 
@@ -277,7 +237,7 @@ const TabActionsWrapper = styled(Flex)`
   border-bottom: 1px solid ${s("inputBorder")};
 `;
 
-const StyledTab = styled(Tab)<{ $active: boolean }>`
+const StyledTab = styled(Tabs.Trigger)<{ $active: boolean }>`
   position: relative;
   font-weight: 500;
   font-size: 14px;
@@ -308,9 +268,32 @@ const StyledTab = styled(Tab)<{ $active: boolean }>`
     `}
 `;
 
-const StyledTabPanel = styled(TabPanel)`
+const StyledTabContent = styled(Tabs.Content)`
   height: 410px;
   overflow-y: auto;
+`;
+
+const StyledPopoverContent = styled(Popover.Content)<{ width: number }>`
+  animation: ${fadeAndScaleIn} 200ms ease;
+  transform-origin: 75% 0;
+  background: ${s("menuBackground")};
+  border-radius: 6px;
+  padding: 6px 0;
+  max-height: 75vh;
+  box-shadow: ${s("menuShadow")};
+  z-index: ${depths.modal};
+  width: ${(props) => props.width}px;
+  overflow: hidden;
+  outline: none;
+
+  @media (max-width: 768px) {
+    position: fixed;
+    z-index: ${depths.menu};
+    top: 50px;
+    left: 8px;
+    right: 8px;
+    width: auto;
+  }
 `;
 
 export default React.memo(IconPicker);
