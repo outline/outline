@@ -1,6 +1,8 @@
 import { parser } from "@server/editor";
-import { Backlink } from "@server/models";
+import { Relationship } from "@server/models";
+import { RelationshipType } from "@server/models/Relationship";
 import { buildDocument } from "@server/test/factories";
+
 import BacklinksProcessor from "./BacklinksProcessor";
 
 const ip = "127.0.0.1";
@@ -22,9 +24,10 @@ describe("documents.publish", () => {
       data: { title: document.title },
       ip,
     });
-    const backlinks = await Backlink.findAll({
+    const backlinks = await Relationship.findAll({
       where: {
         reverseDocumentId: document.id,
+        type: RelationshipType.Backlink,
       },
     });
     expect(backlinks.length).toBe(1);
@@ -52,9 +55,10 @@ describe("documents.publish", () => {
       data: { title: document.title },
       ip,
     });
-    const backlinks = await Backlink.findAll({
+    const backlinks = await Relationship.findAll({
       where: {
         reverseDocumentId: document.id,
+        type: RelationshipType.Backlink,
       },
     });
     expect(backlinks.length).toBe(0);
@@ -79,9 +83,10 @@ describe("documents.update", () => {
       data: { title: document.title, autosave: false, done: true },
       ip,
     });
-    const backlinks = await Backlink.findAll({
+    const backlinks = await Relationship.findAll({
       where: {
         reverseDocumentId: document.id,
+        type: RelationshipType.Backlink,
       },
     });
     expect(backlinks.length).toBe(1);
@@ -109,9 +114,10 @@ describe("documents.update", () => {
       data: { title: document.title, autosave: false, done: true },
       ip,
     });
-    const backlinks = await Backlink.findAll({
+    const backlinks = await Relationship.findAll({
       where: {
         reverseDocumentId: document.id,
+        type: RelationshipType.Backlink,
       },
     });
     expect(backlinks.length).toBe(1);
@@ -136,9 +142,10 @@ describe("documents.update", () => {
       data: { title: document.title, autosave: false, done: true },
       ip,
     });
-    const backlinks = await Backlink.findAll({
+    const backlinks = await Relationship.findAll({
       where: {
         reverseDocumentId: document.id,
+        type: RelationshipType.Backlink,
       },
     });
     expect(backlinks.length).toBe(1);
@@ -182,9 +189,10 @@ describe("documents.update", () => {
       data: { title: document.title, autosave: false, done: true },
       ip,
     });
-    const backlinks = await Backlink.findAll({
+    const backlinks = await Relationship.findAll({
       where: {
         reverseDocumentId: document.id,
+        type: RelationshipType.Backlink,
       },
     });
     expect(backlinks.length).toBe(1);
@@ -222,9 +230,10 @@ describe("documents.delete", () => {
       data: { title: document.title },
       ip,
     });
-    const backlinks = await Backlink.findAll({
+    const backlinks = await Relationship.findAll({
       where: {
         reverseDocumentId: document.id,
+        type: RelationshipType.Backlink,
       },
     });
     expect(backlinks.length).toBe(0);

@@ -11,11 +11,15 @@ import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 
-@Table({ tableName: "backlinks", modelName: "backlink" })
+export enum RelationshipType {
+  Backlink = "backlink",
+}
+
+@Table({ tableName: "relationships", modelName: "relationship" })
 @Fix
-class Backlink extends IdModel<
-  InferAttributes<Backlink>,
-  Partial<InferCreationAttributes<Backlink>>
+class Relationship extends IdModel<
+  InferAttributes<Relationship>,
+  Partial<InferCreationAttributes<Relationship>>
 > {
   @BelongsTo(() => User, "userId")
   user: User;
@@ -38,6 +42,13 @@ class Backlink extends IdModel<
   @Column(DataType.UUID)
   reverseDocumentId: string;
 
+  @Column({
+    type: DataType.ENUM(...Object.values(RelationshipType)),
+    allowNull: false,
+    defaultValue: RelationshipType.Backlink,
+  })
+  type: RelationshipType;
+
   /**
    * Find all backlinks for a document that the user has access to
    *
@@ -48,15 +59,16 @@ class Backlink extends IdModel<
     documentId: string,
     user: User
   ) {
-    const backlinks = await this.findAll({
+    const relationships = await this.findAll({
       attributes: ["reverseDocumentId"],
       where: {
         documentId,
+        type: RelationshipType.Backlink,
       },
     });
 
     const documents = await Document.findByIds(
-      backlinks.map((backlink) => backlink.reverseDocumentId),
+      relationships.map((relationship) => relationship.reverseDocumentId),
       { userId: user.id }
     );
 
@@ -64,4 +76,4 @@ class Backlink extends IdModel<
   }
 }
 
-export default Backlink;
+export default Relationship;
