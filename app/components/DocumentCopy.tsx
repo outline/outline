@@ -46,10 +46,6 @@ function DocumentCopy({ document, onSubmit }: Props) {
     return nodes;
   }, [policies, collectionTrees, document.isTemplate]);
 
-  const handleRecursiveChange = React.useCallback((checked: boolean) => {
-    setRecursive(checked);
-  }, []);
-
   const copy = async () => {
     if (!selectedPath) {
       toast.message(t("Select a location to copy"));
@@ -103,7 +99,7 @@ function DocumentCopy({ document, onSubmit }: Props) {
                   label={t("Include nested documents")}
                   labelPosition="right"
                   checked={recursive}
-                  onChange={handleRecursiveChange}
+                  onChange={setRecursive}
                 />
               </Text>
             )}

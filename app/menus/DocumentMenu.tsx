@@ -248,6 +248,8 @@ const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
   const handleFullWidthToggle = React.useCallback(
     (checked: boolean) => {
       user.setPreference(UserPreference.FullWidthDocuments, checked);
+      void user.save();
+      document.fullWidth = checked;
       void document.save({ fullWidth: checked });
     },
     [user, document]
