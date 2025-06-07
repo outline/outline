@@ -21,7 +21,7 @@ type Props = EmailProps & {
 /**
  * Email sent to an external user when an admin sends them an invite.
  */
-export default class InviteEmail extends BaseEmail<Props, Record<string, any>> {
+export default class InviteEmail extends BaseEmail<Props, void> {
   protected get category() {
     return EmailMessageCategory.Invitation;
   }

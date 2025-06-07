@@ -86,7 +86,7 @@ function DocumentMove({ document }: Props) {
       toast.success(t("Document moved"));
 
       dialogs.closeAllModals();
-    } catch (err) {
+    } catch (_err) {
       toast.error(t("Couldn’t move the document, try again?"));
     }
   };

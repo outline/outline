@@ -106,8 +106,8 @@ export const startTyping = createAction({
     }, 250);
 
     window.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") {
-        intervalId && clearInterval(intervalId);
+      if (event.key === "Escape" && intervalId) {
+        clearInterval(intervalId);
       }
     });
 

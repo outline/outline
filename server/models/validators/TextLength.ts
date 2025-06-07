@@ -29,7 +29,7 @@ export default function TextLength({
               Node.fromJSON(schema, value),
               schema
             );
-          } catch (err) {
+          } catch (_err) {
             throw new Error("Invalid data");
           }
 

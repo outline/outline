@@ -8,7 +8,7 @@ function Spotify({ matches, ...props }: Props) {
   try {
     const parsed = new URL(props.attrs.href);
     pathname = parsed.pathname;
-  } catch (err) {
+  } catch (_err) {
     pathname = "";
   }
 

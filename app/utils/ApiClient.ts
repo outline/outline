@@ -127,7 +127,7 @@ class ApiClient {
           cache: "no-cache",
         }
       );
-    } catch (err) {
+    } catch (_err) {
       if (window.navigator.onLine) {
         throw new NetworkError("A network error occurred, try again?");
       } else {

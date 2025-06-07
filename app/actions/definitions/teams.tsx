@@ -57,13 +57,15 @@ export const createTeam = createAction({
   perform: ({ t, event, stores }) => {
     event?.preventDefault();
     event?.stopPropagation();
+
     const { user } = stores.auth;
-    user &&
+    if (user) {
       stores.dialogs.openModal({
         title: t("Create a workspace"),
         fullscreen: true,
         content: <TeamNew user={user} />,
       });
+    }
   },
 });
 
