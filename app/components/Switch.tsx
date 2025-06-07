@@ -28,7 +28,7 @@ interface Props
   /** Whether the switch is disabled */
   disabled?: boolean;
   /** Callback when the switch state changes */
-  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (checked: boolean) => void;
 }
 
 function Switch(
@@ -49,15 +49,10 @@ function Switch(
   const handleCheckedChange = React.useCallback(
     (checkedState: boolean) => {
       if (onChange) {
-        // Create a synthetic event to maintain compatibility with existing code
-        const syntheticEvent = {
-          target: { id: props.id, name: props.name, checked: checkedState },
-          currentTarget: { checked: checkedState },
-        } as React.ChangeEvent<HTMLInputElement>;
-        onChange(syntheticEvent);
+        onChange(checkedState);
       }
     },
-    [onChange, props.id, props.name]
+    [onChange]
   );
 
   const component = (

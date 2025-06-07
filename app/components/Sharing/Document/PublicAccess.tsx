@@ -52,10 +52,10 @@ function PublicAccess({ document, share, sharedParent }: Props) {
   }, [share?.urlId]);
 
   const handleIndexingChanged = React.useCallback(
-    async (event) => {
+    async (checked: boolean) => {
       try {
         await share?.save({
-          allowIndexing: event.currentTarget.checked,
+          allowIndexing: checked,
         });
       } catch (err) {
         toast.error(err.message);
@@ -65,10 +65,10 @@ function PublicAccess({ document, share, sharedParent }: Props) {
   );
 
   const handleShowLastModifiedChanged = React.useCallback(
-    async (event) => {
+    async (checked: boolean) => {
       try {
         await share?.save({
-          showLastUpdated: event.currentTarget.checked,
+          showLastUpdated: checked,
         });
       } catch (err) {
         toast.error(err.message);
@@ -78,10 +78,10 @@ function PublicAccess({ document, share, sharedParent }: Props) {
   );
 
   const handlePublishedChange = React.useCallback(
-    async (event) => {
+    async (checked: boolean) => {
       try {
         await share?.save({
-          published: event.currentTarget.checked,
+          published: checked,
         });
       } catch (err) {
         toast.error(err.message);
