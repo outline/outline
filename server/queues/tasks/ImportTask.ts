@@ -115,6 +115,10 @@ export default abstract class ImportTask extends BaseTask<Props> {
       rejectOnEmpty: true,
     });
 
+    const validationBehavior =
+      fileOperation.options?.validationBehavior ??
+      ImportValidationBehavior.Truncate;
+
     try {
       Logger.info("task", `ImportTask fetching data for ${fileOperationId}`);
       dirPath = await this.fetchAndExtractData(fileOperation);
@@ -125,7 +129,11 @@ export default abstract class ImportTask extends BaseTask<Props> {
       Logger.info("task", `ImportTask parsing data for ${fileOperationId}`, {
         dirPath,
       });
-      const parsed = await this.parseData(dirPath, fileOperation);
+      const parsed = await this.parseData(
+        dirPath,
+        fileOperation,
+        validationBehavior
+      );
 
       if (parsed.collections.length === 0) {
         throw ValidationError(
@@ -145,7 +153,11 @@ export default abstract class ImportTask extends BaseTask<Props> {
           "task",
           `ImportTask persisting data for ${fileOperationId}`
         );
-        result = await this.persistData(parsed, fileOperation);
+        result = await this.persistData(
+          parsed,
+          fileOperation,
+          validationBehavior
+        );
       } catch (error) {
         Logger.error(
           `ImportTask failed to persist data for ${fileOperationId}`,
@@ -281,7 +293,8 @@ export default abstract class ImportTask extends BaseTask<Props> {
    */
   protected abstract parseData(
     dirPath: string,
-    fileOperation: FileOperation
+    fileOperation: FileOperation,
+    validationBehavior: ImportValidationBehavior
   ): Promise<StructuredImportData>;
 
   /**
@@ -292,7 +305,8 @@ export default abstract class ImportTask extends BaseTask<Props> {
    */
   protected async persistData(
     data: StructuredImportData,
-    fileOperation: FileOperation
+    fileOperation: FileOperation,
+    validationBehavior: ImportValidationBehavior
   ): Promise<{
     collections: Map<string, Collection>;
     documents: Map<string, Document>;
@@ -433,9 +447,6 @@ export default abstract class ImportTask extends BaseTask<Props> {
             );
 
             // Apply validation behavior
-            const validationBehavior =
-              fileOperation.options?.validationBehavior ||
-              ImportValidationBehavior.Truncate;
             const processedDocument = this.validateAndProcessDocument(
               docItem,
               validationBehavior
@@ -569,12 +580,9 @@ export default abstract class ImportTask extends BaseTask<Props> {
     const titleTooLong =
       document.title.length > DocumentValidation.maxTitleLength;
     const textTooLong =
-      document.text.length > DocumentValidation.maxRecommendedLength;
-    const stateTooLarge =
-      JSON.stringify(document.data || {}).length >
-      DocumentValidation.maxStateLength;
+      document.text.length > DocumentValidation.maxStateLength;
 
-    const hasValidationIssues = titleTooLong || textTooLong || stateTooLarge;
+    const hasValidationIssues = titleTooLong || textTooLong;
 
     if (!hasValidationIssues) {
       return document;
@@ -604,12 +612,6 @@ export default abstract class ImportTask extends BaseTask<Props> {
             length: DocumentValidation.maxRecommendedLength,
             omission: "\n\n[Content truncated due to size limits]",
           });
-        }
-
-        if (stateTooLarge && document.data) {
-          // For ProseMirror data, we need to be more careful about truncation
-          // For now, we'll just remove the data and rely on the text
-          processedDocument.data = undefined;
         }
 
         Logger.info(
