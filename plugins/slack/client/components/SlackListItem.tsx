@@ -26,13 +26,11 @@ type Props = {
 function SlackListItem({ integration, collection }: Props) {
   const { t } = useTranslation();
 
-  const handleChange = async (ev: React.ChangeEvent<HTMLInputElement>) => {
-    if (ev.target.checked) {
-      integration.events = uniq([...integration.events, ev.target.name]);
+  const handleChange = (eventName: string) => async (checked: boolean) => {
+    if (checked) {
+      integration.events = uniq([...integration.events, eventName]);
     } else {
-      integration.events = integration.events.filter(
-        (n) => n !== ev.target.name
-      );
+      integration.events = integration.events.filter((n) => n !== eventName);
     }
 
     await integration.save();
@@ -87,13 +85,13 @@ function SlackListItem({ integration, collection }: Props) {
                 label={t("Document published")}
                 name="documents.publish"
                 checked={integration.events.includes("documents.publish")}
-                onChange={handleChange}
+                onChange={handleChange("documents.publish")}
               />
               <Switch
                 label={t("Document updated")}
                 name="documents.update"
                 checked={integration.events.includes("documents.update")}
-                onChange={handleChange}
+                onChange={handleChange("documents.update")}
               />
             </Events>
           </Popover>

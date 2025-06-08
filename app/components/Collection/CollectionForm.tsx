@@ -22,6 +22,7 @@ import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import { EmptySelectValue } from "~/types";
+import { createSwitchRegister } from "~/utils/forms";
 
 const IconPicker = createLazyComponent(() => import("~/components/IconPicker"));
 
@@ -114,7 +115,7 @@ export const CollectionForm = observer(function CollectionForm_({
   }, [setFocus]);
 
   const handleIconChange = useCallback(
-    (icon: string, color: string | null) => {
+    (icon: string, color: string) => {
       if (icon !== values.icon) {
         setFocus("name");
       }
@@ -131,7 +132,6 @@ export const CollectionForm = observer(function CollectionForm_({
         <Trans>
           Collections are used to group documents and choose permissions
         </Trans>
-        .
       </Text>
       <Flex gap={8}>
         <Input
@@ -188,7 +188,7 @@ export const CollectionForm = observer(function CollectionForm_({
           note={t(
             "Allow documents within this collection to be shared publicly on the internet."
           )}
-          {...register("sharing")}
+          {...createSwitchRegister(register, "sharing")}
         />
       )}
 
@@ -197,7 +197,7 @@ export const CollectionForm = observer(function CollectionForm_({
           id="commenting"
           label={t("Commenting")}
           note={t("Allow commenting on documents within this collection.")}
-          {...register("commenting")}
+          {...createSwitchRegister(register, "commenting")}
         />
       )}
 

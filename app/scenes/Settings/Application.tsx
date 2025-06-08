@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
+
 import { OAuthClientValidation } from "@shared/validations";
 import OAuthClient from "~/models/oauth/OAuthClient";
 import Breadcrumb from "~/components/Breadcrumb";
@@ -22,6 +23,7 @@ import Tooltip from "~/components/Tooltip";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import OAuthClientMenu from "~/menus/OAuthClientMenu";
+import { createSwitchRegister } from "~/utils/forms";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { settingsPath } from "~/utils/routeHelpers";
 import { ActionRow } from "./components/ActionRow";
@@ -218,7 +220,10 @@ const Application = observer(function Application({ oauthClient }: Props) {
             )}
             border={false}
           >
-            <Switch id="published" {...register("published")} />
+            <Switch
+              id="published"
+              {...createSwitchRegister(register, "published")}
+            />
           </SettingRow>
         )}
 
