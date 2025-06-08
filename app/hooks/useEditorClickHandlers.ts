@@ -30,7 +30,7 @@ export default function useEditorClickHandlers({ shareId }: Params) {
           try {
             const url = new URL(href);
             navigateTo = url.pathname + url.hash;
-          } catch (err) {
+          } catch (_err) {
             navigateTo = href;
           }
         }

@@ -46,20 +46,6 @@ function DocumentCopy({ document, onSubmit }: Props) {
     return nodes;
   }, [policies, collectionTrees, document.isTemplate]);
 
-  const handlePublishChange = React.useCallback(
-    (ev: React.ChangeEvent<HTMLInputElement>) => {
-      setPublish(ev.target.checked);
-    },
-    []
-  );
-
-  const handleRecursiveChange = React.useCallback(
-    (ev: React.ChangeEvent<HTMLInputElement>) => {
-      setRecursive(ev.target.checked);
-    },
-    []
-  );
-
   const copy = async () => {
     if (!selectedPath) {
       toast.message(t("Select a location to copy"));
@@ -79,7 +65,7 @@ function DocumentCopy({ document, onSubmit }: Props) {
 
       toast.success(t("Document copied"));
       onSubmit(result);
-    } catch (err) {
+    } catch (_err) {
       toast.error(t("Couldn’t copy the document, try again?"));
     }
   };
@@ -102,7 +88,7 @@ function DocumentCopy({ document, onSubmit }: Props) {
                   label={t("Publish")}
                   labelPosition="right"
                   checked={publish}
-                  onChange={handlePublishChange}
+                  onChange={setPublish}
                 />
               </Text>
             )}
@@ -113,7 +99,7 @@ function DocumentCopy({ document, onSubmit }: Props) {
                   label={t("Include nested documents")}
                   labelPosition="right"
                   checked={recursive}
-                  onChange={handleRecursiveChange}
+                  onChange={setRecursive}
                 />
               </Text>
             )}

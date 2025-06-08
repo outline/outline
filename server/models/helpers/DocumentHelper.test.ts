@@ -44,6 +44,38 @@ describe("DocumentHelper", () => {
         type: "doc",
       });
     });
+
+    it("should not duplicate share path for URLs that already contain it", async () => {
+      const document = await buildDocument({
+        text: `[link](/s/testbugpage001/doc/test-page-2-2xIDEXYlib)`,
+      });
+      const result = await DocumentHelper.toJSON(document, {
+        internalUrlBase: "/s/testbugpage001",
+      });
+      expect(result).toEqual({
+        content: [
+          {
+            content: [
+              {
+                marks: [
+                  {
+                    attrs: {
+                      href: "/s/testbugpage001/doc/test-page-2-2xIDEXYlib",
+                      title: null,
+                    },
+                    type: "link",
+                  },
+                ],
+                text: "link",
+                type: "text",
+              },
+            ],
+            type: "paragraph",
+          },
+        ],
+        type: "doc",
+      });
+    });
   });
 
   describe("toJSON", () => {

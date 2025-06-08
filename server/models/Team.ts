@@ -32,6 +32,7 @@ import { TeamPreferenceDefaults } from "@shared/constants";
 import { TeamPreference, TeamPreferences, UserRole } from "@shared/types";
 import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import { parseEmail } from "@shared/utils/email";
+import { TeamValidation } from "@shared/validations";
 import env from "@server/env";
 import { ValidationError } from "@server/errors";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
@@ -70,9 +71,21 @@ class Team extends ParanoidModel<
   Partial<InferCreationAttributes<Team>>
 > {
   @NotContainsUrl
-  @Length({ min: 1, max: 255, msg: "name must be between 1 to 255 characters" })
+  @Length({
+    min: 1,
+    max: TeamValidation.maxNameLength,
+    msg: `Team name must be between 1 and ${TeamValidation.maxNameLength} characters`,
+  })
   @Column
   name: string;
+
+  @AllowNull
+  @Length({
+    max: TeamValidation.maxDescriptionLength,
+    msg: `Team description must be ${TeamValidation.maxDescriptionLength} characters or less`,
+  })
+  @Column(DataType.TEXT)
+  description: string | null;
 
   @IsLowercase
   @Unique

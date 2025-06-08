@@ -193,11 +193,11 @@ async function documentMover({
 
       document.collection = newCollection;
       result.documents.push(
-        ...documents.map((document) => {
+        ...documents.map((doc) => {
           if (newCollection) {
-            document.collection = newCollection;
+            doc.collection = newCollection;
           }
-          return document;
+          return doc;
         })
       );
 

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import { Location, LocationDescriptor } from "history";
 import { TFunction } from "i18next";
 import {
@@ -177,10 +176,10 @@ export type WebsocketEntityDeletedEvent = {
 };
 
 export type WebsocketEntitiesEvent = {
-  fetchIfMissing?: boolean;
   documentIds: { id: string; updatedAt?: string }[];
   collectionIds: { id: string; updatedAt?: string }[];
   groupIds: { id: string; updatedAt?: string }[];
+  invalidatedPolicies: string[];
   teamIds: string[];
   event: string;
 };

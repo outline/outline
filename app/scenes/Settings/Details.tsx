@@ -44,6 +44,7 @@ function Details() {
     team.preferences?.customTheme?.accentText
   );
   const [name, setName] = useState(team.name);
+  const [description, setDescription] = useState(team.description || "");
   const [subdomain, setSubdomain] = useState(team.subdomain);
   const [publicBranding, setPublicBranding] = useState(
     team.preferences?.publicBranding
@@ -94,6 +95,7 @@ function Details() {
       try {
         await team.save({
           name,
+          description,
           subdomain,
           defaultCollectionId,
           preferences: {
@@ -112,6 +114,7 @@ function Details() {
       tocPosition,
       team,
       name,
+      description,
       subdomain,
       defaultCollectionId,
       publicBranding,
@@ -211,6 +214,19 @@ function Details() {
             />
           </SettingRow>
           <SettingRow
+            label={t("Description")}
+            name="description"
+            description={t("A short description of your workspace.")}
+          >
+            <Input
+              id="description"
+              value={description}
+              onChange={(ev: React.ChangeEvent<HTMLInputElement>) => {
+                setDescription(ev.target.value);
+              }}
+            />
+          </SettingRow>
+          <SettingRow
             label={t("Theme")}
             name="accent"
             description={
@@ -246,21 +262,19 @@ function Details() {
               flex
             />
           </SettingRow>
-          {team.avatarUrl && (
+          {(team.avatarUrl || team.description) && (
             <SettingRow
               name={TeamPreference.PublicBranding}
               label={t("Public branding")}
               description={t(
-                "Show your team’s logo on public pages like login and shared documents."
+                "Show your workspace logo, description, and branding on publicly shared pages."
               )}
             >
               <Switch
                 id={TeamPreference.PublicBranding}
                 name={TeamPreference.PublicBranding}
                 checked={publicBranding}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  setPublicBranding(event.target.checked)
-                }
+                onChange={(checked: boolean) => setPublicBranding(checked)}
               />
             </SettingRow>
           )}
