@@ -177,11 +177,17 @@ function Security() {
                 await saveData(newData);
               }}
               savingText={`${t("Saving")}…`}
-              submitText={t("I'm sure – Require invites")}
+              danger
             >
-              {t(
-                "New users will only be able to join the workspace if they are invited by an admin."
-              )}
+              <Trans
+                defaults="New users will first need to be invited to create an account. <em>Default role</em> and <em>Allowed domains</em> will no longer apply."
+                values={{
+                  authenticationMethods: team.signinMethods,
+                }}
+                components={{
+                  em: <strong />,
+                }}
+              />
             </ConfirmationDialog>
           ),
         });
