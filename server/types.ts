@@ -585,13 +585,12 @@ export type CollectionJSONExport = {
   };
 };
 
-export type UnfurlIssueAndPR = (
+export type UnfurlIssueOrPR =
   | UnfurlResponse[UnfurlResourceType.Issue]
-  | UnfurlResponse[UnfurlResourceType.PR]
-) & { transformed_unfurl: true };
+  | UnfurlResponse[UnfurlResourceType.PR];
 
 export type Unfurl =
-  | UnfurlIssueAndPR
+  | UnfurlIssueOrPR
   | {
       type: Exclude<
         UnfurlResourceType,

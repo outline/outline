@@ -14,7 +14,7 @@ import {
 } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { Integration, User } from "@server/models";
-import { UnfurlIssueAndPR, UnfurlSignature } from "@server/types";
+import { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
 import { GitHubUtils } from "../shared/GitHubUtils";
 import env from "./env";
 
@@ -261,8 +261,7 @@ export class GitHub {
           color: GitHubUtils.getColorForStatus(issue.state),
         },
         createdAt: issue.created_at,
-        transformed_unfurl: true,
-      } satisfies UnfurlIssueAndPR;
+      } satisfies UnfurlIssueOrPR;
     }
 
     const pr = data as PR;
@@ -283,7 +282,6 @@ export class GitHub {
         draft: pr.draft,
       },
       createdAt: pr.created_at,
-      transformed_unfurl: true,
-    } satisfies UnfurlIssueAndPR;
+    } satisfies UnfurlIssueOrPR;
   }
 }
