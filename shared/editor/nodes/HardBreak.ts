@@ -55,7 +55,9 @@ export default class HardBreak extends Node {
   }
 
   toMarkdown(state: MarkdownSerializerState) {
-    state.write(state.options.softBreak ? "\n" : "\\n");
+    state.write(
+      state.inTable ? "<br>" : state.options.softBreak ? "\n" : "\\n"
+    );
   }
 
   parseMarkdown() {
