@@ -2009,7 +2009,7 @@ del[data-operation-index] {
     margin: 0;
     padding: 0;
     height: calc(var(--line-height) * var(--font-size));
-    width: 18px;
+    width: 24px;
     &:focus,
     &:hover {
       opacity: 1;
