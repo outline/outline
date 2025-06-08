@@ -2034,7 +2034,7 @@ del[data-operation-index] {
       }
     }
     flex-grow: 1;
-    overflow: auto;
+    overflow: unset;
   }
 }
 `;
