@@ -9,7 +9,7 @@ import {
 import Logger from "@server/logging/Logger";
 import { Integration } from "@server/models";
 import User from "@server/models/User";
-import { UnfurlIssueAndPR, UnfurlSignature } from "@server/types";
+import { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
 import { LinearUtils } from "../shared/LinearUtils";
 import env from "./env";
 
@@ -133,8 +133,7 @@ export class Linear {
           completionPercentage,
         },
         createdAt: issue.createdAt.toISOString(),
-        transformed_unfurl: true,
-      } satisfies UnfurlIssueAndPR;
+      } satisfies UnfurlIssueOrPR;
     } catch (err) {
       Logger.warn("Failed to fetch resource from Linear", err);
       return { error: err.message || "Unknown error" };

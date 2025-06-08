@@ -4,7 +4,6 @@ import { UnfurlResourceType, UnfurlResponse } from "@shared/types";
 import { dateLocale } from "@shared/utils/date";
 import { Document, User, View } from "@server/models";
 import { opts } from "@server/utils/i18n";
-import { GitHubUtils } from "plugins/github/shared/GitHubUtils";
 
 async function presentUnfurl(
   data: Record<string, any>,
@@ -71,63 +70,13 @@ const presentDocument = (
 
 const presentPR = (
   data: Record<string, any>
-): UnfurlResponse[UnfurlResourceType.PR] => {
-  // TODO: For backwards compatibility, remove once cache has expired in next release.
-  if (data.transformed_unfurl) {
-    delete data.transformed_unfurl;
-    return data as UnfurlResponse[UnfurlResourceType.PR]; // this would have been transformed by the unfurl plugin.
-  }
-
-  return {
-    url: data.html_url,
-    type: UnfurlResourceType.PR,
-    id: `#${data.number}`,
-    title: data.title,
-    description: data.body,
-    author: {
-      name: data.user.login,
-      avatarUrl: data.user.avatar_url,
-    },
-    state: {
-      name: data.merged ? "merged" : data.state,
-      color: GitHubUtils.getColorForStatus(data.merged ? "merged" : data.state),
-    },
-    createdAt: data.created_at,
-  };
-};
+): UnfurlResponse[UnfurlResourceType.PR] =>
+  data as UnfurlResponse[UnfurlResourceType.PR]; // this would have been transformed by the unfurl plugin.
 
 const presentIssue = (
   data: Record<string, any>
-): UnfurlResponse[UnfurlResourceType.Issue] => {
-  // TODO: For backwards compatibility, remove once cache has expired in next release.
-  if (data.transformed_unfurl) {
-    delete data.transformed_unfurl;
-    return data as UnfurlResponse[UnfurlResourceType.Issue]; // this would have been transformed by the unfurl plugin.
-  }
-
-  return {
-    url: data.html_url,
-    type: UnfurlResourceType.Issue,
-    id: `#${data.number}`,
-    title: data.title,
-    description: data.body_text,
-    author: {
-      name: data.user.login,
-      avatarUrl: data.user.avatar_url,
-    },
-    labels: data.labels.map((label: { name: string; color: string }) => ({
-      name: label.name,
-      color: `#${label.color}`,
-    })),
-    state: {
-      name: data.state,
-      color: GitHubUtils.getColorForStatus(
-        data.state === "closed" ? "done" : data.state
-      ),
-    },
-    createdAt: data.created_at,
-  };
-};
+): UnfurlResponse[UnfurlResourceType.Issue] =>
+  data as UnfurlResponse[UnfurlResourceType.Issue]; // this would have been transformed by the unfurl plugin.
 
 const presentLastOnlineInfoFor = (user: User) => {
   const locale = dateLocale(user.language);
