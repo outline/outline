@@ -15,16 +15,23 @@ function Features() {
   const team = useCurrentTeam();
   const { t } = useTranslation();
 
-  const handlePreferenceChange =
-    (inverted = false) =>
-    async (ev: React.ChangeEvent<HTMLInputElement>) => {
-      team.setPreference(
-        ev.target.name as TeamPreference,
-        inverted ? !ev.target.checked : ev.target.checked
-      );
+  const handleSeamlessEditChange = React.useCallback(
+    async (checked: boolean) => {
+      team.setPreference(TeamPreference.SeamlessEdit, !checked);
       await team.save();
       toast.success(t("Settings saved"));
-    };
+    },
+    [team, t]
+  );
+
+  const handleCommentingChange = React.useCallback(
+    async (checked: boolean) => {
+      team.setPreference(TeamPreference.Commenting, checked);
+      await team.save();
+      toast.success(t("Settings saved"));
+    },
+    [team, t]
+  );
 
   return (
     <Scene title={t("Features")} icon={<BeakerIcon />}>
@@ -46,7 +53,7 @@ function Features() {
           id={TeamPreference.SeamlessEdit}
           name={TeamPreference.SeamlessEdit}
           checked={!team.getPreference(TeamPreference.SeamlessEdit)}
-          onChange={handlePreferenceChange(true)}
+          onChange={handleSeamlessEditChange}
         />
       </SettingRow>
       <SettingRow
@@ -60,7 +67,7 @@ function Features() {
           id={TeamPreference.Commenting}
           name={TeamPreference.Commenting}
           checked={team.getPreference(TeamPreference.Commenting)}
-          onChange={handlePreferenceChange(false)}
+          onChange={handleCommentingChange}
         />
       </SettingRow>
     </Scene>

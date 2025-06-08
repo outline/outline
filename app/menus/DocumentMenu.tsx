@@ -234,6 +234,27 @@ const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
     onSelectTemplate,
   });
 
+  const handleEmbedsToggle = React.useCallback(
+    (checked: boolean) => {
+      if (checked) {
+        document.enableEmbeds();
+      } else {
+        document.disableEmbeds();
+      }
+    },
+    [document]
+  );
+
+  const handleFullWidthToggle = React.useCallback(
+    (checked: boolean) => {
+      user.setPreference(UserPreference.FullWidthDocuments, checked);
+      void user.save();
+      document.fullWidth = checked;
+      void document.save({ fullWidth: checked });
+    },
+    [user, document]
+  );
+
   return !isEmpty(can) ? (
     <ContextMenu
       {...menuState}
@@ -364,11 +385,7 @@ const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
                   label={t("Enable embeds")}
                   labelPosition="left"
                   checked={!document.embedsDisabled}
-                  onChange={
-                    document.embedsDisabled
-                      ? document.enableEmbeds
-                      : document.disableEmbeds
-                  }
+                  onChange={handleEmbedsToggle}
                 />
               </Style>
             )}
@@ -380,16 +397,7 @@ const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
                   label={t("Full width")}
                   labelPosition="left"
                   checked={document.fullWidth}
-                  onChange={(ev) => {
-                    const fullWidth = ev.currentTarget.checked;
-                    user.setPreference(
-                      UserPreference.FullWidthDocuments,
-                      fullWidth
-                    );
-                    void user.save();
-                    document.fullWidth = fullWidth;
-                    void document.save();
-                  }}
+                  onChange={handleFullWidthToggle}
                 />
               </Style>
             )}
