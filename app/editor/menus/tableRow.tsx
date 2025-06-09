@@ -9,6 +9,10 @@ import {
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import { CellSelection } from "prosemirror-tables";
+import {
+  isMergedCellSelection,
+  isMultipleCellSelection,
+} from "@shared/editor/queries/table";
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
 
@@ -48,15 +52,13 @@ export default function tableRowMenuItems(
           name: "mergeCells",
           label: dictionary.mergeCells,
           icon: <TableMergeCellsIcon />,
-          visible:
-            selection.isColSelection() ||
-            selection.isRowSelection() ||
-            selection.$anchorCell.pos !== selection.$headCell.pos,
+          visible: isMultipleCellSelection(state),
         },
         {
           name: "splitCell",
           label: dictionary.splitCell,
           icon: <TableSplitCellsIcon />,
+          visible: isMergedCellSelection(state),
         },
         {
           name: "separator",

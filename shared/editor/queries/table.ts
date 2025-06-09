@@ -174,3 +174,46 @@ export function isTableSelected(state: EditorState): boolean {
 
   return false;
 }
+
+/**
+ * Check if multiple cells are selected in the editor.
+ *
+ * @param state The editor state
+ * @returns Boolean indicating if multiple cells are selected
+ */
+export function isMultipleCellSelection(state: EditorState): boolean {
+  const { selection } = state;
+
+  return (
+    selection instanceof CellSelection &&
+    (selection.isColSelection() ||
+      selection.isRowSelection() ||
+      selection.$anchorCell.pos !== selection.$headCell.pos)
+  );
+}
+
+/**
+ * Check if the selection spans multiple merged cells.
+ *
+ * @param state The editor state
+ * @returns Boolean indicating if a merged cell is selected
+ */
+export function isMergedCellSelection(state: EditorState): boolean {
+  const { selection } = state;
+  if (selection instanceof CellSelection) {
+    // Check if any cell in the selection has a colspan or rowspan > 1
+    let hasMergedCells = false;
+    selection.forEachCell((cell) => {
+      if (cell.attrs.colspan > 1 || cell.attrs.rowspan > 1) {
+        hasMergedCells = true;
+        return false;
+      }
+
+      return true;
+    });
+
+    return hasMergedCells;
+  }
+
+  return false;
+}
