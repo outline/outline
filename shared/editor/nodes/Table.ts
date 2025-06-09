@@ -12,8 +12,6 @@ import {
   goToNextCell,
   tableEditing,
   toggleHeader,
-  mergeCells,
-  splitCell,
 } from "prosemirror-tables";
 import {
   addRowBefore,
@@ -30,6 +28,8 @@ import {
   moveOutOfTable,
   createTableInner,
   deleteTableIfSelected,
+  splitCellAndCollapse,
+  mergeCellsAndCollapse,
 } from "../commands/table";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { FixTablesPlugin } from "../plugins/FixTables";
@@ -91,8 +91,8 @@ export default class Table extends Node {
       exportTable,
       toggleHeaderColumn: () => toggleHeader("column"),
       toggleHeaderRow: () => toggleHeader("row"),
-      mergeCells: () => mergeCells,
-      splitCell: () => splitCell,
+      mergeCells: () => mergeCellsAndCollapse(),
+      splitCell: () => splitCellAndCollapse(),
     };
   }
 
