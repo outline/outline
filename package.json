@@ -115,7 +115,7 @@
     "compressorjs": "^1.2.1",
     "cookie": "^0.7.0",
     "copy-to-clipboard": "^3.3.3",
-    "core-js": "^3.37.0",
+    "core-js": "^3.43.0",
     "crypto-js": "^4.2.0",
     "datadog-metrics": "^0.12.1",
     "date-fns": "^3.6.0",
