@@ -28,6 +28,8 @@ import {
   moveOutOfTable,
   createTableInner,
   deleteTableIfSelected,
+  splitCellAndCollapse,
+  mergeCellsAndCollapse,
 } from "../commands/table";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { FixTablesPlugin } from "../plugins/FixTables";
@@ -89,6 +91,8 @@ export default class Table extends Node {
       exportTable,
       toggleHeaderColumn: () => toggleHeader("column"),
       toggleHeaderRow: () => toggleHeader("row"),
+      mergeCells: () => mergeCellsAndCollapse(),
+      splitCell: () => splitCellAndCollapse(),
     };
   }
 

@@ -87,6 +87,8 @@ export default function useDictionary() {
       toggleHeader: t("Toggle header"),
       mathInline: t("Math inline (LaTeX)"),
       mathBlock: t("Math block (LaTeX)"),
+      mergeCells: t("Merge cells"),
+      splitCell: t("Split cell"),
       tip: t("Tip"),
       tipNotice: t("Tip notice"),
       warning: t("Warning"),
