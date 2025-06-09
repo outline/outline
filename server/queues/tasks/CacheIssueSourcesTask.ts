@@ -3,8 +3,6 @@ import { sequelize } from "@server/storage/database";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 import BaseTask from "./BaseTask";
 
-const plugins = PluginManager.getHooks(Hook.IssueProvider);
-
 type Props = {
   integrationId: string;
 };
@@ -16,6 +14,7 @@ export default class CacheIssueSourcesTask extends BaseTask<Props> {
       return;
     }
 
+    const plugins = PluginManager.getHooks(Hook.IssueProvider);
     const plugin = plugins.find((p) => p.value.service === integration.service);
     if (!plugin) {
       return;

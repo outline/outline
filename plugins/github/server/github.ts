@@ -22,6 +22,8 @@ type PR =
   Endpoints["GET /repos/{owner}/{repo}/pulls/{pull_number}"]["response"]["data"];
 type Issue =
   Endpoints["GET /repos/{owner}/{repo}/issues/{issue_number}"]["response"]["data"];
+type Installation =
+  Endpoints["GET /app/installations/{installation_id}"]["response"]["data"];
 
 const requestPlugin = (octokit: Octokit) => ({
   requestRepos: () =>
@@ -85,6 +87,23 @@ const requestPlugin = (octokit: Octokit) => ({
         return;
     }
   },
+
+  /**
+   * Fetches details of a specific GitHub app installation
+   *
+   * @param installationId Id of the installation to fetch
+   * @returns Response containing installation details
+   */
+  requestAppInstallation: async (
+    installationId: number
+  ): Promise<OctokitResponse<Installation>> =>
+    octokit.request("GET /app/installations/{installation_id}", {
+      installation_id: installationId,
+      headers: {
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    }),
 
   /**
    * Uninstalls the GitHub app from a given target
