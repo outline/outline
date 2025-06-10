@@ -39,6 +39,7 @@ let baseDomain;
     include: [
       {
         association: "team",
+        required: true,
       },
     ],
   },
@@ -60,6 +61,7 @@ let baseDomain;
     include: [
       {
         association: "actor",
+        required: true,
       },
     ],
   },
@@ -67,6 +69,7 @@ let baseDomain;
     include: [
       {
         association: "user",
+        required: true,
       },
     ],
   },
