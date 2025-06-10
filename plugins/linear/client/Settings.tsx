@@ -55,6 +55,14 @@ function Linear() {
           </Trans>
         </Notice>
       )}
+      {error === "unknown" && (
+        <Notice>
+          <Trans>
+            Something went wrong while processing your request. Please try
+            again.
+          </Trans>
+        </Notice>
+      )}
       {env.LINEAR_CLIENT_ID ? (
         <>
           <Text as="p">
