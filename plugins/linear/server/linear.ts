@@ -42,6 +42,12 @@ export class Linear {
       body,
     });
 
+    if (res.status !== 200) {
+      throw new Error(
+        `Error while exchanging oauth code from Linear; status: ${res.status}`
+      );
+    }
+
     return AccessTokenResponseSchema.parse(await res.json());
   }
 
