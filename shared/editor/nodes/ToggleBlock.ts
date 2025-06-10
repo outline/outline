@@ -626,7 +626,11 @@ export default class ToggleBlock extends Node {
 
           if (
             withinToggleBlockHead($from) &&
-            parent.textContent.trim() === ""
+            parent.childCount <= 2 &&
+            parent.firstChild?.textContent.trim() === "" &&
+            (parent.lastChild?.type === state.schema.nodes.paragraph ||
+              parent.lastChild?.type === state.schema.nodes.heading) &&
+            parent.lastChild?.textContent.trim() === ""
           ) {
             return lift(state, dispatch);
           }
