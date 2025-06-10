@@ -118,14 +118,10 @@ router.post(
   async (ctx: APIContext<T.CollectionsInfoReq>) => {
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const collection = await Collection.scope([
-      "defaultScope",
-      "withArchivedBy",
-      {
-        method: ["withMembership", user.id],
-      },
-    ]).findOne({
-      where: { id },
+    const collection = await Collection.findByPk(id, {
+      userId: user.id,
+      includeArchivedBy: true,
+      rejectOnEmpty: true,
     });
 
     authorize(user, "read", collection);

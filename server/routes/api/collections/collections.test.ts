@@ -1188,6 +1188,25 @@ describe("#collections.info", () => {
     expect(body.data.id).toEqual(collection.id);
   });
 
+  it("should work when passing urlId to id parameter", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const res = await server.post("/api/collections.info", {
+      body: {
+        token: user.getJwtToken(),
+        id: `any-slug-${collection.urlId}`,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(collection.id);
+    expect(body.data.urlId).toEqual(collection.urlId);
+  });
+
   it("should require user member of collection", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
