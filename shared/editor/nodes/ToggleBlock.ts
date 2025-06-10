@@ -2,6 +2,7 @@ import concat from "lodash/concat";
 import filter from "lodash/filter";
 import flatten from "lodash/flatten";
 import forEach from "lodash/forEach";
+import forEachRight from "lodash/forEachRight";
 import isEmpty from "lodash/isEmpty";
 import isNil from "lodash/isNil";
 import isNull from "lodash/isNull";
@@ -23,7 +24,13 @@ import {
   Node as ProsemirrorNode,
   Schema,
 } from "prosemirror-model";
-import { Command, Plugin, PluginKey, TextSelection } from "prosemirror-state";
+import {
+  Command,
+  Plugin,
+  PluginKey,
+  TextSelection,
+  Transaction,
+} from "prosemirror-state";
 import { findWrapping } from "prosemirror-transform";
 import {
   Decoration,
@@ -474,6 +481,48 @@ export default class ToggleBlock extends Node {
       },
     });
 
+    const positionResolverPlugin = new Plugin({
+      appendTransaction: (transactions, _oldState, newState) => {
+        const resolve = (pos: number, tr: Transaction) =>
+          tr.insert(pos, newState.schema.nodes.paragraph.create({}));
+
+        const predicate = (pos: number, type: NodeType) => {
+          const $pos = newState.doc.resolve(pos);
+          return type === $pos.parent.type && $pos.parentOffset === 0;
+        };
+
+        const docChanged = transactions.some(
+          (transaction) => transaction.docChanged
+        );
+        let tr: Transaction | null = null;
+        if (docChanged) {
+          // Notice that we're executing `resolve` over the blocks in reverse order. Why?
+          //
+          // Let's consider that we've got toggle blocks in positions
+          // p0, p1, p2 & p4. Now, if `resolve` runs on p0 first, the toggle blocks
+          // which were at p1, p2 and p3 might no longer be there
+          // as a consequence of `action` being invoked on p0!
+          //
+          // On the other hand, if `resolve` runs on p4 first, all the preceding positions
+          // remain unaffected in the sense that they'd still point to their respective
+          // toggle blocks.
+          forEachRight(
+            filter(
+              findBlockNodes(newState.doc, true),
+              (block) =>
+                block.node.type.name === this.name &&
+                predicate(block.pos, newState.schema.nodes.list_item)
+            ),
+            (toggleBlock) => {
+              tr = resolve(toggleBlock.pos, tr ? tr : newState.tr);
+            }
+          );
+        }
+
+        return tr;
+      },
+    });
+
     return [
       initPlugin,
       actionPlugin,
@@ -506,6 +555,7 @@ export default class ToggleBlock extends Node {
           return tr;
         },
       }),
+      positionResolverPlugin,
       new PlaceholderPlugin([
         {
           condition: ({ node, $start, parent }) =>
