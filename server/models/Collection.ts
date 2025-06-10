@@ -74,6 +74,7 @@ type AdditionalFindOptions = {
   userId?: string;
   includeDocumentStructure?: boolean;
   includeOwner?: boolean;
+  includeArchivedBy?: boolean;
   rejectOnEmpty?: boolean | Error;
 };
 
@@ -551,7 +552,13 @@ class Collection extends ParanoidModel<
       return null;
     }
 
-    const { includeDocumentStructure, includeOwner, userId, ...rest } = options;
+    const {
+      includeDocumentStructure,
+      includeOwner,
+      includeArchivedBy,
+      userId,
+      ...rest
+    } = options;
 
     const scopes: (string | ScopeOptions)[] = [
       includeDocumentStructure ? "withDocumentStructure" : "defaultScope",
@@ -562,6 +569,9 @@ class Collection extends ParanoidModel<
 
     if (includeOwner) {
       scopes.push("withUser");
+    }
+    if (includeArchivedBy) {
+      scopes.push("withArchivedBy");
     }
 
     const scope = this.scope(scopes);
