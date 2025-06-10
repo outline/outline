@@ -1173,6 +1173,7 @@
   "Measurement ID": "Identyfikator pomiarowy",
   "Create a \"Web\" stream in your Google Analytics admin dashboard and copy the measurement ID from the generated code snippet to install.": "Utwórz strumień \"Web\" w panelu administratora Google Analytics i skopiuj identyfikator pomiarowy z wygenerowanego fragmentu kodu, aby go zainstalować.",
   "Whoops, you need to accept the permissions in Linear to connect {{appName}} to your workspace. Try again?": "Ups, musisz zaakceptować uprawnienia w Linear, aby połączyć {{appName}} ze swoim obszarem roboczym. Spróbować ponownie?",
+  "Something went wrong while processing your request. Please try again.": "Something went wrong while processing your request. Please try again.",
   "Enable previews of Linear issues in documents by connecting a Linear workspace to {appName}.": "Włącz podgląd Linear issues w dokumentach, łącząc obszar roboczy Linear z {appName}.",
   "Disconnecting will prevent previewing Linear links from this workspace in documents. Are you sure?": "Odłączenie uniemożliwi podgląd linków Linear z tego obszaru roboczego w dokumentach. Czy na pewno?",
   "The Linear integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.": "Integracja Linear jest obecnie wyłączona. Aby włączyć integrację, należy ustawić związane z nią zmienne środowiskowe i ponownie uruchomić serwer.",
