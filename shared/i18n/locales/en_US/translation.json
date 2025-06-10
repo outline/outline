@@ -1173,6 +1173,7 @@
   "Measurement ID": "Measurement ID",
   "Create a \"Web\" stream in your Google Analytics admin dashboard and copy the measurement ID from the generated code snippet to install.": "Create a \"Web\" stream in your Google Analytics admin dashboard and copy the measurement ID from the generated code snippet to install.",
   "Whoops, you need to accept the permissions in Linear to connect {{appName}} to your workspace. Try again?": "Whoops, you need to accept the permissions in Linear to connect {{appName}} to your workspace. Try again?",
+  "Something went wrong while processing your request. Please try again.": "Something went wrong while processing your request. Please try again.",
   "Enable previews of Linear issues in documents by connecting a Linear workspace to {appName}.": "Enable previews of Linear issues in documents by connecting a Linear workspace to {appName}.",
   "Disconnecting will prevent previewing Linear links from this workspace in documents. Are you sure?": "Disconnecting will prevent previewing Linear links from this workspace in documents. Are you sure?",
   "The Linear integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.": "The Linear integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.",
