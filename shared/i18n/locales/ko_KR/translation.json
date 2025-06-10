@@ -1173,6 +1173,7 @@
   "Measurement ID": "Measurement ID",
   "Create a \"Web\" stream in your Google Analytics admin dashboard and copy the measurement ID from the generated code snippet to install.": "Google 애널리틱스 관리 대시보드에서 \"Web\" 스트림을 만들고 생성된 코드 스니펫에서 Measurement ID를 복사하여 설치합니다.",
   "Whoops, you need to accept the permissions in Linear to connect {{appName}} to your workspace. Try again?": "죄송합니다. {{appName}}을(를) 작업 공간에 연결하려면 Linear에서 권한을 수락해야 합니다. 다시 시도할까요?",
+  "Something went wrong while processing your request. Please try again.": "Something went wrong while processing your request. Please try again.",
   "Enable previews of Linear issues in documents by connecting a Linear workspace to {appName}.": "{appName}에 Linear 작업 공간을 연결하여 문서에서 Linear 문제의 미리 보기를 활성화합니다.",
   "Disconnecting will prevent previewing Linear links from this workspace in documents. Are you sure?": "연결을 끊으면 이 작업공간의 Linear 링크를 문서에서 미리보기할 수 없습니다. 정말로 계속할까요?",
   "The Linear integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.": "Linear 통합이 현재 비활성화되어 있습니다. 관련 환경 변수를 설정하고 서버를 재시작하여 통합을 활성화하세요.",
