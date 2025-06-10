@@ -1173,6 +1173,7 @@
   "Measurement ID": "Measurement ID",
   "Create a \"Web\" stream in your Google Analytics admin dashboard and copy the measurement ID from the generated code snippet to install.": "在你的 Google Analytics 管理仪表板中创建一个 “Web” 流，从生成的代码片段中可以找到 Measurement ID。",
   "Whoops, you need to accept the permissions in Linear to connect {{appName}} to your workspace. Try again?": "糟糕，你需要在 Linear 中接受权限才能将 {{appName}} 连接到你的工作区。再试一次？",
+  "Something went wrong while processing your request. Please try again.": "Something went wrong while processing your request. Please try again.",
   "Enable previews of Linear issues in documents by connecting a Linear workspace to {appName}.": "将一个 Linear 工作区连接到 {appName} 从而可以在文档中预览 Linear Issues。",
   "Disconnecting will prevent previewing Linear links from this workspace in documents. Are you sure?": "断开链接将会使此工作区中文档中的 Linear 链接不再可以被预览。你确定吗？",
   "The Linear integration is currently disabled. Please set the associated environment variables and restart the server to enable the integration.": "Linear 集成已被禁用。请设置相关的环境变量并重新启动服务以启用此集成。",
