@@ -137,7 +137,10 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
         // Skip this page/database if it's not found or not accessible
         if (
           error.code === APIErrorCode.ObjectNotFound ||
-          error.code === APIErrorCode.Unauthorized
+          error.code === APIErrorCode.Unauthorized ||
+          error.message.includes(
+            "Database with ID is a linked database. Database retrievals do not support linked databases"
+          )
         ) {
           Logger.warn(
             `Skipping Notion ${
