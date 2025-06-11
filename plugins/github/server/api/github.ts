@@ -8,11 +8,11 @@ import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import validateWebhook from "@server/middlewares/validateWebhook";
 import { IntegrationAuthentication, Integration } from "@server/models";
-import IssueProviderWebhookTask from "@server/queues/tasks/IssueProviderWebhookTask";
 import { APIContext } from "@server/types";
 import { GitHubUtils } from "../../shared/GitHubUtils";
 import env from "../env";
 import { GitHub } from "../github";
+import GitHubWebhookTask from "../tasks/GitHubWebhookTask";
 import * as T from "./schema";
 
 const router = new Router();
@@ -117,8 +117,7 @@ router.post(
   async (ctx: APIContext) => {
     const { headers, body } = ctx.request;
 
-    await new IssueProviderWebhookTask().schedule({
-      service: IntegrationService.GitHub,
+    await new GitHubWebhookTask().schedule({
       payload: body,
       headers,
     });
