@@ -6,15 +6,10 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import {
-  AttachmentPreset,
-  CollectionPermission,
-  ImportValidationBehavior,
-} from "@shared/types";
+import { AttachmentPreset, CollectionPermission } from "@shared/types";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import InputSelect from "~/components/InputSelect";
 import InputSelectPermission from "~/components/InputSelectPermission";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import Text from "~/components/Text";
@@ -38,12 +33,10 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
   const [permission, setPermission] = useState<CollectionPermission | null>(
     CollectionPermission.ReadWrite
   );
-  const [validationBehavior, setValidationBehavior] =
-    useState<ImportValidationBehavior>(ImportValidationBehavior.Truncate);
 
   const handleFiles = (files: File[]) => {
     if (files.length > 1) {
-      toast.error(t("Please choose a single file to import"));
+      toast.error(t("You can only import one file at a time."));
       return;
     }
     setFile(files[0]);
@@ -63,7 +56,6 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
       await collections.import(attachment.id, {
         format,
         permission,
-        validationBehavior,
       });
       onSubmit();
       toast.message(file.name, {
@@ -128,37 +120,6 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
           .
         </Text>
       </div>
-      <div>
-        <InputSelect
-          value={validationBehavior}
-          ariaLabel={t("Import validation behavior")}
-          options={[
-            {
-              label: t("Skip invalid documents"),
-              value: ImportValidationBehavior.Skip,
-            },
-            {
-              label: t("Truncate oversized documents"),
-              value: ImportValidationBehavior.Truncate,
-            },
-            {
-              label: t("Abort import on validation errors"),
-              value: ImportValidationBehavior.Abort,
-            },
-          ]}
-          onChange={(value) => {
-            if (value) {
-              setValidationBehavior(value as ImportValidationBehavior);
-            }
-          }}
-        />
-        <Text as="span" type="secondary">
-          {t(
-            "Choose how to handle documents that fail validation during import"
-          )}
-          .
-        </Text>
-      </div>
       <Flex justify="flex-end">
         <Button disabled={!file || isImporting} onClick={handleStartImport}>
           {isImporting ? t("Uploading") + "…" : t("Start import")}
@@ -197,3 +158,4 @@ const DropzoneContainer = styled.div<{
 `;
 
 export default observer(DropToImport);
+

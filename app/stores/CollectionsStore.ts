@@ -8,7 +8,6 @@ import {
   CollectionPermission,
   CollectionStatusFilter,
   FileOperationFormat,
-  ImportValidationBehavior,
   SubscriptionType,
 } from "@shared/types";
 import Collection from "~/models/Collection";
@@ -92,7 +91,6 @@ export default class CollectionsStore extends Store<Collection> {
     options: {
       format?: string;
       permission?: CollectionPermission | null;
-      validationBehavior?: ImportValidationBehavior;
     }
   ) => {
     await client.post("/collections.import", {
