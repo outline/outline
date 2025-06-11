@@ -88,10 +88,7 @@ export default class CollectionsStore extends Store<Collection> {
   @action
   import = async (
     attachmentId: string,
-    options: {
-      format?: string;
-      permission?: CollectionPermission | null;
-    }
+    options: { format?: string; permission?: CollectionPermission | null }
   ) => {
     await client.post("/collections.import", {
       attachmentId,

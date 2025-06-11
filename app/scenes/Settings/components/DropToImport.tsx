@@ -36,7 +36,7 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
 
   const handleFiles = (files: File[]) => {
     if (files.length > 1) {
-      toast.error(t("You can only import one file at a time."));
+      toast.error(t("Please choose a single file to import"));
       return;
     }
     setFile(files[0]);
@@ -53,10 +53,7 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
         name: file.name,
         preset: AttachmentPreset.WorkspaceImport,
       });
-      await collections.import(attachment.id, {
-        format,
-        permission,
-      });
+      await collections.import(attachment.id, { format, permission });
       onSubmit();
       toast.message(file.name, {
         description: t(

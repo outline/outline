@@ -4,7 +4,7 @@ import find from "lodash/find";
 import mime from "mime-types";
 import { Fragment, Node } from "prosemirror-model";
 import { v4 as uuidv4 } from "uuid";
-import { ImportValidationBehavior, ProsemirrorData } from "@shared/types";
+import { ProsemirrorData } from "@shared/types";
 import { schema, serializer } from "@server/editor";
 import Logger from "@server/logging/Logger";
 import { Attachment, FileOperation } from "@server/models";
@@ -20,14 +20,13 @@ import ImportTask, { StructuredImportData } from "./ImportTask";
 export default class ImportJSONTask extends ImportTask {
   public async parseData(
     dirPath: string,
-    _: FileOperation,
-    validationBehavior: ImportValidationBehavior
+    _: FileOperation
   ): Promise<StructuredImportData> {
     const tree = await ImportHelper.toFileTree(dirPath);
     if (!tree) {
       throw new Error("Could not find valid content in zip file");
     }
-    return this.parseFileTree(tree.children, validationBehavior);
+    return this.parseFileTree(tree.children);
   }
 
   /**
@@ -38,8 +37,7 @@ export default class ImportJSONTask extends ImportTask {
    * @returns A StructuredImportData object
    */
   private async parseFileTree(
-    tree: FileTreeNode[],
-    validationBehavior: ImportValidationBehavior
+    tree: FileTreeNode[]
   ): Promise<StructuredImportData> {
     let rootPath = "";
     const output: StructuredImportData = {
@@ -127,17 +125,10 @@ export default class ImportJSONTask extends ImportTask {
       try {
         item = JSON.parse(await fs.readFile(node.path, "utf8"));
       } catch (err) {
-        if (validationBehavior === ImportValidationBehavior.Skip) {
-          Logger.info(
-            "task",
-            `Skipping invalid collection file: ${node.path}`,
-            {
-              error: err,
-            }
-          );
-          continue;
-        }
-        throw new Error(`Could not parse ${node.path}. ${err.message}`);
+        Logger.warn(
+          `Skipping unparseable collection file: ${node.path}. ${err.message}`
+        );
+        continue;
       }
 
       const collectionId = uuidv4();

@@ -9,7 +9,6 @@ import {
   CollectionPermission,
   CollectionSort,
   FileOperationState,
-  ImportValidationBehavior,
   ProsemirrorData,
 } from "@shared/types";
 import { CollectionValidation, DocumentValidation } from "@shared/validations";
@@ -115,10 +114,6 @@ export default abstract class ImportTask extends BaseTask<Props> {
       rejectOnEmpty: true,
     });
 
-    const validationBehavior =
-      fileOperation.options?.validationBehavior ??
-      ImportValidationBehavior.Truncate;
-
     try {
       Logger.info("task", `ImportTask fetching data for ${fileOperationId}`);
       dirPath = await this.fetchAndExtractData(fileOperation);
@@ -129,11 +124,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
       Logger.info("task", `ImportTask parsing data for ${fileOperationId}`, {
         dirPath,
       });
-      const parsed = await this.parseData(
-        dirPath,
-        fileOperation,
-        validationBehavior
-      );
+      const parsed = await this.parseData(dirPath, fileOperation);
 
       if (parsed.collections.length === 0) {
         throw ValidationError(
@@ -153,11 +144,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
           "task",
           `ImportTask persisting data for ${fileOperationId}`
         );
-        result = await this.persistData(
-          parsed,
-          fileOperation,
-          validationBehavior
-        );
+        result = await this.persistData(parsed, fileOperation);
       } catch (error) {
         Logger.error(
           `ImportTask failed to persist data for ${fileOperationId}`,
@@ -293,8 +280,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
    */
   protected abstract parseData(
     dirPath: string,
-    fileOperation: FileOperation,
-    validationBehavior: ImportValidationBehavior
+    fileOperation: FileOperation
   ): Promise<StructuredImportData>;
 
   /**
@@ -305,8 +291,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
    */
   protected async persistData(
     data: StructuredImportData,
-    fileOperation: FileOperation,
-    validationBehavior: ImportValidationBehavior
+    fileOperation: FileOperation
   ): Promise<{
     collections: Map<string, Collection>;
     documents: Map<string, Document>;
@@ -447,15 +432,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
             );
 
             // Apply validation behavior
-            const processedDocument = this.validateAndProcessDocument(
-              docItem,
-              validationBehavior
-            );
-
-            // Skip this document if validation behavior is Skip and document failed validation
-            if (!processedDocument) {
-              continue;
-            }
+            const processedDocument = this.preprocessDocument(docItem);
 
             let text = processedDocument.text;
 
@@ -489,8 +466,8 @@ export default abstract class ImportTask extends BaseTask<Props> {
               urlId: processedDocument.urlId,
               text,
               content: processedDocument.data,
-              icon: item.icon,
-              color: item.color,
+              icon: processedDocument.icon,
+              color: processedDocument.color,
               collectionId: processedDocument.collectionId,
               createdAt: processedDocument.createdAt,
               updatedAt:
@@ -569,16 +546,14 @@ export default abstract class ImportTask extends BaseTask<Props> {
   }
 
   /**
-   * Validates a document and applies the appropriate behavior based on validation settings.
+   * Preprocess a document by truncating the content that fail validation rules.
    *
-   * @param document The document to validate
-   * @param validationBehavior The behavior to apply when validation fails
-   * @returns The processed document or null if it should be skipped
+   * @param document The document to preprocess
+   * @returns The processed document
    */
-  private validateAndProcessDocument(
-    document: StructuredImportData["documents"][number],
-    validationBehavior: ImportValidationBehavior
-  ): StructuredImportData["documents"][number] | null {
+  private preprocessDocument(
+    document: StructuredImportData["documents"][number]
+  ): StructuredImportData["documents"][number] {
     const titleTooLong =
       document.title.length > DocumentValidation.maxTitleLength;
     const textTooLong =
@@ -590,48 +565,28 @@ export default abstract class ImportTask extends BaseTask<Props> {
       return document;
     }
 
-    switch (validationBehavior) {
-      case ImportValidationBehavior.Skip: {
-        Logger.info(
-          "task",
-          `Skipping document "${document.title}" due to validation issues`
-        );
-        return null;
-      }
+    const processedDocument = { ...document };
 
-      case ImportValidationBehavior.Truncate: {
-        const processedDocument = { ...document };
-
-        if (titleTooLong) {
-          processedDocument.title = truncate(document.title, {
-            length: DocumentValidation.maxTitleLength,
-            omission: "...",
-          });
-        }
-
-        if (textTooLong) {
-          processedDocument.text = truncate(document.text, {
-            length: DocumentValidation.maxRecommendedLength,
-            omission: "\n\n[Content truncated due to size limits]",
-          });
-        }
-
-        Logger.info(
-          "task",
-          `Truncated document "${document.title}" due to validation issues`
-        );
-        return processedDocument;
-      }
-
-      case ImportValidationBehavior.Abort:
-      default: {
-        throw ValidationError(
-          `Document "${document.title}" exceeds validation limits. ` +
-            `Title: ${document.title.length}/${DocumentValidation.maxTitleLength}, ` +
-            `Text: ${document.text.length}/${DocumentValidation.maxRecommendedLength} characters`
-        );
-      }
+    if (titleTooLong) {
+      processedDocument.title = truncate(document.title, {
+        length: DocumentValidation.maxTitleLength,
+        omission: "...",
+      });
     }
+
+    if (textTooLong) {
+      processedDocument.text = truncate(document.text, {
+        length: DocumentValidation.maxRecommendedLength,
+        omission: "\n\n[Content truncated due to size limits]",
+      });
+    }
+
+    Logger.info(
+      "task",
+      `Truncated document "${document.title}" due to validation issues`
+    );
+
+    return processedDocument;
   }
 
   /**

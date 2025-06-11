@@ -552,9 +552,3 @@ export type ReactionSummary = {
   emoji: string;
   userIds: string[];
 };
-
-export enum ImportValidationBehavior {
-  Skip = "skip",
-  Truncate = "truncate",
-  Abort = "abort",
-}
