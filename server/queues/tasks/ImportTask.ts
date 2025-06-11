@@ -489,6 +489,8 @@ export default abstract class ImportTask extends BaseTask<Props> {
               urlId: processedDocument.urlId,
               text,
               content: processedDocument.data,
+              icon: item.icon,
+              color: item.color,
               collectionId: processedDocument.collectionId,
               createdAt: processedDocument.createdAt,
               updatedAt:
