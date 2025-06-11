@@ -364,7 +364,7 @@ router.post(
     const { id, userId, permission } = ctx.input.body;
 
     const [collection, user] = await Promise.all([
-      Collection.findByPk(id, { userId, transaction }),
+      Collection.findByPk(id, { userId: actor.id, transaction }),
       User.findByPk(userId, { transaction }),
     ]);
     authorize(actor, "update", collection);
@@ -408,7 +408,7 @@ router.post(
     const { id, userId } = ctx.input.body;
 
     const [collection, user] = await Promise.all([
-      Collection.findByPk(id, { userId, transaction }),
+      Collection.findByPk(id, { userId: actor.id, transaction }),
       User.findByPk(userId, { transaction }),
     ]);
     authorize(actor, "update", collection);
