@@ -550,6 +550,34 @@ describe("#collections.export_all", () => {
 });
 
 describe("#collections.add_user", () => {
+  it("should add user to collection with manage permission", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+      permission: null,
+    });
+    const anotherUser = await buildUser({
+      teamId: user.teamId,
+    });
+    await UserMembership.create({
+      createdById: user.id,
+      collectionId: collection.id,
+      userId: user.id,
+      permission: CollectionPermission.Admin,
+    });
+    const res = await server.post("/api/collections.add_user", {
+      body: {
+        token: user.getJwtToken(),
+        id: collection.id,
+        userId: anotherUser.id,
+      },
+    });
+    const users = await collection.$get("users");
+    expect(res.status).toEqual(200);
+    expect(users.length).toEqual(3);
+  });
+
   it("should add user to collection", async () => {
     const admin = await buildAdmin();
     const collection = await buildCollection({
