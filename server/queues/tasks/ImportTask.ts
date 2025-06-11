@@ -576,7 +576,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
     if (textTooLong) {
       processedDocument.text = truncate(document.text, {
-        length: DocumentValidation.maxRecommendedLength,
+        length: DocumentValidation.maxStateLength,
         omission: "\n\n[Content truncated due to size limits]",
       });
     }
