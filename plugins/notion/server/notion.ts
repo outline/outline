@@ -20,6 +20,7 @@ import { z } from "zod";
 import { Second } from "@shared/utils/time";
 import { isUrl } from "@shared/utils/urls";
 import { CollectionValidation, DocumentValidation } from "@shared/validations";
+import Logger from "@server/logging/Logger";
 import { NotionUtils } from "../shared/NotionUtils";
 import { Block, Page, PageType } from "../shared/types";
 import env from "./env";
@@ -57,6 +58,8 @@ export class NotionClient {
   private client: Client;
   private limiter: ReturnType<typeof RateLimit>;
   private pageSize = 25;
+  private maxRetries = 3;
+  private retryDelay = 1000;
   private skipChildrenForBlock = [
     "unsupported",
     "child_page",
@@ -68,7 +71,8 @@ export class NotionClient {
     rateLimit: { window: number; limit: number } = {
       window: Second.ms,
       limit: 3,
-    }
+    },
+    options: { maxRetries?: number; retryDelay?: number } = {}
   ) {
     this.client = new Client({
       auth: accessToken,
@@ -77,6 +81,53 @@ export class NotionClient {
       timeUnit: rateLimit.window,
       uniformDistribution: true,
     });
+    this.maxRetries = options.maxRetries ?? this.maxRetries;
+    this.retryDelay = options.retryDelay ?? this.retryDelay;
+  }
+
+  /**
+   * Executes an API call with automatic retry on rate limiting errors
+   *
+   * @param apiCall The async function that makes the Notion API call
+   * @returns The result of the API call
+   */
+  private async fetchWithRetry<T>(apiCall: () => Promise<T>): Promise<T> {
+    let retries = 0;
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      try {
+        await this.limiter();
+        return await apiCall();
+      } catch (error) {
+        // Check if this is a rate limit error
+        if (
+          error instanceof APIResponseError &&
+          error.code === APIErrorCode.RateLimited
+        ) {
+          if (retries < this.maxRetries) {
+            retries++;
+            const delay = this.retryDelay * retries;
+            Logger.info(
+              "task",
+              `Notion API rate limit hit, retrying in ${delay}ms (retry ${retries}/${this.maxRetries})`
+            );
+
+            // Wait before retrying
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            continue;
+          }
+
+          Logger.warn(
+            `Notion API rate limit exceeded after ${this.maxRetries} retries`,
+            { error: error.message }
+          );
+        }
+
+        // Re-throw the error if it's not a rate limit issue or we've exhausted retries
+        throw error;
+      }
+    }
   }
 
   static async oauthAccess(code: string) {
@@ -107,12 +158,12 @@ export class NotionClient {
     let hasMore = true;
 
     while (hasMore) {
-      await this.limiter();
-
-      const response = await this.client.search({
-        start_cursor: cursor,
-        page_size: this.pageSize,
-      });
+      const response = await this.fetchWithRetry(() =>
+        this.client.search({
+          start_cursor: cursor,
+          page_size: this.pageSize,
+        })
+      );
 
       response.results.forEach((item) => {
         if (!isFullPageOrDatabase(item)) {
@@ -165,13 +216,13 @@ export class NotionClient {
     let hasMore = true;
 
     while (hasMore) {
-      await this.limiter();
-
-      const response = await this.client.blocks.children.list({
-        block_id: blockId,
-        start_cursor: cursor,
-        page_size: this.pageSize,
-      });
+      const response = await this.fetchWithRetry(() =>
+        this.client.blocks.children.list({
+          block_id: blockId,
+          start_cursor: cursor,
+          page_size: this.pageSize,
+        })
+      );
 
       blocks.push(...(response.results as BlockObjectResponse[]));
 
@@ -200,14 +251,14 @@ export class NotionClient {
     let hasMore = true;
 
     while (hasMore) {
-      await this.limiter();
-
-      const response = await this.client.databases.query({
-        database_id: databaseId,
-        filter_properties: ["title"],
-        start_cursor: cursor,
-        page_size: this.pageSize,
-      });
+      const response = await this.fetchWithRetry(() =>
+        this.client.databases.query({
+          database_id: databaseId,
+          filter_properties: ["title"],
+          start_cursor: cursor,
+          page_size: this.pageSize,
+        })
+      );
 
       const pagesFromRes = compact(
         response.results.map<Page | undefined>((item) => {
@@ -239,10 +290,11 @@ export class NotionClient {
     pageId: string,
     { titleMaxLength }: { titleMaxLength: number }
   ): Promise<PageInfo> {
-    await this.limiter();
-    const page = (await this.client.pages.retrieve({
-      page_id: pageId,
-    })) as PageObjectResponse;
+    const page = (await this.fetchWithRetry(() =>
+      this.client.pages.retrieve({
+        page_id: pageId,
+      })
+    )) as PageObjectResponse;
 
     const author = await this.fetchUsername(page.created_by.id);
 
@@ -263,10 +315,11 @@ export class NotionClient {
     databaseId: string,
     { titleMaxLength }: { titleMaxLength: number }
   ): Promise<PageInfo> {
-    await this.limiter();
-    const database = (await this.client.databases.retrieve({
-      database_id: databaseId,
-    })) as DatabaseObjectResponse;
+    const database = (await this.fetchWithRetry(() =>
+      this.client.databases.retrieve({
+        database_id: databaseId,
+      })
+    )) as DatabaseObjectResponse;
 
     const author = await this.fetchUsername(database.created_by.id);
 
@@ -286,9 +339,10 @@ export class NotionClient {
   }
 
   private async fetchUsername(userId: string) {
-    await this.limiter();
     try {
-      const user = await this.client.users.retrieve({ user_id: userId });
+      const user = await this.fetchWithRetry(() =>
+        this.client.users.retrieve({ user_id: userId })
+      );
 
       if (user.type === "person" || !user.bot.owner) {
         return user.name;
