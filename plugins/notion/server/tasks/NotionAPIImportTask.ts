@@ -149,6 +149,17 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
           );
           return null;
         }
+
+        // Rate limit errors should be handled by the fetchWithRetry method in NotionClient
+        // If we still get here, it means the maximum retries were exceeded
+        if (error.code === APIErrorCode.RateLimited) {
+          Logger.error(
+            `Rate limit exceeded for Notion API when processing ${
+              item.type === PageType.Database ? "database" : "page"
+            } ${item.externalId}. Maximum retries reached.`,
+            error
+          );
+        }
       }
       // Re-throw other errors to be handled by the parent try/catch
       throw error;
