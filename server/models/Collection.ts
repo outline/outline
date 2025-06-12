@@ -598,7 +598,7 @@ class Collection extends ParanoidModel<
         where: {
           urlId: match[1],
         },
-        ...options,
+        ...rest,
         rejectOnEmpty: false,
       });
 
