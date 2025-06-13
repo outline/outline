@@ -87,9 +87,10 @@ router.post(
 );
 
 const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
-  const token = ctx.input.query?.token || ctx.input.body?.token;
-  const client = ctx.input.query?.client || ctx.input.body?.client;
-  const follow = ctx.input.query?.follow || ctx.input.body?.follow;
+  const { query, body } = ctx.input;
+  const token = query?.token || body?.token;
+  const client = query?.client || body?.client || Client.Web;
+  const follow = query?.follow || body?.follow;
 
   // The link in the email does not include the follow query param, this
   // is to help prevent anti-virus, and email clients from pre-fetching the link
@@ -140,7 +141,7 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
     team: user.team,
     isNewTeam: false,
     isNewUser: false,
-    client: client ?? Client.Web,
+    client,
   });
 };
 router.get("email.callback", validate(T.EmailCallbackSchema), emailCallback);
