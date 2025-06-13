@@ -262,6 +262,8 @@
   "You will receive an email when it's complete.": "Je ontvangt een e-mail als het voltooid is.",
   "Include attachments": "Bijlagen toevoegen",
   "Including uploaded images and files in the exported data": "Geüploade afbeeldingen en bestanden worden aan de geëxporteerde data toegevoegd",
+  "{{count}} more user": "{{count}} more user",
+  "{{count}} more user_plural": "{{count}} more users",
   "Filter": "Filter",
   "No results": "Geen resultaten",
   "{{authorName}} created <3></3>": "{{authorName}} heeft <3></3> aangemaakt",
