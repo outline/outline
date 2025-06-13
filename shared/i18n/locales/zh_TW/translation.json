@@ -262,6 +262,8 @@
   "You will receive an email when it's complete.": "完成後，您將收到一封電子郵件。",
   "Include attachments": "包含附件",
   "Including uploaded images and files in the exported data": "在輸出的數據中將會包含您上傳的圖片跟文件",
+  "{{count}} more user": "{{count}} more user",
+  "{{count}} more user_plural": "{{count}} more users",
   "Filter": "篩選器",
   "No results": "找不到任何結果",
   "{{authorName}} created <3></3>": "{{authorName}}建立了<3></3>",
