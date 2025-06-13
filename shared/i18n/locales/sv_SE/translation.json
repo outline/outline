@@ -262,6 +262,8 @@
   "You will receive an email when it's complete.": "Du kommer att få ett e-postmeddelande när det är klart.",
   "Include attachments": "Inkludera bilagor",
   "Including uploaded images and files in the exported data": "Inkluderar uppladdade bilder och filer i den exporterade datan",
+  "{{count}} more user": "{{count}} more user",
+  "{{count}} more user_plural": "{{count}} more users",
   "Filter": "Filter",
   "No results": "Inga resultat",
   "{{authorName}} created <3></3>": "{{authorName}} öppnade <3></3>",
