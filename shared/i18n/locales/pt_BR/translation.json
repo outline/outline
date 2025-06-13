@@ -262,6 +262,8 @@
   "You will receive an email when it's complete.": "Você receberá um e-mail quando estiver concluído.",
   "Include attachments": "Incluir anexos",
   "Including uploaded images and files in the exported data": "Incluindo imagens e arquivos carregados nos dados exportados",
+  "{{count}} more user": "{{count}} more user",
+  "{{count}} more user_plural": "{{count}} more users",
   "Filter": "Filtro",
   "No results": "Sem resultados",
   "{{authorName}} created <3></3>": "{{authorName}} criou <3></3>",
