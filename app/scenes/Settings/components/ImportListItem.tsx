@@ -30,10 +30,6 @@ export const ImportListItem = observer(({ importModel }: Props) => {
   const showProgress =
     importModel.state !== ImportState.Canceled &&
     importModel.state !== ImportState.Errored;
-  const showErrorInfo =
-    !isCloudHosted &&
-    importModel.state === ImportState.Errored &&
-    !!importModel.error;
 
   const stateMap = useMemo(
     () => ({
@@ -112,6 +108,10 @@ export const ImportListItem = observer(({ importModel }: Props) => {
     });
   }, [t, dialogs, importModel]);
 
+  const selfHostedHelp = isCloudHosted
+    ? ""
+    : `. ${t("Check server logs for more details.")}`;
+
   return (
     <ListItem
       title={importModel.name}
@@ -119,10 +119,10 @@ export const ImportListItem = observer(({ importModel }: Props) => {
       subtitle={
         <>
           {stateMap[importModel.state]}&nbsp;•&nbsp;
-          {showErrorInfo && (
+          {importModel.error && (
             <>
               {importModel.error}
-              {`. ${t("Check server logs for more details.")}`}&nbsp;•&nbsp;
+              {selfHostedHelp}&nbsp;•&nbsp;
             </>
           )}
           {t(`{{userName}} requested`, {
