@@ -262,6 +262,8 @@
   "You will receive an email when it's complete.": "Du erhältst eine E-Mail, sobald der Vorgang abgeschlossen ist.",
   "Include attachments": "Anhänge beifügen",
   "Including uploaded images and files in the exported data": "Einbeziehung hochgeladener Bilder und Dateien in die exportierten Daten",
+  "{{count}} more user": "{{count}} more user",
+  "{{count}} more user_plural": "{{count}} more users",
   "Filter": "Filter",
   "No results": "Keine Ergebnisse",
   "{{authorName}} created <3></3>": "{{authorName}} hat <3></3> erstellt",
