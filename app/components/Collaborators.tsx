@@ -54,9 +54,10 @@ function Collaborators(props: Props) {
   const { document } = props;
   const { observingUserId } = ui;
   const documentPresence = presence.get(document.id);
-  const documentPresenceArray = documentPresence
-    ? Array.from(documentPresence.values())
-    : [];
+  const documentPresenceArray = useMemo(
+    () => (documentPresence ? Array.from(documentPresence.values()) : []),
+    [documentPresence]
+  );
 
   // Use Set for O(1) lookups and stable references
   const presentIds = useMemo(
