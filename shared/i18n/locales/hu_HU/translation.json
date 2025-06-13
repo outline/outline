@@ -262,6 +262,8 @@
   "You will receive an email when it's complete.": "Egy e-mail-t fog kapni, mikor elkészült.",
   "Include attachments": "Csatolmányokkal együtt",
   "Including uploaded images and files in the exported data": "A feltöltött képek és fájlok is exportálva lesznek",
+  "{{count}} more user": "{{count}} more user",
+  "{{count}} more user_plural": "{{count}} more users",
   "Filter": "Szűrő",
   "No results": "Nincs találat",
   "{{authorName}} created <3></3>": "{{authorName}} hozta lére <3></3>",
