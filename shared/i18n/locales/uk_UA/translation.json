@@ -262,6 +262,8 @@
   "You will receive an email when it's complete.": "Ви отримаєте електронного листа після його завершення.",
   "Include attachments": "Включити вкладення",
   "Including uploaded images and files in the exported data": "Включити завантажені зображення та файли в експортовані дані",
+  "{{count}} more user": "{{count}} more user",
+  "{{count}} more user_plural": "{{count}} more users",
   "Filter": "Фільтр",
   "No results": "Нічого не знайдено",
   "{{authorName}} created <3></3>": "{{authorName}} створив <3></3>",

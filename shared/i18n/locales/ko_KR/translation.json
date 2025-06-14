@@ -262,6 +262,8 @@
   "You will receive an email when it's complete.": "완료 시점에 메일을 수신받게 됩니다.",
   "Include attachments": "첨부파일 포함",
   "Including uploaded images and files in the exported data": "내보낼 데이터에 업로드된 이미지 및 파일 포함",
+  "{{count}} more user": "{{count}} more user",
+  "{{count}} more user_plural": "{{count}} more users",
   "Filter": "필터",
   "No results": "결과 없음",
   "{{authorName}} created <3></3>": "{{authorName }} 이(가) <3></3> 생성",
