@@ -27,6 +27,12 @@ class GitHubPluginEnvironment extends Environment {
   );
 
   @IsOptional()
+  @CannotUseWithout("GITHUB_CLIENT_ID")
+  public GITHUB_WEBHOOK_SECRET = this.toOptionalString(
+    environment.GITHUB_WEBHOOK_SECRET
+  );
+
+  @IsOptional()
   @CannotUseWithout("GITHUB_APP_PRIVATE_KEY")
   public GITHUB_APP_ID = this.toOptionalString(environment.GITHUB_APP_ID);
 
