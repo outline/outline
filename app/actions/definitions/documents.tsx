@@ -1,5 +1,6 @@
 import copy from "copy-to-clipboard";
 import invariant from "invariant";
+import uniqBy from "lodash/uniqBy";
 import {
   DownloadIcon,
   DuplicateIcon,
@@ -84,8 +85,9 @@ export const openDocument = createAction({
       (acc, node) => [...acc, ...node.children],
       [] as NavigationNode[]
     );
+    const documents = stores.documents.orderedData;
 
-    return nodes.map((item) => ({
+    return uniqBy([...documents, ...nodes], "id").map((item) => ({
       // Note: using url which includes the slug rather than id here to bust
       // cache if the document is renamed
       id: item.url,
