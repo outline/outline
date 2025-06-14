@@ -60,7 +60,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const { t } = useTranslation();
   const match = useRouteMatch();
   const focusedComment = useFocusedComment();
-  const { ui, comments, collections } = useStores();
+  const { ui, comments } = useStores();
   const user = useCurrentUser({ rejectOnEmpty: false });
   const team = useCurrentTeam({ rejectOnEmpty: false });
   const history = useHistory();
@@ -78,14 +78,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     ...rest
   } = props;
   const can = usePolicy(document);
-
-  // Check collection-level commenting setting
-  const collection = document.collectionId
-    ? collections.get(document.collectionId)
-    : undefined;
-  const collectionCommentingEnabled =
-    collection?.canCreateComment ??
-    !!team?.getPreference(TeamPreference.Commenting);
+  const commentingEnabled = !!team?.getPreference(TeamPreference.Commenting);
 
   const iconColor = document.color ?? (last(colorPalette) as string);
   const childRef = React.useRef<HTMLDivElement>(null);
@@ -266,14 +259,10 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         focusedCommentId={focusedComment?.id}
         onClickCommentMark={handleClickComment}
         onCreateCommentMark={
-          collectionCommentingEnabled && can.comment
-            ? handleDraftComment
-            : undefined
+          commentingEnabled && can.comment ? handleDraftComment : undefined
         }
         onDeleteCommentMark={
-          collectionCommentingEnabled && can.comment
-            ? handleRemoveComment
-            : undefined
+          commentingEnabled && can.comment ? handleRemoveComment : undefined
         }
         onInit={handleInit}
         onDestroy={handleDestroy}
