@@ -23,7 +23,6 @@ import Tooltip from "~/components/Tooltip";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import OAuthClientMenu from "~/menus/OAuthClientMenu";
-import { createSwitchRegister } from "~/utils/forms";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { settingsPath } from "~/utils/routeHelpers";
 import { ActionRow } from "./components/ActionRow";
@@ -220,9 +219,16 @@ const Application = observer(function Application({ oauthClient }: Props) {
             )}
             border={false}
           >
-            <Switch
-              id="published"
-              {...createSwitchRegister(register, "published")}
+            <Controller
+              name="published"
+              control={control}
+              render={({ field }) => (
+                <Switch
+                  id="published"
+                  checked={field.value}
+                  onChange={field.onChange}
+                />
+              )}
             />
           </SettingRow>
         )}
