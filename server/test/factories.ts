@@ -47,6 +47,7 @@ import {
   OAuthClient,
   AuthenticationProvider,
   OAuthAuthentication,
+  Emoji,
 } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { hash } from "@server/utils/crypto";
@@ -828,4 +829,24 @@ export function buildCommentMark(overrides: {
     type: "comment",
     attrs: overrides,
   };
+}
+
+export async function buildEmoji(overrides: Partial<Emoji> = {}) {
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
+  if (!overrides.createdById) {
+    const user = await buildUser({
+      teamId: overrides.teamId,
+    });
+    overrides.createdById = user.id;
+  }
+
+  return Emoji.create({
+    name: faker.lorem.word(),
+    url: faker.image.url(),
+    ...overrides,
+  });
 }
