@@ -125,7 +125,10 @@ export default class ImportJSONTask extends ImportTask {
       try {
         item = JSON.parse(await fs.readFile(node.path, "utf8"));
       } catch (err) {
-        throw new Error(`Could not parse ${node.path}. ${err.message}`);
+        Logger.warn(
+          `Skipping unparseable collection file: ${node.path}. ${err.message}`
+        );
+        continue;
       }
 
       const collectionId = uuidv4();

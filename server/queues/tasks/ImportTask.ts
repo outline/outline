@@ -11,7 +11,7 @@ import {
   FileOperationState,
   ProsemirrorData,
 } from "@shared/types";
-import { CollectionValidation } from "@shared/validations";
+import { CollectionValidation, DocumentValidation } from "@shared/validations";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import documentCreator from "@server/commands/documentCreator";
 import { createContext } from "@server/context";
@@ -423,14 +423,18 @@ export default abstract class ImportTask extends BaseTask<Props> {
           collections.set(item.id, collection);
 
           // Documents
-          for (const item of data.documents.filter(
+          for (const docItem of data.documents.filter(
             (d) => d.collectionId === collection.id
           )) {
             Logger.debug(
               "task",
-              `ImportTask persisting document ${item.title} (${item.id})`
+              `ImportTask persisting document ${docItem.title} (${docItem.id})`
             );
-            let text = item.text;
+
+            // Apply validation behavior
+            const processedDocument = this.preprocessDocument(docItem);
+
+            let text = processedDocument.text;
 
             // Check all of the attachments we've created against urls in the text
             // and replace them out with attachment redirect urls before saving.
@@ -452,28 +456,32 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
             const document = await documentCreator({
               sourceMetadata: {
-                fileName: path.basename(item.path),
-                mimeType: item.mimeType,
-                externalId: item.externalId,
-                createdByName: item.createdByName,
+                fileName: path.basename(processedDocument.path),
+                mimeType: processedDocument.mimeType,
+                externalId: processedDocument.externalId,
+                createdByName: processedDocument.createdByName,
               },
-              id: item.id,
-              title: item.title,
-              urlId: item.urlId,
+              id: processedDocument.id,
+              title: processedDocument.title,
+              urlId: processedDocument.urlId,
               text,
-              content: item.data,
-              icon: item.icon,
-              color: item.color,
-              collectionId: item.collectionId,
-              createdAt: item.createdAt,
-              updatedAt: item.updatedAt ?? item.createdAt,
-              publishedAt: item.updatedAt ?? item.createdAt ?? new Date(),
-              parentDocumentId: item.parentDocumentId,
+              content: processedDocument.data,
+              icon: processedDocument.icon,
+              color: processedDocument.color,
+              collectionId: processedDocument.collectionId,
+              createdAt: processedDocument.createdAt,
+              updatedAt:
+                processedDocument.updatedAt ?? processedDocument.createdAt,
+              publishedAt:
+                processedDocument.updatedAt ??
+                processedDocument.createdAt ??
+                new Date(),
+              parentDocumentId: processedDocument.parentDocumentId,
               importId: fileOperation.id,
               user,
               ctx: createContext({ user, transaction }),
             });
-            documents.set(item.id, document);
+            documents.set(processedDocument.id, document);
 
             await collection.addDocumentToStructure(document, undefined, {
               transaction,
@@ -535,6 +543,50 @@ export default abstract class ImportTask extends BaseTask<Props> {
       documents,
       attachments,
     };
+  }
+
+  /**
+   * Preprocess a document by truncating the content that fail validation rules.
+   *
+   * @param document The document to preprocess
+   * @returns The processed document
+   */
+  private preprocessDocument(
+    document: StructuredImportData["documents"][number]
+  ): StructuredImportData["documents"][number] {
+    const titleTooLong =
+      document.title.length > DocumentValidation.maxTitleLength;
+    const textTooLong =
+      document.text.length > DocumentValidation.maxStateLength;
+
+    const hasValidationIssues = titleTooLong || textTooLong;
+
+    if (!hasValidationIssues) {
+      return document;
+    }
+
+    const processedDocument = { ...document };
+
+    if (titleTooLong) {
+      processedDocument.title = truncate(document.title, {
+        length: DocumentValidation.maxTitleLength,
+        omission: "...",
+      });
+    }
+
+    if (textTooLong) {
+      processedDocument.text = truncate(document.text, {
+        length: DocumentValidation.maxStateLength,
+        omission: "\n\n[Content truncated due to size limits]",
+      });
+    }
+
+    Logger.info(
+      "task",
+      `Truncated document "${document.title}" due to validation issues`
+    );
+
+    return processedDocument;
   }
 
   /**

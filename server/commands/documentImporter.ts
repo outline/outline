@@ -16,6 +16,7 @@ type Props = {
   fileName: string;
   content: Buffer | string;
   ctx: APIContext;
+  skipValidation?: boolean;
 };
 
 async function documentImporter({
@@ -24,6 +25,7 @@ async function documentImporter({
   content,
   user,
   ctx,
+  skipValidation = false,
 }: Props): Promise<{
   icon?: string;
   text: string;
@@ -63,7 +65,7 @@ async function documentImporter({
   text = await TextHelper.replaceImagesWithAttachments(ctx, text, user);
 
   // Sanity check – text cannot possibly be longer than state so if it is, we can short-circuit here
-  if (text.length > DocumentValidation.maxStateLength) {
+  if (!skipValidation && text.length > DocumentValidation.maxStateLength) {
     throw InvalidRequestError(
       `The document "${title}" is too large to import, please reduce the length and try again`
     );
@@ -75,7 +77,7 @@ async function documentImporter({
   const ydoc = ProsemirrorHelper.toYDoc(text);
   const state = ProsemirrorHelper.toState(ydoc);
 
-  if (state.length > DocumentValidation.maxStateLength) {
+  if (!skipValidation && state.length > DocumentValidation.maxStateLength) {
     throw InvalidRequestError(
       `The document "${title}" is too large to import, please reduce the length and try again`
     );
