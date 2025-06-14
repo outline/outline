@@ -36,9 +36,9 @@ router.post(
     // if a specific collection is passed then we need to check auth to view it
     if (collectionId) {
       where[Op.and].push({ collectionId: [collectionId] });
-      const collection = await Collection.scope({
-        method: ["withMembership", user.id],
-      }).findByPk(collectionId);
+      const collection = await Collection.findByPk(collectionId, {
+        userId: user.id,
+      });
       authorize(user, "read", collection);
     } else {
       where[Op.and].push({
@@ -59,7 +59,7 @@ router.post(
       Template.scope([
         "defaultScope",
         {
-          method: ["withCollectionPermissions", user.id],
+          method: ["withMembership", user.id],
         },
       ]).findAll({
         where,

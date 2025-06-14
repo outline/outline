@@ -64,14 +64,16 @@ type AdditionalFindOptions = {
   },
 }))
 @Scopes(() => ({
-  withCollectionPermissions: (userId: string, paranoid = true) => ({
+  withMembership: (userId: string, paranoid = true) => ({
     include: [
       {
-        attributes: ["id", "permission", "sharing", "teamId", "deletedAt"],
         model: userId
-          ? Collection.scope({
-              method: ["withMembership", userId],
-            })
+          ? Collection.scope([
+              "defaultScope",
+              {
+                method: ["withMembership", userId],
+              },
+            ])
           : Collection,
         as: "collection",
         paranoid,
@@ -244,7 +246,7 @@ class Template extends IdModel<
     const scope = this.scope([
       "defaultScope",
       {
-        method: ["withCollectionPermissions", userId, rest.paranoid],
+        method: ["withMembership", userId, rest.paranoid],
       },
     ]);
 
