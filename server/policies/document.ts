@@ -60,7 +60,8 @@ allow(User, "comment", Document, (actor, document) =>
     ),
     isTeamMutable(actor),
     !!document?.isActive,
-    !document?.template
+    !document?.template,
+    or(!document?.collection, document?.collection?.commenting !== false)
   )
 );
 

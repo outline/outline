@@ -25,7 +25,7 @@ type Props = {
 };
 
 function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
-  const { collections, views, comments, ui } = useStores();
+  const { views, comments, ui } = useStores();
   const { t } = useTranslation();
   const match = useRouteMatch();
   const sidebarContext = useLocationSidebarContext();
@@ -40,17 +40,11 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
 
   const insightsPath = documentInsightsPath(document);
   const commentsCount = comments.unresolvedCommentsInDocumentCount(document.id);
-
-  const collection = document.collectionId
-    ? collections.get(document.collectionId)
-    : undefined;
-  const collectionCommentingEnabled =
-    collection?.canCreateComment ??
-    !!team.getPreference(TeamPreference.Commenting);
+  const commentingEnabled = !!team.getPreference(TeamPreference.Commenting);
 
   return (
     <Meta document={document} revision={revision} to={to} replace {...rest}>
-      {collectionCommentingEnabled && can.comment && (
+      {commentingEnabled && can.comment && (
         <>
           &nbsp;•&nbsp;
           <CommentLink
