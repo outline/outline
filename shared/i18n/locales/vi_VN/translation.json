@@ -262,6 +262,8 @@
   "You will receive an email when it's complete.": "Bạn sẽ nhận được một email khi nó hoàn tất.",
   "Include attachments": "Bao gồm tập tin đính kèm",
   "Including uploaded images and files in the exported data": "Bao gồm hình ảnh và tệp đã tải lên trong dữ liệu đã xuất",
+  "{{count}} more user": "{{count}} more user",
+  "{{count}} more user_plural": "{{count}} more users",
   "Filter": "Bộ Lọc",
   "No results": "Không có kết quả",
   "{{authorName}} created <3></3>": "{{authorName}} đã tạo <3></3>",

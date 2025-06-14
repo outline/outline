@@ -262,6 +262,8 @@
   "You will receive an email when it's complete.": "Po dokončení obdržíte e-mail.",
   "Include attachments": "Zahrnout přílohy",
   "Including uploaded images and files in the exported data": "Zahrnout nahrané obrázky a soubory do exportovaných dat",
+  "{{count}} more user": "{{count}} more user",
+  "{{count}} more user_plural": "{{count}} more users",
   "Filter": "Filtr",
   "No results": "Žádné výsledky",
   "{{authorName}} created <3></3>": "{{authorName}} vytvořil <3></3>",

@@ -262,6 +262,8 @@
   "You will receive an email when it's complete.": "You will receive an email when it's complete.",
   "Include attachments": "Include attachments",
   "Including uploaded images and files in the exported data": "Including uploaded images and files in the exported data",
+  "{{count}} more user": "{{count}} more user",
+  "{{count}} more user_plural": "{{count}} more users",
   "Filter": "فیلتر",
   "No results": "بدون نتیجه",
   "{{authorName}} created <3></3>": "{{authorName}} ایجاد شد>",

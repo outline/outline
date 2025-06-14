@@ -262,6 +262,8 @@
   "You will receive an email when it's complete.": "Du vil modtage en e-mail, når det er færdiggjort.",
   "Include attachments": "Inkludér vedhæftede filer",
   "Including uploaded images and files in the exported data": "Inklusiv uploadede billeder og filer i de eksporterede data",
+  "{{count}} more user": "{{count}} more user",
+  "{{count}} more user_plural": "{{count}} more users",
   "Filter": "Filter",
   "No results": "No results",
   "{{authorName}} created <3></3>": "{{authorName}} created <3></3>",
