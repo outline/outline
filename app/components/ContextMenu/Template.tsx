@@ -52,7 +52,9 @@ const SubMenu = React.forwardRef(function _Template(
 ) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const menu = useMenuState();
+  const menu = useMenuState({
+    parentId: parentMenuState.baseId,
+  });
 
   return (
     <>

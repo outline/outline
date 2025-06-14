@@ -115,10 +115,17 @@ export const OAuthClientForm = observer(function OAuthClientForm_({
           )}
         />
         {isCloudHosted && (
-          <Switch
-            {...register("published")}
-            label={t("Published")}
-            note={t("Allow this app to be installed by other workspaces")}
+          <Controller
+            control={control}
+            name="published"
+            render={({ field }) => (
+              <Switch
+                label={t("Published")}
+                note={t("Allow this app to be installed by other workspaces")}
+                checked={field.value}
+                onChange={field.onChange}
+              />
+            )}
           />
         )}
       </>

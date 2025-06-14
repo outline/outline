@@ -110,14 +110,14 @@ describe("teamProvisioner", () => {
 
       let error;
       try {
-        const subdomain = faker.internet.domainWord();
+        const testSubdomain = faker.internet.domainWord();
         await teamProvisioner({
           teamId: exampleTeam.id,
           name: "name",
-          subdomain,
+          subdomain: testSubdomain,
           authenticationProvider: {
             name: "google",
-            providerId: `${subdomain}.com`,
+            providerId: `${testSubdomain}.com`,
           },
           ip,
         });

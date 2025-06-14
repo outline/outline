@@ -195,6 +195,11 @@ function SharedDocumentScene(props: Props) {
           rel="canonical"
           href={canonicalOrigin + location.pathname.replace(/\/$/, "")}
         />
+        <link
+          rel="sitemap"
+          type="application/xml"
+          href={`${env.URL}/api/documents.sitemap?shareId=${shareId}`}
+        />
       </Helmet>
       <TeamContext.Provider value={response.team}>
         <ThemeProvider theme={theme}>

@@ -46,6 +46,7 @@ import {
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import { stringToColor } from "@shared/utils/color";
 import { locales } from "@shared/utils/date";
+import { UserValidation } from "@shared/validations";
 import env from "@server/env";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
 import { APIContext } from "@server/types";
@@ -128,12 +129,20 @@ class User extends ParanoidModel<
   Partial<InferCreationAttributes<User>>
 > {
   @IsEmail
-  @Length({ max: 255, msg: "User email must be 255 characters or less" })
+  @Length({
+    min: 1,
+    max: UserValidation.maxEmailLength,
+    msg: `User email must be between 1 and ${UserValidation.maxEmailLength} characters`,
+  })
   @Column
   email: string | null;
 
   @NotContainsUrl
-  @Length({ max: 255, msg: "User name must be 255 characters or less" })
+  @Length({
+    min: 1,
+    max: UserValidation.maxNameLength,
+    msg: `User name must be between 1 and ${UserValidation.maxNameLength} characters`,
+  })
   @Column
   name: string;
 

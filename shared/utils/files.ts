@@ -43,7 +43,7 @@ export function getDataTransferImage(
           .parseFromString(untrustedHTML, "text/html")
           .querySelector("img")?.src
       : dt?.getData("url");
-  } catch (e) {
+  } catch (_err) {
     return;
   }
 }
@@ -125,7 +125,7 @@ export function getFileNameFromUrl(url: string) {
     const pathname = urlObj.pathname;
     const filename = pathname.substring(pathname.lastIndexOf("/") + 1);
     return filename;
-  } catch (error) {
+  } catch (_err) {
     return null;
   }
 }

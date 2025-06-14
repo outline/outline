@@ -259,7 +259,7 @@ export class ValidateURL {
         Object.values(MentionType).includes(mentionType as MentionType) &&
         isUUID(modelId)
       );
-    } catch (err) {
+    } catch (_err) {
       return false;
     }
   };

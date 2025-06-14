@@ -14,7 +14,7 @@ export function isHash(href: string) {
     ) {
       return true;
     }
-  } catch (e) {
+  } catch (_err) {
     // failed to parse as url
   }
 

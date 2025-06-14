@@ -26,6 +26,7 @@ type LogCategory =
   | "database"
   | "utils"
   | "plugins";
+
 type Extra = Record<string, any>;
 
 class Logger {

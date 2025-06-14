@@ -15,7 +15,6 @@ import { CollectionValidation } from "@shared/validations";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import documentCreator from "@server/commands/documentCreator";
 import { createContext } from "@server/context";
-import { serializer } from "@server/editor";
 import { InternalError, ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import {
@@ -56,7 +55,8 @@ export type StructuredImportData = {
      * link to the document as part of persistData once the document url is
      * generated.
      */
-    description?: string | Record<string, any> | null;
+    description?: string | null;
+    data?: ProsemirrorData | null;
     /** Optional id from import source, useful for mapping */
     externalId?: string;
   }[];
@@ -77,7 +77,7 @@ export type StructuredImportData = {
      * is generated.
      */
     text: string;
-    data?: Record<string, any>;
+    data?: ProsemirrorData;
     collectionId: string;
     updatedAt?: Date;
     createdAt?: Date;
@@ -218,7 +218,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
       filePath = res.path;
       cleanup = res.cleanup;
 
-      const path = await new Promise<string>((resolve, reject) => {
+      const tmpPath = await new Promise<string>((resolve, reject) => {
         tmp.dir((err, tmpDir) => {
           if (err) {
             Logger.error("Could not create temporary directory", err);
@@ -239,7 +239,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
         });
       });
 
-      return path;
+      return tmpPath;
     } finally {
       Logger.debug(
         "task",
@@ -318,12 +318,6 @@ export default abstract class ImportTask extends BaseTask<Props> {
           );
           let description = item.description;
 
-          // Description can be markdown text or a Prosemirror object if coming
-          // from JSON format. In that case we need to serialize to Markdown.
-          if (description instanceof Object) {
-            description = serializer.serialize(description);
-          }
-
           if (description) {
             // Check all of the attachments we've created against urls in the text
             // and replace them out with attachment redirect urls before saving.
@@ -370,6 +364,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
             ...options,
             id: item.id,
             description: truncatedDescription,
+            content: item.data,
             color: item.color,
             icon: item.icon,
             sort: item.sort,
@@ -466,7 +461,9 @@ export default abstract class ImportTask extends BaseTask<Props> {
               title: item.title,
               urlId: item.urlId,
               text,
-              content: item.data ? (item.data as ProsemirrorData) : undefined,
+              content: item.data,
+              icon: item.icon,
+              color: item.color,
               collectionId: item.collectionId,
               createdAt: item.createdAt,
               updatedAt: item.updatedAt ?? item.createdAt,
@@ -478,9 +475,10 @@ export default abstract class ImportTask extends BaseTask<Props> {
             });
             documents.set(item.id, document);
 
-            await collection.addDocumentToStructure(document, 0, {
+            await collection.addDocumentToStructure(document, undefined, {
               transaction,
               save: false,
+              insertOrder: "append",
             });
           }
 
@@ -492,10 +490,10 @@ export default abstract class ImportTask extends BaseTask<Props> {
       await sequelize.transaction(async (transaction) => {
         const chunks = chunk(data.attachments, 10);
 
-        for (const chunk of chunks) {
+        for (const attChunk of chunks) {
           // Parallelize 10 uploads at a time
           await Promise.all(
-            chunk.map(async (item) => {
+            attChunk.map(async (item) => {
               Logger.debug(
                 "task",
                 `ImportTask persisting attachment ${item.name} (${item.id})`

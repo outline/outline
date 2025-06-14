@@ -13,7 +13,7 @@ export function getSSLOptions() {
         path.normalize(`${__dirname}/../../../${name}`),
         "utf8"
       );
-    } catch (err) {
+    } catch (_err) {
       return undefined;
     }
   }
@@ -35,7 +35,7 @@ export function getSSLOptions() {
         safeReadFile("public.pem") ||
         safeReadFile("server/config/certs/public.cert"),
     };
-  } catch (err) {
+  } catch (_err) {
     return {
       key: undefined,
       cert: undefined,

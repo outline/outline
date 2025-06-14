@@ -165,7 +165,7 @@ function CommentThreadItem({
       setReadOnly();
       comment.data = data;
       await comment.save();
-    } catch (error) {
+    } catch (_err) {
       setEditing();
       toast.error(t("Error updating comment"));
     }
@@ -294,7 +294,7 @@ const ResolveButton = ({
   const { t } = useTranslation();
 
   return (
-    <Tooltip content={t("Mark as resolved")} placement="top" hideOnClick>
+    <Tooltip content={t("Mark as resolved")} placement="top">
       <Action
         as={NudeButton}
         context={context}

@@ -4,6 +4,7 @@ export default function presentTeam(team: Team) {
   return {
     id: team.id,
     name: team.name,
+    description: team.description,
     avatarUrl: team.avatarUrl,
     sharing: team.sharing,
     memberCollectionCreate: team.memberCollectionCreate,

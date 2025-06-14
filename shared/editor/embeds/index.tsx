@@ -190,8 +190,8 @@ const embeds: EmbedDescriptor[] = [
         const params = new URLSearchParams(url.search);
         params.append("embed", "");
         return `${url.origin}${url.pathname}?${params.toString()}`;
-      } catch (e) {
-        //
+      } catch (_err) {
+        // Ignore
       }
 
       return input;
@@ -425,8 +425,8 @@ const embeds: EmbedDescriptor[] = [
 
         params.append("embed", "true");
         return `${url.origin}${url.pathname}?${params.toString()}`;
-      } catch (e) {
-        //
+      } catch (_err) {
+        // Ignore
       }
 
       return input;

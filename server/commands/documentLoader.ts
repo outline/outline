@@ -194,9 +194,13 @@ export default async function loadDocument({
 
     if (document.deletedAt) {
       // don't send data if user cannot restore deleted doc
-      user && authorize(user, "restore", document);
+      if (user) {
+        authorize(user, "restore", document);
+      }
     } else {
-      user && authorize(user, "read", document);
+      if (user) {
+        authorize(user, "read", document);
+      }
     }
 
     if (document.isTrialImport) {

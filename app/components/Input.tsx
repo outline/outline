@@ -1,6 +1,6 @@
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
-import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s, ellipsis } from "@shared/styles";
@@ -221,7 +221,7 @@ function Input(
       <label>
         {label &&
           (labelHidden ? (
-            <VisuallyHidden>{wrappedLabel}</VisuallyHidden>
+            <VisuallyHidden.Root>{wrappedLabel}</VisuallyHidden.Root>
           ) : (
             wrappedLabel
           ))}

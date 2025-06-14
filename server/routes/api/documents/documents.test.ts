@@ -13,13 +13,14 @@ import {
   Document,
   View,
   Revision,
-  Backlink,
   UserMembership,
   SearchQuery,
   Event,
   User,
   GroupMembership,
+  Relationship,
 } from "@server/models";
+import { RelationshipType } from "@server/models/Relationship";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import {
   buildShare,
@@ -1034,8 +1035,9 @@ describe("#documents.list", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await Backlink.create({
+    await Relationship.create({
       reverseDocumentId: anotherDoc.id,
+      type: RelationshipType.Backlink,
       documentId: document.id,
       userId: user.id,
     });

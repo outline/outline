@@ -136,7 +136,7 @@ export default async function userProvisioner({
     // that's never been active before.
     const isInvite = existingUser.isInvited;
 
-    const auth = await sequelize.transaction(async (transaction) => {
+    const userAuth = await sequelize.transaction(async (transaction) => {
       if (isInvite) {
         await Event.create(
           {
@@ -198,7 +198,7 @@ export default async function userProvisioner({
 
     return {
       user: existingUser,
-      authentication: auth,
+      authentication: userAuth,
       isNewUser: isInvite,
     };
   } else if (!authentication && !team?.allowedDomains.length) {

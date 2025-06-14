@@ -11,10 +11,6 @@ class OIDCPluginEnvironment extends Environment {
    */
   @IsOptional()
   @CannotUseWithout("OIDC_CLIENT_SECRET")
-  @CannotUseWithout("OIDC_AUTH_URI")
-  @CannotUseWithout("OIDC_TOKEN_URI")
-  @CannotUseWithout("OIDC_USERINFO_URI")
-  @CannotUseWithout("OIDC_DISPLAY_NAME")
   public OIDC_CLIENT_ID = this.toOptionalString(environment.OIDC_CLIENT_ID);
 
   @IsOptional()
@@ -22,6 +18,18 @@ class OIDCPluginEnvironment extends Environment {
   public OIDC_CLIENT_SECRET = this.toOptionalString(
     environment.OIDC_CLIENT_SECRET
   );
+
+  /**
+   * The OIDC issuer URL for automatic discovery of endpoints via the
+   * well-known configuration endpoint. When provided, the authorization,
+   * token, and userinfo endpoints will be automatically discovered.
+   */
+  @IsOptional()
+  @IsUrl({
+    require_tld: false,
+    allow_underscores: true,
+  })
+  public OIDC_ISSUER_URL = this.toOptionalString(environment.OIDC_ISSUER_URL);
 
   /**
    * The name of the OIDC provider, eg "GitLab" – this will be displayed on the

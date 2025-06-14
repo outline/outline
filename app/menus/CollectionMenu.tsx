@@ -1,3 +1,4 @@
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { observer } from "mobx-react";
 import {
   NewDocumentIcon,
@@ -12,7 +13,6 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { MenuButton, MenuButtonHTMLProps } from "reakit/Menu";
-import { VisuallyHidden } from "reakit/VisuallyHidden";
 import { toast } from "sonner";
 import { SubscriptionType } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
@@ -282,7 +282,7 @@ function CollectionMenu({
 
   return (
     <>
-      <VisuallyHidden>
+      <VisuallyHidden.Root>
         <label>
           {t("Import document")}
           <input
@@ -294,7 +294,7 @@ function CollectionMenu({
             tabIndex={-1}
           />
         </label>
-      </VisuallyHidden>
+      </VisuallyHidden.Root>
       {label ? (
         <MenuButton {...menu} onPointerEnter={handlePointerEnter}>
           {label}

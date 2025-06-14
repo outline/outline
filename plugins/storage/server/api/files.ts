@@ -154,7 +154,7 @@ function getKeyFromContext(ctx: APIContext<T.FilesGetReq>): string {
 
     try {
       JWT.verify(sig, env.SECRET_KEY);
-    } catch (err) {
+    } catch (_err) {
       throw AuthenticationError("Invalid signature");
     }
 

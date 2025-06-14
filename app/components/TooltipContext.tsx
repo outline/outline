@@ -1,9 +1,7 @@
-import Tippy, { useSingleton, TippyProps } from "@tippyjs/react";
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import * as React from "react";
-import { roundArrow } from "tippy.js";
 
-export const TooltipContext =
-  React.createContext<TippyProps["singleton"]>(undefined);
+export const TooltipContext = React.createContext<boolean>(false);
 
 export function useTooltipContext() {
   return React.useContext(TooltipContext);
@@ -11,30 +9,39 @@ export function useTooltipContext() {
 
 type Props = {
   children: React.ReactNode;
-  /** Props to pass to the Tippy component */
-  tippyProps?: TippyProps;
+  /** The duration from when the mouse enters the trigger until the tooltip gets opened */
+  delayDuration?: number;
+  /** How much time a user has to enter another trigger without incurring a delay again */
+  skipDelayDuration?: number;
+  /** Prevents the tooltip from opening */
+  disableHoverableContent?: boolean;
+  /** Props to pass to the Tippy component - kept for backward compatibility */
+  tippyProps?: {
+    delay?: number;
+    [key: string]: unknown;
+  };
 };
 
 /**
- * Wrap a collection of tooltips in a provider to allow them to share the same singleton instance.
+ * Wrap a collection of tooltips in a provider to allow them to share the same provider instance.
  */
-export function TooltipProvider({ children, tippyProps }: Props) {
-  const [source, target] = useSingleton();
+export function TooltipProvider({
+  children,
+  delayDuration = 500,
+  skipDelayDuration = 300,
+  disableHoverableContent = false,
+  tippyProps,
+}: Props) {
+  // Handle backward compatibility with tippyProps
+  const finalDelayDuration = tippyProps?.delay ?? delayDuration;
 
   return (
-    <>
-      <Tippy
-        delay={500}
-        arrow={roundArrow}
-        animation="shift-away"
-        singleton={source}
-        duration={[200, 150]}
-        inertia
-        {...tippyProps}
-      />
-      <TooltipContext.Provider value={target}>
-        {children}
-      </TooltipContext.Provider>
-    </>
+    <TooltipPrimitive.Provider
+      delayDuration={finalDelayDuration}
+      skipDelayDuration={skipDelayDuration}
+      disableHoverableContent={disableHoverableContent}
+    >
+      <TooltipContext.Provider value={true}>{children}</TooltipContext.Provider>
+    </TooltipPrimitive.Provider>
   );
 }

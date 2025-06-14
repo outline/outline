@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import isEqual from "fast-deep-equal";
 import isArray from "lodash/isArray";
 import isObject from "lodash/isObject";
@@ -31,20 +30,24 @@ type EventOverrideOptions = {
   name?: string;
   /** Additional data to publish in the event. */
   data?: Record<string, unknown>;
+  /**
+   * Whether to persist the event to the database. Defaults to true when using any `withCtx` methods.
+   */
+  persist?: boolean;
 };
 
 type EventOptions = EventOverrideOptions & {
   /**
    * Whether to publish event to the job queue. Defaults to true when using any `withCtx` methods.
    */
-  create: boolean;
+  publish: boolean;
 };
 
 export type HookContext = APIContext["context"] & { event?: EventOptions };
 
 class Model<
-  TModelAttributes extends {} = any,
-  TCreationAttributes extends {} = TModelAttributes
+  TModelAttributes extends object = any,
+  TCreationAttributes extends object = TModelAttributes
 > extends SequelizeModel<TModelAttributes, TCreationAttributes> {
   /**
    * The namespace to use for events - defaults to the table name if none is provided.
@@ -63,7 +66,7 @@ class Model<
       ...ctx.context,
       event: {
         ...eventOpts,
-        create: true,
+        publish: true,
       },
     };
     return this.save({ ...options, ...hookContext });
@@ -81,7 +84,7 @@ class Model<
       ...ctx.context,
       event: {
         ...eventOpts,
-        create: true,
+        publish: true,
       },
     };
     this.set(keys);
@@ -97,7 +100,7 @@ class Model<
       ...ctx.context,
       event: {
         ...eventOpts,
-        create: true,
+        publish: true,
       },
     };
     return this.destroy(hookContext);
@@ -111,7 +114,7 @@ class Model<
       ...ctx.context,
       event: {
         ...eventOpts,
-        create: true,
+        publish: true,
       },
     };
     return this.restore(hookContext);
@@ -131,7 +134,7 @@ class Model<
       ...ctx.context,
       event: {
         ...eventOpts,
-        create: true,
+        publish: true,
       },
     };
     return this.findOrCreate({
@@ -153,7 +156,7 @@ class Model<
       ...ctx.context,
       event: {
         ...eventOpts,
-        create: true,
+        publish: true,
       },
     };
     return this.create(values, hookContext);
@@ -219,7 +222,7 @@ class Model<
     const namespace = this.eventNamespace ?? this.tableName;
     const models = this.sequelize!.models;
 
-    if (!context.event?.create) {
+    if (!context.event?.publish) {
       return;
     }
 
@@ -235,44 +238,53 @@ class Model<
       });
     }
 
-    return models.event.create(
-      {
-        name: `${namespace}.${context.event.name ?? name}`,
-        modelId: "modelId" in model ? model.modelId : model.id,
-        collectionId:
-          "collectionId" in model
-            ? model.collectionId
-            : model instanceof models.collection
-            ? model.id
-            : undefined,
-        documentId:
-          "documentId" in model
-            ? model.documentId
-            : model instanceof models.document
-            ? model.id
-            : undefined,
-        userId:
-          "userId" in model
-            ? model.userId
-            : model instanceof models.user
-            ? model.id
-            : undefined,
-        teamId:
-          "teamId" in model
-            ? model.teamId
-            : model instanceof models.team
-            ? model.id
-            : context.auth?.user.teamId,
-        actorId: context.auth?.user?.id,
-        authType: context.auth?.type,
-        ip: context.ip,
-        changes: model.previousChangeset,
-        data: context.event.data,
-      },
-      {
+    const attrs = {
+      name: `${namespace}.${context.event.name ?? name}`,
+      modelId: "modelId" in model ? model.modelId : model.id,
+      collectionId:
+        "collectionId" in model
+          ? model.collectionId
+          : model instanceof models.collection
+          ? model.id
+          : undefined,
+      documentId:
+        "documentId" in model
+          ? model.documentId
+          : model instanceof models.document
+          ? model.id
+          : undefined,
+      userId:
+        "userId" in model
+          ? model.userId
+          : model instanceof models.user
+          ? model.id
+          : undefined,
+      teamId:
+        "teamId" in model
+          ? model.teamId
+          : model instanceof models.team
+          ? model.id
+          : context.auth?.user.teamId,
+      actorId: context.auth?.user?.id,
+      authType: context.auth?.type,
+      ip: context.ip,
+      changes: model.previousChangeset,
+      data: context.event.data,
+    };
+
+    if (context.event?.persist !== false) {
+      return models.event.create(attrs, {
         transaction: context.transaction,
-      }
-    );
+      });
+    } else if (context.transaction) {
+      (context.transaction.parent || context.transaction).afterCommit(() =>
+        // @ts-expect-error Event class
+        models.event.schedule(attrs)
+      );
+    } else {
+      // @ts-expect-error Event class
+      return models.event.schedule(attrs);
+    }
   }
 
   /**

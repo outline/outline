@@ -1,5 +1,6 @@
 import some from "lodash/some";
 import { EditorState, NodeSelection, TextSelection } from "prosemirror-state";
+import { CellSelection } from "prosemirror-tables";
 import * as React from "react";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { getMarkRange } from "@shared/editor/queries/getMarkRange";
@@ -22,6 +23,7 @@ import getImageMenuItems from "../menus/image";
 import getNoticeMenuItems from "../menus/notice";
 import getReadOnlyMenuItems from "../menus/readOnly";
 import getTableMenuItems from "../menus/table";
+import getTableCellMenuItems from "../menus/tableCell";
 import getTableColMenuItems from "../menus/tableCol";
 import getTableRowMenuItems from "../menus/tableRow";
 import { useEditor } from "./EditorContext";
@@ -183,6 +185,7 @@ export default function SelectionToolbar(props: Props) {
   const colIndex = getColumnIndex(state);
   const rowIndex = getRowIndex(state);
   const isTableSelection = colIndex !== undefined && rowIndex !== undefined;
+  const isCellSelection = selection instanceof CellSelection;
   const link = getMarkRange(selection.$from, state.schema.marks.link);
   const isImageSelection =
     selection instanceof NodeSelection && selection.node.type.name === "image";
@@ -202,6 +205,8 @@ export default function SelectionToolbar(props: Props) {
     items = getTableColMenuItems(state, colIndex, rtl, dictionary);
   } else if (rowIndex !== undefined) {
     items = getTableRowMenuItems(state, rowIndex, dictionary);
+  } else if (isCellSelection) {
+    items = getTableCellMenuItems(state, dictionary);
   } else if (isImageSelection) {
     items = readOnly ? [] : getImageMenuItems(state, dictionary);
   } else if (isAttachmentSelection) {
@@ -220,6 +225,9 @@ export default function SelectionToolbar(props: Props) {
   items = items.filter((item) => {
     if (item.name === "separator") {
       return true;
+    }
+    if (item.name === "dimensions") {
+      return item.visible ?? false;
     }
     if (item.name && !commands[item.name]) {
       return false;

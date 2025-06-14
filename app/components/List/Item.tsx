@@ -33,7 +33,7 @@ export type Props = Omit<React.HTMLAttributes<HTMLAnchorElement>, "title"> & {
   small?: boolean;
   /** Whether to enable keyboard navigation */
   keyboardNavigation?: boolean;
-  ellipsis?: boolean;
+  enableEllipsis?: boolean;
 };
 
 const ListItem = (
@@ -46,7 +46,7 @@ const ListItem = (
     border,
     to,
     keyboardNavigation,
-    ellipsis,
+    enableEllipsis,
     ...rest
   }: Props,
   ref: React.RefObject<HTMLAnchorElement>
@@ -85,7 +85,7 @@ const ListItem = (
         column={!compact}
         $selected={selected}
       >
-        <Heading $small={small} $ellipsis={ellipsis}>
+        <Heading $small={small} $ellipsis={enableEllipsis}>
           {title}
         </Heading>
         {subtitle && (

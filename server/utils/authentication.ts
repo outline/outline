@@ -22,7 +22,7 @@ export function getSessionsInCookie(ctx: Context) {
     const sessionCookie = ctx.cookies.get("sessions") || "";
     const decodedSessionCookie = decodeURIComponent(sessionCookie);
     return decodedSessionCookie ? JSON.parse(decodedSessionCookie) : {};
-  } catch (err) {
+  } catch (_err) {
     return {};
   }
 }

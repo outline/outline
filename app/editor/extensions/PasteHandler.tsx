@@ -293,9 +293,11 @@ export default class PasteHandler extends Extension {
                   currentPos += node.nodeSize;
                 });
               } else {
-                singleNode
-                  ? tr.replaceSelectionWith(singleNode, this.shiftKey)
-                  : tr.replaceSelection(slice);
+                if (singleNode) {
+                  tr.replaceSelectionWith(singleNode, this.shiftKey);
+                } else {
+                  tr.replaceSelection(slice);
+                }
               }
 
               view.dispatch(
@@ -550,7 +552,7 @@ function parseSingleIframeSrc(html: string) {
         return src;
       }
     }
-  } catch (e) {
+  } catch (_err) {
     // Ignore the million ways parsing could fail.
   }
   return undefined;

@@ -1,10 +1,10 @@
 import { observer } from "mobx-react";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import User from "~/models/User";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Flex from "~/components/Flex";
-import Initials from "./Avatar/Initials";
 
 type Props = {
   /** The users to display */
@@ -31,19 +31,22 @@ function Facepile({
   renderAvatar = Avatar,
   ...rest
 }: Props) {
+  const { t } = useTranslation();
   const filtered = users.filter(Boolean).slice(-limit);
   const Component = renderAvatar;
 
+  if (overflow > 0) {
+    filtered.unshift({
+      id: "overflow",
+      initial: `${users.length ? "+" : ""}${overflow}`,
+      name: t(`{{count}} more user`, { count: overflow }),
+    } as User);
+  }
+
   return (
     <Avatars {...rest}>
-      {overflow > 0 && (
-        <Initials size={size} content={String(overflow)}>
-          {users.length ? "+" : ""}
-          {overflow}
-        </Initials>
-      )}
       {filtered.map((model, index) => {
-        const lastChild = index === 0 && overflow <= 0;
+        const lastChild = index === 0;
         return (
           <Component
             key={model.id}

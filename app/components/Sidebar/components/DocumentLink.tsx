@@ -120,7 +120,11 @@ function InnerDocumentLink(
   const handleDisclosureClick = React.useCallback(
     (ev) => {
       ev?.preventDefault();
-      expanded ? setCollapsed() : setExpanded();
+      if (expanded) {
+        setCollapsed();
+      } else {
+        setExpanded();
+      }
     },
     [setCollapsed, setExpanded, expanded]
   );

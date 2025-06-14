@@ -83,8 +83,8 @@ try {
   window.addEventListener("testPassive", null, opts);
   // @ts-expect-error ts-migrate(2769) testPassive is not a real event
   window.removeEventListener("testPassive", null, opts);
-} catch (e) {
-  // No-op
+} catch (_err) {
+  // Ignore
 }
 
 /**

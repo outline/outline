@@ -60,7 +60,7 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
     if (defaultValue) {
       const node = items.find((item) => item.id === defaultValue);
       if (node) {
-        return ancestors(node).map((node) => node.id);
+        return ancestors(node).map((ancestorNode) => ancestorNode.id);
       }
     }
     return [];
@@ -99,10 +99,10 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
   }, [searchTerm]);
 
   React.useEffect(() => {
-    setItemRefs((itemRefs) =>
+    setItemRefs((existingItemRefs) =>
       map(
         fill(Array(items.length), 0),
-        (_, i) => itemRefs[i] || React.createRef()
+        (_, i) => existingItemRefs[i] || React.createRef()
       )
     );
   }, [items.length]);
@@ -180,7 +180,7 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
     );
 
     // remove children
-    const newNodes = filter(nodes, (node) => !includes(descendantIds, node.id));
+    const newNodes = filter(nodes, (n) => !includes(descendantIds, n.id));
     const scrollOffset = calculateInitialScrollOffset(newNodes.length);
     setInitialScrollOffset(scrollOffset);
   };

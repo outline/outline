@@ -41,20 +41,6 @@ function DocumentCopy({ document, onSubmit }: Props) {
     return nodes;
   }, [policies, collectionTrees]);
 
-  const handlePublishChange = React.useCallback(
-    (ev: React.ChangeEvent<HTMLInputElement>) => {
-      setPublish(ev.target.checked);
-    },
-    []
-  );
-
-  const handleRecursiveChange = React.useCallback(
-    (ev: React.ChangeEvent<HTMLInputElement>) => {
-      setRecursive(ev.target.checked);
-    },
-    []
-  );
-
   const copy = async () => {
     if (!selectedPath) {
       toast.message(t("Select a location to copy"));
@@ -74,7 +60,7 @@ function DocumentCopy({ document, onSubmit }: Props) {
 
       toast.success(t("Document copied"));
       onSubmit(result);
-    } catch (err) {
+    } catch (_err) {
       toast.error(t("Couldn’t copy the document, try again?"));
     }
   };
@@ -88,27 +74,31 @@ function DocumentCopy({ document, onSubmit }: Props) {
         defaultValue={document.parentDocumentId || document.collectionId || ""}
       />
       <OptionsContainer>
-        {document.collectionId && (
-          <Text size="small">
-            <Switch
-              name="publish"
-              label={t("Publish")}
-              labelPosition="right"
-              checked={publish}
-              onChange={handlePublishChange}
-            />
-          </Text>
-        )}
-        {document.publishedAt && document.childDocuments.length > 0 && (
-          <Text size="small">
-            <Switch
-              name="recursive"
-              label={t("Include nested documents")}
-              labelPosition="right"
-              checked={recursive}
-              onChange={handleRecursiveChange}
-            />
-          </Text>
+        {document instanceof Document && (
+          <>
+            {document.collectionId && (
+              <Text size="small">
+                <Switch
+                  name="publish"
+                  label={t("Publish")}
+                  labelPosition="right"
+                  checked={publish}
+                  onChange={setPublish}
+                />
+              </Text>
+            )}
+            {document.publishedAt && document.childDocuments.length > 0 && (
+              <Text size="small">
+                <Switch
+                  name="recursive"
+                  label={t("Include nested documents")}
+                  labelPosition="right"
+                  checked={recursive}
+                  onChange={setRecursive}
+                />
+              </Text>
+            )}
+          </>
         )}
       </OptionsContainer>
       <Footer justify="space-between" align="center" gap={8}>

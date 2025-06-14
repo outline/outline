@@ -137,7 +137,7 @@ class User extends ParanoidModel implements Searchable {
 
   /**
    * Returns the direct memberships that this user has to documents. Documents that the
-   * user already has access to through a collection and trashed documents are not included.
+   * user already has access to through a collection, archived, and trashed documents are not included.
    *
    * @returns A list of user memberships
    */
@@ -153,7 +153,7 @@ class User extends ParanoidModel implements Searchable {
         const policy = document?.collectionId
           ? policies.get(document.collectionId)
           : undefined;
-        return !policy?.abilities?.readDocument && !document?.isDeleted;
+        return !policy?.abilities?.readDocument && !!document?.isActive;
       });
   }
 

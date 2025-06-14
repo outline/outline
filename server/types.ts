@@ -543,7 +543,7 @@ export type DocumentJSONExport = {
   emoji?: string | null;
   icon: string | null;
   color: string | null;
-  data: Record<string, any>;
+  data: ProsemirrorData;
   createdById: string;
   createdByName: string;
   createdByEmail: string | null;
@@ -570,7 +570,7 @@ export type CollectionJSONExport = {
     urlId: string;
     name: string;
     data?: ProsemirrorData | null;
-    description?: ProsemirrorData | null;
+    description?: string | null;
     permission?: CollectionPermission | null;
     color?: string | null;
     icon?: string | null;
@@ -585,13 +585,12 @@ export type CollectionJSONExport = {
   };
 };
 
-export type UnfurlIssueAndPR = (
+export type UnfurlIssueOrPR =
   | UnfurlResponse[UnfurlResourceType.Issue]
-  | UnfurlResponse[UnfurlResourceType.PR]
-) & { transformed_unfurl: true };
+  | UnfurlResponse[UnfurlResourceType.PR];
 
 export type Unfurl =
-  | UnfurlIssueAndPR
+  | UnfurlIssueOrPR
   | {
       type: Exclude<
         UnfurlResourceType,

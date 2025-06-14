@@ -43,7 +43,7 @@ export function setPostLoginPath(path: string) {
 
     try {
       sessionStorage.setItem(key, path);
-    } catch (e) {
+    } catch (_err) {
       // If the session storage is full or inaccessible, we can't do anything about it.
     }
   }
@@ -62,7 +62,7 @@ export function usePostLoginPath() {
     let path;
     try {
       path = sessionStorage.getItem(key) || getCookie(key);
-    } catch (e) {
+    } catch (_err) {
       // Expected error if the session storage is full or inaccessible.
     }
 
@@ -74,7 +74,7 @@ export function usePostLoginPath() {
       const cleanup = history.listen(() => {
         try {
           sessionStorage.removeItem(key);
-        } catch (e) {
+        } catch (_err) {
           // Expected error if the session storage is full or inaccessible.
         }
         removeCookie(key);

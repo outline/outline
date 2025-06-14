@@ -67,9 +67,9 @@ export const Suggestions = observer(
     });
 
     const fetchUsersByQuery = useThrottledCallback(
-      (query: string) => {
-        void users.fetchPage({ query });
-        void groups.fetchPage({ query });
+      (searchQuery: string) => {
+        void users.fetchPage({ query: searchQuery });
+        void groups.fetchPage({ query: searchQuery });
       },
       250,
       undefined,

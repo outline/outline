@@ -54,7 +54,7 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
             })
           );
         }
-      } catch (err) {
+      } catch (_err) {
         toast.error(t("Could not remove user"));
       }
     },
@@ -62,19 +62,19 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
   );
 
   const handleUpdateUser = React.useCallback(
-    async (user, permission) => {
+    async (userToUpdate, permission) => {
       try {
         await userMemberships.create({
           documentId: document.id,
-          userId: user.id,
+          userId: userToUpdate.id,
           permission,
         });
         toast.success(
           t(`Permissions for {{ userName }} updated`, {
-            userName: user.name,
+            userName: userToUpdate.name,
           })
         );
-      } catch (err) {
+      } catch (_err) {
         toast.error(t("Could not update user"));
       }
     },
@@ -87,9 +87,9 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
     () =>
       orderBy(
         document.members,
-        (user) =>
-          (invitedInSession.includes(user.id) ? "_" : "") +
-          user.name.toLocaleLowerCase(),
+        (memberUser) =>
+          (invitedInSession.includes(memberUser.id) ? "_" : "") +
+          memberUser.name.toLocaleLowerCase(),
         "asc"
       ),
     [document.members, invitedInSession]

@@ -23,7 +23,7 @@ export function fileNameFromUrl(url: string) {
   try {
     const parsed = new URL(url);
     return parsed.pathname.split("/").pop();
-  } catch (err) {
+  } catch (_err) {
     return;
   }
 }
@@ -71,7 +71,7 @@ export function isDocumentUrl(url: string) {
       isInternalUrl(url) &&
       (parsed.pathname.startsWith("/doc/") || parsed.pathname.startsWith("/d/"))
     );
-  } catch (err) {
+  } catch (_err) {
     return false;
   }
 }
@@ -86,7 +86,7 @@ export function isCollectionUrl(url: string) {
   try {
     const parsed = new URL(url, env.URL);
     return isInternalUrl(url) && parsed.pathname.startsWith("/collection/");
-  } catch (err) {
+  } catch (_err) {
     return false;
   }
 }
@@ -130,7 +130,7 @@ export function isUrl(
       (url.pathname.startsWith("//") || url.pathname.startsWith("http")) &&
       !options?.requireHostname
     );
-  } catch (err) {
+  } catch (_err) {
     return false;
   }
 }

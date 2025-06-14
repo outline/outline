@@ -18,7 +18,7 @@ export function getJWTPayload(token: string) {
     }
 
     return payload as JWT.JwtPayload;
-  } catch (err) {
+  } catch (_err) {
     throw AuthenticationError("Unable to decode token");
   }
 }
@@ -67,7 +67,7 @@ export async function getUserForJWT(
 
   try {
     JWT.verify(token, user.jwtSecret);
-  } catch (err) {
+  } catch (_err) {
     throw AuthenticationError("Invalid token");
   }
 
@@ -100,7 +100,7 @@ export async function getUserForEmailSigninToken(token: string): Promise<User> {
 
   try {
     JWT.verify(token, user.jwtSecret);
-  } catch (err) {
+  } catch (_err) {
     throw AuthenticationError("Invalid token");
   }
 
@@ -132,7 +132,7 @@ export async function getDetailsForEmailUpdateToken(
 
   try {
     JWT.verify(token, user.jwtSecret);
-  } catch (err) {
+  } catch (_err) {
     throw AuthenticationError("Invalid token");
   }
 

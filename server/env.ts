@@ -16,7 +16,11 @@ import {
 import uniq from "lodash/uniq";
 import { languages } from "@shared/i18n";
 import { Day, Hour } from "@shared/utils/time";
-import { CannotUseWith, CannotUseWithout } from "@server/utils/validators";
+import {
+  CannotUseWith,
+  CannotUseWithout,
+  CannotUseWithAny,
+} from "@server/utils/validators";
 import Deprecated from "./models/decorators/Deprecated";
 import { getArg } from "./utils/args";
 import { Public, PublicEnvironmentRegister } from "./utils/decorators/Public";
@@ -79,7 +83,52 @@ export class Environment {
     allow_underscores: true,
     protocols: ["postgres", "postgresql"],
   })
+  @CannotUseWithAny([
+    "DATABASE_HOST",
+    "DATABASE_PORT",
+    "DATABASE_NAME",
+    "DATABASE_USER",
+    "DATABASE_PASSWORD",
+  ])
   public DATABASE_URL = environment.DATABASE_URL ?? "";
+
+  /**
+   * Database host for individual component configuration.
+   */
+  @IsOptional()
+  @CannotUseWith("DATABASE_URL")
+  public DATABASE_HOST = this.toOptionalString(environment.DATABASE_HOST);
+
+  /**
+   * Database port for individual component configuration.
+   */
+  @IsOptional()
+  @IsNumber()
+  @CannotUseWith("DATABASE_URL")
+  public DATABASE_PORT = this.toOptionalNumber(environment.DATABASE_PORT);
+
+  /**
+   * Database name for individual component configuration.
+   */
+  @IsOptional()
+  @CannotUseWith("DATABASE_URL")
+  public DATABASE_NAME = this.toOptionalString(environment.DATABASE_NAME);
+
+  /**
+   * Database user for individual component configuration.
+   */
+  @IsOptional()
+  @CannotUseWith("DATABASE_URL")
+  public DATABASE_USER = this.toOptionalString(environment.DATABASE_USER);
+
+  /**
+   * Database password for individual component configuration.
+   */
+  @IsOptional()
+  @CannotUseWith("DATABASE_URL")
+  public DATABASE_PASSWORD = this.toOptionalString(
+    environment.DATABASE_PASSWORD
+  );
 
   /**
    * An optional database schema.
@@ -709,7 +758,7 @@ export class Environment {
   protected toBoolean(value: string) {
     try {
       return value ? !!JSON.parse(value) : false;
-    } catch (err) {
+    } catch (_err) {
       throw new Error(
         `"${value}" could not be parsed as a boolean, must be "true" or "false"`
       );
@@ -731,7 +780,7 @@ export class Environment {
   protected toOptionalBoolean(value: string | undefined) {
     try {
       return value ? !!JSON.parse(value) : undefined;
-    } catch (err) {
+    } catch (_err) {
       return undefined;
     }
   }

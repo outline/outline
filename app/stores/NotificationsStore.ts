@@ -84,9 +84,7 @@ export default class NotificationsStore extends Store<Notification> {
   get orderedData(): Notification[] {
     return sortBy(
       orderBy(Array.from(this.data.values()), "createdAt", "desc"),
-      (item) => {
-        item.viewedAt ? 1 : -1;
-      }
+      (item) => (item.viewedAt ? 1 : -1)
     );
   }
 }

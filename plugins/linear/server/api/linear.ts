@@ -1,5 +1,6 @@
 import Router from "koa-router";
 import { IntegrationService, IntegrationType } from "@shared/types";
+import Logger from "@server/logging/Logger";
 import apexAuthRedirect from "@server/middlewares/apexAuthRedirect";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
@@ -40,53 +41,58 @@ router.get(
       return;
     }
 
-    // validation middleware ensures that code is non-null at this point.
-    const oauth = await Linear.oauthAccess(code!);
-    const workspace = await Linear.getInstalledWorkspace(oauth.access_token);
+    try {
+      // validation middleware ensures that code is non-null at this point.
+      const oauth = await Linear.oauthAccess(code!);
+      const workspace = await Linear.getInstalledWorkspace(oauth.access_token);
 
-    const authentication = await IntegrationAuthentication.create(
-      {
-        service: IntegrationService.Linear,
-        userId: user.id,
-        teamId: user.teamId,
-        token: oauth.access_token,
-        scopes: oauth.scope.split(" "),
-      },
-      { transaction }
-    );
-    const integration = await Integration.create<
-      Integration<IntegrationType.Embed>
-    >(
-      {
-        service: IntegrationService.Linear,
-        type: IntegrationType.Embed,
-        userId: user.id,
-        teamId: user.teamId,
-        authenticationId: authentication.id,
-        settings: {
-          linear: {
-            workspace: {
-              id: workspace.id,
-              name: workspace.name,
-              key: workspace.urlKey,
-              logoUrl: workspace.logoUrl,
+      const authentication = await IntegrationAuthentication.create(
+        {
+          service: IntegrationService.Linear,
+          userId: user.id,
+          teamId: user.teamId,
+          token: oauth.access_token,
+          scopes: oauth.scope.split(" "),
+        },
+        { transaction }
+      );
+      const integration = await Integration.create<
+        Integration<IntegrationType.Embed>
+      >(
+        {
+          service: IntegrationService.Linear,
+          type: IntegrationType.Embed,
+          userId: user.id,
+          teamId: user.teamId,
+          authenticationId: authentication.id,
+          settings: {
+            linear: {
+              workspace: {
+                id: workspace.id,
+                name: workspace.name,
+                key: workspace.urlKey,
+                logoUrl: workspace.logoUrl,
+              },
             },
           },
         },
-      },
-      { transaction }
-    );
+        { transaction }
+      );
 
-    transaction.afterCommit(async () => {
-      if (workspace.logoUrl) {
-        await new UploadLinearWorkspaceLogoTask().schedule({
-          integrationId: integration.id,
-          logoUrl: workspace.logoUrl,
-        });
-      }
-    });
+      transaction.afterCommit(async () => {
+        if (workspace.logoUrl) {
+          await new UploadLinearWorkspaceLogoTask().schedule({
+            integrationId: integration.id,
+            logoUrl: workspace.logoUrl,
+          });
+        }
+      });
 
-    ctx.redirect(LinearUtils.successUrl());
+      ctx.redirect(LinearUtils.successUrl());
+    } catch (err) {
+      Logger.error("Encountered error during Linear OAuth callback", err);
+      ctx.redirect(LinearUtils.errorUrl("unknown"));
+    }
   }
 );
 

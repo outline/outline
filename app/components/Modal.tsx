@@ -1,9 +1,9 @@
+import * as Dialog from "@radix-ui/react-dialog";
 import { observer } from "mobx-react";
 import { CloseIcon, BackIcon } from "outline-icons";
 import { transparentize } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Dialog, DialogBackdrop, useDialogState } from "reakit/Dialog";
 import styled, { DefaultTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
@@ -37,9 +37,6 @@ const Modal: React.FC<Props> = ({
   style,
   onRequestClose,
 }: Props) => {
-  const dialog = useDialogState({
-    animated: 250,
-  });
   const [depth, setDepth] = React.useState(0);
   const wasOpen = usePrevious(isOpen);
   const isMobile = useMobile();
@@ -48,14 +45,12 @@ const Modal: React.FC<Props> = ({
   React.useEffect(() => {
     if (!wasOpen && isOpen) {
       setDepth(openModals++);
-      dialog.show();
     }
 
     if (wasOpen && !isOpen) {
       setDepth(openModals--);
-      dialog.hide();
     }
-  }, [dialog, wasOpen, isOpen]);
+  }, [wasOpen, isOpen]);
 
   useUnmount(() => {
     if (isOpen) {
@@ -68,78 +63,75 @@ const Modal: React.FC<Props> = ({
   }
 
   return (
-    <DialogBackdrop {...dialog}>
-      {(props) => (
-        <Backdrop $fullscreen={fullscreen} {...props}>
-          <Dialog
-            {...dialog}
-            aria-label={typeof title === "string" ? title : undefined}
-            preventBodyScroll
-            hideOnEsc
-            hideOnClickOutside={!fullscreen}
-            hide={onRequestClose}
+    <Dialog.Root
+      open={isOpen}
+      onOpenChange={(open) => !open && onRequestClose()}
+    >
+      <Dialog.Portal>
+        <StyledOverlay $fullscreen={fullscreen}>
+          <StyledContent
+            onEscapeKeyDown={onRequestClose}
+            onPointerDownOutside={fullscreen ? undefined : onRequestClose}
+            aria-describedby={undefined}
           >
-            {(props) =>
-              fullscreen || isMobile ? (
-                <Fullscreen
-                  $nested={!!depth}
-                  style={
-                    isMobile
-                      ? undefined
-                      : {
-                          marginLeft: `${depth * 12}px`,
-                        }
-                  }
-                  {...props}
-                >
-                  <Content>
-                    <Centered onClick={(ev) => ev.stopPropagation()} column>
-                      {title && (
-                        <Text size="xlarge" weight="bold">
-                          {title}
-                        </Text>
-                      )}
-                      <ErrorBoundary>{children}</ErrorBoundary>
-                    </Centered>
-                  </Content>
-                  <Close onClick={onRequestClose}>
-                    <CloseIcon size={32} />
-                  </Close>
-                  <Back onClick={onRequestClose}>
-                    <BackIcon size={32} />
-                    <Text>{t("Back")} </Text>
-                  </Back>
-                </Fullscreen>
-              ) : (
-                <Small {...props}>
-                  <Centered
-                    onClick={(ev) => ev.stopPropagation()}
-                    // maxHeight needed for proper overflow behavior in Safari
-                    style={{ maxHeight: "65vh" }}
-                    column
-                    reverse
-                  >
-                    <SmallContent style={style} shadow>
-                      <ErrorBoundary component="div">{children}</ErrorBoundary>
-                    </SmallContent>
-                    <Header>
-                      {title && <Text size="large">{title}</Text>}
-                      <NudeButton onClick={onRequestClose}>
-                        <CloseIcon />
-                      </NudeButton>
-                    </Header>
+            {fullscreen || isMobile ? (
+              <Fullscreen
+                $nested={!!depth}
+                style={
+                  isMobile
+                    ? undefined
+                    : {
+                        marginLeft: `${depth * 12}px`,
+                      }
+                }
+              >
+                <Content>
+                  <Centered onClick={(ev) => ev.stopPropagation()} column>
+                    {title && (
+                      <Text size="xlarge" weight="bold">
+                        {title}
+                      </Text>
+                    )}
+                    <ErrorBoundary>{children}</ErrorBoundary>
                   </Centered>
-                </Small>
-              )
-            }
-          </Dialog>
-        </Backdrop>
-      )}
-    </DialogBackdrop>
+                </Content>
+                <Close onClick={onRequestClose}>
+                  <CloseIcon size={32} />
+                </Close>
+                <Back onClick={onRequestClose}>
+                  <BackIcon size={32} />
+                  <Text>{t("Back")} </Text>
+                </Back>
+              </Fullscreen>
+            ) : (
+              <Small>
+                <Centered
+                  onClick={(ev) => ev.stopPropagation()}
+                  // maxHeight needed for proper overflow behavior in Safari
+                  style={{ maxHeight: "65vh" }}
+                  column
+                  reverse
+                >
+                  <SmallContent style={style} shadow>
+                    <ErrorBoundary component="div">{children}</ErrorBoundary>
+                  </SmallContent>
+                  <Header>
+                    {title && <Text size="large">{title}</Text>}
+                    <NudeButton onClick={onRequestClose}>
+                      <CloseIcon />
+                    </NudeButton>
+                  </Header>
+                </Centered>
+              </Small>
+            )}
+          </StyledContent>
+        </StyledOverlay>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 };
 
-const Backdrop = styled(Flex)<{ $fullscreen?: boolean }>`
+const StyledOverlay = styled(Dialog.Overlay)<{ $fullscreen?: boolean }>`
   position: fixed;
   top: 0;
   left: 0;
@@ -153,9 +145,22 @@ const Backdrop = styled(Flex)<{ $fullscreen?: boolean }>`
   transition: opacity 50ms ease-in-out;
   opacity: 0;
 
-  &[data-enter] {
+  &[data-state="open"] {
     opacity: 1;
   }
+`;
+
+const StyledContent = styled(Dialog.Content)`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: ${depths.modal};
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  outline: none;
 `;
 
 type FullscreenProps = {

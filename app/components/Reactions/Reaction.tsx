@@ -107,9 +107,11 @@ const Reaction: React.FC<Props> = ({
   const handleClick = React.useCallback(
     (event: React.SyntheticEvent<HTMLButtonElement>) => {
       event.stopPropagation();
-      active
-        ? void onRemoveReaction(reaction.emoji)
-        : void onAddReaction(reaction.emoji);
+      if (active) {
+        void onRemoveReaction(reaction.emoji);
+      } else {
+        void onAddReaction(reaction.emoji);
+      }
     },
     [reaction, active, onAddReaction, onRemoveReaction]
   );
