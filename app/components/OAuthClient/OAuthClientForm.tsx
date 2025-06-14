@@ -8,7 +8,6 @@ import ImageInput from "~/scenes/Settings/components/ImageInput";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input, { LabelText } from "~/components/Input";
-import { createSwitchRegister } from "~/utils/forms";
 import isCloudHosted from "~/utils/isCloudHosted";
 import Switch from "../Switch";
 
@@ -116,10 +115,17 @@ export const OAuthClientForm = observer(function OAuthClientForm_({
           )}
         />
         {isCloudHosted && (
-          <Switch
-            {...createSwitchRegister(register, "published")}
-            label={t("Published")}
-            note={t("Allow this app to be installed by other workspaces")}
+          <Controller
+            control={control}
+            name="published"
+            render={({ field }) => (
+              <Switch
+                label={t("Published")}
+                note={t("Allow this app to be installed by other workspaces")}
+                checked={field.value}
+                onChange={field.onChange}
+              />
+            )}
           />
         )}
       </>

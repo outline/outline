@@ -22,7 +22,6 @@ import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import { EmptySelectValue } from "~/types";
-import { createSwitchRegister } from "~/utils/forms";
 
 const IconPicker = createLazyComponent(() => import("~/components/IconPicker"));
 
@@ -182,22 +181,36 @@ export const CollectionForm = observer(function CollectionForm_({
       )}
 
       {team.sharing && (
-        <Switch
-          id="sharing"
-          label={t("Public document sharing")}
-          note={t(
-            "Allow documents within this collection to be shared publicly on the internet."
+        <Controller
+          control={control}
+          name="sharing"
+          render={({ field }) => (
+            <Switch
+              id="sharing"
+              label={t("Public document sharing")}
+              note={t(
+                "Allow documents within this collection to be shared publicly on the internet."
+              )}
+              checked={field.value}
+              onChange={field.onChange}
+            />
           )}
-          {...createSwitchRegister(register, "sharing")}
         />
       )}
 
       {team.getPreference(TeamPreference.Commenting) && (
-        <Switch
-          id="commenting"
-          label={t("Commenting")}
-          note={t("Allow commenting on documents within this collection.")}
-          {...createSwitchRegister(register, "commenting")}
+        <Controller
+          control={control}
+          name="commenting"
+          render={({ field }) => (
+            <Switch
+              id="commenting"
+              label={t("Commenting")}
+              note={t("Allow commenting on documents within this collection.")}
+              checked={!!field.value}
+              onChange={field.onChange}
+            />
+          )}
         />
       )}
 
