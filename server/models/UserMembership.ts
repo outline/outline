@@ -371,7 +371,7 @@ class UserMembership extends IdModel<
   ) {
     const hookContext = {
       ...ctx,
-      event: { name, data, create: true },
+      event: { name, data, publish: true },
     } as HookContext;
 
     if (this.collectionId) {

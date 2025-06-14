@@ -175,7 +175,11 @@ export default abstract class APIImportTask<
         createContext({
           user: associatedImport.createdBy,
           transaction,
-        })
+        }),
+        undefined,
+        {
+          persist: false,
+        }
       );
     });
 
