@@ -6,7 +6,6 @@ import {
   type NavigationNode,
   NavigationNodeType,
   type ProsemirrorData,
-  TeamPreference,
 } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { sortNavigationNodes } from "@shared/utils/collections";
@@ -127,21 +126,6 @@ export default class Collection extends ParanoidModel {
    */
   get isPrivate(): boolean {
     return !this.permission;
-  }
-
-  /**
-   * Returns whether comments should be enabled for this collection,
-   *
-   * @returns boolean
-   */
-  @computed
-  get canCreateComment(): boolean {
-    const teamCommentingEnabled =
-      !!this.store.rootStore.auth.team?.getPreference(
-        TeamPreference.Commenting
-      );
-
-    return teamCommentingEnabled && this.commenting !== false;
   }
 
   /** Returns whether the collection description is not empty. */

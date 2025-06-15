@@ -49,7 +49,7 @@ type Props = {
 };
 
 const AuthenticatedLayout: React.FC = ({ children }: Props) => {
-  const { ui, auth, collections } = useStores();
+  const { ui, auth } = useStores();
   const location = useLocation();
   const layoutRef = React.useRef<HTMLDivElement>(null);
   const can = usePolicy(ui.activeDocumentId);
@@ -108,9 +108,7 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
     can.comment &&
     ui.activeDocumentId &&
     ui.commentsExpanded &&
-    (ui.activeCollectionId
-      ? collections.get(ui.activeCollectionId)?.canCreateComment
-      : !!team.getPreference(TeamPreference.Commenting));
+    !!team.getPreference(TeamPreference.Commenting);
 
   const sidebarRight = (
     <AnimatePresence
