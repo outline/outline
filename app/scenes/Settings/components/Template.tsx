@@ -1,7 +1,8 @@
 import { InputIcon, ShapesIcon } from "outline-icons";
-import React from "react";
+import React, { useRef } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { ProsemirrorData } from "@shared/types";
 import Template from "~/models/Template";
 import Editor from "~/scenes/Document/components/Editor";
 import { DocumentContextProvider } from "~/components/DocumentContext";
@@ -19,6 +20,7 @@ export default function TemplateEdit({ template }: Props) {
   const { dialogs } = useStores();
   const { t } = useTranslation();
   const can = usePolicy(template);
+  const dataRef = useRef(template.data);
   const [isUploading, handleStartUpload, handleStopUpload] = useBoolean();
   const readOnly = !can.update;
 
@@ -33,7 +35,12 @@ export default function TemplateEdit({ template }: Props) {
     void template.save();
   };
 
+  const handleChange = (value: (asString: boolean) => ProsemirrorData) => {
+    dataRef.current = value(false);
+  };
+
   const handleSave = () => {
+    template.data = dataRef.current;
     void template.save();
   };
 
@@ -72,6 +79,7 @@ export default function TemplateEdit({ template }: Props) {
           onChangeIcon={handleChangeIcon}
           onSave={handleSave}
           onCancel={handleCancel}
+          onChange={handleChange}
           readOnly={readOnly}
           canUpdate={can.update}
           autoFocus={template.createdAt === template.updatedAt}

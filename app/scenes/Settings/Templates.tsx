@@ -48,8 +48,8 @@ function Templates() {
   const reqParams = useMemo(
     () => ({
       query: params.get("query") || undefined,
-      sort: params.get("sort") || "title",
-      direction: (params.get("direction") || "asc").toUpperCase() as
+      sort: params.get("sort") || "createdAt",
+      direction: (params.get("direction") || "desc").toUpperCase() as
         | "ASC"
         | "DESC",
     }),

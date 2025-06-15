@@ -18,6 +18,7 @@ export default class Template extends ParanoidModel implements Searchable {
 
   store: TemplatesStore;
 
+  @Field
   @observable.shallow
   data: ProsemirrorData;
 
