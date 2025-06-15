@@ -328,6 +328,31 @@ function KeyboardShortcuts() {
         ],
       },
       {
+        title: t("Toggle blocks"),
+        items: [
+          {
+            shortcut: (
+              <>
+                <Key symbol>{metaDisplay}</Key> + <Key>Enter</Key>
+              </>
+            ),
+            label: t("Open / Close"),
+          },
+          {
+            shortcut: <Key>{t("Tab")}</Key>,
+            label: t("Indent item"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key symbol>⇧</Key> + <Key>{t("Tab")}</Key>
+              </>
+            ),
+            label: t("Outdent item"),
+          },
+        ],
+      },
+      {
         title: t("Tables"),
         items: [
           {
@@ -430,6 +455,14 @@ function KeyboardShortcuts() {
               </>
             ),
             label: t("LaTeX block"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key>+++</Key> <Key>{t("Space")}</Key>
+              </>
+            ),
+            label: t("Toggle block"),
           },
           {
             shortcut: <Key>{":::"}</Key>,

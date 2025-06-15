@@ -223,5 +223,11 @@ export default function blockMenuItems(
       keywords: "diagram flowchart",
       attrs: { language: "mermaidjs" },
     },
+    {
+      name: "container_toggle",
+      title: dictionary.toggleBlock,
+      icon: <Img src="/images/mermaidjs.png" alt="Mermaid Diagram" />,
+      keywords: "toggle",
+    },
   ];
 }
