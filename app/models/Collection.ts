@@ -365,7 +365,9 @@ export default class Collection extends ParanoidModel {
       title: this.name,
       color: this.color ?? undefined,
       icon: this.icon ?? undefined,
-      children: this.documents ?? [],
+      children: this.documents
+        ? sortNavigationNodes(this.documents, this.sort, true)
+        : [],
       url: this.url,
     };
   }

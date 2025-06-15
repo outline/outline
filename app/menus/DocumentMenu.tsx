@@ -55,7 +55,6 @@ import {
   copyDocument,
   searchInDocument,
   leaveDocument,
-  moveTemplate,
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import useBoolean from "~/hooks/useBoolean";
@@ -345,7 +344,6 @@ const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
           actionToMenuItem(unpublishDocument, context),
           actionToMenuItem(archiveDocument, context),
           actionToMenuItem(moveDocument, context),
-          actionToMenuItem(moveTemplate, context),
           {
             type: "submenu",
             title: t("Apply template"),

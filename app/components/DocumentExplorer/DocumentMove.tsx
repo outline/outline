@@ -3,17 +3,15 @@ import { observer } from "mobx-react";
 import { useState, useMemo } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
-import styled from "styled-components";
-import { ellipsis } from "@shared/styles";
 import { NavigationNode } from "@shared/types";
 import Document from "~/models/Document";
 import Button from "~/components/Button";
-import DocumentExplorer from "~/components/DocumentExplorer";
-import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import useCollectionTrees from "~/hooks/useCollectionTrees";
 import useStores from "~/hooks/useStores";
 import { flattenTree } from "~/utils/tree";
+import { FlexContainer, Footer } from "./Components";
+import DocumentExplorer from "./DocumentExplorer";
 
 type Props = {
   document: Document;
@@ -82,7 +80,7 @@ function DocumentMove({ document }: Props) {
     <FlexContainer column>
       <DocumentExplorer items={items} onSubmit={move} onSelect={selectPath} />
       <Footer justify="space-between" align="center" gap={8}>
-        <StyledText type="secondary">
+        <Text ellipsis type="secondary">
           {selectedPath ? (
             <Trans
               defaults="Move to <em>{{ location }}</em>"
@@ -96,7 +94,7 @@ function DocumentMove({ document }: Props) {
           ) : (
             t("Select a location to move")
           )}
-        </StyledText>
+        </Text>
         <Button disabled={!selectedPath} onClick={move}>
           {t("Move")}
         </Button>
@@ -104,24 +102,5 @@ function DocumentMove({ document }: Props) {
     </FlexContainer>
   );
 }
-
-export const FlexContainer = styled(Flex)`
-  margin-left: -24px;
-  margin-right: -24px;
-  margin-bottom: -24px;
-  outline: none;
-`;
-
-export const Footer = styled(Flex)`
-  height: 64px;
-  border-top: 1px solid ${(props) => props.theme.horizontalRule};
-  padding-left: 24px;
-  padding-right: 24px;
-`;
-
-export const StyledText = styled(Text)`
-  ${ellipsis()}
-  margin-bottom: 0;
-`;
 
 export default observer(DocumentMove);

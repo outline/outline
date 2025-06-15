@@ -71,7 +71,7 @@ export function TemplatesTable(props: Props) {
         {
           type: "data",
           id: "collectionId",
-          header: t("Permission"),
+          header: t("Visibility"),
           accessor: (template) => template.collection?.name,
           component: (template) => <Permission template={template} />,
           width: "2fr",

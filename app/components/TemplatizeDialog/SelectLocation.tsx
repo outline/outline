@@ -104,8 +104,8 @@ const SelectLocation = ({ defaultCollectionId, onSelect }: Props) => {
       value={defaultCollectionId ?? "workspace"}
       options={options}
       onChange={handleSelection}
-      ariaLabel={t("Location")}
-      label={t("Location")}
+      ariaLabel={t("Visibility")}
+      label={t("Visibility")}
     />
   );
 };

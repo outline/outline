@@ -28,7 +28,7 @@ allow(User, "listRevisions", Template, (actor, template) =>
   )
 );
 
-allow(User, ["update", "duplicate"], Template, (actor, template) =>
+allow(User, ["update", "move", "duplicate"], Template, (actor, template) =>
   and(
     can(actor, "read", template),
     isTeamMutable(actor),

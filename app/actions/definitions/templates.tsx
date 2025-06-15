@@ -1,15 +1,15 @@
-import { TrashIcon } from "outline-icons";
-import * as React from "react";
+import { MoveIcon, TrashIcon } from "outline-icons";
 import { Trans } from "react-i18next";
 import { toast } from "sonner";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
+import TemplateMove from "~/components/DocumentExplorer/TemplateMove";
 import { createAction } from "~/actions";
-import { TemplateSection } from "../sections";
+import { ActiveTemplateSection } from "../sections";
 
 export const deleteTemplate = createAction({
   name: ({ t }) => `${t("Delete")}…`,
   analyticsName: "Delete template",
-  section: TemplateSection,
+  section: ActiveTemplateSection,
   icon: <TrashIcon />,
   dangerous: true,
   visible: ({ activeTemplateId, stores }) => {
@@ -54,4 +54,30 @@ export const deleteTemplate = createAction({
   },
 });
 
-export const rootTemplateActions = [];
+export const moveTemplate = createAction({
+  name: ({ t }) => t("Move"),
+  analyticsName: "Move template",
+  section: ActiveTemplateSection,
+  icon: <MoveIcon />,
+  visible: ({ activeTemplateId, stores }) => {
+    if (!activeTemplateId) {
+      return false;
+    }
+    return !!stores.policies.abilities(activeTemplateId).move;
+  },
+  perform: ({ activeTemplateId, stores, t }) => {
+    if (activeTemplateId) {
+      const template = stores.templates.get(activeTemplateId);
+      if (!template) {
+        return;
+      }
+
+      stores.dialogs.openModal({
+        title: t("Move template"),
+        content: <TemplateMove template={template} />,
+      });
+    }
+  },
+});
+
+export const rootTemplateActions = [moveTemplate];

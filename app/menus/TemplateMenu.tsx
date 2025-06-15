@@ -6,7 +6,7 @@ import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import ContextMenuTemplate from "~/components/ContextMenu/Template";
 import { actionToMenuItem } from "~/actions";
-import { deleteTemplate } from "~/actions/definitions/templates";
+import { deleteTemplate, moveTemplate } from "~/actions/definitions/templates";
 import useActionContext from "~/hooks/useActionContext";
 import { useMenuState } from "~/hooks/useMenuState";
 import usePolicy from "~/hooks/usePolicy";
@@ -50,6 +50,7 @@ function TemplateMenu({ template, onEdit }: Props) {
               icon: <DuplicateIcon />,
               onClick: () => templates.duplicate(template),
             },
+            actionToMenuItem(moveTemplate, context),
             {
               type: "separator",
             },

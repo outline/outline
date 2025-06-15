@@ -64,6 +64,7 @@ export const TemplatesUpdateSchema = BaseSchema.extend({
       .regex(ValidateColor.regex, { message: ValidateColor.message })
       .nullish(),
     fullWidth: z.boolean().optional(),
+    collectionId: z.string().nullish(),
   }),
 });
 
