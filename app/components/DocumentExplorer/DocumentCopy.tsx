@@ -6,14 +6,14 @@ import { toast } from "sonner";
 import styled from "styled-components";
 import { NavigationNode } from "@shared/types";
 import Document from "~/models/Document";
-import { FlexContainer, Footer, StyledText } from "~/scenes/DocumentMove";
 import Button from "~/components/Button";
-import DocumentExplorer from "~/components/DocumentExplorer";
+import Switch from "~/components/Switch";
+import Text from "~/components/Text";
 import useCollectionTrees from "~/hooks/useCollectionTrees";
 import useStores from "~/hooks/useStores";
 import { flattenTree } from "~/utils/tree";
-import Switch from "./Switch";
-import Text from "./Text";
+import { FlexContainer, Footer } from "./Components";
+import DocumentExplorer from "./DocumentExplorer";
 
 type Props = {
   /** The original document to duplicate */
@@ -38,13 +38,8 @@ function DocumentCopy({ document, onSubmit }: Props) {
         : true
     );
 
-    if (document.isTemplate) {
-      return nodes
-        .filter((node) => node.type === "collection")
-        .map((node) => ({ ...node, children: [] }));
-    }
     return nodes;
-  }, [policies, collectionTrees, document.isTemplate]);
+  }, [policies, collectionTrees]);
 
   const copy = async () => {
     if (!selectedPath) {
@@ -79,7 +74,7 @@ function DocumentCopy({ document, onSubmit }: Props) {
         defaultValue={document.parentDocumentId || document.collectionId || ""}
       />
       <OptionsContainer>
-        {!document.isTemplate && (
+        {document instanceof Document && (
           <>
             {document.collectionId && (
               <Text size="small">
@@ -107,7 +102,7 @@ function DocumentCopy({ document, onSubmit }: Props) {
         )}
       </OptionsContainer>
       <Footer justify="space-between" align="center" gap={8}>
-        <StyledText type="secondary">
+        <Text ellipsis type="secondary">
           {selectedPath ? (
             <Trans
               defaults="Copy to <em>{{ location }}</em>"
@@ -117,7 +112,7 @@ function DocumentCopy({ document, onSubmit }: Props) {
           ) : (
             t("Select a location to copy")
           )}
-        </StyledText>
+        </Text>
         <Button disabled={!selectedPath} onClick={copy}>
           {t("Copy")}
         </Button>

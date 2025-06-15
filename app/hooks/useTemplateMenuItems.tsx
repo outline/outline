@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import Icon from "@shared/components/Icon";
 import { TextHelper } from "@shared/utils/TextHelper";
 import Document from "~/models/Document";
+import Template from "~/models/Template";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import { MenuItem } from "~/types";
@@ -12,7 +13,7 @@ type Props = {
   /** The document to which the templates will be applied */
   document: Document;
   /** Callback to handle when a template is selected */
-  onSelectTemplate?: (template: Document) => void;
+  onSelectTemplate?: (template: Template) => void;
 };
 
 /**
@@ -28,11 +29,11 @@ type Props = {
  */
 export function useTemplateMenuItems({ document, onSelectTemplate }: Props) {
   const user = useCurrentUser();
-  const { documents } = useStores();
+  const { templates } = useStores();
   const { t } = useTranslation();
 
   const templateToMenuItem = useCallback(
-    (template: Document): MenuItem => ({
+    (template: Template): MenuItem => ({
       type: "button",
       title: TextHelper.replaceTemplateVariables(
         template.titleWithDefault,
@@ -48,11 +49,7 @@ export function useTemplateMenuItems({ document, onSelectTemplate }: Props) {
     [user, onSelectTemplate]
   );
 
-  const templates = documents.templates.filter(
-    (template) => template.publishedAt
-  );
-
-  const collectionItems = templates
+  const collectionItems = templates.orderedData
     .filter(
       (template) =>
         !template.isWorkspaceTemplate &&
@@ -60,7 +57,7 @@ export function useTemplateMenuItems({ document, onSelectTemplate }: Props) {
     )
     .map(templateToMenuItem);
 
-  const workspaceTemplates = templates
+  const workspaceTemplates = templates.orderedData
     .filter((tmpl) => tmpl.isWorkspaceTemplate)
     .map(templateToMenuItem);
 

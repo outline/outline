@@ -21,10 +21,11 @@ import { s } from "@shared/styles";
 import { SubscriptionType, UserPreference } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import Document from "~/models/Document";
+import Template from "~/models/Template";
 import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import Separator from "~/components/ContextMenu/Separator";
-import Template from "~/components/ContextMenu/Template";
+import MenuTemplate from "~/components/ContextMenu/Template";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import Switch from "~/components/Switch";
 import { actionToMenuItem } from "~/actions";
@@ -54,7 +55,6 @@ import {
   copyDocument,
   searchInDocument,
   leaveDocument,
-  moveTemplate,
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import useBoolean from "~/hooks/useBoolean";
@@ -84,7 +84,8 @@ type Props = {
   label?: (props: MenuButtonHTMLProps) => React.ReactNode;
   /** Invoked when the "Find and replace" menu item is clicked */
   onFindAndReplace?: () => void;
-  onSelectTemplate?: (template: Document) => void;
+  /** Invoked when the "Apply template" menu item is clicked */
+  onSelectTemplate?: (template: Template) => void;
   /** Invoked when the "Rename" menu item is clicked */
   onRename?: () => void;
   /** Invoked when menu is opened */
@@ -156,7 +157,7 @@ type MenuContentProps = {
   onOpen?: () => void;
   onClose?: () => void;
   onFindAndReplace?: () => void;
-  onSelectTemplate?: (template: Document) => void;
+  onSelectTemplate?: (template: Template) => void;
   onRename?: () => void;
   showDisplayOptions?: boolean;
   showToggleEmbeds?: boolean;
@@ -262,15 +263,13 @@ const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
       onOpen={onOpen}
       onClose={onClose}
     >
-      <Template
+      <MenuTemplate
         {...menuState}
         items={[
           {
             type: "button",
             title: t("Restore"),
-            visible:
-              !!(document.isWorkspaceTemplate || collection?.isActive) &&
-              !!(can.restore || can.unarchive),
+            visible: !!collection?.isActive && !!(can.restore || can.unarchive),
             onClick: (ev) => handleRestore(ev),
             icon: <RestoreIcon />,
           },
@@ -278,7 +277,7 @@ const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
             type: "submenu",
             title: t("Restore"),
             visible:
-              !(document.isWorkspaceTemplate || collection?.isActive) &&
+              !collection?.isActive &&
               !!(can.restore || can.unarchive) &&
               restoreItems.length !== 0,
             style: {
@@ -326,8 +325,7 @@ const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
             type: "route",
             title: t("Edit"),
             to: documentEditPath(document),
-            visible:
-              !!can.update && user.separateEditMode && !document.template,
+            visible: !!can.update && user.separateEditMode,
             icon: <EditIcon />,
           },
           {
@@ -346,7 +344,6 @@ const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
           actionToMenuItem(unpublishDocument, context),
           actionToMenuItem(archiveDocument, context),
           actionToMenuItem(moveDocument, context),
-          actionToMenuItem(moveTemplate, context),
           {
             type: "submenu",
             title: t("Apply template"),

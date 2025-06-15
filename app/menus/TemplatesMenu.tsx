@@ -3,9 +3,10 @@ import { ShapesIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import { MenuButton } from "reakit/Menu";
 import Document from "~/models/Document";
+import Template from "~/models/Template";
 import Button from "~/components/Button";
 import ContextMenu from "~/components/ContextMenu";
-import Template from "~/components/ContextMenu/Template";
+import ContextMenuTemplate from "~/components/ContextMenu/Template";
 import { useMenuState } from "~/hooks/useMenuState";
 import { useTemplateMenuItems } from "~/hooks/useTemplateMenuItems";
 
@@ -15,7 +16,7 @@ type Props = {
   /** Whether to render the button as a compact icon */
   isCompact?: boolean;
   /** Callback to handle when a template is selected */
-  onSelectTemplate: (template: Document) => void;
+  onSelectTemplate: (template: Template) => void;
 };
 
 function TemplatesMenu({ isCompact, onSelectTemplate, document }: Props) {
@@ -45,7 +46,7 @@ function TemplatesMenu({ isCompact, onSelectTemplate, document }: Props) {
         )}
       </MenuButton>
       <ContextMenu {...menu} aria-label={t("Templates")}>
-        <Template {...menu} items={items} />
+        <ContextMenuTemplate {...menu} items={items} />
       </ContextMenu>
     </>
   );

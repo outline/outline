@@ -42,12 +42,12 @@ import {
 import { getEventFiles } from "@shared/utils/files";
 import UserMembership from "~/models/UserMembership";
 import DocumentDelete from "~/scenes/DocumentDelete";
-import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
 import DocumentPublish from "~/scenes/DocumentPublish";
 import DeleteDocumentsInTrash from "~/scenes/Trash/components/DeleteDocumentsInTrash";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
-import DocumentCopy from "~/components/DocumentCopy";
+import DocumentCopy from "~/components/DocumentExplorer/DocumentCopy";
+import DocumentMove from "~/components/DocumentExplorer/DocumentMove";
 import MarkdownIcon from "~/components/Icons/MarkdownIcon";
 import SharePopover from "~/components/Sharing/Document";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
@@ -157,12 +157,7 @@ export const createDocumentFromTemplate = createAction({
       ? stores.documents.get(activeDocumentId)
       : undefined;
 
-    if (
-      !currentTeamId ||
-      !document?.isTemplate ||
-      !!document?.isDraft ||
-      !!document?.isDeleted
-    ) {
+    if (!currentTeamId || !!document?.isDraft || !!document?.isDeleted) {
       return false;
     }
 
@@ -273,7 +268,7 @@ export const publishDocument = createAction({
       return;
     }
 
-    if (document?.collectionId || document?.template) {
+    if (document?.collectionId) {
       await document.save(undefined, {
         publish: true,
       });
@@ -792,7 +787,7 @@ export const createTemplateFromDocument = createAction({
     const document = activeDocumentId
       ? stores.documents.get(activeDocumentId)
       : undefined;
-    if (document?.isTemplate || !document?.isActive) {
+    if (!document?.isActive) {
       return false;
     }
     return !!(
@@ -844,46 +839,8 @@ export const searchDocumentsForQuery = (query: string) =>
     visible: ({ location }) => location.pathname !== searchPath(),
   });
 
-export const moveTemplateToWorkspace = createAction({
-  name: ({ t }) => t("Move to workspace"),
-  analyticsName: "Move template to workspace",
-  section: DocumentSection,
-  icon: <MoveIcon />,
-  iconInContextMenu: false,
-  visible: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
-      return false;
-    }
-    const document = stores.documents.get(activeDocumentId);
-    if (!document || !document.template || document.isWorkspaceTemplate) {
-      return false;
-    }
-    return !!stores.policies.abilities(activeDocumentId).move;
-  },
-  perform: async ({ activeDocumentId, stores }) => {
-    if (activeDocumentId) {
-      const document = stores.documents.get(activeDocumentId);
-      if (!document) {
-        return;
-      }
-
-      await document.move({
-        collectionId: null,
-      });
-    }
-  },
-});
-
 export const moveDocumentToCollection = createAction({
-  name: ({ activeDocumentId, stores, t }) => {
-    if (!activeDocumentId) {
-      return t("Move");
-    }
-    const document = stores.documents.get(activeDocumentId);
-    return document?.template && document?.collectionId
-      ? t("Move to collection")
-      : t("Move");
-  },
+  name: ({ t }) => t("Move"),
   analyticsName: "Move document",
   section: ActiveDocumentSection,
   icon: <MoveIcon />,
@@ -921,32 +878,12 @@ export const moveDocument = createAction({
       return false;
     }
     const document = stores.documents.get(activeDocumentId);
-    // Don't show the button if this is a non-workspace template.
-    if (!document || (document.template && !document.isWorkspaceTemplate)) {
+    if (!document) {
       return false;
     }
     return !!stores.policies.abilities(activeDocumentId).move;
   },
   perform: moveDocumentToCollection.perform,
-});
-
-export const moveTemplate = createAction({
-  name: ({ t }) => t("Move"),
-  analyticsName: "Move document",
-  section: ActiveDocumentSection,
-  icon: <MoveIcon />,
-  visible: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
-      return false;
-    }
-    const document = stores.documents.get(activeDocumentId);
-    // Don't show the menu if this is not a template (or) a workspace template.
-    if (!document || !document.template || document.isWorkspaceTemplate) {
-      return false;
-    }
-    return !!stores.policies.abilities(activeDocumentId).move;
-  },
-  children: [moveTemplateToWorkspace, moveDocumentToCollection],
 });
 
 export const archiveDocument = createAction({
@@ -1137,12 +1074,7 @@ export const openDocumentInsights = createAction({
       ? stores.documents.get(activeDocumentId)
       : undefined;
 
-    return (
-      !!activeDocumentId &&
-      can.listViews &&
-      !document?.isTemplate &&
-      !document?.isDeleted
-    );
+    return !!activeDocumentId && can.listViews && !document?.isDeleted;
   },
   perform: ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {
@@ -1246,7 +1178,6 @@ export const rootDocumentActions = [
   searchInDocument,
   duplicateDocument,
   leaveDocument,
-  moveTemplateToWorkspace,
   moveDocumentToCollection,
   openRandomDocument,
   permanentlyDeleteDocument,

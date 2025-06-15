@@ -42,6 +42,13 @@ UserSection.priority = 0.5;
 
 export const TeamSection = ({ t }: ActionContext) => t("Workspace");
 
+export const TemplateSection = ({ t }: ActionContext) => t("Template");
+
+export const ActiveTemplateSection = ({ t, stores }: ActionContext) => {
+  const activeTemplate = stores.templates.active;
+  return `${t("Template")} · ${activeTemplate?.titleWithDefault}`;
+};
+
 export const RecentSearchesSection = ({ t }: ActionContext) =>
   t("Recent searches");
 

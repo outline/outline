@@ -67,10 +67,7 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
           </CommentLink>
         </>
       )}
-      {totalViewers &&
-      can.listViews &&
-      !document.isDraft &&
-      !document.isTemplate ? (
+      {totalViewers && can.listViews && !document.isDraft ? (
         <Wrapper>
           &nbsp;•&nbsp;
           <Link

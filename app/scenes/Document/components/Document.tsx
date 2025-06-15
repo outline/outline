@@ -33,10 +33,11 @@ import { isModKey } from "@shared/utils/keyboard";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
+import Template from "~/models/Template";
 import ConnectionStatus from "~/scenes/Document/components/ConnectionStatus";
-import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPublish from "~/scenes/DocumentPublish";
 import Branding from "~/components/Branding";
+import DocumentMove from "~/components/DocumentExplorer/DocumentMove";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import PageTitle from "~/components/PageTitle";
@@ -154,7 +155,7 @@ class DocumentScene extends React.Component<Props> {
    * @param selection The selection to replace, if any
    */
   replaceSelection = (
-    template: Document | Revision,
+    template: Template | Revision,
     selection?: TextSelection | AllSelection
   ) => {
     const editorRef = this.editor.current;
@@ -179,7 +180,7 @@ class DocumentScene extends React.Component<Props> {
 
     this.isEditorDirty = true;
 
-    if (template instanceof Document) {
+    if (template instanceof Template) {
       this.props.document.templateId = template.id;
       this.props.document.fullWidth = template.fullWidth;
     }
@@ -456,7 +457,7 @@ class DocumentScene extends React.Component<Props> {
       tocPos &&
       (isShare
         ? ui.tocVisible !== false
-        : !document.isTemplate && ui.tocVisible === true);
+        : !(document instanceof Template) && ui.tocVisible === true);
     const multiplayerEditor =
       !document.isArchived && !document.isDeleted && !revision && !isShare;
 
@@ -574,7 +575,7 @@ class DocumentScene extends React.Component<Props> {
                         multiplayer={multiplayerEditor}
                         shareId={shareId}
                         isDraft={document.isDraft}
-                        template={document.isTemplate}
+                        template={document instanceof Template}
                         document={document}
                         value={readOnly ? document.data : undefined}
                         defaultValue={document.data}

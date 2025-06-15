@@ -11,6 +11,7 @@ import { TeamPreference } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
+import Template from "~/models/Template";
 import { RefHandle } from "~/components/ContentEditable";
 import { useDocumentContext } from "~/components/DocumentContext";
 import Editor, { Props as EditorProps } from "~/components/Editor";
@@ -40,7 +41,7 @@ type Props = Omit<EditorProps, "editorStyle"> & {
   onChangeTitle: (title: string) => void;
   onChangeIcon: (icon: string | null, color: string | null) => void;
   id: string;
-  document: Document;
+  document: Document | Template;
   isDraft: boolean;
   multiplayer?: boolean;
   onSave: (options: {
@@ -48,7 +49,7 @@ type Props = Omit<EditorProps, "editorStyle"> & {
     autosave?: boolean;
     publish?: boolean;
   }) => void;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 };
 
 /**
@@ -238,7 +239,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
             {t("Last updated")} <Time dateTime={document.updatedAt} addSuffix />
           </SharedMeta>
         ) : null
-      ) : (
+      ) : document instanceof Document ? (
         <DocumentMeta
           document={document}
           to={
@@ -254,7 +255,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
           }
           rtl={direction === "rtl"}
         />
-      )}
+      ) : null}
       <EditorComponent
         ref={mergeRefs([ref, handleRefChanged])}
         autoFocus={!!document.title && !props.defaultValue}
@@ -282,7 +283,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         editorStyle={editorStyle}
         {...rest}
       />
-      <div ref={childRef}>{children}</div>
+      {children && <div ref={childRef}>{children}</div>}
     </Flex>
   );
 }

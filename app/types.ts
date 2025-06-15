@@ -86,7 +86,9 @@ export type ActionContext = {
   isCommandBar: boolean;
   isButton: boolean;
   sidebarContext?: SidebarContextType;
+  // TODO: Refactor this to data structure of active models
   activeCollectionId?: string | undefined;
+  activeTemplateId?: string | undefined;
   activeDocumentId: string | undefined;
   currentUserId: string | undefined;
   currentTeamId: string | undefined;
