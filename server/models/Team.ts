@@ -94,7 +94,7 @@ class Team extends ParanoidModel<
     max: env.isCloudHosted
       ? TeamValidation.maxSubdomainLength
       : TeamValidation.maxSubdomainSelfHostedLength,
-    msg: `subdomain must be between 2 and ${
+    msg: `subdomain must be between ${TeamValidation.minSubdomainLength} and ${
       env.isCloudHosted
         ? TeamValidation.maxSubdomainLength
         : TeamValidation.maxSubdomainSelfHostedLength
