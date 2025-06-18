@@ -100,7 +100,7 @@ export const TeamValidation = {
   maxDescriptionLength: 1000,
 
   /** The minimum length of the team subdomain */
-  minSubdomainLength: 3,
+  minSubdomainLength: 2,
 
   /** The maximum length of the team subdomain for cloud */
   maxSubdomainLength: 32,
