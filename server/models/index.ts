@@ -16,6 +16,8 @@ export { default as Comment } from "./Comment";
 
 export { default as Document } from "./Document";
 
+export { default as Emoji } from "./Emoji";
+
 export { default as Event } from "./Event";
 
 export { default as FileOperation } from "./FileOperation";
