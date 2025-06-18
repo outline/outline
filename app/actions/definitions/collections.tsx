@@ -6,7 +6,6 @@ import {
   PlusIcon,
   RestoreIcon,
   SearchIcon,
-  ShapesIcon,
   StarredIcon,
   SubscribeIcon,
   TrashIcon,
@@ -26,7 +25,7 @@ import { createAction } from "~/actions";
 import { ActiveCollectionSection, CollectionSection } from "~/actions/sections";
 import { setPersistedState } from "~/hooks/usePersistedState";
 import history from "~/utils/history";
-import { newTemplatePath, searchPath } from "~/utils/routeHelpers";
+import { searchPath } from "~/utils/routeHelpers";
 
 const ColorCollectionIcon = ({ collection }: { collection: Collection }) => (
   <DynamicCollectionIcon collection={collection} />
@@ -362,27 +361,6 @@ export const deleteCollection = createAction({
         />
       ),
     });
-  },
-});
-
-export const createTemplate = createAction({
-  name: ({ t }) => t("New template"),
-  analyticsName: "New template",
-  section: ActiveCollectionSection,
-  icon: <ShapesIcon />,
-  keywords: "new create template",
-  visible: ({ activeCollectionId, stores }) =>
-    !!(
-      !!activeCollectionId &&
-      stores.policies.abilities(activeCollectionId).createDocument
-    ),
-  perform: ({ activeCollectionId, event }) => {
-    if (!activeCollectionId) {
-      return;
-    }
-    event?.preventDefault();
-    event?.stopPropagation();
-    history.push(newTemplatePath(activeCollectionId));
   },
 });
 

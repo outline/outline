@@ -1,10 +1,29 @@
-import { MoveIcon, TrashIcon } from "outline-icons";
+import { MoveIcon, PlusIcon, TrashIcon } from "outline-icons";
 import { Trans } from "react-i18next";
 import { toast } from "sonner";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import TemplateMove from "~/components/DocumentExplorer/TemplateMove";
 import { createAction } from "~/actions";
-import { ActiveTemplateSection } from "../sections";
+import { ActiveTemplateSection, TemplateSection } from "../sections";
+
+export const createTemplate = createAction({
+  name: ({ t }) => t("New template"),
+  analyticsName: "New template",
+  section: TemplateSection,
+  icon: <PlusIcon />,
+  keywords: "new create template",
+  visible: ({ currentTeamId, stores }) =>
+    !!stores.policies.abilities(currentTeamId!).createTemplate,
+  perform: ({ activeCollectionId, event }) => {
+    if (!activeCollectionId) {
+      return;
+    }
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    // Trigger dialog
+  },
+});
 
 export const deleteTemplate = createAction({
   name: ({ t }) => `${t("Delete")}…`,

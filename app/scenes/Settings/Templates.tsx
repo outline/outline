@@ -15,13 +15,14 @@ import Heading from "~/components/Heading";
 import InputSearch from "~/components/InputSearch";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
+import { createTemplate } from "~/actions/definitions/templates";
+import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { useTableRequest } from "~/hooks/useTableRequest";
 import { StickyFilters } from "./components/StickyFilters";
-// import { CreateTemplateDialog } from "./components/TemplateDialogs";
 import { TemplatesTable } from "./components/TemplatesTable";
 
 function getFilteredTemplates(templates: Template[], query?: string) {
@@ -37,12 +38,13 @@ function getFilteredTemplates(templates: Template[], query?: string) {
 
 function Templates() {
   const { t } = useTranslation();
-  const { dialogs, templates } = useStores();
+  const { templates } = useStores();
   const team = useCurrentTeam();
   const can = usePolicy(team);
   const history = useHistory();
   const location = useLocation();
   const params = useQuery();
+  const context = useActionContext();
   const [query, setQuery] = useState("");
 
   const reqParams = useMemo(
@@ -94,14 +96,6 @@ function Templates() {
     setQuery(value);
   }, []);
 
-  const handleNewTemplate = useCallback(() => {
-    dialogs.openModal({
-      title: t("Create a template"),
-      // content: <CreateTemplateDialog />,
-      content: <p>Test</p>,
-    });
-  }, [t, dialogs]);
-
   useEffect(() => {
     if (error) {
       toast.error(t("Could not load templates"));
@@ -123,8 +117,9 @@ function Templates() {
             <Action>
               <Button
                 type="button"
-                onClick={handleNewTemplate}
+                action={createTemplate}
                 icon={<PlusIcon />}
+                context={context}
               >
                 {`${t("New template")}…`}
               </Button>
