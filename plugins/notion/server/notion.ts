@@ -107,7 +107,11 @@ export class NotionClient {
         ) {
           if (retries < this.maxRetries) {
             retries++;
-            const delay = this.retryDelay * retries;
+            const headers = error.headers as Record<string, string>;
+            const retryAfter = headers["Retry-After"]
+              ? parseInt(headers["Retry-After"], 10) * 1000 // Convert seconds to milliseconds
+              : undefined;
+            const delay = retryAfter ?? this.retryDelay * retries;
             Logger.info(
               "task",
               `Notion API rate limit hit, retrying in ${delay}ms (retry ${retries}/${this.maxRetries})`
