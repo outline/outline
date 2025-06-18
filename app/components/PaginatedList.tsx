@@ -150,12 +150,15 @@ const PaginatedList = <T extends PaginatedItem>({
         offset,
         ...options,
       });
+      if (!results) {
+        return;
+      }
 
       if (offset !== 0) {
         setRenderCount((prevCount) => prevCount + limit);
       }
 
-      if (results && (results.length === 0 || results.length < limit)) {
+      if (results.length === 0 || results.length < limit) {
         setAllowLoadMore(false);
       } else {
         setOffset((prevOffset) => prevOffset + limit);
