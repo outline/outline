@@ -34,8 +34,6 @@ import MultiplayerEditor from "./AsyncMultiplayerEditor";
 import DocumentMeta from "./DocumentMeta";
 import DocumentTitle from "./DocumentTitle";
 
-const extensions = withUIExtensions(withComments(richExtensions));
-
 type Props = Omit<EditorProps, "editorStyle"> & {
   onChangeTitle: (title: string) => void;
   onChangeIcon: (icon: string | null, color: string | null) => void;
@@ -79,6 +77,13 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   } = props;
   const can = usePolicy(document);
   const commentingEnabled = !!team?.getPreference(TeamPreference.Commenting);
+
+  const extensions = withUIExtensions(
+    commentingEnabled
+      ? withComments(richExtensions)
+      : richExtensions
+  );
+
 
   const iconColor = document.color ?? (last(colorPalette) as string);
   const childRef = React.useRef<HTMLDivElement>(null);
@@ -238,12 +243,12 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
             shareId
               ? undefined
               : {
-                  pathname:
-                    match.path === matchDocumentHistory
-                      ? documentPath(document)
-                      : documentHistoryPath(document),
-                  state: { sidebarContext },
-                }
+                pathname:
+                  match.path === matchDocumentHistory
+                    ? documentPath(document)
+                    : documentHistoryPath(document),
+                state: { sidebarContext },
+              }
           }
           rtl={direction === "rtl"}
         />
