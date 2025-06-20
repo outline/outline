@@ -19,8 +19,119 @@ import {
 import { liftTarget, ReplaceAroundStep } from "prosemirror-transform";
 import { v4 } from "uuid";
 import ToggleBlock, { Action, On } from "../nodes/ToggleBlock";
+import {
+  atBlockEnd,
+  deleteSelectionTr,
+  joinForwardTr,
+  joinTextblockForwardTr,
+  selectNodeForwardTr,
+  wrapNodeInAt,
+} from "../utils";
 
 // Commands
+export const deleteSelectionPreservingBody: Command = (state, dispatch) => {
+  if (state.selection.empty) {
+    return false;
+  }
+
+  const { $from } = state.selection;
+
+  if (!withinToggleBlockHead($from)) {
+    return false;
+  }
+
+  const toggleBlock = $from.node($from.depth - 1);
+  if (!folded(toggleBlock, state)) {
+    return false;
+  }
+
+  const pos = $from.before($from.depth - 1);
+  const { detachBody, attachBody } = getUtils(pos);
+  let tr = detachBody(state.tr);
+  tr = deleteSelectionTr(tr);
+  tr = attachBody(tr);
+  dispatch?.(tr.scrollIntoView());
+  return true;
+};
+
+export const joinForwardPreservingBody: Command = (state, dispatch) => {
+  const { $cursor } = state.selection as TextSelection;
+
+  if (!atEndOfToggleBlockHead($cursor)) {
+    return false;
+  }
+
+  const toggleBlock = $cursor!.node($cursor!.depth - 1);
+  if (!folded(toggleBlock, state)) {
+    return false;
+  }
+
+  const nodeAfter = state.doc.nodeAt($cursor!.after($cursor!.depth - 1));
+  if (!nodeAfter) {
+    return false;
+  }
+  if (
+    !(nodeAfter.type.name === "paragraph" || nodeAfter.type.name === "heading")
+  ) {
+    return false;
+  }
+
+  const pos = $cursor!.before($cursor!.depth - 1);
+
+  const { detachBody, attachBody } = getUtils(pos);
+  let tr = detachBody(state.tr);
+  tr = liftToggleBlockAt(pos, tr);
+  tr = joinForwardTr(tr);
+  tr = wrapNodeInAt(pos, toggleBlock.type, toggleBlock.attrs, tr);
+  tr = attachBody(tr);
+  dispatch?.(tr);
+  return true;
+};
+
+export const selectNodeForwardPreservingBody: Command = (state, dispatch) => {
+  const { $cursor } = state.selection as TextSelection;
+
+  if (!atEndOfToggleBlockHead($cursor)) {
+    return false;
+  }
+
+  const toggleBlock = $cursor!.node($cursor!.depth - 1);
+  if (!folded(toggleBlock, state)) {
+    return false;
+  }
+
+  const pos = $cursor!.before($cursor!.depth - 1);
+  const { detachBody, attachBody } = getUtils(pos);
+  let tr = detachBody(state.tr);
+  tr = selectNodeForwardTr(tr);
+  tr = attachBody(tr);
+  dispatch?.(tr);
+  return true;
+};
+
+export const joinPrecedingTextBlockForward: Command = (state, dispatch) => {
+  const $cursor = atBlockEnd(state.selection);
+  if (!$cursor) {
+    return false;
+  }
+
+  const node = $cursor.node();
+  if (node.type.name !== "paragraph" && node.type.name !== "heading") {
+    return false;
+  }
+
+  const nodeAfter = state.doc.nodeAt($cursor!.after());
+  if (!nodeAfter || nodeAfter.type.name !== "container_toggle") {
+    return false;
+  }
+
+  let tr = liftToggleBlockAt($cursor!.after(), state.tr);
+  tr = joinTextblockForwardTr(tr);
+
+  dispatch?.(tr);
+  return true;
+};
+
 export const lift: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;
 
@@ -386,3 +497,27 @@ const nearest = (ancestors: Node[]) =>
   ancestors.pop();
 
 export const furthest = (ancestors: Node[]) => ancestors.shift();
+
+const getUtils = (pos: number) => {
+  let body: Fragment;
+  const detachBody = (tr: Transaction) => {
+    const $start = tr.doc.resolve(pos + 1);
+    const toggleBlock = tr.doc.nodeAt(pos);
+
+    const posBeforeBody = $start.pos + toggleBlock!.firstChild!.nodeSize;
+    const posAfterBody = $start.end();
+    body = tr.doc.slice(posBeforeBody, posAfterBody).content;
+
+    return tr.replace(posBeforeBody, posAfterBody, Slice.empty);
+  };
+
+  const attachBody = (tr: Transaction) => {
+    const $start = tr.doc.resolve(pos + 1);
+    const toggleBlock = tr.doc.nodeAt(pos);
+
+    const posAfterHead = $start.pos + toggleBlock!.firstChild!.nodeSize;
+    return tr.insert(posAfterHead, body);
+  };
+
+  return { detachBody, attachBody };
+};
