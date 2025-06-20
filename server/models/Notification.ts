@@ -124,6 +124,18 @@ class Notification extends Model<
   @Column(DataType.STRING)
   event: NotificationEventType;
 
+  @AllowNull
+  @Column(DataType.STRING)
+  emoji: string;
+
+  @AllowNull
+  @Column(DataType.ARRAY(DataType.UUID))
+  actorIds: string[];
+
+  @AllowNull
+  @Column(DataType.TEXT)
+  message: string;
+
   // associations
 
   @BelongsTo(() => User, "userId")
