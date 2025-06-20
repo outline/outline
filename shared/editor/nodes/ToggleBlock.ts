@@ -11,7 +11,6 @@ import some from "lodash/some";
 import {
   chainCommands,
   createParagraphNear,
-  joinForward,
   joinTextblockBackward,
   newlineInCode,
   splitBlock,
@@ -45,7 +44,6 @@ import {
   createParagraphBefore,
   split,
   lift,
-  liftNext,
   sinkBlockInto,
   ancestors,
   suchThat,
@@ -57,9 +55,12 @@ import {
   toggle,
   withinToggleBlockHead,
   liftBlocksOutOf,
+  deleteSelectionPreservingBody,
+  joinForwardPreservingBody,
+  selectNodeForwardPreservingBody,
+  joinPrecedingTextBlockForward,
 } from "../commands/toggleBlock";
 import { CommandFactory } from "../lib/Extension";
-import { chainTransactions } from "../lib/chainTransactions";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { PlaceholderPlugin } from "../plugins/PlaceholderPlugin";
 import { findBlockNodes } from "../queries/findChildren";
@@ -642,8 +643,12 @@ export default class ToggleBlock extends Node {
           )(state, dispatch);
         }
       ),
-      Delete: (state, dispatch) =>
-        chainTransactions(liftNext, joinForward)(state, dispatch),
+      Delete: chainCommands(
+        joinPrecedingTextBlockForward,
+        deleteSelectionPreservingBody,
+        joinForwardPreservingBody,
+        selectNodeForwardPreservingBody
+      ),
       Tab: sinkBlockInto(type),
       "Shift-Tab": liftBlocksOutOf(type),
       "Mod-Enter": toggle,
