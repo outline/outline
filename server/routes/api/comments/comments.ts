@@ -2,6 +2,7 @@ import Router from "koa-router";
 import difference from "lodash/difference";
 import { FindOptions, Op, WhereOptions } from "sequelize";
 import {
+  NotificationEventType,
   CommentStatusFilter,
   TeamPreference,
   MentionType,
@@ -12,7 +13,13 @@ import { feature } from "@server/middlewares/feature";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Document, Comment, Collection, Reaction } from "@server/models";
+import {
+  Notification,
+  Document,
+  Comment,
+  Collection,
+  Reaction,
+} from "@server/models";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
 import { authorize } from "@server/policies";
@@ -381,10 +388,7 @@ router.post(
     const comment = await Comment.findByPk(id, {
       transaction,
       rejectOnEmpty: true,
-      lock: {
-        level: transaction.LOCK.UPDATE,
-        of: Comment,
-      },
+      lock: { level: transaction.LOCK.UPDATE, of: Comment },
     });
     const document = await Document.findByPk(comment.documentId, {
       userId: user.id,
@@ -395,17 +399,54 @@ router.post(
     authorize(user, "addReaction", comment);
 
     await Reaction.findOrCreate({
-      where: {
-        emoji,
-        userId: user.id,
-        commentId: id,
-      },
+      where: { emoji, userId: user.id, commentId: id },
       ...ctx.context,
     });
 
-    ctx.body = {
-      success: true,
-    };
+    if (comment.createdById !== user.id) {
+      const ownerId = comment.createdById;
+
+      const notif = await Notification.findOne({
+        where: {
+          userId: ownerId,
+          commentId: comment.id,
+          event: NotificationEventType.ReactionToComment,
+          emoji,
+          viewedAt: { [Op.is]: null },
+        },
+        transaction,
+      });
+
+      if (notif) {
+        const actors = new Set(notif.actorIds || []);
+        actors.add(user.id);
+        notif.actorIds = Array.from(actors);
+        notif.message =
+          actors.size === 1
+            ? `${user.name} reacted ${emoji} to your comment`
+            : `${user.name} and ${
+                actors.size - 1
+              } others reacted ${emoji} to your comment`;
+        await notif.save({ transaction });
+      } else {
+        await Notification.create(
+          {
+            event: NotificationEventType.ReactionToComment,
+            userId: ownerId,
+            actorId: user.id,
+            actorIds: [user.id],
+            emoji,
+            message: `${user.name} reacted ${emoji} to your comment`,
+            teamId: document.teamId,
+            documentId: document.id,
+            commentId: comment.id,
+          },
+          { transaction }
+        );
+      }
+    }
+
+    ctx.body = { success: true };
   }
 );
 

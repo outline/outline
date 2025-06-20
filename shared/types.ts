@@ -348,6 +348,7 @@ export enum NotificationEventType {
   Onboarding = "emails.onboarding",
   Features = "emails.features",
   ExportCompleted = "emails.export_completed",
+  ReactionToComment = "comments.reaction",
 }
 
 export enum NotificationChannelType {
@@ -380,6 +381,7 @@ export const NotificationEventDefaults: Record<NotificationEventType, boolean> =
     [NotificationEventType.ExportCompleted]: true,
     [NotificationEventType.AddUserToDocument]: true,
     [NotificationEventType.AddUserToCollection]: true,
+    [NotificationEventType.ReactionToComment]: true,
   };
 
 export enum UnfurlResourceType {
