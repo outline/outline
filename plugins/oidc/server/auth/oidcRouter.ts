@@ -29,6 +29,7 @@ export interface OIDCEndpoints {
   tokenURL: string;
   userInfoURL: string;
   logoutURL?: string;
+  pkce?: boolean;
 }
 
 /**
@@ -54,7 +55,7 @@ export function createOIDCRouter(
         // @ts-expect-error custom state store
         store: new StateStore(),
         state: true,
-        pkce: false,
+        pkce: endpoints.pkce ?? false,
       },
       // OpenID Connect standard profile claims can be found in the official
       // specification.
