@@ -187,8 +187,14 @@ router.post(
   validate(T.SharesCreateSchema),
   transaction(),
   async (ctx: APIContext<T.SharesCreateReq>) => {
-    const { documentId, published, urlId, includeChildDocuments } =
-      ctx.input.body;
+    const {
+      documentId,
+      published,
+      urlId,
+      includeChildDocuments,
+      allowIndexing,
+      showLastUpdated,
+    } = ctx.input.body;
     const { user } = ctx.state.auth;
     authorize(user, "createShare", user.team);
 
@@ -214,6 +220,8 @@ router.post(
         userId: user.id,
         published,
         includeChildDocuments,
+        allowIndexing,
+        showLastUpdated,
         urlId,
       },
     });
