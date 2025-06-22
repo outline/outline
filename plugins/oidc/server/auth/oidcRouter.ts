@@ -53,7 +53,7 @@ export function createOIDCRouter(
         passReqToCallback: true,
         scope: env.OIDC_SCOPES,
         // @ts-expect-error custom state store
-        store: new StateStore({ pkce: endpoints.pkce }),
+        store: new StateStore(endpoints.pkce),
         state: true,
         pkce: endpoints.pkce ?? false,
       },
