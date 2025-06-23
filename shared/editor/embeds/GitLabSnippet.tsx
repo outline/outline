@@ -25,8 +25,10 @@ function GitLabSnippet(props: Props) {
 
   return (
     <Frame
+      {...props}
       ref={frame}
       src={`/embeds/gitlab?url=${encodeURIComponent(props.attrs.href)}`}
+      canonicalUrl={props.attrs.href}
       className={props.isSelected ? "ProseMirror-selectednode" : ""}
       width="100%"
       height={`${height}px`}
