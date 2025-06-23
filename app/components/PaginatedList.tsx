@@ -308,7 +308,10 @@ const PaginatedList = <T extends PaginatedItem>({
       </ArrowKeyNavigation>
       {allowLoadMore && (
         <div style={{ height: "1px" }}>
-          <Waypoint key={renderCount} onEnter={loadMoreResults} />
+          <Waypoint
+            key={items?.length + renderCount}
+            onEnter={loadMoreResults}
+          />
         </div>
       )}
     </React.Fragment>
