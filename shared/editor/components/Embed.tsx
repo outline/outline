@@ -93,7 +93,7 @@ const InnerEmbed = React.forwardRef<HTMLIFrameElement, Props>(
         const matchingEmbed = getMatchingEmbed(embeds, url);
 
         if (!matchingEmbed) {
-          toast.error(t("Sorry, invalid embed URL"));
+          toast.error(t("Sorry, invalid embed link"));
           return;
         }
 
