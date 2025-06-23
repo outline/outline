@@ -6,12 +6,20 @@ function Linkedin({ matches, ...props }: Props) {
   const objectId = matches[2];
   const postType = matches[1];
   if (matches[3] === "embed") {
-    return <Frame {...props} src={`${props.attrs.href}`} title="LinkedIn" />;
+    return (
+      <Frame
+        {...props}
+        src={`${props.attrs.href}`}
+        canonicalUrl={props.attrs.href}
+        title="LinkedIn"
+      />
+    );
   }
   return (
     <Frame
       {...props}
       src={`https://www.linkedin.com/embed/feed/update/urn:li:${postType}:${objectId}`}
+      canonicalUrl={props.attrs.href}
       title="LinkedIn"
     />
   );

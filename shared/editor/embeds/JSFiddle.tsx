@@ -13,9 +13,9 @@ function JSFiddle({ matches, ...props }: Props) {
       src={`${normalizedUrl}/embedded/result,js,css,html/${
         theme.isDark ? "dark/" : ""
       }`}
+      canonicalUrl={props.attrs.href}
       title="JSFiddle Embed"
       referrerPolicy="origin"
-      border
     />
   );
 }

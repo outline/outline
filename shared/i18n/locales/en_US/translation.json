@@ -1243,5 +1243,6 @@
   "{{ user }} updated {{ timeAgo }}": "{{ user }} updated {{ timeAgo }}",
   "You created {{ timeAgo }}": "You created {{ timeAgo }}",
   "{{ user }} created {{ timeAgo }}": "{{ user }} created {{ timeAgo }}",
+  "Sorry, invalid embed URL": "Sorry, invalid embed URL",
   "Error loading data": "Error loading data"
 }

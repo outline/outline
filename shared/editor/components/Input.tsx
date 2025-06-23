@@ -1,6 +1,6 @@
 import { transparentize } from "polished";
 import styled from "styled-components";
-import { s } from "@shared/styles";
+import { s } from "../../styles";
 
 const Input = styled.input`
   font-size: 15px;

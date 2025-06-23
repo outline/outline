@@ -1,4 +1,6 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import styled from "styled-components";
 import { EmbedDescriptor } from "../embeds";
 import { getMatchingEmbed } from "../lib/embeds";
@@ -67,12 +69,42 @@ const Embed = (props: Props) => {
 
 const InnerEmbed = React.forwardRef<HTMLIFrameElement, Props>(
   function InnerEmbed_(
-    { isEditable, isSelected, theme, node, embeds, embedsDisabled, style },
+    {
+      isEditable,
+      isSelected,
+      theme,
+      node,
+      embeds,
+      embedsDisabled,
+      style,
+      view,
+      getPos,
+    },
     ref
   ) {
+    const { t } = useTranslation();
     const cache = React.useMemo(
       () => getMatchingEmbed(embeds, node.attrs.href),
       [embeds, node.attrs.href]
+    );
+
+    const handleUrlChange = React.useCallback(
+      (url: string) => {
+        const matchingEmbed = getMatchingEmbed(embeds, url);
+
+        if (!matchingEmbed) {
+          toast.error(t("Sorry, invalid embed URL"));
+          return;
+        }
+
+        const { state, dispatch } = view;
+        const transaction = state.tr.setNodeMarkup(getPos(), undefined, {
+          ...node.attrs,
+          href: url,
+        });
+        dispatch(transaction);
+      },
+      [t, view, getPos, embeds, node.attrs]
     );
 
     if (!cache) {
@@ -99,12 +131,12 @@ const InnerEmbed = React.forwardRef<HTMLIFrameElement, Props>(
         <Frame
           ref={ref}
           src={src}
-          style={style}
-          isSelected={isSelected}
           canonicalUrl={embed.hideToolbar ? undefined : node.attrs.href}
           title={embed.title}
+          isSelected={isSelected}
           referrerPolicy="origin"
-          border
+          style={style}
+          onUrlChange={handleUrlChange}
         />
       );
     }
@@ -121,6 +153,7 @@ const InnerEmbed = React.forwardRef<HTMLIFrameElement, Props>(
           isSelected={isSelected}
           embed={embed}
           theme={theme}
+          onUrlChange={handleUrlChange}
         />
       );
     }

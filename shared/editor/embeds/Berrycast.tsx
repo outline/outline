@@ -14,9 +14,9 @@ export default function Berrycast({ matches, ...props }: Props) {
       <Frame
         {...props}
         src={`${normalizedUrl}/video-player`}
+        canonicalUrl={props.attrs.href}
         title="Berrycast Embed"
         height={`${0.5625 * width}px`}
-        border={false}
       />
     </>
   );

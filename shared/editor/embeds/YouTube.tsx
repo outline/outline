@@ -28,7 +28,14 @@ function YouTube({ matches, ...props }: Props) {
     // noop
   }
 
-  return <Frame {...props} src={src} title={`YouTube (${videoId})`} />;
+  return (
+    <Frame
+      {...props}
+      src={src ?? ""}
+      canonicalUrl={props.attrs.href}
+      title={`YouTube (${videoId})`}
+    />
+  );
 }
 
 export default YouTube;
