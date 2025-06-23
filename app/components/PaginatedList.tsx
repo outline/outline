@@ -120,18 +120,20 @@ const PaginatedList = <T extends PaginatedItem>({
     !items?.length
   );
   const [fetchCounter, setFetchCounter] = React.useState(0);
-  const [renderCount, setRenderCount] = React.useState(Pagination.defaultLimit);
+  const [renderCount, setRenderCount] = React.useState(
+    Math.max(items?.length ?? 0, Pagination.defaultLimit)
+  );
   const [offset, setOffset] = React.useState(0);
   const [allowLoadMore, setAllowLoadMore] = React.useState(true);
 
   const reset = React.useCallback(() => {
     setOffset(0);
     setAllowLoadMore(true);
-    setRenderCount(Pagination.defaultLimit);
+    setRenderCount(Math.max(items?.length ?? 0, Pagination.defaultLimit));
     setIsFetching(false);
     setIsFetchingInitial(false);
     setIsFetchingMore(false);
-  }, []);
+  }, [items?.length]);
 
   const fetchResults = React.useCallback(async () => {
     if (!fetch) {
@@ -206,7 +208,7 @@ const PaginatedList = <T extends PaginatedItem>({
     if (fetch) {
       void fetchResults();
     }
-  }, [fetch]);
+  }, [fetch, fetchResults]);
 
   // Handle updates to fetch or options
   React.useEffect(() => {
