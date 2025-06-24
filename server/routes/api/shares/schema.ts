@@ -73,6 +73,8 @@ export const SharesCreateSchema = BaseSchema.extend({
         message: "must be uuid or url slug",
       }),
     published: z.boolean().default(false),
+    allowIndexing: z.boolean().optional(),
+    showLastUpdated: z.boolean().optional(),
     urlId: z
       .string()
       .regex(UrlHelper.SHARE_URL_SLUG_REGEX, {
