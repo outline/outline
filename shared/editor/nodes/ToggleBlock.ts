@@ -11,7 +11,6 @@ import some from "lodash/some";
 import {
   chainCommands,
   createParagraphNear,
-  joinTextblockBackward,
   newlineInCode,
   splitBlock,
 } from "prosemirror-commands";
@@ -58,7 +57,8 @@ import {
   deleteSelectionPreservingBody,
   joinForwardPreservingBody,
   selectNodeForwardPreservingBody,
-  joinPrecedingTextBlockForward,
+  joinBackwardPreservingBody,
+  selectNodeBackwardPreservingBody,
 } from "../commands/toggleBlock";
 import { CommandFactory } from "../lib/Extension";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
@@ -595,24 +595,11 @@ export default class ToggleBlock extends Node {
 
   keys({ type }: { type: NodeType }): Record<string, Command> {
     return {
-      Backspace: chainCommands(lift, (state, dispatch) => {
-        const { $cursor } = state.selection as TextSelection;
-        if (!$cursor) {
-          return false;
-        }
-
-        if (!$cursor.node().isTextblock) {
-          return false;
-        }
-
-        const $cut = state.doc.resolve($cursor.before());
-
-        if (!$cut.nodeBefore || $cut.nodeBefore.type.name !== this.name) {
-          return false;
-        }
-
-        return joinTextblockBackward(state, dispatch);
-      }),
+      Backspace: chainCommands(
+        deleteSelectionPreservingBody,
+        joinBackwardPreservingBody,
+        selectNodeBackwardPreservingBody
+      ),
       Enter: chainCommands(
         createParagraphBefore,
         unfold,
@@ -644,7 +631,6 @@ export default class ToggleBlock extends Node {
         }
       ),
       Delete: chainCommands(
-        joinPrecedingTextBlockForward,
         deleteSelectionPreservingBody,
         joinForwardPreservingBody,
         selectNodeForwardPreservingBody
