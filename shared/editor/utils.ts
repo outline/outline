@@ -272,7 +272,7 @@ export const selectNodeForwardTr = (tr: Transaction): Transaction => {
     .scrollIntoView();
 };
 
-export const wrapNodeInAt = (
+export const wrapNodeAt = (
   pos: number,
   nodeType: NodeType,
   attrs: Attrs | null = null,
