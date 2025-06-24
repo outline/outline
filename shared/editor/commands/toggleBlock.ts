@@ -20,10 +20,12 @@ import { liftTarget, ReplaceAroundStep } from "prosemirror-transform";
 import { v4 } from "uuid";
 import ToggleBlock, { Action, On } from "../nodes/ToggleBlock";
 import {
-  atBlockEnd,
+  atBlockStart,
   deleteSelectionTr,
+  findCutBefore,
+  joinBackwardTr,
   joinForwardTr,
-  joinTextblockForwardTr,
+  selectNodeBackwardTr,
   selectNodeForwardTr,
   wrapNodeInAt,
 } from "../utils";
@@ -66,22 +68,43 @@ export const joinForwardPreservingBody: Command = (state, dispatch) => {
     return false;
   }
 
-  const nodeAfter = state.doc.nodeAt($cursor!.after($cursor!.depth - 1));
-  if (!nodeAfter) {
-    return false;
-  }
-  if (
-    !(nodeAfter.type.name === "paragraph" || nodeAfter.type.name === "heading")
-  ) {
-    return false;
-  }
-
   const pos = $cursor!.before($cursor!.depth - 1);
 
   const { detachBody, attachBody } = getUtils(pos);
   let tr = detachBody(state.tr);
   tr = liftToggleBlockAt(pos, tr);
   tr = joinForwardTr(tr);
+  tr = wrapNodeInAt(pos, toggleBlock.type, toggleBlock.attrs, tr);
+  tr = attachBody(tr);
+  dispatch?.(tr);
+  return true;
+};
+
+export const joinBackwardPreservingBody: Command = (state, dispatch) => {
+  const $cursor = atBlockStart(state.selection);
+  if (!$cursor) {
+    return false;
+  }
+
+  const $cut = findCutBefore($cursor);
+  if (!$cut) {
+    return false;
+  }
+  if (!$cut.nodeBefore || $cut.nodeBefore.type.name !== "container_toggle") {
+    return false;
+  }
+
+  const toggleBlock = $cut.nodeBefore;
+  if (!folded(toggleBlock, state)) {
+    return false;
+  }
+
+  const pos = $cut.pos - toggleBlock.nodeSize;
+
+  const { detachBody, attachBody } = getUtils(pos);
+  let tr = detachBody(state.tr);
+  tr = liftToggleBlockAt(pos, tr);
+  tr = joinBackwardTr(tr);
   tr = wrapNodeInAt(pos, toggleBlock.type, toggleBlock.attrs, tr);
   tr = attachBody(tr);
   dispatch?.(tr);
@@ -109,25 +132,31 @@ export const selectNodeForwardPreservingBody: Command = (state, dispatch) => {
   return true;
 };
 
-export const joinPrecedingTextBlockForward: Command = (state, dispatch) => {
-  const $cursor = atBlockEnd(state.selection);
+export const selectNodeBackwardPreservingBody: Command = (state, dispatch) => {
+  const $cursor = atBlockStart(state.selection);
   if (!$cursor) {
     return false;
   }
 
-  const node = $cursor.node();
-  if (node.type.name !== "paragraph" && node.type.name !== "heading") {
+  const $cut = findCutBefore($cursor);
+  if (!$cut) {
     return false;
   }
 
-  const nodeAfter = state.doc.nodeAt($cursor!.after());
-  if (!nodeAfter || nodeAfter.type.name !== "container_toggle") {
+  if (!$cut.nodeBefore || $cut.nodeBefore.type.name !== "container_toggle") {
     return false;
   }
 
-  let tr = liftToggleBlockAt($cursor!.after(), state.tr);
-  tr = joinTextblockForwardTr(tr);
+  const toggleBlock = $cut.nodeBefore;
+  if (!folded(toggleBlock, state)) {
+    return false;
+  }
 
+  const pos = $cursor.before() - toggleBlock.nodeSize;
+  const { detachBody, attachBody } = getUtils(pos);
+  let tr = detachBody(state.tr);
+  tr = selectNodeBackwardTr(tr);
+  tr = attachBody(tr);
   dispatch?.(tr);
   return true;
 };

@@ -37,38 +37,42 @@ const textblockAt = (node: Node, side: "start" | "end", only = false) => {
   return false;
 };
 
-const joinMaybeClear = (tr: Transaction, $pos: ResolvedPos): Transaction => {
+const joinMaybeClear = (
+  tr: Transaction,
+  $pos: ResolvedPos
+): Transaction | null => {
   const before = $pos.nodeBefore,
     after = $pos.nodeAfter,
     index = $pos.index();
   if (!before || !after || !before.type.compatibleContent(after.type)) {
-    return tr;
+    return null;
   }
   if (!before.content.size && $pos.parent.canReplace(index - 1, index)) {
-    tr = tr.delete($pos.pos - before.nodeSize, $pos.pos).scrollIntoView();
-    return tr;
+    return tr.delete($pos.pos - before.nodeSize, $pos.pos).scrollIntoView();
   }
   if (
     !$pos.parent.canReplace(index, index + 1) ||
     !(after.isTextblock || canJoin(tr.doc, $pos.pos))
   ) {
-    return tr;
+    return null;
   }
-  tr = tr.join($pos.pos).scrollIntoView();
-  return tr;
+  return tr.join($pos.pos).scrollIntoView();
 };
 
 const deleteBarrier = (
   tr: Transaction,
   $cut: ResolvedPos,
   dir: number
-): Transaction => {
+): Transaction | null => {
   const before = $cut.nodeBefore!,
     after = $cut.nodeAfter!;
   let conn, match;
   const isolated = before.type.spec.isolating || after.type.spec.isolating;
   if (!isolated) {
-    return joinMaybeClear(tr, $cut);
+    const joinMaybeTr = joinMaybeClear(tr, $cut);
+    if (joinMaybeTr) {
+      return joinMaybeTr;
+    }
   }
 
   const canDelAfter =
@@ -106,8 +110,7 @@ const deleteBarrier = (
     ) {
       tr = tr.join($joinAt.pos);
     }
-    tr = tr.scrollIntoView();
-    return tr;
+    return tr.scrollIntoView();
   }
 
   const selAfter =
@@ -117,8 +120,7 @@ const deleteBarrier = (
   const range = selAfter && selAfter.$from.blockRange(selAfter.$to),
     target = range && liftTarget(range);
   if (target !== null && target >= $cut.depth) {
-    tr = tr.lift(range!, target).scrollIntoView();
-    return tr;
+    return tr.lift(range!, target).scrollIntoView();
   }
 
   if (
@@ -158,12 +160,11 @@ const deleteBarrier = (
           true
         )
       );
-      tr = tr.scrollIntoView();
-      return tr;
+      return tr.scrollIntoView();
     }
   }
 
-  return tr;
+  return null;
 };
 
 const findCutAfter = ($pos: ResolvedPos) => {
@@ -181,56 +182,7 @@ const findCutAfter = ($pos: ResolvedPos) => {
   return null;
 };
 
-const joinTextblocksAround = (
-  tr: Transaction,
-  $cut: ResolvedPos
-): Transaction => {
-  const before = $cut.nodeBefore!;
-  let beforeText = before;
-  let beforePos = $cut.pos - 1;
-  for (; !beforeText.isTextblock; beforePos--) {
-    if (beforeText.type.spec.isolating) {
-      return tr;
-    }
-    const child = beforeText.lastChild;
-    if (!child) {
-      return tr;
-    }
-    beforeText = child;
-  }
-  const after = $cut.nodeAfter!;
-  let afterText = after;
-  let afterPos = $cut.pos + 1;
-  for (; !afterText.isTextblock; afterPos++) {
-    if (afterText.type.spec.isolating) {
-      return tr;
-    }
-    const child = afterText.firstChild;
-    if (!child) {
-      return tr;
-    }
-    afterText = child;
-  }
-  const step = replaceStep(
-    tr.doc,
-    beforePos,
-    afterPos,
-    Slice.empty
-  ) as ReplaceStep | null;
-  if (
-    !step ||
-    step.from !== beforePos ||
-    (step instanceof ReplaceStep && step.slice.size >= afterPos - beforePos)
-  ) {
-    return tr;
-  }
-  tr = tr.step(step);
-  tr = tr.setSelection(TextSelection.create(tr.doc, beforePos));
-  tr = tr.scrollIntoView();
-  return tr;
-};
-
-export const atBlockEnd = (selection: Selection): ResolvedPos | null => {
+const atBlockEnd = (selection: Selection): ResolvedPos | null => {
   const { $cursor } = selection as TextSelection;
   if (!$cursor || $cursor.parentOffset < $cursor.parent.content.size) {
     return null;
@@ -239,10 +191,10 @@ export const atBlockEnd = (selection: Selection): ResolvedPos | null => {
 };
 
 export const deleteSelectionTr = (tr: Transaction): Transaction => {
-  if (!tr.selection.empty) {
-    tr = tr.deleteSelection();
+  if (tr.selection.empty) {
+    return tr;
   }
-  return tr;
+  return tr.deleteSelection();
 };
 
 export const joinForwardTr = (tr: Transaction): Transaction => {
@@ -259,7 +211,10 @@ export const joinForwardTr = (tr: Transaction): Transaction => {
 
   const after = $cut.nodeAfter!;
   // Try the joining algorithm
-  tr = deleteBarrier(tr, $cut, 1);
+  const delBarrierTr = deleteBarrier(tr, $cut, 1);
+  if (delBarrierTr) {
+    return delBarrierTr;
+  }
 
   // If the node above has no content and the node below is
   // selectable, delete the node above and select the one below.
@@ -284,13 +239,13 @@ export const joinForwardTr = (tr: Transaction): Transaction => {
           ? Selection.findFrom(tr.doc.resolve(tr.mapping.map($cut.pos)), 1)!
           : NodeSelection.create(tr.doc, tr.mapping.map($cut.pos))
       );
-      tr = tr.scrollIntoView();
+      return tr.scrollIntoView();
     }
   }
 
   // If the next node is an atom, delete it
   if (after.isAtom && $cut.depth === $cursor.depth - 1) {
-    tr = tr.delete($cut.pos, $cut.pos + after.nodeSize).scrollIntoView();
+    return tr.delete($cut.pos, $cut.pos + after.nodeSize).scrollIntoView();
   }
 
   return tr;
@@ -312,18 +267,17 @@ export const selectNodeForwardTr = (tr: Transaction): Transaction => {
   if (!node || !NodeSelection.isSelectable(node)) {
     return tr;
   }
-  tr = tr
+  return tr
     .setSelection(NodeSelection.create(tr.doc, $cut!.pos))
     .scrollIntoView();
-  return tr;
 };
 
-export function wrapNodeInAt(
+export const wrapNodeInAt = (
   pos: number,
   nodeType: NodeType,
   attrs: Attrs | null = null,
   tr: Transaction
-): Transaction {
+): Transaction => {
   const $from = tr.doc.resolve(pos + 1);
   const $to = tr.doc.resolve($from.end());
   const range = $from.blockRange($to),
@@ -331,15 +285,117 @@ export function wrapNodeInAt(
   if (!wrapping) {
     return tr;
   }
-  tr = tr.wrap(range!, wrapping).scrollIntoView();
-  return tr;
-}
+  return tr.wrap(range!, wrapping).scrollIntoView();
+};
 
-export const joinTextblockForwardTr = (tr: Transaction): Transaction => {
-  const $cursor = atBlockEnd(tr.selection);
+export const findCutBefore = ($pos: ResolvedPos): ResolvedPos | null => {
+  if (!$pos.parent.type.spec.isolating) {
+    for (let i = $pos.depth - 1; i >= 0; i--) {
+      if ($pos.index(i) > 0) {
+        return $pos.doc.resolve($pos.before(i + 1));
+      }
+      if ($pos.node(i).type.spec.isolating) {
+        break;
+      }
+    }
+  }
+  return null;
+};
+
+export const selectNodeBackwardTr = (tr: Transaction): Transaction => {
+  const { $head, empty } = tr.selection;
+  let $cut: ResolvedPos | null = $head;
+  if (!empty) {
+    return tr;
+  }
+
+  if ($head.parent.isTextblock) {
+    if ($head.parentOffset > 0) {
+      return tr;
+    }
+    $cut = findCutBefore($head);
+  }
+  const node = $cut && $cut.nodeBefore;
+  if (!node || !NodeSelection.isSelectable(node)) {
+    return tr;
+  }
+  return tr
+    .setSelection(NodeSelection.create(tr.doc, $cut!.pos - node.nodeSize))
+    .scrollIntoView();
+};
+
+export const atBlockStart = (selection: Selection): ResolvedPos | null => {
+  const { $cursor } = selection as TextSelection;
+  if (!$cursor || $cursor.parentOffset > 0) {
+    return null;
+  }
+  return $cursor;
+};
+
+export const joinBackwardTr = (tr: Transaction): Transaction => {
+  const $cursor = atBlockStart(tr.selection);
   if (!$cursor) {
     return tr;
   }
-  const $cut = findCutAfter($cursor);
-  return $cut ? joinTextblocksAround(tr, $cut) : tr;
+
+  const $cut = findCutBefore($cursor);
+
+  // If there is no node before this, try to lift
+  if (!$cut) {
+    const range = $cursor.blockRange(),
+      target = range && liftTarget(range);
+    if (target === null) {
+      return tr;
+    }
+    return tr.lift(range!, target).scrollIntoView();
+  }
+
+  const before = $cut.nodeBefore!;
+  // Apply the joining algorithm
+  const delBarrierTr = deleteBarrier(tr, $cut, 1);
+  if (delBarrierTr) {
+    return delBarrierTr;
+  }
+
+  // If the node below has no content and the node above is
+  // selectable, delete the node below and select the one above.
+  if (
+    $cursor.parent.content.size === 0 &&
+    (textblockAt(before, "end") || NodeSelection.isSelectable(before))
+  ) {
+    for (let depth = $cursor.depth; ; depth--) {
+      const delStep = replaceStep(
+        tr.doc,
+        $cursor.before(depth),
+        $cursor.after(depth),
+        Slice.empty
+      );
+      if (
+        delStep &&
+        (delStep as ReplaceStep).slice.size <
+          (delStep as ReplaceStep).to - (delStep as ReplaceStep).from
+      ) {
+        tr = tr.step(delStep);
+        tr.setSelection(
+          textblockAt(before, "end")
+            ? Selection.findFrom(
+                tr.doc.resolve(tr.mapping.map($cut.pos, -1)),
+                -1
+              )!
+            : NodeSelection.create(tr.doc, $cut.pos - before.nodeSize)
+        );
+        return tr.scrollIntoView();
+      }
+      if (depth === 1 || $cursor.node(depth - 1).childCount > 1) {
+        break;
+      }
+    }
+  }
+
+  // If the node before is an atom, delete it
+  if (before.isAtom && $cut.depth === $cursor.depth - 1) {
+    return tr.delete($cut.pos - before.nodeSize, $cut.pos).scrollIntoView();
+  }
+
+  return tr;
 };
