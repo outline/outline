@@ -302,6 +302,29 @@ describe("#shares.create", () => {
     expect(body.data.documentTitle).toBe(document.title);
   });
 
+  it("should accept allowIndexing and showLastUpdated parameters", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/shares.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        published: true,
+        allowIndexing: false,
+        showLastUpdated: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.published).toBe(true);
+    expect(body.data.allowIndexing).toBe(false);
+    expect(body.data.showLastUpdated).toBe(true);
+    expect(body.data.documentTitle).toBe(document.title);
+  });
+
   it("should fail creating a share record with read-only permissions and publishing", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
