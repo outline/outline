@@ -27,7 +27,7 @@ import {
   joinForwardTr,
   selectNodeBackwardTr,
   selectNodeForwardTr,
-  wrapNodeInAt,
+  wrapNodeAt,
 } from "../utils";
 
 // Commands
@@ -74,7 +74,7 @@ export const joinForwardPreservingBody: Command = (state, dispatch) => {
   let tr = detachBody(state.tr);
   tr = liftToggleBlockAt(pos, tr);
   tr = joinForwardTr(tr);
-  tr = wrapNodeInAt(pos, toggleBlock.type, toggleBlock.attrs, tr);
+  tr = wrapNodeAt(pos, toggleBlock.type, toggleBlock.attrs, tr);
   tr = attachBody(tr);
   dispatch?.(tr);
   return true;
@@ -105,7 +105,7 @@ export const joinBackwardPreservingBody: Command = (state, dispatch) => {
   let tr = detachBody(state.tr);
   tr = liftToggleBlockAt(pos, tr);
   tr = joinBackwardTr(tr);
-  tr = wrapNodeInAt(pos, toggleBlock.type, toggleBlock.attrs, tr);
+  tr = wrapNodeAt(pos, toggleBlock.type, toggleBlock.attrs, tr);
   tr = attachBody(tr);
   dispatch?.(tr);
   return true;
