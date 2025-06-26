@@ -8,12 +8,7 @@ import isNil from "lodash/isNil";
 import isNull from "lodash/isNull";
 import map from "lodash/map";
 import some from "lodash/some";
-import {
-  chainCommands,
-  createParagraphNear,
-  newlineInCode,
-  splitBlock,
-} from "prosemirror-commands";
+import { chainCommands, newlineInCode, splitBlock } from "prosemirror-commands";
 import { wrappingInputRule } from "prosemirror-inputrules";
 import { ParseSpec } from "prosemirror-markdown";
 import {
@@ -40,25 +35,23 @@ import {
 import { v4 } from "uuid";
 import Storage from "../../utils/Storage";
 import {
-  createParagraphBefore,
-  split,
-  lift,
   sinkBlockInto,
   ancestors,
   suchThat,
   depth,
   furthest,
-  unfold,
   bodyIsEmpty,
   folded,
-  toggle,
-  withinToggleBlockHead,
-  liftBlocksOutOf,
   deleteSelectionPreservingBody,
   joinForwardPreservingBody,
   selectNodeForwardPreservingBody,
   joinBackwardPreservingBody,
   selectNodeBackwardPreservingBody,
+  createParagraphNearPreservingBody,
+  liftConsecutiveEmptyBlocks,
+  splitBlockPreservingBody,
+  liftConsecutiveBlocks,
+  toggleBlock,
 } from "../commands/toggleBlock";
 import { CommandFactory } from "../lib/Extension";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
@@ -601,34 +594,11 @@ export default class ToggleBlock extends Node {
         selectNodeBackwardPreservingBody
       ),
       Enter: chainCommands(
-        createParagraphBefore,
-        unfold,
-        split,
-        (state, dispatch) => {
-          const { $from } = state.selection;
-
-          const parent = $from.node($from.depth - 1);
-          if (parent.type !== type) {
-            return false;
-          }
-
-          if (
-            withinToggleBlockHead($from) &&
-            parent.childCount <= 2 &&
-            parent.firstChild?.textContent.trim() === "" &&
-            (parent.lastChild?.type === state.schema.nodes.paragraph ||
-              parent.lastChild?.type === state.schema.nodes.heading) &&
-            parent.lastChild?.textContent.trim() === ""
-          ) {
-            return lift(state, dispatch);
-          }
-
-          return chainCommands(
-            newlineInCode,
-            createParagraphNear,
-            splitBlock
-          )(state, dispatch);
-        }
+        newlineInCode,
+        createParagraphNearPreservingBody,
+        liftConsecutiveEmptyBlocks,
+        splitBlockPreservingBody,
+        splitBlock
       ),
       Delete: chainCommands(
         deleteSelectionPreservingBody,
@@ -636,8 +606,8 @@ export default class ToggleBlock extends Node {
         selectNodeForwardPreservingBody
       ),
       Tab: sinkBlockInto(type),
-      "Shift-Tab": liftBlocksOutOf(type),
-      "Mod-Enter": toggle,
+      "Shift-Tab": liftConsecutiveBlocks,
+      "Mod-Enter": toggleBlock,
     };
   }
 
