@@ -46,6 +46,7 @@ if (hasManualConfig) {
         tokenURL: oidcConfig.token_endpoint,
         userInfoURL: oidcConfig.userinfo_endpoint,
         logoutURL: oidcConfig.end_session_endpoint,
+        pkce: oidcConfig.code_challenge_methods_supported?.includes("S256"),
       });
 
       Logger.info("plugins", "OIDC endpoints mounted after discovery", {
