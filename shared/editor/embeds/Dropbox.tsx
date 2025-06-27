@@ -11,7 +11,9 @@ function Dropbox({ matches, ...props }: Props) {
   // Wrap inside an iframe to isolate external script and losened CSP
   return (
     <Frame
+      {...props}
       src={`/embeds/dropbox?url=${encodeURIComponent(props.attrs.href)}`}
+      canonicalUrl={props.attrs.href}
       className={props.isSelected ? "ProseMirror-selectednode" : ""}
       width="100%"
       height={embedHeight}

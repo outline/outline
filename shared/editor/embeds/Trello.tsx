@@ -8,9 +8,11 @@ function Trello({ matches, ...props }: Props) {
   if (matches[1] === "c") {
     return (
       <Frame
+        {...props}
         width="316px"
         height="141px"
         src={`https://trello.com/embed/card?id=${objectId}`}
+        canonicalUrl={props.attrs.href}
         title={`Trello Card (${objectId})`}
       />
     );
@@ -22,6 +24,7 @@ function Trello({ matches, ...props }: Props) {
       width="248px"
       height="185px"
       src={`https://trello.com/embed/board?id=${objectId}`}
+      canonicalUrl={props.attrs.href}
       title={`Trello Board (${objectId})`}
     />
   );

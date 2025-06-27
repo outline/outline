@@ -26,7 +26,6 @@ function Diagrams({ matches, ...props }: Props) {
       }
       canonicalUrl={props.attrs.href}
       title={title}
-      border
     />
   );
 }
