@@ -24,8 +24,9 @@ export const TemplateForm = observer(function TemplateForm_({
   const { t } = useTranslation();
   const can = usePolicy(template);
   const dataRef = useRef(template.data);
+  const ref = useRef(null);
   const [isUploading, handleStartUpload, handleStopUpload] = useBoolean();
-  const readOnly = !can.update;
+  const readOnly = !can.update && !template.isNew;
 
   const handleChangeTitle = (title: string) => {
     template.title = title;
@@ -40,7 +41,10 @@ export const TemplateForm = observer(function TemplateForm_({
     dataRef.current = value(false);
   };
 
-  const handleSave = () => {
+  const handleSave = (options: { autosave?: boolean }) => {
+    if (options.autosave) {
+      return;
+    }
     template.data = dataRef.current;
     handleSubmit(template);
   };
@@ -70,6 +74,7 @@ export const TemplateForm = observer(function TemplateForm_({
         </Notice>
         <Editor
           id={template.id}
+          ref={ref}
           isDraft={false}
           document={template}
           value={readOnly ? template.data : undefined}

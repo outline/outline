@@ -26,6 +26,22 @@ export const TemplatesListSchema = BaseSchema.extend({
   }),
 });
 
+export const TemplatesCreateSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid().optional(),
+    collectionId: z.string().uuid().optional(),
+    title: z.string().min(1).max(255),
+    data: ProsemirrorSchema(),
+    icon: zodIconType().nullish(),
+    color: z
+      .string()
+      .regex(ValidateColor.regex, { message: ValidateColor.message })
+      .nullish(),
+  }),
+});
+
+export type TemplatesCreateReq = z.infer<typeof TemplatesCreateSchema>;
+
 export type TemplatesListReq = z.infer<typeof TemplatesListSchema>;
 
 export const TemplatesInfoSchema = BaseSchema.extend({

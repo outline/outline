@@ -1,16 +1,63 @@
 import Router from "koa-router";
 import { Op, WhereOptions } from "sequelize";
+import documentCreator from "@server/commands/documentCreator";
 import auth from "@server/middlewares/authentication";
+import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Collection, Template } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentPolicies, presentTemplate } from "@server/presenters";
 import { APIContext } from "@server/types";
+import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
 const router = new Router();
+
+router.post(
+  "templates.create",
+  auth(),
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
+  validate(T.TemplatesCreateSchema),
+  transaction(),
+  async (ctx: APIContext<T.TemplatesCreateReq>) => {
+    const { id, title, data, icon, color, collectionId } = ctx.input.body;
+    const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
+
+    const { transaction } = ctx.state;
+    const { user } = ctx.state.auth;
+    authorize(user, "createTemplate", user.team);
+
+    let collection;
+    if (collectionId) {
+      collection = await Collection.findByPk(collectionId, {
+        userId: user.id,
+        transaction,
+      });
+      authorize(user, "createDocument", collection);
+    }
+
+    const template = (await documentCreator({
+      id,
+      title,
+      icon,
+      color,
+      content: data,
+      collectionId: collection?.id,
+      publish: true,
+      template: true,
+      user,
+      editorVersion,
+      ctx,
+    })) as unknown as Template;
+
+    ctx.body = {
+      data: presentTemplate(template),
+      policies: presentPolicies(user, [template]),
+    };
+  }
+);
 
 router.post(
   "templates.list",
