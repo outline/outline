@@ -29,12 +29,12 @@ import {
   starCollection,
   unstarCollection,
   searchInCollection,
-  createTemplate,
   archiveCollection,
   restoreCollection,
   subscribeCollection,
   unsubscribeCollection,
 } from "~/actions/definitions/collections";
+import { createTemplate } from "~/actions/definitions/templates";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import { useMenuState } from "~/hooks/useMenuState";

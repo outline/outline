@@ -17,12 +17,12 @@ import {
   SortableTable,
 } from "~/components/SortableTable";
 import { type Column as TableColumn } from "~/components/Table";
+import { TemplateEdit } from "~/components/Template/TemplateEdit";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
 import TemplateMenu from "~/menus/TemplateMenu";
 import { FILTER_HEIGHT } from "./StickyFilters";
-import TemplateEdit from "./Template";
 
 const ROW_HEIGHT = 60;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
@@ -37,7 +37,12 @@ export function TemplatesTable(props: Props) {
   const handleOpen = (template: Template) => () => {
     dialogs.openModal({
       title: "",
-      content: <TemplateEdit template={template} />,
+      content: (
+        <TemplateEdit
+          templateId={template.id}
+          onSubmit={dialogs.closeAllModals}
+        />
+      ),
       fullscreen: true,
     });
   };

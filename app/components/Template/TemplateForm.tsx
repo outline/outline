@@ -1,3 +1,4 @@
+import { observer } from "mobx-react";
 import { InputIcon, ShapesIcon } from "outline-icons";
 import React, { useRef } from "react";
 import { Trans, useTranslation } from "react-i18next";
@@ -12,11 +13,13 @@ import useBoolean from "~/hooks/useBoolean";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 
-type Props = {
+export const TemplateForm = observer(function TemplateForm_({
+  handleSubmit,
+  template,
+}: {
+  handleSubmit: (template: Template) => void;
   template: Template;
-};
-
-export default function TemplateEdit({ template }: Props) {
+}) {
   const { dialogs } = useStores();
   const { t } = useTranslation();
   const can = usePolicy(template);
@@ -26,13 +29,11 @@ export default function TemplateEdit({ template }: Props) {
 
   const handleChangeTitle = (title: string) => {
     template.title = title;
-    void template.save();
   };
 
   const handleChangeIcon = (icon: string, color: string) => {
     template.icon = icon;
     template.color = color;
-    void template.save();
   };
 
   const handleChange = (value: (asString: boolean) => ProsemirrorData) => {
@@ -41,7 +42,7 @@ export default function TemplateEdit({ template }: Props) {
 
   const handleSave = () => {
     template.data = dataRef.current;
-    void template.save();
+    handleSubmit(template);
   };
 
   const handleCancel = () => {
@@ -88,7 +89,7 @@ export default function TemplateEdit({ template }: Props) {
       </React.Suspense>
     </DocumentContextProvider>
   );
-}
+});
 
 const PlaceholderIcon = styled(InputIcon)`
   position: relative;

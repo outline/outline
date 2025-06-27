@@ -3,6 +3,7 @@ import { Trans } from "react-i18next";
 import { toast } from "sonner";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import TemplateMove from "~/components/DocumentExplorer/TemplateMove";
+import { TemplateNew } from "~/components/Template/TemplateNew";
 import { createAction } from "~/actions";
 import { ActiveTemplateSection, TemplateSection } from "../sections";
 
@@ -14,14 +15,15 @@ export const createTemplate = createAction({
   keywords: "new create template",
   visible: ({ currentTeamId, stores }) =>
     !!stores.policies.abilities(currentTeamId!).createTemplate,
-  perform: ({ activeCollectionId, event }) => {
-    if (!activeCollectionId) {
-      return;
-    }
+  perform: ({ stores, event }) => {
     event?.preventDefault();
     event?.stopPropagation();
 
-    // Trigger dialog
+    stores.dialogs.openModal({
+      title: "",
+      content: <TemplateNew onSubmit={stores.dialogs.closeAllModals} />,
+      fullscreen: true,
+    });
   },
 });
 

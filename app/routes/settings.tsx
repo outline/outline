@@ -3,9 +3,8 @@ import Error404 from "~/scenes/Errors/Error404";
 import Route from "~/components/ProfiledRoute";
 import useSettingsConfig from "~/hooks/useSettingsConfig";
 import lazy from "~/utils/lazyWithRetry";
-import { matchDocumentSlug, settingsPath } from "~/utils/routeHelpers";
+import { settingsPath } from "~/utils/routeHelpers";
 
-const Template = lazy(() => import("~/scenes/Settings/components/Template"));
 const Application = lazy(() => import("~/scenes/Settings/Application"));
 
 export default function SettingsRoutes() {
@@ -26,11 +25,6 @@ export default function SettingsRoutes() {
         exact
         path={`${settingsPath("applications")}/:id`}
         component={Application}
-      />
-      <Route
-        exact
-        path={`${settingsPath("templates")}/${matchDocumentSlug}`}
-        component={Template}
       />
       <Route component={Error404} />
     </Switch>
