@@ -395,6 +395,15 @@ class Document extends ArchivableModel<
     );
   }
 
+  /**
+   * Returns the key used to store the collaborators of a document in Redis.
+   * @param documentId The ID of the document.
+   * @returns Redis key for collaborators
+   */
+  static getCollaboratorKey(documentId: string) {
+    return `collaborators:${documentId}`;
+  }
+
   static getPath({ title, urlId }: { title: string; urlId: string }) {
     if (!title.length) {
       return `/doc/untitled-${urlId}`;

@@ -1,5 +1,6 @@
 import { Document, User, Event, Revision } from "@server/models";
 import { sequelize } from "@server/storage/database";
+import Redis from "@server/storage/redis";
 import { DocumentEvent, RevisionEvent } from "@server/types";
 
 export default async function revisionCreator({
@@ -12,9 +13,19 @@ export default async function revisionCreator({
   user: User;
 }) {
   return sequelize.transaction(async (transaction) => {
-    const revision = await Revision.createFromDocument(document, {
-      transaction,
-    });
+    // Get collaborator IDs since last revision was written.
+    const key = Document.getCollaboratorKey(document.id);
+    const collaboratorIds = await Redis.defaultClient.smembers(key);
+    await Redis.defaultClient.del(key);
+
+    const revision = await Revision.createFromDocument(
+      document,
+      collaboratorIds,
+      {
+        transaction,
+      }
+    );
+
     await Event.create(
       {
         name: "revisions.create",
