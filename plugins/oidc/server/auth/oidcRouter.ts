@@ -123,7 +123,7 @@ export function createOIDCRouter(
 
           // Only a single OIDC provider is supported – find the existing, if any.
           const authenticationProvider = team
-            ? (await AuthenticationProvider.findOne({
+            ? ((await AuthenticationProvider.findOne({
                 where: {
                   name: "oidc",
                   teamId: team.id,
@@ -135,7 +135,7 @@ export function createOIDCRouter(
                   name: "oidc",
                   teamId: team.id,
                 },
-              }))
+              })))
             : undefined;
 
           // Derive a providerId from the OIDC location if there is no existing provider.

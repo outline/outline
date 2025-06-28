@@ -47,7 +47,7 @@ export type HookContext = APIContext["context"] & { event?: EventOptions };
 
 class Model<
   TModelAttributes extends object = any,
-  TCreationAttributes extends object = TModelAttributes
+  TCreationAttributes extends object = TModelAttributes,
 > extends SequelizeModel<TModelAttributes, TCreationAttributes> {
   /**
    * The namespace to use for events - defaults to the table name if none is provided.
@@ -245,26 +245,26 @@ class Model<
         "collectionId" in model
           ? model.collectionId
           : model instanceof models.collection
-          ? model.id
-          : undefined,
+            ? model.id
+            : undefined,
       documentId:
         "documentId" in model
           ? model.documentId
           : model instanceof models.document
-          ? model.id
-          : undefined,
+            ? model.id
+            : undefined,
       userId:
         "userId" in model
           ? model.userId
           : model instanceof models.user
-          ? model.id
-          : undefined,
+            ? model.id
+            : undefined,
       teamId:
         "teamId" in model
           ? model.teamId
           : model instanceof models.team
-          ? model.id
-          : context.auth?.user.teamId,
+            ? model.id
+            : context.auth?.user.teamId,
       actorId: context.auth?.user?.id,
       authType: context.auth?.type,
       ip: context.ip,

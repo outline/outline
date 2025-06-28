@@ -3,7 +3,7 @@ import IdModel from "./IdModel";
 
 class ParanoidModel<
   TModelAttributes extends object = any,
-  TCreationAttributes extends object = TModelAttributes
+  TCreationAttributes extends object = TModelAttributes,
 > extends IdModel<TModelAttributes, TCreationAttributes> {
   @DeletedAt
   deletedAt: Date | null;

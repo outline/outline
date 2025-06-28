@@ -43,7 +43,7 @@ declare module "@outlinewiki/koa-passport" {
       InitializeRet = IMiddleware,
       AuthenticateRet = any,
       AuthorizeRet = AuthenticateRet,
-      AuthorizeOptions = AuthenticateOptions
+      AuthorizeOptions = AuthenticateOptions,
     > {
       use(strategy: Strategy): this;
       use(name: string, strategy: Strategy): this;
@@ -178,7 +178,7 @@ declare module "@outlinewiki/koa-passport" {
     interface Framework<
       InitializeRet = any,
       AuthenticateRet = any,
-      AuthorizeRet = AuthenticateRet
+      AuthorizeRet = AuthenticateRet,
     > {
       initialize(
         passport: Authenticator<InitializeRet, AuthenticateRet, AuthorizeRet>,

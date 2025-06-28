@@ -80,9 +80,8 @@ router.get(
             id: installationId!,
             account: {
               id: installation.account?.id,
-              name:
-                // @ts-expect-error Property 'login' does not exist on type
-                installation.account?.login,
+              // @ts-expect-error Property 'login' does not exist on type
+              name: installation.account?.login,
               avatarUrl: installation.account?.avatar_url,
             },
           },

@@ -34,7 +34,7 @@ function Preferences() {
             type: "item",
             label: lang.label,
             value: lang.value,
-          } satisfies Option)
+          }) satisfies Option
       ),
     []
   );
