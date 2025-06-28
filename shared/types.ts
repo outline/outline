@@ -1,3 +1,4 @@
+/** Available user roles. */
 export enum UserRole {
   Admin = "admin",
   Member = "member",
@@ -5,9 +6,7 @@ export enum UserRole {
   Guest = "guest",
 }
 
-/**
- * Scopes for OAuth and API keys.
- */
+/** Scopes for OAuth and API keys. */
 export enum Scope {
   Read = "read",
   Write = "write",
