@@ -17,20 +17,18 @@ export const switchTeamsList = ({ stores }: { stores: RootStore }) =>
     analyticsName: "Switch workspace",
     section: TeamSection,
     keywords: "change switch workspace organization team",
-    icon: function _Icon() {
-      return (
-        <StyledTeamLogo
-          alt={session.name}
-          model={{
-            initial: session.name[0],
-            avatarUrl: session.avatarUrl,
-            id: session.id,
-            color: stringToColor(session.id),
-          }}
-          size={24}
-        />
-      );
-    },
+    icon: (
+      <StyledTeamLogo
+        alt={session.name}
+        model={{
+          initial: session.name[0],
+          avatarUrl: session.avatarUrl,
+          id: session.id,
+          color: stringToColor(session.id),
+        }}
+        size={24}
+      />
+    ),
     visible: ({ currentTeamId }: ActionContext) => currentTeamId !== session.id,
     perform: () => (window.location.href = session.url),
   })) ?? [];

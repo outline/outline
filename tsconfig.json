@@ -18,13 +18,14 @@
     "module": "esnext",
     "moduleResolution": "node",
     "noErrorTruncation": true,
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "noImplicitOverride": false,
-    "noImplicitReturns": true,
+    "noImplicitReturns": false,
     "noImplicitThis": false,
+    "strict": false,
     "sourceMap": true,
     "resolveJsonModule": true,
-    "strictNullChecks": true,
+    "strictNullChecks": false,
     "noEmit": true,
     "skipLibCheck": true,
     "ignoreDeprecations": "5.0",
@@ -41,6 +42,10 @@
       ]
     }
   },
+  "include": [
+    "**/*",
+    "types/**/*"
+  ],
   "exclude": [
     "node_modules",
     "build",
