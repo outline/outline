@@ -5,6 +5,7 @@ import Router from "koa-router";
 import get from "lodash/get";
 import { slugifyDomain } from "@shared/utils/domains";
 import { parseEmail } from "@shared/utils/email";
+import { isBase64Url } from "@shared/utils/urls";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import {
   OIDCMalformedUserInfoError,
@@ -165,6 +166,20 @@ export function createOIDCRouter(
             );
           }
 
+          // Check if the picture field is a Base64 data URL and filter it out
+          // to avoid validation errors in the User model
+          let avatarUrl = profile.picture;
+          if (profile.picture && isBase64Url(profile.picture)) {
+            Logger.debug(
+              "authentication",
+              "Filtering out Base64 data URL from avatar",
+              {
+                email,
+              }
+            );
+            avatarUrl = null;
+          }
+
           const result = await accountProvisioner({
             ip: ctx.ip,
             team: {
@@ -176,7 +191,7 @@ export function createOIDCRouter(
             user: {
               name,
               email,
-              avatarUrl: profile.picture,
+              avatarUrl,
             },
             authenticationProvider: {
               name: config.id,
