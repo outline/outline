@@ -35,8 +35,8 @@ const Flex = styled.div<{
         ? "column-reverse"
         : "row-reverse"
       : column
-      ? "column"
-      : "row"};
+        ? "column"
+        : "row"};
   align-items: ${({ align }) => align};
   justify-content: ${({ justify }) => justify};
   flex-wrap: ${({ wrap }) => (wrap ? "wrap" : "initial")};

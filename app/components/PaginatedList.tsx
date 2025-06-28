@@ -278,8 +278,8 @@ const PaginatedList = <T extends PaginatedItem>({
               "updatedAt" in item && item.updatedAt
                 ? item.updatedAt
                 : "createdAt" in item && item.createdAt
-                ? item.createdAt
-                : previousHeading;
+                  ? item.createdAt
+                  : previousHeading;
             const currentHeading = dateToHeading(
               currentDate,
               t,

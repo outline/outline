@@ -61,9 +61,8 @@ router.post(
 
 router.post("installation.info", auth(), async (ctx: APIContext) => {
   const currentVersion = getVersion();
-  const { latestVersion, versionsBehind } = await getVersionInfo(
-    currentVersion
-  );
+  const { latestVersion, versionsBehind } =
+    await getVersionInfo(currentVersion);
 
   ctx.body = {
     data: {

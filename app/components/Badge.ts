@@ -10,8 +10,8 @@ const Badge = styled.span<{ yellow?: boolean; primary?: boolean }>`
     primary
       ? theme.accentText
       : yellow
-      ? theme.almostBlack
-      : theme.textTertiary};
+        ? theme.almostBlack
+        : theme.textTertiary};
   border: 1px solid
     ${({ primary, yellow, theme }) =>
       primary || yellow

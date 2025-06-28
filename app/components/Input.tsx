@@ -107,8 +107,8 @@ export const Outline = styled(Flex)<{
     props.hasError
       ? props.theme.danger
       : props.focused
-      ? props.theme.inputBorderFocused
-      : props.theme.inputBorder};
+        ? props.theme.inputBorderFocused
+        : props.theme.inputBorder};
   border-radius: 4px;
   font-weight: normal;
   align-items: center;

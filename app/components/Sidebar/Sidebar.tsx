@@ -294,8 +294,8 @@ const hoverStyles = (props: ContainerProps) => `
     props.$collapsed
       ? "rgba(0, 0, 0, 0.2) 1px 0 4px"
       : props.$isSmallerThanMinimum
-      ? "rgba(0, 0, 0, 0.1) inset -1px 0 2px"
-      : "none"
+        ? "rgba(0, 0, 0, 0.1) inset -1px 0 2px"
+        : "none"
   };
 
   ${ToggleButton} {
@@ -309,7 +309,9 @@ const Container = styled(Flex)<ContainerProps>`
   bottom: 0;
   width: 100%;
   background: ${s("sidebarBackground")};
-  transition: box-shadow 150ms ease-in-out, transform 150ms ease-out,
+  transition:
+    box-shadow 150ms ease-in-out,
+    transform 150ms ease-out,
     ${(props: ContainerProps) =>
       props.$isAnimating ? `,width ${ANIMATION_MS}ms ease-out` : ""};
   transform: translateX(

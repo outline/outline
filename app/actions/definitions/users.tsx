@@ -45,8 +45,8 @@ export const updateUserRoleActionFactory = (user: User, role: UserRole) =>
       return UserRoleHelper.isRoleHigher(role, user.role)
         ? can.promote
         : UserRoleHelper.isRoleLower(role, user.role)
-        ? can.demote
-        : false;
+          ? can.demote
+          : false;
     },
     perform: ({ t }) => {
       stores.dialogs.openModal({

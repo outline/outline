@@ -64,8 +64,8 @@ function Comments() {
   const threads = !document
     ? []
     : viewingResolved
-    ? comments.resolvedThreadsInDocument(document.id, sortOption)
-    : comments.unresolvedThreadsInDocument(document.id, sortOption);
+      ? comments.resolvedThreadsInDocument(document.id, sortOption)
+      : comments.unresolvedThreadsInDocument(document.id, sortOption);
   const hasComments = threads.length > 0;
 
   const scrollToBottom = () => {

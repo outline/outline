@@ -103,8 +103,8 @@ router.post(
     const group = id
       ? await Group.findByPk(id)
       : externalId
-      ? await Group.findOne({ where: { externalId } })
-      : null;
+        ? await Group.findOne({ where: { externalId } })
+        : null;
     authorize(user, "read", group);
 
     ctx.body = {

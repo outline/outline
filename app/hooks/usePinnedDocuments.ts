@@ -17,8 +17,8 @@ export function usePinnedDocuments(urlId: UrlId, collectionId?: string) {
     return urlId === "home"
       ? pins.home
       : collectionId
-      ? pins.inCollection(collectionId)
-      : [];
+        ? pins.inCollection(collectionId)
+        : [];
   }
 
   useEffect(() => {

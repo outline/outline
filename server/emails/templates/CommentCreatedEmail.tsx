@@ -66,7 +66,7 @@ export default class CommentCreatedEmail extends BaseEmail<
     }
 
     const parentComment = comment.parentCommentId
-      ? (await comment.$get("parentComment")) ?? undefined
+      ? ((await comment.$get("parentComment")) ?? undefined)
       : undefined;
 
     const body = await this.htmlForData(

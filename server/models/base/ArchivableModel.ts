@@ -3,7 +3,7 @@ import ParanoidModel from "./ParanoidModel";
 
 class ArchivableModel<
   TModelAttributes extends object = any,
-  TCreationAttributes extends object = TModelAttributes
+  TCreationAttributes extends object = TModelAttributes,
 > extends ParanoidModel<TModelAttributes, TCreationAttributes> {
   /** Whether the document is archived, and if so when. */
   @AllowNull

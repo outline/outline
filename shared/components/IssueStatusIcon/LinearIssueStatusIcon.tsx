@@ -21,8 +21,8 @@ export function LinearIssueStatusIcon(props: BaseIconProps) {
     state.type === StateType.Unstarted
       ? 0
       : state.type === StateType.Started
-      ? state.completionPercentage ?? 0.5
-      : 1;
+        ? (state.completionPercentage ?? 0.5)
+        : 1;
   const isTriage = state.type === StateType.Triage;
   const isBacklog = state.type === StateType.Backlog;
   const isCompleted = state.type === StateType.Completed;

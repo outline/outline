@@ -68,8 +68,8 @@ const insertFiles = async function (
       const getDimensions = isImage
         ? FileHelper.getImageDimensions
         : isVideo
-        ? FileHelper.getVideoDimensions
-        : undefined;
+          ? FileHelper.getVideoDimensions
+          : undefined;
 
       return {
         id: `upload-${uuidv4()}`,

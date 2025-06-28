@@ -224,8 +224,8 @@ export const CollectionForm = observer(function CollectionForm_({
               ? `${t("Saving")}…`
               : t("Save")
             : formState.isSubmitting
-            ? `${t("Creating")}…`
-            : t("Create")}
+              ? `${t("Creating")}…`
+              : t("Create")}
         </Button>
       </Flex>
     </form>

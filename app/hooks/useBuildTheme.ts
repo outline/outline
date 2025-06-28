@@ -32,12 +32,12 @@ export default function useBuildTheme(
       isPrinting
         ? buildLightTheme(customTheme)
         : isMobile
-        ? resolvedTheme === "dark"
-          ? buildPitchBlackTheme(customTheme)
-          : buildLightTheme(customTheme)
-        : resolvedTheme === "dark"
-        ? buildDarkTheme(customTheme)
-        : buildLightTheme(customTheme),
+          ? resolvedTheme === "dark"
+            ? buildPitchBlackTheme(customTheme)
+            : buildLightTheme(customTheme)
+          : resolvedTheme === "dark"
+            ? buildDarkTheme(customTheme)
+            : buildLightTheme(customTheme),
     [customTheme, isMobile, isPrinting, resolvedTheme]
   );
 

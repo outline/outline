@@ -129,7 +129,7 @@ function PublicAccess({ document, share, sharedParent }: Props) {
 
   const shareUrl = sharedParent?.url
     ? `${sharedParent.url}${document.url}`
-    : share?.url ?? "";
+    : (share?.url ?? "");
 
   const copyButton = (
     <Tooltip content={t("Copy public link")} placement="top">

@@ -24,7 +24,7 @@ export type ImportTaskAttributes<T extends ImportableIntegrationService> =
   InferAttributes<ImportTask<T>> & NonInferredAttributes<T>;
 
 export type ImportTaskCreationAttributes<
-  T extends ImportableIntegrationService
+  T extends ImportableIntegrationService,
 > = Partial<InferCreationAttributes<ImportTask<T>>> &
   Partial<NonInferredAttributes<T>>;
 

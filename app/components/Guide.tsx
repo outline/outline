@@ -98,7 +98,9 @@ const Scene = styled.div`
   outline: none;
   opacity: 0;
   transform: translateX(16px);
-  transition: transform 250ms ease, opacity 250ms ease;
+  transition:
+    transform 250ms ease,
+    opacity 250ms ease;
 
   &[data-enter] {
     opacity: 1;

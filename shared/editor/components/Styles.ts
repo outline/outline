@@ -1755,8 +1755,8 @@ table {
 
   &:hover {
     scrollbar-color: ${props.theme.scrollbarThumb} ${
-  props.theme.scrollbarBackground
-};
+      props.theme.scrollbarBackground
+    };
   }
 
   & ::-webkit-scrollbar {

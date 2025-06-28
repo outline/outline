@@ -140,8 +140,8 @@ export const OAuthClientForm = observer(function OAuthClientForm_({
               ? `${t("Saving")}…`
               : t("Save")
             : formState.isSubmitting
-            ? `${t("Creating")}…`
-            : t("Create")}
+              ? `${t("Creating")}…`
+              : t("Create")}
         </Button>
       </Flex>
     </form>

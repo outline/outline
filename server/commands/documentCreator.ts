@@ -95,13 +95,13 @@ export default async function documentCreator({
   const contentWithReplacements = text
     ? ProsemirrorHelper.toProsemirror(text).toJSON()
     : templateDocument
-    ? template
-      ? templateDocument.content
-      : SharedProsemirrorHelper.replaceTemplateVariables(
-          await DocumentHelper.toJSON(templateDocument),
-          user
-        )
-    : content;
+      ? template
+        ? templateDocument.content
+        : SharedProsemirrorHelper.replaceTemplateVariables(
+            await DocumentHelper.toJSON(templateDocument),
+            user
+          )
+      : content;
 
   const document = Document.build({
     id,

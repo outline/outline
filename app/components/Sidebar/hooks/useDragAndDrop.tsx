@@ -189,7 +189,7 @@ export function useDragDocument(
         depth,
         icon: icon ? <Icon value={icon} color={color} /> : undefined,
         collectionId: document?.collectionId || "",
-      } as DragObject),
+      }) as DragObject,
     canDrag: () => !!document?.isActive && !isEditing,
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
@@ -505,7 +505,7 @@ export function useDragMembership(
         id,
         title,
         icon,
-      } as DragObject),
+      }) as DragObject,
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),

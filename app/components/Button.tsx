@@ -176,7 +176,7 @@ const Button = <T extends React.ElementType = "button">(
     ...rest
   } = props;
   const hasText = !!children || value !== undefined;
-  const ic = hideIcon ? undefined : action?.icon ?? icon;
+  const ic = hideIcon ? undefined : (action?.icon ?? icon);
   const hasIcon = ic !== undefined;
 
   return (

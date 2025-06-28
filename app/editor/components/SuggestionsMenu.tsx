@@ -470,7 +470,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           item,
           section:
             "section" in item && item.section && "priority" in item.section
-              ? (item.section.priority as number) ?? 0
+              ? ((item.section.priority as number) ?? 0)
               : 0,
           priority: "priority" in item ? item.priority : 0,
           score:
@@ -596,8 +596,8 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                     "placeholder" in insertItem
                       ? insertItem.placeholder
                       : insertItem.title
-                      ? dictionary.pasteLinkWithTitle(insertItem.title)
-                      : dictionary.pasteLink
+                        ? dictionary.pasteLinkWithTitle(insertItem.title)
+                        : dictionary.pasteLink
                   }
                   onKeyDown={handleLinkInputKeydown}
                   onPaste={handleLinkInputPaste}
@@ -740,11 +740,14 @@ export const Wrapper = styled(Scrollable)<{
   left: ${(props) => props.left}px;
   background: ${s("menuBackground")};
   border-radius: 6px;
-  box-shadow: rgba(0, 0, 0, 0.05) 0px 0px 0px 1px,
-    rgba(0, 0, 0, 0.08) 0px 4px 8px, rgba(0, 0, 0, 0.08) 0px 2px 4px;
+  box-shadow:
+    rgba(0, 0, 0, 0.05) 0px 0px 0px 1px,
+    rgba(0, 0, 0, 0.08) 0px 4px 8px,
+    rgba(0, 0, 0, 0.08) 0px 2px 4px;
   opacity: 0;
   transform: scale(0.95);
-  transition: opacity 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275),
+  transition:
+    opacity 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275),
     transform 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
   transition-delay: 150ms;
   line-height: 0;

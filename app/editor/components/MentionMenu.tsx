@@ -98,7 +98,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
                 actorId,
                 label: user.name,
               },
-            } as MentionItem)
+            }) as MentionItem
         )
         .concat(
           documents
@@ -130,7 +130,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
                     actorId,
                     label: doc.title,
                   },
-                } as MentionItem)
+                }) as MentionItem
             )
         )
         .concat(
@@ -158,7 +158,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
                     actorId,
                     label: collection.name,
                   },
-                } as MentionItem)
+                }) as MentionItem
             )
         )
         .concat([

@@ -4,7 +4,10 @@ import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { TableLayout } from "../types";
 
 export class TableView extends ProsemirrorTableView {
-  public constructor(public node: Node, public cellMinWidth: number) {
+  public constructor(
+    public node: Node,
+    public cellMinWidth: number
+  ) {
     super(node, cellMinWidth);
 
     this.dom.removeChild(this.table);

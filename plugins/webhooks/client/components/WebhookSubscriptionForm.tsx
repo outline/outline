@@ -218,8 +218,8 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
       value === "*"
         ? AllEventCheckboxLabel
         : Object.keys(WEBHOOK_EVENTS).includes(value)
-        ? GroupEventCheckboxLabel
-        : EventCheckboxLabel;
+          ? GroupEventCheckboxLabel
+          : EventCheckboxLabel;
 
     return (
       <LabelComponent>

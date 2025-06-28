@@ -164,9 +164,8 @@ router.post(
     verifySlackToken(token);
 
     // we find the document based on the users teamId to ensure access
-    const document = await Document.scope("withCollection").findByPk(
-      callback_id
-    );
+    const document =
+      await Document.scope("withCollection").findByPk(callback_id);
 
     if (!document) {
       throw InvalidRequestError("Invalid callback_id");

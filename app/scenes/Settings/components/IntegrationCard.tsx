@@ -49,7 +49,9 @@ const Card = styled.div`
   cursor: var(--pointer);
 
   &:hover {
-    box-shadow: rgba(0, 0, 0, 0.08) 0px 2px 4px, rgba(0, 0, 0, 0.06) 0px 4px 8px;
+    box-shadow:
+      rgba(0, 0, 0, 0.08) 0px 2px 4px,
+      rgba(0, 0, 0, 0.06) 0px 4px 8px;
   }
 `;
 

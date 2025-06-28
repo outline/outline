@@ -121,7 +121,9 @@ const ToggleWrapper = styled.div`
   right: 0;
   opacity: 0;
   transform: translateX(10px);
-  transition: opacity 100ms ease-out, transform 100ms ease-out;
+  transition:
+    opacity 100ms ease-out,
+    transform 100ms ease-out;
 `;
 
 const StyledSidebar = styled(Sidebar)<{ $hoverTransition: boolean }>`
