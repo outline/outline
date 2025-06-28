@@ -175,7 +175,6 @@ export function createOIDCRouter(
               "Filtering out Base64 data URL from avatar",
               {
                 email,
-                pictureLength: profile.picture?.length,
               }
             );
             avatarUrl = null;
