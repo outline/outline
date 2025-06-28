@@ -5,6 +5,7 @@ import Router from "koa-router";
 import get from "lodash/get";
 import { slugifyDomain } from "@shared/utils/domains";
 import { parseEmail } from "@shared/utils/email";
+import { isBase64Url } from "@shared/utils/urls";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import {
   OIDCMalformedUserInfoError,
@@ -23,17 +24,6 @@ import {
 import config from "../../plugin.json";
 import env from "../env";
 import { OIDCStrategy } from "./OIDCStrategy";
-
-/**
- * Checks if a string is a Base64 data URL (e.g., "data:image/png;base64,...")
- * These URLs are typically too long and not valid URLs for avatar storage.
- */
-function isBase64DataUrl(url: string | null | undefined): boolean {
-  if (!url || typeof url !== "string") {
-    return false;
-  }
-  return url.startsWith("data:") && url.includes(";base64,");
-}
 
 export interface OIDCEndpoints {
   authorizationURL: string;
@@ -179,7 +169,7 @@ export function createOIDCRouter(
           // Check if the picture field is a Base64 data URL and filter it out
           // to avoid validation errors in the User model
           let avatarUrl = profile.picture;
-          if (isBase64DataUrl(profile.picture)) {
+          if (profile.picture && isBase64Url(profile.picture)) {
             Logger.debug("oidc", "Filtering out Base64 data URL from avatar", {
               email,
               pictureLength: profile.picture?.length,
