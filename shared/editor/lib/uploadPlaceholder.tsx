@@ -1,7 +1,7 @@
 import { EditorState, Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import FileExtension from "../components/FileExtension";
 import { isRemoteTransaction } from "./multiplayer";
 import { recreateTransform } from "./prosemirror-recreate-transform";
@@ -100,7 +100,9 @@ const uploadPlaceholder = new Plugin({
           subtitle.className = "subtitle";
           subtitle.innerText = "Uploading…";
 
-          ReactDOM.render(<FileExtension title={action.add.file.name} />, icon);
+          createRoot(icon).render(
+            <FileExtension title={action.add.file.name} />
+          );
 
           element.appendChild(icon);
           element.appendChild(title);

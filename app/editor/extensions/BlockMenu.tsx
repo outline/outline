@@ -2,7 +2,7 @@ import { action } from "mobx";
 import { PlusIcon } from "outline-icons";
 import { Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import { WidgetProps } from "@shared/editor/lib/Extension";
 import { PlaceholderPlugin } from "@shared/editor/plugins/PlaceholderPlugin";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
@@ -27,7 +27,7 @@ export default class BlockMenuExtension extends Suggestion {
     const button = document.createElement("button");
     button.className = "block-menu-trigger";
     button.type = "button";
-    ReactDOM.render(<PlusIcon />, button);
+    createRoot(button).render(<PlusIcon />);
 
     return [
       ...super.plugins,
