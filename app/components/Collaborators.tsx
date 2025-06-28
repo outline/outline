@@ -116,11 +116,11 @@ function Collaborators(props: Props) {
   // Memoize onClick handler to avoid inline function creation
   const handleAvatarClick = useCallback(
     (
-        collaboratorId: string,
-        isPresent: boolean,
-        isObserving: boolean,
-        isObservable: boolean
-      ) =>
+      collaboratorId: string,
+      isPresent: boolean,
+      isObserving: boolean,
+      isObservable: boolean
+    ) =>
       (ev: React.MouseEvent) => {
         if (isObservable && isPresent) {
           ev.preventDefault();

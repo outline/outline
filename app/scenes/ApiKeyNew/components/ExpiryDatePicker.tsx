@@ -35,7 +35,7 @@ const ExpiryDatePicker = ({ selectedDate, onSelect }: Props) => {
         "--rdp-accent-color-dark": theme.accent,
         "--rdp-background-color": theme.listItemHoverBackground,
         "--rdp-background-color-dark": theme.listItemHoverBackground,
-      } as React.CSSProperties),
+      }) as React.CSSProperties,
     [theme]
   );
 
