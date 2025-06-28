@@ -5,6 +5,7 @@ import {
   isFullPage,
   isFullPageOrDatabase,
   isFullUser,
+  RequestTimeoutError,
 } from "@notionhq/client";
 import {
   BlockObjectResponse,
@@ -100,6 +101,26 @@ export class NotionClient {
         await this.limiter();
         return await apiCall();
       } catch (error) {
+        // Check if this is a timeout and try again
+        if (error instanceof RequestTimeoutError) {
+          if (retries < this.maxRetries) {
+            retries++;
+            const delay = this.retryDelay * retries;
+            Logger.info(
+              "task",
+              `Notion API timed out, retrying in ${delay}ms (retry ${retries}/${this.maxRetries})`
+            );
+
+            // Wait before retrying
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            continue;
+          }
+
+          Logger.warn(`Notion API timed out after ${this.maxRetries} retries`, {
+            error: error.message,
+          });
+        }
+
         // Check if this is a rate limit error
         if (
           error instanceof APIResponseError &&
