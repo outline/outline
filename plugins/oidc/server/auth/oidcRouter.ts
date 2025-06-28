@@ -172,7 +172,6 @@ export function createOIDCRouter(
           if (profile.picture && isBase64Url(profile.picture)) {
             Logger.debug("oidc", "Filtering out Base64 data URL from avatar", {
               email,
-              pictureLength: profile.picture?.length,
             });
             avatarUrl = null;
           }
