@@ -170,8 +170,9 @@ export function createOIDCRouter(
           // to avoid validation errors in the User model
           let avatarUrl = profile.picture;
           if (profile.picture && isBase64Url(profile.picture)) {
-            Logger.debug("oidc", "Filtering out Base64 data URL from avatar", {
+            Logger.debug("authentication", "Filtering out Base64 data URL from avatar", {
               email,
+              pictureLength: profile.picture?.length,
             });
             avatarUrl = null;
           }
