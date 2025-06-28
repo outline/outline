@@ -24,6 +24,17 @@ import config from "../../plugin.json";
 import env from "../env";
 import { OIDCStrategy } from "./OIDCStrategy";
 
+/**
+ * Checks if a string is a Base64 data URL (e.g., "data:image/png;base64,...")
+ * These URLs are typically too long and not valid URLs for avatar storage.
+ */
+function isBase64DataUrl(url: string | null | undefined): boolean {
+  if (!url || typeof url !== "string") {
+    return false;
+  }
+  return url.startsWith("data:") && url.includes(";base64,");
+}
+
 export interface OIDCEndpoints {
   authorizationURL: string;
   tokenURL: string;
@@ -165,6 +176,17 @@ export function createOIDCRouter(
             );
           }
 
+          // Check if the picture field is a Base64 data URL and filter it out
+          // to avoid validation errors in the User model
+          let avatarUrl = profile.picture;
+          if (isBase64DataUrl(profile.picture)) {
+            Logger.debug("oidc", "Filtering out Base64 data URL from avatar", {
+              email,
+              pictureLength: profile.picture?.length,
+            });
+            avatarUrl = null;
+          }
+
           const result = await accountProvisioner({
             ip: ctx.ip,
             team: {
@@ -176,7 +198,7 @@ export function createOIDCRouter(
             user: {
               name,
               email,
-              avatarUrl: profile.picture,
+              avatarUrl,
             },
             authenticationProvider: {
               name: config.id,
