@@ -260,6 +260,24 @@ function KeyboardShortcuts() {
             ),
             label: t("Redo"),
           },
+          {
+            shortcut: (
+              <>
+                <Key symbol>{metaDisplay}</Key> + <Key symbol>{altDisplay}</Key>{" "}
+                + <Key symbol>↑</Key>
+              </>
+            ),
+            label: t("Move block up"),
+          },
+          {
+            shortcut: (
+              <>
+                <Key symbol>{metaDisplay}</Key> + <Key symbol>{altDisplay}</Key>{" "}
+                + <Key symbol>↓</Key>
+              </>
+            ),
+            label: t("Move block down"),
+          },
         ],
       },
       {
