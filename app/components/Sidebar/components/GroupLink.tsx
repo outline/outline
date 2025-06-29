@@ -21,7 +21,7 @@ const GroupLink: React.FC<React.PropsWithChildren<Props>> = ({ group }) => {
     locationSidebarContext === sidebarContext
   );
 
-  const handleDisclosureClick = React.useCallback((ev) => {
+  const handleDisclosureClick = React.useCallback((ev: any) => {
     ev?.preventDefault();
     setExpanded((e) => !e);
   }, []);

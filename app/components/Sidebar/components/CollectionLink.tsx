@@ -88,7 +88,7 @@ const CollectionLink: React.FC<React.PropsWithChildren<Props>> = ({
     useBoolean();
 
   const handleNewDoc = React.useCallback(
-    async (input) => {
+    async (input: any) => {
       const newDocument = await documents.create(
         {
           collectionId: collection.id,

@@ -64,7 +64,7 @@ function DocumentCard(props: Props) {
   };
 
   const handleUnpin = useCallback(
-    async (ev) => {
+    async (ev: any) => {
       ev.preventDefault();
       ev.stopPropagation();
       await pin?.delete();

@@ -15,7 +15,7 @@ export function ArchivedCollectionLink({ collection, depth }: Props) {
 
   const [expanded, setExpanded] = useState(false);
 
-  const handleDisclosureClick = useCallback((ev) => {
+  const handleDisclosureClick = useCallback((ev: any) => {
     ev.preventDefault();
     ev.stopPropagation();
     setExpanded((e) => !e);

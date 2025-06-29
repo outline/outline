@@ -57,7 +57,7 @@ const FilterOptions = ({
     : "";
 
   const renderItem = React.useCallback(
-    (option) => (
+    (option: any) => (
       <MenuItem
         key={option.key}
         onClick={() => {

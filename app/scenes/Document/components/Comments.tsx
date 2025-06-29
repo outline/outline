@@ -177,8 +177,9 @@ function Comments() {
           )}
         </Wrapper>
       </Scrollable>
+      {/* @ts-expect-error - framer-motion v4 has TypeScript compatibility issues with React 18 */}
       <AnimatePresence initial={false}>
-        {!focusedComment && can.comment && !viewingResolved && (
+        {!focusedComment && can.comment && !viewingResolved ? (
           <NewCommentForm
             draft={draft}
             onSaveDraft={onSaveDraft}
@@ -189,7 +190,7 @@ function Comments() {
             animatePresence
             standalone
           />
-        )}
+        ) : null}
       </AnimatePresence>
     </Sidebar>
   );

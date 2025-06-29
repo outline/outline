@@ -89,7 +89,7 @@ function Groups() {
     [params, history, location.pathname]
   );
 
-  const handleSearch = useCallback((event) => {
+  const handleSearch = useCallback((event: any) => {
     const { value } = event.target;
     setQuery(value);
   }, []);

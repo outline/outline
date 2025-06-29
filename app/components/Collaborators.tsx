@@ -132,7 +132,7 @@ function Collaborators(props: Props) {
   );
 
   const renderAvatar = useCallback(
-    ({ model: collaborator, ...rest }) => {
+    ({ model: collaborator, ...rest }: any) => {
       const isPresent = presentIds.has(collaborator.id);
       const isEditing = editingIds.has(collaborator.id);
       const isObserving = observingUserId === collaborator.id;

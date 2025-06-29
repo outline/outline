@@ -67,11 +67,11 @@ function Login({ children, onBack }: Props) {
   const handleReset = React.useCallback(() => {
     setEmailLinkSentTo("");
   }, []);
-  const handleEmailSuccess = React.useCallback((email) => {
+  const handleEmailSuccess = React.useCallback((email: any) => {
     setEmailLinkSentTo(email);
   }, []);
 
-  const handleGoSubdomain = React.useCallback(async (event) => {
+  const handleGoSubdomain = React.useCallback(async (event: any) => {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(event.target));
     await navigateToSubdomain(data.subdomain.toString());

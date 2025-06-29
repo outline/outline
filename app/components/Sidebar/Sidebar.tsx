@@ -101,7 +101,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
   }, []);
 
   const handleMouseDown = React.useCallback(
-    (event) => {
+    (event: any) => {
       event.preventDefault();
       if (!document.hasFocus()) {
         return;
@@ -126,7 +126,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
   }, [ui.sidebarIsClosed]);
 
   const handlePointerLeave = React.useCallback(
-    (ev) => {
+    (ev: any) => {
       if (hasPointerMoved) {
         // clear any previous timeout
         if (hoverTimeoutRef.current) {

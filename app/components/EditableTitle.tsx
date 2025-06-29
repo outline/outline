@@ -41,27 +41,27 @@ function EditableTitle(
     setValue(title);
   }, [title]);
 
-  const handleChange = React.useCallback((event) => {
+  const handleChange = React.useCallback((event: any) => {
     setValue(event.target.value);
   }, []);
 
-  const handleDoubleClick = React.useCallback((event) => {
+  const handleDoubleClick = React.useCallback((event: any) => {
     event.preventDefault();
     event.stopPropagation();
     setIsEditing(true);
   }, []);
 
-  const stopPropagation = React.useCallback((event) => {
+  const stopPropagation = React.useCallback((event: any) => {
     event.preventDefault();
     event.stopPropagation();
   }, []);
 
-  const handleFocus = React.useCallback((event) => {
+  const handleFocus = React.useCallback((event: any) => {
     event.target.select();
   }, []);
 
   const handleSave = React.useCallback(
-    async (ev) => {
+    async (ev: any) => {
       ev.preventDefault();
       ev.stopPropagation();
 
@@ -89,7 +89,7 @@ function EditableTitle(
   );
 
   const handleKeyDown = React.useCallback(
-    async (ev) => {
+    async (ev: any) => {
       if (ev.nativeEvent.isComposing) {
         return;
       }

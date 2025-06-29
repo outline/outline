@@ -118,7 +118,7 @@ function InnerDocumentLink(
   }, [setCollapsed, expanded, hasChildDocuments]);
 
   const handleDisclosureClick = React.useCallback(
-    (ev) => {
+    (ev: any) => {
       ev?.preventDefault();
       if (expanded) {
         setCollapsed();
@@ -233,7 +233,7 @@ function InnerDocumentLink(
     useBoolean();
 
   const handleNewDoc = React.useCallback(
-    async (input) => {
+    async (input: any) => {
       const newDocument = await documents.create(
         {
           collectionId: collection?.id,

@@ -103,7 +103,7 @@ function Preferences() {
   );
 
   const handleThemeChange = React.useCallback(
-    (theme) => {
+    (theme: any) => {
       ui.setTheme(theme as Theme);
       toast.success(t("Preferences saved"));
     },

@@ -169,7 +169,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   }, [onCreateCommentMark, onDeleteCommentMark, comments.orderedData]);
 
   const handleChange = React.useCallback(
-    (event) => {
+    (event: any) => {
       onChange?.(event);
       updateComments();
     },

@@ -111,7 +111,7 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
   }, [pendingIds, prevPendingIds]);
 
   const handleQuery = React.useCallback(
-    (event) => {
+    (event: any) => {
       showPicker();
       setQuery(event.target.value);
     },

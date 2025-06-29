@@ -45,7 +45,7 @@ const MenuItem = (
   ref: React.Ref<HTMLAnchorElement>
 ) => {
   const content = React.useCallback(
-    (props) => {
+    (props: any) => {
       // Preventing default mousedown otherwise menu items do not work in Firefox,
       // which triggers the hideOnClickOutside handler first via mousedown – hiding
       // and un-rendering the menu contents.

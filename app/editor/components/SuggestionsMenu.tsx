@@ -251,7 +251,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   );
 
   const handleClickItem = React.useCallback(
-    (item) => {
+    (item: any) => {
       props.onSelect?.(item);
 
       switch (item.name) {

@@ -113,11 +113,12 @@ const AuthenticatedLayout: React.FC<React.PropsWithChildren<unknown>> = ({
     !!team.getPreference(TeamPreference.Commenting);
 
   const sidebarRight = (
+    // @ts-expect-error - framer-motion v4 has TypeScript compatibility issues with React 18
     <AnimatePresence
       initial={false}
       key={ui.activeDocumentId ? "active" : "inactive"}
     >
-      {(showHistory || showInsights || showComments) && (
+      {showHistory || showInsights || showComments ? (
         <Route path={`/doc/${slug}`}>
           <SidebarRight>
             <React.Suspense fallback={null}>
@@ -127,7 +128,7 @@ const AuthenticatedLayout: React.FC<React.PropsWithChildren<unknown>> = ({
             </React.Suspense>
           </SidebarRight>
         </Route>
-      )}
+      ) : null}
     </AnimatePresence>
   );
 
