@@ -1,7 +1,7 @@
-import { createRoot } from "react-dom/client";
 import { EditorState, Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
+import { createRoot } from "react-dom/client";
 import FileExtension from "../components/FileExtension";
 import { isRemoteTransaction } from "./multiplayer";
 import { recreateTransform } from "./prosemirror-recreate-transform";

@@ -1,10 +1,10 @@
-import { createRoot } from "react-dom/client";
 // eslint-disable-next-line import/no-unresolved
 import "vite/modulepreload-polyfill";
 import { LazyMotion } from "framer-motion";
 import { KBarProvider } from "kbar";
 import { Provider } from "mobx-react";
 import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";
 import { Router } from "react-router-dom";
 import stores from "~/stores";

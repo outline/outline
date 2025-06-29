@@ -1,10 +1,10 @@
-import { createRoot } from "react-dom/client";
 import { Token } from "markdown-it";
 import { WarningIcon, InfoIcon, StarredIcon, DoneIcon } from "outline-icons";
 import { wrappingInputRule } from "prosemirror-inputrules";
 import { NodeSpec, Node as ProsemirrorNode, NodeType } from "prosemirror-model";
 import { Command, EditorState, Transaction } from "prosemirror-state";
 import * as React from "react";
+import { createRoot } from "react-dom/client";
 import { Primitive } from "utility-types";
 import toggleWrap from "../commands/toggleWrap";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
