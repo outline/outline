@@ -23,7 +23,7 @@ type Props = {
   children?: React.ReactNode;
 };
 
-const Scene: React.FC<Props> = ({
+const Scene: React.FC<React.PropsWithChildren<Props>> = ({
   title,
   icon,
   textTitle,

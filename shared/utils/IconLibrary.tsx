@@ -172,7 +172,7 @@ import styled from "styled-components";
 import LetterIcon from "../components/LetterIcon";
 
 type IconMapping = {
-  component: React.ComponentType<FAProps>;
+  component: React.ComponentType<React.PropsWithChildren<FAProps>>;
   keywords?: string;
 };
 

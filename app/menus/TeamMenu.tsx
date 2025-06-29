@@ -23,7 +23,7 @@ type Props = {
   children?: React.ReactNode;
 };
 
-const TeamMenu: React.FC = ({ children }: Props) => {
+const TeamMenu: React.FC<React.PropsWithChildren<unknown>> = ({ children }: Props) => {
   const menu = useMenuState({
     unstable_offset: [4, -4],
     placement: "bottom-start",

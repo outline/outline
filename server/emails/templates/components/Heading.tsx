@@ -5,7 +5,7 @@ const style = {
   fontSize: "18px",
 };
 
-const Heading: React.FC = ({ children }) => (
+const Heading: React.FC<React.PropsWithChildren<unknown>> = ({ children }) => (
   <p>
     <span style={style}>{children}</span>
   </p>

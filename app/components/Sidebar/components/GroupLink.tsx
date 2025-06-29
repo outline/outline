@@ -14,7 +14,7 @@ type Props = {
   group: Group;
 };
 
-const GroupLink: React.FC<Props> = ({ group }) => {
+const GroupLink: React.FC<React.PropsWithChildren<Props>> = ({ group }) => {
   const locationSidebarContext = useLocationSidebarContext();
   const sidebarContext = groupSidebarContext(group.id);
   const [expanded, setExpanded] = React.useState(

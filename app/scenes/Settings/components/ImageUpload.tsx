@@ -23,7 +23,7 @@ export type Props = {
   borderRadius?: number;
 };
 
-const ImageUpload: React.FC<Props> = ({
+const ImageUpload: React.FC<React.PropsWithChildren<Props>> = ({
   onSuccess,
   onError,
   submitText,
@@ -127,7 +127,7 @@ type AvatarEditorDialogProps = {
   submitText: string;
 };
 
-const AvatarEditorDialog: React.FC<AvatarEditorDialogProps> = observer(
+const AvatarEditorDialog: React.FC<React.PropsWithChildren<AvatarEditorDialogProps>> = observer(
   ({ file, onUpload, isUploading, borderRadius, submitText }) => {
     const { ui } = useStores();
     const { t } = useTranslation();

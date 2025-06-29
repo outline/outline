@@ -19,7 +19,7 @@ export function getHeaderExpandedKey(id: string) {
 /**
  * Toggleable sidebar header
  */
-export const Header: React.FC<Props> = ({ id, title, children }: Props) => {
+export const Header: React.FC<React.PropsWithChildren<Props>> = ({ id, title, children }: Props) => {
   const [firstRender, setFirstRender] = React.useState(true);
   const [expanded, setExpanded] = usePersistedState<boolean>(
     getHeaderExpandedKey(id ?? ""),

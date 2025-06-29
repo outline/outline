@@ -13,7 +13,7 @@ import useActionContext from "~/hooks/useActionContext";
 import { useMenuState } from "~/hooks/useMenuState";
 import { MenuItem } from "~/types";
 
-const InsightsMenu: React.FC = () => {
+const InsightsMenu: React.FC<React.PropsWithChildren<unknown>> = () => {
   const menuRef = React.useRef<HTMLDivElement>(null);
   const menu = useMenuState();
   const context = useActionContext();

@@ -1,7 +1,7 @@
 import * as React from "react";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 
-export interface LazyComponent<T extends React.ComponentType<any>> {
+export interface LazyComponent<T extends React.ComponentType<React.PropsWithChildren<any>>> {
   Component: React.LazyExoticComponent<T>;
   preload: () => Promise<{ default: T }>;
 }
@@ -34,7 +34,7 @@ interface LazyLoadOptions {
  * MyComponent.preload();
  * ```
  */
-export function createLazyComponent<T extends React.ComponentType<any>>(
+export function createLazyComponent<T extends React.ComponentType<React.PropsWithChildren<any>>>(
   factory: () => Promise<{ default: T }>,
   options: LazyLoadOptions = {}
 ): LazyComponent<T> {

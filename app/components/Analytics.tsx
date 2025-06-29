@@ -10,7 +10,7 @@ type Props = {
 };
 
 // TODO: Refactor this component to allow injection from plugins
-const Analytics: React.FC = ({ children }: Props) => {
+const Analytics: React.FC<React.PropsWithChildren<unknown>> = ({ children }: Props) => {
   // Google Analytics 3
   React.useEffect(() => {
     if (!env.GOOGLE_ANALYTICS_ID?.startsWith("UA-")) {

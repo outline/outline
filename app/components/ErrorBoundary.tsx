@@ -20,7 +20,7 @@ type Props = WithTranslation & {
   /** Whether to show a title heading. */
   showTitle?: boolean;
   /** The wrapping component to use. */
-  component?: React.ComponentType | string;
+  component?: React.ComponentType<React.PropsWithChildren<unknown>> | string;
 };
 
 @observer

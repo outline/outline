@@ -42,7 +42,7 @@ type Props = {
   view: EditorView;
 };
 
-const LinkEditor: React.FC<Props> = ({
+const LinkEditor: React.FC<React.PropsWithChildren<Props>> = ({
   mark,
   from,
   to,

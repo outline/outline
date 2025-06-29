@@ -16,7 +16,7 @@ type Props = {
  * It's commonly used for app icons, avatars, and other UI elements where a softer
  * square shape is desired.
  */
-const Squircle: React.FC<Props> = ({
+const Squircle: React.FC<React.PropsWithChildren<Props>> = ({
   color,
   size = 28,
   children,

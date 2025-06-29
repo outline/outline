@@ -21,7 +21,7 @@ type Props = {
   to?: LocationDescriptor;
   href?: string;
   target?: "_blank";
-  as?: string | React.ComponentType<any>;
+  as?: string | React.ComponentType<React.PropsWithChildren<any>>;
   hide?: () => void;
   level?: number;
   icon?: React.ReactNode;

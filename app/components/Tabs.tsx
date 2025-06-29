@@ -60,7 +60,7 @@ type Props = {
   children?: React.ReactNode;
 };
 
-const Tabs: React.FC = ({ children }: Props) => {
+const Tabs: React.FC<React.PropsWithChildren<unknown>> = ({ children }: Props) => {
   const ref = React.useRef<any>();
   const [shadowVisible, setShadow] = React.useState(false);
   const { width } = useWindowSize();

@@ -98,7 +98,7 @@ type MenuTriggerProps = {
   onTrigger: () => void;
 };
 
-const MenuTrigger: React.FC<MenuTriggerProps> = ({ label, onTrigger }) => {
+const MenuTrigger: React.FC<React.PropsWithChildren<MenuTriggerProps>> = ({ label, onTrigger }) => {
   const { t } = useTranslation();
 
   const { subscriptions, pins } = useStores();
@@ -162,7 +162,7 @@ type MenuContentProps = {
   showToggleEmbeds?: boolean;
 };
 
-const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
+const MenuContent: React.FC<React.PropsWithChildren<MenuContentProps>> = observer(function MenuContent_({
   onOpen,
   onClose,
   onFindAndReplace,

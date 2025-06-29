@@ -18,7 +18,7 @@ type Props = {
   children?: React.ReactNode;
 };
 
-export const MenuProvider: React.FC = ({ children }: Props) => {
+export const MenuProvider: React.FC<React.PropsWithChildren<unknown>> = ({ children }: Props) => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
   const registerMenu = React.useCallback(

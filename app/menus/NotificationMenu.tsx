@@ -15,7 +15,7 @@ import { useMenuState } from "~/hooks/useMenuState";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 import { MenuItem } from "~/types";
 
-const NotificationMenu: React.FC = () => {
+const NotificationMenu: React.FC<React.PropsWithChildren<unknown>> = () => {
   const menuRef = React.useRef<HTMLDivElement>(null);
   const menu = useMenuState();
   const context = useActionContext();

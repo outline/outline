@@ -21,7 +21,7 @@ type Props = {
   children?: React.ReactNode;
 };
 
-const ConfirmationDialog: React.FC<Props> = ({
+const ConfirmationDialog: React.FC<React.PropsWithChildren<Props>> = ({
   onSubmit,
   children,
   submitText,

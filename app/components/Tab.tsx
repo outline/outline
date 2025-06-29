@@ -58,7 +58,7 @@ const transition = {
   damping: 30,
 };
 
-const Tab: React.FC<Props> = ({
+const Tab: React.FC<React.PropsWithChildren<Props>> = ({
   children,
   exact,
   exactQueryString,

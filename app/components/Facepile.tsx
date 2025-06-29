@@ -16,11 +16,9 @@ type Props = {
   /** The maximum number of users to display, defaults to 8 */
   limit?: number;
   /** A component to render the avatar, defaults to Avatar. */
-  renderAvatar?: React.ComponentType<
-    React.ComponentProps<typeof Avatar> & {
-      model: User;
-    }
-  >;
+  renderAvatar?: React.ComponentType<React.PropsWithChildren<React.ComponentProps<typeof Avatar> & {
+    model: User;
+  }>>;
 };
 
 function Facepile({

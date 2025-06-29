@@ -20,7 +20,7 @@ interface Props {
  * @param props - Props object containing the content to be rendered.
  * @returns JSX.Element - The rendered component.
  */
-export const Backticks: React.FC<Props> = ({ content }) => {
+export const Backticks: React.FC<React.PropsWithChildren<Props>> = ({ content }) => {
   // Regex to match text between backticks
   const regex = /`([^`]+)`/g;
   const parts = content.split(regex);

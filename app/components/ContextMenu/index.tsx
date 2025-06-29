@@ -56,7 +56,7 @@ type Props = MenuStateReturn & {
   children?: React.ReactNode;
 };
 
-const ContextMenu: React.FC<Props> = ({
+const ContextMenu: React.FC<React.PropsWithChildren<Props>> = ({
   menuRef,
   children,
   onOpen,

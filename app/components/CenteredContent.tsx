@@ -30,7 +30,7 @@ const Content = styled.div<ContentProps>`
   `};
 `;
 
-const CenteredContent: React.FC<Props> = ({
+const CenteredContent: React.FC<React.PropsWithChildren<Props>> = ({
   children,
   maxWidth,
   ...rest

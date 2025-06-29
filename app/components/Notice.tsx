@@ -10,7 +10,7 @@ type Props = {
   description?: JSX.Element;
 };
 
-const Notice: React.FC<Props> = ({ children, icon, description }: Props) => (
+const Notice: React.FC<React.PropsWithChildren<Props>> = ({ children, icon, description }: Props) => (
   <Container as="div">
     <Flex as="span" gap={8}>
       {icon}

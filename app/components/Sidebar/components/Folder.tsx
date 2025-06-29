@@ -6,7 +6,7 @@ type Props = {
   children?: React.ReactNode;
 };
 
-const Folder: React.FC<Props> = ({ expanded, children }: Props) => {
+const Folder: React.FC<React.PropsWithChildren<Props>> = ({ expanded, children }: Props) => {
   const [openedOnce, setOpenedOnce] = React.useState(expanded);
 
   // allows us to avoid rendering all children when the folder hasn't been opened

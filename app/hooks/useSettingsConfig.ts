@@ -49,8 +49,8 @@ const Templates = lazy(() => import("~/scenes/Settings/Templates"));
 export type ConfigItem = {
   name: string;
   path: string;
-  icon: React.FC<ComponentProps<typeof Icon>>;
-  component: React.ComponentType;
+  icon: React.FC<React.PropsWithChildren<ComponentProps<typeof Icon>>>;
+  component: React.ComponentType<React.PropsWithChildren<unknown>>;
   description?: string;
   preload?: () => void;
   enabled: boolean;

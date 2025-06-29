@@ -39,7 +39,7 @@ export interface Props extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   location?: Location;
   strict?: boolean;
   to: LocationDescriptor;
-  component?: React.ComponentType;
+  component?: React.ComponentType<React.PropsWithChildren<unknown>>;
   onBeforeClick?: () => void;
 }
 

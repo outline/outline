@@ -11,7 +11,7 @@ type Props = {
   collection: Collection;
 };
 
-export const CollectionBreadcrumb: React.FC<Props> = ({ collection }) => {
+export const CollectionBreadcrumb: React.FC<React.PropsWithChildren<Props>> = ({ collection }) => {
   const { t } = useTranslation();
 
   const items = React.useMemo(() => {

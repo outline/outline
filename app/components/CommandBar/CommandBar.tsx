@@ -52,7 +52,7 @@ type Props = {
   children?: React.ReactNode;
 };
 
-const KBarPortal: React.FC = ({ children }: Props) => {
+const KBarPortal: React.FC<React.PropsWithChildren<unknown>> = ({ children }: Props) => {
   const { showing } = useKBar((state) => ({
     showing: state.visualState !== "hidden",
   }));

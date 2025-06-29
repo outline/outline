@@ -36,7 +36,7 @@ type Props = {
   onClick?: () => void;
 };
 
-const CollectionLink: React.FC<Props> = ({
+const CollectionLink: React.FC<React.PropsWithChildren<Props>> = ({
   collection,
   expanded,
   onDisclosureClick,

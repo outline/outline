@@ -26,7 +26,7 @@ type Props = {
   to?: LocationDescriptor;
 };
 
-const DocumentMeta: React.FC<Props> = ({
+const DocumentMeta: React.FC<React.PropsWithChildren<Props>> = ({
   showPublished,
   showCollection,
   showLastViewed,

@@ -29,7 +29,7 @@ type Props = {
   size?: number;
 };
 
-const ReactionPicker: React.FC<Props> = ({
+const ReactionPicker: React.FC<React.PropsWithChildren<Props>> = ({
   onSelect,
   onOpen,
   onClose,
