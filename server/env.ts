@@ -20,6 +20,7 @@ import {
   CannotUseWith,
   CannotUseWithout,
   CannotUseWithAny,
+  IsInCaseInsensitive,
 } from "@server/utils/validators";
 import Deprecated from "./models/decorators/Deprecated";
 import { getArg } from "./utils/args";
@@ -349,6 +350,37 @@ export class Environment {
    * See https://community.nodemailer.com/2-0-0-beta/setup-smtp/well-known-services/
    */
   @CannotUseWith("SMTP_HOST")
+  @IsInCaseInsensitive([
+    "1und1",
+    "AOL",
+    "DebugMail.io",
+    "DynectEmail",
+    "FastMail",
+    "GandiMail",
+    "Gmail",
+    "Godaddy",
+    "GodaddyAsia",
+    "GodaddyEurope",
+    "hot.ee",
+    "Hotmail",
+    "iCloud",
+    "mail.ee",
+    "Mail.ru",
+    "Mailgun",
+    "Mailjet",
+    "Mandrill",
+    "Naver",
+    "Postmark",
+    "QQ",
+    "QQex",
+    "SendCloud",
+    "SendGrid",
+    "SES",
+    "Sparkpost",
+    "Yahoo",
+    "Yandex",
+    "Zoho",
+  ])
   public SMTP_SERVICE = this.toOptionalString(environment.SMTP_SERVICE);
 
   @Public
