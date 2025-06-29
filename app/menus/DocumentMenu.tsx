@@ -98,7 +98,10 @@ type MenuTriggerProps = {
   onTrigger: () => void;
 };
 
-const MenuTrigger: React.FC<React.PropsWithChildren<MenuTriggerProps>> = ({ label, onTrigger }) => {
+const MenuTrigger: React.FC<React.PropsWithChildren<MenuTriggerProps>> = ({
+  label,
+  onTrigger,
+}) => {
   const { t } = useTranslation();
 
   const { subscriptions, pins } = useStores();
@@ -162,251 +165,255 @@ type MenuContentProps = {
   showToggleEmbeds?: boolean;
 };
 
-const MenuContent: React.FC<React.PropsWithChildren<MenuContentProps>> = observer(function MenuContent_({
-  onOpen,
-  onClose,
-  onFindAndReplace,
-  onSelectTemplate,
-  onRename,
-  showDisplayOptions,
-  showToggleEmbeds,
-}) {
-  const user = useCurrentUser();
-  const { model: document, menuState } = useMenuContext<Document>();
-  const can = usePolicy(document);
-  const { t } = useTranslation();
-  const { policies, collections } = useStores();
-
-  const collection = document.collectionId
-    ? collections.get(document.collectionId)
-    : undefined;
-
-  const context = useActionContext({
-    isContextMenu: true,
-    activeDocumentId: document.id,
-    activeCollectionId: document.collectionId ?? undefined,
-  });
-
-  const isMobile = useMobile();
-
-  const handleRestore = React.useCallback(
-    async (
-      ev: React.SyntheticEvent,
-      options?: {
-        collectionId: string;
-      }
-    ) => {
-      await document.restore(options);
-      toast.success(
-        t("{{ documentName }} restored", {
-          documentName: capitalize(document.noun),
-        })
-      );
-    },
-    [t, document]
-  );
-
-  const restoreItems = React.useMemo(
-    () => [
-      ...collections.orderedData.reduce<MenuItem[]>((filtered, collection) => {
-        const can = policies.abilities(collection.id);
-
-        if (can.createDocument) {
-          filtered.push({
-            type: "button",
-            onClick: (ev) =>
-              handleRestore(ev, {
-                collectionId: collection.id,
-              }),
-            icon: <CollectionIcon collection={collection} />,
-            title: collection.name,
-          });
-        }
-
-        return filtered;
-      }, []),
-    ],
-    [collections.orderedData, handleRestore, policies]
-  );
-
-  const templateMenuItems = useTemplateMenuItems({
-    document,
+const MenuContent: React.FC<React.PropsWithChildren<MenuContentProps>> =
+  observer(function MenuContent_({
+    onOpen,
+    onClose,
+    onFindAndReplace,
     onSelectTemplate,
-  });
+    onRename,
+    showDisplayOptions,
+    showToggleEmbeds,
+  }) {
+    const user = useCurrentUser();
+    const { model: document, menuState } = useMenuContext<Document>();
+    const can = usePolicy(document);
+    const { t } = useTranslation();
+    const { policies, collections } = useStores();
 
-  const handleEmbedsToggle = React.useCallback(
-    (checked: boolean) => {
-      if (checked) {
-        document.enableEmbeds();
-      } else {
-        document.disableEmbeds();
-      }
-    },
-    [document]
-  );
+    const collection = document.collectionId
+      ? collections.get(document.collectionId)
+      : undefined;
 
-  const handleFullWidthToggle = React.useCallback(
-    (checked: boolean) => {
-      user.setPreference(UserPreference.FullWidthDocuments, checked);
-      void user.save();
-      document.fullWidth = checked;
-      void document.save({ fullWidth: checked });
-    },
-    [user, document]
-  );
+    const context = useActionContext({
+      isContextMenu: true,
+      activeDocumentId: document.id,
+      activeCollectionId: document.collectionId ?? undefined,
+    });
 
-  return !isEmpty(can) ? (
-    <ContextMenu
-      {...menuState}
-      aria-label={t("Document options")}
-      onOpen={onOpen}
-      onClose={onClose}
-    >
-      <Template
+    const isMobile = useMobile();
+
+    const handleRestore = React.useCallback(
+      async (
+        ev: React.SyntheticEvent,
+        options?: {
+          collectionId: string;
+        }
+      ) => {
+        await document.restore(options);
+        toast.success(
+          t("{{ documentName }} restored", {
+            documentName: capitalize(document.noun),
+          })
+        );
+      },
+      [t, document]
+    );
+
+    const restoreItems = React.useMemo(
+      () => [
+        ...collections.orderedData.reduce<MenuItem[]>(
+          (filtered, collection) => {
+            const can = policies.abilities(collection.id);
+
+            if (can.createDocument) {
+              filtered.push({
+                type: "button",
+                onClick: (ev) =>
+                  handleRestore(ev, {
+                    collectionId: collection.id,
+                  }),
+                icon: <CollectionIcon collection={collection} />,
+                title: collection.name,
+              });
+            }
+
+            return filtered;
+          },
+          []
+        ),
+      ],
+      [collections.orderedData, handleRestore, policies]
+    );
+
+    const templateMenuItems = useTemplateMenuItems({
+      document,
+      onSelectTemplate,
+    });
+
+    const handleEmbedsToggle = React.useCallback(
+      (checked: boolean) => {
+        if (checked) {
+          document.enableEmbeds();
+        } else {
+          document.disableEmbeds();
+        }
+      },
+      [document]
+    );
+
+    const handleFullWidthToggle = React.useCallback(
+      (checked: boolean) => {
+        user.setPreference(UserPreference.FullWidthDocuments, checked);
+        void user.save();
+        document.fullWidth = checked;
+        void document.save({ fullWidth: checked });
+      },
+      [user, document]
+    );
+
+    return !isEmpty(can) ? (
+      <ContextMenu
         {...menuState}
-        items={[
-          {
-            type: "button",
-            title: t("Restore"),
-            visible:
-              !!(document.isWorkspaceTemplate || collection?.isActive) &&
-              !!(can.restore || can.unarchive),
-            onClick: (ev) => handleRestore(ev),
-            icon: <RestoreIcon />,
-          },
-          {
-            type: "submenu",
-            title: t("Restore"),
-            visible:
-              !(document.isWorkspaceTemplate || collection?.isActive) &&
-              !!(can.restore || can.unarchive) &&
-              restoreItems.length !== 0,
-            style: {
-              left: -170,
-              position: "relative",
-              top: -40,
+        aria-label={t("Document options")}
+        onOpen={onOpen}
+        onClose={onClose}
+      >
+        <Template
+          {...menuState}
+          items={[
+            {
+              type: "button",
+              title: t("Restore"),
+              visible:
+                !!(document.isWorkspaceTemplate || collection?.isActive) &&
+                !!(can.restore || can.unarchive),
+              onClick: (ev) => handleRestore(ev),
+              icon: <RestoreIcon />,
             },
-            icon: <RestoreIcon />,
-            hover: true,
-            items: [
-              {
-                type: "heading",
-                title: t("Choose a collection"),
+            {
+              type: "submenu",
+              title: t("Restore"),
+              visible:
+                !(document.isWorkspaceTemplate || collection?.isActive) &&
+                !!(can.restore || can.unarchive) &&
+                restoreItems.length !== 0,
+              style: {
+                left: -170,
+                position: "relative",
+                top: -40,
               },
-              ...restoreItems,
-            ],
-          },
-          actionToMenuItem(starDocument, context),
-          actionToMenuItem(unstarDocument, context),
-          {
-            ...actionToMenuItem(subscribeDocument, context),
-            disabled: collection?.isSubscribed,
-            tooltip: collection?.isSubscribed
-              ? t("Subscription inherited from collection")
-              : undefined,
-          } as MenuItemButton,
-          {
-            ...actionToMenuItem(unsubscribeDocument, context),
-            disabled: collection?.isSubscribed,
-            tooltip: collection?.isSubscribed
-              ? t("Subscription inherited from collection")
-              : undefined,
-          } as MenuItemButton,
-          {
-            type: "button",
-            title: `${t("Find and replace")}…`,
-            visible: !!onFindAndReplace && isMobile,
-            onClick: () => onFindAndReplace?.(),
-            icon: <SearchIcon />,
-          },
-          {
-            type: "separator",
-          },
-          {
-            type: "route",
-            title: t("Edit"),
-            to: documentEditPath(document),
-            visible:
-              !!can.update && user.separateEditMode && !document.template,
-            icon: <EditIcon />,
-          },
-          {
-            type: "button",
-            title: `${t("Rename")}…`,
-            visible: !!can.update && !user.separateEditMode && !!onRename,
-            onClick: () => onRename?.(),
-            icon: <InputIcon />,
-          },
-          actionToMenuItem(shareDocument, context),
-          actionToMenuItem(createNestedDocument, context),
-          actionToMenuItem(importDocument, context),
-          actionToMenuItem(createTemplateFromDocument, context),
-          actionToMenuItem(duplicateDocument, context),
-          actionToMenuItem(publishDocument, context),
-          actionToMenuItem(unpublishDocument, context),
-          actionToMenuItem(archiveDocument, context),
-          actionToMenuItem(moveDocument, context),
-          actionToMenuItem(moveTemplate, context),
-          {
-            type: "submenu",
-            title: t("Apply template"),
-            icon: <ShapesIcon />,
-            items: templateMenuItems,
-          },
-          actionToMenuItem(pinDocument, context),
-          actionToMenuItem(createDocumentFromTemplate, context),
-          {
-            type: "separator",
-          },
-          actionToMenuItem(openDocumentComments, context),
-          actionToMenuItem(openDocumentHistory, context),
-          actionToMenuItem(openDocumentInsights, context),
-          actionToMenuItem(downloadDocument, context),
-          actionToMenuItem(copyDocument, context),
-          actionToMenuItem(printDocument, context),
-          actionToMenuItem(searchInDocument, context),
-          {
-            type: "separator",
-          },
-          actionToMenuItem(deleteDocument, context),
-          actionToMenuItem(permanentlyDeleteDocument, context),
-          actionToMenuItem(leaveDocument, context),
-        ]}
-      />
-      {(showDisplayOptions || showToggleEmbeds) && can.update && (
-        <>
-          <Separator />
-          <DisplayOptions>
-            {showToggleEmbeds && (
-              <Style>
-                <ToggleMenuItem
-                  width={26}
-                  height={14}
-                  label={t("Enable embeds")}
-                  labelPosition="left"
-                  checked={!document.embedsDisabled}
-                  onChange={handleEmbedsToggle}
-                />
-              </Style>
-            )}
-            {showDisplayOptions && !isMobile && (
-              <Style>
-                <ToggleMenuItem
-                  width={26}
-                  height={14}
-                  label={t("Full width")}
-                  labelPosition="left"
-                  checked={document.fullWidth}
-                  onChange={handleFullWidthToggle}
-                />
-              </Style>
-            )}
-          </DisplayOptions>
-        </>
-      )}
-    </ContextMenu>
-  ) : null;
-});
+              icon: <RestoreIcon />,
+              hover: true,
+              items: [
+                {
+                  type: "heading",
+                  title: t("Choose a collection"),
+                },
+                ...restoreItems,
+              ],
+            },
+            actionToMenuItem(starDocument, context),
+            actionToMenuItem(unstarDocument, context),
+            {
+              ...actionToMenuItem(subscribeDocument, context),
+              disabled: collection?.isSubscribed,
+              tooltip: collection?.isSubscribed
+                ? t("Subscription inherited from collection")
+                : undefined,
+            } as MenuItemButton,
+            {
+              ...actionToMenuItem(unsubscribeDocument, context),
+              disabled: collection?.isSubscribed,
+              tooltip: collection?.isSubscribed
+                ? t("Subscription inherited from collection")
+                : undefined,
+            } as MenuItemButton,
+            {
+              type: "button",
+              title: `${t("Find and replace")}…`,
+              visible: !!onFindAndReplace && isMobile,
+              onClick: () => onFindAndReplace?.(),
+              icon: <SearchIcon />,
+            },
+            {
+              type: "separator",
+            },
+            {
+              type: "route",
+              title: t("Edit"),
+              to: documentEditPath(document),
+              visible:
+                !!can.update && user.separateEditMode && !document.template,
+              icon: <EditIcon />,
+            },
+            {
+              type: "button",
+              title: `${t("Rename")}…`,
+              visible: !!can.update && !user.separateEditMode && !!onRename,
+              onClick: () => onRename?.(),
+              icon: <InputIcon />,
+            },
+            actionToMenuItem(shareDocument, context),
+            actionToMenuItem(createNestedDocument, context),
+            actionToMenuItem(importDocument, context),
+            actionToMenuItem(createTemplateFromDocument, context),
+            actionToMenuItem(duplicateDocument, context),
+            actionToMenuItem(publishDocument, context),
+            actionToMenuItem(unpublishDocument, context),
+            actionToMenuItem(archiveDocument, context),
+            actionToMenuItem(moveDocument, context),
+            actionToMenuItem(moveTemplate, context),
+            {
+              type: "submenu",
+              title: t("Apply template"),
+              icon: <ShapesIcon />,
+              items: templateMenuItems,
+            },
+            actionToMenuItem(pinDocument, context),
+            actionToMenuItem(createDocumentFromTemplate, context),
+            {
+              type: "separator",
+            },
+            actionToMenuItem(openDocumentComments, context),
+            actionToMenuItem(openDocumentHistory, context),
+            actionToMenuItem(openDocumentInsights, context),
+            actionToMenuItem(downloadDocument, context),
+            actionToMenuItem(copyDocument, context),
+            actionToMenuItem(printDocument, context),
+            actionToMenuItem(searchInDocument, context),
+            {
+              type: "separator",
+            },
+            actionToMenuItem(deleteDocument, context),
+            actionToMenuItem(permanentlyDeleteDocument, context),
+            actionToMenuItem(leaveDocument, context),
+          ]}
+        />
+        {(showDisplayOptions || showToggleEmbeds) && can.update && (
+          <>
+            <Separator />
+            <DisplayOptions>
+              {showToggleEmbeds && (
+                <Style>
+                  <ToggleMenuItem
+                    width={26}
+                    height={14}
+                    label={t("Enable embeds")}
+                    labelPosition="left"
+                    checked={!document.embedsDisabled}
+                    onChange={handleEmbedsToggle}
+                  />
+                </Style>
+              )}
+              {showDisplayOptions && !isMobile && (
+                <Style>
+                  <ToggleMenuItem
+                    width={26}
+                    height={14}
+                    label={t("Full width")}
+                    labelPosition="left"
+                    checked={document.fullWidth}
+                    onChange={handleFullWidthToggle}
+                  />
+                </Style>
+              )}
+            </DisplayOptions>
+          </>
+        )}
+      </ContextMenu>
+    ) : null;
+  });
 
 function DocumentMenu({
   document,

@@ -29,7 +29,9 @@ type PluginValueMap = {
     /** The displayed icon of the plugin. */
     icon: React.ElementType;
     /** The lazy loaded settings screen component. */
-    component: LazyComponent<React.ComponentType<React.PropsWithChildren<unknown>>>;
+    component: LazyComponent<
+      React.ComponentType<React.PropsWithChildren<unknown>>
+    >;
     /** The description that will show on the plugins card. */
     description?: string;
     /** Whether the plugin is enabled in the current context. */

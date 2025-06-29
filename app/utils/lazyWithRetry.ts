@@ -1,6 +1,8 @@
 import * as React from "react";
 
-type ComponentPromise<T extends React.ComponentType<React.PropsWithChildren<any>>> = Promise<{
+type ComponentPromise<
+  T extends React.ComponentType<React.PropsWithChildren<any>>,
+> = Promise<{
   default: T;
 }>;
 
@@ -12,7 +14,9 @@ type ComponentPromise<T extends React.ComponentType<React.PropsWithChildren<any>
  * @param interval The interval between retries in milliseconds, defaults to 1000.
  * @returns A lazy component.
  */
-export default function lazyWithRetry<T extends React.ComponentType<React.PropsWithChildren<any>>>(
+export default function lazyWithRetry<
+  T extends React.ComponentType<React.PropsWithChildren<any>>,
+>(
   component: () => ComponentPromise<T>,
   retries?: number,
   interval?: number

@@ -10,7 +10,10 @@ type Props = {
   title: string;
 };
 
-const HelpDisclosure: React.FC<React.PropsWithChildren<Props>> = ({ title, children }: Props) => {
+const HelpDisclosure: React.FC<React.PropsWithChildren<Props>> = ({
+  title,
+  children,
+}: Props) => {
   const theme = useTheme();
 
   return (

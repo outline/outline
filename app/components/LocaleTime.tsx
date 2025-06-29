@@ -12,7 +12,10 @@ export type Props = {
   format?: Partial<Record<keyof typeof locales, string>>;
 };
 
-const LocaleTime: React.FC<React.PropsWithChildren<Props>> = ({ children, ...rest }: Props) => {
+const LocaleTime: React.FC<React.PropsWithChildren<Props>> = ({
+  children,
+  ...rest
+}: Props) => {
   const { tooltipContent, content } = useLocaleTime(rest);
 
   return (

@@ -6,11 +6,13 @@ import useStores from "~/hooks/useStores";
 type StoreProps = keyof RootStore;
 
 function withStores<
-  P extends React.ComponentType<React.PropsWithChildren<ResolvedProps & RootStore>>,
+  P extends React.ComponentType<
+    React.PropsWithChildren<ResolvedProps & RootStore>
+  >,
   ResolvedProps = JSX.LibraryManagedAttributes<
     P,
     Omit<React.ComponentProps<P>, StoreProps>
-  >
+  >,
 >(WrappedComponent: P): React.FC<React.PropsWithChildren<ResolvedProps>> {
   const ComponentWithStore = (props: ResolvedProps) => {
     const stores = useStores();

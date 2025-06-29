@@ -25,7 +25,9 @@ type Props = {
   children?: React.ReactNode;
 };
 
-const AccountMenu: React.FC<React.PropsWithChildren<unknown>> = ({ children }: Props) => {
+const AccountMenu: React.FC<React.PropsWithChildren<unknown>> = ({
+  children,
+}: Props) => {
   const menu = useMenuState({
     placement: "bottom-end",
     modal: true,

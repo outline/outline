@@ -17,7 +17,11 @@ type Props = Omit<InputProps, "onChange"> & {
   onChange: (value: string) => void;
 };
 
-const InputColor: React.FC<React.PropsWithChildren<Props>> = ({ value, onChange, ...rest }: Props) => {
+const InputColor: React.FC<React.PropsWithChildren<Props>> = ({
+  value,
+  onChange,
+  ...rest
+}: Props) => {
   const { t } = useTranslation();
   const menu = useMenuState({
     modal: true,

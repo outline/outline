@@ -48,7 +48,9 @@ type Props = {
   children?: React.ReactNode;
 };
 
-const AuthenticatedLayout: React.FC<React.PropsWithChildren<unknown>> = ({ children }: Props) => {
+const AuthenticatedLayout: React.FC<React.PropsWithChildren<unknown>> = ({
+  children,
+}: Props) => {
   const { ui, auth } = useStores();
   const location = useLocation();
   const layoutRef = React.useRef<HTMLDivElement>(null);

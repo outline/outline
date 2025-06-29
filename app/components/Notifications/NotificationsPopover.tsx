@@ -12,7 +12,9 @@ type Props = {
   children?: React.ReactNode;
 };
 
-const NotificationsPopover: React.FC<React.PropsWithChildren<unknown>> = ({ children }: Props) => {
+const NotificationsPopover: React.FC<React.PropsWithChildren<unknown>> = ({
+  children,
+}: Props) => {
   const { t } = useTranslation();
   const scrollableRef = React.useRef<HTMLDivElement>(null);
   const closeRef = React.useRef<HTMLButtonElement>(null);

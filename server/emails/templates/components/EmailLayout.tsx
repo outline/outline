@@ -2,11 +2,13 @@ import { Table, TBody, TR, TD } from "oy-vey";
 import * as React from "react";
 import theme from "@shared/styles/theme";
 
-const EmailLayout: React.FC<React.PropsWithChildren<{
-  bgcolor?: string;
-  previewText: string;
-  goToAction?: { url: string; name: string };
-}>> = ({ previewText, bgcolor = "#FFFFFF", goToAction, children }) => {
+const EmailLayout: React.FC<
+  React.PropsWithChildren<{
+    bgcolor?: string;
+    previewText: string;
+    goToAction?: { url: string; name: string };
+  }>
+> = ({ previewText, bgcolor = "#FFFFFF", goToAction, children }) => {
   let markup;
   if (goToAction) {
     markup = JSON.stringify({

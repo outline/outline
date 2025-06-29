@@ -127,63 +127,63 @@ type AvatarEditorDialogProps = {
   submitText: string;
 };
 
-const AvatarEditorDialog: React.FC<React.PropsWithChildren<AvatarEditorDialogProps>> = observer(
-  ({ file, onUpload, isUploading, borderRadius, submitText }) => {
-    const { ui } = useStores();
-    const { t } = useTranslation();
-    const [zoom, setZoom] = useState(1);
-    const avatarEditorRef = useRef<AvatarEditor>(null);
+const AvatarEditorDialog: React.FC<
+  React.PropsWithChildren<AvatarEditorDialogProps>
+> = observer(({ file, onUpload, isUploading, borderRadius, submitText }) => {
+  const { ui } = useStores();
+  const { t } = useTranslation();
+  const [zoom, setZoom] = useState(1);
+  const avatarEditorRef = useRef<AvatarEditor>(null);
 
-    const handleUpload = React.useCallback(() => {
-      const canvas = avatarEditorRef.current?.getImage();
-      invariant(canvas, "canvas is not defined");
-      const blob = dataUrlToBlob(canvas.toDataURL());
-      onUpload(blob, file);
-    }, [file, onUpload]);
+  const handleUpload = React.useCallback(() => {
+    const canvas = avatarEditorRef.current?.getImage();
+    invariant(canvas, "canvas is not defined");
+    const blob = dataUrlToBlob(canvas.toDataURL());
+    onUpload(blob, file);
+  }, [file, onUpload]);
 
-    const handleZoom = React.useCallback(
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        const target = event.target;
+  const handleZoom = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const target = event.target;
 
-        if (target instanceof HTMLInputElement) {
-          setZoom(parseFloat(target.value));
-        }
-      },
-      []
-    );
+      if (target instanceof HTMLInputElement) {
+        setZoom(parseFloat(target.value));
+      }
+    },
+    []
+  );
 
-    return (
-      <Flex auto column align="center" justify="center">
-        {isUploading && <LoadingIndicator />}
-        <AvatarEditorContainer>
-          <AvatarEditor
-            ref={avatarEditorRef}
-            image={file}
-            width={250}
-            height={250}
-            border={25}
-            borderRadius={borderRadius}
-            color={ui.theme === "light" ? [255, 255, 255, 0.6] : [0, 0, 0, 0.6]} // RGBA
-            scale={zoom}
-            rotate={0}
-          />
-        </AvatarEditorContainer>
-        <RangeInput
-          type="range"
-          min="0.1"
-          max="2"
-          step="0.01"
-          defaultValue="1"
-          onChange={handleZoom}
+  return (
+    <Flex auto column align="center" justify="center">
+      {isUploading && <LoadingIndicator />}
+      <AvatarEditorContainer>
+        <AvatarEditor
+          ref={avatarEditorRef}
+          image={file}
+          width={250}
+          height={250}
+          border={25}
+          borderRadius={borderRadius}
+          color={ui.theme === "light" ? [255, 255, 255, 0.6] : [0, 0, 0, 0.6]} // RGBA
+          scale={zoom}
+          rotate={0}
         />
-        <br />
-        <ButtonLarge fullwidth onClick={handleUpload} disabled={isUploading}>
-          {isUploading ? `${t(`Uploading`)}…` : submitText}
-        </ButtonLarge>
-      </Flex>
-    );
-  }
-);
+      </AvatarEditorContainer>
+      <RangeInput
+        type="range"
+        min="0.1"
+        max="2"
+        step="0.01"
+        defaultValue="1"
+        onChange={handleZoom}
+      />
+      <br />
+      <ButtonLarge fullwidth onClick={handleUpload} disabled={isUploading}>
+        {isUploading ? `${t(`Uploading`)}…` : submitText}
+      </ButtonLarge>
+    </Flex>
+  );
+});
 
 const AvatarEditorContainer = styled(Flex)`
   margin-bottom: 30px;

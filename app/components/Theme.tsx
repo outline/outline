@@ -11,7 +11,9 @@ type Props = {
   children?: React.ReactNode;
 };
 
-const Theme: React.FC<React.PropsWithChildren<unknown>> = ({ children }: Props) => {
+const Theme: React.FC<React.PropsWithChildren<unknown>> = ({
+  children,
+}: Props) => {
   const { auth, ui } = useStores();
   const theme = useBuildTheme(
     auth.team?.getPreference(TeamPreference.CustomTheme) ||

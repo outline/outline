@@ -19,7 +19,9 @@ type Props = {
   model: Comment;
 };
 
-const ViewReactionsDialog: React.FC<React.PropsWithChildren<Props>> = ({ model }) => {
+const ViewReactionsDialog: React.FC<React.PropsWithChildren<Props>> = ({
+  model,
+}) => {
   const { t } = useTranslation();
   const { users } = useStores();
   const tab = useTabState();
