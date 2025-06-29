@@ -786,6 +786,8 @@
   "Underline": "Understreking",
   "Undo": "Angre",
   "Redo": "Gjør om",
+  "Move block up": "Move block up",
+  "Move block down": "Move block down",
   "Lists": "Lister",
   "Toggle task list item": "Veksle element i oppgavelisten",
   "Tab": "Tab",
