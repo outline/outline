@@ -21,6 +21,7 @@ import {
   MathIcon,
   DoneIcon,
   EmbedIcon,
+  CollapsedIcon,
 } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
@@ -222,6 +223,12 @@ export default function blockMenuItems(
       icon: <Img src="/images/mermaidjs.png" alt="Mermaid Diagram" />,
       keywords: "diagram flowchart",
       attrs: { language: "mermaidjs" },
+    },
+    {
+      name: "container_toggle",
+      title: dictionary.toggleBlock,
+      icon: <CollapsedIcon />,
+      keywords: "toggle",
     },
   ];
 }
