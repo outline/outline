@@ -5,7 +5,6 @@ import styled from "styled-components";
 import { Client } from "@shared/types";
 import ButtonLarge from "~/components/ButtonLarge";
 import InputLarge from "~/components/InputLarge";
-import { OneTimePasswordInput } from "~/components/OneTimePasswordInput";
 import PluginIcon from "~/components/PluginIcon";
 import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
@@ -50,12 +49,10 @@ function AuthenticationProvider(props: Props) {
         if (response.redirect) {
           window.location.href = response.redirect;
         } else {
-          // Switch to verification code state - no need for separate verify endpoint
-          setAuthState("code");
           setSubmitting(false);
+          onEmailSuccess?.(email);
         }
-      } catch (error) {
-        console.error("Error during email authentication:", error);
+      } catch (_err) {
         setSubmitting(false);
       }
     } else {
@@ -70,55 +67,32 @@ function AuthenticationProvider(props: Props) {
       return null;
     }
 
-    const handleCodeSuccess = React.useCallback(() => {
-      onEmailSuccess(email);
-    }, [email, onEmailSuccess]);
-
-    const handleCodeCancel = React.useCallback(() => {
-      setAuthState("initial");
-      setEmail("");
-    }, []);
-
     return (
       <Wrapper>
-        {authState === "code" ? (
-          <Form method="POST" action="/auth/email.callback">
-            <input type="hidden" name="email" value={email} />
-            <input type="hidden" name="client" value={clientType} />
-            <input type="hidden" name="follow" value="true" />
-            <OneTimePasswordInput name="code" autoSubmit />
-          </Form>
-        ) : (
-          <Form method="POST" action="/auth/email" onSubmit={handleSubmitEmail}>
-            {authState === "email" ? (
-              <>
-                <InputLarge
-                  type="email"
-                  name="email"
-                  placeholder="me@domain.com"
-                  value={email}
-                  onChange={handleChangeEmail}
-                  disabled={isSubmitting}
-                  autoFocus
-                  required
-                  short
-                />
-                <ButtonLarge type="submit" disabled={isSubmitting} {...rest}>
-                  {t("Sign In")} →
-                </ButtonLarge>
-              </>
-            ) : (
-              <ButtonLarge
-                type="submit"
-                icon={<EmailIcon />}
-                fullwidth
-                {...rest}
-              >
-                {t("Continue with Email")}
+        <Form method="POST" action="/auth/email" onSubmit={handleSubmitEmail}>
+          {authState === "email" ? (
+            <>
+              <InputLarge
+                type="email"
+                name="email"
+                placeholder="me@domain.com"
+                value={email}
+                onChange={handleChangeEmail}
+                disabled={isSubmitting}
+                autoFocus
+                required
+                short
+              />
+              <ButtonLarge type="submit" disabled={isSubmitting} {...rest}>
+                {t("Sign In")} →
               </ButtonLarge>
-            )}
-          </Form>
-        )}
+            </>
+          ) : (
+            <ButtonLarge type="submit" icon={<EmailIcon />} fullwidth {...rest}>
+              {t("Continue with Email")}
+            </ButtonLarge>
+          )}
+        </Form>
       </Wrapper>
     );
   }

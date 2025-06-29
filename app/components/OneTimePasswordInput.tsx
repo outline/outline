@@ -44,7 +44,7 @@ const OneTimePasswordInputField = styled(OneTimePasswordField.Input)`
   box-shadow: 0 0 0 1px ${s("inputBorder")};
   padding: 0;
   height: 38px;
-  width: 24px;
+  width: 28px;
   line-height: 1;
   transition: box-shadow 0.1s ease-in-out;
 
