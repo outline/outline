@@ -143,15 +143,18 @@ const EMOJI_ID_TO_VARIANTS = Object.entries(Emojis).reduce(
 );
 
 const CATEGORY_TO_EMOJI_IDS: Record<EmojiCategory, string[]> =
-  Categories.reduce((obj, { id, emojis }) => {
-    const key = capitalize(id) as EmojiCategory;
-    const category = EmojiCategory[key];
-    if (!category) {
+  Categories.reduce(
+    (obj, { id, emojis }) => {
+      const key = capitalize(id) as EmojiCategory;
+      const category = EmojiCategory[key];
+      if (!category) {
+        return obj;
+      }
+      obj[category] = emojis;
       return obj;
-    }
-    obj[category] = emojis;
-    return obj;
-  }, {} as Record<EmojiCategory, string[]>);
+    },
+    {} as Record<EmojiCategory, string[]>
+  );
 
 export const getEmojis = ({
   ids,
@@ -171,16 +174,19 @@ export const getEmojisWithCategory = ({
 }: {
   skinTone: EmojiSkinTone;
 }): Record<EmojiCategory, Emoji[]> =>
-  Object.keys(CATEGORY_TO_EMOJI_IDS).reduce((obj, category: EmojiCategory) => {
-    const emojiIds = CATEGORY_TO_EMOJI_IDS[category];
-    const emojis = emojiIds.map(
-      (emojiId) =>
-        EMOJI_ID_TO_VARIANTS[emojiId][skinTone] ??
-        EMOJI_ID_TO_VARIANTS[emojiId][EmojiSkinTone.Default]
-    );
-    obj[category] = emojis;
-    return obj;
-  }, {} as Record<EmojiCategory, Emoji[]>);
+  Object.keys(CATEGORY_TO_EMOJI_IDS).reduce(
+    (obj, category: EmojiCategory) => {
+      const emojiIds = CATEGORY_TO_EMOJI_IDS[category];
+      const emojis = emojiIds.map(
+        (emojiId) =>
+          EMOJI_ID_TO_VARIANTS[emojiId][skinTone] ??
+          EMOJI_ID_TO_VARIANTS[emojiId][EmojiSkinTone.Default]
+      );
+      obj[category] = emojis;
+      return obj;
+    },
+    {} as Record<EmojiCategory, Emoji[]>
+  );
 
 export const getEmojiVariants = ({ id }: { id: string }) =>
   EMOJI_ID_TO_VARIANTS[id];

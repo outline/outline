@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [20.x, 22.x]
 
     steps:
     - uses: actions/checkout@v4
@@ -42,7 +42,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
-        node-version: 20.x
+        node-version: 22.x
         cache: 'yarn'
     - run: yarn install --frozen-lockfile
     - run: yarn lint
@@ -54,7 +54,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
-        node-version: 20.x
+        node-version: 22.x
         cache: 'yarn'
     - run: yarn install --frozen-lockfile
     - run: yarn tsc
@@ -92,7 +92,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
-        node-version: 20.x
+        node-version: 22.x
         cache: 'yarn'
     - run: yarn install --frozen-lockfile
     - run: yarn test:${{ matrix.test-group }}
@@ -134,7 +134,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
-        node-version: 20.x
+        node-version: 22.x
         cache: 'yarn'
     - run: yarn install --frozen-lockfile
     - run: yarn sequelize db:migrate
@@ -151,7 +151,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
-        node-version: 20.x
+        node-version: 22.x
         cache: 'yarn'
     - run: yarn install --frozen-lockfile
     - name: Set environment to production

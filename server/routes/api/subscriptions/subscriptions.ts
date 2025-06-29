@@ -224,8 +224,8 @@ router.get(
         collectionSubscription
           ? QueryNotices.UnsubscribeCollection
           : documentSubscription
-          ? QueryNotices.UnsubscribeDocument
-          : ""
+            ? QueryNotices.UnsubscribeDocument
+            : ""
       }`
     );
   }

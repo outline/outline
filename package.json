@@ -39,7 +39,7 @@
     "url": "https://github.com/sponsors/outline"
   },
   "engines": {
-    "node": ">= 18 <=20"
+    "node": ">= 20 <=22"
   },
   "repository": {
     "type": "git",
@@ -49,11 +49,11 @@
     "> 0.25%, not dead"
   ],
   "dependencies": {
-    "@aws-sdk/client-s3": "3.826.0",
-    "@aws-sdk/lib-storage": "3.826.0",
-    "@aws-sdk/s3-presigned-post": "3.826.0",
-    "@aws-sdk/s3-request-presigner": "3.826.0",
-    "@aws-sdk/signature-v4-crt": "^3.826.0",
+    "@aws-sdk/client-s3": "3.832.0",
+    "@aws-sdk/lib-storage": "3.832.0",
+    "@aws-sdk/s3-presigned-post": "3.832.0",
+    "@aws-sdk/s3-request-presigner": "3.832.0",
+    "@aws-sdk/signature-v4-crt": "^3.828.0",
     "@babel/core": "^7.27.4",
     "@babel/plugin-proposal-decorators": "^7.27.1",
     "@babel/plugin-transform-class-properties": "^7.27.1",
@@ -165,7 +165,7 @@
     "markdown-it": "^13.0.2",
     "markdown-it-container": "^3.0.0",
     "markdown-it-emoji": "^2.0.0",
-    "mermaid": "11.4.1",
+    "mermaid": "11.7.0",
     "mime-types": "^2.1.35",
     "mobx": "^4.15.4",
     "mobx-react": "^6.3.1",
@@ -355,7 +355,7 @@
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-lodash": "^7.4.0",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-prettier": "^5.5.1",
     "eslint-plugin-react": "^7.37.3",
     "eslint-plugin-react-hooks": "^4.6.2",
     "husky": "^8.0.3",
@@ -366,7 +366,7 @@
     "lint-staged": "^13.3.0",
     "nodemon": "^3.1.10",
     "postinstall-postinstall": "^2.1.0",
-    "prettier": "^2.8.8",
+    "prettier": "^3.6.2",
     "react-refresh": "^0.17.0",
     "rimraf": "^2.5.4",
     "rollup-plugin-webpack-stats": "^2.0.5",

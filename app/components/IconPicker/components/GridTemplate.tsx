@@ -115,7 +115,9 @@ const CategoryName = styled(Text)`
 `;
 
 const Icon = styled.svg`
-  transition: color 150ms ease-in-out, fill 150ms ease-in-out;
+  transition:
+    color 150ms ease-in-out,
+    fill 150ms ease-in-out;
   transition-delay: var(--delay);
 `;
 

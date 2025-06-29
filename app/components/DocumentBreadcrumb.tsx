@@ -138,8 +138,8 @@ function DocumentBreadcrumb(
         ? output.slice(-depth)
         : output
       : depth !== undefined
-      ? output.slice(0, depth)
-      : output;
+        ? output.slice(0, depth)
+        : output;
   }, [t, path, category, sidebarContext, collectionNode, reverse, depth]);
 
   if (!collections.isLoaded) {

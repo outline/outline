@@ -130,7 +130,7 @@ export function createMigrationRunner(
         {
           cwd?: string | undefined;
           ignore?: string | string[] | undefined;
-        }
+        },
       ]
 ) {
   return new Umzug({
