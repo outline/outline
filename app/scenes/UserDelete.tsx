@@ -47,7 +47,11 @@ function UserDelete({ onSubmit }: Props) {
     async (data: FormData) => {
       try {
         await auth.deleteUser(data);
-        await auth.logout();
+        await auth.logout({
+          savePath: false,
+          revokeToken: false,
+          userInitiated: true,
+        });
         onSubmit();
       } catch (err) {
         toast.error(err.message);

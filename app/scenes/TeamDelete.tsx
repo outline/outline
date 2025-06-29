@@ -48,7 +48,11 @@ function TeamDelete({ onSubmit }: Props) {
     async (data: FormData) => {
       try {
         await auth.deleteTeam(data);
-        await auth.logout();
+        await auth.logout({
+          savePath: false,
+          revokeToken: false,
+          userInitiated: true,
+        });
         onSubmit();
       } catch (error) {
         toast.error(error.message);

@@ -6,13 +6,7 @@ import { logoutPath } from "~/utils/routeHelpers";
 const Logout = () => {
   const { auth } = useStores();
 
-  void auth.logout().then(() => {
-    if (env.OIDC_LOGOUT_URI) {
-      setTimeout(() => {
-        window.location.replace(env.OIDC_LOGOUT_URI);
-      }, 200);
-    }
-  });
+  void auth.logout({ userInitiated: true });
 
   if (env.OIDC_LOGOUT_URI) {
     return null; // user will be redirected to logout URI after logout

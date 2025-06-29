@@ -50,6 +50,10 @@ export default class AuthStore extends Store<Team> {
   @observable
   public collaborationToken?: string | null;
 
+  /* When set, the user will be redirected to this URL after logging out. */
+  @observable
+  public logoutRedirectUri?: string;
+
   /* A list of teams that the current user has access to. */
   @observable
   public availableTeams?: {
@@ -109,7 +113,11 @@ export default class AuthStore extends Store<Team> {
         // we are signed in and the received data contains no user then sign out
         if (this.authenticated) {
           if (isNil(newData.user)) {
-            void this.logout(false, false);
+            void this.logout({
+              savePath: false,
+              revokeToken: false,
+              userInitiated: true,
+            });
           }
         } else {
           this.rehydrate(newData);
@@ -298,18 +306,26 @@ export default class AuthStore extends Store<Team> {
    * Logs the user out and optionally revokes the authentication token.
    *
    * @param savePath Whether the current path should be saved and returned to after login.
-   * @param tryRevokingToken Whether the auth token should attempt to be revoked, this should be
+   * @param revokeToken Whether the auth token should attempt to be revoked, this should be
    * disabled with requests from ApiClient to prevent infinite loops.
    */
   @action
-  logout = async (savePath = false, tryRevokingToken = true) => {
+  logout = async ({
+    savePath = false,
+    revokeToken = true,
+    userInitiated = false,
+  }: {
+    savePath?: boolean;
+    revokeToken?: boolean;
+    userInitiated?: boolean;
+  }) => {
     // if this logout was forced from an authenticated route then
     // save the current path so we can go back there once signed in
     if (savePath) {
       setPostLoginPath(window.location.pathname + window.location.search);
     }
 
-    if (tryRevokingToken) {
+    if (revokeToken) {
       try {
         // invalidate authentication token on server and unset auth cookie
         await client.post(`/auth.delete`);
@@ -327,6 +343,10 @@ export default class AuthStore extends Store<Team> {
       setCookie("sessions", JSON.stringify(sessions), {
         domain: getCookieDomain(window.location.hostname, isCloudHosted),
       });
+    }
+
+    if (userInitiated) {
+      this.logoutRedirectUri = env.OIDC_LOGOUT_URI;
     }
 
     // clear all credentials from cache (and local storage via autorun)
