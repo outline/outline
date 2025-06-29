@@ -786,6 +786,8 @@
   "Underline": "Subrayar",
   "Undo": "Deshacer",
   "Redo": "Rehacer",
+  "Move block up": "Move block up",
+  "Move block down": "Move block down",
   "Lists": "Listas",
   "Toggle task list item": "Alternar elemento de lista de tareas",
   "Tab": "Tabulador",
