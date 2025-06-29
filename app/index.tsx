@@ -1,10 +1,10 @@
+import { createRoot } from "react-dom/client";
 // eslint-disable-next-line import/no-unresolved
 import "vite/modulepreload-polyfill";
 import { LazyMotion } from "framer-motion";
 import { KBarProvider } from "kbar";
 import { Provider } from "mobx-react";
 import { StrictMode } from "react";
-import { render } from "react-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { Router } from "react-router-dom";
 import stores from "~/stores";
@@ -79,7 +79,8 @@ if (element) {
     </StrictMode>
   );
 
-  render(<App />, element);
+  const root = createRoot(element);
+  root.render(<App />);
 }
 
 window.addEventListener("load", async () => {
