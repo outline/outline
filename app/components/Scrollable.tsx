@@ -1,4 +1,5 @@
 import { observer } from "mobx-react";
+import { transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
 import { hideScrollbars } from "@shared/styles";
@@ -89,6 +90,9 @@ const Wrapper = styled.div<{
   overflow-x: ${(props) => (props.$overflow ? props.$overflow : "hidden")};
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: ${(props) => transparentize(0.2, props.theme.divider)}
+    transparent;
   box-shadow: ${(props) => {
     if (props.$topShadowVisible && props.$bottomShadowVisible) {
       return "0 1px inset rgba(0,0,0,.1), 0 -1px inset rgba(0,0,0,.1)";
