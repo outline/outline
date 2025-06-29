@@ -12,7 +12,7 @@ type Props = {
   onRequestClose: () => void;
 };
 
-const Guide: React.FC<Props> = ({
+const Guide: React.FC<React.PropsWithChildren<Props>> = ({
   children,
   isOpen,
   title = "Untitled",

@@ -38,7 +38,7 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
   const theme = useTheme();
 
   const handleRemoveUser = React.useCallback(
-    async (item) => {
+    async (item: any) => {
       try {
         await userMemberships.delete({
           documentId: document.id,
@@ -62,7 +62,7 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
   );
 
   const handleUpdateUser = React.useCallback(
-    async (userToUpdate, permission) => {
+    async (userToUpdate: any, permission: any) => {
       try {
         await userMemberships.create({
           documentId: document.id,

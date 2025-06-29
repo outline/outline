@@ -71,7 +71,7 @@ function Invite({ onSubmit }: Props) {
     [onSubmit, invites, role, t, users]
   );
 
-  const handleChange = React.useCallback((ev, index: number) => {
+  const handleChange = React.useCallback((ev: any, index: number) => {
     setInvites((prevInvites) => {
       const newInvites = [...prevInvites];
       newInvites[index][ev.target.name as keyof InviteRequest] =

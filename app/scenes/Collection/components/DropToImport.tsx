@@ -15,7 +15,7 @@ type Props = {
   children?: React.ReactNode;
 };
 
-const DropToImport: React.FC<Props> = ({
+const DropToImport: React.FC<React.PropsWithChildren<Props>> = ({
   children,
   disabled,
   accept,

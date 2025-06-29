@@ -57,7 +57,7 @@ const Label = styled(Text)`
   margin-bottom: 4px;
 `;
 
-const SettingRow: React.FC<Props> = ({
+const SettingRow: React.FC<React.PropsWithChildren<Props>> = ({
   visible,
   description,
   name,

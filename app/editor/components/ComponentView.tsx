@@ -23,7 +23,7 @@ type ComponentViewConstructor = {
 
 export default class ComponentView {
   /** The React component to render. */
-  component: FunctionComponent<ComponentProps>;
+  component: FunctionComponent<React.PropsWithChildren<ComponentProps>>;
   /** The editor instance. */
   editor: Editor;
   /** The extension the view belongs to. */
@@ -45,7 +45,7 @@ export default class ComponentView {
 
   // See https://prosemirror.net/docs/ref/#view.NodeView
   constructor(
-    component: FunctionComponent<ComponentProps>,
+    component: FunctionComponent<React.PropsWithChildren<ComponentProps>>,
     {
       editor,
       extension,

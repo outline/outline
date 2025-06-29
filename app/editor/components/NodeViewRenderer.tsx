@@ -8,7 +8,7 @@ export class NodeViewRenderer<T extends object> {
 
   public constructor(
     public element: HTMLElement,
-    private Component: FunctionComponent,
+    private Component: FunctionComponent<React.PropsWithChildren<unknown>>,
     props: T
   ) {
     this.props = props;

@@ -86,7 +86,7 @@ const useTooltipContent = ({
   }
 };
 
-const Reaction: React.FC<Props> = ({
+const Reaction: React.FC<React.PropsWithChildren<Props>> = ({
   reaction,
   reactedUsers,
   disabled,

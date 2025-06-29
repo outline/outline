@@ -36,7 +36,7 @@ function SuggestionsMenuItem({
 }: Props) {
   const portal = usePortalContext();
   const ref = React.useCallback(
-    (node) => {
+    (node: any) => {
       if (selected && node) {
         scrollIntoView(node, {
           scrollMode: "if-needed",

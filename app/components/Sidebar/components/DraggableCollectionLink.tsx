@@ -93,7 +93,7 @@ function DraggableCollectionLink({
     locationSidebarContext,
   ]);
 
-  const handleDisclosureClick = useCallback((ev) => {
+  const handleDisclosureClick = useCallback((ev: any) => {
     ev?.preventDefault();
     setExpanded((e) => !e);
   }, []);

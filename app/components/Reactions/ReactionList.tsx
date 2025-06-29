@@ -22,7 +22,7 @@ type Props = {
   picker?: React.ReactElement;
 };
 
-const ReactionList: React.FC<Props> = ({
+const ReactionList: React.FC<React.PropsWithChildren<Props>> = ({
   model,
   onAddReaction,
   onRemoveReaction,

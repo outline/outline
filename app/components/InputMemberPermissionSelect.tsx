@@ -35,4 +35,4 @@ const Select = styled(InputSelect)`
   select {
     margin: 0;
   }
-` as React.ComponentType<SelectProps>;
+` as React.ComponentType<React.PropsWithChildren<SelectProps>>;

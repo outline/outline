@@ -41,7 +41,7 @@ function pathToDocument(
   return path;
 }
 
-const PublicBreadcrumb: React.FC<Props> = ({
+const PublicBreadcrumb: React.FC<React.PropsWithChildren<Props>> = ({
   documentId,
   shareId,
   sharedTree,

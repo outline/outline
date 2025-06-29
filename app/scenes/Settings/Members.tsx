@@ -89,16 +89,16 @@ function Members() {
   );
 
   const handleStatusFilter = useCallback(
-    (status) => updateParams("filter", status),
+    (status: any) => updateParams("filter", status),
     [updateParams]
   );
 
   const handleRoleFilter = useCallback(
-    (role) => updateParams("role", role),
+    (role: any) => updateParams("role", role),
     [updateParams]
   );
 
-  const handleSearch = useCallback((event) => {
+  const handleSearch = useCallback((event: any) => {
     const { value } = event.target;
     setQuery(value);
   }, []);

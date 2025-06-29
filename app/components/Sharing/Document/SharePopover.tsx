@@ -230,7 +230,7 @@ function SharePopover({ document, onRequestClose, visible }: Props) {
   );
 
   const handleQuery = React.useCallback(
-    (event) => {
+    (event: any) => {
       showPicker();
       setQuery(event.target.value);
     },

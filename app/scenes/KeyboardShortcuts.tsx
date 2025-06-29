@@ -501,11 +501,11 @@ function KeyboardShortcuts() {
   );
   const [searchTerm, setSearchTerm] = useState("");
   const normalizedSearchTerm = searchTerm.toLocaleLowerCase();
-  const handleChange = useCallback((event) => {
+  const handleChange = useCallback((event: any) => {
     setSearchTerm(event.target.value);
   }, []);
 
-  const handleKeyDown = useCallback((event) => {
+  const handleKeyDown = useCallback((event: any) => {
     if (event.currentTarget.value && event.key === "Escape") {
       event.preventDefault();
       event.stopPropagation();

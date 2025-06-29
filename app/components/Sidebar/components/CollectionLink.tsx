@@ -36,7 +36,7 @@ type Props = {
   onClick?: () => void;
 };
 
-const CollectionLink: React.FC<Props> = ({
+const CollectionLink: React.FC<React.PropsWithChildren<Props>> = ({
   collection,
   expanded,
   onDisclosureClick,
@@ -88,7 +88,7 @@ const CollectionLink: React.FC<Props> = ({
     useBoolean();
 
   const handleNewDoc = React.useCallback(
-    async (input) => {
+    async (input: any) => {
       const newDocument = await documents.create(
         {
           collectionId: collection.id,

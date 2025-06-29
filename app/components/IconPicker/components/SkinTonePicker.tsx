@@ -27,7 +27,7 @@ const SkinTonePicker = ({
   });
 
   const handleSkinClick = useCallback(
-    (emojiSkin) => {
+    (emojiSkin: any) => {
       menu.hide();
       onChange(emojiSkin);
     },
