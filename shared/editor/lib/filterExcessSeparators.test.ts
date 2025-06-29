@@ -3,7 +3,7 @@ import filterExcessSeparators from "./filterExcessSeparators";
 
 const embedDescriptor = new EmbedDescriptor({
   title: "Test",
-  icon: () => null,
+  icon: null,
   component: () => null,
 });
 

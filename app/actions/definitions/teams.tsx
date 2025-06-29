@@ -1,7 +1,6 @@
 import { ArrowIcon, PlusIcon } from "outline-icons";
 import styled from "styled-components";
 import { stringToColor } from "@shared/utils/color";
-import RootStore from "~/stores/RootStore";
 import { LoginDialog } from "~/scenes/Login/components/LoginDialog";
 import TeamNew from "~/scenes/TeamNew";
 import TeamLogo from "~/components/TeamLogo";
@@ -10,27 +9,25 @@ import { ActionContext } from "~/types";
 import Desktop from "~/utils/Desktop";
 import { TeamSection } from "../sections";
 
-export const switchTeamsList = ({ stores }: { stores: RootStore }) =>
+export const switchTeamsList = ({ stores }: ActionContext) =>
   stores.auth.availableTeams?.map((session) => ({
     id: `switch-${session.id}`,
     name: session.name,
     analyticsName: "Switch workspace",
     section: TeamSection,
     keywords: "change switch workspace organization team",
-    icon: function _Icon() {
-      return (
-        <StyledTeamLogo
-          alt={session.name}
-          model={{
-            initial: session.name[0],
-            avatarUrl: session.avatarUrl,
-            id: session.id,
-            color: stringToColor(session.id),
-          }}
-          size={24}
-        />
-      );
-    },
+    icon: (
+      <StyledTeamLogo
+        alt={session.name}
+        model={{
+          initial: session.name[0],
+          avatarUrl: session.avatarUrl,
+          id: session.id,
+          color: stringToColor(session.id),
+        }}
+        size={24}
+      />
+    ),
     visible: ({ currentTeamId }: ActionContext) => currentTeamId !== session.id,
     perform: () => (window.location.href = session.url),
   })) ?? [];
