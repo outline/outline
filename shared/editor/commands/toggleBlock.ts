@@ -362,26 +362,23 @@ export const splitBlockPreservingBody: Command = (state, dispatch) => {
   }
 
   const toggleBlock = $cursor!.node($cursor!.depth - 1);
-  if (!folded(toggleBlock, state) || bodyIsEmpty(toggleBlock)) {
+  if (!folded(toggleBlock, state)) {
     return false;
   }
 
-  const toggleBlockHead = toggleBlock.firstChild!;
-
-  const tr = state.tr;
-  const newToggleBlock = state.schema.nodes["container_toggle"].create(
-    { id: v4() },
-    toggleBlockHead.type.create(
+  let tr = state.tr;
+  tr = tr.insert(
+    $cursor!.after(-1),
+    toggleBlock.firstChild!.type.create(
       undefined,
       tr.doc.slice($cursor!.pos, $cursor!.end()).content
     )
   );
-  tr.replace($cursor!.pos, $cursor!.end(), Slice.empty);
-  const { $cursor: $newCursorPos } = tr.selection as TextSelection;
-  const posAfterToggleBlock = $newCursorPos!.after($newCursorPos!.depth - 1);
-  tr.insert(posAfterToggleBlock, newToggleBlock).setSelection(
-    TextSelection.near(tr.doc.resolve(posAfterToggleBlock))
+  tr = wrapNodeAt($cursor!.after(-1), toggleBlock.type, { id: v4() }, tr);
+  tr = tr.setSelection(
+    TextSelection.near(tr.doc.resolve($cursor!.after(-1)), 1)
   );
+  tr = tr.delete($cursor!.pos, $cursor!.end());
   dispatch?.(tr);
   return true;
 };
