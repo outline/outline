@@ -5,6 +5,7 @@ import { TeamPreference } from "@shared/types";
 import { loadShare } from "@server/commands/shareLoader";
 import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
+import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Document, User, Share, Team, Collection } from "@server/models";
@@ -17,7 +18,9 @@ import {
   presentDocument,
 } from "@server/presenters";
 import { APIContext } from "@server/types";
+import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { getTeamFromContext } from "@server/utils/passport";
+import { navigationNodeToSitemap } from "@server/utils/sitemap";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -322,6 +325,25 @@ router.post(
     ctx.body = {
       success: true,
     };
+  }
+);
+
+router.get(
+  "shares.sitemap",
+  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
+  validate(T.SharesSitemapSchema),
+  async (ctx: APIContext<T.SharesSitemapReq>) => {
+    const { id } = ctx.input.query;
+
+    const { share, sharedTree } = await loadShare({ id });
+
+    const baseUrl = `${process.env.URL}/s/${id}`;
+
+    ctx.set("Content-Type", "application/xml");
+    ctx.body = navigationNodeToSitemap(
+      share.allowIndexing ? sharedTree : undefined,
+      baseUrl
+    );
   }
 );
 

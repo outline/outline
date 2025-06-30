@@ -95,3 +95,11 @@ export const SharesRevokeSchema = BaseSchema.extend({
 });
 
 export type SharesRevokeReq = z.infer<typeof SharesRevokeSchema>;
+
+export const SharesSitemapSchema = BaseSchema.extend({
+  query: z.object({
+    id: z.string(),
+  }),
+});
+
+export type SharesSitemapReq = z.infer<typeof SharesSitemapSchema>;

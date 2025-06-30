@@ -102,7 +102,7 @@ export async function loadShare({
 
     if (share.collection) {
       sharedTree = associatedCollection.toNavigationNode();
-    } else if (share.document) {
+    } else if (share.document && share.includeChildDocuments) {
       sharedTree = associatedCollection.getDocumentTree(share.document.id);
     }
   } else {
