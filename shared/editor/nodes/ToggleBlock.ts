@@ -48,10 +48,12 @@ import {
   joinBackwardPreservingBody,
   selectNodeBackwardPreservingBody,
   createParagraphNearPreservingBody,
-  liftConsecutiveEmptyBlocks,
+  liftAllEmptyChildBlocks,
+  liftAllChildBlocksOfNodeAfter,
   splitBlockPreservingBody,
   liftConsecutiveBlocks,
   toggleBlock,
+  liftAllChildBlocksOfNodeBefore,
 } from "../commands/toggleBlock";
 import { CommandFactory } from "../lib/Extension";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
@@ -590,18 +592,20 @@ export default class ToggleBlock extends Node {
     return {
       Backspace: chainCommands(
         deleteSelectionPreservingBody,
+        liftAllChildBlocksOfNodeBefore,
         joinBackwardPreservingBody,
         selectNodeBackwardPreservingBody
       ),
       Enter: chainCommands(
         newlineInCode,
         createParagraphNearPreservingBody,
-        liftConsecutiveEmptyBlocks,
+        liftAllEmptyChildBlocks,
         splitBlockPreservingBody,
         splitBlock
       ),
       Delete: chainCommands(
         deleteSelectionPreservingBody,
+        liftAllChildBlocksOfNodeAfter,
         joinForwardPreservingBody,
         selectNodeForwardPreservingBody
       ),
