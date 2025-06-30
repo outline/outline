@@ -182,23 +182,23 @@ export default class ToggleBlock extends Node {
                   isNil(toggleBlock)
                     ? undefined
                     : decorationSpec.target === this.name
-                    ? Decoration.node(
-                        toggleBlock.pos,
-                        toggleBlock.pos + toggleBlock.node.nodeSize,
-                        {},
-                        decorationSpec
-                      )
-                    : Decoration.node(
-                        toggleBlock.pos + 1,
-                        toggleBlock.pos +
-                          1 +
-                          toggleBlock.node.firstChild!.nodeSize,
-                        {
-                          nodeName: "div",
-                          class: "toggle-block-head",
-                        },
-                        decorationSpec
-                      )
+                      ? Decoration.node(
+                          toggleBlock.pos,
+                          toggleBlock.pos + toggleBlock.node.nodeSize,
+                          {},
+                          decorationSpec
+                        )
+                      : Decoration.node(
+                          toggleBlock.pos + 1,
+                          toggleBlock.pos +
+                            1 +
+                            toggleBlock.node.firstChild!.nodeSize,
+                          {
+                            nodeName: "div",
+                            class: "toggle-block-head",
+                          },
+                          decorationSpec
+                        )
                 ),
                 (deco) => !isNil(deco)
               );
