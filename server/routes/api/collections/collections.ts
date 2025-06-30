@@ -8,6 +8,7 @@ import {
 } from "@shared/types";
 import collectionDestroyer from "@server/commands/collectionDestroyer";
 import collectionExporter from "@server/commands/collectionExporter";
+import { loadCollection } from "@server/commands/collectionLoader";
 import teamUpdater from "@server/commands/teamUpdater";
 import { parser } from "@server/editor";
 import auth from "@server/middlewares/authentication";
@@ -27,7 +28,7 @@ import {
   Document,
 } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
-import { authorize } from "@server/policies";
+import { authorize, cannot } from "@server/policies";
 import {
   presentCollection,
   presentUser,
@@ -41,6 +42,7 @@ import { APIContext } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { collectionIndexing } from "@server/utils/indexing";
+import { getTeamFromContext } from "@server/utils/passport";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -113,22 +115,26 @@ router.post(
 
 router.post(
   "collections.info",
-  auth(),
+  auth({ optional: true }),
   validate(T.CollectionsInfoSchema),
   async (ctx: APIContext<T.CollectionsInfoReq>) => {
-    const { id } = ctx.input.body;
+    const { id, shareId } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const collection = await Collection.findByPk(id, {
-      userId: user.id,
-      includeArchivedBy: true,
-      rejectOnEmpty: true,
+    const teamFromCtx = await getTeamFromContext(ctx);
+
+    const collection = await loadCollection({
+      id,
+      shareId,
+      teamId: teamFromCtx?.id,
+      user,
     });
 
-    authorize(user, "read", collection);
+    const isPublic = cannot(user, "read", collection);
+    const serializedCollection = await presentCollection(ctx, collection);
 
     ctx.body = {
-      data: await presentCollection(ctx, collection),
-      policies: presentPolicies(user, [collection]),
+      data: serializedCollection,
+      policies: isPublic ? undefined : presentPolicies(user, [collection]),
     };
   }
 );

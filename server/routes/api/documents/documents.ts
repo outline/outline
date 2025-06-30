@@ -597,7 +597,7 @@ router.post(
                 )
               : undefined,
             sharedTree:
-              share && share.includeChildDocuments
+              share && share.documentId && share.includeChildDocuments
                 ? collection?.getDocumentTree(share.documentId)
                 : null,
           }
@@ -705,7 +705,12 @@ router.get(
     });
 
     let tree;
-    if (share && share.includeChildDocuments && share.allowIndexing) {
+    if (
+      share &&
+      share.documentId &&
+      share.includeChildDocuments &&
+      share.allowIndexing
+    ) {
       tree = collection?.getDocumentTree(share.documentId);
     }
 

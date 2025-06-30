@@ -1,14 +1,23 @@
 import Router from "koa-router";
 import isUndefined from "lodash/isUndefined";
 import { FindOptions, Op, WhereOptions } from "sequelize";
+import { TeamPreference } from "@shared/types";
+import { loadShare } from "@server/commands/shareLoader";
 import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Document, User, Share, Team, Collection } from "@server/models";
-import { authorize } from "@server/policies";
-import { presentShare, presentPolicies } from "@server/presenters";
+import { authorize, cannot } from "@server/policies";
+import {
+  presentShare,
+  presentPolicies,
+  presentPublicTeam,
+  presentCollection,
+  presentDocument,
+} from "@server/presenters";
 import { APIContext } from "@server/types";
+import { getTeamFromContext } from "@server/utils/passport";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -16,81 +25,53 @@ const router = new Router();
 
 router.post(
   "shares.info",
-  auth(),
+  auth({ optional: true }),
   validate(T.SharesInfoSchema),
   async (ctx: APIContext<T.SharesInfoReq>) => {
-    const { id, documentId } = ctx.input.body;
+    const { id, collectionId, documentId } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const shares = [];
-    const share = await Share.scope({
-      method: ["withCollectionPermissions", user.id],
-    }).findOne({
-      where: id
-        ? {
-            id,
-            revokedAt: {
-              [Op.is]: null,
-            },
-          }
-        : {
-            documentId,
-            teamId: user.teamId,
-            revokedAt: {
-              [Op.is]: null,
-            },
-          },
-    });
+    const teamFromCtx = await getTeamFromContext(ctx);
 
-    // We return the response for the current documentId and any parent documents
-    // that are publicly shared and accessible to the user
-    if (share && share.document) {
-      authorize(user, "read", share);
-      shares.push(share);
-    }
-
-    if (documentId) {
-      const document = await Document.findByPk(documentId, {
-        userId: user.id,
+    const { share, parentShare, sharedTree, collection, document } =
+      await loadShare({
+        id,
+        collectionId,
+        documentId,
+        user,
+        teamId: teamFromCtx?.id,
       });
-      authorize(user, "read", document);
-
-      const collection = document.collectionId
-        ? await Collection.findByPk(document.collectionId, {
-            userId: user.id,
-            includeDocumentStructure: true,
-          })
-        : undefined;
-      const parentIds = collection?.getDocumentParents(documentId);
-      const parentShare = parentIds
-        ? await Share.scope({
-            method: ["withCollectionPermissions", user.id],
-          }).findOne({
-            where: {
-              documentId: parentIds,
-              teamId: user.teamId,
-              revokedAt: {
-                [Op.is]: null,
-              },
-              includeChildDocuments: true,
-              published: true,
-            },
-          })
-        : undefined;
-
-      if (parentShare && parentShare.document) {
-        authorize(user, "read", parentShare);
-        shares.push(parentShare);
-      }
-    }
+    const team = teamFromCtx?.id === share.teamId ? teamFromCtx : share.team;
+    const shares = [share, parentShare].filter(Boolean) as Share[];
 
     if (!shares.length) {
       ctx.response.status = 204;
       return;
     }
 
+    const isPublic = cannot(user, "read", document);
+    const [serializedCollection, serializedDocument, serializedTeam] =
+      await Promise.all([
+        collection ? await presentCollection(ctx, collection) : null,
+        document
+          ? await presentDocument(ctx, document, {
+              isPublic,
+              shareId: share.id,
+              includeUpdatedAt: share.showLastUpdated,
+            })
+          : null,
+        presentPublicTeam(
+          team,
+          !!team.getPreference(TeamPreference.PublicBranding)
+        ),
+      ]);
+
     ctx.body = {
       data: {
-        shares: shares.map((share) => presentShare(share, user.isAdmin)),
+        shares: shares.map((s) => presentShare(s, user?.isAdmin ?? false)),
+        sharedTree,
+        team: serializedTeam,
+        collection: serializedCollection,
+        document: serializedDocument,
       },
       policies: presentPolicies(user, shares),
     };

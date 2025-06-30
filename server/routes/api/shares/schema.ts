@@ -3,26 +3,27 @@ import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { Share } from "@server/models";
+import { zodIdType } from "@server/utils/zod";
 import { BaseSchema } from "../schema";
 
 export const SharesInfoSchema = BaseSchema.extend({
   body: z
     .object({
       id: z.string().uuid().optional(),
-      documentId: z
-        .string()
-        .optional()
-        .refine(
-          (val) =>
-            val ? isUUID(val) || UrlHelper.SLUG_URL_REGEX.test(val) : true,
-          {
-            message: "must be uuid or url slug",
-          }
-        ),
+      collectionId: zodIdType().optional(),
+      documentId: zodIdType().optional(),
     })
-    .refine((body) => !(isEmpty(body.id) && isEmpty(body.documentId)), {
-      message: "id or documentId is required",
-    }),
+    .refine(
+      (body) =>
+        !(
+          isEmpty(body.id) &&
+          isEmpty(body.collectionId) &&
+          isEmpty(body.documentId)
+        ),
+      {
+        message: "One of id, collectionId, or documentId is required",
+      }
+    ),
 });
 
 export type SharesInfoReq = z.infer<typeof SharesInfoSchema>;
