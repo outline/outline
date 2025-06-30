@@ -3,13 +3,7 @@ import findIndex from "lodash/findIndex";
 import isNull from "lodash/isNull";
 import isUndefined from "lodash/isUndefined";
 import some from "lodash/some";
-import {
-  Node,
-  NodeType,
-  ResolvedPos,
-  Slice,
-  Fragment,
-} from "prosemirror-model";
+import { Node, ResolvedPos, Slice, Fragment } from "prosemirror-model";
 import {
   Command,
   EditorState,
@@ -163,38 +157,40 @@ export const selectNodeBackwardPreservingBody: Command = (state, dispatch) => {
   return true;
 };
 
-export const sinkBlockInto =
-  (type: NodeType): Command =>
-  (state, dispatch) => {
-    const { $from } = state.selection;
+export const indentBlock: Command = (state, dispatch) => {
+  const { $from } = state.selection;
 
-    let before = -1;
-    for (let depth = $from.depth; depth >= 0; depth--) {
-      const nodeBefore = prevSibling($from, depth);
-      if (nodeBefore && nodeBefore.type === type) {
-        // before of nodeBefore
-        before = $from.posAtIndex($from.index(depth) - 1, depth);
-        break;
-      }
+  let before = -1;
+  for (let d = $from.depth; d >= 0; d--) {
+    const nodeBefore = prevSibling($from, d);
+    if (nodeBefore && nodeBefore.type === state.schema.nodes.container_toggle) {
+      // before of nodeBefore
+      before = $from.posAtIndex($from.index(d) - 1, d);
+      break;
     }
+  }
 
-    if (before === -1) {
-      return false;
-    }
+  if (before === -1) {
+    return false;
+  }
 
-    const slice = new Slice(Fragment.from(type.create()), 1, 0);
+  const slice = new Slice(
+    Fragment.from(state.schema.nodes.container_toggle.create()),
+    1,
+    0
+  );
 
-    const from = before + state.doc.nodeAt(before)!.nodeSize;
-    const to = from + state.doc.nodeAt(from)!.nodeSize;
-    const step = new ReplaceAroundStep(from - 1, to, from, to, slice, 0, true);
+  const from = before + state.doc.nodeAt(before)!.nodeSize;
+  const to = from + state.doc.nodeAt(from)!.nodeSize;
+  const step = new ReplaceAroundStep(from - 1, to, from, to, slice, 0, true);
 
-    const tr = state.tr.step(step).scrollIntoView();
-    if (dispatch) {
-      dispatch(tr);
-    }
+  const tr = state.tr.step(step).scrollIntoView();
+  if (dispatch) {
+    dispatch(tr);
+  }
 
-    return true;
-  };
+  return true;
+};
 
 export const toggleBlock: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;
@@ -319,7 +315,7 @@ export const liftAllChildBlocksOfNodeAfter: Command = (state, dispatch) => {
   return true;
 };
 
-export const liftConsecutiveBlocks: Command = (state, dispatch) => {
+export const dedentBlocks: Command = (state, dispatch) => {
   const { $from } = state.selection as TextSelection;
 
   const ancestor = nearest(
@@ -481,8 +477,8 @@ export const ancestors = (
   // Notice that ancestors are arranged in increasing order of depth
   // within the array, which implies that the index of an ancestor
   // within the array actually represents its depth within the document.
-  for (let depth = 0; depth <= $from.depth; depth++) {
-    anc.push($from!.node(depth));
+  for (let d = 0; d <= $from.depth; d++) {
+    anc.push($from!.node(d));
   }
 
   if (pred) {
