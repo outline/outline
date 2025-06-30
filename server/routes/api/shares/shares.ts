@@ -98,12 +98,20 @@ router.post(
       },
     };
 
+    const collectionWhere: WhereOptions<Collection> = {
+      teamId: user.teamId,
+      id: collectionIds,
+    };
+
     const documentWhere: WhereOptions<Document> = {
       teamId: user.teamId,
       collectionId: collectionIds,
     };
 
     if (query) {
+      collectionWhere.name = {
+        [Op.iLike]: `%${query}%`,
+      };
       documentWhere.title = {
         [Op.iLike]: `%${query}%`,
       };
@@ -117,8 +125,16 @@ router.post(
       where,
       include: [
         {
+          model: Collection.scope({
+            method: ["withMembership", user.id],
+          }),
+          as: "collection",
+          required: false,
+          where: collectionWhere,
+        },
+        {
           model: Document,
-          required: true,
+          required: false,
           paranoid: true,
           as: "document",
           where: documentWhere,
@@ -169,6 +185,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.SharesCreateReq>) => {
     const {
+      collectionId,
       documentId,
       published,
       urlId,
@@ -179,20 +196,28 @@ router.post(
     const { user } = ctx.state.auth;
     authorize(user, "createShare", user.team);
 
-    const document = await Document.findByPk(documentId, {
-      userId: user.id,
-    });
+    const collection = collectionId
+      ? await Collection.findByPk(collectionId, {
+          userId: user.id,
+        })
+      : null;
+    const document = documentId
+      ? await Document.findByPk(documentId, {
+          userId: user.id,
+        })
+      : null;
 
     // user could be creating the share link to share with team members
     authorize(user, "read", document);
 
     if (published) {
       authorize(user, "share", user.team);
-      authorize(user, "share", document);
+      authorize(user, "share", collectionId ? collection : document);
     }
 
     const [share] = await Share.findOrCreateWithCtx(ctx, {
       where: {
+        collectionId,
         documentId,
         teamId: user.teamId,
         revokedAt: null,
@@ -209,6 +234,7 @@ router.post(
 
     share.team = user.team;
     share.user = user;
+    share.collection = collection;
     share.document = document;
 
     ctx.body = {
@@ -245,12 +271,12 @@ router.post(
 
     if (published !== undefined) {
       share.published = published;
-      if (published) {
+      if (published && !!share.documentId) {
         share.includeChildDocuments = true;
       }
     }
 
-    if (includeChildDocuments !== undefined) {
+    if (!!share.documentId && includeChildDocuments !== undefined) {
       share.includeChildDocuments = includeChildDocuments;
     }
 

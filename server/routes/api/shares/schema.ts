@@ -1,5 +1,4 @@
 import isEmpty from "lodash/isEmpty";
-import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { Share } from "@server/models";
@@ -67,23 +66,24 @@ export const SharesUpdateSchema = BaseSchema.extend({
 export type SharesUpdateReq = z.infer<typeof SharesUpdateSchema>;
 
 export const SharesCreateSchema = BaseSchema.extend({
-  body: z.object({
-    documentId: z
-      .string()
-      .refine((val) => isUUID(val) || UrlHelper.SLUG_URL_REGEX.test(val), {
-        message: "must be uuid or url slug",
-      }),
-    published: z.boolean().default(false),
-    allowIndexing: z.boolean().optional(),
-    showLastUpdated: z.boolean().optional(),
-    urlId: z
-      .string()
-      .regex(UrlHelper.SHARE_URL_SLUG_REGEX, {
-        message: "must contain only alphanumeric and dashes",
-      })
-      .optional(),
-    includeChildDocuments: z.boolean().default(false),
-  }),
+  body: z
+    .object({
+      collectionId: zodIdType().optional(),
+      documentId: zodIdType().optional(),
+      published: z.boolean().default(false),
+      allowIndexing: z.boolean().optional(),
+      showLastUpdated: z.boolean().optional(),
+      urlId: z
+        .string()
+        .regex(UrlHelper.SHARE_URL_SLUG_REGEX, {
+          message: "must contain only alphanumeric and dashes",
+        })
+        .optional(),
+      includeChildDocuments: z.boolean().default(false),
+    })
+    .refine((obj) => !(isEmpty(obj.collectionId) && isEmpty(obj.documentId)), {
+      message: "one of collectionId or documentId is required",
+    }),
 });
 
 export type SharesCreateReq = z.infer<typeof SharesCreateSchema>;
