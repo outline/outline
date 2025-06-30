@@ -35,7 +35,6 @@ import {
 import { v4 } from "uuid";
 import Storage from "../../utils/Storage";
 import {
-  sinkBlockInto,
   ancestors,
   suchThat,
   depth,
@@ -51,9 +50,10 @@ import {
   liftAllEmptyChildBlocks,
   liftAllChildBlocksOfNodeAfter,
   splitBlockPreservingBody,
-  liftConsecutiveBlocks,
   toggleBlock,
   liftAllChildBlocksOfNodeBefore,
+  indentBlock,
+  dedentBlocks,
 } from "../commands/toggleBlock";
 import { CommandFactory } from "../lib/Extension";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
@@ -588,7 +588,7 @@ export default class ToggleBlock extends Node {
     return [toggleBlocksRule];
   }
 
-  keys({ type }: { type: NodeType }): Record<string, Command> {
+  keys(): Record<string, Command> {
     return {
       Backspace: chainCommands(
         deleteSelectionPreservingBody,
@@ -609,8 +609,8 @@ export default class ToggleBlock extends Node {
         joinForwardPreservingBody,
         selectNodeForwardPreservingBody
       ),
-      Tab: sinkBlockInto(type),
-      "Shift-Tab": liftConsecutiveBlocks,
+      Tab: indentBlock,
+      "Shift-Tab": dedentBlocks,
       "Mod-Enter": toggleBlock,
     };
   }
