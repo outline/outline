@@ -20,8 +20,10 @@ import { liftTarget, ReplaceAroundStep } from "prosemirror-transform";
 import { v4 } from "uuid";
 import ToggleBlock, { Action, On } from "../nodes/ToggleBlock";
 import {
+  atBlockEnd,
   atBlockStart,
   deleteSelectionTr,
+  findCutAfter,
   findCutBefore,
   joinBackwardTr,
   joinForwardTr,
@@ -334,7 +336,7 @@ export const createParagraphNearPreservingBody: Command = (state, dispatch) => {
   return true;
 };
 
-export const liftConsecutiveEmptyBlocks: Command = (state, dispatch) => {
+export const liftAllEmptyChildBlocks: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;
   if (!atStartOfToggleBlockHead($cursor)) {
     return false;
@@ -353,7 +355,37 @@ export const liftConsecutiveEmptyBlocks: Command = (state, dispatch) => {
     return false;
   }
 
-  return liftConsecutiveBlocks(state, dispatch);
+  dispatch?.(liftChildrenOfNodeAt($cursor!.before(-1), state.tr));
+  return true;
+};
+
+export const liftAllChildBlocksOfNodeBefore: Command = (state, dispatch) => {
+  const { $cursor } = state.selection as TextSelection;
+  if (!atStartOfToggleBlockHead($cursor)) {
+    return false;
+  }
+
+  dispatch?.(liftChildrenOfNodeAt($cursor!.before(-1), state.tr));
+  return true;
+};
+
+export const liftAllChildBlocksOfNodeAfter: Command = (state, dispatch) => {
+  const $cursor = atBlockEnd(state.selection);
+  if (!$cursor) {
+    return false;
+  }
+
+  const $cut = findCutAfter($cursor);
+  if (!$cut) {
+    return false;
+  }
+  if (!$cut.nodeAfter || $cut.nodeAfter.type.name !== "container_toggle") {
+    return false;
+  }
+
+  dispatch?.(liftChildrenOfNodeAt($cut.pos, state.tr));
+
+  return true;
 };
 
 export const liftConsecutiveBlocks: Command = (state, dispatch) => {

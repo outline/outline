@@ -167,7 +167,7 @@ const deleteBarrier = (
   return null;
 };
 
-const findCutAfter = ($pos: ResolvedPos) => {
+export const findCutAfter = ($pos: ResolvedPos) => {
   if (!$pos.parent.type.spec.isolating) {
     for (let i = $pos.depth - 1; i >= 0; i--) {
       const parent = $pos.node(i);
@@ -182,7 +182,7 @@ const findCutAfter = ($pos: ResolvedPos) => {
   return null;
 };
 
-const atBlockEnd = (selection: Selection): ResolvedPos | null => {
+export const atBlockEnd = (selection: Selection): ResolvedPos | null => {
   const { $cursor } = selection as TextSelection;
   if (!$cursor || $cursor.parentOffset < $cursor.parent.content.size) {
     return null;
