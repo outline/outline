@@ -786,6 +786,8 @@
   "Underline": "خط زیر",
   "Undo": "واگرد",
   "Redo": "از نو",
+  "Move block up": "Move block up",
+  "Move block down": "Move block down",
   "Lists": "فهرست‌ها",
   "Toggle task list item": "Toggle task list item",
   "Tab": "Tab",

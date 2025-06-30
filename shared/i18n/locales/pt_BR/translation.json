@@ -786,6 +786,8 @@
   "Underline": "Sublinhado",
   "Undo": "Desfazer",
   "Redo": "Refazer",
+  "Move block up": "Move block up",
+  "Move block down": "Move block down",
   "Lists": "Listas",
   "Toggle task list item": "Alternar item da lista de tarefas",
   "Tab": "Tab",

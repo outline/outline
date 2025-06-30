@@ -786,6 +786,8 @@
   "Underline": "Underline",
   "Undo": "Undo",
   "Redo": "Redo",
+  "Move block up": "Move block up",
+  "Move block down": "Move block down",
   "Lists": "Lists",
   "Toggle task list item": "Toggle task list item",
   "Tab": "Tab",

@@ -786,6 +786,8 @@
   "Underline": "Garis bawah",
   "Undo": "Urungkan",
   "Redo": "Kembalikan",
+  "Move block up": "Move block up",
+  "Move block down": "Move block down",
   "Lists": "Daftar",
   "Toggle task list item": "Toggle task list item",
   "Tab": "Tab",
