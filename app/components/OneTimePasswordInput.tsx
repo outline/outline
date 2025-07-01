@@ -48,9 +48,6 @@ const OneTimePasswordInputField = styled(OneTimePasswordField.Input)`
   line-height: 1;
   transition: box-shadow 0.1s ease-in-out;
 
-  &:hover {
-    box-shadow: 0 0 0 1px ${s("inputBorderFocused")};
-  }
   &:focus {
     box-shadow: 0 0 0 2px ${s("inputBorderFocused")};
   }

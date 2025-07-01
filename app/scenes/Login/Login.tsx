@@ -230,21 +230,26 @@ function Login({ children, onBack }: Props) {
           <Heading centered>{t("Check your email")}</Heading>
           <Note>
             <Trans
-              defaults="A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em> if an account exists."
+              defaults="Click the link in the email send to <em>{{ emailLinkSentTo }}</em>, or enter the code below"
               values={{ emailLinkSentTo }}
               components={{ em: <em /> }}
-            />
+            />.
           </Note>
-          <form
+          <Form
             method="POST"
             action="/auth/email.callback"
             onSubmit={handleEmailCodeSubmit}
+            style={{width: "100%"}}
           >
             <input type="hidden" name="email" value={emailLinkSentTo} />
             <input type="hidden" name="client" value={clientType} />
             <input type="hidden" name="follow" value="true" />
-            <OneTimePasswordInput name="code" autoSubmit />
-          </form>
+            <OneTimePasswordInput name="code" />
+            <br />
+            <ButtonLarge submit fullwidth>
+              {t("Continue")}
+            </ButtonLarge>
+          </Form>
           <br />
           <ButtonLarge onClick={handleReset} fullwidth neutral>
             {t("Back to login")}
@@ -349,6 +354,10 @@ function Login({ children, onBack }: Props) {
     </Background>
   );
 }
+
+const Form = styled.form`
+  margin: 1em 0;
+`
 
 const StyledHeading = styled(Heading)`
   margin: 0;
