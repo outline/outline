@@ -4,7 +4,8 @@ import find from "lodash/find";
 import isUndefined from "lodash/isUndefined";
 import orderBy from "lodash/orderBy";
 import { action, computed, observable } from "mobx";
-import type { JSONObject, NavigationNode, PublicTeam } from "@shared/types";
+import type { NavigationNode, PublicTeam } from "@shared/types";
+import Document from "~/models/Document";
 import Share from "~/models/Share";
 import type { PartialExcept } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -66,31 +67,7 @@ export default class SharesStore extends Store<Share> {
   }
 
   @action
-  async fetch(documentId: string, options: JSONObject = {}): Promise<any> {
-    const item = this.getByDocumentId(documentId);
-    if (item && !options.force) {
-      return item;
-    }
-    this.isFetching = true;
-
-    try {
-      const res = await client.post(`/${this.apiEndpoint}.info`, {
-        documentId,
-      });
-
-      if (isUndefined(res)) {
-        return;
-      }
-      invariant(res?.data, "Data should be available");
-      this.addPolicies(res.policies);
-      return res.data.shares.map(this.add);
-    } finally {
-      this.isFetching = false;
-    }
-  }
-
-  @action
-  async fetchWithSharedTree(id: string) {
+  async fetch(id: string) {
     const share = this.get(id);
     const cache = this.sharedCache.get(id);
     if (share && cache) {
@@ -120,16 +97,44 @@ export default class SharesStore extends Store<Share> {
       });
       this.addPolicies(res.policies);
 
-      return this.data.get(id);
+      return this.data.get(id)!;
     } finally {
       this.isFetching = false;
     }
   }
 
-  getByDocumentParents = (documentId: string): Share | undefined => {
-    const document = this.rootStore.documents.get(documentId);
-    if (!document) {
-      return;
+  @action
+  async fetchOne(params: { documentId: string } | { collectionId: string }) {
+    const share =
+      "collectionId" in params
+        ? this.getByCollectionId(params.collectionId)
+        : this.getByDocumentId(params.documentId);
+    if (share) {
+      return share;
+    }
+    this.isFetching = true;
+
+    try {
+      const res = await client.post(`/${this.apiEndpoint}.info`, params);
+
+      if (isUndefined(res)) {
+        return;
+      }
+      invariant(res?.data, "Data should be available");
+      this.addPolicies(res.policies);
+      return res.data.shares.map(this.add);
+    } finally {
+      this.isFetching = false;
+    }
+  }
+
+  getByDocumentParents = (document: Document): Share | undefined => {
+    const collectionShare = document.collectionId
+      ? this.getByCollectionId(document.collectionId)
+      : undefined;
+
+    if (collectionShare?.published) {
+      return collectionShare;
     }
 
     const collection = document.collectionId
@@ -140,7 +145,7 @@ export default class SharesStore extends Store<Share> {
     }
 
     const parentIds = collection
-      .pathToDocument(documentId)
+      .pathToDocument(document.id)
       .slice(0, -1)
       .map((p) => p.id);
 

@@ -33,10 +33,10 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
         {
           type: "data",
           id: "title",
-          header: t("Document"),
-          accessor: (share) => share.documentTitle || t("Untitled"),
+          header: t("Title"),
+          accessor: (share) => share.sourceTitle || t("Untitled"),
           sortable: false,
-          component: (share) => <>{share.documentTitle || t("Untitled")}</>,
+          component: (share) => <>{share.sourceTitle || t("Untitled")}</>,
           width: "4fr",
         },
         {

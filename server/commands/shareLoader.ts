@@ -148,7 +148,7 @@ export async function loadShare({
     if (documentId) {
       authorize(user!, "read", share.document);
 
-      const docCollectionId = share.collectionId ?? share.document.collectionId;
+      const docCollectionId = share.document.collectionId;
 
       if (!docCollectionId) {
         throw NotFoundError("Collection not found for the shared document");
@@ -160,27 +160,44 @@ export async function loadShare({
         rejectOnEmpty: true,
       });
 
-      const parentIds = docCollection.getDocumentParents(documentId);
+      const collectionShare = await Share.scope({
+        method: ["withCollectionPermissions", user!.id],
+      }).findOne({
+        where: {
+          revokedAt: {
+            [Op.is]: null,
+          },
+          published: true,
+          teamId: user!.teamId,
+          collectionId: docCollectionId,
+        },
+      });
 
-      const allParentShares = parentIds
-        ? await Share.scope({
-            method: ["withCollectionPermissions", user!.id],
-          }).findAll({
-            where: {
-              revokedAt: {
-                [Op.is]: null,
+      // prefer collection share if it exists and user has read access.
+      if (collectionShare && can(user!, "read", collectionShare)) {
+        parentShare = collectionShare;
+      } else {
+        const parentDocIds = docCollection.getDocumentParents(documentId);
+
+        const allParentShares = parentDocIds
+          ? await Share.scope({
+              method: ["withCollectionPermissions", user!.id],
+            }).findAll({
+              where: {
+                revokedAt: {
+                  [Op.is]: null,
+                },
+                published: true,
+                teamId: user!.teamId,
+                includeChildDocuments: true,
+                documentId: parentDocIds,
               },
-              published: true,
-              teamId: user!.teamId,
-              [Op.or]: [
-                { collectionId: share.document.collectionId },
-                { documentId: parentIds, includeChildDocuments: true },
-              ],
-            },
-          })
-        : null;
+            })
+          : null;
 
-      parentShare = allParentShares?.find((s) => can(user!, "read", s)) ?? null;
+        parentShare =
+          allParentShares?.find((s) => can(user!, "read", s)) ?? null;
+      }
     }
   }
 

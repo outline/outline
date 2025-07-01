@@ -49,6 +49,12 @@ class Share extends Model implements Searchable {
   domain: string;
 
   @observable
+  sourceTitle: string;
+
+  @observable
+  sourceUrl: string;
+
+  @observable
   documentTitle: string;
 
   @observable
@@ -76,8 +82,18 @@ class Share extends Model implements Searchable {
   createdBy: User;
 
   @computed
+  get title(): string {
+    return this.sourceTitle ?? this.documentTitle;
+  }
+
+  @computed
+  get sourcePath(): string {
+    return this.sourceUrl ?? this.documentUrl;
+  }
+
+  @computed
   get searchContent(): string[] {
-    return [this.document?.title ?? this.documentTitle];
+    return [this.title];
   }
 
   @computed

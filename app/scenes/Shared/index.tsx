@@ -133,7 +133,7 @@ function SharedScene() {
     useCallback(
       () =>
         Promise.all([
-          shares.fetchWithSharedTree(shareId),
+          shares.fetch(shareId),
           collectionSlug ? collections.fetch(collectionSlug) : undefined,
           documentSlug ? documents.fetch(documentSlug) : undefined,
         ]),
