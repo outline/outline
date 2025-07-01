@@ -11,6 +11,7 @@ import { matchDocumentSlug as slug } from "~/utils/routeHelpers";
 
 const Authenticated = lazy(() => import("~/components/Authenticated"));
 const AuthenticatedRoutes = lazy(() => import("./authenticated"));
+const Shared = lazy(() => import("~/scenes/Shared"));
 const SharedDocument = lazy(() => import("~/scenes/Document/Shared"));
 const Login = lazy(() => import("~/scenes/Login"));
 const Logout = lazy(() => import("~/scenes/Logout"));
@@ -29,8 +30,8 @@ export default function Routes() {
     >
       {env.ROOT_SHARE_ID ? (
         <Switch>
-          <Route exact path="/" component={SharedDocument} />
-          <Route exact path={`/doc/${slug}`} component={SharedDocument} />
+          <Route exact path="/" component={Shared} />
+          <Route exact path={`/doc/${slug}`} component={Shared} />
           <Redirect exact from="/s/:shareId" to="/" />
           <Redirect
             exact
@@ -47,18 +48,14 @@ export default function Routes() {
           <Route exact path="/oauth/authorize" component={OAuthAuthorize} />
 
           <Redirect exact from="/share/:shareId" to="/s/:shareId" />
-          <Route exact path="/s/:shareId" component={SharedDocument} />
+          <Route exact path="/s/:shareId" component={Shared} />
 
           <Redirect
             exact
             from={`/share/:shareId/doc/${slug}`}
             to={`/s/:shareId/doc/${slug}`}
           />
-          <Route
-            exact
-            path={`/s/:shareId/doc/${slug}`}
-            component={SharedDocument}
-          />
+          <Route exact path={`/s/:shareId/doc/${slug}`} component={Shared} />
 
           <Authenticated>
             <AuthenticatedRoutes />

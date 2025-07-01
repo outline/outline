@@ -3,9 +3,9 @@ import filter from "lodash/filter";
 import find from "lodash/find";
 import isUndefined from "lodash/isUndefined";
 import orderBy from "lodash/orderBy";
-import { action, computed } from "mobx";
+import { action, computed, observable } from "mobx";
 import type { Required } from "utility-types";
-import type { JSONObject } from "@shared/types";
+import type { JSONObject, NavigationNode, PublicTeam } from "@shared/types";
 import Share from "~/models/Share";
 import type { Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -19,6 +19,12 @@ export default class SharesStore extends Store<Share> {
     RPCAction.Create,
     RPCAction.Update,
   ];
+
+  @observable
+  sharedCache: Map<
+    string,
+    { sharedTree: NavigationNode | null; team: PublicTeam } | undefined
+  > = new Map();
 
   constructor(rootStore: RootStore) {
     super(rootStore, Share);
@@ -70,6 +76,43 @@ export default class SharesStore extends Store<Share> {
       invariant(res?.data, "Data should be available");
       this.addPolicies(res.policies);
       return res.data.shares.map(this.add);
+    } finally {
+      this.isFetching = false;
+    }
+  }
+
+  @action
+  async fetchWithSharedTree(id: string) {
+    const share = this.get(id);
+    const cache = this.sharedCache.get(id);
+    if (share && cache) {
+      return share;
+    }
+
+    this.isFetching = true;
+    try {
+      const res = await client.post(`/${this.apiEndpoint}.info`, {
+        id,
+      });
+      invariant(res?.data, "Data should be available");
+
+      res.data.shares.map(this.add);
+
+      if (res.data.collection) {
+        this.rootStore.collections.add(res.data.collection);
+      }
+
+      if (res.data.document) {
+        this.rootStore.documents.add(res.data.document);
+      }
+
+      this.sharedCache.set(id, {
+        sharedTree: res.data.sharedTree,
+        team: res.data.team,
+      });
+      this.addPolicies(res.policies);
+
+      return this.data.get(id);
     } finally {
       this.isFetching = false;
     }

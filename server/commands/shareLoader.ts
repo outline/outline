@@ -67,22 +67,35 @@ export async function loadShare({
       where,
       include: [
         {
-          model: Document.scope("withDrafts"),
+          model: Document.scope([
+            "withDrafts",
+            { method: ["withMembership", user?.id] },
+          ]),
           as: "document",
           include: [
             {
-              model: Collection.scope("withDocumentStructure"),
+              model: Collection.scope([
+                "withDocumentStructure",
+                { method: ["withMembership", user?.id] },
+              ]),
               as: "collection",
             },
           ],
         },
         {
-          model: Collection.scope("withDocumentStructure"),
+          model: Collection.scope([
+            "withDocumentStructure",
+            { method: ["withMembership", user?.id] },
+          ]),
           as: "collection",
         },
       ],
-      rejectOnEmpty: true,
     });
+
+    if (!share) {
+      throw NotFoundError();
+    }
+
     document = share.document;
     collection = share.collection;
 

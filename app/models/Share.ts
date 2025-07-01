@@ -1,4 +1,6 @@
 import { computed, observable } from "mobx";
+import { NavigationNode, PublicTeam } from "@shared/types";
+import SharesStore from "~/stores/SharesStore";
 import Collection from "./Collection";
 import Document from "./Document";
 import User from "./User";
@@ -9,6 +11,8 @@ import { Searchable } from "./interfaces/Searchable";
 
 class Share extends Model implements Searchable {
   static modelName = "Share";
+
+  store: SharesStore;
 
   @Field
   @observable
@@ -74,6 +78,16 @@ class Share extends Model implements Searchable {
   @computed
   get searchContent(): string[] {
     return [this.document?.title ?? this.documentTitle];
+  }
+
+  @computed
+  get team(): PublicTeam | undefined {
+    return this.store.sharedCache.get(this.id)?.team;
+  }
+
+  @computed
+  get tree(): NavigationNode | undefined {
+    return this.store.sharedCache.get(this.id)?.sharedTree ?? undefined;
   }
 }
 
