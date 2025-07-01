@@ -265,16 +265,9 @@ export const liftAllEmptyChildBlocks: Command = (state, dispatch) => {
     return false;
   }
 
-  const isEmpty = (node: Node) => {
-    let empty = false;
-    node.forEach((child) => {
-      empty = !child.content.size;
-    });
-    return empty;
-  };
-
   const toggleBlock = $cursor!.node(-1);
-  if (!isEmpty(toggleBlock)) {
+  const empty = headIsEmpty(toggleBlock) && bodyIsEmpty(toggleBlock);
+  if (!empty) {
     return false;
   }
 
