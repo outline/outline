@@ -405,16 +405,14 @@ const headIsEmpty = (toggleBlock: Node) =>
   toggleBlock.firstChild!.content.size === 0;
 
 export const bodyIsEmpty = (toggleBlock: Node) => {
-  let bodyContent = "";
-  toggleBlock.forEach((child, _, index) => {
-    if (index === 0) {
-      return;
+  let empty = true;
+  for (let i = 1; i < toggleBlock.childCount; i++) {
+    empty &&= !toggleBlock.child(i).content.size;
+    if (!empty) {
+      break;
     }
-
-    bodyContent += child.textContent.trim();
-  });
-
-  return bodyContent.length === 0;
+  }
+  return empty;
 };
 
 const atEndOfToggleBlockHead = ($cursor: ResolvedPos | null) =>
