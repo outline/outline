@@ -47,7 +47,7 @@ async function documentImporter({
 
   // If the first line of the imported text looks like a markdown heading
   // then we can use this as the document title rather than the file name.
-  if (text.trim().startsWith("# ")) {
+  if (text.startsWith("# ")) {
     const result = parseTitle(text);
     title = result.title;
     text = text.replace(/^.+(\n|$)/, "");
