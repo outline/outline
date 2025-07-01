@@ -19,7 +19,7 @@ if (environment.NODE_ENV === "development") {
       key: fs.readFileSync("./server/config/certs/private.key"),
       cert: fs.readFileSync("./server/config/certs/public.cert"),
     };
-  } catch (err) {
+  } catch (_err) {
     // eslint-disable-next-line no-console
     console.warn("No local SSL certs found, HTTPS will not be available");
   }
@@ -197,15 +197,11 @@ export default () =>
       outDir: "./build/app",
       manifest: true,
       sourcemap: process.env.CI ? false : "hidden",
-      minify: "terser",
+      minify: "oxc",
       // Prevent asset inling as it does not conform to CSP rules
       assetsInlineLimit: 0,
       target: browserslistToEsbuild(),
       reportCompressedSize: false,
-      terserOptions: {
-        keep_classnames: true,
-        keep_fnames: true,
-      },
       rollupOptions: {
         onwarn(warning, warn) {
           // Suppress noisy warnings about module-level directives, e.g. "use client"
