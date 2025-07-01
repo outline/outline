@@ -12,13 +12,16 @@ import { chainCommands, newlineInCode, splitBlock } from "prosemirror-commands";
 import { wrappingInputRule } from "prosemirror-inputrules";
 import { ParseSpec } from "prosemirror-markdown";
 import {
+  Fragment,
   NodeSpec,
   NodeType,
   Node as ProsemirrorNode,
   Schema,
+  Slice,
 } from "prosemirror-model";
 import {
   Command,
+  EditorState,
   Plugin,
   PluginKey,
   TextSelection,
@@ -40,7 +43,6 @@ import {
   depth,
   furthest,
   bodyIsEmpty,
-  folded,
   deleteSelectionPreservingBody,
   joinForwardPreservingBody,
   selectNodeForwardPreservingBody,
@@ -537,7 +539,7 @@ export default class ToggleBlock extends Node {
                 (block) =>
                   block.node.type.name === this.name &&
                   block.node.childCount === 1 &&
-                  !folded(block.node, newState)
+                  !ToggleBlock.getUtils(newState).folded(block.node)
               ),
               (toggleBlock) => {
                 tr = newState.tr.setMeta(ToggleBlock.actionPluginKey, {
@@ -659,6 +661,44 @@ export default class ToggleBlock extends Node {
     return {
       block: "container_toggle",
     };
+  }
+
+  static getUtils(state: EditorState) {
+    let body: Fragment;
+    const detachBody = (pos: number, tr: Transaction) => {
+      const $start = tr.doc.resolve(pos + 1);
+      const toggleBlock = tr.doc.nodeAt(pos);
+
+      const posBeforeBody = $start.pos + toggleBlock!.firstChild!.nodeSize;
+      const posAfterBody = $start.end();
+      body = tr.doc.slice(posBeforeBody, posAfterBody).content;
+
+      return tr.replace(posBeforeBody, posAfterBody, Slice.empty);
+    };
+
+    const attachBody = (pos: number, tr: Transaction) => {
+      const $start = tr.doc.resolve(pos + 1);
+      const toggleBlock = tr.doc.nodeAt(pos);
+
+      const posAfterHead = $start.pos + toggleBlock!.firstChild!.nodeSize;
+      return tr.insert(posAfterHead, body);
+    };
+
+    const folded = (toggleBlock: ProsemirrorNode) =>
+      some(
+        ToggleBlock.actionPluginKey
+          .getState(state)
+          ?.find(
+            undefined,
+            undefined,
+            (spec) =>
+              spec.nodeId === toggleBlock!.attrs.id &&
+              spec.target === toggleBlock!.type.name &&
+              spec.fold === true
+          )
+      );
+
+    return { detachBody, attachBody, folded };
   }
 }
 

@@ -4,12 +4,7 @@ import isNull from "lodash/isNull";
 import isUndefined from "lodash/isUndefined";
 import some from "lodash/some";
 import { Node, ResolvedPos, Slice, Fragment } from "prosemirror-model";
-import {
-  Command,
-  EditorState,
-  TextSelection,
-  Transaction,
-} from "prosemirror-state";
+import { Command, TextSelection, Transaction } from "prosemirror-state";
 import { liftTarget, ReplaceAroundStep } from "prosemirror-transform";
 import { v4 } from "uuid";
 import ToggleBlock, { Action, On } from "../nodes/ToggleBlock";
@@ -39,15 +34,15 @@ export const deleteSelectionPreservingBody: Command = (state, dispatch) => {
   }
 
   const toggleBlock = $from.node($from.depth - 1);
-  if (!folded(toggleBlock, state)) {
+  const { folded, detachBody, attachBody } = ToggleBlock.getUtils(state);
+  if (!folded(toggleBlock)) {
     return false;
   }
 
   const pos = $from.before($from.depth - 1);
-  const { detachBody, attachBody } = getUtils(pos);
-  let tr = detachBody(state.tr);
+  let tr = detachBody(pos, state.tr);
   tr = deleteSelectionTr(tr);
-  tr = attachBody(tr);
+  tr = attachBody(pos, tr);
   dispatch?.(tr.scrollIntoView());
   return true;
 };
@@ -60,18 +55,18 @@ export const joinForwardPreservingBody: Command = (state, dispatch) => {
   }
 
   const toggleBlock = $cursor!.node($cursor!.depth - 1);
-  if (!folded(toggleBlock, state)) {
+  const { folded, detachBody, attachBody } = ToggleBlock.getUtils(state);
+  if (!folded(toggleBlock)) {
     return false;
   }
 
   const pos = $cursor!.before($cursor!.depth - 1);
 
-  const { detachBody, attachBody } = getUtils(pos);
-  let tr = detachBody(state.tr);
+  let tr = detachBody(pos, state.tr);
   tr = liftChildrenOfNodeAt(pos, tr);
   tr = joinForwardTr(tr);
   tr = wrapNodeAt(pos, toggleBlock.type, toggleBlock.attrs, tr);
-  tr = attachBody(tr);
+  tr = attachBody(pos, tr);
   dispatch?.(tr);
   return true;
 };
@@ -91,18 +86,18 @@ export const joinBackwardPreservingBody: Command = (state, dispatch) => {
   }
 
   const toggleBlock = $cut.nodeBefore;
-  if (!folded(toggleBlock, state)) {
+  const { folded, detachBody, attachBody } = ToggleBlock.getUtils(state);
+  if (!folded(toggleBlock)) {
     return false;
   }
 
   const pos = $cut.pos - toggleBlock.nodeSize;
 
-  const { detachBody, attachBody } = getUtils(pos);
-  let tr = detachBody(state.tr);
+  let tr = detachBody(pos, state.tr);
   tr = liftChildrenOfNodeAt(pos, tr);
   tr = joinBackwardTr(tr);
   tr = wrapNodeAt(pos, toggleBlock.type, toggleBlock.attrs, tr);
-  tr = attachBody(tr);
+  tr = attachBody(pos, tr);
   dispatch?.(tr);
   return true;
 };
@@ -115,15 +110,15 @@ export const selectNodeForwardPreservingBody: Command = (state, dispatch) => {
   }
 
   const toggleBlock = $cursor!.node($cursor!.depth - 1);
-  if (!folded(toggleBlock, state)) {
+  const { folded, detachBody, attachBody } = ToggleBlock.getUtils(state);
+  if (!folded(toggleBlock)) {
     return false;
   }
 
   const pos = $cursor!.before($cursor!.depth - 1);
-  const { detachBody, attachBody } = getUtils(pos);
-  let tr = detachBody(state.tr);
+  let tr = detachBody(pos, state.tr);
   tr = selectNodeForwardTr(tr);
-  tr = attachBody(tr);
+  tr = attachBody(pos, tr);
   dispatch?.(tr);
   return true;
 };
@@ -144,15 +139,15 @@ export const selectNodeBackwardPreservingBody: Command = (state, dispatch) => {
   }
 
   const toggleBlock = $cut.nodeBefore;
-  if (!folded(toggleBlock, state)) {
+  const { folded, detachBody, attachBody } = ToggleBlock.getUtils(state);
+  if (!folded(toggleBlock)) {
     return false;
   }
 
   const pos = $cursor.before() - toggleBlock.nodeSize;
-  const { detachBody, attachBody } = getUtils(pos);
-  let tr = detachBody(state.tr);
+  let tr = detachBody(pos, state.tr);
   tr = selectNodeBackwardTr(tr);
-  tr = attachBody(tr);
+  tr = attachBody(pos, tr);
   dispatch?.(tr);
   return true;
 };
@@ -203,9 +198,9 @@ export const toggleBlock: Command = (state, dispatch) => {
   );
 
   const pos = $cursor!.before(depth(toggleBlock!, $cursor!));
-
+  const { folded } = ToggleBlock.getUtils(state);
   dispatch?.(
-    folded(toggleBlock!, state)
+    folded(toggleBlock!)
       ? state.tr
           .setMeta(ToggleBlock.actionPluginKey, {
             type: Action.UNFOLD,
@@ -243,7 +238,8 @@ export const createParagraphNearPreservingBody: Command = (state, dispatch) => {
   if (headIsEmpty(toggleBlock)) {
     return false;
   }
-  if (!folded(toggleBlock, state)) {
+  const { folded } = ToggleBlock.getUtils(state);
+  if (!folded(toggleBlock)) {
     return false;
   }
 
@@ -358,7 +354,8 @@ export const splitBlockPreservingBody: Command = (state, dispatch) => {
   }
 
   const toggleBlock = $cursor!.node($cursor!.depth - 1);
-  if (!folded(toggleBlock, state)) {
+  const { folded } = ToggleBlock.getUtils(state);
+  if (!folded(toggleBlock)) {
     return false;
   }
 
@@ -424,20 +421,6 @@ const atEndOfToggleBlockHead = ($cursor: ResolvedPos | null) =>
   withinToggleBlockHead($cursor) &&
   $cursor!.parentOffset === $cursor?.node().content.size;
 
-export const folded = (toggleBlock: Node, state: EditorState) =>
-  some(
-    ToggleBlock.actionPluginKey
-      .getState(state)
-      ?.find(
-        undefined,
-        undefined,
-        (spec) =>
-          spec.nodeId === toggleBlock.attrs.id &&
-          spec.target === toggleBlock.type.name &&
-          spec.fold === true
-      )
-  );
-
 const liftChildrenOfNodeAt = (pos: number, tr: Transaction): Transaction => {
   const node = tr.doc.nodeAt(pos);
   const start = pos + 1;
@@ -502,27 +485,3 @@ const nearest = (ancestors: Node[]) =>
   ancestors.pop();
 
 export const furthest = (ancestors: Node[]) => ancestors.shift();
-
-const getUtils = (pos: number) => {
-  let body: Fragment;
-  const detachBody = (tr: Transaction) => {
-    const $start = tr.doc.resolve(pos + 1);
-    const toggleBlock = tr.doc.nodeAt(pos);
-
-    const posBeforeBody = $start.pos + toggleBlock!.firstChild!.nodeSize;
-    const posAfterBody = $start.end();
-    body = tr.doc.slice(posBeforeBody, posAfterBody).content;
-
-    return tr.replace(posBeforeBody, posAfterBody, Slice.empty);
-  };
-
-  const attachBody = (tr: Transaction) => {
-    const $start = tr.doc.resolve(pos + 1);
-    const toggleBlock = tr.doc.nodeAt(pos);
-
-    const posAfterHead = $start.pos + toggleBlock!.firstChild!.nodeSize;
-    return tr.insert(posAfterHead, body);
-  };
-
-  return { detachBody, attachBody };
-};
