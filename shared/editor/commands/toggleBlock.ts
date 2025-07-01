@@ -235,7 +235,7 @@ export const createParagraphNearPreservingBody: Command = (state, dispatch) => {
   }
 
   const toggleBlock = $cursor.node(-1);
-  if (headIsEmpty(toggleBlock)) {
+  if (ToggleBlock.isHeadEmpty(toggleBlock)) {
     return false;
   }
   const { folded } = ToggleBlock.getUtils(state);
@@ -266,8 +266,7 @@ export const liftAllEmptyChildBlocks: Command = (state, dispatch) => {
   }
 
   const toggleBlock = $cursor!.node(-1);
-  const empty = headIsEmpty(toggleBlock) && bodyIsEmpty(toggleBlock);
-  if (!empty) {
+  if (!ToggleBlock.isEmpty(toggleBlock)) {
     return false;
   }
 
@@ -393,20 +392,6 @@ const inMiddleOfToggleBlockHead = ($cursor: ResolvedPos | null) =>
   withinToggleBlockHead($cursor) &&
   $cursor!.parentOffset > 0 &&
   $cursor!.parentOffset < $cursor!.node().content.size;
-
-const headIsEmpty = (toggleBlock: Node) =>
-  toggleBlock.firstChild!.content.size === 0;
-
-export const bodyIsEmpty = (toggleBlock: Node) => {
-  let empty = true;
-  for (let i = 1; i < toggleBlock.childCount; i++) {
-    empty &&= !toggleBlock.child(i).content.size;
-    if (!empty) {
-      break;
-    }
-  }
-  return empty;
-};
 
 const atEndOfToggleBlockHead = ($cursor: ResolvedPos | null) =>
   withinToggleBlockHead($cursor) &&

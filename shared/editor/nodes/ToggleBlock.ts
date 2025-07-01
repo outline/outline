@@ -42,7 +42,6 @@ import {
   suchThat,
   depth,
   furthest,
-  bodyIsEmpty,
   deleteSelectionPreservingBody,
   joinForwardPreservingBody,
   selectNodeForwardPreservingBody,
@@ -568,7 +567,7 @@ export default class ToggleBlock extends Node {
             !isNull(parent) &&
             parent.type.name === "container_toggle" &&
             $start.index($start.depth - 1) === 1 &&
-            bodyIsEmpty(parent) &&
+            ToggleBlock.isBodyEmpty(parent) &&
             (state.selection.$from.pos < $start.pos ||
               state.selection.$from.pos > $start.end($start.depth - 1)),
           text: this.options.dictionary.emptyToggleBlockBody,
@@ -661,6 +660,28 @@ export default class ToggleBlock extends Node {
     return {
       block: "container_toggle",
     };
+  }
+
+  static isEmpty(toggleBlock: ProsemirrorNode) {
+    return (
+      ToggleBlock.isHeadEmpty(toggleBlock) &&
+      ToggleBlock.isBodyEmpty(toggleBlock)
+    );
+  }
+
+  static isHeadEmpty(toggleBlock: ProsemirrorNode) {
+    return toggleBlock.firstChild!.content.size === 0;
+  }
+
+  static isBodyEmpty(toggleBlock: ProsemirrorNode) {
+    let empty = true;
+    for (let i = 1; i < toggleBlock.childCount; i++) {
+      empty &&= !toggleBlock.child(i).content.size;
+      if (!empty) {
+        break;
+      }
+    }
+    return empty;
   }
 
   static getUtils(state: EditorState) {
