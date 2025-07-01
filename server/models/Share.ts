@@ -53,7 +53,15 @@ import Length from "./validators/Length";
   withCollectionPermissions: (userId: string) => ({
     include: [
       {
-        attributes: ["id", "permission", "sharing", "teamId", "deletedAt"],
+        attributes: [
+          "id",
+          "name",
+          "permission",
+          "sharing",
+          "urlId",
+          "teamId",
+          "deletedAt",
+        ],
         model: Collection.scope({
           method: ["withMembership", userId],
         }),
@@ -70,7 +78,15 @@ import Length from "./validators/Length";
         as: "document",
         include: [
           {
-            attributes: ["id", "permission", "sharing", "teamId", "deletedAt"],
+            attributes: [
+              "id",
+              "name",
+              "permission",
+              "urlId",
+              "sharing",
+              "teamId",
+              "deletedAt",
+            ],
             model: Collection.scope({
               method: ["withMembership", userId],
             }),

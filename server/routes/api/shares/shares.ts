@@ -211,7 +211,7 @@ router.post(
       : null;
 
     // user could be creating the share link to share with team members
-    authorize(user, "read", document);
+    authorize(user, "read", collectionId ? collection : document);
 
     if (published) {
       authorize(user, "share", user.team);
@@ -220,8 +220,8 @@ router.post(
 
     const [share] = await Share.findOrCreateWithCtx(ctx, {
       where: {
-        collectionId,
-        documentId,
+        collectionId: collectionId ?? null,
+        documentId: documentId ?? null,
         teamId: user.teamId,
         revokedAt: null,
       },

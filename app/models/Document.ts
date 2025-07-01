@@ -453,6 +453,7 @@ export default class Document extends ArchivableModel implements Searchable {
   @action
   share = async () =>
     this.store.rootStore.shares.create({
+      type: "document",
       documentId: this.id,
     });
 

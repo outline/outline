@@ -4,10 +4,9 @@ import find from "lodash/find";
 import isUndefined from "lodash/isUndefined";
 import orderBy from "lodash/orderBy";
 import { action, computed, observable } from "mobx";
-import type { Required } from "utility-types";
 import type { JSONObject, NavigationNode, PublicTeam } from "@shared/types";
 import Share from "~/models/Share";
-import type { Properties } from "~/types";
+import type { PartialExcept } from "~/types";
 import { client } from "~/utils/ApiClient";
 import RootStore from "./RootStore";
 import Store, { RPCAction } from "./base/Store";
@@ -49,11 +48,20 @@ export default class SharesStore extends Store<Share> {
   };
 
   @action
-  async create(params: Required<Properties<Share>, "documentId">) {
-    const item = this.getByDocumentId(params.documentId);
+  async create(
+    params:
+      | (PartialExcept<Share, "collectionId"> & { type: "collection" })
+      | (PartialExcept<Share, "documentId"> & { type: "document" })
+  ): Promise<Share> {
+    const item =
+      params.type === "collection"
+        ? this.getByCollectionId(params.collectionId)
+        : this.getByDocumentId(params.documentId);
+
     if (item) {
       return item;
     }
+
     return super.create(params);
   }
 
