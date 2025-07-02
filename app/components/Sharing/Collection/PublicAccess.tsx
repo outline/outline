@@ -58,19 +58,6 @@ function InnerPublicAccess({ collection, share }: Props) {
     [share]
   );
 
-  const handleShowLastModifiedChanged = useCallback(
-    async (checked: boolean) => {
-      try {
-        await share?.save({
-          showLastUpdated: checked,
-        });
-      } catch (err) {
-        toast.error(err.message);
-      }
-    },
-    [share]
-  );
-
   const handlePublishedChange = useCallback(
     async (checked: boolean) => {
       try {
@@ -174,31 +161,6 @@ function InnerPublicAccess({ collection, share }: Props) {
                   aria-label={t("Search engine indexing")}
                   checked={share?.allowIndexing ?? false}
                   onChange={handleIndexingChanged}
-                  width={26}
-                  height={14}
-                />
-              }
-            />
-            <ListItem
-              title={
-                <Text type="tertiary" as={Flex}>
-                  {t("Show last modified")}&nbsp;
-                  <Tooltip
-                    content={t(
-                      "Display the last modified timestamp on the shared page"
-                    )}
-                  >
-                    <NudeButton size={18}>
-                      <QuestionMarkIcon size={18} />
-                    </NudeButton>
-                  </Tooltip>
-                </Text>
-              }
-              actions={
-                <Switch
-                  aria-label={t("Show last modified")}
-                  checked={share?.showLastUpdated ?? false}
-                  onChange={handleShowLastModifiedChanged}
                   width={26}
                   height={14}
                 />

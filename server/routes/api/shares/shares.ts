@@ -51,13 +51,19 @@ router.post(
       return;
     }
 
-    const isPublic = cannot(user, "read", document);
+    const isPublicCollection = cannot(user, "read", collection);
+    const isPublicDocument = cannot(user, "read", document);
     const [serializedCollection, serializedDocument, serializedTeam] =
       await Promise.all([
-        collection ? await presentCollection(ctx, collection) : null,
+        collection
+          ? await presentCollection(ctx, collection, {
+              isPublic: isPublicCollection,
+              shareId: share.id,
+            })
+          : null,
         document
           ? await presentDocument(ctx, document, {
-              isPublic,
+              isPublic: isPublicDocument,
               shareId: share.id,
               includeUpdatedAt: share.showLastUpdated,
             })

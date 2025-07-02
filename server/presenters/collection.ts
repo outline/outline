@@ -3,9 +3,17 @@ import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { APIContext } from "@server/types";
 import presentUser from "./user";
 
+type Options = {
+  /** Whether to render the collection's public fields. */
+  isPublic?: boolean;
+  /** The root share ID when presenting a shared collection. */
+  shareId?: string;
+};
+
 export default async function presentCollection(
   ctx: APIContext | undefined,
-  collection: Collection
+  collection: Collection,
+  options: Options = {}
 ) {
   const asData = !ctx || Number(ctx?.headers["x-api-version"] ?? 0) >= 3;
 
@@ -14,7 +22,16 @@ export default async function presentCollection(
     url: collection.url,
     urlId: collection.urlId,
     name: collection.name,
-    data: asData ? await DocumentHelper.toJSON(collection) : undefined,
+    data: asData
+      ? await DocumentHelper.toJSON(
+          collection,
+          options.isPublic
+            ? {
+                internalUrlBase: `/s/${options.shareId}`,
+              }
+            : undefined
+        )
+      : undefined,
     description: asData ? undefined : collection.description,
     sort: collection.sort,
     icon: collection.icon,
