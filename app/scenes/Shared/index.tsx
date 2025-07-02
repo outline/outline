@@ -71,7 +71,7 @@ function useModel() {
 function useActivePage(share?: ShareModel) {
   const { collectionSlug, documentSlug } = useParams<PathParams>();
 
-  if (!share || !share.tree) {
+  if (!share) {
     return;
   }
 
@@ -93,7 +93,11 @@ function useActivePage(share?: ShareModel) {
     return;
   };
 
-  if (documentSlug) {
+  if (!share.tree) {
+    return share.collectionId
+      ? { type: "collection", id: share.collectionId }
+      : { type: "document", id: share.documentId };
+  } else if (documentSlug) {
     return { type: "document", id: findInTree(share.tree, documentSlug) };
   } else if (collectionSlug) {
     return { type: "collection", id: findInTree(share.tree, collectionSlug) };
@@ -108,9 +112,9 @@ function useActivePage(share?: ShareModel) {
 
 function SharedScene() {
   const { t, i18n } = useTranslation();
-  const { shareId, collectionSlug, documentSlug } = useParams<PathParams>();
+  const { shareId, documentSlug } = useParams<PathParams>();
   const location = useLocation<LocationState>();
-  const { collections, documents, shares, ui } = useStores();
+  const { documents, shares, ui } = useStores();
   const user = useCurrentUser({ rejectOnEmpty: false });
   const [, setPostLoginPath] = usePostLoginPath();
 
@@ -135,10 +139,9 @@ function SharedScene() {
       () =>
         Promise.all([
           shares.fetch(shareId),
-          // collectionSlug ? collections.fetch(collectionSlug) : undefined,
           documentSlug ? documents.fetch(documentSlug) : undefined,
         ]),
-      [shares, collections, documents, shareId, collectionSlug, documentSlug]
+      [shares, documents, shareId, documentSlug]
     )
   );
 

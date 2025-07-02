@@ -92,12 +92,14 @@ export async function loadShare({
       ],
     });
 
-    if (!share) {
+    if (
+      !share ||
+      !!share.team.suspendedAt ||
+      !!share.collection?.archivedAt ||
+      !!share.document?.archivedAt
+    ) {
       throw NotFoundError();
     }
-
-    document = share.document;
-    collection = share.collection;
 
     const associatedCollection = share.collection ?? share.document?.collection;
 
@@ -105,18 +107,39 @@ export async function loadShare({
       throw AuthorizationError();
     }
 
-    if (
-      share.team.suspendedAt ||
-      !!share.collection?.archivedAt ||
-      !!share.document?.archivedAt
-    ) {
-      throw NotFoundError();
-    }
-
     if (share.collection) {
       sharedTree = associatedCollection.toNavigationNode();
     } else if (share.document && share.includeChildDocuments) {
       sharedTree = associatedCollection.getDocumentTree(share.document.id);
+    }
+
+    if (collectionId && collectionId !== share.collectionId) {
+      collection = await Collection.findByPk(collectionId, {
+        userId: user ? user.id : undefined,
+        includeDocumentStructure: true,
+        rejectOnEmpty: true,
+      });
+
+      if (collection.id !== share.collectionId) {
+        throw AuthorizationError();
+      }
+    } else {
+      collection = share.collection;
+    }
+
+    if (documentId && documentId !== share.documentId) {
+      document = await Document.findByPk(documentId, {
+        userId: user ? user.id : undefined,
+        paranoid: false,
+        rejectOnEmpty: true,
+      });
+
+      const allIdsInSharedTree = getAllIdsInSharedTree(sharedTree);
+      if (!allIdsInSharedTree.includes(document.id)) {
+        throw AuthorizationError();
+      }
+    } else {
+      document = share.document;
     }
   } else {
     // Validation would ensure collectionId or documentId, & user are available here.
@@ -208,4 +231,16 @@ export async function loadShare({
     collection,
     document,
   };
+}
+
+function getAllIdsInSharedTree(sharedTree: NavigationNode | null): string[] {
+  if (!sharedTree) {
+    return [];
+  }
+
+  const ids = [sharedTree.id];
+  for (const child of sharedTree.children) {
+    ids.push(...getAllIdsInSharedTree(child));
+  }
+  return ids;
 }

@@ -197,14 +197,13 @@ export const renderShare = async (ctx: Context, next: Next) => {
   const publicBranding =
     team?.getPreference(TeamPreference.PublicBranding) ?? false;
 
-  const title =
-    documentSlug && document
-      ? document.title
-      : collectionSlug && collection
-      ? collection.name
-      : publicBranding && team?.name
-      ? team.name
-      : undefined;
+  const title = document
+    ? document.title
+    : collection
+    ? collection.name
+    : publicBranding && team?.name
+    ? team.name
+    : undefined;
   const canonicalUrl = share
     ? `${share.canonicalUrl}${
         documentSlug && document
