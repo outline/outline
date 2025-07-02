@@ -1,3 +1,4 @@
+import filter from "lodash/filter";
 import {
   Node,
   NodeType,
@@ -399,3 +400,32 @@ export const joinBackwardTr = (tr: Transaction): Transaction => {
 
   return tr;
 };
+
+export const ancestors = (
+  $from: ResolvedPos,
+  pred?: (ancestor: Node, index?: number, arr?: Node[]) => boolean
+) => {
+  const ancestorArray: Node[] = [];
+
+  // Notice that ancestors are arranged in increasing order of depth
+  // within the array, which implies that the index of an ancestor
+  // within the array actually represents its depth within the document.
+  for (let d = 0; d <= $from.depth; d++) {
+    ancestorArray.push($from.node(d));
+  }
+
+  if (pred) {
+    return filter(ancestorArray, (ancestor, index, ancestorArray) =>
+      pred(ancestor, index, ancestorArray as Node[])
+    );
+  }
+
+  return ancestorArray;
+};
+
+export const nearest = (ancestors: Node[]) =>
+  // Since the ancestors are arranged in increasing order of depth,
+  // the last element of the array is the nearest ancestor.
+  ancestors.pop();
+
+export const furthest = (ancestors: Node[]) => ancestors.shift();

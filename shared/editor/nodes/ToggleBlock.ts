@@ -1,5 +1,6 @@
 import concat from "lodash/concat";
 import filter from "lodash/filter";
+import findIndex from "lodash/findIndex";
 import flatten from "lodash/flatten";
 import forEach from "lodash/forEach";
 import forEachRight from "lodash/forEachRight";
@@ -38,10 +39,6 @@ import {
 import { v4 } from "uuid";
 import Storage from "../../utils/Storage";
 import {
-  ancestors,
-  suchThat,
-  depth,
-  furthest,
   deleteSelectionPreservingBody,
   joinForwardPreservingBody,
   selectNodeForwardPreservingBody,
@@ -61,6 +58,7 @@ import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { PlaceholderPlugin } from "../plugins/PlaceholderPlugin";
 import { findBlockNodes } from "../queries/findChildren";
 import toggleBlocksRule from "../rules/toggleBlocks";
+import { ancestors, furthest, nearest } from "../utils";
 import Node from "./Node";
 
 export enum Action {
@@ -438,37 +436,32 @@ export default class ToggleBlock extends Node {
             .getState(newState)
             ?.find(undefined, undefined, (spec) => "fold" in spec);
 
-          const ancestor =
+          const { depth } = ToggleBlock.getUtils(newState);
+          const toggleBlock =
             decosResponsibleForFolding && decosResponsibleForFolding.length
               ? furthest(
-                  ancestors(
-                    $cursor,
-                    suchThat((_, a) =>
-                      some(
-                        decosResponsibleForFolding,
-                        (deco) =>
-                          deco.spec.nodeId === a.attrs?.id &&
-                          deco.spec.target === a.type.name &&
-                          deco.spec.fold === true
-                      )
+                  ancestors($cursor, (ancestor) =>
+                    some(
+                      decosResponsibleForFolding,
+                      (deco) =>
+                        deco.spec.nodeId === ancestor.attrs?.id &&
+                        deco.spec.target === ancestor.type.name &&
+                        deco.spec.fold === true
                     )
                   )
                 )
               : undefined;
 
-          if (ancestor) {
-            const posAfterAncestorHead =
-              $cursor.start(depth(ancestor, $cursor)) +
-              ancestor.firstChild!.nodeSize;
-            const endOfAncestor = $cursor.end(depth(ancestor, $cursor));
+          if (toggleBlock) {
+            const posAfterHead =
+              $cursor.start(depth(toggleBlock)) +
+              toggleBlock.firstChild!.nodeSize;
+            const posAtEnd = $cursor.end(depth(toggleBlock));
 
-            if (
-              $cursor.pos > posAfterAncestorHead &&
-              $cursor.pos < endOfAncestor
-            ) {
+            if ($cursor.pos > posAfterHead && $cursor.pos < posAtEnd) {
               tr.setMeta(ToggleBlock.actionPluginKey, {
                 type: Action.UNFOLD,
-                at: $cursor.before(depth(ancestor, $cursor)),
+                at: $cursor.before(depth(toggleBlock)),
               });
             }
           }
@@ -719,7 +712,50 @@ export default class ToggleBlock extends Node {
           )
       );
 
-    return { detachBody, attachBody, folded };
+    const isToggleBlock = (node: ProsemirrorNode) =>
+      node.type === state.schema.nodes.container_toggle;
+
+    const depth = (toggleBlock: ProsemirrorNode) =>
+      findIndex(ancestors(state.selection.$from), (node) =>
+        node.eq(toggleBlock)
+      );
+
+    const isSelectionWithinToggleBlock = () =>
+      some(ancestors(state.selection.$from), isToggleBlock);
+
+    const isSelectionWithinToggleBlockHead = () =>
+      isSelectionWithinToggleBlock() &&
+      state.selection.$from.index(
+        depth(nearest(ancestors(state.selection.$from, isToggleBlock))!)
+      ) === 0;
+
+    const isSelectionAtStartOfToggleBlockHead = () =>
+      isSelectionWithinToggleBlockHead() &&
+      state.selection.$from.parentOffset === 0;
+
+    const isSelectionInMiddleOfToggleBlockHead = () =>
+      isSelectionWithinToggleBlockHead() &&
+      state.selection.$from.parentOffset > 0 &&
+      state.selection.$from.parentOffset <
+        state.selection.$from.node().content.size;
+
+    const isSelectionAtEndOfToggleBlockHead = () =>
+      isSelectionWithinToggleBlockHead() &&
+      state.selection.$from.parentOffset ===
+        state.selection.$from.node().content.size;
+
+    return {
+      detachBody,
+      attachBody,
+      folded,
+      depth,
+      isToggleBlock,
+      isSelectionWithinToggleBlock,
+      isSelectionWithinToggleBlockHead,
+      isSelectionAtStartOfToggleBlockHead,
+      isSelectionInMiddleOfToggleBlockHead,
+      isSelectionAtEndOfToggleBlockHead,
+    };
   }
 }
 
