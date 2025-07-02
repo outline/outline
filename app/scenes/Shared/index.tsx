@@ -163,6 +163,14 @@ function SharedScene() {
     } else {
       ui.setActiveCollection(activePage.id);
     }
+
+    return () => {
+      if (activePage.type === "document") {
+        ui.clearActiveDocument();
+      } else {
+        ui.setActiveCollection(undefined);
+      }
+    };
   }, [ui, activePage]);
 
   useEffect(() => {
@@ -219,7 +227,11 @@ function SharedScene() {
               title={pageTitle}
               sidebar={
                 share.tree?.children.length ? (
-                  <Sidebar rootNode={share.tree} shareId={shareId} />
+                  <Sidebar
+                    rootNode={share.tree}
+                    shareId={shareId}
+                    isCollectionShare={!!share.collectionId}
+                  />
                 ) : null
               }
             >

@@ -18,6 +18,7 @@ import { useTeamContext } from "../TeamContext";
 import TeamLogo from "../TeamLogo";
 import Sidebar from "./Sidebar";
 import Section from "./components/Section";
+import { SharedCollectionLink } from "./components/SharedCollectionLink";
 import DocumentLink from "./components/SharedDocumentLink";
 import SidebarButton from "./components/SidebarButton";
 import ToggleButton from "./components/ToggleButton";
@@ -25,9 +26,14 @@ import ToggleButton from "./components/ToggleButton";
 type Props = {
   rootNode: NavigationNode;
   shareId: string;
+  isCollectionShare?: boolean;
 };
 
-function SharedSidebar({ rootNode, shareId }: Props) {
+function SharedSidebar({
+  rootNode,
+  shareId,
+  isCollectionShare = false,
+}: Props) {
   const team = useTeamContext();
   const user = useCurrentUser({ rejectOnEmpty: false });
   const { ui, documents } = useStores();
@@ -64,15 +70,19 @@ function SharedSidebar({ rootNode, shareId }: Props) {
           )}
         </TopSection>
         <Section>
-          <DocumentLink
-            index={0}
-            depth={0}
-            shareId={shareId}
-            node={rootNode}
-            prefetchDocument={documents.prefetchDocument}
-            activeDocumentId={ui.activeDocumentId}
-            activeDocument={documents.active}
-          />
+          {isCollectionShare ? (
+            <SharedCollectionLink node={rootNode} shareId={shareId} />
+          ) : (
+            <DocumentLink
+              index={0}
+              depth={0}
+              shareId={shareId}
+              node={rootNode}
+              prefetchDocument={documents.prefetchDocument}
+              activeDocumentId={ui.activeDocumentId}
+              activeDocument={documents.active}
+            />
+          )}
         </Section>
       </ScrollContainer>
     </StyledSidebar>

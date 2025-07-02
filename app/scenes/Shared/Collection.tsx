@@ -1,10 +1,11 @@
 import { observer } from "mobx-react";
-import { EditIcon } from "outline-icons";
+import { EditIcon, MoonIcon, SunIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { IconTitleWrapper } from "@shared/components/Icon";
+import { Theme } from "~/stores/UiStore";
 import CollectionModel from "~/models/Collection";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
@@ -15,6 +16,7 @@ import Scene from "~/components/Scene";
 import Tooltip from "~/components/Tooltip";
 import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
+import useStores from "~/hooks/useStores";
 import { collectionPath } from "~/utils/routeHelpers";
 import Overview from "../Collection/components/Overview";
 
@@ -25,8 +27,30 @@ type Props = {
 
 function SharedCollection({ collection, shareId }: Props) {
   const { t } = useTranslation();
+  const { ui } = useStores();
   const can = usePolicy(collection);
   const isMobile = useMobile();
+  const { resolvedTheme } = ui;
+
+  const appearanceAction = (
+    <Action>
+      <Tooltip
+        content={
+          resolvedTheme === "light" ? t("Switch to dark") : t("Switch to light")
+        }
+        placement="bottom"
+      >
+        <Button
+          icon={resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />}
+          onClick={() =>
+            ui.setTheme(resolvedTheme === "light" ? Theme.Dark : Theme.Light)
+          }
+          neutral
+          borderOnHover
+        />
+      </Tooltip>
+    </Action>
+  );
 
   const editAction = (
     <Action>
@@ -56,7 +80,12 @@ function SharedCollection({ collection, shareId }: Props) {
           &nbsp;{collection.name}
         </>
       }
-      actions={can.update ? editAction : <div />}
+      actions={
+        <>
+          {appearanceAction}
+          {can.update ? editAction : null}
+        </>
+      }
     >
       <CenteredContent withStickyHeader>
         <CollectionHeading>
