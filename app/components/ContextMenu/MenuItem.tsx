@@ -21,7 +21,7 @@ type Props = {
   to?: LocationDescriptor;
   href?: string;
   target?: "_blank";
-  as?: string | React.ComponentType<any>;
+  as?: string | React.ComponentType<React.PropsWithChildren<any>>;
   hide?: () => void;
   level?: number;
   icon?: React.ReactNode;
@@ -45,7 +45,7 @@ const MenuItem = (
   ref: React.Ref<HTMLAnchorElement>
 ) => {
   const content = React.useCallback(
-    (props) => {
+    (props: any) => {
       // Preventing default mousedown otherwise menu items do not work in Firefox,
       // which triggers the hideOnClickOutside handler first via mousedown – hiding
       // and un-rendering the menu contents.

@@ -50,7 +50,7 @@ function Right({ children, border, className }: Props) {
     }
   }, []);
 
-  const handleMouseDown = React.useCallback((event) => {
+  const handleMouseDown = React.useCallback((event: any) => {
     event.preventDefault();
     setResizing(true);
   }, []);

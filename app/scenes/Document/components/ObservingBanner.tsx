@@ -23,8 +23,9 @@ function ObservingBanner() {
 
   return (
     <Positioner>
+      {/* @ts-expect-error - framer-motion v4 has TypeScript compatibility issues with React 18 */}
       <AnimatePresence>
-        {user && (
+        {user ? (
           <Banner
             $color={user.color}
             transition={transition}
@@ -34,7 +35,7 @@ function ObservingBanner() {
           >
             {t("Observing {{ userName }}", { userName: user.name })}
           </Banner>
-        )}
+        ) : null}
       </AnimatePresence>
     </Positioner>
   );

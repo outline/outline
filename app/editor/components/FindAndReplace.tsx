@@ -249,7 +249,7 @@ export default function FindAndReplace({
   );
 
   const handleReplace = React.useCallback(
-    (ev) => {
+    (ev: any) => {
       if (readOnly) {
         return;
       }
@@ -260,7 +260,7 @@ export default function FindAndReplace({
   );
 
   const handleReplaceAll = React.useCallback(
-    (ev) => {
+    (ev: any) => {
       if (readOnly) {
         return;
       }

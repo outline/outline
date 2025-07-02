@@ -76,7 +76,7 @@ function Security() {
   );
 
   const saveData = React.useCallback(
-    async (newData) => {
+    async (newData: any) => {
       try {
         setData((prev) => ({ ...prev, ...newData }));
         await team.save(newData);

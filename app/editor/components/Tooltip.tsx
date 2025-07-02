@@ -2,7 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 import Tooltip, { Props } from "~/components/Tooltip";
 
-const WrappedTooltip: React.FC<Props> = ({
+const WrappedTooltip: React.FC<React.PropsWithChildren<Props>> = ({
   children,
   content,
   ...rest

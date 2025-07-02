@@ -15,7 +15,7 @@ const style: React.CSSProperties = {
   cursor: "pointer",
 };
 
-const Button: React.FC<Props> = (props) => (
+const Button: React.FC<React.PropsWithChildren<Props>> = (props) => (
   <a {...props} style={style}>
     {props.children}
   </a>

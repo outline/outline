@@ -48,7 +48,9 @@ type Props = {
   children?: React.ReactNode;
 };
 
-const AuthenticatedLayout: React.FC = ({ children }: Props) => {
+const AuthenticatedLayout: React.FC<React.PropsWithChildren<unknown>> = ({
+  children,
+}: Props) => {
   const { ui, auth } = useStores();
   const location = useLocation();
   const layoutRef = React.useRef<HTMLDivElement>(null);
@@ -111,11 +113,12 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
     !!team.getPreference(TeamPreference.Commenting);
 
   const sidebarRight = (
+    // @ts-expect-error - framer-motion v4 has TypeScript compatibility issues with React 18
     <AnimatePresence
       initial={false}
       key={ui.activeDocumentId ? "active" : "inactive"}
     >
-      {(showHistory || showInsights || showComments) && (
+      {showHistory || showInsights || showComments ? (
         <Route path={`/doc/${slug}`}>
           <SidebarRight>
             <React.Suspense fallback={null}>
@@ -125,7 +128,7 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
             </React.Suspense>
           </SidebarRight>
         </Route>
-      )}
+      ) : null}
     </AnimatePresence>
   );
 

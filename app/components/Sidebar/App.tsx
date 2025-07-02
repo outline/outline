@@ -47,7 +47,7 @@ function AppSidebar() {
   }, [documents, collections, user.isViewer]);
 
   const [dndArea, setDndArea] = useState();
-  const handleSidebarRef = useCallback((node) => setDndArea(node), []);
+  const handleSidebarRef = useCallback((node: any) => setDndArea(node), []);
   const html5Options = useMemo(
     () => ({
       rootElement: dndArea,

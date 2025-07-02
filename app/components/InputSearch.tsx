@@ -29,7 +29,7 @@ function InputSearch(
   } = props;
 
   const handleFocus = React.useCallback(
-    (event) => {
+    (event: any) => {
       setIsFocused(true);
       onFocus?.(event);
     },
@@ -37,7 +37,7 @@ function InputSearch(
   );
 
   const handleBlur = React.useCallback(
-    (event) => {
+    (event: any) => {
       setIsFocused(false);
       onBlur?.(event);
     },

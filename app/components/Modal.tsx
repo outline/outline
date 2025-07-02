@@ -29,7 +29,7 @@ type Props = {
   onRequestClose: () => void;
 };
 
-const Modal: React.FC<Props> = ({
+const Modal: React.FC<React.PropsWithChildren<Props>> = ({
   children,
   isOpen,
   fullscreen = true,

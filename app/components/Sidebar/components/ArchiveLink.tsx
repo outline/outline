@@ -51,7 +51,7 @@ function ArchiveLink() {
     }
   }, [expanded, request]);
 
-  const handleDisclosureClick = useCallback((ev) => {
+  const handleDisclosureClick = useCallback((ev: any) => {
     ev.preventDefault();
     ev.stopPropagation();
     setExpanded((e) => !e);

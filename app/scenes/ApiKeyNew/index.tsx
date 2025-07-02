@@ -48,11 +48,11 @@ function ApiKeyNew({ onSubmit }: Props) {
     []
   );
 
-  const handleNameChange = React.useCallback((event) => {
+  const handleNameChange = React.useCallback((event: any) => {
     setName(event.target.value);
   }, []);
 
-  const handleScopeChange = React.useCallback((event) => {
+  const handleScopeChange = React.useCallback((event: any) => {
     setScope(event.target.value);
   }, []);
 

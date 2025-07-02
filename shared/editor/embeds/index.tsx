@@ -79,7 +79,7 @@ export class EmbedDescriptor {
    * A React component that will be used to render the embed, if displaying a simple iframe then
    * `transformMatch` should be used instead.
    */
-  component?: React.FunctionComponent<EmbedProps>;
+  component?: React.FunctionComponent<React.PropsWithChildren<EmbedProps>>;
   /** The integration settings, if any */
   settings?: IntegrationSettings<IntegrationType.Embed>;
 

@@ -17,9 +17,11 @@ type Props = {
   limit?: number;
   /** A component to render the avatar, defaults to Avatar. */
   renderAvatar?: React.ComponentType<
-    React.ComponentProps<typeof Avatar> & {
-      model: User;
-    }
+    React.PropsWithChildren<
+      React.ComponentProps<typeof Avatar> & {
+        model: User;
+      }
+    >
   >;
 };
 
