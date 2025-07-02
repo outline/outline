@@ -205,9 +205,10 @@ export const renderShare = async (ctx: Context, next: Next) => {
     analytics,
     isShare: true,
     rootShareId,
-    canonical: share
-      ? `${share.canonicalUrl}${documentSlug && document ? document.url : ""}`
-      : undefined,
+    canonical:
+      share && share.canonicalUrl !== ctx.url
+        ? `${share.canonicalUrl}${documentSlug && document ? document.url : ""}`
+        : undefined,
     allowIndexing: share?.allowIndexing,
   });
 };
