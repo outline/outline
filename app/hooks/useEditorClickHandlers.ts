@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useHistory } from "react-router-dom";
 import { isModKey } from "@shared/utils/keyboard";
 import { isDocumentUrl, isInternalUrl } from "@shared/utils/urls";
-import { sharedDocumentPath } from "~/utils/routeHelpers";
+import { sharedModelPath } from "~/utils/routeHelpers";
 import { isHash } from "~/utils/urls";
 import useStores from "./useStores";
 
@@ -45,10 +45,10 @@ export default function useEditorClickHandlers({ shareId }: Params) {
         // share route to the URL so that the document is loaded in context
         if (
           shareId &&
-          navigateTo.includes("/doc/") &&
-          !navigateTo.includes(shareId)
+          !navigateTo.includes(shareId) &&
+          (navigateTo.includes("/doc/") || navigateTo.includes("/collection/"))
         ) {
-          navigateTo = sharedDocumentPath(shareId, navigateTo);
+          navigateTo = sharedModelPath(shareId, navigateTo);
         }
 
         if (isDocumentUrl(navigateTo)) {

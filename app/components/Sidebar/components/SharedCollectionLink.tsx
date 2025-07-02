@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import Icon from "@shared/components/Icon";
 import { NavigationNode } from "@shared/types";
 import useStores from "~/hooks/useStores";
-import { sharedDocumentPath } from "~/utils/routeHelpers";
+import { sharedModelPath } from "~/utils/routeHelpers";
 import DocumentLink from "./SharedDocumentLink";
 import SidebarLink from "./SidebarLink";
 
@@ -22,7 +22,7 @@ function CollectionLink({ node, shareId }: Props) {
     <>
       <SidebarLink
         to={{
-          pathname: sharedDocumentPath(shareId, node.url),
+          pathname: sharedModelPath(shareId, node.url),
           state: {
             title: node.title,
           },

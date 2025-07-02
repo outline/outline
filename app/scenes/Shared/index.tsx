@@ -114,15 +114,6 @@ function SharedScene() {
   const user = useCurrentUser({ rejectOnEmpty: false });
   const [, setPostLoginPath] = usePostLoginPath();
 
-  console.log(
-    "shareId",
-    shareId,
-    "collectionSlug",
-    collectionSlug,
-    "documentSlug",
-    documentSlug
-  );
-
   env.ROOT_SHARE_ID = shareId;
 
   const model = useModel();

@@ -3,7 +3,7 @@ import Icon from "@shared/components/Icon";
 import { NavigationNode } from "@shared/types";
 import Breadcrumb from "~/components/Breadcrumb";
 import { MenuInternalLink } from "~/types";
-import { sharedDocumentPath } from "~/utils/routeHelpers";
+import { sharedModelPath } from "~/utils/routeHelpers";
 
 type Props = {
   children?: React.ReactNode;
@@ -58,7 +58,7 @@ const PublicBreadcrumb: React.FC<Props> = ({
           ) : undefined,
           title: item.title,
           type: "route",
-          to: sharedDocumentPath(shareId, item.url),
+          to: sharedModelPath(shareId, item.url),
         })),
     [sharedTree, shareId, documentId]
   );

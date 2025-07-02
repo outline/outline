@@ -133,12 +133,12 @@ export function searchPath({
   return `/search${search}`;
 }
 
-export function sharedDocumentPath(shareId: string, docPath?: string) {
+export function sharedModelPath(shareId: string, modelPath?: string) {
   if (shareId === env.ROOT_SHARE_ID) {
-    return docPath ? docPath : "/";
+    return modelPath ? modelPath : "/";
   }
 
-  return docPath ? `/s/${shareId}${docPath}` : `/s/${shareId}`;
+  return modelPath ? `/s/${shareId}${modelPath}` : `/s/${shareId}`;
 }
 
 export function urlify(path: string): string {

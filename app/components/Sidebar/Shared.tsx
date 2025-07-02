@@ -12,7 +12,7 @@ import Tooltip from "~/components/Tooltip";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
-import { homePath, sharedDocumentPath } from "~/utils/routeHelpers";
+import { homePath, sharedModelPath } from "~/utils/routeHelpers";
 import { AvatarSize } from "../Avatar";
 import { useTeamContext } from "../TeamContext";
 import TeamLogo from "../TeamLogo";
@@ -51,7 +51,7 @@ function SharedSidebar({
           }
           onClick={() =>
             history.push(
-              user ? homePath() : sharedDocumentPath(shareId, rootNode.url)
+              user ? homePath() : sharedModelPath(shareId, rootNode.url)
             )
           }
         >
