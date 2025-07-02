@@ -75,7 +75,7 @@ export default async function loadDocument({
           as: "document",
         },
         {
-          model: Collection,
+          model: Collection.scope("withDocumentStructure"),
           as: "collection",
         },
       ],

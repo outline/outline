@@ -933,13 +933,17 @@ class Collection extends ParanoidModel<
       return [];
     }
 
-    const getChildDocumentIds = (node: NavigationNode): string[] =>
-      (node.children ?? []).flatMap((childNode) => [
-        ...childNode.id,
-        ...getChildDocumentIds(childNode),
-      ]);
+    const allDocumentIds: string[] = [];
 
-    return this.documentStructure.flatMap(getChildDocumentIds);
+    const loopChildren = (node: NavigationNode) => {
+      allDocumentIds.push(node.id);
+      (node.children ?? []).forEach((childNode) => {
+        loopChildren(childNode);
+      });
+    };
+
+    this.documentStructure.forEach(loopChildren);
+    return allDocumentIds;
   };
 
   /**

@@ -1,3 +1,4 @@
+import invariant from "invariant";
 import debounce from "lodash/debounce";
 import { observer } from "mobx-react";
 import { useMemo, useRef, useCallback, Suspense } from "react";
@@ -23,13 +24,18 @@ const extensions = withUIExtensions(richExtensions);
 
 type Props = {
   collection: Collection;
+  shareId?: string;
 };
 
-function Overview({ collection }: Props) {
+function Overview({ collection, shareId }: Props) {
   const { documents, collections } = useStores();
   const { t } = useTranslation();
-  const user = useCurrentUser({ rejectOnEmpty: true });
+  const user = useCurrentUser({ rejectOnEmpty: false });
   const can = usePolicy(collection);
+
+  if (!shareId && !user) {
+    invariant(user, "authenticated user required");
+  }
 
   const handleSave = useMemo(
     () =>
@@ -89,7 +95,7 @@ function Overview({ collection }: Props) {
             onCreateLink={onCreateLink}
             canUpdate={can.update}
             readOnly={!can.update}
-            userId={user.id}
+            userId={user?.id}
             editorStyle={editorStyle}
           />
           <div ref={childRef} />

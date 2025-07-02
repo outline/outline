@@ -62,13 +62,11 @@ export async function loadCollection({
             { method: ["withMembership", user?.id] },
           ]),
           as: "collection",
-          required: true,
         },
       ],
-      rejectOnEmpty: true,
     });
 
-    if (!share.team.sharing || !share.collection?.sharing) {
+    if (!share?.team.sharing || !share.collection?.sharing) {
       throw AuthorizationError();
     }
 

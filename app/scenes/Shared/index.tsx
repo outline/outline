@@ -29,6 +29,7 @@ import { changeLanguage, detectLanguage } from "~/utils/language";
 import Loading from "../Document/components/Loading";
 import ErrorOffline from "../Errors/ErrorOffline";
 import Login from "../Login";
+import { Collection } from "./Collection";
 import { Document } from "./Document";
 
 // Parse the canonical origin from the SSR HTML, only needs to be done once.
@@ -228,6 +229,8 @@ function SharedScene() {
                   shareId={share.id}
                   sharedTree={share.tree}
                 />
+              ) : model instanceof CollectionModel ? (
+                <Collection collection={model} shareId={shareId} />
               ) : null}
             </Layout>
             <ClickablePadding minHeight="20vh" />
