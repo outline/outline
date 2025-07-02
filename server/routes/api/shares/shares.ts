@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import isUndefined from "lodash/isUndefined";
-import { FindOptions, Op, WhereOptions } from "sequelize";
+import { FindOptions, Op, WhereAttributeHash, WhereOptions } from "sequelize";
 import { TeamPreference } from "@shared/types";
 import { loadShare } from "@server/commands/shareLoader";
 import { NotFoundError } from "@server/errors";
@@ -98,7 +98,24 @@ router.post(
     authorize(user, "listShares", user.team);
     const collectionIds = await user.collectionIds();
 
-    const where: WhereOptions<Share> = {
+    const collectionWhere: WhereAttributeHash<Share> = {
+      "$collection.id$": collectionIds,
+      "$collection.teamId$": user.teamId,
+    };
+
+    const documentWhere: WhereAttributeHash<Share> = {
+      "$document.teamId$": user.teamId,
+      "$document.collectionId$": collectionIds,
+    };
+
+    if (query) {
+      collectionWhere["$collection.name$"] = { [Op.iLike]: `%${query}%` };
+      documentWhere["$document.title$"] = {
+        [Op.iLike]: `%${query}%`,
+      };
+    }
+
+    const shareWhere: WhereOptions<Share> = {
       teamId: user.teamId,
       userId: user.id,
       published: true,
@@ -107,31 +124,15 @@ router.post(
       },
     };
 
-    const collectionWhere: WhereOptions<Collection> = {
-      teamId: user.teamId,
-      id: collectionIds,
-    };
-
-    const documentWhere: WhereOptions<Document> = {
-      teamId: user.teamId,
-      collectionId: collectionIds,
-    };
-
-    if (query) {
-      collectionWhere.name = {
-        [Op.iLike]: `%${query}%`,
-      };
-      documentWhere.title = {
-        [Op.iLike]: `%${query}%`,
-      };
-    }
-
     if (user.isAdmin) {
-      delete where.userId;
+      delete shareWhere.userId;
     }
 
     const options: FindOptions = {
-      where,
+      where: {
+        ...shareWhere,
+        [Op.or]: [collectionWhere, documentWhere],
+      },
       include: [
         {
           model: Collection.scope({
@@ -139,14 +140,12 @@ router.post(
           }),
           as: "collection",
           required: false,
-          where: collectionWhere,
         },
         {
           model: Document,
           required: false,
           paranoid: true,
           as: "document",
-          where: documentWhere,
           include: [
             {
               model: Collection.scope({
@@ -167,10 +166,11 @@ router.post(
           as: "team",
         },
       ],
+      subQuery: false,
     };
 
     const [shares, total] = await Promise.all([
-      Share.findAll({
+      Share.unscoped().findAll({
         ...options,
         order: [[sort, direction]],
         offset: ctx.state.pagination.offset,
