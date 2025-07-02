@@ -97,6 +97,7 @@ function Overview({ collection, shareId }: Props) {
             readOnly={!can.update}
             userId={user?.id}
             editorStyle={editorStyle}
+            shareId={shareId}
           />
           <div ref={childRef} />
         </Suspense>

@@ -7,7 +7,10 @@ import Route from "~/components/ProfiledRoute";
 import env from "~/env";
 import useQueryNotices from "~/hooks/useQueryNotices";
 import lazy from "~/utils/lazyWithRetry";
-import { matchDocumentSlug as slug } from "~/utils/routeHelpers";
+import {
+  matchCollectionSlug as collectionSlug,
+  matchDocumentSlug as documentSlug,
+} from "~/utils/routeHelpers";
 
 const Authenticated = lazy(() => import("~/components/Authenticated"));
 const AuthenticatedRoutes = lazy(() => import("./authenticated"));
@@ -31,12 +34,22 @@ export default function Routes() {
       {env.ROOT_SHARE_ID ? (
         <Switch>
           <Route exact path="/" component={Shared} />
-          <Route exact path={`/doc/${slug}`} component={Shared} />
+          <Route
+            exact
+            path={`/collection/${collectionSlug}`}
+            component={Shared}
+          />
+          <Route exact path={`/doc/${documentSlug}`} component={Shared} />
           <Redirect exact from="/s/:shareId" to="/" />
           <Redirect
             exact
-            from={`/s/:shareId/doc/${slug}`}
-            to={`/doc/${slug}`}
+            from={`/s/:shareId/collection/${collectionSlug}`}
+            to={`/collection/${collectionSlug}`}
+          />
+          <Redirect
+            exact
+            from={`/s/:shareId/doc/${documentSlug}`}
+            to={`/doc/${documentSlug}`}
           />
         </Switch>
       ) : (
@@ -52,10 +65,25 @@ export default function Routes() {
 
           <Redirect
             exact
-            from={`/share/:shareId/doc/${slug}`}
-            to={`/s/:shareId/doc/${slug}`}
+            from={`/share/:shareId/doc/${documentSlug}`}
+            to={`/s/:shareId/doc/${documentSlug}`}
           />
-          <Route exact path={`/s/:shareId/doc/${slug}`} component={Shared} />
+          <Route
+            exact
+            path={`/s/:shareId/doc/${documentSlug}`}
+            component={Shared}
+          />
+
+          <Redirect
+            exact
+            from={`/share/:shareId/collection/${collectionSlug}`}
+            to={`/s/:shareId/collection/${collectionSlug}`}
+          />
+          <Route
+            exact
+            path={`/s/:shareId/collection/${collectionSlug}`}
+            component={Shared}
+          />
 
           <Authenticated>
             <AuthenticatedRoutes />

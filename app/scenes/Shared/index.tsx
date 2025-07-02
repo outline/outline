@@ -114,6 +114,15 @@ function SharedScene() {
   const user = useCurrentUser({ rejectOnEmpty: false });
   const [, setPostLoginPath] = usePostLoginPath();
 
+  console.log(
+    "shareId",
+    shareId,
+    "collectionSlug",
+    collectionSlug,
+    "documentSlug",
+    documentSlug
+  );
+
   env.ROOT_SHARE_ID = shareId;
 
   const model = useModel();
@@ -135,7 +144,7 @@ function SharedScene() {
       () =>
         Promise.all([
           shares.fetch(shareId),
-          collectionSlug ? collections.fetch(collectionSlug) : undefined,
+          // collectionSlug ? collections.fetch(collectionSlug) : undefined,
           documentSlug ? documents.fetch(documentSlug) : undefined,
         ]),
       [shares, collections, documents, shareId, collectionSlug, documentSlug]
