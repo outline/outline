@@ -604,6 +604,14 @@ export class Environment {
   public AWS_S3_UPLOAD_BUCKET_URL = environment.AWS_S3_UPLOAD_BUCKET_URL ?? "";
 
   /**
+   * Optional public URL for serving uploaded files. If not provided, defaults to AWS_S3_UPLOAD_BUCKET_URL.
+   * Use this when your S3 endpoint is not publicly accessible or when serving files through a CDN.
+   */
+  @Public
+  @IsOptional()
+  public AWS_S3_PUBLIC_URL = environment.AWS_S3_PUBLIC_URL ?? "";
+
+  /**
    * The bucket name to store file attachments in.
    */
   @IsOptional()
