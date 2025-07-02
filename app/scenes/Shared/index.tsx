@@ -219,6 +219,11 @@ function SharedScene() {
           rel="canonical"
           href={canonicalOrigin + location.pathname.replace(/\/$/, "")}
         />
+        <link
+          rel="sitemap"
+          type="application/xml"
+          href={`${env.URL}/api/shares.sitemap?shareId=${shareId}`}
+        />
       </Helmet>
       <TeamContext.Provider value={team}>
         <ThemeProvider theme={theme}>
