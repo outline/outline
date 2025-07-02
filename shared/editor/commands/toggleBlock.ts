@@ -1,14 +1,12 @@
-import filter from "lodash/filter";
-import findIndex from "lodash/findIndex";
 import isNull from "lodash/isNull";
 import isUndefined from "lodash/isUndefined";
-import some from "lodash/some";
-import { Node, ResolvedPos, Slice, Fragment } from "prosemirror-model";
+import { ResolvedPos, Slice, Fragment } from "prosemirror-model";
 import { Command, TextSelection, Transaction } from "prosemirror-state";
 import { liftTarget, ReplaceAroundStep } from "prosemirror-transform";
 import { v4 } from "uuid";
 import ToggleBlock, { Action, On } from "../nodes/ToggleBlock";
 import {
+  ancestors,
   atBlockEnd,
   atBlockStart,
   deleteSelectionTr,
@@ -16,6 +14,7 @@ import {
   findCutBefore,
   joinBackwardTr,
   joinForwardTr,
+  nearest,
   selectNodeBackwardTr,
   selectNodeForwardTr,
   wrapNodeAt,
@@ -28,13 +27,13 @@ export const deleteSelectionPreservingBody: Command = (state, dispatch) => {
   }
 
   const { $from } = state.selection;
-
-  if (!withinToggleBlockHead($from)) {
+  const { isSelectionWithinToggleBlockHead, folded, detachBody, attachBody } =
+    ToggleBlock.getUtils(state);
+  if (!isSelectionWithinToggleBlockHead()) {
     return false;
   }
 
   const toggleBlock = $from.node($from.depth - 1);
-  const { folded, detachBody, attachBody } = ToggleBlock.getUtils(state);
   if (!folded(toggleBlock)) {
     return false;
   }
@@ -50,12 +49,13 @@ export const deleteSelectionPreservingBody: Command = (state, dispatch) => {
 export const joinForwardPreservingBody: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;
 
-  if (!atEndOfToggleBlockHead($cursor)) {
+  const { isSelectionAtEndOfToggleBlockHead, folded, detachBody, attachBody } =
+    ToggleBlock.getUtils(state);
+  if (!isSelectionAtEndOfToggleBlockHead()) {
     return false;
   }
 
   const toggleBlock = $cursor!.node($cursor!.depth - 1);
-  const { folded, detachBody, attachBody } = ToggleBlock.getUtils(state);
   if (!folded(toggleBlock)) {
     return false;
   }
@@ -105,12 +105,13 @@ export const joinBackwardPreservingBody: Command = (state, dispatch) => {
 export const selectNodeForwardPreservingBody: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;
 
-  if (!atEndOfToggleBlockHead($cursor)) {
+  const { isSelectionAtEndOfToggleBlockHead, folded, detachBody, attachBody } =
+    ToggleBlock.getUtils(state);
+  if (!isSelectionAtEndOfToggleBlockHead()) {
     return false;
   }
 
   const toggleBlock = $cursor!.node($cursor!.depth - 1);
-  const { folded, detachBody, attachBody } = ToggleBlock.getUtils(state);
   if (!folded(toggleBlock)) {
     return false;
   }
@@ -189,16 +190,16 @@ export const indentBlock: Command = (state, dispatch) => {
 
 export const toggleBlock: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;
-  if (!withinToggleBlock($cursor)) {
+  const { isToggleBlock, isSelectionWithinToggleBlock } =
+    ToggleBlock.getUtils(state);
+  if (!isSelectionWithinToggleBlock()) {
     return false;
   }
 
-  const toggleBlock = nearest(
-    ancestors($cursor!, (_$cursor, anc, _depth) => isToggleBlock(anc))
-  );
+  const toggleBlock = nearest(ancestors($cursor!, isToggleBlock));
 
-  const pos = $cursor!.before(depth(toggleBlock!, $cursor!));
-  const { folded } = ToggleBlock.getUtils(state);
+  const { folded, depth } = ToggleBlock.getUtils(state);
+  const pos = $cursor!.before(depth(toggleBlock!));
   dispatch?.(
     folded(toggleBlock!)
       ? state.tr
@@ -230,7 +231,16 @@ export const createParagraphNearPreservingBody: Command = (state, dispatch) => {
     return false;
   }
 
-  if (!(atStartOfToggleBlockHead($cursor) || atEndOfToggleBlockHead($cursor))) {
+  const {
+    isSelectionAtStartOfToggleBlockHead,
+    isSelectionAtEndOfToggleBlockHead,
+  } = ToggleBlock.getUtils(state);
+  if (
+    !(
+      isSelectionAtStartOfToggleBlockHead() ||
+      isSelectionAtEndOfToggleBlockHead()
+    )
+  ) {
     return false;
   }
 
@@ -261,7 +271,8 @@ export const createParagraphNearPreservingBody: Command = (state, dispatch) => {
 
 export const liftAllEmptyChildBlocks: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;
-  if (!atStartOfToggleBlockHead($cursor)) {
+  const { isSelectionAtStartOfToggleBlockHead } = ToggleBlock.getUtils(state);
+  if (!isSelectionAtStartOfToggleBlockHead()) {
     return false;
   }
 
@@ -276,7 +287,8 @@ export const liftAllEmptyChildBlocks: Command = (state, dispatch) => {
 
 export const liftAllChildBlocksOfNodeBefore: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;
-  if (!atStartOfToggleBlockHead($cursor)) {
+  const { isSelectionAtStartOfToggleBlockHead } = ToggleBlock.getUtils(state);
+  if (!isSelectionAtStartOfToggleBlockHead()) {
     return false;
   }
 
@@ -306,19 +318,15 @@ export const liftAllChildBlocksOfNodeAfter: Command = (state, dispatch) => {
 export const dedentBlocks: Command = (state, dispatch) => {
   const { $from } = state.selection as TextSelection;
 
-  const ancestor = nearest(
-    ancestors(
-      $from,
-      suchThat((_$fr, anc, _depth) => anc.type.name === "container_toggle")
-    )
-  );
+  const { depth, isToggleBlock } = ToggleBlock.getUtils(state);
+  const ancestor = nearest(ancestors($from, isToggleBlock));
 
   if (isUndefined(ancestor)) {
     return false;
   }
 
   const range = $from.blockRange(
-    state.doc.resolve($from.end(depth(ancestor, $from)) - 1),
+    state.doc.resolve($from.end(depth(ancestor)) - 1),
     (node) => node.eq(ancestor)
   );
   if (isNull(range)) {
@@ -341,12 +349,13 @@ export const dedentBlocks: Command = (state, dispatch) => {
 export const splitBlockPreservingBody: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;
 
-  if (!inMiddleOfToggleBlockHead($cursor)) {
+  const { isSelectionInMiddleOfToggleBlockHead, folded } =
+    ToggleBlock.getUtils(state);
+  if (!isSelectionInMiddleOfToggleBlockHead()) {
     return false;
   }
 
   const toggleBlock = $cursor!.node($cursor!.depth - 1);
-  const { folded } = ToggleBlock.getUtils(state);
   if (!folded(toggleBlock)) {
     return false;
   }
@@ -367,35 +376,6 @@ export const splitBlockPreservingBody: Command = (state, dispatch) => {
   dispatch?.(tr);
   return true;
 };
-
-// Utils
-const isToggleBlock = (node: Node) => node.type.name === "container_toggle";
-
-const withinToggleBlock = ($cursor: ResolvedPos | null) =>
-  $cursor && some(ancestors($cursor), isToggleBlock);
-
-export const withinToggleBlockHead = ($cursor: ResolvedPos | null) =>
-  withinToggleBlock($cursor) &&
-  $cursor!.index(
-    depth(
-      nearest(
-        ancestors($cursor!, (_$cursor, anc, _depth) => isToggleBlock(anc))
-      )!,
-      $cursor!
-    )
-  ) === 0;
-
-const atStartOfToggleBlockHead = ($cursor: ResolvedPos | null) =>
-  withinToggleBlockHead($cursor) && $cursor!.parentOffset === 0;
-
-const inMiddleOfToggleBlockHead = ($cursor: ResolvedPos | null) =>
-  withinToggleBlockHead($cursor) &&
-  $cursor!.parentOffset > 0 &&
-  $cursor!.parentOffset < $cursor!.node().content.size;
-
-const atEndOfToggleBlockHead = ($cursor: ResolvedPos | null) =>
-  withinToggleBlockHead($cursor) &&
-  $cursor!.parentOffset === $cursor?.node().content.size;
 
 const liftChildrenOfNodeAt = (pos: number, tr: Transaction): Transaction => {
   const node = tr.doc.nodeAt(pos);
@@ -423,41 +403,3 @@ const prevSibling = ($from: ResolvedPos, depth?: number) => {
   }
   return ancestor.child(index - 1);
 };
-
-export const depth = (ancestor: Node, $cursor: ResolvedPos) =>
-  findIndex(ancestors($cursor), (node) => node.eq(ancestor));
-
-export const ancestors = (
-  $from: ResolvedPos,
-  pred?: ($cursor: ResolvedPos, ancestor: Node, depth: number) => boolean
-) => {
-  const anc = [];
-
-  // Notice that ancestors are arranged in increasing order of depth
-  // within the array, which implies that the index of an ancestor
-  // within the array actually represents its depth within the document.
-  for (let d = 0; d <= $from.depth; d++) {
-    anc.push($from!.node(d));
-  }
-
-  if (pred) {
-    return filter(anc, (ancestor, index) =>
-      // `index` represents the depth of the ancestor within the document,
-      // so we simply pass it as `depth` to the predicate function.
-      pred($from, ancestor, index)
-    );
-  }
-
-  return anc;
-};
-
-export const suchThat = (
-  pred: (...args: any[]) => boolean
-): ((...args: any[]) => boolean) => pred;
-
-const nearest = (ancestors: Node[]) =>
-  // Since the ancestors are arranged in increasing order of depth,
-  // the last element of the array is the nearest ancestor.
-  ancestors.pop();
-
-export const furthest = (ancestors: Node[]) => ancestors.shift();
