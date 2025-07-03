@@ -20,7 +20,7 @@ export const SharesInfoSchema = BaseSchema.extend({
           isEmpty(body.documentId)
         ),
       {
-        message: "One of id, collectionId, or documentId is required",
+        message: "one of id, collectionId, or documentId is required",
       }
     ),
 });

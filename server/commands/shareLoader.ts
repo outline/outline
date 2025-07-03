@@ -134,7 +134,9 @@ export async function loadShare({
         rejectOnEmpty: true,
       });
 
-      const allIdsInSharedTree = getAllIdsInSharedTree(sharedTree);
+      const allIdsInSharedTree = share.includeChildDocuments
+        ? getAllIdsInSharedTree(sharedTree)
+        : [document.id];
       if (!allIdsInSharedTree.includes(document.id)) {
         throw AuthorizationError();
       }
@@ -159,6 +161,10 @@ export async function loadShare({
     share = await Share.scope({
       method: ["withCollectionPermissions", user!.id],
     }).findOne({ where });
+
+    if (!share) {
+      throw NotFoundError();
+    }
 
     authorize(user!, "read", share);
 
