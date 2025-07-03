@@ -1,4 +1,3 @@
-import { env } from "process";
 import { observer } from "mobx-react";
 import { useCallback, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
@@ -17,6 +16,7 @@ import Layout from "~/components/Layout";
 import Sidebar from "~/components/Sidebar/Shared";
 import { TeamContext } from "~/components/TeamContext";
 import Text from "~/components/Text";
+import env from "~/env";
 import useBuildTheme from "~/hooks/useBuildTheme";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { usePostLoginPath } from "~/hooks/useLastVisitedPath";
@@ -112,13 +112,11 @@ function useActivePage(share?: ShareModel) {
 
 function SharedScene() {
   const { t, i18n } = useTranslation();
-  const { shareId, documentSlug } = useParams<PathParams>();
+  const { shareId = env.ROOT_SHARE_ID, documentSlug } = useParams<PathParams>();
   const location = useLocation<LocationState>();
   const { documents, shares, ui } = useStores();
   const user = useCurrentUser({ rejectOnEmpty: false });
   const [, setPostLoginPath] = usePostLoginPath();
-
-  env.ROOT_SHARE_ID = shareId;
 
   const model = useModel();
   const share = shares.get(shareId);
