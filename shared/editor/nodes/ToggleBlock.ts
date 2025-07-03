@@ -115,7 +115,11 @@ export default class ToggleBlock extends Node {
         let tr = null;
 
         if (docChanged) {
-          // assign ids to toggle blocks that don't have one
+          // make sure to assign ids to toggle blocks that don't have one
+          // though id is explicitly assigned when a toggle block is created,
+          // still, it might just happen that a toggle block gets created as
+          // a consequence of some other action, e.g, a split operation
+          // this code ensures that all toggle blocks have an id
           tr = newState.tr;
           forEach(
             filter(
