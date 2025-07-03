@@ -1,6 +1,6 @@
 import isNull from "lodash/isNull";
 import isUndefined from "lodash/isUndefined";
-import { ResolvedPos, Slice, Fragment } from "prosemirror-model";
+import { Slice, Fragment } from "prosemirror-model";
 import { Command, TextSelection, Transaction } from "prosemirror-state";
 import { liftTarget, ReplaceAroundStep } from "prosemirror-transform";
 import { v4 } from "uuid";
@@ -15,6 +15,7 @@ import {
   joinBackwardTr,
   joinForwardTr,
   nearest,
+  prevSibling,
   selectNodeBackwardTr,
   selectNodeForwardTr,
   wrapNodeAt,
@@ -393,13 +394,4 @@ const liftChildrenOfNodeAt = (pos: number, tr: Transaction): Transaction => {
   }
 
   return tr.lift(range, target);
-};
-
-const prevSibling = ($from: ResolvedPos, depth?: number) => {
-  const ancestor = $from.node(depth);
-  const index = $from.index(depth);
-  if (index === 0) {
-    return null;
-  }
-  return ancestor.child(index - 1);
 };
