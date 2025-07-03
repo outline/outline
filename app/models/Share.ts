@@ -52,7 +52,7 @@ class Share extends Model implements Searchable {
   sourceTitle: string;
 
   @observable
-  sourceUrl: string;
+  sourcePath: string;
 
   @observable
   documentTitle: string;
@@ -87,8 +87,8 @@ class Share extends Model implements Searchable {
   }
 
   @computed
-  get sourcePath(): string {
-    return this.sourceUrl ?? this.documentUrl;
+  get sourcePathWithFallback(): string {
+    return this.sourcePath ?? this.documentUrl;
   }
 
   @computed

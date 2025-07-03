@@ -5,7 +5,7 @@ export default function presentShare(share: Share, isAdmin = false) {
   const data = {
     id: share.id,
     sourceTitle: share.collection?.name ?? share.document?.title,
-    sourceUrl: share.collection?.path ?? share.document?.path,
+    sourcePath: share.collection?.path ?? share.document?.path,
     collectionId: share.collectionId,
     documentId: share.documentId,
     documentTitle: share.document?.title,

@@ -59,6 +59,7 @@ router.post(
           ? await presentCollection(ctx, collection, {
               isPublic: isPublicCollection,
               shareId: share.id,
+              includeUpdatedAt: share.showLastUpdated,
             })
           : null,
         document

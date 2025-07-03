@@ -8,6 +8,8 @@ type Options = {
   isPublic?: boolean;
   /** The root share ID when presenting a shared collection. */
   shareId?: string;
+  /** Whether to include the updatedAt timestamp. */
+  includeUpdatedAt?: boolean;
 };
 
 export default async function presentCollection(
@@ -17,7 +19,7 @@ export default async function presentCollection(
 ) {
   const asData = !ctx || Number(ctx?.headers["x-api-version"] ?? 0) >= 3;
 
-  return {
+  const res: Record<string, any> = {
     id: collection.id,
     url: collection.url,
     urlId: collection.urlId,
@@ -44,6 +46,17 @@ export default async function presentCollection(
     updatedAt: collection.updatedAt,
     deletedAt: collection.deletedAt,
     archivedAt: collection.archivedAt,
-    archivedBy: collection.archivedBy && presentUser(collection.archivedBy),
+    archivedBy: undefined,
   };
+
+  if (options.isPublic && !options.includeUpdatedAt) {
+    delete res.updatedAt;
+  }
+
+  if (!options.isPublic) {
+    res.archivedBy =
+      collection.archivedBy && presentUser(collection.archivedBy);
+  }
+
+  return res;
 }
