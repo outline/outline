@@ -103,7 +103,7 @@ export default class ToggleBlock extends Node {
     const initPlugin = new Plugin({
       state: {
         init: () => {
-          initPlugin.spec.docLoaded = false;
+          initPlugin.spec.init = true;
           return null;
         },
         apply: (_, value) => value,
@@ -150,15 +150,35 @@ export default class ToggleBlock extends Node {
           }
         );
 
-        if (!initPlugin.spec.docLoaded) {
-          tr = tr
-            ? tr.setMeta(ToggleBlock.actionPluginKey, {
-                type: Action.DOC_INIT,
-              })
-            : newState.tr.setMeta(ToggleBlock.actionPluginKey, {
+        // This weird looking code ensures that `Action.DOC_INIT` is dispatched
+        // when the document content is loaded. It was observed that for some
+        // reason when `MultiplayerEditor` component rendered, the `init()` method
+        // above always received an empty doc(doc with and empty para). The doc's
+        // actual content, only got available after the first `tr` with `tr.docChanged == true`.
+        // Therefore, for multiplayer case, `Action.DOC_INIT` is dispatched within the check.
+        //
+        // However, for non-multiplayer case, e.g, loading publicly shared docs, the doc's actual
+        // content was available right away, so it's handle in the respective manner.
+        if (initPlugin.spec.init) {
+          if (
+            some(this.editor.props.extensions, (e) => e.name === "multiplayer")
+          ) {
+            if (docChanged) {
+              tr = tr!.setMeta(ToggleBlock.actionPluginKey, {
                 type: Action.DOC_INIT,
               });
-          initPlugin.spec.docLoaded = true;
+              initPlugin.spec.init = false;
+            }
+          } else {
+            tr = tr
+              ? tr.setMeta(ToggleBlock.actionPluginKey, {
+                  type: Action.DOC_INIT,
+                })
+              : newState.tr.setMeta(ToggleBlock.actionPluginKey, {
+                  type: Action.DOC_INIT,
+                });
+            initPlugin.spec.init = false;
+          }
         }
 
         return tr;
@@ -223,14 +243,15 @@ export default class ToggleBlock extends Node {
           const action = tr.getMeta(ToggleBlock.actionPluginKey);
           if (action) {
             if (action.type === Action.DOC_CHANGE) {
+              // A document change could move the decoration on toggle block head, out
+              // of sync with the corresponding decoration on toggle block. So, we reapply
+              // those decorations to their respective positions.
               value = value
                 .remove(
                   value.find(
                     undefined,
                     undefined,
-                    (spec) =>
-                      spec.target === `${this.name}>:firstChild` ||
-                      spec.target === this.name
+                    (spec) => spec.target === `${this.name}>:firstChild`
                   )
                 )
                 .add(
@@ -254,18 +275,6 @@ export default class ToggleBlock extends Node {
                           {
                             target: `${this.name}>:firstChild`,
                             nodeId: toggleBlock.node.attrs.id,
-                          }
-                        ),
-                        Decoration.node(
-                          toggleBlock.pos,
-                          toggleBlock.pos + toggleBlock.node.nodeSize,
-                          {},
-                          {
-                            target: `${this.name}`,
-                            nodeId: toggleBlock.node.attrs.id,
-                            fold: Storage.get(
-                              `${toggleBlock.node.attrs.id}:${this.editor.props.userId}`
-                            ).fold,
                           }
                         ),
                       ]
