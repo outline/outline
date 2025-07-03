@@ -130,6 +130,8 @@ export default class ToggleBlock extends Node {
         }
 
         // mark the newly created toggle blocks as unfolded
+        // note that this is kept outside of the `docChanged` check
+        // so that it works for publicly shared docs too
         forEach(
           filter(
             findBlockNodes(tr ? tr.doc : newState.doc, true),
