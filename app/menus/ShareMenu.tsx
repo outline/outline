@@ -29,7 +29,10 @@ function ShareMenu({ share }: Props) {
   const handleGoToSource = React.useCallback(
     (ev: React.SyntheticEvent) => {
       ev.preventDefault();
-      history.push(share.sourcePathWithFallback);
+      history.push({
+        pathname: share.sourcePathWithFallback,
+        state: { sidebarContext: "collections" }, // optimistic preference of "collections"
+      });
     },
     [history, share]
   );
