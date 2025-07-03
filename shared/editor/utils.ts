@@ -429,3 +429,26 @@ export const nearest = (ancestors: Node[]) =>
   ancestors.pop();
 
 export const furthest = (ancestors: Node[]) => ancestors.shift();
+
+export const height = (node: Node) => {
+  if (node.isLeaf) {
+    return 0;
+  }
+
+  let h = 0;
+  for (let i = 0; i < node.childCount; i++) {
+    const child = node.child(i);
+    h = Math.max(h, height(child));
+  }
+
+  return 1 + h;
+};
+
+export const prevSibling = ($from: ResolvedPos, depth?: number) => {
+  const ancestor = $from.node(depth);
+  const index = $from.index(depth);
+  if (index === 0) {
+    return null;
+  }
+  return ancestor.child(index - 1);
+};

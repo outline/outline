@@ -58,7 +58,7 @@ import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { PlaceholderPlugin } from "../plugins/PlaceholderPlugin";
 import { findBlockNodes } from "../queries/findChildren";
 import toggleBlocksRule from "../rules/toggleBlocks";
-import { ancestors, furthest, nearest } from "../utils";
+import { ancestors, furthest, height, nearest } from "../utils";
 import Node from "./Node";
 
 export enum Action {
@@ -758,20 +758,6 @@ export default class ToggleBlock extends Node {
     };
   }
 }
-
-const height = (node: ProsemirrorNode) => {
-  if (node.isLeaf) {
-    return 0;
-  }
-
-  let h = 0;
-  for (let i = 0; i < node.childCount; i++) {
-    const child = node.child(i);
-    h = Math.max(h, height(child));
-  }
-
-  return 1 + h;
-};
 
 class ToggleBlockView implements NodeView {
   dom: HTMLDivElement;
