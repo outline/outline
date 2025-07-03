@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import Share from "~/models/Share";
 import { Avatar, AvatarSize } from "~/components/Avatar";
+import Badge from "~/components/Badge";
 import Flex from "~/components/Flex";
 import { HEADER_HEIGHT } from "~/components/Header";
 import {
@@ -36,7 +37,12 @@ export function SharesTable({ data, canManage, ...rest }: Props) {
           header: t("Title"),
           accessor: (share) => share.sourceTitle || t("Untitled"),
           sortable: false,
-          component: (share) => <>{share.sourceTitle || t("Untitled")}</>,
+          component: (share) => (
+            <>
+              {share.sourceTitle || t("Untitled")}
+              {share.collectionId ? <Badge>{t("Collection")}</Badge> : null}
+            </>
+          ),
           width: "4fr",
         },
         {
