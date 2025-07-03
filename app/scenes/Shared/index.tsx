@@ -64,8 +64,8 @@ function useModel() {
   return share?.collectionId
     ? collections.get(share.collectionId)
     : share?.documentId
-    ? documents.get(share.documentId)
-    : undefined;
+      ? documents.get(share.documentId)
+      : undefined;
 }
 
 function useActivePage(share?: ShareModel) {
@@ -131,8 +131,8 @@ function SharedScene() {
     model instanceof CollectionModel
       ? model.name
       : model instanceof DocumentModel
-      ? model.title
-      : undefined;
+        ? model.title
+        : undefined;
 
   const { request, error, loading, loaded } = useRequest(
     useCallback(

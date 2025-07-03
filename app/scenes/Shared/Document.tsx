@@ -18,7 +18,7 @@ function SharedDocument({ document, shareId, sharedTree }: Props) {
   const { hasHeadings, setDocument } = useDocumentContext();
 
   const tocPosition = hasHeadings
-    ? team?.tocPosition ?? TOCPosition.Left
+    ? (team?.tocPosition ?? TOCPosition.Left)
     : false;
   setDocument(document);
 
