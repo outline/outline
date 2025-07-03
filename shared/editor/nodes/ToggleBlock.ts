@@ -129,7 +129,7 @@ export default class ToggleBlock extends Node {
           );
         }
 
-        // mark the newly created toggle blocks as folded
+        // mark the newly created toggle blocks as unfolded
         forEach(
           filter(
             findBlockNodes(tr ? tr.doc : newState.doc, true),
