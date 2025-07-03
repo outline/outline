@@ -402,6 +402,9 @@ export default class ToggleBlock extends Node {
         },
       },
     });
+
+    // this plugin executes appropriate tasks which should be executed
+    // following toggling
     const eventPlugin = new Plugin({
       key: ToggleBlock.eventPluginKey,
       appendTransaction: (transactions, _oldState, newState) => {
@@ -415,6 +418,8 @@ export default class ToggleBlock extends Node {
           const event = transaction.getMeta(ToggleBlock.eventPluginKey);
           const node = newState.doc.nodeAt(event.at)!;
           if (event.type === On.FOLD) {
+            // If folded, the cursor, lying within the hidden body should be
+            // moved to the end of head upon fold.
             const { $anchor } = newState.selection;
             const startOfNode = event.at + 1;
             const endOfFirstChild = startOfNode + node.firstChild!.nodeSize;
@@ -426,6 +431,10 @@ export default class ToggleBlock extends Node {
               );
             }
           } else {
+            // If unfolded, with non-existent body, an empty paragraph
+            // should be inserted as body upon unfold. Why? To make the placeholder
+            // visible for an empty body. Placeholder requires node with
+            // empty content so it's a hack to display placeholder.
             if (node.childCount === 1) {
               tr = newState.tr.insert(
                 event.at + 1 + node.content.size,
@@ -438,6 +447,8 @@ export default class ToggleBlock extends Node {
         tr = tr ? tr : newState.tr;
         const { $cursor } = tr.selection as TextSelection;
         if ($cursor) {
+          // If somehow, cursor ends up within the body of a folded toggle block,
+          // unfold that toggle block.
           const decosResponsibleForFolding = ToggleBlock.actionPluginKey
             .getState(newState)
             ?.find(undefined, undefined, (spec) => "fold" in spec);
@@ -477,6 +488,9 @@ export default class ToggleBlock extends Node {
       },
     });
 
+    // this plugin is used to resolve new valid position for toggle block if attempted
+    // to be inserted where it's not allowed, e.g., at the start of a list item––in this case
+    // it pushes the toggle block down by inserting a paragraph before it
     const positionResolverPlugin = new Plugin({
       appendTransaction: (transactions, _oldState, newState) => {
         const resolve = (pos: number, tr: Transaction) =>
@@ -497,7 +511,7 @@ export default class ToggleBlock extends Node {
           // Let's consider that we've got toggle blocks in positions
           // p0, p1, p2 & p4. Now, if `resolve` runs on p0 first, the toggle blocks
           // which were at p1, p2 and p3 might no longer be there
-          // as a consequence of `action` being invoked on p0!
+          // as a consequence of `resolve` being invoked on p0!
           //
           // On the other hand, if `resolve` runs on p4 first, all the preceding positions
           // remain unaffected in the sense that they'd still point to their respective
@@ -523,6 +537,9 @@ export default class ToggleBlock extends Node {
       initPlugin,
       actionPlugin,
       eventPlugin,
+      // This plugin ensures that toggle blocks with non-existent body remain folded.
+      // An example where this can be seen in action is when backspace is pressed with
+      // cursor being at the start of an empty body.
       new Plugin({
         appendTransaction: (transactions, _oldState, newState) => {
           const docChanged = transactions.some(

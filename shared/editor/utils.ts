@@ -423,6 +423,11 @@ export const ancestors = (
   return ancestorArray;
 };
 
+// Few words of caution here––the following `nearest` and `furthest`
+// functions are defined as standalone utils but are actually
+// coupled with the `ancestors` function above, semantically.
+// Therefore, these are expected to be used only in conjunction
+// with the `ancestors` function.
 export const nearest = (ancestors: Node[]) =>
   // Since the ancestors are arranged in increasing order of depth,
   // the last element of the array is the nearest ancestor.
