@@ -200,19 +200,20 @@ export const renderShare = async (ctx: Context, next: Next) => {
   const title = document
     ? document.title
     : collection
-    ? collection.name
-    : publicBranding && team?.name
-    ? team.name
-    : undefined;
-  const canonicalUrl = share
-    ? `${share.canonicalUrl}${
-        documentSlug && document
-          ? document.path
-          : collectionSlug && collection
-          ? collection.path
-          : ""
-      }`
-    : undefined;
+      ? collection.name
+      : publicBranding && team?.name
+        ? team.name
+        : undefined;
+  const canonicalUrl =
+    share && share.canonicalUrl !== ctx.url
+      ? `${share.canonicalUrl}${
+          documentSlug && document
+            ? document.path
+            : collectionSlug && collection
+              ? collection.path
+              : ""
+        }`
+      : undefined;
 
   // Inject share information in SSR HTML
   return renderApp(ctx, next, {
