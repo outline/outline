@@ -62,8 +62,8 @@ import { ancestors, furthest, height, nearest } from "../utils";
 import Node from "./Node";
 
 export enum Action {
-  INIT,
-  CHANGE,
+  DOC_INIT,
+  DOC_CHANGE,
   FOLD,
   UNFOLD,
 }
@@ -147,10 +147,10 @@ export default class ToggleBlock extends Node {
         if (!initPlugin.spec.docLoaded) {
           tr = tr
             ? tr.setMeta(ToggleBlock.actionPluginKey, {
-                type: Action.INIT,
+                type: Action.DOC_INIT,
               })
             : newState.tr.setMeta(ToggleBlock.actionPluginKey, {
-                type: Action.INIT,
+                type: Action.DOC_INIT,
               });
           initPlugin.spec.docLoaded = true;
         }
@@ -216,7 +216,7 @@ export default class ToggleBlock extends Node {
 
           const action = tr.getMeta(ToggleBlock.actionPluginKey);
           if (action) {
-            if (action.type === Action.CHANGE) {
+            if (action.type === Action.DOC_CHANGE) {
               value = value
                 .remove(
                   value.find(
@@ -267,7 +267,7 @@ export default class ToggleBlock extends Node {
                   )
                 );
             }
-            if (action.type === Action.INIT) {
+            if (action.type === Action.DOC_INIT) {
               value = value.add(
                 tr.doc,
                 flatten(
@@ -375,7 +375,7 @@ export default class ToggleBlock extends Node {
 
         if (docChanged) {
           tr = newState.tr.setMeta(ToggleBlock.actionPluginKey, {
-            type: Action.CHANGE,
+            type: Action.DOC_CHANGE,
           });
         }
 
