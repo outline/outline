@@ -48,8 +48,6 @@ const ReactionPicker: React.FC<Props> = ({ onSelect, className, size }) => {
     [onSelect]
   );
 
-  // console.log("open", open);
-
   return (
     <Popover open={open} onOpenChange={setOpen} modal={true}>
       <Tooltip content={t("Add reaction")} placement="top">
