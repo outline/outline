@@ -65,8 +65,7 @@ export type MenuInternalLink = {
 export type MenuExternalLink = {
   type: "link";
   title: React.ReactNode;
-  href: string;
-  external?: boolean;
+  href: string | { url: string; target?: string };
   visible?: boolean;
   selected?: boolean;
   disabled?: boolean;
@@ -118,7 +117,7 @@ export type Action = {
    * instead. Errors will be caught and displayed to the user as a toast message.
    */
   perform?: (context: ActionContext) => any;
-  to?: string;
+  to?: string | { url: string; target?: string };
   children?: ((context: ActionContext) => Action[]) | Action[];
 };
 

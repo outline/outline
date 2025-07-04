@@ -148,7 +148,10 @@ export const openDocumentation = createAction({
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <OpenIcon />,
-  perform: () => window.open(UrlHelper.guide),
+  to: {
+    url: UrlHelper.guide,
+    target: "_blank",
+  },
 });
 
 export const openAPIDocumentation = createAction({
@@ -157,7 +160,10 @@ export const openAPIDocumentation = createAction({
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <OpenIcon />,
-  perform: () => window.open(UrlHelper.developers),
+  to: {
+    url: UrlHelper.developers,
+    target: "_blank",
+  },
 });
 
 export const toggleSidebar = createAction({
@@ -174,14 +180,20 @@ export const openFeedbackUrl = createAction({
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <EmailIcon />,
-  perform: () => window.open(UrlHelper.contact),
+  to: {
+    url: UrlHelper.contact,
+    target: "_blank",
+  },
 });
 
 export const openBugReportUrl = createAction({
   name: ({ t }) => t("Report a bug"),
   analyticsName: "Open bug report",
   section: NavigationSection,
-  perform: () => window.open(UrlHelper.github),
+  to: {
+    url: UrlHelper.github,
+    target: "_blank",
+  },
 });
 
 export const openChangelog = createAction({
@@ -190,7 +202,10 @@ export const openChangelog = createAction({
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <OpenIcon />,
-  perform: () => window.open(UrlHelper.changelog),
+  to: {
+    url: UrlHelper.changelog,
+    target: "_blank",
+  },
 });
 
 export const openKeyboardShortcuts = createAction({
@@ -218,8 +233,9 @@ export const downloadApp = createAction({
   iconInContextMenu: false,
   icon: <BrowserIcon />,
   visible: () => !Desktop.isElectron() && isMac() && isCloudHosted,
-  perform: () => {
-    window.open("https://desktop.getoutline.com");
+  to: {
+    url: "https://desktop.getoutline.com",
+    target: "_blank",
   },
 });
 

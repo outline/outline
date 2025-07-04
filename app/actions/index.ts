@@ -69,21 +69,21 @@ export function actionToMenuItem(
   }
 
   if (action.to) {
-    return action.to.startsWith("http")
+    return typeof action.to === "string"
       ? {
-          type: "link",
-          title,
-          icon,
-          visible,
-          href: action.to,
-          selected: action.selected?.(context),
-        }
-      : {
           type: "route",
           title,
           icon,
           visible,
           to: action.to,
+          selected: action.selected?.(context),
+        }
+      : {
+          type: "link",
+          title,
+          icon,
+          visible,
+          href: action.to,
           selected: action.selected?.(context),
         };
   }

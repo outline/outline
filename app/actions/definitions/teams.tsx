@@ -32,7 +32,10 @@ export const switchTeamsList = ({ stores }: { stores: RootStore }) =>
       );
     },
     visible: ({ currentTeamId }: ActionContext) => currentTeamId !== session.id,
-    to: session.url,
+    to: {
+      url: session.url,
+      target: "_self",
+    },
   })) ?? [];
 
 export const switchTeam = createAction({
