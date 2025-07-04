@@ -10,6 +10,7 @@ import { unicodeCLDRtoISO639 } from "@shared/utils/date";
 import documentLoader from "@server/commands/documentLoader";
 import env from "@server/env";
 import { Integration } from "@server/models";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import presentEnv from "@server/presenters/env";
 import { getTeamFromContext } from "@server/utils/passport";
 import prefetchTags from "@server/utils/prefetchTags";
@@ -49,6 +50,7 @@ export const renderApp = async (
   options: {
     title?: string;
     description?: string;
+    content?: string;
     canonical?: string;
     shortcutIcon?: string;
     rootShareId?: string;
@@ -61,6 +63,7 @@ export const renderApp = async (
     title = env.APP_NAME,
     description = "A modern team knowledge base for your internal documentation, product specs, support answers, meeting notes, onboarding, &amp; more…",
     canonical = "",
+    content = "",
     shortcutIcon = `${env.CDN_URL || ""}/images/favicon-32.png`,
     allowIndexing = true,
   } = options;
@@ -122,6 +125,7 @@ export const renderApp = async (
     .replace(/\{lang\}/g, unicodeCLDRtoISO639(env.DEFAULT_LANGUAGE))
     .replace(/\{title\}/g, escape(title))
     .replace(/\{description\}/g, escape(description))
+    .replace(/\{content\}/g, content)
     .replace(/\{noindex\}/g, noIndexTag)
     .replace(
       /\{manifest-url\}/g,
@@ -200,6 +204,14 @@ export const renderShare = async (ctx: Context, next: Next) => {
     description:
       document?.getSummary() ||
       (publicBranding && team?.description ? team.description : undefined),
+    content: document
+      ? await DocumentHelper.toHTML(document, {
+          includeStyles: false,
+          includeHead: false,
+          includeTitle: true,
+          signedUrls: true,
+        })
+      : undefined,
     shortcutIcon:
       publicBranding && team?.avatarUrl ? team.avatarUrl : undefined,
     analytics,
