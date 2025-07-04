@@ -23,6 +23,10 @@ export default class HardBreak extends Node {
     };
   }
 
+  get markdownToken() {
+    return "hardbreak";
+  }
+
   get rulePlugins() {
     return [breakRule];
   }
