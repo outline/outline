@@ -65,6 +65,7 @@ export const basicExtensions: Nodes = [
   TrailingNode,
   MaxLength,
   DateTime,
+  HardBreak,
 ];
 
 export const listExtensions: Nodes = [
@@ -91,7 +92,6 @@ export const tableExtensions: Nodes = [
 export const richExtensions: Nodes = [
   ...basicExtensions.filter((n) => n !== SimpleImage),
   Image,
-  HardBreak,
   CodeBlock,
   CodeFence,
   Blockquote,
