@@ -176,7 +176,7 @@ export default () =>
         },
       }),
       // Generate a stats.json file for webpack that will be consumed by RelativeCI
-      // @ts-expect-error Type mismatch with latest versions but Plugin runs without issue
+      // @ts-expect-error Type mismatch with rolldown-vite but Plugin runs without issue
       webpackStats(),
     ],
     optimizeDeps: {
@@ -197,7 +197,7 @@ export default () =>
       outDir: "./build/app",
       manifest: true,
       sourcemap: process.env.CI ? false : "hidden",
-      minify: "oxc",
+      minify: "oxc" as any, // rolldown-vite supports oxc minifier
       // Prevent asset inling as it does not conform to CSP rules
       assetsInlineLimit: 0,
       target: browserslistToEsbuild(),
