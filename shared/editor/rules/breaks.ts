@@ -1,12 +1,10 @@
 import MarkdownIt, { Token } from "markdown-it";
 
-function isHardbreak(token: Token) {
-  return (
-    token.type === "hardbreak" ||
-    (token.type === "text" && token.content === "\\")
-  );
+function isOldHardBreak(token: Token) {
+  return token.type === "text" && token.content === "\\";
 }
 
+/** Markdown plugin to convert old encoded hard breaks to paragraphs */
 export default function markdownBreakToParagraphs(md: MarkdownIt) {
   // insert a new rule after the "inline" rules are parsed
   md.core.ruler.after("inline", "breaks", (state) => {
@@ -15,13 +13,15 @@ export default function markdownBreakToParagraphs(md: MarkdownIt) {
     // work backwards through the tokens and find text that looks like a br
     for (let i = tokens.length - 1; i > 0; i--) {
       const tokenChildren = tokens[i].children || [];
-      const matches = tokenChildren.filter(isHardbreak);
+      const matches = tokenChildren.filter(isOldHardBreak);
 
       if (matches.length) {
         let token;
 
         const nodes: Token[] = [];
-        const children = tokenChildren.filter((child) => !isHardbreak(child));
+        const children = tokenChildren.filter(
+          (child) => !isOldHardBreak(child)
+        );
 
         let count = matches.length;
         if (children.length) {
