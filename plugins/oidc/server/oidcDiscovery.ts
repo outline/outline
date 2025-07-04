@@ -25,9 +25,24 @@ export async function fetchOIDCConfiguration(
 ): Promise<OIDCConfiguration> {
   try {
     const wellKnownPath = "/.well-known/openid-configuration";
-    const wellKnownUrl = issuerUrl.includes(wellKnownPath)
-      ? issuerUrl
-      : new URL(wellKnownPath, issuerUrl).toString();
+
+    let wellKnownUrl: string;
+
+    // If the issuer URL already includes the well-known path, use it as-is
+    if (issuerUrl.includes(wellKnownPath)) {
+      wellKnownUrl = issuerUrl;
+    } else {
+      // Properly append well-known path to the issuer URL path
+      const url = new URL(issuerUrl);
+      // If pathname doesn't end with slash, append the full wellKnownPath (with leading slash)
+      if (!url.pathname.endsWith("/")) {
+        url.pathname += wellKnownPath;
+      } else {
+        // If pathname ends with slash, append wellKnownPath without leading slash
+        url.pathname += wellKnownPath.substring(1);
+      }
+      wellKnownUrl = url.toString();
+    }
 
     Logger.info("plugins", `Fetching OIDC configuration from ${wellKnownUrl}`);
 
