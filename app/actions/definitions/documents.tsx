@@ -98,7 +98,7 @@ export const openDocument = createAction({
         <DocumentIcon />
       ),
       section: DocumentSection,
-      perform: () => history.push(item.url),
+      to: item.url,
     }));
   },
 });
@@ -840,7 +840,7 @@ export const searchDocumentsForQuery = (query: string) =>
     analyticsName: "Search documents",
     section: DocumentSection,
     icon: <SearchIcon />,
-    perform: () => history.push(searchPath({ query })),
+    to: searchPath({ query }),
     visible: ({ location }) => location.pathname !== searchPath(),
   });
 

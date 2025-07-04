@@ -20,7 +20,7 @@ type Props = {
   dangerous?: boolean;
   to?: LocationDescriptor;
   href?: string;
-  target?: "_blank";
+  target?: string;
   as?: string | React.ComponentType<any>;
   hide?: () => void;
   level?: number;

@@ -47,7 +47,7 @@ export const openCollection = createAction({
       name: collection.name,
       icon: <ColorCollectionIcon collection={collection} />,
       section: CollectionSection,
-      perform: () => history.push(collection.path),
+      to: collection.path,
     }));
   },
 });

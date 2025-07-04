@@ -6,6 +6,8 @@ import {
   Action,
   ActionContext,
   CommandBarAction,
+  MenuExternalLink,
+  MenuInternalLink,
   MenuItemButton,
   MenuItemWithChildren,
 } from "~/types";
@@ -31,7 +33,6 @@ export function createAction(definition: Optional<Action, "id">): Action {
                   : "contextmenu",
             });
           }
-
           return definition.perform?.(context);
         }
       : undefined,
@@ -42,7 +43,7 @@ export function createAction(definition: Optional<Action, "id">): Action {
 export function actionToMenuItem(
   action: Action,
   context: ActionContext
-): MenuItemButton | MenuItemWithChildren {
+): MenuItemButton | MenuExternalLink | MenuInternalLink | MenuItemWithChildren {
   const resolvedIcon = resolve<React.ReactElement<any>>(action.icon, context);
   const resolvedChildren = resolve<Action[]>(action.children, context);
   const visible = action.visible ? action.visible(context) : true;
@@ -65,6 +66,26 @@ export function actionToMenuItem(
       items,
       visible: visible && items.length > 0,
     };
+  }
+
+  if (action.to) {
+    return typeof action.to === "string"
+      ? {
+          type: "route",
+          title,
+          icon,
+          visible,
+          to: action.to,
+          selected: action.selected?.(context),
+        }
+      : {
+          type: "link",
+          title,
+          icon,
+          visible,
+          href: action.to,
+          selected: action.selected?.(context),
+        };
   }
 
   return {
