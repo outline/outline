@@ -32,13 +32,14 @@ export async function fetchOIDCConfiguration(
     if (issuerUrl.includes(wellKnownPath)) {
       wellKnownUrl = issuerUrl;
     } else {
-      // Properly append .well-known/openid-configuration to the issuer URL path
+      // Properly append well-known path to the issuer URL path
       const url = new URL(issuerUrl);
       // Ensure the pathname ends with a slash before appending
       if (!url.pathname.endsWith("/")) {
         url.pathname += "/";
       }
-      url.pathname += ".well-known/openid-configuration";
+      // Remove leading slash from wellKnownPath since we're appending to pathname
+      url.pathname += wellKnownPath.substring(1);
       wellKnownUrl = url.toString();
     }
 
