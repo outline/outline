@@ -34,12 +34,13 @@ export async function fetchOIDCConfiguration(
     } else {
       // Properly append well-known path to the issuer URL path
       const url = new URL(issuerUrl);
-      // Ensure the pathname ends with a slash before appending
+      // If pathname doesn't end with slash, append the full wellKnownPath (with leading slash)
       if (!url.pathname.endsWith("/")) {
-        url.pathname += "/";
+        url.pathname += wellKnownPath;
+      } else {
+        // If pathname ends with slash, append wellKnownPath without leading slash
+        url.pathname += wellKnownPath.substring(1);
       }
-      // Remove leading slash from wellKnownPath since we're appending to pathname
-      url.pathname += wellKnownPath.substring(1);
       wellKnownUrl = url.toString();
     }
 
