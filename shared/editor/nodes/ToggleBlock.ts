@@ -9,7 +9,7 @@ import isNil from "lodash/isNil";
 import isNull from "lodash/isNull";
 import map from "lodash/map";
 import some from "lodash/some";
-import { chainCommands, newlineInCode, splitBlock } from "prosemirror-commands";
+import { chainCommands, newlineInCode } from "prosemirror-commands";
 import { wrappingInputRule } from "prosemirror-inputrules";
 import { ParseSpec } from "prosemirror-markdown";
 import {
@@ -52,6 +52,7 @@ import {
   liftAllChildBlocksOfNodeBefore,
   indentBlock,
   dedentBlocks,
+  splitTopLevelBlockWithinBody,
 } from "../commands/toggleBlock";
 import { CommandFactory } from "../lib/Extension";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
@@ -627,7 +628,7 @@ export default class ToggleBlock extends Node {
         createParagraphNearPreservingBody,
         liftAllEmptyChildBlocks,
         splitBlockPreservingBody,
-        splitBlock
+        splitTopLevelBlockWithinBody
       ),
       Delete: chainCommands(
         deleteSelectionPreservingBody,
@@ -761,6 +762,9 @@ export default class ToggleBlock extends Node {
         depth(nearest(ancestors(state.selection.$from, isToggleBlock))!)
       ) === 0;
 
+    const isSelectionWithinToggleBlockBody = () =>
+      isSelectionWithinToggleBlock() && !isSelectionWithinToggleBlockHead();
+
     const isSelectionAtStartOfToggleBlockHead = () =>
       isSelectionWithinToggleBlockHead() &&
       state.selection.$from.parentOffset === 0;
@@ -784,6 +788,7 @@ export default class ToggleBlock extends Node {
       isToggleBlock,
       isSelectionWithinToggleBlock,
       isSelectionWithinToggleBlockHead,
+      isSelectionWithinToggleBlockBody,
       isSelectionAtStartOfToggleBlockHead,
       isSelectionInMiddleOfToggleBlockHead,
       isSelectionAtEndOfToggleBlockHead,
