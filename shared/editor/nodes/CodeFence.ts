@@ -273,6 +273,7 @@ export default class CodeFence extends Node {
     return {
       block: "code_block",
       getAttrs: (tok: Token) => ({ language: tok.info }),
+      noCloseToken: true,
     };
   }
 }
