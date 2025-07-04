@@ -16,7 +16,7 @@ export default function makeRules({
   schema,
 }: Options) {
   const markdownIt = markdownit("default", {
-    breaks: true,
+    breaks: false,
     html: false,
     linkify: false,
     ...rules,
