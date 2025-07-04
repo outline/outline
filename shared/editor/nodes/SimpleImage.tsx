@@ -134,9 +134,7 @@ export default class SimpleImage extends Node {
       node: "image",
       getAttrs: (token: Token) => ({
         src: token.attrGet("src"),
-        alt:
-          (token?.children && token.children[0] && token.children[0].content) ||
-          null,
+        alt: token.content || null,
       }),
     };
   }
