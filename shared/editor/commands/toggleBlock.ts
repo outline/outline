@@ -1,5 +1,6 @@
 import isNull from "lodash/isNull";
 import isUndefined from "lodash/isUndefined";
+import { splitBlock } from "prosemirror-commands";
 import { Slice, Fragment } from "prosemirror-model";
 import { Command, TextSelection, Transaction } from "prosemirror-state";
 import { liftTarget, ReplaceAroundStep } from "prosemirror-transform";
@@ -376,6 +377,24 @@ export const splitBlockPreservingBody: Command = (state, dispatch) => {
   tr = tr.delete($cursor!.pos, $cursor!.end());
   dispatch?.(tr);
   return true;
+};
+
+export const splitTopLevelBlockWithinBody: Command = (state, dispatch) => {
+  const { $from } = state.selection;
+  const { isToggleBlock, isSelectionWithinToggleBlockBody, depth } =
+    ToggleBlock.getUtils(state);
+  if (!isSelectionWithinToggleBlockBody()) {
+    return false;
+  }
+  const depthOfAncestorToggleBlock = depth(
+    nearest(ancestors($from, isToggleBlock))!
+  );
+  if (depthOfAncestorToggleBlock === $from.depth - 1) {
+    // split if the block containing cursor is a direct child of a toggle block
+    return splitBlock(state, dispatch);
+  }
+
+  return false;
 };
 
 const liftChildrenOfNodeAt = (pos: number, tr: Transaction): Transaction => {
