@@ -5665,14 +5665,14 @@
   dependencies:
     "@types/markdown-it" "*"
 
-"@types/markdown-it-emoji@^2.0.4":
-  version "2.0.4"
-  resolved "https://registry.yarnpkg.com/@types/markdown-it-emoji/-/markdown-it-emoji-2.0.4.tgz#5bb4293eb8699962710b3b67f10fa211730c28c3"
-  integrity "sha1-W7QpPrhpmWJxCztn8Q+iEXMMKMM= sha512-H6ulk/ZmbDxOayPwI/leJzrmoW1YKX1Z+MVSCHXuYhvqckV4I/c+hPTf6UiqJyn2avWugfj30XroheEb6/Ekqg=="
+"@types/markdown-it-emoji@^3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@types/markdown-it-emoji/-/markdown-it-emoji-3.0.1.tgz#035d4d38110113ea0ce911f06bc2c2b03ca1ad42"
+  integrity sha512-cz1j8R35XivBqq9mwnsrP2fsz2yicLhB8+PDtuVkKOExwEdsVBNI+ROL3sbhtR5occRZ66vT0QnwFZCqdjf3pA==
   dependencies:
-    "@types/markdown-it" "*"
+    "@types/markdown-it" "^14"
 
-"@types/markdown-it@*", "@types/markdown-it@^14.0.0", "@types/markdown-it@^14.1.2":
+"@types/markdown-it@*", "@types/markdown-it@^14", "@types/markdown-it@^14.0.0", "@types/markdown-it@^14.1.2":
   version "14.1.2"
   resolved "https://registry.yarnpkg.com/@types/markdown-it/-/markdown-it-14.1.2.tgz#57f2532a0800067d9b934f3521429a2e8bfb4c61"
   integrity sha512-promo4eFwuiW+TfGxhi+0x3czqTYJkG8qB17ZUJiVF10Xm7NLVRSLUsfRTU/6h1e24VvRnXCx+hG7li58lkzog==
