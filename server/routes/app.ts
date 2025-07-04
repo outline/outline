@@ -206,7 +206,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
     isShare: true,
     rootShareId,
     canonical:
-      share && share.canonicalUrl !== ctx.url
+      share && share.canonicalUrl !== ctx.request.origin + ctx.request.url
         ? `${share.canonicalUrl}${documentSlug && document ? document.url : ""}`
         : undefined,
     allowIndexing: share?.allowIndexing,
