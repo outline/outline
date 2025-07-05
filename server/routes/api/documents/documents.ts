@@ -21,6 +21,7 @@ import documentLoader from "@server/commands/documentLoader";
 import documentMover from "@server/commands/documentMover";
 import documentPermanentDeleter from "@server/commands/documentPermanentDeleter";
 import documentUpdater from "@server/commands/documentUpdater";
+import { loadShare } from "@server/commands/shareLoader";
 import env from "@server/env";
 import {
   InvalidRequestError,
@@ -1024,16 +1025,19 @@ router.post(
 
     if (shareId) {
       const teamFromCtx = await getTeamFromContext(ctx);
-      const { document, ...loaded } = await documentLoader({
+      const result = await loadShare({
+        id: shareId,
         teamId: teamFromCtx?.id,
-        shareId,
         user,
       });
 
-      share = loaded.share;
-      isPublic = cannot(user, "read", document);
+      share = result.share;
+      const { collection, document } = result; // One of collection or document should be available
+      isPublic = collection
+        ? cannot(user, "read", collection)
+        : cannot(user, "read", document);
 
-      if (!share?.includeChildDocuments) {
+      if (share.documentId && !share?.includeChildDocuments) {
         throw InvalidRequestError("Child documents cannot be searched");
       }
 
@@ -1043,7 +1047,7 @@ router.post(
 
       response = await SearchHelper.searchForTeam(team, {
         query,
-        collectionId: document.collectionId,
+        collectionId: collection?.id || document?.collectionId,
         share,
         dateFilter,
         statusFilter,
