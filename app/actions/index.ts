@@ -12,6 +12,7 @@ import {
   MenuItemWithChildren,
 } from "~/types";
 import Analytics from "~/utils/Analytics";
+import history from "~/utils/history";
 
 function resolve<T>(value: any, context: ActionContext): T {
   return typeof value === "function" ? value(context) : value;
@@ -134,9 +135,10 @@ export function actionToKBar(
       shortcut: action.shortcut || [],
       icon: resolvedIcon,
       priority: (1 + (action.priority ?? 0)) * (1 + (sectionPriority ?? 0)),
-      perform: action.perform
-        ? () => performAction(action, context)
-        : undefined,
+      perform:
+        action.perform || action.to
+          ? () => performAction(action, context)
+          : undefined,
     },
   ].concat(
     // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
@@ -145,7 +147,13 @@ export function actionToKBar(
 }
 
 export async function performAction(action: Action, context: ActionContext) {
-  const result = action.perform?.(context);
+  const result = action.perform
+    ? action.perform(context)
+    : action.to
+      ? typeof action.to === "string"
+        ? history.push(action.to)
+        : window.open(action.to.url, action.to.target)
+      : undefined;
 
   if (result instanceof Promise) {
     return result.catch((err: Error) => {
