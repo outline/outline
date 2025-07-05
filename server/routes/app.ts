@@ -208,6 +208,17 @@ export const renderShare = async (ctx: Context, next: Next) => {
       : publicBranding && team?.name
         ? team.name
         : undefined;
+
+  const content =
+    document || collection
+      ? await DocumentHelper.toHTML(document || collection!, {
+          includeStyles: false,
+          includeHead: false,
+          includeTitle: true,
+          signedUrls: true,
+        })
+      : undefined;
+
   const canonicalUrl =
     share && share.canonicalUrl !== ctx.request.origin + ctx.request.url
       ? `${share.canonicalUrl}${
@@ -225,14 +236,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
     description:
       document?.getSummary() ||
       (publicBranding && team?.description ? team.description : undefined),
-    content: document
-      ? await DocumentHelper.toHTML(document, {
-          includeStyles: false,
-          includeHead: false,
-          includeTitle: true,
-          signedUrls: true,
-        })
-      : undefined,
+    content,
     shortcutIcon:
       publicBranding && team?.avatarUrl ? team.avatarUrl : undefined,
     analytics,
