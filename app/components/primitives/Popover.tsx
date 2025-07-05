@@ -3,7 +3,7 @@ import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
-import { fadeAndScaleIn, fadeOutAndScale } from "~/styles/animations";
+import { fadeAndScaleIn } from "~/styles/animations";
 
 const Popover = PopoverPrimitive.Root;
 
@@ -112,11 +112,7 @@ const StyledContent = styled(PopoverPrimitive.Content)<StyledContentProps>`
     		`}
 
   &[data-state="open"] {
-    animation: ${fadeAndScaleIn} 150ms cubic-bezier(0.22, 0.61, 0.36, 1); // ease-out-cubic
-  }
-
-  &[data-state="closed"] {
-    animation: ${fadeOutAndScale} 150ms cubic-bezier(0.22, 0.61, 0.36, 1); // ease-out-cubic
+    animation: ${fadeAndScaleIn} 150ms cubic-bezier(0.08, 0.82, 0.17, 1); // ease-out-circ
   }
 `;
 

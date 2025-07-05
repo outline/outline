@@ -23,18 +23,6 @@ export const fadeAndScaleIn = keyframes`
   }
 `;
 
-export const fadeOutAndScale = keyframes`
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  to {
-    opacity: 0;
-    transform: scale(0.98);
-  }
-`;
-
 export const fadeAndSlideDown = keyframes`
   from {
     opacity: 0;
