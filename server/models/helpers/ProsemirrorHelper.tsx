@@ -31,6 +31,8 @@ export type HTMLOptions = {
   includeStyles?: boolean;
   /** Whether to include mermaidjs scripts in the generated HTML (defaults to false) */
   includeMermaid?: boolean;
+  /** Whether to include head tags in the generated HTML (defaults to true) */
+  includeHead?: boolean;
   /** Whether to include styles to center diff (defaults to true) */
   centered?: boolean;
   /** The base URL to use for relative links */
@@ -561,7 +563,21 @@ export class ProsemirrorHelper {
       dom.window.document.body.appendChild(element);
     }
 
-    return dom.serialize();
+    const output = dom.serialize();
+
+    if (options?.includeHead === false) {
+      // replace everything upto and including "<body>"
+      const body = "<body>";
+      const bodyIndex = output.indexOf(body) + body.length;
+      if (bodyIndex !== -1) {
+        return output
+          .substring(bodyIndex)
+          .replace("</body>", "")
+          .replace("</html>", "");
+      }
+    }
+
+    return output;
   }
 
   /**

@@ -97,4 +97,84 @@ describe("fetchOIDCConfiguration", () => {
       "Missing authorization_endpoint in OIDC configuration"
     );
   });
+
+  it("should handle issuer URL with subdirectory path", async () => {
+    const mockConfig = {
+      issuer: "https://auth.example.com/application/o/outline/",
+      authorization_endpoint:
+        "https://auth.example.com/application/o/outline/auth",
+      token_endpoint: "https://auth.example.com/application/o/outline/token",
+      userinfo_endpoint:
+        "https://auth.example.com/application/o/outline/userinfo",
+    };
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockConfig));
+
+    const result = await fetchOIDCConfiguration(
+      "https://auth.example.com/application/o/outline/"
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://auth.example.com/application/o/outline/.well-known/openid-configuration",
+      expect.objectContaining({
+        method: "GET",
+        headers: expect.objectContaining({
+          Accept: "application/json",
+        }),
+      })
+    );
+
+    expect(result).toEqual(mockConfig);
+  });
+
+  it("should handle issuer URL with subdirectory path without trailing slash", async () => {
+    const mockConfig = {
+      issuer: "https://auth.example.com/application/o/outline",
+      authorization_endpoint:
+        "https://auth.example.com/application/o/outline/auth",
+      token_endpoint: "https://auth.example.com/application/o/outline/token",
+      userinfo_endpoint:
+        "https://auth.example.com/application/o/outline/userinfo",
+    };
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockConfig));
+
+    const result = await fetchOIDCConfiguration(
+      "https://auth.example.com/application/o/outline"
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://auth.example.com/application/o/outline/.well-known/openid-configuration",
+      expect.objectContaining({
+        method: "GET",
+        headers: expect.objectContaining({
+          Accept: "application/json",
+        }),
+      })
+    );
+
+    expect(result).toEqual(mockConfig);
+  });
+
+  it("should handle issuer URL that already contains well-known path", async () => {
+    const mockConfig = {
+      issuer: "https://example.com",
+      authorization_endpoint: "https://example.com/auth",
+      token_endpoint: "https://example.com/token",
+      userinfo_endpoint: "https://example.com/userinfo",
+    };
+
+    fetchMock.mockResponseOnce(JSON.stringify(mockConfig));
+
+    const result = await fetchOIDCConfiguration(
+      "https://example.com/.well-known/openid-configuration"
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://example.com/.well-known/openid-configuration",
+      expect.any(Object)
+    );
+
+    expect(result).toEqual(mockConfig);
+  });
 });

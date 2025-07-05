@@ -1,5 +1,5 @@
 import MarkdownIt from "markdown-it";
-import emojiPlugin from "markdown-it-emoji";
+import { full as emojiPlugin } from "markdown-it-emoji";
 import { nameToEmoji } from "../lib/emoji";
 
 type Options = MarkdownIt.Options & {
