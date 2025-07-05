@@ -89,11 +89,26 @@ export default class S3Storage extends BaseStorage {
     }`;
   }
 
+  private getPublicFileEndpoint() {
+    // Use public URL for publicly accessible files (like avatars) if provided
+    if (env.AWS_S3_PUBLIC_URL) {
+      return env.AWS_S3_PUBLIC_URL.replace(/\/$/, "");
+    }
+
+    // Fall back to regular public endpoint
+    return this.getPublicEndpoint();
+  }
+
   public getUploadUrl(isServerUpload?: boolean) {
     return this.getPublicEndpoint(isServerUpload);
   }
 
   public getUrlForKey(key: string): string {
+    // Use public URL for files in the "public" bucket (includes avatars)
+    if (key.startsWith("public/") && env.AWS_S3_PUBLIC_URL) {
+      return `${this.getPublicFileEndpoint()}/${key}`;
+    }
+
     return `${this.getPublicEndpoint()}/${key}`;
   }
 
@@ -123,6 +138,11 @@ export default class S3Storage extends BaseStorage {
       },
     });
     await upload.done();
+
+    // Use public URL for publicly accessible files (public-read ACL)
+    if (acl === "public-read" && env.AWS_S3_PUBLIC_URL) {
+      return `${this.getPublicFileEndpoint()}/${key}`;
+    }
 
     const endpoint = this.getPublicEndpoint(true);
     return `${endpoint}/${key}`;
