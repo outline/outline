@@ -1,11 +1,15 @@
 import { observer } from "mobx-react";
 import { GlobeIcon, PadlockIcon } from "outline-icons";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import Collection from "~/models/Collection";
 import Button from "~/components/Button";
-import Popover from "~/components/Popover";
 import SharePopover from "~/components/Sharing/Collection/SharePopover";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "~/components/primitives/Popover";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
@@ -17,18 +21,18 @@ type Props = {
 
 function ShareButton({ collection }: Props) {
   const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
   const { shares } = useStores();
+  const isMobile = useMobile();
   const team = useCurrentTeam();
   const share = shares.getByCollectionId(collection.id);
   const isPubliclyShared =
     team.sharing !== false && collection?.sharing !== false && share?.published;
 
-  const popover = usePopoverState({
-    gutter: 0,
-    placement: "bottom-end",
-    unstable_fixed: true,
-  });
-  const isMobile = useMobile();
+  const closePopover = useCallback(() => {
+    setOpen(false);
+  }, []);
+
   if (isMobile) {
     return null;
   }
@@ -40,28 +44,25 @@ function ShareButton({ collection }: Props) {
   );
 
   return (
-    <>
-      <PopoverDisclosure {...popover}>
-        {(props) => (
-          <Button icon={icon} neutral {...props}>
-            {t("Share")}
-          </Button>
-        )}
-      </PopoverDisclosure>
-
-      <Popover
-        {...popover}
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger>
+        <Button icon={icon} neutral>
+          {t("Share")}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
         aria-label={t("Share")}
         width={400}
-        scrollable={false}
+        side="bottom"
+        align="end"
       >
         <SharePopover
           collection={collection}
-          onRequestClose={popover.hide}
-          visible={popover.visible}
+          onRequestClose={closePopover}
+          visible={open}
         />
-      </Popover>
-    </>
+      </PopoverContent>
+    </Popover>
   );
 }
 
