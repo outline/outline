@@ -1,3 +1,4 @@
+import { Hour } from "@shared/utils/time";
 import Collection from "@server/models/Collection";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { APIContext } from "@server/types";
@@ -29,6 +30,8 @@ export default async function presentCollection(
           collection,
           options.isPublic
             ? {
+                signedUrls: Hour.seconds,
+                teamId: collection.teamId,
                 internalUrlBase: `/s/${options.shareId}`,
               }
             : undefined
