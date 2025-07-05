@@ -18,7 +18,7 @@ function ShareButton({ document }: Props) {
   const { t } = useTranslation();
   const { shares } = useStores();
   const share = shares.getByDocumentId(document.id);
-  const sharedParent = shares.getByDocumentParents(document.id);
+  const sharedParent = shares.getByDocumentParents(document);
   const domain = share?.domain || sharedParent?.domain;
 
   const popover = usePopoverState({

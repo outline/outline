@@ -32,7 +32,10 @@ allow(User, "update", Share, (actor, share) =>
     isTeamModel(actor, share),
     !actor.isGuest,
     !actor.isViewer,
-    can(actor, "share", share?.document)
+    or(
+      can(actor, "share", share?.collection),
+      can(actor, "share", share?.document)
+    )
   )
 );
 
