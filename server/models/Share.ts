@@ -114,7 +114,7 @@ class Share extends IdModel<
   @Column
   domain: string | null;
 
-  @Default(true)
+  @Default(false)
   @Column
   allowIndexing: boolean;
 
