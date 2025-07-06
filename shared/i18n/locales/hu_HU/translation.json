@@ -786,6 +786,8 @@
   "Underline": "Aláhúzás",
   "Undo": "Visszavonás",
   "Redo": "Redo",
+  "Move block up": "Move block up",
+  "Move block down": "Move block down",
   "Lists": "Listák",
   "Toggle task list item": "Feladatlista-elem be- vagy kikapcsolása",
   "Tab": "Tab",

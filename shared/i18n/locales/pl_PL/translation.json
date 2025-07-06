@@ -786,6 +786,8 @@
   "Underline": "Podkreślenie",
   "Undo": "Cofnij",
   "Redo": "Ponów",
+  "Move block up": "Move block up",
+  "Move block down": "Move block down",
   "Lists": "Listy",
   "Toggle task list item": "Przełącz element listy zadań",
   "Tab": "Karta",

@@ -786,6 +786,8 @@
   "Underline": "Podtržení",
   "Undo": "Vrátit zpět",
   "Redo": "Opakovat",
+  "Move block up": "Move block up",
+  "Move block down": "Move block down",
   "Lists": "Seznamy",
   "Toggle task list item": "Toggle task list item",
   "Tab": "Tab",

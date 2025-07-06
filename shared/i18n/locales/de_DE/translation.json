@@ -786,6 +786,8 @@
   "Underline": "Unterstreichen",
   "Undo": "Rückgängig machen",
   "Redo": "Wiederholen",
+  "Move block up": "Move block up",
+  "Move block down": "Move block down",
   "Lists": "Listen",
   "Toggle task list item": "Element der Aufgabenliste umschalten",
   "Tab": "Tab",

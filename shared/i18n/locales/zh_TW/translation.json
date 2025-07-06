@@ -786,6 +786,8 @@
   "Underline": "底線",
   "Undo": "復原",
   "Redo": "重做",
+  "Move block up": "Move block up",
+  "Move block down": "Move block down",
   "Lists": "清單",
   "Toggle task list item": "切換任務清單項目",
   "Tab": "Tab",

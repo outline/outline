@@ -786,6 +786,8 @@
   "Underline": "Підкреслення",
   "Undo": "Скасувати",
   "Redo": "Повторити дію",
+  "Move block up": "Move block up",
+  "Move block down": "Move block down",
   "Lists": "Списки",
   "Toggle task list item": "Toggle task list item",
   "Tab": "Tab",
