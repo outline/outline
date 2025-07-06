@@ -39,7 +39,7 @@
     "url": "https://github.com/sponsors/outline"
   },
   "engines": {
-    "node": ">= 20 <=22"
+    "node": "20.x"
   },
   "repository": {
     "type": "git",
