@@ -786,6 +786,8 @@
   "Underline": "Onderstrepen",
   "Undo": "Ongedaan maken",
   "Redo": "Opnieuw",
+  "Move block up": "Move block up",
+  "Move block down": "Move block down",
   "Lists": "Lijsten",
   "Toggle task list item": "Taken lijst item in-/uitschakelen",
   "Tab": "Tab",

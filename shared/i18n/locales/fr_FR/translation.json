@@ -786,6 +786,8 @@
   "Underline": "Souligner",
   "Undo": "Annuler",
   "Redo": "Rétablir",
+  "Move block up": "Move block up",
+  "Move block down": "Move block down",
   "Lists": "Listes",
   "Toggle task list item": "Activer/désactiver l'élément de la liste des tâches",
   "Tab": "Tabulation",

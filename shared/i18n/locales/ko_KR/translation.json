@@ -786,6 +786,8 @@
   "Underline": "밑줄",
   "Undo": "실행 취소",
   "Redo": "복원하기",
+  "Move block up": "블록을 위로 이동",
+  "Move block down": "블록을 아래로 이동",
   "Lists": "목록",
   "Toggle task list item": "작업 목록 항목 전환",
   "Tab": "탭",

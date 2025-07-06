@@ -786,6 +786,8 @@
   "Underline": "Sottolineato",
   "Undo": "Annulla",
   "Redo": "Ripristina",
+  "Move block up": "Move block up",
+  "Move block down": "Move block down",
   "Lists": "Elenchi",
   "Toggle task list item": "Toggle task list item",
   "Tab": "Tab",

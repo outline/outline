@@ -786,6 +786,8 @@
   "Underline": "Altı çizili",
   "Undo": "Geri al",
   "Redo": "Yinele",
+  "Move block up": "Move block up",
+  "Move block down": "Move block down",
   "Lists": "Listeler",
   "Toggle task list item": "Toggle task list item",
   "Tab": "Tab",
