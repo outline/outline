@@ -45,35 +45,7 @@ export default () =>
           : { strict: true },
     },
     plugins: [
-      // https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#readme
-      react({
-        babel: {
-          env: {
-            production: {
-              plugins: [
-                [
-                  "babel-plugin-styled-components",
-                  {
-                    displayName: false,
-                  },
-                ],
-              ],
-            },
-          },
-          plugins: [
-            [
-              "babel-plugin-styled-components",
-              {
-                displayName: true,
-                fileName: false,
-              },
-            ],
-          ],
-          parserOpts: {
-            plugins: ["decorators-legacy", "classProperties"],
-          },
-        },
-      }),
+      react(),
       // https://github.com/sapphi-red/vite-plugin-static-copy#readme
       viteStaticCopy({
         targets: [
