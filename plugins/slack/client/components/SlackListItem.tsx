@@ -2,7 +2,6 @@ import uniq from "lodash/uniq";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
@@ -14,9 +13,13 @@ import ButtonLink from "~/components/ButtonLink";
 import Flex from "~/components/Flex";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import ListItem from "~/components/List/Item";
-import Popover from "~/components/Popover";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "~/components/primitives/Popover";
 
 type Props = {
   integration: Integration<IntegrationType.Post>;
@@ -43,11 +46,6 @@ function SlackListItem({ integration, collection }: Props) {
     "documents.update": t("document updated"),
   };
 
-  const popover = usePopoverState({
-    gutter: 0,
-    placement: "bottom-start",
-  });
-
   return (
     <ListItem
       key={integration.id}
@@ -68,32 +66,32 @@ function SlackListItem({ integration, collection }: Props) {
               em: <strong />,
             }}
           />{" "}
-          <PopoverDisclosure {...popover}>
-            {(props) => (
-              <ButtonLink {...props}>
+          <Popover>
+            <PopoverTrigger>
+              <ButtonLink>
                 {integration.events.map((ev) => mapping[ev]).join(", ")}
               </ButtonLink>
-            )}
-          </PopoverDisclosure>
-          <Popover {...popover} aria-label={t("Settings")}>
-            <Events>
-              <h3>{t("Notifications")}</h3>
-              <Text as="p" type="secondary">
-                {t("These events should be posted to Slack")}
-              </Text>
-              <Switch
-                label={t("Document published")}
-                name="documents.publish"
-                checked={integration.events.includes("documents.publish")}
-                onChange={handleChange("documents.publish")}
-              />
-              <Switch
-                label={t("Document updated")}
-                name="documents.update"
-                checked={integration.events.includes("documents.update")}
-                onChange={handleChange("documents.update")}
-              />
-            </Events>
+            </PopoverTrigger>
+            <PopoverContent side="bottom" align="start">
+              <Events>
+                <h3>{t("Notifications")}</h3>
+                <Text as="p" type="secondary">
+                  {t("These events should be posted to Slack")}
+                </Text>
+                <Switch
+                  label={t("Document published")}
+                  name="documents.publish"
+                  checked={integration.events.includes("documents.publish")}
+                  onChange={handleChange("documents.publish")}
+                />
+                <Switch
+                  label={t("Document updated")}
+                  name="documents.update"
+                  checked={integration.events.includes("documents.update")}
+                  onChange={handleChange("documents.update")}
+                />
+              </Events>
+            </PopoverContent>
           </Popover>
         </>
       }

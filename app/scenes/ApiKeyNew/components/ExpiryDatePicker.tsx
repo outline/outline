@@ -3,11 +3,14 @@ import { CalendarIcon } from "outline-icons";
 import * as React from "react";
 import { DayPicker } from "react-day-picker";
 import { useTranslation } from "react-i18next";
-import { usePopoverState, PopoverDisclosure } from "reakit";
 import styled, { useTheme } from "styled-components";
 import { dateLocale } from "@shared/utils/date";
 import Button from "~/components/Button";
-import Popover from "~/components/Popover";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "~/components/primitives/Popover";
 import useUserLocale from "~/hooks/useUserLocale";
 
 type Props = {
@@ -17,13 +20,11 @@ type Props = {
 
 const ExpiryDatePicker = ({ selectedDate, onSelect }: Props) => {
   const { t } = useTranslation();
+  const [open, setOpen] = React.useState(false);
   const theme = useTheme();
 
   const userLocale = useUserLocale();
   const locale = dateLocale(userLocale);
-
-  const popover = usePopoverState({ gutter: 0, placement: "right" });
-  const popoverContentRef = React.useRef<HTMLDivElement>(null);
 
   const styles = React.useMemo(
     () =>
@@ -41,29 +42,26 @@ const ExpiryDatePicker = ({ selectedDate, onSelect }: Props) => {
 
   const handleSelect = React.useCallback(
     (date: Date) => {
-      popover.hide();
+      setOpen(false);
       onSelect(date);
     },
-    [popover, onSelect]
+    [onSelect]
   );
 
   return (
-    <>
-      <PopoverDisclosure {...popover}>
-        {(props) => (
-          <StyledPopoverButton {...props} icon={<Icon />} neutral>
-            {selectedDate
-              ? formatDate(selectedDate, "MMM dd, yyyy", { locale })
-              : t("Choose a date")}
-          </StyledPopoverButton>
-        )}
-      </PopoverDisclosure>
-      <Popover
-        {...popover}
-        ref={popoverContentRef}
-        width={280}
-        shrink
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger>
+        <StyledPopoverButton icon={<Icon />} neutral>
+          {selectedDate
+            ? formatDate(selectedDate, "MMM dd, yyyy", { locale })
+            : t("Choose a date")}
+        </StyledPopoverButton>
+      </PopoverTrigger>
+      <PopoverContent
         aria-label={t("Choose a date")}
+        width={280}
+        side="right"
+        shrink
       >
         <DayPicker
           required
@@ -73,8 +71,8 @@ const ExpiryDatePicker = ({ selectedDate, onSelect }: Props) => {
           style={styles}
           disabled={{ before: new Date() }}
         />
-      </Popover>
-    </>
+      </PopoverContent>
+    </Popover>
   );
 };
 

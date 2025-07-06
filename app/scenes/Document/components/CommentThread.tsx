@@ -35,10 +35,6 @@ type Props = {
   focused: boolean;
   /** Whether the thread is displayed in a recessed/backgrounded state */
   recessed: boolean;
-  /** Enable scroll for the comments container */
-  enableScroll: () => void;
-  /** Disable scroll for the comments container */
-  disableScroll: () => void;
   /** Number of replies before collapsing */
   collapseThreshold?: number;
   /** Number of replies to display when collapsed */
@@ -50,8 +46,6 @@ function CommentThread({
   document,
   recessed,
   focused,
-  enableScroll,
-  disableScroll,
   collapseThreshold = 5,
   collapseNumDisplayed = 3,
 }: Props) {
@@ -248,8 +242,6 @@ function CommentThread({
             lastOfAuthor={lastOfAuthor}
             previousCommentCreatedAt={commentsInThread[index - 1]?.createdAt}
             dir={document.dir}
-            enableScroll={enableScroll}
-            disableScroll={disableScroll}
           />
         );
       })}
