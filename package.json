@@ -256,7 +256,7 @@
     "uuid": "^8.3.2",
     "validator": "13.15.0",
     "vaul": "^1.1.2",
-    "vite": "^6.3.4",
+    "vite": "npm:rolldown-vite@latest",
     "vite-plugin-pwa": "^0.21.2",
     "winston": "^3.17.0",
     "ws": "^7.5.10",
@@ -368,7 +368,7 @@
     "prettier": "^3.6.2",
     "react-refresh": "^0.17.0",
     "rimraf": "^2.5.4",
-    "rollup-plugin-webpack-stats": "^2.0.5",
+    "rollup-plugin-webpack-stats": "^2.1.0",
     "terser": "^5.43.1",
     "typescript": "^5.8.3",
     "vite-plugin-static-copy": "^0.17.0",
@@ -382,8 +382,7 @@
     "node-fetch": "^2.7.0",
     "js-yaml": "^3.14.1",
     "qs": "6.9.7",
-    "prismjs": "1.30.0",
-    "vite": "npm:rolldown-vite@latest"
+    "prismjs": "1.30.0"
   },
   "version": "0.84.0",
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"

@@ -176,17 +176,8 @@ export default () =>
         },
       }),
       // Generate a stats.json file for webpack that will be consumed by RelativeCI
-      // @ts-expect-error Type mismatch with rolldown-vite but Plugin runs without issue
       webpackStats(),
     ],
-    optimizeDeps: {
-      esbuildOptions: {
-        keepNames: true,
-        define: {
-          global: "globalThis",
-        },
-      },
-    },
     resolve: {
       alias: {
         "~": path.resolve(__dirname, "./app"),
@@ -197,8 +188,8 @@ export default () =>
       outDir: "./build/app",
       manifest: true,
       sourcemap: process.env.CI ? false : "hidden",
-      minify: "oxc" as any, // rolldown-vite supports oxc minifier
-      // Prevent asset inling as it does not conform to CSP rules
+      minify: "oxc",
+      // Prevent asset inlining as it does not conform to CSP rules
       assetsInlineLimit: 0,
       target: browserslistToEsbuild(),
       reportCompressedSize: false,
