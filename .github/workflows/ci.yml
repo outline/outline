@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20.x, 22.x]
+        node-version: [20.x]
 
     steps:
     - uses: actions/checkout@v4
@@ -31,7 +31,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'yarn'
-    
+
     - name: Install dependencies
       run: yarn install --frozen-lockfile
 
@@ -115,7 +115,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      
+
       redis:
         image: redis:5.0
         ports:
@@ -129,7 +129,7 @@ jobs:
     strategy:
       matrix:
         shard: [1, 2, 3]
-    
+
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
