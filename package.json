@@ -230,7 +230,7 @@
     "sanitize-filename": "^1.6.3",
     "scroll-into-view-if-needed": "^3.1.0",
     "semver": "^7.7.2",
-    "sequelize": "^6.37.3",
+    "sequelize": "^6.37.7",
     "sequelize-cli": "^6.6.3",
     "sequelize-encrypted": "^1.0.0",
     "sequelize-strict-attributes": "^1.0.2",
