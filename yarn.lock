@@ -1737,17 +1737,17 @@
   dependencies:
     "@bull-board/api" "6.9.6"
 
-"@bundle-stats/plugin-webpack-filter@4.19.0":
-  version "4.19.0"
-  resolved "https://registry.yarnpkg.com/@bundle-stats/plugin-webpack-filter/-/plugin-webpack-filter-4.19.0.tgz#156023b4c011a09b8a3e5a322a8c898d758cb8a4"
-  integrity sha512-vFX4rzAyOT59lZE9tzYM32nSK8wRMfi4vF4oAeTbN+9DQR6TCEI1qiIIUWDgRaEXzj14oEqLP+eXjvbsxJlA6g==
+"@bundle-stats/plugin-webpack-filter@4.19.1":
+  version "4.19.1"
+  resolved "https://registry.yarnpkg.com/@bundle-stats/plugin-webpack-filter/-/plugin-webpack-filter-4.19.1.tgz#5b1bbe31ee4f2196e22c8d0b75370cb1db0522a7"
+  integrity sha512-6/Wn5/t3X4mqxn8TvxRQh2hBm294zI4STjliMcL36w1ap9Lw/CUcXuQwx/kCoTUC9JpncPlXus6Oht6/8Hs5zw==
   dependencies:
     tslib "2.8.1"
 
-"@bundle-stats/plugin-webpack-validate@4.19.0":
-  version "4.19.0"
-  resolved "https://registry.yarnpkg.com/@bundle-stats/plugin-webpack-validate/-/plugin-webpack-validate-4.19.0.tgz#cd238e732c1d668071209b8c40f8053d193be360"
-  integrity sha512-yYb8pTnRpQZfjOGIwq5RZQCwe1lW5RweBHs4rRqbyfB9LzIw92X3fqYoy3SEJO8jhnoakThOlHiaSlGyCj2xMQ==
+"@bundle-stats/plugin-webpack-validate@4.19.1":
+  version "4.19.1"
+  resolved "https://registry.yarnpkg.com/@bundle-stats/plugin-webpack-validate/-/plugin-webpack-validate-4.19.1.tgz#c04e63178e06e10a9b252cdada7e1f25ed3a1a5f"
+  integrity sha512-bzcYNovzZGGdrIW3blmomFBYTB6mgOoYrmb0CkbHxSXilk29mEb5msS+xqo51jhYzZ9wWoL8JnkWUgngbh12Wg==
   dependencies:
     lodash "4.17.21"
     superstruct "2.0.2"
@@ -4059,17 +4059,17 @@
   dependencies:
     "@react-types/shared" "^3.14.1"
 
-"@relative-ci/agent@^4.3.0":
-  version "4.3.0"
-  resolved "https://registry.yarnpkg.com/@relative-ci/agent/-/agent-4.3.0.tgz#32a4d8b18e2223c202c26ef0c2dfacd27e4145cd"
-  integrity sha512-4cX2yN9OrarVQ/+AmLC1gjRK8pdFnl/zFXbzz7gfKQR/mYFO61R/LRQBD4ZGylf1hr3yPkn38XfpOKqMZuYjEA==
+"@relative-ci/agent@^4.3.1":
+  version "4.3.1"
+  resolved "https://registry.yarnpkg.com/@relative-ci/agent/-/agent-4.3.1.tgz#87f1a2ac7ff32145b6880c91cb6281574192bd7c"
+  integrity sha512-h+77HX5IGT/ChIPvgXx/LXlIDKSP5CnucXCr1ULEQr9JlEGHs66n98tlWgeAH2WNMrL/+9WlhudXanpeqBymhw==
   dependencies:
-    "@bundle-stats/plugin-webpack-filter" "4.19.0"
-    "@bundle-stats/plugin-webpack-validate" "4.19.0"
+    "@bundle-stats/plugin-webpack-filter" "4.19.1"
+    "@bundle-stats/plugin-webpack-validate" "4.19.1"
     core-js "3.41.0"
     cosmiconfig "9.0.0"
     debug "4.4.0"
-    dotenv "16.4.7"
+    dotenv "16.5.0"
     env-ci "7.3.0"
     fs-extra "11.3.0"
     lodash "4.17.21"
@@ -8569,15 +8569,10 @@ domutils@^3.0.1:
     domelementtype "^2.3.0"
     domhandler "^5.0.1"
 
-dotenv@*, dotenv@^16.5.0:
+dotenv@*, dotenv@16.5.0, dotenv@^16.5.0:
   version "16.5.0"
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-16.5.0.tgz#092b49f25f808f020050051d1ff258e404c78692"
   integrity sha512-m/C+AwOAr9/W1UOIZUo232ejMNnJAJtYQjUbHoNTBNTJSvqzzDh7vnrei3o3r3m9blf6ZoDkvcw0VmozNRFJxg==
-
-dotenv@16.4.7:
-  version "16.4.7"
-  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-16.4.7.tgz#0e20c5b82950140aa99be360a8a5f52335f53c26"
-  integrity sha512-47qPchRCykZC03FhkYAhrvwU4xDBFIj1QPqaarj6mdM/hgUzfPHcpkHJOn3mJAufFeeAxAzeGsr5X0M4k6fLZQ==
 
 dottie@^2.0.6:
   version "2.0.6"
