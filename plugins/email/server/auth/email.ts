@@ -6,11 +6,13 @@ import SigninEmail from "@server/emails/templates/SigninEmail";
 import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
 import env from "@server/env";
 import { AuthorizationError } from "@server/errors";
+import Logger from "@server/logging/Logger";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import validate from "@server/middlewares/validate";
 import { User, Team } from "@server/models";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
+import { VerificationCode } from "@server/utils/VerificationCode";
 import { signIn } from "@server/utils/authentication";
 import { getUserForEmailSigninToken } from "@server/utils/jwt";
 import * as T from "./schema";
@@ -22,7 +24,7 @@ router.post(
   rateLimiter(RateLimiterStrategy.TenPerHour),
   validate(T.EmailSchema),
   async (ctx: APIContext<T.EmailReq>) => {
-    const { email, client } = ctx.input.body;
+    const { email, client, preferOTP } = ctx.input.body;
 
     const domain = parseDomain(ctx.request.hostname);
 
@@ -68,12 +70,19 @@ router.post(
       return;
     }
 
-    // send email to users email address with a short-lived token
+    // Generate both a link token and a 6-digit verification code
+    const token = preferOTP ? undefined : user.getEmailSigninToken();
+    const verificationCode = preferOTP
+      ? await user.getEmailVerificationCode()
+      : undefined;
+
+    // send email to users email address with a short-lived token and code
     await new SigninEmail({
       to: user.email,
-      token: user.getEmailSigninToken(),
+      token,
       teamUrl: team.url,
       client,
+      verificationCode,
     }).schedule();
 
     user.lastSigninEmailSentAt = new Date();
@@ -91,6 +100,8 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
   const token = query?.token || body?.token;
   const client = query?.client || body?.client || Client.Web;
   const follow = query?.follow || body?.follow;
+  const code = query?.code || body?.code;
+  const email = query?.email || body?.email;
 
   // The link in the email does not include the follow query param, this
   // is to help prevent anti-virus, and email clients from pre-fetching the link
@@ -103,10 +114,32 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
   let user!: User;
 
   try {
-    user = await getUserForEmailSigninToken(token as string);
-  } catch (_err) {
-    ctx.redirect(`/?notice=expired-token`);
-    return;
+    if (token) {
+      user = await getUserForEmailSigninToken(token as string);
+    } else if (code && email) {
+      user = await User.scope("withTeam").findOne({
+        rejectOnEmpty: true,
+        where: {
+          email: email.trim().toLowerCase(),
+        },
+      });
+
+      const isValid = await VerificationCode.verify(email, code);
+
+      if (!isValid) {
+        ctx.redirect(`/?notice=invalid-code`);
+        return;
+      }
+
+      // Delete the code after successful verification
+      await VerificationCode.delete(email);
+    } else {
+      ctx.redirect("/?notice=auth-error");
+      return;
+    }
+  } catch (err) {
+    Logger.debug("authentication", err);
+    return ctx.redirect("/?notice=auth-error");
   }
 
   if (!user.team.emailSigninEnabled) {
