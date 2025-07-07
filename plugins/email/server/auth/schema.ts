@@ -6,6 +6,7 @@ export const EmailSchema = BaseSchema.extend({
   body: z.object({
     email: z.string().email(),
     client: z.nativeEnum(Client).default(Client.Web),
+    preferOTP: z.boolean().default(false),
   }),
 });
 

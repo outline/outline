@@ -6,6 +6,10 @@ import useQuery from "~/hooks/useQuery";
 
 function Message({ notice }: { notice: string }) {
   switch (notice) {
+    case "invalid-code":
+      return (
+        <Trans>Sorry, the code you entered is invalid or has expired.</Trans>
+      );
     case "domain-not-allowed":
       return (
         <Trans>

@@ -8,6 +8,7 @@ import styled from "styled-components";
 import { getCookie, setCookie } from "tiny-cookie";
 import { s } from "@shared/styles";
 import { Client, UserPreference } from "@shared/types";
+import { isPWA } from "@shared/utils/browser";
 import { parseDomain } from "@shared/utils/domains";
 import { Config } from "~/stores/AuthStore";
 import { AvatarSize } from "~/components/Avatar";
@@ -30,7 +31,6 @@ import {
 } from "~/hooks/useLastVisitedPath";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
-import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { detectLanguage } from "~/utils/language";
@@ -77,19 +77,6 @@ function Login({ children, onBack }: Props) {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(event.target));
     await navigateToSubdomain(data.subdomain.toString());
-  }, []);
-
-  const handleEmailCodeSubmit = React.useCallback(async (event) => {
-    event.preventDefault();
-    try {
-      const response = await client.post(
-        event.currentTarget.action,
-        new FormData(event.target)
-      );
-      setEmailLinkSentTo("");
-    } catch (err) {
-      console.error(err);
-    }
   }, []);
 
   React.useEffect(() => {
@@ -215,6 +202,7 @@ function Login({ children, onBack }: Props) {
     (provider) => provider.id === auth.lastSignedIn && !isCreate
   );
   const clientType = Desktop.isElectron() ? Client.Desktop : Client.Web;
+  const preferOTP = Desktop.isElectron() || isPWA;
 
   if (firstRun) {
     return <WorkspaceSetup onBack={onBack} />;
@@ -228,29 +216,43 @@ function Login({ children, onBack }: Props) {
           <PageTitle title={t("Check your email")} />
           <CheckEmailIcon size={38} />
           <Heading centered>{t("Check your email")}</Heading>
-          <Note>
-            <Trans
-              defaults="Click the link in the email send to <em>{{ emailLinkSentTo }}</em>, or enter the code below"
-              values={{ emailLinkSentTo }}
-              components={{ em: <em /> }}
-            />.
-          </Note>
-          <Form
-            method="POST"
-            action="/auth/email.callback"
-            onSubmit={handleEmailCodeSubmit}
-            style={{width: "100%"}}
-          >
-            <input type="hidden" name="email" value={emailLinkSentTo} />
-            <input type="hidden" name="client" value={clientType} />
-            <input type="hidden" name="follow" value="true" />
-            <OneTimePasswordInput name="code" />
-            <br />
-            <ButtonLarge submit fullwidth>
-              {t("Continue")}
-            </ButtonLarge>
-          </Form>
-          <br />
+          {preferOTP ? (
+            <>
+              <Note>
+                <Trans
+                  defaults="Enter the sign-in code sent to the email <em>{{ emailLinkSentTo }}</em>"
+                  values={{ emailLinkSentTo }}
+                  components={{ em: <em /> }}
+                />
+                .
+              </Note>
+              <Form
+                method="POST"
+                action="/auth/email.callback"
+                style={{ width: "100%" }}
+              >
+                <input type="hidden" name="email" value={emailLinkSentTo} />
+                <input type="hidden" name="client" value={clientType} />
+                <input type="hidden" name="follow" value="true" />
+                <OneTimePasswordInput name="code" />
+                <br />
+                <ButtonLarge type="submit" fullwidth>
+                  {t("Continue")}
+                </ButtonLarge>
+              </Form>
+            </>
+          ) : (
+            <>
+              <Note>
+                <Trans
+                  defaults="A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em> if an account exists."
+                  values={{ emailLinkSentTo }}
+                  components={{ em: <em /> }}
+                />
+              </Note>
+              <br />
+            </>
+          )}
           <ButtonLarge onClick={handleReset} fullwidth neutral>
             {t("Back to login")}
           </ButtonLarge>
@@ -357,7 +359,7 @@ function Login({ children, onBack }: Props) {
 
 const Form = styled.form`
   margin: 1em 0;
-`
+`;
 
 const StyledHeading = styled(Heading)`
   margin: 0;

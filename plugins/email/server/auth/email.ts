@@ -24,7 +24,7 @@ router.post(
   rateLimiter(RateLimiterStrategy.TenPerHour),
   validate(T.EmailSchema),
   async (ctx: APIContext<T.EmailReq>) => {
-    const { email, client } = ctx.input.body;
+    const { email, client, preferOTP } = ctx.input.body;
 
     const domain = parseDomain(ctx.request.hostname);
 
@@ -71,8 +71,10 @@ router.post(
     }
 
     // Generate both a link token and a 6-digit verification code
-    const token = user.getEmailSigninToken();
-    const verificationCode = await user.getEmailVerificationCode();
+    const token = preferOTP ? undefined : user.getEmailSigninToken();
+    const verificationCode = preferOTP
+      ? await user.getEmailVerificationCode()
+      : undefined;
 
     // send email to users email address with a short-lived token and code
     await new SigninEmail({
@@ -110,8 +112,6 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
   }
 
   let user!: User;
-
-  console.log({ code, email, token });
 
   try {
     if (token) {
