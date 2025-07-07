@@ -105,10 +105,10 @@
     "@smithy/util-utf8" "^2.0.0"
     tslib "^2.6.2"
 
-"@aws-sdk/client-s3@3.840.0":
-  version "3.840.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/client-s3/-/client-s3-3.840.0.tgz#4cc5504d884049da1367414c4422522306e349f5"
-  integrity sha512-dRuo03EqGBbl9+PTogpwY9bYmGWIjn8nB82HN5Qj20otgjUvhLOdEkkip9mroYsrvqNoKbMedWdCudIcB/YY1w==
+"@aws-sdk/client-s3@3.842.0":
+  version "3.842.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/client-s3/-/client-s3-3.842.0.tgz#decef99c0305c06ce2d7e1bbe029e12bbed5e288"
+  integrity sha512-T5Rh72Rcq1xIaM8KkTr1Wpr7/WPCYO++KrM+/Em0rq2jxpjMMhj77ITpgH7eEmNxWmwIndTwqpgfmbpNfk7Gbw==
   dependencies:
     "@aws-crypto/sha1-browser" "5.2.0"
     "@aws-crypto/sha256-browser" "5.2.0"
@@ -345,10 +345,10 @@
     aws-crt "^1.24.0"
     tslib "^2.6.2"
 
-"@aws-sdk/lib-storage@3.840.0":
-  version "3.840.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/lib-storage/-/lib-storage-3.840.0.tgz#e3a923be3d901d359f57881cb9f8c93ab7e2d40d"
-  integrity sha512-P3w05N26fW01loe9f6gAIYt9hdP8M3rI13Rj3dZgJ6jykrjSB7+6ekAshUbzLp1uDHdmSkcUutzk2EIYtvPjlQ==
+"@aws-sdk/lib-storage@3.842.0":
+  version "3.842.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/lib-storage/-/lib-storage-3.842.0.tgz#afe2be838382af4ef5772702573a47a6c73341c0"
+  integrity sha512-QRWu+/I6Sgy4Kj2gq9srdw0/YSDiybSiMiQMUgcw4iI4mgWUcEwRPw7rGUFRWwdZUAhYGUv1T37Ydz2GXDFnJQ==
   dependencies:
     "@smithy/abort-controller" "^4.0.4"
     "@smithy/middleware-endpoint" "^4.1.13"
@@ -536,12 +536,12 @@
     "@smithy/util-middleware" "^4.0.4"
     tslib "^2.6.2"
 
-"@aws-sdk/s3-presigned-post@3.840.0":
-  version "3.840.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/s3-presigned-post/-/s3-presigned-post-3.840.0.tgz#55bef3500271b19dd85dc659fe3ed8e7f0a2d372"
-  integrity sha512-Ds4Tnk2er2F9VvRtuvwWFNYyrXhIdk1QtQkqF6KSJcH6M0JWI1PdgspP1kh+Fea80WGEKY7PcSN5csiovkElDQ==
+"@aws-sdk/s3-presigned-post@3.842.0":
+  version "3.842.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/s3-presigned-post/-/s3-presigned-post-3.842.0.tgz#9fbf91ab990c9d2ff9731e8f2018820bac4bf549"
+  integrity sha512-9yUetQNlIoGYLv+2rbPBd108nmnOwQhfinbILRqW0+jHhCLM1jfuYF/QvhivNf2Tp5gsUbV0zYvp11dTyvJv4w==
   dependencies:
-    "@aws-sdk/client-s3" "3.840.0"
+    "@aws-sdk/client-s3" "3.842.0"
     "@aws-sdk/types" "3.840.0"
     "@aws-sdk/util-format-url" "3.840.0"
     "@smithy/middleware-endpoint" "^4.1.13"
@@ -551,10 +551,10 @@
     "@smithy/util-utf8" "^4.0.0"
     tslib "^2.6.2"
 
-"@aws-sdk/s3-request-presigner@3.840.0":
-  version "3.840.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/s3-request-presigner/-/s3-request-presigner-3.840.0.tgz#6b92a4c0416dead2b1b227a5e81692f65f3a88e3"
-  integrity sha512-1jcrhVoSZjiAQJGNswI0RGR36/+OG6yTV42wQamHdNHk+/68dn9MGTUVr+58AEFOyEAPE/EvkiYRD6n5WkUjMg==
+"@aws-sdk/s3-request-presigner@3.842.0":
+  version "3.842.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/s3-request-presigner/-/s3-request-presigner-3.842.0.tgz#33ce5c86a05d01a230559b9d029b14a140d3ba3e"
+  integrity sha512-daS69IJ20X+BzsiEtj3XuyyM765iFOdZ648lrptHncQHRWdpzahk67/nP/SKYhWvnNrQ4pw2vYlVxpOs9vl1yg==
   dependencies:
     "@aws-sdk/signature-v4-multi-region" "3.840.0"
     "@aws-sdk/types" "3.840.0"
