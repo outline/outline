@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.sequelize.transaction(async transaction => {
+    await queryInterface.sequelize.transaction(async (transaction) => {
       await queryInterface.addColumn(
         "documents",
         "icon",
@@ -69,7 +69,7 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.sequelize.transaction(async transaction => {
+    await queryInterface.sequelize.transaction(async (transaction) => {
       await queryInterface.removeColumn("documents", "icon", { transaction });
       await queryInterface.removeColumn("revisions", "icon", { transaction });
       await queryInterface.removeColumn("documents", "color", { transaction });

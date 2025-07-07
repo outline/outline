@@ -1,5 +1,6 @@
 import { LocationDescriptor } from "history";
 import { DisclosureIcon } from "outline-icons";
+// Test comment for lint-staged
 import { darken, lighten, transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";

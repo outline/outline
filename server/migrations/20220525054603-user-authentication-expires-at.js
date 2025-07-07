@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
@@ -6,13 +6,17 @@ module.exports = {
       await queryInterface.addColumn("user_authentications", "expiresAt", {
         type: Sequelize.DATE,
         allowNull: true,
-        transaction
+        transaction,
       });
-      await queryInterface.addColumn("user_authentications", "lastValidatedAt", {
-        type: Sequelize.DATE,
-        allowNull: true,
-        transaction
-      });
+      await queryInterface.addColumn(
+        "user_authentications",
+        "lastValidatedAt",
+        {
+          type: Sequelize.DATE,
+          allowNull: true,
+          transaction,
+        }
+      );
     });
   },
   down: async (queryInterface) => {
@@ -21,12 +25,12 @@ module.exports = {
         "user_authentications",
         "lastValidatedAt",
         {
-          transaction
+          transaction,
         }
       );
       await queryInterface.removeColumn("user_authentications", "expiresAt", {
-        transaction
+        transaction,
       });
     });
-    },
+  },
 };
