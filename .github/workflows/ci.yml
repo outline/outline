@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 env:
   NODE_ENV: test
@@ -25,39 +25,39 @@ jobs:
         node-version: [20.x, 22.x]
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'yarn'
-    
-    - name: Install dependencies
-      run: yarn install --frozen-lockfile
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "yarn"
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
 
   lint:
     needs: build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 22.x
-        cache: 'yarn'
-    - run: yarn install --frozen-lockfile
-    - run: yarn lint
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: "yarn"
+      - run: yarn install --frozen-lockfile
+      - run: yarn lint
 
   types:
     needs: build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 22.x
-        cache: 'yarn'
-    - run: yarn install --frozen-lockfile
-    - run: yarn tsc
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: "yarn"
+      - run: yarn install --frozen-lockfile
+      - run: yarn tsc
 
   changes:
     runs-on: ubuntu-latest
@@ -89,13 +89,13 @@ jobs:
       matrix:
         test-group: [app, shared]
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 22.x
-        cache: 'yarn'
-    - run: yarn install --frozen-lockfile
-    - run: yarn test:${{ matrix.test-group }}
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: "yarn"
+      - run: yarn install --frozen-lockfile
+      - run: yarn test:${{ matrix.test-group }}
 
   test-server:
     needs: [build, changes]
@@ -115,7 +115,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      
+
       redis:
         image: redis:5.0
         ports:
@@ -129,37 +129,37 @@ jobs:
     strategy:
       matrix:
         shard: [1, 2, 3]
-    
+
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 22.x
-        cache: 'yarn'
-    - run: yarn install --frozen-lockfile
-    - run: yarn sequelize db:migrate
-    - name: Run server tests
-      run: |
-        TESTFILES=$(find . -name "*.test.ts" -path "*/server/*" | sort | split -n -d -l $(($(find . -name "*.test.ts" -path "*/server/*" | wc -l)/${{ matrix.shard }})) - | sed -n "${{ matrix.shard }}p")
-        yarn test --maxWorkers=2 $TESTFILES
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: "yarn"
+      - run: yarn install --frozen-lockfile
+      - run: yarn sequelize db:migrate
+      - name: Run server tests
+        run: |
+          TESTFILES=$(find . -name "*.test.ts" -path "*/server/*" | sort | split -n -d -l $(($(find . -name "*.test.ts" -path "*/server/*" | wc -l)/${{ matrix.shard }})) - | sed -n "${{ matrix.shard }}p")
+          yarn test --maxWorkers=2 $TESTFILES
 
   bundle-size:
     needs: [build, types, changes]
     if: ${{ needs.changes.outputs.app == 'true' && github.repository == 'outline/outline' }}
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 22.x
-        cache: 'yarn'
-    - run: yarn install --frozen-lockfile
-    - name: Set environment to production
-      run: echo "NODE_ENV=production" >> $GITHUB_ENV
-    - run: yarn vite:build
-    - name: Send bundle stats to RelativeCI
-      uses: relative-ci/agent-action@v2
-      with:
-        key: ${{ secrets.RELATIVE_CI_KEY }}
-        token: ${{ secrets.GITHUB_TOKEN }}
-        webpackStatsFile: ./build/app/webpack-stats.json
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: "yarn"
+      - run: yarn install --frozen-lockfile
+      - name: Set environment to production
+        run: echo "NODE_ENV=production" >> $GITHUB_ENV
+      - run: yarn vite:build
+      - name: Send bundle stats to RelativeCI
+        uses: relative-ci/agent-action@v2
+        with:
+          key: ${{ secrets.RELATIVE_CI_KEY }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          webpackStatsFile: ./build/app/webpack-stats.json
