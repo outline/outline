@@ -75,6 +75,139 @@ export default class SearchHelper {
    */
   public static maxQueryLength = 1000;
 
+  /**
+   * Cached regex pattern for single quotes to avoid recompilation
+   */
+  private static readonly SINGLE_QUOTE_REGEX = /'+/g;
+
+  /**
+   * Cached regex pattern for quoted queries
+   */
+  private static readonly QUOTED_QUERY_REGEX = /"([^"]*)"/g;
+
+  /**
+   * Cached regex pattern for break characters
+   */
+  private static readonly BREAK_CHARS_REGEX = new RegExp(
+    `[ .,"'\n。！？!?…]`,
+    "g"
+  );
+
+  /**
+   * Cached stop words set for efficient lookup
+   * Based on: https://github.com/postgres/postgres/blob/fc0d0ce978752493868496be6558fa17b7c4c3cf/src/backend/snowball/stopwords/english.stop
+   */
+  private static readonly STOP_WORDS = new Set([
+    "i",
+    "me",
+    "my",
+    "myself",
+    "we",
+    "our",
+    "ours",
+    "ourselves",
+    "you",
+    "your",
+    "yours",
+    "yourself",
+    "yourselves",
+    "he",
+    "him",
+    "his",
+    "himself",
+    "she",
+    "her",
+    "hers",
+    "herself",
+    "it",
+    "its",
+    "itself",
+    "they",
+    "them",
+    "their",
+    "theirs",
+    "themselves",
+    "what",
+    "which",
+    "who",
+    "whom",
+    "this",
+    "that",
+    "these",
+    "those",
+    "am",
+    "is",
+    "are",
+    "was",
+    "were",
+    "be",
+    "been",
+    "being",
+    "have",
+    "has",
+    "had",
+    "having",
+    "do",
+    "does",
+    "did",
+    "doing",
+    "a",
+    "an",
+    "the",
+    "and",
+    "but",
+    "if",
+    "or",
+    "because",
+    "as",
+    "until",
+    "of",
+    "at",
+    "by",
+    "for",
+    "with",
+    "about",
+    "against",
+    "into",
+    "through",
+    "during",
+    "before",
+    "after",
+    "above",
+    "below",
+    "from",
+    "down",
+    "off",
+    "over",
+    "under",
+    "again",
+    "then",
+    "once",
+    "here",
+    "there",
+    "when",
+    "where",
+    "why",
+    "any",
+    "both",
+    "each",
+    "few",
+    "other",
+    "some",
+    "such",
+    "nor",
+    "only",
+    "same",
+    "so",
+    "than",
+    "too",
+    "very",
+    "s",
+    "t",
+    "don",
+    "should",
+  ]);
+
   public static async searchForTeam(
     team: Team,
     options: SearchOptions = {}
@@ -309,7 +442,9 @@ export default class SearchHelper {
   }
 
   private static buildResultContext(document: Document, query: string) {
-    const quotedQueries = Array.from(query.matchAll(/"([^"]*)"/g));
+    // Reset regex lastIndex to avoid state issues with global regex
+    this.QUOTED_QUERY_REGEX.lastIndex = 0;
+    const quotedQueries = Array.from(query.matchAll(this.QUOTED_QUERY_REGEX));
     const text = DocumentHelper.toPlainText(document);
 
     // Regex to highlight quoted queries as ts_headline will not do this by default due to stemming.
@@ -327,22 +462,9 @@ export default class SearchHelper {
       "gi"
     );
 
-    // Breaking characters
-    const breakChars = [
-      " ",
-      ".",
-      ",",
-      `"`,
-      "'",
-      "\n",
-      "。",
-      "！",
-      "？",
-      "!",
-      "?",
-      "…",
-    ];
-    const breakCharsRegex = new RegExp(`[${breakChars.join("")}]`, "g");
+    // Reset regex lastIndex to avoid state issues with global regex
+    this.BREAK_CHARS_REGEX.lastIndex = 0;
+    const breakCharsRegex = this.BREAK_CHARS_REGEX;
 
     // chop text around the first match, prefer the first full match if possible.
     const fullMatchIndex = text.search(fullMatchRegex);
@@ -571,7 +693,9 @@ export default class SearchHelper {
       limitedQuery.startsWith('"') && limitedQuery.endsWith('"');
 
     // Replace single quote characters with &.
-    const singleQuotes = limitedQuery.matchAll(/'+/g);
+    // Reset regex lastIndex to avoid state issues with global regex
+    this.SINGLE_QUOTE_REGEX.lastIndex = 0;
+    const singleQuotes = limitedQuery.matchAll(this.SINGLE_QUOTE_REGEX);
 
     for (const match of singleQuotes) {
       if (
@@ -615,119 +739,9 @@ export default class SearchHelper {
   private static removeStopWords(query: string): string {
     // Based on:
     // https://github.com/postgres/postgres/blob/fc0d0ce978752493868496be6558fa17b7c4c3cf/src/backend/snowball/stopwords/english.stop
-    const stopwords = [
-      "i",
-      "me",
-      "my",
-      "myself",
-      "we",
-      "our",
-      "ours",
-      "ourselves",
-      "you",
-      "your",
-      "yours",
-      "yourself",
-      "yourselves",
-      "he",
-      "him",
-      "his",
-      "himself",
-      "she",
-      "her",
-      "hers",
-      "herself",
-      "it",
-      "its",
-      "itself",
-      "they",
-      "them",
-      "their",
-      "theirs",
-      "themselves",
-      "what",
-      "which",
-      "who",
-      "whom",
-      "this",
-      "that",
-      "these",
-      "those",
-      "am",
-      "is",
-      "are",
-      "was",
-      "were",
-      "be",
-      "been",
-      "being",
-      "have",
-      "has",
-      "had",
-      "having",
-      "do",
-      "does",
-      "did",
-      "doing",
-      "a",
-      "an",
-      "the",
-      "and",
-      "but",
-      "if",
-      "or",
-      "because",
-      "as",
-      "until",
-      "of",
-      "at",
-      "by",
-      "for",
-      "with",
-      "about",
-      "against",
-      "into",
-      "through",
-      "during",
-      "before",
-      "after",
-      "above",
-      "below",
-      "from",
-      "down",
-      "off",
-      "over",
-      "under",
-      "again",
-      "then",
-      "once",
-      "here",
-      "there",
-      "when",
-      "where",
-      "why",
-      "any",
-      "both",
-      "each",
-      "few",
-      "other",
-      "some",
-      "such",
-      "nor",
-      "only",
-      "same",
-      "so",
-      "than",
-      "too",
-      "very",
-      "s",
-      "t",
-      "don",
-      "should",
-    ];
     return query
       .split(" ")
-      .filter((word) => !stopwords.includes(word))
+      .filter((word) => !this.STOP_WORDS.has(word))
       .join(" ");
   }
 }
