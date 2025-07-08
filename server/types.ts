@@ -180,6 +180,16 @@ export type UserMembershipEvent = BaseEvent<UserMembership> & {
   };
 };
 
+export type DocumentMovedEvent = BaseEvent<Document> & {
+  name: "documents.move";
+  documentId: string;
+  collectionId: string;
+  data: {
+    collectionIds: string[];
+    documentIds: string[];
+  };
+};
+
 export type DocumentEvent = BaseEvent<Document> &
   (
     | {
@@ -236,17 +246,8 @@ export type DocumentEvent = BaseEvent<Document> &
           previousTitle: string;
         };
       }
+    | DocumentMovedEvent
   );
-
-export type DocumentMovedEvent = {
-  name: "documents.move";
-  documentId: string;
-  collectionId: string;
-  data: {
-    collectionIds: string[];
-    documentIds: string[];
-  };
-};
 
 export type EmptyTrashEvent = {
   name: "documents.empty_trash";
