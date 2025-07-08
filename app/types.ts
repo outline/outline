@@ -144,7 +144,7 @@ export type BaseActionV2 = {
   iconInContextMenu?: boolean;
   placeholder?: ((context: ActionContext) => string) | string;
   selected?: (context: ActionContext) => boolean;
-  visible?: (context: ActionContext) => boolean;
+  visible?: ((context: ActionContext) => boolean) | boolean;
 };
 
 export type ActionV2 = BaseActionV2 & {
@@ -160,7 +160,7 @@ export type InternalLinkActionV2 = BaseActionV2 & {
 
 export type ExternalLinkActionV2 = BaseActionV2 & {
   variant: "external_link";
-  href: string;
+  url: string;
   target?: string;
 };
 

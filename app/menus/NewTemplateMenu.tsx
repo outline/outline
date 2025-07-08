@@ -90,7 +90,7 @@ function NewTemplateMenu() {
     <DropdownMenu
       actions={allActions}
       align="end"
-      ariaLabel={t("New template")}
+      triggerAriaLabel={t("New template")}
     >
       <Button icon={<PlusIcon />}>{t("New template")}…</Button>
     </DropdownMenu>

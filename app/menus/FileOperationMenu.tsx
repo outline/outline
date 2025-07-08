@@ -3,10 +3,13 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { FileOperationState, FileOperationType } from "@shared/types";
 import FileOperation from "~/models/FileOperation";
-import ContextMenu from "~/components/ContextMenu";
-import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
-import Template from "~/components/ContextMenu/Template";
-import { useMenuState } from "~/hooks/useMenuState";
+import { DropdownMenu } from "~/components/Menu/DropdownMenu";
+import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
+import {
+  createActionV2,
+  createActionV2Separator,
+  createExternalLinkActionV2,
+} from "~/actions";
 import usePolicy from "~/hooks/usePolicy";
 
 type Props = {
@@ -17,41 +20,33 @@ type Props = {
 function FileOperationMenu({ fileOperation, onDelete }: Props) {
   const { t } = useTranslation();
   const can = usePolicy(fileOperation);
-  const menu = useMenuState({
-    modal: true,
-  });
+  const section = "File operations";
+
+  const actions = [
+    createExternalLinkActionV2({
+      name: t("Download"),
+      icon: <DownloadIcon />,
+      section,
+      visible:
+        fileOperation.type === FileOperationType.Export &&
+        fileOperation.state === FileOperationState.Complete,
+      url: fileOperation.downloadUrl,
+    }),
+    createActionV2Separator(),
+    createActionV2({
+      name: t("Delete"),
+      icon: <TrashIcon />,
+      section,
+      visible: can.delete,
+      dangerous: true,
+      perform: () => onDelete,
+    }),
+  ];
 
   return (
-    <>
-      <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
-      <ContextMenu {...menu} aria-label={t("Export options")}>
-        <Template
-          {...menu}
-          items={[
-            {
-              type: "link",
-              title: t("Download"),
-              icon: <DownloadIcon />,
-              visible:
-                fileOperation.type === FileOperationType.Export &&
-                fileOperation.state === FileOperationState.Complete,
-              href: fileOperation.downloadUrl,
-            },
-            {
-              type: "separator",
-            },
-            {
-              type: "button",
-              title: t("Delete"),
-              visible: can.delete,
-              icon: <TrashIcon />,
-              dangerous: true,
-              onClick: onDelete,
-            },
-          ]}
-        />
-      </ContextMenu>
-    </>
+    <DropdownMenu actions={actions}>
+      <OverflowMenuButton />
+    </DropdownMenu>
   );
 }
 

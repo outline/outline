@@ -10,6 +10,7 @@ import {
   ActionV2Separator,
   ActionV2Variants,
   CommandBarAction,
+  ExternalLinkActionV2,
   InternalLinkActionV2,
   MenuExternalLink,
   MenuInternalLink,
@@ -210,6 +211,17 @@ export function createInternalLinkActionV2(
   };
 }
 
+export function createExternalLinkActionV2(
+  definition: Optional<Omit<ExternalLinkActionV2, "type" | "variant">, "id">
+): ExternalLinkActionV2 {
+  return {
+    ...definition,
+    type: "action",
+    variant: "external_link",
+    id: definition.id ?? uuidv4(),
+  };
+}
+
 export function createActionV2Group(
   definition: Omit<ActionV2Group, "type">
 ): ActionV2Group {
@@ -265,8 +277,8 @@ export function actionV2ToMenuItem(
             icon,
             visible,
             href: action.target
-              ? { url: action.href, target: action.target }
-              : action.href,
+              ? { url: action.url, target: action.target }
+              : action.url,
           };
         }
         case "action_with_children": {

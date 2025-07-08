@@ -23,15 +23,17 @@ import {
 type Props = {
   actions: (ActionV2Variants | ActionV2Group | ActionV2Separator)[];
   children: React.ReactNode;
-  ariaLabel?: string;
   align?: "start" | "end";
+  triggerAriaLabel?: string;
+  contentAriaLabel?: string;
 };
 
 export function DropdownMenu({
   actions,
   children,
-  ariaLabel,
   align = "start",
+  triggerAriaLabel,
+  contentAriaLabel,
 }: Props) {
   const context = useActionContext({
     isContextMenu: true,
@@ -44,10 +46,13 @@ export function DropdownMenu({
 
   return (
     <DropdownMenuRoot>
-      <DropdownMenuTrigger aria-label={ariaLabel}>
+      <DropdownMenuTrigger aria-label={triggerAriaLabel}>
         {children}
       </DropdownMenuTrigger>
-      <DropdownMenuContent align={align} aria-label={ariaLabel}>
+      <DropdownMenuContent
+        align={align}
+        aria-label={contentAriaLabel ?? triggerAriaLabel}
+      >
         {content}
       </DropdownMenuContent>
     </DropdownMenuRoot>
