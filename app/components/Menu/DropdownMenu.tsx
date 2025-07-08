@@ -43,6 +43,7 @@ export function DropdownMenu({
   const menuItems = actions.map((action) =>
     actionV2ToMenuItem(action, context)
   );
+  const content = transformMenuItems(menuItems);
 
   const enablePointerEvents = React.useCallback(() => {
     if (contentRef.current) {
@@ -56,7 +57,7 @@ export function DropdownMenu({
     }
   }, []);
 
-  if (!menuItems?.length) {
+  if (!content) {
     return null;
   }
 
@@ -71,7 +72,7 @@ export function DropdownMenu({
         onAnimationStart={disablePointerEvents}
         onAnimationEnd={enablePointerEvents}
       >
-        {transformMenuItems(menuItems)}
+        {content}
       </DropdownMenuContent>
     </DropdownMenuRoot>
   );
@@ -80,7 +81,7 @@ export function DropdownMenu({
 function transformMenuItems(items: MenuItem[]) {
   const filteredItems = filterMenuItems(items);
 
-  if (!filterMenuItems) {
+  if (!filteredItems.length) {
     return null;
   }
 

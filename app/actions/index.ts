@@ -249,7 +249,7 @@ export function actionV2ToMenuItem(
           : undefined;
 
       switch (action.variant) {
-        case "action": {
+        case "action":
           return {
             type: "button",
             title,
@@ -258,8 +258,8 @@ export function actionV2ToMenuItem(
             dangerous: action.dangerous,
             onClick: () => performActionV2(action, context),
           };
-        }
-        case "internal_link": {
+
+        case "internal_link":
           return {
             type: "route",
             title,
@@ -267,8 +267,8 @@ export function actionV2ToMenuItem(
             visible,
             to: action.to,
           };
-        }
-        case "external_link": {
+
+        case "external_link":
           return {
             type: "link",
             title,
@@ -278,7 +278,7 @@ export function actionV2ToMenuItem(
               ? { url: action.url, target: action.target }
               : action.url,
           };
-        }
+
         case "action_with_children": {
           const children = resolve<ActionV2Variants[]>(
             action.children,
@@ -295,9 +295,12 @@ export function actionV2ToMenuItem(
             visible: visible && hasVisibleItems(subMenuItems),
           };
         }
+
+        default:
+          throw Error("invalid action variant");
       }
-      break;
     }
+
     case "action_group": {
       const groupItems = action.actions.map((a) =>
         actionV2ToMenuItem(a, context)
@@ -309,9 +312,9 @@ export function actionV2ToMenuItem(
         items: groupItems,
       };
     }
-    case "action_separator": {
+
+    case "action_separator":
       return { type: "separator" };
-    }
   }
 }
 
