@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import ApiKey from "~/models/ApiKey";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
+import { createRootMenuAction } from "~/actions";
 import { revokeApiKeyFactory } from "~/actions/definitions/apiKeys";
 
 type Props = {
@@ -11,9 +12,10 @@ type Props = {
 
 function ApiKeyMenu({ apiKey }: Props) {
   const actions = [revokeApiKeyFactory({ apiKey })];
+  const rootAction = createRootMenuAction(actions);
 
   return (
-    <DropdownMenu actions={actions}>
+    <DropdownMenu action={rootAction}>
       <OverflowMenuButton />
     </DropdownMenu>
   );

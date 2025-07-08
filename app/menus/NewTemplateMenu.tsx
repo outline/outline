@@ -10,6 +10,7 @@ import {
   createActionV2Group,
   createActionV2Separator,
   createInternalLinkActionV2,
+  createRootMenuAction,
 } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -49,6 +50,8 @@ function NewTemplateMenu() {
     }),
   ];
 
+  const rootAction = createRootMenuAction(allActions);
+
   useEffect(() => {
     void collections.fetchPage({
       limit: 100,
@@ -57,7 +60,7 @@ function NewTemplateMenu() {
 
   return (
     <DropdownMenu
-      actions={allActions}
+      action={rootAction}
       align="end"
       triggerAriaLabel={t("New template")}
     >

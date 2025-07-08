@@ -130,7 +130,7 @@ export type Action = {
   children?: ((context: ActionContext) => Action[]) | Action[];
 };
 
-export type BaseActionV2 = {
+type BaseActionV2 = {
   type: "action";
   id: string;
   analyticsName?: string;
@@ -140,7 +140,7 @@ export type BaseActionV2 = {
   keywords?: string;
   /** Higher number is higher in results, default is 0. */
   priority?: number;
-  icon?: React.ReactElement;
+  icon?: React.ReactNode;
   iconInContextMenu?: boolean;
   placeholder?: ((context: ActionContext) => string) | string;
   selected?: (context: ActionContext) => boolean;
@@ -167,11 +167,13 @@ export type ExternalLinkActionV2 = BaseActionV2 & {
 export type ActionV2WithChildren = BaseActionV2 & {
   variant: "action_with_children";
   children:
-    | ((context: ActionContext) => ActionV2Variants[])
-    | ActionV2Variants[];
+    | ((
+        context: ActionContext
+      ) => (ActionV2Variant | ActionV2Group | ActionV2Separator)[])
+    | (ActionV2Variant | ActionV2Group | ActionV2Separator)[];
 };
 
-export type ActionV2Variants =
+export type ActionV2Variant =
   | ActionV2
   | InternalLinkActionV2
   | ExternalLinkActionV2
@@ -181,7 +183,7 @@ export type ActionV2Variants =
 export type ActionV2Group = {
   type: "action_group";
   name: string;
-  actions: (ActionV2Variants | ActionV2Separator)[];
+  actions: (ActionV2Variant | ActionV2Separator)[];
 };
 
 // Specific to menu

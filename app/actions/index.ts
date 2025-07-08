@@ -8,7 +8,8 @@ import {
   ActionV2,
   ActionV2Group,
   ActionV2Separator,
-  ActionV2Variants,
+  ActionV2Variant,
+  ActionV2WithChildren,
   CommandBarAction,
   ExternalLinkActionV2,
   InternalLinkActionV2,
@@ -222,6 +223,17 @@ export function createExternalLinkActionV2(
   };
 }
 
+export function createActionV2WithChildren(
+  definition: Optional<Omit<ActionV2WithChildren, "type" | "variant">, "id">
+): ActionV2WithChildren {
+  return {
+    ...definition,
+    type: "action",
+    variant: "action_with_children",
+    id: definition.id ?? uuidv4(),
+  };
+}
+
 export function createActionV2Group(
   definition: Omit<ActionV2Group, "type">
 ): ActionV2Group {
@@ -235,8 +247,21 @@ export function createActionV2Separator(): ActionV2Separator {
   return { type: "action_separator" };
 }
 
+export function createRootMenuAction(
+  actions: (ActionV2Variant | ActionV2Group | ActionV2Separator)[]
+): ActionV2WithChildren {
+  return {
+    id: uuidv4(),
+    type: "action",
+    variant: "action_with_children",
+    name: "root_action",
+    section: "Root",
+    children: actions,
+  };
+}
+
 export function actionV2ToMenuItem(
-  action: ActionV2Variants | ActionV2Group | ActionV2Separator,
+  action: ActionV2Variant | ActionV2Group | ActionV2Separator,
   context: ActionContext
 ): MenuItem {
   switch (action.type) {
@@ -280,10 +305,7 @@ export function actionV2ToMenuItem(
           };
 
         case "action_with_children": {
-          const children = resolve<ActionV2Variants[]>(
-            action.children,
-            context
-          );
+          const children = resolve<ActionV2Variant[]>(action.children, context);
           const subMenuItems = children.map((a) =>
             actionV2ToMenuItem(a, context)
           );

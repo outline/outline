@@ -12,15 +12,10 @@ import {
 import MenuIconWrapper from "~/components/primitives/components/Menu";
 import { actionV2ToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
-import {
-  ActionV2Group,
-  ActionV2Separator,
-  ActionV2Variants,
-  MenuItem,
-} from "~/types";
+import { ActionV2Variant, ActionV2WithChildren, MenuItem } from "~/types";
 
 type Props = {
-  actions: (ActionV2Variants | ActionV2Group | ActionV2Separator)[];
+  action: ActionV2WithChildren;
   children: React.ReactNode;
   align?: "start" | "end";
   triggerAriaLabel?: string;
@@ -28,7 +23,7 @@ type Props = {
 };
 
 export function DropdownMenu({
-  actions,
+  action,
   children,
   align = "start",
   triggerAriaLabel,
@@ -39,8 +34,8 @@ export function DropdownMenu({
   const context = useActionContext({
     isContextMenu: true,
   });
-  const menuItems = actions.map((action) =>
-    actionV2ToMenuItem(action, context)
+  const menuItems = (action.children as ActionV2Variant[]).map((childAction) =>
+    actionV2ToMenuItem(childAction, context)
   );
   const content = transformMenuItems(menuItems);
 

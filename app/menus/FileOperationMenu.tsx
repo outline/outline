@@ -9,6 +9,7 @@ import {
   createActionV2,
   createActionV2Separator,
   createExternalLinkActionV2,
+  createRootMenuAction,
 } from "~/actions";
 import usePolicy from "~/hooks/usePolicy";
 
@@ -43,8 +44,10 @@ function FileOperationMenu({ fileOperation, onDelete }: Props) {
     }),
   ];
 
+  const rootAction = createRootMenuAction(actions);
+
   return (
-    <DropdownMenu actions={actions}>
+    <DropdownMenu action={rootAction}>
       <OverflowMenuButton />
     </DropdownMenu>
   );
