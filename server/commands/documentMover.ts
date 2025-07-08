@@ -1,15 +1,7 @@
 import { Transaction } from "sequelize";
 import { createContext } from "@server/context";
 import { traceFunction } from "@server/logging/tracing";
-import {
-  User,
-  Document,
-  Collection,
-  Pin,
-  Event,
-  UserMembership,
-  GroupMembership,
-} from "@server/models";
+import { User, Document, Collection, Pin, Event } from "@server/models";
 
 type Props = {
   /** User attempting to move the document */
@@ -227,44 +219,6 @@ async function documentMover({
   await document.save({ transaction });
   result.documents.push(document);
 
-  // If there are any sourced memberships for this document, we need to go to the source
-  // memberships and recalculate the membership for the user or group.
-  const [
-    userMemberships,
-    parentDocumentUserMemberships,
-    groupMemberships,
-    parentDocumentGroupMemberships,
-  ] = await Promise.all([
-    UserMembership.findRootMembershipsForDocument(document.id, undefined, {
-      transaction,
-    }),
-    parentDocumentId
-      ? UserMembership.findRootMembershipsForDocument(
-          parentDocumentId,
-          undefined,
-          { transaction }
-        )
-      : [],
-    GroupMembership.findRootMembershipsForDocument(document.id, undefined, {
-      transaction,
-    }),
-    parentDocumentId
-      ? GroupMembership.findRootMembershipsForDocument(
-          parentDocumentId,
-          undefined,
-          { transaction }
-        )
-      : [],
-  ]);
-
-  await recalculateUserMemberships(userMemberships, transaction);
-  await recalculateUserMemberships(parentDocumentUserMemberships, transaction);
-  await recalculateGroupMemberships(groupMemberships, transaction);
-  await recalculateGroupMemberships(
-    parentDocumentGroupMemberships,
-    transaction
-  );
-
   await Event.create(
     {
       name: "documents.move",
@@ -286,24 +240,6 @@ async function documentMover({
 
   // we need to send all updated models back to the client
   return result;
-}
-
-async function recalculateUserMemberships(
-  memberships: UserMembership[],
-  transaction?: Transaction
-) {
-  for (const membership of memberships) {
-    await UserMembership.createSourcedMemberships(membership, { transaction });
-  }
-}
-
-async function recalculateGroupMemberships(
-  memberships: GroupMembership[],
-  transaction?: Transaction
-) {
-  for (const membership of memberships) {
-    await GroupMembership.createSourcedMemberships(membership, { transaction });
-  }
 }
 
 export default traceFunction({
