@@ -1,24 +1,29 @@
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { MenuButton } from "reakit/Menu";
 import Button from "~/components/Button";
-import ContextMenu from "~/components/ContextMenu";
-import Template from "~/components/ContextMenu/Template";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
+import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import TeamLogo from "~/components/TeamLogo";
+import {
+  createActionV2Group,
+  createActionV2Separator,
+  createInternalLinkActionV2,
+} from "~/actions";
+import { TeamSection } from "~/actions/sections";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
-import { useMenuState } from "~/hooks/useMenuState";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import { MenuItem } from "~/types";
+import {
+  ActionV2Group,
+  ActionV2Separator,
+  ActionV2Variants,
+  InternalLinkActionV2,
+} from "~/types";
 import { newTemplatePath } from "~/utils/routeHelpers";
 
 function NewTemplateMenu() {
-  const menu = useMenuState({
-    modal: true,
-  });
   const { t } = useTranslation();
   const team = useCurrentTeam();
   const { collections, policies } = useStores();
@@ -29,72 +34,66 @@ function NewTemplateMenu() {
     });
   }, [collections]);
 
-  const workspaceItem: MenuItem | null = can.createTemplate
-    ? {
-        type: "route",
-        to: newTemplatePath(),
-        title: t("Save in workspace"),
+  const workspaceAction = can.createTemplate
+    ? createInternalLinkActionV2({
+        name: t("Save in workspace"),
+        section: TeamSection,
         icon: <TeamLogo model={team} />,
-      }
-    : null;
+        to: newTemplatePath(),
+      })
+    : undefined;
 
-  const collectionItems = useMemo(
-    () =>
-      collections.orderedData.reduce<MenuItem[]>((filtered, collection) => {
-        const can = policies.abilities(collection.id);
+  const collectionActions = collections.orderedData.reduce(
+    (actions, collection) => {
+      const can = policies.abilities(collection.id);
 
-        if (can.createDocument) {
-          filtered.push({
-            type: "route",
-            to: newTemplatePath(collection.id),
-            title: collection.name,
+      if (can.createDocument) {
+        actions.push(
+          createInternalLinkActionV2({
+            name: collection.name,
+            section: TeamSection,
             icon: <CollectionIcon collection={collection} />,
-          });
-        }
+            to: newTemplatePath(collection.id),
+          })
+        );
+      }
 
-        return filtered;
-      }, []),
-    [collections.orderedData, policies]
+      return actions;
+    },
+    [] as InternalLinkActionV2[]
   );
 
-  const collectionItemsWithHeader: MenuItem[] = useMemo(
-    () =>
-      collectionItems.length
-        ? [
-            { type: "heading", title: t("Choose a collection") },
-            ...collectionItems,
-          ]
-        : [],
-    [t, collectionItems]
-  );
+  const collectionActionGroup = collectionActions.length
+    ? createActionV2Group({
+        name: t("Choose a collection"),
+        actions: collectionActions,
+      })
+    : undefined;
 
-  const items = workspaceItem
-    ? collectionItemsWithHeader.length
-      ? [
-          workspaceItem,
-          { type: "separator" } as MenuItem,
-          ...collectionItemsWithHeader,
-        ]
-      : [workspaceItem]
-    : collectionItemsWithHeader;
+  const allActions: (ActionV2Variants | ActionV2Group | ActionV2Separator)[] =
+    [];
 
-  if (items.length === 0) {
+  if (workspaceAction) {
+    allActions.push(workspaceAction);
+    allActions.push(createActionV2Separator());
+  }
+
+  if (collectionActionGroup) {
+    allActions.push(collectionActionGroup);
+  }
+
+  if (allActions.length === 0) {
     return null;
   }
 
   return (
-    <>
-      <MenuButton {...menu}>
-        {(props) => (
-          <Button icon={<PlusIcon />} {...props}>
-            {t("New template")}…
-          </Button>
-        )}
-      </MenuButton>
-      <ContextMenu aria-label={t("New template")} {...menu}>
-        <Template {...menu} items={items} />
-      </ContextMenu>
-    </>
+    <DropdownMenu
+      actions={allActions}
+      align="end"
+      ariaLabel={t("New template")}
+    >
+      <Button icon={<PlusIcon />}>{t("New template")}…</Button>
+    </DropdownMenu>
   );
 }
 

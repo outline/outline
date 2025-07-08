@@ -7,6 +7,8 @@ import {
   DropdownMenuInternalLink,
   DropdownMenuExternalLink,
   DropdownMenuSeparator,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
 } from "~/components/primitives/DropdownMenu";
 import MenuIconWrapper from "~/components/primitives/components/Menu";
 import { actionV2ToMenuItem } from "~/actions";
@@ -21,9 +23,16 @@ import {
 type Props = {
   actions: (ActionV2Variants | ActionV2Group | ActionV2Separator)[];
   children: React.ReactNode;
+  ariaLabel?: string;
+  align?: "start" | "end";
 };
 
-export function DropdownMenu({ actions, children }: Props) {
+export function DropdownMenu({
+  actions,
+  children,
+  ariaLabel,
+  align = "start",
+}: Props) {
   const context = useActionContext({
     isContextMenu: true,
   });
@@ -35,8 +44,12 @@ export function DropdownMenu({ actions, children }: Props) {
 
   return (
     <DropdownMenuRoot>
-      <DropdownMenuTrigger>{children}</DropdownMenuTrigger>
-      <DropdownMenuContent align="start">{content}</DropdownMenuContent>
+      <DropdownMenuTrigger aria-label={ariaLabel}>
+        {children}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align={align} aria-label={ariaLabel}>
+        {content}
+      </DropdownMenuContent>
     </DropdownMenuRoot>
   );
 }
@@ -69,6 +82,7 @@ function transformMenuItems(items: MenuItem[]) {
             onClick={item.onClick}
           />
         );
+
       case "route":
         return (
           <DropdownMenuInternalLink
@@ -83,6 +97,7 @@ function transformMenuItems(items: MenuItem[]) {
             to={item.to}
           />
         );
+
       case "link":
         return (
           <DropdownMenuExternalLink
@@ -100,8 +115,20 @@ function transformMenuItems(items: MenuItem[]) {
             }
           />
         );
+
+      case "group": {
+        const groupItems = transformMenuItems(item.items);
+        return (
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>{item.title}</DropdownMenuLabel>
+            {groupItems}
+          </DropdownMenuGroup>
+        );
+      }
+
       case "separator":
         return <DropdownMenuSeparator />;
+
       default:
         return null;
     }

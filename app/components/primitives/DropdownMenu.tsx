@@ -7,12 +7,15 @@ import { fadeAndScaleIn } from "~/styles/animations";
 import {
   MenuButton,
   MenuExternalLink,
+  MenuHeader,
   MenuInternalLink,
   MenuLabel,
   MenuSeparator,
 } from "./components/Menu";
 
 const DropdownMenu = DropdownMenuPrimitive.Root;
+
+const DropdownMenuGroup = DropdownMenuPrimitive.Group;
 
 const DropdownMenuTrigger = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Trigger>,
@@ -128,10 +131,20 @@ const DropdownMenuSeparator = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Separator>
 >((props, ref) => (
   <DropdownMenuPrimitive.Separator ref={ref} {...props} asChild>
-    <MenuSeparator />;
+    <MenuSeparator />
   </DropdownMenuPrimitive.Separator>
 ));
 DropdownMenuSeparator.displayName = "DropdownMenuSeparator";
+
+const DropdownMenuLabel = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Label>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Label>
+>(({ className, children, ...props }, ref) => (
+  <DropdownMenuPrimitive.Label ref={ref} {...props} asChild>
+    <MenuHeader>{children}</MenuHeader>
+  </DropdownMenuPrimitive.Label>
+));
+DropdownMenuLabel.displayName = DropdownMenuPrimitive.Label.displayName;
 
 /** Styled components */
 const StyledContent = styled(DropdownMenuPrimitive.Content)`
@@ -167,4 +180,6 @@ export {
   DropdownMenuInternalLink,
   DropdownMenuExternalLink,
   DropdownMenuSeparator,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
 };

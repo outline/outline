@@ -10,6 +10,7 @@ import {
   ActionV2Separator,
   ActionV2Variants,
   CommandBarAction,
+  InternalLinkActionV2,
   MenuExternalLink,
   MenuInternalLink,
   MenuItem,
@@ -196,6 +197,30 @@ export function createActionV2(
       : () => {},
     id: definition.id ?? uuidv4(),
   };
+}
+
+export function createInternalLinkActionV2(
+  definition: Optional<Omit<InternalLinkActionV2, "type" | "variant">, "id">
+): InternalLinkActionV2 {
+  return {
+    ...definition,
+    type: "action",
+    variant: "internal_link",
+    id: definition.id ?? uuidv4(),
+  };
+}
+
+export function createActionV2Group(
+  definition: Omit<ActionV2Group, "type">
+): ActionV2Group {
+  return {
+    ...definition,
+    type: "action_group",
+  };
+}
+
+export function createActionV2Separator(): ActionV2Separator {
+  return { type: "action_separator" };
 }
 
 export function actionV2ToMenuItem(
