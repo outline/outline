@@ -93,17 +93,19 @@ function transformMenuItems(items: MenuItem[]) {
   );
 
   return filteredItems.map((item, index) => {
+    const icon = showIcon ? (
+      <MenuIconWrapper aria-hidden>
+        {"icon" in item ? item.icon : null}
+      </MenuIconWrapper>
+    ) : undefined;
+
     switch (item.type) {
       case "button":
         return (
           <DropdownMenuButton
             key={`${item.type}-${item.title}-${index}`}
             label={item.title as string}
-            icon={
-              <MenuIconWrapper aria-hidden>
-                {showIcon ? item.icon : null}
-              </MenuIconWrapper>
-            }
+            icon={icon}
             disabled={item.disabled}
             dangerous={item.dangerous}
             onClick={item.onClick}
@@ -115,11 +117,7 @@ function transformMenuItems(items: MenuItem[]) {
           <DropdownMenuInternalLink
             key={`${item.type}-${item.title}-${index}`}
             label={item.title as string}
-            icon={
-              <MenuIconWrapper aria-hidden>
-                {showIcon ? item.icon : null}
-              </MenuIconWrapper>
-            }
+            icon={icon}
             disabled={item.disabled}
             to={item.to}
           />
@@ -130,11 +128,7 @@ function transformMenuItems(items: MenuItem[]) {
           <DropdownMenuExternalLink
             key={`${item.type}-${item.title}-${index}`}
             label={item.title as string}
-            icon={
-              <MenuIconWrapper aria-hidden>
-                {showIcon ? item.icon : null}
-              </MenuIconWrapper>
-            }
+            icon={icon}
             disabled={item.disabled}
             href={typeof item.href === "string" ? item.href : item.href.url}
             target={
