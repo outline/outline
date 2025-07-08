@@ -213,15 +213,6 @@ export type DocumentEvent = BaseEvent<Document> &
         };
       }
     | {
-        name: "documents.move";
-        documentId: string;
-        collectionId: string;
-        data: {
-          collectionIds: string[];
-          documentIds: string[];
-        };
-      }
-    | {
         name:
           | "documents.update"
           | "documents.update.delayed"
@@ -246,6 +237,16 @@ export type DocumentEvent = BaseEvent<Document> &
         };
       }
   );
+
+export type DocumentMovedEvent = {
+  name: "documents.move";
+  documentId: string;
+  collectionId: string;
+  data: {
+    collectionIds: string[];
+    documentIds: string[];
+  };
+};
 
 export type EmptyTrashEvent = {
   name: "documents.empty_trash";
@@ -492,6 +493,7 @@ export type Event =
   | AuthenticationProviderEvent
   | DocumentEvent
   | DocumentUserEvent
+  | DocumentMovedEvent
   | DocumentGroupEvent
   | PinEvent
   | CommentEvent
