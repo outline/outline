@@ -28,7 +28,7 @@ function AuthenticationProvider(props: Props) {
   const [email, setEmail] = React.useState("");
   const { isCreate, id, name, authUrl, onEmailSuccess, ...rest } = props;
   const clientType = Desktop.isElectron() ? Client.Desktop : Client.Web;
-  const preferOTP = Desktop.isElectron() || isPWA;
+  const preferOTP = isPWA;
 
   const handleChangeEmail = (event: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(event.target.value);
