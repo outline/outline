@@ -202,7 +202,7 @@ function Login({ children, onBack }: Props) {
     (provider) => provider.id === auth.lastSignedIn && !isCreate
   );
   const clientType = Desktop.isElectron() ? Client.Desktop : Client.Web;
-  const preferOTP = Desktop.isElectron() || isPWA;
+  const preferOTP = isPWA;
 
   if (firstRun) {
     return <WorkspaceSetup onBack={onBack} />;
