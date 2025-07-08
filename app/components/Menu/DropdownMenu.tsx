@@ -8,7 +8,6 @@ import {
   DropdownMenuExternalLink,
   DropdownMenuSeparator,
   DropdownMenuGroup,
-  DropdownMenuLabel,
 } from "~/components/primitives/DropdownMenu";
 import MenuIconWrapper from "~/components/primitives/components/Menu";
 import { actionV2ToMenuItem } from "~/actions";
@@ -152,15 +151,16 @@ function transformMenuItems(items: MenuItem[]) {
         }
 
         return (
-          <DropdownMenuGroup>
-            <DropdownMenuLabel>{item.title}</DropdownMenuLabel>
-            {groupItems}
-          </DropdownMenuGroup>
+          <DropdownMenuGroup
+            key={`${item.type}-${item.title}-${index}`}
+            label={item.title as string}
+            items={groupItems}
+          />
         );
       }
 
       case "separator":
-        return <DropdownMenuSeparator />;
+        return <DropdownMenuSeparator key={`${item.type}-${index}`} />;
 
       default:
         return null;

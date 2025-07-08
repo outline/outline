@@ -15,8 +15,6 @@ import {
 
 const DropdownMenu = DropdownMenuPrimitive.Root;
 
-const DropdownMenuGroup = DropdownMenuPrimitive.Group;
-
 const DropdownMenuTrigger = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Trigger>
@@ -45,6 +43,29 @@ const DropdownMenuContent = React.forwardRef<
   );
 });
 DropdownMenuContent.displayName = DropdownMenuPrimitive.Content.displayName;
+
+type DropdownMenuGroupProps = {
+  label: string;
+  items: React.ReactNode[];
+} & Omit<
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Group>,
+  "children" | "asChild"
+>;
+
+const DropdownMenuGroup = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.Group>,
+  DropdownMenuGroupProps
+>((props, ref) => {
+  const { label, items, ...rest } = props;
+
+  return (
+    <DropdownMenuPrimitive.Group ref={ref} {...rest}>
+      <DropdownMenuLabel>{label}</DropdownMenuLabel>
+      {items}
+    </DropdownMenuPrimitive.Group>
+  );
+});
+DropdownMenuGroup.displayName = DropdownMenuPrimitive.Group.displayName;
 
 type BaseDropdownItemProps = {
   label: string;
