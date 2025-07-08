@@ -56,6 +56,7 @@ import {
 } from "../commands/toggleBlock";
 import { CommandFactory } from "../lib/Extension";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { HeadingTracker } from "../plugins/HeadingTracker";
 import { PlaceholderPlugin } from "../plugins/PlaceholderPlugin";
 import { findBlockNodes } from "../queries/findChildren";
 import toggleBlocksRule from "../rules/toggleBlocks";
@@ -662,17 +663,37 @@ export default class ToggleBlock extends Node {
   }): CommandFactory {
     return () => (state, dispatch) => {
       const { $from, $to } = state.selection;
-      const range = $from.blockRange($to),
-        wrapping = range && findWrapping(range, type, { id: v4() });
-      if (!wrapping) {
-        return false;
+      // if heading
+      if ($from.parent.type === state.schema.nodes.heading) {
+        const $fr_ = state.doc.resolve($from.start());
+        const $to_ = HeadingTracker.findCutAfterHeadingAtSelection(state);
+        const range = $fr_.blockRange($to_),
+          wrapping = range && findWrapping(range, type, { id: v4() });
+        if (!wrapping) {
+          return false;
+        }
+        const tr = state.tr.wrap(range!, wrapping);
+        dispatch?.(tr);
+        return true;
+      }
+      // if para
+      if ($from.parent.type === state.schema.nodes.paragraph) {
+        const range = $from.blockRange($to),
+          wrapping = range && findWrapping(range, type, { id: v4() });
+        if (!wrapping) {
+          return false;
+        }
+        const tr = state.tr.wrap(range!, wrapping);
+        dispatch?.(
+          tr.insert(
+            tr.selection.$from.after(),
+            schema.nodes.paragraph.create({})
+          )
+        );
+        return true;
       }
 
-      const tr = state.tr.wrap(range!, wrapping);
-      dispatch?.(
-        tr.insert(tr.selection.$from.after(), schema.nodes.paragraph.create({}))
-      );
-      return true;
+      return false;
     };
   }
 

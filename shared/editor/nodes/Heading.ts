@@ -16,8 +16,16 @@ import splitHeading from "../commands/splitHeading";
 import toggleBlockType from "../commands/toggleBlockType";
 import headingToSlug, { headingToPersistenceKey } from "../lib/headingToSlug";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { HeadingTracker } from "../plugins/HeadingTracker";
 import { findCollapsedNodes } from "../queries/findCollapsedNodes";
 import Node from "./Node";
+
+export enum HeadingLevel {
+  One = 1,
+  Two,
+  Three,
+  Four,
+}
 
 export default class Heading extends Node {
   className = "heading-name";
@@ -290,7 +298,7 @@ export default class Heading extends Node {
       },
     });
 
-    return [foldPlugin, plugin];
+    return [new HeadingTracker(), foldPlugin, plugin];
   }
 
   inputRules({ type }: { type: NodeType }) {
