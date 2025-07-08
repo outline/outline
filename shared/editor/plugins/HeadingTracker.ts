@@ -1,6 +1,6 @@
 import { Node, ResolvedPos } from "prosemirror-model";
 import { EditorState, Plugin, PluginKey } from "prosemirror-state";
-import sorted from "sorted-array-functions";
+import sorted from "../../utils/sorted";
 import { HeadingLevel } from "../nodes/Heading";
 import { findBlockNodes } from "../queries/findChildren";
 
