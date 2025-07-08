@@ -5,9 +5,14 @@ import { v4 as uuidv4 } from "uuid";
 import {
   Action,
   ActionContext,
+  ActionV2,
+  ActionV2Group,
+  ActionV2Separator,
+  ActionV2Variants,
   CommandBarAction,
   MenuExternalLink,
   MenuInternalLink,
+  MenuItem,
   MenuItemButton,
   MenuItemWithChildren,
 } from "~/types";
@@ -162,4 +167,137 @@ export async function performAction(action: Action, context: ActionContext) {
   }
 
   return result;
+}
+
+/** Actions V2 */
+
+export function createActionV2(
+  definition: Optional<Omit<ActionV2, "type" | "variant">, "id">
+): ActionV2 {
+  return {
+    ...definition,
+    type: "action",
+    variant: "action",
+    perform: definition.perform
+      ? (context) => {
+          // We muse use the specific analytics name here as the action name is
+          // translated and potentially contains user strings.
+          if (definition.analyticsName) {
+            Analytics.track("perform_action", definition.analyticsName, {
+              context: context.isButton
+                ? "button"
+                : context.isCommandBar
+                  ? "commandbar"
+                  : "contextmenu",
+            });
+          }
+          return definition.perform(context);
+        }
+      : () => {},
+    id: definition.id ?? uuidv4(),
+  };
+}
+
+export function actionV2ToMenuItem(
+  action: ActionV2Variants | ActionV2Group | ActionV2Separator,
+  context: ActionContext
+): MenuItem {
+  switch (action.type) {
+    case "action": {
+      const title = resolve<string>(action.name, context);
+      const visible = action.visible
+        ? resolve<boolean>(action.visible, context)
+        : true;
+      const icon =
+        !!action.icon && action.iconInContextMenu !== false
+          ? action.icon
+          : undefined;
+
+      switch (action.variant) {
+        case "action": {
+          return {
+            type: "button",
+            title,
+            icon,
+            visible,
+            dangerous: action.dangerous,
+            onClick: () => performActionV2(action, context),
+          };
+        }
+        case "internal_link": {
+          return {
+            type: "route",
+            title,
+            icon,
+            visible,
+            to: action.to,
+          };
+        }
+        case "external_link": {
+          return {
+            type: "link",
+            title,
+            icon,
+            visible,
+            href: action.target
+              ? { url: action.href, target: action.target }
+              : action.href,
+          };
+        }
+        case "action_with_children": {
+          const children = resolve<ActionV2Variants[]>(
+            action.children,
+            context
+          );
+          const subMenuItems = children.map((a) =>
+            actionV2ToMenuItem(a, context)
+          );
+          return {
+            type: "submenu",
+            title,
+            icon,
+            items: subMenuItems,
+            visible: visible && hasVisibleItems(subMenuItems),
+          };
+        }
+      }
+      break;
+    }
+    case "action_group": {
+      const groupItems = action.actions.map((a) =>
+        actionV2ToMenuItem(a, context)
+      );
+      return {
+        type: "group",
+        title: resolve<string>(action.name, context),
+        visible: hasVisibleItems(groupItems),
+        items: groupItems,
+      };
+    }
+    case "action_separator": {
+      return { type: "separator" };
+    }
+  }
+}
+
+export async function performActionV2(
+  action: ActionV2,
+  context: ActionContext
+) {
+  const result = action.perform(context);
+
+  if (result instanceof Promise) {
+    return result.catch((err: Error) => {
+      toast.error(err.message);
+    });
+  }
+
+  return result;
+}
+
+function hasVisibleItems(items: MenuItem[]) {
+  const applicableTypes = ["button", "link", "route", "group", "submenu"];
+  return items.some(
+    (item) => applicableTypes.includes(item.type) && item.visible
+  );
 }
