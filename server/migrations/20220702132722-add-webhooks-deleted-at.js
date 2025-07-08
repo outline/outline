@@ -1,10 +1,10 @@
-'use strict';
+"use strict";
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.addColumn("webhook_subscriptions", "deletedAt", {
       type: Sequelize.DATE,
-      allowNull: true
+      allowNull: true,
     });
   },
   down: async (queryInterface) => {

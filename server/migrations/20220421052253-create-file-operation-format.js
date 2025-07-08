@@ -1,11 +1,11 @@
-'use strict';
+"use strict";
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.addColumn("file_operations", "format", {
       type: Sequelize.STRING,
       defaultValue: "outline-markdown",
-      allowNull: false
+      allowNull: false,
     });
   },
   down: async (queryInterface) => {

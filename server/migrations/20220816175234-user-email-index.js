@@ -1,11 +1,11 @@
-'use strict';
+"use strict";
 
 module.exports = {
-  async up (queryInterface) {
+  async up(queryInterface) {
     await queryInterface.addIndex("users", ["email"]);
   },
 
-  async down (queryInterface) {
+  async down(queryInterface) {
     await queryInterface.removeIndex("users", ["email"]);
-  }
+  },
 };

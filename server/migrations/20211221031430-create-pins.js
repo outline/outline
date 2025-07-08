@@ -57,10 +57,13 @@ module.exports = {
     await queryInterface.addIndex("pins", ["collectionId"]);
 
     const createdAt = new Date();
-    const [documents] = await queryInterface.sequelize.query(`SELECT "id","collectionId","teamId","pinnedById" FROM documents WHERE "pinnedById" IS NOT NULL`);
+    const [documents] = await queryInterface.sequelize.query(
+      `SELECT "id","collectionId","teamId","pinnedById" FROM documents WHERE "pinnedById" IS NOT NULL`
+    );
 
     for (const document of documents) {
-      await queryInterface.sequelize.query(`
+      await queryInterface.sequelize.query(
+        `
         INSERT INTO pins (
           "id",
           "documentId",
@@ -79,17 +82,19 @@ module.exports = {
           :createdAt,
           :updatedAt
         )
-      `, {
-        replacements: {
-          id: v4(),
-          documentId: document.id,
-          collectionId: document.collectionId,
-          teamId: document.teamId,
-          createdById: document.pinnedById,
-          updatedAt: createdAt,
-          createdAt,
-        },
-      });
+      `,
+        {
+          replacements: {
+            id: v4(),
+            documentId: document.id,
+            collectionId: document.collectionId,
+            teamId: document.teamId,
+            createdById: document.pinnedById,
+            updatedAt: createdAt,
+            createdAt,
+          },
+        }
+      );
     }
   },
   down: async (queryInterface, Sequelize) => {

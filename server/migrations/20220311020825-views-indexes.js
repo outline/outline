@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
@@ -16,6 +16,9 @@ module.exports = {
   down: async (queryInterface, Sequelize) => {
     await queryInterface.removeIndex("views", "views_updated_at");
     await queryInterface.removeIndex("views", "views_user_id");
-    await queryInterface.removeIndex("collection_users", "collection_users_user_id");
-  }
+    await queryInterface.removeIndex(
+      "collection_users",
+      "collection_users_user_id"
+    );
+  },
 };

@@ -4,7 +4,7 @@ const tableName = "team_domains";
 
 const constraintNames = [
   "team_domains_createdById_fkey",
-  "createdById_foreign_idx"
+  "createdById_foreign_idx",
 ];
 
 module.exports = {

@@ -1,14 +1,14 @@
-'use strict';
+"use strict";
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-  async up (queryInterface) {
+  async up(queryInterface) {
     await queryInterface.sequelize.query(
       `DELETE FROM group_users WHERE "deletedAt" IS NOT NULL`
     );
   },
 
-  async down () {
+  async down() {
     // No reverting possible
-  }
+  },
 };

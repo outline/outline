@@ -1,10 +1,10 @@
-'use strict';
+"use strict";
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.addColumn("shares", "views", {
       type: Sequelize.INTEGER,
-      defaultValue: 0
+      defaultValue: 0,
     });
   },
   down: async (queryInterface) => {

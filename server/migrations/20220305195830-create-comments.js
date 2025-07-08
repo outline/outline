@@ -6,58 +6,58 @@ module.exports = {
       id: {
         type: Sequelize.UUID,
         allowNull: false,
-        primaryKey: true
+        primaryKey: true,
       },
       data: {
         type: Sequelize.JSONB,
-        allowNull: false
+        allowNull: false,
       },
       documentId: {
         type: Sequelize.UUID,
         allowNull: false,
         onDelete: "cascade",
         references: {
-          model: "documents"
-        }
+          model: "documents",
+        },
       },
       parentCommentId: {
         type: Sequelize.UUID,
         allowNull: true,
         onDelete: "cascade",
         references: {
-          model: "comments"
-        }
+          model: "comments",
+        },
       },
       createdById: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: "users"
-        }
+          model: "users",
+        },
       },
       resolvedAt: {
         type: Sequelize.DATE,
-        allowNull: true
+        allowNull: true,
       },
       resolvedById: {
         type: Sequelize.UUID,
         allowNull: true,
         references: {
-          model: "users"
-        }
+          model: "users",
+        },
       },
       createdAt: {
         type: Sequelize.DATE,
-        allowNull: false
+        allowNull: false,
       },
       updatedAt: {
         type: Sequelize.DATE,
-        allowNull: false
+        allowNull: false,
       },
       deletedAt: {
         type: Sequelize.DATE,
-        allowNull: true
-      }
+        allowNull: true,
+      },
     });
 
     await queryInterface.addIndex("comments", ["documentId"]);
@@ -66,5 +66,5 @@ module.exports = {
 
   down: async (queryInterface, Sequelize) => {
     queryInterface.dropTable("comments");
-  }
+  },
 };

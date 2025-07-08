@@ -1,8 +1,8 @@
-'use strict';
+"use strict";
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.removeConstraint("stars", "stars_collectionId_fkey")
+    await queryInterface.removeConstraint("stars", "stars_collectionId_fkey");
     await queryInterface.changeColumn("stars", "collectionId", {
       type: Sequelize.UUID,
       allowNull: true,
@@ -14,7 +14,7 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeConstraint("stars", "stars_collectionId_fkey")
+    await queryInterface.removeConstraint("stars", "stars_collectionId_fkey");
     await queryInterface.changeColumn("stars", "collectionId", {
       type: Sequelize.UUID,
       allowNull: true,
@@ -22,5 +22,5 @@ module.exports = {
         model: "collections",
       },
     });
-  }
+  },
 };

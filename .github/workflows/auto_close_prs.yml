@@ -2,7 +2,7 @@ name: Auto Close Unsigned PRs
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Run daily at midnight UTC
+    - cron: "0 0 * * *" # Run daily at midnight UTC
 
 jobs:
   close-unsigned-prs:

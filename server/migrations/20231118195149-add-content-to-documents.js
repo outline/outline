@@ -1,7 +1,7 @@
-'use strict';
+"use strict";
 
 module.exports = {
-  async up (queryInterface, Sequelize) {
+  async up(queryInterface, Sequelize) {
     await queryInterface.addColumn("documents", "content", {
       type: Sequelize.JSONB,
       allowNull: true,
@@ -12,8 +12,8 @@ module.exports = {
     });
   },
 
-  async down (queryInterface) {
+  async down(queryInterface) {
     await queryInterface.removeColumn("revisions", "content");
     await queryInterface.removeColumn("documents", "content");
-  }
+  },
 };

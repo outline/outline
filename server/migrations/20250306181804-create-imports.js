@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.sequelize.transaction(async transaction => {
+    await queryInterface.sequelize.transaction(async (transaction) => {
       await queryInterface.createTable(
         "imports",
         {
@@ -80,7 +80,7 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.sequelize.transaction(async transaction => {
+    await queryInterface.sequelize.transaction(async (transaction) => {
       await queryInterface.removeIndex("imports", ["service", "teamId"], {
         transaction,
       });

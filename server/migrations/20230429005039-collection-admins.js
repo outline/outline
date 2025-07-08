@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 module.exports = {
   async up(queryInterface) {
@@ -7,7 +7,7 @@ module.exports = {
     }
 
     await queryInterface.sequelize.transaction(async (transaction) => {
-      // Convert collection members to admins where the user is the only 
+      // Convert collection members to admins where the user is the only
       // membership in the collection.
       await queryInterface.sequelize.query(
         `UPDATE collection_users cu
@@ -52,5 +52,5 @@ module.exports = {
         type: queryInterface.sequelize.QueryTypes.SELECT,
       }
     );
-  }
+  },
 };

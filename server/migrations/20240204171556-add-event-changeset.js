@@ -6,7 +6,6 @@ module.exports = {
       type: Sequelize.JSONB,
       allowNull: true,
     });
-    
   },
   async down(queryInterface) {
     await queryInterface.removeColumn("events", "changes");

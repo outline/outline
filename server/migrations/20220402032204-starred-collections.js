@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
@@ -23,7 +23,7 @@ module.exports = {
     });
     await queryInterface.changeColumn("stars", "documentId", {
       type: Sequelize.UUID,
-      allowNull: true
+      allowNull: true,
     });
     await queryInterface.changeColumn("stars", "documentId", {
       type: Sequelize.UUID,
@@ -46,9 +46,9 @@ module.exports = {
     await queryInterface.removeColumn("stars", "collectionId");
     await queryInterface.changeColumn("stars", "documentId", {
       type: Sequelize.UUID,
-      allowNull: false
+      allowNull: false,
     });
-    await queryInterface.removeConstraint("stars", "stars_documentId_fkey")
-    await queryInterface.removeConstraint("stars", "stars_userId_fkey")
-  }
+    await queryInterface.removeConstraint("stars", "stars_documentId_fkey");
+    await queryInterface.removeConstraint("stars", "stars_userId_fkey");
+  },
 };

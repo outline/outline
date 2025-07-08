@@ -1,8 +1,11 @@
-'use strict';
+"use strict";
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.removeConstraint("webhook_subscriptions", "webhook_subscriptions_teamId_fkey")
+    await queryInterface.removeConstraint(
+      "webhook_subscriptions",
+      "webhook_subscriptions_teamId_fkey"
+    );
     await queryInterface.changeColumn("webhook_subscriptions", "teamId", {
       type: Sequelize.UUID,
       allowNull: false,
@@ -14,7 +17,10 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeConstraint("webhook_subscriptions", "webhook_subscriptions_teamId_fkey")
+    await queryInterface.removeConstraint(
+      "webhook_subscriptions",
+      "webhook_subscriptions_teamId_fkey"
+    );
     await queryInterface.changeColumn("webhook_subscriptions", "teamId", {
       type: Sequelize.UUID,
       allowNull: false,
@@ -22,5 +28,5 @@ module.exports = {
         model: "teams",
       },
     });
-  }
+  },
 };

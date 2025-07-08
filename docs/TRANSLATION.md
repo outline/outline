@@ -1,6 +1,6 @@
 # Translation
 
-Outline is localized through community contributions. The text in Outline's user interface is in American English by default, we're very thankful for all help that the community provides bringing the app to different languages. 
+Outline is localized through community contributions. The text in Outline's user interface is in American English by default, we're very thankful for all help that the community provides bringing the app to different languages.
 
 ## Externalizing strings
 
@@ -17,7 +17,7 @@ To manage the translation process we use [CrowdIn](https://translate.getoutline.
 You'll need to create a free account to use CrowdIn. Once you have joined, you can provide translations by following these steps:
 
 1. Select the language for which you want to contribute (or vote for) a translation (below the language you can see the progress of the translation)
-![CrowdIn UI](https://i.imgur.com/AkbDY60.png)
+   ![CrowdIn UI](https://i.imgur.com/AkbDY60.png)
 
 2. Please choose the translation.json file from your desired language
 
