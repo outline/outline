@@ -42,6 +42,10 @@ export function DropdownMenu({
     actionV2ToMenuItem(action, context)
   );
 
+  if (!menuItems?.length) {
+    return null;
+  }
+
   const content = transformMenuItems(menuItems);
 
   return (
@@ -61,6 +65,10 @@ export function DropdownMenu({
 
 function transformMenuItems(items: MenuItem[]) {
   const filteredItems = filterMenuItems(items);
+
+  if (!filterMenuItems) {
+    return null;
+  }
 
   const showIcon = filteredItems.find(
     (item) =>
@@ -123,6 +131,11 @@ function transformMenuItems(items: MenuItem[]) {
 
       case "group": {
         const groupItems = transformMenuItems(item.items);
+
+        if (!groupItems?.length) {
+          return null;
+        }
+
         return (
           <DropdownMenuGroup>
             <DropdownMenuLabel>{item.title}</DropdownMenuLabel>
