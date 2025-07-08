@@ -177,12 +177,14 @@ export type ActionV2Variants =
   | ExternalLinkActionV2
   | ActionV2WithChildren;
 
+// Specific to menu
 export type ActionV2Group = {
   type: "action_group";
   name: string;
   actions: (ActionV2Variants | ActionV2Separator)[];
 };
 
+// Specific to menu
 export type ActionV2Separator = {
   type: "action_separator";
 };

@@ -11,7 +11,7 @@ import {
   createActionV2Separator,
   createInternalLinkActionV2,
 } from "~/actions";
-import { TeamSection } from "~/actions/sections";
+import { DocumentSection } from "~/actions/sections";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -22,17 +22,12 @@ function NewTemplateMenu() {
   const team = useCurrentTeam();
   const { collections, policies } = useStores();
   const can = usePolicy(team);
-  useEffect(() => {
-    void collections.fetchPage({
-      limit: 100,
-    });
-  }, [collections]);
 
   const collectionActions = collections.orderedData.map((collection) => {
     const canCollection = policies.abilities(collection.id);
     return createInternalLinkActionV2({
       name: collection.name,
-      section: TeamSection,
+      section: DocumentSection,
       icon: <CollectionIcon collection={collection} />,
       visible: !!canCollection.createDocument,
       to: newTemplatePath(collection.id),
@@ -42,7 +37,7 @@ function NewTemplateMenu() {
   const allActions = [
     createInternalLinkActionV2({
       name: t("Save in workspace"),
-      section: TeamSection,
+      section: DocumentSection,
       icon: <TeamLogo model={team} />,
       visible: can.createTemplate,
       to: newTemplatePath(),
@@ -53,6 +48,12 @@ function NewTemplateMenu() {
       actions: collectionActions,
     }),
   ];
+
+  useEffect(() => {
+    void collections.fetchPage({
+      limit: 100,
+    });
+  }, [collections]);
 
   return (
     <DropdownMenu

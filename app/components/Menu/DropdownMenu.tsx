@@ -35,6 +35,8 @@ export function DropdownMenu({
   triggerAriaLabel,
   contentAriaLabel,
 }: Props) {
+  const contentRef =
+    React.useRef<React.ElementRef<typeof DropdownMenuContent>>(null);
   const context = useActionContext({
     isContextMenu: true,
   });
@@ -42,11 +44,21 @@ export function DropdownMenu({
     actionV2ToMenuItem(action, context)
   );
 
+  const enablePointerEvents = React.useCallback(() => {
+    if (contentRef.current) {
+      contentRef.current.style.pointerEvents = "auto";
+    }
+  }, []);
+
+  const disablePointerEvents = React.useCallback(() => {
+    if (contentRef.current) {
+      contentRef.current.style.pointerEvents = "none";
+    }
+  }, []);
+
   if (!menuItems?.length) {
     return null;
   }
-
-  const content = transformMenuItems(menuItems);
 
   return (
     <DropdownMenuRoot>
@@ -56,8 +68,10 @@ export function DropdownMenu({
       <DropdownMenuContent
         align={align}
         aria-label={contentAriaLabel ?? triggerAriaLabel}
+        onAnimationStart={disablePointerEvents}
+        onAnimationEnd={enablePointerEvents}
       >
-        {content}
+        {transformMenuItems(menuItems)}
       </DropdownMenuContent>
     </DropdownMenuRoot>
   );
