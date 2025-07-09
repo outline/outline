@@ -25,7 +25,7 @@ const Error404 = () => {
           </Trans>
         </Empty>
         <Flex gap={8}>
-          <Button action={navigateToHome} context={context} hideIcon>
+          <Button action={navigateToHome} context={context} neutral hideIcon>
             {t("Home")}
           </Button>
           <Button action={navigateToSearch} context={context} neutral>

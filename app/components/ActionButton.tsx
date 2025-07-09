@@ -59,7 +59,7 @@ const ActionButton = React.forwardRef<HTMLButtonElement, Props>(
         disabled={disabled || executing}
         ref={ref}
         onClick={
-          action?.perform && actionContext
+          actionContext
             ? (ev) => {
                 ev.preventDefault();
                 ev.stopPropagation();
