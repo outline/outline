@@ -6,6 +6,7 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "~/components/primitives/Popover";
+import useStores from "~/hooks/useStores";
 import Notifications from "./Notifications";
 
 type Props = {
@@ -14,8 +15,13 @@ type Props = {
 
 const NotificationsPopover: React.FC = ({ children }: Props) => {
   const { t } = useTranslation();
+  const { notifications } = useStores();
   const [open, setOpen] = React.useState(false);
   const scrollableRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    void notifications.fetchPage({});
+  }, [notifications]);
 
   const handleRequestClose = React.useCallback(() => {
     setOpen(false);
