@@ -5,6 +5,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
+import useStores from "~/hooks/useStores";
 import { fadeAndSlideUp } from "~/styles/animations";
 import Notifications from "./Notifications";
 
@@ -14,8 +15,13 @@ type Props = {
 
 const NotificationsPopover: React.FC = ({ children }: Props) => {
   const { t } = useTranslation();
+  const { notifications } = useStores();
   const scrollableRef = React.useRef<HTMLDivElement>(null);
   const closeRef = React.useRef<HTMLButtonElement>(null);
+
+  React.useEffect(() => {
+    void notifications.fetchPage({});
+  }, [notifications]);
 
   const handleRequestClose = React.useCallback(() => {
     if (closeRef.current) {
