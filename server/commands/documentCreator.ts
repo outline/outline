@@ -92,8 +92,8 @@ export default async function documentCreator({
         : TextHelper.replaceTemplateVariables(templateDocument.title, user)
       : "");
 
-  const contentWithReplacements = text
-    ? ProsemirrorHelper.toProsemirror(text).toJSON()
+  const contentWithReplacements = content
+    ? content
     : templateDocument
       ? template
         ? templateDocument.content
@@ -101,7 +101,7 @@ export default async function documentCreator({
             await DocumentHelper.toJSON(templateDocument),
             user
           )
-      : content;
+      : ProsemirrorHelper.toProsemirror(text ?? "").toJSON();
 
   const document = Document.build({
     id,
