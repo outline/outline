@@ -4,6 +4,7 @@ import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import { createRootMenuAction } from "~/actions";
 import { revokeApiKeyFactory } from "~/actions/definitions/apiKeys";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   /** The apiKey to associate with the menu */
@@ -11,11 +12,15 @@ type Props = {
 };
 
 function ApiKeyMenu({ apiKey }: Props) {
+  const { t } = useTranslation();
   const actions = [revokeApiKeyFactory({ apiKey })];
   const rootAction = createRootMenuAction(actions);
 
   return (
-    <DropdownMenu action={rootAction}>
+    <DropdownMenu
+      action={rootAction}
+      ariaLabel={t("API key")}
+    >
       <OverflowMenuButton />
     </DropdownMenu>
   );

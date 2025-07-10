@@ -1,24 +1,28 @@
 import * as React from "react";
+import styled from "styled-components";
+import Scrollable from "~/components/Scrollable";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
+  DrawerTrigger,
+} from "~/components/primitives/Drawer";
 import {
   DropdownMenu as DropdownMenuRoot,
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuButton,
-  DropdownMenuInternalLink,
-  DropdownMenuExternalLink,
-  DropdownMenuSeparator,
-  DropdownMenuGroup,
 } from "~/components/primitives/DropdownMenu";
-import MenuIconWrapper from "~/components/primitives/components/Menu";
 import { actionV2ToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
+import useMobile from "~/hooks/useMobile";
 import { ActionV2Variant, ActionV2WithChildren, MenuItem } from "~/types";
+import { toDropdownMenuItems, toMobileMenuItems } from "./transformer";
 
 type Props = {
   action: ActionV2WithChildren;
   children: React.ReactNode;
   align?: "start" | "end";
-  triggerAriaLabel?: string;
+  ariaLabel: string;
   contentAriaLabel?: string;
 };
 
@@ -26,18 +30,18 @@ export function DropdownMenu({
   action,
   children,
   align = "start",
-  triggerAriaLabel,
+  ariaLabel,
   contentAriaLabel,
 }: Props) {
+  const isMobile = useMobile();
   const contentRef =
     React.useRef<React.ElementRef<typeof DropdownMenuContent>>(null);
   const context = useActionContext({
     isContextMenu: true,
   });
-  const menuItems = (action.children as ActionV2Variant[]).map((childAction) =>
+  const menuItems = (action.children as ActionV2Variant[]).map(childAction =>
     actionV2ToMenuItem(childAction, context)
   );
-  const content = transformMenuItems(menuItems);
 
   const enablePointerEvents = React.useCallback(() => {
     if (contentRef.current) {
@@ -51,18 +55,33 @@ export function DropdownMenu({
     }
   }, []);
 
+  if (isMobile) {
+    return (
+      <MobileDropdown
+        items={menuItems}
+        trigger={children}
+        ariaLabel={ariaLabel}
+        contentAriaLabel={contentAriaLabel}
+      />
+    );
+  }
+
+  const content = toDropdownMenuItems(menuItems);
+
+  console.log("desktop content", content);
+
   if (!content) {
     return null;
   }
 
   return (
     <DropdownMenuRoot>
-      <DropdownMenuTrigger aria-label={triggerAriaLabel}>
+      <DropdownMenuTrigger aria-label={ariaLabel}>
         {children}
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align={align}
-        aria-label={contentAriaLabel ?? triggerAriaLabel}
+        aria-label={contentAriaLabel ?? ariaLabel}
         onAnimationStart={disablePointerEvents}
         onAnimationEnd={enablePointerEvents}
       >
@@ -72,112 +91,69 @@ export function DropdownMenu({
   );
 }
 
-function transformMenuItems(items: MenuItem[]) {
-  const filteredItems = filterMenuItems(items);
+type MobileDropdownProps = {
+  items: MenuItem[];
+  trigger: React.ReactNode;
+} & Pick<Props, "ariaLabel" | "contentAriaLabel">;
 
-  if (!filteredItems.length) {
+function MobileDropdown({
+  items,
+  trigger,
+  ariaLabel,
+  contentAriaLabel,
+}: MobileDropdownProps) {
+  const [open, setOpen] = React.useState(false);
+  const contentRef = React.useRef<React.ElementRef<typeof DrawerContent>>(null);
+
+  const enablePointerEvents = React.useCallback(() => {
+    if (contentRef.current) {
+      contentRef.current.style.pointerEvents = "auto";
+    }
+  }, []);
+
+  const disablePointerEvents = React.useCallback(() => {
+    if (contentRef.current) {
+      contentRef.current.style.pointerEvents = "none";
+    }
+  }, []);
+
+  const closeDrawer = React.useCallback(() => {
+    setOpen(false);
+  }, []);
+
+  const content = toMobileMenuItems(items, closeDrawer);
+
+  console.log("mobile content", content);
+
+  if (!content) {
     return null;
   }
 
-  const showIcon = filteredItems.find(
-    (item) =>
-      item.type !== "separator" &&
-      item.type !== "heading" &&
-      item.type !== "group" &&
-      !!item.icon
+  return (
+    <Drawer
+      open={open}
+      onOpenChange={setOpen}
+    >
+      <DrawerTrigger
+        aria-label={ariaLabel}
+        asChild
+      >
+        {trigger}
+      </DrawerTrigger>
+      <DrawerContent
+        ref={contentRef}
+        aria-label={contentAriaLabel ?? ariaLabel}
+        aria-describedby={undefined}
+        onAnimationStart={disablePointerEvents}
+        onAnimationEnd={enablePointerEvents}
+      >
+        <DrawerTitle>{ariaLabel}</DrawerTitle>
+        <StyledScrollable hiddenScrollbars>{content}</StyledScrollable>
+      </DrawerContent>
+    </Drawer>
   );
-
-  return filteredItems.map((item, index) => {
-    const icon = showIcon ? (
-      <MenuIconWrapper aria-hidden>
-        {"icon" in item ? item.icon : null}
-      </MenuIconWrapper>
-    ) : undefined;
-
-    switch (item.type) {
-      case "button":
-        return (
-          <DropdownMenuButton
-            key={`${item.type}-${item.title}-${index}`}
-            label={item.title as string}
-            icon={icon}
-            disabled={item.disabled}
-            dangerous={item.dangerous}
-            onClick={item.onClick}
-          />
-        );
-
-      case "route":
-        return (
-          <DropdownMenuInternalLink
-            key={`${item.type}-${item.title}-${index}`}
-            label={item.title as string}
-            icon={icon}
-            disabled={item.disabled}
-            to={item.to}
-          />
-        );
-
-      case "link":
-        return (
-          <DropdownMenuExternalLink
-            key={`${item.type}-${item.title}-${index}`}
-            label={item.title as string}
-            icon={icon}
-            disabled={item.disabled}
-            href={typeof item.href === "string" ? item.href : item.href.url}
-            target={
-              typeof item.href === "string" ? undefined : item.href.target
-            }
-          />
-        );
-
-      case "group": {
-        const groupItems = transformMenuItems(item.items);
-
-        if (!groupItems?.length) {
-          return null;
-        }
-
-        return (
-          <DropdownMenuGroup
-            key={`${item.type}-${item.title}-${index}`}
-            label={item.title as string}
-            items={groupItems}
-          />
-        );
-      }
-
-      case "separator":
-        return <DropdownMenuSeparator key={`${item.type}-${index}`} />;
-
-      default:
-        return null;
-    }
-  });
 }
 
-function filterMenuItems(items: MenuItem[]): MenuItem[] {
-  return items
-    .filter((item) => item.visible !== false)
-    .reduce((acc, item) => {
-      // trim separator when the previous item is also a separator.
-      if (
-        item.type === "separator" &&
-        acc[acc.length - 1]?.type === "separator"
-      ) {
-        return acc;
-      }
-      return [...acc, item];
-    }, [] as MenuItem[])
-    .filter((item, index, arr) => {
-      // trim when first or last item is a separator.
-      if (
-        item.type === "separator" &&
-        (index === 0 || index === arr.length - 1)
-      ) {
-        return false;
-      }
-      return true;
-    });
-}
+const StyledScrollable = styled(Scrollable)`
+  max-height: 75vh;
+`;

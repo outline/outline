@@ -47,7 +47,10 @@ function FileOperationMenu({ fileOperation, onDelete }: Props) {
   const rootAction = createRootMenuAction(actions);
 
   return (
-    <DropdownMenu action={rootAction}>
+    <DropdownMenu
+      action={rootAction}
+      ariaLabel={t("File")}
+    >
       <OverflowMenuButton />
     </DropdownMenu>
   );
