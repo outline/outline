@@ -1,5 +1,5 @@
 diff --git a/node_modules/y-prosemirror/src/plugins/sync-plugin.js b/node_modules/y-prosemirror/src/plugins/sync-plugin.js
-index dccfb76..38a9a10 100644
+index dccfb76..fc7238c 100644
 --- a/node_modules/y-prosemirror/src/plugins/sync-plugin.js
 +++ b/node_modules/y-prosemirror/src/plugins/sync-plugin.js
 @@ -4,6 +4,7 @@
@@ -10,17 +10,18 @@ index dccfb76..38a9a10 100644
  import { AllSelection, Plugin, TextSelection, NodeSelection } from "prosemirror-state"; // eslint-disable-line
  import * as math from 'lib0/math'
  import * as object from 'lib0/object'
-@@ -242,40 +243,16 @@ export const ySyncPlugin = (yXmlFragment, {
+@@ -242,40 +243,24 @@ export const ySyncPlugin = (yXmlFragment, {
  }
  
  /**
 - * @param {import('prosemirror-state').Transaction} tr
 - * @param {ReturnType<typeof getRelativeSelection>} relSel
 - * @param {ProsemirrorBinding} binding
-+ * This will return a function that can be used to convert a relative position to an absolute position.
-+ * @param {ProsemirrorBinding} pmbinding
-+ * @param {number} pos
-+ * @returns {(binding?: ProsemirrorBinding) => number}
++ * NOTE: restoreRelativeSelection, getRelativeSelection, and relativePositionStore are
++ * from the PR here: https://github.com/yjs/y-prosemirror/pull/182 in order to support
++ * CellSelection and other selection types.
++ *
++ * If the PR is merged this patch can be removed.
   */
 -const restoreRelativeSelection = (tr, relSel, binding) => {
 -  if (relSel !== null && relSel.anchor !== null && relSel.head !== null) {
@@ -52,6 +53,13 @@ index dccfb76..38a9a10 100644
 -        tr.setSelection(sel)
 -      }
 -    }
++
++/**
++ * This will return a function that can be used to convert a relative position to an absolute position.
++ * @param {ProsemirrorBinding} pmbinding
++ * @param {number} pos
++ * @returns {(binding?: ProsemirrorBinding) => number}
++ */
 +export const relativePositionStore = (pmbinding, pos) => {
 +  const relPos = absolutePositionToRelativePosition(pos, pmbinding.type, pmbinding.mapping)
 +
@@ -60,7 +68,7 @@ index dccfb76..38a9a10 100644
    }
  }
  
-@@ -283,19 +260,65 @@ const restoreRelativeSelection = (tr, relSel, binding) => {
+@@ -283,19 +268,65 @@ const restoreRelativeSelection = (tr, relSel, binding) => {
   * @param {ProsemirrorBinding} pmbinding
   * @param {import('prosemirror-state').EditorState} state
   */
