@@ -6,10 +6,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "~/components/primitives/DropdownMenu";
-import MenuIconWrapper, {
+import {
   MenuButton,
-  MenuExternalLink,
+  MenuIconWrapper,
   MenuInternalLink,
+  MenuExternalLink,
   MenuLabel,
   MenuSeparator,
 } from "~/components/primitives/components/Menu";

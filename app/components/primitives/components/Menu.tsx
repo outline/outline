@@ -103,7 +103,7 @@ export const MenuHeader = styled.h3`
   margin: 1em 12px 0.5em;
 `;
 
-const MenuIconWrapper = styled.span`
+export const MenuIconWrapper = styled.span`
   width: 24px;
   height: 24px;
   margin-right: 6px;
@@ -111,5 +111,3 @@ const MenuIconWrapper = styled.span`
   color: ${s("textSecondary")};
   flex-shrink: 0;
 `;
-
-export default MenuIconWrapper;
