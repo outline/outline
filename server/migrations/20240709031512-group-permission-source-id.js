@@ -11,7 +11,10 @@ module.exports = {
       allowNull: true,
     });
 
-    await queryInterface.removeConstraint("group_permissions", "group_permissions_documentId_fkey")
+    await queryInterface.removeConstraint(
+      "group_permissions",
+      "group_permissions_documentId_fkey"
+    );
     await queryInterface.changeColumn("group_permissions", "documentId", {
       type: Sequelize.UUID,
       onDelete: "cascade",
@@ -21,7 +24,10 @@ module.exports = {
     });
   },
   async down(queryInterface) {
-    await queryInterface.removeConstraint("group_permissions", "group_permissions_documentId_fkey")
+    await queryInterface.removeConstraint(
+      "group_permissions",
+      "group_permissions_documentId_fkey"
+    );
     await queryInterface.changeColumn("group_permissions", "documentId", {
       type: Sequelize.UUID,
       references: {

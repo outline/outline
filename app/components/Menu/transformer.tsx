@@ -23,7 +23,7 @@ export function toDropdownMenuItems(items: MenuItem[]) {
   }
 
   const showIcon = filteredItems.find(
-    item =>
+    (item) =>
       item.type !== "separator" &&
       item.type !== "heading" &&
       item.type !== "group" &&
@@ -108,7 +108,7 @@ export function toMobileMenuItems(items: MenuItem[], closeMenu: () => void) {
   }
 
   const showIcon = filteredItems.find(
-    item =>
+    (item) =>
       item.type !== "separator" &&
       item.type !== "heading" &&
       item.type !== "group" &&
@@ -129,8 +129,7 @@ export function toMobileMenuItems(items: MenuItem[], closeMenu: () => void) {
             key={`${item.type}-${item.title}-${index}`}
             disabled={item.disabled}
             $dangerous={item.dangerous}
-            onClick={e => {
-              console.log("on Click");
+            onClick={(e) => {
               closeMenu();
               item.onClick(e);
             }}
@@ -195,7 +194,7 @@ export function toMobileMenuItems(items: MenuItem[], closeMenu: () => void) {
 
 function filterMenuItems(items: MenuItem[]): MenuItem[] {
   return items
-    .filter(item => item.visible !== false)
+    .filter((item) => item.visible !== false)
     .reduce((acc, item) => {
       // trim separator when the previous item is also a separator.
       if (

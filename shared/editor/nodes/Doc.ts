@@ -18,11 +18,12 @@ export default class Doc extends Node {
     return [
       new PlaceholderPlugin([
         {
-          condition: ({ $start, parent, state, textContent }) =>
+          condition: ({ $start, parent, node, state, textContent }) =>
             textContent === "" &&
             !isNull(parent) &&
             parent.type === state.doc.type &&
             parent.childCount === 1 &&
+            node.childCount === 0 &&
             $start.index($start.depth - 1) === 0,
           text: this.options.placeholder,
         },

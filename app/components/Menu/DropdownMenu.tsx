@@ -39,7 +39,7 @@ export function DropdownMenu({
   const context = useActionContext({
     isContextMenu: true,
   });
-  const menuItems = (action.children as ActionV2Variant[]).map(childAction =>
+  const menuItems = (action.children as ActionV2Variant[]).map((childAction) =>
     actionV2ToMenuItem(childAction, context)
   );
 
@@ -67,8 +67,6 @@ export function DropdownMenu({
   }
 
   const content = toDropdownMenuItems(menuItems);
-
-  console.log("desktop content", content);
 
   if (!content) {
     return null;
@@ -123,21 +121,13 @@ function MobileDropdown({
 
   const content = toMobileMenuItems(items, closeDrawer);
 
-  console.log("mobile content", content);
-
   if (!content) {
     return null;
   }
 
   return (
-    <Drawer
-      open={open}
-      onOpenChange={setOpen}
-    >
-      <DrawerTrigger
-        aria-label={ariaLabel}
-        asChild
-      >
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerTrigger aria-label={ariaLabel} asChild>
         {trigger}
       </DrawerTrigger>
       <DrawerContent

@@ -9,14 +9,18 @@ module.exports = {
         transaction,
       });
       await queryInterface.addIndex("attachments", ["expiresAt"], {
-        transaction
+        transaction,
       });
     });
   },
   down: async (queryInterface) => {
     await queryInterface.sequelize.transaction(async (transaction) => {
-      await queryInterface.removeColumn("attachments", "expiresAt", { transaction });
-      await queryInterface.removeIndex("attachments", ["expiresAt"], { transaction });
+      await queryInterface.removeColumn("attachments", "expiresAt", {
+        transaction,
+      });
+      await queryInterface.removeIndex("attachments", ["expiresAt"], {
+        transaction,
+      });
     });
   },
 };
