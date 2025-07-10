@@ -1,16 +1,17 @@
 diff --git a/node_modules/y-prosemirror/src/plugins/sync-plugin.js b/node_modules/y-prosemirror/src/plugins/sync-plugin.js
-index dccfb76..fc7238c 100644
+index dccfb76..45b6f1a 100644
 --- a/node_modules/y-prosemirror/src/plugins/sync-plugin.js
 +++ b/node_modules/y-prosemirror/src/plugins/sync-plugin.js
-@@ -4,6 +4,7 @@
+@@ -4,7 +4,7 @@
  
  import { createMutex } from 'lib0/mutex'
  import * as PModel from 'prosemirror-model'
-+import { cellAround, CellSelection } from 'prosemirror-tables';
- import { AllSelection, Plugin, TextSelection, NodeSelection } from "prosemirror-state"; // eslint-disable-line
+-import { AllSelection, Plugin, TextSelection, NodeSelection } from "prosemirror-state"; // eslint-disable-line
++import { Plugin, TextSelection } from "prosemirror-state"; // eslint-disable-line
  import * as math from 'lib0/math'
  import * as object from 'lib0/object'
-@@ -242,40 +243,24 @@ export const ySyncPlugin = (yXmlFragment, {
+ import * as set from 'lib0/set'
+@@ -242,40 +242,24 @@ export const ySyncPlugin = (yXmlFragment, {
  }
  
  /**
@@ -68,7 +69,7 @@ index dccfb76..fc7238c 100644
    }
  }
  
-@@ -283,19 +268,65 @@ const restoreRelativeSelection = (tr, relSel, binding) => {
+@@ -283,19 +267,65 @@ const restoreRelativeSelection = (tr, relSel, binding) => {
   * @param {ProsemirrorBinding} pmbinding
   * @param {import('prosemirror-state').EditorState} state
   */
