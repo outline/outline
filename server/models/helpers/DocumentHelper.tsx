@@ -478,7 +478,10 @@ export class DocumentHelper {
       }
 
       // apply new document to existing ydoc
-      updateYFragment(type.doc, type, doc, new Map());
+      updateYFragment(type.doc, type, doc, {
+        mapping: new Map(),
+        isOMark: new Map(),
+      });
 
       const state = Y.encodeStateAsUpdate(ydoc);
 
