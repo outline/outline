@@ -2,7 +2,7 @@ import isNull from "lodash/isNull";
 import isUndefined from "lodash/isUndefined";
 import { splitBlock } from "prosemirror-commands";
 import { Slice, Fragment } from "prosemirror-model";
-import { Command, TextSelection, Transaction } from "prosemirror-state";
+import { Command, TextSelection } from "prosemirror-state";
 import { liftTarget, ReplaceAroundStep } from "prosemirror-transform";
 import { v4 } from "uuid";
 import ToggleBlock, { Action, On } from "../nodes/ToggleBlock";
@@ -15,6 +15,7 @@ import {
   findCutBefore,
   joinBackwardTr,
   joinForwardTr,
+  liftChildrenOfNodeAt,
   nearest,
   prevSibling,
   selectNodeBackwardTr,
@@ -395,22 +396,4 @@ export const splitTopLevelBlockWithinBody: Command = (state, dispatch) => {
   }
 
   return false;
-};
-
-const liftChildrenOfNodeAt = (pos: number, tr: Transaction): Transaction => {
-  const node = tr.doc.nodeAt(pos);
-  const start = pos + 1;
-  const end = start + node!.content.size;
-  const $start = tr.doc.resolve(start);
-  const $end = tr.doc.resolve(end);
-  const range = $start.blockRange($end);
-  if (isNull(range)) {
-    return tr;
-  }
-  const target = liftTarget(range);
-  if (isNull(target)) {
-    return tr;
-  }
-
-  return tr.lift(range, target);
 };

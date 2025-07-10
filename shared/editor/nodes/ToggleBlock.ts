@@ -5,10 +5,12 @@ import flatten from "lodash/flatten";
 import forEach from "lodash/forEach";
 import forEachRight from "lodash/forEachRight";
 import isEmpty from "lodash/isEmpty";
+import isEqual from "lodash/isEqual";
 import isNil from "lodash/isNil";
 import isNull from "lodash/isNull";
 import map from "lodash/map";
 import some from "lodash/some";
+import uniqWith from "lodash/uniqWith";
 import { chainCommands, newlineInCode } from "prosemirror-commands";
 import { wrappingInputRule } from "prosemirror-inputrules";
 import { ParseSpec } from "prosemirror-markdown";
@@ -59,8 +61,15 @@ import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { HeadingTracker } from "../plugins/HeadingTracker";
 import { PlaceholderPlugin } from "../plugins/PlaceholderPlugin";
 import { findBlockNodes } from "../queries/findChildren";
+import { isNodeActive } from "../queries/isNodeActive";
 import toggleBlocksRule from "../rules/toggleBlocks";
-import { ancestors, furthest, height, nearest } from "../utils";
+import {
+  ancestors,
+  furthest,
+  height,
+  liftChildrenOfNodeAt,
+  nearest,
+} from "../utils";
 import Node from "./Node";
 
 export enum Action {
@@ -241,6 +250,14 @@ export default class ToggleBlock extends Node {
           if (!isEmpty(decosToRestore)) {
             value = value.add(tr.doc, decosToRestore);
           }
+
+          // Make sure that the set maintains unique decorations because
+          // `DecorationSet.remove` doesn't seem to remove duplicates. As a result,
+          // decoration is applied multiple times to a node, messing up its UI.
+          value = DecorationSet.create(
+            tr.doc,
+            uniqWith(value.find(), (a, b) => isEqual(a, b))
+          );
 
           const action = tr.getMeta(ToggleBlock.actionPluginKey);
           if (action) {
@@ -663,6 +680,10 @@ export default class ToggleBlock extends Node {
   }): CommandFactory {
     return () => (state, dispatch) => {
       const { $from, $to } = state.selection;
+      if (isNodeActive(type)(state)) {
+        dispatch?.(liftChildrenOfNodeAt($from.before(-1), state.tr));
+        return true;
+      }
       // if heading
       if ($from.parent.type === state.schema.nodes.heading) {
         const $fr_ = state.doc.resolve($from.start());
