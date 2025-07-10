@@ -30,11 +30,11 @@ const InputSelectTrigger = React.forwardRef<
   React.ElementRef<typeof InputSelectPrimitive.Trigger>,
   InputSelectTriggerProps
 >((props, ref) => {
-  const { placeholder, children, ...buttonProps } = props;
+  const { placeholder, children, nude, ...buttonProps } = props;
 
   return (
     <InputSelectPrimitive.Trigger ref={ref} asChild>
-      <SelectButton neutral disclosure {...buttonProps}>
+      <SelectButton neutral disclosure $nude={nude} {...buttonProps}>
         <InputSelectPrimitive.Value placeholder={placeholder} />
       </SelectButton>
     </InputSelectPrimitive.Trigger>

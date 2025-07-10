@@ -5,7 +5,7 @@ import { ImportInput } from "@shared/schema";
 import { CollectionPermission, IntegrationService } from "@shared/types";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import InputSelectPermission from "~/components/InputSelectPermission";
+import { InputSelectPermission } from "~/components/InputSelectPermission";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";

@@ -9,7 +9,7 @@ import { CollectionPermission } from "@shared/types";
 import Collection from "~/models/Collection";
 import { Avatar, GroupAvatar, AvatarSize } from "~/components/Avatar";
 import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
-import InputSelectPermission from "~/components/InputSelectPermission";
+import { InputSelectPermission } from "~/components/InputSelectPermission";
 import Scrollable from "~/components/Scrollable";
 import useMaxHeight from "~/hooks/useMaxHeight";
 import usePolicy from "~/hooks/usePolicy";
@@ -121,7 +121,6 @@ export const AccessControlList = observer(
               actions={
                 <div style={{ marginRight: -8 }}>
                   <InputSelectPermission
-                    style={{ margin: 0 }}
                     onChange={(
                       value: CollectionPermission | typeof EmptySelectValue
                     ) => {
@@ -131,8 +130,9 @@ export const AccessControlList = observer(
                     }}
                     disabled={!can.update}
                     value={collection?.permission}
-                    labelHidden
+                    hideLabel
                     nude
+                    shrink
                   />
                 </div>
               }

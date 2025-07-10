@@ -10,7 +10,7 @@ import { AttachmentPreset, CollectionPermission } from "@shared/types";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import InputSelectPermission from "~/components/InputSelectPermission";
+import { InputSelectPermission } from "~/components/InputSelectPermission";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";

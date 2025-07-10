@@ -14,7 +14,7 @@ import Collection from "~/models/Collection";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
-import InputSelectPermission from "~/components/InputSelectPermission";
+import { InputSelectPermission } from "~/components/InputSelectPermission";
 import { createLazyComponent } from "~/components/LazyLoad";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
@@ -172,7 +172,7 @@ export const CollectionForm = observer(function CollectionForm_({
               ) => {
                 field.onChange(value === EmptySelectValue ? null : value);
               }}
-              note={t(
+              help={t(
                 "The default access for workspace members, you can share with more users or groups later."
               )}
             />
