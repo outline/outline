@@ -24,7 +24,7 @@ function NewTemplateMenu() {
   const { collections, policies } = useStores();
   const can = usePolicy(team);
 
-  const collectionActions = collections.orderedData.map(collection => {
+  const collectionActions = collections.orderedData.map((collection) => {
     const canCollection = policies.abilities(collection.id);
     return createInternalLinkActionV2({
       name: collection.name,
@@ -59,11 +59,7 @@ function NewTemplateMenu() {
   }, [collections]);
 
   return (
-    <DropdownMenu
-      action={rootAction}
-      align="end"
-      ariaLabel={t("New template")}
-    >
+    <DropdownMenu action={rootAction} align="end" ariaLabel={t("New template")}>
       <Button icon={<PlusIcon />}>{t("New template")}…</Button>
     </DropdownMenu>
   );
