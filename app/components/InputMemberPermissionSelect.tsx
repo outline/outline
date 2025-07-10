@@ -2,37 +2,49 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import InputSelect, { Props as SelectProps } from "~/components/InputSelect";
+import { InputSelectNew, Option } from "~/components/InputSelectNew";
 import { EmptySelectValue, Permission } from "~/types";
 
+type Props = Pick<
+  React.ComponentProps<typeof InputSelectNew>,
+  "value" | "onChange" | "disabled" | "className"
+>;
+
 export default function InputMemberPermissionSelect(
-  props: Partial<SelectProps> & { permissions: Permission[] }
+  props: Props & { permissions: Permission[] }
 ) {
   const { value, onChange, ...rest } = props;
   const { t } = useTranslation();
 
+  const options = React.useMemo<Option[]>(
+    () =>
+      props.permissions.reduce((acc, permission) => {
+        if (permission.divider) {
+          acc.push({ type: "separator" });
+        }
+        acc.push({
+          ...permission,
+          type: "item",
+        });
+        return acc;
+      }, [] as Option[]),
+    [props.permissions]
+  );
+
   return (
     <Select
-      label={t("Permissions")}
-      options={props.permissions}
-      ariaLabel={t("Permissions")}
-      onChange={onChange}
+      options={options}
       value={value || EmptySelectValue}
-      labelHidden
+      onChange={onChange}
+      ariaLabel={t("Permissions")}
+      label={t("Permissions")}
+      hideLabel
       nude
       {...rest}
     />
   );
 }
 
-const Select = styled(InputSelect)`
-  margin: 0;
-  font-size: 14px;
-  border-color: transparent;
-  box-shadow: none;
+const Select = styled(InputSelectNew)`
   color: ${s("textSecondary")};
-
-  select {
-    margin: 0;
-  }
-` as React.ComponentType<SelectProps>;
+`;

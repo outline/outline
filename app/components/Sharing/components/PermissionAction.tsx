@@ -30,8 +30,6 @@ export function PermissionAction({
           permissions={permissions}
           onChange={onChange}
           value={permission}
-          labelHidden
-          nude
         />
         <ButtonSmall action={action} context={context}>
           {t("Add")}
