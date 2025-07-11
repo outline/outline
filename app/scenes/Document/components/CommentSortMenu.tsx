@@ -93,7 +93,6 @@ const CommentSortMenu = () => {
       options={options}
       value={value}
       onChange={handleChange}
-      ariaLabel={t("Sort comments")}
       label={t("Sort comments")}
       hideLabel
       borderOnHover

@@ -59,8 +59,6 @@ type Props = {
   value?: string | null;
   /* Callback when an option is selected. */
   onChange: (value: string) => void;
-  /* ARIA label for accessibility. */
-  ariaLabel: string;
   /* Label for the select menu. */
   label: string;
   /* When true, label is hidden in an accessible manner. */
@@ -79,7 +77,6 @@ export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
       options,
       value,
       onChange,
-      ariaLabel,
       label,
       hideLabel,
       short,
@@ -95,7 +92,7 @@ export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
 
     const isMobile = useMobile();
 
-    const placeholder = `Select a ${ariaLabel.toLowerCase()}`;
+    const placeholder = `Select a ${label.toLowerCase()}`;
     const optionsHaveIcon = options.some(
       (opt) => opt.type === "item" && !!opt.icon
     );
@@ -168,7 +165,7 @@ export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
           />
           <InputSelectContent
             ref={contentRef}
-            aria-label={ariaLabel}
+            aria-label={label}
             onAnimationStart={disablePointerEvents}
             onAnimationEnd={enablePointerEvents}
           >
@@ -192,7 +189,6 @@ const MobileSelect = React.forwardRef<HTMLButtonElement, MobileSelectProps>(
       options,
       value,
       onChange,
-      ariaLabel,
       label,
       hideLabel,
       disabled,
@@ -280,11 +276,11 @@ const MobileSelect = React.forwardRef<HTMLButtonElement, MobileSelectProps>(
           </DrawerTrigger>
           <DrawerContent
             ref={contentRef}
-            aria-label={ariaLabel}
+            aria-label={label}
             onAnimationStart={disablePointerEvents}
             onAnimationEnd={enablePointerEvents}
           >
-            <DrawerTitle hidden={!label}>{label ?? ariaLabel}</DrawerTitle>
+            <DrawerTitle hidden={!label}>{label}</DrawerTitle>
             <StyledScrollable hiddenScrollbars>
               {options.map(renderOption)}
             </StyledScrollable>

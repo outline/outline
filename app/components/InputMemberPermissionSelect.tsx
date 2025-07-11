@@ -36,7 +36,6 @@ export default function InputMemberPermissionSelect(
       options={options}
       value={value || EmptySelectValue}
       onChange={onChange}
-      ariaLabel={t("Permissions")}
       label={t("Permissions")}
       hideLabel
       nude
