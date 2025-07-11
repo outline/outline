@@ -299,7 +299,6 @@ function Security() {
             value={data.defaultUserRole}
             options={userRoleOptions}
             onChange={handleDefaultRoleChange}
-            ariaLabel={t("Default role")}
             label={t("Default role")}
             hideLabel
             short

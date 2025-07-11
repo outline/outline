@@ -74,7 +74,6 @@ const DefaultCollectionInputSelect = ({
       options={options}
       value={defaultCollectionId ?? "home"}
       onChange={onSelectCollection}
-      ariaLabel={t("Default collection")}
       label={t("Start view")}
       hideLabel
       short

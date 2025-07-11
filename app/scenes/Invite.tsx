@@ -195,7 +195,6 @@ function Invite({ onSubmit }: Props) {
             options={options}
             onChange={(r) => setRole(r as UserRole)}
             value={role}
-            ariaLabel={t("Role")}
             label={t("Invite as")}
           />
 

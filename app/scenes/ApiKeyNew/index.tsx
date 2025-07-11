@@ -127,7 +127,6 @@ function ApiKeyNew({ onSubmit }: Props) {
             options={expiryOptions}
             value={expiryType}
             onChange={handleExpiryTypeChange}
-            ariaLabel={t("Expiration")}
             label={t("Expiration")}
           />
           {expiryType === ExpiryType.Custom ? (

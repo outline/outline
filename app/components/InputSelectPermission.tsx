@@ -48,7 +48,6 @@ export const InputSelectPermission = React.forwardRef<HTMLButtonElement, Props>(
         options={options}
         value={value || EmptySelectValue}
         onChange={onChange}
-        ariaLabel={t("Default access")}
         label={t("Permission")}
         $shrink={shrink}
         {...rest}

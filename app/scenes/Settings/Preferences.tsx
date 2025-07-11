@@ -149,7 +149,6 @@ function Preferences() {
           options={languageOptions}
           value={user.language}
           onChange={handleLanguageChange}
-          ariaLabel={t("Language")}
           label={t("Language")}
           hideLabel
         />
@@ -163,7 +162,6 @@ function Preferences() {
           options={themeOptions}
           value={ui.theme}
           onChange={handleThemeChange}
-          ariaLabel={t("Appearance")}
           label={t("Appearance")}
           hideLabel
         />
