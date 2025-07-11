@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { AvatarSize } from "~/components/Avatar";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
-import { InputSelectNew, Option } from "~/components/InputSelectNew";
+import { InputSelect, Option } from "~/components/InputSelect";
 import TeamLogo from "~/components/TeamLogo";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
@@ -84,7 +84,7 @@ const SelectLocation = ({ defaultCollectionId, onSelect }: Props) => {
   }
 
   return (
-    <InputSelectNew
+    <InputSelect
       options={options}
       value={defaultCollectionId ?? "workspace"}
       onChange={handleSelection}

@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
-import { InputSelectNew, Option } from "~/components/InputSelectNew";
+import { InputSelect, Option } from "~/components/InputSelect";
 import useStores from "~/hooks/useStores";
 
 type DefaultCollectionInputSelectProps = {
@@ -70,7 +70,7 @@ const DefaultCollectionInputSelect = ({
   }
 
   return (
-    <InputSelectNew
+    <InputSelect
       options={options}
       value={defaultCollectionId ?? "home"}
       onChange={onSelectCollection}

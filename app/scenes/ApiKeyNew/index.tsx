@@ -7,7 +7,7 @@ import { ApiKeyValidation } from "@shared/validations";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
-import { InputSelectNew, Option } from "~/components/InputSelectNew";
+import { InputSelect, Option } from "~/components/InputSelect";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import useUserLocale from "~/hooks/useUserLocale";
@@ -153,7 +153,7 @@ function ApiKeyNew({ onSubmit }: Props) {
   );
 }
 
-const StyledExpirySelect = styled(InputSelectNew)`
+const StyledExpirySelect = styled(InputSelect)`
   width: 150px !important;
   margin-bottom: 16px;
 `;
