@@ -3,13 +3,13 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { CollectionPermission } from "@shared/types";
-import { InputSelectNew, Option } from "~/components/InputSelectNew";
+import { InputSelect, Option } from "~/components/InputSelect";
 import { EmptySelectValue } from "~/types";
 
 type Props = {
   shrink?: boolean;
 } & Pick<
-  React.ComponentProps<typeof InputSelectNew>,
+  React.ComponentProps<typeof InputSelect>,
   "value" | "onChange" | "disabled" | "hideLabel" | "nude" | "help"
 >;
 
@@ -58,7 +58,7 @@ export const InputSelectPermission = React.forwardRef<HTMLButtonElement, Props>(
 );
 InputSelectPermission.displayName = "InputSelectPermission";
 
-const Select = styled(InputSelectNew)<{ $shrink?: boolean }>`
+const Select = styled(InputSelect)<{ $shrink?: boolean }>`
   color: ${s("textSecondary")};
   ${({ $shrink }) => !$shrink && "margin-bottom: 16px;"}
 `;

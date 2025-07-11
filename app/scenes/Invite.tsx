@@ -12,7 +12,7 @@ import { UserValidation } from "@shared/validations";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
-import { InputSelectNew, Option } from "~/components/InputSelectNew";
+import { InputSelect, Option } from "~/components/InputSelect";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Text from "~/components/Text";
 import Tooltip from "~/components/Tooltip";
@@ -191,7 +191,7 @@ function Invite({ onSubmit }: Props) {
           </Text>
         )}
         <Flex gap={12} column>
-          <InputSelectNew
+          <InputSelect
             options={options}
             onChange={(r) => setRole(r as UserRole)}
             value={role}
