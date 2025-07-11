@@ -160,7 +160,6 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
               actions={
                 <div style={{ marginRight: -8 }}>
                   <InputMemberPermissionSelect
-                    style={{ margin: 0 }}
                     permissions={permissions}
                     onChange={async (
                       permission: DocumentPermission | typeof EmptySelectValue
@@ -180,8 +179,6 @@ function DocumentMembersList({ document, invitedInSession }: Props) {
                     }}
                     disabled={!can.manageUsers}
                     value={membership.permission}
-                    labelHidden
-                    nude
                   />
                 </div>
               }
