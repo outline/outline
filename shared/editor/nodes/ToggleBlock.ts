@@ -58,9 +58,9 @@ import {
 } from "../commands/toggleBlock";
 import { CommandFactory } from "../lib/Extension";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
-import { HeadingTracker } from "../plugins/HeadingTracker";
 import { PlaceholderPlugin } from "../plugins/PlaceholderPlugin";
 import { findBlockNodes } from "../queries/findChildren";
+import { findCutAfterHeading } from "../queries/findCutAfterHeading";
 import { isNodeActive } from "../queries/isNodeActive";
 import toggleBlocksRule from "../rules/toggleBlocks";
 import {
@@ -686,8 +686,8 @@ export default class ToggleBlock extends Node {
       }
       // if heading
       if ($from.parent.type === state.schema.nodes.heading) {
-        const $fr_ = state.doc.resolve($from.start());
-        const $to_ = HeadingTracker.findCutAfterHeadingAtSelection(state);
+        const $fr_ = TextSelection.near($from, 1).$from;
+        const $to_ = TextSelection.near(findCutAfterHeading($from), -1).$to;
         const range = $fr_.blockRange($to_),
           wrapping = range && findWrapping(range, type, { id: v4() });
         if (!wrapping) {
