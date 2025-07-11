@@ -5,7 +5,7 @@ import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { UserPreference } from "@shared/types";
-import { InputSelectNew, Option } from "~/components/InputSelectNew";
+import { InputSelect, Option } from "~/components/InputSelect";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useQuery from "~/hooks/useQuery";
@@ -101,7 +101,7 @@ const CommentSortMenu = () => {
   );
 };
 
-const Select = styled(InputSelectNew)`
+const Select = styled(InputSelect)`
   color: ${s("textSecondary")};
 `;
 
