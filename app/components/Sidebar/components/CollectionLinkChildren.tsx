@@ -34,7 +34,7 @@ function CollectionLinkChildren({
   expanded,
   prefetchDocument,
 }: Props) {
-  const pageSize = 250;
+  const pageSize = 25;
   const { documents } = useStores();
   const { t } = useTranslation();
   const childDocuments = useCollectionDocuments(collection, documents.active);
@@ -84,7 +84,9 @@ function CollectionLinkChildren({
             depth={2}
           />
         )}
-        <Waypoint key={showing} onEnter={showMore} fireOnRapidScroll />
+        {childDocuments && (
+          <Waypoint key={showing} onEnter={showMore} fireOnRapidScroll />
+        )}
       </DocumentsLoader>
     </Folder>
   );
