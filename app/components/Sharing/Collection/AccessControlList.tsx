@@ -161,7 +161,6 @@ export const AccessControlList = observer(
                   actions={
                     <div style={{ marginRight: -8 }}>
                       <InputMemberPermissionSelect
-                        style={{ margin: 0 }}
                         permissions={permissions}
                         onChange={async (
                           permission:
@@ -189,8 +188,6 @@ export const AccessControlList = observer(
                         }}
                         disabled={!can.update}
                         value={membership.permission}
-                        labelHidden
-                        nude
                       />
                     </div>
                   }
@@ -215,7 +212,6 @@ export const AccessControlList = observer(
                   actions={
                     <div style={{ marginRight: -8 }}>
                       <InputMemberPermissionSelect
-                        style={{ margin: 0 }}
                         permissions={permissions}
                         onChange={async (
                           permission:
@@ -243,8 +239,6 @@ export const AccessControlList = observer(
                         }}
                         disabled={!can.update}
                         value={membership.permission}
-                        labelHidden
-                        nude
                       />
                     </div>
                   }

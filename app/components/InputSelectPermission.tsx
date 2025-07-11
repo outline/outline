@@ -3,10 +3,7 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { CollectionPermission } from "@shared/types";
-import {
-  InputSelectNew,
-  Option as OptionNew,
-} from "~/components/InputSelectNew";
+import { InputSelectNew, Option } from "~/components/InputSelectNew";
 import { EmptySelectValue } from "~/types";
 
 type Props = {
@@ -21,7 +18,7 @@ export const InputSelectPermission = React.forwardRef<HTMLButtonElement, Props>(
     const { value, onChange, shrink, ...rest } = props;
     const { t } = useTranslation();
 
-    const options = React.useMemo<OptionNew[]>(
+    const options = React.useMemo<Option[]>(
       () => [
         {
           type: "item",

@@ -11,7 +11,6 @@ import Flex from "./Flex";
 import { LabelText } from "./Input";
 import NudeButton from "./NudeButton";
 import Scrollable from "./Scrollable";
-import { IconWrapper } from "./Sidebar/components/SidebarLink";
 import Tooltip from "./Tooltip";
 import {
   Drawer,
@@ -373,6 +372,18 @@ const Description = styled(Text)`
       color: ${(props) => transparentize(0.5, props.theme.accentText)};
     }
   }
+`;
+
+const IconWrapper = styled.span`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 24px;
+  height: 24px;
+  margin-left: -4px;
+  margin-right: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
 `;
 
 const IconSpacer = styled.div`
