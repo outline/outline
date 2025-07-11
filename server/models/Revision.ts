@@ -192,9 +192,6 @@ class Revision extends ParanoidModel<
       editorVersion: document.editorVersion,
       version: document.version,
       documentId: document.id,
-      // revision time is set to the last time document was touched as this
-      // handler can be debounced in the case of an update
-      createdAt: document.updatedAt,
     });
   }
 
