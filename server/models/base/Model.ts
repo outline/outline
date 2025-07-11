@@ -270,6 +270,7 @@ class Model<
       ip: context.ip,
       changes: model.previousChangeset,
       data: context.event.data,
+      createdAt: "createdAt" in model ? model.createdAt : undefined,
     };
 
     if (context.event?.persist !== false) {
