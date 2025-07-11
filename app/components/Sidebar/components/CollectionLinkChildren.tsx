@@ -98,7 +98,7 @@ const DynamicDropCursor = ({ collection }: { collection: Collection }) => {
     dummyRef
   );
 
-  if (!canDrop) {
+  if (!canDrop || !collection.isManualSort) {
     return null;
   }
 
