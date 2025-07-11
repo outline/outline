@@ -17,6 +17,7 @@ import {
 } from "sequelize-typescript";
 import type { ProsemirrorData } from "@shared/types";
 import { DocumentValidation, RevisionValidation } from "@shared/validations";
+import { APIContext } from "@server/types";
 import Document from "./Document";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
@@ -39,6 +40,7 @@ class Revision extends ParanoidModel<
   InferAttributes<Revision>,
   Partial<InferCreationAttributes<Revision>>
 > {
+  static eventNamespace = "revisions";
   @IsNumeric
   @Column(DataType.SMALLINT)
   version?: number | null;
@@ -171,6 +173,29 @@ class Revision extends ParanoidModel<
   ) {
     const revision = this.buildFromDocument(document);
     return revision.save(options);
+  }
+
+  /**
+   * Create a Revision model from a Document model with context for auto event creation
+   *
+   * @param ctx The API context
+   * @param document The document to create from
+   * @returns A Promise that resolves to the created revision
+   */
+  static createFromDocumentWithCtx(ctx: APIContext, document: Document) {
+    return this.createWithCtx(ctx, {
+      title: document.title,
+      icon: document.icon,
+      color: document.color,
+      content: document.content,
+      userId: document.lastModifiedById,
+      editorVersion: document.editorVersion,
+      version: document.version,
+      documentId: document.id,
+      // revision time is set to the last time document was touched as this
+      // handler can be debounced in the case of an update
+      createdAt: document.updatedAt,
+    });
   }
 
   // instance methods

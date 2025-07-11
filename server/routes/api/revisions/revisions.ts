@@ -84,7 +84,7 @@ router.post(
     authorize(user, "update", revision);
 
     revision.name = name;
-    await revision.save({ transaction });
+    await revision.saveWithCtx(ctx, { transaction });
 
     ctx.body = {
       data: await presentRevision(revision),
