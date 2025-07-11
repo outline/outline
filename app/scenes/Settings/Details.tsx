@@ -291,7 +291,6 @@ function Details() {
               options={tocPositionOptions}
               value={tocPosition}
               onChange={handleTocPositionChange}
-              ariaLabel={t("Table of contents position")}
               label={t("Table of contents position")}
               hideLabel
             />
