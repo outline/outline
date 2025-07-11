@@ -22,7 +22,7 @@ const teamUpdater = async ({ ctx, params, user, team }: Props) => {
   if (allowedDomains !== undefined) {
     const existingAllowedDomains = await TeamDomain.findAll({
       where: { teamId: team.id },
-      transaction: ctx.transaction,
+      transaction: ctx.context.transaction,
     });
 
     // Only keep existing domains if they are still in the list of allowed domains
@@ -74,12 +74,12 @@ const teamUpdater = async ({ ctx, params, user, team }: Props) => {
         changes,
       },
       {
-        transaction: ctx.transaction,
+        transaction: ctx.context.transaction,
       }
     );
   }
 
-  return team.save({ transaction: ctx.transaction });
+  return team.save({ transaction: ctx.context.transaction });
 };
 
 export default teamUpdater;
