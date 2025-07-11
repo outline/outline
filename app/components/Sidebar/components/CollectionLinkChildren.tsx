@@ -1,6 +1,5 @@
 import noop from "lodash/noop";
 import { observer } from "mobx-react";
-import * as React from "react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Waypoint } from "react-waypoint";
@@ -20,6 +19,9 @@ import Folder from "./Folder";
 import PlaceholderCollections from "./PlaceholderCollections";
 import SidebarLink from "./SidebarLink";
 
+// The number of child documents to initially render
+const DEFAULT_PAGE_SIZE = 50;
+
 type Props = {
   /** The collection to render the children of. */
   collection: Collection;
@@ -34,7 +36,7 @@ function CollectionLinkChildren({
   expanded,
   prefetchDocument,
 }: Props) {
-  const pageSize = 25;
+  const pageSize = DEFAULT_PAGE_SIZE;
   const { documents } = useStores();
   const { t } = useTranslation();
   const childDocuments = useCollectionDocuments(collection, documents.active);
@@ -92,22 +94,24 @@ function CollectionLinkChildren({
   );
 }
 
-const DynamicDropCursor = ({ collection }: { collection: Collection }) => {
-  const dummyRef = useRef<HTMLDivElement>(null);
-  const [{ isOver, canDrop }] = useDropToChangeCollection(
-    collection,
-    noop,
-    dummyRef
-  );
+const DynamicDropCursor = observer(
+  ({ collection }: { collection: Collection }) => {
+    const dummyRef = useRef<HTMLDivElement>(null);
+    const [{ isOver, canDrop }] = useDropToChangeCollection(
+      collection,
+      noop,
+      dummyRef
+    );
 
-  if (!canDrop || !collection.isManualSort) {
-    return null;
+    if (!canDrop || !collection.isManualSort) {
+      return null;
+    }
+
+    return (
+      <DropCursor isActiveDrop={isOver} innerRef={dummyRef} position="top" />
+    );
   }
-
-  return (
-    <DropCursor isActiveDrop={isOver} innerRef={dummyRef} position="top" />
-  );
-};
+);
 
 const Loading = styled(PlaceholderCollections)`
   margin-left: 44px;
