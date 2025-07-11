@@ -1,5 +1,6 @@
 import noop from "lodash/noop";
 import { observer } from "mobx-react";
+import * as React from "react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Waypoint } from "react-waypoint";
@@ -38,13 +39,6 @@ function CollectionLinkChildren({
   const { t } = useTranslation();
   const childDocuments = useCollectionDocuments(collection, documents.active);
   const [showing, setShowing] = useState(pageSize);
-  const dummyRef = useRef<HTMLDivElement>(null);
-
-  const [{ isOver, canDrop }, dropRef] = useDropToChangeCollection(
-    collection,
-    noop,
-    dummyRef
-  );
 
   useEffect(() => {
     if (!expanded) {
@@ -60,9 +54,7 @@ function CollectionLinkChildren({
 
   return (
     <Folder expanded={expanded}>
-      {canDrop && collection.isManualSort && (
-        <DropCursor isActiveDrop={isOver} innerRef={dropRef} position="top" />
-      )}
+      <DynamicDropCursor collection={collection} />
       <DocumentsLoader collection={collection} enabled={expanded}>
         {!childDocuments && (
           <ResizingHeightContainer hideOverflow>
@@ -97,6 +89,23 @@ function CollectionLinkChildren({
     </Folder>
   );
 }
+
+const DynamicDropCursor = ({ collection }: { collection: Collection }) => {
+  const dummyRef = useRef<HTMLDivElement>(null);
+  const [{ isOver, canDrop }] = useDropToChangeCollection(
+    collection,
+    noop,
+    dummyRef
+  );
+
+  if (!canDrop) {
+    return null;
+  }
+
+  return (
+    <DropCursor isActiveDrop={isOver} innerRef={dummyRef} position="top" />
+  );
+};
 
 const Loading = styled(PlaceholderCollections)`
   margin-left: 44px;
