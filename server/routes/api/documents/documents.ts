@@ -597,8 +597,8 @@ router.post(
                 )
               : undefined,
             sharedTree:
-              share && share.includeChildDocuments
-                ? collection?.getDocumentTree(share.documentId)
+              share && share.includeChildDocuments && collection
+                ? collection.getDocumentTree(share.documentId)
                 : null,
           }
         : serializedDocument;

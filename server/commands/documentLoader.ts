@@ -142,10 +142,10 @@ export default async function loadDocument({
         includeDocumentStructure: true,
         rejectOnEmpty: true,
       });
-    }
 
-    if (!collection?.sharing) {
-      throw AuthorizationError();
+      if (!collection.sharing) {
+        throw AuthorizationError();
+      }
     }
 
     // If we're attempting to load a document that isn't the document originally

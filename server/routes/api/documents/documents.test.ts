@@ -385,6 +385,33 @@ describe("#documents.info", () => {
       });
       expect(res.status).toEqual(200);
     });
+
+    it("should return sharedTree as null for shared draft without collection", async () => {
+      const user = await buildUser();
+      const document = await buildDraftDocument({
+        userId: user.id,
+        teamId: user.teamId,
+        collectionId: null,
+      });
+      const share = await buildShare({
+        documentId: document.id,
+        teamId: document.teamId,
+        userId: user.id,
+        includeChildDocuments: true,
+      });
+      const res = await server.post("/api/documents.info", {
+        body: {
+          shareId: share.id,
+          apiVersion: 2,
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.document.id).toEqual(document.id);
+      expect(body.data.document.createdBy).toEqual(undefined);
+      expect(body.data.document.updatedBy).toEqual(undefined);
+      expect(body.data.sharedTree).toEqual(null);
+    });
   });
 
   it("should not return document from shareId if sharing is disabled for collection", async () => {
