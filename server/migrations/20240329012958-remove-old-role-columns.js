@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 module.exports = {
   async up(queryInterface) {
@@ -38,5 +38,5 @@ module.exports = {
         }
       );
     });
-  }
+  },
 };

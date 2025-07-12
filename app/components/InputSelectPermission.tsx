@@ -1,54 +1,63 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { $Diff } from "utility-types";
 import { s } from "@shared/styles";
 import { CollectionPermission } from "@shared/types";
+import { InputSelect, Option } from "~/components/InputSelect";
 import { EmptySelectValue } from "~/types";
-import InputSelect, { Props, Option, InputSelectRef } from "./InputSelect";
 
-function InputSelectPermission(
-  props: $Diff<
-    Props,
-    {
-      options: Array<Option>;
-      ariaLabel: string;
-    }
-  >,
-  ref: React.RefObject<InputSelectRef>
-) {
-  const { value, onChange, ...rest } = props;
-  const { t } = useTranslation();
+type Props = {
+  shrink?: boolean;
+} & Pick<
+  React.ComponentProps<typeof InputSelect>,
+  "value" | "onChange" | "disabled" | "hideLabel" | "nude" | "help"
+>;
 
-  return (
-    <Select
-      ref={ref}
-      label={t("Permission")}
-      options={[
+export const InputSelectPermission = React.forwardRef<HTMLButtonElement, Props>(
+  (props, ref) => {
+    const { value, onChange, shrink, ...rest } = props;
+    const { t } = useTranslation();
+
+    const options = React.useMemo<Option[]>(
+      () => [
         {
+          type: "item",
           label: t("View only"),
           value: CollectionPermission.Read,
         },
         {
+          type: "item",
           label: t("Can edit"),
           value: CollectionPermission.ReadWrite,
         },
         {
-          divider: true,
+          type: "separator",
+        },
+        {
+          type: "item",
           label: t("No access"),
           value: EmptySelectValue,
         },
-      ]}
-      ariaLabel={t("Default access")}
-      value={value || EmptySelectValue}
-      onChange={onChange}
-      {...rest}
-    />
-  );
-}
+      ],
+      [t]
+    );
 
-const Select = styled(InputSelect)`
+    return (
+      <Select
+        ref={ref}
+        options={options}
+        value={value || EmptySelectValue}
+        onChange={onChange}
+        label={t("Permission")}
+        $shrink={shrink}
+        {...rest}
+      />
+    );
+  }
+);
+InputSelectPermission.displayName = "InputSelectPermission";
+
+const Select = styled(InputSelect)<{ $shrink?: boolean }>`
   color: ${s("textSecondary")};
+  ${({ $shrink }) => !$shrink && "margin-bottom: 16px;"}
 `;
-
-export default React.forwardRef(InputSelectPermission);

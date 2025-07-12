@@ -8,7 +8,7 @@ import { TeamPreference, UserPreference } from "@shared/types";
 import { Theme } from "~/stores/UiStore";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
-import { InputSelectNew, Option } from "~/components/InputSelectNew";
+import { InputSelect, Option } from "~/components/InputSelect";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
@@ -145,11 +145,10 @@ function Preferences() {
           </>
         }
       >
-        <InputSelectNew
+        <InputSelect
           options={languageOptions}
           value={user.language}
           onChange={handleLanguageChange}
-          ariaLabel={t("Language")}
           label={t("Language")}
           hideLabel
         />
@@ -159,11 +158,10 @@ function Preferences() {
         label={t("Appearance")}
         description={t("Choose your preferred interface color scheme.")}
       >
-        <InputSelectNew
+        <InputSelect
           options={themeOptions}
           value={ui.theme}
           onChange={handleThemeChange}
-          ariaLabel={t("Appearance")}
           label={t("Appearance")}
           hideLabel
         />

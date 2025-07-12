@@ -786,6 +786,8 @@
   "Underline": "Understruken",
   "Undo": "Ångra",
   "Redo": "Upprepa",
+  "Move block up": "Move block up",
+  "Move block down": "Move block down",
   "Lists": "Listor",
   "Toggle task list item": "Toggle task list item",
   "Tab": "Tab",
