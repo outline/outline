@@ -687,11 +687,10 @@ router.post(
         team?.defaultCollectionId === collection.id
       ) {
         await teamUpdater({
+          ctx,
           params: { defaultCollectionId: null },
-          ip: ctx.request.ip,
           user,
           team,
-          transaction,
         });
       }
     }
