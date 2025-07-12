@@ -5,6 +5,7 @@ import Event from "~/models/Event";
 import Revision from "~/models/Revision";
 import PaginatedList from "~/components/PaginatedList";
 import EventListItem from "./EventListItem";
+import RevisionListItem from "./RevisionListItem";
 
 type Item = Revision | Event<Document>;
 
@@ -33,9 +34,13 @@ const PaginatedEventList = React.memo<Props>(function PaginatedEventList({
       heading={heading}
       fetch={fetch}
       options={options}
-      renderItem={(item: Item) => (
-        <EventListItem key={item.id} item={item} document={document} />
-      )}
+      renderItem={(item: Item) =>
+        item instanceof Revision ? (
+          <RevisionListItem key={item.id} item={item} document={document} />
+        ) : (
+          <EventListItem key={item.id} item={item} document={document} />
+        )
+      }
       renderHeading={(name) => <Heading>{name}</Heading>}
       {...rest}
     />

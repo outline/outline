@@ -1,9 +1,7 @@
-import { LocationDescriptor } from "history";
 import { observer } from "mobx-react";
 import {
   TrashIcon,
   ArchiveIcon,
-  EditIcon,
   PublishIcon,
   MoveIcon,
   UnpublishIcon,
@@ -11,221 +9,99 @@ import {
   UserIcon,
   CrossIcon,
 } from "outline-icons";
-import { useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation } from "react-router-dom";
 import styled, { css } from "styled-components";
-import EventBoundary from "@shared/components/EventBoundary";
-import { s, hover } from "@shared/styles";
-import { RevisionHelper } from "@shared/utils/RevisionHelper";
+import { s } from "@shared/styles";
 import Document from "~/models/Document";
 import Event from "~/models/Event";
-import Revision from "~/models/Revision";
-import { Avatar, AvatarSize } from "~/components/Avatar";
-import Item, { Actions } from "~/components/List/Item";
 import Time from "~/components/Time";
-import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
-import useStores from "~/hooks/useStores";
-import RevisionMenu from "~/menus/RevisionMenu";
 import Logger from "~/utils/Logger";
-import { documentHistoryPath } from "~/utils/routeHelpers";
-import Facepile from "./Facepile";
 import Text from "./Text";
 
 type Props = {
   document: Document;
-  item: Event<Document> | Revision;
+  item: Event<Document>;
 };
 
-const EventListItem = ({ item, document, ...rest }: Props) => {
+const EventListItem = ({ item }: Props) => {
   const { t } = useTranslation();
-  const { revisions } = useStores();
-  const location = useLocation();
-  const sidebarContext = useLocationSidebarContext();
-  const revisionLoadedRef = useRef(false);
   const opts = {
-    userName:
-      item instanceof Revision ? item.createdBy?.name : item.actor?.name,
+    userName: item.actor?.name,
   };
-  const isLatestRevision =
-    item instanceof Revision &&
-    RevisionHelper.latestId(document.id) === item.id;
-  let meta, icon, to: LocationDescriptor | undefined;
+  let meta, icon;
 
-  const ref = useRef<HTMLAnchorElement>(null);
-  // the time component tends to steal focus when clicked
-  // ...so forward the focus back to the parent item
-  const handleTimeClick = () => {
-    ref.current?.focus();
-  };
+  switch (item.name) {
+    case "documents.archive":
+      icon = <ArchiveIcon />;
+      meta = t("{{userName}} archived", opts);
+      break;
 
-  const prefetchRevision = async () => {
-    if (
-      !document.isDeleted &&
-      item instanceof Revision &&
-      !item.deletedAt &&
-      !revisionLoadedRef.current
-    ) {
-      if (isLatestRevision) {
-        return;
-      }
-      await revisions.fetch(item.id, { force: true });
-      revisionLoadedRef.current = true;
-    }
-  };
+    case "documents.unarchive":
+      icon = <RestoreIcon />;
+      meta = t("{{userName}} restored", opts);
+      break;
 
-  if (item instanceof Revision) {
-    if (item.deletedAt) {
+    case "documents.delete":
       icon = <TrashIcon />;
-      meta = t("Revision deleted");
-    } else {
-      icon = <EditIcon size={16} />;
-      meta = isLatestRevision ? (
-        <>
-          {t("Current version")} &middot; {item.createdBy?.name}
-        </>
-      ) : (
-        t("{{userName}} edited", opts)
-      );
-      to = {
-        pathname: documentHistoryPath(
-          document,
-          isLatestRevision ? "latest" : item.id
-        ),
-        state: {
-          sidebarContext,
-          retainScrollPosition: true,
-        },
-      };
-    }
-  } else {
-    switch (item.name) {
-      case "documents.archive":
-        icon = <ArchiveIcon />;
-        meta = t("{{userName}} archived", opts);
-        break;
+      meta = t("{{userName}} deleted", opts);
+      break;
+    case "documents.add_user":
+      icon = <UserIcon />;
+      meta = t("{{userName}} added {{addedUserName}}", {
+        ...opts,
+        addedUserName: item.user?.name ?? t("a user"),
+      });
+      break;
+    case "documents.remove_user":
+      icon = <CrossIcon />;
+      meta = t("{{userName}} removed {{removedUserName}}", {
+        ...opts,
+        removedUserName: item.user?.name ?? t("a user"),
+      });
+      break;
 
-      case "documents.unarchive":
-        icon = <RestoreIcon />;
-        meta = t("{{userName}} restored", opts);
-        break;
+    case "documents.restore":
+      icon = <RestoreIcon />;
+      meta = t("{{userName}} moved from trash", opts);
+      break;
 
-      case "documents.delete":
-        icon = <TrashIcon />;
-        meta = t("{{userName}} deleted", opts);
-        break;
-      case "documents.add_user":
-        icon = <UserIcon />;
-        meta = t("{{userName}} added {{addedUserName}}", {
-          ...opts,
-          addedUserName: item.user?.name ?? t("a user"),
-        });
-        break;
-      case "documents.remove_user":
-        icon = <CrossIcon />;
-        meta = t("{{userName}} removed {{removedUserName}}", {
-          ...opts,
-          removedUserName: item.user?.name ?? t("a user"),
-        });
-        break;
+    case "documents.publish":
+      icon = <PublishIcon />;
+      meta = t("{{userName}} published", opts);
+      break;
 
-      case "documents.restore":
-        icon = <RestoreIcon />;
-        meta = t("{{userName}} moved from trash", opts);
-        break;
+    case "documents.unpublish":
+      icon = <UnpublishIcon />;
+      meta = t("{{userName}} unpublished", opts);
+      break;
 
-      case "documents.publish":
-        icon = <PublishIcon />;
-        meta = t("{{userName}} published", opts);
-        break;
+    case "documents.move":
+      icon = <MoveIcon />;
+      meta = t("{{userName}} moved", opts);
+      break;
 
-      case "documents.unpublish":
-        icon = <UnpublishIcon />;
-        meta = t("{{userName}} unpublished", opts);
-        break;
-
-      case "documents.move":
-        icon = <MoveIcon />;
-        meta = t("{{userName}} moved", opts);
-        break;
-
-      default:
-        Logger.warn("Unhandled item", { item });
-    }
+    default:
+      Logger.warn("Unhandled item", { item });
   }
 
   if (!meta) {
     return null;
   }
 
-  const isActive =
-    typeof to === "string"
-      ? location.pathname === to
-      : location.pathname === to?.pathname;
-
-  if (document.isDeleted) {
-    to = undefined;
-  }
-
-  return item instanceof Revision && !item.deletedAt ? (
-    <RevisionItem
-      small
-      exact
-      to={to}
-      title={
-        <Time
-          dateTime={item.createdAt}
-          format={{
-            en_US: "MMM do, h:mm a",
-            fr_FR: "'Le 'd MMMM 'à' H:mm",
-          }}
-          relative={false}
-          addSuffix
-          onClick={handleTimeClick}
-        />
-      }
-      image={
-        item.collaborators ? (
-          <Facepile users={item.collaborators} limit={3} />
-        ) : (
-          <Avatar model={item.createdBy} size={AvatarSize.Large} />
-        )
-      }
-      subtitle={meta}
-      actions={
-        isActive ? (
-          <StyledEventBoundary>
-            <RevisionMenu document={document} revisionId={item.id} />
-          </StyledEventBoundary>
-        ) : undefined
-      }
-      onMouseEnter={prefetchRevision}
-      ref={ref}
-      {...rest}
-    />
-  ) : (
+  return (
     <EventItem>
       <IconWrapper size="xsmall" type="secondary">
         {icon}
       </IconWrapper>
       <Text size="xsmall" type="secondary">
         {meta} &middot;{" "}
-        <Time
-          dateTime={
-            "deletedAt" in item && item.deletedAt
-              ? item.deletedAt
-              : item.createdAt
-          }
-          relative
-          shorten
-          addSuffix
-        />
+        <Time dateTime={item.createdAt} relative shorten addSuffix />
       </Text>
     </EventItem>
   );
 };
 
-const lineStyle = css`
+export const lineStyle = css`
   &::before {
     content: "";
     display: block;
@@ -274,7 +150,7 @@ const IconWrapper = styled(Text)`
   min-width: 24px;
 `;
 
-const EventItem = styled.li`
+export const EventItem = styled.li`
   display: flex;
   align-items: center;
   gap: 8px;
@@ -293,28 +169,6 @@ const EventItem = styled.li`
   }
 
   ${lineStyle}
-`;
-
-const StyledEventBoundary = styled(EventBoundary)`
-  height: 24px;
-`;
-
-const RevisionItem = styled(Item)`
-  border: 0;
-  position: relative;
-  margin: 8px 0;
-  padding: 8px;
-  border-radius: 8px;
-
-  ${lineStyle}
-
-  ${Actions} {
-    opacity: 0.5;
-
-    &: ${hover} {
-      opacity: 1;
-    }
-  }
 `;
 
 export default observer(EventListItem);
