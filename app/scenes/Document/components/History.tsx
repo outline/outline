@@ -38,9 +38,10 @@ function History() {
   const history = useHistory();
   const sidebarContext = useLocationSidebarContext();
   const document = documents.getByUrl(match.params.documentSlug);
-
-  const [, setForceRender] = React.useState(0);
-  const offset = React.useMemo(() => ({ revisions: 0, events: 0 }), []);
+  const [offset, setOffset] = React.useState(() => ({
+    revisions: 0,
+    events: 0,
+  }));
 
   const toEvent = React.useCallback(
     (data: Revision | EventModel<Document>): Event => {
@@ -51,6 +52,7 @@ function History() {
           actorId: data.createdBy.id,
           createdAt: data.createdAt,
           deletedAt: data.deletedAt,
+          revision: revisions.get(data.id),
           latest: false,
         } satisfies Event;
       }
@@ -71,17 +73,18 @@ function History() {
       return [];
     }
 
+    const limit = Pagination.defaultLimit;
     const [revisionsPage, eventsPage] = await Promise.all([
       revisions.fetchPage({
         documentId: document.id,
         offset: offset.revisions,
-        limit: Pagination.defaultLimit,
+        limit,
       }),
       events.fetchPage({
         events: DocumentEvents,
         documentId: document.id,
         offset: offset.events,
-        limit: Pagination.defaultLimit,
+        limit,
       }),
     ]);
 
@@ -89,18 +92,20 @@ function History() {
       [...revisionsPage, ...eventsPage].map(toEvent),
       "createdAt",
       "desc"
-    ).slice(0, Pagination.defaultLimit);
+    ).slice(0, limit);
 
     const revisionsCount = pageEvents.filter(
       (event) => event.name === "revisions.create"
     ).length;
 
-    offset.revisions += revisionsCount;
-    offset.events += pageEvents.length - revisionsCount;
+    setOffset((state) => {
+      const newState = {
+        revisions: offset.revisions + revisionsCount,
+        events: offset.events + pageEvents.length - revisionsCount,
+      };
 
-    // needed to re-render after mobx store and offset is updated
-    setForceRender((s) => ++s);
-
+      return isEqual(newState, state) ? state : newState;
+    });
     return pageEvents;
   }, [document, revisions, events, toEvent, offset]);
 
@@ -115,7 +120,7 @@ function History() {
       .filter((revision: Revision) => revision.id !== latestRevisionId)
       .slice(0, offset.revisions)
       .map(toEvent);
-  }, [document, revisions, offset.revisions, toEvent]);
+  }, [document, revisions.orderedData, offset.revisions, toEvent]);
 
   const nonRevisionEvents = React.useMemo(
     () =>
@@ -125,7 +130,7 @@ function History() {
             .slice(0, offset.events)
             .map(toEvent)
         : [],
-    [document, events, offset.events, toEvent]
+    [document, events.orderedData, offset.events, toEvent]
   );
 
   const mergedEvents = React.useMemo(() => {
@@ -153,6 +158,7 @@ function History() {
           name: "revisions.create",
           createdAt: document.updatedAt,
           actorId: document.updatedBy?.id ?? "",
+          revision: undefined,
           latest: true,
         });
       } else if (latestRevisionEvent) {

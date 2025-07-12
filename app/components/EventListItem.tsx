@@ -19,6 +19,7 @@ import EventBoundary from "@shared/components/EventBoundary";
 import { s, hover } from "@shared/styles";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import Document from "~/models/Document";
+import Revision from "~/models/Revision";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Item, { Actions } from "~/components/List/Item";
 import Time from "~/components/Time";
@@ -32,6 +33,7 @@ import Text from "./Text";
 
 export type RevisionEvent = {
   name: "revisions.create";
+  revision?: Revision;
   latest: boolean;
 };
 
@@ -192,8 +194,6 @@ const EventListItem = ({ event, document, ...rest }: Props) => {
     to = undefined;
   }
 
-  const revision = isRevision ? revisions.get(event.id) : undefined;
-
   return event.name === "revisions.create" && !event.deletedAt ? (
     <RevisionItem
       small
@@ -212,8 +212,8 @@ const EventListItem = ({ event, document, ...rest }: Props) => {
         />
       }
       image={
-        revision?.collaborators ? (
-          <Facepile users={revision?.collaborators} limit={3} />
+        event.revision?.collaborators ? (
+          <Facepile users={event.revision.collaborators} limit={3} />
         ) : (
           <Avatar model={actor} size={AvatarSize.Large} />
         )
@@ -294,6 +294,7 @@ const lineStyle = css`
 
 const IconWrapper = styled(Text)`
   height: 24px;
+  min-width: 24px;
 `;
 
 const EventItem = styled.li`
