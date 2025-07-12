@@ -1958,6 +1958,9 @@ del[data-operation-index] {
     > .toggle-block-content > :is(:not(.toggle-block-head)) {
       display: none;
     }
+    > .toggle-block-content > :first-child:is(a.heading-name) {
+      display: unset;
+    }
     > .toggle-block-button {
       svg {
         transform: rotate(var(--rotate-by));
