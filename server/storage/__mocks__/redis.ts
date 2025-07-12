@@ -9,6 +9,11 @@ class RedisMock extends EventEmitter {
   get = jest.fn().mockResolvedValue(null);
   set = jest.fn().mockResolvedValue("OK");
   del = jest.fn().mockResolvedValue(1);
+  hget = jest.fn().mockResolvedValue(null);
+  hset = jest.fn().mockResolvedValue("OK");
+  hdel = jest.fn().mockResolvedValue(1);
+  sadd = jest.fn().mockResolvedValue(1);
+  smembers = jest.fn().mockResolvedValue([]);
   keys = jest.fn().mockResolvedValue([]);
   ping = jest.fn().mockResolvedValue("PONG");
   disconnect = jest.fn();
