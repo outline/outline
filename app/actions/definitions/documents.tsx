@@ -1,5 +1,6 @@
 import copy from "copy-to-clipboard";
 import invariant from "invariant";
+import uniqBy from "lodash/uniqBy";
 import {
   DownloadIcon,
   DuplicateIcon,
@@ -84,8 +85,9 @@ export const openDocument = createAction({
       (acc, node) => [...acc, ...node.children],
       [] as NavigationNode[]
     );
+    const documents = stores.documents.orderedData;
 
-    return nodes.map((item) => ({
+    return uniqBy([...documents, ...nodes], "id").map((item) => ({
       // Note: using url which includes the slug rather than id here to bust
       // cache if the document is renamed
       id: item.url,
@@ -96,7 +98,7 @@ export const openDocument = createAction({
         <DocumentIcon />
       ),
       section: DocumentSection,
-      perform: () => history.push(item.url),
+      to: item.url,
     }));
   },
 });
@@ -838,7 +840,7 @@ export const searchDocumentsForQuery = (query: string) =>
     analyticsName: "Search documents",
     section: DocumentSection,
     icon: <SearchIcon />,
-    perform: () => history.push(searchPath({ query })),
+    to: searchPath({ query }),
     visible: ({ location }) => location.pathname !== searchPath(),
   });
 
@@ -1081,17 +1083,13 @@ export const openDocumentComments = createAction({
   analyticsName: "Open comments",
   section: ActiveDocumentSection,
   icon: <CommentIcon />,
-  visible: ({ activeCollectionId, activeDocumentId, stores }) => {
+  visible: ({ activeDocumentId, stores }) => {
     const can = stores.policies.abilities(activeDocumentId ?? "");
-    const collection = activeCollectionId
-      ? stores.collections.get(activeCollectionId)
-      : undefined;
 
     return (
       !!activeDocumentId &&
       can.comment &&
-      (collection?.canCreateComment ??
-        !!stores.auth.team?.getPreference(TeamPreference.Commenting))
+      !!stores.auth.team?.getPreference(TeamPreference.Commenting)
     );
   },
   perform: ({ activeDocumentId, stores }) => {

@@ -50,6 +50,7 @@ import { UserValidation } from "@shared/validations";
 import env from "@server/env";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
 import { APIContext } from "@server/types";
+import { VerificationCode } from "@server/utils/VerificationCode";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { ValidationError } from "../errors";
 import Attachment from "./Attachment";
@@ -590,6 +591,22 @@ class User extends ParanoidModel<
       },
       this.jwtSecret
     );
+
+  /**
+   * Generate a 6-digit verification code for email authentication
+   * and store it in Redis with a 10-minute TTL.
+   *
+   * @returns The 6-digit verification code
+   */
+  getEmailVerificationCode = async (): Promise<string> => {
+    if (!this.email) {
+      throw ValidationError("Email is required");
+    }
+
+    const code = VerificationCode.generate();
+    await VerificationCode.store(this.email, code);
+    return code;
+  };
 
   /**
    * Returns a temporary token that can be used to update the users

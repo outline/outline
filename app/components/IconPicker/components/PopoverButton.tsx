@@ -12,7 +12,8 @@ export const PopoverButton = styled(NudeButton)<{ $borderOnHover?: boolean }>`
       $borderOnHover &&
       css`
         background: ${s("buttonNeutralBackground")};
-        box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 2px,
+        box-shadow:
+          rgba(0, 0, 0, 0.07) 0px 1px 2px,
           ${s("buttonNeutralBorder")} 0 0 0 1px inset;
       `};
   }

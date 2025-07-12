@@ -60,7 +60,7 @@ export const traceFunction =
   <
     F extends (...args: any[]) => any,
     P extends Parameters<F>,
-    R extends ReturnType<F>
+    R extends ReturnType<F>,
   >(
     target: F
   ): F =>

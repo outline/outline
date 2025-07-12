@@ -370,7 +370,8 @@ export default abstract class ImportTask extends BaseTask<Props> {
             sort: item.sort,
             createdById: fileOperation.userId,
             permission:
-              item.permission ?? fileOperation.options?.permission !== undefined
+              (item.permission ??
+              fileOperation.options?.permission !== undefined)
                 ? fileOperation.options?.permission
                 : CollectionPermission.ReadWrite,
             importId: fileOperation.id,
@@ -462,6 +463,8 @@ export default abstract class ImportTask extends BaseTask<Props> {
               urlId: item.urlId,
               text,
               content: item.data,
+              icon: item.icon,
+              color: item.color,
               collectionId: item.collectionId,
               createdAt: item.createdAt,
               updatedAt: item.updatedAt ?? item.createdAt,

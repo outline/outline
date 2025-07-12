@@ -14,7 +14,7 @@ import Collection from "~/models/Collection";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
-import InputSelectPermission from "~/components/InputSelectPermission";
+import { InputSelectPermission } from "~/components/InputSelectPermission";
 import { createLazyComponent } from "~/components/LazyLoad";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
@@ -114,7 +114,7 @@ export const CollectionForm = observer(function CollectionForm_({
   }, [setFocus]);
 
   const handleIconChange = useCallback(
-    (icon: string, color: string | null) => {
+    (icon: string, color: string) => {
       if (icon !== values.icon) {
         setFocus("name");
       }
@@ -131,7 +131,6 @@ export const CollectionForm = observer(function CollectionForm_({
         <Trans>
           Collections are used to group documents and choose permissions
         </Trans>
-        .
       </Text>
       <Flex gap={8}>
         <Input
@@ -173,7 +172,7 @@ export const CollectionForm = observer(function CollectionForm_({
               ) => {
                 field.onChange(value === EmptySelectValue ? null : value);
               }}
-              note={t(
+              help={t(
                 "The default access for workspace members, you can share with more users or groups later."
               )}
             />
@@ -182,22 +181,36 @@ export const CollectionForm = observer(function CollectionForm_({
       )}
 
       {team.sharing && (
-        <Switch
-          id="sharing"
-          label={t("Public document sharing")}
-          note={t(
-            "Allow documents within this collection to be shared publicly on the internet."
+        <Controller
+          control={control}
+          name="sharing"
+          render={({ field }) => (
+            <Switch
+              id="sharing"
+              label={t("Public document sharing")}
+              note={t(
+                "Allow documents within this collection to be shared publicly on the internet."
+              )}
+              checked={field.value}
+              onChange={field.onChange}
+            />
           )}
-          {...register("sharing")}
         />
       )}
 
       {team.getPreference(TeamPreference.Commenting) && (
-        <Switch
-          id="commenting"
-          label={t("Commenting")}
-          note={t("Allow commenting on documents within this collection.")}
-          {...register("commenting")}
+        <Controller
+          control={control}
+          name="commenting"
+          render={({ field }) => (
+            <Switch
+              id="commenting"
+              label={t("Commenting")}
+              note={t("Allow commenting on documents within this collection.")}
+              checked={!!field.value}
+              onChange={field.onChange}
+            />
+          )}
         />
       )}
 
@@ -211,8 +224,8 @@ export const CollectionForm = observer(function CollectionForm_({
               ? `${t("Saving")}…`
               : t("Save")
             : formState.isSubmitting
-            ? `${t("Creating")}…`
-            : t("Create")}
+              ? `${t("Creating")}…`
+              : t("Create")}
         </Button>
       </Flex>
     </form>

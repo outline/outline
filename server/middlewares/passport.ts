@@ -44,7 +44,7 @@ export default function createMiddleware(providerName: string) {
             const requestHost =
               err instanceof OAuthStateMismatchError
                 ? ctx.hostname
-                : state?.host ?? ctx.hostname;
+                : (state?.host ?? ctx.hostname);
             const url = new URL(
               env.isCloudHosted
                 ? `${reqProtocol}://${requestHost}${redirectPath}`

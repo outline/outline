@@ -155,12 +155,14 @@ function Template({ items, actions, context, showIcons, ...menu }: Props) {
           return (
             <MenuItem
               id={`${item.title}-${index}`}
-              href={item.href}
+              href={typeof item.href === "string" ? item.href : item.href.url}
               key={`${item.type}-${item.title}-${index}`}
               disabled={item.disabled}
               selected={item.selected}
               level={item.level}
-              target={item.href.startsWith("#") ? undefined : "_blank"}
+              target={
+                typeof item.href === "string" ? undefined : item.href.target
+              }
               icon={showIcons !== false ? item.icon : undefined}
               {...menu}
             >

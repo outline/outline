@@ -38,9 +38,12 @@ router.post(
     }
 
     // Get the reverse document if user has access
-    const reverseDocument = await Document.findByPk(relationship.reverseDocumentId, {
-      userId: user.id,
-    });
+    const reverseDocument = await Document.findByPk(
+      relationship.reverseDocumentId,
+      {
+        userId: user.id,
+      }
+    );
 
     const documents = [document];
     if (reverseDocument) {

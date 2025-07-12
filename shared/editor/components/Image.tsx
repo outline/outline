@@ -104,6 +104,7 @@ const Image = (props: Props) => {
                     : "all",
               }}
               src={sanitizedSrc}
+              alt={node.attrs.alt || ""}
               onError={() => {
                 setError(true);
                 setLoaded(true);

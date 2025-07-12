@@ -86,8 +86,8 @@ function PinnedDocuments({
                 overPos === 0
                   ? fractionalIndex(null, overIndex)
                   : activePos > overPos
-                  ? fractionalIndex(prevIndex, overIndex)
-                  : fractionalIndex(overIndex, nextIndex),
+                    ? fractionalIndex(prevIndex, overIndex)
+                    : fractionalIndex(overIndex, nextIndex),
             })
             .catch(() => setItems(existing));
 

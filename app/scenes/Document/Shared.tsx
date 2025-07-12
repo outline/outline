@@ -231,7 +231,7 @@ const SharedDocument = observer(
     }
 
     const tocPosition = hasHeadings
-      ? response.team?.tocPosition ?? TOCPosition.Left
+      ? (response.team?.tocPosition ?? TOCPosition.Left)
       : false;
     setDocument(response.document);
 

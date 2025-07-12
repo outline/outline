@@ -90,10 +90,14 @@ class Team extends ParanoidModel<
   @IsLowercase
   @Unique
   @Length({
-    min: 2,
-    max: env.isCloudHosted ? 32 : 255,
-    msg: `subdomain must be between 2 and ${
-      env.isCloudHosted ? 32 : 255
+    min: TeamValidation.minSubdomainLength,
+    max: env.isCloudHosted
+      ? TeamValidation.maxSubdomainLength
+      : TeamValidation.maxSubdomainSelfHostedLength,
+    msg: `subdomain must be between ${TeamValidation.minSubdomainLength} and ${
+      env.isCloudHosted
+        ? TeamValidation.maxSubdomainLength
+        : TeamValidation.maxSubdomainSelfHostedLength
     } characters`,
   })
   @Is({

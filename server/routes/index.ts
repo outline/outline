@@ -132,6 +132,13 @@ router.get("/embeds/github", renderEmbed);
 router.get("/embeds/dropbox", renderEmbed);
 router.get("/embeds/pinterest", renderEmbed);
 
+router.get("/doc/:documentSlug", shareDomains(), async (ctx, next) => {
+  if (ctx.state?.rootShare) {
+    return renderShare(ctx, next);
+  }
+  return next();
+});
+
 // catch all for application
 router.get("*", shareDomains(), async (ctx, next) => {
   if (ctx.state?.rootShare) {

@@ -17,6 +17,8 @@ import {
   deleteRow,
   deleteColumn,
   deleteTable,
+  mergeCells,
+  splitCell,
 } from "prosemirror-tables";
 import { ProsemirrorHelper } from "../../utils/ProsemirrorHelper";
 import { CSVHelper } from "../../utils/csv";
@@ -596,4 +598,22 @@ export function deleteCellSelection(
     }
   }
   return false;
+}
+
+/**
+ * A command that splits a cell and collapses the selection.
+ *
+ * @returns The command
+ */
+export function splitCellAndCollapse(): Command {
+  return chainTransactions(splitCell, collapseSelection());
+}
+
+/**
+ * A command that merges selected cells and collapses the selection.
+ *
+ * @returns The command
+ */
+export function mergeCellsAndCollapse(): Command {
+  return chainTransactions(mergeCells, collapseSelection());
 }

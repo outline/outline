@@ -11,4 +11,3 @@ export default function presentRelationship(relationship: Relationship) {
     updatedAt: relationship.updatedAt,
   };
 }
-

@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { IntegrationService } from "@shared/types";
 import { ConnectedButton } from "~/scenes/Settings/components/ConnectedButton";
+import { IntegrationScene } from "~/scenes/Settings/components/IntegrationScene";
 import { AvatarSize } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
@@ -11,7 +12,6 @@ import List from "~/components/List";
 import ListItem from "~/components/List/Item";
 import Notice from "~/components/Notice";
 import PlaceholderText from "~/components/PlaceholderText";
-import Scene from "~/components/Scene";
 import TeamLogo from "~/components/TeamLogo";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
@@ -36,7 +36,7 @@ function Linear() {
   }, [integrations]);
 
   return (
-    <Scene title="Linear" icon={<LinearIcon />}>
+    <IntegrationScene title="Linear" icon={<LinearIcon />}>
       <Heading>Linear</Heading>
 
       {error === "access_denied" && (
@@ -52,6 +52,14 @@ function Linear() {
           <Trans>
             Something went wrong while authenticating your request. Please try
             logging in again.
+          </Trans>
+        </Notice>
+      )}
+      {error === "unknown" && (
+        <Notice>
+          <Trans>
+            Something went wrong while processing your request. Please try
+            again.
           </Trans>
         </Notice>
       )}
@@ -133,7 +141,7 @@ function Linear() {
           </Trans>
         </Notice>
       )}
-    </Scene>
+    </IntegrationScene>
   );
 }
 

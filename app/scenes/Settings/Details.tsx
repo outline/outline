@@ -10,13 +10,14 @@ import { ThemeProvider, useTheme } from "styled-components";
 import { buildDarkTheme, buildLightTheme } from "@shared/styles/theme";
 import { CustomTheme, TOCPosition, TeamPreference } from "@shared/types";
 import { getBaseDomain } from "@shared/utils/domains";
+import { TeamValidation } from "@shared/validations";
 import Button from "~/components/Button";
 import ButtonLink from "~/components/ButtonLink";
 import DefaultCollectionInputSelect from "~/components/DefaultCollectionInputSelect";
 import Heading from "~/components/Heading";
 import Input from "~/components/Input";
 import InputColor from "~/components/InputColor";
-import { InputSelectNew, Option } from "~/components/InputSelectNew";
+import { InputSelect, Option } from "~/components/InputSelect";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
@@ -274,9 +275,7 @@ function Details() {
                 id={TeamPreference.PublicBranding}
                 name={TeamPreference.PublicBranding}
                 checked={publicBranding}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                  setPublicBranding(event.target.checked)
-                }
+                onChange={(checked: boolean) => setPublicBranding(checked)}
               />
             </SettingRow>
           )}
@@ -288,11 +287,10 @@ function Details() {
               "The side to display the table of contents in relation to the main content."
             )}
           >
-            <InputSelectNew
+            <InputSelect
               options={tocPositionOptions}
               value={tocPosition}
               onChange={handleTocPositionChange}
-              ariaLabel={t("Table of contents position")}
               label={t("Table of contents position")}
               hideLabel
             />
@@ -324,8 +322,12 @@ function Details() {
               value={subdomain || ""}
               onChange={handleSubdomainChange}
               autoComplete="off"
-              minLength={4}
-              maxLength={32}
+              minLength={TeamValidation.minSubdomainLength}
+              maxLength={
+                isCloudHosted
+                  ? TeamValidation.maxSubdomainLength
+                  : TeamValidation.maxSubdomainSelfHostedLength
+              }
             />
           </SettingRow>
           <SettingRow

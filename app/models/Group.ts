@@ -27,7 +27,7 @@ class Group extends Model {
 
   /**
    * Returns the direct memberships that this group has to documents. Documents that the current
-   * user already has access to through a collection and trashed documents are not included.
+   * user already has access to through a collection, archived, and trashed documents are not included.
    *
    * @returns A list of group memberships
    */
@@ -52,7 +52,7 @@ class Group extends Model {
         const policy = document?.collectionId
           ? policies.get(document.collectionId)
           : undefined;
-        return !policy?.abilities?.readDocument && !document?.isDeleted;
+        return !policy?.abilities?.readDocument && !!document?.isActive;
       });
   }
 }

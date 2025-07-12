@@ -80,6 +80,7 @@ export default class BlockMenuExtension extends Suggestion {
             $start.depth === 1 &&
             state.selection.$from.pos === $start.pos + node.content.size &&
             !!textContent &&
+            node.childCount === 0 &&
             node.textContent === "",
           text: this.options.dictionary.newLineEmpty,
         },
