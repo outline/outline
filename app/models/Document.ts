@@ -322,7 +322,7 @@ export default class Document extends ArchivableModel implements Searchable {
   get isPubliclyShared(): boolean {
     const { shares, auth } = this.store.rootStore;
     const share = shares.getByDocumentId(this.id);
-    const sharedParent = shares.getByDocumentParents(this.id);
+    const sharedParent = shares.getByDocumentParents(this);
 
     return !!(
       auth.team?.sharing !== false &&
@@ -453,6 +453,7 @@ export default class Document extends ArchivableModel implements Searchable {
   @action
   share = async () =>
     this.store.rootStore.shares.create({
+      type: "document",
       documentId: this.id,
     });
 
