@@ -22,6 +22,7 @@ async function presentRevision(revision: Revision, diff?: string) {
     ),
     createdAt: revision.createdAt,
     createdBy: presentUser(revision.user),
+    createdById: revision.userId,
     deletedAt: revision.deletedAt,
   };
 }
