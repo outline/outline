@@ -71,9 +71,13 @@ export default class ImportJSONTask extends ImportTask {
       documents: { [id: string]: DocumentJSONExport },
       collectionId: string
     ) {
-      Object.values(documents).forEach((node) => {
+
+      const externalIdToDoc = new Map<string, typeof output.documents[number]>();
+      const docToChildren = new Map<string, (typeof output.documents[number])[]>();
+      const rootDocuments: (typeof output.documents[number])[] = [];
+      const docs = Object.values(documents).map(node => {
         const id = uuidv4();
-        output.documents.push({
+        const doc = {
           ...node,
           path: "",
           text: "",
@@ -86,15 +90,35 @@ export default class ImportJSONTask extends ImportTask {
           collectionId,
           externalId: node.id,
           mimeType: "application/json",
-          parentDocumentId: node.parentDocumentId
-            ? find(
-                output.documents,
-                (d) => d.externalId === node.parentDocumentId
-              )?.id
-            : null,
           id,
-        });
+        };
+        externalIdToDoc.set(doc.externalId, doc);
+        docToChildren.set(doc.id, []);
+        return doc;
       });
+
+      for (const doc of docs) {
+        if (doc.parentDocumentId) {
+          const parent = externalIdToDoc.get(doc.parentDocumentId);
+          if (parent === undefined) {
+            throw new Error(
+              `Could not find parent document with id ${doc.parentDocumentId} for document ${doc.title}`
+            );
+          }
+          // Update parentDocumentId to point to the correct new id
+          doc.parentDocumentId = parent.id;
+          docToChildren.get(parent.id)!.push(doc);
+        } else {
+          rootDocuments.push(doc);
+        }
+      }
+
+      // Sort documents so that parents always come before their children, preserving original order as much as possible
+      function addRecursively(doc: typeof output.documents[number]) {
+        output.documents.push(doc);
+        docToChildren.get(doc.id)!.forEach(addRecursively);
+      }
+      rootDocuments.forEach(addRecursively);
     }
 
     async function mapAttachments(attachments: {
