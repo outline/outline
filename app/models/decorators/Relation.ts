@@ -1,4 +1,5 @@
 import invariant from "invariant";
+import { singular } from "pluralize";
 import type Model from "../base/Model";
 
 /** The behavior of a relationship on deletion */
@@ -9,6 +10,8 @@ type ArchiveBehavior = "cascade" | "null" | "ignore";
 type RelationOptions<T = Model> = {
   /** Whether this relation is required. */
   required?: boolean;
+  /** If true, this relation is an array of IDs (one-to-many). */
+  multiple?: boolean;
   /** Behavior of this model when relationship is deleted. */
   onDelete?: DeleteBehavior | ((item: T) => DeleteBehavior);
   /** Behavior of this model when relationship is archived. */
@@ -72,7 +75,9 @@ export default function Relation<T extends typeof Model>(
   options?: RelationOptions
 ) {
   return function (target: any, propertyKey: string) {
-    const idKey = `${String(propertyKey)}Id`;
+    const idKey = options?.multiple
+      ? `${String(singular(propertyKey))}Ids`
+      : `${String(propertyKey)}Id`;
 
     // If the relation has options provided then register them in a map for later lookup. We can use
     // this to determine how to update relations when a model is deleted.
@@ -89,33 +94,71 @@ export default function Relation<T extends typeof Model>(
 
     Object.defineProperty(target, propertyKey, {
       get() {
-        const id: string | undefined = this[idKey];
-
-        if (!id) {
-          return undefined;
-        }
-
         const relationClassName = classResolver().modelName;
         const store =
           this.store.rootStore.getStoreForModelName(relationClassName);
         invariant(store, `Store for ${relationClassName} not found`);
 
-        return store.get(id);
+        if (options?.multiple) {
+          const ids: string[] | undefined = this[idKey];
+          if (!Array.isArray(ids) || ids.length === 0) {
+            return [];
+          }
+          return ids.map((id) => store.get(id)).filter(Boolean);
+        } else {
+          const id: string | undefined = this[idKey];
+          if (!id) {
+            return undefined;
+          }
+          return store.get(id);
+        }
       },
-      set(newValue: Model | Partial<Model> | undefined) {
-        this[idKey] = newValue ? newValue.id : undefined;
-
-        if (newValue) {
+      set(
+        newValue:
+          | Model
+          | Partial<Model>
+          | Array<Model | Partial<Model>>
+          | undefined
+      ) {
+        if (options?.multiple) {
+          if (!newValue) {
+            this[idKey] = [];
+            if (options?.required) {
+              throw new Error(
+                `Cannot set required ${String(
+                  propertyKey
+                )} to undefined or empty array`
+              );
+            }
+            return;
+          }
+          const values = Array.isArray(newValue) ? newValue : [newValue];
+          this[idKey] = values.map((v) => v.id);
           const relationClassName = classResolver().modelName;
           const store =
             this.store.rootStore.getStoreForModelName(relationClassName);
           invariant(store, `Store for ${relationClassName} not found`);
-
-          store.add(newValue);
-        } else if (options?.required) {
-          throw new Error(
-            `Cannot set required ${String(propertyKey)} to undefined`
-          );
+          values.forEach((v) => store.add(v));
+        } else {
+          if (Array.isArray(newValue)) {
+            throw new Error(
+              `Cannot set array value to single relation property ${String(
+                propertyKey
+              )}`
+            );
+          }
+          this[idKey] = newValue ? newValue.id : undefined;
+          if (newValue) {
+            const relationClassName = classResolver().modelName;
+            const store =
+              this.store.rootStore.getStoreForModelName(relationClassName);
+            invariant(store, `Store for ${relationClassName} not found`);
+            store.add(newValue);
+          } else if (options?.required) {
+            throw new Error(
+              `Cannot set required ${String(propertyKey)} to undefined`
+            );
+          }
         }
       },
       enumerable: true,
