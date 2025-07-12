@@ -1,5 +1,4 @@
 import Router from "koa-router";
-import { WhereOptions } from "sequelize";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { Document, Relationship } from "@server/models";
@@ -45,8 +44,6 @@ router.post(
       documents.push(reverseDocument);
     }
 
-    const policies = presentPolicies(user, [relationship, ...documents]);
-
     ctx.body = {
       data: {
         relationship: presentRelationship(relationship),
@@ -54,7 +51,7 @@ router.post(
           documents.map((doc: Document) => presentDocument(ctx, doc))
         ),
       },
-      policies,
+      policies: presentPolicies(user, documents),
     };
   }
 );
@@ -66,19 +63,7 @@ router.post(
   validate(T.RelationshipsListSchema),
   async (ctx: APIContext<T.RelationshipsListReq>) => {
     const { user } = ctx.state.auth;
-    const { type, documentId, reverseDocumentId } = ctx.input.body || {};
-
-    const where: WhereOptions<Relationship> = {};
-
-    if (type) {
-      where.type = type;
-    }
-    if (documentId) {
-      where.documentId = documentId;
-    }
-    if (reverseDocumentId) {
-      where.reverseDocumentId = reverseDocumentId;
-    }
+    const where = ctx.input.body || {};
 
     const relationships = await Relationship.findAll({
       where,
@@ -88,7 +73,11 @@ router.post(
     });
 
     const documents = await Document.findByIds(
-      relationships.map((relationship) => relationship.reverseDocumentId),
+      relationships.flatMap((relationship) =>
+        where.reverseDocumentId
+          ? relationship.documentId
+          : relationship.reverseDocumentId
+      ),
       { userId: user.id }
     );
 
