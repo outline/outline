@@ -9,7 +9,7 @@ module.exports = {
 
       // Add the type column with default value
       await queryInterface.addColumn("relationships", "type", {
-        type: Sequelize.ENUM('backlink'),
+        type: Sequelize.ENUM('backlink', 'similar'),
         allowNull: false,
         defaultValue: 'backlink',
       }, { transaction });
