@@ -13,6 +13,7 @@ import Fix from "./decorators/Fix";
 
 export enum RelationshipType {
   Backlink = "backlink",
+  Similar = "similar",
 }
 
 @Table({ tableName: "relationships", modelName: "relationship" })
