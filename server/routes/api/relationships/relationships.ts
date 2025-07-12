@@ -1,7 +1,9 @@
 import Router from "koa-router";
+import { WhereOptions } from "sequelize";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { Document, Relationship } from "@server/models";
+import { authorize, can } from "@server/policies";
 import {
   presentRelationship,
   presentDocument,
@@ -21,23 +23,15 @@ router.post(
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    // Find the relationship
-    const relationship = await Relationship.findByPk(id);
-
-    if (!relationship) {
-      ctx.throw(404, "Relationship not found");
-    }
-
-    // Use Document.findByPk to authorize access to the related document
+    const relationship = await Relationship.findByPk(id, {
+      rejectOnEmpty: true,
+    });
     const document = await Document.findByPk(relationship.documentId, {
       userId: user.id,
+      rejectOnEmpty: true,
     });
+    authorize(user, "read", document);
 
-    if (!document) {
-      ctx.throw(404, "Document not found or access denied");
-    }
-
-    // Get the reverse document if user has access
     const reverseDocument = await Document.findByPk(
       relationship.reverseDocumentId,
       {
@@ -46,7 +40,8 @@ router.post(
     );
 
     const documents = [document];
-    if (reverseDocument) {
+
+    if (reverseDocument && can(user, "read", reverseDocument)) {
       documents.push(reverseDocument);
     }
 
@@ -73,18 +68,14 @@ router.post(
     const { user } = ctx.state.auth;
     const { type, documentId, reverseDocumentId } = ctx.input.body || {};
 
-    const where: Record<string, unknown> = {
-      userId: user.id,
-    };
+    const where: WhereOptions<Relationship> = {};
 
     if (type) {
       where.type = type;
     }
-
     if (documentId) {
       where.documentId = documentId;
     }
-
     if (reverseDocumentId) {
       where.reverseDocumentId = reverseDocumentId;
     }
@@ -96,21 +87,10 @@ router.post(
       limit: ctx.state.pagination.limit,
     });
 
-    // Get all related documents that the user has access to
-    const documentIds = [
-      ...new Set([
-        ...relationships.map((r) => r.documentId),
-        ...relationships.map((r) => r.reverseDocumentId),
-      ]),
-    ];
-
-    const documents = documentIds.length
-      ? await Document.withMembershipScope(user.id).findAll({
-          where: {
-            id: documentIds,
-          },
-        })
-      : [];
+    const documents = await Document.findByIds(
+      relationships.map((relationship) => relationship.reverseDocumentId),
+      { userId: user.id }
+    );
 
     const policies = presentPolicies(user, [...documents, ...relationships]);
 
