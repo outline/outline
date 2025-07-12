@@ -19,6 +19,7 @@ import EventBoundary from "@shared/components/EventBoundary";
 import { s, hover } from "@shared/styles";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import Document from "~/models/Document";
+import Event from "~/models/Event";
 import Revision from "~/models/Revision";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Item, { Actions } from "~/components/List/Item";
@@ -31,52 +32,24 @@ import { documentHistoryPath } from "~/utils/routeHelpers";
 import Facepile from "./Facepile";
 import Text from "./Text";
 
-export type RevisionEvent = {
-  name: "revisions.create";
-  revision?: Revision;
-  latest: boolean;
-};
-
-export type DocumentEvent = {
-  name:
-    | "documents.publish"
-    | "documents.unpublish"
-    | "documents.archive"
-    | "documents.unarchive"
-    | "documents.delete"
-    | "documents.restore"
-    | "documents.add_user"
-    | "documents.remove_user"
-    | "documents.move";
-  userId: string;
-};
-
-export type Event = {
-  id: string;
-  actorId: string;
-  createdAt: string;
-  deletedAt?: string;
-} & (RevisionEvent | DocumentEvent);
-
 type Props = {
   document: Document;
-  event: Event;
+  item: Event<Document> | Revision;
 };
 
-const EventListItem = ({ event, document, ...rest }: Props) => {
+const EventListItem = ({ item, document, ...rest }: Props) => {
   const { t } = useTranslation();
-  const { revisions, users } = useStores();
-  const actor = "actorId" in event ? users.get(event.actorId) : undefined;
-  const user = "userId" in event ? users.get(event.userId) : undefined;
+  const { revisions } = useStores();
   const location = useLocation();
   const sidebarContext = useLocationSidebarContext();
   const revisionLoadedRef = useRef(false);
   const opts = {
-    userName: actor?.name,
+    userName:
+      item instanceof Revision ? item.createdBy?.name : item.actor?.name,
   };
-  const isRevision = event.name === "revisions.create";
-  const isDerivedFromDocument =
-    event.id === RevisionHelper.latestId(document.id);
+  const isLatestRevision =
+    item instanceof Revision &&
+    RevisionHelper.latestId(document.id) === item.id;
   let meta, icon, to: LocationDescriptor | undefined;
 
   const ref = useRef<HTMLAnchorElement>(null);
@@ -89,96 +62,96 @@ const EventListItem = ({ event, document, ...rest }: Props) => {
   const prefetchRevision = async () => {
     if (
       !document.isDeleted &&
-      event.name === "revisions.create" &&
-      !event.deletedAt &&
-      !isDerivedFromDocument &&
+      item instanceof Revision &&
+      !item.deletedAt &&
       !revisionLoadedRef.current
     ) {
-      await revisions.fetch(event.id, { force: true });
+      if (isLatestRevision) {
+        return;
+      }
+      await revisions.fetch(item.id, { force: true });
       revisionLoadedRef.current = true;
     }
   };
 
-  switch (event.name) {
-    case "revisions.create":
-      {
-        if (event.deletedAt) {
-          icon = <TrashIcon />;
-          meta = t("Revision deleted");
-        } else {
-          icon = <EditIcon size={16} />;
-          meta = event.latest ? (
-            <>
-              {t("Current version")} &middot; {actor?.name}
-            </>
-          ) : (
-            t("{{userName}} edited", opts)
-          );
-          to = {
-            pathname: documentHistoryPath(
-              document,
-              isDerivedFromDocument ? "latest" : event.id
-            ),
-            state: {
-              sidebarContext,
-              retainScrollPosition: true,
-            },
-          };
-        }
-      }
-      break;
-
-    case "documents.archive":
-      icon = <ArchiveIcon />;
-      meta = t("{{userName}} archived", opts);
-      break;
-
-    case "documents.unarchive":
-      icon = <RestoreIcon />;
-      meta = t("{{userName}} restored", opts);
-      break;
-
-    case "documents.delete":
+  if (item instanceof Revision) {
+    if (item.deletedAt) {
       icon = <TrashIcon />;
-      meta = t("{{userName}} deleted", opts);
-      break;
-    case "documents.add_user":
-      icon = <UserIcon />;
-      meta = t("{{userName}} added {{addedUserName}}", {
-        ...opts,
-        addedUserName: user?.name ?? t("a user"),
-      });
-      break;
-    case "documents.remove_user":
-      icon = <CrossIcon />;
-      meta = t("{{userName}} removed {{removedUserName}}", {
-        ...opts,
-        removedUserName: user?.name ?? t("a user"),
-      });
-      break;
+      meta = t("Revision deleted");
+    } else {
+      icon = <EditIcon size={16} />;
+      meta = isLatestRevision ? (
+        <>
+          {t("Current version")} &middot; {item.createdBy?.name}
+        </>
+      ) : (
+        t("{{userName}} edited", opts)
+      );
+      to = {
+        pathname: documentHistoryPath(
+          document,
+          isLatestRevision ? "latest" : item.id
+        ),
+        state: {
+          sidebarContext,
+          retainScrollPosition: true,
+        },
+      };
+    }
+  } else {
+    switch (item.name) {
+      case "documents.archive":
+        icon = <ArchiveIcon />;
+        meta = t("{{userName}} archived", opts);
+        break;
 
-    case "documents.restore":
-      icon = <RestoreIcon />;
-      meta = t("{{userName}} moved from trash", opts);
-      break;
+      case "documents.unarchive":
+        icon = <RestoreIcon />;
+        meta = t("{{userName}} restored", opts);
+        break;
 
-    case "documents.publish":
-      icon = <PublishIcon />;
-      meta = t("{{userName}} published", opts);
-      break;
+      case "documents.delete":
+        icon = <TrashIcon />;
+        meta = t("{{userName}} deleted", opts);
+        break;
+      case "documents.add_user":
+        icon = <UserIcon />;
+        meta = t("{{userName}} added {{addedUserName}}", {
+          ...opts,
+          addedUserName: item.user?.name ?? t("a user"),
+        });
+        break;
+      case "documents.remove_user":
+        icon = <CrossIcon />;
+        meta = t("{{userName}} removed {{removedUserName}}", {
+          ...opts,
+          removedUserName: item.user?.name ?? t("a user"),
+        });
+        break;
 
-    case "documents.unpublish":
-      icon = <UnpublishIcon />;
-      meta = t("{{userName}} unpublished", opts);
-      break;
+      case "documents.restore":
+        icon = <RestoreIcon />;
+        meta = t("{{userName}} moved from trash", opts);
+        break;
 
-    case "documents.move":
-      icon = <MoveIcon />;
-      meta = t("{{userName}} moved", opts);
-      break;
+      case "documents.publish":
+        icon = <PublishIcon />;
+        meta = t("{{userName}} published", opts);
+        break;
 
-    default:
-      Logger.warn("Unhandled event", { event });
+      case "documents.unpublish":
+        icon = <UnpublishIcon />;
+        meta = t("{{userName}} unpublished", opts);
+        break;
+
+      case "documents.move":
+        icon = <MoveIcon />;
+        meta = t("{{userName}} moved", opts);
+        break;
+
+      default:
+        Logger.warn("Unhandled item", { item });
+    }
   }
 
   if (!meta) {
@@ -194,14 +167,14 @@ const EventListItem = ({ event, document, ...rest }: Props) => {
     to = undefined;
   }
 
-  return event.name === "revisions.create" && !event.deletedAt ? (
+  return item instanceof Revision && !item.deletedAt ? (
     <RevisionItem
       small
       exact
       to={to}
       title={
         <Time
-          dateTime={event.createdAt}
+          dateTime={item.createdAt}
           format={{
             en_US: "MMM do, h:mm a",
             fr_FR: "'Le 'd MMMM 'à' H:mm",
@@ -212,17 +185,17 @@ const EventListItem = ({ event, document, ...rest }: Props) => {
         />
       }
       image={
-        event.revision?.collaborators ? (
-          <Facepile users={event.revision.collaborators} limit={3} />
+        item.collaborators ? (
+          <Facepile users={item.collaborators} limit={3} />
         ) : (
-          <Avatar model={actor} size={AvatarSize.Large} />
+          <Avatar model={item.createdBy} size={AvatarSize.Large} />
         )
       }
       subtitle={meta}
       actions={
-        isRevision && isActive && !event.latest ? (
+        isActive ? (
           <StyledEventBoundary>
-            <RevisionMenu document={document} revisionId={event.id} />
+            <RevisionMenu document={document} revisionId={item.id} />
           </StyledEventBoundary>
         ) : undefined
       }
@@ -238,7 +211,11 @@ const EventListItem = ({ event, document, ...rest }: Props) => {
       <Text size="xsmall" type="secondary">
         {meta} &middot;{" "}
         <Time
-          dateTime={event.deletedAt ?? event.createdAt}
+          dateTime={
+            "deletedAt" in item && item.deletedAt
+              ? item.deletedAt
+              : item.createdAt
+          }
           relative
           shorten
           addSuffix
