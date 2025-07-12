@@ -41,7 +41,7 @@
     "url": "https://github.com/sponsors/outline"
   },
   "engines": {
-    "node": ">= 20 <=22"
+    "node": "20 || 22"
   },
   "repository": {
     "type": "git",
@@ -104,7 +104,7 @@
     "@types/form-data": "^2.5.2",
     "@types/mailparser": "^3.4.6",
     "@types/sanitize-filename": "^1.6.3",
-    "@vitejs/plugin-react": "^3.1.0",
+    "@vitejs/plugin-react-oxc": "^0.2.3",
     "addressparser": "^1.0.1",
     "async-sema": "^3.1.1",
     "autotrack": "^2.4.1",
@@ -259,7 +259,7 @@
     "uuid": "^8.3.2",
     "validator": "13.15.0",
     "vaul": "^1.1.2",
-    "vite": "^6.3.4",
+    "vite": "npm:rolldown-vite@latest",
     "vite-plugin-pwa": "^0.21.2",
     "winston": "^3.17.0",
     "ws": "^7.5.10",
@@ -370,7 +370,7 @@
     "prettier": "^3.6.2",
     "react-refresh": "^0.17.0",
     "rimraf": "^2.5.4",
-    "rollup-plugin-webpack-stats": "^2.0.5",
+    "rollup-plugin-webpack-stats": "^2.1.0",
     "terser": "^5.43.1",
     "typescript": "^5.8.3",
     "vite-plugin-static-copy": "^0.17.0",

@@ -195,7 +195,7 @@ export class Editor extends React.PureComponent<
   };
 
   widgets: { [name: string]: (props: WidgetProps) => React.ReactElement };
-  renderers: Set<NodeViewRenderer<ComponentProps>> = observable.set();
+  renderers = observable.set<NodeViewRenderer<ComponentProps>>();
   nodes: { [name: string]: NodeSpec };
   marks: { [name: string]: MarkSpec };
   commands: Record<string, CommandFactory>;
