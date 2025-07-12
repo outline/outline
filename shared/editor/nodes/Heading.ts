@@ -19,6 +19,13 @@ import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { findCollapsedNodes } from "../queries/findCollapsedNodes";
 import Node from "./Node";
 
+export enum HeadingLevel {
+  One = 1,
+  Two,
+  Three,
+  Four,
+}
+
 export default class Heading extends Node {
   className = "heading-name";
 
