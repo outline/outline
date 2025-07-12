@@ -118,7 +118,7 @@ class Revision extends ParanoidModel<
    * Get the collaborators for this revision.
    */
   get collaborators() {
-    const otherCollaboratorIds = this.collaboratorIds.filter(
+    const otherCollaboratorIds = (this.collaboratorIds ?? []).filter(
       (id) => id !== this.userId
     );
 
