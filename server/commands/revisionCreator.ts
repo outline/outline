@@ -1,4 +1,5 @@
-import { Document, User, Event, Revision } from "@server/models";
+import { createContext } from "@server/context";
+import { Document, User, Revision } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import { DocumentEvent, RevisionEvent } from "@server/types";
 
@@ -12,25 +13,13 @@ export default async function revisionCreator({
   user: User;
 }) {
   return sequelize.transaction(async (transaction) => {
-    const revision = await Revision.createFromDocument(document, {
+    const ctx = createContext({
+      user,
+      authType: event.authType,
+      ip: event.ip ?? user.lastActiveIp,
       transaction,
     });
-    await Event.create(
-      {
-        name: "revisions.create",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        modelId: revision.id,
-        teamId: document.teamId,
-        actorId: user.id,
-        createdAt: document.updatedAt,
-        ip: event.ip ?? user.lastActiveIp,
-        authType: event.authType,
-      },
-      {
-        transaction,
-      }
-    );
-    return revision;
+
+    return Revision.createFromDocumentWithCtx(ctx, document);
   });
 }
