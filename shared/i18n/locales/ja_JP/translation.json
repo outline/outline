@@ -786,6 +786,8 @@
   "Underline": "下線",
   "Undo": "元に戻す",
   "Redo": "やり直し",
+  "Move block up": "Move block up",
+  "Move block down": "Move block down",
   "Lists": "リスト",
   "Toggle task list item": "タスクリスト項目を切り替える",
   "Tab": "タブ",

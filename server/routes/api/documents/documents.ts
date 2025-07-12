@@ -598,7 +598,7 @@ router.post(
                 )
               : undefined,
             sharedTree:
-              share && share.documentId && share.includeChildDocuments
+              share && share.documentId && share.includeChildDocuments && collection
                 ? collection?.getDocumentTree(share.documentId)
                 : null,
           }

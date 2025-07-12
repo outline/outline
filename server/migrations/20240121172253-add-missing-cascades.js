@@ -1,8 +1,11 @@
-'use strict';
+"use strict";
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.removeConstraint("comments", "comments_createdById_fkey")
+    await queryInterface.removeConstraint(
+      "comments",
+      "comments_createdById_fkey"
+    );
     await queryInterface.changeColumn("comments", "createdById", {
       type: Sequelize.UUID,
       onDelete: "cascade",
@@ -11,7 +14,10 @@ module.exports = {
       },
     });
 
-    await queryInterface.removeConstraint("comments", "comments_resolvedById_fkey")
+    await queryInterface.removeConstraint(
+      "comments",
+      "comments_resolvedById_fkey"
+    );
     await queryInterface.changeColumn("comments", "resolvedById", {
       type: Sequelize.UUID,
       onDelete: "set null",
@@ -22,7 +28,10 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeConstraint("comments", "comments_resolvedById_fkey")
+    await queryInterface.removeConstraint(
+      "comments",
+      "comments_resolvedById_fkey"
+    );
     await queryInterface.changeColumn("comments", "resolvedById", {
       type: Sequelize.UUID,
       references: {
@@ -30,12 +39,15 @@ module.exports = {
       },
     });
 
-    await queryInterface.removeConstraint("comments", "comments_createdById_fkey")
+    await queryInterface.removeConstraint(
+      "comments",
+      "comments_createdById_fkey"
+    );
     await queryInterface.changeColumn("comments", "createdById", {
       type: Sequelize.UUID,
       references: {
         model: "users",
       },
     });
-  }
+  },
 };

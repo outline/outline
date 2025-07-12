@@ -145,10 +145,10 @@ export default async function loadDocument({
         includeDocumentStructure: true,
         rejectOnEmpty: true,
       });
-    }
 
-    if (!collection?.sharing) {
-      throw AuthorizationError();
+      if (!collection.sharing) {
+        throw AuthorizationError();
+      }
     }
 
     if (share.collectionId) {
