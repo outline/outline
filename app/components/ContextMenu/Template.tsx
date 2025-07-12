@@ -233,6 +233,12 @@ function Template({ items, actions, context, showIcons, ...menu }: Props) {
           );
         }
 
+        // This should never be reached for Reakit dropdown menu.
+        // Added for exhaustiveness check.
+        if (item.type === "group") {
+          return null;
+        }
+
         const _exhaustiveCheck: never = item;
         return _exhaustiveCheck;
       })}
