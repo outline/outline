@@ -40,6 +40,11 @@ if (hasManualConfig) {
 
       const oidcConfig = await fetchOIDCConfiguration(env.OIDC_ISSUER_URL!);
 
+      // Set environment variables for OIDC endpoints so they can be read by OIDC OAuth class
+      env.OIDC_AUTH_URI = oidcConfig.authorization_endpoint;
+      env.OIDC_TOKEN_URI = oidcConfig.token_endpoint;
+      env.OIDC_USERINFO_URI = oidcConfig.userinfo_endpoint;
+
       // Mount endpoints into the existing router
       createOIDCRouter(router, {
         authorizationURL: oidcConfig.authorization_endpoint,
