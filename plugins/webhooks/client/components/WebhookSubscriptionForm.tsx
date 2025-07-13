@@ -1,12 +1,11 @@
 import filter from "lodash/filter";
 import includes from "lodash/includes";
 import isEqual from "lodash/isEqual";
-import randomstring from "randomstring";
-import * as React from "react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
+import { randomString } from "@shared/random";
 import { TeamPreference } from "@shared/types";
 import WebhookSubscription from "~/models/WebhookSubscription";
 import Button from "~/components/Button";
@@ -159,7 +158,7 @@ interface FormData {
 }
 
 function generateSigningSecret() {
-  return `ol_whs_${randomstring.generate(32)}`;
+  return `ol_whs_${randomString(32)}`;
 }
 
 function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
