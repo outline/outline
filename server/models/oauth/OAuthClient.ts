@@ -146,7 +146,8 @@ class OAuthClient extends ParanoidModel<
   private static generateNewClientId(): string {
     return randomString({
       length: 20,
-      charset: "lowercase",
+      charset: "alphanumeric",
+      capitalization: "lowercase",
     });
   }
 

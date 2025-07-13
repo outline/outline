@@ -17,38 +17,50 @@ export const randomInteger = (min: number, max: number) =>
 export const randomElement = <T>(arr: T[]): T =>
   arr[randomInteger(0, arr.length - 1)];
 
+type RandomStringOptions = {
+  /** The length of the output string. */
+  length: number;
+  /** The character set to use. */
+  charset?: "alphabetic" | "numeric" | "alphanumeric";
+  /** The capitalization of the string. */
+  capitalization?: "lowercase" | "uppercase" | "mixed";
+};
+
 /**
  * Generate a random string of a given length and charset.
  *
- * @param options - The length of the string or an object with length and charset properties.
+ * @param options - The length of the string or an object with options.
  * @returns A random string.
  */
-export const randomString = (
-  options:
-    | number
-    | {
-        length: number;
-        charset: "lowercase" | "uppercase" | "numeric" | "alphanumeric";
-      }
-) => {
+export const randomString = (options: number | RandomStringOptions) => {
   const lowercase = "abcdefghijklmnopqrstuvwxyz";
   const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const numeric = "0123456789";
-  const alphanumeric = lowercase + uppercase + numeric;
+
+  const length = typeof options === "number" ? options : options.length;
+  const charset =
+    typeof options === "number"
+      ? "alphanumeric"
+      : options.charset || "alphanumeric";
+  const capitalization =
+    typeof options === "number" ? "mixed" : options.capitalization || "mixed";
 
   const chars =
-    typeof options === "number"
-      ? alphanumeric
-      : options.charset === "lowercase"
-        ? lowercase
-        : options.charset === "uppercase"
-          ? uppercase
-          : options.charset === "numeric"
-            ? numeric
-            : alphanumeric;
-  const array = new Uint8Array(
-    typeof options === "number" ? options : options.length
-  );
+    charset === "numeric"
+      ? numeric
+      : charset === "alphabetic"
+        ? capitalization === "lowercase"
+          ? lowercase
+          : capitalization === "uppercase"
+            ? uppercase
+            : lowercase + uppercase
+        : capitalization === "lowercase"
+          ? lowercase + numeric
+          : capitalization === "uppercase"
+            ? uppercase + numeric
+            : lowercase + uppercase + numeric;
+
+  const array = new Uint8Array(length);
   crypto.getRandomValues(array);
   return Array.from(array, (x) => chars[x % chars.length]).join("");
 };
