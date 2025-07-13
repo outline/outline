@@ -1,4 +1,4 @@
-import randomstring from "randomstring";
+import { randomString } from "@shared/random";
 import { buildApiKey } from "@server/test/factories";
 import ApiKey from "./ApiKey";
 
@@ -7,7 +7,7 @@ describe("#ApiKey", () => {
     it("should match an API secret", async () => {
       const apiKey = await buildApiKey();
       expect(ApiKey.match(apiKey.value!)).toBe(true);
-      expect(ApiKey.match(`${randomstring.generate(38)}`)).toBe(true);
+      expect(ApiKey.match(`${randomString(38)}`)).toBe(true);
     });
 
     it("should not match non secrets", async () => {

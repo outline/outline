@@ -5,7 +5,6 @@ import {
   ArrayUnique,
   IsUrl,
 } from "class-validator";
-import rs from "randomstring";
 import { InferAttributes, InferCreationAttributes } from "sequelize";
 import {
   Column,
@@ -17,6 +16,7 @@ import {
   BeforeCreate,
   AllowNull,
 } from "sequelize-typescript";
+import { randomString } from "@shared/random";
 import { OAuthClientValidation } from "@shared/validations";
 import Team from "@server/models/Team";
 import User from "@server/models/User";
@@ -144,7 +144,7 @@ class OAuthClient extends ParanoidModel<
   }
 
   private static generateNewClientId(): string {
-    return rs.generate({
+    return randomString({
       length: 20,
       charset: "alphanumeric",
       capitalization: "lowercase",
@@ -152,7 +152,7 @@ class OAuthClient extends ParanoidModel<
   }
 
   private static generateNewClientSecret(): string {
-    return `${OAuthClient.clientSecretPrefix}${rs.generate(32)}`;
+    return `${OAuthClient.clientSecretPrefix}${randomString(32)}`;
   }
 }
 

@@ -1,5 +1,5 @@
 import { DefaultState } from "koa";
-import randomstring from "randomstring";
+import { randomString } from "@shared/random";
 import { Scope } from "@shared/types";
 import {
   buildUser,
@@ -106,7 +106,7 @@ describe("Authentication middleware", () => {
           {
             // @ts-expect-error mock request
             request: {
-              get: jest.fn(() => `Bearer ${randomstring.generate(38)}`),
+              get: jest.fn(() => `Bearer ${randomString(38)}`),
             },
             state,
             cache: {},
