@@ -150,6 +150,9 @@ export default () =>
       // Generate a stats.json file for webpack that will be consumed by RelativeCI
       webpackStats(),
     ],
+    experimental: {
+      enableNativePlugin: true,
+    },
     resolve: {
       alias: {
         "~": path.resolve(__dirname, "./app"),
