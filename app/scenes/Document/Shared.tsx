@@ -26,9 +26,14 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import { usePostLoginPath } from "~/hooks/useLastVisitedPath";
 import useStores from "~/hooks/useStores";
 import { client } from "~/utils/ApiClient";
-import { AuthorizationError, OfflineError } from "~/utils/errors";
+import {
+  AuthorizationError,
+  NotFoundError,
+  OfflineError,
+} from "~/utils/errors";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { changeLanguage, detectLanguage } from "~/utils/language";
+import ErrorUnknown from "../Errors/ErrorUnknown";
 import Login from "../Login";
 import Document from "./components/Document";
 import Loading from "./components/Loading";
@@ -178,8 +183,10 @@ function SharedDocumentScene(props: Props) {
           }
         </Login>
       );
-    } else {
+    } else if (error instanceof NotFoundError) {
       return <Error404 />;
+    } else {
+      return <ErrorUnknown />;
     }
   }
 
