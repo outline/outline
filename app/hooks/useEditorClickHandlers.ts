@@ -64,7 +64,10 @@ export default function useEditorClickHandlers({ shareId }: Params) {
           return;
         }
 
-        if (!event || (!isModKey(event) && !event.shiftKey)) {
+        if (
+          !event ||
+          (!isModKey(event) && !event.shiftKey && event.button !== 1)
+        ) {
           history.push(navigateTo, { sidebarContext: "collections" }); // optimistic preference of "collections"
         } else {
           window.open(navigateTo, "_blank");
