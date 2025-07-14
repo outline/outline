@@ -85,7 +85,7 @@
     "@linear/sdk": "^39.0.0",
     "@node-oauth/oauth2-server": "^5.2.0",
     "@notionhq/client": "^2.3.0",
-    "@octokit/auth-app": "^6.1.3",
+    "@octokit/auth-app": "^6.1.4",
     "@outlinewiki/koa-passport": "^4.2.1",
     "@outlinewiki/passport-azure-ad-oauth2": "^0.1.0",
     "@radix-ui/react-collapsible": "^1.1.11",
