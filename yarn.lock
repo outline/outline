@@ -11560,10 +11560,10 @@ makeerror@1.0.12:
   dependencies:
     tmpl "1.0.5"
 
-mammoth@^1.9.0:
-  version "1.9.0"
-  resolved "https://registry.yarnpkg.com/mammoth/-/mammoth-1.9.0.tgz#71e34ca280735275788bfe95e653a058dcab4df2"
-  integrity sha512-F+0NxzankQV9XSUAuVKvkdQK0GbtGGuqVnND9aVf9VSeUA82LQa29GjLqYU6Eez8LHqSJG3eGiDW3224OKdpZg==
+mammoth@^1.9.1:
+  version "1.9.1"
+  resolved "https://registry.yarnpkg.com/mammoth/-/mammoth-1.9.1.tgz#b544c26747a412b5b00a11aa80477c6796860eaf"
+  integrity sha512-4S2v1eP4Yo4so0zGNicJKcP93su3wDPcUk+xvkjSG75nlNjSkDJu8BhWQ+e54BROM0HfA6nPzJn12S6bq2Ko6w==
   dependencies:
     "@xmldom/xmldom" "^0.8.6"
     argparse "~1.0.3"
