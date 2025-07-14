@@ -473,9 +473,9 @@ export default class ToggleBlock extends Node {
         }
 
         tr = tr ? tr : newState.tr;
-        const { $cursor } = tr.selection as TextSelection;
-        if ($cursor) {
-          // If somehow, cursor ends up within the body of a folded toggle block,
+        const { $from } = tr.selection;
+        if ($from) {
+          // If somehow, selection ends up within the body of a folded toggle block,
           // unfold that toggle block.
           const decosResponsibleForFolding = ToggleBlock.actionPluginKey
             .getState(newState)
@@ -485,7 +485,7 @@ export default class ToggleBlock extends Node {
           const toggleBlock =
             decosResponsibleForFolding && decosResponsibleForFolding.length
               ? furthest(
-                  ancestors($cursor, (ancestor) =>
+                  ancestors($from, (ancestor) =>
                     some(
                       decosResponsibleForFolding,
                       (deco) =>
@@ -499,14 +499,14 @@ export default class ToggleBlock extends Node {
 
           if (toggleBlock) {
             const posAfterHead =
-              $cursor.start(depth(toggleBlock)) +
+              $from.start(depth(toggleBlock)) +
               toggleBlock.firstChild!.nodeSize;
-            const posAtEnd = $cursor.end(depth(toggleBlock));
+            const posAtEnd = $from.end(depth(toggleBlock));
 
-            if ($cursor.pos > posAfterHead && $cursor.pos < posAtEnd) {
+            if ($from.pos > posAfterHead && $from.pos < posAtEnd) {
               tr.setMeta(ToggleBlock.actionPluginKey, {
                 type: Action.UNFOLD,
-                at: $cursor.before(depth(toggleBlock)),
+                at: $from.before(depth(toggleBlock)),
               });
             }
           }
