@@ -1,6 +1,10 @@
 import isNull from "lodash/isNull";
 import isUndefined from "lodash/isUndefined";
-import { splitBlock } from "prosemirror-commands";
+import {
+  chainCommands,
+  joinTextblockBackward,
+  splitBlock,
+} from "prosemirror-commands";
 import { Slice, Fragment } from "prosemirror-model";
 import { Command, TextSelection } from "prosemirror-state";
 import { liftTarget, ReplaceAroundStep } from "prosemirror-transform";
@@ -74,7 +78,7 @@ export const joinForwardPreservingBody: Command = (state, dispatch) => {
   return true;
 };
 
-export const joinBackwardPreservingBody: Command = (state, dispatch) => {
+export const joinBackwardWithHead: Command = (state, dispatch) => {
   const $cursor = atBlockStart(state.selection);
   if (!$cursor) {
     return false;
@@ -90,20 +94,48 @@ export const joinBackwardPreservingBody: Command = (state, dispatch) => {
 
   const toggleBlock = $cut.nodeBefore;
   const { folded, detachBody, attachBody } = ToggleBlock.getUtils(state);
-  if (!folded(toggleBlock)) {
+  if (folded(toggleBlock)) {
+    const pos = $cut.pos - toggleBlock.nodeSize;
+
+    let tr = detachBody(pos, state.tr);
+    tr = liftChildrenOfNodeAt(pos, tr);
+    tr = joinBackwardTr(tr);
+    tr = wrapNodeAt(pos, toggleBlock.type, toggleBlock.attrs, tr);
+    tr = attachBody(pos, tr);
+    dispatch?.(tr);
+    return true;
+  }
+
+  return joinTextblockBackward(state, dispatch);
+};
+
+export const joinBackwardWithBody: Command = (state, dispatch) => {
+  const $cursor = atBlockStart(state.selection);
+  if (!$cursor) {
     return false;
   }
 
-  const pos = $cut.pos - toggleBlock.nodeSize;
+  const $cut = findCutBefore($cursor);
+  if (!$cut) {
+    return false;
+  }
+  if (!$cut.nodeBefore || $cut.nodeBefore.type.name !== "container_toggle") {
+    return false;
+  }
 
-  let tr = detachBody(pos, state.tr);
-  tr = liftChildrenOfNodeAt(pos, tr);
-  tr = joinBackwardTr(tr);
-  tr = wrapNodeAt(pos, toggleBlock.type, toggleBlock.attrs, tr);
-  tr = attachBody(pos, tr);
-  dispatch?.(tr);
-  return true;
+  const toggleBlock = $cut.nodeBefore;
+  const { folded } = ToggleBlock.getUtils(state);
+  if (folded(toggleBlock)) {
+    return false;
+  }
+
+  return joinTextblockBackward(state, dispatch);
 };
+
+export const joinBackwardWithToggleblock: Command = chainCommands(
+  joinBackwardWithHead,
+  joinBackwardWithBody
+);
 
 export const selectNodeForwardPreservingBody: Command = (state, dispatch) => {
   const { $cursor } = state.selection as TextSelection;

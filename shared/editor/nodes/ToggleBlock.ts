@@ -44,7 +44,7 @@ import {
   deleteSelectionPreservingBody,
   joinForwardPreservingBody,
   selectNodeForwardPreservingBody,
-  joinBackwardPreservingBody,
+  joinBackwardWithToggleblock,
   selectNodeBackwardPreservingBody,
   createParagraphNearPreservingBody,
   liftAllEmptyChildBlocks,
@@ -638,7 +638,7 @@ export default class ToggleBlock extends Node {
       Backspace: chainCommands(
         deleteSelectionPreservingBody,
         liftAllChildBlocksOfNodeBefore,
-        joinBackwardPreservingBody,
+        joinBackwardWithToggleblock,
         selectNodeBackwardPreservingBody
       ),
       Enter: chainCommands(
