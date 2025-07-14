@@ -6,7 +6,7 @@ import {
   splitBlock,
 } from "prosemirror-commands";
 import { Slice, Fragment } from "prosemirror-model";
-import { Command, TextSelection } from "prosemirror-state";
+import { Command, NodeSelection, TextSelection } from "prosemirror-state";
 import { liftTarget, ReplaceAroundStep } from "prosemirror-transform";
 import { v4 } from "uuid";
 import ToggleBlock, { Action, On } from "../nodes/ToggleBlock";
@@ -351,7 +351,7 @@ export const liftAllChildBlocksOfNodeAfter: Command = (state, dispatch) => {
 };
 
 export const dedentBlocks: Command = (state, dispatch) => {
-  const { $from } = state.selection as TextSelection;
+  const { $from } = state.selection;
 
   const { depth, isToggleBlock } = ToggleBlock.getUtils(state);
   const ancestor = nearest(ancestors($from, isToggleBlock));
@@ -360,10 +360,12 @@ export const dedentBlocks: Command = (state, dispatch) => {
     return false;
   }
 
-  const range = $from.blockRange(
-    state.doc.resolve($from.end(depth(ancestor)) - 1),
-    (node) => node.eq(ancestor)
-  );
+  const $fr_ =
+    state.selection instanceof NodeSelection
+      ? state.doc.resolve($from.pos + 1)
+      : $from;
+  const $to_ = state.doc.resolve($from.end(depth(ancestor)) - 1);
+  const range = $fr_.blockRange($to_, (node) => node.eq(ancestor));
   if (isNull(range)) {
     return false;
   }
@@ -378,6 +380,7 @@ export const dedentBlocks: Command = (state, dispatch) => {
   if (dispatch) {
     dispatch(tr);
   }
+
   return true;
 };
 
