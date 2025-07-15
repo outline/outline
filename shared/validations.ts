@@ -98,6 +98,15 @@ export const TeamValidation = {
 
   /** The maximum length of the team description */
   maxDescriptionLength: 1000,
+
+  /** The minimum length of the team subdomain */
+  minSubdomainLength: 2,
+
+  /** The maximum length of the team subdomain for cloud */
+  maxSubdomainLength: 32,
+
+  /** The maximum length of the team subdomain for self-hosted */
+  maxSubdomainSelfHostedLength: 255,
 };
 
 export const UserValidation = {

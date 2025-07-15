@@ -91,7 +91,10 @@ const Button = styled.button`
 `;
 
 const Disclosure = styled(CollapsedIcon)<{ expanded?: boolean }>`
-  transition: opacity 100ms ease, transform 100ms ease, fill 50ms !important;
+  transition:
+    opacity 100ms ease,
+    transform 100ms ease,
+    fill 50ms !important;
   ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
   opacity: 0;
 `;

@@ -10,7 +10,7 @@ function withStores<
   ResolvedProps = JSX.LibraryManagedAttributes<
     P,
     Omit<React.ComponentProps<P>, StoreProps>
-  >
+  >,
 >(WrappedComponent: P): React.FC<ResolvedProps> {
   const ComponentWithStore = (props: ResolvedProps) => {
     const stores = useStores();

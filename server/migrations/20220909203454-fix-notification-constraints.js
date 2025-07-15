@@ -1,12 +1,28 @@
-'use strict';
+"use strict";
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.sequelize.transaction(async (transaction) => {
-      await queryInterface.removeConstraint("notifications", "notifications_userId_fkey", { transaction })
-      await queryInterface.removeConstraint("notifications", "notifications_actorId_fkey", { transaction })
-      await queryInterface.removeConstraint("notifications", "notifications_teamId_fkey", { transaction })
-      await queryInterface.removeConstraint("notifications", "notifications_documentId_fkey", { transaction })
+      await queryInterface.removeConstraint(
+        "notifications",
+        "notifications_userId_fkey",
+        { transaction }
+      );
+      await queryInterface.removeConstraint(
+        "notifications",
+        "notifications_actorId_fkey",
+        { transaction }
+      );
+      await queryInterface.removeConstraint(
+        "notifications",
+        "notifications_teamId_fkey",
+        { transaction }
+      );
+      await queryInterface.removeConstraint(
+        "notifications",
+        "notifications_documentId_fkey",
+        { transaction }
+      );
     });
     await queryInterface.sequelize.transaction(async (transaction) => {
       await queryInterface.changeColumn("notifications", "userId", {
@@ -49,10 +65,26 @@ module.exports = {
 
   down: async (queryInterface, Sequelize) => {
     await queryInterface.sequelize.transaction(async (transaction) => {
-      await queryInterface.removeConstraint("notifications", "notifications_userId_fkey", { transaction })
-      await queryInterface.removeConstraint("notifications", "notifications_actorId_fkey", { transaction })
-      await queryInterface.removeConstraint("notifications", "notifications_teamId_fkey", { transaction })
-      await queryInterface.removeConstraint("notifications", "notifications_documentId_fkey", { transaction })
+      await queryInterface.removeConstraint(
+        "notifications",
+        "notifications_userId_fkey",
+        { transaction }
+      );
+      await queryInterface.removeConstraint(
+        "notifications",
+        "notifications_actorId_fkey",
+        { transaction }
+      );
+      await queryInterface.removeConstraint(
+        "notifications",
+        "notifications_teamId_fkey",
+        { transaction }
+      );
+      await queryInterface.removeConstraint(
+        "notifications",
+        "notifications_documentId_fkey",
+        { transaction }
+      );
     });
     await queryInterface.sequelize.transaction(async (transaction) => {
       await queryInterface.changeColumn("notifications", "userId", {
@@ -87,5 +119,5 @@ module.exports = {
         transaction,
       });
     });
-  }
+  },
 };

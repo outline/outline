@@ -51,13 +51,13 @@ import slugify from "@shared/utils/slugify";
 import { DocumentValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
 import { generateUrlId } from "@server/utils/url";
-import Backlink from "./Backlink";
 import Collection from "./Collection";
 import FileOperation from "./FileOperation";
 import Group from "./Group";
 import GroupMembership from "./GroupMembership";
 import GroupUser from "./GroupUser";
 import Import from "./Import";
+import Relationship from "./Relationship";
 import Revision from "./Revision";
 import Star from "./Star";
 import Team from "./Team";
@@ -395,6 +395,15 @@ class Document extends ArchivableModel<
     );
   }
 
+  /**
+   * Returns the key used to store the collaborators of a document in Redis.
+   * @param documentId The ID of the document.
+   * @returns Redis key for collaborators
+   */
+  static getCollaboratorKey(documentId: string) {
+    return `collaborators:${documentId}`;
+  }
+
   static getPath({ title, urlId }: { title: string; urlId: string }) {
     if (!title.length) {
       return `/doc/untitled-${urlId}`;
@@ -617,8 +626,8 @@ class Document extends ArchivableModel<
   @HasMany(() => Revision)
   revisions: Revision[];
 
-  @HasMany(() => Backlink)
-  backlinks: Backlink[];
+  @HasMany(() => Relationship)
+  relationships: Relationship[];
 
   @HasMany(() => Star)
   starred: Star[];

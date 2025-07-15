@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
+
 import { OAuthClientValidation } from "@shared/validations";
 import OAuthClient from "~/models/oauth/OAuthClient";
 import Breadcrumb from "~/components/Breadcrumb";
@@ -218,7 +219,17 @@ const Application = observer(function Application({ oauthClient }: Props) {
             )}
             border={false}
           >
-            <Switch id="published" {...register("published")} />
+            <Controller
+              name="published"
+              control={control}
+              render={({ field }) => (
+                <Switch
+                  id="published"
+                  checked={field.value}
+                  onChange={field.onChange}
+                />
+              )}
+            />
           </SettingRow>
         )}
 

@@ -1,8 +1,11 @@
-'use strict';
+"use strict";
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.removeConstraint("integrations", "integrations_collectionId_fkey")
+    await queryInterface.removeConstraint(
+      "integrations",
+      "integrations_collectionId_fkey"
+    );
     await queryInterface.changeColumn("integrations", "collectionId", {
       type: Sequelize.UUID,
       allowNull: true,
@@ -11,7 +14,10 @@ module.exports = {
         model: "collections",
       },
     });
-    await queryInterface.removeConstraint("integrations", "integrations_teamId_fkey")
+    await queryInterface.removeConstraint(
+      "integrations",
+      "integrations_teamId_fkey"
+    );
     await queryInterface.changeColumn("integrations", "teamId", {
       type: Sequelize.UUID,
       allowNull: false,
@@ -23,7 +29,10 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeConstraint("integrations", "integrations_collectionId_fkey")
+    await queryInterface.removeConstraint(
+      "integrations",
+      "integrations_collectionId_fkey"
+    );
     await queryInterface.changeColumn("integrations", "collectionId", {
       type: Sequelize.UUID,
       allowNull: true,
@@ -31,7 +40,10 @@ module.exports = {
         model: "collections",
       },
     });
-    await queryInterface.removeConstraint("integrations", "integrations_teamId_fkey")
+    await queryInterface.removeConstraint(
+      "integrations",
+      "integrations_teamId_fkey"
+    );
     await queryInterface.changeColumn("integrations", "teamId", {
       type: Sequelize.UUID,
       allowNull: false,
@@ -39,5 +51,5 @@ module.exports = {
         model: "teams",
       },
     });
-  }
+  },
 };

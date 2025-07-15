@@ -180,6 +180,16 @@ export type UserMembershipEvent = BaseEvent<UserMembership> & {
   };
 };
 
+export type DocumentMovedEvent = BaseEvent<Document> & {
+  name: "documents.move";
+  documentId: string;
+  collectionId: string;
+  data: {
+    collectionIds: string[];
+    documentIds: string[];
+  };
+};
+
 export type DocumentEvent = BaseEvent<Document> &
   (
     | {
@@ -213,15 +223,6 @@ export type DocumentEvent = BaseEvent<Document> &
         };
       }
     | {
-        name: "documents.move";
-        documentId: string;
-        collectionId: string;
-        data: {
-          collectionIds: string[];
-          documentIds: string[];
-        };
-      }
-    | {
         name:
           | "documents.update"
           | "documents.update.delayed"
@@ -245,6 +246,7 @@ export type DocumentEvent = BaseEvent<Document> &
           previousTitle: string;
         };
       }
+    | DocumentMovedEvent
   );
 
 export type EmptyTrashEvent = {
@@ -492,6 +494,7 @@ export type Event =
   | AuthenticationProviderEvent
   | DocumentEvent
   | DocumentUserEvent
+  | DocumentMovedEvent
   | DocumentGroupEvent
   | PinEvent
   | CommentEvent
@@ -585,13 +588,12 @@ export type CollectionJSONExport = {
   };
 };
 
-export type UnfurlIssueAndPR = (
+export type UnfurlIssueOrPR =
   | UnfurlResponse[UnfurlResourceType.Issue]
-  | UnfurlResponse[UnfurlResourceType.PR]
-) & { transformed_unfurl: true };
+  | UnfurlResponse[UnfurlResourceType.PR];
 
 export type Unfurl =
-  | UnfurlIssueAndPR
+  | UnfurlIssueOrPR
   | {
       type: Exclude<
         UnfurlResourceType,

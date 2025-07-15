@@ -32,14 +32,14 @@ At least one worker process is required to process the [queues](../server/queues
 
 ## Collaboration
 
-The collaboration server coordinates all realtime editing and updating of documents, 
+The collaboration server coordinates all realtime editing and updating of documents,
 it can be ran on the same box as the web server or separately.
 
 ```bash
 yarn start --services=collaboration
 ```
 
-If the collaboration service is hosted on a separate domain then the `COLLABORATION_URL` 
-env must be set to the publicly accessible URL. For example, if the app is hosted at 
+If the collaboration service is hosted on a separate domain then the `COLLABORATION_URL`
+env must be set to the publicly accessible URL. For example, if the app is hosted at
 `https://docs.example.com` you may use something like:
 `COLLABORATION_URL=wss://docs-collaboration.example.com`.

@@ -222,8 +222,8 @@ function Search() {
               documentId
                 ? t("Search in document")
                 : collectionId
-                ? t("Search in collection")
-                : t("Search")
+                  ? t("Search in collection")
+                  : t("Search")
             }…`}
             onKeyDown={handleKeyDown}
             defaultValue={query ?? ""}
@@ -271,8 +271,8 @@ function Search() {
                 width={26}
                 height={14}
                 label={t("Search titles only")}
-                onChange={(ev: React.ChangeEvent<HTMLInputElement>) => {
-                  handleFilterChange({ titleFilter: ev.target.checked });
+                onChange={(checked: boolean) => {
+                  handleFilterChange({ titleFilter: checked });
                 }}
                 checked={titleFilter}
               />

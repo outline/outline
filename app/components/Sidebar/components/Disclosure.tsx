@@ -54,7 +54,10 @@ const Button = styled(NudeButton)<{ $root?: boolean }>`
 const StyledCollapsedIcon = styled(CollapsedIcon)<{
   expanded?: boolean;
 }>`
-  transition: opacity 100ms ease, transform 100ms ease, fill 50ms !important;
+  transition:
+    opacity 100ms ease,
+    transform 100ms ease,
+    fill 50ms !important;
   ${(props) => !props.expanded && "transform: rotate(-90deg);"};
 `;
 

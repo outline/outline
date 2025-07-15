@@ -20,7 +20,7 @@ module.exports = {
         "SELECT id FROM users",
         {
           type: queryInterface.sequelize.QueryTypes.SELECT,
-          transaction
+          transaction,
         }
       );
 
@@ -30,12 +30,11 @@ module.exports = {
           {
             type: queryInterface.sequelize.QueryTypes.SELECT,
             replacements: { userId: user.id },
-            transaction
+            transaction,
           }
         );
 
         const eventTypes = settings.map((setting) => setting.event);
-      
 
         if (eventTypes.length > 0) {
           const notificationSettings = {};
@@ -52,7 +51,7 @@ module.exports = {
                 userId: user.id,
                 notificationSettings: JSON.stringify(notificationSettings),
               },
-              transaction
+              transaction,
             }
           );
         }
@@ -60,7 +59,7 @@ module.exports = {
     });
   },
 
-  async down (queryInterface) {
+  async down(queryInterface) {
     return queryInterface.removeColumn("users", "notificationSettings");
-  }
+  },
 };

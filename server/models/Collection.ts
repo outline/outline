@@ -74,6 +74,7 @@ type AdditionalFindOptions = {
   userId?: string;
   includeDocumentStructure?: boolean;
   includeOwner?: boolean;
+  includeArchivedBy?: boolean;
   rejectOnEmpty?: boolean | Error;
 };
 
@@ -551,7 +552,13 @@ class Collection extends ParanoidModel<
       return null;
     }
 
-    const { includeDocumentStructure, includeOwner, userId, ...rest } = options;
+    const {
+      includeDocumentStructure,
+      includeOwner,
+      includeArchivedBy,
+      userId,
+      ...rest
+    } = options;
 
     const scopes: (string | ScopeOptions)[] = [
       includeDocumentStructure ? "withDocumentStructure" : "defaultScope",
@@ -562,6 +569,9 @@ class Collection extends ParanoidModel<
 
     if (includeOwner) {
       scopes.push("withUser");
+    }
+    if (includeArchivedBy) {
+      scopes.push("withArchivedBy");
     }
 
     const scope = this.scope(scopes);
@@ -588,7 +598,7 @@ class Collection extends ParanoidModel<
         where: {
           urlId: match[1],
         },
-        ...options,
+        ...rest,
         rejectOnEmpty: false,
       });
 
@@ -884,8 +894,8 @@ class Collection extends ParanoidModel<
               index !== undefined
                 ? index
                 : options.insertOrder === "prepend"
-                ? 0
-                : childDocument.children.length;
+                  ? 0
+                  : childDocument.children.length;
             childDocument.children.splice(childInsertionIndex, 0, documentJson);
           } else {
             childDocument.children = placeDocument(childDocument.children);

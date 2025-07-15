@@ -88,10 +88,6 @@ type Props = {
   onUpdate?: (id: string, attrs: { resolved: boolean }) => void;
   /** Text to highlight at the top of the comment */
   highlightedText?: string;
-  /** Enable scroll for the comments container */
-  enableScroll: () => void;
-  /** Disable scroll for the comments container */
-  disableScroll: () => void;
 };
 
 function CommentThreadItem({
@@ -105,8 +101,6 @@ function CommentThreadItem({
   onDelete,
   onUpdate,
   highlightedText,
-  enableScroll,
-  disableScroll,
 }: Props) {
   const { t } = useTranslation();
   const user = useCurrentUser();
@@ -240,8 +234,6 @@ function CommentThreadItem({
                     <Action
                       as={ReactionPicker}
                       onSelect={handleAddReaction}
-                      onOpen={disableScroll}
-                      onClose={enableScroll}
                       size={28}
                       $rounded
                     />
@@ -262,8 +254,6 @@ function CommentThreadItem({
                   <Action
                     as={ReactionPicker}
                     onSelect={handleAddReaction}
-                    onOpen={disableScroll}
-                    onClose={enableScroll}
                     $rounded
                   />
                 </>
@@ -353,7 +343,9 @@ const Action = styled.span<{ $rounded?: boolean }>`
     opacity: 0.5;
   }
 
-  &: ${hover}, &[aria-expanded= "true"] {
+  &:
+    ${hover},
+    &[aria-expanded= "true"] {
     background: ${s("backgroundQuaternary")};
 
     svg {
@@ -406,7 +398,9 @@ export const Bubble = styled(Flex)<{
   min-width: 2em;
   margin-bottom: 1px;
   padding: 8px 12px;
-  transition: color 100ms ease-out, background 100ms ease-out;
+  transition:
+    color 100ms ease-out,
+    background 100ms ease-out;
 
   ${({ $lastOfThread, $canReply }) =>
     $lastOfThread &&

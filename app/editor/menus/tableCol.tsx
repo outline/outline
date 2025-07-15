@@ -8,10 +8,17 @@ import {
   ArrowIcon,
   MoreIcon,
   TableHeaderColumnIcon,
+  TableMergeCellsIcon,
+  TableSplitCellsIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
+import { CellSelection } from "prosemirror-tables";
 import styled from "styled-components";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
+import {
+  isMergedCellSelection,
+  isMultipleCellSelection,
+} from "@shared/editor/queries/table";
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
 
@@ -21,7 +28,11 @@ export default function tableColMenuItems(
   rtl: boolean,
   dictionary: Dictionary
 ): MenuItem[] {
-  const { schema } = state;
+  const { schema, selection } = state;
+
+  if (!(selection instanceof CellSelection)) {
+    return [];
+  }
 
   return [
     {
@@ -95,6 +106,21 @@ export default function tableColMenuItems(
           label: rtl ? dictionary.addColumnBefore : dictionary.addColumnAfter,
           icon: <InsertRightIcon />,
           attrs: { index },
+        },
+        {
+          name: "mergeCells",
+          label: dictionary.mergeCells,
+          icon: <TableMergeCellsIcon />,
+          visible: isMultipleCellSelection(state),
+        },
+        {
+          name: "splitCell",
+          label: dictionary.splitCell,
+          icon: <TableSplitCellsIcon />,
+          visible: isMergedCellSelection(state),
+        },
+        {
+          name: "separator",
         },
         {
           name: "deleteColumn",

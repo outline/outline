@@ -38,7 +38,7 @@ class SearchQuery extends Model<
   /**
    * Where the query originated.
    */
-  @Column(DataType.ENUM("slack", "app", "api"))
+  @Column(DataType.ENUM("slack", "app", "api", "oauth"))
   source: string;
 
   /**

@@ -36,7 +36,7 @@ import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import {
   Attachment,
-  Backlink,
+  Relationship,
   Collection,
   Document,
   Event,
@@ -209,7 +209,7 @@ router.post(
     }
 
     if (backlinkDocumentId) {
-      const sourceDocumentIds = await Backlink.findSourceDocumentIdsForUser(
+      const sourceDocumentIds = await Relationship.findSourceDocumentIdsForUser(
         backlinkDocumentId,
         user
       );
@@ -597,8 +597,8 @@ router.post(
                 )
               : undefined,
             sharedTree:
-              share && share.includeChildDocuments
-                ? collection?.getDocumentTree(share.documentId)
+              share && share.includeChildDocuments && collection
+                ? collection.getDocumentTree(share.documentId)
                 : null,
           }
         : serializedDocument;

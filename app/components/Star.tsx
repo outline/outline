@@ -52,10 +52,10 @@ function Star({ size, document, collection, color, ...rest }: Props) {
             ? unstarCollection
             : starCollection
           : document
-          ? document.isStarred
-            ? unstarDocument
-            : starDocument
-          : undefined
+            ? document.isStarred
+              ? unstarDocument
+              : starDocument
+            : undefined
       }
       size={size}
       {...rest}

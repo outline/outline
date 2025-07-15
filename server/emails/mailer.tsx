@@ -3,6 +3,7 @@ import nodemailer, { Transporter } from "nodemailer";
 import SMTPTransport from "nodemailer/lib/smtp-transport";
 import Oy from "oy-vey";
 import env from "@server/env";
+import { InternalError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import { baseStyles } from "./templates/components/EmailLayout";
@@ -65,9 +66,10 @@ export class Mailer {
     dir = "ltr" /* https://www.w3.org/TR/html4/struct/dirlang.html#blocklevel-bidi */,
   }: Oy.CustomTemplateRenderOptions) => {
     if (!title) {
-      throw new Error("`title` is a required option for `renderTemplate`");
-    } else if (!bodyContent) {
-      throw new Error(
+      throw InternalError("`title` is a required option for `renderTemplate`");
+    }
+    if (!bodyContent) {
+      throw InternalError(
         "`bodyContent` is a required option for `renderTemplate`"
       );
     }

@@ -193,7 +193,7 @@ const SwitcherButton = styled(NudeButton)<{ panel: Panel }>`
 `;
 
 const LargeMobileBuiltinColors = styled(BuiltinColors)`
-  max-width: 380px;
+  max-width: 400px;
   padding-right: 8px;
 `;
 

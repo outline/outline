@@ -31,11 +31,10 @@ const handleTeamUpdate = async (ctx: APIContext<T.TeamsUpdateSchemaReq>) => {
   authorize(user, "update", team);
 
   const updatedTeam = await teamUpdater({
+    ctx,
     params: ctx.input.body,
     user,
     team,
-    ip: ctx.request.ip,
-    transaction,
   });
 
   ctx.body = {

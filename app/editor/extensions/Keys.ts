@@ -6,8 +6,10 @@ import {
   TextSelection,
   EditorState,
   Command,
+  Transaction,
 } from "prosemirror-state";
 import Extension from "@shared/editor/lib/Extension";
+import { getCurrentBlock } from "@shared/editor/queries/getCurrentBlock";
 import { isInCode } from "@shared/editor/queries/isInCode";
 
 export default class Keys extends Extension {
@@ -22,6 +24,93 @@ export default class Keys extends Extension {
         return true;
       }
       return false;
+    };
+
+    const moveBlockUp = (
+      state: EditorState,
+      dispatch?: (tr: Transaction) => void
+    ) => {
+      if (!state.selection.empty) {
+        return false;
+      }
+
+      const result = getCurrentBlock(state);
+      if (!result) {
+        return false;
+      }
+
+      const [currentBlock, currentPos] = result;
+      const $pos = state.doc.resolve(currentPos);
+
+      // Check if there's a previous sibling block
+      if (!$pos.nodeBefore || !$pos.nodeBefore.isBlock) {
+        return false;
+      }
+
+      const prevBlock = $pos.nodeBefore;
+      const prevBlockPos = currentPos - prevBlock.nodeSize;
+
+      if (!dispatch) {
+        return true;
+      }
+
+      const { tr } = state;
+
+      // Move current block before the previous block
+      dispatch(
+        tr
+          .delete(currentPos, currentPos + currentBlock.nodeSize)
+          .insert(prevBlockPos, currentBlock)
+          .setSelection(TextSelection.near(tr.doc.resolve(prevBlockPos + 1)))
+      );
+
+      return true;
+    };
+
+    const moveBlockDown = (
+      state: EditorState,
+      dispatch?: (tr: Transaction) => void
+    ) => {
+      if (!state.selection.empty) {
+        return false;
+      }
+
+      const result = getCurrentBlock(state);
+      if (!result) {
+        return false;
+      }
+
+      const [currentBlock, currentPos] = result;
+      const $pos = state.doc.resolve(currentPos + currentBlock.nodeSize);
+
+      // Check if there's a next sibling block
+      if (!$pos.nodeAfter || !$pos.nodeAfter.isBlock) {
+        return false;
+      }
+
+      const nextBlock = $pos.nodeAfter;
+      const nextBlockEndPos =
+        currentPos + currentBlock.nodeSize + nextBlock.nodeSize;
+
+      if (!dispatch) {
+        return true;
+      }
+
+      const { tr } = state;
+
+      // Move current block after the next block
+      dispatch(
+        tr
+          .insert(nextBlockEndPos, currentBlock)
+          .delete(currentPos, currentPos + currentBlock.nodeSize)
+          .setSelection(
+            TextSelection.near(
+              tr.doc.resolve(nextBlockEndPos - currentBlock.nodeSize + 1)
+            )
+          )
+      );
+
+      return true;
     };
 
     return {
@@ -46,6 +135,9 @@ export default class Keys extends Extension {
         (this.editor.view.dom as HTMLElement).blur();
         return true;
       },
+      // Block movement shortcuts
+      "Mod-Alt-ArrowUp": moveBlockUp,
+      "Mod-Alt-ArrowDown": moveBlockDown,
     };
   }
 

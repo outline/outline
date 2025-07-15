@@ -102,22 +102,20 @@ export default class FileHelper {
         const pHYsChunk = chunks.find((chunk) => chunk.name === "pHYs");
         const iHDRChunk = chunks.find((chunk) => chunk.name === "IHDR");
 
-        if (!pHYsChunk || !iHDRChunk) {
-          return;
-        }
+        if (pHYsChunk && iHDRChunk) {
+          const idhrData = parseIHDR(new DataView(iHDRChunk.data.buffer));
+          const physData = parsePhys(new DataView(pHYsChunk.data.buffer));
 
-        const idhrData = parseIHDR(new DataView(iHDRChunk.data.buffer));
-        const physData = parsePhys(new DataView(pHYsChunk.data.buffer));
-
-        if (physData.unit === 0 && physData.ppux === physData.ppuy) {
-          const pixelRatio = Math.round(physData.ppux / 2834.5);
-          return {
-            width: idhrData.width / pixelRatio,
-            height: idhrData.height / pixelRatio,
-          };
+          if (physData.unit === 0 && physData.ppux === physData.ppuy) {
+            const pixelRatio = Math.round(physData.ppux / 2834.5);
+            return {
+              width: idhrData.width / pixelRatio,
+              height: idhrData.height / pixelRatio,
+            };
+          }
         }
       } catch (_e) {
-        return undefined;
+        // Fallback to loading from image
       }
     }
 

@@ -17,8 +17,12 @@ async function presentRevision(revision: Revision, diff?: string) {
     icon: revision.icon ?? emoji,
     color: revision.color,
     html: diff,
+    collaborators: (await revision.collaborators).map((user) =>
+      presentUser(user)
+    ),
     createdAt: revision.createdAt,
     createdBy: presentUser(revision.user),
+    createdById: revision.userId,
     deletedAt: revision.deletedAt,
   };
 }

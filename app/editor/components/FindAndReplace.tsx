@@ -7,7 +7,6 @@ import {
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { usePopoverState } from "reakit/Popover";
 import styled, { useTheme } from "styled-components";
 import { depths, s } from "@shared/styles";
 import { altDisplay, isModKey, metaDisplay } from "@shared/utils/keyboard";
@@ -15,24 +14,26 @@ import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import NudeButton from "~/components/NudeButton";
-import Popover from "~/components/Popover";
-import { Portal } from "~/components/Portal";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Tooltip from "~/components/Tooltip";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "~/components/primitives/Popover";
 import useKeyDown from "~/hooks/useKeyDown";
-import useOnClickOutside from "~/hooks/useOnClickOutside";
 import Desktop from "~/utils/Desktop";
 import { useEditor } from "./EditorContext";
 
 type KeyboardShortcutsProps = {
-  popover: ReturnType<typeof usePopoverState>;
+  open: boolean;
   handleOpen: ({ withReplace }: { withReplace: boolean }) => void;
   handleCaseSensitive: () => void;
   handleRegex: () => void;
 };
 
 function useKeyboardShortcuts({
-  popover,
+  open,
   handleOpen,
   handleCaseSensitive,
   handleRegex,
@@ -41,7 +42,7 @@ function useKeyboardShortcuts({
   useKeyDown(
     (ev) =>
       isModKey(ev) &&
-      !popover.visible &&
+      !open &&
       ev.code === "KeyF" &&
       // Keyboard handler is through the AppMenu on Desktop v1.2.0+
       !(Desktop.bridge && "onFindInPage" in Desktop.bridge),
@@ -54,7 +55,7 @@ function useKeyboardShortcuts({
 
   // Enable/disable case sensitive search
   useKeyDown(
-    (ev) => isModKey(ev) && ev.altKey && ev.code === "KeyC" && popover.visible,
+    (ev) => isModKey(ev) && ev.altKey && ev.code === "KeyC" && open,
     (ev) => {
       ev.preventDefault();
       handleCaseSensitive();
@@ -64,7 +65,7 @@ function useKeyboardShortcuts({
 
   // Enable/disable regex search
   useKeyDown(
-    (ev) => isModKey(ev) && ev.altKey && ev.code === "KeyR" && popover.visible,
+    (ev) => isModKey(ev) && ev.altKey && ev.code === "KeyR" && open,
     (ev) => {
       ev.preventDefault();
       handleRegex();
@@ -97,9 +98,7 @@ export default function FindAndReplace({
   totalResults,
 }: Props) {
   const editor = useEditor();
-  const finalFocusRef = React.useRef<HTMLElement>(
-    editor.view.dom.parentElement
-  );
+  const [localOpen, setLocalOpen] = React.useState(open);
   const selectionRef = React.useRef<string | undefined>();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const inputReplaceRef = React.useRef<HTMLInputElement>(null);
@@ -110,12 +109,10 @@ export default function FindAndReplace({
   const [regexEnabled, setRegex] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [replaceTerm, setReplaceTerm] = React.useState("");
-  const popover = usePopoverState();
-  const { show } = popover;
 
   React.useEffect(() => {
     if (open) {
-      show();
+      setLocalOpen(true);
     }
   }, [open]);
 
@@ -127,16 +124,16 @@ export default function FindAndReplace({
     if ("onFindInPage" in Desktop.bridge) {
       Desktop.bridge.onFindInPage(() => {
         selectionRef.current = window.getSelection()?.toString();
-        show();
+        setLocalOpen(true);
       });
     }
     if ("onReplaceInPage" in Desktop.bridge) {
       Desktop.bridge.onReplaceInPage(() => {
         setShowReplace(true);
-        show();
+        setLocalOpen(true);
       });
     }
-  }, [show]);
+  }, []);
 
   // Callbacks
   const selectInputText = React.useCallback(() => {
@@ -159,7 +156,7 @@ export default function FindAndReplace({
       const shouldShowReplace = !readOnly && withReplace;
 
       // If already open, switch focus to corresponding input text.
-      if (popover.visible) {
+      if (localOpen) {
         if (shouldShowReplace) {
           setShowReplace(true);
           selectInputReplaceText();
@@ -171,13 +168,13 @@ export default function FindAndReplace({
       }
 
       selectionRef.current = window.getSelection()?.toString();
-      popover.show();
+      setLocalOpen(true);
 
       if (shouldShowReplace) {
         setShowReplace(true);
       }
     },
-    [popover, readOnly, selectInputText, selectInputReplaceText]
+    [localOpen, readOnly, selectInputText, selectInputReplaceText]
   );
 
   const handleMore = React.useCallback(() => {
@@ -295,10 +292,8 @@ export default function FindAndReplace({
     [handleReplace]
   );
 
-  useOnClickOutside(popover.unstable_referenceRef, popover.hide);
-
   useKeyboardShortcuts({
-    popover,
+    open: localOpen,
     handleOpen,
     handleCaseSensitive,
     handleRegex,
@@ -316,7 +311,7 @@ export default function FindAndReplace({
   );
 
   React.useEffect(() => {
-    if (popover.visible) {
+    if (localOpen) {
       onOpen();
       const startSearchText = selectionRef.current || searchTerm;
 
@@ -339,7 +334,7 @@ export default function FindAndReplace({
       editor.commands.clearSearch();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [popover.visible]);
+  }, [localOpen]);
 
   const disabled = totalResults === 0;
   const navigation = (
@@ -368,15 +363,16 @@ export default function FindAndReplace({
   );
 
   return (
-    <Portal>
-      <Popover
-        {...popover}
-        unstable_finalFocusRef={finalFocusRef}
-        style={style}
+    <Popover open={localOpen} onOpenChange={setLocalOpen}>
+      <PopoverTrigger>
+        <span style={style} />
+      </PopoverTrigger>
+      <PopoverContent
         aria-label={t("Find and replace")}
-        scrollable={false}
-        minWidth={420}
         width={0}
+        minWidth={420}
+        scrollable={false}
+        onPointerDownOutside={() => setLocalOpen(false)}
       >
         <Content column>
           <Flex gap={4}>
@@ -467,8 +463,8 @@ export default function FindAndReplace({
             )}
           </ResizingHeightContainer>
         </Content>
-      </Popover>
-    </Portal>
+      </PopoverContent>
+    </Popover>
   );
 }
 
