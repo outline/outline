@@ -12,7 +12,7 @@ class SearchQuery extends Model {
   /**
    * Where the query originated.
    */
-  source: "api" | "app" | "slack";
+  source: "api" | "app" | "slack" | "oauth";
 
   delete = async () => {
     this.isSaving = true;

@@ -64,7 +64,7 @@ const ConfirmationDialog: React.FC<Props> = ({
             danger={danger}
             autoFocus
           >
-            {isSaving && savingText ? savingText : submitText ?? t("Confirm")}
+            {isSaving && savingText ? savingText : (submitText ?? t("Confirm"))}
           </Button>
         </Flex>
       </Flex>

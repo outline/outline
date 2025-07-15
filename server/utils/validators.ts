@@ -86,3 +86,38 @@ export function CannotUseWithAny(
     });
   };
 }
+
+export function IsInCaseInsensitive(
+  allowedValues: string[],
+  validationOptions?: ValidationOptions
+) {
+  return function (object: object, propertyName: string) {
+    registerDecorator({
+      name: "isInCaseInsensitive",
+      target: object.constructor,
+      propertyName,
+      constraints: [allowedValues],
+      options: validationOptions,
+      validator: {
+        validate<T>(value: T, args: ValidationArguments) {
+          if (value === undefined || value === null) {
+            return true;
+          }
+          if (typeof value !== "string") {
+            return false;
+          }
+          const av = args.constraints[0] as string[];
+          return av.some(
+            (allowedValue) => allowedValue.toLowerCase() === value.toLowerCase()
+          );
+        },
+        defaultMessage(args: ValidationArguments) {
+          const av = args.constraints[0] as string[];
+          return `${propertyName} must be one of: ${av.join(
+            ", "
+          )} (case insensitive).`;
+        },
+      },
+    });
+  };
+}

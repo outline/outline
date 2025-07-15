@@ -16,8 +16,7 @@ import {
   PlusIcon,
   InternetIcon,
 } from "outline-icons";
-import { ComponentProps } from "react";
-import * as React from "react";
+import { ComponentProps, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import { Integrations } from "~/scenes/Settings/Integrations";
@@ -65,7 +64,7 @@ const useSettingsConfig = () => {
   const can = usePolicy(team);
   const { t } = useTranslation();
 
-  React.useEffect(() => {
+  useEffect(() => {
     void integrations.fetchAll();
   }, [integrations]);
 
@@ -213,7 +212,7 @@ const useSettingsConfig = () => {
         name: `${t("Install")}…`,
         path: settingsPath("integrations"),
         component: Integrations,
-        enabled: true,
+        enabled: can.update,
         group: t("Integrations"),
         icon: PlusIcon,
       },

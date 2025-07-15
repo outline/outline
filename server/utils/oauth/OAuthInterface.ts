@@ -59,9 +59,8 @@ export const OAuthInterface: RefreshTokenModel &
   },
 
   async getAccessToken(accessToken: string) {
-    const authentication = await OAuthAuthentication.findByAccessToken(
-      accessToken
-    );
+    const authentication =
+      await OAuthAuthentication.findByAccessToken(accessToken);
     if (!authentication) {
       return false;
     }
@@ -79,9 +78,8 @@ export const OAuthInterface: RefreshTokenModel &
   },
 
   async getRefreshToken(refreshToken: string) {
-    const authentication = await OAuthAuthentication.findByRefreshToken(
-      refreshToken
-    );
+    const authentication =
+      await OAuthAuthentication.findByRefreshToken(refreshToken);
     if (!authentication) {
       return false;
     }

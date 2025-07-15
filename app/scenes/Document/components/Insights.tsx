@@ -157,8 +157,8 @@ function Insights() {
                             ? t("Imported")
                             : t("Creator")
                           : model.id === document.updatedBy?.id
-                          ? t("Last edited")
-                          : t("Previously edited")
+                            ? t("Last edited")
+                            : t("Previously edited")
                       }
                       border={false}
                       small

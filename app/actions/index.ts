@@ -6,10 +6,13 @@ import {
   Action,
   ActionContext,
   CommandBarAction,
+  MenuExternalLink,
+  MenuInternalLink,
   MenuItemButton,
   MenuItemWithChildren,
 } from "~/types";
 import Analytics from "~/utils/Analytics";
+import history from "~/utils/history";
 
 function resolve<T>(value: any, context: ActionContext): T {
   return typeof value === "function" ? value(context) : value;
@@ -27,11 +30,10 @@ export function createAction(definition: Optional<Action, "id">): Action {
               context: context.isButton
                 ? "button"
                 : context.isCommandBar
-                ? "commandbar"
-                : "contextmenu",
+                  ? "commandbar"
+                  : "contextmenu",
             });
           }
-
           return definition.perform?.(context);
         }
       : undefined,
@@ -42,7 +44,7 @@ export function createAction(definition: Optional<Action, "id">): Action {
 export function actionToMenuItem(
   action: Action,
   context: ActionContext
-): MenuItemButton | MenuItemWithChildren {
+): MenuItemButton | MenuExternalLink | MenuInternalLink | MenuItemWithChildren {
   const resolvedIcon = resolve<React.ReactElement<any>>(action.icon, context);
   const resolvedChildren = resolve<Action[]>(action.children, context);
   const visible = action.visible ? action.visible(context) : true;
@@ -65,6 +67,26 @@ export function actionToMenuItem(
       items,
       visible: visible && items.length > 0,
     };
+  }
+
+  if (action.to) {
+    return typeof action.to === "string"
+      ? {
+          type: "route",
+          title,
+          icon,
+          visible,
+          to: action.to,
+          selected: action.selected?.(context),
+        }
+      : {
+          type: "link",
+          title,
+          icon,
+          visible,
+          href: action.to,
+          selected: action.selected?.(context),
+        };
   }
 
   return {
@@ -99,7 +121,7 @@ export function actionToKBar(
 
   const sectionPriority =
     typeof action.section !== "string" && "priority" in action.section
-      ? (action.section.priority as number) ?? 0
+      ? ((action.section.priority as number) ?? 0)
       : 0;
 
   return [
@@ -113,9 +135,10 @@ export function actionToKBar(
       shortcut: action.shortcut || [],
       icon: resolvedIcon,
       priority: (1 + (action.priority ?? 0)) * (1 + (sectionPriority ?? 0)),
-      perform: action.perform
-        ? () => performAction(action, context)
-        : undefined,
+      perform:
+        action.perform || action.to
+          ? () => performAction(action, context)
+          : undefined,
     },
   ].concat(
     // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
@@ -124,7 +147,13 @@ export function actionToKBar(
 }
 
 export async function performAction(action: Action, context: ActionContext) {
-  const result = action.perform?.(context);
+  const result = action.perform
+    ? action.perform(context)
+    : action.to
+      ? typeof action.to === "string"
+        ? history.push(action.to)
+        : window.open(action.to.url, action.to.target)
+      : undefined;
 
   if (result instanceof Promise) {
     return result.catch((err: Error) => {

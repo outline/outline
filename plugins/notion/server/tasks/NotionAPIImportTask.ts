@@ -139,7 +139,7 @@ export default class NotionAPIImportTask extends APIImportTask<IntegrationServic
           error.code === APIErrorCode.ObjectNotFound ||
           error.code === APIErrorCode.Unauthorized ||
           error.message.includes(
-            "Database with ID is a linked database. Database retrievals do not support linked databases"
+            "Database retrievals do not support linked databases"
           )
         ) {
           Logger.warn(

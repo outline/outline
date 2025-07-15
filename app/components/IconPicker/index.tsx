@@ -1,19 +1,22 @@
-import * as Popover from "@radix-ui/react-popover";
 import * as Tabs from "@radix-ui/react-tabs";
 import { SmileyIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
 import Icon from "@shared/components/Icon";
-import { s, hover, depths } from "@shared/styles";
+import { s, hover } from "@shared/styles";
 import theme from "@shared/styles/theme";
 import { IconType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "~/components/primitives/Popover";
 import useMobile from "~/hooks/useMobile";
 import useWindowSize from "~/hooks/useWindowSize";
-import { fadeAndScaleIn } from "~/styles/animations";
 import { Drawer, DrawerContent, DrawerTrigger } from "../primitives/Drawer";
 import EmojiPanel from "./components/EmojiPanel";
 import IconPanel from "./components/IconPanel";
@@ -126,7 +129,24 @@ const IconPicker = ({
     onChange(null, null);
   }, [setOpen, onChange]);
 
-  const PickerContent = (
+  const pickerTrigger = (
+    <PopoverButton
+      aria-label={t("Show menu")}
+      className={className}
+      size={size}
+      $borderOnHover={borderOnHover}
+    >
+      {children ? (
+        children
+      ) : iconType && icon ? (
+        <Icon value={icon} color={color} size={size} initial={initial} />
+      ) : (
+        <StyledSmileyIcon color={theme.placeholder} size={size} />
+      )}
+    </PopoverButton>
+  );
+
+  const pickerContent = (
     <Content
       open={open}
       activeTab={activeTab}
@@ -151,60 +171,28 @@ const IconPicker = ({
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={setOpen}>
-        <DrawerTrigger asChild>
-          <PopoverButton
-            aria-label={t("Show menu")}
-            className={className}
-            size={size}
-            $borderOnHover={borderOnHover}
-          >
-            {children ? (
-              children
-            ) : iconType && icon ? (
-              <Icon value={icon} color={color} size={size} initial={initial} />
-            ) : (
-              <StyledSmileyIcon color={theme.placeholder} size={size} />
-            )}
-          </PopoverButton>
-        </DrawerTrigger>
+        <DrawerTrigger asChild>{pickerTrigger}</DrawerTrigger>
         <DrawerContent aria-label={t("Icon Picker")}>
-          {PickerContent}
+          {pickerContent}
         </DrawerContent>
       </Drawer>
     );
   }
 
   return (
-    <Popover.Root open={open} onOpenChange={handleOpenChange} modal={true}>
-      <Popover.Trigger asChild>
-        <PopoverButton
-          aria-label={t("Show menu")}
-          className={className}
-          size={size}
-          $borderOnHover={borderOnHover}
-        >
-          {children ? (
-            children
-          ) : iconType && icon ? (
-            <Icon value={icon} color={color} size={size} initial={initial} />
-          ) : (
-            <StyledSmileyIcon color={theme.placeholder} size={size} />
-          )}
-        </PopoverButton>
-      </Popover.Trigger>
-      <Popover.Portal>
-        <StyledPopoverContent
-          side={popoverPosition === "right" ? "right" : "bottom"}
-          align={popoverPosition === "bottom-start" ? "start" : "center"}
-          sideOffset={0}
-          width={popoverWidth}
-          aria-label={t("Icon Picker")}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {PickerContent}
-        </StyledPopoverContent>
-      </Popover.Portal>
-    </Popover.Root>
+    <Popover open={open} onOpenChange={handleOpenChange} modal={true}>
+      <PopoverTrigger>{pickerTrigger}</PopoverTrigger>
+      <PopoverContent
+        aria-label={t("Icon Picker")}
+        width={popoverWidth}
+        side={popoverPosition === "right" ? "right" : "bottom"}
+        align={popoverPosition === "bottom-start" ? "start" : "center"}
+        scrollable={false}
+        shrink
+      >
+        {pickerContent}
+      </PopoverContent>
+    </Popover>
   );
 };
 
@@ -346,29 +334,6 @@ const StyledTab = styled(Tabs.Trigger)<{ $active: boolean }>`
 const StyledTabContent = styled(Tabs.Content)`
   height: 410px;
   overflow-y: auto;
-`;
-
-const StyledPopoverContent = styled(Popover.Content)<{ width: number }>`
-  animation: ${fadeAndScaleIn} 200ms ease;
-  transform-origin: var(--radix-popover-content-transform-origin);
-  background: ${s("menuBackground")};
-  border-radius: 6px;
-  padding: 6px 0;
-  max-height: 75vh;
-  box-shadow: ${s("menuShadow")};
-  z-index: ${depths.modal};
-  width: ${(props) => props.width}px;
-  overflow: hidden;
-  outline: none;
-
-  @media (max-width: 768px) {
-    position: fixed;
-    z-index: ${depths.menu};
-    top: 50px;
-    left: 8px;
-    right: 8px;
-    width: auto;
-  }
 `;
 
 export default React.memo(IconPicker);

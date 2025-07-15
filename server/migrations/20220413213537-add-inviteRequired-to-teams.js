@@ -1,11 +1,11 @@
-'use strict';
+"use strict";
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.addColumn("teams", "inviteRequired", {
       type: Sequelize.BOOLEAN,
       defaultValue: false,
-      allowNull: false
+      allowNull: false,
     });
   },
   down: async (queryInterface) => {

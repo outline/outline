@@ -40,7 +40,7 @@ import BaseProcessor from "./BaseProcessor";
 export const PagePerImportTask = 3;
 
 export default abstract class ImportsProcessor<
-  T extends ImportableIntegrationService
+  T extends ImportableIntegrationService,
 > extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
     "imports.create",
@@ -520,8 +520,8 @@ export default abstract class ImportsProcessor<
           node.type.name === "mention"
             ? transformMentionNode(node)
             : node.type.name === "attachment"
-            ? transformAttachmentNode(node)
-            : node.copy(transformFragment(node.content))
+              ? transformAttachmentNode(node)
+              : node.copy(transformFragment(node.content))
         );
       });
 

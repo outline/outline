@@ -145,11 +145,48 @@ function InnerDocumentLink(
     },
     [documents, document]
   );
+  const handleRename = React.useCallback(() => {
+    editableTitleRef.current?.setIsEditing(true);
+  }, []);
+
+  const toPath = React.useMemo(
+    () => ({
+      pathname: node.url,
+      state: {
+        title: node.title,
+        sidebarContext,
+      },
+    }),
+    [node.url, node.title, sidebarContext]
+  );
+
+  const isActiveCheck = React.useCallback(
+    (
+      match,
+      location: Location<{
+        sidebarContext?: SidebarContextType;
+      }>
+    ) => {
+      if (sidebarContext !== location.state?.sidebarContext) {
+        return false;
+      }
+      return (
+        (document && location.pathname.endsWith(document.urlId)) || !!match
+      );
+    },
+    [sidebarContext, document]
+  );
+
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const isMoving = documents.movingDocumentId === node.id;
   const can = policies.abilities(node.id);
   const icon = document?.icon || node.icon || node.emoji;
   const color = document?.color || node.color;
+
+  const iconElement = React.useMemo(
+    () => (icon ? <Icon value={icon} color={color} /> : undefined),
+    [icon, color]
+  );
 
   // Draggable
   const [{ isDragging }, drag] = useDragDocument(
@@ -284,14 +321,8 @@ function InnerDocumentLink(
                 expanded={hasChildren ? isExpanded : undefined}
                 onDisclosureClick={handleDisclosureClick}
                 onClickIntent={handlePrefetch}
-                to={{
-                  pathname: node.url,
-                  state: {
-                    title: node.title,
-                    sidebarContext,
-                  },
-                }}
-                icon={icon && <Icon value={icon} color={color} />}
+                to={toPath}
+                icon={iconElement}
                 label={
                   <EditableTitle
                     title={title}
@@ -303,20 +334,7 @@ function InnerDocumentLink(
                     ref={editableTitleRef}
                   />
                 }
-                isActive={(
-                  match,
-                  location: Location<{
-                    sidebarContext?: SidebarContextType;
-                  }>
-                ) => {
-                  if (sidebarContext !== location.state?.sidebarContext) {
-                    return false;
-                  }
-                  return (
-                    (document && location.pathname.endsWith(document.urlId)) ||
-                    !!match
-                  );
-                }}
+                isActive={isActiveCheck}
                 isActiveDrop={isOverReparent && canDropToReparent}
                 depth={depth}
                 exact={false}
@@ -347,9 +365,7 @@ function InnerDocumentLink(
                       )}
                       <DocumentMenu
                         document={document}
-                        onRename={() =>
-                          editableTitleRef.current?.setIsEditing(true)
-                        }
+                        onRename={handleRename}
                         onOpen={handleMenuOpen}
                         onClose={handleMenuClose}
                       />

@@ -40,8 +40,8 @@ export function getCellAttrs(dom: HTMLElement | string): Attrs {
       dom.style.textAlign === "center"
         ? "center"
         : dom.style.textAlign === "right"
-        ? "right"
-        : null,
+          ? "right"
+          : null,
   } satisfies CellAttrs;
 }
 

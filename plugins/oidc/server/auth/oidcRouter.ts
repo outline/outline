@@ -5,6 +5,7 @@ import Router from "koa-router";
 import get from "lodash/get";
 import { slugifyDomain } from "@shared/utils/domains";
 import { parseEmail } from "@shared/utils/email";
+import { isBase64Url } from "@shared/utils/urls";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import {
   OIDCMalformedUserInfoError,
@@ -29,6 +30,7 @@ export interface OIDCEndpoints {
   tokenURL: string;
   userInfoURL: string;
   logoutURL?: string;
+  pkce?: boolean;
 }
 
 /**
@@ -52,9 +54,9 @@ export function createOIDCRouter(
         passReqToCallback: true,
         scope: env.OIDC_SCOPES,
         // @ts-expect-error custom state store
-        store: new StateStore(),
+        store: new StateStore(endpoints.pkce),
         state: true,
-        pkce: false,
+        pkce: endpoints.pkce ?? false,
       },
       // OpenID Connect standard profile claims can be found in the official
       // specification.
@@ -122,7 +124,7 @@ export function createOIDCRouter(
 
           // Only a single OIDC provider is supported – find the existing, if any.
           const authenticationProvider = team
-            ? (await AuthenticationProvider.findOne({
+            ? ((await AuthenticationProvider.findOne({
                 where: {
                   name: "oidc",
                   teamId: team.id,
@@ -134,7 +136,7 @@ export function createOIDCRouter(
                   name: "oidc",
                   teamId: team.id,
                 },
-              }))
+              })))
             : undefined;
 
           // Derive a providerId from the OIDC location if there is no existing provider.
@@ -164,6 +166,20 @@ export function createOIDCRouter(
             );
           }
 
+          // Check if the picture field is a Base64 data URL and filter it out
+          // to avoid validation errors in the User model
+          let avatarUrl = profile.picture;
+          if (profile.picture && isBase64Url(profile.picture)) {
+            Logger.debug(
+              "authentication",
+              "Filtering out Base64 data URL from avatar",
+              {
+                email,
+              }
+            );
+            avatarUrl = null;
+          }
+
           const result = await accountProvisioner({
             ip: ctx.ip,
             team: {
@@ -175,7 +191,7 @@ export function createOIDCRouter(
             user: {
               name,
               email,
-              avatarUrl: profile.picture,
+              avatarUrl,
             },
             authenticationProvider: {
               name: config.id,

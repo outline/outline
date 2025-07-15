@@ -110,6 +110,32 @@ class Revision extends ParanoidModel<
   @Column(DataType.UUID)
   userId: string;
 
+  /** Array of user IDs who collaborated on this revision */
+  @Column(DataType.ARRAY(DataType.UUID))
+  collaboratorIds: string[] = [];
+
+  /**
+   * Get the collaborators for this revision.
+   */
+  get collaborators() {
+    const otherCollaboratorIds = (this.collaboratorIds ?? []).filter(
+      (id) => id !== this.userId
+    );
+
+    if (otherCollaboratorIds.length === 0) {
+      return [this.user];
+    }
+
+    return User.findAll({
+      where: {
+        id: {
+          [Op.in]: otherCollaboratorIds,
+        },
+      },
+      paranoid: false,
+    }).then((others) => [this.user, ...others]);
+  }
+
   // hooks
 
   @BeforeDestroy
@@ -162,14 +188,21 @@ class Revision extends ParanoidModel<
    * Create a Revision model from a Document model and save it to the database
    *
    * @param document The document to create from
+   * @param collaboratorIds Optional array of user IDs who authored this revision
    * @param options Options passed to the save method
    * @returns A Promise that resolves when saved
    */
   static createFromDocument(
     document: Document,
+    collaboratorIds?: string[],
     options?: SaveOptions<InferAttributes<Revision>>
   ) {
     const revision = this.buildFromDocument(document);
+
+    if (collaboratorIds) {
+      revision.collaboratorIds = collaboratorIds;
+    }
+
     return revision.save(options);
   }
 

@@ -1,7 +1,14 @@
 /**
- * Returns true if we're running in the browser.
+ * Is true if we're running in the browser.
  */
 export const isBrowser = typeof window !== "undefined";
+
+/**
+ * Is true if the browser is running as an installed PWA on mobile or desktop
+ */
+export const isPWA =
+  typeof window !== "undefined" &&
+  window.matchMedia?.("(display-mode: standalone)").matches;
 
 /**
  * Returns true if the client is a touch device.

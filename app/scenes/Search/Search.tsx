@@ -222,8 +222,8 @@ function Search() {
               documentId
                 ? t("Search in document")
                 : collectionId
-                ? t("Search in collection")
-                : t("Search")
+                  ? t("Search in collection")
+                  : t("Search")
             }…`}
             onKeyDown={handleKeyDown}
             defaultValue={query ?? ""}

@@ -10,6 +10,7 @@ import Error402 from "~/scenes/Errors/Error402";
 import Error403 from "~/scenes/Errors/Error403";
 import Error404 from "~/scenes/Errors/Error404";
 import ErrorOffline from "~/scenes/Errors/ErrorOffline";
+import ErrorUnknown from "~/scenes/Errors/ErrorUnknown";
 import { useDocumentContext } from "~/components/DocumentContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -220,8 +221,10 @@ function DataLoader({ match, children }: Props) {
       <Error402 />
     ) : error instanceof AuthorizationError ? (
       <Error403 />
-    ) : (
+    ) : error instanceof NotFoundError ? (
       <Error404 />
+    ) : (
+      <ErrorUnknown />
     );
   }
 

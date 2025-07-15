@@ -17,7 +17,7 @@ import DefaultCollectionInputSelect from "~/components/DefaultCollectionInputSel
 import Heading from "~/components/Heading";
 import Input from "~/components/Input";
 import InputColor from "~/components/InputColor";
-import { InputSelectNew, Option } from "~/components/InputSelectNew";
+import { InputSelect, Option } from "~/components/InputSelect";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
@@ -287,11 +287,10 @@ function Details() {
               "The side to display the table of contents in relation to the main content."
             )}
           >
-            <InputSelectNew
+            <InputSelect
               options={tocPositionOptions}
               value={tocPosition}
               onChange={handleTocPositionChange}
-              ariaLabel={t("Table of contents position")}
               label={t("Table of contents position")}
               hideLabel
             />
