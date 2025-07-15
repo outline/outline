@@ -17,12 +17,6 @@ type ReposForInstallation =
   Endpoints["GET /installation/repositories"]["response"]["data"]["repositories"];
 
 export class GitHubIssueProvider extends BaseIssueProvider {
-  private interestedActionsForEvent: Record<string, string[]> = {
-    installation: ["new_permissions_accepted"],
-    installation_repositories: ["added", "removed"],
-    repository: ["renamed"],
-  };
-
   constructor() {
     super(IntegrationService.GitHub);
   }
@@ -69,21 +63,9 @@ export class GitHubIssueProvider extends BaseIssueProvider {
       return;
     }
 
-    const actions = this.interestedActionsForEvent[eventName];
-
-    if (!actions || !actions.includes(action)) {
-      Logger.info(
-        "task",
-        `Ignoring GitHub event: ${eventName} - ${action}; hookId: ${hookId}`
-      );
-      return;
-    }
-
     switch (eventName) {
       case "installation": {
-        await this.handleNewPermissionsAcceptedEvent(
-          payload as unknown as InstallationNewPermissionsAcceptedEvent // other installation events are filtered out.
-        );
+        await this.handleInstallationEvent(payload, action);
         break;
       }
 
@@ -95,10 +77,7 @@ export class GitHubIssueProvider extends BaseIssueProvider {
       }
 
       case "repository": {
-        await this.handleRepositoryRenamedEvent(
-          payload as unknown as RepositoryRenamedEvent, // other repository events are filtered out.
-          hookId
-        );
+        await this.handleRepositoryEvent(payload, action, hookId);
         break;
       }
 
@@ -106,9 +85,15 @@ export class GitHubIssueProvider extends BaseIssueProvider {
     }
   }
 
-  private async handleNewPermissionsAcceptedEvent(
-    event: InstallationNewPermissionsAcceptedEvent
+  private async handleInstallationEvent(
+    payload: Record<string, unknown>,
+    action: string
   ): Promise<void> {
+    if (action !== "new_permissions_accepted") {
+      return;
+    }
+
+    const event = payload as unknown as InstallationNewPermissionsAcceptedEvent;
     const installationId = event.installation.id;
     const integration = await Integration.findOne({
       where: {
@@ -214,10 +199,16 @@ export class GitHubIssueProvider extends BaseIssueProvider {
     });
   }
 
-  private async handleRepositoryRenamedEvent(
-    event: RepositoryRenamedEvent,
+  private async handleRepositoryEvent(
+    payload: Record<string, unknown>,
+    action: string,
     hookId: string
   ): Promise<void> {
+    if (action !== "renamed") {
+      return;
+    }
+
+    const event = payload as unknown as RepositoryRenamedEvent;
     const installationId = event.installation?.id;
 
     if (!installationId) {
@@ -241,6 +232,9 @@ export class GitHubIssueProvider extends BaseIssueProvider {
       });
 
       if (!integration) {
+        Logger.warn(
+          `GitHub repository renamed event without integration; installationId: ${installationId}`
+        );
         return;
       }
 

@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { Next } from "koa";
 import { APIContext } from "@server/types";
+import { safeEqual } from "@server/utils/crypto";
 
 export default function validateWebhook({
   secretKey,
@@ -24,12 +25,7 @@ export default function validateWebhook({
       .update(JSON.stringify(body))
       .digest("hex");
 
-    if (
-      !crypto.timingSafeEqual(
-        Buffer.from(computedSignature),
-        Buffer.from(signatureFromHeader)
-      )
-    ) {
+    if (!safeEqual(computedSignature, signatureFromHeader)) {
       ctx.status = 401;
       ctx.body = "Invalid signature";
       return;
