@@ -29,7 +29,6 @@ function Spotify({ matches, ...props }: Props) {
       width="100%"
       height={`${height}px`}
       src={`https://open.spotify.com/embed${normalizedPath}`}
-      canonicalUrl={props.attrs.href}
       title="Spotify Embed"
       allow="encrypted-media"
     />

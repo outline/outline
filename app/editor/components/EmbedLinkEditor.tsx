@@ -6,10 +6,10 @@ import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
-import Input from "@shared/editor/components/Input";
 import { getMatchingEmbed } from "@shared/editor/lib/embeds";
 import Flex from "~/components/Flex";
 import Tooltip from "~/components/Tooltip";
+import Input from "~/editor/components/Input";
 import { Dictionary } from "~/hooks/useDictionary";
 import useEmbeds from "~/hooks/useEmbeds";
 import ToolbarButton from "./ToolbarButton";
@@ -25,17 +25,7 @@ export function EmbedLinkEditor({ node, view, dictionary }: Props) {
   const embeds = useEmbeds();
 
   const url = node.attrs.href as string;
-
   const [localUrl, setLocalUrl] = useState(url);
-
-  const openEmbed = useCallback(() => {
-    window.open(url, "_blank");
-  }, [url]);
-
-  const removeEmbed = useCallback(() => {
-    const { state, dispatch } = view;
-    dispatch(state.tr.deleteSelection());
-  }, [view]);
 
   const moveSelectionToEnd = useCallback(() => {
     const { state, dispatch } = view;
@@ -49,6 +39,15 @@ export function EmbedLinkEditor({ node, view, dictionary }: Props) {
 
     dispatch(state.tr.setSelection(selection));
     view.focus();
+  }, [view]);
+
+  const openEmbed = useCallback(() => {
+    window.open(url, "_blank");
+  }, [url]);
+
+  const removeEmbed = useCallback(() => {
+    const { state, dispatch } = view;
+    dispatch(state.tr.deleteSelection());
   }, [view]);
 
   const updateEmbed = useCallback(() => {

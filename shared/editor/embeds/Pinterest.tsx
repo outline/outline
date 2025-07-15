@@ -30,7 +30,6 @@ function Pinterest({ matches, ...props }: Props) {
       {...props}
       ref={frame}
       src={`/embeds/pinterest?url=${encodeURIComponent(boardUrl)}`}
-      canonicalUrl={props.attrs.href}
       title="Pinterest Content"
       height={`${height}px`}
       width="100%"

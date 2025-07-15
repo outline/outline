@@ -7,7 +7,6 @@ import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
 import insertFiles from "@shared/editor/commands/insertFiles";
-import Input from "@shared/editor/components/Input";
 import { EmbedDescriptor } from "@shared/editor/embeds";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { findParentNode } from "@shared/editor/queries/findParentNode";
@@ -21,6 +20,7 @@ import Scrollable from "~/components/Scrollable";
 import useDictionary from "~/hooks/useDictionary";
 import Logger from "~/utils/Logger";
 import { useEditor } from "./EditorContext";
+import Input from "./Input";
 
 type TopAnchor = {
   top: number;

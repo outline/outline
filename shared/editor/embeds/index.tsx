@@ -29,7 +29,6 @@ export type EmbedProps = {
   attrs: {
     href: string;
   };
-  onUrlChange: (url: string) => void;
 };
 
 const Img = styled(Image)`

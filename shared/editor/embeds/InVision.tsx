@@ -21,14 +21,7 @@ function InVision({ matches, ...props }: Props) {
     );
   }
 
-  return (
-    <Frame
-      {...props}
-      src={props.attrs.href}
-      canonicalUrl={props.attrs.href}
-      title="InVision Embed"
-    />
-  );
+  return <Frame {...props} src={props.attrs.href} title="InVision Embed" />;
 }
 
 export default InVision;

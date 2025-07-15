@@ -5,9 +5,7 @@ import { EmbedProps as Props } from ".";
 function Gist(props: Props) {
   return (
     <Frame
-      {...props}
       src={`/embeds/github?url=${encodeURIComponent(props.attrs.href)}`}
-      canonicalUrl={props.attrs.href}
       className={props.isSelected ? "ProseMirror-selectednode" : ""}
       width="100%"
       height="355px"

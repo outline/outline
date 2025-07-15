@@ -12,9 +12,9 @@ function Vimeo({ matches, ...props }: Props) {
       src={`https://player.vimeo.com/video/${videoId}?byline=0${
         hId ? `&h=${hId}` : ""
       }`}
-      canonicalUrl={props.attrs.href}
       title={`Vimeo Embed (${videoId})`}
       height="412px"
+      border={false}
       referrerPolicy="origin"
     />
   );

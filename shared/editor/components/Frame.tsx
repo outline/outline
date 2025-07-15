@@ -1,34 +1,31 @@
-import * as Popover from "@radix-ui/react-popover";
-import copy from "copy-to-clipboard";
-import { CopyIcon, EditIcon, OpenIcon } from "outline-icons";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { OpenIcon } from "outline-icons";
 import * as React from "react";
-import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
+import { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import { Optional } from "utility-types";
-import Flex from "../../components/Flex";
-import { depths, s } from "../../styles";
+import { s } from "../../styles";
 import { sanitizeUrl } from "../../utils/urls";
-import Input from "../components/Input";
 
-type IframeProps = React.IframeHTMLAttributes<HTMLIFrameElement>;
-
-type Props = Omit<Optional<IframeProps>, "children" | "style"> & {
+type Props = Omit<
+  Optional<React.ComponentProps<typeof Iframe>>,
+  "children" | "style"
+> & {
   /** The URL to load in the iframe */
-  src: string;
-  /** The canonical URL of the content */
-  canonicalUrl: string;
-  /** The title of the frame */
-  title: string;
+  src?: string;
+  /** Whether to display a border, defaults to true */
+  border?: boolean;
+  /** The aria title of the frame */
+  title?: string;
   /** An icon to display under the frame representing the service */
   icon?: React.ReactNode;
+  /** The canonical URL of the content */
+  canonicalUrl?: string;
   /** Whether the node is currently selected */
   isSelected?: boolean;
   /** Additional styling */
   style?: React.CSSProperties;
-  /** Callback when URL is changed */
-  onUrlChange: (url: string) => void;
+  /** The allow policy of the frame */
+  allow?: string;
 };
 
 type PropsWithRef = Props & {
@@ -36,6 +33,7 @@ type PropsWithRef = Props & {
 };
 
 const Frame = ({
+  border,
   style = {},
   forwardedRef,
   icon,
@@ -45,24 +43,10 @@ const Frame = ({
   referrerPolicy,
   className = "",
   src,
-  onUrlChange,
   ...rest
 }: PropsWithRef) => {
-  const { t } = useTranslation();
   const [isLoaded, setIsLoaded] = useState(false);
   const mountedRef = useRef(true);
-
-  const handleCopyLink = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (canonicalUrl) {
-        copy(canonicalUrl);
-        toast.success(t("Link copied to clipboard"));
-      }
-    },
-    [t, canonicalUrl]
-  );
 
   useEffect(() => {
     // Set mounted flag
@@ -82,9 +66,13 @@ const Frame = ({
     };
   }, []);
 
+  const showBottomBar = !!(icon || canonicalUrl);
+
   return (
     <Rounded
       style={style}
+      $showBottomBar={showBottomBar}
+      $border={border}
       className={
         isSelected ? `ProseMirror-selectednode ${className}` : className
       }
@@ -92,6 +80,7 @@ const Frame = ({
       {isLoaded && (
         <Iframe
           ref={forwardedRef}
+          $showBottomBar={showBottomBar}
           sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-downloads allow-storage-access-by-user-activation"
           style={style}
           frameBorder="0"
@@ -103,98 +92,50 @@ const Frame = ({
           {...rest}
         />
       )}
-      <Toolbar>
-        <Flex align="center" gap={4}>
+      {showBottomBar && (
+        <Bar>
           {icon} <Title>{title}</Title>
-        </Flex>
-        <Actions>
-          <EditLink url={canonicalUrl} onUrlChange={onUrlChange} />
-          <Button onClick={handleCopyLink}>
-            <CopyIcon size={18} />
-          </Button>
-          <Button
-            as={"a"}
-            href={canonicalUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <OpenIcon size={18} />
-          </Button>
-        </Actions>
-      </Toolbar>
+          {canonicalUrl && (
+            <Open href={canonicalUrl} target="_blank" rel="noopener noreferrer">
+              <OpenIcon size={18} /> Open
+            </Open>
+          )}
+        </Bar>
+      )}
     </Rounded>
   );
 };
 
-function EditLink({
-  url,
-  onUrlChange,
-}: {
-  url: string;
-  onUrlChange: (url: string) => void;
-}) {
-  const [localUrl, setLocalUrl] = useState(url);
-  const [open, setOpen] = useState(false);
-
-  const handleKeydown = useCallback(
-    (event: React.KeyboardEvent<HTMLInputElement>) => {
-      if (event.nativeEvent.isComposing) {
-        return;
-      }
-
-      if (event.key !== "Enter") {
-        return;
-      }
-
-      event.preventDefault();
-      event.stopPropagation();
-
-      onUrlChange(localUrl);
-    },
-    [localUrl, onUrlChange]
-  );
-
-  const reset = useCallback(() => {
-    setLocalUrl(url);
-  }, [url]);
-
-  return (
-    <Popover.Root open={open} onOpenChange={setOpen}>
-      <Popover.Trigger asChild>
-        <Button>
-          <EditIcon size={18} />
-        </Button>
-      </Popover.Trigger>
-      <Popover.Portal>
-        <StyledPopoverContent
-          side="bottom"
-          align="start"
-          onPointerDownOutside={reset}
-          onEscapeKeyDown={reset}
-        >
-          <LinkInput
-            type="text"
-            value={localUrl}
-            onChange={(e) => setLocalUrl(e.target.value)}
-            onKeyDown={handleKeydown}
-          />
-        </StyledPopoverContent>
-      </Popover.Portal>
-    </Popover.Root>
-  );
-}
-
-const Iframe = styled.iframe`
-  border-top-left-radius: 3px;
-  border-top-right-radius: 3px;
+const Iframe = styled.iframe<{ $showBottomBar: boolean }>`
+  border-radius: ${(props) => (props.$showBottomBar ? "3px 3px 0 0" : "3px")};
   display: block;
 `;
 
-const Rounded = styled.div`
-  border: ${(props) => `1px solid ${props.theme.embedBorder}`};
+const Rounded = styled.div<{
+  $showBottomBar: boolean;
+  $border?: boolean;
+}>`
+  border: 1px solid
+    ${(props) => (props.$border ? props.theme.embedBorder : "transparent")};
   border-radius: 6px;
   overflow: hidden;
-  padding-bottom: 28px;
+
+  ${(props) =>
+    props.$showBottomBar &&
+    `
+    padding-bottom: 28px;
+  `}
+`;
+
+const Open = styled.a`
+  color: ${s("textSecondary")} !important;
+  font-size: 13px;
+  font-weight: 500;
+  align-items: center;
+  display: flex;
+  position: absolute;
+  right: 0;
+  padding: 0 8px;
 `;
 
 const Title = styled.span`
@@ -203,35 +144,8 @@ const Title = styled.span`
   padding-left: 4px;
 `;
 
-const Actions = styled(Flex)`
+const Bar = styled.div`
   display: flex;
-  align-items: center;
-`;
-
-const Button = styled.button`
-  border: 0;
-  margin: 0;
-  padding: 0;
-  background: none;
-  color: ${s("textSecondary")} !important;
-  width: 24px;
-  height: 24px;
-  display: inline-block;
-  cursor: var(--pointer) !important;
-  transition: transform 150ms ease-in-out, color 150ms ease-in-out;
-
-  &:active {
-    transform: scale(0.98);
-  }
-
-  &:hover {
-    color: ${s("text")} !important;
-  }
-`;
-
-const Toolbar = styled.div`
-  display: flex;
-  justify-content: space-between;
   align-items: center;
   border-top: 1px solid ${(props) => props.theme.embedBorder};
   background: ${s("backgroundSecondary")};
@@ -242,25 +156,6 @@ const Toolbar = styled.div`
   user-select: none;
   height: 28px;
   position: relative;
-`;
-
-const StyledPopoverContent = styled(Popover.Content)`
-  background: ${s("menuBackground")};
-  width: 300px;
-  max-height: 75vh;
-  padding: 6px;
-  box-shadow: ${s("menuShadow")};
-  z-index: ${depths.modal};
-  overflow-x: hidden;
-  overflow-y: auto;
-  outline: none;
-`;
-
-const LinkInput = styled(Input)`
-  height: 24px;
-  width: 100%;
-  padding: 4px;
-  color: ${s("textSecondary")};
 `;
 
 export default React.forwardRef<HTMLIFrameElement, Props>((props, ref) => (
