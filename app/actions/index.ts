@@ -7,7 +7,7 @@ import {
   ActionContext,
   ActionV2,
   ActionV2Group,
-  ActionV2Separator,
+  ActionV2Separator as TActionV2Separator,
   ActionV2Variant,
   ActionV2WithChildren,
   CommandBarAction,
@@ -31,7 +31,7 @@ export function createAction(definition: Optional<Action, "id">): Action {
     ...definition,
     perform: definition.perform
       ? (context) => {
-          // We muse use the specific analytics name here as the action name is
+          // We must use the specific analytics name here as the action name is
           // translated and potentially contains user strings.
           if (definition.analyticsName) {
             Analytics.track("perform_action", definition.analyticsName, {
@@ -174,6 +174,10 @@ export async function performAction(action: Action, context: ActionContext) {
 
 /** Actions V2 */
 
+export const ActionV2Separator: TActionV2Separator = {
+  type: "action_separator",
+};
+
 export function createActionV2(
   definition: Optional<Omit<ActionV2, "type" | "variant">, "id">
 ): ActionV2 {
@@ -183,7 +187,7 @@ export function createActionV2(
     variant: "action",
     perform: definition.perform
       ? (context) => {
-          // We muse use the specific analytics name here as the action name is
+          // We must use the specific analytics name here as the action name is
           // translated and potentially contains user strings.
           if (definition.analyticsName) {
             Analytics.track("perform_action", definition.analyticsName, {
@@ -243,12 +247,8 @@ export function createActionV2Group(
   };
 }
 
-export function createActionV2Separator(): ActionV2Separator {
-  return { type: "action_separator" };
-}
-
 export function createRootMenuAction(
-  actions: (ActionV2Variant | ActionV2Group | ActionV2Separator)[]
+  actions: (ActionV2Variant | ActionV2Group | TActionV2Separator)[]
 ): ActionV2WithChildren {
   return {
     id: uuidv4(),
@@ -261,7 +261,7 @@ export function createRootMenuAction(
 }
 
 export function actionV2ToMenuItem(
-  action: ActionV2Variant | ActionV2Group | ActionV2Separator,
+  action: ActionV2Variant | ActionV2Group | TActionV2Separator,
   context: ActionContext
 ): MenuItem {
   switch (action.type) {

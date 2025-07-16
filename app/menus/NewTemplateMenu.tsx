@@ -7,8 +7,8 @@ import CollectionIcon from "~/components/Icons/CollectionIcon";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import TeamLogo from "~/components/TeamLogo";
 import {
+  ActionV2Separator,
   createActionV2Group,
-  createActionV2Separator,
   createInternalLinkActionV2,
   createRootMenuAction,
 } from "~/actions";
@@ -43,7 +43,7 @@ function NewTemplateMenu() {
       visible: can.createTemplate,
       to: newTemplatePath(),
     }),
-    createActionV2Separator(),
+    ActionV2Separator,
     createActionV2Group({
       name: t("Choose a collection"),
       actions: collectionActions,

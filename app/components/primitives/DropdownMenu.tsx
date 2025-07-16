@@ -185,7 +185,7 @@ const StyledContent = styled(DropdownMenuPrimitive.Content)`
   transform-origin: var(--radix-dropdown-menu-content-transform-origin);
 
   &[data-state="open"] {
-    animation: ${fadeAndScaleIn} 150ms cubic-bezier(0.08, 0.82, 0.17, 1); // ease-out-circ
+    animation: ${fadeAndScaleIn} 150ms ease-out;
   }
 
   @media print {

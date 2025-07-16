@@ -6,8 +6,8 @@ import FileOperation from "~/models/FileOperation";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import {
+  ActionV2Separator,
   createActionV2,
-  createActionV2Separator,
   createExternalLinkActionV2,
   createRootMenuAction,
 } from "~/actions";
@@ -33,7 +33,7 @@ function FileOperationMenu({ fileOperation, onDelete }: Props) {
         fileOperation.state === FileOperationState.Complete,
       url: fileOperation.downloadUrl,
     }),
-    createActionV2Separator(),
+    ActionV2Separator,
     createActionV2({
       name: t("Delete"),
       icon: <TrashIcon />,
