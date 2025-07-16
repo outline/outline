@@ -741,7 +741,7 @@
   "Warning Sign": "경고 표시",
   "A workspace admin (<em>{{ suspendedContactEmail }}</em>) has suspended your account. To re-activate your account, please reach out to them directly.": "워크스페이스 관리자 (<em>{{ suspendedContactEmail }}</em>) (이)가 귀하의 계정 사용을 중지시켰습니다. 계정을 다시 활성화하려면 해당 관리자에게 직접 문의하십시오.",
   "Something went wrong": "문제가 발생했습니다",
-  "Sorry, an unknown error occurred loading the page. Please try again or contact support if the issue persists.": "Sorry, an unknown error occurred loading the page. Please try again or contact support if the issue persists.",
+  "Sorry, an unknown error occurred loading the page. Please try again or contact support if the issue persists.": "죄송합니다. 페이지를 로드하는 중에 알 수 없는 오류가 발생했습니다. 다시 시도하거나 문제가 지속되면 지원팀에 문의하세요.",
   "Created by me": "내가 생성함",
   "Weird, this shouldn’t ever be empty": "이상하네, 여기가 비어 있으면 안 되는데",
   "You haven’t created any documents yet": "아직 문서를 만들지 않았습니다.",
