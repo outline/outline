@@ -298,7 +298,6 @@ export default class Image extends SimpleImage {
   component = (props: ComponentProps) => (
     <ImageComponent
       {...props}
-      onClick={this.handleSelect(props)}
       onDownload={this.handleDownload(props)}
       onChangeSize={this.handleChangeSize(props)}
     >

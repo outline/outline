@@ -76,21 +76,7 @@ export default class SimpleImage extends Node {
     };
   }
 
-  handleSelect =
-    ({ getPos }: { getPos: () => number }) =>
-    (event: React.MouseEvent) => {
-      event.preventDefault();
-
-      const { view } = this.editor;
-      const $pos = view.state.doc.resolve(getPos());
-      const transaction = view.state.tr.setSelection(new NodeSelection($pos));
-      view.dispatch(transaction);
-      view.focus();
-    };
-
-  component = (props: ComponentProps) => (
-    <ImageComponent {...props} onClick={this.handleSelect(props)} />
-  );
+  component = (props: ComponentProps) => <ImageComponent {...props} />;
 
   keys(): Record<string, Command> {
     return {
