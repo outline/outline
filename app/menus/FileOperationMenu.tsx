@@ -15,7 +15,7 @@ import usePolicy from "~/hooks/usePolicy";
 
 type Props = {
   fileOperation: FileOperation;
-  onDelete: (ev: React.SyntheticEvent) => Promise<void>;
+  onDelete: () => Promise<void>;
 };
 
 function FileOperationMenu({ fileOperation, onDelete }: Props) {
@@ -41,7 +41,7 @@ function FileOperationMenu({ fileOperation, onDelete }: Props) {
         section,
         visible: can.delete,
         dangerous: true,
-        perform: () => onDelete,
+        perform: () => onDelete(),
       }),
     ],
     [
