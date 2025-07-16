@@ -21,6 +21,8 @@ jobs:
         with:
           node-version: 20.x
           cache: "yarn"
+      - name: Enable Corepack
+        run: corepack enable
       - run: yarn install --frozen-lockfile
       - run: yarn lint --fix
 

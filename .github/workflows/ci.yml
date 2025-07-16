@@ -32,6 +32,9 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'yarn'
 
+    - name: Enable Corepack
+      run: corepack enable
+
     - name: Install dependencies
       run: yarn install --frozen-lockfile
 
@@ -44,6 +47,8 @@ jobs:
         with:
           node-version: 22.x
           cache: "yarn"
+      - name: Enable Corepack
+        run: corepack enable
       - run: yarn install --frozen-lockfile
       - run: yarn lint
 
@@ -56,6 +61,8 @@ jobs:
         with:
           node-version: 22.x
           cache: "yarn"
+      - name: Enable Corepack
+        run: corepack enable
       - run: yarn install --frozen-lockfile
       - run: yarn tsc
 
@@ -94,6 +101,8 @@ jobs:
         with:
           node-version: 22.x
           cache: "yarn"
+      - name: Enable Corepack
+        run: corepack enable
       - run: yarn install --frozen-lockfile
       - run: yarn test:${{ matrix.test-group }}
 
@@ -136,6 +145,8 @@ jobs:
         with:
           node-version: 22.x
           cache: "yarn"
+      - name: Enable Corepack
+        run: corepack enable
       - run: yarn install --frozen-lockfile
       - run: yarn sequelize db:migrate
       - name: Run server tests
@@ -153,6 +164,8 @@ jobs:
         with:
           node-version: 22.x
           cache: "yarn"
+      - name: Enable Corepack
+        run: corepack enable
       - run: yarn install --frozen-lockfile
       - name: Set environment to production
         run: echo "NODE_ENV=production" >> $GITHUB_ENV
