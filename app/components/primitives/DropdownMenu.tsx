@@ -3,6 +3,7 @@ import { LocationDescriptor } from "history";
 import * as React from "react";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
+import Scrollable from "~/components/Scrollable";
 import { fadeAndScaleIn } from "~/styles/animations";
 import {
   MenuButton,
@@ -36,9 +37,9 @@ const DropdownMenuContent = React.forwardRef<
 
   return (
     <DropdownMenuPrimitive.Portal>
-      <StyledContent ref={ref} {...rest}>
-        {children}
-      </StyledContent>
+      <DropdownMenuPrimitive.Content ref={ref} {...rest} asChild>
+        <StyledScrollable hiddenScrollbars>{children}</StyledScrollable>
+      </DropdownMenuPrimitive.Content>
     </DropdownMenuPrimitive.Portal>
   );
 });
@@ -168,12 +169,12 @@ const DropdownMenuLabel = React.forwardRef<
 DropdownMenuLabel.displayName = DropdownMenuPrimitive.Label.displayName;
 
 /** Styled components */
-const StyledContent = styled(DropdownMenuPrimitive.Content)`
+const StyledScrollable = styled(Scrollable)`
   z-index: ${depths.menu};
   min-width: 180px;
   max-width: 276px;
   min-height: 44px;
-  max-height: var(--radix-dropdown-menu-content-available-height);
+  max-height: calc(var(--radix-dropdown-menu-content-available-height) - 8px);
   font-weight: normal;
 
   background: ${s("menuBackground")};
