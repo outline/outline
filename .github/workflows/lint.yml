@@ -17,12 +17,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - name: Enable Corepack
+        run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 20.x
-          cache: "yarn"
-      - name: Enable Corepack
-        run: corepack enable
       - run: yarn install --frozen-lockfile
       - run: yarn lint --fix
 

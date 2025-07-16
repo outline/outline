@@ -26,14 +26,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Enable Corepack
+      run: corepack enable
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
-        cache: 'yarn'
-
-    - name: Enable Corepack
-      run: corepack enable
 
     - name: Install dependencies
       run: yarn install --frozen-lockfile
@@ -43,12 +41,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Enable Corepack
+        run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 22.x
-          cache: "yarn"
-      - name: Enable Corepack
-        run: corepack enable
       - run: yarn install --frozen-lockfile
       - run: yarn lint
 
@@ -57,12 +54,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Enable Corepack
+        run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 22.x
-          cache: "yarn"
-      - name: Enable Corepack
-        run: corepack enable
       - run: yarn install --frozen-lockfile
       - run: yarn tsc
 
@@ -97,12 +93,11 @@ jobs:
         test-group: [app, shared]
     steps:
       - uses: actions/checkout@v4
+      - name: Enable Corepack
+        run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 22.x
-          cache: "yarn"
-      - name: Enable Corepack
-        run: corepack enable
       - run: yarn install --frozen-lockfile
       - run: yarn test:${{ matrix.test-group }}
 
@@ -141,12 +136,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - name: Enable Corepack
+        run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 22.x
-          cache: "yarn"
-      - name: Enable Corepack
-        run: corepack enable
       - run: yarn install --frozen-lockfile
       - run: yarn sequelize db:migrate
       - name: Run server tests
@@ -160,12 +154,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Enable Corepack
+        run: corepack enable
       - uses: actions/setup-node@v4
         with:
           node-version: 22.x
-          cache: "yarn"
-      - name: Enable Corepack
-        run: corepack enable
       - run: yarn install --frozen-lockfile
       - name: Set environment to production
         run: echo "NODE_ENV=production" >> $GITHUB_ENV
