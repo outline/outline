@@ -258,7 +258,6 @@ export type EmptyTrashEvent = {
 export type RevisionEvent = BaseEvent<Revision> & {
   name: "revisions.create";
   documentId: string;
-  collectionId: string;
   modelId: string;
 };
 

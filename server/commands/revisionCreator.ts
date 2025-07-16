@@ -1,4 +1,5 @@
-import { Document, User, Event, Revision } from "@server/models";
+import { createContext } from "@server/context";
+import { Document, User, Revision } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import Redis from "@server/storage/redis";
 import { DocumentEvent, RevisionEvent } from "@server/types";
@@ -18,30 +19,15 @@ export default async function revisionCreator({
     const collaboratorIds = await Redis.defaultClient.smembers(key);
     await Redis.defaultClient.del(key);
 
-    const revision = await Revision.createFromDocument(
-      document,
-      collaboratorIds,
-      {
-        transaction,
-      }
-    );
-
-    await Event.create(
-      {
-        name: "revisions.create",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        modelId: revision.id,
-        teamId: document.teamId,
-        actorId: user.id,
-        createdAt: document.updatedAt,
-        ip: event.ip ?? user.lastActiveIp,
+    return await Revision.createFromDocument(
+      createContext({
+        user,
         authType: event.authType,
-      },
-      {
+        ip: event.ip,
         transaction,
-      }
+      }),
+      document,
+      collaboratorIds
     );
-    return revision;
   });
 }
