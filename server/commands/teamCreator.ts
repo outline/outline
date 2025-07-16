@@ -1,10 +1,12 @@
-import { InferCreationAttributes, Transaction } from "sequelize";
+import { InferCreationAttributes } from "sequelize";
 import slugify from "slugify";
 import { RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import { traceFunction } from "@server/logging/tracing";
-import { Team, Event } from "@server/models";
+import { Team } from "@server/models";
+import { APIContext } from "@server/types";
 
 type Props = {
+  ctx: APIContext;
   /** The displayed name of the team */
   name: string;
   /** The domain name from the email of the user logging in */
@@ -20,49 +22,39 @@ type Props = {
     /** External identifier of the authentication provider */
     providerId: string;
   }[];
-  /** The IP address of the incoming request */
-  ip: string;
-  /** Optional transaction to be chained from outside */
-  transaction: Transaction;
 };
 
 async function teamCreator({
+  ctx,
   name,
   subdomain,
   avatarUrl,
   authenticationProviders,
-  ip,
-  transaction,
 }: Props): Promise<Team> {
   if (!avatarUrl?.startsWith("http")) {
     avatarUrl = null;
   }
 
-  const team = await Team.create(
+  const team = await Team.createWithCtx(
+    ctx,
     {
       name,
       avatarUrl,
       authenticationProviders,
     } as Partial<InferCreationAttributes<Team>>,
+    undefined,
     {
       include: ["authenticationProviders"],
-      transaction,
-    }
-  );
-
-  await Event.create(
-    {
-      name: "teams.create",
-      teamId: team.id,
-      ip,
-    },
-    {
-      transaction,
     }
   );
 
   const availableSubdomain = await findAvailableSubdomain(team, subdomain);
-  await team.update({ subdomain: availableSubdomain }, { transaction });
+  await team.update(
+    { subdomain: availableSubdomain },
+    {
+      transaction: ctx.context.transaction,
+    }
+  );
 
   return team;
 }

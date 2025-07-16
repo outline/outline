@@ -30,10 +30,9 @@ router.post(
     }
 
     const team = await teamCreator({
+      ctx,
       name: teamName,
       subdomain: slugify(teamName),
-      ip: ctx.request.ip,
-      transaction,
       authenticationProviders: [],
     });
 

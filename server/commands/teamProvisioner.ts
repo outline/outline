@@ -1,4 +1,5 @@
 import teamCreator from "@server/commands/teamCreator";
+import { createContext } from "@server/context";
 import env from "@server/env";
 import {
   DomainNotAllowedError,
@@ -36,8 +37,7 @@ type Props = {
     /** External identifier of the authentication provider */
     providerId: string;
   };
-  /** The IP address of the incoming request */
-  ip: string;
+  ip?: string;
 };
 
 async function teamProvisioner({
@@ -110,13 +110,12 @@ async function teamProvisioner({
   // We cannot find an existing team, so we create a new one
   const team = await sequelize.transaction((transaction) =>
     teamCreator({
+      ctx: createContext({ ip, transaction }),
       name,
       domain,
       subdomain,
       avatarUrl,
       authenticationProviders: [authenticationProvider],
-      ip,
-      transaction,
     })
   );
 

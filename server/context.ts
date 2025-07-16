@@ -8,7 +8,7 @@ export function createContext({
   ip,
   transaction,
 }: {
-  user: User;
+  user?: User;
   authType?: AuthenticationType | null;
   ip?: string | null;
   transaction?: Transaction;
@@ -16,7 +16,7 @@ export function createContext({
   return {
     context: {
       auth: { user, type: authType },
-      ip: ip ?? user.lastActiveIp,
+      ip: ip ?? user?.lastActiveIp,
       transaction,
     },
   } as APIContext;

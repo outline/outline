@@ -4,6 +4,7 @@ import isObject from "lodash/isObject";
 import pick from "lodash/pick";
 import {
   Attributes,
+  CreateOptions,
   CreationAttributes,
   DataTypes,
   FindOptions,
@@ -150,10 +151,12 @@ class Model<
     this: ModelStatic<M>,
     ctx: APIContext,
     values?: CreationAttributes<M>,
-    eventOpts?: EventOverrideOptions
+    eventOpts?: EventOverrideOptions,
+    createOpts?: CreateOptions<M>
   ) {
-    const hookContext: HookContext = {
+    const hookContext = {
       ...ctx.context,
+      ...createOpts,
       event: {
         ...eventOpts,
         publish: true,
