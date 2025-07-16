@@ -1,9 +1,4 @@
-import {
-  InferAttributes,
-  InferCreationAttributes,
-  Op,
-  SaveOptions,
-} from "sequelize";
+import { InferAttributes, InferCreationAttributes, Op } from "sequelize";
 import {
   DataType,
   BelongsTo,
@@ -17,6 +12,7 @@ import {
 } from "sequelize-typescript";
 import type { ProsemirrorData } from "@shared/types";
 import { DocumentValidation, RevisionValidation } from "@shared/validations";
+import { APIContext } from "@server/types";
 import Document from "./Document";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
@@ -187,15 +183,15 @@ class Revision extends ParanoidModel<
   /**
    * Create a Revision model from a Document model and save it to the database
    *
+   * @param ctx context to use for DB operations
    * @param document The document to create from
    * @param collaboratorIds Optional array of user IDs who authored this revision
-   * @param options Options passed to the save method
    * @returns A Promise that resolves when saved
    */
   static createFromDocument(
+    ctx: APIContext,
     document: Document,
-    collaboratorIds?: string[],
-    options?: SaveOptions<InferAttributes<Revision>>
+    collaboratorIds?: string[]
   ) {
     const revision = this.buildFromDocument(document);
 
@@ -203,7 +199,7 @@ class Revision extends ParanoidModel<
       revision.collaboratorIds = collaboratorIds;
     }
 
-    return revision.save(options);
+    return revision.saveWithCtx(ctx);
   }
 
   // instance methods

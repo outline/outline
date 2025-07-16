@@ -1,3 +1,4 @@
+import { createContext } from "@server/context";
 import { UserMembership, Revision } from "@server/models";
 import {
   buildAdmin,
@@ -16,7 +17,10 @@ describe("#revisions.info", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    const revision = await Revision.createFromDocument(document);
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
     const res = await server.post("/api/revisions.info", {
       body: {
         token: user.getJwtToken(),
@@ -30,8 +34,15 @@ describe("#revisions.info", () => {
   });
 
   it("should require authorization", async () => {
-    const document = await buildDocument();
-    const revision = await Revision.createFromDocument(document);
+    const admin = await buildAdmin();
+    const document = await buildDocument({
+      teamId: admin.teamId,
+      userId: admin.id,
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user: admin }),
+      document
+    );
     const user = await buildUser();
     const res = await server.post("/api/revisions.info", {
       body: {
@@ -50,7 +61,10 @@ describe("#revisions.update", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    const revision = await Revision.createFromDocument(document);
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
 
     const res = await server.post("/api/revisions.update", {
       body: {
@@ -70,7 +84,10 @@ describe("#revisions.update", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    const revision = await Revision.createFromDocument(document);
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
 
     const res = await server.post("/api/revisions.update", {
       body: {
@@ -90,7 +107,10 @@ describe("#revisions.update", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    const revision = await Revision.createFromDocument(document);
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
 
     const res = await server.post("/api/revisions.update", {
       body: {
@@ -107,7 +127,10 @@ describe("#revisions.update", () => {
     const document = await buildDocument({
       teamId: admin.teamId,
     });
-    const revision = await Revision.createFromDocument(document);
+    const revision = await Revision.createFromDocument(
+      createContext({ user: admin }),
+      document
+    );
 
     const res = await server.post("/api/revisions.update", {
       body: {
@@ -122,8 +145,15 @@ describe("#revisions.update", () => {
   });
 
   it("should require authorization", async () => {
-    const document = await buildDocument();
-    const revision = await Revision.createFromDocument(document);
+    const admin = await buildAdmin();
+    const document = await buildDocument({
+      teamId: admin.teamId,
+      userId: admin.id,
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user: admin }),
+      document
+    );
     const user = await buildUser();
     const res = await server.post("/api/revisions.update", {
       body: {
@@ -143,7 +173,10 @@ describe("#revisions.diff", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    const revision = await Revision.createFromDocument(document);
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
     const res = await server.post("/api/revisions.diff", {
       body: {
         token: user.getJwtToken(),
@@ -168,7 +201,10 @@ describe("#revisions.diff", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    const revision = await Revision.createFromDocument(document);
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
 
     const res = await server.post("/api/revisions.diff", {
       body: {
@@ -197,7 +233,7 @@ describe("#revisions.diff", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await Revision.createFromDocument(document);
+    await Revision.createFromDocument(createContext({ user }), document);
 
     await document.update({
       content: {
@@ -216,7 +252,10 @@ describe("#revisions.diff", () => {
         ],
       },
     });
-    const revision1 = await Revision.createFromDocument(document);
+    const revision1 = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
 
     const res = await server.post("/api/revisions.diff", {
       body: {
@@ -237,8 +276,15 @@ describe("#revisions.diff", () => {
   });
 
   it("should require authorization", async () => {
-    const document = await buildDocument();
-    const revision = await Revision.createFromDocument(document);
+    const admin = await buildAdmin();
+    const document = await buildDocument({
+      teamId: admin.teamId,
+      userId: admin.id,
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user: admin }),
+      document
+    );
     const user = await buildUser();
     const res = await server.post("/api/revisions.diff", {
       body: {
@@ -257,7 +303,7 @@ describe("#revisions.list", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await Revision.createFromDocument(document);
+    await Revision.createFromDocument(createContext({ user }), document);
     const res = await server.post("/api/revisions.list", {
       body: {
         token: user.getJwtToken(),
@@ -282,7 +328,7 @@ describe("#revisions.list", () => {
       collectionId: collection.id,
       teamId: user.teamId,
     });
-    await Revision.createFromDocument(document);
+    await Revision.createFromDocument(createContext({ user }), document);
     collection.permission = null;
     await collection.save();
     await UserMembership.destroy({

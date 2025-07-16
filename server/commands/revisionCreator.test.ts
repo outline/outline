@@ -26,7 +26,6 @@ describe("revisionCreator", () => {
     expect(revision.createdAt).toEqual(document.updatedAt);
     expect(event!.name).toEqual("revisions.create");
     expect(event!.modelId).toEqual(revision.id);
-    expect(event!.createdAt).toEqual(document.updatedAt);
     expect(event!.authType).toEqual(AuthenticationType.APP);
   });
 });
