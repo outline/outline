@@ -32,6 +32,10 @@
     "test:app": "TZ=UTC jest --config=.jestconfig.json --selectProjects app",
     "test:shared": "TZ=UTC jest --config=.jestconfig.json --selectProjects shared-node shared-jsdom",
     "test:server": "TZ=UTC jest --config=.jestconfig.json --selectProjects server",
+    "test:fast": "TZ=UTC TEST_USE_POSTGRES=false jest --config=.jestconfig.json --selectProjects server --maxWorkers=100%",
+    "test:unit": "TZ=UTC TEST_USE_POSTGRES=false jest --config=.jestconfig.json --selectProjects server --testPathPattern='\\.(test|spec)\\.(ts|js)$' --testNamePattern='unit|Unit'",
+    "test:integration": "TZ=UTC TEST_USE_POSTGRES=true jest --config=.jestconfig.json --selectProjects server --testPathPattern='\\.(integration|int)\\.(test|spec)\\.(ts|js)$'",
+    "test:performance": "TZ=UTC time yarn test:fast",
     "vite:dev": "VITE_CJS_IGNORE_WARNING=true vite",
     "vite:build": "VITE_CJS_IGNORE_WARNING=true vite build",
     "vite:preview": "VITE_CJS_IGNORE_WARNING=true vite preview"
@@ -370,6 +374,7 @@
     "react-refresh": "^0.17.0",
     "rimraf": "^2.5.4",
     "rollup-plugin-webpack-stats": "^2.1.0",
+    "sqlite3": "^5.1.7",
     "terser": "^5.43.1",
     "typescript": "^5.8.3",
     "vite-plugin-static-copy": "^0.17.0",

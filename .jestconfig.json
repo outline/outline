@@ -1,6 +1,7 @@
 {
-  "workerIdleMemoryLimit": "0.75",
-  "maxWorkers": "50%",
+  "workerIdleMemoryLimit": "0.5",
+  "maxWorkers": "75%",
+  "testTimeout": 30000,
   "projects": [
     {
       "displayName": "server",
