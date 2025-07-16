@@ -6,10 +6,13 @@ import apexAuthRedirect from "@server/middlewares/apexAuthRedirect";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
+import validateWebhook from "@server/middlewares/validateWebhook";
 import { IntegrationAuthentication, Integration } from "@server/models";
 import { APIContext } from "@server/types";
 import { GitHubUtils } from "../../shared/GitHubUtils";
+import env from "../env";
 import { GitHub } from "../github";
+import GitHubWebhookTask from "../tasks/GitHubWebhookTask";
 import * as T from "./schema";
 
 const router = new Router();
@@ -60,11 +63,16 @@ router.get(
       return ctx.redirect(GitHubUtils.errorUrl("unauthenticated"));
     }
 
+    const scopes = Object.entries(installation.permissions).map(
+      ([name, permission]) => `${name}:${permission}`
+    );
+
     const authentication = await IntegrationAuthentication.create(
       {
         service: IntegrationService.GitHub,
         userId: user.id,
         teamId: user.teamId,
+        scopes,
       },
       { transaction }
     );
@@ -89,6 +97,31 @@ router.get(
       },
     });
     ctx.redirect(GitHubUtils.url);
+  }
+);
+
+router.post(
+  "github.webhooks",
+  validateWebhook({
+    secretKey: env.GITHUB_WEBHOOK_SECRET!,
+    getSignatureFromHeader: (ctx) => {
+      const { headers } = ctx.request;
+      const signatureHeader = headers["x-hub-signature-256"];
+      const signature = Array.isArray(signatureHeader)
+        ? signatureHeader[0]
+        : signatureHeader;
+      return signature?.split("=")[1];
+    },
+  }),
+  async (ctx: APIContext) => {
+    const { headers, body } = ctx.request;
+
+    await new GitHubWebhookTask().schedule({
+      payload: body,
+      headers,
+    });
+
+    ctx.status = 202;
   }
 );
 
