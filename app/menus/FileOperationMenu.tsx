@@ -9,8 +9,8 @@ import {
   ActionV2Separator,
   createActionV2,
   createExternalLinkActionV2,
-  createRootMenuAction,
 } from "~/actions";
+import { useMenuAction } from "~/hooks/useMenuAction";
 import usePolicy from "~/hooks/usePolicy";
 
 type Props = {
@@ -23,28 +23,38 @@ function FileOperationMenu({ fileOperation, onDelete }: Props) {
   const can = usePolicy(fileOperation);
   const section = "File operations";
 
-  const actions = [
-    createExternalLinkActionV2({
-      name: t("Download"),
-      icon: <DownloadIcon />,
-      section,
-      visible:
-        fileOperation.type === FileOperationType.Export &&
-        fileOperation.state === FileOperationState.Complete,
-      url: fileOperation.downloadUrl,
-    }),
-    ActionV2Separator,
-    createActionV2({
-      name: t("Delete"),
-      icon: <TrashIcon />,
-      section,
-      visible: can.delete,
-      dangerous: true,
-      perform: () => onDelete,
-    }),
-  ];
+  const actions = React.useMemo(
+    () => [
+      createExternalLinkActionV2({
+        name: t("Download"),
+        icon: <DownloadIcon />,
+        section,
+        visible:
+          fileOperation.type === FileOperationType.Export &&
+          fileOperation.state === FileOperationState.Complete,
+        url: fileOperation.downloadUrl,
+      }),
+      ActionV2Separator,
+      createActionV2({
+        name: t("Delete"),
+        icon: <TrashIcon />,
+        section,
+        visible: can.delete,
+        dangerous: true,
+        perform: () => onDelete,
+      }),
+    ],
+    [
+      t,
+      can.delete,
+      fileOperation.type,
+      fileOperation.state,
+      fileOperation.downloadUrl,
+      onDelete,
+    ]
+  );
 
-  const rootAction = createRootMenuAction(actions);
+  const rootAction = useMenuAction(actions);
 
   return (
     <DropdownMenu action={rootAction} ariaLabel={t("File")}>
