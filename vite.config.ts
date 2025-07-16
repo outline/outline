@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import react from "@vitejs/plugin-react-oxc";
+import react from "@vitejs/plugin-react";
 import browserslistToEsbuild from "browserslist-to-esbuild";
 import webpackStats from "rollup-plugin-webpack-stats";
 import { ServerOptions, defineConfig } from "vite";
@@ -150,26 +150,36 @@ export default () =>
       // Generate a stats.json file for webpack that will be consumed by RelativeCI
       webpackStats(),
     ],
-    experimental: {
-      enableNativePlugin: true,
-    },
+
     resolve: {
       alias: {
         "~": path.resolve(__dirname, "./app"),
         "@shared": path.resolve(__dirname, "./shared"),
       },
     },
+    optimizeDeps: {
+      include: [
+        "prop-types",
+        "react-router-dom",
+        "react-router",
+        "history",
+        "react-is",
+        "hoist-non-react-statics",
+        "resolve-pathname",
+        "value-equal",
+        "tiny-invariant"
+      ],
+    },
     build: {
       outDir: "./build/app",
       manifest: true,
       sourcemap: process.env.CI ? false : "hidden",
-      minify: "oxc",
+      minify: "esbuild",
       // Prevent asset inlining as it does not conform to CSP rules
       assetsInlineLimit: 0,
       target: browserslistToEsbuild(),
       reportCompressedSize: false,
       rollupOptions: {
-        keepNames: true,
         onwarn(warning, warn) {
           // Suppress noisy warnings about module-level directives, e.g. "use client"
           if (warning.code === "MODULE_LEVEL_DIRECTIVE") {
