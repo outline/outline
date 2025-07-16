@@ -19,6 +19,6 @@ export const TooManyConnections = {
 };
 
 export const EditorUpdateError = {
-  code: 5000,
+  code: 4999,
   reason: "Editor Update Required",
 };

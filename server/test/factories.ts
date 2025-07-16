@@ -2,10 +2,10 @@ import { faker } from "@faker-js/faker";
 import isNil from "lodash/isNil";
 import isNull from "lodash/isNull";
 import { Node } from "prosemirror-model";
-import randomstring from "randomstring";
 import { InferCreationAttributes } from "sequelize";
 import { DeepPartial } from "utility-types";
 import { v4 as uuidv4 } from "uuid";
+import { randomString } from "@shared/random";
 import {
   CollectionPermission,
   FileOperationState,
@@ -154,7 +154,7 @@ export function buildTeam(
       authenticationProviders: [
         {
           name: "slack",
-          providerId: randomstring.generate(32),
+          providerId: randomString(32),
         },
       ],
       ...overrides,
@@ -215,7 +215,7 @@ export async function buildUser(overrides: Partial<User> = {}) {
         ? [
             {
               authenticationProviderId: authenticationProvider.id,
-              providerId: randomstring.generate(32),
+              providerId: randomString(32),
             },
           ]
         : [],
@@ -272,7 +272,7 @@ export async function buildIntegration(overrides: Partial<Integration> = {}) {
     service: IntegrationService.Slack,
     userId: user.id,
     teamId: user.teamId,
-    token: randomstring.generate(32),
+    token: randomString(32),
     scopes: ["example", "scopes", "here"],
   });
   return Integration.create({
@@ -737,7 +737,7 @@ export async function buildOAuthAuthorizationCode(
     overrides.expiresAt = new Date();
   }
 
-  const code = randomstring.generate(32);
+  const code = randomString(32);
 
   let client;
   if (overrides.oauthClientId) {
@@ -817,11 +817,11 @@ export function buildCommentMark(overrides: {
   resolved?: boolean;
 }) {
   if (!overrides.id) {
-    overrides.id = randomstring.generate(10);
+    overrides.id = randomString(10);
   }
 
   if (!overrides.userId) {
-    overrides.userId = randomstring.generate(10);
+    overrides.userId = randomString(10);
   }
 
   return {
