@@ -305,7 +305,9 @@ export function actionV2ToMenuItem(
           };
 
         case "action_with_children": {
-          const children = resolve<ActionV2Variant[]>(action.children, context);
+          const children = resolve<
+            (ActionV2Variant | ActionV2Group | TActionV2Separator)[]
+          >(action.children, context);
           const subMenuItems = children.map((a) =>
             actionV2ToMenuItem(a, context)
           );
