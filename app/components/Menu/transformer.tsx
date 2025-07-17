@@ -5,6 +5,9 @@ import {
   DropdownMenuInternalLink,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownSubMenu,
+  DropdownSubMenuContent,
+  DropdownSubMenuTrigger,
 } from "~/components/primitives/DropdownMenu";
 import {
   MenuButton,
@@ -75,6 +78,25 @@ export function toDropdownMenuItems(items: MenuItem[]) {
             }
           />
         );
+
+      case "submenu": {
+        const submenuItems = toDropdownMenuItems(item.items);
+
+        if (!submenuItems?.length) {
+          return null;
+        }
+
+        return (
+          <DropdownSubMenu key={`${item.type}-${item.title}-${index}`}>
+            <DropdownSubMenuTrigger
+              label={item.title as string}
+              icon={icon}
+              disabled={item.disabled}
+            />
+            <DropdownSubMenuContent>{submenuItems}</DropdownSubMenuContent>
+          </DropdownSubMenu>
+        );
+      }
 
       case "group": {
         const groupItems = toDropdownMenuItems(item.items);

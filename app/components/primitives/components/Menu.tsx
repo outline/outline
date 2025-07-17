@@ -82,6 +82,10 @@ export const MenuExternalLink = styled.a`
   ${BaseMenuItemCSS}
 `;
 
+export const MenuSubTrigger = styled.div<BaseMenuItemProps>`
+  ${BaseMenuItemCSS}
+`;
+
 export const MenuSeparator = styled.hr`
   margin: 6px 0;
 `;
