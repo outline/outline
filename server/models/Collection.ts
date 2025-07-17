@@ -16,6 +16,7 @@ import {
   type UpdateOptions,
   type ScopeOptions,
   type SaveOptions,
+  Op,
 } from "sequelize";
 import {
   Sequelize,
@@ -50,6 +51,7 @@ import { sortNavigationNodes } from "@shared/utils/collections";
 import slugify from "@shared/utils/slugify";
 import { CollectionValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
+import { APIContext } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import removeIndexCollision from "@server/utils/removeIndexCollision";
 import { generateUrlId } from "@server/utils/url";
@@ -384,6 +386,26 @@ class Collection extends ParanoidModel<
     if (total === 1) {
       throw ValidationError("Cannot delete last collection");
     }
+  }
+
+  @BeforeDestroy
+  static async deleteDocuments(model: Collection, ctx: APIContext["context"]) {
+    await Document.update(
+      {
+        lastModifiedById: ctx.auth.user.id,
+        deletedAt: new Date(),
+      },
+      {
+        transaction: ctx.transaction,
+        where: {
+          teamId: model.teamId,
+          collectionId: model.id,
+          archivedAt: {
+            [Op.is]: null,
+          },
+        },
+      }
+    );
   }
 
   @BeforeCreate

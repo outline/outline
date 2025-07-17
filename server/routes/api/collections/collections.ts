@@ -6,7 +6,6 @@ import {
   FileOperationState,
   FileOperationType,
 } from "@shared/types";
-import collectionDestroyer from "@server/commands/collectionDestroyer";
 import collectionExporter from "@server/commands/collectionExporter";
 import teamUpdater from "@server/commands/teamUpdater";
 import { parser } from "@server/editor";
@@ -816,7 +815,7 @@ router.post(
 
     authorize(user, "delete", collection);
 
-    await collectionDestroyer(ctx, { collection });
+    await collection.destroyWithCtx(ctx);
 
     ctx.body = {
       success: true,
