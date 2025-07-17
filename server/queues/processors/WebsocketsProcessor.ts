@@ -336,7 +336,7 @@ export default class WebsocketsProcessor {
           .to(`collection-${event.collectionId}`)
           .emit("collections.update_index", {
             collectionId: event.collectionId,
-            index: event.data.index,
+            index: event.changes?.attributes.index,
           });
       }
 

@@ -327,9 +327,6 @@ export type CollectionEvent = BaseEvent<Collection> &
     | {
         name: "collections.move";
         collectionId: string;
-        data: {
-          index: string;
-        };
       }
     | {
         name: "collections.permission_changed";
