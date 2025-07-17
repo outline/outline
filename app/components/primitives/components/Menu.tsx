@@ -1,3 +1,4 @@
+import { ExpandedIcon } from "outline-icons";
 import { ellipsis } from "polished";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
@@ -105,6 +106,13 @@ export const MenuHeader = styled.h3`
   color: ${s("sidebarText")};
   letter-spacing: 0.04em;
   margin: 1em 12px 0.5em;
+`;
+
+export const MenuDisclosure = styled(ExpandedIcon)`
+  transform: rotate(270deg);
+  position: absolute;
+  right: 8px;
+  color: ${s("textTertiary")};
 `;
 
 export const MenuIconWrapper = styled.span`

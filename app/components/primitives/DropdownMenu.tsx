@@ -7,6 +7,7 @@ import Scrollable from "~/components/Scrollable";
 import { fadeAndScaleIn } from "~/styles/animations";
 import {
   MenuButton,
+  MenuDisclosure,
   MenuExternalLink,
   MenuHeader,
   MenuInternalLink,
@@ -62,6 +63,7 @@ const DropdownSubMenuTrigger = React.forwardRef<
       <MenuSubTrigger disabled={disabled}>
         {icon}
         <MenuLabel>{label}</MenuLabel>
+        <MenuDisclosure />
       </MenuSubTrigger>
     </DropdownMenuPrimitive.SubTrigger>
   );
