@@ -593,7 +593,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                 <LinkInput
                   type="text"
                   placeholder={
-                    "placeholder" in insertItem
+                    "placeholder" in insertItem && !!insertItem.placeholder
                       ? insertItem.placeholder
                       : insertItem.title
                         ? dictionary.pasteLinkWithTitle(insertItem.title)
