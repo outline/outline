@@ -70,6 +70,9 @@ jobs:
         id: filter
         with:
           filters: |
+            config:
+              - '.github/**'
+              - 'vite.config.ts'
             server:
               - 'server/**'
               - 'shared/**'
@@ -83,7 +86,7 @@ jobs:
 
   test:
     needs: [build, changes]
-    if: ${{ needs.changes.outputs.app == 'true' }}
+    if: ${{ needs.changes.outputs.app == 'true' || needs.changes.outputs.config == 'true' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -99,7 +102,7 @@ jobs:
 
   test-server:
     needs: [build, changes]
-    if: ${{ needs.changes.outputs.server == 'true' }}
+    if: ${{ needs.changes.outputs.server == 'true' || needs.changes.outputs.config == 'true' }}
     runs-on: ubuntu-latest
     services:
       postgres:
