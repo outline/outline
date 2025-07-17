@@ -62,6 +62,7 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
+      config: ${{ steps.filter.outputs.config }}
       server: ${{ steps.filter.outputs.server }}
       app: ${{ steps.filter.outputs.app }}
     steps:
@@ -70,6 +71,9 @@ jobs:
         id: filter
         with:
           filters: |
+            config:
+              - '.github/**'
+              - 'vite.config.ts'
             server:
               - 'server/**'
               - 'shared/**'
@@ -83,7 +87,7 @@ jobs:
 
   test:
     needs: [build, changes]
-    if: ${{ needs.changes.outputs.app == 'true' }}
+    if: ${{ needs.changes.outputs.app == 'true' || needs.changes.outputs.config == 'true' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -99,7 +103,7 @@ jobs:
 
   test-server:
     needs: [build, changes]
-    if: ${{ needs.changes.outputs.server == 'true' }}
+    if: ${{ needs.changes.outputs.server == 'true' || needs.changes.outputs.config == 'true' }}
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -116,19 +120,9 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-      redis:
-        image: redis:5.0
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     strategy:
       matrix:
-        shard: [1, 2, 3]
+        shard: [1, 2, 3, 4]
 
     steps:
       - uses: actions/checkout@v4
