@@ -240,7 +240,7 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
       return null;
     }
 
-    if (props.active) {
+    if (props.active && position.visible) {
       const rect = document.body.getBoundingClientRect();
       const safeAreaInsets = getSafeAreaInsets();
 

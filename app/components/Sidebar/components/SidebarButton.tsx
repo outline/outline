@@ -2,7 +2,7 @@ import { MoreIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
 import { extraArea, hover, s } from "@shared/styles";
-import { isTouchDevice } from "@shared/utils/browser";
+import { isMobile } from "@shared/utils/browser";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import { draggableOnDesktop, undraggableOnDesktop } from "~/styles";
@@ -83,14 +83,12 @@ const Button = styled(Flex)<{
   flex: 1;
   color: ${s("textTertiary")};
   align-items: center;
-  padding: ${isTouchDevice() ? 12 : 4}px 4px;
+  padding: ${isMobile() ? 12 : 4}px 4px;
   font-size: 15px;
   font-weight: 500;
   border-radius: 4px;
   border: 0;
-  margin: ${(props) =>
-      !isTouchDevice() && props.$position === "top" ? 16 : 8}px
-    0;
+  margin: ${(props) => (!isMobile() && props.$position === "top" ? 16 : 8)}px 0;
   background: none;
   flex-shrink: 0;
 
