@@ -379,17 +379,13 @@ export default abstract class ImportTask extends BaseTask<Props> {
           const ctx = createContext({ user, transaction });
 
           // check if collection with name exists
-          const response = await Collection.findOrCreateWithCtx(
-            ctx,
-            {
-              where: {
-                teamId: fileOperation.teamId,
-                name: item.name,
-              },
-              defaults: sharedDefaults,
+          const response = await Collection.findOrCreateWithCtx(ctx, {
+            where: {
+              teamId: fileOperation.teamId,
+              name: item.name,
             },
-            { data: { name: item.name } }
-          );
+            defaults: sharedDefaults,
+          });
 
           let collection = response[0];
           const isCreated = response[1];
@@ -399,15 +395,11 @@ export default abstract class ImportTask extends BaseTask<Props> {
           // with right now
           if (!isCreated) {
             const name = `${item.name} (Imported)`;
-            collection = await Collection.createWithCtx(
-              ctx,
-              {
-                ...sharedDefaults,
-                name,
-                teamId: fileOperation.teamId,
-              },
-              { data: { name } }
-            );
+            collection = await Collection.createWithCtx(ctx, {
+              ...sharedDefaults,
+              name,
+              teamId: fileOperation.teamId,
+            });
           }
 
           collections.set(item.id, collection);

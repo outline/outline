@@ -313,7 +313,6 @@ export type CollectionEvent = BaseEvent<Collection> &
         name: "collections.create";
         collectionId: string;
         data: {
-          name: string;
           source?: "import";
         };
       }
@@ -324,10 +323,6 @@ export type CollectionEvent = BaseEvent<Collection> &
           | "collections.archive"
           | "collections.restore";
         collectionId: string;
-        data: {
-          name: string;
-          archivedAt: string;
-        };
       }
     | {
         name: "collections.move";

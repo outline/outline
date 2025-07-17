@@ -88,7 +88,7 @@ router.post(
       collection.description = DocumentHelper.toMarkdown(collection);
     }
 
-    await collection.saveWithCtx(ctx, undefined, { data: { name } });
+    await collection.saveWithCtx(ctx, undefined);
 
     // we must reload the collection to get memberships for policy presenter
     const reloaded = await Collection.findByPk(collection.id, {
@@ -646,7 +646,7 @@ router.post(
       collection.commenting = commenting;
     }
 
-    await collection.saveWithCtx(ctx, undefined, { data: { name } });
+    await collection.saveWithCtx(ctx, undefined);
 
     if (privacyChanged || sharingChanged) {
       await Event.createFromContext(ctx, {
@@ -847,10 +847,6 @@ router.post(
 
     await collection.saveWithCtx(ctx, undefined, {
       name: "archive",
-      data: {
-        name: collection.name,
-        archivedAt: collection.archivedAt,
-      },
     });
 
     // Archive all documents within the collection
@@ -897,8 +893,6 @@ router.post(
 
     authorize(user, "restore", collection);
 
-    const collectionArchivedAt = collection.archivedAt;
-
     await Document.update(
       {
         lastModifiedById: user.id,
@@ -918,10 +912,6 @@ router.post(
     collection.archivedById = null;
     collection = await collection.saveWithCtx(ctx, undefined, {
       name: "restore",
-      data: {
-        name: collection.name,
-        archivedAt: collectionArchivedAt,
-      },
     });
 
     ctx.body = {

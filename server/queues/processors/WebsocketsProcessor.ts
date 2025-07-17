@@ -318,11 +318,16 @@ export default class WebsocketsProcessor {
           return;
         }
 
+        const archivedAt =
+          event.name === "collections.archive"
+            ? event.changes?.attributes.archivedAt
+            : event.changes?.previous.archivedAt;
+
         return socketio
           .to(this.getCollectionEventChannels(event, collection))
           .emit(event.name, {
             id: event.collectionId,
-            archivedAt: event.data.archivedAt,
+            archivedAt,
           });
       }
 
