@@ -8,15 +8,24 @@ import {
   NetworkError,
   NotFoundError,
   OfflineError,
+  PaymentRequiredError,
   RateLimitExceededError,
   ServiceUnavailableError,
   UpdateRequiredError,
 } from "./errors";
 
 export function initSentry(history: History) {
-  function filterFromClass(error: new (...args: any[]) => Error) {
-    return new RegExp(`/^${error.name}:.*$/`);
-  }
+  const ignoredErrorTypes = [
+    AuthorizationError,
+    BadRequestError,
+    NetworkError,
+    NotFoundError,
+    OfflineError,
+    PaymentRequiredError,
+    RateLimitExceededError,
+    ServiceUnavailableError,
+    UpdateRequiredError,
+  ];
 
   Sentry.init({
     dsn: env.SENTRY_DSN,
@@ -36,14 +45,13 @@ export function initSentry(history: History) {
       "ResizeObserver loop limit exceeded",
       "file://",
       "chrome-extension://",
-      filterFromClass(AuthorizationError),
-      filterFromClass(BadRequestError),
-      filterFromClass(NetworkError),
-      filterFromClass(NotFoundError),
-      filterFromClass(OfflineError),
-      filterFromClass(RateLimitExceededError),
-      filterFromClass(ServiceUnavailableError),
-      filterFromClass(UpdateRequiredError),
     ],
+    beforeSend(event, hint) {
+      const error = hint.originalException;
+      if (error && ignoredErrorTypes.some((type) => error instanceof type)) {
+        return null;
+      }
+      return event;
+    },
   });
 }
