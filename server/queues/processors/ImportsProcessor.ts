@@ -255,12 +255,10 @@ export default abstract class ImportsProcessor<
         collectionId: collection.id,
       });
 
-      await collectionDestroyer({
-        collection,
-        transaction,
-        user,
-        ip: event.ip,
-      });
+      await collectionDestroyer(
+        createContext({ user, ip: event.ip, transaction }),
+        { collection }
+      );
     }
   }
 

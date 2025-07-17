@@ -88,15 +88,8 @@ router.post(
       collection.description = DocumentHelper.toMarkdown(collection);
     }
 
-    await collection.save({ transaction });
+    await collection.saveWithCtx(ctx, undefined, { data: { name } });
 
-    await Event.createFromContext(ctx, {
-      name: "collections.create",
-      collectionId: collection.id,
-      data: {
-        name,
-      },
-    });
     // we must reload the collection to get memberships for policy presenter
     const reloaded = await Collection.findByPk(collection.id, {
       userId: user.id,
@@ -653,14 +646,7 @@ router.post(
       collection.commenting = commenting;
     }
 
-    await collection.save({ transaction });
-    await Event.createFromContext(ctx, {
-      name: "collections.update",
-      collectionId: collection.id,
-      data: {
-        name,
-      },
-    });
+    await collection.saveWithCtx(ctx, undefined, { data: { name } });
 
     if (privacyChanged || sharingChanged) {
       await Event.createFromContext(ctx, {
@@ -829,12 +815,7 @@ router.post(
 
     authorize(user, "delete", collection);
 
-    await collectionDestroyer({
-      collection,
-      transaction,
-      user,
-      ip: ctx.request.ip,
-    });
+    await collectionDestroyer(ctx, { collection });
 
     ctx.body = {
       success: true,

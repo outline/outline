@@ -1,32 +1,23 @@
-import { Transaction, Op } from "sequelize";
-import { Collection, Document, Event, User } from "@server/models";
+import { Op } from "sequelize";
+import { Collection, Document } from "@server/models";
+import { APIContext } from "@server/types";
 
 type Props = {
   /** The collection to delete */
   collection: Collection;
-  /** The actor who is deleting the collection */
-  user: User;
-  /** The database transaction to use */
-  transaction: Transaction;
-  /** The IP address of the current request */
-  ip: string | null;
 };
 
-export default async function collectionDestroyer({
-  collection,
-  transaction,
-  user,
-  ip,
-}: Props) {
-  await collection.destroy({ transaction });
-
+export default async function collectionDestroyer(
+  ctx: APIContext,
+  { collection }: Props
+) {
   await Document.update(
     {
-      lastModifiedById: user.id,
+      lastModifiedById: ctx.context.auth.user.id,
       deletedAt: new Date(),
     },
     {
-      transaction,
+      transaction: ctx.context.transaction,
       where: {
         teamId: collection.teamId,
         collectionId: collection.id,
@@ -37,17 +28,5 @@ export default async function collectionDestroyer({
     }
   );
 
-  await Event.create(
-    {
-      name: "collections.delete",
-      collectionId: collection.id,
-      teamId: collection.teamId,
-      actorId: user.id,
-      data: {
-        name: collection.name,
-      },
-      ip,
-    },
-    { transaction }
-  );
+  await collection.destroyWithCtx(ctx, { data: { name: collection.name } });
 }
