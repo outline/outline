@@ -187,6 +187,12 @@ export class Environment {
   public REDIS_URL = environment.REDIS_URL;
 
   /**
+   * The url of redis for horizontally scaling the collaboration service. If not
+   * set then the collaboration service must be ran as a singleton.
+   */
+  public REDIS_COLLABORATION_URL = environment.REDIS_COLLABORATION_URL;
+
+  /**
    * The fully qualified, external facing domain name of the server.
    */
   @Public
