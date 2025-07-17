@@ -116,19 +116,9 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-      redis:
-        image: redis:5.0
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     strategy:
       matrix:
-        shard: [1, 2, 3]
+        shard: [1, 2, 3, 4]
 
     steps:
       - uses: actions/checkout@v4
