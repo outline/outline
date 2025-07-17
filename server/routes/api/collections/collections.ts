@@ -41,6 +41,7 @@ import { APIContext } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { collectionIndexing } from "@server/utils/indexing";
+import removeIndexCollision from "@server/utils/removeIndexCollision";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -888,7 +889,7 @@ router.post(
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    const collection = await Collection.findByPk(id, {
+    let collection = await Collection.findByPk(id, {
       userId: user.id,
       includeDocumentStructure: true,
       rejectOnEmpty: true,
@@ -916,7 +917,7 @@ router.post(
 
     collection.archivedAt = null;
     collection.archivedById = null;
-    await collection.saveWithCtx(ctx, undefined, {
+    collection = await collection.saveWithCtx(ctx, undefined, {
       name: "restore",
       data: {
         name: collection.name,
@@ -941,26 +942,19 @@ router.post(
     const { id, index } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    let collection = await Collection.findByPk(id, {
+    const collection = await Collection.findByPk(id, {
       transaction,
       lock: transaction.LOCK.UPDATE,
     });
     authorize(user, "move", collection);
 
-    collection = await collection.update(
-      {
-        index,
-      },
-      {
-        transaction,
-      }
-    );
-    await Event.createFromContext(ctx, {
-      name: "collections.move",
-      collectionId: collection.id,
-      data: {
-        index: collection.index,
-      },
+    collection.index = await removeIndexCollision(collection.teamId, index, {
+      transaction,
+    });
+
+    await collection.saveWithCtx(ctx, undefined, {
+      name: "move",
+      data: { index: collection.index },
     });
 
     ctx.body = {
