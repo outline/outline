@@ -381,7 +381,6 @@ export default abstract class ImportsProcessor<
                 { silent: true },
                 {
                   name: "create",
-                  data: { name: output.title, source: "import" },
                 }
               );
 

@@ -312,9 +312,6 @@ export type CollectionEvent = BaseEvent<Collection> &
     | {
         name: "collections.create";
         collectionId: string;
-        data: {
-          source?: "import";
-        };
       }
     | {
         name:
