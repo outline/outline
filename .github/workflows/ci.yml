@@ -62,6 +62,7 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
+      config: ${{ steps.filter.outputs.config }}
       server: ${{ steps.filter.outputs.server }}
       app: ${{ steps.filter.outputs.app }}
     steps:
