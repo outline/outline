@@ -516,3 +516,36 @@ describe("#findByPk", () => {
     expect(response).toBe(null);
   });
 });
+
+describe("#setIndex", () => {
+  it("should set index before creating a collection", async () => {
+    const collection = await buildCollection();
+    expect(collection.index).not.toBeNull();
+  });
+
+  it("should resolve index collision when creating a collection", async () => {
+    const collection = await buildCollection();
+    const anotherCollection = await buildCollection({
+      teamId: collection.teamId,
+      index: collection.index,
+    });
+    expect(anotherCollection.index).not.toBeNull();
+    expect(anotherCollection.index).not.toEqual(collection.index);
+  });
+
+  it("should ensure only transaction is used for finding the first collection for team", async () => {
+    const collection = await buildCollection();
+    const [anotherCollection] = await Collection.findOrCreate({
+      where: {
+        name: "Another collection",
+        teamId: collection.teamId,
+      },
+      defaults: {
+        createdById: collection.createdById,
+        index: collection.index,
+      },
+    });
+    expect(anotherCollection.index).not.toBeNull();
+    expect(anotherCollection.index).not.toEqual(collection.index);
+  });
+});
