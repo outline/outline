@@ -86,7 +86,7 @@ router.post(
       collection.description = DocumentHelper.toMarkdown(collection);
     }
 
-    await collection.saveWithCtx(ctx, undefined);
+    await collection.saveWithCtx(ctx);
 
     // we must reload the collection to get memberships for policy presenter
     const reloaded = await Collection.findByPk(collection.id, {
@@ -644,7 +644,7 @@ router.post(
       collection.commenting = commenting;
     }
 
-    await collection.saveWithCtx(ctx, undefined);
+    await collection.saveWithCtx(ctx);
 
     // must reload to update collection membership for correct policy calculation
     // if the privacy level has changed. Otherwise skip this query for speed.
@@ -918,13 +918,13 @@ router.post(
     const { id, index } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    const collection = await Collection.findByPk(id, {
+    let collection = await Collection.findByPk(id, {
       transaction,
       lock: transaction.LOCK.UPDATE,
     });
     authorize(user, "move", collection);
 
-    await collection.updateWithCtx(
+    collection = await collection.updateWithCtx(
       ctx,
       { index },
       {
