@@ -5,6 +5,7 @@ node_modules/*
 .env.local
 .env.production
 .log
+.yarn
 .vscode/*
 npm-debug.log
 stats.json
