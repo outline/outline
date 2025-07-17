@@ -843,8 +843,15 @@ router.post(
 
     collection.archivedAt = new Date();
     collection.archivedById = user.id;
-    await collection.save({ transaction });
     collection.archivedBy = user;
+
+    await collection.saveWithCtx(ctx, undefined, {
+      name: "archive",
+      data: {
+        name: collection.name,
+        archivedAt: collection.archivedAt,
+      },
+    });
 
     // Archive all documents within the collection
     await Document.update(
@@ -863,15 +870,6 @@ router.post(
         transaction,
       }
     );
-
-    await Event.createFromContext(ctx, {
-      name: "collections.archive",
-      collectionId: collection.id,
-      data: {
-        name: collection.name,
-        archivedAt: collection.archivedAt,
-      },
-    });
 
     ctx.body = {
       data: await presentCollection(ctx, collection),
@@ -918,11 +916,8 @@ router.post(
 
     collection.archivedAt = null;
     collection.archivedById = null;
-    await collection.save({ transaction });
-
-    await Event.createFromContext(ctx, {
-      name: "collections.restore",
-      collectionId: collection.id,
+    await collection.saveWithCtx(ctx, undefined, {
+      name: "restore",
       data: {
         name: collection.name,
         archivedAt: collectionArchivedAt,
