@@ -29,14 +29,14 @@ import Metrics from "./logging/Metrics";
 import { PluginManager } from "./utils/PluginManager";
 
 // The number of processes to run, defaults to the number of CPU's available
-// for the web service, and 1 for collaboration during the beta period.
+// for the web service, and 1 for collaboration unless REDIS_COLLABORATION_URL is set.
 let webProcessCount = env.WEB_CONCURRENCY;
 
-if (env.SERVICES.includes("collaboration")) {
+if (env.SERVICES.includes("collaboration") && !env.REDIS_COLLABORATION_URL) {
   if (webProcessCount !== 1) {
     Logger.info(
       "lifecycle",
-      "Note: Restricting process count to 1 due to use of collaborative service"
+      "Note: Restricting process count to 1 due to use of collaborative service without REDIS_COLLABORATION_URL"
     );
   }
 
