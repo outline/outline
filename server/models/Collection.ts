@@ -404,7 +404,7 @@ class Collection extends ParanoidModel<
         Sequelize.literal('"collection"."index" collate "C"'),
         ["updatedAt", "DESC"],
       ],
-      ...options,
+      transaction: options.transaction,
     });
 
     model.index = fractionalIndex(null, firstCollectionForTeam?.index ?? null);
