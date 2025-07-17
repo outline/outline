@@ -328,10 +328,6 @@ export type CollectionEvent = BaseEvent<Collection> &
     | {
         name: "collections.permission_changed";
         collectionId: string;
-        data: {
-          privacyChanged: boolean;
-          sharingChanged: boolean;
-        };
       }
   );
 

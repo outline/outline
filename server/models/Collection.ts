@@ -466,6 +466,22 @@ class Collection extends ParanoidModel<
     }
   }
 
+  @BeforeUpdate
+  static async publishPermissionChangedEvent(
+    model: Collection,
+    ctx: APIContext["context"]
+  ) {
+    const privacyChanged = model.previous("permission") !== model.permission;
+    const sharingChanged = model.previous("sharing") !== model.sharing;
+
+    if (privacyChanged || sharingChanged) {
+      await this.insertEvent("permission_changed", model, {
+        ...ctx,
+        event: { publish: true },
+      });
+    }
+  }
+
   // associations
 
   @BelongsTo(() => FileOperation, "importId")

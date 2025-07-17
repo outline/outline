@@ -18,7 +18,6 @@ import {
   UserMembership,
   GroupMembership,
   Team,
-  Event,
   User,
   Group,
   Attachment,
@@ -646,17 +645,6 @@ router.post(
     }
 
     await collection.saveWithCtx(ctx, undefined);
-
-    if (privacyChanged || sharingChanged) {
-      await Event.createFromContext(ctx, {
-        name: "collections.permission_changed",
-        collectionId: collection.id,
-        data: {
-          privacyChanged,
-          sharingChanged,
-        },
-      });
-    }
 
     // must reload to update collection membership for correct policy calculation
     // if the privacy level has changed. Otherwise skip this query for speed.
