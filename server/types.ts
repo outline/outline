@@ -307,29 +307,17 @@ export type DocumentGroupEvent = BaseEvent<GroupMembership> & {
   };
 };
 
-export type CollectionEvent = BaseEvent<Collection> &
-  (
-    | {
-        name: "collections.create";
-        collectionId: string;
-      }
-    | {
-        name:
-          | "collections.update"
-          | "collections.delete"
-          | "collections.archive"
-          | "collections.restore";
-        collectionId: string;
-      }
-    | {
-        name: "collections.move";
-        collectionId: string;
-      }
-    | {
-        name: "collections.permission_changed";
-        collectionId: string;
-      }
-  );
+export type CollectionEvent = BaseEvent<Collection> & {
+  name:
+    | "collections.create"
+    | "collections.update"
+    | "collections.delete"
+    | "collections.archive"
+    | "collections.restore"
+    | "collections.move"
+    | "collections.permission_changed";
+  collectionId: string;
+};
 
 export type GroupUserEvent = BaseEvent<UserMembership> & {
   name: "groups.add_user" | "groups.remove_user";
