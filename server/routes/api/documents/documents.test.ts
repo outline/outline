@@ -3286,7 +3286,10 @@ describe("#documents.restore", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    const revision = await Revision.createFromDocument(document);
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      document
+    );
     const previous = revision.content;
     const revisionId = revision.id;
 
@@ -3316,7 +3319,10 @@ describe("#documents.restore", () => {
       teamId: user.teamId,
     });
     const anotherDoc = await buildDocument();
-    const revision = await Revision.createFromDocument(anotherDoc);
+    const revision = await Revision.createFromDocument(
+      createContext({ user }),
+      anotherDoc
+    );
     const revisionId = revision.id;
     const res = await server.post("/api/documents.restore", {
       body: {
@@ -3347,8 +3353,15 @@ describe("#documents.restore", () => {
   });
 
   it("should require authorization", async () => {
-    const document = await buildDocument();
-    const revision = await Revision.createFromDocument(document);
+    const admin = await buildAdmin();
+    const document = await buildDocument({
+      teamId: admin.teamId,
+      userId: admin.id,
+    });
+    const revision = await Revision.createFromDocument(
+      createContext({ user: admin }),
+      document
+    );
     const revisionId = revision.id;
     const user = await buildUser();
     const res = await server.post("/api/documents.restore", {
