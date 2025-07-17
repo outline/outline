@@ -25,6 +25,10 @@ import {
   MentionUser,
 } from "../components/Mentions";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { transformListToMentions } from "../lib/mention";
+import { findParentNodeClosestToPos } from "../queries/findParentNode";
+import { isInList } from "../queries/isInList";
+import { isList } from "../queries/isList";
 import mentionRule from "../rules/mention";
 import { ComponentProps } from "../types";
 import Node from "./Node";
@@ -227,22 +231,66 @@ export default class Mention extends Node {
   }
 
   commands({ type }: { type: NodeType; schema: Schema }) {
-    return (attrs: Record<string, Primitive>): Command =>
-      (state, dispatch) => {
-        const { selection } = state;
-        const position =
-          selection instanceof TextSelection
-            ? selection.$cursor?.pos
-            : selection.$to.pos;
-        if (position === undefined) {
-          return false;
-        }
+    return {
+      mention:
+        (attrs: Record<string, Primitive>): Command =>
+        (state, dispatch) => {
+          const { selection } = state;
+          const position =
+            selection instanceof TextSelection
+              ? selection.$cursor?.pos
+              : selection.$to.pos;
+          if (position === undefined) {
+            return false;
+          }
 
-        const node = type.create(attrs);
-        const transaction = state.tr.insert(position, node);
-        dispatch?.(transaction);
-        return true;
-      };
+          const node = type.create(attrs);
+          const transaction = state.tr.insert(position, node);
+          dispatch?.(transaction);
+          return true;
+        },
+      mention_list:
+        (attrs: Record<string, Primitive>): Command =>
+        (state, dispatch) => {
+          const { selection } = state;
+          const position =
+            selection instanceof TextSelection
+              ? selection.$cursor?.pos
+              : selection.$to.pos;
+
+          if (position === undefined || !isInList(state)) {
+            return false;
+          }
+
+          const resolvedPos = state.tr.doc.resolve(position);
+          const nodeWithPos = findParentNodeClosestToPos(resolvedPos, (node) =>
+            isList(node, this.editor.schema)
+          );
+
+          if (!nodeWithPos) {
+            return false;
+          }
+
+          const listNode = nodeWithPos.node,
+            from = nodeWithPos.pos,
+            to = from + listNode.nodeSize;
+
+          const listNodeWithMentions = transformListToMentions(
+            listNode,
+            this.editor.schema,
+            attrs
+          );
+
+          const tr = state.tr.deleteRange(from, to);
+          dispatch?.(
+            tr
+              .setSelection(TextSelection.near(tr.doc.resolve(from)))
+              .replaceSelectionWith(listNodeWithMentions)
+          );
+
+          return true;
+        },
+    };
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
