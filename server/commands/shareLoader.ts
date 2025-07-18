@@ -79,6 +79,7 @@ export async function loadShare({
                 { method: ["withMembership", user?.id] },
               ]),
               as: "collection",
+              required: false,
             },
           ],
         },
@@ -101,16 +102,22 @@ export async function loadShare({
       throw NotFoundError();
     }
 
+    const isDraftWithoutCollection =
+      !!share.document?.isDraft && !share.document.collectionId;
     const associatedCollection = share.collection ?? share.document?.collection;
 
-    if (!share.team.sharing || !associatedCollection?.sharing) {
+    if (
+      !share.team.sharing ||
+      (!isDraftWithoutCollection && !associatedCollection?.sharing)
+    ) {
       throw AuthorizationError();
     }
 
     if (share.collection) {
-      sharedTree = associatedCollection.toNavigationNode();
+      sharedTree = associatedCollection?.toNavigationNode() ?? null;
     } else if (share.document && share.includeChildDocuments) {
-      sharedTree = associatedCollection.getDocumentTree(share.document.id);
+      sharedTree =
+        associatedCollection?.getDocumentTree(share.document.id) ?? null;
     }
 
     if (collectionId && collectionId !== share.collectionId) {
