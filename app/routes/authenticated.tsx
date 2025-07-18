@@ -24,7 +24,8 @@ import {
 const SettingsRoutes = lazy(() => import("./settings"));
 const Archive = lazy(() => import("~/scenes/Archive"));
 const Collection = lazy(() => import("~/scenes/Collection"));
-const Document = lazy(() => import("~/scenes/Document"));
+const DocumentRouter = lazy(() => import("./DocumentRouter"));
+const Reader = lazy(() => import("~/scenes/Reader"));
 const Drafts = lazy(() => import("~/scenes/Drafts"));
 const Home = lazy(() => import("~/scenes/Home"));
 const Search = lazy(() => import("~/scenes/Search"));
@@ -91,15 +92,15 @@ function AuthenticatedRoutes() {
               <Route
                 exact
                 path={`/doc/${slug}/history/:revisionId?`}
-                component={Document}
+                component={DocumentRouter}
               />
               <Route
                 exact
                 path={`/doc/${slug}/insights`}
-                component={Document}
+                component={DocumentRouter}
               />
-              <Route exact path={`/doc/${slug}/edit`} component={Document} />
-              <Route path={`/doc/${slug}`} component={Document} />
+              <Route exact path={`/doc/${slug}/edit`} component={DocumentRouter} />
+              <Route path={`/doc/${slug}`} component={DocumentRouter} />
               <Route
                 exact
                 path={`${searchPath()}/:query?`}

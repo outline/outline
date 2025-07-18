@@ -161,6 +161,13 @@ export default class Document extends ArchivableModel implements Searchable {
   fullWidth: boolean;
 
   /**
+   * The type of the document.
+   */
+  @Field
+  @observable
+  documentType?: "document" | "research-paper";
+
+  /**
    * Whether team members can see who has viewed this document.
    */
   @observable

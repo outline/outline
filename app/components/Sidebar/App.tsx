@@ -1,9 +1,10 @@
 import { observer } from "mobx-react";
-import { SearchIcon, HomeIcon, SidebarIcon } from "outline-icons";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { SearchIcon, HomeIcon, SidebarIcon, PlusIcon } from "outline-icons";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { useTranslation } from "react-i18next";
+import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import { metaDisplay } from "@shared/utils/keyboard";
 import Scrollable from "~/components/Scrollable";
@@ -13,7 +14,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import TeamMenu from "~/menus/TeamMenu";
-import { homePath, searchPath } from "~/utils/routeHelpers";
+import { homePath, searchPath, documentPath } from "~/utils/routeHelpers";
 import TeamLogo from "../TeamLogo";
 import Tooltip from "../Tooltip";
 import Sidebar from "./Sidebar";
@@ -34,9 +35,32 @@ import TrashLink from "./components/TrashLink";
 function AppSidebar() {
   const { t } = useTranslation();
   const { documents, ui, collections } = useStores();
+  const history = useHistory();
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const can = usePolicy(team);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUpload = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    const document = await documents.create({
+      title: file.name,
+      text: "",
+      documentType: "research-paper",
+    });
+
+    history.push(documentPath(document));
+  };
 
   useEffect(() => {
     void collections.fetchAll();
@@ -106,6 +130,11 @@ function AppSidebar() {
                 label={t("Search")}
                 exact={false}
               />
+              <SidebarButton
+                onClick={handleUpload}
+                icon={<PlusIcon />}
+                label={t("Upload")}
+              />
               {can.createDocument && <DraftsLink />}
             </Section>
           </Overflow>
@@ -129,6 +158,13 @@ function AppSidebar() {
               <SidebarAction action={inviteUser} />
             </Section>
           </Scrollable>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            style={{ display: "none" }}
+            accept=".pdf"
+          />
         </DndProvider>
       )}
     </Sidebar>

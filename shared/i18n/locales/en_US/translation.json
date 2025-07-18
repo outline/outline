@@ -371,6 +371,7 @@
   "{{ count }} groups added to the document": "{{ count }} groups added to the document",
   "{{ count }} groups added to the document_plural": "{{ count }} groups added to the document",
   "Logo": "Logo",
+  "Upload": "Upload",
   "Archived collections": "Archived collections",
   "New doc": "New doc",
   "Empty": "Empty",
