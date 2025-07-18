@@ -75,6 +75,12 @@ export function createDatabaseInstance(
         acquire: 30000,
         idle: 10000,
       },
+      retry: {
+        match: [/deadlock/i],
+        max: 3,
+        backoffBase: 200,
+        backoffExponent: 1.5,
+      },
       schema,
     };
 
