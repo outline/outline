@@ -11,13 +11,26 @@ export const isPWA =
   window.matchMedia?.("(display-mode: standalone)").matches;
 
 /**
- * Returns true if the client is a touch device.
+ * Returns true if the client is a touch device. Note that laptops with touch screens are
+ * considered touch devices.
  */
 export function isTouchDevice(): boolean {
   if (!isBrowser) {
     return false;
   }
   return window.matchMedia?.("(hover: none) and (pointer: coarse)")?.matches;
+}
+
+/**
+ * Returns true if the client is a mobile device.
+ */
+export function isMobile(): boolean {
+  if (!isBrowser) {
+    return false;
+  }
+
+  // Matches breakpoints.tablet - 1 but not imported to avoid circular dependency
+  return window.matchMedia?.(`(max-width: ${736}px)`)?.matches;
 }
 
 /**
