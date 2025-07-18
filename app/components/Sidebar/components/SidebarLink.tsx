@@ -4,6 +4,7 @@ import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
 import { s } from "@shared/styles";
+import { isMobile } from "@shared/utils/browser";
 import NudeButton from "~/components/NudeButton";
 import { UnreadBadge } from "~/components/UnreadBadge";
 import useUnmount from "~/hooks/useUnmount";
@@ -196,7 +197,7 @@ const Link = styled(NavLink)<{
   position: relative;
   text-overflow: ellipsis;
   font-weight: 475;
-  padding: 6px 16px;
+  padding: ${isMobile() ? 12 : 6}px 16px;
   border-radius: 4px;
   min-height: 32px;
   user-select: none;
