@@ -285,7 +285,8 @@ class WebsocketProvider extends Component<Props> {
     this.socket.on(
       "documents.archive",
       action((event: PartialExcept<Document, "id">) => {
-        documents.addToArchive(event as Document);
+        const model = documents.add(event);
+        documents.addToArchive(model);
 
         if (event.collectionId) {
           const collection = collections.get(event.collectionId);
