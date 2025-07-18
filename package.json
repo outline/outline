@@ -169,7 +169,7 @@
     "markdown-it": "^14.1.0",
     "markdown-it-container": "^3.0.0",
     "markdown-it-emoji": "^3.0.0",
-    "mermaid": "11.7.0",
+    "mermaid": "11.9.0",
     "mime-types": "^2.1.35",
     "mobx": "^4.15.4",
     "mobx-react": "^6.3.1",
@@ -377,6 +377,7 @@
     "yarn-deduplicate": "^6.0.2"
   },
   "resolutions": {
+    "rolldown": "https://pkg.pr.new/rolldown@59ccf5f",
     "prosemirror-transform": "1.10.0",
     "body-scroll-lock": "^4.0.0-beta.0",
     "d3": "^7.0.0",
