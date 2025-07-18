@@ -183,24 +183,28 @@ export class NotionConverter {
       .map(this.rich_text_to_plaintext)
       .join("");
 
-    return {
-      type: "paragraph",
-      content: [
-        {
-          text: caption || item.bookmark.url,
-          type: "text",
-          marks: [
+    const text = caption || item.bookmark.url;
+
+    return text
+      ? {
+          type: "paragraph",
+          content: [
             {
-              type: "link",
-              attrs: {
-                href: item.bookmark.url,
-                title: null,
-              },
+              type: "text",
+              text,
+              marks: [
+                {
+                  type: "link",
+                  attrs: {
+                    href: item.bookmark.url,
+                    title: null,
+                  },
+                },
+              ],
             },
           ],
-        },
-      ],
-    };
+        }
+      : undefined;
   }
 
   private static breadcrumb(_: BreadcrumbBlockObjectResponse) {
@@ -286,32 +290,40 @@ export class NotionConverter {
         };
       }
       if (item.mention.type === "link_mention") {
-        return {
-          type: "text",
-          text: item.plain_text || item.mention.link_mention.href,
-          marks: [
-            {
-              type: "link",
-              attrs: {
-                href: item.mention.link_mention.href,
-              },
-            },
-          ],
-        };
+        const text = item.plain_text || item.mention.link_mention.href;
+
+        return text
+          ? {
+              type: "text",
+              text,
+              marks: [
+                {
+                  type: "link",
+                  attrs: {
+                    href: item.mention.link_mention.href,
+                  },
+                },
+              ],
+            }
+          : undefined;
       }
       if (item.mention.type === "link_preview") {
-        return {
-          type: "text",
-          text: item.plain_text || item.mention.link_preview.url,
-          marks: [
-            {
-              type: "link",
-              attrs: {
-                href: item.mention.link_preview.url,
-              },
-            },
-          ],
-        };
+        const text = item.plain_text || item.mention.link_preview.url;
+
+        return text
+          ? {
+              type: "text",
+              text: item.plain_text || item.mention.link_preview.url,
+              marks: [
+                {
+                  type: "link",
+                  attrs: {
+                    href: item.mention.link_preview.url,
+                  },
+                },
+              ],
+            }
+          : undefined;
       }
 
       if (item.plain_text) {
@@ -325,15 +337,17 @@ export class NotionConverter {
     }
 
     if (item.type === "equation") {
-      return {
-        type: "math_inline",
-        content: [
-          {
-            type: "text",
-            text: item.equation.expression,
-          },
-        ],
-      };
+      return item.equation.expression
+        ? {
+            type: "math_inline",
+            content: [
+              {
+                type: "text",
+                text: item.equation.expression,
+              },
+            ],
+          }
+        : undefined;
     }
 
     if (item.text.content) {
@@ -454,23 +468,25 @@ export class NotionConverter {
   }
 
   private static link_preview(item: LinkPreviewBlockObjectResponse) {
-    return {
-      type: "paragraph",
-      content: [
-        {
-          type: "text",
-          text: item.link_preview.url,
-          marks: [
+    return item.link_preview.url
+      ? {
+          type: "paragraph",
+          content: [
             {
-              type: "link",
-              attrs: {
-                href: item.link_preview.url,
-              },
+              type: "text",
+              text: item.link_preview.url,
+              marks: [
+                {
+                  type: "link",
+                  attrs: {
+                    href: item.link_preview.url,
+                  },
+                },
+              ],
             },
           ],
-        },
-      ],
-    };
+        }
+      : undefined;
   }
 
   private static link_to_page(item: LinkToPageBlockObjectResponse) {
