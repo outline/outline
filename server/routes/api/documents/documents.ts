@@ -777,9 +777,6 @@ router.post(
         url: null,
         size: 0,
         documentId: document.id,
-        // options: {
-        //   includeAttachments,
-        // },
         userId: user.id,
         teamId: document.teamId,
       });

@@ -115,13 +115,7 @@ export default abstract class ExportTask extends BaseTask<Props> {
     fileOperation: FileOperation,
     user: User
   ): Promise<string> {
-    const exportType = fileOperation.documentId
-      ? "document"
-      : fileOperation.collectionId
-        ? "collection"
-        : "team";
-
-    if (exportType === "document") {
+    if (fileOperation.documentId) {
       const document = await Document.findByPk(fileOperation.documentId!, {
         include: {
           model: Collection.scope("withDocumentStructure"),
@@ -142,7 +136,7 @@ export default abstract class ExportTask extends BaseTask<Props> {
     }
 
     // ensure attachment size is within limits
-    if (exportType === "team") {
+    if (!fileOperation.collectionId) {
       const totalAttachmentsSize = await Attachment.getTotalSizeForTeam(
         user.teamId
       );
