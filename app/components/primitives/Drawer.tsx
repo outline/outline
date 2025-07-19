@@ -79,6 +79,8 @@ const StyledContent = styled(DrawerPrimitive.Content)`
   border-radius: 6px;
 
   background: ${s("menuBackground")};
+
+  animation-duration: 0.3s;
 `;
 
 const TitleWrapper = styled(Flex)`

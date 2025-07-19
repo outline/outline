@@ -1,13 +1,11 @@
 import { observer } from "mobx-react";
-import { useCallback } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import ApiKey from "~/models/ApiKey";
-import ApiKeyRevokeDialog from "~/scenes/Settings/components/ApiKeyRevokeDialog";
-import ContextMenu from "~/components/ContextMenu";
-import MenuItem from "~/components/ContextMenu/MenuItem";
-import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
-import { useMenuState } from "~/hooks/useMenuState";
-import useStores from "~/hooks/useStores";
+import { DropdownMenu } from "~/components/Menu/DropdownMenu";
+import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
+import { revokeApiKeyFactory } from "~/actions/definitions/apiKeys";
+import { useMenuAction } from "~/hooks/useMenuAction";
 
 type Props = {
   /** The apiKey to associate with the menu */
@@ -15,30 +13,14 @@ type Props = {
 };
 
 function ApiKeyMenu({ apiKey }: Props) {
-  const menu = useMenuState({
-    modal: true,
-  });
-  const { dialogs } = useStores();
   const { t } = useTranslation();
-
-  const handleRevoke = useCallback(() => {
-    dialogs.openModal({
-      title: t("Revoke token"),
-      content: (
-        <ApiKeyRevokeDialog onSubmit={dialogs.closeAllModals} apiKey={apiKey} />
-      ),
-    });
-  }, [t, dialogs, apiKey]);
+  const actions = useMemo(() => [revokeApiKeyFactory({ apiKey })], [apiKey]);
+  const rootAction = useMenuAction(actions);
 
   return (
-    <>
-      <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
-      <ContextMenu {...menu}>
-        <MenuItem {...menu} onClick={handleRevoke} dangerous>
-          {t("Revoke")}
-        </MenuItem>
-      </ContextMenu>
-    </>
+    <DropdownMenu action={rootAction} ariaLabel={t("API key")}>
+      <OverflowMenuButton />
+    </DropdownMenu>
   );
 }
 

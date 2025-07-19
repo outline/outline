@@ -3,55 +3,63 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { FileOperationState, FileOperationType } from "@shared/types";
 import FileOperation from "~/models/FileOperation";
-import ContextMenu from "~/components/ContextMenu";
-import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
-import Template from "~/components/ContextMenu/Template";
-import { useMenuState } from "~/hooks/useMenuState";
+import { DropdownMenu } from "~/components/Menu/DropdownMenu";
+import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
+import {
+  ActionV2Separator,
+  createActionV2,
+  createExternalLinkActionV2,
+} from "~/actions";
+import { useMenuAction } from "~/hooks/useMenuAction";
 import usePolicy from "~/hooks/usePolicy";
 
 type Props = {
   fileOperation: FileOperation;
-  onDelete: (ev: React.SyntheticEvent) => Promise<void>;
+  onDelete: () => Promise<void>;
 };
 
 function FileOperationMenu({ fileOperation, onDelete }: Props) {
   const { t } = useTranslation();
   const can = usePolicy(fileOperation);
-  const menu = useMenuState({
-    modal: true,
-  });
+  const section = "File operations";
+
+  const actions = React.useMemo(
+    () => [
+      createExternalLinkActionV2({
+        name: t("Download"),
+        icon: <DownloadIcon />,
+        section,
+        visible:
+          fileOperation.type === FileOperationType.Export &&
+          fileOperation.state === FileOperationState.Complete,
+        url: fileOperation.downloadUrl,
+      }),
+      ActionV2Separator,
+      createActionV2({
+        name: t("Delete"),
+        icon: <TrashIcon />,
+        section,
+        visible: can.delete,
+        dangerous: true,
+        perform: () => onDelete(),
+      }),
+    ],
+    [
+      t,
+      can.delete,
+      fileOperation.type,
+      fileOperation.state,
+      fileOperation.downloadUrl,
+      onDelete,
+    ]
+  );
+
+  const rootAction = useMenuAction(actions);
 
   return (
-    <>
-      <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
-      <ContextMenu {...menu} aria-label={t("Export options")}>
-        <Template
-          {...menu}
-          items={[
-            {
-              type: "link",
-              title: t("Download"),
-              icon: <DownloadIcon />,
-              visible:
-                fileOperation.type === FileOperationType.Export &&
-                fileOperation.state === FileOperationState.Complete,
-              href: fileOperation.downloadUrl,
-            },
-            {
-              type: "separator",
-            },
-            {
-              type: "button",
-              title: t("Delete"),
-              visible: can.delete,
-              icon: <TrashIcon />,
-              dangerous: true,
-              onClick: onDelete,
-            },
-          ]}
-        />
-      </ContextMenu>
-    </>
+    <DropdownMenu action={rootAction} ariaLabel={t("File")}>
+      <OverflowMenuButton />
+    </DropdownMenu>
   );
 }
 
