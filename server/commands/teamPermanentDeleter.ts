@@ -9,6 +9,7 @@ import {
   Event,
   FileOperation,
   Group,
+  Import,
   Team,
   User,
   UserAuthentication,
@@ -148,6 +149,13 @@ async function teamPermanentDeleter(team: Team) {
       transaction,
     });
     await Group.unscoped().destroy({
+      where: {
+        teamId,
+      },
+      force: true,
+      transaction,
+    });
+    await Import.destroy({
       where: {
         teamId,
       },
