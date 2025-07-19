@@ -154,7 +154,9 @@ export const DocumentsInfoSchema = BaseSchema.extend({
 export type DocumentsInfoReq = z.infer<typeof DocumentsInfoSchema>;
 
 export const DocumentsExportSchema = BaseSchema.extend({
-  body: BaseIdSchema,
+  body: BaseIdSchema.extend({
+    includeChildDocuments: z.boolean().default(false),
+  }),
 });
 
 export type DocumentsExportReq = z.infer<typeof DocumentsExportSchema>;

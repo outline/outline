@@ -12,6 +12,7 @@ export default function presentFileOperation(data: FileOperation) {
     error: data.error,
     size: data.size,
     collectionId: data.collectionId,
+    documentId: data.documentId,
     user: presentUser(data.user),
     createdAt: data.createdAt,
     updatedAt: data.updatedAt,
