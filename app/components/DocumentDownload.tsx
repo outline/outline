@@ -27,6 +27,8 @@ export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
   const user = useCurrentUser();
   const { t } = useTranslation();
 
+  const hasChildDocuments = !!document.childDocuments.length;
+
   const handleContentTypeChange = useCallback(
     (ev: React.ChangeEvent<HTMLInputElement>) => {
       setContentType(ev.target.value as ExportContentType);
@@ -42,7 +44,10 @@ export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
   );
 
   const handleSubmit = useCallback(async () => {
-    await document.download({ contentType, includeChildDocuments });
+    await document.download({
+      contentType,
+      includeChildDocuments: hasChildDocuments && includeChildDocuments,
+    });
 
     if (includeChildDocuments) {
       toast.success(t("Export started"), {
@@ -59,7 +64,14 @@ export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
     }
 
     onSubmit();
-  }, [t, document, contentType, includeChildDocuments, onSubmit]);
+  }, [
+    t,
+    document,
+    contentType,
+    includeChildDocuments,
+    hasChildDocuments,
+    onSubmit,
+  ]);
 
   const items = useMemo(() => {
     const radioItems = [
@@ -133,19 +145,21 @@ export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
         ))}
       </Flex>
       <hr />
-      <Option>
-        <input
-          type="checkbox"
-          name="includeChildDocuments"
-          checked={includeChildDocuments}
-          onChange={handleIncludeChildDocumentsChange}
-        />
-        <div>
-          <Text as="p" size="small" weight="bold">
-            {t("Include child documents")}
-          </Text>
-        </div>
-      </Option>
+      {hasChildDocuments && (
+        <Option>
+          <input
+            type="checkbox"
+            name="includeChildDocuments"
+            checked={includeChildDocuments}
+            onChange={handleIncludeChildDocumentsChange}
+          />
+          <div>
+            <Text as="p" size="small" weight="bold">
+              {t("Include child documents")}
+            </Text>
+          </div>
+        </Option>
+      )}
     </ConfirmationDialog>
   );
 });
