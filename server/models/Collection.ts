@@ -16,6 +16,7 @@ import {
   type UpdateOptions,
   type ScopeOptions,
   type SaveOptions,
+  Op,
 } from "sequelize";
 import {
   Sequelize,
@@ -50,6 +51,7 @@ import { sortNavigationNodes } from "@shared/utils/collections";
 import slugify from "@shared/utils/slugify";
 import { CollectionValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
+import { APIContext } from "@server/types";
 import { CacheHelper } from "@server/utils/CacheHelper";
 import removeIndexCollision from "@server/utils/removeIndexCollision";
 import { generateUrlId } from "@server/utils/url";
@@ -386,6 +388,26 @@ class Collection extends ParanoidModel<
     }
   }
 
+  @BeforeDestroy
+  static async deleteDocuments(model: Collection, ctx: APIContext["context"]) {
+    await Document.update(
+      {
+        lastModifiedById: ctx.auth.user.id,
+        deletedAt: new Date(),
+      },
+      {
+        transaction: ctx.transaction,
+        where: {
+          teamId: model.teamId,
+          collectionId: model.id,
+          archivedAt: {
+            [Op.is]: null,
+          },
+        },
+      }
+    );
+  }
+
   @BeforeCreate
   static async setIndex(model: Collection, options: CreateOptions<Collection>) {
     if (model.index) {
@@ -440,6 +462,22 @@ class Collection extends ParanoidModel<
     ) {
       model.index = await removeIndexCollision(model.teamId, model.index!, {
         transaction: options.transaction,
+      });
+    }
+  }
+
+  @BeforeUpdate
+  static async publishPermissionChangedEvent(
+    model: Collection,
+    ctx: APIContext["context"]
+  ) {
+    const privacyChanged = model.previous("permission") !== model.permission;
+    const sharingChanged = model.previous("sharing") !== model.sharing;
+
+    if (privacyChanged || sharingChanged) {
+      await this.insertEvent("permission_changed", model, {
+        ...ctx,
+        event: { publish: true },
       });
     }
   }
