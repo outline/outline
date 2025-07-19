@@ -2446,7 +2446,7 @@ describe("#documents.viewed", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await View.incrementOrCreate({
+    await View.incrementOrCreate(createContext({ user }), {
       documentId: document.id,
       userId: user.id,
     });
@@ -2468,7 +2468,7 @@ describe("#documents.viewed", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await View.incrementOrCreate({
+    await View.incrementOrCreate(createContext({ user }), {
       documentId: document.id,
       userId: user.id,
     });
@@ -2495,7 +2495,7 @@ describe("#documents.viewed", () => {
       collectionId: collection.id,
       teamId: user.teamId,
     });
-    await View.incrementOrCreate({
+    await View.incrementOrCreate(createContext({ user }), {
       documentId: document.id,
       userId: user.id,
     });
