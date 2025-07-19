@@ -22,7 +22,6 @@ import {
 } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
 import { CollectionValidation } from "@shared/validations";
-import collectionDestroyer from "@server/commands/collectionDestroyer";
 import { createContext } from "@server/context";
 import { schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
@@ -254,13 +253,9 @@ export default abstract class ImportsProcessor<
       Logger.debug("processor", "Destroying collection created from import", {
         collectionId: collection.id,
       });
-
-      await collectionDestroyer({
-        collection,
-        transaction,
-        user,
-        ip: event.ip,
-      });
+      await collection.destroyWithCtx(
+        createContext({ user, ip: event.ip, transaction })
+      );
     }
   }
 
@@ -386,7 +381,6 @@ export default abstract class ImportsProcessor<
                 { silent: true },
                 {
                   name: "create",
-                  data: { name: output.title, source: "import" },
                 }
               );
 
