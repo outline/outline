@@ -19,15 +19,15 @@ type Props = {
 };
 
 export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
+  const { t } = useTranslation();
+  const user = useCurrentUser();
+  const hasChildDocuments = !!document.childDocuments.length;
+
   const [contentType, setContentType] = useState<ExportContentType>(
     ExportContentType.Markdown
   );
   const [includeChildDocuments, setIncludeChildDocuments] =
-    useState<boolean>(true);
-  const user = useCurrentUser();
-  const { t } = useTranslation();
-
-  const hasChildDocuments = !!document.childDocuments.length;
+    useState<boolean>(hasChildDocuments);
 
   const handleContentTypeChange = useCallback(
     (ev: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,7 +46,7 @@ export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
   const handleSubmit = useCallback(async () => {
     await document.download({
       contentType,
-      includeChildDocuments: hasChildDocuments && includeChildDocuments,
+      includeChildDocuments,
     });
 
     if (includeChildDocuments) {
@@ -64,14 +64,7 @@ export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
     }
 
     onSubmit();
-  }, [
-    t,
-    document,
-    contentType,
-    includeChildDocuments,
-    hasChildDocuments,
-    onSubmit,
-  ]);
+  }, [t, document, contentType, includeChildDocuments, onSubmit]);
 
   const items = useMemo(() => {
     const radioItems = [
@@ -81,14 +74,18 @@ export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
           ? t(
               "A ZIP file containing the images, and documents in the Markdown format."
             )
-          : undefined,
+          : t(
+              "Document, along with the images, will be downloaded in the Markdown format."
+            ),
         value: ExportContentType.Markdown,
       },
       {
         title: "HTML",
         description: includeChildDocuments
           ? t("A ZIP file containing the images, and documents as HTML files.")
-          : undefined,
+          : t(
+              "Document, along with the images, will be downloaded as a HTML file."
+            ),
         value: ExportContentType.Html,
       },
     ];
@@ -98,7 +95,9 @@ export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
         title: "PDF",
         description: includeChildDocuments
           ? t("A ZIP file containing the images, and documents as PDF files.")
-          : undefined,
+          : t(
+              "Document, along with the images, will be downloaded as a PDF file."
+            ),
         value: ExportContentType.Pdf,
       });
     }
@@ -108,25 +107,10 @@ export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
 
   return (
     <ConfirmationDialog onSubmit={handleSubmit} submitText={t("Export")}>
-      {includeChildDocuments && (
-        <Text as="p">
-          <Trans
-            defaults="Exporting the document <em>{{documentName}}</em> including its children may take some time."
-            values={{
-              documentName: document.titleWithDefault,
-            }}
-            components={{
-              em: <strong />,
-            }}
-          />{" "}
-          {user.subscribedToEventType(NotificationEventType.ExportCompleted) &&
-            t("You will receive an email when it's complete.")}
-        </Text>
-      )}
       <Flex gap={12} column>
         {items.map((item) => (
           <Option key={item.value}>
-            <input
+            <StyledInput
               type="radio"
               name="format"
               value={item.value}
@@ -138,27 +122,45 @@ export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
                 {item.title}
               </Text>
               {item.description ? (
-                <Text size="small">{item.description}</Text>
+                <Text size="small" type="secondary">
+                  {item.description}
+                </Text>
               ) : null}
             </div>
           </Option>
         ))}
       </Flex>
-      <hr />
       {hasChildDocuments && (
-        <Option>
-          <input
-            type="checkbox"
-            name="includeChildDocuments"
-            checked={includeChildDocuments}
-            onChange={handleIncludeChildDocumentsChange}
-          />
-          <div>
-            <Text as="p" size="small" weight="bold">
-              {t("Include child documents")}
-            </Text>
-          </div>
-        </Option>
+        <>
+          <hr />
+          <Option>
+            <StyledInput
+              type="checkbox"
+              name="includeChildDocuments"
+              checked={includeChildDocuments}
+              onChange={handleIncludeChildDocumentsChange}
+            />
+            <Flex column gap={4}>
+              <Text as="p" size="small" weight="bold">
+                {t("Include child documents")}
+              </Text>
+              <Text as="p" size="small" type="secondary">
+                <Trans
+                  defaults="When selected, exporting the document <em>{{documentName}}</em> may take some time."
+                  values={{
+                    documentName: document.titleWithDefault,
+                  }}
+                  components={{
+                    em: <strong />,
+                  }}
+                />{" "}
+                {user.subscribedToEventType(
+                  NotificationEventType.ExportCompleted
+                ) && t("You will receive an email when it's complete.")}
+              </Text>
+            </Flex>
+          </Option>
+        </>
       )}
     </ConfirmationDialog>
   );
@@ -166,10 +168,15 @@ export const DocumentDownload = observer(({ document, onSubmit }: Props) => {
 
 const Option = styled.label`
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 16px;
 
   p {
     margin: 0;
   }
+`;
+
+const StyledInput = styled.input`
+  position: relative;
+  top: 1.5px;
 `;
