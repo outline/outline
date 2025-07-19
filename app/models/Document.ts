@@ -692,14 +692,21 @@ export default class Document extends ArchivableModel implements Searchable {
     return text;
   };
 
-  download = (contentType: ExportContentType) =>
+  download = ({
+    contentType,
+    includeChildDocuments,
+  }: {
+    contentType: ExportContentType;
+    includeChildDocuments?: boolean;
+  }) =>
     client.post(
       `/documents.export`,
       {
         id: this.id,
+        includeChildDocuments: includeChildDocuments ?? false,
       },
       {
-        download: true,
+        ...(includeChildDocuments ? {} : { download: true }),
         headers: {
           accept: contentType,
         },
