@@ -73,13 +73,22 @@ export type MenuExternalLink = {
   icon?: React.ReactNode;
 };
 
+export type MenuGroup = {
+  type: "group";
+  title: React.ReactNode;
+  visible?: boolean;
+  icon?: React.ReactNode; // added for backward compatibility
+  items: MenuItem[];
+};
+
 export type MenuItem =
   | MenuInternalLink
   | MenuItemButton
   | MenuExternalLink
   | MenuItemWithChildren
   | MenuSeparator
-  | MenuHeading;
+  | MenuHeading
+  | MenuGroup;
 
 export type ActionContext = {
   isContextMenu: boolean;
@@ -119,6 +128,67 @@ export type Action = {
   perform?: (context: ActionContext) => any;
   to?: string | { url: string; target?: string };
   children?: ((context: ActionContext) => Action[]) | Action[];
+};
+
+type BaseActionV2 = {
+  type: "action";
+  id: string;
+  analyticsName?: string;
+  name: ((context: ActionContext) => string) | string;
+  section: ((context: ActionContext) => string) | string;
+  shortcut?: string[];
+  keywords?: string;
+  /** Higher number is higher in results, default is 0. */
+  priority?: number;
+  icon?: React.ReactNode;
+  iconInContextMenu?: boolean;
+  placeholder?: ((context: ActionContext) => string) | string;
+  selected?: (context: ActionContext) => boolean;
+  visible?: ((context: ActionContext) => boolean) | boolean;
+};
+
+export type ActionV2 = BaseActionV2 & {
+  variant: "action";
+  dangerous?: boolean;
+  perform: (context: ActionContext) => any;
+};
+
+export type InternalLinkActionV2 = BaseActionV2 & {
+  variant: "internal_link";
+  to: LocationDescriptor;
+};
+
+export type ExternalLinkActionV2 = BaseActionV2 & {
+  variant: "external_link";
+  url: string;
+  target?: string;
+};
+
+export type ActionV2WithChildren = BaseActionV2 & {
+  variant: "action_with_children";
+  children:
+    | ((
+        context: ActionContext
+      ) => (ActionV2Variant | ActionV2Group | ActionV2Separator)[])
+    | (ActionV2Variant | ActionV2Group | ActionV2Separator)[];
+};
+
+export type ActionV2Variant =
+  | ActionV2
+  | InternalLinkActionV2
+  | ExternalLinkActionV2
+  | ActionV2WithChildren;
+
+// Specific to menu
+export type ActionV2Group = {
+  type: "action_group";
+  name: string;
+  actions: (ActionV2Variant | ActionV2Separator)[];
+};
+
+// Specific to menu
+export type ActionV2Separator = {
+  type: "action_separator";
 };
 
 export type CommandBarAction = {
