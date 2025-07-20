@@ -4,7 +4,7 @@ import Icon from "@shared/components/Icon";
 import { NavigationNode } from "@shared/types";
 import useStores from "~/hooks/useStores";
 import { sharedModelPath } from "~/utils/routeHelpers";
-import DocumentLink from "./SharedDocumentLink";
+import { SharedDocumentLink } from "./SharedDocumentLink";
 import SidebarLink from "./SidebarLink";
 
 type Props = {
@@ -35,7 +35,7 @@ function CollectionLink({ node, shareId }: Props) {
         isActive={() => ui.activeCollectionId === node.id}
       />
       {node.children.map((childNode, index) => (
-        <DocumentLink
+        <SharedDocumentLink
           key={childNode.id}
           index={index}
           depth={2}

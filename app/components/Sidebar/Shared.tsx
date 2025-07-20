@@ -19,7 +19,7 @@ import TeamLogo from "../TeamLogo";
 import Sidebar from "./Sidebar";
 import Section from "./components/Section";
 import { SharedCollectionLink } from "./components/SharedCollectionLink";
-import DocumentLink from "./components/SharedDocumentLink";
+import { SharedDocumentLink } from "./components/SharedDocumentLink";
 import SidebarButton from "./components/SidebarButton";
 import ToggleButton from "./components/ToggleButton";
 
@@ -72,7 +72,7 @@ function SharedSidebar({ share }: Props) {
           {share.collectionId ? (
             <SharedCollectionLink node={rootNode} shareId={share.id} />
           ) : (
-            <DocumentLink
+            <SharedDocumentLink
               index={0}
               depth={0}
               shareId={share.id}

@@ -132,7 +132,7 @@ function DocumentLink(
       />
       {expanded &&
         nodeChildren.map((childNode, index) => (
-          <ObservedDocumentLink
+          <SharedDocumentLink
             shareId={shareId}
             key={childNode.id}
             collection={collection}
@@ -150,6 +150,4 @@ function DocumentLink(
   );
 }
 
-const ObservedDocumentLink = observer(React.forwardRef(DocumentLink));
-
-export default ObservedDocumentLink;
+export const SharedDocumentLink = observer(React.forwardRef(DocumentLink));

@@ -275,5 +275,5 @@ const ScrollableContainer = styled(Scrollable)`
 const Sticky = styled.div`
   background: ${s("menuBackground")};
   position: sticky;
-  bottom: -12px;
+  bottom: 0;
 `;

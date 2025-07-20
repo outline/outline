@@ -219,7 +219,7 @@ function InnerPublicAccess({ collection, share }: Props) {
             >
               {copyButton}
             </ShareLinkInput>
-            <Flex align="center" gap={4}>
+            <Flex align="flex-start" gap={4}>
               <StyledInfoIcon size={18} color={theme.textTertiary} />
               <Text type="tertiary" size="xsmall">
                 {t(
