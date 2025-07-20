@@ -57,13 +57,6 @@ export const getInverseRelationsForModelClass = (targetClass: typeof Model) => {
             ...properties,
             modelName,
           });
-        } else if (!resolvedClass || !resolvedClass.modelName) {
-          Logger.warn(
-            `Relation ${modelName}.${propertyName} resolved to a class with undefined modelName. ` +
-              `Resolved class: ${resolvedClass?.constructor?.name || "undefined"}, ` +
-              `modelName: ${resolvedClass?.modelName}, ` +
-              `targetClass: ${targetClass.modelName}`
-          );
         }
       } catch (error) {
         Logger.error(
@@ -99,16 +92,22 @@ export default function Relation<T extends typeof Model>(
 
     // If the relation has options provided then register them in a map for later lookup. We can use
     // this to determine how to update relations when a model is deleted.
-    if (options) {
-      const configForClass =
-        relations.get(target.constructor.modelName) || new Map();
-      configForClass.set(propertyKey, {
-        options,
-        relationClassResolver: classResolver,
-        idKey,
-      });
-      relations.set(target.constructor.modelName, configForClass);
-    }
+    //
+    // TODO: requestAnimationFrame is a temporary solution to a bug in rolldown compiled code that
+    // will place static methods _after_ decorators. Temporary fix is to delay the registration until
+    // the next frame.
+    requestAnimationFrame(() => {
+      if (options) {
+        const configForClass =
+          relations.get(target.constructor.modelName) || new Map();
+        configForClass.set(propertyKey, {
+          options,
+          relationClassResolver: classResolver,
+          idKey,
+        });
+        relations.set(target.constructor.modelName, configForClass);
+      }
+    });
 
     Object.defineProperty(target, propertyKey, {
       get() {
