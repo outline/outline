@@ -52,18 +52,10 @@ router.post(
     const enabled = !!isEnabled;
 
     if (enabled) {
-      await authenticationProvider.enable({ transaction });
+      await authenticationProvider.enable(ctx);
     } else {
-      await authenticationProvider.disable({ transaction });
+      await authenticationProvider.disable(ctx);
     }
-
-    await Event.createFromContext(ctx, {
-      name: "authenticationProviders.update",
-      data: {
-        enabled,
-      },
-      modelId: id,
-    });
 
     ctx.body = {
       data: presentAuthenticationProvider(authenticationProvider),
