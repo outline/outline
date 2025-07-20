@@ -6,9 +6,8 @@ import { useLocation, useParams } from "react-router-dom";
 import styled, { ThemeProvider } from "styled-components";
 import { s } from "@shared/styles";
 import { NavigationNode } from "@shared/types";
-import CollectionModel from "~/models/Collection";
-import DocumentModel from "~/models/Document";
-import ShareModel from "~/models/Share";
+import Collection from "~/models/Collection";
+import Document from "~/models/Document";
 import Share from "~/models/Share";
 import Error404 from "~/scenes/Errors/Error404";
 import ClickablePadding from "~/components/ClickablePadding";
@@ -30,8 +29,8 @@ import { changeLanguage, detectLanguage } from "~/utils/language";
 import Loading from "../Document/components/Loading";
 import ErrorOffline from "../Errors/ErrorOffline";
 import Login from "../Login";
-import { Collection } from "./Collection";
-import { Document } from "./Document";
+import { Collection as CollectionScene } from "./Collection";
+import { Document as DocumentScene } from "./Document";
 
 // Parse the canonical origin from the SSR HTML, only needs to be done once.
 const canonicalUrl = document
@@ -69,7 +68,7 @@ function useModel() {
       : undefined;
 }
 
-function useActivePage(share?: ShareModel) {
+function useActivePage(share?: Share) {
   const { collectionSlug, documentSlug } = useParams<PathParams>();
 
   if (!share) {
@@ -127,9 +126,9 @@ function SharedScene() {
   const theme = useBuildTheme(team?.customTheme);
 
   const pageTitle =
-    model instanceof CollectionModel
+    model instanceof Collection
       ? model.name
-      : model instanceof DocumentModel
+      : model instanceof Document
         ? model.title
         : undefined;
 
@@ -231,14 +230,14 @@ function SharedScene() {
         <ThemeProvider theme={theme}>
           <DocumentContextProvider>
             <Layout title={pageTitle} sidebar={<Sidebar share={share} />}>
-              {model instanceof DocumentModel ? (
-                <Document
+              {model instanceof Document ? (
+                <DocumentScene
                   document={model}
                   shareId={share.id}
                   sharedTree={share.tree}
                 />
-              ) : model instanceof CollectionModel ? (
-                <Collection collection={model} shareId={shareId} />
+              ) : model instanceof Collection ? (
+                <CollectionScene collection={model} shareId={shareId} />
               ) : null}
             </Layout>
             <ClickablePadding minHeight="20vh" />
