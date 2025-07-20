@@ -2,8 +2,7 @@ import addressparser, { EmailAddress } from "addressparser";
 import Bull from "bull";
 import invariant from "invariant";
 import { Node } from "prosemirror-model";
-import randomstring from "randomstring";
-import * as React from "react";
+import { randomString } from "@shared/random";
 import { TeamPreference } from "@shared/types";
 import { Day } from "@shared/utils/time";
 import mailer from "@server/emails/mailer";
@@ -200,7 +199,7 @@ export default abstract class BaseEmail<
       address:
         env.isCloudHosted &&
         this.category === EmailMessageCategory.Authentication
-          ? `noreply-${randomstring.generate(24)}@${domain}`
+          ? `noreply-${randomString(24)}@${domain}`
           : parsedFrom.address,
     };
   }

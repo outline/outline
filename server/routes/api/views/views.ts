@@ -3,7 +3,7 @@ import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import validate from "@server/middlewares/validate";
-import { View, Document, Event } from "@server/models";
+import { View, Document } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentView } from "@server/presenters";
 import { APIContext } from "@server/types";
@@ -51,20 +51,11 @@ router.post(
     });
     authorize(user, "read", document);
 
-    const view = await View.incrementOrCreate({
+    const view = await View.incrementOrCreate(ctx, {
       documentId,
       userId: user.id,
     });
 
-    await Event.createFromContext(ctx, {
-      name: "views.create",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      modelId: view.id,
-      data: {
-        title: document.title,
-      },
-    });
     view.user = user;
 
     ctx.body = {

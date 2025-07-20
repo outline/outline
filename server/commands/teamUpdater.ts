@@ -1,7 +1,7 @@
 import has from "lodash/has";
 import { TeamPreference } from "@shared/types";
 import env from "@server/env";
-import { Event, Team, TeamDomain, User } from "@server/models";
+import { Team, TeamDomain, User } from "@server/models";
 import { APIContext } from "@server/types";
 
 type Props = {
@@ -63,23 +63,7 @@ const teamUpdater = async ({ ctx, params, user, team }: Props) => {
     }
   }
 
-  const changes = team.changeset;
-  if (Object.keys(changes.attributes).length) {
-    await Event.create(
-      {
-        name: "teams.update",
-        actorId: user.id,
-        teamId: user.teamId,
-        ip: ctx.ip,
-        changes,
-      },
-      {
-        transaction: ctx.context.transaction,
-      }
-    );
-  }
-
-  return team.save({ transaction: ctx.context.transaction });
+  return team.saveWithCtx(ctx);
 };
 
 export default teamUpdater;

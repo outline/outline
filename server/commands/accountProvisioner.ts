@@ -22,7 +22,6 @@ import teamProvisioner from "./teamProvisioner";
 import userProvisioner from "./userProvisioner";
 
 type Props = {
-  /** The IP address of the incoming request */
   ip: string;
   /** Details of the user logging in from SSO provider */
   user: {
@@ -92,10 +91,10 @@ async function accountProvisioner({
 
   try {
     result = await teamProvisioner({
+      ip,
       name: "Wiki",
       ...teamParams,
       authenticationProvider: authenticationProviderParams,
-      ip,
     });
   } catch (err) {
     // The account could not be provisioned for the provided teamId

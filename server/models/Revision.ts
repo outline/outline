@@ -1,9 +1,4 @@
-import {
-  InferAttributes,
-  InferCreationAttributes,
-  Op,
-  SaveOptions,
-} from "sequelize";
+import { InferAttributes, InferCreationAttributes, Op } from "sequelize";
 import {
   DataType,
   BelongsTo,
@@ -17,6 +12,7 @@ import {
 } from "sequelize-typescript";
 import type { ProsemirrorData } from "@shared/types";
 import { DocumentValidation, RevisionValidation } from "@shared/validations";
+import { APIContext } from "@server/types";
 import Document from "./Document";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
@@ -110,6 +106,32 @@ class Revision extends ParanoidModel<
   @Column(DataType.UUID)
   userId: string;
 
+  /** Array of user IDs who collaborated on this revision */
+  @Column(DataType.ARRAY(DataType.UUID))
+  collaboratorIds: string[] = [];
+
+  /**
+   * Get the collaborators for this revision.
+   */
+  get collaborators() {
+    const otherCollaboratorIds = (this.collaboratorIds ?? []).filter(
+      (id) => id !== this.userId
+    );
+
+    if (otherCollaboratorIds.length === 0) {
+      return [this.user];
+    }
+
+    return User.findAll({
+      where: {
+        id: {
+          [Op.in]: otherCollaboratorIds,
+        },
+      },
+      paranoid: false,
+    }).then((others) => [this.user, ...others]);
+  }
+
   // hooks
 
   @BeforeDestroy
@@ -161,16 +183,23 @@ class Revision extends ParanoidModel<
   /**
    * Create a Revision model from a Document model and save it to the database
    *
+   * @param ctx context to use for DB operations
    * @param document The document to create from
-   * @param options Options passed to the save method
+   * @param collaboratorIds Optional array of user IDs who authored this revision
    * @returns A Promise that resolves when saved
    */
   static createFromDocument(
+    ctx: APIContext,
     document: Document,
-    options?: SaveOptions<InferAttributes<Revision>>
+    collaboratorIds?: string[]
   ) {
     const revision = this.buildFromDocument(document);
-    return revision.save(options);
+
+    if (collaboratorIds) {
+      revision.collaboratorIds = collaboratorIds;
+    }
+
+    return revision.saveWithCtx(ctx);
   }
 
   // instance methods

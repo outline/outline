@@ -7,11 +7,8 @@ import { useHistory, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { Pagination } from "@shared/constants";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
-import Document from "~/models/Document";
-import EventModel from "~/models/Event";
 import Revision from "~/models/Revision";
 import Empty from "~/components/Empty";
-import { DocumentEvent, type Event } from "~/components/EventListItem";
 import PaginatedEventList from "~/components/PaginatedEventList";
 import useKeyDown from "~/hooks/useKeyDown";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
@@ -38,71 +35,39 @@ function History() {
   const history = useHistory();
   const sidebarContext = useLocationSidebarContext();
   const document = documents.getByUrl(match.params.documentSlug);
-
-  const [, setForceRender] = React.useState(0);
-  const offset = React.useMemo(() => ({ revisions: 0, events: 0 }), []);
-
-  const toEvent = React.useCallback(
-    (data: Revision | EventModel<Document>): Event => {
-      if (data instanceof Revision) {
-        return {
-          id: data.id,
-          name: "revisions.create",
-          actorId: data.createdBy.id,
-          createdAt: data.createdAt,
-          deletedAt: data.deletedAt,
-          latest: false,
-        } satisfies Event;
-      }
-
-      return {
-        id: data.id,
-        name: data.name as DocumentEvent["name"],
-        actorId: data.actorId,
-        userId: data.userId,
-        createdAt: data.createdAt,
-      } satisfies Event;
-    },
-    []
-  );
+  const [revisionsOffset, setRevisionsOffset] = React.useState(0);
+  const [eventsOffset, setEventsOffset] = React.useState(0);
 
   const fetchHistory = React.useCallback(async () => {
     if (!document) {
       return [];
     }
 
+    const limit = Pagination.defaultLimit;
     const [revisionsPage, eventsPage] = await Promise.all([
       revisions.fetchPage({
         documentId: document.id,
-        offset: offset.revisions,
-        limit: Pagination.defaultLimit,
+        offset: revisionsOffset,
+        limit,
       }),
       events.fetchPage({
         events: DocumentEvents,
         documentId: document.id,
-        offset: offset.events,
-        limit: Pagination.defaultLimit,
+        offset: eventsOffset,
+        limit,
       }),
     ]);
 
     const pageEvents = orderBy(
-      [...revisionsPage, ...eventsPage].map(toEvent),
+      [...revisionsPage, ...eventsPage],
       "createdAt",
       "desc"
-    ).slice(0, Pagination.defaultLimit);
+    ).slice(0, limit);
 
-    const revisionsCount = pageEvents.filter(
-      (event) => event.name === "revisions.create"
-    ).length;
-
-    offset.revisions += revisionsCount;
-    offset.events += pageEvents.length - revisionsCount;
-
-    // needed to re-render after mobx store and offset is updated
-    setForceRender((s) => ++s);
-
+    setRevisionsOffset(revisionsOffset + revisionsPage.length);
+    setEventsOffset(eventsOffset + pageEvents.length - revisionsPage.length);
     return pageEvents;
-  }, [document, revisions, events, toEvent, offset]);
+  }, [document, revisions, events, revisionsOffset, eventsOffset]);
 
   const revisionEvents = React.useMemo(() => {
     if (!document) {
@@ -113,31 +78,25 @@ function History() {
     return revisions
       .getByDocumentId(document.id)
       .filter((revision: Revision) => revision.id !== latestRevisionId)
-      .slice(0, offset.revisions)
-      .map(toEvent);
-  }, [document, revisions, offset.revisions, toEvent]);
+      .slice(0, revisionsOffset);
+  }, [document, revisions.orderedData, revisionsOffset]);
 
   const nonRevisionEvents = React.useMemo(
     () =>
       document
-        ? events
-            .getByDocumentId(document.id)
-            .slice(0, offset.events)
-            .map(toEvent)
+        ? events.getByDocumentId(document.id).slice(0, eventsOffset)
         : [],
-    [document, events, offset.events, toEvent]
+    [document, events.orderedData, eventsOffset]
   );
 
-  const mergedEvents = React.useMemo(() => {
+  const items = React.useMemo(() => {
     const merged = orderBy(
       [...revisionEvents, ...nonRevisionEvents],
       "createdAt",
       "desc"
     );
 
-    const latestRevisionEvent = merged.find(
-      (event) => event.name === "revisions.create"
-    );
+    const latestRevisionEvent = revisionEvents[0];
 
     if (latestRevisionEvent && document) {
       const latestRevision = revisions.get(latestRevisionEvent.id);
@@ -147,16 +106,18 @@ function History() {
         !isEqual(latestRevision.data, document.data);
 
       if (isDocUpdated) {
-        revisions.remove(RevisionHelper.latestId(document.id));
-        merged.unshift({
-          id: RevisionHelper.latestId(document.id),
-          name: "revisions.create",
-          createdAt: document.updatedAt,
-          actorId: document.updatedBy?.id ?? "",
-          latest: true,
-        });
-      } else if (latestRevisionEvent) {
-        latestRevisionEvent.latest = true;
+        const createdById = document.updatedBy?.id ?? "";
+        merged.unshift(
+          new Revision(
+            {
+              id: RevisionHelper.latestId(document.id),
+              createdAt: document.updatedAt,
+              createdById,
+              collaboratorIds: [createdById],
+            },
+            revisions
+          )
+        );
       }
     }
 
@@ -182,7 +143,7 @@ function History() {
         <PaginatedEventList
           aria-label={t("History")}
           fetch={fetchHistory}
-          events={mergedEvents}
+          items={items}
           document={document}
           empty={<EmptyHistory>{t("No history yet")}</EmptyHistory>}
         />

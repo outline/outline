@@ -258,7 +258,6 @@ export type EmptyTrashEvent = {
 export type RevisionEvent = BaseEvent<Revision> & {
   name: "revisions.create";
   documentId: string;
-  collectionId: string;
   modelId: string;
 };
 
@@ -308,44 +307,17 @@ export type DocumentGroupEvent = BaseEvent<GroupMembership> & {
   };
 };
 
-export type CollectionEvent = BaseEvent<Collection> &
-  (
-    | {
-        name: "collections.create";
-        collectionId: string;
-        data: {
-          name: string;
-          source?: "import";
-        };
-      }
-    | {
-        name:
-          | "collections.update"
-          | "collections.delete"
-          | "collections.archive"
-          | "collections.restore";
-        collectionId: string;
-        data: {
-          name: string;
-          archivedAt: string;
-        };
-      }
-    | {
-        name: "collections.move";
-        collectionId: string;
-        data: {
-          index: string;
-        };
-      }
-    | {
-        name: "collections.permission_changed";
-        collectionId: string;
-        data: {
-          privacyChanged: boolean;
-          sharingChanged: boolean;
-        };
-      }
-  );
+export type CollectionEvent = BaseEvent<Collection> & {
+  name:
+    | "collections.create"
+    | "collections.update"
+    | "collections.delete"
+    | "collections.archive"
+    | "collections.restore"
+    | "collections.move"
+    | "collections.permission_changed";
+  collectionId: string;
+};
 
 export type GroupUserEvent = BaseEvent<UserMembership> & {
   name: "groups.add_user" | "groups.remove_user";
