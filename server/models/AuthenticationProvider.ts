@@ -1,9 +1,4 @@
-import {
-  InferAttributes,
-  InferCreationAttributes,
-  InstanceUpdateOptions,
-  Op,
-} from "sequelize";
+import { InferAttributes, InferCreationAttributes, Op } from "sequelize";
 import {
   BelongsTo,
   Column,
@@ -28,6 +23,7 @@ import Length from "./validators/Length";
 import AzureClient from "plugins/azure/server/azure";
 import GoogleClient from "plugins/google/server/google";
 import OIDCClient from "plugins/oidc/server/oidc";
+import { APIContext } from "@server/types";
 
 @Scopes(() => ({
   withUserAuthentication: (userId: string) => ({
@@ -112,13 +108,13 @@ class AuthenticationProvider extends Model<
     }
   }
 
-  disable: (
-    options?: InstanceUpdateOptions<InferAttributes<AuthenticationProvider>>
-  ) => Promise<AuthenticationProvider> = async (options) => {
+  disable: (ctx: APIContext) => Promise<AuthenticationProvider> = async (
+    ctx
+  ) => {
     const res = await (
       this.constructor as typeof AuthenticationProvider
     ).findAndCountAll({
-      ...options,
+      transaction: ctx.transaction,
       where: {
         teamId: this.teamId,
         enabled: true,
@@ -130,26 +126,18 @@ class AuthenticationProvider extends Model<
     });
 
     if (res.count >= 1) {
-      return this.update(
-        {
-          enabled: false,
-        },
-        options
-      );
+      return this.updateWithCtx(ctx, {
+        enabled: false,
+      });
     } else {
       throw ValidationError("At least one authentication provider is required");
     }
   };
 
-  enable: (
-    options?: InstanceUpdateOptions<InferAttributes<AuthenticationProvider>>
-  ) => Promise<AuthenticationProvider> = (options) =>
-    this.update(
-      {
-        enabled: true,
-      },
-      options
-    );
+  enable: (ctx: APIContext) => Promise<AuthenticationProvider> = async (ctx) =>
+    this.updateWithCtx(ctx, {
+      enabled: true,
+    });
 }
 
 export default AuthenticationProvider;
