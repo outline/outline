@@ -41,12 +41,17 @@ export default function useEditorClickHandlers({ shareId }: Params) {
           return;
         }
 
+        // parse shareId from link
+        const linkShareId = navigateTo.match(/\/s\/([^/]+)\/doc\//)?.[1];
+
         // If we're navigating to an internal document link then prepend the
         // share route to the URL so that the document is loaded in context
         if (
           shareId &&
-          !navigateTo.includes(shareId) &&
-          (navigateTo.includes("/doc/") || navigateTo.includes("/collection/"))
+          (!linkShareId || linkShareId === shareId) &&
+          (navigateTo.includes("/doc/") ||
+            navigateTo.includes("/collection/")) &&
+          !navigateTo.includes(shareId)
         ) {
           navigateTo = sharedModelPath(shareId, navigateTo);
         }
