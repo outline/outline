@@ -1,6 +1,7 @@
 import { computed, observable } from "mobx";
 import { NavigationNode, PublicTeam } from "@shared/types";
 import SharesStore from "~/stores/SharesStore";
+import env from "~/env";
 import Collection from "./Collection";
 import Document from "./Document";
 import User from "./User";
@@ -80,6 +81,10 @@ class Share extends Model implements Searchable {
   /** The user that shared the document. */
   @Relation(() => User, { onDelete: "null" })
   createdBy: User;
+
+  static sitemapUrl(shareId: string) {
+    return `${env.URL}/api/shares.sitemap?shareId=${shareId}`;
+  }
 
   @computed
   get title(): string {

@@ -9,6 +9,7 @@ import { NavigationNode } from "@shared/types";
 import CollectionModel from "~/models/Collection";
 import DocumentModel from "~/models/Document";
 import ShareModel from "~/models/Share";
+import Share from "~/models/Share";
 import Error404 from "~/scenes/Errors/Error404";
 import ClickablePadding from "~/components/ClickablePadding";
 import { DocumentContextProvider } from "~/components/DocumentContext";
@@ -223,24 +224,13 @@ function SharedScene() {
         <link
           rel="sitemap"
           type="application/xml"
-          href={`${env.URL}/api/shares.sitemap?shareId=${shareId}`}
+          href={Share.sitemapUrl(shareId)}
         />
       </Helmet>
       <TeamContext.Provider value={team}>
         <ThemeProvider theme={theme}>
           <DocumentContextProvider>
-            <Layout
-              title={pageTitle}
-              sidebar={
-                share.tree?.children.length ? (
-                  <Sidebar
-                    rootNode={share.tree}
-                    shareId={shareId}
-                    isCollectionShare={!!share.collectionId}
-                  />
-                ) : null
-              }
-            >
+            <Layout title={pageTitle} sidebar={<Sidebar share={share} />}>
               {model instanceof DocumentModel ? (
                 <Document
                   document={model}
