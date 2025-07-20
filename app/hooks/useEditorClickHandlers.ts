@@ -48,7 +48,7 @@ export default function useEditorClickHandlers({ shareId }: Params) {
         // share route to the URL so that the document is loaded in context
         if (
           shareId &&
-          linkShareId === shareId &&
+          (!linkShareId || linkShareId === shareId) &&
           navigateTo.includes("/doc/") &&
           !navigateTo.includes(shareId)
         ) {
