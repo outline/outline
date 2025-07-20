@@ -1,6 +1,7 @@
 import invariant from "invariant";
 import { singular } from "pluralize";
 import type Model from "../base/Model";
+import Logger from "~/utils/Logger";
 
 /** The behavior of a relationship on deletion */
 type DeleteBehavior = "cascade" | "null" | "ignore";
@@ -45,13 +46,30 @@ export const getInverseRelationsForModelClass = (targetClass: typeof Model) => {
 
   relations.forEach((relation, modelName) => {
     relation.forEach((properties, propertyName) => {
-      if (
-        properties.relationClassResolver().modelName === targetClass.modelName
-      ) {
-        inverseRelations.set(`${modelName}-${propertyName}`, {
-          ...properties,
-          modelName,
-        });
+      try {
+        const resolvedClass = properties.relationClassResolver();
+        if (
+          resolvedClass &&
+          resolvedClass.modelName &&
+          resolvedClass.modelName === targetClass.modelName
+        ) {
+          inverseRelations.set(`${modelName}-${propertyName}`, {
+            ...properties,
+            modelName,
+          });
+        } else if (!resolvedClass || !resolvedClass.modelName) {
+          Logger.warn(
+            `Relation ${modelName}.${propertyName} resolved to a class with undefined modelName. ` +
+              `Resolved class: ${resolvedClass?.constructor?.name || "undefined"}, ` +
+              `modelName: ${resolvedClass?.modelName}, ` +
+              `targetClass: ${targetClass.modelName}`
+          );
+        }
+      } catch (error) {
+        Logger.error(
+          `Error resolving relation ${modelName}.${propertyName} for target ${targetClass.modelName}:`,
+          error
+        );
       }
     });
   });
