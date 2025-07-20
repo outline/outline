@@ -3,9 +3,7 @@ import {
   TableOfContentsIcon,
   EditIcon,
   PlusIcon,
-  MoonIcon,
   MoreIcon,
-  SunIcon,
 } from "outline-icons";
 import { useRef, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -15,7 +13,6 @@ import Icon from "@shared/components/Icon";
 import { useComponentSize } from "@shared/hooks/useComponentSize";
 import { NavigationNode } from "@shared/types";
 import { altDisplay, metaDisplay } from "@shared/utils/keyboard";
-import { Theme } from "~/stores/UiStore";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
 import { Action, Separator } from "~/components/Actions";
@@ -48,6 +45,7 @@ import { documentEditPath } from "~/utils/routeHelpers";
 import ObservingBanner from "./ObservingBanner";
 import PublicBreadcrumb from "./PublicBreadcrumb";
 import ShareButton from "./ShareButton";
+import { AppearanceAction } from "~/components/Sharing/components/Actions";
 
 type Props = {
   document: Document;
@@ -87,7 +85,6 @@ function DocumentHeader({
   const theme = useTheme();
   const team = useCurrentTeam({ rejectOnEmpty: false });
   const user = useCurrentUser({ rejectOnEmpty: false });
-  const { resolvedTheme } = ui;
   const isMobileMedia = useMobile();
   const isRevision = !!revision;
   const isEditingFocus = useEditingFocus();
@@ -173,25 +170,6 @@ function DocumentHeader({
       </Tooltip>
     </Action>
   );
-  const appearanceAction = (
-    <Action>
-      <Tooltip
-        content={
-          resolvedTheme === "light" ? t("Switch to dark") : t("Switch to light")
-        }
-        placement="bottom"
-      >
-        <Button
-          icon={resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />}
-          onClick={() =>
-            ui.setTheme(resolvedTheme === "light" ? Theme.Dark : Theme.Light)
-          }
-          neutral
-          borderOnHover
-        />
-      </Tooltip>
-    </Action>
-  );
 
   useKeyDown(
     (event) => event.ctrlKey && event.altKey && event.key === "˙",
@@ -232,7 +210,7 @@ function DocumentHeader({
         }
         actions={
           <>
-            {appearanceAction}
+            <AppearanceAction />
             {can.update && !isEditing ? editAction : <div />}
           </>
         }

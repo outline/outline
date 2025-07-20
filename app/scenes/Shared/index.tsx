@@ -185,7 +185,8 @@ function SharedScene() {
   if (error) {
     if (error instanceof OfflineError) {
       return <ErrorOffline />;
-    } else if (error instanceof AuthorizationError) {
+    }
+    if (error instanceof AuthorizationError) {
       setPostLoginPath(location.pathname);
       return (
         <Login>
@@ -204,9 +205,8 @@ function SharedScene() {
           }
         </Login>
       );
-    } else {
-      return <Error404 />;
     }
+    return <Error404 />;
   }
 
   if (!share) {

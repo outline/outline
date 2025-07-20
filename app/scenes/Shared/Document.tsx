@@ -4,8 +4,7 @@ import DocumentModel from "~/models/Document";
 import DocumentComponent from "~/scenes/Document/components/Document";
 import { useDocumentContext } from "~/components/DocumentContext";
 import { useTeamContext } from "~/components/TeamContext";
-
-const EMPTY_OBJECT = {};
+import { useMemo } from "react";
 
 type Props = {
   document: DocumentModel;
@@ -16,6 +15,7 @@ type Props = {
 function SharedDocument({ document, shareId, sharedTree }: Props) {
   const team = useTeamContext() as PublicTeam | undefined;
   const { hasHeadings, setDocument } = useDocumentContext();
+  const abilities = useMemo(() => ({}), []);
 
   const tocPosition = hasHeadings
     ? (team?.tocPosition ?? TOCPosition.Left)
@@ -24,7 +24,7 @@ function SharedDocument({ document, shareId, sharedTree }: Props) {
 
   return (
     <DocumentComponent
-      abilities={EMPTY_OBJECT}
+      abilities={abilities}
       document={document}
       sharedTree={sharedTree}
       shareId={shareId}
