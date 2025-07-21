@@ -314,4 +314,132 @@ describe("documentImporter", () => {
     );
     expect(response.text).toEqual("```\necho $foo\n```");
   });
+
+  describe("filename title extraction", () => {
+    it("should preserve folder names with dots", async () => {
+      const user = await buildUser();
+      const testCases = [
+        { fileName: "01. Introduction", expectedTitle: "01. Introduction" },
+        {
+          fileName: "02. Getting Started",
+          expectedTitle: "02. Getting Started",
+        },
+        {
+          fileName: "Chapter 1. Overview",
+          expectedTitle: "Chapter 1. Overview",
+        },
+        {
+          fileName: "Section 3.1 Details",
+          expectedTitle: "Section 3.1 Details",
+        },
+      ];
+
+      for (const { fileName, expectedTitle } of testCases) {
+        const response = await sequelize.transaction((transaction) =>
+          documentImporter({
+            user,
+            mimeType: "text/markdown",
+            fileName,
+            content: "# Test content",
+            ctx: createContext({ user, transaction }),
+          })
+        );
+        expect(response.title).toEqual(expectedTitle);
+      }
+    });
+
+    it("should remove known file extensions", async () => {
+      const user = await buildUser();
+      const testCases = [
+        { fileName: "document.md", expectedTitle: "document" },
+        { fileName: "file.markdown", expectedTitle: "file" },
+        { fileName: "spreadsheet.csv", expectedTitle: "spreadsheet" },
+        { fileName: "webpage.html", expectedTitle: "webpage" },
+        { fileName: "word-doc.docx", expectedTitle: "word-doc" },
+        { fileName: "notes.txt", expectedTitle: "notes" },
+      ];
+
+      for (const { fileName, expectedTitle } of testCases) {
+        const response = await sequelize.transaction((transaction) =>
+          documentImporter({
+            user,
+            mimeType: "text/markdown",
+            fileName,
+            content: "# Test content",
+            ctx: createContext({ user, transaction }),
+          })
+        );
+        expect(response.title).toEqual(expectedTitle);
+      }
+    });
+
+    it("should handle files with multiple dots correctly", async () => {
+      const user = await buildUser();
+      const testCases = [
+        { fileName: "file.with.dots.md", expectedTitle: "file.with.dots" },
+        { fileName: "version.1.2.html", expectedTitle: "version.1.2" },
+        { fileName: "data.backup.csv", expectedTitle: "data.backup" },
+        { fileName: "my.document.v2.docx", expectedTitle: "my.document.v2" },
+      ];
+
+      for (const { fileName, expectedTitle } of testCases) {
+        const response = await sequelize.transaction((transaction) =>
+          documentImporter({
+            user,
+            mimeType: "text/markdown",
+            fileName,
+            content: "# Test content",
+            ctx: createContext({ user, transaction }),
+          })
+        );
+        expect(response.title).toEqual(expectedTitle);
+      }
+    });
+
+    it("should preserve files without known extensions", async () => {
+      const user = await buildUser();
+      const testCases = [
+        { fileName: "README", expectedTitle: "README" },
+        { fileName: "file.unknown", expectedTitle: "file.unknown" },
+        { fileName: "script.py", expectedTitle: "script.py" },
+        { fileName: "config.json", expectedTitle: "config.json" },
+      ];
+
+      for (const { fileName, expectedTitle } of testCases) {
+        const response = await sequelize.transaction((transaction) =>
+          documentImporter({
+            user,
+            mimeType: "text/markdown",
+            fileName,
+            content: "# Test content",
+            ctx: createContext({ user, transaction }),
+          })
+        );
+        expect(response.title).toEqual(expectedTitle);
+      }
+    });
+
+    it("should handle case-insensitive extensions", async () => {
+      const user = await buildUser();
+      const testCases = [
+        { fileName: "document.MD", expectedTitle: "document" },
+        { fileName: "file.HTML", expectedTitle: "file" },
+        { fileName: "data.CSV", expectedTitle: "data" },
+        { fileName: "word.DOCX", expectedTitle: "word" },
+      ];
+
+      for (const { fileName, expectedTitle } of testCases) {
+        const response = await sequelize.transaction((transaction) =>
+          documentImporter({
+            user,
+            mimeType: "text/markdown",
+            fileName,
+            content: "# Test content",
+            ctx: createContext({ user, transaction }),
+          })
+        );
+        expect(response.title).toEqual(expectedTitle);
+      }
+    });
+  });
 });

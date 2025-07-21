@@ -35,7 +35,8 @@ async function documentImporter({
     fileName,
     mimeType
   );
-  let title = fileName.replace(/\.[^/.]+$/, "");
+  // Only remove known file extensions, preserve dots that are part of the filename/folder name
+  let title = fileName.replace(/\.(docx|html|md|markdown|csv|txt)$/i, "");
 
   // find and extract emoji near the beginning of the document.
   const regex = emojiRegex();
