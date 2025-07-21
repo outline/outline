@@ -340,7 +340,7 @@ describe("documentImporter", () => {
             user,
             mimeType: "text/markdown",
             fileName,
-            content: "# Test content",
+            content: "Test content without heading",
             ctx: createContext({ user, transaction }),
           })
         );
@@ -365,7 +365,7 @@ describe("documentImporter", () => {
             user,
             mimeType: "text/markdown",
             fileName,
-            content: "# Test content",
+            content: "Test content without heading",
             ctx: createContext({ user, transaction }),
           })
         );
@@ -388,7 +388,7 @@ describe("documentImporter", () => {
             user,
             mimeType: "text/markdown",
             fileName,
-            content: "# Test content",
+            content: "Test content without heading",
             ctx: createContext({ user, transaction }),
           })
         );
@@ -411,7 +411,7 @@ describe("documentImporter", () => {
             user,
             mimeType: "text/markdown",
             fileName,
-            content: "# Test content",
+            content: "Test content without heading",
             ctx: createContext({ user, transaction }),
           })
         );
@@ -434,7 +434,7 @@ describe("documentImporter", () => {
             user,
             mimeType: "text/markdown",
             fileName,
-            content: "# Test content",
+            content: "Test content without heading",
             ctx: createContext({ user, transaction }),
           })
         );
