@@ -743,7 +743,6 @@ const RevisionContainer = styled.div<RevisionContainerProps>`
 
 const Footer = styled.div`
   position: fixed;
-  width: 100%;
   bottom: 12px;
   right: 20px;
   text-align: right;
@@ -758,7 +757,7 @@ const Background = styled(Container)`
 `;
 
 const ReferencesWrapper = styled.div`
-  margin-top: 16px;
+  margin: 12px 0;
 
   @media print {
     display: none;
