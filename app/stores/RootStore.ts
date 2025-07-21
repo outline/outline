@@ -7,6 +7,7 @@ import AuthenticationProvidersStore from "./AuthenticationProvidersStore";
 import CollectionsStore from "./CollectionsStore";
 import CommentsStore from "./CommentsStore";
 import DialogsStore from "./DialogsStore";
+import LightboxStore from "./LightboxStore";
 import DocumentPresenceStore from "./DocumentPresenceStore";
 import DocumentsStore from "./DocumentsStore";
 import EventsStore from "./EventsStore";
@@ -43,6 +44,7 @@ export default class RootStore {
   groupMemberships: GroupMembershipsStore;
   comments: CommentsStore;
   dialogs: DialogsStore;
+  lightbox: LightboxStore;
   documents: DocumentsStore;
   events: EventsStore;
   groups: GroupsStore;
@@ -103,6 +105,7 @@ export default class RootStore {
     // Non-models
     this.registerStore(DocumentPresenceStore, "presence");
     this.registerStore(DialogsStore, "dialogs");
+    this.registerStore(LightboxStore, "lightbox");
     this.registerStore(UiStore, "ui");
 
     // AuthStore must be initialized last as it makes use of the other stores.
