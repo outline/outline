@@ -10,6 +10,7 @@ import { ComponentProps } from "../types";
 import { ImageZoom } from "./ImageZoom";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
+import useStores from "@shared/hooks/useStores";
 
 type Props = ComponentProps & {
   /** Callback triggered when the download button is clicked */
@@ -22,7 +23,7 @@ type Props = ComponentProps & {
 };
 
 const Image = (props: Props) => {
-  const { isSelected, node, isEditable, onChangeSize } = props;
+  const { isSelected, node, isEditable, onChangeSize, getPos } = props;
   const { src, layoutClass } = node.attrs;
   const className = layoutClass ? `image image-${layoutClass}` : "image";
   const [loaded, setLoaded] = React.useState(false);
@@ -41,6 +42,8 @@ const Image = (props: Props) => {
       ref,
     }
   );
+
+  const { lightbox } = useStores();
 
   const isFullWidth = layoutClass === "full-width";
   const isResizable = !!props.onChangeSize && !error;
@@ -89,7 +92,11 @@ const Image = (props: Props) => {
             <CrossIcon size={16} /> Image failed to load
           </Error>
         ) : (
-          <ImageZoom caption={props.node.attrs.alt}>
+          <div
+            onClick={(ev) => {
+              ev.detail === 2 && lightbox.open({ currentItem: getPos() });
+            }}
+          >
             <img
               className={EditorStyleHelper.imageHandle}
               style={{
@@ -135,7 +142,7 @@ const Image = (props: Props) => {
                 )}`}
               />
             )}
-          </ImageZoom>
+          </div>
         )}
         {isEditable && !isFullWidth && isResizable && (
           <>

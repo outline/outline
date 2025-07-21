@@ -54,6 +54,7 @@ import EditorContext from "./components/EditorContext";
 import { NodeViewRenderer } from "./components/NodeViewRenderer";
 import SelectionToolbar from "./components/SelectionToolbar";
 import WithTheme from "./components/WithTheme";
+import Lightbox from "~/components/Lightbox";
 
 export type Props = {
   /** An optional identifier for the editor context. It is used to persist local settings */
@@ -831,6 +832,7 @@ export class Editor extends React.PureComponent<
               )}
             </Observer>
           </Flex>
+          {this.view && <Lightbox />}
         </EditorContext.Provider>
       </PortalContext.Provider>
     );
