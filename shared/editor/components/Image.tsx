@@ -168,7 +168,7 @@ function getPlaceholder(width: number, height: number) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" />`;
 }
 
-const Error = styled(Flex)`
+export const Error = styled(Flex)`
   max-width: 100%;
   color: ${s("textTertiary")};
   font-size: 14px;
