@@ -162,7 +162,12 @@ export function createOIDCRouter(
 
           if (!name) {
             throw AuthenticationError(
-              `Neither a ${env.OIDC_USERNAME_CLAIM}, name or username was returned in the profile parameter, but at least one is required.`
+              `Neither a ${env.OIDC_USERNAME_CLAIM}, "name" or "username" was returned in the profile loaded from ${endpoints.userInfoURL}, but at least one is required.`
+            );
+          }
+          if (!profileId) {
+            throw AuthenticationError(
+              `A user id was not returned in the profile loaded from ${endpoints.userInfoURL}, searched in "sub" and "id" fields.`
             );
           }
 
