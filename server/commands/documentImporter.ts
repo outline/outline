@@ -1,4 +1,5 @@
 import emojiRegex from "emoji-regex";
+import mime from "mime-types";
 import truncate from "lodash/truncate";
 import parseTitle from "@shared/utils/parseTitle";
 import { DocumentValidation } from "@shared/validations";
@@ -35,7 +36,19 @@ async function documentImporter({
     fileName,
     mimeType
   );
-  let title = fileName.replace(/\.[^/.]+$/, "");
+
+  // find valid extensions and remove them from the title
+  const extensions = [
+    "docx",
+    "md",
+    "markdown",
+    "html",
+    ...(mime.extensions[mimeType] ?? []),
+  ];
+  let title = fileName.replace(
+    new RegExp(`\\.(${extensions.join("|")})$`, "i"),
+    ""
+  );
 
   // find and extract emoji near the beginning of the document.
   const regex = emojiRegex();

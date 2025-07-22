@@ -37,6 +37,27 @@ describe("documentImporter", () => {
     expect(response.title).toEqual("images");
   });
 
+  it("should not strip content after period in title", async () => {
+    const user = await buildUser();
+    const fileName = "01. test";
+    const content = await fs.readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", "images.docx")
+    );
+
+    const response = await sequelize.transaction((transaction) =>
+      documentImporter({
+        user,
+        mimeType:
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        fileName,
+        content,
+        ctx: createContext({ user, transaction }),
+      })
+    );
+    expect(response.text).toContain("This is a test document for images");
+    expect(response.title).toEqual("01. test");
+  });
+
   it("should convert Word Document to markdown for application/octet-stream mimetype", async () => {
     const user = await buildUser();
     const fileName = "images.docx";
