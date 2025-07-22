@@ -37,7 +37,7 @@ describe("documentImporter", () => {
     expect(response.title).toEqual("images");
   });
 
-  it("should not stripe content after period in title", async () => {
+  it("should not strip content after period in title", async () => {
     const user = await buildUser();
     const fileName = "01. test";
     const content = await fs.readFile(
