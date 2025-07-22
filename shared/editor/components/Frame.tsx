@@ -82,6 +82,7 @@ const Frame = ({
           ref={forwardedRef}
           $showBottomBar={showBottomBar}
           sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-downloads allow-storage-access-by-user-activation"
+          allow="fullscreen; encrypted-media; picture-in-picture"
           style={style}
           frameBorder="0"
           title="embed"
