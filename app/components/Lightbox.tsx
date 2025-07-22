@@ -10,9 +10,11 @@ import styled from "styled-components";
 import useDragResize from "@shared/editor/components/hooks/useDragResize";
 import { ComponentProps } from "@shared/editor/types";
 import { EditorView } from "prosemirror-view";
-import { cloneElement, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { sanitizeUrl } from "@shared/utils/urls";
 import { Node } from "prosemirror-model";
+import { Error } from "@shared/editor/components/Image";
+import { CrossIcon } from "outline-icons";
 
 function Lightbox() {
   const { view } = useEditor();
@@ -68,22 +70,13 @@ function Lightbox() {
       <Dialog.Portal>
         <Dialog.Overlay />
         <Dialog.Content>
-          <Dialog.Close asChild>
-            <button className="close-button">
-              <span
-                className="visually-hidden"
-                onClick={() => lightbox.close()}
-              >
-                Close
-              </span>
-            </button>
-          </Dialog.Close>
+          <Dialog.Close onClick={() => lightbox.close()}>x</Dialog.Close>
           {currentItem ? (
             <>
               <button onClick={() => prev()}>{"<"}</button>
               <button onClick={() => next()}>{">"}</button>
               <div className="lightbox-content">
-                <Image node={currImgNode} getPos={() => currImgPos} />
+                <Image node={currImgNode} />
               </div>
             </>
           ) : null}
@@ -94,106 +87,56 @@ function Lightbox() {
 }
 
 type Props = {
-  /** Callback triggered when the image is resized */
-  onChangeSize?: (props: { width: number; height?: number }) => void;
   node: Node;
-  getPos: () => number;
 };
 
 const Image = (props: Props) => {
-  const { node, onChangeSize, getPos } = props;
-  const { src, layoutClass } = node.attrs;
-  const className = layoutClass ? `image image-${layoutClass}` : "image";
+  const { node } = props;
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
-  const [naturalWidth, setNaturalWidth] = useState(node.attrs.width);
-  const [naturalHeight, setNaturalHeight] = useState(node.attrs.height);
-  const ref = useRef<HTMLDivElement>(null);
-  const { width, height, setSize } = useDragResize({
-    width: node.attrs.width ?? naturalWidth,
-    height: node.attrs.height ?? naturalHeight,
-    naturalWidth,
-    naturalHeight,
-    gridSnap: 5,
-    onChangeSize,
-    ref,
-  });
+
+  const [imgWidth, setImgWidth] = useState(node.attrs.width);
+  const [imgHeight, setImgHeight] = useState(node.attrs.height);
 
   const { lightbox } = useStores();
 
-  const isFullWidth = layoutClass === "full-width";
-  const isResizable = !!props.onChangeSize && !error;
-
-  useEffect(() => {
-    if (node.attrs.width && node.attrs.width !== width) {
-      setSize({
-        width: node.attrs.width,
-        height: node.attrs.height,
-      });
-    }
-  }, [node.attrs.width]);
-
-  const sanitizedSrc = sanitizeUrl(src);
-
-  const widthStyle = isFullWidth
-    ? { width: "var(--container-width)" }
-    : { width: width || "auto" };
-
-  return (
-    <div contentEditable={false} className={className} ref={ref}>
-      <ImageWrapper isFullWidth={isFullWidth} style={widthStyle}>
-        <img
-          className={EditorStyleHelper.imageHandle}
-          style={{
-            ...widthStyle,
-            display: loaded ? "block" : "none",
-          }}
-          src={sanitizedSrc}
-          data-index={getPos()}
-          alt={node.attrs.alt || ""}
-          onError={() => {
-            setError(true);
-            setLoaded(true);
-          }}
-          onLoad={(ev: React.SyntheticEvent<HTMLImageElement>) => {
-            // For some SVG's Firefox does not provide the naturalWidth, in this
-            // rare case we need to provide a default so that the image can be
-            // seen and is not sized to 0px
-            const nw = (ev.target as HTMLImageElement).naturalWidth || 300;
-            const nh = (ev.target as HTMLImageElement).naturalHeight;
-            setNaturalWidth(nw);
-            setNaturalHeight(nh);
-            setLoaded(true);
-
-            if (!node.attrs.width) {
-              setSize((state) => ({
-                ...state,
-                width: nw,
-              }));
-            }
-          }}
-        />
-      </ImageWrapper>
-    </div>
+  return error ? (
+    <Error
+      style={{ width: imgWidth, height: imgHeight }}
+      className={EditorStyleHelper.imageHandle}
+    >
+      <CrossIcon size={16} /> Image failed to load
+    </Error>
+  ) : (
+    <img
+      className={EditorStyleHelper.imageHandle}
+      style={{
+        width: imgWidth,
+        height: imgHeight,
+        display: loaded ? "block" : "none",
+      }}
+      src={sanitizeUrl(node.attrs.src)}
+      alt={node.attrs.alt || ""}
+      onError={() => {
+        setError(true);
+        setLoaded(true);
+      }}
+      onLoad={(ev: React.SyntheticEvent<HTMLImageElement>) => {
+        // For some SVG's Firefox does not provide the naturalWidth, in this
+        // rare case we need to provide a default so that the image can be
+        // seen and is not sized to 0px
+        const width =
+          node.attrs.width ||
+          (ev.target as HTMLImageElement).naturalWidth ||
+          300;
+        setImgWidth(width);
+        const height =
+          node.attrs.height || (ev.target as HTMLImageElement).naturalHeight;
+        setImgHeight(height);
+        setLoaded(true);
+      }}
+    />
   );
 };
-
-const ImageWrapper = styled.div<{ isFullWidth: boolean }>`
-  line-height: 0;
-  position: relative;
-  margin-left: auto;
-  margin-right: auto;
-  max-width: ${(props) => (props.isFullWidth ? "initial" : "100%")};
-  transition-property: width, height;
-  transition-duration: ${(props) => (props.isFullWidth ? "0ms" : "150ms")};
-  transition-timing-function: ease-in-out;
-  overflow: hidden;
-
-  img {
-    transition-property: width, height;
-    transition-duration: ${(props) => (props.isFullWidth ? "0ms" : "150ms")};
-    transition-timing-function: ease-in-out;
-  }
-`;
 
 export default observer(Lightbox);
