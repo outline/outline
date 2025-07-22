@@ -81,7 +81,7 @@ const Frame = ({
         <Iframe
           ref={forwardedRef}
           $showBottomBar={showBottomBar}
-          sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-downloads allow-storage-access-by-user-activation"
+          sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-downloads allow-storage-access-by-user-activation"
           style={style}
           frameBorder="0"
           title="embed"
