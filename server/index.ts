@@ -24,8 +24,8 @@ import { checkUpdates } from "./utils/updates";
 import onerror from "./onerror";
 import ShutdownHelper, { ShutdownOrder } from "./utils/ShutdownHelper";
 import { checkConnection, sequelize } from "./storage/database";
-import RedisAdapter from "./storage/redis";
-import Metrics from "./logging/Metrics";
+import Redis from "@server/storage/redis";
+import Metrics from "@server/logging/Metrics";
 import { PluginManager } from "./utils/PluginManager";
 
 // The number of processes to run, defaults to the number of CPU's available
@@ -149,7 +149,7 @@ async function start(_id: number, disconnect: () => void) {
     }
 
     try {
-      await RedisAdapter.defaultClient.ping();
+      await Redis.defaultClient.ping();
     } catch (err) {
       Logger.error("Redis ping failed", err);
       ctx.status = 500;
