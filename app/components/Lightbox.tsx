@@ -18,9 +18,9 @@ import { CrossIcon } from "outline-icons";
 
 function Lightbox() {
   const { view } = useEditor();
-  const { lightbox } = useStores();
-  const { currentItem } = lightbox;
-  if (!currentItem) {
+  const { ui } = useStores();
+  const { activeLightboxImgPos } = ui;
+  if (!activeLightboxImgPos) {
     return null;
   }
   const imageNodes = findChildren(
@@ -30,48 +30,50 @@ function Lightbox() {
   );
   const currNodeIndex = findIndex(
     imageNodes,
-    (node) => node.pos === currentItem
+    (node) => node.pos === activeLightboxImgPos
   );
   const currImgNode = imageNodes[currNodeIndex].node;
   const currImgPos = imageNodes[currNodeIndex].pos;
 
   const prev = () => {
-    if (!currentItem) {
+    if (!activeLightboxImgPos) {
       return;
     }
     const currentIndex = findIndex(
       imageNodes,
-      (node) => node.pos === currentItem
+      (node) => node.pos === activeLightboxImgPos
     );
     const prevIndex = currentIndex - 1;
     if (prevIndex < 0) {
       return;
     }
     const prevImgPos = imageNodes[prevIndex].pos;
-    lightbox.currentItem = prevImgPos;
+    ui.setActiveLightboxImgPos(prevImgPos);
   };
   const next = () => {
-    if (!currentItem) {
+    if (!activeLightboxImgPos) {
       return;
     }
     const currentIndex = findIndex(
       imageNodes,
-      (node) => node.pos === currentItem
+      (node) => node.pos === activeLightboxImgPos
     );
     const nextIndex = currentIndex + 1;
     if (nextIndex > imageNodes.length) {
       return;
     }
     const nextImgPos = imageNodes[nextIndex].pos;
-    lightbox.currentItem = nextImgPos;
+    ui.setActiveLightboxImgPos(nextImgPos);
   };
   return (
-    <Dialog.Root open={!!currentItem}>
+    <Dialog.Root open={!!activeLightboxImgPos}>
       <Dialog.Portal>
         <Dialog.Overlay />
         <Dialog.Content>
-          <Dialog.Close onClick={() => lightbox.close()}>x</Dialog.Close>
-          {currentItem ? (
+          <Dialog.Close onClick={() => ui.setActiveLightboxImgPos(undefined)}>
+            x
+          </Dialog.Close>
+          {activeLightboxImgPos ? (
             <>
               <button onClick={() => prev()}>{"<"}</button>
               <button onClick={() => next()}>{">"}</button>

@@ -43,7 +43,7 @@ const Image = (props: Props) => {
     }
   );
 
-  const { lightbox } = useStores();
+  const { ui } = useStores();
 
   const isFullWidth = layoutClass === "full-width";
   const isResizable = !!props.onChangeSize && !error;
@@ -94,7 +94,7 @@ const Image = (props: Props) => {
         ) : (
           <div
             onClick={(ev) => {
-              ev.detail === 2 && lightbox.open({ currentItem: getPos() });
+              ev.detail === 2 && ui.setActiveLightboxImgPos(getPos());
             }}
           >
             <img
