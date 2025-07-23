@@ -97,21 +97,15 @@ function Lightbox() {
               <CloseIcon size={32} />
             </Close>
           </Dialog.Close>
-          {activeLightboxImgPos ? (
-            <>
-              <Actions>
-                <StyledActionButton onClick={prev}>
-                  <BackIcon size={32} />
-                </StyledActionButton>
-                <StyledActionButton onClick={next}>
-                  <NextIcon size={32} />
-                </StyledActionButton>
-              </Actions>
-              <div className="lightbox-content">
-                <Image node={currImgNode} />
-              </div>
-            </>
-          ) : null}
+          <Image node={currImgNode} />
+          <Nav>
+            <StyledActionButton onClick={prev}>
+              <BackIcon size={32} />
+            </StyledActionButton>
+            <StyledActionButton onClick={next}>
+              <NextIcon size={32} />
+            </StyledActionButton>
+          </Nav>
         </StyledContent>
       </Dialog.Portal>
     </Dialog.Root>
@@ -215,7 +209,7 @@ const Close = styled(NudeButton)`
   }
 `;
 
-const Actions = styled.div`
+const Nav = styled.div`
   position: absolute;
   bottom: 12px;
 `;
