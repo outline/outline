@@ -4,7 +4,7 @@ import snakeCase from "lodash/snakeCase";
 import { Second } from "@shared/utils/time";
 import env from "@server/env";
 import Metrics from "@server/logging/Metrics";
-import Redis from "@server/storage/redis";
+import Redis from "../storage/redis";
 import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
 
 export function createQueue(

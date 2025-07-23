@@ -8,7 +8,7 @@ build:
 	docker compose build --pull outline
 
 test:
-	docker compose up -d redis postgres
+	docker compose up -d postgres
 	NODE_ENV=test yarn sequelize db:drop
 	NODE_ENV=test yarn sequelize db:create
 	NODE_ENV=test yarn sequelize db:migrate
