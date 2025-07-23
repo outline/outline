@@ -142,31 +142,47 @@ const Image = (props: Props) => {
       <CrossIcon size={16} /> Image failed to load
     </Error>
   ) : (
-    <img
-      src={sanitizeUrl(node.attrs.src)}
-      alt={node.attrs.alt || ""}
-      width={imgWidth}
-      height={imgHeight}
-      onError={() => {
-        setStatus(Status.ERROR);
-      }}
-      onLoad={(ev: React.SyntheticEvent<HTMLImageElement>) => {
-        // For some SVG's Firefox does not provide the naturalWidth, in this
-        // rare case we need to provide a default so that the image can be
-        // seen and is not sized to 0px
-        const width =
-          node.attrs.width ||
-          (ev.target as HTMLImageElement).naturalWidth ||
-          300;
-        setImgWidth(width);
-        const height =
-          node.attrs.height || (ev.target as HTMLImageElement).naturalHeight;
-        setImgHeight(height);
-        setStatus(Status.LOADED);
-      }}
-    />
+    <Figure>
+      <img
+        src={sanitizeUrl(node.attrs.src)}
+        alt={node.attrs.alt || ""}
+        width={imgWidth}
+        height={imgHeight}
+        onError={() => {
+          setStatus(Status.ERROR);
+        }}
+        onLoad={(ev: React.SyntheticEvent<HTMLImageElement>) => {
+          // For some SVG's Firefox does not provide the naturalWidth, in this
+          // rare case we need to provide a default so that the image can be
+          // seen and is not sized to 0px
+          const width =
+            node.attrs.width ||
+            (ev.target as HTMLImageElement).naturalWidth ||
+            300;
+          setImgWidth(width);
+          const height =
+            node.attrs.height || (ev.target as HTMLImageElement).naturalHeight;
+          setImgHeight(height);
+          setStatus(Status.LOADED);
+        }}
+      />
+      <Caption>{node.attrs.alt || ""}</Caption>
+    </Figure>
   );
 };
+
+const Figure = styled("figure")`
+  margin: 0;
+`;
+
+const Caption = styled("figcaption")`
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 14px;
+  font-weight: normal;
+  color: ${s("textSecondary")};
+`;
 
 const StyledOverlay = styled(Dialog.Overlay)`
   position: fixed;
