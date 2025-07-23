@@ -86,40 +86,37 @@ function Lightbox() {
   );
 }
 
+enum Status {
+  ERROR,
+  LOADED,
+}
+
 type Props = {
   node: Node;
 };
 
 const Image = (props: Props) => {
   const { node } = props;
-  const [loaded, setLoaded] = useState(false);
-  const [error, setError] = useState(false);
+  const [status, setStatus] = useState<Status | null>(null);
 
   const [imgWidth, setImgWidth] = useState(node.attrs.width);
   const [imgHeight, setImgHeight] = useState(node.attrs.height);
 
-  const { lightbox } = useStores();
+  const errContainerWidth = useMemo(() => imgWidth, [imgWidth]);
+  const errContainerHeight = useMemo(() => imgHeight, [imgHeight]);
 
-  return error ? (
-    <Error
-      style={{ width: imgWidth, height: imgHeight }}
-      className={EditorStyleHelper.imageHandle}
-    >
+  return status === Status.ERROR ? (
+    <Error style={{ width: errContainerWidth, height: errContainerHeight }}>
       <CrossIcon size={16} /> Image failed to load
     </Error>
   ) : (
     <img
-      className={EditorStyleHelper.imageHandle}
-      style={{
-        width: imgWidth,
-        height: imgHeight,
-        display: loaded ? "block" : "none",
-      }}
       src={sanitizeUrl(node.attrs.src)}
       alt={node.attrs.alt || ""}
+      width={imgWidth}
+      height={imgHeight}
       onError={() => {
-        setError(true);
-        setLoaded(true);
+        setStatus(Status.ERROR);
       }}
       onLoad={(ev: React.SyntheticEvent<HTMLImageElement>) => {
         // For some SVG's Firefox does not provide the naturalWidth, in this
@@ -133,7 +130,7 @@ const Image = (props: Props) => {
         const height =
           node.attrs.height || (ev.target as HTMLImageElement).naturalHeight;
         setImgHeight(height);
-        setLoaded(true);
+        setStatus(Status.LOADED);
       }}
     />
   );
