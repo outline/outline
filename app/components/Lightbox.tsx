@@ -68,23 +68,42 @@ function Lightbox() {
     const nextImgPos = imageNodes[nextIndex].pos;
     ui.setActiveLightboxImgPos(nextImgPos);
   };
+  const close = () => {
+    ui.setActiveLightboxImgPos(undefined);
+  };
+  const handleKeyDown = (ev: React.KeyboardEvent<HTMLDivElement>) => {
+    switch (ev.key) {
+      case "ArrowLeft": {
+        prev();
+        break;
+      }
+      case "ArrowRight": {
+        next();
+        break;
+      }
+      case "Escape": {
+        close();
+        break;
+      }
+    }
+  };
   return (
     <Dialog.Root open={!!activeLightboxImgPos}>
       <Dialog.Portal>
         <StyledOverlay />
-        <StyledContent>
+        <StyledContent onKeyDown={handleKeyDown}>
           <Dialog.Close asChild>
-            <Close onClick={() => ui.setActiveLightboxImgPos(undefined)}>
+            <Close onClick={close}>
               <CloseIcon size={32} />
             </Close>
           </Dialog.Close>
           {activeLightboxImgPos ? (
             <>
               <Actions>
-                <StyledActionButton onClick={() => prev()}>
+                <StyledActionButton onClick={prev}>
                   <BackIcon size={32} />
                 </StyledActionButton>
-                <StyledActionButton onClick={() => next()}>
+                <StyledActionButton onClick={next}>
                   <NextIcon size={32} />
                 </StyledActionButton>
               </Actions>
@@ -163,6 +182,7 @@ const StyledContent = styled(Dialog.Content)`
   display: flex;
   justify-content: center;
   align-items: center;
+  outline: none;
 `;
 
 const Close = styled(NudeButton)`
@@ -172,6 +192,7 @@ const Close = styled(NudeButton)`
   margin: 12px;
   opacity: 0.75;
   color: ${s("text")};
+  outline: none;
 
   &:hover {
     opacity: 1;
@@ -187,6 +208,7 @@ const StyledActionButton = styled(NudeButton)`
   margin: 12px;
   opacity: 0.75;
   color: ${s("text")};
+  outline: none;
 
   &:hover {
     opacity: 1;
