@@ -44,6 +44,17 @@ const readIndexFile = async (): Promise<Buffer> => {
   ));
 };
 
+//Genereate Plausible script Tag
+const generatePlausibleScript = (nonce: string): string => {
+  const { PLAUSIBLE_DOMAIN, PLAUSIBLE_SRC } = process.env;
+  
+  if (!PLAUSIBLE_DOMAIN || !PLAUSIBLE_SRC) {
+    return '';
+  }
+  
+  return `<script defer data-domain="${escape(PLAUSIBLE_DOMAIN)}" src="${escape(PLAUSIBLE_SRC)}" nonce="${nonce}"></script>`;
+};
+
 export const renderApp = async (
   ctx: Context,
   next: Next,
@@ -70,6 +81,24 @@ export const renderApp = async (
 
   if (ctx.request.path === "/realtime/") {
     return next();
+  }
+
+  // Plausible Handler
+  const { PLAUSIBLE_SRC } = process.env;
+  if (PLAUSIBLE_SRC && !env.isCloudHosted) {
+    try {
+      const parsed = new URL(PLAUSIBLE_SRC);
+      const csp = ctx.response.get("Content-Security-Policy");
+      if (csp) {
+        // Add Plausible domain to script-src and connect-src
+        const updatedCsp = csp
+          .replace("script-src", `script-src ${parsed.origin}`)
+          .replace("connect-src", `connect-src ${parsed.origin}`);
+        ctx.set("Content-Security-Policy", updatedCsp);
+      }
+    } catch (err) {
+      console.warn("Invalid PLAUSIBLE_SRC URL:", PLAUSIBLE_SRC);
+    }
   }
 
   if (!env.isCloudHosted) {
@@ -115,6 +144,9 @@ export const renderApp = async (
       <script type="module" nonce="${ctx.state.cspNonce}" src="${viteHost}/static/${entry}"></script>
     `;
 
+  // Call Plausible script generation
+  const plausibleScript = generatePlausibleScript(ctx.state.cspNonce);
+
   // Ensure no caching is performed
   ctx.response.set("Cache-Control", "no-cache, must-revalidate");
   ctx.response.set("Expires", "-1");
@@ -137,6 +169,7 @@ export const renderApp = async (
     .replace(/\{prefetch\}/g, shareId ? "" : prefetchTags)
     .replace(/\{slack-app-id\}/g, env.public.SLACK_APP_ID || "")
     .replace(/\{script-tags\}/g, scriptTags)
+    .replace(/\{plausible-script\}/g, plausibleScript)
     .replace(/\{csp-nonce\}/g, ctx.state.cspNonce);
 };
 
