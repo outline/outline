@@ -16,6 +16,7 @@ export function createQueue(
   // https://github.com/OptimalBits/bull/blob/b6d530f72a774be0fd4936ddb4ad9df3b183f4b6/PATTERNS.md#reusing-redis-connections
   const queue = new Queue(name, {
     createClient(type) {
+      // Load dynamically so that this isn't pulled in at startup during tests
       const Redis = require("../storage/redis").default;
 
       switch (type) {
