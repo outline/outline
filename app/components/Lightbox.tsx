@@ -1,4 +1,5 @@
 import { useEditor } from "~/editor/components/EditorContext";
+import breakpoint from "styled-components-breakpoint";
 import { observer } from "mobx-react";
 import useStores from "~/hooks/useStores";
 import * as Dialog from "@radix-ui/react-dialog";
@@ -14,8 +15,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { sanitizeUrl } from "@shared/utils/urls";
 import { Node } from "prosemirror-model";
 import { Error } from "@shared/editor/components/Image";
-import { CrossIcon } from "outline-icons";
-import { depths } from "@shared/styles";
+import { BackIcon, CloseIcon, CrossIcon, NextIcon } from "outline-icons";
+import { depths, s } from "@shared/styles";
+import NudeButton from "./NudeButton";
 
 function Lightbox() {
   const { view } = useEditor();
@@ -71,13 +73,21 @@ function Lightbox() {
       <Dialog.Portal>
         <StyledOverlay />
         <StyledContent>
-          <Dialog.Close onClick={() => ui.setActiveLightboxImgPos(undefined)}>
-            x
+          <Dialog.Close asChild>
+            <Close onClick={() => ui.setActiveLightboxImgPos(undefined)}>
+              <CloseIcon size={32} />
+            </Close>
           </Dialog.Close>
           {activeLightboxImgPos ? (
             <>
-              <button onClick={() => prev()}>{"<"}</button>
-              <button onClick={() => next()}>{">"}</button>
+              <Actions>
+                <StyledActionButton onClick={() => prev()}>
+                  <BackIcon size={32} />
+                </StyledActionButton>
+                <StyledActionButton onClick={() => next()}>
+                  <NextIcon size={32} />
+                </StyledActionButton>
+              </Actions>
               <div className="lightbox-content">
                 <Image node={currImgNode} />
               </div>
@@ -142,7 +152,7 @@ const Image = (props: Props) => {
 const StyledOverlay = styled(Dialog.Overlay)`
   position: fixed;
   inset: 0;
-  background-color: ${(props) => props.theme.modalBackdrop};
+  background-color: ${(props) => props.theme.modalBackground};
   z-index: ${depths.overlay};
 `;
 
@@ -153,6 +163,34 @@ const StyledContent = styled(Dialog.Content)`
   display: flex;
   justify-content: center;
   align-items: center;
+`;
+
+const Close = styled(NudeButton)`
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 12px;
+  opacity: 0.75;
+  color: ${s("text")};
+
+  &:hover {
+    opacity: 1;
+  }
+`;
+
+const Actions = styled.div`
+  position: absolute;
+  bottom: 12px;
+`;
+
+const StyledActionButton = styled(NudeButton)`
+  margin: 12px;
+  opacity: 0.75;
+  color: ${s("text")};
+
+  &:hover {
+    opacity: 1;
+  }
 `;
 
 export default observer(Lightbox);
