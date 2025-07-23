@@ -15,6 +15,7 @@ import { sanitizeUrl } from "@shared/utils/urls";
 import { Node } from "prosemirror-model";
 import { Error } from "@shared/editor/components/Image";
 import { CrossIcon } from "outline-icons";
+import { depths } from "@shared/styles";
 
 function Lightbox() {
   const { view } = useEditor();
@@ -68,8 +69,8 @@ function Lightbox() {
   return (
     <Dialog.Root open={!!activeLightboxImgPos}>
       <Dialog.Portal>
-        <Dialog.Overlay />
-        <Dialog.Content>
+        <StyledOverlay />
+        <StyledContent>
           <Dialog.Close onClick={() => ui.setActiveLightboxImgPos(undefined)}>
             x
           </Dialog.Close>
@@ -82,7 +83,7 @@ function Lightbox() {
               </div>
             </>
           ) : null}
-        </Dialog.Content>
+        </StyledContent>
       </Dialog.Portal>
     </Dialog.Root>
   );
@@ -137,5 +138,21 @@ const Image = (props: Props) => {
     />
   );
 };
+
+const StyledOverlay = styled(Dialog.Overlay)`
+  position: fixed;
+  inset: 0;
+  background-color: ${(props) => props.theme.modalBackdrop};
+  z-index: ${depths.overlay};
+`;
+
+const StyledContent = styled(Dialog.Content)`
+  position: fixed;
+  inset: 0;
+  z-index: ${depths.modal};
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
 
 export default observer(Lightbox);
