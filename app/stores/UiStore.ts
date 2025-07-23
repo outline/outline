@@ -54,6 +54,9 @@ class UiStore {
   activeCollectionId?: string | null;
 
   @observable
+  activeLightboxImgPos?: number | null;
+
+  @observable
   observingUserId: string | undefined;
 
   @observable
@@ -161,6 +164,11 @@ class UiStore {
     if (document.isActive) {
       this.activeCollectionId = document.collectionId;
     }
+  };
+
+  @action
+  setActiveLightboxImgPos = (pos: number | undefined): void => {
+    this.activeLightboxImgPos = pos;
   };
 
   @action
