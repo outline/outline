@@ -682,7 +682,7 @@
   "Stats": "Statystyki",
   "{{ count }} minute read": "{{ count }} minuta czytania",
   "{{ count }} minute read_plural": "{{ count }} minut(y) czytania",
-  "{{ count }} words": "{{ count }} słowo",
+  "{{ count }} words": "{{ count }} słów",
   "{{ count }} words_plural": "{{ count }} słów",
   "{{ count }} characters": "{{ count }} znak",
   "{{ count }} characters_plural": "{{ count }} znaków",
