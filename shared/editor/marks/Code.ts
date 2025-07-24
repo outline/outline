@@ -13,7 +13,7 @@ import { markInputRuleForPattern } from "../lib/markInputRule";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { isInCode } from "../queries/isInCode";
 import Mark from "./Mark";
-import codeWordDecorations from "../plugins/CodeWordDecorations";
+import { codeWordDecorations } from "../plugins/CodeWordDecorations";
 
 export default class Code extends Mark {
   get name() {

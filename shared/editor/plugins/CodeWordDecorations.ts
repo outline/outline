@@ -58,7 +58,7 @@ class CodeWordDecorationsPlugin extends Plugin {
         if (codeMark) {
           const text = node.text;
 
-          // Split on spaces only
+          // Split on spaces only rather than word breaks for code
           const words = text.split(" ");
           let currentPos = pos;
 
@@ -92,14 +92,8 @@ class CodeWordDecorationsPlugin extends Plugin {
 
 /**
  * Creates a plugin that decorates individual words inside inline code marks
- * with span elements. Each word will be wrapped in a span with configurable
- * CSS class and attributes.
+ * with span elements.
  */
 export function codeWordDecorations(config: CodeWordDecorationsConfig = {}) {
   return new CodeWordDecorationsPlugin(config);
 }
-
-/**
- * Default export for convenience
- */
-export default codeWordDecorations;
