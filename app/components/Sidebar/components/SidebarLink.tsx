@@ -7,7 +7,7 @@ import { s } from "@shared/styles";
 import { isMobile } from "@shared/utils/browser";
 import NudeButton from "~/components/NudeButton";
 import { UnreadBadge } from "~/components/UnreadBadge";
-import useUnmount from "~/hooks/useUnmount";
+import useClickIntent from "~/hooks/useClickIntent";
 import { undraggableOnDesktop } from "~/styles";
 import Disclosure from "./Disclosure";
 import NavLink, { Props as NavLinkProps } from "./NavLink";
@@ -62,8 +62,8 @@ function SidebarLink(
   }: Props,
   ref: React.RefObject<HTMLAnchorElement>
 ) {
-  const timer = React.useRef<number>();
   const theme = useTheme();
+  const { handleMouseEnter, handleMouseLeave } = useClickIntent(onClickIntent);
   const style = React.useMemo(
     () => ({
       paddingLeft: `${(depth || 0) * 16 + 12}px`,
@@ -79,28 +79,6 @@ function SidebarLink(
     }),
     [theme.text, theme.sidebarActiveBackground, style]
   );
-
-  const handleMouseEnter = React.useCallback(() => {
-    if (timer.current) {
-      clearTimeout(timer.current);
-    }
-
-    if (onClickIntent) {
-      timer.current = window.setTimeout(onClickIntent, 100);
-    }
-  }, [onClickIntent]);
-
-  const handleMouseLeave = React.useCallback(() => {
-    if (timer.current) {
-      clearTimeout(timer.current);
-    }
-  }, []);
-
-  useUnmount(() => {
-    if (timer.current) {
-      clearTimeout(timer.current);
-    }
-  });
 
   return (
     <>

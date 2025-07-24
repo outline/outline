@@ -1,7 +1,7 @@
 import { LocationDescriptor } from "history";
 import { observer } from "mobx-react";
 import { EditIcon, TrashIcon } from "outline-icons";
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import styled from "styled-components";
@@ -20,6 +20,7 @@ import { documentHistoryPath } from "~/utils/routeHelpers";
 import { EventItem, lineStyle } from "./EventListItem";
 import Facepile from "./Facepile";
 import Text from "./Text";
+import useClickIntent from "~/hooks/useClickIntent";
 
 type Props = {
   document: Document;
@@ -43,7 +44,7 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
     ref.current?.focus();
   };
 
-  const prefetchRevision = async () => {
+  const prefetchRevision = useCallback(async () => {
     if (!document.isDeleted && !item.deletedAt && !revisionLoadedRef.current) {
       if (isLatestRevision) {
         return;
@@ -51,7 +52,10 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
       await revisions.fetch(item.id, { force: true });
       revisionLoadedRef.current = true;
     }
-  };
+  }, [document.isDeleted, item.deletedAt, isLatestRevision, revisions]);
+
+  const { handleMouseEnter, handleMouseLeave } =
+    useClickIntent(prefetchRevision);
 
   let meta, icon, to: LocationDescriptor | undefined;
 
@@ -134,7 +138,8 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
           </StyledEventBoundary>
         ) : undefined
       }
-      onMouseEnter={prefetchRevision}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       ref={ref}
       {...rest}
     />
