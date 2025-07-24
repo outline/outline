@@ -10,6 +10,9 @@ import Document from "~/models/Document";
 import Flex from "~/components/Flex";
 import { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
 import { sharedDocumentPath } from "~/utils/routeHelpers";
+import useClickIntent from "~/hooks/useClickIntent";
+import useStores from "~/hooks/useStores";
+import { useCallback } from "react";
 
 type Props = {
   shareId?: string;
@@ -60,6 +63,12 @@ function ReferenceListItem({
   sidebarContext,
   ...rest
 }: Props) {
+  const { documents } = useStores();
+  const prefetchDocument = useCallback(async () => {
+    await documents.prefetchDocument(document.id);
+  }, [documents, document.id]);
+  const { handleMouseEnter, handleMouseLeave } =
+    useClickIntent(prefetchDocument);
   const { icon, color } = document;
   const isEmoji = determineIconType(icon) === IconType.Emoji;
   const title =
@@ -67,6 +76,8 @@ function ReferenceListItem({
 
   return (
     <DocumentLink
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       to={{
         pathname: shareId
           ? sharedDocumentPath(shareId, document.url)
