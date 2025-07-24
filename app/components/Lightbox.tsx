@@ -128,11 +128,8 @@ const Image = (props: Props) => {
   const [imgWidth, setImgWidth] = useState(node.attrs.width);
   const [imgHeight, setImgHeight] = useState(node.attrs.height);
 
-  const errContainerWidth = useMemo(() => imgWidth, [imgWidth]);
-  const errContainerHeight = useMemo(() => imgHeight, [imgHeight]);
-
   return status === Status.ERROR ? (
-    <Error style={{ width: errContainerWidth, height: errContainerHeight }}>
+    <Error>
       <CrossIcon size={16} /> Image failed to load
     </Error>
   ) : (
