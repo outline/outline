@@ -18,7 +18,7 @@ export default class ErrorTimedOutImportsTask extends BaseTask<Props> {
 
   public async perform({ limit }: Props) {
     // TODO: Hardcoded right now, configurable later
-    const thresholdHours = 12;
+    const thresholdHours = 24;
     const cutOffTime = subHours(new Date(), thresholdHours);
     const importsErrored: Record<string, boolean> = {};
 
