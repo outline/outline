@@ -182,9 +182,11 @@ function InnerDocumentLink(
   const can = policies.abilities(node.id);
   const icon = document?.icon || node.icon || node.emoji;
   const color = document?.color || node.color;
+  const initial = (document?.title || node.title).slice(0, 1).toUpperCase();
 
   const iconElement = React.useMemo(
-    () => (icon ? <Icon value={icon} color={color} /> : undefined),
+    () =>
+      icon ? <Icon value={icon} color={color} initial={initial} /> : undefined,
     [icon, color]
   );
 
