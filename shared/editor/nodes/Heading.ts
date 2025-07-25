@@ -1,4 +1,6 @@
 import copy from "copy-to-clipboard";
+import filter from "lodash/filter";
+import forEach from "lodash/forEach";
 import { textblockTypeInputRule } from "prosemirror-inputrules";
 import {
   Node as ProsemirrorNode,
@@ -6,7 +8,7 @@ import {
   NodeType,
   Schema,
 } from "prosemirror-model";
-import { Command, Plugin, Selection } from "prosemirror-state";
+import { Command, Plugin, Selection, Transaction } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { toast } from "sonner";
 import { Primitive } from "utility-types";
@@ -16,6 +18,7 @@ import splitHeading from "../commands/splitHeading";
 import toggleBlockType from "../commands/toggleBlockType";
 import headingToSlug, { headingToPersistenceKey } from "../lib/headingToSlug";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { findBlockNodes } from "../queries/findChildren";
 import { findCollapsedNodes } from "../queries/findCollapsedNodes";
 import Node from "./Node";
 
@@ -55,25 +58,13 @@ export default class Heading extends Node {
           node.querySelector(".heading-content") || node,
       })),
       toDOM: (node) => {
-        let anchor, fold;
+        let anchor;
         if (typeof document !== "undefined") {
           anchor = document.createElement("button");
           anchor.innerText = "#";
           anchor.type = "button";
           anchor.className = "heading-anchor";
           anchor.addEventListener("click", this.handleCopyLink);
-
-          fold = document.createElement("button");
-          fold.innerText = "";
-          fold.innerHTML =
-            '<svg fill="currentColor" width="12" height="24" viewBox="6 0 12 24" xmlns="http://www.w3.org/2000/svg"><path d="M8.23823905,10.6097108 L11.207376,14.4695888 L11.207376,14.4695888 C11.54411,14.907343 12.1719566,14.989236 12.6097108,14.652502 C12.6783439,14.5997073 12.7398293,14.538222 12.792624,14.4695888 L15.761761,10.6097108 L15.761761,10.6097108 C16.0984949,10.1719566 16.0166019,9.54410997 15.5788477,9.20737601 C15.4040391,9.07290785 15.1896811,9 14.969137,9 L9.03086304,9 L9.03086304,9 C8.47857829,9 8.03086304,9.44771525 8.03086304,10 C8.03086304,10.2205442 8.10377089,10.4349022 8.23823905,10.6097108 Z" /></svg>';
-          fold.type = "button";
-          fold.className = `heading-fold ${
-            node.attrs.collapsed ? "collapsed" : ""
-          }`;
-          fold.addEventListener("mousedown", (event) =>
-            this.handleFoldContent(event)
-          );
         }
 
         return [
@@ -89,7 +80,7 @@ export default class Heading extends Node {
                 node.attrs.collapsed ? "collapsed" : ""
               }`,
             },
-            ...(anchor ? [anchor, fold] : []),
+            ...(anchor ? [anchor] : []),
           ],
           [
             "span",
@@ -274,6 +265,30 @@ export default class Heading extends Node {
       },
     });
 
+    // Plugin to forcibly revert all collapsed headings to expanded state
+    const expandHeadingsPlugin: Plugin = new Plugin({
+      appendTransaction: (transactions, oldState, newState) => {
+        const docChanged = transactions.some((tr) => tr.docChanged);
+        let tr: Transaction | null = null;
+        if (docChanged) {
+          forEach(
+            filter(
+              findBlockNodes(newState.doc, true),
+              (block) => block.node.type === newState.schema.nodes.heading
+            ),
+            (heading) => {
+              tr = (tr ?? newState.tr).setNodeAttribute(
+                heading.pos,
+                "collapsed",
+                undefined
+              );
+            }
+          );
+        }
+        return tr;
+      },
+    });
+
     const foldPlugin: Plugin = new Plugin({
       props: {
         decorations: (state) => {
@@ -290,7 +305,7 @@ export default class Heading extends Node {
       },
     });
 
-    return [foldPlugin, plugin];
+    return [plugin, expandHeadingsPlugin, foldPlugin];
   }
 
   inputRules({ type }: { type: NodeType }) {
