@@ -133,7 +133,7 @@ const Image = (props: Props) => {
       <CrossIcon size={16} /> Image failed to load
     </Error>
   ) : (
-    <Figure>
+    <Figure style={{ width: imgWidth, height: imgHeight }}>
       <img
         src={sanitizeUrl(node.attrs.src)}
         style={{
@@ -142,8 +142,6 @@ const Image = (props: Props) => {
           objectFit: "scale-down",
         }}
         alt={node.attrs.alt || ""}
-        width={imgWidth}
-        height={imgHeight}
         onError={() => {
           setStatus(Status.ERROR);
         }}
@@ -168,13 +166,16 @@ const Image = (props: Props) => {
 };
 
 const Figure = styled("figure")`
+  max-width: 100%;
+  max-height: 100%;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 `;
 
 const Caption = styled("figcaption")`
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
   font-size: 14px;
   font-weight: normal;
   color: ${s("textSecondary")};
