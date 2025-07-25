@@ -136,6 +136,11 @@ const Image = (props: Props) => {
     <Figure>
       <img
         src={sanitizeUrl(node.attrs.src)}
+        style={{
+          maxHeight: "100%",
+          maxWidth: "100%",
+          objectFit: "scale-down",
+        }}
         alt={node.attrs.alt || ""}
         width={imgWidth}
         height={imgHeight}
