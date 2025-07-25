@@ -243,10 +243,17 @@ function DataLoader({ match, children }: Props) {
   const canEdit = can.update && !document.isArchived && !revisionId;
   const readOnly = !isEditing || !canEdit;
 
+  // Create a stable key based on document permissions rather than UI state
+  // This prevents unnecessary remounts during responsive breakpoint changes
+  const stableKey = React.useMemo(() => 
+    `${document.id}-${can.update ? "editable" : "readonly"}-${document.isArchived ? "archived" : "active"}-${revisionId || "current"}`,
+    [document.id, can.update, document.isArchived, revisionId]
+  );
+
   return (
     <>
       {!shareId && !revision && <MarkAsViewed document={document} />}
-      <React.Fragment key={canEdit ? "edit" : "read"}>
+      <React.Fragment key={stableKey}>
         {children({
           document,
           revision,
