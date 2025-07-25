@@ -88,6 +88,12 @@ type Props = {
   onUpdate?: (id: string, attrs: { resolved: boolean }) => void;
   /** Text to highlight at the top of the comment */
   highlightedText?: string;
+  /** Whether to force the comment into edit mode */
+  forceEdit?: boolean;
+  /** Callback when edit mode starts */
+  onEditStart?: () => void;
+  /** Callback when edit mode ends */
+  onEditEnd?: () => void;
 };
 
 function CommentThreadItem({
@@ -101,6 +107,9 @@ function CommentThreadItem({
   onDelete,
   onUpdate,
   highlightedText,
+  forceEdit,
+  onEditStart,
+  onEditEnd,
 }: Props) {
   const { t } = useTranslation();
   const user = useCurrentUser();
@@ -112,6 +121,20 @@ function CommentThreadItem({
     comment.updatedAt !== comment.createdAt &&
     !comment.isResolved;
   const [isEditing, setEditing, setReadOnly] = useBoolean();
+
+  // Handle forced edit mode
+  React.useEffect(() => {
+    if (forceEdit && !isEditing) {
+      setEditing();
+      onEditStart?.();
+    }
+  }, [forceEdit, isEditing, setEditing, onEditStart]);
+
+  // Override setReadOnly to call onEditEnd
+  const handleSetReadOnly = React.useCallback(() => {
+    setReadOnly();
+    onEditEnd?.();
+  }, [setReadOnly, onEditEnd]);
   const formRef = React.useRef<HTMLFormElement>(null);
 
   const handleAddReaction = React.useCallback(
@@ -156,7 +179,7 @@ function CommentThreadItem({
     event.preventDefault();
 
     try {
-      setReadOnly();
+      handleSetReadOnly();
       comment.data = data;
       await comment.save();
     } catch (_err) {
@@ -167,7 +190,7 @@ function CommentThreadItem({
 
   const handleCancel = () => {
     setData(comment.data);
-    setReadOnly();
+    handleSetReadOnly();
   };
 
   return (
@@ -211,6 +234,7 @@ function CommentThreadItem({
             defaultValue={data}
             onChange={handleChange}
             onSave={handleSave}
+            onCancel={handleCancel}
             autoFocus
           />
           {isEditing && (
@@ -261,7 +285,10 @@ function CommentThreadItem({
               <Action
                 as={CommentMenu}
                 comment={comment}
-                onEdit={setEditing}
+                onEdit={() => {
+                  setEditing();
+                  onEditStart?.();
+                }}
                 onDelete={handleDelete}
                 onUpdate={handleUpdate}
               />
