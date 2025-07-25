@@ -37,7 +37,7 @@ const PageScroll = ({ children }: Props) => {
   const shouldApplyMobileStyles = isMobile && !isPrinting;
 
   return (
-    <ScrollContext.Provider value={shouldApplyMobileStyles ? ref : null}>
+    <ScrollContext.Provider value={shouldApplyMobileStyles ? ref : undefined}>
       <StableWrapper
         ref={ref}
         $shouldApplyMobileStyles={shouldApplyMobileStyles}
