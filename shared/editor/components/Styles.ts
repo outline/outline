@@ -1310,6 +1310,9 @@ hr.page-break::before {
 
 .math-inline .math-src .ProseMirror,
 code {
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+
   border-radius: 4px;
   border: 1px solid ${props.theme.codeBorder};
   background: ${props.theme.codeBackground};
@@ -1317,6 +1320,10 @@ code {
   color: ${props.theme.codeString};
   font-family: ${props.theme.fontFamilyMono};
   font-size: 90%;
+
+  .code-word {
+    white-space: nowrap;
+  }
 }
 
 mark {
