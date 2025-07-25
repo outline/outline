@@ -515,5 +515,79 @@ export class DocumentHelper {
     return distance > threshold;
   }
 
+  /**
+   * Returns the breadcrumb path for a document as an array of strings.
+   * The breadcrumb is ordered from the outermost collection through any
+   * parent documents. The document itself is excluded by default as email
+   * templates usually render the document title separately.
+   *
+   * For example, a document titled "API Reference" located at
+   *  - Collection: "Engineering"
+   *  - Parent document: "Backend"
+   *  - Current document: "API Reference"
+   *
+   *  returns: ["Engineering", "Backend"]
+   *
+   * @param document The document to build the breadcrumb for
+   * @param options.includeSelf Whether to include the document title itself
+   *                            in the breadcrumb (default: false)
+   * @param options.maxDepth    Maximum depth of ancestors to recurse through
+   *                            (safety-guard, default: 25)
+   */
+  static async getBreadcrumb(
+    document: Document,
+    options?: {
+      includeSelf?: boolean;
+      maxDepth?: number;
+    }
+  ): Promise<string[]> {
+    const includeSelf = options?.includeSelf ?? false;
+    const maxDepth = options?.maxDepth ?? 25;
+
+    const parts: string[] = [];
+
+    try {
+      // Add collection name first (outermost part of path)
+      const collection = await document.$get("collection");
+      if (collection) {
+        parts.push(collection.name);
+      }
+
+      // Gather ancestor documents (from root → direct parent)
+      const ancestors: Document[] = [];
+      let current: Document | null = document;
+      let depth = 0;
+
+      while (current?.parentDocumentId && depth < maxDepth) {
+        const parent: Document | null = await Document.unscoped().findByPk(
+          current.parentDocumentId,
+          {
+            attributes: ["id", "title", "parentDocumentId"],
+          }
+        );
+        if (!parent) {
+          break;
+        }
+        ancestors.unshift(parent);
+        current = parent;
+        depth += 1;
+      }
+
+      for (const ancestor of ancestors) {
+        parts.push(ancestor.titleWithDefault);
+      }
+
+      if (includeSelf) {
+        parts.push(document.titleWithDefault);
+      }
+    } catch (err) {
+      // Swallow errors so that email sending is never blocked by breadcrumb failures.
+      // eslint-disable-next-line no-console
+      console.error("DocumentHelper.getBreadcrumb failed", err);
+    }
+
+    return parts;
+  }
+
   private static textSerializers = getTextSerializers(schema);
 }

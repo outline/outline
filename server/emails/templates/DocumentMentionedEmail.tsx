@@ -25,6 +25,7 @@ type InputProps = EmailProps & {
 type BeforeSend = {
   document: Document;
   body: string | undefined;
+  breadcrumb: string[];
 };
 
 type Props = InputProps & BeforeSend;
@@ -88,7 +89,9 @@ export default class DocumentMentionedEmail extends BaseEmail<
       }
     }
 
-    return { document, body };
+    const breadcrumb = await DocumentHelper.getBreadcrumb(document);
+
+    return { document, body, breadcrumb };
   }
 
   protected subject({ document }: Props) {
@@ -112,9 +115,16 @@ export default class DocumentMentionedEmail extends BaseEmail<
     return;
   }
 
-  protected renderAsText({ actorName, teamUrl, document }: Props): string {
+  protected renderAsText({
+    actorName,
+    teamUrl,
+    document,
+    breadcrumb,
+  }: Props): string {
     return `
 You were mentioned
+
+Location: ${breadcrumb.join(" / ")}
 
 ${actorName} mentioned you in the document “${document.titleWithDefault}”.
 
@@ -123,7 +133,7 @@ Open Document: ${teamUrl}${document.url}
   }
 
   protected render(props: Props) {
-    const { document, actorName, teamUrl, body } = props;
+    const { document, actorName, teamUrl, body, breadcrumb } = props;
     const documentLink = `${teamUrl}${document.url}?ref=notification-email`;
 
     return (
@@ -135,6 +145,11 @@ Open Document: ${teamUrl}${document.url}
 
         <Body>
           <Heading>You were mentioned</Heading>
+          {breadcrumb.length ? (
+            <p style={{ fontSize: 14, color: "#6e6e6e", margin: "4px 0 12px" }}>
+              {breadcrumb.join(" / ")}
+            </p>
+          ) : null}
           <p>
             {actorName} mentioned you in the document{" "}
             <a href={documentLink}>{document.titleWithDefault}</a>.

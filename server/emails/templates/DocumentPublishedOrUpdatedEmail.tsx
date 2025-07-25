@@ -34,6 +34,7 @@ type BeforeSend = {
   collection: Collection | null;
   unsubscribeUrl: string;
   body: string | undefined;
+  breadcrumb: string[];
 };
 
 type Props = InputProps & BeforeSend;
@@ -91,10 +92,13 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
       );
     }
 
+    const breadcrumb = await DocumentHelper.getBreadcrumb(document);
+
     return {
       document,
       collection,
       body,
+      breadcrumb,
       unsubscribeUrl: this.unsubscribeUrl(props),
     };
   }
@@ -141,11 +145,14 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
     document,
     collection,
     eventType,
+    breadcrumb,
   }: Props): string {
     const eventName = this.eventName(eventType);
 
     return `
 "${document.titleWithDefault}" ${eventName}
+
+Location: ${breadcrumb.join(" / ")}
 
 ${actorName} ${eventName} the document "${document.titleWithDefault}"${
       collection?.name ? `, in the ${collection.name} collection` : ""
@@ -161,6 +168,7 @@ Open Document: ${teamUrl}${document.url}
       actorName,
       collection,
       eventType,
+      breadcrumb,
       teamUrl,
       unsubscribeUrl,
       body,
@@ -179,6 +187,11 @@ Open Document: ${teamUrl}${document.url}
           <Heading>
             “{document.titleWithDefault}” {eventName}
           </Heading>
+          {breadcrumb.length ? (
+            <p style={{ fontSize: 14, color: "#6e6e6e", margin: "4px 0 12px" }}>
+              {breadcrumb.join(" / ")}
+            </p>
+          ) : null}
           <p>
             {actorName} {eventName} the document{" "}
             <a href={documentLink}>{document.titleWithDefault}</a>

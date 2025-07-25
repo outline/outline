@@ -4,6 +4,7 @@ import { Document, GroupMembership, UserMembership } from "@server/models";
 import BaseEmail, { EmailMessageCategory, EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import EmailTemplate from "./components/EmailLayout";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
@@ -19,6 +20,7 @@ type InputProps = EmailProps & {
 type BeforeSend = {
   document: Document;
   membership: UserMembership | GroupMembership;
+  breadcrumb: string[];
 };
 
 type Props = InputProps & BeforeSend;
@@ -52,7 +54,9 @@ export default class DocumentSharedEmail extends BaseEmail<
       return false;
     }
 
-    return { document, membership };
+    const breadcrumb = await DocumentHelper.getBreadcrumb(document);
+
+    return { document, membership, breadcrumb };
   }
 
   protected subject({ actorName, document }: Props) {
@@ -67,16 +71,23 @@ export default class DocumentSharedEmail extends BaseEmail<
     return actorName;
   }
 
-  protected renderAsText({ actorName, teamUrl, document }: Props): string {
+  protected renderAsText({
+    actorName,
+    teamUrl,
+    document,
+    breadcrumb,
+  }: Props): string {
     return `
 ${actorName} shared “${document.titleWithDefault}” with you.
+
+Location: ${breadcrumb.join(" / ")}
 
 View Document: ${teamUrl}${document.path}
 `;
   }
 
   protected render(props: Props) {
-    const { document, membership, actorName, teamUrl } = props;
+    const { document, membership, actorName, teamUrl, breadcrumb } = props;
     const documentUrl = `${teamUrl}${document.path}?ref=notification-email`;
 
     const permission =
@@ -91,6 +102,11 @@ View Document: ${teamUrl}${document.path}
 
         <Body>
           <Heading>{document.titleWithDefault}</Heading>
+          {breadcrumb.length ? (
+            <p style={{ fontSize: 14, color: "#6e6e6e", margin: "4px 0 12px" }}>
+              {breadcrumb.join(" / ")}
+            </p>
+          ) : null}
           <p>
             {actorName} invited you to {permission} the{" "}
             <a href={documentUrl}>{document.titleWithDefault}</a> document.

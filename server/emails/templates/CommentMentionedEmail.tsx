@@ -3,6 +3,7 @@ import { NotificationEventType } from "@shared/types";
 import { Collection, Comment, Document } from "@server/models";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { can } from "@server/policies";
 import BaseEmail, { EmailMessageCategory, EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
@@ -27,6 +28,7 @@ type BeforeSend = {
   collection: Collection;
   body: string | undefined;
   unsubscribeUrl: string;
+  breadcrumb: string[];
 };
 
 type Props = InputProps & BeforeSend;
@@ -67,10 +69,13 @@ export default class CommentMentionedEmail extends BaseEmail<
       ProsemirrorHelper.toProsemirror(comment.data)
     );
 
+    const breadcrumb = await DocumentHelper.getBreadcrumb(document);
+
     return {
       document,
       collection,
       body,
+      breadcrumb,
       unsubscribeUrl: this.unsubscribeUrl(props),
     };
   }
@@ -109,11 +114,14 @@ export default class CommentMentionedEmail extends BaseEmail<
     document,
     commentId,
     collection,
+    breadcrumb,
   }: Props): string {
     return `
 ${actorName} mentioned you in a comment on "${document.titleWithDefault}"${
       collection.name ? `in the ${collection.name} collection` : ""
     }.
+
+Location: ${breadcrumb.join(" / ")}
 
 Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
 `;
@@ -128,6 +136,7 @@ Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
       commentId,
       unsubscribeUrl,
       body,
+      breadcrumb,
     } = props;
     const threadLink = `${teamUrl}${document.url}?commentId=${commentId}&ref=notification-email`;
 
@@ -140,6 +149,11 @@ Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
 
         <Body>
           <Heading>{document.titleWithDefault}</Heading>
+          {breadcrumb.length ? (
+            <p style={{ fontSize: 14, color: "#6e6e6e", margin: "4px 0 12px" }}>
+              {breadcrumb.join(" / ")}
+            </p>
+          ) : null}
           <p>
             {actorName} mentioned you in a comment on{" "}
             <a href={threadLink}>{document.titleWithDefault}</a>{" "}

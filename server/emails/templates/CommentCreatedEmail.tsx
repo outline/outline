@@ -33,6 +33,7 @@ type BeforeSend = {
   body: string | undefined;
   isReply: boolean;
   unsubscribeUrl: string;
+  breadcrumb: string[];
 };
 
 type Props = InputProps & BeforeSend;
@@ -75,6 +76,8 @@ export default class CommentCreatedEmail extends BaseEmail<
     );
     const isReply = !!comment.parentCommentId;
 
+    const breadcrumb = await DocumentHelper.getBreadcrumb(document);
+
     return {
       comment,
       parentComment,
@@ -82,6 +85,7 @@ export default class CommentCreatedEmail extends BaseEmail<
       collection,
       isReply,
       body,
+      breadcrumb,
       unsubscribeUrl: this.unsubscribeUrl(props),
     };
   }
@@ -133,11 +137,14 @@ export default class CommentCreatedEmail extends BaseEmail<
     document,
     commentId,
     collection,
+    breadcrumb,
   }: Props): string {
     return `
 ${actorName} ${isReply ? "replied to a thread in" : "commented on"} "${
       document.titleWithDefault
     }"${collection?.name ? `in the ${collection.name} collection` : ""}.
+
+Location: ${breadcrumb.join(" / ")}
 
 Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
 `;
@@ -152,6 +159,7 @@ Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
       teamUrl,
       commentId,
       unsubscribeUrl,
+      breadcrumb,
       body,
     } = props;
     const threadLink = `${teamUrl}${document.url}?commentId=${commentId}&ref=notification-email`;
@@ -165,6 +173,11 @@ Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
 
         <Body>
           <Heading>{document.titleWithDefault}</Heading>
+          {breadcrumb.length ? (
+            <p style={{ fontSize: 14, color: "#6e6e6e", margin: "4px 0 12px" }}>
+              {breadcrumb.join(" / ")}
+            </p>
+          ) : null}
           <p>
             {actorName} {isReply ? "replied to a thread in" : "commented on"}{" "}
             <a href={threadLink}>{document.titleWithDefault}</a>{" "}
