@@ -257,7 +257,9 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         shareId={shareId}
         userId={user?.id}
         focusedCommentId={focusedComment?.id}
-        onClickCommentMark={handleClickComment}
+        onClickCommentMark={
+          commentingEnabled && can.comment ? handleClickComment : undefined
+        }
         onCreateCommentMark={
           commentingEnabled && can.comment ? handleDraftComment : undefined
         }
