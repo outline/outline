@@ -206,7 +206,7 @@ const Header = styled(Flex)`
   align-items: center;
   justify-content: space-between;
   font-weight: 600;
-  padding: 24px 24px 4px;
+  padding: 24px 24px 12px;
 `;
 
 const Small = styled.div`
@@ -240,7 +240,7 @@ const Small = styled.div`
 `;
 
 const SmallContent = styled(Scrollable)`
-  padding: 12px 24px 24px;
+  padding: 8px 24px 24px;
 `;
 
 export default observer(Modal);

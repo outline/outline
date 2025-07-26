@@ -196,6 +196,7 @@ export const ViewGroupMembersDialog = observer(function ({
         groupName: group.name,
       }),
       content: <AddPeopleToGroupDialog group={group} />,
+      replace: true,
     });
   }, [t, group, dialogs]);
 
@@ -334,6 +335,7 @@ const AddPeopleToGroupDialog = observer(function ({
       id,
       title: t("Invite people"),
       content: <Invite onSubmit={() => dialogs.closeModal(id)} />,
+      replace: true,
     });
   }, [t, dialogs]);
 
