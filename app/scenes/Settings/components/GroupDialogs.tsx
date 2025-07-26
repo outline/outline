@@ -332,7 +332,7 @@ const AddPeopleToGroupDialog = observer(function ({
   const handleInvitePeople = React.useCallback(() => {
     dialogs.openModal({
       title: t("Invite people"),
-      content: <Invite onSubmit={() => dialogs.closeModal(id)} />,
+      content: <Invite onSubmit={dialogs.closeAllModals} />,
       replace: true,
     });
   }, [t, dialogs]);
