@@ -102,7 +102,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
         const subdomain = slugifyDomain(domain);
 
         const teamName = organization.displayName;
-        const ctx = createContext({ ip: context.request.ip });
+        const ctx = createContext({ ip: context.ip });
         const result = await accountProvisioner(ctx, {
           team: {
             teamId: team?.id,

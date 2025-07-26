@@ -83,7 +83,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
         const team = await getTeamFromContext(context);
         const client = getClientFromContext(context);
 
-        const ctx = createContext({ ip: context.request.ip });
+        const ctx = createContext({ ip: context.ip });
         const result = await accountProvisioner(ctx, {
           team: {
             teamId: team?.id,

@@ -186,7 +186,7 @@ export function createOIDCRouter(
             avatarUrl = null;
           }
 
-          const ctx = createContext({ ip: context.request.ip });
+          const ctx = createContext({ ip: context.ip });
           const result = await accountProvisioner(ctx, {
             team: {
               teamId: team?.id,

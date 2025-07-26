@@ -109,7 +109,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
           // if a team can be inferred, we assume the user is only interested in signing into
           // that team in particular; otherwise, we will do a best effort at finding their account
           // or provisioning a new one (within AccountProvisioner)
-          const ctx = createContext({ ip: context.request.ip });
+          const ctx = createContext({ ip: context.ip });
           const result = await accountProvisioner(ctx, {
             team: {
               teamId: team?.id,
