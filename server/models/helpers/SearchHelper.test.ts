@@ -7,8 +7,10 @@ import {
   buildTeam,
   buildUser,
   buildShare,
+  buildGroup,
 } from "@server/test/factories";
 import UserMembership from "../UserMembership";
+import GroupMembership from "../GroupMembership";
 
 beforeEach(async () => {
   jest.resetAllMocks();
@@ -618,6 +620,48 @@ describe("SearchHelper", () => {
       });
       expect(total).toBe(1);
     });
+
+    test("should return search results from group memberships", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const otherUser = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        userId: otherUser.id,
+        teamId: team.id,
+        permission: null, // private collection
+      });
+      const document = await buildDocument({
+        userId: otherUser.id,
+        teamId: team.id,
+        collectionId: collection.id,
+        title: "group test document",
+      });
+
+      // Create a group and add the user to it
+      const group = await buildGroup({
+        teamId: team.id,
+      });
+      await group.$add("user", user, {
+        through: {
+          createdById: otherUser.id,
+        },
+      });
+
+      // Add group membership to the document
+      await GroupMembership.create({
+        createdById: otherUser.id,
+        groupId: group.id,
+        documentId: document.id,
+      });
+
+      const { results } = await SearchHelper.searchForUser(user, {
+        query: "group test",
+      });
+
+      expect(results.length).toBe(1);
+      expect(results[0].ranking).toBeTruthy();
+      expect(results[0].document?.id).toBe(document.id);
+    });
   });
 
   describe("#searchTitlesForUser", () => {
@@ -867,6 +911,47 @@ describe("SearchHelper", () => {
         statusFilter: [StatusFilter.Draft, StatusFilter.Archived],
       });
       expect(documents.length).toBe(2);
+    });
+
+    test("should return search results from group memberships", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      const otherUser = await buildUser({ teamId: team.id });
+      const collection = await buildCollection({
+        userId: otherUser.id,
+        teamId: team.id,
+        permission: null, // private collection
+      });
+      const document = await buildDocument({
+        userId: otherUser.id,
+        teamId: team.id,
+        collectionId: collection.id,
+        title: "group title test document",
+      });
+
+      // Create a group and add the user to it
+      const group = await buildGroup({
+        teamId: team.id,
+      });
+      await group.$add("user", user, {
+        through: {
+          createdById: otherUser.id,
+        },
+      });
+
+      // Add group membership to the document
+      await GroupMembership.create({
+        createdById: otherUser.id,
+        groupId: group.id,
+        documentId: document.id,
+      });
+
+      const documents = await SearchHelper.searchTitlesForUser(user, {
+        query: "group title",
+      });
+
+      expect(documents.length).toBe(1);
+      expect(documents[0].id).toBe(document.id);
     });
   });
 
