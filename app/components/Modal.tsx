@@ -12,7 +12,7 @@ import Scrollable from "~/components/Scrollable";
 import Text from "~/components/Text";
 import useMobile from "~/hooks/useMobile";
 import usePrevious from "~/hooks/usePrevious";
-import { fadeAndScaleIn } from "~/styles/animations";
+import { fadeAndScaleIn, fadeIn } from "~/styles/animations";
 import Desktop from "~/utils/Desktop";
 import ErrorBoundary from "./ErrorBoundary";
 
@@ -107,12 +107,7 @@ const StyledOverlay = styled(Dialog.Overlay)`
   bottom: 0;
   background-color: ${(props) => props.theme.modalBackdrop} !important;
   z-index: ${depths.overlay};
-  transition: opacity 50ms ease-in-out;
-  opacity: 0;
-
-  &[data-state="open"] {
-    opacity: 1;
-  }
+  animation: ${fadeIn} 200ms ease;
 `;
 
 const StyledContent = styled(Dialog.Content)`
