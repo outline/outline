@@ -60,11 +60,13 @@ export default class DialogsStore {
   }) => {
     setTimeout(
       action(() => {
+        let replaceId;
         if (replace) {
+          replaceId = Array.from(this.modalStack.keys())[0];
           this.modalStack.clear();
         }
 
-        this.modalStack.set(id ?? uuidv4(), {
+        this.modalStack.set(id ?? replaceId ?? uuidv4(), {
           title,
           content,
           style,
