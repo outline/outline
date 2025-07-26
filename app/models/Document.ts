@@ -257,6 +257,14 @@ export default class Document extends ArchivableModel implements Searchable {
     return isRTL(this.title);
   }
 
+  /**
+   * Returns the initial character of the document title in uppercase
+   */
+  @computed
+  get initial(): string {
+    return (this.title?.charAt(0) ?? "?").toUpperCase();
+  }
+
   @computed
   get path(): string {
     const prefix =

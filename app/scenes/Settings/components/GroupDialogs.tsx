@@ -20,7 +20,6 @@ import Input from "~/components/Input";
 import PlaceholderList from "~/components/List/Placeholder";
 import PaginatedList from "~/components/PaginatedList";
 import { ListItem } from "~/components/Sharing/components/ListItem";
-import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -54,10 +53,10 @@ export function CreateGroupDialog() {
 
       try {
         await group.save();
+        dialogs.closeAllModals();
         dialogs.openModal({
           title: t("Group members"),
           content: <ViewGroupMembersDialog group={group} />,
-          fullscreen: true,
         });
       } catch (err) {
         toast.error(err.message);
@@ -197,7 +196,7 @@ export const ViewGroupMembersDialog = observer(function ({
         groupName: group.name,
       }),
       content: <AddPeopleToGroupDialog group={group} />,
-      fullscreen: true,
+      replace: true,
     });
   }, [t, group, dialogs]);
 
@@ -264,10 +263,7 @@ export const ViewGroupMembersDialog = observer(function ({
           />
         </Text>
       )}
-
-      <Subheading>
-        <Trans>Members</Trans>
-      </Subheading>
+      <br />
       <PaginatedList<User>
         items={users.inGroup(group.id)}
         fetch={groupUsers.fetchPage}
@@ -339,6 +335,7 @@ const AddPeopleToGroupDialog = observer(function ({
       id,
       title: t("Invite people"),
       content: <Invite onSubmit={() => dialogs.closeModal(id)} />,
+      replace: true,
     });
   }, [t, dialogs]);
 
