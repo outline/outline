@@ -1333,7 +1333,7 @@ code {
   font-family: ${props.theme.fontFamilyMono};
   font-size: 90%;
 
-  .code-word {
+  .${EditorStyleHelper.codeWord} {
     white-space: nowrap;
   }
 }
