@@ -65,7 +65,6 @@ export const createTeam = createAction({
     if (user) {
       stores.dialogs.openModal({
         title: t("Create a workspace"),
-        fullscreen: true,
         content: <TeamNew user={user} />,
       });
     }

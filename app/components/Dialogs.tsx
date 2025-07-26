@@ -21,7 +21,6 @@ function Dialogs() {
         <Modal
           key={id}
           isOpen={modal.isOpen}
-          fullscreen={modal.fullscreen ?? false}
           onRequestClose={() => {
             modal.onClose?.();
             dialogs.closeModal(id);
