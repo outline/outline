@@ -107,7 +107,11 @@ function DocumentListItem(
         <Heading dir={document.dir}>
           {document.icon && (
             <>
-              <Icon value={document.icon} color={document.color ?? undefined} />
+              <Icon
+                value={document.icon}
+                color={document.color ?? undefined}
+                initial={document.initial}
+              />
               &nbsp;
             </>
           )}

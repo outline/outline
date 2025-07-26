@@ -167,7 +167,7 @@ export default class Collection extends ParanoidModel {
   /** The initial letter of the collection name as a string. */
   @computed
   get initial() {
-    return (this.name ? this.name[0] : "?").toUpperCase();
+    return (this.name?.charAt(0) ?? "?").toUpperCase();
   }
 
   @computed
