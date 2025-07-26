@@ -31,7 +31,6 @@ function GroupMenu({ group }: Props) {
     dialogs.openModal({
       title: t("Group members"),
       content: <ViewGroupMembersDialog group={group} />,
-      fullscreen: true,
     });
   }, [t, group, dialogs]);
 
