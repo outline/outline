@@ -125,6 +125,8 @@ export const CollectionForm = observer(function CollectionForm_({
     [setFocus, setValue, values.icon]
   );
 
+  const initial = values.name.charAt(0).toUpperCase();
+
   return (
     <form onSubmit={formHandleSubmit(handleSubmit)}>
       <Text as="p">
@@ -145,7 +147,7 @@ export const CollectionForm = observer(function CollectionForm_({
               <StyledIconPicker
                 icon={values.icon}
                 color={values.color ?? iconColor}
-                initial={values.name[0]}
+                initial={initial}
                 popoverPosition="right"
                 onOpen={setHasOpenedIconPicker}
                 onChange={handleIconChange}

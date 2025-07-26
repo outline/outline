@@ -123,6 +123,7 @@ function DocumentCard(props: Props) {
               <DocumentSquircle
                 icon={document.icon}
                 color={document.color ?? undefined}
+                initial={document.initial}
               />
             ) : (
               <Squircle
@@ -194,17 +195,22 @@ const ReadingTime = ({ document }: { document: Document }) => {
 const DocumentSquircle = ({
   icon,
   color,
+  initial,
 }: {
   icon: string;
   color?: string;
+  initial?: string;
 }) => {
   const theme = useTheme();
   const iconType = determineIconType(icon)!;
   const squircleColor = iconType === IconType.SVG ? color : theme.slateLight;
+  const style = {
+    "--background": squircleColor,
+  } as React.CSSProperties;
 
   return (
-    <Squircle color={squircleColor}>
-      <Icon value={icon} color={theme.white} forceColor />
+    <Squircle color={squircleColor} style={style}>
+      <Icon value={icon} color={theme.white} initial={initial} forceColor />
     </Squircle>
   );
 };
