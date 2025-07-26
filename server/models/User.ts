@@ -158,6 +158,7 @@ class User extends ParanoidModel<
 
   @IsDate
   @Column
+  @SkipChangeset
   lastActiveAt: Date | null;
 
   @IsIP
