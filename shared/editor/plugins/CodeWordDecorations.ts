@@ -1,5 +1,6 @@
 import { EditorState, Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
 interface CodeWordDecorationsConfig {
   /** CSS class to apply to word decorations */
@@ -9,7 +10,7 @@ interface CodeWordDecorationsConfig {
 class CodeWordDecorationsPlugin extends Plugin {
   constructor(config: CodeWordDecorationsConfig = {}) {
     const defaultConfig: Required<CodeWordDecorationsConfig> = {
-      className: "code-word",
+      className: EditorStyleHelper.codeWord,
     };
 
     const finalConfig = { ...defaultConfig, ...config };
@@ -50,7 +51,6 @@ class CodeWordDecorationsPlugin extends Plugin {
     }
 
     state.doc.descendants((node, pos) => {
-      // Only process text nodes
       if (node.isText && node.text) {
         // Check if this text node has the code_inline mark
         const codeMark = node.marks.find((mark) => mark.type === codeMarkType);
