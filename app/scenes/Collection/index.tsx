@@ -197,7 +197,7 @@ const CollectionScene = observer(function _CollectionScene() {
                   <IconPicker
                     icon={collection.icon ?? "collection"}
                     color={collection.color ?? colorPalette[0]}
-                    initial={collection.name[0]}
+                    initial={collection.initial}
                     size={40}
                     popoverPosition="bottom-start"
                     onChange={handleIconChange}
