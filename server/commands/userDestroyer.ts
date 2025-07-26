@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import { UserRole } from "@shared/types";
-import { Event, User } from "@server/models";
+import { User } from "@server/models";
 import { APIContext } from "@server/types";
 import { ValidationError } from "../errors";
 
@@ -46,15 +46,5 @@ export default async function userDestroyer(
     }
   }
 
-  await Event.createFromContext(ctx, {
-    name: "users.delete",
-    userId: user.id,
-    data: {
-      name: user.name,
-    },
-  });
-
-  return user.destroy({
-    transaction,
-  });
+  return user.destroyWithCtx(ctx);
 }

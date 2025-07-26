@@ -1,19 +1,18 @@
 import { buildAdmin, buildUser } from "@server/test/factories";
 import userUnsuspender from "./userUnsuspender";
+import { withAPIContext } from "@server/test/support";
 
 describe("userUnsuspender", () => {
-  const ip = "127.0.0.1";
-
   it("should not allow unsuspending self", async () => {
     const user = await buildUser();
     let error;
 
     try {
-      await userUnsuspender({
-        actorId: user.id,
-        user,
-        ip,
-      });
+      await withAPIContext(user, (ctx) =>
+        userUnsuspender(ctx, {
+          user,
+        })
+      );
     } catch (err) {
       error = err;
     }
@@ -28,11 +27,11 @@ describe("userUnsuspender", () => {
       suspendedAt: new Date(),
       suspendedById: admin.id,
     });
-    await userUnsuspender({
-      actorId: admin.id,
-      user,
-      ip,
-    });
+    await withAPIContext(admin, (ctx) =>
+      userUnsuspender(ctx, {
+        user,
+      })
+    );
     expect(user.suspendedAt).toEqual(null);
     expect(user.suspendedById).toEqual(null);
   });

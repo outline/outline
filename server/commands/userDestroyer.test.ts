@@ -8,11 +8,7 @@ describe("userDestroyer", () => {
     let error;
 
     try {
-      await withAPIContext(user, async (ctx) => {
-        await userDestroyer(ctx, {
-          user,
-        });
-      });
+      await withAPIContext(user, async (ctx) => userDestroyer(ctx, { user }));
     } catch (err) {
       error = err;
     }
@@ -28,11 +24,7 @@ describe("userDestroyer", () => {
     let error;
 
     try {
-      await withAPIContext(user, async (ctx) => {
-        await userDestroyer(ctx, {
-          user,
-        });
-      });
+      await withAPIContext(user, async (ctx) => userDestroyer(ctx, { user }));
     } catch (err) {
       error = err;
     }
@@ -48,11 +40,7 @@ describe("userDestroyer", () => {
     let error;
 
     try {
-      await withAPIContext(actor, async (ctx) => {
-        await userDestroyer(ctx, {
-          user,
-        });
-      });
+      await withAPIContext(actor, async (ctx) => userDestroyer(ctx, { user }));
     } catch (err) {
       error = err;
     }
@@ -69,11 +57,7 @@ describe("userDestroyer", () => {
     let error;
 
     try {
-      await withAPIContext(user, async (ctx) => {
-        await userDestroyer(ctx, {
-          user,
-        });
-      });
+      await withAPIContext(user, async (ctx) => userDestroyer(ctx, { user }));
     } catch (err) {
       error = err;
     }

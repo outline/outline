@@ -9,7 +9,7 @@ import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Event, Team, TeamDomain, User } from "@server/models";
+import { Team, TeamDomain, User } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentTeam, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
@@ -29,8 +29,7 @@ const handleTeamUpdate = async (ctx: APIContext<T.TeamsUpdateSchemaReq>) => {
   });
   authorize(user, "update", team);
 
-  const updatedTeam = await teamUpdater({
-    ctx,
+  const updatedTeam = await teamUpdater(ctx, {
     params: ctx.input.body,
     user,
     team,
@@ -140,36 +139,18 @@ router.post(
       })
     );
 
-    const team = await teamCreator({
-      ctx,
+    const team = await teamCreator(ctx, {
       name,
       subdomain: name,
       authenticationProviders,
     });
 
-    const newUser = await User.create(
-      {
-        teamId: team.id,
-        name: user.name,
-        email: user.email,
-        role: UserRole.Admin,
-      },
-      { transaction }
-    );
-
-    await Event.create(
-      {
-        name: "users.create",
-        actorId: user.id,
-        userId: newUser.id,
-        teamId: newUser.teamId,
-        data: {
-          name: newUser.name,
-        },
-        ip: ctx.ip,
-      },
-      { transaction }
-    );
+    const newUser = await User.createWithCtx(ctx, {
+      teamId: team.id,
+      name: user.name,
+      email: user.email,
+      role: UserRole.Admin,
+    });
 
     ctx.body = {
       success: true,

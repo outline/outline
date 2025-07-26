@@ -1,60 +1,42 @@
-import { Transaction } from "sequelize";
-import { User, Event, GroupUser } from "@server/models";
+import { User, GroupUser } from "@server/models";
 import CleanupDemotedUserTask from "@server/queues/tasks/CleanupDemotedUserTask";
 import { ValidationError } from "../errors";
+import { APIContext } from "@server/types";
 
 type Props = {
   user: User;
-  actorId: string;
-  transaction?: Transaction;
-  ip: string;
 };
 
 /**
  * This command suspends an active user, this will cause them to lose access to
  * the team.
  */
-export default async function userSuspender({
-  user,
-  actorId,
-  transaction,
-  ip,
-}: Props): Promise<void> {
-  if (user.id === actorId) {
+export default async function userSuspender(
+  ctx: APIContext,
+  { user }: Props
+): Promise<void> {
+  const suspendedById = ctx.context.auth.user.id;
+  if (user.id === suspendedById) {
     throw ValidationError("Unable to suspend the current user");
   }
 
-  await user.update(
+  await user.updateWithCtx(
+    ctx,
     {
-      suspendedById: actorId,
+      suspendedById,
       suspendedAt: new Date(),
     },
     {
-      transaction,
+      name: "suspend",
     }
   );
   await GroupUser.destroy({
     where: {
       userId: user.id,
     },
-    transaction,
+    transaction: ctx.context.transaction,
     individualHooks: true,
   });
-  await Event.create(
-    {
-      name: "users.suspend",
-      actorId,
-      userId: user.id,
-      teamId: user.teamId,
-      data: {
-        name: user.name,
-      },
-      ip,
-    },
-    {
-      transaction,
-    }
-  );
 
   await new CleanupDemotedUserTask().schedule({ userId: user.id });
 }

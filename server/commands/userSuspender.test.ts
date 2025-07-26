@@ -1,20 +1,19 @@
 import GroupUser from "@server/models/GroupUser";
 import { buildGroup, buildAdmin, buildUser } from "@server/test/factories";
 import userSuspender from "./userSuspender";
+import { withAPIContext } from "@server/test/support";
 
 describe("userSuspender", () => {
-  const ip = "127.0.0.1";
-
   it("should not suspend self", async () => {
     const user = await buildUser();
     let error;
 
     try {
-      await userSuspender({
-        actorId: user.id,
-        user,
-        ip,
-      });
+      await withAPIContext(user, (ctx) =>
+        userSuspender(ctx, {
+          user,
+        })
+      );
     } catch (err) {
       error = err;
     }
@@ -27,11 +26,11 @@ describe("userSuspender", () => {
     const user = await buildUser({
       teamId: admin.teamId,
     });
-    await userSuspender({
-      actorId: admin.id,
-      user,
-      ip,
-    });
+    await withAPIContext(admin, (ctx) =>
+      userSuspender(ctx, {
+        user,
+      })
+    );
     expect(user.suspendedAt).toBeTruthy();
     expect(user.suspendedById).toEqual(admin.id);
   });
@@ -49,11 +48,11 @@ describe("userSuspender", () => {
         createdById: user.id,
       },
     });
-    await userSuspender({
-      actorId: admin.id,
-      user,
-      ip,
-    });
+    await withAPIContext(admin, (ctx) =>
+      userSuspender(ctx, {
+        user,
+      })
+    );
     expect(user.suspendedAt).toBeTruthy();
     expect(user.suspendedById).toEqual(admin.id);
     expect(
