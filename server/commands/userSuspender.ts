@@ -15,7 +15,7 @@ export default async function userSuspender(
   ctx: APIContext,
   { user }: Props
 ): Promise<void> {
-  const suspendedById = ctx.context.auth.user.id;
+  const suspendedById = ctx.state.auth.user.id;
   if (user.id === suspendedById) {
     throw ValidationError("Unable to suspend the current user");
   }

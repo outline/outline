@@ -66,6 +66,7 @@ import Fix from "./decorators/Fix";
 import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
+import { SkipChangeset } from "./decorators/Changeset";
 
 /**
  * Flags that are available for setting on the user.
@@ -161,18 +162,22 @@ class User extends ParanoidModel<
 
   @IsIP
   @Column
+  @SkipChangeset
   lastActiveIp: string | null;
 
   @IsDate
   @Column
+  @SkipChangeset
   lastSignedInAt: Date | null;
 
   @IsIP
   @Column
+  @SkipChangeset
   lastSignedInIp: string | null;
 
   @IsDate
   @Column
+  @SkipChangeset
   lastSigninEmailSentAt: Date | null;
 
   @IsDate
@@ -754,7 +759,7 @@ class User extends ParanoidModel<
   static findByEmail = async function (ctx: APIContext, email: string) {
     return this.findOne({
       where: {
-        teamId: ctx.context.auth.user.teamId,
+        teamId: ctx.state.auth.user.teamId,
         email: email.trim().toLowerCase(),
       },
       ...ctx.context,

@@ -14,7 +14,7 @@ export default async function userUnsuspender(
   ctx: APIContext,
   { user }: Props
 ): Promise<void> {
-  if (user.id === ctx.context.auth.user.id) {
+  if (user.id === ctx.state.auth.user.id) {
     throw ValidationError("Unable to unsuspend the current user");
   }
 

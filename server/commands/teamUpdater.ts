@@ -21,7 +21,7 @@ const teamUpdater = async (ctx: APIContext, { params, user, team }: Props) => {
   if (allowedDomains !== undefined) {
     const existingAllowedDomains = await TeamDomain.findAll({
       where: { teamId: team.id },
-      transaction: ctx.context.transaction,
+      transaction: ctx.state.transaction,
     });
 
     // Only keep existing domains if they are still in the list of allowed domains

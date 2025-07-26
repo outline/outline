@@ -138,7 +138,7 @@ export default async function userProvisioner(
           name,
           avatarUrl,
           lastActiveAt: new Date(),
-          lastActiveIp: ctx.context.ip,
+          lastActiveIp: ctx.ip,
         },
         {
           transaction,
@@ -216,7 +216,7 @@ export default async function userProvisioner(
         avatarUrl,
         authentications: authentication ? [authentication] : [],
         lastActiveAt: new Date(),
-        lastActiveIp: ctx.context.ip,
+        lastActiveIp: ctx.ip,
       } as Partial<InferCreationAttributes<User>>,
       undefined,
       {

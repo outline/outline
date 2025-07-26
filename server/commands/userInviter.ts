@@ -24,7 +24,7 @@ export default async function userInviter(
   sent: Invite[];
   users: User[];
 }> {
-  const { user } = ctx.context.auth;
+  const { user } = ctx.state.auth;
   const team = await Team.findByPk(user.teamId, { rejectOnEmpty: true });
 
   // filter out empties and obvious non-emails
