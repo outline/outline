@@ -2,56 +2,50 @@ import debounce from "lodash/debounce";
 import isEmpty from "lodash/isEmpty";
 import { observer } from "mobx-react";
 import { CopyIcon, GlobeIcon, InfoIcon, QuestionMarkIcon } from "outline-icons";
-import * as React from "react";
-import { Trans, useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled, { useTheme } from "styled-components";
-import Flex from "@shared/components/Flex";
 import Squircle from "@shared/components/Squircle";
 import { s } from "@shared/styles";
 import { UrlHelper } from "@shared/utils/UrlHelper";
-import Document from "~/models/Document";
+import Collection from "~/models/Collection";
 import Share from "~/models/Share";
+import { AvatarSize } from "~/components/Avatar";
+import CopyToClipboard from "~/components/CopyToClipboard";
+import Flex from "~/components/Flex";
 import Input, { NativeInput } from "~/components/Input";
+import NudeButton from "~/components/NudeButton";
+import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Switch from "~/components/Switch";
+import Text from "~/components/Text";
+import Tooltip from "~/components/Tooltip";
 import env from "~/env";
 import usePolicy from "~/hooks/usePolicy";
-import { AvatarSize } from "../../Avatar";
-import CopyToClipboard from "../../CopyToClipboard";
-import NudeButton from "../../NudeButton";
-import { ResizingHeightContainer } from "../../ResizingHeightContainer";
-import Text from "../../Text";
-import Tooltip from "../../Tooltip";
 import { ListItem } from "../components/ListItem";
 
 type Props = {
-  /** The document to share. */
-  document: Document;
+  /** The collection to share. */
+  collection: Collection;
   /** The existing share model, if any. */
   share: Share | null | undefined;
-  /** The existing share parent model, if any. */
-  sharedParent: Share | null | undefined;
-  /** Ref to the Copy Link button */
-  copyButtonRef?: React.RefObject<HTMLButtonElement>;
-  onRequestClose?: () => void;
 };
 
-function PublicAccess({ document, share, sharedParent }: Props) {
+function InnerPublicAccess({ collection, share }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const [validationError, setValidationError] = React.useState("");
-  const [urlId, setUrlId] = React.useState(share?.urlId);
-  const inputRef = React.useRef<HTMLInputElement>(null);
+  const [validationError, setValidationError] = useState("");
+  const [urlId, setUrlId] = useState(share?.urlId);
+  const inputRef = useRef<HTMLInputElement>(null);
   const can = usePolicy(share);
-  const documentAbilities = usePolicy(document);
-  const canPublish = can.update && documentAbilities.share;
+  const collectionAbilities = usePolicy(collection);
+  const canPublish = can.update && collectionAbilities.share;
 
-  React.useEffect(() => {
+  useEffect(() => {
     setUrlId(share?.urlId);
   }, [share?.urlId]);
 
-  const handleIndexingChanged = React.useCallback(
+  const handleIndexingChanged = useCallback(
     async (checked: boolean) => {
       try {
         await share?.save({
@@ -64,7 +58,7 @@ function PublicAccess({ document, share, sharedParent }: Props) {
     [share]
   );
 
-  const handleShowLastModifiedChanged = React.useCallback(
+  const handleShowLastModifiedChanged = useCallback(
     async (checked: boolean) => {
       try {
         await share?.save({
@@ -77,7 +71,7 @@ function PublicAccess({ document, share, sharedParent }: Props) {
     [share]
   );
 
-  const handlePublishedChange = React.useCallback(
+  const handlePublishedChange = useCallback(
     async (checked: boolean) => {
       try {
         await share?.save({
@@ -90,7 +84,7 @@ function PublicAccess({ document, share, sharedParent }: Props) {
     [share]
   );
 
-  const handleUrlChange = React.useMemo(
+  const handleUrlChange = useMemo(
     () =>
       debounce(async (ev) => {
         if (!share) {
@@ -121,17 +115,13 @@ function PublicAccess({ document, share, sharedParent }: Props) {
     [t, share]
   );
 
-  const handleCopied = React.useCallback(() => {
+  const handleCopied = useCallback(() => {
     toast.success(t("Public link copied to clipboard"));
   }, [t]);
 
-  const shareUrl = sharedParent?.url
-    ? `${sharedParent.url}${document.url}`
-    : (share?.url ?? "");
-
   const copyButton = (
     <Tooltip content={t("Copy public link")} placement="top">
-      <CopyToClipboard text={shareUrl} onCopy={handleCopied}>
+      <CopyToClipboard text={share?.url ?? ""} onCopy={handleCopied}>
         <NudeButton type="button" disabled={!share} style={{ marginRight: 3 }}>
           <CopyIcon color={theme.placeholder} size={18} />
         </NudeButton>
@@ -143,53 +133,26 @@ function PublicAccess({ document, share, sharedParent }: Props) {
     <Wrapper>
       <ListItem
         title={t("Web")}
-        subtitle={
-          <>
-            {sharedParent && !document.isDraft ? (
-              sharedParent.collectionId ? (
-                <Trans>
-                  Anyone with the link can access because the containing
-                  collection,{" "}
-                  <StyledLink to={`/collection/${sharedParent.collectionId}`}>
-                    {sharedParent.sourceTitle}
-                  </StyledLink>
-                  , is shared
-                </Trans>
-              ) : (
-                <Trans>
-                  Anyone with the link can access because the parent document,{" "}
-                  <StyledLink to={`/doc/${sharedParent.documentId}`}>
-                    {sharedParent.sourceTitle}
-                  </StyledLink>
-                  , is shared
-                </Trans>
-              )
-            ) : (
-              t("Allow anyone with the link to access")
-            )}
-          </>
-        }
+        subtitle={<>{t("Allow anyone with the link to access")}</>}
         image={
           <Squircle color={theme.text} size={AvatarSize.Medium}>
             <GlobeIcon color={theme.background} size={18} />
           </Squircle>
         }
         actions={
-          sharedParent && !document.isDraft ? null : (
-            <Switch
-              aria-label={t("Publish to internet")}
-              checked={share?.published ?? false}
-              onChange={handlePublishedChange}
-              disabled={!canPublish}
-              width={26}
-              height={14}
-            />
-          )
+          <Switch
+            aria-label={t("Publish to internet")}
+            checked={share?.published ?? false}
+            onChange={handlePublishedChange}
+            disabled={!canPublish}
+            width={26}
+            height={14}
+          />
         }
       />
 
       <ResizingHeightContainer>
-        {share?.published && !sharedParent?.published && (
+        {!!share?.published && (
           <>
             <ListItem
               title={
@@ -241,51 +204,36 @@ function PublicAccess({ document, share, sharedParent }: Props) {
                 />
               }
             />
+            <ShareLinkInput
+              type="text"
+              ref={inputRef}
+              placeholder={share?.id}
+              onChange={handleUrlChange}
+              error={validationError}
+              defaultValue={urlId}
+              prefix={
+                <DomainPrefix onClick={() => inputRef.current?.focus()}>
+                  {env.URL.replace(/https?:\/\//, "") + "/s/"}
+                </DomainPrefix>
+              }
+            >
+              {copyButton}
+            </ShareLinkInput>
+            <Flex align="flex-start" gap={4}>
+              <StyledInfoIcon size={18} color={theme.textTertiary} />
+              <Text type="tertiary" size="xsmall">
+                {t(
+                  "All documents in this collection will be shared on the web, including any new documents added later"
+                )}
+                .
+              </Text>
+            </Flex>
           </>
         )}
-
-        {sharedParent?.published ? (
-          <ShareLinkInput type="text" disabled defaultValue={shareUrl}>
-            {copyButton}
-          </ShareLinkInput>
-        ) : share?.published ? (
-          <ShareLinkInput
-            type="text"
-            ref={inputRef}
-            placeholder={share?.id}
-            onChange={handleUrlChange}
-            error={validationError}
-            defaultValue={urlId}
-            prefix={
-              <DomainPrefix onClick={() => inputRef.current?.focus()}>
-                {env.URL.replace(/https?:\/\//, "") + "/s/"}
-              </DomainPrefix>
-            }
-          >
-            {copyButton}
-          </ShareLinkInput>
-        ) : null}
-
-        {share?.published && !share.includeChildDocuments ? (
-          <Text as="p" type="tertiary" size="xsmall">
-            <StyledInfoIcon size={18} />
-            <span>
-              {t(
-                "Nested documents are not shared on the web. Toggle sharing to enable access, this will be the default behavior in the future"
-              )}
-              .
-            </span>
-          </Text>
-        ) : null}
       </ResizingHeightContainer>
     </Wrapper>
   );
 }
-
-const StyledInfoIcon = styled(InfoIcon)`
-  vertical-align: bottom;
-  margin-right: 2px;
-`;
 
 const Wrapper = styled.div`
   padding-bottom: 8px;
@@ -310,9 +258,10 @@ const ShareLinkInput = styled(Input)`
   }
 `;
 
-const StyledLink = styled(Link)`
-  color: ${s("textSecondary")};
-  text-decoration: underline;
+const StyledInfoIcon = styled(InfoIcon)`
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
 `;
 
-export default observer(PublicAccess);
+export const PublicAccess = observer(InnerPublicAccess);
