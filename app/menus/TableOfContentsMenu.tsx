@@ -32,8 +32,13 @@ function TableOfContentsMenu() {
         title: t("Contents"),
       },
       ...headings.map((heading) => ({
-        type: "link",
-        href: `#${heading.id}`,
+        type: "button",
+        onClick: () =>
+          requestAnimationFrame(() =>
+            requestAnimationFrame(
+              () => (window.location.hash = `#${heading.id}`)
+            )
+          ),
         title: <HeadingWrapper>{t(heading.title)}</HeadingWrapper>,
         level: heading.level - minHeading,
       })),
