@@ -1,5 +1,7 @@
 import { buildUser } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
+import { parseEmail } from "@shared/utils/email";
+import { slugifyDomain } from "@shared/utils/domains";
 
 const server = getTestServer();
 
@@ -29,5 +31,33 @@ describe("#slack.post", () => {
     const body = await res.json();
     expect(res.status).toEqual(400);
     expect(body.message).toEqual("query: one of code or error is required");
+  });
+});
+
+describe("Slack authentication domain extraction", () => {
+  it("should correctly extract domain from user email", () => {
+    const testCases = [
+      { email: "user@gmail.com", expectedDomain: "gmail.com" },
+      { email: "test@company.com", expectedDomain: "company.com" },
+      { email: "admin@subdomain.domain.com", expectedDomain: "subdomain.domain.com" },
+    ];
+
+    testCases.forEach(({ email, expectedDomain }) => {
+      const { domain } = parseEmail(email);
+      expect(domain).toEqual(expectedDomain);
+    });
+  });
+
+  it("should correctly slugify domain for subdomain", () => {
+    const testCases = [
+      { domain: "gmail.com", expectedSubdomain: "gmail" },
+      { domain: "company.com", expectedSubdomain: "company" },
+      { domain: "subdomain.domain.com", expectedSubdomain: "subdomain-domain" },
+    ];
+
+    testCases.forEach(({ domain, expectedSubdomain }) => {
+      const subdomain = slugifyDomain(domain);
+      expect(subdomain).toEqual(expectedSubdomain);
+    });
   });
 });
