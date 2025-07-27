@@ -115,7 +115,7 @@ describe("userProvisioner", () => {
     const authentications = await existing.$get("authentications");
     const existingAuth = authentications[0];
     const newEmail = "test@example.com";
-    await existing.destroy();
+    await existing.destroy({ hooks: false });
     const result = await userProvisioner(ctx, {
       name: "Test Name",
       email: "test@example.com",

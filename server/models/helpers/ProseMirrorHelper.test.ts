@@ -16,7 +16,7 @@ describe("ProsemirrorHelper", () => {
         modelId: user.id,
       };
 
-      await user.destroy();
+      await user.destroy({ hooks: false });
 
       const mentionedParagraph: DeepPartial<ProsemirrorData> = {
         type: "paragraph",

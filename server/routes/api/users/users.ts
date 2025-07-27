@@ -5,8 +5,6 @@ import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import { settingsPath } from "@shared/utils/routeHelpers";
 import { UserValidation } from "@shared/validations";
 import userInviter from "@server/commands/userInviter";
-import userSuspender from "@server/commands/userSuspender";
-import userUnsuspender from "@server/commands/userUnsuspender";
 import ConfirmUpdateEmail from "@server/emails/templates/ConfirmUpdateEmail";
 import ConfirmUserDeleteEmail from "@server/emails/templates/ConfirmUserDeleteEmail";
 import InviteEmail from "@server/emails/templates/InviteEmail";
