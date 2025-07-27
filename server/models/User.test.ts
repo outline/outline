@@ -1,12 +1,15 @@
 import { faker } from "@faker-js/faker";
 import { CollectionPermission } from "@shared/types";
+import { createContext } from "@server/context";
+import { Event } from "@server/models";
+import { sequelize } from "@server/storage/database";
 import {
   buildUser,
   buildTeam,
   buildCollection,
   buildAdmin,
 } from "@server/test/factories";
-import { withAPIContext } from "@server/test/support";
+import User from "./User";
 import UserMembership from "./UserMembership";
 
 beforeAll(() => {
@@ -18,6 +21,36 @@ afterAll(() => {
 });
 
 describe("user model", () => {
+  describe("createWithCtx", () => {
+    it("should create an event with the new user as both actorId and userId", async () => {
+      const team = await buildTeam();
+      const email = faker.internet.email().toLowerCase();
+      const name = faker.person.fullName();
+      const ip = "127.0.0.1";
+
+      const user = await sequelize.transaction(async (transaction) =>
+        User.createWithCtx(createContext({ ip, transaction }), {
+          email,
+          name,
+          teamId: team.id,
+        })
+      );
+
+      const event = await Event.findOne({
+        where: {
+          name: "users.create",
+          modelId: user.id,
+        },
+      });
+
+      expect(event).toBeDefined();
+      expect(event?.actorId).toEqual(user.id);
+      expect(event?.userId).toEqual(user.id);
+      expect(event?.teamId).toEqual(user.teamId);
+      expect(event?.ip).toEqual(ip);
+    });
+  });
+
   describe("create", () => {
     it("should not allow URLs in name", async () => {
       await expect(
