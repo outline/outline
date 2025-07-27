@@ -25,7 +25,6 @@ import {
   StateStore,
 } from "@server/utils/passport";
 import { parseEmail } from "@shared/utils/email";
-import { slugifyDomain } from "@shared/utils/domains";
 import env from "../env";
 import * as Slack from "../slack";
 import * as T from "./schema";
@@ -64,7 +63,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       clientSecret: env.SLACK_CLIENT_SECRET,
       callbackURL: SlackUtils.callbackUrl(),
       passReqToCallback: true,
-      // @ts-expect-error StateStore
+    
       store: new StateStore(),
       scope: scopes,
     },
@@ -86,7 +85,6 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
 
         
         const { domain } = parseEmail(profile.user.email);
-        const subdomain = slugifyDomain(domain);
 
         const result = await accountProvisioner({
           ip: ctx.ip,
@@ -94,7 +92,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
             teamId: team?.id,
             name: profile.team.name,
             domain,
-            subdomain,
+            subdomain: profile.team.domain,
             avatarUrl: profile.team.image_230,
           },
           user: {
