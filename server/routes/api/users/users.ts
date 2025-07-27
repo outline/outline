@@ -463,7 +463,16 @@ router.post(
     });
     authorize(actor, "suspend", user);
 
-    await userSuspender(ctx, { user });
+    await user.updateWithCtx(
+      ctx,
+      {
+        suspendedById: actor.id,
+        suspendedAt: new Date(),
+      },
+      {
+        name: "suspend",
+      }
+    );
     const includeDetails = !!can(actor, "readDetails", user);
 
     ctx.body = {
