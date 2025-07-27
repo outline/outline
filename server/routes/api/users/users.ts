@@ -500,7 +500,16 @@ router.post(
     });
     authorize(actor, "activate", user);
 
-    await userUnsuspender(ctx, { user });
+    await user.updateWithCtx(
+      ctx,
+      {
+        suspendedById: null,
+        suspendedAt: null,
+      },
+      {
+        name: "activate",
+      }
+    );
     const includeDetails = !!can(actor, "readDetails", user);
 
     ctx.body = {
