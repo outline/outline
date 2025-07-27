@@ -652,6 +652,52 @@ class User extends ParanoidModel<
   // hooks
 
   @BeforeDestroy
+  static async checkLastUser(
+    model: User,
+    { transaction }: { transaction: Transaction }
+  ) {
+    const usersCount = await this.count({
+      where: {
+        teamId: model.teamId,
+      },
+      transaction,
+    });
+
+    if (usersCount === 1) {
+      throw ValidationError(
+        "Cannot delete last user on the team, delete the workspace instead."
+      );
+    }
+  }
+
+  @BeforeDestroy
+  static async checkLastAdmin(
+    model: User,
+    { transaction }: { transaction: Transaction }
+  ) {
+    if (model.role !== UserRole.Admin) {
+      return;
+    }
+
+    const otherAdminsCount = await this.count({
+      where: {
+        teamId: model.teamId,
+        role: UserRole.Admin,
+        id: {
+          [Op.ne]: model.id,
+        },
+      },
+      transaction,
+    });
+
+    if (otherAdminsCount === 0) {
+      throw ValidationError(
+        "Cannot delete account as only admin. Please make another user admin and try again."
+      );
+    }
+  }
+
+  @BeforeDestroy
   static removeIdentifyingInfo = async (
     model: User,
     options: { transaction: Transaction }

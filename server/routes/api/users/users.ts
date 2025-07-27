@@ -4,7 +4,6 @@ import { UserPreference, UserRole } from "@shared/types";
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import { settingsPath } from "@shared/utils/routeHelpers";
 import { UserValidation } from "@shared/validations";
-import userDestroyer from "@server/commands/userDestroyer";
 import userInviter from "@server/commands/userInviter";
 import userSuspender from "@server/commands/userSuspender";
 import userUnsuspender from "@server/commands/userUnsuspender";
@@ -638,9 +637,7 @@ router.post(
       }
     }
 
-    await userDestroyer(ctx, {
-      user,
-    });
+    await user.destroyWithCtx(ctx);
 
     ctx.body = {
       success: true,
