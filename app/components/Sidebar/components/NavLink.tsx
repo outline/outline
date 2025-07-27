@@ -122,13 +122,11 @@ const NavLink = ({
     }
   }, [to, replace]);
 
-  const handleClick = React.useCallback(
+  const handlePointerDown = React.useCallback(
     (event: React.MouseEvent<HTMLAnchorElement>) => {
       onClick?.(event);
 
       if (shouldFastClick(event)) {
-        event.stopPropagation();
-        event.preventDefault();
         event.currentTarget.focus();
 
         setPreActive(true);
@@ -161,7 +159,7 @@ const NavLink = ({
     <Link
       key={isActive ? "active" : "inactive"}
       ref={linkRef}
-      onClick={handleClick}
+      onPointerDown={handlePointerDown}
       onKeyDown={handleKeyDown}
       aria-current={(isActive && ariaCurrent) || undefined}
       className={className}
