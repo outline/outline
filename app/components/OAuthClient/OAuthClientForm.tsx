@@ -56,7 +56,7 @@ export const OAuthClientForm = observer(function OAuthClientForm_({
   return (
     <form onSubmit={formHandleSubmit(handleSubmit)}>
       <>
-        <label style={{ marginBottom: "1em" }}>
+        <label style={{ marginBottom: "1em", display: "block" }}>
           <LabelText>{t("Icon")}</LabelText>
           <Controller
             control={control}

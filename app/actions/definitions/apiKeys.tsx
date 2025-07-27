@@ -28,15 +28,24 @@ export const createApiKey = createAction({
 export const revokeApiKeyFactory = ({ apiKey }: { apiKey: ApiKey }) =>
   createActionV2({
     name: ({ t, isContextMenu }) =>
-      isContextMenu ? t("Revoke") : t("Revoke API key"),
+      isContextMenu
+        ? apiKey.isExpired
+          ? t("Delete")
+          : `${t("Revoke")}…`
+        : t("Revoke API key"),
     analyticsName: "Revoke API key",
     section: SettingsSection,
     icon: <TrashIcon />,
-    keywords: "revoke",
+    keywords: "revoke delete remove",
     dangerous: true,
-    perform: ({ t, event }) => {
+    perform: async ({ t, event }) => {
       event?.preventDefault();
       event?.stopPropagation();
+
+      if (apiKey.isExpired) {
+        await apiKey.delete();
+        return;
+      }
 
       stores.dialogs.openModal({
         title: t("Revoke token"),
