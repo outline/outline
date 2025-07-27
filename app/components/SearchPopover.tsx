@@ -2,7 +2,6 @@ import debounce from "lodash/debounce";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import styled from "styled-components";
 import { depths } from "@shared/styles";
 import Empty from "~/components/Empty";
@@ -10,7 +9,11 @@ import { Outline } from "~/components/Input";
 import InputSearch from "~/components/InputSearch";
 import Placeholder from "~/components/List/Placeholder";
 import PaginatedList from "~/components/PaginatedList";
-import Popover from "~/components/Popover";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "~/components/primitives/Popover";
 import { id as bodyContentId } from "~/components/SkipNavContent";
 import useKeyDown from "~/hooks/useKeyDown";
 import useStores from "~/hooks/useStores";
@@ -27,14 +30,8 @@ function SearchPopover({ shareId, className }: Props) {
   const { documents } = useStores();
   const focusRef = React.useRef<HTMLElement | null>(null);
 
-  const popover = usePopoverState({
-    placement: "bottom-start",
-    unstable_offset: [-24, 0],
-    modal: true,
-  });
-
+  const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
-  const { show, hide } = popover;
 
   const [searchResults, setSearchResults] = React.useState<
     SearchResult[] | undefined
@@ -48,9 +45,9 @@ function SearchPopover({ shareId, className }: Props) {
     if (searchResults) {
       setCachedQuery(query);
       setCachedSearchResults(searchResults);
-      show();
+      setOpen(true);
     }
-  }, [searchResults, query, show]);
+  }, [searchResults, query]);
 
   const performSearch = React.useCallback(
     async ({ query: searchQuery, ...options }) => {
@@ -82,18 +79,17 @@ function SearchPopover({ shareId, className }: Props) {
         // quickly edits input resulting in no change in query
         // the useEffect that normally shows the popover will miss it
         if (value === cachedQuery) {
-          popover.show();
+          setOpen(true);
         }
 
         if (!value.length) {
-          popover.hide();
+          setOpen(false);
         }
       }, 300),
-    [popover, cachedQuery]
+    [cachedQuery]
   );
 
-  const searchInputRef =
-    popover.unstable_referenceRef as React.RefObject<HTMLInputElement>;
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
 
   const firstSearchItem = React.useRef<HTMLAnchorElement>(null);
 
@@ -114,7 +110,7 @@ function SearchPopover({ shareId, className }: Props) {
 
       if (ev.key === "Enter") {
         if (searchResults) {
-          popover.show();
+          setOpen(true);
         }
       }
 
@@ -123,15 +119,15 @@ function SearchPopover({ shareId, className }: Props) {
           if (
             ev.currentTarget.value.length === ev.currentTarget.selectionStart
           ) {
-            popover.show();
+            setOpen(true);
           }
           firstSearchItem.current?.focus();
         }
       }
 
       if (ev.key === "ArrowUp") {
-        if (popover.visible) {
-          popover.hide();
+        if (open) {
+          setOpen(false);
           if (!ev.shiftKey) {
             ev.preventDefault();
           }
@@ -147,22 +143,22 @@ function SearchPopover({ shareId, className }: Props) {
       }
 
       if (ev.key === "Escape") {
-        if (popover.visible) {
-          popover.hide();
+        if (open) {
+          setOpen(false);
           ev.preventDefault();
         }
       }
     },
-    [popover, searchResults]
+    [open, searchResults]
   );
 
   const handleSearchItemClick = React.useCallback(() => {
-    hide();
+    setOpen(false);
     if (searchInputRef.current) {
       searchInputRef.current.value = "";
       focusRef.current = document.getElementById(bodyContentId);
     }
-  }, [searchInputRef, hide]);
+  }, [searchInputRef]);
 
   useKeyDown("/", (ev) => {
     if (
@@ -175,30 +171,28 @@ function SearchPopover({ shareId, className }: Props) {
   });
 
   return (
-    <>
-      <PopoverDisclosure {...popover}>
-        {(props) => (
-          // props assumes the disclosure is a button, but we want a type-ahead
-          // so we take the aria props, and ref and ignore the event handlers
-          <StyledInputSearch
-            aria-controls={props["aria-controls"]}
-            aria-expanded={props["aria-expanded"]}
-            aria-haspopup={props["aria-haspopup"]}
-            ref={props.ref}
-            onChange={handleSearchInputChange}
-            onFocus={handleSearchInputFocus}
-            onKeyDown={handleKeyDown}
-            className={className}
-          />
-        )}
-      </PopoverDisclosure>
-      <Popover
-        {...popover}
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <StyledInputSearch
+          ref={searchInputRef}
+          onChange={handleSearchInputChange}
+          onFocus={handleSearchInputFocus}
+          onKeyDown={handleKeyDown}
+          className={className}
+        />
+      </PopoverTrigger>
+      <PopoverContent
         aria-label={t("Results")}
-        unstable_autoFocusOnShow={false}
-        unstable_finalFocusRef={focusRef}
+        side="bottom"
+        align="start"
+        sideOffset={0}
+        alignOffset={-24}
         style={{ zIndex: depths.sidebar + 1 }}
         shrink
+        onOpenAutoFocus={(event) => {
+          // Prevent focus from moving to the popover content
+          event.preventDefault();
+        }}
       >
         <PaginatedList<SearchResult>
           options={{ query, snippetMinWords: 10, snippetMaxWords: 11 }}
@@ -221,8 +215,8 @@ function SearchPopover({ shareId, className }: Props) {
             />
           )}
         />
-      </Popover>
-    </>
+      </PopoverContent>
+    </Popover>
   );
 }
 
