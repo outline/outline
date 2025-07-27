@@ -1,5 +1,6 @@
 {
   "New API key": "New API key",
+  "Delete": "Delete",
   "Revoke": "Revoke",
   "Revoke API key": "Revoke API key",
   "Revoke token": "Revoke token",
@@ -25,7 +26,6 @@
   "Archiving this collection will also archive all documents within it. Documents from the collection will no longer be visible in search results.": "Archiving this collection will also archive all documents within it. Documents from the collection will no longer be visible in search results.",
   "Restore": "Restore",
   "Collection restored": "Collection restored",
-  "Delete": "Delete",
   "Delete collection": "Delete collection",
   "New template": "New template",
   "Delete comment": "Delete comment",
