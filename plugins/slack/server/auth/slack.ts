@@ -24,6 +24,7 @@ import {
   getTeamFromContext,
   StateStore,
 } from "@server/utils/passport";
+import { parseEmail } from "@shared/utils/email";
 import env from "../env";
 import * as Slack from "../slack";
 import * as T from "./schema";
@@ -83,11 +84,14 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
         const team = await getTeamFromContext(context);
         const client = getClientFromContext(context);
 
+        const { domain } = parseEmail(profile.user.email);
+
         const ctx = createContext({ ip: context.ip });
         const result = await accountProvisioner(ctx, {
           team: {
             teamId: team?.id,
             name: profile.team.name,
+            domain,
             subdomain: profile.team.domain,
             avatarUrl: profile.team.image_230,
           },
