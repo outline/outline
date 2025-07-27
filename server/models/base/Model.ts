@@ -276,10 +276,10 @@ class Model<
             ? model.id
             : context.auth?.user.teamId,
       actorId:
-        (context.auth?.user?.id ??
-        (model instanceof models.user && name === "create"))
+        context.auth?.user?.id ??
+        (model instanceof models.user && name === "create"
           ? model.id
-          : undefined,
+          : undefined),
       authType: context.auth?.type,
       ip: context.ip,
       changes: model.previousChangeset,
