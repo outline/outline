@@ -34,7 +34,8 @@
     "test:server": "TZ=UTC jest --config=.jestconfig.json --selectProjects server",
     "vite:dev": "VITE_CJS_IGNORE_WARNING=true vite",
     "vite:build": "VITE_CJS_IGNORE_WARNING=true vite build",
-    "vite:preview": "VITE_CJS_IGNORE_WARNING=true vite preview"
+    "vite:preview": "VITE_CJS_IGNORE_WARNING=true vite preview",
+    "fetch-bugs": "node server/scripts/fetch-bugs.js"
   },
   "funding": {
     "type": "GitHub Sponsors ❤",

@@ -9,7 +9,7 @@ import {
   buildAdmin,
 } from "@server/test/factories";
 import userProvisioner from "./userProvisioner";
-
+import Logger from "@server/logging/Logger";
 describe("userProvisioner", () => {
   const ip = "127.0.0.1";
 
@@ -439,5 +439,134 @@ describe("userProvisioner", () => {
     expect(error && error.toString()).toContain(
       "The domain is not allowed for this workspace"
     );
+  });
+
+  it("should handle authentication provider migration correctly", async () => {
+    const team = await buildTeam();
+    const authenticationProviders = await team.$get("authenticationProviders");
+    const oidcProvider = authenticationProviders[0];
+
+    // Create a second authentication provider (GitLab) for the same team
+    const gitlabProvider = await team.$create("authenticationProvider", {
+      name: "gitlab",
+      providerId: "gitlab-provider",
+    });
+
+    // Create a user with OIDC authentication
+    const user = await buildUser({
+      teamId: team.id,
+      email: "user@example.com",
+    });
+
+    // Remove the default authentication and add OIDC authentication
+    await user.$remove("authentications", user.authentications);
+    await user.$create("authentication", {
+      authenticationProviderId: oidcProvider.id,
+      providerId: "oidc-user-123",
+      accessToken: "oidc-token",
+      scopes: ["read"],
+    });
+
+    // Now try to log in with GitLab using the same email
+    const result = await userProvisioner({
+      name: "User Name",
+      email: "user@example.com",
+      teamId: team.id,
+      ip,
+      authentication: {
+        authenticationProviderId: gitlabProvider.id,
+        providerId: "gitlab-user-456",
+        accessToken: "gitlab-token",
+        scopes: ["read"],
+      },
+    });
+
+    const { user: resultUser, authentication, isNewUser } = result;
+
+    // Should return the existing user, not create a new one
+    expect(resultUser.id).toEqual(user.id);
+    expect(resultUser.email).toEqual("user@example.com");
+    expect(isNewUser).toEqual(false);
+
+    // Should create a new authentication record for GitLab
+    expect(authentication).toBeDefined();
+    expect(authentication?.authenticationProviderId).toEqual(gitlabProvider.id);
+    expect(authentication?.providerId).toEqual("gitlab-user-456");
+
+    // User should now have both OIDC and GitLab authentications
+    const userWithAuths = await user.$get("authentications");
+    expect(userWithAuths).toHaveLength(2);
+
+    // Verify both authentications exist
+    const authProviderIds = userWithAuths.map(
+      (auth) => auth.authenticationProviderId
+    );
+    expect(authProviderIds).toContain(oidcProvider.id);
+    expect(authProviderIds).toContain(gitlabProvider.id);
+  });
+
+  it("should log authentication provider migration events", async () => {
+    // Mock the Logger to capture log calls
+    const mockInfo = jest.fn();
+    const originalInfo = Logger.info;
+    Logger.info = mockInfo;
+
+    try {
+      const team = await buildTeam();
+      const authenticationProviders = await team.$get(
+        "authenticationProviders"
+      );
+      const oidcProvider = authenticationProviders[0];
+
+      // Create a second authentication provider (GitLab) for the same team
+      const gitlabProvider = await team.$create("authenticationProvider", {
+        name: "gitlab",
+        providerId: "gitlab-provider",
+      });
+
+      // Create a user with OIDC authentication
+      const user = await buildUser({
+        teamId: team.id,
+        email: "user@example.com",
+      });
+
+      // Remove the default authentication and add OIDC authentication
+      await user.$remove("authentications", user.authentications);
+      await user.$create("authentication", {
+        authenticationProviderId: oidcProvider.id,
+        providerId: "oidc-user-123",
+        accessToken: "oidc-token",
+        scopes: ["read"],
+      });
+
+      // Now try to log in with GitLab using the same email
+      await userProvisioner({
+        name: "User Name",
+        email: "user@example.com",
+        teamId: team.id,
+        ip,
+        authentication: {
+          authenticationProviderId: gitlabProvider.id,
+          providerId: "gitlab-user-456",
+          accessToken: "gitlab-token",
+          scopes: ["read"],
+        },
+      });
+
+      // Verify that the migration was logged
+      expect(mockInfo).toHaveBeenCalledWith(
+        "authentication",
+        "User switching authentication providers",
+        expect.objectContaining({
+          userId: user.id,
+          email: "user@example.com",
+          fromProvider: oidcProvider.id,
+          toProvider: gitlabProvider.id,
+        })
+      );
+    } finally {
+      // Restore the original Logger
+      Logger.info = originalInfo;
+    }
   });
 });

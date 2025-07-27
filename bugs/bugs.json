@@ -1,0 +1,385 @@
+{
+  "metadata": {
+    "generated": "2025-07-27T06:43:33.928Z",
+    "source": "https://github.com/outline/outline",
+    "totalBugs": 27
+  },
+  "bugs": [
+    {
+      "number": 9709,
+      "title": "Page edit via API inserts <br> into tables",
+      "state": "open",
+      "category": "api-integration",
+      "created_at": "2025-07-22T08:34:17Z",
+      "updated_at": "2025-07-22T08:34:22Z",
+      "user": "perlfisch",
+      "labels": [
+        "bug"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/9709"
+    },
+    {
+      "number": 9705,
+      "title": "Mobile drag-and-drop for checklist items not working",
+      "state": "open",
+      "category": "ui-ux",
+      "created_at": "2025-07-22T00:36:05Z",
+      "updated_at": "2025-07-22T00:36:07Z",
+      "user": "DaxtonD",
+      "labels": [
+        "bug"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/9705"
+    },
+    {
+      "number": 9641,
+      "title": "Slack Auth doesn't work with OIDC",
+      "state": "open",
+      "category": "authentication",
+      "created_at": "2025-07-15T13:34:48Z",
+      "updated_at": "2025-07-15T13:35:03Z",
+      "user": "tommoor",
+      "labels": [
+        "bug",
+        "self-hosted"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/9641"
+    },
+    {
+      "number": 9586,
+      "title": "CMD+K selection state resets when remote results load",
+      "state": "open",
+      "category": "general",
+      "created_at": "2025-07-09T13:48:08Z",
+      "updated_at": "2025-07-09T23:43:53Z",
+      "user": "tommoor",
+      "labels": [
+        "bug"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/9586"
+    },
+    {
+      "number": 9558,
+      "title": "JSON import silently discards parts of documents that are invalid",
+      "state": "open",
+      "category": "file-operations",
+      "created_at": "2025-07-07T09:47:48Z",
+      "updated_at": "2025-07-08T11:33:50Z",
+      "user": "HalfVoxel",
+      "labels": [
+        "bug",
+        "importers"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/9558"
+    },
+    {
+      "number": 9488,
+      "title": "DEL key adds new checklist item",
+      "state": "open",
+      "category": "search",
+      "created_at": "2025-06-25T09:36:09Z",
+      "updated_at": "2025-06-27T10:06:09Z",
+      "user": "jlssmt",
+      "labels": [
+        "bug",
+        "editor"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/9488"
+    },
+    {
+      "number": 9382,
+      "title": "Changing list type only works at top level",
+      "state": "open",
+      "category": "search",
+      "created_at": "2025-06-03T00:08:02Z",
+      "updated_at": "2025-06-05T05:53:39Z",
+      "user": "KyleTeal",
+      "labels": [
+        "bug",
+        "editor"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/9382"
+    },
+    {
+      "number": 9213,
+      "title": "Images no longer appearing in Print/PDF",
+      "state": "open",
+      "category": "ui-ux",
+      "created_at": "2025-05-14T21:36:14Z",
+      "updated_at": "2025-07-17T10:34:38Z",
+      "user": "SaadBazaz",
+      "labels": [
+        "bug",
+        "more information needed",
+        "self-hosted"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/9213"
+    },
+    {
+      "number": 9147,
+      "title": "Leading `\\n` being removed/added by upgrades",
+      "state": "open",
+      "category": "search",
+      "created_at": "2025-05-07T23:33:30Z",
+      "updated_at": "2025-05-12T23:36:03Z",
+      "user": "samstride",
+      "labels": [
+        "bug",
+        "self-hosted"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/9147"
+    },
+    {
+      "number": 9097,
+      "title": "Authentication migration: Unable to match existing users after switching from OIDC to GitLab authentication",
+      "state": "open",
+      "category": "authentication",
+      "created_at": "2025-04-29T01:33:50Z",
+      "updated_at": "2025-04-30T01:26:30Z",
+      "user": "chen-coco",
+      "labels": [
+        "bug",
+        "self-hosted"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/9097"
+    },
+    {
+      "number": 9045,
+      "title": "Some LaTeX content causes page to hang",
+      "state": "open",
+      "category": "search",
+      "created_at": "2025-04-24T09:53:43Z",
+      "updated_at": "2025-05-14T04:01:12Z",
+      "user": "xbzxsh",
+      "labels": [
+        "bug",
+        "editor"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/9045"
+    },
+    {
+      "number": 8988,
+      "title": "Cannot drag-select inside title when renaming collection in sidebar",
+      "state": "open",
+      "category": "search",
+      "created_at": "2025-04-16T02:42:27Z",
+      "updated_at": "2025-04-22T13:10:54Z",
+      "user": "wuwei-yu",
+      "labels": [
+        "bug",
+        "navigation"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/8988"
+    },
+    {
+      "number": 8674,
+      "title": "History menu item for templates is present but 404's",
+      "state": "open",
+      "category": "general",
+      "created_at": "2025-03-12T03:26:16Z",
+      "updated_at": "2025-07-25T02:15:01Z",
+      "user": "tommoor",
+      "labels": [
+        "bug",
+        "stale",
+        "history"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/8674"
+    },
+    {
+      "number": 8525,
+      "title": "Can't view revision diffs in mobile",
+      "state": "open",
+      "category": "mobile",
+      "created_at": "2025-02-21T15:29:12Z",
+      "updated_at": "2025-07-24T02:15:13Z",
+      "user": "infinite-persistence",
+      "labels": [
+        "bug",
+        "stale"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/8525"
+    },
+    {
+      "number": 8395,
+      "title": "Search unable to find keyword part of string or URL",
+      "state": "open",
+      "category": "search",
+      "created_at": "2025-02-13T01:15:37Z",
+      "updated_at": "2025-06-04T06:30:37Z",
+      "user": "z9yaya",
+      "labels": [
+        "bug",
+        "search"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/8395"
+    },
+    {
+      "number": 8348,
+      "title": "Scroll position moves during collaborative editing when edits made above cursor",
+      "state": "open",
+      "category": "general",
+      "created_at": "2025-02-07T02:50:26Z",
+      "updated_at": "2025-07-26T19:13:11Z",
+      "user": "tommoor",
+      "labels": [
+        "bug",
+        "editor",
+        "collaborative editing",
+        "A1"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/8348"
+    },
+    {
+      "number": 8300,
+      "title": "Impossible to reorder items in a checklist using drag in a mobile version",
+      "state": "open",
+      "category": "mobile",
+      "created_at": "2025-01-26T11:40:36Z",
+      "updated_at": "2025-07-19T16:29:26Z",
+      "user": "PoisonousJohn",
+      "labels": [
+        "bug"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/8300"
+    },
+    {
+      "number": 8149,
+      "title": "Can't paste text with mixed markdown lists styles",
+      "state": "open",
+      "category": "general",
+      "created_at": "2024-12-27T03:02:11Z",
+      "updated_at": "2025-04-27T13:27:22Z",
+      "user": "saint11",
+      "labels": [
+        "bug",
+        "editor"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/8149"
+    },
+    {
+      "number": 8124,
+      "title": "Publication in a readable collection with subordinate writeable documents",
+      "state": "open",
+      "category": "general",
+      "created_at": "2024-12-18T08:58:54Z",
+      "updated_at": "2025-05-17T16:59:10Z",
+      "user": "timokramer4",
+      "labels": [
+        "bug",
+        "permissions"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/8124"
+    },
+    {
+      "number": 7907,
+      "title": "Archived documents cannot be viewed when the collection is deleted",
+      "state": "open",
+      "category": "general",
+      "created_at": "2024-11-07T11:45:56Z",
+      "updated_at": "2025-04-15T15:09:20Z",
+      "user": "hmacr",
+      "labels": [
+        "bug"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/7907"
+    },
+    {
+      "number": 7868,
+      "title": "API document.update stops updating document after doc was edited by user",
+      "state": "open",
+      "category": "api-integration",
+      "created_at": "2024-10-30T13:10:16Z",
+      "updated_at": "2025-06-30T02:15:08Z",
+      "user": "bezzil85",
+      "labels": [
+        "bug"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/7868"
+    },
+    {
+      "number": 7502,
+      "title": "Sub-documents within shared parent are not ordered correctly",
+      "state": "open",
+      "category": "general",
+      "created_at": "2024-09-01T14:02:44Z",
+      "updated_at": "2025-01-29T01:59:50Z",
+      "user": "tommoor",
+      "labels": [
+        "bug",
+        "A1"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/7502"
+    },
+    {
+      "number": 7420,
+      "title": "Editor appears to allow linked images with CMD+K but link is not persisted",
+      "state": "open",
+      "category": "editor",
+      "created_at": "2024-08-20T12:58:02Z",
+      "updated_at": "2025-04-28T17:06:15Z",
+      "user": "microbearlogist",
+      "labels": [
+        "bug",
+        "editor"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/7420"
+    },
+    {
+      "number": 7229,
+      "title": "Permission inconsistency",
+      "state": "open",
+      "category": "editor",
+      "created_at": "2024-07-11T19:32:13Z",
+      "updated_at": "2025-05-12T02:28:48Z",
+      "user": "erica-anthropic",
+      "labels": [
+        "bug",
+        "A1"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/7229"
+    },
+    {
+      "number": 7129,
+      "title": "Resized images not rendering accurately in HTML/PDF export",
+      "state": "open",
+      "category": "file-operations",
+      "created_at": "2024-06-24T11:20:58Z",
+      "updated_at": "2025-05-27T12:20:40Z",
+      "user": "ossimoi",
+      "labels": [
+        "bug",
+        "exporters"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/7129"
+    },
+    {
+      "number": 7054,
+      "title": "Full-width nodes misaligned when document is full-width with TOC",
+      "state": "open",
+      "category": "general",
+      "created_at": "2024-06-16T15:52:44Z",
+      "updated_at": "2025-04-07T06:16:20Z",
+      "user": "tommoor",
+      "labels": [
+        "bug",
+        "editor"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/7054"
+    },
+    {
+      "number": 6065,
+      "title": "Editing two math blocks in parallel (2 users) causes one to get kicked out and changes lost",
+      "state": "open",
+      "category": "mobile",
+      "created_at": "2023-10-25T09:23:07Z",
+      "updated_at": "2025-06-14T02:11:10Z",
+      "user": "libnewton",
+      "labels": [
+        "bug",
+        "editor"
+      ],
+      "html_url": "https://github.com/outline/outline/issues/6065"
+    }
+  ]
+}

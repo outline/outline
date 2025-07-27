@@ -136,6 +136,24 @@ export default async function userProvisioner({
     // that's never been active before.
     const isInvite = existingUser.isInvited;
 
+    // Check if user already has authentication from a different provider
+    // This handles the case where a user switches auth providers (e.g., OIDC to GitLab)
+    const existingAuth = existingUser.authentications?.[0];
+    const isAuthProviderMigration =
+      existingAuth &&
+      authentication &&
+      existingAuth.authenticationProviderId !==
+        authentication.authenticationProviderId;
+
+    if (isAuthProviderMigration) {
+      Logger.info("authentication", "User switching authentication providers", {
+        userId: existingUser.id,
+        email: existingUser.email,
+        fromProvider: existingAuth.authenticationProviderId,
+        toProvider: authentication.authenticationProviderId,
+      });
+    }
+
     const userAuth = await sequelize.transaction(async (transaction) => {
       if (isInvite) {
         await Event.create(
@@ -175,6 +193,9 @@ export default async function userProvisioner({
         return null;
       }
 
+      // If this is an auth provider migration, we might want to handle it differently
+      // For now, we create a new authentication record which allows users to have
+      // multiple auth methods linked to their account
       return await existingUser.$create<UserAuthentication>(
         "authentication",
         authentication,
