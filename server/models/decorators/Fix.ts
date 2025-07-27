@@ -30,10 +30,23 @@ export default function Fix(target: any): void {
 
         Object.defineProperty(this, propertyKey, {
           get() {
-            return this.getDataValue(propertyKey);
+            // Safety check for Jest serialization - getDataValue may not be available
+            // during serialization for inter-process communication
+            if (typeof this.getDataValue === "function") {
+              return this.getDataValue(propertyKey);
+            }
+            // Fallback to direct dataValues access
+            return this.dataValues?.[propertyKey];
           },
           set(value) {
-            this.setDataValue(propertyKey, value);
+            // Safety check for Jest serialization - setDataValue may not be available
+            // during serialization for inter-process communication
+            if (typeof this.setDataValue === "function") {
+              this.setDataValue(propertyKey, value);
+            } else if (this.dataValues) {
+              // Fallback to direct dataValues assignment
+              this.dataValues[propertyKey] = value;
+            }
           },
         });
       });

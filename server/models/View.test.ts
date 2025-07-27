@@ -39,7 +39,7 @@ describe("View", () => {
         userId: user.id,
       });
 
-      await user.destroy();
+      await user.destroy({ hooks: false });
 
       const views = await View.findByDocument(document.id, {
         includeSuspended: false,

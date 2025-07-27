@@ -9,6 +9,7 @@ import {
 import { traceFunction } from "@server/logging/tracing";
 import { Team, AuthenticationProvider } from "@server/models";
 import { sequelize } from "@server/storage/database";
+import { APIContext } from "@server/types";
 
 type TeamProvisionerResult = {
   team: Team;
@@ -37,18 +38,12 @@ type Props = {
     /** External identifier of the authentication provider */
     providerId: string;
   };
-  ip?: string;
 };
 
-async function teamProvisioner({
-  teamId,
-  name,
-  domain,
-  subdomain,
-  avatarUrl,
-  authenticationProvider,
-  ip,
-}: Props): Promise<TeamProvisionerResult> {
+async function teamProvisioner(
+  ctx: APIContext,
+  { teamId, name, domain, subdomain, avatarUrl, authenticationProvider }: Props
+): Promise<TeamProvisionerResult> {
   let authP = await AuthenticationProvider.findOne({
     where: teamId
       ? { ...authenticationProvider, teamId }
@@ -109,8 +104,7 @@ async function teamProvisioner({
 
   // We cannot find an existing team, so we create a new one
   const team = await sequelize.transaction((transaction) =>
-    teamCreator({
-      ctx: createContext({ ip, transaction }),
+    teamCreator(createContext({ transaction }), {
       name,
       domain,
       subdomain,

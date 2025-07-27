@@ -39,8 +39,7 @@ export default class CollectionsProcessor extends BaseProcessor {
           ip: event.ip,
         });
 
-        await teamUpdater({
-          ctx,
+        await teamUpdater(ctx, {
           params: { defaultCollectionId: null },
           user,
           team,

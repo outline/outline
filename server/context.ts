@@ -13,9 +13,14 @@ export function createContext({
   ip?: string | null;
   transaction?: Transaction;
 }) {
+  const auth = { user, type: authType };
   return {
+    state: {
+      auth,
+      transaction,
+    },
     context: {
-      auth: { user, type: authType },
+      auth,
       ip: ip ?? user?.lastActiveIp,
       transaction,
     },

@@ -6,7 +6,6 @@ import { Team } from "@server/models";
 import { APIContext } from "@server/types";
 
 type Props = {
-  ctx: APIContext;
   /** The displayed name of the team */
   name: string;
   /** The domain name from the email of the user logging in */
@@ -24,13 +23,10 @@ type Props = {
   }[];
 };
 
-async function teamCreator({
-  ctx,
-  name,
-  subdomain,
-  avatarUrl,
-  authenticationProviders,
-}: Props): Promise<Team> {
+async function teamCreator(
+  ctx: APIContext,
+  { name, subdomain, avatarUrl, authenticationProviders }: Props
+): Promise<Team> {
   if (!avatarUrl?.startsWith("http")) {
     avatarUrl = null;
   }

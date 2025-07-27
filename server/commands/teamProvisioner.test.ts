@@ -3,22 +3,23 @@ import TeamDomain from "@server/models/TeamDomain";
 import { buildTeam, buildUser } from "@server/test/factories";
 import { setSelfHosted } from "@server/test/support";
 import teamProvisioner from "./teamProvisioner";
+import { createContext } from "@server/context";
 
 describe("teamProvisioner", () => {
-  const ip = "127.0.0.1";
+  const ip = faker.internet.ip();
+  const ctx = createContext({ ip });
 
   describe("hosted", () => {
     it("should create team and authentication provider", async () => {
       const subdomain = faker.internet.domainWord();
-      const result = await teamProvisioner({
+      const result = await teamProvisioner(ctx, {
         name: "Test team",
         subdomain,
-        avatarUrl: faker.internet.avatar(),
+        avatarUrl: faker.image.avatar(),
         authenticationProvider: {
           name: "google",
           providerId: `${subdomain}.com`,
         },
-        ip,
       });
       const { team, authenticationProvider, isNewTeam } = result;
       expect(authenticationProvider.name).toEqual("google");
@@ -35,15 +36,14 @@ describe("teamProvisioner", () => {
         subdomain,
       });
 
-      const result = await teamProvisioner({
+      const result = await teamProvisioner(ctx, {
         name: "Test team",
         subdomain,
-        avatarUrl: faker.internet.avatar(),
+        avatarUrl: faker.image.avatar(),
         authenticationProvider: {
           name: "google",
           providerId: `${subdomain}.com`,
         },
-        ip,
       });
 
       expect(result.isNewTeam).toEqual(true);
@@ -58,15 +58,14 @@ describe("teamProvisioner", () => {
       await buildTeam({
         subdomain: `${subdomain}1`,
       });
-      const result = await teamProvisioner({
+      const result = await teamProvisioner(ctx, {
         name: "Test team",
         subdomain,
-        avatarUrl: faker.internet.avatar(),
+        avatarUrl: faker.image.avatar(),
         authenticationProvider: {
           name: "google",
           providerId: `${subdomain}.com`,
         },
-        ip,
       });
 
       expect(result.team.subdomain).toEqual(`${subdomain}2`);
@@ -82,11 +81,10 @@ describe("teamProvisioner", () => {
         subdomain,
         authenticationProviders: [authenticationProvider],
       });
-      const result = await teamProvisioner({
+      const result = await teamProvisioner(ctx, {
         name: faker.company.name(),
         subdomain,
         authenticationProvider,
-        ip,
       });
       const { team, isNewTeam } = result;
       expect(team.id).toEqual(existing.id);
@@ -111,7 +109,7 @@ describe("teamProvisioner", () => {
       let error;
       try {
         const testSubdomain = faker.internet.domainWord();
-        await teamProvisioner({
+        await teamProvisioner(ctx, {
           teamId: exampleTeam.id,
           name: "name",
           subdomain: testSubdomain,
@@ -119,7 +117,6 @@ describe("teamProvisioner", () => {
             name: "google",
             providerId: `${testSubdomain}.com`,
           },
-          ip,
         });
       } catch (e) {
         error = e;
@@ -133,15 +130,14 @@ describe("teamProvisioner", () => {
 
     it("should allow creating first team", async () => {
       const subdomain = faker.internet.domainWord();
-      const { team, isNewTeam } = await teamProvisioner({
+      const { team, isNewTeam } = await teamProvisioner(ctx, {
         name: "Test team",
         subdomain,
-        avatarUrl: faker.internet.avatar(),
+        avatarUrl: faker.image.avatar(),
         authenticationProvider: {
           name: "google",
           providerId: `${subdomain}.com`,
         },
-        ip,
       });
 
       expect(isNewTeam).toBeTruthy();
@@ -154,16 +150,15 @@ describe("teamProvisioner", () => {
       let error;
 
       try {
-        await teamProvisioner({
+        await teamProvisioner(ctx, {
           name: "Test team",
           subdomain,
-          avatarUrl: faker.internet.avatar(),
+          avatarUrl: faker.image.avatar(),
           teamId: team.id,
           authenticationProvider: {
             name: "google",
             providerId: `${subdomain}.com`,
           },
-          ip,
         });
       } catch (err) {
         error = err;
@@ -183,7 +178,7 @@ describe("teamProvisioner", () => {
         name: domain,
         createdById: user.id,
       });
-      const result = await teamProvisioner({
+      const result = await teamProvisioner(ctx, {
         name: "Updated name",
         subdomain: faker.internet.domainWord(),
         domain,
@@ -192,7 +187,6 @@ describe("teamProvisioner", () => {
           name: "google",
           providerId: domain,
         },
-        ip,
       });
       const { team, authenticationProvider, isNewTeam } = result;
       expect(team.id).toEqual(existing.id);
@@ -219,7 +213,7 @@ describe("teamProvisioner", () => {
 
       let error;
       try {
-        await teamProvisioner({
+        await teamProvisioner(ctx, {
           name: "Updated name",
           subdomain: faker.internet.domainWord(),
           domain: otherDomain,
@@ -228,7 +222,6 @@ describe("teamProvisioner", () => {
             name: "google",
             providerId: otherDomain,
           },
-          ip,
         });
       } catch (err) {
         error = err;
@@ -247,11 +240,10 @@ describe("teamProvisioner", () => {
         subdomain,
         authenticationProviders: [authenticationProvider],
       });
-      const result = await teamProvisioner({
+      const result = await teamProvisioner(ctx, {
         name: "Updated name",
         subdomain,
         authenticationProvider,
-        ip,
       });
       const { team, isNewTeam } = result;
       expect(team.id).toEqual(existing.id);

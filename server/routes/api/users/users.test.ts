@@ -750,7 +750,7 @@ describe("#users.updateEmail", () => {
 
       await TeamDomain.create({
         teamId: user.teamId,
-        name: "example.com",
+        name: "getoutline.com",
         createdById: user.id,
       });
 
@@ -971,7 +971,7 @@ describe("#users.suspend", () => {
     expect(res.status).toEqual(200);
   });
 
-  it("should not allow suspending the user themselves", async () => {
+  it("should not allow suspending self", async () => {
     const admin = await buildAdmin();
     const res = await server.post("/api/users.suspend", {
       body: {
@@ -980,7 +980,7 @@ describe("#users.suspend", () => {
       },
     });
     const body = await res.json();
-    expect(res.status).toEqual(400);
+    expect(res.status).toEqual(403);
     expect(body).toMatchSnapshot();
   });
 

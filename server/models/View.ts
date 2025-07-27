@@ -18,6 +18,7 @@ import Document from "./Document";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
+import { SkipChangeset } from "./decorators/Changeset";
 
 @Scopes(() => ({
   withUser: () => ({
@@ -41,6 +42,7 @@ class View extends IdModel<
 
   @Default(1)
   @Column(DataType.INTEGER)
+  @SkipChangeset
   count: number;
 
   // associations

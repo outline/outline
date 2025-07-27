@@ -287,7 +287,7 @@ describe("#events.list", () => {
       teamId: user.teamId,
       actorId: user.id,
     });
-    await user.destroy();
+    await user.destroy({ hooks: false });
     const res = await server.post("/api/events.list", {
       body: {
         token: admin.getJwtToken(),
