@@ -183,7 +183,7 @@ describe("#groups.list", () => {
         createdById: me.id,
       },
     });
-    await user.destroy();
+    await user.destroy({ hooks: false });
     const res = await server.post("/api/groups.list", {
       body: {
         token: me.getJwtToken(),

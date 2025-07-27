@@ -25,6 +25,7 @@ import {
 import Logger from "@server/logging/Logger";
 import { Replace, APIContext } from "@server/types";
 import { getChangsetSkipped } from "../decorators/Changeset";
+import { InternalError } from "@server/errors";
 
 type EventOverrideOptions = {
   /** Override the default event name. */
@@ -239,6 +240,12 @@ class Model<
       Logger.warn("No ip provided to insertEvent", {
         modelId: model.id,
       });
+    }
+
+    if (context.event.name?.includes(".")) {
+      throw InternalError(
+        `Event name (${context.event.name}) should not include a period, the namespace is automatically prefixed`
+      );
     }
 
     const attrs = {

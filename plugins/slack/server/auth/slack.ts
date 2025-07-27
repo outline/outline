@@ -29,6 +29,7 @@ import env from "../env";
 import * as Slack from "../slack";
 import * as T from "./schema";
 import { SlackUtils } from "plugins/slack/shared/SlackUtils";
+import { createContext } from "@server/context";
 
 type SlackProfile = Profile & {
   team: {
@@ -68,7 +69,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       scope: scopes,
     },
     async function (
-      ctx: Context,
+      context: Context,
       accessToken: string,
       refreshToken: string,
       params: { expires_in: number },
@@ -80,14 +81,13 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       ) => void
     ) {
       try {
-        const team = await getTeamFromContext(ctx);
-        const client = getClientFromContext(ctx);
+        const team = await getTeamFromContext(context);
+        const client = getClientFromContext(context);
 
-        
         const { domain } = parseEmail(profile.user.email);
 
-        const result = await accountProvisioner({
-          ip: ctx.ip,
+        const ctx = createContext({ ip: context.ip });
+        const result = await accountProvisioner(ctx, {
           team: {
             teamId: team?.id,
             name: profile.team.name,

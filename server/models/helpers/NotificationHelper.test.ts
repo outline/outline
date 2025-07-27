@@ -301,7 +301,7 @@ describe("NotificationHelper", () => {
         userId: deletedUser.id,
         documentId: document.id,
       });
-      await deletedUser.destroy();
+      await deletedUser.destroy({ hooks: false });
 
       const recipients =
         await NotificationHelper.getDocumentNotificationRecipients({

@@ -659,8 +659,7 @@ router.post(
         collection.permission === null &&
         team?.defaultCollectionId === collection.id
       ) {
-        await teamUpdater({
-          ctx,
+        await teamUpdater(ctx, {
           params: { defaultCollectionId: null },
           user,
           team,

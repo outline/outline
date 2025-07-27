@@ -30,7 +30,7 @@ export default async function subscriptionCreator({
   event,
   resubscribe = true,
 }: Props): Promise<Subscription> {
-  const { user } = ctx.context.auth;
+  const { user } = ctx.state.auth;
 
   const where: WhereOptions<Subscription> = {
     userId: user.id,
