@@ -3,6 +3,12 @@ import * as Dialog from "@radix-ui/react-dialog";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
 import Scrollable from "~/components/Scrollable";
+import {
+  fadeIn,
+  fadeOut,
+  fadeInAndSlideLeft,
+  fadeOutAndSlideRight,
+} from "~/styles/animations";
 
 type Props = {
   children?: React.ReactNode;
@@ -17,30 +23,25 @@ const Guide: React.FC<Props> = ({
   title = "Untitled",
   onRequestClose,
   ...rest
-}: Props) => {
-  return (
-    <Dialog.Root
-      open={isOpen}
-      onOpenChange={(open) => !open && onRequestClose()}
-    >
-      <Dialog.Portal>
-        <StyledOverlay>
-            <Scene
-            onEscapeKeyDown={onRequestClose}
-            onPointerDownOutside={onRequestClose}
-            aria-describedby={undefined}
-            {...rest}
-          >
-              <Content>
-                {title && <Header>{title}</Header>}
-                {children}
-              </Content>
-            </Scene>
-        </StyledOverlay>
-      </Dialog.Portal>
-    </Dialog.Root>
-  );
-};
+}: Props) => (
+  <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onRequestClose()}>
+    <Dialog.Portal>
+      <StyledOverlay>
+        <Scene
+          onEscapeKeyDown={onRequestClose}
+          onPointerDownOutside={onRequestClose}
+          aria-describedby={undefined}
+          {...rest}
+        >
+          <Content>
+            {title && <Header>{title}</Header>}
+            {children}
+          </Content>
+        </Scene>
+      </StyledOverlay>
+    </Dialog.Portal>
+  </Dialog.Root>
+);
 
 const Header = styled(Dialog.Title)`
   font-size: 18px;
@@ -56,6 +57,14 @@ const StyledOverlay = styled(Dialog.Overlay)`
   bottom: 0;
   background-color: ${s("backdrop")} !important;
   z-index: ${depths.overlay};
+
+  &[data-state="open"] {
+    animation: ${fadeIn} 200ms ease;
+  }
+
+  &[data-state="closed"] {
+    animation: ${fadeOut} 200ms ease;
+  }
 `;
 
 const Scene = styled(Dialog.Content)`
@@ -72,15 +81,13 @@ const Scene = styled(Dialog.Content)`
   background: ${s("background")};
   border-radius: 8px;
   outline: none;
-  opacity: 0;
-  transition: opacity 200ms ease, transform 200ms ease;
-  transform: translateX(16px);
-  background: blue;
 
   &[data-state="open"] {
-    opacity: 1;
-    transform: translateX(0px);
-    background: red;
+    animation: ${fadeInAndSlideLeft} 200ms ease;
+  }
+
+  &[data-state="closed"] {
+    animation: ${fadeOutAndSlideRight} 200ms ease;
   }
 `;
 

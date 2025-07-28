@@ -10,13 +10,15 @@ function Dialogs() {
 
   return (
     <>
-      <Guide
-        isOpen={guide?.isOpen}
-        onRequestClose={dialogs.closeGuide}
-        title={guide?.title}
-      >
-        {guide?.content}
-      </Guide>
+      {guide ? (
+        <Guide
+          isOpen={guide.isOpen}
+          onRequestClose={dialogs.closeGuide}
+          title={guide.title}
+        >
+          {guide.content}
+        </Guide>
+      ) : undefined}
       {modals.map(([id, modal]) => (
         <Modal
           key={id}
