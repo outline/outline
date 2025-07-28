@@ -1705,21 +1705,21 @@
   resolved "https://registry.yarnpkg.com/@braintree/sanitize-url/-/sanitize-url-7.1.1.tgz#15e19737d946559289b915e5dad3b4c28407735e"
   integrity sha512-i1L7noDNxtFyL5DmZafWy1wRVhGehQmzZaz1HiN5e7iylJMSZR7ekOV7NsIqa5qBldlLrsKv4HbgFUVlQrz8Mw==
 
-"@bull-board/api@6.9.6", "@bull-board/api@^6.7.10":
-  version "6.9.6"
-  resolved "https://registry.yarnpkg.com/@bull-board/api/-/api-6.9.6.tgz#48985a68b9f67eeb875632f514d616ed78670f98"
-  integrity sha512-k1h35Q+y5hdf9UoPhp6mLG5+QM9AHP8luyggxEJ+/ZkoSMJ0h45HjHhqbexEAzdgsVN7lncXNLNn6myKwwcjkw==
+"@bull-board/api@6.12.0", "@bull-board/api@^6.7.10":
+  version "6.12.0"
+  resolved "https://registry.yarnpkg.com/@bull-board/api/-/api-6.12.0.tgz#0df55e98c71e73005be8c92242befb1337532bc1"
+  integrity sha512-tlMQTc0EAiYbv8gjR0lCYAXDL1Uc8/dPD9tKjxvG+m9lUUpPAoRUXUHNtzwVQo+AHiF6WHEK9iA3+8KHJamc/w==
   dependencies:
     redis-info "^3.1.0"
 
-"@bull-board/koa@^6.9.6":
-  version "6.9.6"
-  resolved "https://registry.yarnpkg.com/@bull-board/koa/-/koa-6.9.6.tgz#430ff2eec68804529be0338eea3cd44320c9c26f"
-  integrity sha512-IZgqcJmeOmmr6qwAEf5AgGJ+oWHqrlrgqnOMaTwimzEgKE+gUs2tVBw1kdAuirYOD3umfznhtv5hCnWrWqEs9g==
+"@bull-board/koa@^6.12.0":
+  version "6.12.0"
+  resolved "https://registry.yarnpkg.com/@bull-board/koa/-/koa-6.12.0.tgz#3a25ee1b47e1134510378ac20c48910f78bd4b7d"
+  integrity sha512-4g6r2K/l+bUQXE5qbLPTs2QhjhAH0UNYOcPK3alXNy/s/wQ4EIJcrcIOmWbTIzKYMpchYp6yHc2I47pWJpShfg==
   dependencies:
-    "@bull-board/api" "6.9.6"
-    "@bull-board/ui" "6.9.6"
-    "@koa/bodyparser" "^5.1.1"
+    "@bull-board/api" "6.12.0"
+    "@bull-board/ui" "6.12.0"
+    "@koa/bodyparser" "^5.1.2"
     "@ladjs/koa-views" "^9.0.0"
     ejs "^3.1.10"
     koa "^3.0.0"
@@ -1727,12 +1727,12 @@
     koa-router "^13.0.1"
     koa-static "^5.0.0"
 
-"@bull-board/ui@6.9.6":
-  version "6.9.6"
-  resolved "https://registry.yarnpkg.com/@bull-board/ui/-/ui-6.9.6.tgz#a3c83384c73b54ca564cb275caeee646f0b6417e"
-  integrity sha512-uRYJ3G4hsodEuhVd7yIl7MSsGNYZNa0nCcivK472ojUV22t4ZB2j2KKew07jBhlhPN5jxzQ5PJh16lOnrWk9vQ==
+"@bull-board/ui@6.12.0":
+  version "6.12.0"
+  resolved "https://registry.yarnpkg.com/@bull-board/ui/-/ui-6.12.0.tgz#57ad8b2e2bb1e5b7002a0ae7da023d4521e3444b"
+  integrity sha512-a1+9bUlNViXIQcO9KPOd1EP66Ts4caYHgsc5OuunDMZ9Q6Y7sfrQXMhfnv3JWahSNo3hiX6Fc8wIL4p/bcTwsw==
   dependencies:
-    "@bull-board/api" "6.9.6"
+    "@bull-board/api" "6.12.0"
 
 "@bundle-stats/plugin-webpack-filter@4.19.1":
   version "4.19.1"
@@ -2551,10 +2551,10 @@
   resolved "https://registry.yarnpkg.com/@juggle/resize-observer/-/resize-observer-3.4.0.tgz#08d6c5e20cf7e4cc02fd181c4b0c225cd31dbb60"
   integrity "sha1-CNbF4gz35MwC/RgcSwwiXNMdu2A= sha512-dfLbk+PwWvFzSxwk3n5ySL0hfBog779o8h68wK/7/APo/7cgyWp5jcXockbxdk5kFRkbeXWm4Fbi9FrdN381sA=="
 
-"@koa/bodyparser@^5.1.1":
-  version "5.1.1"
-  resolved "https://registry.yarnpkg.com/@koa/bodyparser/-/bodyparser-5.1.1.tgz#cda8df0bc89339d6d9856ddee0d59f2ff3133d06"
-  integrity sha512-ZBF49xqNVxnmJ+8iXegq+fXPQm9RSX8giNl/aXS5rW1VpNct92wnFbGR/47vfoRJVLARGQ4HVL4WaQ0u8IJVoA==
+"@koa/bodyparser@^5.1.2":
+  version "5.1.2"
+  resolved "https://registry.yarnpkg.com/@koa/bodyparser/-/bodyparser-5.1.2.tgz#d3f242e616dce2db9dcaadf7ebc3129df4db35b2"
+  integrity sha512-eGJm9/66iUX+LUH03Cz0e94unbSKrmSPCick4MO5UorAAomcjC5Kl+SkoZ6CSyPew3neMYjj7n+djnlGYBSJAg==
   dependencies:
     co-body "^6.1.0"
     lodash.merge "^4.6.2"
