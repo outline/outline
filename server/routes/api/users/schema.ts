@@ -27,7 +27,14 @@ export const UsersListSchema = z.object({
 
     ids: z.array(z.string().uuid()).optional(),
 
-    emails: z.array(z.string().email()).optional(),
+    emails: z
+      .array(
+        z
+          .string()
+          .email()
+          .transform((email) => email.toLowerCase())
+      )
+      .optional(),
 
     query: z.string().optional(),
 
