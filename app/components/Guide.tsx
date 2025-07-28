@@ -3,7 +3,6 @@ import * as Dialog from "@radix-ui/react-dialog";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
 import Scrollable from "~/components/Scrollable";
-import usePrevious from "~/hooks/usePrevious";
 
 type Props = {
   children?: React.ReactNode;
@@ -19,12 +18,6 @@ const Guide: React.FC<Props> = ({
   onRequestClose,
   ...rest
 }: Props) => {
-  const wasOpen = usePrevious(isOpen);
-
-  if (!isOpen && !wasOpen) {
-    return null;
-  }
-
   return (
     <Dialog.Root
       open={isOpen}
@@ -32,26 +25,24 @@ const Guide: React.FC<Props> = ({
     >
       <Dialog.Portal>
         <StyledOverlay>
-          <StyledContent
+            <Scene
             onEscapeKeyDown={onRequestClose}
             onPointerDownOutside={onRequestClose}
             aria-describedby={undefined}
             {...rest}
           >
-            <Scene>
               <Content>
                 {title && <Header>{title}</Header>}
                 {children}
               </Content>
             </Scene>
-          </StyledContent>
         </StyledOverlay>
       </Dialog.Portal>
     </Dialog.Root>
   );
 };
 
-const Header = styled.h1`
+const Header = styled(Dialog.Title)`
   font-size: 18px;
   margin-top: 0;
   margin-bottom: 1em;
@@ -65,34 +56,16 @@ const StyledOverlay = styled(Dialog.Overlay)`
   bottom: 0;
   background-color: ${s("backdrop")} !important;
   z-index: ${depths.overlay};
-  transition: opacity 200ms ease-in-out;
-  opacity: 0;
-
-  &[data-state="open"] {
-    opacity: 1;
-  }
 `;
 
-const StyledContent = styled(Dialog.Content)`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: ${depths.modal};
-  display: flex;
-  justify-content: flex-end;
-  align-items: flex-start;
-  outline: none;
-`;
-
-const Scene = styled.div`
-  position: relative;
+const Scene = styled(Dialog.Content)`
+  position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
   margin: 12px;
   display: flex;
+  z-index: ${depths.modal};
   justify-content: center;
   align-items: flex-start;
   width: 350px;
@@ -100,15 +73,14 @@ const Scene = styled.div`
   border-radius: 8px;
   outline: none;
   opacity: 0;
+  transition: opacity 200ms ease, transform 200ms ease;
   transform: translateX(16px);
-  transition:
-    transform 250ms ease,
-    opacity 250ms ease;
+  background: blue;
 
-  /* Animation triggered by parent Dialog.Content data-state */
-  *[data-state="open"] & {
+  &[data-state="open"] {
     opacity: 1;
     transform: translateX(0px);
+    background: red;
   }
 `;
 
