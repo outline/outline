@@ -2,7 +2,7 @@ import compact from "lodash/compact";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Tab, TabPanel, useTabState } from "reakit";
+import * as Tabs from "@radix-ui/react-tabs";
 import { toast } from "sonner";
 import styled, { css } from "styled-components";
 import { s, hover } from "@shared/styles";
@@ -22,7 +22,9 @@ type Props = {
 const ViewReactionsDialog: React.FC<Props> = ({ model }) => {
   const { t } = useTranslation();
   const { users } = useStores();
-  const tab = useTabState();
+  const [selectedTab, setSelectedTab] = React.useState<string>(
+    model.reactions[0]?.emoji || ""
+  );
   const { reactedUsersLoaded } = model;
 
   React.useEffect(() => {
@@ -37,24 +39,32 @@ const ViewReactionsDialog: React.FC<Props> = ({ model }) => {
     void loadReactedUsersData();
   }, [t, model]);
 
+  // Set initial tab when reactions are loaded
+  React.useEffect(() => {
+    if (model.reactions.length > 0 && !selectedTab) {
+      setSelectedTab(model.reactions[0].emoji);
+    }
+  }, [model.reactions, selectedTab]);
+
   if (!reactedUsersLoaded) {
     return <PlaceHolder />;
   }
 
   return (
-    <>
+    <Tabs.Root value={selectedTab} onValueChange={setSelectedTab}>
       <TabActionsWrapper>
-        {model.reactions.map((reaction) => (
-          <StyledTab
-            {...tab}
-            key={reaction.emoji}
-            id={reaction.emoji}
-            aria-label={t("Reaction")}
-            $active={tab.selectedId === reaction.emoji}
-          >
-            <Emoji size={16}>{reaction.emoji}</Emoji>
-          </StyledTab>
-        ))}
+        <Tabs.List>
+          {model.reactions.map((reaction) => (
+            <StyledTab
+              key={reaction.emoji}
+              value={reaction.emoji}
+              aria-label={t("Reaction")}
+              $active={selectedTab === reaction.emoji}
+            >
+              <Emoji size={16}>{reaction.emoji}</Emoji>
+            </StyledTab>
+          ))}
+        </Tabs.List>
       </TabActionsWrapper>
       {model.reactions.map((reaction) => {
         const reactedUsers = compact(
@@ -62,7 +72,7 @@ const ViewReactionsDialog: React.FC<Props> = ({ model }) => {
         );
 
         return (
-          <StyledTabPanel {...tab} key={reaction.emoji}>
+          <StyledTabPanel key={reaction.emoji} value={reaction.emoji}>
             {reactedUsers.map((user) => (
               <UserInfo key={user.name} align="center" gap={8}>
                 <Avatar model={user} size={AvatarSize.Medium} />
@@ -72,7 +82,7 @@ const ViewReactionsDialog: React.FC<Props> = ({ model }) => {
           </StyledTabPanel>
         );
       })}
-    </>
+    </Tabs.Root>
   );
 };
 
@@ -101,7 +111,7 @@ const TabActionsWrapper = styled(Flex)`
   border-bottom: 1px solid ${s("inputBorder")};
 `;
 
-const StyledTab = styled(Tab)<{ $active: boolean }>`
+const StyledTab = styled(Tabs.Trigger)<{ $active: boolean }>`
   position: relative;
   font-weight: 500;
   font-size: 14px;
@@ -132,7 +142,7 @@ const StyledTab = styled(Tab)<{ $active: boolean }>`
     `}
 `;
 
-const StyledTabPanel = styled(TabPanel)`
+const StyledTabPanel = styled(Tabs.Content)`
   height: 300px;
   padding: 5px 0;
   overflow-y: auto;
