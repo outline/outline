@@ -11,7 +11,15 @@ import styled from "styled-components";
 import useDragResize from "@shared/editor/components/hooks/useDragResize";
 import { ComponentProps } from "@shared/editor/types";
 import { EditorView } from "prosemirror-view";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { sanitizeUrl } from "@shared/utils/urls";
 import { Node } from "prosemirror-model";
 import { Error } from "@shared/editor/components/Image";
@@ -22,7 +30,41 @@ import NudeButton from "./NudeButton";
 function Lightbox() {
   const { view } = useEditor();
   const { ui } = useStores();
+  const imgRef = useRef<HTMLImageElement | null>(null);
   const { activeLightboxImgPos } = ui;
+  const animate = useCallback(() => {
+    if (activeLightboxImgPos && imgRef.current) {
+      const dom = view.nodeDOM(activeLightboxImgPos) as HTMLElement;
+      // in editor
+      const editorImageEl = dom.querySelector("img") as HTMLImageElement;
+      const editorImgDOMRect = editorImageEl.getBoundingClientRect();
+      const {
+        top: editorImgTop,
+        left: editorImgLeft,
+        width: editorImgWidth,
+        height: editorImgHeight,
+      } = editorImgDOMRect;
+
+      // in lightbox
+      const lightboxImageEl = imgRef.current;
+      const lightboxImgDOMRect = lightboxImageEl.getBoundingClientRect();
+      const {
+        top: lightboxImgTop,
+        left: lightboxImgLeft,
+        width: lightboxImgWidth,
+        height: lightboxImgHeight,
+      } = lightboxImgDOMRect;
+
+      // First we translate the lightbox image to the position of its corresponding editor image
+      // and then from there, animate it back to its position in lightbox.
+      lightboxImageEl.style.transform = `translate(${editorImgLeft - lightboxImgLeft}px, ${editorImgTop - lightboxImgTop}px) scale(${editorImgWidth / lightboxImgWidth}, ${editorImgHeight / lightboxImgHeight})`;
+      requestAnimationFrame(() => {
+        lightboxImageEl.style.transform = "translate(0) scale(1)";
+        lightboxImageEl.style.visibility = "visible";
+        lightboxImageEl.style.transition = "transform 0.3s ease-in-out";
+      });
+    }
+  }, [activeLightboxImgPos, view, imgRef.current]);
   if (!activeLightboxImgPos) {
     return null;
   }
@@ -97,7 +139,7 @@ function Lightbox() {
               <CloseIcon size={32} />
             </Close>
           </Dialog.Close>
-          <Image node={currImgNode} />
+          <Image ref={imgRef} node={currImgNode} onLoad={animate} />
           <Nav>
             <StyledActionButton onClick={prev}>
               <BackIcon size={32} />
@@ -119,9 +161,13 @@ enum Status {
 
 type Props = {
   node: Node;
+  onLoad: () => void;
 };
 
-const Image = (props: Props) => {
+const Image = forwardRef<HTMLImageElement, Props>(function _Image(
+  props: Props,
+  ref
+) {
   const { node } = props;
   const [status, setStatus] = useState<Status | null>(null);
 
@@ -135,8 +181,10 @@ const Image = (props: Props) => {
   ) : (
     <Figure style={{ width: imgWidth, height: imgHeight }}>
       <img
+        ref={ref}
         src={sanitizeUrl(node.attrs.src)}
         style={{
+          visibility: "hidden",
           maxHeight: "100%",
           maxWidth: "100%",
           objectFit: "scale-down",
@@ -158,12 +206,13 @@ const Image = (props: Props) => {
             node.attrs.height || (ev.target as HTMLImageElement).naturalHeight;
           setImgHeight(height);
           setStatus(Status.LOADED);
+          props.onLoad();
         }}
       />
       <Caption>{node.attrs.alt || ""}</Caption>
     </Figure>
   );
-};
+});
 
 const Figure = styled("figure")`
   max-width: 100%;
