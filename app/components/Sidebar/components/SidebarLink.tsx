@@ -38,6 +38,10 @@ const activeDropStyle = {
   fontWeight: 600,
 };
 
+const preventDefault = (ev: React.MouseEvent) => {
+  ev.preventDefault();
+};
+
 function SidebarLink(
   {
     icon,
@@ -104,7 +108,8 @@ function SidebarLink(
           {expanded !== undefined && (
             <Disclosure
               expanded={expanded}
-              onClick={onDisclosureClick}
+              onMouseDown={onDisclosureClick}
+              onClick={preventDefault}
               root={depth === 0}
               tabIndex={-1}
             />
