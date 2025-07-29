@@ -47,6 +47,9 @@ import MembershipPreview from "./components/MembershipPreview";
 import Notices from "./components/Notices";
 import Overview from "./components/Overview";
 import ShareButton from "./components/ShareButton";
+import Tooltip from "~/components/Tooltip";
+import Button from "~/components/Button";
+import { Link } from "react-router-dom";
 
 const IconPicker = lazy(() => import("~/components/IconPicker"));
 
@@ -77,6 +80,10 @@ const CollectionScene = observer(function _CollectionScene() {
   const collection: Collection | null | undefined =
     collections.getByUrl(id) || collections.get(id);
   const can = usePolicy(collection);
+
+  // Check if we're in edit mode
+  const isEditRoute = location.pathname.endsWith("/edit");
+  const isEditing = isEditRoute;
 
   const { pins, count } = usePinnedDocuments(urlId, collection?.id);
   const [collectionTab, setCollectionTab] = usePersistedState<CollectionPath>(
@@ -179,7 +186,28 @@ const CollectionScene = observer(function _CollectionScene() {
           <Action>
             {can.update && <ShareButton collection={collection} />}
           </Action>
-          <Actions collection={collection} />
+          {isEditing ? (
+            <Action>
+              <Tooltip
+                content={t("Done editing")}
+                shortcut="Ctrl+Enter"
+                placement="bottom"
+              >
+                <Button
+                  as={Link}
+                  to={{
+                    pathname: collection.path,
+                    state: { sidebarContext },
+                  }}
+                  neutral
+                >
+                  {t("Done editing")}
+                </Button>
+              </Tooltip>
+            </Action>
+          ) : (
+            <Actions collection={collection} />
+          )}
         </>
       }
     >
@@ -219,31 +247,32 @@ const CollectionScene = observer(function _CollectionScene() {
             placeholderCount={count}
           />
 
-          <Documents>
-            <Tabs>
-              {hasOverview && (
-                <Tab {...tabProps(CollectionPath.Overview)}>
-                  {t("Overview")}
-                </Tab>
-              )}
-              <Tab {...tabProps(CollectionPath.Recent)}>{t("Documents")}</Tab>
-              {!collection.isArchived && (
-                <>
-                  <Tab {...tabProps(CollectionPath.Updated)}>
-                    {t("Recently updated")}
+          {!isEditing && (
+            <Documents>
+              <Tabs>
+                {hasOverview && (
+                  <Tab {...tabProps(CollectionPath.Overview)}>
+                    {t("Overview")}
                   </Tab>
-                  <Tab {...tabProps(CollectionPath.Published)}>
-                    {t("Recently published")}
-                  </Tab>
-                  <Tab {...tabProps(CollectionPath.Old)}>
-                    {t("Least recently updated")}
-                  </Tab>
-                  <Tab {...tabProps(CollectionPath.Alphabetical)}>
-                    {t("A–Z")}
-                  </Tab>
-                </>
-              )}
-            </Tabs>
+                )}
+                <Tab {...tabProps(CollectionPath.Recent)}>{t("Documents")}</Tab>
+                {!collection.isArchived && (
+                  <>
+                    <Tab {...tabProps(CollectionPath.Updated)}>
+                      {t("Recently updated")}
+                    </Tab>
+                    <Tab {...tabProps(CollectionPath.Published)}>
+                      {t("Recently published")}
+                    </Tab>
+                    <Tab {...tabProps(CollectionPath.Old)}>
+                      {t("Least recently updated")}
+                    </Tab>
+                    <Tab {...tabProps(CollectionPath.Alphabetical)}>
+                      {t("A–Z")}
+                    </Tab>
+                  </>
+                )}
+              </Tabs>
             <Switch>
               <Route path={collectionPath(collection.path)} exact>
                 <Redirect
@@ -257,7 +286,7 @@ const CollectionScene = observer(function _CollectionScene() {
                 path={collectionPath(collection.path, CollectionPath.Overview)}
               >
                 {hasOverview ? (
-                  <Overview collection={collection} />
+                  <Overview collection={collection} isEditing={isEditing} />
                 ) : (
                   <Redirect
                     to={{
@@ -381,6 +410,7 @@ const CollectionScene = observer(function _CollectionScene() {
               )}
             </Switch>
           </Documents>
+          )}
         </CenteredContent>
       </DropToImport>
     </Scene>
