@@ -28,10 +28,13 @@ import { depths, s } from "@shared/styles";
 import NudeButton from "./NudeButton";
 import usePrevious from "~/hooks/usePrevious";
 import { fadeIn } from "~/styles/animations";
+import useIdle from "~/hooks/useIdle";
+import { Second } from "@shared/utils/time";
 
 function Lightbox() {
   const { view } = useEditor();
   const { ui } = useStores();
+  const isIdle = useIdle(3 * Second.ms);
   const imgRef = useRef<HTMLImageElement | null>(null);
   const { activeLightboxImgPos } = ui;
   const isOpen = !!activeLightboxImgPos;
@@ -164,7 +167,7 @@ function Lightbox() {
             </Close>
           </Dialog.Close>
           <Image ref={imgRef} node={currImgNode} onLoad={animate} />
-          <Nav>
+          <Nav $hidden={isIdle}>
             <StyledActionButton onClick={prev}>
               <BackIcon size={32} />
             </StyledActionButton>
@@ -287,9 +290,11 @@ const Close = styled(NudeButton)`
   }
 `;
 
-const Nav = styled.div`
+const Nav = styled.div<{ $hidden: boolean }>`
   position: absolute;
   bottom: 12px;
+  transition: opacity 500ms ease-in-out;
+  ${(props) => props.$hidden && "opacity: 0;"}
 `;
 
 const StyledActionButton = styled(NudeButton)`
