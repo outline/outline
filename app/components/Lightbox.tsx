@@ -74,12 +74,16 @@ function Lightbox() {
       requestAnimationFrame(() => {
         const tx = lightboxImgLeft - editorImgLeft;
         const ty = lightboxImgTop - editorImgTop;
-        lightboxImageEl.style.width = `${lightboxImgWidth}px`;
-        lightboxImageEl.style.height = `${lightboxImgHeight}px`;
-        lightboxImageEl.style.visibility = "visible";
-        lightboxImageEl.style.transform = `translate(${tx}px, ${ty}px)`;
         lightboxImageEl.style.transition =
           "transform 300ms, width 300ms, height 300ms";
+        lightboxImageEl.style.transform = `translate(${tx}px, ${ty}px)`;
+
+        lightboxImageEl.ontransitionstart = () => {
+          lightboxImageEl.style.width = `${lightboxImgWidth}px`;
+          lightboxImageEl.style.height = `${lightboxImgHeight}px`;
+          lightboxImageEl.style.visibility = "visible";
+        };
+
         lightboxImageEl.ontransitionend = () => {
           lightboxImageEl.style.position = "";
           lightboxImageEl.style.top = "";
