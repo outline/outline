@@ -7,7 +7,6 @@ import { Sequelize } from "sequelize";
 import isUUID from "validator/lib/isUUID";
 import { IntegrationType, TeamPreference } from "@shared/types";
 import { unicodeCLDRtoISO639 } from "@shared/utils/date";
-import { loadShare } from "@server/commands/shareLoader";
 import env from "@server/env";
 import { Integration } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
@@ -15,6 +14,7 @@ import presentEnv from "@server/presenters/env";
 import { getTeamFromContext } from "@server/utils/passport";
 import prefetchTags from "@server/utils/prefetchTags";
 import readManifestFile from "@server/utils/readManifestFile";
+import { loadPublicShare } from "@server/commands/shareLoader";
 
 const readFile = util.promisify(fs.readFile);
 const entry = "app/index.tsx";
@@ -154,7 +154,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
 
   try {
     team = await getTeamFromContext(ctx);
-    const result = await loadShare({
+    const result = await loadPublicShare({
       id: shareId,
       collectionId: collectionSlug,
       documentId: documentSlug,

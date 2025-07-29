@@ -21,7 +21,6 @@ import documentLoader from "@server/commands/documentLoader";
 import documentMover from "@server/commands/documentMover";
 import documentPermanentDeleter from "@server/commands/documentPermanentDeleter";
 import documentUpdater from "@server/commands/documentUpdater";
-import { loadShare } from "@server/commands/shareLoader";
 import env from "@server/env";
 import {
   InvalidRequestError,
@@ -78,6 +77,7 @@ import { navigationNodeToSitemap } from "@server/utils/sitemap";
 import { assertPresent } from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
+import { loadPublicShare } from "@server/commands/shareLoader";
 
 const router = new Router();
 
@@ -598,7 +598,10 @@ router.post(
                 )
               : undefined,
             sharedTree:
-              share && share.documentId && share.includeChildDocuments && collection
+              share &&
+              share.documentId &&
+              share.includeChildDocuments &&
+              collection
                 ? collection?.getDocumentTree(share.documentId)
                 : null,
           }
@@ -1025,14 +1028,24 @@ router.post(
 
     if (shareId) {
       const teamFromCtx = await getTeamFromContext(ctx);
-      const result = await loadShare({
+      const result = await loadPublicShare({
         id: shareId,
         teamId: teamFromCtx?.id,
-        user,
       });
 
       share = result.share;
-      const { collection, document } = result; // One of collection or document should be available
+      let { collection, document } = result; // One of collection or document should be available
+
+      // reload with membership scope if user is authenticated
+      if (user) {
+        collection = collection
+          ? await Collection.findByPk(collection.id, { userId: user.id })
+          : null;
+        document = document
+          ? await Document.findByPk(document.id, { userId: user.id })
+          : null;
+      }
+
       isPublic = collection
         ? cannot(user, "read", collection)
         : cannot(user, "read", document);

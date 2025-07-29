@@ -2,7 +2,6 @@ import Router from "koa-router";
 import isUndefined from "lodash/isUndefined";
 import { FindOptions, Op, WhereAttributeHash, WhereOptions } from "sequelize";
 import { TeamPreference } from "@shared/types";
-import { loadShare } from "@server/commands/shareLoader";
 import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -23,6 +22,10 @@ import { getTeamFromContext } from "@server/utils/passport";
 import { navigationNodeToSitemap } from "@server/utils/sitemap";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
+import {
+  loadPublicShare,
+  loadShareWithParent,
+} from "@server/commands/shareLoader";
 
 const router = new Router();
 
@@ -35,15 +38,70 @@ router.post(
     const { user } = ctx.state.auth;
     const teamFromCtx = await getTeamFromContext(ctx);
 
-    const { share, parentShare, sharedTree, collection, document } =
-      await loadShare({
+    // only public link loads will send "id".
+    if (id) {
+      let { share, sharedTree, collection, document } = await loadPublicShare({
         id,
         collectionId,
         documentId,
-        user,
         teamId: teamFromCtx?.id,
       });
-    const team = teamFromCtx?.id === share.teamId ? teamFromCtx : share.team;
+
+      // reload with membership scope if user is authenticated
+      if (user) {
+        collection = collection
+          ? await Collection.findByPk(collection.id, { userId: user.id })
+          : null;
+        document = document
+          ? await Document.findByPk(document.id, { userId: user.id })
+          : null;
+      }
+
+      const team = teamFromCtx?.id === share.teamId ? teamFromCtx : share.team;
+
+      const [serializedCollection, serializedDocument, serializedTeam] =
+        await Promise.all([
+          collection
+            ? await presentCollection(ctx, collection, {
+                isPublic: cannot(user, "read", collection),
+                shareId: share.id,
+                includeUpdatedAt: share.showLastUpdated,
+              })
+            : null,
+          document
+            ? await presentDocument(ctx, document, {
+                isPublic: cannot(user, "read", document),
+                shareId: share.id,
+                includeUpdatedAt: share.showLastUpdated,
+              })
+            : null,
+          presentPublicTeam(
+            team,
+            !!team.getPreference(TeamPreference.PublicBranding)
+          ),
+        ]);
+
+      ctx.body = {
+        data: {
+          shares: [presentShare(share, user?.isAdmin ?? false)],
+          sharedTree: sharedTree,
+          team: serializedTeam,
+          collection: serializedCollection,
+          document: serializedDocument,
+        },
+        policies: presentPolicies(user, [share]),
+      };
+      return;
+    }
+
+    // load share with parent for displaying in the share popovers.
+
+    const { share, parentShare } = await loadShareWithParent({
+      collectionId,
+      documentId,
+      user,
+    });
+
     const shares = [share, parentShare].filter(Boolean) as Share[];
 
     if (!shares.length) {
@@ -51,37 +109,9 @@ router.post(
       return;
     }
 
-    const isPublicCollection = cannot(user, "read", collection);
-    const isPublicDocument = cannot(user, "read", document);
-    const [serializedCollection, serializedDocument, serializedTeam] =
-      await Promise.all([
-        collection
-          ? await presentCollection(ctx, collection, {
-              isPublic: isPublicCollection,
-              shareId: share.id,
-              includeUpdatedAt: share.showLastUpdated,
-            })
-          : null,
-        document
-          ? await presentDocument(ctx, document, {
-              isPublic: isPublicDocument,
-              shareId: share.id,
-              includeUpdatedAt: share.showLastUpdated,
-            })
-          : null,
-        presentPublicTeam(
-          team,
-          !!team.getPreference(TeamPreference.PublicBranding)
-        ),
-      ]);
-
     ctx.body = {
       data: {
-        shares: shares.map((s) => presentShare(s, user?.isAdmin ?? false)),
-        sharedTree,
-        team: serializedTeam,
-        collection: serializedCollection,
-        document: serializedDocument,
+        shares: shares.map((s) => presentShare(s, user.isAdmin ?? false)),
       },
       policies: presentPolicies(user, shares),
     };
@@ -342,7 +372,7 @@ router.get(
   async (ctx: APIContext<T.SharesSitemapReq>) => {
     const { id } = ctx.input.query;
 
-    const { share, sharedTree } = await loadShare({ id });
+    const { share, sharedTree } = await loadPublicShare({ id });
 
     const baseUrl = `${process.env.URL}/s/${id}`;
 

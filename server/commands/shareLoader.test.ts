@@ -5,7 +5,7 @@ import {
   buildTeam,
   buildUser,
 } from "@server/test/factories";
-import { loadShare } from "./shareLoader";
+import { loadPublicShare, loadShareWithParent } from "./shareLoader";
 
 describe("shareLoader", () => {
   describe("collection share", () => {
@@ -32,7 +32,7 @@ describe("shareLoader", () => {
         collectionId: collection.id,
       });
 
-      const result = await loadShare({
+      const result = await loadPublicShare({
         id: share.id,
       });
 
@@ -44,7 +44,6 @@ describe("shareLoader", () => {
         childDocument.id
       );
       expect(result.document).toBeNull();
-      expect(result.parentShare).toBeNull();
     });
 
     it("should return only share when requested with collectionId", async () => {
@@ -59,15 +58,12 @@ describe("shareLoader", () => {
         collectionId: collection.id,
       });
 
-      const result = await loadShare({
+      const result = await loadShareWithParent({
         collectionId: collection.id,
         user,
       });
 
       expect(result.share.id).toEqual(share.id);
-      expect(result.parentShare).toBeNull();
-      expect(result.collection).toBeNull();
-      expect(result.document).toBeNull();
       expect(result.parentShare).toBeNull();
     });
 
@@ -88,7 +84,7 @@ describe("shareLoader", () => {
       });
 
       await expect(
-        loadShare({ id: share.id, collectionId: anotherCollection.id })
+        loadPublicShare({ id: share.id, collectionId: anotherCollection.id })
       ).rejects.toThrow();
     });
   });
@@ -118,7 +114,7 @@ describe("shareLoader", () => {
         documentId: document.id,
       });
 
-      const result = await loadShare({
+      const result = await loadPublicShare({
         id: share.id,
       });
 
@@ -128,7 +124,6 @@ describe("shareLoader", () => {
       expect(result.sharedTree?.children.length).toEqual(1);
       expect(result.sharedTree?.children[0].id).toEqual(childDocument.id);
       expect(result.collection).toBeNull();
-      expect(result.parentShare).toBeNull();
     });
 
     it("should not return share tree when includeChildDocuments is false", async () => {
@@ -155,7 +150,7 @@ describe("shareLoader", () => {
         documentId: document.id,
       });
 
-      const result = await loadShare({
+      const result = await loadPublicShare({
         id: share.id,
       });
 
@@ -163,7 +158,6 @@ describe("shareLoader", () => {
       expect(result.document?.id).toEqual(document.id);
       expect(result.sharedTree).toBeNull();
       expect(result.collection).toBeNull();
-      expect(result.parentShare).toBeNull();
     });
 
     it("should return share and parentShare when requested with documentId", async () => {
@@ -198,16 +192,13 @@ describe("shareLoader", () => {
         }),
       ]);
 
-      const result = await loadShare({
+      const result = await loadShareWithParent({
         documentId: childDocument.id,
         user,
       });
 
       expect(result.share.id).toEqual(share.id);
       expect(result.parentShare?.id).toEqual(parentShare.id);
-      expect(result.collection).toBeNull();
-      expect(result.document).toBeNull();
-      expect(result.sharedTree).toBeNull();
     });
 
     it("should throw error when the requested document is not part of the share", async () => {
@@ -233,7 +224,7 @@ describe("shareLoader", () => {
       });
 
       await expect(
-        loadShare({ id: share.id, documentId: anotherDocument.id })
+        loadPublicShare({ id: share.id, documentId: anotherDocument.id })
       ).rejects.toThrow();
     });
   });
@@ -244,7 +235,7 @@ describe("shareLoader", () => {
         published: false,
       });
 
-      await expect(loadShare({ id: share.id })).rejects.toThrow();
+      await expect(loadPublicShare({ id: share.id })).rejects.toThrow();
     });
 
     it("should throw error when team has disabled sharing", async () => {
@@ -255,7 +246,7 @@ describe("shareLoader", () => {
         teamId: team.id,
       });
 
-      await expect(loadShare({ id: share.id })).rejects.toThrow();
+      await expect(loadPublicShare({ id: share.id })).rejects.toThrow();
     });
 
     it("should throw error when collection has disabled sharing", async () => {
@@ -267,7 +258,7 @@ describe("shareLoader", () => {
         teamId: collection.teamId,
       });
 
-      await expect(loadShare({ id: share.id })).rejects.toThrow();
+      await expect(loadPublicShare({ id: share.id })).rejects.toThrow();
     });
 
     it("should throw error when collection is archived", async () => {
@@ -279,7 +270,7 @@ describe("shareLoader", () => {
         teamId: collection.teamId,
       });
 
-      await expect(loadShare({ id: share.id })).rejects.toThrow();
+      await expect(loadPublicShare({ id: share.id })).rejects.toThrow();
     });
 
     it("should throw error when document is archived", async () => {
@@ -291,7 +282,7 @@ describe("shareLoader", () => {
         teamId: document.teamId,
       });
 
-      await expect(loadShare({ id: share.id })).rejects.toThrow();
+      await expect(loadPublicShare({ id: share.id })).rejects.toThrow();
     });
   });
 });
