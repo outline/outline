@@ -23,9 +23,10 @@ const extensions = withUIExtensions(richExtensions);
 
 type Props = {
   collection: Collection;
+  isEditing?: boolean;
 };
 
-function Overview({ collection }: Props) {
+function Overview({ collection, isEditing = false }: Props) {
   const { documents, collections } = useStores();
   const { t } = useTranslation();
   const user = useCurrentUser({ rejectOnEmpty: true });
@@ -88,7 +89,7 @@ function Overview({ collection }: Props) {
             maxLength={CollectionValidation.maxDescriptionLength}
             onCreateLink={onCreateLink}
             canUpdate={can.update}
-            readOnly={!can.update}
+            readOnly={!can.update || !isEditing}
             userId={user.id}
             editorStyle={editorStyle}
           />
