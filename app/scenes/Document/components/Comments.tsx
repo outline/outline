@@ -24,6 +24,7 @@ import CommentForm from "./CommentForm";
 import CommentSortMenu from "./CommentSortMenu";
 import CommentThread from "./CommentThread";
 import Sidebar from "./SidebarLayout";
+import useMobile from "~/hooks/useMobile";
 
 function Comments() {
   const { ui, comments, documents } = useStores();
@@ -35,6 +36,7 @@ function Comments() {
   const document = documents.getByUrl(match.params.documentSlug);
   const focusedComment = useFocusedComment();
   const can = usePolicy(document);
+  const isMobile = useMobile();
 
   const scrollableRef = useRef<HTMLDivElement | null>(null);
   const prevThreadCount = useRef(0);
@@ -171,7 +173,7 @@ function Comments() {
         </Wrapper>
       </Scrollable>
       <AnimatePresence initial={false}>
-        {!focusedComment && can.comment && !viewingResolved && (
+        {(!focusedComment || isMobile) && can.comment && !viewingResolved && (
           <NewCommentForm
             draft={draft}
             onSaveDraft={onSaveDraft}

@@ -117,13 +117,11 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
     >
       {(showHistory || showInsights || showComments) && (
         <Route path={`/doc/${slug}`}>
-          <SidebarRight>
             <React.Suspense fallback={null}>
               {showHistory && <DocumentHistory />}
               {showInsights && <DocumentInsights />}
               {showComments && <DocumentComments />}
             </React.Suspense>
-          </SidebarRight>
         </Route>
       )}
     </AnimatePresence>

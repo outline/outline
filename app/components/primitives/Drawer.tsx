@@ -16,6 +16,8 @@ Drawer.displayName = "Drawer";
 /** Drawer's trigger. */
 const DrawerTrigger = DrawerPrimitive.Trigger;
 
+const DrawerHandle = DrawerPrimitive.Handle;
+
 /** Drawer's content - renders the overlay and the actual content. */
 const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
@@ -87,4 +89,4 @@ const TitleWrapper = styled(Flex)`
   padding: 8px 0;
 `;
 
-export { Drawer, DrawerTrigger, DrawerContent, DrawerTitle };
+export { Drawer, DrawerTrigger, DrawerHandle, DrawerContent, DrawerTitle };

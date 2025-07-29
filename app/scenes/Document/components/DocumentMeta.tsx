@@ -15,6 +15,7 @@ import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { documentPath, documentInsightsPath } from "~/utils/routeHelpers";
+import breakpoint from "styled-components-breakpoint";
 
 type Props = {
   /* The document to display meta data for */
@@ -101,6 +102,11 @@ export const Meta = styled(DocumentMeta)<{ rtl?: boolean }>`
   position: relative;
   user-select: none;
   z-index: 1;
+
+  ${breakpoint("mobile", "tablet")`
+    flex-direction: column;
+    align-items: flex-start;
+  `}
 
   a {
     color: inherit;
