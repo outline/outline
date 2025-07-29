@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable no-undef */
-const { exec } = require("child_process");
+const { execFile } = require("child_process");
 const { readdirSync, existsSync } = require("fs");
 
 const getDirectories = (source) =>
@@ -16,7 +16,7 @@ const getDirectories = (source) =>
  */
 function execAsync(cmd) {
   return new Promise((resolve, reject) => {
-    exec(cmd, (error, stdout, stderr) => {
+    const parts = cmd.trim().split(/\s+/); execFile(parts[0], parts.slice(1), (error, stdout, stderr) => {
       if (error) {
         reject(error);
       } else {
