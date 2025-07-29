@@ -26,14 +26,20 @@ import { Error } from "@shared/editor/components/Image";
 import { BackIcon, CloseIcon, CrossIcon, NextIcon } from "outline-icons";
 import { depths, s } from "@shared/styles";
 import NudeButton from "./NudeButton";
+import usePrevious from "~/hooks/usePrevious";
 
 function Lightbox() {
   const { view } = useEditor();
   const { ui } = useStores();
   const imgRef = useRef<HTMLImageElement | null>(null);
   const { activeLightboxImgPos } = ui;
+  const isOpen = !!activeLightboxImgPos;
+  const prevActiveLightboxImgPos = usePrevious(activeLightboxImgPos);
+  const wasOpen = !!prevActiveLightboxImgPos;
+  const shouldAnimate = isOpen && !wasOpen;
+
   const animate = useCallback(() => {
-    if (activeLightboxImgPos && imgRef.current) {
+    if (shouldAnimate && imgRef.current) {
       const dom = view.nodeDOM(activeLightboxImgPos) as HTMLElement;
       // in editor
       const editorImageEl = dom.querySelector("img") as HTMLImageElement;
@@ -55,16 +61,33 @@ function Lightbox() {
         height: lightboxImgHeight,
       } = lightboxImgDOMRect;
 
-      // First we translate the lightbox image to the position of its corresponding editor image
-      // and then from there, animate it back to its position in lightbox.
-      lightboxImageEl.style.transform = `translate(${editorImgLeft - lightboxImgLeft}px, ${editorImgTop - lightboxImgTop}px) scale(${editorImgWidth / lightboxImgWidth}, ${editorImgHeight / lightboxImgHeight})`;
+      lightboxImageEl.style.position = "fixed";
+      lightboxImageEl.style.top = `${editorImgTop}px`;
+      lightboxImageEl.style.left = `${editorImgLeft}px`;
+      lightboxImageEl.style.width = `${editorImgWidth}px`;
+      lightboxImageEl.style.height = `${editorImgHeight}px`;
+
       requestAnimationFrame(() => {
-        lightboxImageEl.style.transform = "translate(0) scale(1)";
+        const tx = lightboxImgLeft - editorImgLeft;
+        const ty = lightboxImgTop - editorImgTop;
+        lightboxImageEl.style.width = `${lightboxImgWidth}px`;
+        lightboxImageEl.style.height = `${lightboxImgHeight}px`;
         lightboxImageEl.style.visibility = "visible";
-        lightboxImageEl.style.transition = "transform 0.3s ease-in-out";
+        lightboxImageEl.style.transform = `translate(${tx}px, ${ty}px)`;
+        lightboxImageEl.style.transition =
+          "transform 300ms, width 300ms, height 300ms";
+        lightboxImageEl.ontransitionend = () => {
+          lightboxImageEl.style.position = "";
+          lightboxImageEl.style.top = "";
+          lightboxImageEl.style.left = "";
+          lightboxImageEl.style.width = "";
+          lightboxImageEl.style.height = "";
+          lightboxImageEl.style.transform = "";
+          lightboxImageEl.style.transition = "";
+        };
       });
     }
-  }, [activeLightboxImgPos, view, imgRef.current]);
+  }, [shouldAnimate, imgRef.current]);
   if (!activeLightboxImgPos) {
     return null;
   }
@@ -245,6 +268,7 @@ const StyledContent = styled(Dialog.Content)`
   justify-content: center;
   align-items: center;
   outline: none;
+  padding: 0 44px;
 `;
 
 const Close = styled(NudeButton)`
