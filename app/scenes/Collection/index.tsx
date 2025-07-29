@@ -50,6 +50,7 @@ import ShareButton from "./components/ShareButton";
 import Tooltip from "~/components/Tooltip";
 import Button from "~/components/Button";
 import { Link } from "react-router-dom";
+import useCurrentUser from "~/hooks/useCurrentUser";
 
 const IconPicker = lazy(() => import("~/components/IconPicker"));
 
@@ -80,10 +81,11 @@ const CollectionScene = observer(function _CollectionScene() {
   const collection: Collection | null | undefined =
     collections.getByUrl(id) || collections.get(id);
   const can = usePolicy(collection);
+  const user = useCurrentUser();
 
   // Check if we're in edit mode
   const isEditRoute = location.pathname.endsWith("/edit");
-  const isEditing = isEditRoute;
+  const isEditing = isEditRoute || !user?.separateEditMode;
 
   const { pins, count } = usePinnedDocuments(urlId, collection?.id);
   const [collectionTab, setCollectionTab] = usePersistedState<CollectionPath>(
@@ -186,7 +188,7 @@ const CollectionScene = observer(function _CollectionScene() {
           <Action>
             {can.update && <ShareButton collection={collection} />}
           </Action>
-          {isEditing ? (
+          {isEditing && user?.separateEditMode ? (
             <Action>
               <Tooltip
                 content={t("Done editing")}

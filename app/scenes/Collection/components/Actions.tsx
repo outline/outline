@@ -7,6 +7,7 @@ import { Action, Separator } from "~/components/Actions";
 import Button from "~/components/Button";
 import Tooltip from "~/components/Tooltip";
 import usePolicy from "~/hooks/usePolicy";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import CollectionMenu from "~/menus/CollectionMenu";
 import { newDocumentPath, collectionEditPath } from "~/utils/routeHelpers";
 
@@ -17,6 +18,7 @@ type Props = {
 function Actions({ collection }: Props) {
   const { t } = useTranslation();
   const can = usePolicy(collection);
+  const user = useCurrentUser();
 
   return (
     <>
@@ -41,7 +43,7 @@ function Actions({ collection }: Props) {
           <Separator />
         </>
       )}
-      {can.update && (
+      {can.update && user.separateEditMode && (
         <Action>
           <Tooltip
             content={t("Edit collection")}
