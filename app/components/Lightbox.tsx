@@ -257,7 +257,7 @@ const Caption = styled("figcaption")`
 const StyledOverlay = styled(Dialog.Overlay)`
   position: fixed;
   inset: 0;
-  background-color: ${s("modalBackground")};
+  background-color: ${s("background")};
   z-index: ${depths.overlay};
   animation: ${fadeIn} 0.3s;
 `;
