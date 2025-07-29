@@ -27,6 +27,7 @@ import { BackIcon, CloseIcon, CrossIcon, NextIcon } from "outline-icons";
 import { depths, s } from "@shared/styles";
 import NudeButton from "./NudeButton";
 import usePrevious from "~/hooks/usePrevious";
+import { fadeIn } from "~/styles/animations";
 
 function Lightbox() {
   const { view } = useEditor();
@@ -256,8 +257,9 @@ const Caption = styled("figcaption")`
 const StyledOverlay = styled(Dialog.Overlay)`
   position: fixed;
   inset: 0;
-  background-color: ${(props) => props.theme.modalBackground};
+  background-color: ${s("modalBackground")};
   z-index: ${depths.overlay};
+  animation: ${fadeIn} 0.3s;
 `;
 
 const StyledContent = styled(Dialog.Content)`
