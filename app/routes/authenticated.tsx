@@ -83,6 +83,11 @@ function AuthenticatedRoutes() {
               <Route exact path="/collection/:id/new" component={DocumentNew} />
               <Route
                 exact
+                path="/collection/:id/edit"
+                component={Collection}
+              />
+              <Route
+                exact
                 path="/collection/:id/:tab?"
                 component={Collection}
               />
