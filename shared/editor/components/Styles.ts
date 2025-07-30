@@ -605,11 +605,15 @@ iframe.embed {
 }
 
 .${EditorStyleHelper.tableFullWidth} {
-  transform: translateX(calc(50% + ${
-    EditorStyleHelper.padding
-  }px + var(--container-width) * -0.5 + var(--full-width-transform-offset)));
+  transform: translateX(calc(50% + var(--container-width) * -0.5 + var(--full-width-transform-offset)));
 
-  .${EditorStyleHelper.tableScrollable},
+  .${EditorStyleHelper.tableScrollable} {
+    margin: -1em 0 -0.5em;
+    padding-left: 0;
+    padding-right: 0;
+    width: calc(var(--container-width) - ${EditorStyleHelper.padding * 2}px);
+  }
+
   table {
     width: calc(var(--container-width) - ${EditorStyleHelper.padding * 2}px);
   }

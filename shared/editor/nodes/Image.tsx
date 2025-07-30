@@ -122,8 +122,24 @@ export default class Image extends SimpleImage {
               ? layoutClassMatched[1]
               : null;
 
-            const width = img?.getAttribute("width");
-            const height = img?.getAttribute("height");
+            
+            let width = img?.getAttribute("width");
+            let height = img?.getAttribute("height");
+
+          
+            if (!width && img?.style.width) {
+              const styleWidth = img.style.width;
+              if (styleWidth.endsWith('px')) {
+                width = styleWidth.slice(0, -2);
+              }
+            }
+            if (!height && img?.style.height) {
+              const styleHeight = img.style.height;
+              if (styleHeight.endsWith('px')) {
+                height = styleHeight.slice(0, -2);
+              }
+            }
+
             return {
               src: img?.getAttribute("src"),
               alt: img?.getAttribute("alt"),
@@ -137,8 +153,24 @@ export default class Image extends SimpleImage {
         {
           tag: "img",
           getAttrs: (dom: HTMLImageElement) => {
-            const width = dom.getAttribute("width");
-            const height = dom.getAttribute("height");
+            // First try HTML attributes
+            let width = dom.getAttribute("width");
+            let height = dom.getAttribute("height");
+
+            // If no HTML attributes, try CSS styles
+            if (!width && dom.style.width) {
+              const styleWidth = dom.style.width;
+              if (styleWidth.endsWith('px')) {
+                width = styleWidth.slice(0, -2);
+              }
+            }
+            if (!height && dom.style.height) {
+              const styleHeight = dom.style.height;
+              if (styleHeight.endsWith('px')) {
+                height = styleHeight.slice(0, -2);
+              }
+            }
+
             return {
               src: dom.getAttribute("src"),
               alt: dom.getAttribute("alt"),
