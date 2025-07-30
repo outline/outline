@@ -279,7 +279,7 @@ const StyledContent = styled(Dialog.Content)`
   justify-content: center;
   align-items: center;
   outline: none;
-  padding: 0 44px;
+  padding: 0 56px;
 `;
 
 const CloseButton = styled(NudeButton)`
@@ -298,7 +298,7 @@ const CloseButton = styled(NudeButton)`
 
 const Nav = styled.div<{ $hidden: boolean; dir: "left" | "right" }>`
   position: absolute;
-  ${(props) => (props.dir === "left" ? "left: 32px;" : "right: 32px;")}
+  ${(props) => (props.dir === "left" ? "left: 0;" : "right: 0;")}
   transition: opacity 500ms ease-in-out;
   ${(props) => props.$hidden && "opacity: 0;"}
 `;
