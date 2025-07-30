@@ -55,7 +55,7 @@ const parseTitleAttribute = (tokenTitle: string): TitleAttributes => {
   return attributes;
 };
 
-const downloadImageNode = async (node: ProsemirrorNode) => {
+export const downloadImageNode = async (node: ProsemirrorNode) => {
   const image = await fetch(node.attrs.src);
   const imageBlob = await image.blob();
   const imageURL = URL.createObjectURL(imageBlob);
