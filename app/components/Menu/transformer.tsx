@@ -16,6 +16,7 @@ import {
   MenuExternalLink,
   MenuLabel,
   MenuSeparator,
+  MenuDisclosure,
 } from "~/components/primitives/components/Menu";
 import { MenuItem } from "~/types";
 
@@ -123,7 +124,11 @@ export function toDropdownMenuItems(items: MenuItem[]) {
   });
 }
 
-export function toMobileMenuItems(items: MenuItem[], closeMenu: () => void) {
+export function toMobileMenuItems(
+  items: MenuItem[],
+  closeMenu: () => void,
+  openSubmenu: (submenuName: string) => void
+) {
   const filteredItems = filterMenuItems(items);
 
   if (!filteredItems.length) {
@@ -191,8 +196,38 @@ export function toMobileMenuItems(items: MenuItem[], closeMenu: () => void) {
           </MenuExternalLink>
         );
 
+      case "submenu": {
+        const submenuItems = toMobileMenuItems(
+          item.items,
+          closeMenu,
+          openSubmenu
+        );
+
+        if (!submenuItems?.length) {
+          return null;
+        }
+
+        return (
+          <MenuButton
+            key={`${item.type}-${item.title}-${index}`}
+            disabled={item.disabled}
+            onClick={() => {
+              openSubmenu(item.title as string);
+            }}
+          >
+            {icon}
+            <MenuLabel>{item.title}</MenuLabel>
+            <MenuDisclosure />
+          </MenuButton>
+        );
+      }
+
       case "group": {
-        const groupItems = toMobileMenuItems(item.items, closeMenu);
+        const groupItems = toMobileMenuItems(
+          item.items,
+          closeMenu,
+          openSubmenu
+        );
 
         if (!groupItems?.length) {
           return null;
