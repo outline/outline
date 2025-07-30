@@ -23,13 +23,20 @@ import {
 import { sanitizeUrl } from "@shared/utils/urls";
 import { Node } from "prosemirror-model";
 import { Error } from "@shared/editor/components/Image";
-import { BackIcon, CloseIcon, CrossIcon, NextIcon } from "outline-icons";
+import {
+  BackIcon,
+  CloseIcon,
+  CrossIcon,
+  DownloadIcon,
+  NextIcon,
+} from "outline-icons";
 import { depths, s } from "@shared/styles";
 import NudeButton from "./NudeButton";
 import usePrevious from "~/hooks/usePrevious";
 import { fadeIn } from "~/styles/animations";
 import useIdle from "~/hooks/useIdle";
 import { Second } from "@shared/utils/time";
+import { downloadImageNode } from "@shared/editor/nodes/Image";
 
 function Lightbox() {
   const { view } = useEditor();
@@ -144,6 +151,9 @@ function Lightbox() {
   const close = () => {
     ui.setActiveLightboxImgPos(undefined);
   };
+  const download = () => {
+    void downloadImageNode(currImgNode);
+  };
   const handleKeyDown = (ev: React.KeyboardEvent<HTMLDivElement>) => {
     switch (ev.key) {
       case "ArrowLeft": {
@@ -160,26 +170,32 @@ function Lightbox() {
       }
     }
   };
+
   return (
     <Dialog.Root open={!!activeLightboxImgPos}>
       <Dialog.Portal>
         <StyledOverlay />
         <StyledContent onKeyDown={handleKeyDown}>
-          <Dialog.Close asChild>
-            <CloseButton onClick={close} size={32}>
-              <CloseIcon size={32} />
-            </CloseButton>
-          </Dialog.Close>
-          <Nav dir="left" $hidden={isIdle}>
-            <StyledActionButton onClick={prev} size={32}>
-              <BackIcon size={32} />
+          <Actions>
+            <StyledActionButton onClick={download} size={32}>
+              <DownloadIcon size={32} />
             </StyledActionButton>
+            <Dialog.Close asChild>
+              <StyledActionButton onClick={close} size={32}>
+                <CloseIcon size={32} />
+              </StyledActionButton>
+            </Dialog.Close>
+          </Actions>
+          <Nav dir="left" $hidden={isIdle}>
+            <StyledNavButton onClick={prev} size={32}>
+              <BackIcon size={32} />
+            </StyledNavButton>
           </Nav>
           <Image ref={imgRef} node={currImgNode} onLoad={animate} />
           <Nav dir="right" $hidden={isIdle}>
-            <StyledActionButton onClick={next} size={32}>
+            <StyledNavButton onClick={next} size={32}>
               <NextIcon size={32} />
-            </StyledActionButton>
+            </StyledNavButton>
           </Nav>
         </StyledContent>
       </Dialog.Portal>
@@ -282,14 +298,28 @@ const StyledContent = styled(Dialog.Content)`
   padding: 0 56px;
 `;
 
-const CloseButton = styled(NudeButton)`
+const Actions = styled.div`
   position: absolute;
   top: 0;
   right: 0;
   margin: 12px;
+  display: flex;
+`;
+
+const StyledActionButton = styled(NudeButton)`
   opacity: 0.75;
   color: ${s("text")};
   outline: none;
+
+  &:is(:first-child) {
+    margin-right: 6px;
+    margin-left: 0;
+  }
+
+  &:is(:last-child) {
+    margin-right: 0;
+    margin-left: 6px;
+  }
 
   &:hover {
     opacity: 1;
@@ -303,7 +333,7 @@ const Nav = styled.div<{ $hidden: boolean; dir: "left" | "right" }>`
   ${(props) => props.$hidden && "opacity: 0;"}
 `;
 
-const StyledActionButton = styled(NudeButton)`
+const StyledNavButton = styled(NudeButton)`
   margin: 12px;
   opacity: 0.75;
   color: ${s("text")};
