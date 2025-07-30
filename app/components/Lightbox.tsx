@@ -166,18 +166,18 @@ function Lightbox() {
         <StyledOverlay />
         <StyledContent onKeyDown={handleKeyDown}>
           <Dialog.Close asChild>
-            <Close onClick={close}>
+            <CloseButton onClick={close} size={32}>
               <CloseIcon size={32} />
-            </Close>
+            </CloseButton>
           </Dialog.Close>
           <Nav dir="left" $hidden={isIdle}>
-            <StyledActionButton onClick={prev}>
+            <StyledActionButton onClick={prev} size={32}>
               <BackIcon size={32} />
             </StyledActionButton>
           </Nav>
           <Image ref={imgRef} node={currImgNode} onLoad={animate} />
           <Nav dir="right" $hidden={isIdle}>
-            <StyledActionButton onClick={next}>
+            <StyledActionButton onClick={next} size={32}>
               <NextIcon size={32} />
             </StyledActionButton>
           </Nav>
@@ -282,7 +282,7 @@ const StyledContent = styled(Dialog.Content)`
   padding: 0 44px;
 `;
 
-const Close = styled(NudeButton)`
+const CloseButton = styled(NudeButton)`
   position: absolute;
   top: 0;
   right: 0;
