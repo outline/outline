@@ -170,11 +170,13 @@ function Lightbox() {
               <CloseIcon size={32} />
             </Close>
           </Dialog.Close>
-          <Image ref={imgRef} node={currImgNode} onLoad={animate} />
-          <Nav $hidden={isIdle}>
+          <Nav dir="left" $hidden={isIdle}>
             <StyledActionButton onClick={prev}>
               <BackIcon size={32} />
             </StyledActionButton>
+          </Nav>
+          <Image ref={imgRef} node={currImgNode} onLoad={animate} />
+          <Nav dir="right" $hidden={isIdle}>
             <StyledActionButton onClick={next}>
               <NextIcon size={32} />
             </StyledActionButton>
@@ -294,9 +296,9 @@ const Close = styled(NudeButton)`
   }
 `;
 
-const Nav = styled.div<{ $hidden: boolean }>`
+const Nav = styled.div<{ $hidden: boolean; dir: "left" | "right" }>`
   position: absolute;
-  bottom: 12px;
+  ${(props) => (props.dir === "left" ? "left: 32px;" : "right: 32px;")}
   transition: opacity 500ms ease-in-out;
   ${(props) => props.$hidden && "opacity: 0;"}
 `;
