@@ -191,7 +191,14 @@ function Lightbox() {
               <BackIcon size={32} />
             </StyledNavButton>
           </Nav>
-          <Image ref={imgRef} node={currImgNode} onLoad={animate} />
+          <Image
+            ref={imgRef}
+            node={currImgNode}
+            onLoad={animate}
+            onSwipeRight={next}
+            onSwipeLeft={prev}
+            onSwipeDown={close}
+          />
           <Nav dir="right" $hidden={isIdle}>
             <StyledNavButton onClick={next} size={32}>
               <NextIcon size={32} />
@@ -211,6 +218,9 @@ enum Status {
 type Props = {
   node: Node;
   onLoad: () => void;
+  onSwipeRight: () => void;
+  onSwipeLeft: () => void;
+  onSwipeDown: () => void;
 };
 
 const Image = forwardRef<HTMLImageElement, Props>(function _Image(
@@ -222,6 +232,53 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
 
   const [imgWidth, setImgWidth] = useState(node.attrs.width);
   const [imgHeight, setImgHeight] = useState(node.attrs.height);
+
+  let touchXStart: number | undefined;
+  let touchXEnd: number | undefined;
+  let touchYStart: number | undefined;
+  let touchYEnd: number | undefined;
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLImageElement>) => {
+    touchXStart = e.changedTouches[0].screenX;
+    touchYStart = e.changedTouches[0].screenY;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLImageElement>) => {
+    touchXEnd = e.changedTouches[0].screenX as number;
+    touchYEnd = e.changedTouches[0].screenY as number;
+    const dx = touchXEnd - (touchXStart as number);
+    const dy = touchYEnd - (touchYStart as number);
+    const theta = Math.abs(dy) / Math.abs(dx);
+
+    const swipeRight = dx > 0 && theta < 1;
+    if (swipeRight) {
+      return props.onSwipeRight();
+    }
+
+    const swipeLeft = dx < 0 && theta < 1;
+    if (swipeLeft) {
+      return props.onSwipeLeft();
+    }
+
+    const swipeDown = dy > 0 && theta > 1;
+    if (swipeDown) {
+      return props.onSwipeDown();
+    }
+  };
+
+  const handleTouchEnd = () => {
+    touchXStart = undefined;
+    touchXEnd = undefined;
+    touchYStart = undefined;
+    touchYEnd = undefined;
+  };
+
+  const handleTouchCancel = () => {
+    touchXStart = undefined;
+    touchXEnd = undefined;
+    touchYStart = undefined;
+    touchYEnd = undefined;
+  };
 
   return status === Status.ERROR ? (
     <Error>
@@ -239,6 +296,10 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
           objectFit: "scale-down",
         }}
         alt={node.attrs.alt || ""}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchCancel}
         onError={() => {
           setStatus(Status.ERROR);
         }}
