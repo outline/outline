@@ -1,10 +1,10 @@
 import { SunIcon, MoonIcon, BrowserIcon } from "outline-icons";
 import stores from "~/stores";
 import { Theme } from "~/stores/UiStore";
-import { createAction } from "~/actions";
+import { createActionV2, createActionV2WithChildren } from "~/actions";
 import { SettingsSection } from "~/actions/sections";
 
-export const changeToDarkTheme = createAction({
+export const changeToDarkTheme = createActionV2({
   name: ({ t }) => t("Dark"),
   analyticsName: "Change to dark theme",
   icon: <MoonIcon />,
@@ -15,7 +15,7 @@ export const changeToDarkTheme = createAction({
   perform: () => stores.ui.setTheme(Theme.Dark),
 });
 
-export const changeToLightTheme = createAction({
+export const changeToLightTheme = createActionV2({
   name: ({ t }) => t("Light"),
   analyticsName: "Change to light theme",
   icon: <SunIcon />,
@@ -26,7 +26,7 @@ export const changeToLightTheme = createAction({
   perform: () => stores.ui.setTheme(Theme.Light),
 });
 
-export const changeToSystemTheme = createAction({
+export const changeToSystemTheme = createActionV2({
   name: ({ t }) => t("System"),
   analyticsName: "Change to system theme",
   icon: <BrowserIcon />,
@@ -37,7 +37,7 @@ export const changeToSystemTheme = createAction({
   perform: () => stores.ui.setTheme(Theme.System),
 });
 
-export const changeTheme = createAction({
+export const changeTheme = createActionV2WithChildren({
   name: ({ t, isContextMenu }) =>
     isContextMenu ? t("Appearance") : t("Change theme"),
   analyticsName: "Change theme",

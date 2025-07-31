@@ -21,6 +21,7 @@ import {
 } from "~/types";
 import Analytics from "~/utils/Analytics";
 import history from "~/utils/history";
+import { Action as KbarAction } from "kbar";
 
 function resolve<T>(value: any, context: ActionContext): T {
   return typeof value === "function" ? value(context) : value;
@@ -339,6 +340,83 @@ export function actionV2ToMenuItem(
 
     case "action_separator":
       return { type: "separator" };
+  }
+}
+
+export function actionV2ToKBar(
+  action: ActionV2Variant,
+  context: ActionContext
+): KbarAction[] {
+  const visible = resolve<boolean>(action.visible, context);
+  if (visible === false) {
+    return [];
+  }
+
+  const name = resolve<string>(action.name, context);
+  const icon = resolve<React.ReactElement>(action.icon, context);
+  const section = resolve<string>(action.section, context);
+
+  const sectionPriority =
+    typeof action.section !== "string" && "priority" in action.section
+      ? ((action.section.priority as number) ?? 0)
+      : 0;
+
+  const priority = (1 + (action.priority ?? 0)) * (1 + (sectionPriority ?? 0));
+
+  switch (action.variant) {
+    case "action":
+    case "internal_link":
+    case "external_link": {
+      const perform =
+        action.variant === "action"
+          ? () => performActionV2(action, context)
+          : action.variant === "internal_link"
+            ? () => history.push(action.to)
+            : () => window.open(action.url, action.target);
+
+      return [
+        {
+          id: action.id,
+          name,
+          section,
+          keywords: action.keywords,
+          shortcut: action.shortcut,
+          icon,
+          priority,
+          perform,
+        },
+      ];
+    }
+
+    case "action_with_children": {
+      const resolvedChildren = resolve<ActionV2Variant[]>(
+        action.children,
+        context
+      );
+      const children = resolvedChildren
+        .map((a) => actionV2ToKBar(a, context))
+        .flat()
+        .filter(Boolean);
+
+      return [
+        {
+          id: action.id,
+          name,
+          section,
+          keywords: action.keywords,
+          shortcut: action.shortcut,
+          icon,
+          priority,
+        },
+        ...children.map((child) => ({
+          ...child,
+          parent: child.parent ?? action.id,
+        })),
+      ];
+    }
+
+    default:
+      throw Error("invalid action variant");
   }
 }
 
