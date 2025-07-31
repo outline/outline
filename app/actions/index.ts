@@ -271,7 +271,7 @@ export function actionV2ToMenuItem(
       const visible = resolve<boolean>(action.visible, context);
       const icon =
         !!action.icon && action.iconInContextMenu !== false
-          ? action.icon
+          ? resolve<React.ReactNode>(action.icon, context)
           : undefined;
 
       switch (action.variant) {
