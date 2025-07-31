@@ -195,7 +195,7 @@ function DataLoader({ match, children }: Props) {
           });
         }
 
-        shares.fetch(document.id).catch((err) => {
+        shares.fetchOne({ documentId: document.id }).catch((err) => {
           if (!(err instanceof NotFoundError)) {
             throw err;
           }

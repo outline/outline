@@ -219,18 +219,33 @@ export default class SearchHelper {
       statusFilter: [...(options.statusFilter || []), StatusFilter.Published],
     });
 
-    if (options.share?.includeChildDocuments) {
-      const sharedDocument = await options.share.$get("document");
-      invariant(sharedDocument, "Cannot find document for share");
+    if (options.share) {
+      let documentIds: string[] | undefined;
 
-      const childDocumentIds = await sharedDocument.findAllChildDocumentIds({
-        archivedAt: {
-          [Op.is]: null,
-        },
-      });
+      if (options.share.collectionId) {
+        const sharedCollection =
+          options.share.collection ??
+          (await options.share.$get("collection", { scope: "unscoped" }));
+        invariant(sharedCollection, "Cannot find collection for share");
+        documentIds = sharedCollection.getAllDocumentIds();
+      } else if (
+        options.share.documentId &&
+        options.share.includeChildDocuments
+      ) {
+        const sharedDocument = await options.share.$get("document");
+        invariant(sharedDocument, "Cannot find document for share");
+
+        const childDocumentIds = await sharedDocument.findAllChildDocumentIds({
+          archivedAt: {
+            [Op.is]: null,
+          },
+        });
+
+        documentIds = [sharedDocument.id, ...childDocumentIds];
+      }
 
       where[Op.and].push({
-        id: [sharedDocument.id, ...childDocumentIds],
+        id: documentIds,
       });
     }
 

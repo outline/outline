@@ -5,32 +5,42 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled, { useTheme } from "styled-components";
 import Squircle from "@shared/components/Squircle";
+import { s } from "@shared/styles";
 import { CollectionPermission } from "@shared/types";
 import Collection from "~/models/Collection";
+import Share from "~/models/Share";
 import { Avatar, GroupAvatar, AvatarSize } from "~/components/Avatar";
 import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
 import { InputSelectPermission } from "~/components/InputSelectPermission";
 import Scrollable from "~/components/Scrollable";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useMaxHeight from "~/hooks/useMaxHeight";
 import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { EmptySelectValue, Permission } from "~/types";
+import { Separator } from "../components";
 import { ListItem } from "../components/ListItem";
 import { Placeholder } from "../components/Placeholder";
+import { PublicAccess } from "./PublicAccess";
 
 type Props = {
   /** Collection to which team members are supposed to be invited */
   collection: Collection;
+  /** The existing share model, if any. */
+  share: Share | null | undefined;
   /** Children to be rendered before the list of members */
   children?: React.ReactNode;
   /** List of users and groups that have been invited during the current editing session */
   invitedInSession: string[];
+  /** Whether the popover is visible. */
+  visible: boolean;
 };
 
 export const AccessControlList = observer(
-  ({ collection, invitedInSession }: Props) => {
+  ({ collection, share, invitedInSession, visible }: Props) => {
     const { memberships, groupMemberships } = useStores();
+    const team = useCurrentTeam();
     const can = usePolicy(collection);
     const { t } = useTranslation();
     const theme = useTheme();
@@ -246,6 +256,12 @@ export const AccessControlList = observer(
               ))}
           </>
         )}
+        {team.sharing && can.share && collection.sharing && visible && (
+          <Sticky>
+            {collection.members.length ? <Separator /> : null}
+            <PublicAccess collection={collection} share={share} />
+          </Sticky>
+        )}
       </ScrollableContainer>
     );
   }
@@ -254,4 +270,10 @@ export const AccessControlList = observer(
 const ScrollableContainer = styled(Scrollable)`
   padding: 12px 24px;
   margin: -12px -24px;
+`;
+
+const Sticky = styled.div`
+  background: ${s("menuBackground")};
+  position: sticky;
+  bottom: 0;
 `;

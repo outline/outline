@@ -39,7 +39,7 @@ type Props = {
 
 function SharePopover({ collection, visible, onRequestClose }: Props) {
   const team = useCurrentTeam();
-  const { groupMemberships, users, groups, memberships } = useStores();
+  const { groupMemberships, users, groups, memberships, shares } = useStores();
   const { t } = useTranslation();
   const can = usePolicy(collection);
   const [query, setQuery] = React.useState("");
@@ -51,6 +51,7 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
     CollectionPermission.Read
   );
 
+  const share = shares.getByCollectionId(collection.id);
   const prevPendingIds = usePrevious(pendingIds);
 
   const suggestionsRef = React.useRef<HTMLDivElement | null>(null);
@@ -93,9 +94,10 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
 
   React.useEffect(() => {
     if (visible) {
+      void collection.share();
       setHasRendered(true);
     }
-  }, [visible]);
+  }, [collection, visible]);
 
   React.useEffect(() => {
     if (prevPendingIds && pendingIds.length > prevPendingIds.length) {
@@ -363,7 +365,9 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
       <div style={{ display: picker ? "none" : "block" }}>
         <AccessControlList
           collection={collection}
+          share={share}
           invitedInSession={invitedInSession}
+          visible={visible}
         />
       </div>
     </Wrapper>

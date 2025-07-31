@@ -7,7 +7,7 @@ import { NavigationNode } from "@shared/types";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import useStores from "~/hooks/useStores";
-import { sharedDocumentPath } from "~/utils/routeHelpers";
+import { sharedModelPath } from "~/utils/routeHelpers";
 import { descendants } from "~/utils/tree";
 import SidebarLink from "./SidebarLink";
 
@@ -113,7 +113,7 @@ function DocumentLink(
     <>
       <SidebarLink
         to={{
-          pathname: sharedDocumentPath(shareId, node.url),
+          pathname: sharedModelPath(shareId, node.url),
           state: {
             title: node.title,
           },
@@ -132,7 +132,7 @@ function DocumentLink(
       />
       {expanded &&
         nodeChildren.map((childNode, index) => (
-          <ObservedDocumentLink
+          <SharedDocumentLink
             shareId={shareId}
             key={childNode.id}
             collection={collection}
@@ -150,6 +150,4 @@ function DocumentLink(
   );
 }
 
-const ObservedDocumentLink = observer(React.forwardRef(DocumentLink));
-
-export default ObservedDocumentLink;
+export const SharedDocumentLink = observer(React.forwardRef(DocumentLink));

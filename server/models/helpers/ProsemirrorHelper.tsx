@@ -283,8 +283,8 @@ export class ProsemirrorHelper {
     }
 
     function replaceUrl(url: string) {
-      // Only replace if the URL starts with /doc/ (not already in a share path)
-      if (url.startsWith("/doc/")) {
+      // Only replace if the URL starts with /doc/ (or) /collection/ (not already in a share path)
+      if (url.startsWith("/doc/") || url.startsWith("/collection/")) {
         return `${basePath}${url}`;
       }
       return url;
