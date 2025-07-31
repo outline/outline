@@ -30,7 +30,7 @@ export function isHash(href: string) {
 export function decodeURIComponentSafe(text: string) {
   try {
     return text
-      ? decodeURIComponent(text.replace(/%(?![0-9][0-9a-fA-F]+)/g, "%25"))
+      ? decodeURIComponent(text.replace(/%(?![0-9a-fA-F]{2})/g, "%25"))
       : text;
   } catch (_) {
     return text;
