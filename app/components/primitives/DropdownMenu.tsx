@@ -14,7 +14,9 @@ import {
   MenuLabel,
   MenuSeparator,
   MenuSubTrigger,
+  SelectedIconWrapper,
 } from "./components/Menu";
+import { CheckmarkIcon } from "outline-icons";
 
 const DropdownMenu = DropdownMenuPrimitive.Root;
 
@@ -119,6 +121,7 @@ type BaseDropdownItemProps = {
 
 type DropdownMenuButtonProps = BaseDropdownItemProps & {
   onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  selected?: boolean;
   dangerous?: boolean;
 } & Omit<
     React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item>,
@@ -129,13 +132,19 @@ const DropdownMenuButton = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Item>,
   DropdownMenuButtonProps
 >((props, ref) => {
-  const { label, icon, disabled, dangerous, onClick, ...rest } = props;
+  const { label, icon, disabled, selected, dangerous, onClick, ...rest } =
+    props;
 
   return (
     <DropdownMenuPrimitive.Item ref={ref} {...rest} asChild>
       <MenuButton disabled={disabled} $dangerous={dangerous} onClick={onClick}>
         {icon}
         <MenuLabel>{label}</MenuLabel>
+        {selected !== undefined && (
+          <SelectedIconWrapper aria-hidden>
+            {selected ? <CheckmarkIcon /> : null}
+          </SelectedIconWrapper>
+        )}
       </MenuButton>
     </DropdownMenuPrimitive.Item>
   );

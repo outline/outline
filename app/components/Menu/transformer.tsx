@@ -1,3 +1,4 @@
+import { CheckmarkIcon } from "outline-icons";
 import {
   DropdownMenuButton,
   DropdownMenuExternalLink,
@@ -17,6 +18,7 @@ import {
   MenuLabel,
   MenuSeparator,
   MenuDisclosure,
+  SelectedIconWrapper,
 } from "~/components/primitives/components/Menu";
 import { MenuItem } from "~/types";
 
@@ -50,6 +52,7 @@ export function toDropdownMenuItems(items: MenuItem[]) {
             label={item.title as string}
             icon={icon}
             disabled={item.disabled}
+            selected={item.selected}
             dangerous={item.dangerous}
             onClick={item.onClick}
           />
@@ -164,6 +167,11 @@ export function toMobileMenuItems(
           >
             {icon}
             <MenuLabel>{item.title}</MenuLabel>
+            {item.selected !== undefined && (
+              <SelectedIconWrapper aria-hidden>
+                {item.selected ? <CheckmarkIcon /> : null}
+              </SelectedIconWrapper>
+            )}
           </MenuButton>
         );
 

@@ -281,6 +281,7 @@ export function actionV2ToMenuItem(
             title,
             icon,
             visible,
+            selected: action.selected?.(context),
             dangerous: action.dangerous,
             onClick: () => performActionV2(action, context),
           };

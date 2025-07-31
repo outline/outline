@@ -123,3 +123,11 @@ export const MenuIconWrapper = styled.span`
   color: ${s("textSecondary")};
   flex-shrink: 0;
 `;
+
+export const SelectedIconWrapper = styled.span`
+  width: 24px;
+  height: 24px;
+  margin-right: -6px;
+  color: ${s("textSecondary")};
+  flex-shrink: 0;
+`;
