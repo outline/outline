@@ -11,7 +11,6 @@ import type { Theme } from "~/stores/UiStore";
 import DocumentModel from "~/models/Document";
 import Error404 from "~/scenes/Errors/Error404";
 import ErrorOffline from "~/scenes/Errors/ErrorOffline";
-import ClickablePadding from "~/components/ClickablePadding";
 import {
   DocumentContextProvider,
   useDocumentContext,
@@ -221,7 +220,6 @@ function SharedDocumentScene(props: Props) {
             >
               <SharedDocument shareId={shareId} response={response} />
             </Layout>
-            <ClickablePadding minHeight="20vh" />
           </DocumentContextProvider>
         </ThemeProvider>
       </TeamContext.Provider>
