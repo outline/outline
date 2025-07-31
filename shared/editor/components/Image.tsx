@@ -11,6 +11,7 @@ import { ImageZoom } from "./ImageZoom";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
 import useStores from "@shared/hooks/useStores";
+import { Gestures } from "@shared/components/Gestures";
 
 type Props = ComponentProps & {
   /** Callback triggered when the download button is clicked */
@@ -92,9 +93,12 @@ const Image = (props: Props) => {
             <CrossIcon size={16} /> Image failed to load
           </Error>
         ) : (
-          <div
-            onClick={(ev) => {
-              ev.detail === 2 && ui.setActiveLightboxImgPos(getPos());
+          <Gestures
+            onDoubleClick={() => {
+              props.isSelected && ui.setActiveLightboxImgPos(getPos());
+            }}
+            onDoubleTap={() => {
+              props.isSelected && ui.setActiveLightboxImgPos(getPos());
             }}
           >
             <img
@@ -142,7 +146,7 @@ const Image = (props: Props) => {
                 )}`}
               />
             )}
-          </div>
+          </Gestures>
         )}
         {isEditable && !isFullWidth && isResizable && (
           <>
