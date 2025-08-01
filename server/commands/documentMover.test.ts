@@ -1,5 +1,4 @@
 import Pin from "@server/models/Pin";
-import { sequelize } from "@server/storage/database";
 import {
   buildDocument,
   buildCollection,
@@ -7,6 +6,7 @@ import {
   buildUser,
 } from "@server/test/factories";
 import documentMover from "./documentMover";
+import { withAPIContext } from "@server/test/support";
 
 describe("documentMover", () => {
   const ip = "127.0.0.1";
@@ -23,12 +23,12 @@ describe("documentMover", () => {
       collectionId: collection.id,
       teamId: team.id,
     });
-    const response = await documentMover({
-      user,
-      document,
-      collectionId: collection.id,
-      ip,
-    });
+    const response = await withAPIContext(user, (ctx) =>
+      documentMover(ctx, {
+        document,
+        collectionId: collection.id,
+      })
+    );
     expect(response.collections.length).toEqual(1);
     expect(response.documents.length).toEqual(1);
   });
@@ -53,14 +53,14 @@ describe("documentMover", () => {
       title: "Child document",
       text: "content",
     });
-    const response = await documentMover({
-      user,
-      document,
-      collectionId: collection.id,
-      parentDocumentId: undefined,
-      index: 0,
-      ip,
-    });
+    const response = await await withAPIContext(user, (ctx) =>
+      documentMover(ctx, {
+        document,
+        collectionId: collection.id,
+        parentDocumentId: undefined,
+        index: 0,
+      })
+    );
     expect(response.collections[0].documentStructure![0].children[0].id).toBe(
       newDocument.id
     );
@@ -91,14 +91,14 @@ describe("documentMover", () => {
       text: "content",
     });
     await collection.addDocumentToStructure(newDocument);
-    const response = await documentMover({
-      user,
-      document,
-      collectionId: collection.id,
-      parentDocumentId: undefined,
-      index: 0,
-      ip,
-    });
+    const response = await await withAPIContext(user, (ctx) =>
+      documentMover(ctx, {
+        document,
+        collectionId: collection.id,
+        parentDocumentId: undefined,
+        index: 0,
+      })
+    );
     expect(response.collections[0].documentStructure![0].children[0].id).toBe(
       newDocument.id
     );
@@ -132,14 +132,14 @@ describe("documentMover", () => {
       text: "content",
     });
     await collection.addDocumentToStructure(newDocument);
-    const response = await documentMover({
-      user,
-      document,
-      collectionId: newCollection.id,
-      parentDocumentId: undefined,
-      index: 0,
-      ip,
-    });
+    const response = await await withAPIContext(user, (ctx) =>
+      documentMover(ctx, {
+        document,
+        collectionId: newCollection.id,
+        parentDocumentId: undefined,
+        index: 0,
+      })
+    );
     // check document ids where updated
     await newDocument.reload();
     expect(newDocument.collectionId).toBe(newCollection.id);
@@ -181,15 +181,12 @@ describe("documentMover", () => {
       teamId: collection.teamId,
     });
 
-    const response = await sequelize.transaction(async (transaction) =>
-      documentMover({
-        user,
+    const response = await withAPIContext(user, (ctx) =>
+      documentMover(ctx, {
         document,
         collectionId: newCollection.id,
         parentDocumentId: undefined,
         index: 0,
-        ip,
-        transaction,
       })
     );
 
@@ -223,14 +220,11 @@ describe("documentMover", () => {
       teamId: team.id,
     });
 
-    const response = await sequelize.transaction(async (transaction) =>
-      documentMover({
-        user,
+    const response = await withAPIContext(user, (ctx) =>
+      documentMover(ctx, {
         document,
         collectionId: null,
         index: 0,
-        ip,
-        transaction,
       })
     );
 

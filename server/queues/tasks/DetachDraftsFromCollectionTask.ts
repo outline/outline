@@ -42,7 +42,7 @@ export default class DetachDraftsFromCollectionTask extends BaseTask<Props> {
     return sequelize.transaction(async (transaction) => {
       const ctx = createContext({
         user: actor,
-        ip: props.actorId,
+        ip: props.ip,
         transaction,
       });
 
