@@ -38,10 +38,11 @@ export function commentPath(document: Document, comment: Comment): string {
 }
 
 export function collectionPath(url: string, section?: string): string {
-  if (section) {
-    return `${url}/${section}`;
-  }
-  return url;
+  return section ? `${url}/${section}` : url;
+}
+
+export function collectionEditPath(collection: Collection): string {
+  return `${collection.path}/edit`;
 }
 
 export function updateCollectionPath(
