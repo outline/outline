@@ -69,6 +69,7 @@ import Fix from "./decorators/Fix";
 import { DocumentHelper } from "./helpers/DocumentHelper";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
+import { APIContext } from "@server/types";
 
 export const DOCUMENT_VERSION = 2;
 
@@ -1079,10 +1080,10 @@ class Document extends ArchivableModel<
 
   // Restore an archived document back to being visible to the team
   restoreTo = async (
-    collectionId: string,
-    options: FindOptions & { user: User }
+    ctx: APIContext,
+    { collectionId }: { collectionId: string }
   ) => {
-    const { transaction } = { ...options };
+    const { transaction } = ctx.state;
     const collection = collectionId
       ? await Collection.findByPk(collectionId, {
           includeDocumentStructure: true,
@@ -1115,13 +1116,11 @@ class Document extends ArchivableModel<
     if (this.deletedAt) {
       await this.restore({ transaction });
       this.collectionId = collectionId;
-      await this.save({ transaction });
+      await this.saveWithCtx(ctx, undefined, { name: "restore" });
     }
 
     if (this.archivedAt) {
-      await this.restoreWithChildren(collectionId, options.user, {
-        transaction,
-      });
+      await this.restoreArchivedWithChildren(ctx, { collectionId });
     }
 
     if (this.collection && collection) {
@@ -1229,11 +1228,13 @@ class Document extends ArchivableModel<
     };
   };
 
-  private restoreWithChildren = async (
-    collectionId: string,
-    user: User,
-    options?: FindOptions<Document>
+  private restoreArchivedWithChildren = async (
+    ctx: APIContext,
+    { collectionId }: { collectionId: string }
   ) => {
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
     const restoreChildren = async (parentDocumentId: string) => {
       const childDocuments = await (
         this.constructor as typeof Document
@@ -1241,7 +1242,7 @@ class Document extends ArchivableModel<
         where: {
           parentDocumentId,
         },
-        ...options,
+        transaction,
       });
       for (const child of childDocuments) {
         await restoreChildren(child.id);
@@ -1249,7 +1250,7 @@ class Document extends ArchivableModel<
         child.lastModifiedById = user.id;
         child.updatedBy = user;
         child.collectionId = collectionId;
-        await child.save(options);
+        await child.save({ transaction });
       }
     };
 
@@ -1258,7 +1259,7 @@ class Document extends ArchivableModel<
     this.lastModifiedById = user.id;
     this.updatedBy = user;
     this.collectionId = collectionId;
-    return this.save(options);
+    return this.saveWithCtx(ctx, undefined, { name: "unarchive" });
   };
 
   private archiveWithChildren = async (

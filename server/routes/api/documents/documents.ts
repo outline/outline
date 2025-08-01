@@ -878,45 +878,19 @@ router.post(
 
     if (document.deletedAt && document.isWorkspaceTemplate) {
       authorize(user, "restore", document);
-
-      await document.restore({ transaction });
-      await Event.createFromContext(ctx, {
-        name: "documents.restore",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        data: {
-          title: document.title,
-        },
-      });
+      await document.restoreWithCtx(ctx, { name: "restore" });
     } else if (document.deletedAt) {
       authorize(user, "restore", document);
       authorize(user, "updateDocument", destCollection);
 
       // restore a previously deleted document
-      await document.restoreTo(destCollectionId!, { transaction, user }); // destCollectionId is guaranteed to be defined here
-      await Event.createFromContext(ctx, {
-        name: "documents.restore",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        data: {
-          title: document.title,
-        },
-      });
+      await document.restoreTo(ctx, { collectionId: destCollectionId! }); // destCollectionId is guaranteed to be defined here
     } else if (document.archivedAt) {
       authorize(user, "unarchive", document);
       authorize(user, "updateDocument", destCollection);
 
       // restore a previously archived document
-      await document.restoreTo(destCollectionId!, { transaction, user }); // destCollectionId is guaranteed to be defined here
-      await Event.createFromContext(ctx, {
-        name: "documents.unarchive",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        data: {
-          title: document.title,
-          sourceCollectionId,
-        },
-      });
+      await document.restoreTo(ctx, { collectionId: destCollectionId! }); // destCollectionId is guaranteed to be defined here
     } else if (revisionId) {
       // restore a document to a specific revision
       authorize(user, "update", document);
@@ -924,16 +898,7 @@ router.post(
       authorize(document, "restore", revision);
 
       document.restoreFromRevision(revision);
-      await document.save({ transaction });
-
-      await Event.createFromContext(ctx, {
-        name: "documents.restore",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        data: {
-          title: document.title,
-        },
-      });
+      await document.saveWithCtx(ctx, undefined, { name: "restore" });
     } else {
       assertPresent(revisionId, "revisionId is required");
     }

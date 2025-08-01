@@ -216,11 +216,6 @@ export type DocumentEvent = BaseEvent<Document> &
         name: "documents.unarchive";
         documentId: string;
         collectionId: string;
-        data: {
-          title: string;
-          /** Id of collection from which the document is unarchived */
-          sourceCollectionId: string;
-        };
       }
     | {
         name:
