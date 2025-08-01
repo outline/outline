@@ -103,7 +103,7 @@ export const navigateToSettings = createAction({
   to: settingsPath(),
 });
 
-export const navigateToWorkspaceSettings = createAction({
+export const navigateToWorkspaceSettings = createInternalLinkActionV2({
   name: ({ t }) => t("Settings"),
   analyticsName: "Navigate to workspace settings",
   section: NavigationSection,

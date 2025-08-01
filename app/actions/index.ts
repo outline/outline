@@ -10,7 +10,6 @@ import {
   ActionV2Separator as TActionV2Separator,
   ActionV2Variant,
   ActionV2WithChildren,
-  CommandBarAction,
   ExternalLinkActionV2,
   InternalLinkActionV2,
   MenuExternalLink,
@@ -112,7 +111,7 @@ export function actionToMenuItem(
 export function actionToKBar(
   action: Action,
   context: ActionContext
-): CommandBarAction[] {
+): KbarAction[] {
   if (typeof action.visible === "function" && !action.visible(context)) {
     return [];
   }
