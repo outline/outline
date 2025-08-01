@@ -944,16 +944,30 @@ class Document extends ArchivableModel<
   };
 
   publish = async (
-    user: User,
-    collectionId: string | null | undefined,
-    options: SaveOptions
+    ctx: APIContext,
+    {
+      collectionId,
+      silent = false,
+      event = true,
+      data,
+    }: {
+      collectionId: string | null | undefined;
+      silent?: boolean;
+      event?: boolean;
+      data?: Record<string, unknown>;
+    }
   ): Promise<this> => {
-    const { transaction } = options;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
 
     // If the document is already published then calling publish should act like
     // a regular save
     if (this.publishedAt) {
-      return this.save(options);
+      if (event) {
+        return this.saveWithCtx(ctx, { silent }, { name: "publish", data });
+      } else {
+        return this.save({ silent, transaction });
+      }
     }
 
     if (!this.collectionId) {
@@ -996,7 +1010,12 @@ class Document extends ArchivableModel<
     this.lastModifiedById = user.id;
     this.updatedBy = user;
     this.publishedAt = new Date();
-    return this.save(options);
+
+    if (event) {
+      return this.saveWithCtx(ctx, { silent }, { name: "publish", data });
+    } else {
+      return this.save({ silent, transaction });
+    }
   };
 
   isCollectionDeleted = async () => {

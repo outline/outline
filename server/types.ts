@@ -202,8 +202,7 @@ export type DocumentEvent = BaseEvent<Document> &
           | "documents.restore";
         documentId: string;
         collectionId: string;
-        data: {
-          title: string;
+        data?: {
           source?: "import";
         };
       }
@@ -225,9 +224,7 @@ export type DocumentEvent = BaseEvent<Document> &
         documentId: string;
         collectionId: string;
         createdAt: string;
-        data: {
-          title: string;
-          autosave: boolean;
+        data?: {
           done: boolean;
         };
       }

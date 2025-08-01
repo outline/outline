@@ -1209,7 +1209,6 @@ router.post(
 
     document = await documentUpdater(ctx, {
       document,
-      user,
       ...input,
       publish,
       collectionId,
@@ -1266,15 +1265,13 @@ router.post(
       }
     }
 
-    const response = await documentDuplicator({
-      user,
+    const response = await documentDuplicator(ctx, {
       collection,
       document,
       title,
       publish,
       recursive,
       parentDocumentId,
-      ctx,
     });
 
     ctx.body = {
@@ -1601,7 +1598,7 @@ router.post(
       authorize(user, "read", templateDocument);
     }
 
-    const document = await documentCreator({
+    const document = await documentCreator(ctx, {
       id,
       title,
       text: !isNil(text)
@@ -1616,9 +1613,7 @@ router.post(
       templateDocument,
       template,
       fullWidth,
-      user,
       editorVersion,
-      ctx,
     });
 
     if (collection) {
