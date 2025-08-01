@@ -210,7 +210,7 @@ export type DocumentEvent = BaseEvent<Document> &
     | {
         name: "documents.unpublish";
         documentId: string;
-        collectionId: string;
+        collectionId?: string;
       }
     | {
         name: "documents.unarchive";

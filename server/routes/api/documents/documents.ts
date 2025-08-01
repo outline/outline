@@ -1430,35 +1430,32 @@ router.post(
   "documents.unpublish",
   auth(),
   validate(T.DocumentsUnpublishSchema),
+  transaction(),
   async (ctx: APIContext<T.DocumentsUnpublishReq>) => {
     const { id, detach } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
 
     const document = await Document.findByPk(id, {
       userId: user.id,
     });
     authorize(user, "unpublish", document);
 
-    const childDocumentIds = await document.findAllChildDocumentIds({
-      archivedAt: {
-        [Op.eq]: null,
+    const childDocumentIds = await document.findAllChildDocumentIds(
+      {
+        archivedAt: {
+          [Op.eq]: null,
+        },
       },
-    });
+      { transaction }
+    );
     if (childDocumentIds.length > 0) {
       throw InvalidRequestError(
         "Cannot unpublish document with child documents"
       );
     }
 
-    // detaching would unset collectionId from document, so save a ref to the affected collectionId.
-    const collectionId = document.collectionId;
-
-    await document.unpublish(user, { detach });
-    await Event.createFromContext(ctx, {
-      name: "documents.unpublish",
-      documentId: document.id,
-      collectionId,
-    });
+    await document.unpublishWithCtx(ctx, { detach });
 
     ctx.body = {
       data: await presentDocument(ctx, document),

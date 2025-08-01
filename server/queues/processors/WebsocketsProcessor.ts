@@ -94,11 +94,15 @@ export default class WebsocketsProcessor {
         const channels = await this.getDocumentEventChannels(event, document);
 
         // We need to add the collection channel to let the members update the doc structure.
-        channels.push(`collection-${event.collectionId}`);
+        // In case draft is detached from a collection, fallback to previous attribute to get the right one.
+        const collectionId =
+          event.collectionId ?? event.changes?.previous.collectionId;
+
+        channels.push(`collection-${collectionId}`);
 
         return socketio.to(channels).emit(event.name, {
           document: documentToPresent,
-          collectionId: event.collectionId,
+          collectionId,
         });
       }
 

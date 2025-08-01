@@ -1021,28 +1021,29 @@ class Document extends ArchivableModel<
    * @param options.detach Whether to detach the document from the containing collection
    * @returns Updated document
    */
-  unpublish = async (user: User, options: { detach: boolean }) => {
+  unpublishWithCtx = async (ctx: APIContext, options: { detach: boolean }) => {
     // If the document is already a draft then calling unpublish should act like save
     if (!this.publishedAt) {
       return this.save();
     }
 
-    await this.sequelize.transaction(async (transaction: Transaction) => {
-      const collection = this.collectionId
-        ? await Collection.findByPk(this.collectionId, {
-            includeDocumentStructure: true,
-            transaction,
-            lock: transaction.LOCK.UPDATE,
-          })
-        : undefined;
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
 
-      if (collection) {
-        await collection.removeDocumentInStructure(this, { transaction });
-        if (this.collection) {
-          this.collection.documentStructure = collection.documentStructure;
-        }
+    const collection = this.collectionId
+      ? await Collection.findByPk(this.collectionId, {
+          includeDocumentStructure: true,
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+        })
+      : undefined;
+
+    if (collection) {
+      await collection.removeDocumentInStructure(this, { transaction });
+      if (this.collection) {
+        this.collection.documentStructure = collection.documentStructure;
       }
-    });
+    }
 
     // unpublishing a document converts the ownership to yourself, so that it
     // will appear in your drafts rather than the original creators
@@ -1056,7 +1057,7 @@ class Document extends ArchivableModel<
       this.collectionId = null;
     }
 
-    return this.save();
+    return this.saveWithCtx(ctx, undefined, { name: "unpublish" });
   };
 
   // Moves a document from being visible to the team within a collection
