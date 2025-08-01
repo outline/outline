@@ -16,6 +16,7 @@ type Props = EmailProps & {
   actorEmail: string | null;
   teamName: string;
   teamUrl: string;
+  token?: string;
 };
 
 /**
@@ -60,8 +61,11 @@ Join now: ${teamUrl}
 `;
   }
 
-  protected render({ teamName, actorName, actorEmail, teamUrl }: Props) {
-    const inviteLink = `${teamUrl}?ref=invite-email`;
+  protected render({ teamName, actorName, actorEmail, teamUrl, token }: Props) {
+    let inviteLink = `${teamUrl}?ref=invite-email`;
+    if (token) {
+      inviteLink += `&token=${token}`;
+    }
 
     return (
       <EmailTemplate previewText={this.preview()}>

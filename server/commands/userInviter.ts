@@ -4,6 +4,7 @@ import InviteEmail from "@server/emails/templates/InviteEmail";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { User, Team } from "@server/models";
+import AuthorizedEmail from "@server/models/AuthorizedEmail";
 import { UserFlag } from "@server/models/User";
 import { APIContext } from "@server/types";
 
@@ -55,6 +56,16 @@ export default async function userInviter(
   );
   const users = [];
 
+  // Add invited emails to authorized email list
+  for (const invite of filteredInvites) {
+    await AuthorizedEmail.findOrCreate({
+      where: {
+        teamId: user.teamId,
+        email: invite.email,
+      },
+    });
+  }
+
   // send and record remaining invites
   for (const invite of filteredInvites) {
     const newUser = await User.createWithCtx(
@@ -80,6 +91,8 @@ export default async function userInviter(
     );
     users.push(newUser);
 
+    const token = newUser.getEmailSigninToken();
+
     await new InviteEmail({
       to: invite.email,
       name: invite.name,
@@ -87,6 +100,7 @@ export default async function userInviter(
       actorEmail: user.email,
       teamName: team.name,
       teamUrl: team.url,
+      token,
     }).schedule();
 
     if (env.isDevelopment) {

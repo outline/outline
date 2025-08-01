@@ -11,6 +11,7 @@ import { Hook, PluginManager } from "@server/utils/PluginManager";
 import apiKeys from "./apiKeys";
 import attachments from "./attachments";
 import auth from "./auth";
+import emailCallback from "./auth/emailCallback";
 import authenticationProviders from "./authenticationProviders";
 import collections from "./collections";
 import comments from "./comments/comments";
@@ -74,6 +75,7 @@ PluginManager.getHooks(Hook.API).forEach((hook) =>
 
 // routes
 router.use("/", auth.routes());
+router.use("/", emailCallback.routes());
 router.use("/", authenticationProviders.routes());
 router.use("/", events.routes());
 router.use("/", users.routes());
