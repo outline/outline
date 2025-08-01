@@ -1326,14 +1326,11 @@ router.post(
       }
     }
 
-    const { documents, collectionChanged } = await documentMover({
-      user,
+    const { documents, collectionChanged } = await documentMover(ctx, {
       document,
       collectionId: collectionId ?? null,
       parentDocumentId,
       index,
-      ip: ctx.request.ip,
-      transaction,
     });
 
     ctx.body = {
