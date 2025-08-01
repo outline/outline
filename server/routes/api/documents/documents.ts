@@ -1404,14 +1404,6 @@ router.post(
       authorize(user, "delete", document);
 
       await document.delete(user);
-      await Event.createFromContext(ctx, {
-        name: "documents.delete",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        data: {
-          title: document.title,
-        },
-      });
     }
 
     ctx.body = {

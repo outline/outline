@@ -73,6 +73,7 @@ import Length from "./validators/Length";
 import { APIContext } from "@server/types";
 import { SkipChangeset } from "./decorators/Changeset";
 import { HookContext } from "./base/Model";
+import { createContext } from "@server/context";
 
 export const DOCUMENT_VERSION = 2;
 
@@ -1198,7 +1199,9 @@ class Document extends ArchivableModel<
 
       this.lastModifiedById = user.id;
       this.updatedBy = user;
-      return this.save({ transaction });
+      return this.saveWithCtx(createContext({ user, transaction }), undefined, {
+        name: "delete",
+      });
     });
 
   getTimestamp = () => Math.round(new Date(this.updatedAt).getTime() / 1000);
