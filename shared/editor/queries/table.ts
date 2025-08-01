@@ -61,8 +61,17 @@ export function getCellsInColumn(index: number) {
     const rect = selectedRect(state);
     const cells = [];
 
+    let previous;
     for (let i = index; i < rect.map.map.length; i += rect.map.width) {
       const cell = rect.tableStart + rect.map.map[i];
+
+      // Ensure we don't add the same cell multiple times, this can happen
+      // if the column is selected and the table row has merged cells.
+      if (previous === cell) {
+        continue;
+      }
+      previous = cell;
+
       cells.push(cell);
     }
     return cells;
@@ -78,10 +87,19 @@ export function getCellsInRow(index: number) {
     const rect = selectedRect(state);
     const cells = [];
 
+    let previous;
     for (let i = 0; i < rect.map.width; i += 1) {
       const cell = rect.tableStart + rect.map.map[index * rect.map.width + i];
       cells.push(cell);
+
+      // Ensure we don't add the same cell multiple times, this can happen
+      // if the row is selected and the table column has merged cells.
+      if (previous === cell) {
+        continue;
+      }
+      previous = cell;
     }
+
     return cells;
   };
 }

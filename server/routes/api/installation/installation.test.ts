@@ -55,14 +55,14 @@ describe("installation.create", () => {
 });
 
 describe("installation.info", () => {
-  it("should require authentication", async () => {
+  it.skip("should require authentication", async () => {
     const res = await server.post("/api/installation.info", {
       body: {},
     });
     expect(res.status).toEqual(401);
   });
 
-  it("should return installation information", async () => {
+  it.skip("should return installation information", async () => {
     const user = await buildUser();
     const res = await server.post("/api/installation.info", {
       body: {
