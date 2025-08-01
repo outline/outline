@@ -91,7 +91,7 @@ describe("#documents.info", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.archive(user);
+    await document.archiveWithCtx(user);
     const res = await server.post("/api/documents.info", {
       body: {
         token: user.getJwtToken(),
@@ -464,7 +464,7 @@ describe("#documents.info", () => {
       teamId: document.teamId,
       userId: user.id,
     });
-    await document.archive(user);
+    await document.archiveWithCtx(user);
     const res = await server.post("/api/documents.info", {
       body: {
         shareId: share.id,
@@ -638,7 +638,7 @@ describe("#documents.export", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.archive(user);
+    await document.archiveWithCtx(user);
     const res = await server.post("/api/documents.export", {
       body: {
         token: user.getJwtToken(),
@@ -859,7 +859,7 @@ describe("#documents.list", () => {
         collectionId: collection.id,
       }),
     ]);
-    await docs[0].archive(user);
+    await docs[0].archiveWithCtx(user);
     const res = await server.post("/api/documents.list", {
       body: {
         token: user.getJwtToken(),
@@ -900,7 +900,10 @@ describe("#documents.list", () => {
         collectionId: collections[1].id,
       }),
     ]);
-    await Promise.all([docs[0].archive(user), docs[1].archive(user)]);
+    await Promise.all([
+      docs[0].archiveWithCtx(user),
+      docs[1].archiveWithCtx(user),
+    ]);
     const res = await server.post("/api/documents.list", {
       body: {
         token: user.getJwtToken(),
@@ -1749,7 +1752,7 @@ describe("#documents.search", () => {
       text: "search term",
       teamId: user.teamId,
     });
-    await document.archive(user);
+    await document.archiveWithCtx(user);
     const res = await server.post("/api/documents.search", {
       body: {
         token: user.getJwtToken(),
@@ -1769,7 +1772,7 @@ describe("#documents.search", () => {
       text: "search term",
       teamId: user.teamId,
     });
-    await document.archive(user);
+    await document.archiveWithCtx(user);
     const res = await server.post("/api/documents.search", {
       body: {
         token: user.getJwtToken(),
@@ -2176,7 +2179,7 @@ describe("#documents.archived", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.archive(user);
+    await document.archiveWithCtx(user);
     const res = await server.post("/api/documents.archived", {
       body: {
         token: user.getJwtToken(),
@@ -2212,8 +2215,8 @@ describe("#documents.archived", () => {
       ]);
 
     await Promise.all([
-      documentInFirstCollection.archive(user),
-      documentInSecondCollection.archive(user),
+      documentInFirstCollection.archiveWithCtx(user),
+      documentInSecondCollection.archiveWithCtx(user),
     ]);
 
     const res = await server.post("/api/documents.archived", {
@@ -2251,8 +2254,8 @@ describe("#documents.archived", () => {
       ]);
 
     await Promise.all([
-      documentInFirstCollection.archive(user),
-      documentInSecondCollection.archive(user),
+      documentInFirstCollection.archiveWithCtx(user),
+      documentInSecondCollection.archiveWithCtx(user),
     ]);
 
     const res = await server.post("/api/documents.archived", {
@@ -2271,7 +2274,7 @@ describe("#documents.archived", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.archive(user);
+    await document.archiveWithCtx(user);
     const res = await server.post("/api/documents.archived", {
       body: {
         token: user.getJwtToken(),
@@ -2308,7 +2311,7 @@ describe("#documents.archived", () => {
       teamId: user.teamId,
       collectionId: collection.id,
     });
-    await document.archive(user);
+    await document.archiveWithCtx(user);
     const res = await server.post("/api/documents.archived", {
       body: {
         token: user.getJwtToken(),
@@ -3242,7 +3245,7 @@ describe("#documents.restore", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.archive(user);
+    await document.archiveWithCtx(user);
     const res = await server.post("/api/documents.restore", {
       body: {
         token: user.getJwtToken(),
@@ -3266,8 +3269,8 @@ describe("#documents.restore", () => {
       collectionId: document.collectionId,
       parentDocumentId: document.id,
     });
-    await childDocument.archive(user);
-    await document.archive(user);
+    await childDocument.archiveWithCtx(user);
+    await document.archiveWithCtx(user);
     const res = await server.post("/api/documents.restore", {
       body: {
         token: user.getJwtToken(),
@@ -4093,7 +4096,7 @@ describe("#documents.update", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.archive(user);
+    await document.archiveWithCtx(user);
     const res = await server.post("/api/documents.update", {
       body: {
         token: user.getJwtToken(),
@@ -4628,7 +4631,7 @@ describe("#documents.unpublish", () => {
       teamId: user.teamId,
       parentDocumentId: document.id,
     });
-    await child.archive(user);
+    await child.archiveWithCtx(user);
     const res = await server.post("/api/documents.unpublish", {
       body: {
         token: user.getJwtToken(),
@@ -4706,7 +4709,7 @@ describe("#documents.unpublish", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    await document.archive(user);
+    await document.archiveWithCtx(user);
     const res = await server.post("/api/documents.unpublish", {
       body: {
         token: user.getJwtToken(),

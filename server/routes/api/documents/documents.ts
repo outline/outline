@@ -1369,15 +1369,7 @@ router.post(
     });
     authorize(user, "archive", document);
 
-    await document.archive(user, { transaction });
-    await Event.createFromContext(ctx, {
-      name: "documents.archive",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      data: {
-        title: document.title,
-      },
-    });
+    await document.archiveWithCtx(ctx);
 
     ctx.body = {
       data: await presentDocument(ctx, document),

@@ -1061,8 +1061,8 @@ class Document extends ArchivableModel<
 
   // Moves a document from being visible to the team within a collection
   // to the archived area, where it can be subsequently restored.
-  archive = async (user: User, options?: FindOptions) => {
-    const { transaction } = { ...options };
+  archiveWithCtx = async (ctx: APIContext) => {
+    const { transaction } = ctx.state;
     const collection = this.collectionId
       ? await Collection.findByPk(this.collectionId, {
           includeDocumentStructure: true,
@@ -1078,7 +1078,7 @@ class Document extends ArchivableModel<
       }
     }
 
-    await this.archiveWithChildren(user, { transaction });
+    await this.archiveWithChildren(ctx);
     return this;
   };
 
@@ -1266,10 +1266,9 @@ class Document extends ArchivableModel<
     return this.saveWithCtx(ctx, undefined, { name: "unarchive" });
   };
 
-  private archiveWithChildren = async (
-    user: User,
-    options?: FindOptions<Document>
-  ) => {
+  private archiveWithChildren = async (ctx: APIContext) => {
+    const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
     const archivedAt = new Date();
 
     // Helper to archive all child documents for a document
@@ -1280,14 +1279,14 @@ class Document extends ArchivableModel<
         where: {
           parentDocumentId,
         },
-        ...options,
+        transaction,
       });
       for (const child of childDocuments) {
         await archiveChildren(child.id);
         child.archivedAt = archivedAt;
         child.lastModifiedById = user.id;
         child.updatedBy = user;
-        await child.save(options);
+        await child.save({ transaction });
       }
     };
 
@@ -1295,7 +1294,7 @@ class Document extends ArchivableModel<
     this.archivedAt = archivedAt;
     this.lastModifiedById = user.id;
     this.updatedBy = user;
-    return this.save(options);
+    return this.saveWithCtx(ctx, undefined, { name: "archive" });
   };
 }
 
