@@ -34,11 +34,7 @@ import {
 } from "outline-icons";
 import { toast } from "sonner";
 import Icon from "@shared/components/Icon";
-import {
-  ExportContentType,
-  TeamPreference,
-  NavigationNode,
-} from "@shared/types";
+import { TeamPreference, NavigationNode } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import UserMembership from "~/models/UserMembership";
 import DocumentDelete from "~/scenes/DocumentDelete";
@@ -48,6 +44,7 @@ import DocumentPublish from "~/scenes/DocumentPublish";
 import DeleteDocumentsInTrash from "~/scenes/Trash/components/DeleteDocumentsInTrash";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import DocumentCopy from "~/components/DocumentCopy";
+import { DocumentDownload } from "~/components/DocumentDownload";
 import MarkdownIcon from "~/components/Icons/MarkdownIcon";
 import SharePopover from "~/components/Sharing/Document";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
@@ -58,7 +55,6 @@ import {
   DocumentSection,
   TrashSection,
 } from "~/actions/sections";
-import env from "~/env";
 import { setPersistedState } from "~/hooks/usePersistedState";
 import history from "~/utils/history";
 import {
@@ -415,82 +411,33 @@ export const shareDocument = createAction({
   },
 });
 
-export const downloadDocumentAsHTML = createAction({
-  name: ({ t }) => t("HTML"),
-  analyticsName: "Download document as HTML",
-  section: ActiveDocumentSection,
-  keywords: "html export",
-  icon: <DownloadIcon />,
-  iconInContextMenu: false,
-  visible: ({ activeDocumentId, stores }) =>
-    !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
-  perform: async ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
-      return;
-    }
-
-    const document = stores.documents.get(activeDocumentId);
-    await document?.download(ExportContentType.Html);
-  },
-});
-
-export const downloadDocumentAsPDF = createAction({
-  name: ({ t }) => t("PDF"),
-  analyticsName: "Download document as PDF",
-  section: ActiveDocumentSection,
-  keywords: "export",
-  icon: <DownloadIcon />,
-  iconInContextMenu: false,
-  visible: ({ activeDocumentId, stores }) =>
-    !!activeDocumentId &&
-    stores.policies.abilities(activeDocumentId).download &&
-    env.PDF_EXPORT_ENABLED,
-  perform: ({ activeDocumentId, t, stores }) => {
-    if (!activeDocumentId) {
-      return;
-    }
-
-    const id = toast.loading(`${t("Exporting")}…`);
-    const document = stores.documents.get(activeDocumentId);
-    return document
-      ?.download(ExportContentType.Pdf)
-      .finally(() => id && toast.dismiss(id));
-  },
-});
-
-export const downloadDocumentAsMarkdown = createAction({
-  name: ({ t }) => t("Markdown"),
-  analyticsName: "Download document as Markdown",
-  section: ActiveDocumentSection,
-  keywords: "md markdown export",
-  icon: <DownloadIcon />,
-  iconInContextMenu: false,
-  visible: ({ activeDocumentId, stores }) =>
-    !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
-  perform: async ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
-      return;
-    }
-
-    const document = stores.documents.get(activeDocumentId);
-    await document?.download(ExportContentType.Markdown);
-  },
-});
-
 export const downloadDocument = createAction({
   name: ({ t, isContextMenu }) =>
     isContextMenu ? t("Download") : t("Download document"),
   analyticsName: "Download document",
   section: ActiveDocumentSection,
   icon: <DownloadIcon />,
-  keywords: "export",
+  keywords: "export md markdown html",
   visible: ({ activeDocumentId, stores }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
-  children: [
-    downloadDocumentAsHTML,
-    downloadDocumentAsPDF,
-    downloadDocumentAsMarkdown,
-  ],
+  perform: ({ activeDocumentId, t, stores }) => {
+    if (!activeDocumentId) {
+      return;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+    invariant(document, "Document must exist");
+
+    stores.dialogs.openModal({
+      title: t("Download document"),
+      content: (
+        <DocumentDownload
+          document={document}
+          onSubmit={stores.dialogs.closeAllModals}
+        />
+      ),
+    });
+  },
 });
 
 export const copyDocumentAsMarkdown = createAction({
