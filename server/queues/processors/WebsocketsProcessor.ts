@@ -53,7 +53,7 @@ export default class WebsocketsProcessor {
         }
         if (
           event.name === "documents.create" &&
-          event.data.source === "import"
+          event.data?.source === "import"
         ) {
           return;
         }

@@ -1120,33 +1120,19 @@ router.post(
       authorize(user, "createTemplate", user.team);
     }
 
-    const document = await Document.create(
-      {
-        editorVersion: original.editorVersion,
-        collectionId,
-        teamId: user.teamId,
-        publishedAt: publish ? new Date() : null,
-        lastModifiedById: user.id,
-        createdById: user.id,
-        template: true,
-        icon: original.icon,
-        color: original.color,
-        title: original.title,
-        text: original.text,
-        content: original.content,
-      },
-      {
-        transaction,
-      }
-    );
-    await Event.createFromContext(ctx, {
-      name: "documents.create",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      data: {
-        title: document.title,
-        template: true,
-      },
+    const document = await Document.createWithCtx(ctx, {
+      editorVersion: original.editorVersion,
+      collectionId,
+      teamId: user.teamId,
+      publishedAt: publish ? new Date() : null,
+      lastModifiedById: user.id,
+      createdById: user.id,
+      template: true,
+      icon: original.icon,
+      color: original.color,
+      title: original.title,
+      text: original.text,
+      content: original.content,
     });
 
     // reload to get all of the data needed to present (user, collection etc)

@@ -70,6 +70,7 @@ import { DocumentHelper } from "./helpers/DocumentHelper";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
 import { APIContext } from "@server/types";
+import { SkipChangeset } from "./decorators/Changeset";
 
 export const DOCUMENT_VERSION = 2;
 
@@ -332,12 +333,14 @@ class Document extends ArchivableModel<
    * This column will be removed in a future migration.
    */
   @Column(DataType.TEXT)
+  @SkipChangeset
   text: string;
 
   /**
    * The content of the document as JSON, this is a snapshot at the last time the state was saved.
    */
   @Column(DataType.JSONB)
+  @SkipChangeset
   content: ProsemirrorData | null;
 
   /**
@@ -349,6 +352,7 @@ class Document extends ArchivableModel<
     msg: `Document collaborative state is too large, you must create a new document`,
   })
   @Column(DataType.BLOB)
+  @SkipChangeset
   state?: Uint8Array | null;
 
   /** Whether this document is part of onboarding. */
