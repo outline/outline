@@ -38,6 +38,7 @@ import {
   AllowNull,
   BelongsToMany,
   Unique,
+  AfterUpdate,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import type {
@@ -71,6 +72,7 @@ import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
 import { APIContext } from "@server/types";
 import { SkipChangeset } from "./decorators/Changeset";
+import { HookContext } from "./base/Model";
 
 export const DOCUMENT_VERSION = 2;
 
@@ -554,6 +556,20 @@ class Document extends ArchivableModel<
       throw ValidationError(
         "infinite loop detected, cannot nest a document inside itself"
       );
+    }
+  }
+
+  @AfterUpdate
+  static async publishTitleChangeEvent(
+    model: Document,
+    ctx: APIContext["context"]
+  ) {
+    if (model.changed("title")) {
+      const hookContext = {
+        ...ctx,
+        event: { publish: true, persist: false },
+      } as HookContext;
+      await this.insertEvent("title_change", model, hookContext);
     }
   }
 

@@ -233,10 +233,6 @@ export type DocumentEvent = BaseEvent<Document> &
         documentId: string;
         collectionId: string;
         createdAt: string;
-        data: {
-          title: string;
-          previousTitle: string;
-        };
       }
     | DocumentMovedEvent
   );

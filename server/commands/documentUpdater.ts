@@ -58,7 +58,6 @@ export default async function documentUpdater(
 ): Promise<Document> {
   const { user } = ctx.state.auth;
   const { transaction } = ctx.state;
-  const previousTitle = document.title;
   const cId = collectionId || document.collectionId;
 
   if (title !== undefined) {
@@ -110,21 +109,6 @@ export default async function documentUpdater(
       ...event,
       actorId: user.id,
       teamId: document.teamId,
-    });
-  }
-
-  if (document.title !== previousTitle) {
-    await Event.schedule({
-      name: "documents.title_change",
-      documentId: document.id,
-      collectionId: cId,
-      teamId: document.teamId,
-      actorId: user.id,
-      data: {
-        previousTitle,
-        title: document.title,
-      },
-      ip: ctx.request.ip,
     });
   }
 
