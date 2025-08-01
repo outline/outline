@@ -19,6 +19,10 @@ router.get("/email.callback", async (ctx) => {
     ctx.throw(401, "Invalid or expired token");
   }
 
+  if (!user) {
+    ctx.throw(401, "Invalid or expired token");
+  }
+
   // Check if registration is disabled and email whitelist is enforced
   const team = await user.$get("team");
   if (team && !team.emailSigninEnabled) {
@@ -26,7 +30,7 @@ router.get("/email.callback", async (ctx) => {
     const authorized = await AuthorizedEmail.findOne({
       where: {
         teamId: team.id,
-        email: user.email.toLowerCase(),
+        email: user?.email?.toLowerCase() ?? "",
       },
     });
     if (!authorized) {
@@ -41,6 +45,9 @@ router.get("/email.callback", async (ctx) => {
     sameSite: "lax",
     maxAge: 1000 * 60 * 60 * 24 * 90, // 90 days
   });
+
+  // Debug log redirect URL
+  console.log("Redirecting to team URL:", team?.url || "/");
 
   // Redirect to team home page
   ctx.redirect(team?.url || "/");
