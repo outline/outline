@@ -16,14 +16,12 @@ import { changeTheme } from "~/actions/definitions/settings";
 import { ActionV2Separator } from "~/actions";
 import { useMenuAction } from "~/hooks/useMenuAction";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
-import useStores from "~/hooks/useStores";
 
 type Props = {
   children?: React.ReactNode;
 };
 
 const AccountMenu: React.FC = ({ children }: Props) => {
-  const { ui } = useStores();
   const { t } = useTranslation();
 
   const actions = React.useMemo(
@@ -41,7 +39,7 @@ const AccountMenu: React.FC = ({ children }: Props) => {
       ActionV2Separator,
       logout,
     ],
-    [ui.theme] // necessary to re-create action when theme changes
+    []
   );
 
   const rootAction = useMenuAction(actions);

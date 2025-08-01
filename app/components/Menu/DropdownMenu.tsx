@@ -22,6 +22,7 @@ import {
   MenuItemWithChildren,
 } from "~/types";
 import { toDropdownMenuItems, toMobileMenuItems } from "./transformer";
+import { observer } from "mobx-react";
 
 type Props = {
   action: ActionV2WithChildren;
@@ -31,7 +32,7 @@ type Props = {
   contentAriaLabel?: string;
 };
 
-export function DropdownMenu({
+export const DropdownMenu = observer(function DropdownMenu({
   action,
   children,
   align = "start",
@@ -92,7 +93,7 @@ export function DropdownMenu({
       </DropdownMenuContent>
     </DropdownMenuRoot>
   );
-}
+});
 
 type MobileDropdownProps = {
   items: MenuItem[];
