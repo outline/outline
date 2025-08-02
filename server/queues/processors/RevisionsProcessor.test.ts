@@ -17,7 +17,7 @@ describe("documents.update.debounced", () => {
       teamId: document.teamId,
       actorId: document.createdById,
       createdAt: new Date().toISOString(),
-      data: { title: document.title, autosave: false, done: true },
+      data: { done: true },
       ip,
     });
     const amount = await Revision.count({
@@ -44,7 +44,7 @@ describe("documents.update.debounced", () => {
       teamId: document.teamId,
       actorId: document.createdById,
       createdAt: new Date().toISOString(),
-      data: { title: document.title, autosave: false, done: true },
+      data: { done: true },
       ip,
     });
     const amount = await Revision.count({

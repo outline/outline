@@ -1,7 +1,7 @@
 import { Optional } from "utility-types";
 import { ProsemirrorHelper as SharedProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { TextHelper } from "@shared/utils/TextHelper";
-import { Document, Event, User } from "@server/models";
+import { Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { APIContext } from "@server/types";
@@ -32,38 +32,40 @@ type Props = Optional<
   state?: Buffer;
   publish?: boolean;
   templateDocument?: Document | null;
-  user: User;
-  ctx: APIContext;
 };
 
-export default async function documentCreator({
-  title,
-  text,
-  icon,
-  color,
-  state,
-  id,
-  urlId,
-  publish,
-  collectionId,
-  parentDocumentId,
-  content,
-  template,
-  templateDocument,
-  fullWidth,
-  importId,
-  apiImportId,
-  createdAt,
-  // allows override for import
-  updatedAt,
-  user,
-  editorVersion,
-  publishedAt,
-  sourceMetadata,
-  ctx,
-}: Props): Promise<Document> {
-  const { transaction, ip } = ctx.context;
+export default async function documentCreator(
+  ctx: APIContext,
+  {
+    title,
+    text,
+    icon,
+    color,
+    state,
+    id,
+    urlId,
+    publish,
+    collectionId,
+    parentDocumentId,
+    content,
+    template,
+    templateDocument,
+    fullWidth,
+    importId,
+    apiImportId,
+    createdAt,
+    // allows override for import
+    updatedAt,
+    editorVersion,
+    publishedAt,
+    sourceMetadata,
+  }: Props
+): Promise<Document> {
+  const { user } = ctx.state.auth;
+  const { transaction } = ctx.state;
   const templateId = templateDocument ? templateDocument.id : undefined;
+
+  const eventData = importId || apiImportId ? { source: "import" } : undefined;
 
   if (state && templateDocument) {
     throw new Error(
@@ -134,28 +136,12 @@ export default async function documentCreator({
     includeTitle: false,
   });
 
-  await document.save({
-    silent: !!createdAt,
-    transaction,
-  });
-
-  await Event.create(
+  await document.saveWithCtx(
+    ctx,
     {
-      name: "documents.create",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: user.id,
-      data: {
-        source: importId || apiImportId ? "import" : undefined,
-        title: document.title,
-        templateId,
-      },
-      ip,
+      silent: !!createdAt,
     },
-    {
-      transaction,
-    }
+    { data: eventData }
   );
 
   if (publish) {
@@ -163,26 +149,12 @@ export default async function documentCreator({
       throw new Error("Collection ID is required to publish");
     }
 
-    await document.publish(user, collectionId, { silent: true, transaction });
-    if (document.title) {
-      await Event.create(
-        {
-          name: "documents.publish",
-          documentId: document.id,
-          collectionId: document.collectionId,
-          teamId: document.teamId,
-          actorId: user.id,
-          data: {
-            source: importId ? "import" : undefined,
-            title: document.title,
-          },
-          ip,
-        },
-        {
-          transaction,
-        }
-      );
-    }
+    await document.publish(ctx, {
+      collectionId,
+      silent: true,
+      event: !!document.title,
+      data: eventData,
+    });
   }
 
   // reload to get all of the data needed to present (user, collection etc)
