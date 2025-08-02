@@ -4,21 +4,24 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { UserRole } from "@shared/types";
 import User from "~/models/User";
-import ContextMenu from "~/components/ContextMenu";
-import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
-import Template from "~/components/ContextMenu/Template";
+import { DropdownMenu } from "~/components/Menu/DropdownMenu";
+import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import {
   UserSuspendDialog,
   UserChangeNameDialog,
   UserChangeEmailDialog,
 } from "~/components/UserDialogs";
-import { actionToMenuItem } from "~/actions";
+import {
+  ActionV2Separator,
+  createActionV2,
+  createActionV2WithChildren,
+} from "~/actions";
 import {
   deleteUserActionFactory,
   updateUserRoleActionFactory,
 } from "~/actions/definitions/users";
-import useActionContext from "~/hooks/useActionContext";
-import { useMenuState } from "~/hooks/useMenuState";
+import { UserSection } from "~/actions/sections";
+import { useMenuAction } from "~/hooks/useMenuAction";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 
@@ -29,156 +32,137 @@ type Props = {
 function UserMenu({ user }: Props) {
   const { users, dialogs } = useStores();
   const { t } = useTranslation();
-  const menu = useMenuState({
-    modal: true,
-  });
   const can = usePolicy(user);
-  const context = useActionContext({
-    isContextMenu: true,
-  });
 
-  const handleChangeName = React.useCallback(
-    (ev: React.SyntheticEvent) => {
-      ev.preventDefault();
-      dialogs.openModal({
-        title: t("Change name"),
-        content: (
-          <UserChangeNameDialog user={user} onSubmit={dialogs.closeAllModals} />
-        ),
-      });
-    },
-    [dialogs, t, user]
+  const handleChangeName = React.useCallback(() => {
+    dialogs.openModal({
+      title: t("Change name"),
+      content: (
+        <UserChangeNameDialog user={user} onSubmit={dialogs.closeAllModals} />
+      ),
+    });
+  }, [dialogs, t, user]);
+
+  const handleChangeEmail = React.useCallback(() => {
+    dialogs.openModal({
+      title: t("Change email"),
+      content: (
+        <UserChangeEmailDialog user={user} onSubmit={dialogs.closeAllModals} />
+      ),
+    });
+  }, [dialogs, t, user]);
+
+  const handleSuspend = React.useCallback(() => {
+    dialogs.openModal({
+      title: t("Suspend user"),
+      content: (
+        <UserSuspendDialog user={user} onSubmit={dialogs.closeAllModals} />
+      ),
+    });
+  }, [dialogs, t, user]);
+
+  const handleRevoke = React.useCallback(async () => {
+    await users.delete(user);
+  }, [users, user]);
+
+  const handleResendInvite = React.useCallback(async () => {
+    try {
+      await users.resendInvite(user);
+      toast.success(t(`Invite was resent to ${user.name}`));
+    } catch (err) {
+      toast.error(
+        err.message ?? t(`An error occurred while sending the invite`)
+      );
+    }
+  }, [users, user, t]);
+
+  const handleActivate = React.useCallback(async () => {
+    await users.activate(user);
+  }, [users, user]);
+
+  const changeRoleActions = React.useMemo(
+    () =>
+      [UserRole.Admin, UserRole.Member, UserRole.Viewer].map((role) =>
+        updateUserRoleActionFactory(user, role)
+      ),
+    [user]
   );
 
-  const handleChangeEmail = React.useCallback(
-    (ev: React.SyntheticEvent) => {
-      ev.preventDefault();
-      dialogs.openModal({
-        title: t("Change email"),
-        content: (
-          <UserChangeEmailDialog
-            user={user}
-            onSubmit={dialogs.closeAllModals}
-          />
-        ),
-      });
-    },
-    [dialogs, t, user]
+  const actions = React.useMemo(
+    () => [
+      createActionV2WithChildren({
+        name: t("Change role"),
+        section: UserSection,
+        visible: can.demote || can.promote,
+        children: changeRoleActions,
+      }),
+      createActionV2({
+        name: `${t("Change name")}…`,
+        section: UserSection,
+        visible: can.update,
+        perform: handleChangeName,
+      }),
+      createActionV2({
+        name: `${t("Change email")}…`,
+        section: UserSection,
+        visible: can.update,
+        perform: handleChangeEmail,
+      }),
+      createActionV2({
+        name: t("Resend invite"),
+        section: UserSection,
+        visible: can.resendInvite,
+        perform: handleResendInvite,
+      }),
+      ActionV2Separator,
+      createActionV2({
+        name: `${t("Revoke invite")}…`,
+        section: UserSection,
+        visible: user.isInvited,
+        dangerous: true,
+        perform: handleRevoke,
+      }),
+      createActionV2({
+        name: t("Activate user"),
+        section: UserSection,
+        visible: !user.isInvited && user.isSuspended,
+        perform: handleActivate,
+      }),
+      createActionV2({
+        name: `${t("Suspend user")}…`,
+        section: UserSection,
+        visible: !user.isInvited && !user.isSuspended,
+        dangerous: true,
+        perform: handleSuspend,
+      }),
+      ActionV2Separator,
+      deleteUserActionFactory(user.id),
+    ],
+    [
+      t,
+      can.demote,
+      can.promote,
+      can.update,
+      can.resendInvite,
+      user.id,
+      user.isInvited,
+      user.isSuspended,
+      changeRoleActions,
+      handleChangeName,
+      handleChangeEmail,
+      handleResendInvite,
+      handleRevoke,
+      handleActivate,
+      handleSuspend,
+    ]
   );
 
-  const handleSuspend = React.useCallback(
-    (ev: React.SyntheticEvent) => {
-      ev.preventDefault();
-      dialogs.openModal({
-        title: t("Suspend user"),
-        content: (
-          <UserSuspendDialog user={user} onSubmit={dialogs.closeAllModals} />
-        ),
-      });
-    },
-    [dialogs, t, user]
-  );
-
-  const handleRevoke = React.useCallback(
-    async (ev: React.SyntheticEvent) => {
-      ev.preventDefault();
-      await users.delete(user);
-    },
-    [users, user]
-  );
-
-  const handleResendInvite = React.useCallback(
-    async (ev: React.SyntheticEvent) => {
-      ev.preventDefault();
-
-      try {
-        await users.resendInvite(user);
-        toast.success(t(`Invite was resent to ${user.name}`));
-      } catch (err) {
-        toast.error(
-          err.message ?? t(`An error occurred while sending the invite`)
-        );
-      }
-    },
-    [users, user, t]
-  );
-
-  const handleActivate = React.useCallback(
-    async (ev: React.SyntheticEvent) => {
-      ev.preventDefault();
-      await users.activate(user);
-    },
-    [users, user]
-  );
+  const rootAction = useMenuAction(actions);
 
   return (
-    <>
-      <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
-      <ContextMenu {...menu} aria-label={t("User options")}>
-        <Template
-          {...menu}
-          items={[
-            {
-              type: "submenu",
-              title: t("Change role"),
-              visible: can.demote || can.promote,
-              items: [UserRole.Admin, UserRole.Member, UserRole.Viewer].map(
-                (role) =>
-                  actionToMenuItem(
-                    updateUserRoleActionFactory(user, role),
-                    context
-                  )
-              ),
-            },
-            {
-              type: "button",
-              title: `${t("Change name")}…`,
-              onClick: handleChangeName,
-              visible: can.update,
-            },
-            {
-              type: "button",
-              title: `${t("Change email")}…`,
-              onClick: handleChangeEmail,
-              visible: can.update,
-            },
-            {
-              type: "button",
-              title: t("Resend invite"),
-              onClick: handleResendInvite,
-              visible: can.resendInvite,
-            },
-            {
-              type: "separator",
-            },
-            {
-              type: "button",
-              title: `${t("Revoke invite")}…`,
-              dangerous: true,
-              onClick: handleRevoke,
-              visible: user.isInvited,
-            },
-            {
-              type: "button",
-              title: t("Activate user"),
-              onClick: handleActivate,
-              visible: !user.isInvited && user.isSuspended,
-            },
-            {
-              type: "button",
-              title: `${t("Suspend user")}…`,
-              dangerous: true,
-              onClick: handleSuspend,
-              visible: !user.isInvited && !user.isSuspended,
-            },
-            {
-              type: "separator",
-            },
-            actionToMenuItem(deleteUserActionFactory(user.id), context),
-          ]}
-        />
-      </ContextMenu>
-    </>
+    <DropdownMenu action={rootAction} align="end" ariaLabel={t("User options")}>
+      <OverflowMenuButton />
+    </DropdownMenu>
   );
 }
 

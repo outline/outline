@@ -8,7 +8,7 @@ import {
   UserChangeRoleDialog,
   UserDeleteDialog,
 } from "~/components/UserDialogs";
-import { createAction } from "~/actions";
+import { createAction, createActionV2 } from "~/actions";
 import { UserSection } from "~/actions/sections";
 
 export const inviteUser = createAction({
@@ -28,7 +28,7 @@ export const inviteUser = createAction({
 });
 
 export const updateUserRoleActionFactory = (user: User, role: UserRole) =>
-  createAction({
+  createActionV2({
     name: ({ t }) =>
       UserRoleHelper.isRoleHigher(role, user!.role)
         ? `${t("Promote to {{ role }}", {
@@ -63,7 +63,7 @@ export const updateUserRoleActionFactory = (user: User, role: UserRole) =>
   });
 
 export const deleteUserActionFactory = (userId: string) =>
-  createAction({
+  createActionV2({
     name: ({ t }) => `${t("Delete user")}…`,
     analyticsName: "Delete user",
     keywords: "leave",
