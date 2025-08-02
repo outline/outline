@@ -1,6 +1,7 @@
 import escape from "escape-html";
 import { Context, Next } from "koa";
 import env from "@server/env";
+import { InvalidRequestError } from "@server/errors";
 
 /**
  * Resize observer script that sends a message to the parent window when content is resized. Inject
@@ -41,14 +42,14 @@ export const renderEmbed = async (ctx: Context, next: Next) => {
   const url = escape(String(ctx.query.url));
 
   if (!url) {
-    ctx.throw(400, "url is required");
+    ctx.throw(InvalidRequestError("url is required"));
   }
 
   let parsed;
   try {
     parsed = new URL(url);
   } catch (_err) {
-    ctx.throw(400, "Invalid URL provided");
+    ctx.throw(InvalidRequestError("Invalid URL provided"));
   }
 
   if (
