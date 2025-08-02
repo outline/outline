@@ -41,6 +41,7 @@ import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { collectionIndexing } from "@server/utils/indexing";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
+import { InvalidRequestError } from "@server/errors";
 
 const router = new Router();
 
@@ -265,7 +266,9 @@ router.post(
     });
 
     if (!membership) {
-      ctx.throw(400, "This Group is not a part of the collection");
+      ctx.throw(
+        InvalidRequestError("This Group is not a part of the collection")
+      );
     }
 
     await membership.destroy(ctx.context);
@@ -410,7 +413,7 @@ router.post(
       transaction,
     });
     if (!membership) {
-      ctx.throw(400, "User is not a collection member");
+      ctx.throw(InvalidRequestError("User is not a collection member"));
     }
 
     await membership.destroy(ctx.context);
