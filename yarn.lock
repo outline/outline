@@ -8447,6 +8447,11 @@ functions-have-names@^1.2.3:
   resolved "https://registry.yarnpkg.com/functions-have-names/-/functions-have-names-1.2.3.tgz#0404fe4ee2ba2f607f0e0ec3c80bae994133b834"
   integrity "sha1-BAT+TuK6L2B/Dg7DyAuumUEzuDQ= sha512-xckBUXyTIqT97tq2x2AMb+g163b5JFysYk0x4qxNFwbfQkmNZoiRHb6sPzI9/QV33WeuvVYBUIiD4NzNIyqaRQ=="
 
+fuse.js@^6.6.2:
+  version "6.6.2"
+  resolved "https://registry.yarnpkg.com/fuse.js/-/fuse.js-6.6.2.tgz#fe463fed4b98c0226ac3da2856a415576dc9a111"
+  integrity sha512-cJaJkxCCxC8qIIcPBF9yGxY0W/tVZS3uEISDxhYIdtk8OL93pe+6Zj7LjCqVV4dzbqcriOZ+kQ/NE4RXZHsIGA==
+
 fuzzy-search@^3.2.1:
   version "3.2.1"
   resolved "https://registry.yarnpkg.com/fuzzy-search/-/fuzzy-search-3.2.1.tgz#65d5faad6bc633aee86f1898b7788dfe312ac6c9"
@@ -10191,14 +10196,14 @@ katex@^0.16.22:
   dependencies:
     commander "^8.3.0"
 
-kbar@0.1.0-beta.41:
-  version "0.1.0-beta.41"
-  resolved "https://registry.yarnpkg.com/kbar/-/kbar-0.1.0-beta.41.tgz#7a6ad1a5a51c401d7ee8b1e5de0f5c1766784bb6"
-  integrity "sha1-emrRpaUcQB1+6LHl3g9cF2Z4S7Y= sha512-rxVcKz6pN9YOIInby63t/1LW8J1CpPDf2X1/s+YSTeCbfM160a2/mlPi5ncx0vOY7DyThCHyrWxgjgwScWC3kA=="
+kbar@0.1.0-beta.48:
+  version "0.1.0-beta.48"
+  resolved "https://registry.yarnpkg.com/kbar/-/kbar-0.1.0-beta.48.tgz#2db254cb2943f14200c5a5f47064135737527983"
+  integrity sha512-HD5A1dqfK6XGeoH4fRWTmRt4y76sDbtGxY4Dh2xNa5MYtvtKsqfz+nRZ0tKgcrjjGYN4rf5TLXMJuiE7Pb8rXg==
   dependencies:
     "@radix-ui/react-portal" "^1.0.1"
-    command-score "^0.1.2"
     fast-equals "^2.0.3"
+    fuse.js "^6.6.2"
     react-virtual "^2.8.2"
     tiny-invariant "^1.2.0"
 
