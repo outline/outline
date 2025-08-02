@@ -524,6 +524,7 @@ router.post(
   rateLimiter(RateLimiterStrategy.TenPerHour),
   auth(),
   validate(T.UsersInviteSchema),
+  transaction(),
   async (ctx: APIContext<T.UsersInviteReq>) => {
     const { invites } = ctx.input.body;
     const { user } = ctx.state.auth;
