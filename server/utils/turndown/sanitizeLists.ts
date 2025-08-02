@@ -13,24 +13,23 @@ export default function sanitizeLists(turndownService: TurndownService) {
     filter: "li",
 
     replacement(content, node, options) {
-      const indent = " ";
       content = content
         .replace(/^\n+/, "") // remove leading newlines
         .replace(/\n+$/, "\n") // replace trailing newlines with just a single one
-        .replace(/\n/gm, "\n" + indent);
+        .replace(/\n/gm, "\n  "); // 2 space indent
 
-      let prefix = options.bulletListMarker + indent;
+      let prefix = options.bulletListMarker + " ";
       const parent = node.parentNode;
       if (parent && parent.nodeName === "OL") {
         const start = (parent as HTMLElement).getAttribute("start");
         const index = Array.prototype.indexOf.call(parent.children, node);
-        prefix = (start ? Number(start) + index : index + 1) + ".  ";
+        prefix = (start ? Number(start) + index : index + 1) + ". ";
       }
-      return (
+      const output =
         prefix +
         content +
-        (node.nextSibling && !/\n$/.test(content) ? "\n" : "")
-      );
+        (node.nextSibling && !/\n$/.test(content) ? "\n" : "");
+      return output;
     },
   });
 
