@@ -1,6 +1,6 @@
 import MarkdownIt from "markdown-it";
 
-const BREAK_REGEX = /(?:^|[^\\])\\n/;
+const BREAK_REGEX = /(?<=^|[^\\])\\n/;
 const BR_TAG_REGEX = /<br\s*\/?>/gi;
 
 export default function markdownTables(md: MarkdownIt): void {
