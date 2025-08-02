@@ -19,6 +19,7 @@ import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
+import { SkipChangeset } from "./decorators/Changeset";
 
 @DefaultScope(() => ({
   include: [
@@ -37,6 +38,7 @@ class Revision extends ParanoidModel<
 > {
   @IsNumeric
   @Column(DataType.SMALLINT)
+  @SkipChangeset
   version?: number | null;
 
   /** The editor version at the time of the revision */
@@ -45,6 +47,7 @@ class Revision extends ParanoidModel<
     msg: `editorVersion must be 255 characters or less`,
   })
   @Column
+  @SkipChangeset
   editorVersion: string;
 
   /** The document title at the time of the revision */
@@ -53,6 +56,7 @@ class Revision extends ParanoidModel<
     msg: `Revision title must be ${DocumentValidation.maxTitleLength} characters or less`,
   })
   @Column
+  @SkipChangeset
   title: string;
 
   /** An optional name for the revision */
@@ -61,6 +65,7 @@ class Revision extends ParanoidModel<
     msg: `Revision name must be ${RevisionValidation.maxNameLength} characters or less`,
   })
   @Column
+  @SkipChangeset
   name: string | null;
 
   /**
@@ -71,10 +76,12 @@ class Revision extends ParanoidModel<
    * and is no longer being written.
    */
   @Column(DataType.TEXT)
+  @SkipChangeset
   text: string | null;
 
   /** The content of the revision as JSON. */
   @Column(DataType.JSONB)
+  @SkipChangeset
   content: ProsemirrorData | null;
 
   /** The icon at the time of the revision. */
@@ -83,11 +90,13 @@ class Revision extends ParanoidModel<
     msg: `icon must be 50 characters or less`,
   })
   @Column
+  @SkipChangeset
   icon: string | null;
 
   /** The color at the time of the revision. */
   @IsHexColor
   @Column
+  @SkipChangeset
   color: string | null;
 
   // associations
@@ -108,6 +117,7 @@ class Revision extends ParanoidModel<
 
   /** Array of user IDs who collaborated on this revision */
   @Column(DataType.ARRAY(DataType.UUID))
+  @SkipChangeset
   collaboratorIds: string[] = [];
 
   /**
