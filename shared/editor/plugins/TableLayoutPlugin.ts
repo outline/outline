@@ -50,8 +50,15 @@ export class TableLayoutPlugin extends Plugin {
       return tr;
     }
 
-    // Find the corresponding table in the old state
-    const oldTable = oldState.doc.nodeAt(pos);
+    let oldTable;
+    try {
+      // Find the corresponding table in the old state
+      oldTable = oldState.doc.nodeAt(pos);
+    } catch {
+      // If we can't find the old table, just return the transaction as is
+      return tr;
+    }
+
     if (!oldTable || oldTable.type !== table.type) {
       return tr;
     }
