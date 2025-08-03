@@ -8,7 +8,7 @@ import { BaseSchema } from "../schema";
 export const SharesInfoSchema = BaseSchema.extend({
   body: z
     .object({
-      id: z.string().uuid().optional(),
+      id: z.string().optional(),
       collectionId: zodIdType().optional(),
       documentId: zodIdType().optional(),
     })
