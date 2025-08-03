@@ -233,7 +233,7 @@ function SharedScene() {
               {model instanceof Document ? (
                 <DocumentScene
                   document={model}
-                  shareId={share.id}
+                  shareId={shareId}
                   sharedTree={share.tree}
                 />
               ) : model instanceof Collection ? (
