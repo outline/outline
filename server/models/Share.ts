@@ -176,7 +176,7 @@ class Share extends IdModel<
       where.documentId = documentId;
     }
 
-    const share = await Share.scope({
+    const share = await this.scope({
       method: ["withCollectionPermissions", user.id],
     }).findOne({ where });
 
@@ -209,7 +209,7 @@ class Share extends IdModel<
         rejectOnEmpty: true,
       });
 
-      const collectionShare = await Share.scope({
+      const collectionShare = await this.scope({
         method: ["withCollectionPermissions", user.id],
       }).findOne({
         where: {
@@ -229,7 +229,7 @@ class Share extends IdModel<
         const parentDocIds = docCollection.getDocumentParents(documentId);
 
         const allParentShares = parentDocIds
-          ? await Share.scope({
+          ? await this.scope({
               method: ["withCollectionPermissions", user.id],
             }).findAll({
               where: {
