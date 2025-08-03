@@ -94,7 +94,7 @@ function Overview({ collection, shareId }: Props) {
             maxLength={CollectionValidation.maxDescriptionLength}
             onCreateLink={onCreateLink}
             canUpdate={can.update}
-            readOnly={!can.update}
+            readOnly={!can.update || !!shareId}
             userId={user?.id}
             editorStyle={editorStyle}
             shareId={shareId}
