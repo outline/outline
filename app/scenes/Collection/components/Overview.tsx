@@ -1,4 +1,3 @@
-import invariant from "invariant";
 import debounce from "lodash/debounce";
 import { observer } from "mobx-react";
 import { useMemo, useRef, useCallback, Suspense } from "react";
@@ -32,10 +31,6 @@ function Overview({ collection, shareId }: Props) {
   const { t } = useTranslation();
   const user = useCurrentUser({ rejectOnEmpty: false });
   const can = usePolicy(collection);
-
-  if (!shareId && !user) {
-    invariant(user, "authenticated user required");
-  }
 
   const handleSave = useMemo(
     () =>

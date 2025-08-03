@@ -97,7 +97,6 @@ export async function loadPublicShare({
 
   if (documentId && documentId !== share.documentId) {
     document = await Document.findByPk(documentId, {
-      paranoid: false,
       rejectOnEmpty: true,
     });
 
