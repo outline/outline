@@ -77,6 +77,7 @@ import { navigationNodeToSitemap } from "@server/utils/sitemap";
 import { assertPresent } from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
+import { loadPublicShare } from "@server/commands/shareLoader";
 
 const router = new Router();
 
@@ -597,8 +598,11 @@ router.post(
                 )
               : undefined,
             sharedTree:
-              share && share.includeChildDocuments && collection
-                ? collection.getDocumentTree(share.documentId)
+              share &&
+              share.documentId &&
+              share.includeChildDocuments &&
+              collection
+                ? collection?.getDocumentTree(share.documentId)
                 : null,
           }
         : serializedDocument;
@@ -705,7 +709,12 @@ router.get(
     });
 
     let tree;
-    if (share && share.includeChildDocuments && share.allowIndexing) {
+    if (
+      share &&
+      share.documentId &&
+      share.includeChildDocuments &&
+      share.allowIndexing
+    ) {
       tree = collection?.getDocumentTree(share.documentId);
     }
 
@@ -1019,16 +1028,29 @@ router.post(
 
     if (shareId) {
       const teamFromCtx = await getTeamFromContext(ctx);
-      const { document, ...loaded } = await documentLoader({
+      const result = await loadPublicShare({
+        id: shareId,
         teamId: teamFromCtx?.id,
-        shareId,
-        user,
       });
 
-      share = loaded.share;
-      isPublic = cannot(user, "read", document);
+      share = result.share;
+      let { collection, document } = result; // One of collection or document should be available
 
-      if (!share?.includeChildDocuments) {
+      // reload with membership scope if user is authenticated
+      if (user) {
+        collection = collection
+          ? await Collection.findByPk(collection.id, { userId: user.id })
+          : null;
+        document = document
+          ? await Document.findByPk(document.id, { userId: user.id })
+          : null;
+      }
+
+      isPublic = collection
+        ? cannot(user, "read", collection)
+        : cannot(user, "read", document);
+
+      if (share.documentId && !share?.includeChildDocuments) {
         throw InvalidRequestError("Child documents cannot be searched");
       }
 
@@ -1038,7 +1060,7 @@ router.post(
 
       response = await SearchHelper.searchForTeam(team, {
         query,
-        collectionId: document.collectionId,
+        collectionId: collection?.id || document?.collectionId,
         share,
         dateFilter,
         statusFilter,

@@ -26,10 +26,13 @@ function ShareMenu({ share }: Props) {
   const history = useHistory();
   const can = usePolicy(share);
 
-  const handleGoToDocument = React.useCallback(
+  const handleGoToSource = React.useCallback(
     (ev: React.SyntheticEvent) => {
       ev.preventDefault();
-      history.push(share.documentUrl);
+      history.push({
+        pathname: share.sourcePathWithFallback,
+        state: { sidebarContext: "collections" }, // optimistic preference of "collections"
+      });
     },
     [history, share]
   );
@@ -61,8 +64,8 @@ function ShareMenu({ share }: Props) {
             {t("Copy link")}
           </MenuItem>
         </CopyToClipboard>
-        <MenuItem {...menu} onClick={handleGoToDocument} icon={<ArrowIcon />}>
-          {t("Go to document")}
+        <MenuItem {...menu} onClick={handleGoToSource} icon={<ArrowIcon />}>
+          {share.collectionId ? t("Go to collection") : t("Go to document")}
         </MenuItem>
         {can.revoke && (
           <>
