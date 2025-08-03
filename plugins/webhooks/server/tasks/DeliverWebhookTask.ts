@@ -760,9 +760,9 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
 
   private async checkAndDisableSubscription(subscription: WebhookSubscription) {
     // Calculate the time window for analysis
-    const timeWindowHours = env.WEBHOOK_FAILURE_TIME_WINDOW;
+    const timeWindowSeconds = env.WEBHOOK_FAILURE_TIME_WINDOW;
     const failureRateThreshold = env.WEBHOOK_FAILURE_RATE_THRESHOLD;
-    const timeWindowStart = new Date(Date.now() - timeWindowHours * 60 * 60 * 1000);
+    const timeWindowStart = new Date(Date.now() - timeWindowSeconds * 1000);
 
     // Get all deliveries within the time window
     const deliveriesInWindow = await WebhookDelivery.findAll({
@@ -788,7 +788,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
 
     Logger.info("task", "Webhook failure analysis", {
       subscriptionId: subscription.id,
-      timeWindowHours,
+      timeWindowSeconds,
       totalDeliveries: deliveriesInWindow.length,
       failedDeliveries: failedDeliveries.length,
       failureRate: Math.round(failureRate * 100) / 100,
@@ -801,7 +801,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
         subscriptionId: subscription.id,
         failureRate: Math.round(failureRate * 100) / 100,
         threshold: failureRateThreshold,
-        timeWindowHours,
+        timeWindowSeconds,
         totalDeliveries: deliveriesInWindow.length,
         failedDeliveries: failedDeliveries.length,
       });
