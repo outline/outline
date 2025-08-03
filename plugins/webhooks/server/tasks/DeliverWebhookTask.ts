@@ -797,7 +797,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
 
     // Check if failure rate exceeds threshold and we have enough data points
     if (failureRate >= failureRateThreshold && deliveriesInWindow.length >= 5) {
-      Logger.warn("task", "Disabling webhook due to high failure rate", {
+      Logger.warn("Disabling webhook due to high failure rate", {
         subscriptionId: subscription.id,
         failureRate: Math.round(failureRate * 100) / 100,
         threshold: failureRateThreshold,
