@@ -228,7 +228,7 @@ class Share extends IdModel<
   documentId: string | null;
 
   revoke(ctx: APIContext) {
-    const { user } = ctx.context.auth;
+    const { user } = ctx.state.auth;
     this.revokedAt = new Date();
     this.revokedById = user.id;
     return this.saveWithCtx(ctx, undefined, { name: "revoke" });

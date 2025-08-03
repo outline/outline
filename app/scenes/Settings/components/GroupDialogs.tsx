@@ -4,7 +4,6 @@ import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { v4 as uuidv4 } from "uuid";
 import Group from "~/models/Group";
 import User from "~/models/User";
 import Invite from "~/scenes/Invite";
@@ -330,11 +329,9 @@ const AddPeopleToGroupDialog = observer(function ({
   );
 
   const handleInvitePeople = React.useCallback(() => {
-    const id = uuidv4();
     dialogs.openModal({
-      id,
       title: t("Invite people"),
-      content: <Invite onSubmit={() => dialogs.closeModal(id)} />,
+      content: <Invite onSubmit={dialogs.closeAllModals} />,
       replace: true,
     });
   }, [t, dialogs]);

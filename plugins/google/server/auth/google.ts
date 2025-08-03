@@ -21,6 +21,7 @@ import {
 } from "@server/utils/passport";
 import config from "../../plugin.json";
 import env from "../env";
+import { createContext } from "@server/context";
 
 const router = new Router();
 
@@ -51,7 +52,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
         scope: scopes,
       },
       async function (
-        ctx: Context,
+        context: Context,
         accessToken: string,
         refreshToken: string,
         params: { expires_in: number },
@@ -65,8 +66,8 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
         try {
           // "domain" is the Google Workspaces domain
           const domain = profile._json.hd;
-          const team = await getTeamFromContext(ctx);
-          const client = getClientFromContext(ctx);
+          const team = await getTeamFromContext(context);
+          const client = getClientFromContext(context);
 
           // No profile domain means personal gmail account
           // No team implies the request came from the apex domain
@@ -108,8 +109,8 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
           // if a team can be inferred, we assume the user is only interested in signing into
           // that team in particular; otherwise, we will do a best effort at finding their account
           // or provisioning a new one (within AccountProvisioner)
-          const result = await accountProvisioner({
-            ip: ctx.ip,
+          const ctx = createContext({ ip: context.ip });
+          const result = await accountProvisioner(ctx, {
             team: {
               teamId: team?.id,
               name: teamName,

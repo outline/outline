@@ -26,6 +26,21 @@ if (env.SENTRY_DSN) {
       "UserSuspendedError",
       "TooManyRequestsError",
     ],
+    beforeSend(event) {
+      try {
+        switch (event.level) {
+          case "warning":
+            // Sample warnings to reduce noise
+            if (Math.random() < 0.1) {
+              return null;
+            }
+            break;
+        }
+        return event;
+      } catch (e) {
+        return event;
+      }
+    },
   });
 }
 

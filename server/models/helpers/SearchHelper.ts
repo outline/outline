@@ -319,6 +319,26 @@ export default class SearchHelper {
         separate: false,
       },
       {
+        association: "groupMemberships",
+        required: false,
+        separate: false,
+        include: [
+          {
+            association: "group",
+            required: true,
+            include: [
+              {
+                association: "groupUsers",
+                required: true,
+                where: {
+                  userId: user.id,
+                },
+              },
+            ],
+          },
+        ],
+      },
+      {
         model: User,
         as: "createdBy",
         paranoid: false,
@@ -389,6 +409,26 @@ export default class SearchHelper {
         },
         required: false,
         separate: false,
+      },
+      {
+        association: "groupMemberships",
+        required: false,
+        separate: false,
+        include: [
+          {
+            association: "group",
+            required: true,
+            include: [
+              {
+                association: "groupUsers",
+                required: true,
+                where: {
+                  userId: user.id,
+                },
+              },
+            ],
+          },
+        ],
       },
     ];
 
@@ -519,7 +559,10 @@ export default class SearchHelper {
     };
 
     if (model instanceof User) {
-      where[Op.or].push({ "$memberships.id$": { [Op.ne]: null } });
+      where[Op.or].push(
+        { "$memberships.id$": { [Op.ne]: null } },
+        { "$groupMemberships.id$": { [Op.ne]: null } }
+      );
     }
 
     // Ensure we're filtering by the users accessible collections. If

@@ -57,14 +57,17 @@ allow(User, "delete", User, (actor, user) =>
   )
 );
 
-allow(User, ["activate", "suspend"], User, isTeamAdmin);
+allow(User, ["activate", "suspend"], User, (actor, user) =>
+  and(isTeamAdmin(actor, user), user?.id !== actor.id)
+);
 
 allow(User, "promote", User, (actor, user) =>
   and(
     //
     isTeamAdmin(actor, user),
     !user?.isAdmin,
-    !user?.isSuspended
+    !user?.isSuspended,
+    user?.id !== actor.id
   )
 );
 
@@ -72,7 +75,8 @@ allow(User, "demote", User, (actor, user) =>
   and(
     //
     isTeamAdmin(actor, user),
-    !user?.isSuspended
+    !user?.isSuspended,
+    user?.id !== actor.id
   )
 );
 

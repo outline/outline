@@ -4,10 +4,7 @@ import { UserPreference, UserRole } from "@shared/types";
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";
 import { settingsPath } from "@shared/utils/routeHelpers";
 import { UserValidation } from "@shared/validations";
-import userDestroyer from "@server/commands/userDestroyer";
 import userInviter from "@server/commands/userInviter";
-import userSuspender from "@server/commands/userSuspender";
-import userUnsuspender from "@server/commands/userUnsuspender";
 import ConfirmUpdateEmail from "@server/emails/templates/ConfirmUpdateEmail";
 import ConfirmUserDeleteEmail from "@server/emails/templates/ConfirmUserDeleteEmail";
 import InviteEmail from "@server/emails/templates/InviteEmail";
@@ -18,7 +15,7 @@ import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Event, User, Team } from "@server/models";
+import { User, Team } from "@server/models";
 import { UserFlag } from "@server/models/User";
 import { can, authorize } from "@server/policies";
 import { presentUser, presentPolicies } from "@server/presenters";
@@ -291,13 +288,7 @@ router.get(
       throw ValidationError("User with email already exists");
     }
 
-    user.email = email;
-    await Event.createFromContext(ctx, {
-      name: "users.update",
-      userId: user.id,
-      changes: user.changeset,
-    });
-    await user.save({ transaction });
+    await user.updateWithCtx(ctx, { email });
 
     ctx.redirect(settingsPath());
   }
@@ -343,12 +334,7 @@ router.post(
       user.timezone = timezone;
     }
 
-    await Event.createFromContext(ctx, {
-      name: "users.update",
-      userId: user.id,
-      changes: user.changeset,
-    });
-    await user.save({ transaction });
+    await user.saveWithCtx(ctx);
 
     ctx.body = {
       data: presentUser(user, {
@@ -440,25 +426,15 @@ async function updateRole(ctx: APIContext<T.UsersChangeRoleReq>) {
   }
 
   if (UserRoleHelper.canDemote(user, role)) {
-    name = "users.demote";
+    name = "demote";
     authorize(actor, "demote", user);
   }
   if (UserRoleHelper.canPromote(user, role)) {
-    name = "users.promote";
+    name = "promote";
     authorize(actor, "promote", user);
   }
 
-  await user.update({ role }, { transaction });
-
-  await Event.createFromContext(ctx, {
-    name,
-    userId,
-    data: {
-      name: user.name,
-      role,
-    },
-  });
-
+  await user.updateWithCtx(ctx, { role }, { name });
   const includeDetails = !!can(actor, "readDetails", user);
 
   ctx.body = {
@@ -485,12 +461,16 @@ router.post(
     });
     authorize(actor, "suspend", user);
 
-    await userSuspender({
-      user,
-      actorId: actor.id,
-      ip: ctx.request.ip,
-      transaction,
-    });
+    await user.updateWithCtx(
+      ctx,
+      {
+        suspendedById: actor.id,
+        suspendedAt: new Date(),
+      },
+      {
+        name: "suspend",
+      }
+    );
     const includeDetails = !!can(actor, "readDetails", user);
 
     ctx.body = {
@@ -518,12 +498,16 @@ router.post(
     });
     authorize(actor, "activate", user);
 
-    await userUnsuspender({
-      user,
-      actorId: actor.id,
-      transaction,
-      ip: ctx.request.ip,
-    });
+    await user.updateWithCtx(
+      ctx,
+      {
+        suspendedById: null,
+        suspendedAt: null,
+      },
+      {
+        name: "activate",
+      }
+    );
     const includeDetails = !!can(actor, "readDetails", user);
 
     ctx.body = {
@@ -540,31 +524,25 @@ router.post(
   rateLimiter(RateLimiterStrategy.TenPerHour),
   auth(),
   validate(T.UsersInviteSchema),
+  transaction(),
   async (ctx: APIContext<T.UsersInviteReq>) => {
     const { invites } = ctx.input.body;
-    const actor = ctx.state.auth.user;
+    const { user } = ctx.state.auth;
 
     if (invites.length > UserValidation.maxInvitesPerRequest) {
       throw ValidationError(
         `You can only invite up to ${UserValidation.maxInvitesPerRequest} users at a time`
       );
     }
+    authorize(user, "inviteUser", user.team);
 
-    const { user } = ctx.state.auth;
-    const team = await Team.findByPk(user.teamId);
-    authorize(user, "inviteUser", team);
-
-    const response = await userInviter({
-      user,
-      invites,
-      ip: ctx.request.ip,
-    });
+    const response = await userInviter(ctx, { invites });
 
     ctx.body = {
       data: {
         sent: response.sent,
         users: response.users.map((user) =>
-          presentUser(user, { includeEmail: !!can(actor, "readEmail", user) })
+          presentUser(user, { includeEmail: !!can(user, "readEmail", user) })
         ),
       },
     };
@@ -676,9 +654,7 @@ router.post(
       }
     }
 
-    await userDestroyer(ctx, {
-      user,
-    });
+    await user.destroyWithCtx(ctx);
 
     ctx.body = {
       success: true,
@@ -693,16 +669,10 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.UsersNotificationsSubscribeReq>) => {
     const { eventType } = ctx.input.body;
-    const { transaction } = ctx.state;
     const { user } = ctx.state.auth;
     user.setNotificationEventType(eventType, true);
 
-    await Event.createFromContext(ctx, {
-      name: "users.update",
-      userId: user.id,
-      changes: user.changeset,
-    });
-    await user.save({ transaction });
+    await user.saveWithCtx(ctx);
 
     ctx.body = {
       data: presentUser(user, { includeDetails: true }),
@@ -717,16 +687,10 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.UsersNotificationsUnsubscribeReq>) => {
     const { eventType } = ctx.input.body;
-    const { transaction } = ctx.state;
     const { user } = ctx.state.auth;
     user.setNotificationEventType(eventType, false);
 
-    await Event.createFromContext(ctx, {
-      name: "users.update",
-      userId: user.id,
-      changes: user.changeset,
-    });
-    await user.save({ transaction });
+    await user.saveWithCtx(ctx);
 
     ctx.body = {
       data: presentUser(user, { includeDetails: true }),
