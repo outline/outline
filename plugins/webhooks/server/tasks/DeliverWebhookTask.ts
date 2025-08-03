@@ -759,20 +759,54 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
   }
 
   private async checkAndDisableSubscription(subscription: WebhookSubscription) {
-    const recentDeliveries = await WebhookDelivery.findAll({
+    // Calculate the time window for analysis
+    const timeWindowHours = env.WEBHOOK_FAILURE_TIME_WINDOW;
+    const failureRateThreshold = env.WEBHOOK_FAILURE_RATE_THRESHOLD;
+    const timeWindowStart = new Date(Date.now() - timeWindowHours * 60 * 60 * 1000);
+
+    // Get all deliveries within the time window
+    const deliveriesInWindow = await WebhookDelivery.findAll({
       where: {
         webhookSubscriptionId: subscription.id,
+        createdAt: {
+          [Op.gte]: timeWindowStart,
+        },
       },
       order: [["createdAt", "DESC"]],
-      limit: 25,
     });
 
-    const allFailed = recentDeliveries.every(
+    // If there are no deliveries in the time window, don't disable
+    if (deliveriesInWindow.length === 0) {
+      return;
+    }
+
+    // Calculate failure rate
+    const failedDeliveries = deliveriesInWindow.filter(
       (delivery) => delivery.status === "failed"
     );
+    const failureRate = (failedDeliveries.length / deliveriesInWindow.length) * 100;
 
-    if (recentDeliveries.length === 25 && allFailed) {
-      // If the last 25 deliveries failed, disable the subscription
+    Logger.info("task", "Webhook failure analysis", {
+      subscriptionId: subscription.id,
+      timeWindowHours,
+      totalDeliveries: deliveriesInWindow.length,
+      failedDeliveries: failedDeliveries.length,
+      failureRate: Math.round(failureRate * 100) / 100,
+      threshold: failureRateThreshold,
+    });
+
+    // Check if failure rate exceeds threshold and we have enough data points
+    if (failureRate >= failureRateThreshold && deliveriesInWindow.length >= 5) {
+      Logger.warn("task", "Disabling webhook due to high failure rate", {
+        subscriptionId: subscription.id,
+        failureRate: Math.round(failureRate * 100) / 100,
+        threshold: failureRateThreshold,
+        timeWindowHours,
+        totalDeliveries: deliveriesInWindow.length,
+        failedDeliveries: failedDeliveries.length,
+      });
+
+      // Disable the subscription
       await subscription.disable();
 
       // Send an email to the creator of the webhook to let them know
