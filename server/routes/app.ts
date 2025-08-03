@@ -146,9 +146,8 @@ export const renderShare = async (ctx: Context, next: Next) => {
   const collectionSlug = ctx.params.collectionSlug;
   const documentSlug = ctx.params.documentSlug;
 
-  // Find the share record if publicly published so that the document title
-  // can be returned in the server-rendered HTML. This allows it to appear in
-  // unfurls with more reliability
+  // Find the share record if published so that the document title can be returned
+  // in the server-rendered HTML. This allows it to appear in unfurls more reliably.
   let share, collection, document, team;
   let analytics: Integration<IntegrationType.Analytics>[] = [];
 

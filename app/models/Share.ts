@@ -102,13 +102,21 @@ class Share extends Model implements Searchable {
   }
 
   @computed
+  get sharedCache() {
+    return (
+      this.store.sharedCache.get(this.id) ??
+      this.store.sharedCache.get(this.urlId)
+    );
+  }
+
+  @computed
   get team(): PublicTeam | undefined {
-    return this.store.sharedCache.get(this.id)?.team;
+    return this.sharedCache?.team;
   }
 
   @computed
   get tree(): NavigationNode | undefined {
-    return this.store.sharedCache.get(this.id)?.sharedTree ?? undefined;
+    return this.sharedCache?.sharedTree ?? undefined;
   }
 }
 

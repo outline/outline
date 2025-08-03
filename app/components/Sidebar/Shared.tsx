@@ -35,6 +35,7 @@ function SharedSidebar({ share }: Props) {
 
   const teamAvailable = !!team?.name;
   const rootNode = share.tree;
+  const shareId = share.urlId || share.id;
 
   if (!rootNode?.children.length) {
     return null;
@@ -49,7 +50,7 @@ function SharedSidebar({ share }: Props) {
             <TeamLogo model={team} size={AvatarSize.XLarge} alt={t("Logo")} />
           }
           onClick={() =>
-            history.push(user ? homePath() : sharedModelPath(share.id))
+            history.push(user ? homePath() : sharedModelPath(shareId))
           }
         >
           <ToggleSidebar />
@@ -58,7 +59,7 @@ function SharedSidebar({ share }: Props) {
       <ScrollContainer topShadow flex>
         <TopSection>
           <SearchWrapper>
-            <StyledSearchPopover shareId={share.id} />
+            <StyledSearchPopover shareId={shareId} />
           </SearchWrapper>
           {!teamAvailable && (
             <ToggleWrapper>
@@ -68,12 +69,12 @@ function SharedSidebar({ share }: Props) {
         </TopSection>
         <Section>
           {share.collectionId ? (
-            <SharedCollectionLink node={rootNode} shareId={share.id} />
+            <SharedCollectionLink node={rootNode} shareId={shareId} />
           ) : (
             <SharedDocumentLink
               index={0}
               depth={0}
-              shareId={share.id}
+              shareId={shareId}
               node={rootNode}
               prefetchDocument={documents.prefetchDocument}
               activeDocumentId={ui.activeDocumentId}
