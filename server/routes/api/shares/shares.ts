@@ -311,12 +311,12 @@ router.post(
 
     if (published !== undefined) {
       share.published = published;
-      if (published && !!share.documentId) {
+      if (published) {
         share.includeChildDocuments = true;
       }
     }
 
-    if (!!share.documentId && includeChildDocuments !== undefined) {
+    if (includeChildDocuments !== undefined) {
       share.includeChildDocuments = includeChildDocuments;
     }
 
