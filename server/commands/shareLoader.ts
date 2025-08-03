@@ -102,7 +102,7 @@ export async function loadPublicShare({
 
     const allIdsInSharedTree = share.includeChildDocuments
       ? getAllIdsInSharedTree(sharedTree)
-      : [document.id];
+      : [];
     if (!allIdsInSharedTree.includes(document.id)) {
       throw AuthorizationError();
     }
