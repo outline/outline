@@ -50,7 +50,7 @@ const PublicBreadcrumb: React.FC<Props> = ({
   const items: MenuInternalLink[] = React.useMemo(
     () =>
       pathToDocument(sharedTree, documentId)
-        .slice(0, -1)
+        .slice(1, -1)
         .map((item) => ({
           ...item,
           icon: item.icon ? (
