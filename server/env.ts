@@ -731,6 +731,24 @@ export class Environment {
   );
 
   /**
+   * Time window in seconds to analyze webhook failures for disabling decision.
+   * Defaults to 86400 seconds (24 hours).
+   */
+  @IsNumber()
+  @IsOptional()
+  public WEBHOOK_FAILURE_TIME_WINDOW =
+    this.toOptionalNumber(environment.WEBHOOK_FAILURE_TIME_WINDOW) ?? 86400;
+
+  /**
+   * Percentage threshold of failures within the time window that triggers
+   * webhook disabling. Defaults to 80%.
+   */
+  @IsNumber()
+  @IsOptional()
+  public WEBHOOK_FAILURE_RATE_THRESHOLD =
+    this.toOptionalNumber(environment.WEBHOOK_FAILURE_RATE_THRESHOLD) ?? 80;
+
+  /**
    * The product name
    */
   @Public
