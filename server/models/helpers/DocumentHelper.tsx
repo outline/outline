@@ -191,14 +191,22 @@ export class DocumentHelper {
   /**
    * Returns the document as plain HTML. This is a lossy conversion and should only be used for export.
    *
-   * @param document The document or revision to convert
+   * @param model The document or revision or collection to convert
    * @param options Options for the HTML output
    * @returns The document title and content as a HTML string
    */
-  static async toHTML(document: Document | Revision, options?: HTMLOptions) {
-    const node = DocumentHelper.toProsemirror(document);
+  static async toHTML(
+    model: Document | Revision | Collection,
+    options?: HTMLOptions
+  ) {
+    const node = DocumentHelper.toProsemirror(model);
     let output = ProsemirrorHelper.toHTML(node, {
-      title: options?.includeTitle !== false ? document.title : undefined,
+      title:
+        options?.includeTitle !== false
+          ? model instanceof Collection
+            ? model.name
+            : model.title
+          : undefined,
       includeStyles: options?.includeStyles,
       includeMermaid: options?.includeMermaid,
       includeHead: options?.includeHead,
@@ -207,15 +215,16 @@ export class DocumentHelper {
     });
 
     addTags({
-      documentId: document.id,
+      collectionId: model instanceof Collection ? model.id : undefined,
+      documentId: !(model instanceof Collection) ? model.id : undefined,
       options,
     });
 
     if (options?.signedUrls) {
       const teamId =
-        document instanceof Document
-          ? document.teamId
-          : (await document.$get("document"))?.teamId;
+        model instanceof Collection || model instanceof Document
+          ? model.teamId
+          : (await model.$get("document"))?.teamId;
 
       if (!teamId) {
         return output;

@@ -3,8 +3,8 @@ import { SidebarIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { hover } from "@shared/styles";
-import { NavigationNode } from "@shared/types";
 import { metaDisplay } from "@shared/utils/keyboard";
+import Share from "~/models/Share";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import SearchPopover from "~/components/SearchPopover";
@@ -12,28 +12,33 @@ import Tooltip from "~/components/Tooltip";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
-import { homePath, sharedDocumentPath } from "~/utils/routeHelpers";
+import { homePath, sharedModelPath } from "~/utils/routeHelpers";
 import { AvatarSize } from "../Avatar";
 import { useTeamContext } from "../TeamContext";
 import TeamLogo from "../TeamLogo";
 import Sidebar from "./Sidebar";
 import Section from "./components/Section";
-import DocumentLink from "./components/SharedDocumentLink";
+import { SharedCollectionLink } from "./components/SharedCollectionLink";
+import { SharedDocumentLink } from "./components/SharedDocumentLink";
 import SidebarButton from "./components/SidebarButton";
 import ToggleButton from "./components/ToggleButton";
 
 type Props = {
-  rootNode: NavigationNode;
-  shareId: string;
+  share: Share;
 };
 
-function SharedSidebar({ rootNode, shareId }: Props) {
+function SharedSidebar({ share }: Props) {
   const team = useTeamContext();
   const user = useCurrentUser({ rejectOnEmpty: false });
   const { ui, documents } = useStores();
   const { t } = useTranslation();
 
   const teamAvailable = !!team?.name;
+  const rootNode = share.tree;
+
+  if (!rootNode?.children.length) {
+    return null;
+  }
 
   return (
     <StyledSidebar $hoverTransition={!teamAvailable}>
@@ -44,9 +49,7 @@ function SharedSidebar({ rootNode, shareId }: Props) {
             <TeamLogo model={team} size={AvatarSize.XLarge} alt={t("Logo")} />
           }
           onClick={() =>
-            history.push(
-              user ? homePath() : sharedDocumentPath(shareId, rootNode.url)
-            )
+            history.push(user ? homePath() : sharedModelPath(share.id))
           }
         >
           <ToggleSidebar />
@@ -55,7 +58,7 @@ function SharedSidebar({ rootNode, shareId }: Props) {
       <ScrollContainer topShadow flex>
         <TopSection>
           <SearchWrapper>
-            <StyledSearchPopover shareId={shareId} />
+            <StyledSearchPopover shareId={share.id} />
           </SearchWrapper>
           {!teamAvailable && (
             <ToggleWrapper>
@@ -64,15 +67,19 @@ function SharedSidebar({ rootNode, shareId }: Props) {
           )}
         </TopSection>
         <Section>
-          <DocumentLink
-            index={0}
-            depth={0}
-            shareId={shareId}
-            node={rootNode}
-            prefetchDocument={documents.prefetchDocument}
-            activeDocumentId={ui.activeDocumentId}
-            activeDocument={documents.active}
-          />
+          {share.collectionId ? (
+            <SharedCollectionLink node={rootNode} shareId={share.id} />
+          ) : (
+            <SharedDocumentLink
+              index={0}
+              depth={0}
+              shareId={share.id}
+              node={rootNode}
+              prefetchDocument={documents.prefetchDocument}
+              activeDocumentId={ui.activeDocumentId}
+              activeDocument={documents.active}
+            />
+          )}
         </Section>
       </ScrollContainer>
     </StyledSidebar>

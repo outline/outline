@@ -9,7 +9,7 @@ import { determineIconType } from "@shared/utils/icon";
 import Document from "~/models/Document";
 import Flex from "~/components/Flex";
 import { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
-import { sharedDocumentPath } from "~/utils/routeHelpers";
+import { sharedModelPath } from "~/utils/routeHelpers";
 import useClickIntent from "~/hooks/useClickIntent";
 import useStores from "~/hooks/useStores";
 import { useCallback } from "react";
@@ -80,7 +80,7 @@ function ReferenceListItem({
       onMouseLeave={handleMouseLeave}
       to={{
         pathname: shareId
-          ? sharedDocumentPath(shareId, document.url)
+          ? sharedModelPath(shareId, document.url)
           : document.url,
         hash: anchor ? `d-${anchor}` : undefined,
         state: {

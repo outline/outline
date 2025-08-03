@@ -23,12 +23,13 @@ const extensions = withUIExtensions(richExtensions);
 
 type Props = {
   collection: Collection;
+  shareId?: string;
 };
 
-function Overview({ collection }: Props) {
+function Overview({ collection, shareId }: Props) {
   const { documents, collections } = useStores();
   const { t } = useTranslation();
-  const user = useCurrentUser({ rejectOnEmpty: true });
+  const user = useCurrentUser({ rejectOnEmpty: false });
   const can = usePolicy(collection);
 
   const handleSave = useMemo(
@@ -88,9 +89,10 @@ function Overview({ collection }: Props) {
             maxLength={CollectionValidation.maxDescriptionLength}
             onCreateLink={onCreateLink}
             canUpdate={can.update}
-            readOnly={!can.update}
-            userId={user.id}
+            readOnly={!can.update || !!shareId}
+            userId={user?.id}
             editorStyle={editorStyle}
+            shareId={shareId}
           />
           <div ref={childRef} />
         </Suspense>
