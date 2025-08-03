@@ -33,18 +33,8 @@ export default function Routes() {
       {env.ROOT_SHARE_ID ? (
         <Switch>
           <Route exact path="/" component={Shared} />
-          <Route
-            exact
-            path={`/collection/${collectionSlug}`}
-            component={Shared}
-          />
           <Route exact path={`/doc/${documentSlug}`} component={Shared} />
           <Redirect exact from="/s/:shareId" to="/" />
-          <Redirect
-            exact
-            from={`/s/:shareId/collection/${collectionSlug}`}
-            to={`/collection/${collectionSlug}`}
-          />
           <Redirect
             exact
             from={`/s/:shareId/doc/${documentSlug}`}
@@ -70,17 +60,6 @@ export default function Routes() {
           <Route
             exact
             path={`/s/:shareId/doc/${documentSlug}`}
-            component={Shared}
-          />
-
-          <Redirect
-            exact
-            from={`/share/:shareId/collection/${collectionSlug}`}
-            to={`/s/:shareId/collection/${collectionSlug}`}
-          />
-          <Route
-            exact
-            path={`/s/:shareId/collection/${collectionSlug}`}
             component={Shared}
           />
 

@@ -49,9 +49,7 @@ function SharedSidebar({ share }: Props) {
             <TeamLogo model={team} size={AvatarSize.XLarge} alt={t("Logo")} />
           }
           onClick={() =>
-            history.push(
-              user ? homePath() : sharedModelPath(share.id, rootNode.url)
-            )
+            history.push(user ? homePath() : sharedModelPath(share.id))
           }
         >
           <ToggleSidebar />

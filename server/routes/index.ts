@@ -125,11 +125,6 @@ router.get("/opensearch.xml", (ctx) => {
 
 router.get("/s/:shareId", shareDomains(), renderShare);
 router.get("/s/:shareId/doc/:documentSlug", shareDomains(), renderShare);
-router.get(
-  "/s/:shareId/collection/:collectionSlug",
-  shareDomains(),
-  renderShare
-);
 router.get("/s/:shareId/*", shareDomains(), renderShare);
 
 router.get("/embeds/gitlab", renderEmbed);

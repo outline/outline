@@ -22,7 +22,7 @@ function CollectionLink({ node, shareId }: Props) {
     <>
       <SidebarLink
         to={{
-          pathname: sharedModelPath(shareId, node.url),
+          pathname: sharedModelPath(shareId),
           state: {
             title: node.title,
           },
