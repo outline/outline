@@ -2,6 +2,7 @@ import { createContext } from "@server/context";
 import { Attachment } from "@server/models";
 import FileStorage from "@server/storage/files";
 import BaseTask, { TaskPriority } from "./BaseTask";
+import { sequelize } from "@server/storage/database";
 
 type Props = {
   /** The ID of the attachment */
@@ -28,11 +29,13 @@ export default class UploadAttachmentFromUrlTask extends BaseTask<Props> {
       );
 
       if (res?.url) {
-        const ctx = createContext({ user: attachment.user });
-        await attachment.updateWithCtx(ctx, {
-          url: res.url,
-          size: res.contentLength,
-          contentType: res.contentType,
+        await sequelize.transaction(async (transaction) => {
+          const ctx = createContext({ user: attachment.user, transaction });
+          await attachment.updateWithCtx(ctx, {
+            url: res.url,
+            size: res.contentLength,
+            contentType: res.contentType,
+          });
         });
       }
     } catch (err) {
