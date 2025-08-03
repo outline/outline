@@ -100,10 +100,14 @@ export async function loadPublicShare({
       rejectOnEmpty: true,
     });
 
-    const allIdsInSharedTree = share.includeChildDocuments
-      ? getAllIdsInSharedTree(sharedTree)
-      : [];
-    if (!allIdsInSharedTree.includes(document.id)) {
+    let isDocumentAccessible = share.documentId === document.id;
+
+    if (share.includeChildDocuments) {
+      const allIdsInSharedTree = getAllIdsInSharedTree(sharedTree);
+      isDocumentAccessible = allIdsInSharedTree.includes(document.id);
+    }
+
+    if (!isDocumentAccessible) {
       throw AuthorizationError();
     }
   } else {

@@ -201,7 +201,7 @@ describe("shareLoader", () => {
       expect(result.parentShare?.id).toEqual(parentShare.id);
     });
 
-    it("should throw error when the requested document is not part of the share", async () => {
+    it("should throw error when the requested document is not part of the share (includeChildDocuments = true)", async () => {
       const user = await buildUser();
       const collection = await buildCollection({
         userId: user.id,
@@ -225,6 +225,61 @@ describe("shareLoader", () => {
 
       await expect(
         loadPublicShare({ id: share.id, documentId: anotherDocument.id })
+      ).rejects.toThrow();
+    });
+
+    it("should throw error when the requested document is not part of the share (includeChildDocuments = false)", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const anotherDocument = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const share = await buildShare({
+        includeChildDocuments: false,
+        userId: user.id,
+        teamId: user.teamId,
+        documentId: document.id,
+      });
+
+      await expect(
+        loadPublicShare({ id: share.id, documentId: anotherDocument.id })
+      ).rejects.toThrow();
+    });
+
+    it("should throw error when the child document is requested for a share with includeChildDocuments = false", async () => {
+      const user = await buildUser();
+      const collection = await buildCollection({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const document = await buildDocument({
+        collectionId: collection.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const childDocument = await buildDocument({
+        parentDocumentId: document.id,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const share = await buildShare({
+        includeChildDocuments: false,
+        userId: user.id,
+        teamId: user.teamId,
+        documentId: document.id,
+      });
+
+      await expect(
+        loadPublicShare({ id: share.id, documentId: childDocument.id })
       ).rejects.toThrow();
     });
   });
