@@ -5,7 +5,8 @@ import {
   buildTeam,
   buildUser,
 } from "@server/test/factories";
-import { loadPublicShare, loadShareWithParent } from "./shareLoader";
+import { Share } from "@server/models";
+import { loadPublicShare } from "./shareLoader";
 
 describe("shareLoader", () => {
   describe("collection share", () => {
@@ -58,7 +59,7 @@ describe("shareLoader", () => {
         collectionId: collection.id,
       });
 
-      const result = await loadShareWithParent({
+      const result = await Share.findWithParent({
         collectionId: collection.id,
         user,
       });
@@ -192,7 +193,7 @@ describe("shareLoader", () => {
         }),
       ]);
 
-      const result = await loadShareWithParent({
+      const result = await Share.findWithParent({
         documentId: childDocument.id,
         user,
       });

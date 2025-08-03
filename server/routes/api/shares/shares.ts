@@ -22,10 +22,7 @@ import { getTeamFromContext } from "@server/utils/passport";
 import { navigationNodeToSitemap } from "@server/utils/sitemap";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
-import {
-  loadPublicShare,
-  loadShareWithParent,
-} from "@server/commands/shareLoader";
+import { loadPublicShare } from "@server/commands/shareLoader";
 
 const router = new Router();
 
@@ -96,7 +93,7 @@ router.post(
 
     // load share with parent for displaying in the share popovers.
 
-    const { share, parentShare } = await loadShareWithParent({
+    const { share, parentShare } = await Share.findWithParent({
       collectionId,
       documentId,
       user,

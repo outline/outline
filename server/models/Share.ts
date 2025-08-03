@@ -2,6 +2,8 @@ import {
   InferAttributes,
   InferCreationAttributes,
   type SaveOptions,
+  Op,
+  WhereOptions,
 } from "sequelize";
 import {
   ForeignKey,
@@ -19,8 +21,9 @@ import {
 } from "sequelize-typescript";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import env from "@server/env";
-import { ValidationError } from "@server/errors";
+import { NotFoundError, ValidationError } from "@server/errors";
 import { APIContext } from "@server/types";
+import { authorize, can } from "@server/policies";
 import Collection from "./Collection";
 import Document from "./Document";
 import Team from "./Team";
@@ -148,6 +151,106 @@ class Share extends IdModel<
   @Default(false)
   @Column
   showLastUpdated: boolean;
+
+  // static methods
+
+  static async findWithParent({
+    collectionId,
+    documentId,
+    user,
+  }: {
+    collectionId?: string;
+    documentId?: string;
+    user: User;
+  }) {
+    const where: WhereOptions<Share> = {
+      revokedAt: {
+        [Op.is]: null,
+      },
+      teamId: user.teamId,
+    };
+
+    if (collectionId) {
+      where.collectionId = collectionId;
+    } else if (documentId) {
+      where.documentId = documentId;
+    }
+
+    const share = await Share.scope({
+      method: ["withCollectionPermissions", user.id],
+    }).findOne({ where });
+
+    if (!share) {
+      throw NotFoundError();
+    }
+
+    authorize(user, "read", share);
+
+    if (collectionId) {
+      authorize(user, "read", share.collection);
+    }
+
+    let parentShare: Share | null = null;
+
+    // Load the parent shares and return one (needed for share toggle in UI).
+    // Parent share is needed for documents only since collections don't have parents.
+    if (documentId) {
+      authorize(user, "read", share.document);
+
+      const docCollectionId = share.document.collectionId;
+
+      if (!docCollectionId) {
+        throw NotFoundError("Collection not found for the shared document");
+      }
+
+      const docCollection = await Collection.findByPk(docCollectionId, {
+        userId: user.id,
+        includeDocumentStructure: true,
+        rejectOnEmpty: true,
+      });
+
+      const collectionShare = await Share.scope({
+        method: ["withCollectionPermissions", user.id],
+      }).findOne({
+        where: {
+          revokedAt: {
+            [Op.is]: null,
+          },
+          published: true,
+          teamId: user.teamId,
+          collectionId: docCollectionId,
+        },
+      });
+
+      // prefer collection share if it exists and user has read access.
+      if (collectionShare && can(user, "read", collectionShare)) {
+        parentShare = collectionShare;
+      } else {
+        const parentDocIds = docCollection.getDocumentParents(documentId);
+
+        const allParentShares = parentDocIds
+          ? await Share.scope({
+              method: ["withCollectionPermissions", user.id],
+            }).findAll({
+              where: {
+                revokedAt: {
+                  [Op.is]: null,
+                },
+                published: true,
+                teamId: user.teamId,
+                includeChildDocuments: true,
+                documentId: parentDocIds,
+              },
+            })
+          : null;
+
+        parentShare =
+          allParentShares?.find((s) => can(user, "read", s)) ?? null;
+      }
+    }
+
+    return { share, parentShare };
+  }
 
   // hooks
 
