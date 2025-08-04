@@ -152,7 +152,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
   let analytics: Integration<IntegrationType.Analytics>[] = [];
 
   try {
-    team = await getTeamFromContext(ctx);
+    team = await getTeamFromContext(ctx, { includeStateCookie: false });
     const result = await loadPublicShare({
       id: shareId,
       collectionId: collectionSlug,
