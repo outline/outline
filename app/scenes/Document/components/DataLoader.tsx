@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useLocation, RouteComponentProps, StaticContext } from "react-router";
-import { NavigationNode, TeamPreference } from "@shared/types";
+import { TeamPreference } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import Document from "~/models/Document";
@@ -34,8 +34,6 @@ type Params = {
   documentSlug: string;
   /** A specific revision id to load. */
   revisionId?: string;
-  /** The share ID to use to load data. */
-  shareId?: string;
 };
 
 type LocationState = {
@@ -66,7 +64,7 @@ function DataLoader({ match, children }: Props) {
   const user = useCurrentUser();
   const { setDocument } = useDocumentContext();
   const [error, setError] = React.useState<Error | null>(null);
-  const { revisionId, shareId, documentSlug } = match.params;
+  const { revisionId, documentSlug } = match.params;
 
   // Allows loading by /doc/slug-<urlId> or /doc/<id>
   const document =
@@ -100,7 +98,7 @@ function DataLoader({ match, children }: Props) {
       }
     }
     void fetchDocument();
-  }, [ui, documents, shareId, documentSlug]);
+  }, [ui, documents, documentSlug]);
 
   React.useEffect(() => {
     async function fetchRevision() {
@@ -239,7 +237,7 @@ function DataLoader({ match, children }: Props) {
 
   return (
     <>
-      {!shareId && !revision && <MarkAsViewed document={document} />}
+      {!revision && <MarkAsViewed document={document} />}
       <React.Fragment key={canEdit ? "edit" : "read"}>
         {children({
           document,
