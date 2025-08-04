@@ -371,8 +371,12 @@ router.get(
   validate(T.SharesSitemapSchema),
   async (ctx: APIContext<T.SharesSitemapReq>) => {
     const { id } = ctx.input.query;
+    const team = await getTeamFromContext(ctx);
 
-    const { share, sharedTree } = await loadPublicShare({ id });
+    const { share, sharedTree } = await loadPublicShare({
+      id,
+      teamId: team?.id,
+    });
 
     const baseUrl = `${process.env.URL}/s/${id}`;
 

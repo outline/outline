@@ -2,7 +2,11 @@ import { Op, WhereOptions } from "sequelize";
 import isUUID from "validator/lib/isUUID";
 import { NavigationNode } from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
-import { AuthorizationError, NotFoundError } from "@server/errors";
+import {
+  AuthorizationError,
+  InvalidRequestError,
+  NotFoundError,
+} from "@server/errors";
 import { Collection, Document, Share, User } from "@server/models";
 import { authorize, can } from "@server/policies";
 
@@ -23,7 +27,7 @@ export async function loadPublicShare({
     !isUUID(id) && UrlHelper.SHARE_URL_SLUG_REGEX.test(id) ? id : undefined;
 
   if (urlId && !teamId) {
-    throw new Error("teamId required for fetching share using urlId");
+    throw InvalidRequestError("teamId required for fetching share using urlId");
   }
 
   const where: WhereOptions<Share> = {
