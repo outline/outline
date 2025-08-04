@@ -37,7 +37,7 @@ if (env.SENTRY_DSN) {
             break;
         }
         return event;
-      } catch (e) {
+      } catch (_) {
         return event;
       }
     },
