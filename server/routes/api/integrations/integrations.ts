@@ -69,6 +69,7 @@ router.post(
   "integrations.create",
   auth({ role: UserRole.Admin }),
   validate(T.IntegrationsCreateSchema),
+  transaction(),
   async (ctx: APIContext<T.IntegrationsCreateReq>) => {
     const { type, service, settings } = ctx.input.body;
     const { user } = ctx.state.auth;
