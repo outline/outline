@@ -142,7 +142,7 @@ function Lightbox() {
       (node) => node.pos === activeLightboxImgPos
     );
     const nextIndex = currentIndex + 1;
-    if (nextIndex > imageNodes.length) {
+    if (nextIndex >= imageNodes.length) {
       return;
     }
     const nextImgPos = imageNodes[nextIndex].pos;
