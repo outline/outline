@@ -36,7 +36,9 @@ router.post(
   async (ctx: APIContext<T.SharesInfoReq>) => {
     const { id, collectionId, documentId } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const teamFromCtx = await getTeamFromContext(ctx);
+    const teamFromCtx = await getTeamFromContext(ctx, {
+      includeStateCookie: false,
+    });
 
     // only public link loads will send "id".
     if (id) {
@@ -371,7 +373,7 @@ router.get(
   validate(T.SharesSitemapSchema),
   async (ctx: APIContext<T.SharesSitemapReq>) => {
     const { id } = ctx.input.query;
-    const team = await getTeamFromContext(ctx);
+    const team = await getTeamFromContext(ctx, { includeStateCookie: false });
 
     const { share, sharedTree } = await loadPublicShare({
       id,
