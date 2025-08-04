@@ -135,7 +135,11 @@ export async function getTeamFromContext(ctx: Context) {
   // "domain" is the domain the user came from when attempting auth
   // we use it to infer the team they intend on signing into
   const state = ctx.cookies.get("state");
-  const host = state ? parseState(state).host : ctx.hostname;
+  const stateHost = state ? parseState(state).host : undefined;
+  const host =
+    stateHost && stateHost !== parseDomain(env.URL).host
+      ? stateHost
+      : ctx.hostname;
   const domain = parseDomain(host);
 
   let team;
