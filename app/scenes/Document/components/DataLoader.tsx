@@ -54,7 +54,6 @@ type Children = (options: {
     params: Properties<Document>,
     nested?: boolean
   ) => Promise<string>;
-  sharedTree: NavigationNode | undefined;
 }) => React.ReactNode;
 
 type Props = RouteComponentProps<Params, StaticContext, LocationState> & {
@@ -86,9 +85,6 @@ function DataLoader({ match, children }: Props) {
       )
     : undefined;
 
-  const sharedTree = document
-    ? documents.getSharedTree(document.id)
-    : undefined;
   const isEditRoute =
     match.path === matchDocumentEdit || match.path.startsWith(settingsPath());
   const isEditing = isEditRoute || !user?.separateEditMode;
@@ -251,7 +247,6 @@ function DataLoader({ match, children }: Props) {
           abilities: can,
           readOnly,
           onCreateLink,
-          sharedTree,
         })}
       </React.Fragment>
     </>

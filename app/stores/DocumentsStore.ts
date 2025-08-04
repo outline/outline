@@ -49,11 +49,6 @@ type ImportOptions = {
 };
 
 export default class DocumentsStore extends Store<Document> {
-  sharedCache: Map<
-    string,
-    { sharedTree: NavigationNode; team: PublicTeam } | undefined
-  > = new Map();
-
   @observable
   backlinks: Map<string, string[]> = new Map();
 
@@ -298,10 +293,6 @@ export default class DocumentsStore extends Store<Document> {
       "title",
       "asc"
     );
-  }
-
-  getSharedTree(documentId: string): NavigationNode | undefined {
-    return this.sharedCache.get(documentId)?.sharedTree;
   }
 
   @action
