@@ -50,57 +50,63 @@ function Lightbox() {
   const shouldAnimate = isOpen && !wasOpen;
 
   const animate = useCallback(() => {
-    if (shouldAnimate && imgRef.current) {
-      const dom = view.nodeDOM(activeLightboxImgPos) as HTMLElement;
-      // in editor
-      const editorImageEl = dom.querySelector("img") as HTMLImageElement;
-      const editorImgDOMRect = editorImageEl.getBoundingClientRect();
-      const {
-        top: editorImgTop,
-        left: editorImgLeft,
-        width: editorImgWidth,
-        height: editorImgHeight,
-      } = editorImgDOMRect;
+    if (imgRef.current) {
+      if (shouldAnimate) {
+        const dom = view.nodeDOM(activeLightboxImgPos) as HTMLElement;
+        // in editor
+        const editorImageEl = dom.querySelector("img") as HTMLImageElement;
+        const editorImgDOMRect = editorImageEl.getBoundingClientRect();
+        const {
+          top: editorImgTop,
+          left: editorImgLeft,
+          width: editorImgWidth,
+          height: editorImgHeight,
+        } = editorImgDOMRect;
 
-      // in lightbox
-      const lightboxImageEl = imgRef.current;
-      const lightboxImgDOMRect = lightboxImageEl.getBoundingClientRect();
-      const {
-        top: lightboxImgTop,
-        left: lightboxImgLeft,
-        width: lightboxImgWidth,
-        height: lightboxImgHeight,
-      } = lightboxImgDOMRect;
+        // in lightbox
+        const lightboxImageEl = imgRef.current;
+        const lightboxImgDOMRect = lightboxImageEl.getBoundingClientRect();
+        const {
+          top: lightboxImgTop,
+          left: lightboxImgLeft,
+          width: lightboxImgWidth,
+          height: lightboxImgHeight,
+        } = lightboxImgDOMRect;
 
-      lightboxImageEl.style.position = "fixed";
-      lightboxImageEl.style.top = `${editorImgTop}px`;
-      lightboxImageEl.style.left = `${editorImgLeft}px`;
-      lightboxImageEl.style.width = `${editorImgWidth}px`;
-      lightboxImageEl.style.height = `${editorImgHeight}px`;
+        lightboxImageEl.style.position = "fixed";
+        lightboxImageEl.style.top = `${editorImgTop}px`;
+        lightboxImageEl.style.left = `${editorImgLeft}px`;
+        lightboxImageEl.style.width = `${editorImgWidth}px`;
+        lightboxImageEl.style.height = `${editorImgHeight}px`;
 
-      requestAnimationFrame(() => {
-        const tx = lightboxImgLeft - editorImgLeft;
-        const ty = lightboxImgTop - editorImgTop;
-        lightboxImageEl.style.transition =
-          "transform 300ms, width 300ms, height 300ms";
-        lightboxImageEl.style.transform = `translate(${tx}px, ${ty}px)`;
+        requestAnimationFrame(() => {
+          const tx = lightboxImgLeft - editorImgLeft;
+          const ty = lightboxImgTop - editorImgTop;
+          lightboxImageEl.style.transition =
+            "transform 300ms, width 300ms, height 300ms";
+          lightboxImageEl.style.transform = `translate(${tx}px, ${ty}px)`;
 
-        lightboxImageEl.ontransitionstart = () => {
-          lightboxImageEl.style.width = `${lightboxImgWidth}px`;
-          lightboxImageEl.style.height = `${lightboxImgHeight}px`;
-          lightboxImageEl.style.visibility = "visible";
-        };
+          lightboxImageEl.ontransitionstart = () => {
+            lightboxImageEl.style.width = `${lightboxImgWidth}px`;
+            lightboxImageEl.style.height = `${lightboxImgHeight}px`;
+            lightboxImageEl.style.visibility = "visible";
+          };
 
-        lightboxImageEl.ontransitionend = () => {
-          lightboxImageEl.style.position = "";
-          lightboxImageEl.style.top = "";
-          lightboxImageEl.style.left = "";
-          lightboxImageEl.style.width = "";
-          lightboxImageEl.style.height = "";
-          lightboxImageEl.style.transform = "";
-          lightboxImageEl.style.transition = "";
-        };
-      });
+          lightboxImageEl.ontransitionend = () => {
+            lightboxImageEl.style.position = "";
+            lightboxImageEl.style.top = "";
+            lightboxImageEl.style.left = "";
+            lightboxImageEl.style.width = "";
+            lightboxImageEl.style.height = "";
+            lightboxImageEl.style.transform = "";
+            lightboxImageEl.style.transition = "";
+          };
+        });
+      } else {
+        // If not animating, force image to be visible, since
+        // all images start as hidden
+        imgRef.current.style.visibility = "visible";
+      }
     }
   }, [shouldAnimate, imgRef.current]);
   if (!activeLightboxImgPos) {
@@ -290,6 +296,8 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
         ref={ref}
         src={sanitizeUrl(node.attrs.src)}
         style={{
+          // Images start being hidden so that there's no flash of image
+          // just as the animation starts
           visibility: "hidden",
           maxHeight: "100%",
           maxWidth: "100%",
