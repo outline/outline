@@ -52,7 +52,11 @@ type LocationState = {
 
 function useModel() {
   const { collections, documents, shares } = useStores();
-  const { shareId, collectionSlug, documentSlug } = useParams<PathParams>();
+  const {
+    shareId = env.ROOT_SHARE_ID,
+    collectionSlug,
+    documentSlug,
+  } = useParams<PathParams>();
 
   if (collectionSlug || documentSlug) {
     return documentSlug
