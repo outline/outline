@@ -72,7 +72,7 @@ export default class Highlight extends Mark {
 
   keys({ type }: { type: MarkType }) {
     return {
-      "Mod-Ctrl-h": toggleMark(type),
+      "Mod-Shift-h": toggleMark(type),
     };
   }
 

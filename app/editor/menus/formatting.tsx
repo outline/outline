@@ -86,7 +86,7 @@ export default function formattingMenuItems(
     },
     {
       tooltip: dictionary.mark,
-      shortcut: `${metaDisplay}+Ctrl+H`,
+      shortcut: `${metaDisplay}+⇧+H`,
       icon: highlight ? (
         <CircleIcon color={highlight.mark.attrs.color || Highlight.colors[0]} />
       ) : (
