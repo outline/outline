@@ -7,10 +7,7 @@ import Route from "~/components/ProfiledRoute";
 import env from "~/env";
 import useQueryNotices from "~/hooks/useQueryNotices";
 import lazy from "~/utils/lazyWithRetry";
-import {
-  matchCollectionSlug as collectionSlug,
-  matchDocumentSlug as documentSlug,
-} from "~/utils/routeHelpers";
+import { matchDocumentSlug as documentSlug } from "~/utils/routeHelpers";
 
 const Authenticated = lazy(() => import("~/components/Authenticated"));
 const AuthenticatedRoutes = lazy(() => import("./authenticated"));
