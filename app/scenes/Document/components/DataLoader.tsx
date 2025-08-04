@@ -98,9 +98,7 @@ function DataLoader({ match, children }: Props) {
   React.useEffect(() => {
     async function fetchDocument() {
       try {
-        await documents.fetchWithSharedTree(documentSlug, {
-          shareId,
-        });
+        await documents.fetch(documentSlug);
       } catch (err) {
         setError(err);
       }
