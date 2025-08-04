@@ -220,9 +220,11 @@ router.post(
   "notifications.update_all",
   auth(),
   validate(T.NotificationsUpdateAllSchema),
+  transaction(),
   async (ctx: APIContext<T.NotificationsUpdateAllReq>) => {
     const { viewedAt, archivedAt } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
 
     const values: Partial<Notification> = {};
     let where: WhereOptions<Notification> = {
@@ -247,7 +249,7 @@ router.post(
     let total = 0;
     if (!isEmpty(values)) {
       total = await Notification.unscoped().findAllInBatches(
-        { where },
+        { where, transaction, lock: transaction.LOCK.UPDATE },
         async (results) => {
           await Promise.all(
             results.map((notification) =>

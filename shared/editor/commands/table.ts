@@ -365,9 +365,6 @@ export function addColumnBefore({ index }: { index?: number }): Command {
     // move inwards.
     const headerSpecialCase = position === 0 && isHeaderColumnEnabled;
 
-    // Determine which column to copy alignment from (using original table indices)
-    const copyFromColumn = position === 0 ? 0 : position - 1;
-
     chainTransactions(
       headerSpecialCase ? toggleHeader("column") : undefined,
       (s, d) => !!d?.(addColumn(s.tr, rect, position)),

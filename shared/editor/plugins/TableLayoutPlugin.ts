@@ -86,10 +86,6 @@ export class TableLayoutPlugin extends Plugin {
       tr = newState.tr;
     }
 
-    // Get all cells in the last column
-    const tempState = newState.apply(tr);
-    const tempSelection = tempState.selection;
-
     // Create a temporary state to use getCellsInColumn
     const tableStart = pos + 1;
     const cellPositions: number[] = [];
