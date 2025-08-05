@@ -136,11 +136,12 @@ const EmojiPanel = ({
         freqEmojis,
       });
 
-  React.useEffect(() => {
-    if (scrollableRef.current) {
-      scrollableRef.current.scrollTop = 0;
+  React.useLayoutEffect(() => {
+    if (!panelActive) {
+      return;
     }
-    searchRef.current?.focus();
+    scrollableRef.current?.scroll({ top: 0 });
+    requestAnimationFrame(() => searchRef.current?.focus());
   }, [panelActive]);
 
   return (
