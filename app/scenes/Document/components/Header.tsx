@@ -5,12 +5,12 @@ import {
   PlusIcon,
   MoreIcon,
 } from "outline-icons";
-import { useRef, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import Icon from "@shared/components/Icon";
-import { useComponentSize } from "@shared/hooks/useComponentSize";
+import useMeasure from "react-use-measure";
 import { NavigationNode } from "@shared/types";
 import { altDisplay, metaDisplay } from "@shared/utils/keyboard";
 import Document from "~/models/Document";
@@ -90,8 +90,7 @@ function DocumentHeader({
   const isEditingFocus = useEditingFocus();
   const { hasHeadings, editor } = useDocumentContext();
   const sidebarContext = useLocationSidebarContext();
-  const ref = useRef<HTMLDivElement | null>(null);
-  const size = useComponentSize(ref);
+  const [measureRef, size] = useMeasure();
   const isMobile = isMobileMedia || size.width < 700;
   const isShare = !!shareId;
 
@@ -182,7 +181,7 @@ function DocumentHeader({
   if (shareId) {
     return (
       <StyledHeader
-        ref={ref}
+        ref={measureRef}
         $hidden={isEditingFocus}
         title={
           <Flex gap={4}>
@@ -221,7 +220,7 @@ function DocumentHeader({
   return (
     <>
       <StyledHeader
-        ref={ref}
+        ref={measureRef}
         $hidden={isEditingFocus}
         hasSidebar
         left={

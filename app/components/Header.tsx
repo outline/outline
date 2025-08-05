@@ -6,7 +6,7 @@ import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { useComponentSize } from "@shared/hooks/useComponentSize";
+import useMeasure from "react-use-measure";
 import { depths, s } from "@shared/styles";
 import { supportsPassiveListener } from "@shared/utils/browser";
 import Button from "~/components/Button";
@@ -38,8 +38,8 @@ function Header(
   const { ui } = useStores();
   const isMobile = useMobile();
   const hasMobileSidebar = hasSidebar && isMobile;
-  const internalRef = React.useRef<HTMLDivElement | null>(null);
-  const breadcrumbsRef = React.useRef<HTMLDivElement | null>(null);
+  const [internalMeasureRef, size] = useMeasure();
+  const [breadcrumbsMeasureRef, breadcrumbsSize] = useMeasure();
   const passThrough = !actions && !left && !title;
 
   const [isScrolled, setScrolled] = React.useState(false);
@@ -62,19 +62,22 @@ function Header(
     });
   }, []);
 
-  const setBreadcrumbRef = React.useCallback((node: HTMLDivElement | null) => {
-    breadcrumbsRef.current = node?.firstElementChild as HTMLDivElement;
-  }, []);
+  const setBreadcrumbRef = React.useCallback(
+    (node: HTMLDivElement | null) => {
+      if (node?.firstElementChild) {
+        breadcrumbsMeasureRef(node.firstElementChild as HTMLDivElement);
+      }
+    },
+    [breadcrumbsMeasureRef]
+  );
 
-  const size = useComponentSize(internalRef);
-  const breadcrumbsSize = useComponentSize(breadcrumbsRef);
   const breadcrumbMakesCompact = breadcrumbsSize.width > size.width / 3;
   const isCompact = size.width < 1000 || breadcrumbMakesCompact;
 
   return (
     <TooltipProvider>
       <Wrapper
-        ref={mergeRefs([ref, internalRef])}
+        ref={mergeRefs([ref, internalMeasureRef])}
         align="center"
         shrink={false}
         className={className}
