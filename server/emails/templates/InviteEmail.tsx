@@ -53,14 +53,15 @@ export default class InviteEmail extends BaseEmail<Props, void> {
     return `
 Join ${teamName} on ${env.APP_NAME}
 
-${actorName} ${actorEmail ? `(${actorEmail})` : ""} has invited you to join ${env.APP_NAME
-      }, a place for your team to build and share knowledge.
+${actorName} ${actorEmail ? `(${actorEmail})` : ""} has invited you to join ${
+      env.APP_NAME
+    }, a place for your team to build and share knowledge.
 
 Join now: ${teamUrl}
 `;
   }
 
-  protected render({ teamName, actorName, actorEmail, teamUrl, token }: Props) {
+  protected render({ teamName, actorName, actorEmail, token }: Props) {
     let inviteLink = `${env.URL}/email.callback?ref=invite-email`;
     if (token) {
       inviteLink += `&token=${token}`;

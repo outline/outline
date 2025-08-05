@@ -344,8 +344,8 @@
     "babel-plugin-transform-inline-environment-variables": "^0.4.4",
     "babel-plugin-transform-typescript-metadata": "^0.3.2",
     "babel-plugin-tsconfig-paths-module-resolver": "^1.0.4",
-    "browserslist-to-esbuild": "^1.2.0",
-    "concurrently": "^8.2.2",
+    "browserslist-to-esbuild": "^2.1.1",
+    "concurrently": "^9.2.0",
     "discord-api-types": "^0.37.119",
     "husky": "^8.0.3",
     "i18next-parser": "^8.13.0",
@@ -359,10 +359,10 @@
     "prettier": "^3.6.2",
     "react-refresh": "^0.17.0",
     "rimraf": "^2.5.4",
-    "rollup-plugin-webpack-stats": "^2.1.0",
+    "rollup-plugin-webpack-stats": "^2.1.2",
     "terser": "^5.43.1",
     "typescript": "^5.8.3",
-    "vite-plugin-static-copy": "^0.17.0",
+    "vite-plugin-static-copy": "^3.1.1",
     "yarn-deduplicate": "^6.0.2"
   },
   "resolutions": {
