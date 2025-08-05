@@ -3,11 +3,11 @@ import filter from "lodash/filter";
 import find from "lodash/find";
 import isUndefined from "lodash/isUndefined";
 import orderBy from "lodash/orderBy";
-import { action, computed } from "mobx";
-import type { Required } from "utility-types";
-import type { JSONObject } from "@shared/types";
+import { action, computed, observable } from "mobx";
+import type { NavigationNode, PublicTeam } from "@shared/types";
+import Document from "~/models/Document";
 import Share from "~/models/Share";
-import type { Properties } from "~/types";
+import type { PartialExcept } from "~/types";
 import { client } from "~/utils/ApiClient";
 import RootStore from "./RootStore";
 import Store, { RPCAction } from "./base/Store";
@@ -19,6 +19,12 @@ export default class SharesStore extends Store<Share> {
     RPCAction.Create,
     RPCAction.Update,
   ];
+
+  @observable
+  sharedCache: Map<
+    string,
+    { sharedTree: NavigationNode | null; team: PublicTeam } | undefined
+  > = new Map();
 
   constructor(rootStore: RootStore) {
     super(rootStore, Share);
@@ -43,26 +49,73 @@ export default class SharesStore extends Store<Share> {
   };
 
   @action
-  async create(params: Required<Properties<Share>, "documentId">) {
-    const item = this.getByDocumentId(params.documentId);
+  async create(
+    params:
+      | (PartialExcept<Share, "collectionId"> & { type: "collection" })
+      | (PartialExcept<Share, "documentId"> & { type: "document" })
+  ): Promise<Share> {
+    const item =
+      params.type === "collection"
+        ? this.getByCollectionId(params.collectionId)
+        : this.getByDocumentId(params.documentId);
+
     if (item) {
       return item;
     }
+
     return super.create(params);
   }
 
   @action
-  async fetch(documentId: string, options: JSONObject = {}): Promise<any> {
-    const item = this.getByDocumentId(documentId);
-    if (item && !options.force) {
-      return item;
+  async fetch(id: string) {
+    const share = this.get(id);
+    const cache = this.sharedCache.get(id);
+    if (share && cache) {
+      return share;
+    }
+
+    this.isFetching = true;
+    try {
+      const res = await client.post(`/${this.apiEndpoint}.info`, {
+        id,
+      });
+      invariant(res?.data, "Data should be available");
+
+      res.data.shares.map(this.add);
+
+      if (res.data.collection) {
+        this.rootStore.collections.add(res.data.collection);
+      }
+
+      if (res.data.document) {
+        this.rootStore.documents.add(res.data.document);
+      }
+
+      this.sharedCache.set(id, {
+        sharedTree: res.data.sharedTree,
+        team: res.data.team,
+      });
+      this.addPolicies(res.policies);
+
+      return this.data.get(id)!;
+    } finally {
+      this.isFetching = false;
+    }
+  }
+
+  @action
+  async fetchOne(params: { documentId: string } | { collectionId: string }) {
+    const share =
+      "collectionId" in params
+        ? this.getByCollectionId(params.collectionId)
+        : this.getByDocumentId(params.documentId);
+    if (share) {
+      return share;
     }
     this.isFetching = true;
 
     try {
-      const res = await client.post(`/${this.apiEndpoint}.info`, {
-        documentId,
-      });
+      const res = await client.post(`/${this.apiEndpoint}.info`, params);
 
       if (isUndefined(res)) {
         return;
@@ -75,10 +128,13 @@ export default class SharesStore extends Store<Share> {
     }
   }
 
-  getByDocumentParents = (documentId: string): Share | undefined => {
-    const document = this.rootStore.documents.get(documentId);
-    if (!document) {
-      return;
+  getByDocumentParents = (document: Document): Share | undefined => {
+    const collectionShare = document.collectionId
+      ? this.getByCollectionId(document.collectionId)
+      : undefined;
+
+    if (collectionShare?.published) {
+      return collectionShare;
     }
 
     const collection = document.collectionId
@@ -89,7 +145,7 @@ export default class SharesStore extends Store<Share> {
     }
 
     const parentIds = collection
-      .pathToDocument(documentId)
+      .pathToDocument(document.id)
       .slice(0, -1)
       .map((p) => p.id);
 
@@ -109,4 +165,11 @@ export default class SharesStore extends Store<Share> {
 
   getByDocumentId = (documentId: string): Share | null | undefined =>
     find(this.orderedData, (share) => share.documentId === documentId);
+
+  get(id: string): Share | undefined {
+    return (
+      this.data.get(id) ??
+      this.orderedData.find((share) => id.endsWith(share.urlId))
+    );
+  }
 }

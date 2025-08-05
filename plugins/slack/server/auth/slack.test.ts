@@ -38,7 +38,10 @@ describe("Slack authentication domain extraction", () => {
     const testCases = [
       { email: "user@gmail.com", expectedDomain: "gmail.com" },
       { email: "test@company.com", expectedDomain: "company.com" },
-      { email: "admin@subdomain.domain.com", expectedDomain: "subdomain.domain.com" },
+      {
+        email: "admin@subdomain.domain.com",
+        expectedDomain: "subdomain.domain.com",
+      },
     ];
 
     testCases.forEach(({ email, expectedDomain }) => {

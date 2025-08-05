@@ -77,7 +77,7 @@ export async function buildShare(overrides: Partial<Share> = {}) {
     overrides.userId = user.id;
   }
 
-  if (!overrides.documentId) {
+  if (!overrides.documentId && !overrides.collectionId) {
     const document = await buildDocument({
       createdById: overrides.userId,
       teamId: overrides.teamId,

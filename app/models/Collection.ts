@@ -320,6 +320,13 @@ export default class Collection extends ParanoidModel {
     this.index = index;
   }
 
+  @action
+  share = async () =>
+    this.store.rootStore.shares.create({
+      type: "collection",
+      collectionId: this.id,
+    });
+
   getChildrenForDocument(documentId: string) {
     let result: NavigationNode[] = [];
 
