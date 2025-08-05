@@ -207,6 +207,10 @@ class OAuthAuthentication extends ParanoidModel<
           association: "user",
           required: true,
         },
+        {
+          association: "oauthClient",
+          required: true,
+        },
       ],
       ...options,
     });
