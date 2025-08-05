@@ -14,6 +14,10 @@ import GoogleIcon from "~/components/Icons/GoogleIcon";
 import Input from "~/components/Input";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
+import { disconnectAnalyticsIntegrationFactory } from "~/actions/definitions/integrations";
+import useActionContext from "~/hooks/useActionContext";
+import Flex from "~/components/Flex";
+import styled from "styled-components";
 
 type FormData = {
   measurementId: string;
@@ -22,11 +26,14 @@ type FormData = {
 function GoogleAnalytics() {
   const { integrations } = useStores();
   const { t } = useTranslation();
+  const context = useActionContext();
 
   const integration = find(integrations.orderedData, {
     type: IntegrationType.Analytics,
     service: IntegrationService.GoogleAnalytics,
   }) as Integration<IntegrationType.Analytics> | undefined;
+
+  const measurementId = integration?.settings.measurementId;
 
   const {
     register,
@@ -36,29 +43,25 @@ function GoogleAnalytics() {
   } = useForm<FormData>({
     mode: "all",
     defaultValues: {
-      measurementId: integration?.settings.measurementId,
+      measurementId,
     },
   });
 
   React.useEffect(() => {
-    reset({ measurementId: integration?.settings.measurementId });
-  }, [integration, reset]);
+    reset({ measurementId });
+  }, [reset, measurementId]);
 
   const handleSubmit = React.useCallback(
     async (data: FormData) => {
       try {
-        if (data.measurementId) {
-          await integrations.save({
-            id: integration?.id,
-            type: IntegrationType.Analytics,
-            service: IntegrationService.GoogleAnalytics,
-            settings: {
-              measurementId: data.measurementId,
-            },
-          });
-        } else {
-          await integration?.delete();
-        }
+        await integrations.save({
+          id: integration?.id,
+          type: IntegrationType.Analytics,
+          service: IntegrationService.GoogleAnalytics,
+          settings: {
+            measurementId: data.measurementId,
+          },
+        });
 
         toast.success(t("Settings saved"));
       } catch (err) {
@@ -87,15 +90,44 @@ function GoogleAnalytics() {
           )}
           border={false}
         >
-          <Input placeholder="G-XXXXXXXXX1" {...register("measurementId")} />
+          <Input
+            placeholder="G-XXXXXXXXX1"
+            {...register("measurementId", { required: true })}
+          />
         </SettingRow>
 
-        <Button type="submit" disabled={formState.isSubmitting}>
-          {formState.isSubmitting ? `${t("Saving")}…` : t("Save")}
-        </Button>
+        <Actions reverse justify="end" gap={8}>
+          <StyledSubmit
+            type="submit"
+            disabled={
+              !formState.isDirty || !formState.isValid || formState.isSubmitting
+            }
+          >
+            {formState.isSubmitting ? `${t("Saving")}…` : t("Save")}
+          </StyledSubmit>
+
+          <Button
+            action={disconnectAnalyticsIntegrationFactory(integration)}
+            context={context}
+            disabled={formState.isSubmitting}
+            neutral
+            hideIcon
+            hideOnActionDisabled
+          >
+            {t("Disconnect")}
+          </Button>
+        </Actions>
       </form>
     </IntegrationScene>
   );
 }
+
+const Actions = styled(Flex)`
+  margin-top: 8px;
+`;
+
+const StyledSubmit = styled(Button)`
+  width: 80px;
+`;
 
 export default observer(GoogleAnalytics);
