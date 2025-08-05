@@ -40,7 +40,6 @@ function Header(
   const hasMobileSidebar = hasSidebar && isMobile;
   const [internalMeasureRef, size] = useMeasure();
   const [breadcrumbsMeasureRef, breadcrumbsSize] = useMeasure();
-  const breadcrumbsRef = React.useRef<HTMLDivElement | null>(null);
   const passThrough = !actions && !left && !title;
 
   const [isScrolled, setScrolled] = React.useState(false);
@@ -65,7 +64,6 @@ function Header(
 
   const setBreadcrumbRef = React.useCallback(
     (node: HTMLDivElement | null) => {
-      breadcrumbsRef.current = node?.firstElementChild as HTMLDivElement;
       if (node?.firstElementChild) {
         breadcrumbsMeasureRef(node.firstElementChild as HTMLDivElement);
       }
