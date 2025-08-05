@@ -98,9 +98,9 @@ export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
     );
 
     const renderOption = React.useCallback(
-      (option: Option) => {
+      (option: Option, idx: number) => {
         if (option.type === "separator") {
-          return <InputSelectSeparator />;
+          return <InputSelectSeparator key={`separator-${idx}`} />;
         }
 
         return (
