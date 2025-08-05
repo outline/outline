@@ -51,11 +51,11 @@
     "> 0.25%, not dead"
   ],
   "dependencies": {
-    "@aws-sdk/client-s3": "3.850.0",
-    "@aws-sdk/lib-storage": "3.850.0",
-    "@aws-sdk/s3-presigned-post": "3.850.0",
-    "@aws-sdk/s3-request-presigner": "3.850.0",
-    "@aws-sdk/signature-v4-crt": "^3.848.0",
+    "@aws-sdk/client-s3": "3.859.0",
+    "@aws-sdk/lib-storage": "3.859.0",
+    "@aws-sdk/s3-presigned-post": "3.859.0",
+    "@aws-sdk/s3-request-presigner": "3.859.0",
+    "@aws-sdk/signature-v4-crt": "^3.858.0",
     "@babel/core": "^7.27.7",
     "@babel/plugin-proposal-decorators": "^7.28.0",
     "@babel/plugin-transform-class-properties": "^7.27.1",
@@ -71,7 +71,7 @@
     "@dnd-kit/modifiers": "^6.0.1",
     "@dnd-kit/sortable": "^7.0.2",
     "@emoji-mart/data": "^1.2.1",
-    "@fast-csv/parse": "^5.0.2",
+    "@fast-csv/parse": "^5.0.5",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-brands-svg-icons": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
@@ -199,7 +199,7 @@
     "prosemirror-inputrules": "^1.5.0",
     "prosemirror-keymap": "^1.2.2",
     "prosemirror-markdown": "^1.13.2",
-    "prosemirror-model": "^1.25.0",
+    "prosemirror-model": "^1.25.2",
     "prosemirror-schema-list": "^1.5.1",
     "prosemirror-state": "^1.4.3",
     "prosemirror-tables": "^1.7.1",
@@ -270,7 +270,7 @@
     "y-protocols": "^1.0.6",
     "yauzl": "^2.10.0",
     "yjs": "^13.6.1",
-    "zod": "^3.24.2"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@babel/cli": "^7.28.0",

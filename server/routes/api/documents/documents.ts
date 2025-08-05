@@ -569,7 +569,9 @@ router.post(
     const { id, shareId } = ctx.input.body;
     const { user } = ctx.state.auth;
     const apiVersion = getAPIVersion(ctx);
-    const teamFromCtx = await getTeamFromContext(ctx);
+    const teamFromCtx = await getTeamFromContext(ctx, {
+      includeStateCookie: false,
+    });
 
     let document: Document | null;
     let serializedDocument: Record<string, any> | undefined;
@@ -1011,7 +1013,9 @@ router.post(
     let isPublic = false;
 
     if (shareId) {
-      const teamFromCtx = await getTeamFromContext(ctx);
+      const teamFromCtx = await getTeamFromContext(ctx, {
+        includeStateCookie: false,
+      });
       const result = await loadPublicShare({
         id: shareId,
         teamId: teamFromCtx?.id,
