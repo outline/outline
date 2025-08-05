@@ -199,7 +199,10 @@ function Lightbox() {
           </Nav>
           <Image
             ref={imgRef}
-            node={currImgNode}
+            src={sanitizeUrl(currImgNode.attrs.src) ?? ""}
+            alt={currImgNode.attrs.alt ?? ""}
+            width={currImgNode.attrs.width}
+            height={currImgNode.attrs.height}
             onLoad={animate}
             onSwipeRight={next}
             onSwipeLeft={prev}
@@ -222,7 +225,10 @@ enum Status {
 }
 
 type Props = {
-  node: Node;
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
   onLoad: () => void;
   onSwipeRight: () => void;
   onSwipeLeft: () => void;
@@ -230,14 +236,22 @@ type Props = {
 };
 
 const Image = forwardRef<HTMLImageElement, Props>(function _Image(
-  props: Props,
+  {
+    src,
+    alt,
+    width,
+    height,
+    onLoad,
+    onSwipeRight,
+    onSwipeLeft,
+    onSwipeDown,
+  }: Props,
   ref
 ) {
-  const { node } = props;
   const [status, setStatus] = useState<Status | null>(null);
 
-  const [imgWidth, setImgWidth] = useState(node.attrs.width);
-  const [imgHeight, setImgHeight] = useState(node.attrs.height);
+  const [imgWidth, setImgWidth] = useState(width);
+  const [imgHeight, setImgHeight] = useState(height);
 
   let touchXStart: number | undefined;
   let touchXEnd: number | undefined;
@@ -258,17 +272,17 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
 
     const swipeRight = dx > 0 && theta < 1;
     if (swipeRight) {
-      return props.onSwipeRight();
+      return onSwipeRight();
     }
 
     const swipeLeft = dx < 0 && theta < 1;
     if (swipeLeft) {
-      return props.onSwipeLeft();
+      return onSwipeLeft();
     }
 
     const swipeDown = dy > 0 && theta > 1;
     if (swipeDown) {
-      return props.onSwipeDown();
+      return onSwipeDown();
     }
   };
 
@@ -294,7 +308,7 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
     <Figure style={{ width: imgWidth, height: imgHeight }}>
       <img
         ref={ref}
-        src={sanitizeUrl(node.attrs.src)}
+        src={src}
         style={{
           // Images start being hidden so that there's no flash of image
           // just as the animation starts
@@ -303,7 +317,7 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
           maxWidth: "100%",
           objectFit: "scale-down",
         }}
-        alt={node.attrs.alt || ""}
+        alt={alt}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -315,19 +329,17 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
           // For some SVG's Firefox does not provide the naturalWidth, in this
           // rare case we need to provide a default so that the image can be
           // seen and is not sized to 0px
-          const width =
-            node.attrs.width ||
-            (ev.target as HTMLImageElement).naturalWidth ||
-            300;
+          const imgWidth =
+            width || (ev.target as HTMLImageElement).naturalWidth || 300;
           setImgWidth(width);
-          const height =
-            node.attrs.height || (ev.target as HTMLImageElement).naturalHeight;
+          const imgHeight =
+            height || (ev.target as HTMLImageElement).naturalHeight;
           setImgHeight(height);
           setStatus(Status.LOADED);
-          props.onLoad();
+          onLoad();
         }}
       />
-      <Caption>{node.attrs.alt || ""}</Caption>
+      <Caption>{alt}</Caption>
     </Figure>
   );
 });
