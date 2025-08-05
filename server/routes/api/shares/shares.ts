@@ -2,7 +2,7 @@ import Router from "koa-router";
 import isUndefined from "lodash/isUndefined";
 import { FindOptions, Op, WhereAttributeHash, WhereOptions } from "sequelize";
 import { TeamPreference } from "@shared/types";
-import { NotFoundError } from "@server/errors";
+import { AuthenticationError, NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -97,6 +97,10 @@ router.post(
     }
 
     // load share with parent for displaying in the share popovers.
+
+    if (!user) {
+      throw AuthenticationError("Authentication required");
+    }
 
     const { share, parentShare } = await loadShareWithParent({
       collectionId,
