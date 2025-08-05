@@ -43,7 +43,7 @@ export const DisconnectAnalyticsDialog = observer(({ integration }: Props) => {
         />
       </Text>
       <Text as="p" type="secondary">
-        <Trans defaults="This will stop sending analytic events to the configured instance." />
+        <Trans defaults="This will stop sending analytics events to the configured instance." />
       </Text>
     </ConfirmationDialog>
   );

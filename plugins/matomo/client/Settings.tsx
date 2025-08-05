@@ -117,7 +117,7 @@ function Matomo() {
           />
         </SettingRow>
 
-        <Flex gap={8}>
+        <Actions reverse justify="end" gap={8}>
           <StyledSubmit
             type="submit"
             disabled={
@@ -137,11 +137,15 @@ function Matomo() {
           >
             {t("Disconnect")}
           </Button>
-        </Flex>
+        </Actions>
       </form>
     </IntegrationScene>
   );
 }
+
+const Actions = styled(Flex)`
+  margin-top: 8px;
+`;
 
 const StyledSubmit = styled(Button)`
   width: 80px;

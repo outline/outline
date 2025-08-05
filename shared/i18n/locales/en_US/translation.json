@@ -198,7 +198,7 @@
   "Disconnect": "Disconnect",
   "Disconnecting": "Disconnecting",
   "Are you sure you want to disconnect the <em>{{ service }}</em> integration?": "Are you sure you want to disconnect the <em>{{ service }}</em> integration?",
-  "This will stop sending analytic events to the configured instance.": "This will stop sending analytic events to the configured instance.",
+  "This will stop sending analytics events to the configured instance.": "This will stop sending analytics events to the configured instance.",
   "Deleted Collection": "Deleted Collection",
   "Untitled": "Untitled",
   "Unpin": "Unpin",
