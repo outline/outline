@@ -1,7 +1,6 @@
 import Router from "koa-router";
 import { getUserForEmailSigninToken } from "@server/utils/jwt";
 import AuthorizedEmail from "@server/models/AuthorizedEmail";
-import env from "@server/env";
 
 const router = new Router();
 
@@ -15,7 +14,7 @@ router.get("/email.callback", async (ctx) => {
   let user;
   try {
     user = await getUserForEmailSigninToken(token);
-  } catch (err) {
+  } catch (_err) {
     ctx.throw(401, "Invalid or expired token");
   }
 
@@ -45,9 +44,6 @@ router.get("/email.callback", async (ctx) => {
     sameSite: "lax",
     maxAge: 1000 * 60 * 60 * 24 * 90, // 90 days
   });
-
-  // Debug log redirect URL
-  console.log("Redirecting to team URL:", team?.url || "/");
 
   // Redirect to team home page
   ctx.redirect(team?.url || "/");

@@ -813,6 +813,8 @@
   "Mention users and more": "Mention users and more",
   "Emoji": "Emoji",
   "Insert block": "Insert block",
+  "Your email address is not authorized to access this workspace.": "Your email address is not authorized to access this workspace.",
+  "An error occurred. Please try again.": "An error occurred. Please try again.",
   "Sign In": "Sign In",
   "Continue with Email": "Continue with Email",
   "Continue with {{ authProviderName }}": "Continue with {{ authProviderName }}",

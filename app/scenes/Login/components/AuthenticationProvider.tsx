@@ -26,12 +26,14 @@ function AuthenticationProvider(props: Props) {
   const [authState, setAuthState] = React.useState<AuthState>("initial");
   const [isSubmitting, setSubmitting] = React.useState(false);
   const [email, setEmail] = React.useState("");
+  const [errorMessage, setErrorMessage] = React.useState("");
   const { isCreate, id, name, authUrl, onEmailSuccess, ...rest } = props;
   const clientType = Desktop.isElectron() ? Client.Desktop : Client.Web;
   const preferOTP = isPWA;
 
   const handleChangeEmail = (event: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(event.target.value);
+    setErrorMessage("");
   };
 
   const handleSubmitEmail = async (
@@ -41,6 +43,7 @@ function AuthenticationProvider(props: Props) {
 
     if (authState === "email" && email) {
       setSubmitting(true);
+      setErrorMessage("");
 
       try {
         const response = await client.post(event.currentTarget.action, {
@@ -51,12 +54,25 @@ function AuthenticationProvider(props: Props) {
 
         if (response.redirect) {
           window.location.href = response.redirect;
+        } else if (response.success === false) {
+          setSubmitting(false);
+          setErrorMessage(response.error);
         } else {
           setSubmitting(false);
           onEmailSuccess?.(email);
         }
-      } catch (_err) {
+      } catch (err: any) {
         setSubmitting(false);
+        if (
+          err instanceof Error &&
+          err.message.includes("Access denied: email not authorized")
+        ) {
+          setErrorMessage(
+            t("Your email address is not authorized to access this workspace.")
+          );
+        } else {
+          setErrorMessage(t("An error occurred. Please try again."));
+        }
       }
     } else {
       setAuthState("email");
@@ -86,6 +102,11 @@ function AuthenticationProvider(props: Props) {
                 required
                 short
               />
+              {errorMessage && (
+                <ErrorText role="alert" aria-live="assertive">
+                  {errorMessage}
+                </ErrorText>
+              )}
               <ButtonLarge type="submit" disabled={isSubmitting} {...rest}>
                 {t("Sign In")} →
               </ButtonLarge>
@@ -122,6 +143,12 @@ const Form = styled.form`
   width: 100%;
   display: flex;
   justify-content: space-between;
+`;
+
+const ErrorText = styled.div`
+  color: red;
+  margin-top: 8px;
+  font-size: 14px;
 `;
 
 export default AuthenticationProvider;

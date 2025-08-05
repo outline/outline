@@ -10,6 +10,7 @@ import Logger from "@server/logging/Logger";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import validate from "@server/middlewares/validate";
 import { User, Team } from "@server/models";
+import AuthorizedEmail from "@server/models/AuthorizedEmail";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { VerificationCode } from "@server/utils/VerificationCode";
@@ -53,8 +54,43 @@ router.post(
     });
 
     if (!user) {
+      // Check if the email is authorized for this team
+      const authorized = await AuthorizedEmail.findOne({
+        where: {
+          teamId: team.id,
+          email: email.toLowerCase(),
+        },
+      });
+
+      if (!authorized) {
+        ctx.body = {
+          success: false,
+          error:
+            "Access denied: This email address is not authorized to access this workspace. Please contact your administrator to request access.",
+        };
+        return;
+      }
+
+      // Email is authorized but user doesn't exist yet - this would be handled by invitation flow
       ctx.body = {
         success: true,
+      };
+      return;
+    }
+
+    // Check if existing user is still authorized
+    const authorized = await AuthorizedEmail.findOne({
+      where: {
+        teamId: team.id,
+        email: email.toLowerCase(),
+      },
+    });
+
+    if (!authorized) {
+      ctx.body = {
+        success: false,
+        error:
+          "Access denied: This email address is no longer authorized to access this workspace. Please contact your administrator.",
       };
       return;
     }
@@ -144,6 +180,18 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
 
   if (!user.team.emailSigninEnabled) {
     return ctx.redirect("/?notice=auth-error");
+  }
+
+  // Check if user is still authorized
+  const authorized = await AuthorizedEmail.findOne({
+    where: {
+      teamId: user.teamId,
+      email: user.email.toLowerCase(),
+    },
+  });
+
+  if (!authorized) {
+    return ctx.redirect("/?notice=auth-unauthorized");
   }
 
   if (user.isSuspended) {
