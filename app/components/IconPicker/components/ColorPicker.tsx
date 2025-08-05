@@ -136,6 +136,7 @@ const CustomColor = ({
         maxLength={7}
         value={value}
         onChange={handleInputChange}
+        autoFocus
       />
     </Flex>
   );
