@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useComponentSize } from "@shared/hooks/useComponentSize";
+import useMeasure from "react-use-measure";
 
 export const MeasuredContainer = <T extends React.ElementType>({
   as: As,
@@ -11,13 +11,12 @@ export const MeasuredContainer = <T extends React.ElementType>({
   name: string;
   children?: React.ReactNode;
 } & React.ComponentProps<T>) => {
-  const ref = React.useRef<HTMLElement>(null);
-  const rect = useComponentSize(ref.current);
+  const [measureRef, rect] = useMeasure();
 
   return (
     <As
       {...rest}
-      ref={ref}
+      ref={measureRef}
       style={{
         [`--${name}-width`]: `${rect.width}px`,
         [`--${name}-height`]: `${rect.height}px`,

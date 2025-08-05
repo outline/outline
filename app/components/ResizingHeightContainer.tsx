@@ -1,7 +1,7 @@
 import { m, TargetAndTransition } from "framer-motion";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
-import { useComponentSize } from "@shared/hooks/useComponentSize";
+import useMeasure from "react-use-measure";
 
 type Props = {
   /** The children to render */
@@ -33,8 +33,7 @@ export const ResizingHeightContainer = React.forwardRef<HTMLDivElement, Props>(
       style,
     } = props;
 
-    const ref = React.useRef<HTMLDivElement>(null);
-    const { height } = useComponentSize(ref);
+    const [measureRef, { height }] = useMeasure();
 
     return (
       <m.div
@@ -48,7 +47,7 @@ export const ResizingHeightContainer = React.forwardRef<HTMLDivElement, Props>(
           position: "relative",
         }}
       >
-        <div ref={mergeRefs([ref, forwardedRef])}>{children}</div>
+        <div ref={mergeRefs([measureRef, forwardedRef])}>{children}</div>
       </m.div>
     );
   }
