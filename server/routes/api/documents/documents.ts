@@ -715,17 +715,17 @@ router.post(
 
     authorize(user, "read", document);
 
-    let childDocumentTree: NavigationNode[] | undefined;
+    let documentTree: NavigationNode | undefined;
 
     if (document.collectionId) {
       const collection = await Collection.findByPk(document.collectionId, {
         includeDocumentStructure: true,
       });
-      childDocumentTree = collection?.getDocumentTree(document.id)?.children;
+      documentTree = collection?.getDocumentTree(document.id) ?? undefined;
     }
 
     ctx.body = {
-      data: childDocumentTree ?? [],
+      data: documentTree,
     };
   }
 );

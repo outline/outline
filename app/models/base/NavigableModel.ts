@@ -1,15 +1,13 @@
-import invariant from "invariant";
-import { observable, runInAction } from "mobx";
-import { JSONObject, NavigationNode } from "@shared/types";
+import { computed, observable, runInAction } from "mobx";
+import { JSONObject, type NavigationNode } from "@shared/types";
 import { client } from "~/utils/ApiClient";
 import ParanoidModel from "./ParanoidModel";
 
 export default abstract class NavigableModel extends ParanoidModel {
   private isFetching = false;
 
-  /** The child documents structure of the model. */
   @observable
-  documents?: NavigationNode[];
+  node?: NavigationNode;
 
   /**
    * Fetches the child documents structure from the server.
@@ -30,14 +28,21 @@ export default abstract class NavigableModel extends ParanoidModel {
     try {
       this.isFetching = true;
       const res = await client.post(options.path, options.params);
-      invariant(res?.data, "Data should be available");
 
       runInAction(`${NavigableModel.modelName}#fetchDocuments`, () => {
-        this.documents = res.data;
+        this.node = res.data;
       });
     } finally {
       this.isFetching = false;
     }
+  }
+
+  /**
+   * Child documents structure of the document shared with this membership.
+   */
+  @computed
+  get documents(): NavigationNode[] | undefined {
+    return this.node?.children;
   }
 
   /**
@@ -74,10 +79,34 @@ export default abstract class NavigableModel extends ParanoidModel {
       });
     };
 
-    if (this.documents) {
-      travelNodes(this.documents, path);
+    if (this.node) {
+      travelNodes([this.node], path);
     }
 
     return path;
+  }
+
+  /**
+   * Returns the child documents structure for the document.
+   */
+  getChildrenForDocument(documentId: string) {
+    let result: NavigationNode[] = [];
+
+    const travelNodes = (nodes: NavigationNode[]) => {
+      nodes.forEach((node) => {
+        if (node.id === documentId) {
+          result = node.children;
+          return;
+        }
+
+        return travelNodes(node.children);
+      });
+    };
+
+    if (this.node) {
+      travelNodes([this.node]);
+    }
+
+    return result;
   }
 }

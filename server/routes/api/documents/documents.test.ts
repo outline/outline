@@ -5410,7 +5410,7 @@ describe("#documents.empty_trash", () => {
 });
 
 describe("#documents.documents", () => {
-  it("should return child documents for a document in a collection", async () => {
+  it("should return document tree for a document in a collection", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
       userId: user.id,
@@ -5445,13 +5445,13 @@ describe("#documents.documents", () => {
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    expect(Array.isArray(body.data)).toBe(true);
-    const childIds = body.data.map((node: any) => node.id);
+    expect(body.data.id).toBe(parent.id);
+    const childIds = body.data.children.map((node: any) => node.id);
     expect(childIds).toContain(child1.id);
     expect(childIds).toContain(child2.id);
   });
 
-  it("should return an empty array if document has no children", async () => {
+  it("should have empty children nodes if document has no children", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
       userId: user.id,
@@ -5472,11 +5472,11 @@ describe("#documents.documents", () => {
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    expect(Array.isArray(body.data)).toBe(true);
-    expect(body.data.length).toBe(0);
+    expect(body.data.id).toBe(parent.id);
+    expect(body.data.children.length).toBe(0);
   });
 
-  it("should return an empty array if document is not part of a collection", async () => {
+  it("should return undefined if document is not part of a collection", async () => {
     const user = await buildUser();
     const doc = await buildDocument({
       userId: user.id,
@@ -5493,8 +5493,7 @@ describe("#documents.documents", () => {
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    expect(Array.isArray(body.data)).toBe(true);
-    expect(body.data.length).toBe(0);
+    expect(body.data).toBeUndefined();
   });
 
   it("should require authentication", async () => {

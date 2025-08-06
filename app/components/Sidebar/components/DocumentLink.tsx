@@ -415,6 +415,7 @@ function InnerDocumentLink(
           <DocumentLink
             key={childNode.id}
             collection={collection}
+            membership={membership}
             node={childNode}
             activeDocument={activeDocument}
             prefetchDocument={prefetchDocument}

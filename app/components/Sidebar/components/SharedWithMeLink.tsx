@@ -40,21 +40,20 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
   const sidebarContext = useSidebarContext();
   const document = documentId ? documents.get(documentId) : undefined;
 
+  const isActiveDocumentInPath = ui.activeDocumentId
+    ? membership.pathToDocument(ui.activeDocumentId).length > 0
+    : false;
+
   const [expanded, setExpanded, setCollapsed] = useBoolean(
-    membership.documentId === ui.activeDocumentId &&
-      locationSidebarContext === sidebarContext
+    isActiveDocumentInPath && locationSidebarContext === sidebarContext
   );
 
   React.useEffect(() => {
-    if (
-      membership.documentId === ui.activeDocumentId &&
-      locationSidebarContext === sidebarContext
-    ) {
+    if (isActiveDocumentInPath && locationSidebarContext === sidebarContext) {
       setExpanded();
     }
   }, [
-    membership.documentId,
-    ui.activeDocumentId,
+    isActiveDocumentInPath,
     sidebarContext,
     locationSidebarContext,
     setExpanded,
