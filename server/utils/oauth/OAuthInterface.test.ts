@@ -1,7 +1,5 @@
 import { v4 } from "uuid";
 import { Scope } from "@shared/types";
-import { OAuthAuthentication, OAuthClient, User } from "@server/models";
-import { hash } from "@server/utils/crypto";
 import { OAuthInterface } from "./OAuthInterface";
 import {
   buildOAuthAuthentication,
