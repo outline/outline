@@ -6,6 +6,7 @@ __mocks__
 .DS_Store
 .env*
 .eslint*
+.oxlintrc*
 .log
 Makefile
 Procfile

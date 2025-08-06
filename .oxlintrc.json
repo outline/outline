@@ -31,6 +31,7 @@
     "no-empty-pattern": "error",
     "no-empty-static-block": "error",
     "no-ex-assign": "error",
+    "no-explicit-any": "warn",
     "no-extra-boolean-cast": "error",
     "no-fallthrough": "error",
     "no-func-assign": "error",
@@ -83,7 +84,6 @@
           }
         ],
         "@typescript-eslint/no-require-imports": "off",
-        "@typescript-eslint/no-explicit-any": "off",
         "import/no-named-as-default": "off",
         "import/no-named-as-default-member": "off",
         "no-unused-vars": [
