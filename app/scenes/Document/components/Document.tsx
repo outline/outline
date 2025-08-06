@@ -457,6 +457,11 @@ class DocumentScene extends React.Component<Props> {
       (isShare
         ? ui.tocVisible !== false
         : !document.isTemplate && ui.tocVisible === true);
+    const tocOffset =
+      tocPos === TOCPosition.Left
+        ? EditorStyleHelper.tocWidth / -2
+        : EditorStyleHelper.tocWidth / 2;
+
     const multiplayerEditor =
       !document.isArchived && !document.isDeleted && !revision && !isShare;
 
@@ -567,46 +572,54 @@ class DocumentScene extends React.Component<Props> {
                           <Contents />
                         </PrintContentsContainer>
                       )}
-                      <Editor
-                        id={document.id}
-                        key={embedsDisabled ? "disabled" : "enabled"}
-                        ref={this.editor}
-                        multiplayer={multiplayerEditor}
-                        shareId={shareId}
-                        isDraft={document.isDraft}
-                        template={document.isTemplate}
-                        document={document}
-                        value={readOnly ? document.data : undefined}
-                        defaultValue={document.data}
-                        embedsDisabled={embedsDisabled}
-                        onSynced={this.onSynced}
-                        onFileUploadStart={this.onFileUploadStart}
-                        onFileUploadStop={this.onFileUploadStop}
-                        onCreateLink={this.props.onCreateLink}
-                        onChangeTitle={this.handleChangeTitle}
-                        onChangeIcon={this.handleChangeIcon}
-                        onSave={this.onSave}
-                        onPublish={this.onPublish}
-                        onCancel={this.goBack}
-                        readOnly={readOnly}
-                        canUpdate={abilities.update}
-                        canComment={abilities.comment}
-                        autoFocus={document.createdAt === document.updatedAt}
+                      <div
+                        style={
+                          {
+                            ["--full-width-transform-offset"]: `${document.fullWidth && showContents ? tocOffset : 0}px`,
+                          } as Record<string, unknown>
+                        }
                       >
-                        {shareId ? (
-                          <ReferencesWrapper>
-                            <PublicReferences
-                              shareId={shareId}
-                              documentId={document.id}
-                              sharedTree={this.props.sharedTree}
-                            />
-                          </ReferencesWrapper>
-                        ) : !revision ? (
-                          <ReferencesWrapper>
-                            <References document={document} />
-                          </ReferencesWrapper>
-                        ) : null}
-                      </Editor>
+                        <Editor
+                          id={document.id}
+                          key={embedsDisabled ? "disabled" : "enabled"}
+                          ref={this.editor}
+                          multiplayer={multiplayerEditor}
+                          shareId={shareId}
+                          isDraft={document.isDraft}
+                          template={document.isTemplate}
+                          document={document}
+                          value={readOnly ? document.data : undefined}
+                          defaultValue={document.data}
+                          embedsDisabled={embedsDisabled}
+                          onSynced={this.onSynced}
+                          onFileUploadStart={this.onFileUploadStart}
+                          onFileUploadStop={this.onFileUploadStop}
+                          onCreateLink={this.props.onCreateLink}
+                          onChangeTitle={this.handleChangeTitle}
+                          onChangeIcon={this.handleChangeIcon}
+                          onSave={this.onSave}
+                          onPublish={this.onPublish}
+                          onCancel={this.goBack}
+                          readOnly={readOnly}
+                          canUpdate={abilities.update}
+                          canComment={abilities.comment}
+                          autoFocus={document.createdAt === document.updatedAt}
+                        >
+                          {shareId ? (
+                            <ReferencesWrapper>
+                              <PublicReferences
+                                shareId={shareId}
+                                documentId={document.id}
+                                sharedTree={this.props.sharedTree}
+                              />
+                            </ReferencesWrapper>
+                          ) : !revision ? (
+                            <ReferencesWrapper>
+                              <References document={document} />
+                            </ReferencesWrapper>
+                          ) : null}
+                        </Editor>
+                      </div>
                     </MeasuredContainer>
                     {showContents && (
                       <ContentsContainer
