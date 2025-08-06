@@ -333,7 +333,7 @@ export default function FindAndReplace({
       setShowReplace(false);
       editor.commands.clearSearch();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [localOpen]);
 
   const disabled = totalResults === 0;

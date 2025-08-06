@@ -44,6 +44,7 @@ if (env.SENTRY_DSN) {
   });
 }
 
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any
 export function requestErrorHandler(error: any, ctx: AppContext) {
   // we don't need to report every time a request stops to the bug tracker
   if (error.code === "EPIPE" || error.code === "ECONNRESET") {
@@ -81,7 +82,7 @@ export function requestErrorHandler(error: any, ctx: AppContext) {
       Sentry.captureException(error);
     });
   } else if (env.ENVIRONMENT !== "test") {
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line no-console
     console.error(error);
   }
 }

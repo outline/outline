@@ -143,7 +143,7 @@ export function createMigrationRunner(
     migrations: {
       glob,
       resolve: ({ name, path, context }) => {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        // oxlint-disable-next-line @typescript-eslint/no-require-imports
         const migration = require(path as string);
         return {
           name,

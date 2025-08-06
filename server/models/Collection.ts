@@ -1,4 +1,4 @@
-/* eslint-disable lines-between-class-members */
+/* oxlint-disable lines-between-class-members */
 import fractionalIndex from "fractional-index";
 import find from "lodash/find";
 import findIndex from "lodash/findIndex";

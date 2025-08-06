@@ -1,4 +1,4 @@
-/* eslint-disable import/no-duplicates */
+/* oxlint-disable import/no-duplicates */
 import {
   Locale,
   addSeconds,

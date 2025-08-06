@@ -30,7 +30,7 @@ const uploadPlaceholder = new Plugin({
             simplifyDiff: true,
           }).mapping;
         } catch (err) {
-          // eslint-disable-next-line no-console
+          // oxlint-disable-next-line no-console
           console.warn("Failed to recreate transform: ", err);
         }
       }

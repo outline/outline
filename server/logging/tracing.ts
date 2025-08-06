@@ -156,7 +156,7 @@ const traceClass = (config?: TraceConfig) =>
         key
       );
 
-      // eslint-disable-next-line no-undef
+      // oxlint-disable-next-line no-undef
       if (typeof key === "string" && typeof descriptor?.value === "function") {
         Object.defineProperty(
           constructor.prototype,
@@ -170,7 +170,7 @@ const traceClass = (config?: TraceConfig) =>
     staticKeys.forEach((key) => {
       const descriptor = Object.getOwnPropertyDescriptor(constructor, key);
 
-      // eslint-disable-next-line no-undef
+      // oxlint-disable-next-line no-undef
       if (typeof key === "string" && typeof descriptor?.value === "function") {
         Object.defineProperty(
           constructor,
@@ -187,7 +187,7 @@ const traceClass = (config?: TraceConfig) =>
  * @param config Optional configuration for the span that will be created for this trace.
  */
 // Going to rely on inferrence do its thing for this function
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+// oxlint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function trace(config?: TraceConfig) {
   function traceDecorator(target: Constructor): void;
   function traceDecorator<T>(

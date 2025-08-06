@@ -2,7 +2,7 @@ import { Import } from "@server/models";
 import presentUser from "./user";
 
 export default function presentImport(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any
   importModel: Import<any>
 ) {
   return {

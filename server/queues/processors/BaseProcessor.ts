@@ -11,7 +11,7 @@ export default abstract class BaseProcessor {
    * @param event processor event
    * @returns A promise that resolves once the processor handles the failure.
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // oxlint-disable-next-line @typescript-eslint/no-unused-vars
   public onFailed(event: Event): Promise<void> {
     return Promise.resolve();
   }

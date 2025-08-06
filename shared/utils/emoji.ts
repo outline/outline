@@ -47,7 +47,7 @@ const isFlagEmojiSupported = (): boolean => {
     let i = 0;
 
     // Search the first visible pixel
-    // eslint-disable-next-line curly
+    // oxlint-disable-next-line curly
     for (; i < count && !a[i + 3]; i += 4);
 
     // No visible pixel

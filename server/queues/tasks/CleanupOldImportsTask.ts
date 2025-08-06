@@ -21,7 +21,7 @@ export default class CleanupOldImportsTask extends BaseTask<Props> {
     let totalTasksDeleted = 0;
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // oxlint-disable-next-line @typescript-eslint/no-explicit-any
       await Import.findAllInBatches<Import<any>>(
         {
           attributes: ["id"],
@@ -44,7 +44,7 @@ export default class CleanupOldImportsTask extends BaseTask<Props> {
           paranoid: false,
         },
         async (imports) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          // oxlint-disable-next-line @typescript-eslint/no-explicit-any
           await ImportTask.findAllInBatches<ImportTask<any>>(
             {
               attributes: ["id"],
