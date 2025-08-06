@@ -12,7 +12,12 @@ import uniq from "lodash/uniq";
 import mime from "mime-types";
 import { Op, ScopeOptions, Sequelize, WhereOptions } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
-import { StatusFilter, TeamPreference, UserRole } from "@shared/types";
+import {
+  NavigationNode,
+  StatusFilter,
+  TeamPreference,
+  UserRole,
+} from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
 import documentCreator from "@server/commands/documentCreator";
@@ -695,6 +700,32 @@ router.post(
       pagination: { ...ctx.state.pagination, total },
       data: users.map((user) => presentUser(user)),
       policies: presentPolicies(actor, users),
+    };
+  }
+);
+
+router.post(
+  "documents.documents",
+  auth(),
+  validate(T.DocumentsChildrenSchema),
+  async (ctx: APIContext<T.DocumentsChildrenReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const document = await Document.findByPk(id, { userId: user.id });
+
+    authorize(user, "read", document);
+
+    let childDocumentTree: NavigationNode[] | undefined;
+
+    if (document.collectionId) {
+      const collection = await Collection.findByPk(document.collectionId, {
+        includeDocumentStructure: true,
+      });
+      childDocumentTree = collection?.getDocumentTree(document.id)?.children;
+    }
+
+    ctx.body = {
+      data: childDocumentTree ?? [],
     };
   }
 );
