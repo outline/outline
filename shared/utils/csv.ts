@@ -1,4 +1,4 @@
-/* eslint-disable no-control-regex */
+/* oxlint-disable no-control-regex */
 
 /**
  * Helper class for CSV operations.

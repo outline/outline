@@ -496,7 +496,7 @@ export async function buildFileOperation(
   });
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any
 export async function buildImport(overrides: Partial<Import<any>> = {}) {
   if (!overrides.teamId) {
     const team = await buildTeam();
@@ -519,7 +519,7 @@ export async function buildImport(overrides: Partial<Import<any>> = {}) {
     overrides.integrationId = integration.id;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any
   return Import.create<Import<any>>({
     name: "testImport",
     service: IntegrationService.Notion,
