@@ -104,7 +104,14 @@ function InnerDocumentLink(
       pathToDocument?.map((entry) => entry.id).includes(node.id) ||
       isActiveDocument
     );
-  }, [hasChildDocuments, activeDocument, isActiveDocument, node, collection]);
+  }, [
+    hasChildDocuments,
+    activeDocument,
+    isActiveDocument,
+    node,
+    collection,
+    membership,
+  ]);
 
   const [expanded, setExpanded, setCollapsed] = useBoolean(showChildren);
 
