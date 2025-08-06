@@ -32,17 +32,56 @@ export function stringByteLength(str: string): number {
 }
 
 /**
+ * Safely slice a string to a maximum byte length without breaking UTF-8 characters.
+ *
+ * @param str The string to slice.
+ * @param maxBytes The maximum byte length.
+ * @returns The sliced string.
+ */
+function sliceStringToByteLength(str: string, maxBytes: number): string {
+  if (maxBytes <= 0) {
+    return "";
+  }
+
+  const buffer = Buffer.from(str, "utf8");
+  if (buffer.length <= maxBytes) {
+    return str;
+  }
+
+  // Work backwards from maxBytes to find valid UTF-8 boundary
+  for (let i = maxBytes; i > 0; i--) {
+    const slice = buffer.subarray(0, i);
+    const result = slice.toString("utf8");
+    // Check if the result round-trips correctly (no replacement characters)
+    if (Buffer.from(result, "utf8").equals(slice)) {
+      return result;
+    }
+  }
+
+  return "";
+}
+
+/**
  * Trim a file name to a maximum length, retaining the extension.
  *
  * @param text The file name to trim.
- * @param length The maximum length of the file name.
+ * @param length The maximum length of the file name in bytes.
  * @returns The trimmed file name.
  */
 export function trimFileAndExt(text: string, length: number): string {
-  if (stringByteLength(text) > length) {
+  if (Buffer.byteLength(text, "utf8") > length) {
     const ext = path.extname(text);
     const name = path.basename(text, ext);
-    return name.slice(0, length - stringByteLength(ext)) + ext;
+    const extByteLength = Buffer.byteLength(ext, "utf8");
+    const availableBytesForName = length - extByteLength;
+
+    if (availableBytesForName <= 0) {
+      // If extension is too long, trim the whole filename
+      return sliceStringToByteLength(text, length);
+    }
+
+    const trimmedName = sliceStringToByteLength(name, availableBytesForName);
+    return trimmedName + ext;
   }
   return text;
 }

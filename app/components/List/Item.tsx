@@ -231,6 +231,7 @@ const Subtitle = styled.p<{ $small?: boolean; $selected?: boolean }>`
   font-size: ${(props) => (props.$small ? 13 : 14)}px;
   color: ${s("textTertiary")};
   margin-top: -2px;
+  overflow-wrap: break-word;
 `;
 
 export const Actions = styled(Flex)<{ $selected?: boolean }>`

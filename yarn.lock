@@ -8161,13 +8161,6 @@ fb-watchman@^2.0.0:
   dependencies:
     bser "2.1.1"
 
-fd-slicer@~1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/fd-slicer/-/fd-slicer-1.1.0.tgz#25c7c89cb1f9077f8891bbe61d8f390eae256f1e"
-  integrity "sha1-JcfInLH5B3+IkbvmHY85Dq4lbx4= sha512-cE1qsB/VwyQozZ+q1dGxR8LBYNZeofhEdUNGSMbQD3Gw2lAzX9Zb3uIU6Ebc/Fmyjo9AWWfnn0AUCHqtevs/8g=="
-  dependencies:
-    pend "~1.2.0"
-
 fdir@^6.4.4, fdir@^6.4.6:
   version "6.4.6"
   resolved "https://registry.yarnpkg.com/fdir/-/fdir-6.4.6.tgz#2b268c0232697063111bbf3f64810a2a741ba281"
@@ -15228,13 +15221,13 @@ yarn-deduplicate@^6.0.2:
     semver "^7.5.0"
     tslib "^2.5.0"
 
-yauzl@^2.10.0:
-  version "2.10.0"
-  resolved "https://registry.yarnpkg.com/yauzl/-/yauzl-2.10.0.tgz#c7eb17c93e112cb1086fa6d8e51fb0667b79a5f9"
-  integrity "sha1-x+sXyT4RLLEIb6bY5R+wZnt5pfk= sha512-p4a9I6X6nu6IhoGmBqAcbJy1mlC4j27vEPZX9F4L4/vZT3Lyq1VkFHw/V/PUcB9Buo+DG3iHkT0x3Qya58zc3g=="
+yauzl@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/yauzl/-/yauzl-3.2.0.tgz#7b6cb548f09a48a6177ea0be8ece48deb7da45c0"
+  integrity sha512-Ow9nuGZE+qp1u4JIPvg+uCiUr7xGQWdff7JQSk5VGYTAZMDe2q8lxJ10ygv10qmSj031Ty/6FNJpLO4o1Sgc+w==
   dependencies:
     buffer-crc32 "~0.2.3"
-    fd-slicer "~1.1.0"
+    pend "~1.2.0"
 
 yjs@^13.6.1:
   version "13.6.1"

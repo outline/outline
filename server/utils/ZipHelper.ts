@@ -132,8 +132,8 @@ export default class ZipHelper {
           try {
             zipfile.readEntry();
             zipfile.on("entry", function (entry: Entry) {
-              const fileName = Buffer.from(entry.fileName).toString("utf8");
-              Logger.debug("utils", "Extracting zip entry", { fileName });
+              const filePath = Buffer.from(entry.fileName).toString("utf8");
+              Logger.debug("utils", "Extracting zip entry", { filePath });
 
               const processNext = (error?: NodeJS.ErrnoException | null) => {
                 if (error) {
@@ -144,15 +144,15 @@ export default class ZipHelper {
                 zipfile.readEntry();
               };
 
-              if (validateFileName(fileName)) {
-                Logger.warn("Invalid zip entry", { fileName });
+              if (validateFileName(filePath)) {
+                Logger.warn("Invalid zip entry", { filePath });
                 processNext();
                 return;
               }
 
-              if (/\/$/.test(fileName)) {
+              if (/\/$/.test(filePath)) {
                 // directory file names end with '/'
-                fs.mkdirp(path.join(outputDir, fileName), (mkErr) =>
+                fs.mkdirp(path.join(outputDir, filePath), (mkErr) =>
                   processNext(mkErr)
                 );
               } else {
@@ -163,19 +163,22 @@ export default class ZipHelper {
                   }
                   // ensure parent directory exists
                   fs.mkdirp(
-                    path.join(outputDir, path.dirname(fileName)),
+                    path.join(outputDir, path.dirname(filePath)),
                     function (mkErr) {
                       if (mkErr) {
                         return processNext(mkErr);
                       }
 
+                      const fileName = trimFileAndExt(
+                        path.basename(filePath),
+                        MAX_FILE_NAME_LENGTH
+                      );
+
                       const location = trimFileAndExt(
-                        path.join(
-                          outputDir,
-                          trimFileAndExt(fileName, MAX_FILE_NAME_LENGTH)
-                        ),
+                        path.join(outputDir, path.dirname(filePath), fileName),
                         MAX_PATH_LENGTH
                       );
+
                       const dest = fs
                         .createWriteStream(location)
                         .on("error", (error) => {
