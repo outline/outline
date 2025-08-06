@@ -1,9 +1,5 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["eslint", "typescript"],
-  "env": {
-    "builtin": true
-  },
   "ignorePatterns": [
     "build/**",
     "node_modules/**",
