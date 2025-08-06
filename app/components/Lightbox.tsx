@@ -4,7 +4,7 @@ import { observer } from "mobx-react";
 import useStores from "~/hooks/useStores";
 import * as Dialog from "@radix-ui/react-dialog";
 import { findChildren } from "@shared/editor/queries/findChildren";
-import { filter, findIndex, isNil, map, uniq } from "lodash";
+import { filter, find, findIndex, isNil, map, uniq } from "lodash";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import styled from "styled-components";
@@ -37,17 +37,172 @@ import { fadeIn } from "~/styles/animations";
 import useIdle from "~/hooks/useIdle";
 import { Second } from "@shared/utils/time";
 import { downloadImageNode } from "@shared/editor/nodes/Image";
+import useUnmount from "~/hooks/useUnmount";
+import LoadingIndicator from "./LoadingIndicator";
 
 function Lightbox() {
   const { view } = useEditor();
   const { ui } = useStores();
+  const [activeImgSrc, setActiveImgSrc] = useState<string | undefined>(
+    undefined
+  );
+  const [status, setStatus] = useState<Status | null>(null);
   const isIdle = useIdle(3 * Second.ms);
   const imgRef = useRef<HTMLImageElement | null>(null);
+  const loadedRef = useRef<{
+    prev: string | null;
+    curr: string | null;
+    next: string | null;
+  }>({ prev: null, curr: null, next: null });
   const { activeLightboxImgPos } = ui;
   const isOpen = !!activeLightboxImgPos;
   const prevActiveLightboxImgPos = usePrevious(activeLightboxImgPos);
-  const wasOpen = !!prevActiveLightboxImgPos;
+  const [wasOpen, setWasOpen] = useState(!!prevActiveLightboxImgPos);
   const shouldAnimate = isOpen && !wasOpen;
+
+  const imageNodes = findChildren(
+    view.state.doc,
+    (child) => child.type === view.state.schema.nodes.image,
+    true
+  );
+
+  useEffect(
+    () => () => {
+      if (!activeLightboxImgPos) {
+        loadedRef.current.prev = null;
+        loadedRef.current.curr = null;
+        loadedRef.current.next = null;
+      }
+    },
+    [!activeLightboxImgPos]
+  );
+
+  useEffect(() => {
+    setWasOpen(!!prevActiveLightboxImgPos);
+  }, [activeLightboxImgPos]);
+
+  useEffect(() => {
+    !loadedRef.current.prev && loadPrevImg();
+    !loadedRef.current.curr && loadCurrImg();
+    !loadedRef.current.next && loadNextImg();
+  }, [activeLightboxImgPos]);
+
+  useEffect(() => {
+    if (activeImgSrc) {
+      loadedRef.current.curr = activeImgSrc;
+    }
+  }, [activeImgSrc]);
+
+  const loadCurrImg = async () => {
+    try {
+      setStatus(Status.LOADING);
+      const imgBlob = await getImgBlob(currImgNode.attrs.src);
+      if (!imgBlob) {
+        setStatus(Status.ERROR);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        setActiveImgSrc(reader.result as string);
+        setStatus(Status.LOADED);
+      };
+      reader.onabort = () => {
+        loadedRef.current.curr = null;
+        setStatus(Status.ERROR);
+      };
+      reader.onerror = () => {
+        setStatus(Status.ERROR);
+      };
+      reader.readAsDataURL(imgBlob);
+    } catch (error) {
+      setStatus(Status.ERROR);
+    }
+  };
+
+  // Prior attempt with a Blob URL!
+  // const getImgBlobURL = async (src: string) => {
+  //   try {
+  //     const img = await fetch(src);
+  //     const imgBlob = await img.blob();
+  //     return URL.createObjectURL(imgBlob);
+  //   } catch (error) {
+  //     return null;
+  //   }
+  // };
+
+  const getImgBlob = async (src: string) => {
+    try {
+      const img = await fetch(src);
+      return await img.blob();
+    } catch (error) {
+      return null;
+    }
+  };
+
+  const getPrevImgNode = () => {
+    const prevIndex =
+      findIndex(imageNodes, (node) => node.pos === activeLightboxImgPos) - 1;
+    if (prevIndex < 0) {
+      return null;
+    }
+    return imageNodes[prevIndex].node;
+  };
+
+  const loadPrevImg = async () => {
+    const imgNode = getPrevImgNode();
+    if (!imgNode) {
+      return;
+    }
+    try {
+      const imgBlob = await getImgBlob(imgNode.attrs.src);
+      if (imgBlob) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          loadedRef.current.prev = reader.result as string;
+        };
+        reader.onabort = () => {
+          loadedRef.current.prev = null;
+        };
+        reader.readAsDataURL(imgBlob);
+      }
+    } catch (error) {
+      // noop
+      return;
+    }
+  };
+
+  const getNextImgNode = () => {
+    const nextIndex =
+      findIndex(imageNodes, (node) => node.pos === activeLightboxImgPos) + 1;
+    if (nextIndex >= imageNodes.length) {
+      return null;
+    }
+    return imageNodes[nextIndex].node;
+  };
+
+  const loadNextImg = async () => {
+    const imgNode = getNextImgNode();
+    if (!imgNode) {
+      return;
+    }
+    try {
+      const imgBlob = await getImgBlob(imgNode.attrs.src);
+      if (imgBlob) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          loadedRef.current.next = reader.result as string;
+        };
+        reader.onabort = () => {
+          loadedRef.current.next = null;
+        };
+        reader.readAsDataURL(imgBlob);
+      }
+    } catch (error) {
+      // noop
+      return;
+    }
+  };
 
   const animate = useCallback(() => {
     if (imgRef.current) {
@@ -112,11 +267,6 @@ function Lightbox() {
   if (!activeLightboxImgPos) {
     return null;
   }
-  const imageNodes = findChildren(
-    view.state.doc,
-    (child) => child.type === view.state.schema.nodes.image,
-    true
-  );
   const currNodeIndex = findIndex(
     imageNodes,
     (node) => node.pos === activeLightboxImgPos
@@ -137,6 +287,11 @@ function Lightbox() {
       return;
     }
     const prevImgPos = imageNodes[prevIndex].pos;
+
+    loadedRef.current.next = loadedRef.current.curr;
+    loadedRef.current.curr = loadedRef.current.prev;
+    loadedRef.current.prev = null;
+
     ui.setActiveLightboxImgPos(prevImgPos);
   };
   const next = () => {
@@ -152,6 +307,11 @@ function Lightbox() {
       return;
     }
     const nextImgPos = imageNodes[nextIndex].pos;
+
+    loadedRef.current.prev = loadedRef.current.curr;
+    loadedRef.current.curr = loadedRef.current.next;
+    loadedRef.current.next = null;
+
     ui.setActiveLightboxImgPos(nextImgPos);
   };
   const close = () => {
@@ -199,7 +359,7 @@ function Lightbox() {
           </Nav>
           <Image
             ref={imgRef}
-            src={sanitizeUrl(currImgNode.attrs.src) ?? ""}
+            src={loadedRef.current.curr as string}
             alt={currImgNode.attrs.alt ?? ""}
             width={currImgNode.attrs.width}
             height={currImgNode.attrs.height}
@@ -220,6 +380,7 @@ function Lightbox() {
 }
 
 enum Status {
+  LOADING,
   ERROR,
   LOADED,
 }
@@ -331,10 +492,10 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
           // seen and is not sized to 0px
           const imgWidth =
             width || (ev.target as HTMLImageElement).naturalWidth || 300;
-          setImgWidth(width);
+          setImgWidth(imgWidth);
           const imgHeight =
             height || (ev.target as HTMLImageElement).naturalHeight;
-          setImgHeight(height);
+          setImgHeight(imgHeight);
           setStatus(Status.LOADED);
           onLoad();
         }}
