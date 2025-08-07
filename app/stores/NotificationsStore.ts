@@ -17,7 +17,7 @@ export default class NotificationsStore extends Store<Notification> {
 
   @action
   fetchPage = async (
-    options: PaginationParams | undefined
+    options: ({ archived?: boolean } & PaginationParams) | undefined
   ): Promise<Notification[]> => {
     this.isFetching = true;
 

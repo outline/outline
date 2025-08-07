@@ -20,7 +20,7 @@ const NotificationsPopover: React.FC = ({ children }: Props) => {
   const scrollableRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    void notifications.fetchPage({});
+    void notifications.fetchPage({ archived: false });
   }, [notifications]);
 
   const handleRequestClose = React.useCallback(() => {
