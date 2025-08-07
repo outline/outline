@@ -154,8 +154,57 @@ function Lightbox() {
     const nextImgPos = imageNodes[nextIndex].pos;
     ui.setActiveLightboxImgPos(nextImgPos);
   };
+
+  const animateOnClose = () => {
+    if (imgRef.current) {
+      const dom = view.nodeDOM(activeLightboxImgPos) as HTMLElement;
+      // in editor
+      const editorImageEl = dom.querySelector("img") as HTMLImageElement;
+      const editorImgDOMRect = editorImageEl.getBoundingClientRect();
+      const {
+        top: editorImgTop,
+        left: editorImgLeft,
+        width: editorImgWidth,
+        height: editorImgHeight,
+      } = editorImgDOMRect;
+
+      // in lightbox
+      const lightboxImageEl = imgRef.current;
+      const lightboxImgDOMRect = lightboxImageEl.getBoundingClientRect();
+      const {
+        top: lightboxImgTop,
+        left: lightboxImgLeft,
+        width: lightboxImgWidth,
+        height: lightboxImgHeight,
+      } = lightboxImgDOMRect;
+
+      lightboxImageEl.style.width = `${lightboxImgWidth}px`;
+      lightboxImageEl.style.height = `${lightboxImgHeight}px`;
+
+      requestAnimationFrame(() => {
+        const toX = editorImgLeft + editorImgWidth / 2;
+        const toY = editorImgTop + editorImgHeight / 2;
+        const fromX = lightboxImgLeft + lightboxImgWidth / 2;
+        const fromY = lightboxImgTop + lightboxImgHeight / 2;
+        const tx = toX - fromX;
+        const ty = toY - fromY;
+        lightboxImageEl.style.transition =
+          "width 300ms, height 300ms, transform 300ms";
+        lightboxImageEl.style.transform = `translate(${tx}px, ${ty}px)`;
+
+        lightboxImageEl.ontransitionstart = () => {
+          lightboxImageEl.style.width = `${editorImgWidth}px`;
+          lightboxImageEl.style.height = `${editorImgHeight}px`;
+        };
+
+        lightboxImageEl.ontransitionend = () => {
+          ui.setActiveLightboxImgPos(undefined);
+        };
+      });
+    }
+  };
   const close = () => {
-    ui.setActiveLightboxImgPos(undefined);
+    animateOnClose();
   };
   const download = () => {
     void downloadImageNode(currImgNode);
