@@ -1,8 +1,8 @@
 import { ArchiveIcon, MarkAsReadIcon } from "outline-icons";
-import { createAction } from "..";
+import { createActionV2 } from "..";
 import { NotificationSection } from "../sections";
 
-export const markNotificationsAsRead = createAction({
+export const markNotificationsAsRead = createActionV2({
   name: ({ t }) => t("Mark notifications as read"),
   analyticsName: "Mark notifications as read",
   section: NotificationSection,
@@ -12,7 +12,7 @@ export const markNotificationsAsRead = createAction({
   visible: ({ stores }) => stores.notifications.approximateUnreadCount > 0,
 });
 
-export const markNotificationsAsArchived = createAction({
+export const markNotificationsAsArchived = createActionV2({
   name: ({ t }) => t("Archive all notifications"),
   analyticsName: "Mark notifications as archived",
   section: NotificationSection,

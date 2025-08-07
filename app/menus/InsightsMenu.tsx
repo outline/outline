@@ -26,7 +26,8 @@ const Button = styled(NudeButton)`
   color: ${s("textSecondary")};
 
   &:${hover},
-  &:active {
+  &:active,
+  &[data-state="open"] {
     color: ${s("text")};
     background: ${s("sidebarControlHoverBackground")};
   }
