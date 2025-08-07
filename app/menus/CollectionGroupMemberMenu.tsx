@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { useMemo } from "react";
 import { ActionV2Separator, createActionV2 } from "~/actions";
-import { CollectionSection } from "~/actions/sections";
+import { ActiveCollectionSection } from "~/actions/sections";
 import { useMenuAction } from "~/hooks/useMenuAction";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 
@@ -19,13 +19,13 @@ function CollectionGroupMemberMenu({ onMembers, onRemove }: Props) {
     () => [
       createActionV2({
         name: t("Members"),
-        section: CollectionSection,
+        section: ActiveCollectionSection,
         perform: onMembers,
       }),
       ActionV2Separator,
       createActionV2({
         name: t("Remove"),
-        section: CollectionSection,
+        section: ActiveCollectionSection,
         dangerous: true,
         perform: onRemove,
       }),
