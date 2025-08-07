@@ -1,10 +1,12 @@
 import { useTranslation } from "react-i18next";
 import User from "~/models/User";
-import ContextMenu from "~/components/ContextMenu";
-import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
-import Template from "~/components/ContextMenu/Template";
+import { DropdownMenu } from "~/components/Menu/DropdownMenu";
+import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import { useMenuState } from "~/hooks/useMenuState";
+import { useMemo } from "react";
+import { createActionV2 } from "~/actions";
+import { CollectionSection } from "~/actions/sections";
+import { useMenuAction } from "~/hooks/useMenuAction";
 
 type Props = {
   user: User;
@@ -14,27 +16,25 @@ type Props = {
 function MemberMenu({ user, onRemove }: Props) {
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
-  const menu = useMenuState({
-    modal: false,
-  });
+
+  const actions = useMemo(
+    () => [
+      createActionV2({
+        name: currentUser.id === user.id ? t("Leave") : t("Remove"),
+        section: CollectionSection,
+        dangerous: true,
+        perform: onRemove,
+      }),
+    ],
+    [t, user, currentUser, onRemove]
+  );
+
+  const rootAction = useMenuAction(actions);
 
   return (
-    <>
-      <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
-      <ContextMenu {...menu} aria-label={t("Member options")}>
-        <Template
-          {...menu}
-          items={[
-            {
-              type: "button",
-              title: currentUser.id === user.id ? t("Leave") : t("Remove"),
-              dangerous: true,
-              onClick: onRemove,
-            },
-          ]}
-        />
-      </ContextMenu>
-    </>
+    <DropdownMenu action={rootAction} ariaLabel={t("Member options")}>
+      <OverflowMenuButton />
+    </DropdownMenu>
   );
 }
 
