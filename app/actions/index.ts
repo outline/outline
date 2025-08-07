@@ -268,6 +268,7 @@ export function actionV2ToMenuItem(
     case "action": {
       const title = resolve<string>(action.name, context);
       const visible = resolve<boolean>(action.visible, context);
+      const disabled = resolve<boolean>(action.disabled, context);
       const icon =
         !!action.icon && action.iconInContextMenu !== false
           ? resolve<React.ReactNode>(action.icon, context)
@@ -280,6 +281,7 @@ export function actionV2ToMenuItem(
             title,
             icon,
             visible,
+            disabled,
             selected: action.selected?.(context),
             dangerous: action.dangerous,
             onClick: () => performActionV2(action, context),
@@ -291,6 +293,7 @@ export function actionV2ToMenuItem(
             title,
             icon,
             visible,
+            disabled,
             to: action.to,
           };
 
@@ -300,6 +303,7 @@ export function actionV2ToMenuItem(
             title,
             icon,
             visible,
+            disabled,
             href: action.target
               ? { url: action.url, target: action.target }
               : action.url,
@@ -317,6 +321,7 @@ export function actionV2ToMenuItem(
             title,
             icon,
             items: subMenuItems,
+            disabled,
             visible: visible && hasVisibleItems(subMenuItems),
           };
         }
