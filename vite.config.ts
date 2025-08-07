@@ -20,7 +20,7 @@ if (environment.NODE_ENV === "development") {
       cert: fs.readFileSync("./server/config/certs/public.cert"),
     };
   } catch (_err) {
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line no-console
     console.warn("No local SSL certs found, HTTPS will not be available");
   }
 }

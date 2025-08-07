@@ -448,7 +448,7 @@ export class Editor extends React.PureComponent<
           step.mark.type.name === this.schema.marks.comment.name
       );
 
-    const self = this; // eslint-disable-line
+    const self = this; // oxlint-disable-line
     const view = new EditorView(this.elementRef.current, {
       handleDOMEvents: {
         blur: this.handleEditorBlur,

@@ -23,7 +23,7 @@ export default class ErrorTimedOutImportsTask extends BaseTask<Props> {
     const importsErrored: Record<string, boolean> = {};
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // oxlint-disable-next-line @typescript-eslint/no-explicit-any
       await ImportTask.findAllInBatches<ImportTask<any>>(
         {
           where: {

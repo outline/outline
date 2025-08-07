@@ -1,9 +1,5 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["eslint", "typescript"],
-  "env": {
-    "builtin": true
-  },
   "ignorePatterns": [
     "build/**",
     "node_modules/**",
@@ -35,6 +31,7 @@
     "no-empty-pattern": "error",
     "no-empty-static-block": "error",
     "no-ex-assign": "error",
+    "no-explicit-any": "warn",
     "no-extra-boolean-cast": "error",
     "no-fallthrough": "error",
     "no-func-assign": "error",
@@ -71,31 +68,12 @@
   },
   "overrides": [
     {
-      "files": [
-        "**/*.{js,jsx,ts,tsx}"
-      ],
+      "files": ["**/*.{js,jsx,ts,tsx}"],
       "rules": {
-        "no-restricted-imports": [
-          "error",
-          {
-            "paths": [
-              {
-                "name": "reakit/Menu",
-                "importNames": [
-                  "useMenuState"
-                ],
-                "message": "Do not use useMenuState from reakit/Menu. Use useMenuState instead."
-              }
-            ]
-          }
-        ],
         "eqeqeq": "error",
         "curly": "error",
         "no-console": "error",
-        "arrow-body-style": [
-          "error",
-          "as-needed"
-        ],
+        "arrow-body-style": ["error", "as-needed"],
         "no-useless-escape": "off",
         "react/react-in-jsx-scope": "off",
         "react/self-closing-comp": [
@@ -106,7 +84,6 @@
           }
         ],
         "@typescript-eslint/no-require-imports": "off",
-        "@typescript-eslint/no-explicit-any": "off",
         "import/no-named-as-default": "off",
         "import/no-named-as-default-member": "off",
         "no-unused-vars": [
@@ -119,13 +96,7 @@
           }
         ]
       },
-      "plugins": [
-        "eslint",
-        "oxc",
-        "react",
-        "typescript",
-        "import"
-      ]
+      "plugins": ["eslint", "oxc", "react", "typescript", "import"]
     }
   ]
 }
