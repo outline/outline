@@ -146,6 +146,25 @@ describe("#apiKeys.delete", () => {
     expect(res.status).toEqual(200);
   });
 
+  it("should allow admin to delete another user's api key", async () => {
+    const user = await buildUser();
+    const admin = await buildAdmin({ teamId: user.teamId });
+
+    const apiKey = await buildApiKey({
+      name: "User's API Key",
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/apiKeys.delete", {
+      body: {
+        token: admin.getJwtToken(),
+        id: apiKey.id,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/apiKeys.delete");
     expect(res.status).toEqual(401);

@@ -7,6 +7,7 @@ import {
   isOwner,
   isTeamModel,
   isTeamMutable,
+  or,
 } from "./utils";
 
 allow(User, "createApiKey", Team, (actor, team) =>
@@ -32,7 +33,7 @@ allow(User, "listApiKeys", Team, (actor, team) =>
 
 allow(User, ["read", "update", "delete"], ApiKey, (actor, apiKey) =>
   and(
-    isOwner(actor, apiKey),
+    or(isOwner(actor, apiKey), actor.teamId === apiKey?.user.teamId),
     actor.isAdmin ||
       !!actor.team?.getPreference(TeamPreference.MembersCanCreateApiKey)
   )
