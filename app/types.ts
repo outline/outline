@@ -140,7 +140,7 @@ type BaseActionV2 = {
   keywords?: string;
   /** Higher number is higher in results, default is 0. */
   priority?: number;
-  icon?: React.ReactNode;
+  icon?: ((context: ActionContext) => React.ReactNode) | React.ReactNode;
   iconInContextMenu?: boolean;
   placeholder?: ((context: ActionContext) => string) | string;
   selected?: (context: ActionContext) => boolean;

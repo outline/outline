@@ -12,13 +12,19 @@ import {
   BrowserIcon,
   ShapesIcon,
   DraftsIcon,
+  BugIcon,
 } from "outline-icons";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { isMac } from "@shared/utils/browser";
 import stores from "~/stores";
 import SearchQuery from "~/models/SearchQuery";
 import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
-import { createAction } from "~/actions";
+import {
+  createAction,
+  createActionV2,
+  createExternalLinkActionV2,
+  createInternalLinkActionV2,
+} from "~/actions";
 import { NavigationSection, RecentSearchesSection } from "~/actions/sections";
 import Desktop from "~/utils/Desktop";
 import isCloudHosted from "~/utils/isCloudHosted";
@@ -97,7 +103,7 @@ export const navigateToSettings = createAction({
   to: settingsPath(),
 });
 
-export const navigateToWorkspaceSettings = createAction({
+export const navigateToWorkspaceSettings = createInternalLinkActionV2({
   name: ({ t }) => t("Settings"),
   analyticsName: "Navigate to workspace settings",
   section: NavigationSection,
@@ -106,7 +112,7 @@ export const navigateToWorkspaceSettings = createAction({
   to: settingsPath("details"),
 });
 
-export const navigateToProfileSettings = createAction({
+export const navigateToProfileSettings = createInternalLinkActionV2({
   name: ({ t }) => t("Profile"),
   analyticsName: "Navigate to profile settings",
   section: NavigationSection,
@@ -133,7 +139,7 @@ export const navigateToNotificationSettings = createAction({
   to: settingsPath("notifications"),
 });
 
-export const navigateToAccountPreferences = createAction({
+export const navigateToAccountPreferences = createInternalLinkActionV2({
   name: ({ t }) => t("Preferences"),
   analyticsName: "Navigate to account preferences",
   section: NavigationSection,
@@ -142,28 +148,24 @@ export const navigateToAccountPreferences = createAction({
   to: settingsPath("preferences"),
 });
 
-export const openDocumentation = createAction({
+export const openDocumentation = createExternalLinkActionV2({
   name: ({ t }) => t("Documentation"),
   analyticsName: "Open documentation",
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <OpenIcon />,
-  to: {
-    url: UrlHelper.guide,
-    target: "_blank",
-  },
+  url: UrlHelper.guide,
+  target: "_blank",
 });
 
-export const openAPIDocumentation = createAction({
+export const openAPIDocumentation = createExternalLinkActionV2({
   name: ({ t }) => t("API documentation"),
   analyticsName: "Open API documentation",
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <OpenIcon />,
-  to: {
-    url: UrlHelper.developers,
-    target: "_blank",
-  },
+  url: UrlHelper.developers,
+  target: "_blank",
 });
 
 export const toggleSidebar = createAction({
@@ -174,41 +176,37 @@ export const toggleSidebar = createAction({
   perform: () => stores.ui.toggleCollapsedSidebar(),
 });
 
-export const openFeedbackUrl = createAction({
+export const openFeedbackUrl = createExternalLinkActionV2({
   name: ({ t }) => t("Send us feedback"),
   analyticsName: "Open feedback",
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <EmailIcon />,
-  to: {
-    url: UrlHelper.contact,
-    target: "_blank",
-  },
+  url: UrlHelper.contact,
+  target: "_blank",
 });
 
-export const openBugReportUrl = createAction({
+export const openBugReportUrl = createExternalLinkActionV2({
   name: ({ t }) => t("Report a bug"),
   analyticsName: "Open bug report",
   section: NavigationSection,
-  to: {
-    url: UrlHelper.github,
-    target: "_blank",
-  },
+  iconInContextMenu: false,
+  icon: <BugIcon />,
+  url: UrlHelper.github,
+  target: "_blank",
 });
 
-export const openChangelog = createAction({
+export const openChangelog = createExternalLinkActionV2({
   name: ({ t }) => t("Changelog"),
   analyticsName: "Open changelog",
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <OpenIcon />,
-  to: {
-    url: UrlHelper.changelog,
-    target: "_blank",
-  },
+  url: UrlHelper.changelog,
+  target: "_blank",
 });
 
-export const openKeyboardShortcuts = createAction({
+export const openKeyboardShortcuts = createActionV2({
   name: ({ t }) => t("Keyboard shortcuts"),
   analyticsName: "Open keyboard shortcuts",
   section: NavigationSection,
@@ -239,7 +237,7 @@ export const downloadApp = createAction({
   },
 });
 
-export const logout = createAction({
+export const logout = createActionV2({
   name: ({ t }) => t("Log out"),
   analyticsName: "Log out",
   section: NavigationSection,

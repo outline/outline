@@ -15,8 +15,14 @@ import {
 import { actionV2ToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
 import useMobile from "~/hooks/useMobile";
-import { ActionV2Variant, ActionV2WithChildren, MenuItem } from "~/types";
+import {
+  ActionV2Variant,
+  ActionV2WithChildren,
+  MenuItem,
+  MenuItemWithChildren,
+} from "~/types";
 import { toDropdownMenuItems, toMobileMenuItems } from "./transformer";
+import { observer } from "mobx-react";
 
 type Props = {
   action: ActionV2WithChildren;
@@ -26,7 +32,7 @@ type Props = {
   contentAriaLabel?: string;
 };
 
-export function DropdownMenu({
+export const DropdownMenu = observer(function DropdownMenu({
   action,
   children,
   align = "start",
@@ -87,7 +93,7 @@ export function DropdownMenu({
       </DropdownMenuContent>
     </DropdownMenuRoot>
   );
-}
+});
 
 type MobileDropdownProps = {
   items: MenuItem[];
@@ -101,6 +107,7 @@ function MobileDropdown({
   contentAriaLabel,
 }: MobileDropdownProps) {
   const [open, setOpen] = React.useState(false);
+  const [submenuName, setSubmenuName] = React.useState<string>();
   const contentRef = React.useRef<React.ElementRef<typeof DrawerContent>>(null);
 
   const enablePointerEvents = React.useCallback(() => {
@@ -117,16 +124,36 @@ function MobileDropdown({
 
   const closeDrawer = React.useCallback(() => {
     setOpen(false);
+    setTimeout(() => setSubmenuName(undefined), 500); // needed for a Vaul bug where 'onAnimationEnd' is not called for controlled state.
   }, []);
 
-  const content = toMobileMenuItems(items, closeDrawer);
+  const resetSubmenu = React.useCallback((isOpen: boolean) => {
+    if (!isOpen) {
+      setSubmenuName(undefined);
+    }
+  }, []);
+
+  const menuItems = React.useMemo(() => {
+    if (!submenuName) {
+      return items;
+    }
+
+    const submenu = items.find(
+      (item) =>
+        item.type === "submenu" && (item.title as string) === submenuName
+    )! as MenuItemWithChildren;
+
+    return submenu.items;
+  }, [items, submenuName]);
+
+  const content = toMobileMenuItems(menuItems, closeDrawer, setSubmenuName);
 
   if (!content) {
     return null;
   }
 
   return (
-    <Drawer open={open} onOpenChange={setOpen}>
+    <Drawer open={open} onOpenChange={setOpen} onAnimationEnd={resetSubmenu}>
       <DrawerTrigger aria-label={ariaLabel} asChild>
         {trigger}
       </DrawerTrigger>

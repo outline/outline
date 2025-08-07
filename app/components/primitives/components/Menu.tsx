@@ -1,3 +1,4 @@
+import { ExpandedIcon } from "outline-icons";
 import { ellipsis } from "polished";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
@@ -82,6 +83,10 @@ export const MenuExternalLink = styled.a`
   ${BaseMenuItemCSS}
 `;
 
+export const MenuSubTrigger = styled.div<BaseMenuItemProps>`
+  ${BaseMenuItemCSS}
+`;
+
 export const MenuSeparator = styled.hr`
   margin: 6px 0;
 `;
@@ -103,11 +108,26 @@ export const MenuHeader = styled.h3`
   margin: 1em 12px 0.5em;
 `;
 
+export const MenuDisclosure = styled(ExpandedIcon)`
+  transform: rotate(270deg);
+  position: absolute;
+  right: 8px;
+  color: ${s("textTertiary")};
+`;
+
 export const MenuIconWrapper = styled.span`
   width: 24px;
   height: 24px;
   margin-right: 6px;
   margin-left: -4px;
+  color: ${s("textSecondary")};
+  flex-shrink: 0;
+`;
+
+export const SelectedIconWrapper = styled.span`
+  width: 24px;
+  height: 24px;
+  margin-right: -6px;
   color: ${s("textSecondary")};
   flex-shrink: 0;
 `;

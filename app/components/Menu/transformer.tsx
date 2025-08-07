@@ -1,3 +1,4 @@
+import { CheckmarkIcon } from "outline-icons";
 import {
   DropdownMenuButton,
   DropdownMenuExternalLink,
@@ -5,6 +6,9 @@ import {
   DropdownMenuInternalLink,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownSubMenu,
+  DropdownSubMenuContent,
+  DropdownSubMenuTrigger,
 } from "~/components/primitives/DropdownMenu";
 import {
   MenuButton,
@@ -13,6 +17,8 @@ import {
   MenuExternalLink,
   MenuLabel,
   MenuSeparator,
+  MenuDisclosure,
+  SelectedIconWrapper,
 } from "~/components/primitives/components/Menu";
 import { MenuItem } from "~/types";
 
@@ -46,6 +52,7 @@ export function toDropdownMenuItems(items: MenuItem[]) {
             label={item.title as string}
             icon={icon}
             disabled={item.disabled}
+            selected={item.selected}
             dangerous={item.dangerous}
             onClick={item.onClick}
           />
@@ -76,6 +83,25 @@ export function toDropdownMenuItems(items: MenuItem[]) {
           />
         );
 
+      case "submenu": {
+        const submenuItems = toDropdownMenuItems(item.items);
+
+        if (!submenuItems?.length) {
+          return null;
+        }
+
+        return (
+          <DropdownSubMenu key={`${item.type}-${item.title}-${index}`}>
+            <DropdownSubMenuTrigger
+              label={item.title as string}
+              icon={icon}
+              disabled={item.disabled}
+            />
+            <DropdownSubMenuContent>{submenuItems}</DropdownSubMenuContent>
+          </DropdownSubMenu>
+        );
+      }
+
       case "group": {
         const groupItems = toDropdownMenuItems(item.items);
 
@@ -101,7 +127,11 @@ export function toDropdownMenuItems(items: MenuItem[]) {
   });
 }
 
-export function toMobileMenuItems(items: MenuItem[], closeMenu: () => void) {
+export function toMobileMenuItems(
+  items: MenuItem[],
+  closeMenu: () => void,
+  openSubmenu: (submenuName: string) => void
+) {
   const filteredItems = filterMenuItems(items);
 
   if (!filteredItems.length) {
@@ -137,6 +167,11 @@ export function toMobileMenuItems(items: MenuItem[], closeMenu: () => void) {
           >
             {icon}
             <MenuLabel>{item.title}</MenuLabel>
+            {item.selected !== undefined && (
+              <SelectedIconWrapper aria-hidden>
+                {item.selected ? <CheckmarkIcon /> : null}
+              </SelectedIconWrapper>
+            )}
           </MenuButton>
         );
 
@@ -169,8 +204,38 @@ export function toMobileMenuItems(items: MenuItem[], closeMenu: () => void) {
           </MenuExternalLink>
         );
 
+      case "submenu": {
+        const submenuItems = toMobileMenuItems(
+          item.items,
+          closeMenu,
+          openSubmenu
+        );
+
+        if (!submenuItems?.length) {
+          return null;
+        }
+
+        return (
+          <MenuButton
+            key={`${item.type}-${item.title}-${index}`}
+            disabled={item.disabled}
+            onClick={() => {
+              openSubmenu(item.title as string);
+            }}
+          >
+            {icon}
+            <MenuLabel>{item.title}</MenuLabel>
+            <MenuDisclosure />
+          </MenuButton>
+        );
+      }
+
       case "group": {
-        const groupItems = toMobileMenuItems(item.items, closeMenu);
+        const groupItems = toMobileMenuItems(
+          item.items,
+          closeMenu,
+          openSubmenu
+        );
 
         if (!groupItems?.length) {
           return null;
