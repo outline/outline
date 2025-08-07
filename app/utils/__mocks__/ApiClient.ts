@@ -1,4 +1,4 @@
-/* eslint-disable */
+/* oxlint-disable */
 export const client = {
   post: jest.fn(() =>
     Promise.resolve({

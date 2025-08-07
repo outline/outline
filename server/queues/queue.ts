@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
+/* oxlint-disable @typescript-eslint/no-misused-promises */
 import Queue from "bull";
 import snakeCase from "lodash/snakeCase";
 import { Second } from "@shared/utils/time";

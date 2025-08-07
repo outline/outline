@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
-/* eslint-disable import/order */
+/* oxlint-disable @typescript-eslint/no-misused-promises */
+/* oxlint-disable import/order */
 import env from "./env";
 
 import "./logging/tracer"; // must come before importing any instrumented module

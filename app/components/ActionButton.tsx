@@ -1,4 +1,4 @@
-/* eslint-disable react/prop-types */
+/* oxlint-disable react/prop-types */
 import * as React from "react";
 import Tooltip, { Props as TooltipProps } from "~/components/Tooltip";
 import { performAction } from "~/actions";

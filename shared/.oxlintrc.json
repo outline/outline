@@ -1,0 +1,38 @@
+{
+  "extends": ["../.oxlintrc.json"],
+  "plugins": ["oxc", "eslint", "typescript", "react"],
+  "overrides": [
+    {
+      "files": ["**/*.{js,jsx,ts,tsx}"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@shared/*"],
+                "message": "Use relative imports."
+              },
+              {
+                "allowTypeImports": true,
+                "group": ["~/*"],
+                "message": "Do not reference app code from shared code."
+              },
+              {
+                "allowTypeImports": true,
+                "group": ["@server/*"],
+                "message": "Do not reference server code from shared code."
+              }
+            ]
+          }
+        ]
+      },
+      "plugins": ["import"]
+    }
+  ],
+  "env": {
+    "jest": true,
+    "browser": true,
+    "node": true
+  }
+}

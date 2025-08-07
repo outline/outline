@@ -1,0 +1,31 @@
+{
+  "extends": ["../.oxlintrc.json"],
+  "plugins": ["oxc", "eslint", "typescript", "node"],
+  "overrides": [
+    {
+      "files": ["**/*.{js,ts}"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "name": "fetch-with-proxy",
+            "message": "Use `@server/utils/fetch` instead"
+          },
+          {
+            "name": "node-fetch",
+            "message": "Use `@server/utils/fetch` instead"
+          },
+          {
+            "name": "passport",
+            "message": "Use the `@outlinewiki/koa-passport` package"
+          }
+        ]
+      },
+      "plugins": ["import"]
+    }
+  ],
+  "env": {
+    "jest": true,
+    "node": true
+  }
+}

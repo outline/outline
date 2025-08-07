@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
+/* oxlint-disable @typescript-eslint/no-var-requires */
 import { Server } from "https";
 import Koa from "koa";
 import compress from "koa-compress";

@@ -1,4 +1,4 @@
-/* eslint-disable prefer-rest-params */
+/* oxlint-disable prefer-rest-params */
 /* global ga */
 import escape from "lodash/escape";
 import * as React from "react";

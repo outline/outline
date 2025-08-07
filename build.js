@@ -1,6 +1,6 @@
-/* eslint-disable no-console */
-/* eslint-disable @typescript-eslint/no-var-requires */
-/* eslint-disable no-undef */
+/* oxlint-disable no-console */
+/* oxlint-disable @typescript-oxlint/no-var-requires */
+/* oxlint-disable no-undef */
 const { exec } = require("child_process");
 const { readdirSync, existsSync } = require("fs");
 
