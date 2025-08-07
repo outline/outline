@@ -1,9 +1,11 @@
 import { observer } from "mobx-react";
 import { useTranslation } from "react-i18next";
-import ContextMenu from "~/components/ContextMenu";
-import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
-import Template from "~/components/ContextMenu/Template";
-import { useMenuState } from "~/hooks/useMenuState";
+import { DropdownMenu } from "~/components/Menu/DropdownMenu";
+import { useMemo } from "react";
+import { ActionV2Separator, createActionV2 } from "~/actions";
+import { CollectionSection } from "~/actions/sections";
+import { useMenuAction } from "~/hooks/useMenuAction";
+import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 
 type Props = {
   onMembers: () => void;
@@ -12,34 +14,31 @@ type Props = {
 
 function CollectionGroupMemberMenu({ onMembers, onRemove }: Props) {
   const { t } = useTranslation();
-  const menu = useMenuState({
-    modal: true,
-  });
+
+  const actions = useMemo(
+    () => [
+      createActionV2({
+        name: t("Members"),
+        section: CollectionSection,
+        perform: onMembers,
+      }),
+      ActionV2Separator,
+      createActionV2({
+        name: t("Remove"),
+        section: CollectionSection,
+        dangerous: true,
+        perform: onRemove,
+      }),
+    ],
+    [t, onMembers, onRemove]
+  );
+
+  const rootAction = useMenuAction(actions);
+
   return (
-    <>
-      <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
-      <ContextMenu {...menu} aria-label={t("Group member options")}>
-        <Template
-          {...menu}
-          items={[
-            {
-              type: "button",
-              title: t("Members"),
-              onClick: onMembers,
-            },
-            {
-              type: "separator",
-            },
-            {
-              type: "button",
-              title: t("Remove"),
-              dangerous: true,
-              onClick: onRemove,
-            },
-          ]}
-        />
-      </ContextMenu>
-    </>
+    <DropdownMenu action={rootAction} ariaLabel={t("Group member options")}>
+      <OverflowMenuButton />
+    </DropdownMenu>
   );
 }
 
