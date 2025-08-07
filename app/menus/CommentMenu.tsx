@@ -87,7 +87,11 @@ function CommentMenu({
   const rootAction = useMenuAction(actions);
 
   return (
-    <DropdownMenu action={rootAction} ariaLabel={t("Comment options")}>
+    <DropdownMenu
+      action={rootAction}
+      align="end"
+      ariaLabel={t("Comment options")}
+    >
       <OverflowMenuButton className={className} />
     </DropdownMenu>
   );
