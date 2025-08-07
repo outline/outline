@@ -36,16 +36,21 @@ const SkinTonePicker = ({
 
   const menuItems = useMemo(
     () =>
-      Object.entries(handEmojiVariants).map(([eskin, emoji]) => (
-        <IconButton
-          key={emoji.value}
-          onClick={() => handleSkinClick(eskin as EmojiSkinTone)}
-        >
-          <Emoji width={24} height={24}>
-            {emoji.value}
-          </Emoji>
-        </IconButton>
-      )),
+      Object.values(EmojiSkinTone)
+        .map((skinTone) => {
+          const emoji = handEmojiVariants[skinTone];
+          return emoji ? (
+            <IconButton
+              key={emoji.value}
+              onClick={() => handleSkinClick(skinTone)}
+            >
+              <Emoji width={24} height={24}>
+                {emoji.value}
+              </Emoji>
+            </IconButton>
+          ) : null;
+        })
+        .filter(Boolean),
     [handEmojiVariants, handleSkinClick]
   );
 
