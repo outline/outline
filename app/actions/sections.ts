@@ -42,6 +42,8 @@ export const UserSection = ({ t }: ActionContext) => t("People");
 
 UserSection.priority = 0.5;
 
+export const ShareSection = ({ t }: ActionContext) => t("Share");
+
 export const TeamSection = ({ t }: ActionContext) => t("Workspace");
 
 export const RecentSearchesSection = ({ t }: ActionContext) =>
