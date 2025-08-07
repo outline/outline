@@ -19,7 +19,7 @@ const NotificationMenu: React.FC = () => {
   const rootAction = useMenuAction(actions);
 
   return (
-    <DropdownMenu action={rootAction} ariaLabel={t("API key")}>
+    <DropdownMenu action={rootAction} ariaLabel={t("Notifications")}>
       <Button>
         <MoreIcon />
       </Button>

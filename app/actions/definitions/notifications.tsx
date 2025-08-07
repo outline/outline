@@ -1,8 +1,8 @@
 import { ArchiveIcon, MarkAsReadIcon } from "outline-icons";
-import { createActionV2 } from "..";
+import { createAction, createActionV2 } from "..";
 import { NotificationSection } from "../sections";
 
-export const markNotificationsAsRead = createActionV2({
+export const markNotificationsAsRead = createAction({
   name: ({ t }) => t("Mark notifications as read"),
   analyticsName: "Mark notifications as read",
   section: NotificationSection,
