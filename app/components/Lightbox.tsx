@@ -49,6 +49,18 @@ function Lightbox() {
   const wasOpen = !!prevActiveLightboxImgPos;
   const shouldAnimate = isOpen && !wasOpen;
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.paddingRight = "15px";
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.body.style.paddingRight = "";
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
   const animate = useCallback(() => {
     if (imgRef.current) {
       if (shouldAnimate) {
