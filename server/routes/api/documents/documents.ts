@@ -606,6 +606,10 @@ router.post(
         includeUpdatedAt: result.share.showLastUpdated,
       });
     } else {
+      if (!user) {
+        throw AuthenticationError("Authentication required");
+      }
+
       document = await documentLoader({
         id: id!, // validation ensures id will be present here
         user,
@@ -714,7 +718,7 @@ router.post(
 router.post(
   "documents.export",
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
-  auth({ optional: true }),
+  auth(),
   validate(T.DocumentsExportSchema),
   async (ctx: APIContext<T.DocumentsExportReq>) => {
     const { id } = ctx.input.body;

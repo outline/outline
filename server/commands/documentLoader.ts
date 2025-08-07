@@ -1,14 +1,10 @@
-import {
-  AuthenticationError,
-  NotFoundError,
-  PaymentRequiredError,
-} from "@server/errors";
+import { NotFoundError, PaymentRequiredError } from "@server/errors";
 import { Document, User } from "@server/models";
 import { authorize } from "@server/policies";
 
 type Props = {
   id: string;
-  user?: User;
+  user: User;
   includeState?: boolean;
 };
 
@@ -17,10 +13,6 @@ export default async function loadDocument({
   user,
   includeState,
 }: Props): Promise<Document> {
-  if (!user) {
-    throw AuthenticationError(`Authentication required`);
-  }
-
   const document = await Document.findByPk(id, {
     userId: user ? user.id : undefined,
     paranoid: false,
