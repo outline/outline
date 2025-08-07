@@ -475,6 +475,10 @@ class DocumentScene extends React.Component<Props> {
       : document.titleWithDefault;
     const favicon = hasEmojiInTitle ? emojiToUrl(document.icon!) : undefined;
 
+    const fullWidthTransformOffsetStyle = {
+      ["--full-width-transform-offset"]: `${document.fullWidth && showContents ? tocOffset : 0}px`,
+    } as React.CSSProperties;
+
     return (
       <ErrorBoundary showTitle>
         {this.props.location.pathname !== canonicalUrl && (
@@ -536,7 +540,11 @@ class DocumentScene extends React.Component<Props> {
               onSelectTemplate={this.replaceSelection}
               onSave={this.onSave}
             />
-            <Main fullWidth={document.fullWidth} tocPosition={tocPos}>
+            <Main
+              fullWidth={document.fullWidth}
+              tocPosition={tocPos}
+              style={fullWidthTransformOffsetStyle}
+            >
               <React.Suspense
                 fallback={
                   <EditorContainer
@@ -572,54 +580,46 @@ class DocumentScene extends React.Component<Props> {
                           <Contents />
                         </PrintContentsContainer>
                       )}
-                      <div
-                        style={
-                          {
-                            ["--full-width-transform-offset"]: `${document.fullWidth && showContents ? tocOffset : 0}px`,
-                          } as Record<string, unknown>
-                        }
+                      <Editor
+                        id={document.id}
+                        key={embedsDisabled ? "disabled" : "enabled"}
+                        ref={this.editor}
+                        multiplayer={multiplayerEditor}
+                        shareId={shareId}
+                        isDraft={document.isDraft}
+                        template={document.isTemplate}
+                        document={document}
+                        value={readOnly ? document.data : undefined}
+                        defaultValue={document.data}
+                        embedsDisabled={embedsDisabled}
+                        onSynced={this.onSynced}
+                        onFileUploadStart={this.onFileUploadStart}
+                        onFileUploadStop={this.onFileUploadStop}
+                        onCreateLink={this.props.onCreateLink}
+                        onChangeTitle={this.handleChangeTitle}
+                        onChangeIcon={this.handleChangeIcon}
+                        onSave={this.onSave}
+                        onPublish={this.onPublish}
+                        onCancel={this.goBack}
+                        readOnly={readOnly}
+                        canUpdate={abilities.update}
+                        canComment={abilities.comment}
+                        autoFocus={document.createdAt === document.updatedAt}
                       >
-                        <Editor
-                          id={document.id}
-                          key={embedsDisabled ? "disabled" : "enabled"}
-                          ref={this.editor}
-                          multiplayer={multiplayerEditor}
-                          shareId={shareId}
-                          isDraft={document.isDraft}
-                          template={document.isTemplate}
-                          document={document}
-                          value={readOnly ? document.data : undefined}
-                          defaultValue={document.data}
-                          embedsDisabled={embedsDisabled}
-                          onSynced={this.onSynced}
-                          onFileUploadStart={this.onFileUploadStart}
-                          onFileUploadStop={this.onFileUploadStop}
-                          onCreateLink={this.props.onCreateLink}
-                          onChangeTitle={this.handleChangeTitle}
-                          onChangeIcon={this.handleChangeIcon}
-                          onSave={this.onSave}
-                          onPublish={this.onPublish}
-                          onCancel={this.goBack}
-                          readOnly={readOnly}
-                          canUpdate={abilities.update}
-                          canComment={abilities.comment}
-                          autoFocus={document.createdAt === document.updatedAt}
-                        >
-                          {shareId ? (
-                            <ReferencesWrapper>
-                              <PublicReferences
-                                shareId={shareId}
-                                documentId={document.id}
-                                sharedTree={this.props.sharedTree}
-                              />
-                            </ReferencesWrapper>
-                          ) : !revision ? (
-                            <ReferencesWrapper>
-                              <References document={document} />
-                            </ReferencesWrapper>
-                          ) : null}
-                        </Editor>
-                      </div>
+                        {shareId ? (
+                          <ReferencesWrapper>
+                            <PublicReferences
+                              shareId={shareId}
+                              documentId={document.id}
+                              sharedTree={this.props.sharedTree}
+                            />
+                          </ReferencesWrapper>
+                        ) : !revision ? (
+                          <ReferencesWrapper>
+                            <References document={document} />
+                          </ReferencesWrapper>
+                        ) : null}
+                      </Editor>
                     </MeasuredContainer>
                     {showContents && (
                       <ContentsContainer
