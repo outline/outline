@@ -65,17 +65,18 @@ const SkinTonePicker = ({
         side="bottom"
         align="end"
         aria-label={t("Choose default skin tone")}
-        width={200}
+        width={208}
+        scrollable={false}
         shrink
       >
-        <MenuContainer>{menuItems}</MenuContainer>
+        <Emojis>{menuItems}</Emojis>
       </PopoverContent>
     </Popover>
   );
 };
 
-const MenuContainer = styled(Flex)`
-  padding: 4px;
+const Emojis = styled(Flex)`
+  padding: 0 8px;
 `;
 
 const StyledMenuButton = styled(NudeButton)`
