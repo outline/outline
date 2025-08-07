@@ -101,4 +101,20 @@ export default class UserMembershipsStore extends Store<UserMembership> {
       return a.index < b.index ? -1 : 1;
     });
   }
+
+  /**
+   * Returns the user membership associated with the document.
+   */
+  getByDocumentId = (documentId: string): UserMembership | undefined => {
+    const membership = this.find({ documentId });
+
+    if (membership) {
+      return membership;
+    }
+
+    const document = this.rootStore.documents.get(documentId);
+    return document?.parentDocumentId
+      ? this.getByDocumentId(document.parentDocumentId)
+      : undefined;
+  };
 }

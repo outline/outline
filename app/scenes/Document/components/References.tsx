@@ -18,7 +18,7 @@ type Props = {
 };
 
 function References({ document }: Props) {
-  const { documents } = useStores();
+  const { documents, userMemberships, groupMemberships } = useStores();
   const user = useCurrentUser();
   const location = useLocation();
   const locationSidebarContext = useLocationSidebarContext();
@@ -29,9 +29,13 @@ function References({ document }: Props) {
 
   const backlinks = document.backlinks;
   const collection = document.collection;
-  const children = collection
-    ? collection.getChildrenForDocument(document.id)
-    : [];
+  const membership =
+    userMemberships.getByDocumentId(document.id) ??
+    groupMemberships.getByDocumentId(document.id);
+  const children =
+    collection?.getChildrenForDocument(document.id) ??
+    membership?.getChildrenForDocument(document.id) ??
+    [];
   const showBacklinks = !!backlinks.length;
   const showChildDocuments = !!children.length;
   const shouldFade = useRef(!showBacklinks && !showChildDocuments);
