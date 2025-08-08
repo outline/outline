@@ -1,14 +1,17 @@
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Menu, MenuButton, MenuItem } from "reakit";
 import styled from "styled-components";
-import { depths, s, hover } from "@shared/styles";
+import { s, hover } from "@shared/styles";
 import { EmojiSkinTone } from "@shared/types";
 import { getEmojiVariants } from "@shared/utils/emoji";
 import { Emoji } from "~/components/Emoji";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
-import { useMenuState } from "~/hooks/useMenuState";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/primitives/Popover";
 import { IconButton } from "./IconButton";
 
 const SkinTonePicker = ({
@@ -19,62 +22,61 @@ const SkinTonePicker = ({
   onChange: (skin: EmojiSkinTone) => void;
 }) => {
   const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
 
   const handEmojiVariants = useMemo(() => getEmojiVariants({ id: "hand" }), []);
 
-  const menu = useMenuState({
-    placement: "bottom-end",
-  });
-
   const handleSkinClick = useCallback(
-    (emojiSkin) => {
-      menu.hide();
+    (emojiSkin: EmojiSkinTone) => {
+      setOpen(false);
       onChange(emojiSkin);
     },
-    [menu, onChange]
+    [onChange]
   );
 
   const menuItems = useMemo(
     () =>
-      Object.entries(handEmojiVariants).map(([eskin, emoji]) => (
-        <MenuItem {...menu} key={emoji.value}>
-          {(menuprops) => (
-            <IconButton {...menuprops} onClick={() => handleSkinClick(eskin)}>
+      Object.values(EmojiSkinTone)
+        .map((skinTone) => {
+          const emoji = handEmojiVariants[skinTone];
+          return emoji ? (
+            <IconButton
+              key={emoji.value}
+              onClick={() => handleSkinClick(skinTone)}
+            >
               <Emoji width={24} height={24}>
                 {emoji.value}
               </Emoji>
             </IconButton>
-          )}
-        </MenuItem>
-      )),
-    [menu, handEmojiVariants, handleSkinClick]
+          ) : null;
+        })
+        .filter(Boolean),
+    [handEmojiVariants, handleSkinClick]
   );
 
   return (
-    <>
-      <MenuButton {...menu}>
-        {(props) => (
-          <StyledMenuButton
-            {...props}
-            aria-label={t("Choose default skin tone")}
-          >
-            {handEmojiVariants[skinTone]!.value}
-          </StyledMenuButton>
-        )}
-      </MenuButton>
-      <Menu {...menu} aria-label={t("Choose default skin tone")}>
-        {(props) => <MenuContainer {...props}>{menuItems}</MenuContainer>}
-      </Menu>
-    </>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger>
+        <StyledMenuButton aria-label={t("Choose default skin tone")}>
+          {handEmojiVariants[skinTone]?.value}
+        </StyledMenuButton>
+      </PopoverTrigger>
+      <PopoverContent
+        side="bottom"
+        align="end"
+        aria-label={t("Choose default skin tone")}
+        width={208}
+        scrollable={false}
+        shrink
+      >
+        <Emojis>{menuItems}</Emojis>
+      </PopoverContent>
+    </Popover>
   );
 };
 
-const MenuContainer = styled(Flex)`
-  z-index: ${depths.menu};
-  padding: 4px;
-  border-radius: 4px;
-  background: ${s("menuBackground")};
-  box-shadow: ${s("menuShadow")};
+const Emojis = styled(Flex)`
+  padding: 0 8px;
 `;
 
 const StyledMenuButton = styled(NudeButton)`
