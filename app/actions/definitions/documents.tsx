@@ -52,7 +52,7 @@ import MarkdownIcon from "~/components/Icons/MarkdownIcon";
 import SharePopover from "~/components/Sharing/Document";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import DocumentTemplatizeDialog from "~/components/TemplatizeDialog";
-import { createAction } from "~/actions";
+import { createAction, createActionV2 } from "~/actions";
 import {
   ActiveDocumentSection,
   DocumentSection,
@@ -1152,7 +1152,7 @@ export const openDocumentInsights = createAction({
   },
 });
 
-export const toggleViewerInsights = createAction({
+export const toggleViewerInsights = createActionV2({
   name: ({ t, stores, activeDocumentId }) => {
     const document = activeDocumentId
       ? stores.documents.get(activeDocumentId)
