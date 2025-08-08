@@ -69,11 +69,6 @@ export const DropdownMenu = observer(function DropdownMenu({
     [onOpen, onClose]
   );
 
-  const handleCloseAutoFocus = React.useCallback((ev: Event) => {
-    ev.preventDefault();
-    ev.stopPropagation();
-  }, []);
-
   const enablePointerEvents = React.useCallback(() => {
     if (contentRef.current) {
       contentRef.current.style.pointerEvents = "auto";
@@ -112,7 +107,6 @@ export const DropdownMenu = observer(function DropdownMenu({
         aria-label={ariaLabel}
         onAnimationStart={disablePointerEvents}
         onAnimationEnd={enablePointerEvents}
-        onCloseAutoFocus={handleCloseAutoFocus}
       >
         {content}
       </DropdownMenuContent>
