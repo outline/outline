@@ -677,7 +677,13 @@ export default class Document extends ArchivableModel implements Searchable {
       nodes: extensionManager.nodes,
       marks: extensionManager.marks,
     });
-    const markdown = serializer.serialize(Node.fromJSON(schema, this.data), {
+
+    const doc = Node.fromJSON(
+      schema,
+      ProsemirrorHelper.attachmentsToAbsoluteUrls(this.data)
+    );
+
+    const markdown = serializer.serialize(doc, {
       softBreak: true,
     });
     return markdown;
