@@ -1,9 +1,11 @@
 import { observer } from "mobx-react";
 import { useTranslation } from "react-i18next";
-import ContextMenu from "~/components/ContextMenu";
-import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
-import Template from "~/components/ContextMenu/Template";
-import { useMenuState } from "~/hooks/useMenuState";
+import { DropdownMenu } from "~/components/Menu/DropdownMenu";
+import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
+import { useMenuAction } from "~/hooks/useMenuAction";
+import { useMemo } from "react";
+import { createActionV2 } from "~/actions";
+import { GroupSection } from "~/actions/sections";
 
 type Props = {
   onRemove: () => void;
@@ -11,26 +13,25 @@ type Props = {
 
 function GroupMemberMenu({ onRemove }: Props) {
   const { t } = useTranslation();
-  const menu = useMenuState({
-    modal: true,
-  });
+
+  const actions = useMemo(
+    () => [
+      createActionV2({
+        name: t("Remove"),
+        section: GroupSection,
+        dangerous: true,
+        perform: onRemove,
+      }),
+    ],
+    [t, onRemove]
+  );
+
+  const rootAction = useMenuAction(actions);
+
   return (
-    <>
-      <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
-      <ContextMenu {...menu} aria-label={t("Group member options")}>
-        <Template
-          {...menu}
-          items={[
-            {
-              type: "button",
-              dangerous: true,
-              title: t("Remove"),
-              onClick: onRemove,
-            },
-          ]}
-        />
-      </ContextMenu>
-    </>
+    <DropdownMenu action={rootAction} ariaLabel={t("Group member options")}>
+      <OverflowMenuButton />
+    </DropdownMenu>
   );
 }
 

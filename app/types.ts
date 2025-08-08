@@ -145,6 +145,7 @@ type BaseActionV2 = {
   placeholder?: ((context: ActionContext) => string) | string;
   selected?: (context: ActionContext) => boolean;
   visible?: ((context: ActionContext) => boolean) | boolean;
+  disabled?: ((context: ActionContext) => boolean) | boolean;
 };
 
 export type ActionV2 = BaseActionV2 & {

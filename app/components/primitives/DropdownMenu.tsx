@@ -136,7 +136,7 @@ const DropdownMenuButton = React.forwardRef<
     props;
 
   return (
-    <DropdownMenuPrimitive.Item ref={ref} {...rest} asChild>
+    <DropdownMenuPrimitive.Item ref={ref} disabled={disabled} {...rest} asChild>
       <MenuButton disabled={disabled} $dangerous={dangerous} onClick={onClick}>
         {icon}
         <MenuLabel>{label}</MenuLabel>
@@ -165,7 +165,7 @@ const DropdownMenuInternalLink = React.forwardRef<
   const { label, icon, disabled, to, ...rest } = props;
 
   return (
-    <DropdownMenuPrimitive.Item ref={ref} {...rest} asChild>
+    <DropdownMenuPrimitive.Item ref={ref} disabled={disabled} {...rest} asChild>
       <MenuInternalLink to={to} disabled={disabled}>
         {icon}
         <MenuLabel>{label}</MenuLabel>
@@ -190,7 +190,7 @@ const DropdownMenuExternalLink = React.forwardRef<
   const { label, icon, disabled, href, target, ...rest } = props;
 
   return (
-    <DropdownMenuPrimitive.Item ref={ref} {...rest} asChild>
+    <DropdownMenuPrimitive.Item ref={ref} disabled={disabled} {...rest} asChild>
       <MenuExternalLink href={href} target={target} disabled={disabled}>
         {icon}
         <MenuLabel>{label}</MenuLabel>
