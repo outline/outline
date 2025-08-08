@@ -33,8 +33,13 @@ allow(User, "listApiKeys", Team, (actor, team) =>
 
 allow(User, ["read", "update", "delete"], ApiKey, (actor, apiKey) =>
   and(
-    or(isOwner(actor, apiKey), actor.teamId === apiKey?.user.teamId),
-    actor.isAdmin ||
-      !!actor.team?.getPreference(TeamPreference.MembersCanCreateApiKey)
+    isTeamModel(actor, apiKey?.user),
+    or(
+      actor.isAdmin,
+      and(
+        isOwner(actor, apiKey),
+        !!actor.team?.getPreference(TeamPreference.MembersCanCreateApiKey)
+      )
+    )
   )
 );
