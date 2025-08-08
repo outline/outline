@@ -1,4 +1,5 @@
 import * as React from "react";
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import styled from "styled-components";
 import Scrollable from "~/components/Scrollable";
 import {
@@ -33,86 +34,94 @@ type Props = {
   ariaLabel: string;
   onOpen?: () => void;
   onClose?: () => void;
-};
+} & React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Trigger>;
 
-export const DropdownMenu = observer(function DropdownMenu({
-  action,
-  context,
-  children,
-  align = "start",
-  ariaLabel,
-  onOpen,
-  onClose,
-}: Props) {
-  const [open, setOpen] = React.useState(false);
-  const isMobile = useMobile();
-  const contentRef =
-    React.useRef<React.ElementRef<typeof DropdownMenuContent>>(null);
-  const actionContext =
-    context ??
-    useActionContext({
-      isContextMenu: true,
-    });
-  const menuItems = (action.children as ActionV2Variant[]).map((childAction) =>
-    actionV2ToMenuItem(childAction, actionContext)
-  );
+export const DropdownMenu = observer(
+  React.forwardRef<React.ElementRef<typeof TooltipPrimitive.Trigger>, Props>(
+    (
+      {
+        action,
+        context,
+        children,
+        align = "start",
+        ariaLabel,
+        onOpen,
+        onClose,
+        ...rest
+      },
+      ref
+    ) => {
+      const [open, setOpen] = React.useState(false);
+      const isMobile = useMobile();
+      const contentRef =
+        React.useRef<React.ElementRef<typeof DropdownMenuContent>>(null);
+      const actionContext =
+        context ??
+        useActionContext({
+          isContextMenu: true,
+        });
+      const menuItems = (action.children as ActionV2Variant[]).map(
+        (childAction) => actionV2ToMenuItem(childAction, actionContext)
+      );
 
-  const handleOpenChange = React.useCallback(
-    (open: boolean) => {
-      setOpen(open);
-      if (open) {
-        onOpen?.();
-      } else {
-        onClose?.();
+      const handleOpenChange = React.useCallback(
+        (open: boolean) => {
+          setOpen(open);
+          if (open) {
+            onOpen?.();
+          } else {
+            onClose?.();
+          }
+        },
+        [onOpen, onClose]
+      );
+
+      const enablePointerEvents = React.useCallback(() => {
+        if (contentRef.current) {
+          contentRef.current.style.pointerEvents = "auto";
+        }
+      }, []);
+
+      const disablePointerEvents = React.useCallback(() => {
+        if (contentRef.current) {
+          contentRef.current.style.pointerEvents = "none";
+        }
+      }, []);
+
+      if (isMobile) {
+        return (
+          <MobileDropdown
+            items={menuItems}
+            trigger={children}
+            ariaLabel={ariaLabel}
+          />
+        );
       }
-    },
-    [onOpen, onClose]
-  );
 
-  const enablePointerEvents = React.useCallback(() => {
-    if (contentRef.current) {
-      contentRef.current.style.pointerEvents = "auto";
+      const content = toDropdownMenuItems(menuItems);
+
+      if (!content) {
+        return null;
+      }
+
+      return (
+        <DropdownMenuRoot open={open} onOpenChange={handleOpenChange}>
+          <DropdownMenuTrigger ref={ref} aria-label={ariaLabel} {...rest}>
+            {children}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align={align}
+            aria-label={ariaLabel}
+            onAnimationStart={disablePointerEvents}
+            onAnimationEnd={enablePointerEvents}
+          >
+            {content}
+          </DropdownMenuContent>
+        </DropdownMenuRoot>
+      );
     }
-  }, []);
-
-  const disablePointerEvents = React.useCallback(() => {
-    if (contentRef.current) {
-      contentRef.current.style.pointerEvents = "none";
-    }
-  }, []);
-
-  if (isMobile) {
-    return (
-      <MobileDropdown
-        items={menuItems}
-        trigger={children}
-        ariaLabel={ariaLabel}
-      />
-    );
-  }
-
-  const content = toDropdownMenuItems(menuItems);
-
-  if (!content) {
-    return null;
-  }
-
-  return (
-    <DropdownMenuRoot open={open} onOpenChange={handleOpenChange}>
-      <DropdownMenuTrigger aria-label={ariaLabel}>
-        {children}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align={align}
-        aria-label={ariaLabel}
-        onAnimationStart={disablePointerEvents}
-        onAnimationEnd={enablePointerEvents}
-      >
-        {content}
-      </DropdownMenuContent>
-    </DropdownMenuRoot>
-  );
-});
+  )
+);
 
 type MobileDropdownProps = {
   items: MenuItem[];
