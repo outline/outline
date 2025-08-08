@@ -15,7 +15,7 @@ import { SubscriptionType } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import Collection from "~/models/Collection";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
-import { OverflowMenuButton as OverflowMenuButtonV2 } from "~/components/Menu/OverflowMenuButton";
+import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import {
   ActionV2Separator,
   createActionV2,
@@ -250,7 +250,7 @@ function CollectionMenu({
         onClose={onClose}
         ariaLabel={t("Collection menu")}
       >
-        <OverflowMenuButtonV2
+        <OverflowMenuButton
           neutral={neutral}
           onPointerEnter={handlePointerEnter}
         />
