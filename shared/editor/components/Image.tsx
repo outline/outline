@@ -10,8 +10,8 @@ import { ComponentProps } from "../types";
 import { ImageZoom } from "./ImageZoom";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
-import useStores from "@shared/hooks/useStores";
-import { Gestures } from "@shared/components/Gestures";
+import useStores from "../../hooks/useStores";
+import { Gestures } from "../../components/Gestures";
 
 type Props = ComponentProps & {
   /** Callback triggered when the download button is clicked */
