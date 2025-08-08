@@ -46,9 +46,7 @@ export default createGlobalStyle<Props>`
     -moz-osx-font-smoothing: grayscale;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-  }
 
-  body {
     width: 100vw;
     overflow-x: hidden;
     padding-right: calc(0 - var(--removed-body-scroll-bar-size)) !important;
