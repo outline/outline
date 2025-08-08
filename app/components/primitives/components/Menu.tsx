@@ -38,6 +38,10 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
     opacity: ${(props) => (props.disabled ? ".5" : 1)};
   }
 
+  &:focus-visible {
+    outline: 0; // Disable default outline on Firefox
+  }
+
   ${(props) =>
     !props.disabled &&
     `

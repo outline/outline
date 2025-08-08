@@ -43,7 +43,7 @@ const DropdownMenuContent = React.forwardRef<
 
   return (
     <DropdownMenuPrimitive.Portal>
-      <DropdownMenuPrimitive.Content ref={ref} {...rest} asChild>
+      <DropdownMenuPrimitive.Content ref={ref} {...rest} sideOffset={4} asChild>
         <StyledScrollable hiddenScrollbars>{children}</StyledScrollable>
       </DropdownMenuPrimitive.Content>
     </DropdownMenuPrimitive.Portal>

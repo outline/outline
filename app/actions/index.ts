@@ -1,3 +1,4 @@
+import { LocationDescriptor } from "history";
 import flattenDeep from "lodash/flattenDeep";
 import { toast } from "sonner";
 import { Optional } from "utility-types";
@@ -282,20 +283,22 @@ export function actionV2ToMenuItem(
             icon,
             visible,
             disabled,
-            selected: action.selected?.(context),
+            selected: resolve<boolean>(action.selected, context),
             dangerous: action.dangerous,
             onClick: () => performActionV2(action, context),
           };
 
-        case "internal_link":
+        case "internal_link": {
+          const to = resolve<LocationDescriptor>(action.to, context);
           return {
             type: "route",
             title,
             icon,
             visible,
             disabled,
-            to: action.to,
+            to,
           };
+        }
 
         case "external_link":
           return {
@@ -376,7 +379,8 @@ export function actionV2ToKBar(
         action.variant === "action"
           ? () => performActionV2(action, context)
           : action.variant === "internal_link"
-            ? () => history.push(action.to)
+            ? () =>
+                history.push(resolve<LocationDescriptor>(action.to, context))
             : () => window.open(action.url, action.target);
 
       return [

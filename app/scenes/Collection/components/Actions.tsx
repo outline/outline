@@ -42,19 +42,7 @@ function Actions({ collection }: Props) {
         </>
       )}
       <Action>
-        <CollectionMenu
-          collection={collection}
-          placement="bottom-end"
-          label={(props) => (
-            <Button
-              aria-label={t("Collection menu")}
-              icon={<MoreIcon />}
-              {...props}
-              borderOnHover
-              neutral
-            />
-          )}
-        />
+        <CollectionMenu collection={collection} align="end" neutral />
       </Action>
     </>
   );
