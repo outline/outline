@@ -3,12 +3,12 @@ import * as React from "react";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
 import { Props as ButtonProps } from "~/components/Button";
-import Separator from "~/components/ContextMenu/Separator";
 import { fadeAndSlideDown, fadeAndSlideUp } from "~/styles/animations";
 import {
   SelectItemIndicator,
   SelectItem as SelectItemWrapper,
   SelectButton,
+  SelectSeparator,
 } from "./components/InputSelect";
 
 /** Root InputSelect component - all the other components are rendered inside it. */
@@ -57,7 +57,9 @@ const InputSelectContent = React.forwardRef<
   return (
     <InputSelectPrimitive.Portal>
       <StyledContent ref={ref} position={"popper"} {...rest}>
-        <InputSelectPrimitive.Viewport style={{ overscrollBehavior: "none" }}>
+        <InputSelectPrimitive.Viewport
+          style={{ overflow: "inherit", overscrollBehavior: "none" }}
+        >
           {children}
         </InputSelectPrimitive.Viewport>
       </StyledContent>
@@ -93,8 +95,8 @@ const InputSelectSeparator = React.forwardRef<
   React.ElementRef<typeof InputSelectPrimitive.Separator>,
   React.ComponentPropsWithoutRef<typeof InputSelectPrimitive.Separator>
 >((props, ref) => (
-  <InputSelectPrimitive.Separator ref={ref} asChild>
-    <Separator {...props} />
+  <InputSelectPrimitive.Separator ref={ref} {...props} asChild>
+    <SelectSeparator />
   </InputSelectPrimitive.Separator>
 ));
 InputSelectSeparator.displayName = InputSelectPrimitive.Separator.displayName;

@@ -130,6 +130,10 @@ const ItemContainer = styled(Flex)`
   `}
 `;
 
+export const SelectSeparator = styled.hr`
+  margin: 4px -4px; // negative margin to offset content's padding
+`;
+
 const IndicatorContainer = styled.span`
   width: 24px;
   height: 24px;

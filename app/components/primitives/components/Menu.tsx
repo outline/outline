@@ -92,7 +92,7 @@ export const MenuSubTrigger = styled.div<BaseMenuItemProps>`
 `;
 
 export const MenuSeparator = styled.hr`
-  margin: 6px 0;
+  margin: 4px -6px; // negative margin to offset content's padding
 `;
 
 export const MenuLabel = styled.div`
