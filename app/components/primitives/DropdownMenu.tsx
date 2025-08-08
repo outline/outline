@@ -44,7 +44,13 @@ const DropdownMenuContent = React.forwardRef<
 
   return (
     <DropdownMenuPrimitive.Portal>
-      <DropdownMenuPrimitive.Content ref={ref} {...rest} sideOffset={4} asChild>
+      <DropdownMenuPrimitive.Content
+        ref={ref}
+        {...rest}
+        sideOffset={4}
+        collisionPadding={6}
+        asChild
+      >
         <StyledScrollable hiddenScrollbars>{children}</StyledScrollable>
       </DropdownMenuPrimitive.Content>
     </DropdownMenuPrimitive.Portal>
@@ -82,7 +88,12 @@ const DropdownSubMenuContent = React.forwardRef<
 
   return (
     <DropdownMenuPrimitive.Portal>
-      <DropdownMenuPrimitive.SubContent ref={ref} {...rest} asChild>
+      <DropdownMenuPrimitive.SubContent
+        ref={ref}
+        {...rest}
+        collisionPadding={6}
+        asChild
+      >
         <StyledScrollable hiddenScrollbars>{children}</StyledScrollable>
       </DropdownMenuPrimitive.SubContent>
     </DropdownMenuPrimitive.Portal>
@@ -244,7 +255,7 @@ const StyledScrollable = styled(Scrollable)`
   min-width: 180px;
   max-width: 276px;
   min-height: 44px;
-  max-height: 75vh;
+  max-height: min(75vh, var(--radix-dropdown-menu-content-available-height));
   font-weight: normal;
 
   background: ${s("menuBackground")};
