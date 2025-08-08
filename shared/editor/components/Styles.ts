@@ -609,6 +609,7 @@ iframe.embed {
     EditorStyleHelper.padding
   }px + var(--container-width) * -0.5 + var(--full-width-transform-offset)));
 
+  .${EditorStyleHelper.tableScrollable},
   table {
     width: calc(var(--container-width) - ${EditorStyleHelper.padding * 2}px);
   }
