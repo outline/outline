@@ -4,6 +4,7 @@ import * as React from "react";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
 import Scrollable from "~/components/Scrollable";
+import Tooltip from "~/components/Tooltip";
 import { fadeAndScaleIn } from "~/styles/animations";
 import {
   MenuButton,
@@ -121,6 +122,7 @@ type BaseDropdownItemProps = {
 
 type DropdownMenuButtonProps = BaseDropdownItemProps & {
   onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  tooltip?: React.ReactChild;
   selected?: boolean;
   dangerous?: boolean;
 } & Omit<
@@ -132,10 +134,18 @@ const DropdownMenuButton = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Item>,
   DropdownMenuButtonProps
 >((props, ref) => {
-  const { label, icon, disabled, selected, dangerous, onClick, ...rest } =
-    props;
+  const {
+    label,
+    icon,
+    tooltip,
+    disabled,
+    selected,
+    dangerous,
+    onClick,
+    ...rest
+  } = props;
 
-  return (
+  const button = (
     <DropdownMenuPrimitive.Item ref={ref} disabled={disabled} {...rest} asChild>
       <MenuButton disabled={disabled} $dangerous={dangerous} onClick={onClick}>
         {icon}
@@ -147,6 +157,14 @@ const DropdownMenuButton = React.forwardRef<
         )}
       </MenuButton>
     </DropdownMenuPrimitive.Item>
+  );
+
+  return tooltip ? (
+    <Tooltip content={tooltip} placement="bottom">
+      <div>{button}</div>
+    </Tooltip>
+  ) : (
+    <>{button}</>
   );
 });
 DropdownMenuButton.displayName = "DropdownMenuButton";

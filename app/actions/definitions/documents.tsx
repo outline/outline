@@ -385,6 +385,15 @@ export const subscribeDocument = createActionV2({
   analyticsName: "Subscribe to document",
   section: ActiveDocumentSection,
   icon: <SubscribeIcon />,
+  tooltip: ({ activeCollectionId, isContextMenu, stores, t }) => {
+    if (!isContextMenu || !activeCollectionId) {
+      return undefined;
+    }
+
+    return stores.collections.get(activeCollectionId)?.isSubscribed
+      ? t("Subscription inherited from collection")
+      : undefined;
+  },
   disabled: ({ activeCollectionId, isContextMenu, stores }) => {
     if (!isContextMenu || !activeCollectionId) {
       return false;
@@ -421,6 +430,15 @@ export const unsubscribeDocument = createActionV2({
   analyticsName: "Unsubscribe from document",
   section: ActiveDocumentSection,
   icon: <UnsubscribeIcon />,
+  tooltip: ({ activeCollectionId, isContextMenu, stores, t }) => {
+    if (!isContextMenu || !activeCollectionId) {
+      return undefined;
+    }
+
+    return stores.collections.get(activeCollectionId)?.isSubscribed
+      ? t("Subscription inherited from collection")
+      : undefined;
+  },
   disabled: ({ activeCollectionId, isContextMenu, stores }) => {
     if (!isContextMenu || !activeCollectionId) {
       return false;

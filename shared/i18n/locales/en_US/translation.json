@@ -53,6 +53,7 @@
   "Publish document": "Publish document",
   "Unpublish": "Unpublish",
   "Unpublished {{ documentName }}": "Unpublished {{ documentName }}",
+  "Subscription inherited from collection": "Subscription inherited from collection",
   "Share this document": "Share this document",
   "HTML": "HTML",
   "PDF": "PDF",
