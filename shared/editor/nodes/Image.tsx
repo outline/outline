@@ -122,24 +122,8 @@ export default class Image extends SimpleImage {
               ? layoutClassMatched[1]
               : null;
 
-            
-            let width = img?.getAttribute("width");
-            let height = img?.getAttribute("height");
-
-          
-            if (!width && img?.style.width) {
-              const styleWidth = img.style.width;
-              if (styleWidth.endsWith('px')) {
-                width = styleWidth.slice(0, -2);
-              }
-            }
-            if (!height && img?.style.height) {
-              const styleHeight = img.style.height;
-              if (styleHeight.endsWith('px')) {
-                height = styleHeight.slice(0, -2);
-              }
-            }
-
+            const width = img?.getAttribute("width");
+            const height = img?.getAttribute("height");
             return {
               src: img?.getAttribute("src"),
               alt: img?.getAttribute("alt"),
