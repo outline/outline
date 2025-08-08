@@ -135,7 +135,7 @@ function DraggableCollectionLink({
 const Draggable = styled("div")<{ $isDragging: boolean }>`
   transition: opacity 250ms ease;
   opacity: ${(props) => (props.$isDragging ? 0.1 : 1)};
-  pointer-events: ${(props) => (props.$isDragging ? "none" : "auto")};
+  pointer-events: ${(props) => (props.$isDragging ? "none" : "inherit")};
 `;
 
 export default observer(DraggableCollectionLink);
