@@ -24,6 +24,7 @@ import {
 } from "~/types";
 import { toDropdownMenuItems, toMobileMenuItems } from "./transformer";
 import { observer } from "mobx-react";
+import { useComputed } from "~/hooks/useComputed";
 
 type Props = {
   action: ActionV2WithChildren;
@@ -48,14 +49,22 @@ export const DropdownMenu = observer(function DropdownMenu({
   const isMobile = useMobile();
   const contentRef =
     React.useRef<React.ElementRef<typeof DropdownMenuContent>>(null);
+
   const actionContext =
     context ??
     useActionContext({
       isContextMenu: true,
     });
-  const menuItems = (action.children as ActionV2Variant[]).map((childAction) =>
-    actionV2ToMenuItem(childAction, actionContext)
-  );
+
+  const menuItems = useComputed(() => {
+    if (!open) {
+      return [];
+    }
+
+    return (action.children as ActionV2Variant[]).map((childAction) =>
+      actionV2ToMenuItem(childAction, actionContext)
+    );
+  }, [open, action.children, actionContext]);
 
   const handleOpenChange = React.useCallback(
     (open: boolean) => {
@@ -92,10 +101,6 @@ export const DropdownMenu = observer(function DropdownMenu({
   }
 
   const content = toDropdownMenuItems(menuItems);
-
-  if (!content) {
-    return null;
-  }
 
   return (
     <DropdownMenuRoot open={open} onOpenChange={handleOpenChange}>
@@ -179,10 +184,6 @@ function MobileDropdown({
   }, [items, submenuName]);
 
   const content = toMobileMenuItems(menuItems, closeDrawer, setSubmenuName);
-
-  if (!content) {
-    return null;
-  }
 
   return (
     <Drawer open={open} onOpenChange={setOpen} onAnimationEnd={resetSubmenu}>

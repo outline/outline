@@ -22,7 +22,7 @@ type Props = {
 };
 
 /**
- * This hook provides a memoized list of menu items for both collection-specific
+ * This hook provides a memoized list of actions for both collection-specific
  * templates and workspace-wide templates. It filters templates based on whether
  * they are published and organizes them into appropriate sections.
  *
