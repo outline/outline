@@ -4,6 +4,7 @@ import textBetween from "../editor/lib/textBetween";
 import { getTextSerializers } from "../editor/lib/textSerializers";
 import { ProsemirrorData } from "../types";
 import { TextHelper } from "./TextHelper";
+import env from "../env";
 
 export type Heading = {
   /* The heading in plain text */
@@ -362,6 +363,53 @@ export class ProsemirrorHelper {
       }
     });
     return headings;
+  }
+
+  /**
+   * Converts all attachment URLs in the ProsemirrorData to absolute URLs.
+   * This is useful for ensuring that attachments can be accessed correctly
+   * when the document is rendered in a different context or environment.
+   *
+   * @param data The ProsemirrorData object to process
+   * @returns The ProsemirrorData with absolute URLs for attachments
+   */
+  static attachmentsToAbsoluteUrls(data: ProsemirrorData): ProsemirrorData {
+    function replace(node: ProsemirrorData) {
+      if (
+        node.type === "image" &&
+        node.attrs?.src &&
+        String(node.attrs.src).match(
+          new RegExp("^" + attachmentRedirectRegex.source)
+        )
+      ) {
+        node.attrs.src = env.URL + node.attrs.src;
+      }
+      if (
+        node.type === "video" &&
+        node.attrs?.src &&
+        String(node.attrs.src).match(
+          new RegExp("^" + attachmentRedirectRegex.source)
+        )
+      ) {
+        node.attrs.src = env.URL + node.attrs.src;
+      }
+      if (
+        node.type === "attachment" &&
+        node.attrs?.href &&
+        String(node.attrs.src).match(
+          new RegExp("^" + attachmentRedirectRegex.source)
+        )
+      ) {
+        node.attrs.href = env.URL + node.attrs.href;
+      }
+      if (node.content) {
+        node.content.forEach(replace);
+      }
+
+      return node;
+    }
+
+    return replace(data);
   }
 
   /**
