@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useLocation, RouteComponentProps, StaticContext } from "react-router";
-import { NavigationNode, TeamPreference } from "@shared/types";
+import { TeamPreference } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import Document from "~/models/Document";
@@ -34,8 +34,6 @@ type Params = {
   documentSlug: string;
   /** A specific revision id to load. */
   revisionId?: string;
-  /** The share ID to use to load data. */
-  shareId?: string;
 };
 
 type LocationState = {
@@ -54,7 +52,6 @@ type Children = (options: {
     params: Properties<Document>,
     nested?: boolean
   ) => Promise<string>;
-  sharedTree: NavigationNode | undefined;
 }) => React.ReactNode;
 
 type Props = RouteComponentProps<Params, StaticContext, LocationState> & {
@@ -67,7 +64,7 @@ function DataLoader({ match, children }: Props) {
   const user = useCurrentUser();
   const { setDocument } = useDocumentContext();
   const [error, setError] = React.useState<Error | null>(null);
-  const { revisionId, shareId, documentSlug } = match.params;
+  const { revisionId, documentSlug } = match.params;
 
   // Allows loading by /doc/slug-<urlId> or /doc/<id>
   const document =
@@ -86,9 +83,6 @@ function DataLoader({ match, children }: Props) {
       )
     : undefined;
 
-  const sharedTree = document
-    ? documents.getSharedTree(document.id)
-    : undefined;
   const isEditRoute =
     match.path === matchDocumentEdit || match.path.startsWith(settingsPath());
   const isEditing = isEditRoute || !user?.separateEditMode;
@@ -98,15 +92,13 @@ function DataLoader({ match, children }: Props) {
   React.useEffect(() => {
     async function fetchDocument() {
       try {
-        await documents.fetchWithSharedTree(documentSlug, {
-          shareId,
-        });
+        await documents.fetch(documentSlug);
       } catch (err) {
         setError(err);
       }
     }
     void fetchDocument();
-  }, [ui, documents, shareId, documentSlug]);
+  }, [ui, documents, documentSlug]);
 
   React.useEffect(() => {
     async function fetchRevision() {
@@ -245,7 +237,7 @@ function DataLoader({ match, children }: Props) {
 
   return (
     <>
-      {!shareId && !revision && <MarkAsViewed document={document} />}
+      {!revision && <MarkAsViewed document={document} />}
       <React.Fragment key={canEdit ? "edit" : "read"}>
         {children({
           document,
@@ -253,7 +245,6 @@ function DataLoader({ match, children }: Props) {
           abilities: can,
           readOnly,
           onCreateLink,
-          sharedTree,
         })}
       </React.Fragment>
     </>
