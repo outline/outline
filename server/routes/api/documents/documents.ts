@@ -12,7 +12,7 @@ import uniq from "lodash/uniq";
 import mime from "mime-types";
 import { Op, ScopeOptions, Sequelize, WhereOptions } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
-import { StatusFilter, TeamPreference, UserRole } from "@shared/types";
+import { StatusFilter, UserRole } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
 import documentCreator from "@server/commands/documentCreator";
@@ -27,6 +27,7 @@ import {
   AuthenticationError,
   ValidationError,
   IncorrectEditionError,
+  NotFoundError,
 } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
@@ -571,45 +572,60 @@ router.post(
     const teamFromCtx = await getTeamFromContext(ctx, {
       includeStateCookie: false,
     });
-    const { document, share, collection } = await documentLoader({
-      id,
-      shareId,
-      user,
-      teamId: teamFromCtx?.id,
-    });
-    const isPublic = cannot(user, "read", document);
-    const [serializedDocument, team] = await Promise.all([
-      presentDocument(ctx, document, {
+
+    let document: Document | null;
+    let serializedDocument: Record<string, any> | undefined;
+    let isPublic = false;
+
+    if (shareId) {
+      const result = await loadPublicShare({
+        id: shareId,
+        documentId: id,
+        teamId: teamFromCtx?.id,
+      });
+
+      document = result.document;
+
+      if (!document) {
+        throw NotFoundError("Document could not be found for shareId");
+      }
+
+      // reload with membership scope if user is authenticated
+      if (user) {
+        document = await Document.findByPk(document.id, {
+          userId: user.id,
+          rejectOnEmpty: true,
+        });
+      }
+
+      isPublic = cannot(user, "read", document);
+
+      serializedDocument = await presentDocument(ctx, document, {
         isPublic,
         shareId,
-        includeUpdatedAt: share?.showLastUpdated,
-      }),
-      teamFromCtx?.id === document.teamId ? teamFromCtx : document.$get("team"),
-    ]);
+        includeUpdatedAt: result.share.showLastUpdated,
+      });
+    } else {
+      if (!user) {
+        throw AuthenticationError("Authentication required");
+      }
 
-    // Passing apiVersion=2 has a single effect, to change the response payload to
-    // include top level keys for document, sharedTree, and team.
-    const data =
-      apiVersion >= 2
-        ? {
-            document: serializedDocument,
-            team: team
-              ? presentPublicTeam(
-                  team,
-                  !!team?.getPreference(TeamPreference.PublicBranding)
-                )
-              : undefined,
-            sharedTree:
-              share &&
-              share.documentId &&
-              share.includeChildDocuments &&
-              collection
-                ? collection?.getDocumentTree(share.documentId)
-                : null,
-          }
-        : serializedDocument;
+      document = await documentLoader({
+        id: id!, // validation ensures id will be present here
+        user,
+      });
+      serializedDocument = await presentDocument(ctx, document);
+    }
+
     ctx.body = {
-      data,
+      // Passing apiVersion=2 has a single effect, to change the response payload to
+      // include top level keys for document.
+      data:
+        apiVersion >= 2
+          ? {
+              document: serializedDocument,
+            }
+          : serializedDocument,
       policies: isPublic ? undefined : presentPolicies(user, [document]),
     };
   }
@@ -699,45 +715,17 @@ router.post(
   }
 );
 
-router.get(
-  "documents.sitemap",
-  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
-  auth({ optional: true }),
-  validate(T.DocumentsSitemapSchema),
-  async (ctx: APIContext<T.DocumentsSitemapReq>) => {
-    const { shareId } = ctx.input.query;
-    const { collection, share } = await documentLoader({
-      shareId,
-    });
-
-    let tree;
-    if (
-      share &&
-      share.documentId &&
-      share.includeChildDocuments &&
-      share.allowIndexing
-    ) {
-      tree = collection?.getDocumentTree(share.documentId);
-    }
-
-    const baseUrl = `${process.env.URL}/s/${shareId}`;
-
-    ctx.set("Content-Type", "application/xml");
-    ctx.body = navigationNodeToSitemap(tree, baseUrl);
-  }
-);
-
 router.post(
   "documents.export",
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
-  auth({ optional: true }),
+  auth(),
   validate(T.DocumentsExportSchema),
   async (ctx: APIContext<T.DocumentsExportReq>) => {
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
     const accept = ctx.request.headers["accept"];
 
-    const { document } = await documentLoader({
+    const document = await documentLoader({
       id,
       user,
       // We need the collaborative state to generate HTML.

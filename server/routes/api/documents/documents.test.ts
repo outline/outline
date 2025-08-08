@@ -217,21 +217,11 @@ describe("#documents.info", () => {
     expect(body.data.id).toEqual(doc.id);
   });
   describe("apiVersion=2", () => {
-    it("should return sharedTree from shareId", async () => {
+    it("should return document associated with shareId", async () => {
       const user = await buildUser();
-      const collection = await buildCollection({
-        userId: user.id,
-        teamId: user.teamId,
-      });
       const document = await buildDocument({
         userId: user.id,
-        collectionId: collection.id,
         teamId: user.teamId,
-      });
-      const childDocument = await buildDocument({
-        teamId: document.teamId,
-        parentDocumentId: document.id,
-        collectionId: collection.id,
       });
       const share = await buildShare({
         documentId: document.id,
@@ -239,8 +229,38 @@ describe("#documents.info", () => {
         userId: user.id,
         includeChildDocuments: true,
       });
-      await collection.reload();
-      await collection.addDocumentToStructure(childDocument, 0);
+      const res = await server.post("/api/documents.info", {
+        body: {
+          shareId: share.id,
+          id: document.id,
+          apiVersion: 2,
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.document.id).toEqual(document.id);
+      expect(body.data.document.createdBy).toEqual(undefined);
+      expect(body.data.document.updatedBy).toEqual(undefined);
+    });
+
+    it("should return document available in shareId", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const childDocument = await buildDocument({
+        parentDocumentId: document.id,
+        collectionId: document.collectionId,
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const share = await buildShare({
+        documentId: document.id,
+        teamId: document.teamId,
+        userId: user.id,
+        includeChildDocuments: true,
+      });
       const res = await server.post("/api/documents.info", {
         body: {
           shareId: share.id,
@@ -253,11 +273,18 @@ describe("#documents.info", () => {
       expect(body.data.document.id).toEqual(childDocument.id);
       expect(body.data.document.createdBy).toEqual(undefined);
       expect(body.data.document.updatedBy).toEqual(undefined);
-      expect(body.data.sharedTree).toEqual(collection.documentStructure?.[0]);
     });
-    it("should return sharedTree from shareId with id of nested document", async () => {
+
+    it("should throw error when requested document is not associated with shareId", async () => {
       const user = await buildUser();
-      const document = await buildDocument({ userId: user.id });
+      const document = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const anotherDocument = await buildDocument({
+        userId: user.id,
+        teamId: user.teamId,
+      });
       const share = await buildShare({
         documentId: document.id,
         teamId: document.teamId,
@@ -267,71 +294,14 @@ describe("#documents.info", () => {
       const res = await server.post("/api/documents.info", {
         body: {
           shareId: share.id,
+          id: anotherDocument.id,
           apiVersion: 2,
         },
       });
-      const body = await res.json();
-      expect(res.status).toEqual(200);
-      expect(body.data.document.id).toEqual(document.id);
-      expect(body.data.document.createdBy).toEqual(undefined);
-      expect(body.data.document.updatedBy).toEqual(undefined);
-      expect(body.data.sharedTree).toEqual(await document.toNavigationNode());
-    });
-    it("should not return sharedTree if child documents not shared", async () => {
-      const user = await buildUser();
-      const document = await buildDocument({ userId: user.id });
-      const share = await buildShare({
-        documentId: document.id,
-        teamId: document.teamId,
-        userId: user.id,
-        includeChildDocuments: false,
-      });
-      const res = await server.post("/api/documents.info", {
-        body: {
-          shareId: share.id,
-          apiVersion: 2,
-        },
-      });
-      const body = await res.json();
-      expect(res.status).toEqual(200);
-      expect(body.data.document.id).toEqual(document.id);
-      expect(body.data.document.createdBy).toEqual(undefined);
-      expect(body.data.document.updatedBy).toEqual(undefined);
-      expect(body.data.sharedTree).toEqual(null);
-    });
-    it("should not return details for nested documents", async () => {
-      const user = await buildUser();
-      const collection = await buildCollection({
-        userId: user.id,
-        teamId: user.teamId,
-      });
-      const document = await buildDocument({
-        userId: user.id,
-        collectionId: collection.id,
-        teamId: user.teamId,
-      });
-      const childDocument = await buildDocument({
-        teamId: document.teamId,
-        parentDocumentId: document.id,
-        collectionId: collection.id,
-      });
-      const share = await buildShare({
-        documentId: document.id,
-        teamId: document.teamId,
-        userId: user.id,
-        includeChildDocuments: false,
-      });
-      await collection.reload();
-      await collection.addDocumentToStructure(childDocument, 0);
-      const res = await server.post("/api/documents.info", {
-        body: {
-          shareId: share.id,
-          id: childDocument.id,
-          apiVersion: 2,
-        },
-      });
+
       expect(res.status).toEqual(403);
     });
+
     it("should not return document from shareId if sharing is disabled for team", async () => {
       const team = await buildTeam({ sharing: false });
       const user = await buildUser({ teamId: team.id });
@@ -356,61 +326,6 @@ describe("#documents.info", () => {
         },
       });
       expect(res.status).toEqual(403);
-    });
-    it("should return document from shareId if public sharing is disabled but the user has permission to read", async () => {
-      const team = await buildTeam({ sharing: false });
-      const user = await buildUser({ teamId: team.id });
-      const collection = await buildCollection({
-        userId: user.id,
-        teamId: team.id,
-        sharing: false,
-      });
-      const document = await buildDocument({
-        userId: user.id,
-        collectionId: collection.id,
-        teamId: team.id,
-      });
-      const share = await buildShare({
-        includeChildDocuments: true,
-        documentId: document.id,
-        teamId: document.teamId,
-        userId: user.id,
-      });
-      const res = await server.post("/api/documents.info", {
-        body: {
-          token: user.getJwtToken(),
-          shareId: share.id,
-          apiVersion: 2,
-        },
-      });
-      expect(res.status).toEqual(200);
-    });
-
-    it("should return sharedTree as null for shared draft without collection", async () => {
-      const user = await buildUser();
-      const document = await buildDraftDocument({
-        userId: user.id,
-        teamId: user.teamId,
-        collectionId: null,
-      });
-      const share = await buildShare({
-        documentId: document.id,
-        teamId: document.teamId,
-        userId: user.id,
-        includeChildDocuments: true,
-      });
-      const res = await server.post("/api/documents.info", {
-        body: {
-          shareId: share.id,
-          apiVersion: 2,
-        },
-      });
-      const body = await res.json();
-      expect(res.status).toEqual(200);
-      expect(body.data.document.id).toEqual(document.id);
-      expect(body.data.document.createdBy).toEqual(undefined);
-      expect(body.data.document.updatedBy).toEqual(undefined);
-      expect(body.data.sharedTree).toEqual(null);
     });
   });
 
@@ -453,7 +368,7 @@ describe("#documents.info", () => {
         shareId: share.id,
       },
     });
-    expect(res.status).toEqual(400);
+    expect(res.status).toEqual(404);
   });
 
   it("should not return document from archived shareId", async () => {
@@ -470,7 +385,7 @@ describe("#documents.info", () => {
         shareId: share.id,
       },
     });
-    expect(res.status).toEqual(400);
+    expect(res.status).toEqual(404);
   });
 
   it("should return document from shareId with token", async () => {
