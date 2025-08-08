@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
-import { SubscriptionType } from "@shared/types";
+import { SubscriptionType, UserPreference } from "@shared/types";
 import Document from "~/models/Document";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
@@ -53,6 +53,7 @@ import useStores from "~/hooks/useStores";
 import { ActiveDocumentSection } from "~/actions/sections";
 import { useTemplateMenuActions } from "~/hooks/useTemplateMenuActions";
 import { useMenuAction } from "~/hooks/useMenuAction";
+import { MenuSeparator } from "~/components/primitives/components/Menu";
 
 type Props = {
   /** Document for which the menu is to be shown */
@@ -125,6 +126,27 @@ function DocumentMenu({
       void document.loadRelations();
     }
   }, [auxDataLoading, auxDataLoaded, auxDataRequest, document]);
+
+  const handleEmbedsToggle = React.useCallback(
+    (checked: boolean) => {
+      if (checked) {
+        document.enableEmbeds();
+      } else {
+        document.disableEmbeds();
+      }
+    },
+    [document]
+  );
+
+  const handleFullWidthToggle = React.useCallback(
+    (checked: boolean) => {
+      user.setPreference(UserPreference.FullWidthDocuments, checked);
+      void user.save();
+      document.fullWidth = checked;
+      void document.save({ fullWidth: checked });
+    },
+    [user, document]
+  );
 
   const templateMenuActions = useTemplateMenuActions({
     document,
@@ -200,6 +222,54 @@ function DocumentMenu({
     activeCollectionId: document.collectionId ?? undefined,
   });
 
+  const customNode = React.useMemo<React.ReactNode>(() => {
+    if (!can.update || !(showDisplayOptions || showToggleEmbeds)) {
+      return;
+    }
+
+    return (
+      <>
+        <MenuSeparator />
+        <DisplayOptions>
+          {showToggleEmbeds && (
+            <Style>
+              <ToggleMenuItem
+                width={26}
+                height={14}
+                label={t("Enable embeds")}
+                labelPosition="left"
+                checked={!document.embedsDisabled}
+                onChange={handleEmbedsToggle}
+              />
+            </Style>
+          )}
+          {showDisplayOptions && !isMobile && (
+            <Style>
+              <ToggleMenuItem
+                width={26}
+                height={14}
+                label={t("Full width")}
+                labelPosition="left"
+                checked={document.fullWidth}
+                onChange={handleFullWidthToggle}
+              />
+            </Style>
+          )}
+        </DisplayOptions>
+      </>
+    );
+  }, [
+    t,
+    can.update,
+    document.embedsDisabled,
+    document.fullWidth,
+    isMobile,
+    showDisplayOptions,
+    showToggleEmbeds,
+    handleEmbedsToggle,
+    handleFullWidthToggle,
+  ]);
+
   return (
     <DropdownMenu
       action={rootAction}
@@ -208,6 +278,7 @@ function DocumentMenu({
       onOpen={onOpen}
       onClose={onClose}
       ariaLabel={t("Document options")}
+      customNode={customNode}
     >
       <OverflowMenuButton
         neutral={neutral}
