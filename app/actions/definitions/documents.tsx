@@ -409,6 +409,7 @@ export const subscribeDocument = createActionV2({
     const document = stores.documents.get(activeDocumentId);
 
     return (
+      !!document?.isActive &&
       !document?.collection?.isSubscribed &&
       !document?.isSubscribed &&
       stores.policies.abilities(activeDocumentId).subscribe
@@ -454,9 +455,10 @@ export const unsubscribeDocument = createActionV2({
     const document = stores.documents.get(activeDocumentId);
 
     return (
-      !!document?.collection?.isSubscribed ||
-      (!!document?.isSubscribed &&
-        stores.policies.abilities(activeDocumentId).unsubscribe)
+      !!document?.isActive &&
+      (!!document?.collection?.isSubscribed ||
+        (!!document?.isSubscribed &&
+          stores.policies.abilities(activeDocumentId).unsubscribe))
     );
   },
   perform: async ({ activeDocumentId, stores, currentUserId, t }) => {
