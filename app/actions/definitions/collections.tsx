@@ -235,6 +235,7 @@ export const subscribeCollection = createActionV2({
     const collection = stores.collections.get(activeCollectionId);
 
     return (
+      !!collection?.isActive &&
       !collection?.isSubscribed &&
       stores.policies.abilities(activeCollectionId).subscribe
     );
@@ -265,6 +266,7 @@ export const unsubscribeCollection = createActionV2({
     const collection = stores.collections.get(activeCollectionId);
 
     return (
+      !!collection?.isActive &&
       !!collection?.isSubscribed &&
       stores.policies.abilities(activeCollectionId).unsubscribe
     );

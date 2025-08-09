@@ -94,6 +94,7 @@ export default class DocumentsStore extends Store<Document> {
     return orderBy(this.all, "updatedAt", "desc");
   }
 
+  @computed
   get templates(): Document[] {
     return orderBy(
       filter(

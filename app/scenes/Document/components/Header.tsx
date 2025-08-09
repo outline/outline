@@ -355,15 +355,8 @@ function DocumentHeader({
             <Action>
               <DocumentMenu
                 document={document}
-                isRevision={isRevision}
-                label={(props) => (
-                  <Button
-                    icon={<MoreIcon />}
-                    {...props}
-                    borderOnHover
-                    neutral
-                  />
-                )}
+                align="end"
+                neutral
                 onSelectTemplate={onSelectTemplate}
                 onFindAndReplace={editor?.commands.openFindAndReplace}
                 showToggleEmbeds={canToggleEmbeds}
