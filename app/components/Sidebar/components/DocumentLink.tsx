@@ -421,7 +421,7 @@ function InnerDocumentLink(
 const Draggable = styled.div<{ $isDragging?: boolean; $isMoving?: boolean }>`
   transition: opacity 250ms ease;
   opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.1 : 1)};
-  pointer-events: ${(props) => (props.$isMoving ? "none" : "all")};
+  pointer-events: ${(props) => (props.$isMoving ? "none" : "inherit")};
 `;
 
 const DocumentLink = observer(React.forwardRef(InnerDocumentLink));

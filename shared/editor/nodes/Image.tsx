@@ -144,13 +144,13 @@ export default class Image extends SimpleImage {
             // If no HTML attributes, try CSS styles
             if (!width && dom.style.width) {
               const styleWidth = dom.style.width;
-              if (styleWidth.endsWith('px')) {
+              if (styleWidth.endsWith("px")) {
                 width = styleWidth.slice(0, -2);
               }
             }
             if (!height && dom.style.height) {
               const styleHeight = dom.style.height;
-              if (styleHeight.endsWith('px')) {
+              if (styleHeight.endsWith("px")) {
                 height = styleHeight.slice(0, -2);
               }
             }

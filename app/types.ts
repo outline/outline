@@ -143,7 +143,7 @@ type BaseActionV2 = {
   icon?: ((context: ActionContext) => React.ReactNode) | React.ReactNode;
   iconInContextMenu?: boolean;
   placeholder?: ((context: ActionContext) => string) | string;
-  selected?: (context: ActionContext) => boolean;
+  selected?: ((context: ActionContext) => boolean) | boolean;
   visible?: ((context: ActionContext) => boolean) | boolean;
   disabled?: ((context: ActionContext) => boolean) | boolean;
 };
@@ -156,7 +156,7 @@ export type ActionV2 = BaseActionV2 & {
 
 export type InternalLinkActionV2 = BaseActionV2 & {
   variant: "internal_link";
-  to: LocationDescriptor;
+  to: ((context: ActionContext) => LocationDescriptor) | LocationDescriptor;
 };
 
 export type ExternalLinkActionV2 = BaseActionV2 & {
