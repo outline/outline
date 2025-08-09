@@ -222,7 +222,7 @@ function DocumentMenu({
     activeCollectionId: document.collectionId ?? undefined,
   });
 
-  const customNode = React.useMemo<React.ReactNode>(() => {
+  const toggleSwitches = React.useMemo<React.ReactNode>(() => {
     if (!can.update || !(showDisplayOptions || showToggleEmbeds)) {
       return;
     }
@@ -278,7 +278,7 @@ function DocumentMenu({
       onOpen={onOpen}
       onClose={onClose}
       ariaLabel={t("Document options")}
-      customNode={customNode}
+      append={toggleSwitches}
     >
       <OverflowMenuButton
         neutral={neutral}

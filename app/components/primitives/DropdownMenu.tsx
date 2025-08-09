@@ -255,7 +255,7 @@ const StyledScrollable = styled(Scrollable)`
   min-width: 180px;
   max-width: 276px;
   min-height: 44px;
-  max-height: min(75vh, var(--radix-dropdown-menu-content-available-height));
+  max-height: min(85vh, var(--radix-dropdown-menu-content-available-height));
   font-weight: normal;
 
   background: ${s("menuBackground")};

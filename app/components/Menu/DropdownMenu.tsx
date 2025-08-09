@@ -32,7 +32,7 @@ type Props = {
   children: React.ReactNode;
   align?: "start" | "end";
   ariaLabel: string;
-  customNode?: React.ReactNode;
+  append?: React.ReactNode;
   onOpen?: () => void;
   onClose?: () => void;
 };
@@ -45,7 +45,7 @@ export const DropdownMenu = observer(function DropdownMenu({
   ariaLabel,
   onOpen,
   onClose,
-  customNode,
+  append,
 }: Props) {
   const [open, setOpen] = React.useState(false);
   const isMobile = useMobile();
@@ -105,7 +105,7 @@ export const DropdownMenu = observer(function DropdownMenu({
         items={menuItems}
         trigger={children}
         ariaLabel={ariaLabel}
-        customNode={customNode}
+        append={append}
       />
     );
   }
@@ -125,7 +125,7 @@ export const DropdownMenu = observer(function DropdownMenu({
         onCloseAutoFocus={handleCloseAutoFocus}
       >
         {content}
-        {customNode}
+        {append}
       </DropdownMenuContent>
     </DropdownMenuRoot>
   );
@@ -136,7 +136,7 @@ type MobileDropdownProps = {
   onOpenChange: (open: boolean) => void;
   items: MenuItem[];
   trigger: React.ReactNode;
-} & Pick<Props, "ariaLabel" | "customNode">;
+} & Pick<Props, "ariaLabel" | "append">;
 
 function MobileDropdown({
   open,
@@ -144,7 +144,7 @@ function MobileDropdown({
   items,
   trigger,
   ariaLabel,
-  customNode,
+  append,
 }: MobileDropdownProps) {
   const [submenuName, setSubmenuName] = React.useState<string>();
   const contentRef = React.useRef<React.ElementRef<typeof DrawerContent>>(null);
@@ -206,7 +206,7 @@ function MobileDropdown({
         <DrawerTitle>{ariaLabel}</DrawerTitle>
         <StyledScrollable hiddenScrollbars>
           {content}
-          {!submenuName ? customNode : null}
+          {!submenuName ? append : null}
         </StyledScrollable>
       </DrawerContent>
     </Drawer>
