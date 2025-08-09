@@ -259,7 +259,7 @@ export function toMobileMenuItems(
   });
 }
 
-export function filterMenuItems(items: MenuItem[]): MenuItem[] {
+function filterMenuItems(items: MenuItem[]): MenuItem[] {
   return items
     .filter((item) => item.visible !== false)
     .reduce((acc, item) => {
