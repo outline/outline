@@ -20,7 +20,6 @@ import stores from "~/stores";
 import SearchQuery from "~/models/SearchQuery";
 import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
 import {
-  createAction,
   createActionV2,
   createExternalLinkActionV2,
   createInternalLinkActionV2,
@@ -37,7 +36,7 @@ import {
   settingsPath,
 } from "~/utils/routeHelpers";
 
-export const navigateToHome = createAction({
+export const navigateToHome = createInternalLinkActionV2({
   name: ({ t }) => t("Home"),
   analyticsName: "Navigate to home",
   section: NavigationSection,
@@ -48,7 +47,7 @@ export const navigateToHome = createAction({
 });
 
 export const navigateToRecentSearchQuery = (searchQuery: SearchQuery) =>
-  createAction({
+  createInternalLinkActionV2({
     section: RecentSearchesSection,
     name: searchQuery.query,
     analyticsName: "Navigate to recent search query",
@@ -56,7 +55,7 @@ export const navigateToRecentSearchQuery = (searchQuery: SearchQuery) =>
     to: searchPath({ query: searchQuery.query }),
   });
 
-export const navigateToDrafts = createAction({
+export const navigateToDrafts = createInternalLinkActionV2({
   name: ({ t }) => t("Drafts"),
   analyticsName: "Navigate to drafts",
   section: NavigationSection,
@@ -65,7 +64,7 @@ export const navigateToDrafts = createAction({
   visible: ({ location }) => location.pathname !== draftsPath(),
 });
 
-export const navigateToSearch = createAction({
+export const navigateToSearch = createInternalLinkActionV2({
   name: ({ t }) => t("Search"),
   analyticsName: "Navigate to search",
   section: NavigationSection,
@@ -74,7 +73,7 @@ export const navigateToSearch = createAction({
   visible: ({ location }) => location.pathname !== searchPath(),
 });
 
-export const navigateToArchive = createAction({
+export const navigateToArchive = createInternalLinkActionV2({
   name: ({ t }) => t("Archive"),
   analyticsName: "Navigate to archive",
   section: NavigationSection,
@@ -84,7 +83,7 @@ export const navigateToArchive = createAction({
   visible: ({ location }) => location.pathname !== archivePath(),
 });
 
-export const navigateToTrash = createAction({
+export const navigateToTrash = createInternalLinkActionV2({
   name: ({ t }) => t("Trash"),
   analyticsName: "Navigate to trash",
   section: NavigationSection,
@@ -93,7 +92,7 @@ export const navigateToTrash = createAction({
   visible: ({ location }) => location.pathname !== trashPath(),
 });
 
-export const navigateToSettings = createAction({
+export const navigateToSettings = createInternalLinkActionV2({
   name: ({ t }) => t("Settings"),
   analyticsName: "Navigate to settings",
   section: NavigationSection,
@@ -121,7 +120,7 @@ export const navigateToProfileSettings = createInternalLinkActionV2({
   to: settingsPath(),
 });
 
-export const navigateToTemplateSettings = createAction({
+export const navigateToTemplateSettings = createInternalLinkActionV2({
   name: ({ t }) => t("Templates"),
   analyticsName: "Navigate to template settings",
   section: NavigationSection,
@@ -169,7 +168,7 @@ export const openAPIDocumentation = createExternalLinkActionV2({
   target: "_blank",
 });
 
-export const toggleSidebar = createAction({
+export const toggleSidebar = createActionV2({
   name: ({ t }) => t("Toggle sidebar"),
   analyticsName: "Toggle sidebar",
   keywords: "hide show navigation",
@@ -222,7 +221,7 @@ export const openKeyboardShortcuts = createActionV2({
   },
 });
 
-export const downloadApp = createAction({
+export const downloadApp = createExternalLinkActionV2({
   name: ({ t }) =>
     t("Download {{ platform }} app", {
       platform: isMac() ? "macOS" : "Windows",
@@ -232,10 +231,8 @@ export const downloadApp = createAction({
   iconInContextMenu: false,
   icon: <BrowserIcon />,
   visible: () => !Desktop.isElectron() && isMac() && isCloudHosted,
-  to: {
-    url: "https://desktop.getoutline.com",
-    target: "_blank",
-  },
+  url: "https://desktop.getoutline.com",
+  target: "_blank",
 });
 
 export const logout = createActionV2({

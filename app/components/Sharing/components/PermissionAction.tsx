@@ -6,7 +6,7 @@ import { Inner } from "~/components/Button";
 import ButtonSmall from "~/components/ButtonSmall";
 import Fade from "~/components/Fade";
 import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
-import { Action, Permission } from "~/types";
+import { ActionV2, Permission } from "~/types";
 
 export function PermissionAction({
   permission,
@@ -16,7 +16,7 @@ export function PermissionAction({
 }: {
   permission: CollectionPermission | DocumentPermission;
   permissions: Permission[];
-  action: Action;
+  action: ActionV2;
   onChange: (permission: CollectionPermission | DocumentPermission) => void;
 }) {
   const { t } = useTranslation();

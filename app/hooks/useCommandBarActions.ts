@@ -1,8 +1,8 @@
 import { useRegisterActions } from "kbar";
 import flattenDeep from "lodash/flattenDeep";
 import { useLocation } from "react-router-dom";
-import { actionToKBar, actionV2ToKBar } from "~/actions";
-import { Action, ActionV2Variant } from "~/types";
+import { actionV2ToKBar } from "~/actions";
+import { ActionV2Variant } from "~/types";
 import useActionContext from "./useActionContext";
 
 /**
@@ -12,7 +12,7 @@ import useActionContext from "./useActionContext";
  * @param actions actions to make available
  */
 export default function useCommandBarActions(
-  actions: (Action | ActionV2Variant)[],
+  actions: ActionV2Variant[],
   additionalDeps: React.DependencyList = []
 ) {
   const location = useLocation();
@@ -21,11 +21,7 @@ export default function useCommandBarActions(
   });
 
   const registerable = flattenDeep(
-    actions.map((action) =>
-      "variant" in action
-        ? actionV2ToKBar(action, context)
-        : actionToKBar(action, context)
-    )
+    actions.map((action) => actionV2ToKBar(action, context))
   );
 
   useRegisterActions(registerable, [

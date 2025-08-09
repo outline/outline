@@ -1,6 +1,6 @@
 import { TrashIcon } from "outline-icons";
 import stores from "~/stores";
-import { createAction } from "..";
+import { createActionV2 } from "..";
 import { SettingsSection } from "../sections";
 import Integration from "~/models/Integration";
 import { DisconnectAnalyticsDialog } from "~/scenes/Settings/components/DisconnectAnalyticsDialog";
@@ -28,7 +28,7 @@ export const disconnectIntegrationFactory = (integration?: Integration) =>
 export const disconnectAnalyticsIntegrationFactory = (
   integration?: Integration<IntegrationType.Analytics>
 ) =>
-  createAction({
+  createActionV2({
     name: ({ t }) => t("Disconnect analytics"),
     analyticsName: "Disconnect analytics",
     section: SettingsSection,

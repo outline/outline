@@ -9,7 +9,7 @@ import {
   UserIcon,
 } from "outline-icons";
 import { toast } from "sonner";
-import { createAction } from "~/actions";
+import { createActionV2, createActionV2WithChildren } from "~/actions";
 import { DeveloperSection } from "~/actions/sections";
 import env from "~/env";
 import { client } from "~/utils/ApiClient";
@@ -19,7 +19,7 @@ import { deleteAllDatabases } from "~/utils/developer";
 import history from "~/utils/history";
 import { homePath } from "~/utils/routeHelpers";
 
-export const copyId = createAction({
+export const copyId = createActionV2WithChildren({
   name: ({ t }) => t("Copy ID"),
   icon: <CopyIcon />,
   keywords: "uuid",
@@ -38,42 +38,42 @@ export const copyId = createAction({
     }
 
     return [
-      createAction({
+      createActionV2({
         name: "Copy User ID",
         section: DeveloperSection,
         icon: <CopyIcon />,
         visible: () => !!currentUserId,
         perform: () => copyAndToast(currentUserId),
       }),
-      createAction({
+      createActionV2({
         name: "Copy Team ID",
         section: DeveloperSection,
         icon: <CopyIcon />,
         visible: () => !!currentTeamId,
         perform: () => copyAndToast(currentTeamId),
       }),
-      createAction({
+      createActionV2({
         name: "Copy Collection ID",
         icon: <CopyIcon />,
         section: DeveloperSection,
         visible: () => !!activeCollectionId,
         perform: () => copyAndToast(activeCollectionId),
       }),
-      createAction({
+      createActionV2({
         name: "Copy Document ID",
         icon: <CopyIcon />,
         section: DeveloperSection,
         visible: () => !!activeDocumentId,
         perform: () => copyAndToast(activeDocumentId),
       }),
-      createAction({
+      createActionV2({
         name: "Copy Team ID",
         icon: <CopyIcon />,
         section: DeveloperSection,
         visible: () => !!currentTeamId,
         perform: () => copyAndToast(currentTeamId),
       }),
-      createAction({
+      createActionV2({
         name: "Copy Release ID",
         icon: <CopyIcon />,
         section: DeveloperSection,
@@ -94,7 +94,7 @@ function generateRandomText() {
   return text;
 }
 
-export const startTyping = createAction({
+export const startTyping = createActionV2({
   name: "Start automatic typing",
   icon: <EditIcon />,
   section: DeveloperSection,
@@ -116,7 +116,7 @@ export const startTyping = createAction({
   },
 });
 
-export const clearIndexedDB = createAction({
+export const clearIndexedDB = createActionV2({
   name: ({ t }) => t("Clear IndexedDB cache"),
   icon: <TrashIcon />,
   keywords: "cache clear database",
@@ -128,7 +128,7 @@ export const clearIndexedDB = createAction({
   },
 });
 
-export const clearStorage = createAction({
+export const clearStorage = createActionV2({
   name: ({ t }) => t("Clear local storage"),
   icon: <TrashIcon />,
   keywords: "cache clear localstorage",
@@ -139,7 +139,7 @@ export const clearStorage = createAction({
   },
 });
 
-export const createTestUsers = createAction({
+export const createTestUsers = createActionV2({
   name: "Create 10 test users",
   icon: <UserIcon />,
   section: DeveloperSection,
@@ -151,7 +151,7 @@ export const createTestUsers = createAction({
   },
 });
 
-export const createToast = createAction({
+export const createToast = createActionV2({
   name: "Create toast",
   section: DeveloperSection,
   visible: () => env.ENVIRONMENT === "development",
@@ -162,7 +162,7 @@ export const createToast = createAction({
   },
 });
 
-export const toggleDebugLogging = createAction({
+export const toggleDebugLogging = createActionV2({
   name: ({ t }) => t("Toggle debug logging"),
   icon: <ToolsIcon />,
   section: DeveloperSection,
@@ -176,7 +176,7 @@ export const toggleDebugLogging = createAction({
   },
 });
 
-export const toggleDebugSafeArea = createAction({
+export const toggleDebugSafeArea = createActionV2({
   name: () => "Toggle menu safe area debugging",
   icon: <ToolsIcon />,
   section: DeveloperSection,
@@ -191,13 +191,13 @@ export const toggleDebugSafeArea = createAction({
   },
 });
 
-export const toggleFeatureFlag = createAction({
+export const toggleFeatureFlag = createActionV2WithChildren({
   name: "Toggle feature flag",
   icon: <BeakerIcon />,
   section: DeveloperSection,
   visible: () => env.ENVIRONMENT === "development",
   children: Object.values(Feature).map((flag) =>
-    createAction({
+    createActionV2({
       id: `flag-${flag}`,
       name: flag,
       selected: () => FeatureFlags.isEnabled(flag),
@@ -215,7 +215,7 @@ export const toggleFeatureFlag = createAction({
   ),
 });
 
-export const developer = createAction({
+export const developer = createActionV2WithChildren({
   name: ({ t }) => t("Development"),
   keywords: "debug",
   icon: <ToolsIcon />,

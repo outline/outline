@@ -1,7 +1,7 @@
 import { DocumentIcon } from "outline-icons";
 import { useMemo } from "react";
 import Icon from "@shared/components/Icon";
-import { createAction } from "~/actions";
+import { createInternalLinkActionV2 } from "~/actions";
 import { RecentSection } from "~/actions/sections";
 import useStores from "~/hooks/useStores";
 import { documentPath } from "~/utils/routeHelpers";
@@ -15,7 +15,7 @@ const useRecentDocumentActions = (count = 6) => {
         .filter((document) => document.id !== ui.activeDocumentId)
         .slice(0, count)
         .map((item) =>
-          createAction({
+          createInternalLinkActionV2({
             name: item.titleWithDefault,
             analyticsName: "Recently viewed document",
             section: RecentSection,

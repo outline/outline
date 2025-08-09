@@ -8,10 +8,10 @@ import {
   UserChangeRoleDialog,
   UserDeleteDialog,
 } from "~/components/UserDialogs";
-import { createAction, createActionV2 } from "~/actions";
+import { createActionV2 } from "~/actions";
 import { UserSection } from "~/actions/sections";
 
-export const inviteUser = createAction({
+export const inviteUser = createActionV2({
   name: ({ t }) => `${t("Invite people")}…`,
   analyticsName: "Invite people",
   icon: <PlusIcon />,

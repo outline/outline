@@ -11,7 +11,7 @@ import Group from "~/models/Group";
 import User from "~/models/User";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import NudeButton from "~/components/NudeButton";
-import { createAction } from "~/actions";
+import { createActionV2 } from "~/actions";
 import { UserSection } from "~/actions/sections";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -169,7 +169,7 @@ function SharePopover({ collection, visible, onRequestClose }: Props) {
 
   const inviteAction = React.useMemo(
     () =>
-      createAction({
+      createActionV2({
         name: t("Invite"),
         section: UserSection,
         perform: async () => {
