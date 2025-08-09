@@ -283,6 +283,7 @@ export function actionV2ToMenuItem(
             icon,
             visible,
             disabled,
+            tooltip: resolve<React.ReactChild>(action.tooltip, context),
             selected: resolve<boolean>(action.selected, context),
             dangerous: action.dangerous,
             onClick: () => performActionV2(action, context),

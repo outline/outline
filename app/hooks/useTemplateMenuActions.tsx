@@ -13,6 +13,7 @@ import { DocumentsSection } from "~/actions/sections";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import { ActionV2 } from "~/types";
+import { useComputed } from "./useComputed";
 
 type Props = {
   /** The document to which the templates will be applied */
@@ -22,7 +23,7 @@ type Props = {
 };
 
 /**
- * This hook provides a memoized list of menu items for both collection-specific
+ * This hook provides a memoized list of actions for both collection-specific
  * templates and workspace-wide templates. It filters templates based on whether
  * they are published and organizes them into appropriate sections.
  *
@@ -56,32 +57,34 @@ export function useTemplateMenuActions({ document, onSelectTemplate }: Props) {
     [user, onSelectTemplate]
   );
 
-  const templates = documents.templates.filter(
-    (template) => template.publishedAt
-  );
+  return useComputed(() => {
+    if (!onSelectTemplate) {
+      return [];
+    }
 
-  const collectionTemplatesActions = templates
-    .filter(
-      (template) =>
-        !template.isWorkspaceTemplate &&
-        template.collectionId === document.collectionId
-    )
-    .map(templateToAction);
+    const templates = documents.templates.filter(
+      (template) => template.publishedAt
+    );
 
-  const workspaceTemplatesActions = templates
-    .filter((tmpl) => tmpl.isWorkspaceTemplate)
-    .map(templateToAction);
+    const collectionTemplatesActions = templates
+      .filter(
+        (template) =>
+          !template.isWorkspaceTemplate &&
+          template.collectionId === document.collectionId
+      )
+      .map(templateToAction);
 
-  if (!onSelectTemplate) {
-    return [];
-  }
+    const workspaceTemplatesActions = templates
+      .filter((tmpl) => tmpl.isWorkspaceTemplate)
+      .map(templateToAction);
 
-  return [
-    ...collectionTemplatesActions,
-    ActionV2Separator,
-    createActionV2Group({
-      name: t("Workspace"),
-      actions: workspaceTemplatesActions,
-    }),
-  ];
+    return [
+      ...collectionTemplatesActions,
+      ActionV2Separator,
+      createActionV2Group({
+        name: t("Workspace"),
+        actions: workspaceTemplatesActions,
+      }),
+    ];
+  }, []);
 }

@@ -52,6 +52,7 @@ export function toDropdownMenuItems(items: MenuItem[]) {
             label={item.title as string}
             icon={icon}
             disabled={item.disabled}
+            tooltip={item.tooltip}
             selected={item.selected}
             dangerous={item.dangerous}
             onClick={item.onClick}

@@ -662,7 +662,7 @@ class Collection extends ParanoidModel<
     user: User,
     options: FindOptions = {}
   ) {
-    const id = await user.collectionIds();
+    const id = await user.collectionIds({ transaction: options.transaction });
     return this.findOne({
       where: {
         teamId: user.teamId,

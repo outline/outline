@@ -1,33 +1,17 @@
-import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import capitalize from "lodash/capitalize";
-import isEmpty from "lodash/isEmpty";
 import noop from "lodash/noop";
 import { observer } from "mobx-react";
-import {
-  EditIcon,
-  InputIcon,
-  RestoreIcon,
-  SearchIcon,
-  ShapesIcon,
-} from "outline-icons";
+import { InputIcon, SearchIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
-import { MenuButton, MenuButtonHTMLProps } from "reakit/Menu";
-import { toast } from "sonner";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import { SubscriptionType, UserPreference } from "@shared/types";
-import { getEventFiles } from "@shared/utils/files";
 import Document from "~/models/Document";
-import ContextMenu from "~/components/ContextMenu";
-import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
-import Separator from "~/components/ContextMenu/Separator";
-import Template from "~/components/ContextMenu/Template";
-import CollectionIcon from "~/components/Icons/CollectionIcon";
+import { DropdownMenu } from "~/components/Menu/DropdownMenu";
+import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import Switch from "~/components/Switch";
-import { actionToMenuItem } from "~/actions";
+import { ActionV2Separator, createActionV2 } from "~/actions";
 import {
   pinDocument,
   createTemplateFromDocument,
@@ -55,35 +39,36 @@ import {
   searchInDocument,
   leaveDocument,
   moveTemplate,
+  restoreDocument,
+  restoreDocumentToCollection,
+  editDocument,
+  applyTemplateFactory,
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
-import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import { useMenuState } from "~/hooks/useMenuState";
 import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
-import { useTemplateMenuItems } from "~/hooks/useTemplateMenuItems";
-import { MenuItem, MenuItemButton } from "~/types";
-import { documentEditPath } from "~/utils/routeHelpers";
-import { MenuContext, useMenuContext } from "./MenuContext";
+import { ActiveDocumentSection } from "~/actions/sections";
+import { useTemplateMenuActions } from "~/hooks/useTemplateMenuActions";
+import { useMenuAction } from "~/hooks/useMenuAction";
+import { MenuSeparator } from "~/components/primitives/components/Menu";
 
 type Props = {
   /** Document for which the menu is to be shown */
   document: Document;
-  isRevision?: boolean;
+  /** Alignment w.r.t trigger - defaults to start */
+  align?: "start" | "end";
+  /** Trigger's variant - renders nude variant if unset */
+  neutral?: boolean;
   /** Pass true if the document is currently being displayed */
   showDisplayOptions?: boolean;
-  /** Whether to display menu as a modal */
-  modal?: boolean;
   /** Whether to include the option of toggling embeds as menu item */
   showToggleEmbeds?: boolean;
-  showPin?: boolean;
-  /** Label for menu button */
-  label?: (props: MenuButtonHTMLProps) => React.ReactNode;
   /** Invoked when the "Find and replace" menu item is clicked */
   onFindAndReplace?: () => void;
+  /** Callback when a template is selected to apply its content to the document */
   onSelectTemplate?: (template: Document) => void;
   /** Invoked when the "Rename" menu item is clicked */
   onRename?: () => void;
@@ -93,16 +78,24 @@ type Props = {
   onClose?: () => void;
 };
 
-type MenuTriggerProps = {
-  label?: (props: MenuButtonHTMLProps) => React.ReactNode;
-  onTrigger: () => void;
-};
-
-const MenuTrigger: React.FC<MenuTriggerProps> = ({ label, onTrigger }) => {
+function DocumentMenu({
+  document,
+  align,
+  neutral,
+  showToggleEmbeds,
+  showDisplayOptions,
+  onSelectTemplate,
+  onRename,
+  onOpen,
+  onClose,
+  onFindAndReplace,
+}: Props) {
   const { t } = useTranslation();
+  const user = useCurrentUser();
+  const isMobile = useMobile();
+  const can = usePolicy(document);
 
   const { subscriptions, pins } = useStores();
-  const { model: document, menuState } = useMenuContext<Document>();
 
   const {
     loading: auxDataLoading,
@@ -134,106 +127,6 @@ const MenuTrigger: React.FC<MenuTriggerProps> = ({ label, onTrigger }) => {
     }
   }, [auxDataLoading, auxDataLoaded, auxDataRequest, document]);
 
-  return label ? (
-    <MenuButton
-      {...menuState}
-      onPointerEnter={handlePointerEnter}
-      onClick={onTrigger}
-    >
-      {label}
-    </MenuButton>
-  ) : (
-    <OverflowMenuButton
-      aria-label={t("Show document menu")}
-      onPointerEnter={handlePointerEnter}
-      onClick={onTrigger}
-      {...menuState}
-    />
-  );
-};
-
-type MenuContentProps = {
-  onOpen?: () => void;
-  onClose?: () => void;
-  onFindAndReplace?: () => void;
-  onSelectTemplate?: (template: Document) => void;
-  onRename?: () => void;
-  showDisplayOptions?: boolean;
-  showToggleEmbeds?: boolean;
-};
-
-const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
-  onOpen,
-  onClose,
-  onFindAndReplace,
-  onSelectTemplate,
-  onRename,
-  showDisplayOptions,
-  showToggleEmbeds,
-}) {
-  const user = useCurrentUser();
-  const { model: document, menuState } = useMenuContext<Document>();
-  const can = usePolicy(document);
-  const { t } = useTranslation();
-  const { policies, collections } = useStores();
-
-  const collection = document.collectionId
-    ? collections.get(document.collectionId)
-    : undefined;
-
-  const context = useActionContext({
-    isContextMenu: true,
-    activeDocumentId: document.id,
-    activeCollectionId: document.collectionId ?? undefined,
-  });
-
-  const isMobile = useMobile();
-
-  const handleRestore = React.useCallback(
-    async (
-      ev: React.SyntheticEvent,
-      options?: {
-        collectionId: string;
-      }
-    ) => {
-      await document.restore(options);
-      toast.success(
-        t("{{ documentName }} restored", {
-          documentName: capitalize(document.noun),
-        })
-      );
-    },
-    [t, document]
-  );
-
-  const restoreItems = React.useMemo(
-    () => [
-      ...collections.orderedData.reduce<MenuItem[]>((filtered, collection) => {
-        const can = policies.abilities(collection.id);
-
-        if (can.createDocument) {
-          filtered.push({
-            type: "button",
-            onClick: (ev) =>
-              handleRestore(ev, {
-                collectionId: collection.id,
-              }),
-            icon: <CollectionIcon collection={collection} />,
-            title: collection.name,
-          });
-        }
-
-        return filtered;
-      }, []),
-    ],
-    [collections.orderedData, handleRestore, policies]
-  );
-
-  const templateMenuItems = useTemplateMenuItems({
-    document,
-    onSelectTemplate,
-  });
-
   const handleEmbedsToggle = React.useCallback(
     (checked: boolean) => {
       if (checked) {
@@ -255,255 +148,143 @@ const MenuContent: React.FC<MenuContentProps> = observer(function MenuContent_({
     [user, document]
   );
 
-  return !isEmpty(can) ? (
-    <ContextMenu
-      {...menuState}
-      aria-label={t("Document options")}
-      onOpen={onOpen}
-      onClose={onClose}
-    >
-      <Template
-        {...menuState}
-        items={[
-          {
-            type: "button",
-            title: t("Restore"),
-            visible:
-              !!(document.isWorkspaceTemplate || collection?.isActive) &&
-              !!(can.restore || can.unarchive),
-            onClick: (ev) => handleRestore(ev),
-            icon: <RestoreIcon />,
-          },
-          {
-            type: "submenu",
-            title: t("Restore"),
-            visible:
-              !(document.isWorkspaceTemplate || collection?.isActive) &&
-              !!(can.restore || can.unarchive) &&
-              restoreItems.length !== 0,
-            style: {
-              left: -170,
-              position: "relative",
-              top: -40,
-            },
-            icon: <RestoreIcon />,
-            hover: true,
-            items: [
-              {
-                type: "heading",
-                title: t("Choose a collection"),
-              },
-              ...restoreItems,
-            ],
-          },
-          actionToMenuItem(starDocument, context),
-          actionToMenuItem(unstarDocument, context),
-          {
-            ...actionToMenuItem(subscribeDocument, context),
-            disabled: collection?.isSubscribed,
-            tooltip: collection?.isSubscribed
-              ? t("Subscription inherited from collection")
-              : undefined,
-          } as MenuItemButton,
-          {
-            ...actionToMenuItem(unsubscribeDocument, context),
-            disabled: collection?.isSubscribed,
-            tooltip: collection?.isSubscribed
-              ? t("Subscription inherited from collection")
-              : undefined,
-          } as MenuItemButton,
-          {
-            type: "button",
-            title: `${t("Find and replace")}…`,
-            visible: !!onFindAndReplace && isMobile,
-            onClick: () => onFindAndReplace?.(),
-            icon: <SearchIcon />,
-          },
-          {
-            type: "separator",
-          },
-          {
-            type: "route",
-            title: t("Edit"),
-            to: documentEditPath(document),
-            visible:
-              !!can.update && user.separateEditMode && !document.template,
-            icon: <EditIcon />,
-          },
-          {
-            type: "button",
-            title: `${t("Rename")}…`,
-            visible: !!can.update && !user.separateEditMode && !!onRename,
-            onClick: () => onRename?.(),
-            icon: <InputIcon />,
-          },
-          actionToMenuItem(shareDocument, context),
-          actionToMenuItem(createNestedDocument, context),
-          actionToMenuItem(importDocument, context),
-          actionToMenuItem(createTemplateFromDocument, context),
-          actionToMenuItem(duplicateDocument, context),
-          actionToMenuItem(publishDocument, context),
-          actionToMenuItem(unpublishDocument, context),
-          actionToMenuItem(archiveDocument, context),
-          actionToMenuItem(moveDocument, context),
-          actionToMenuItem(moveTemplate, context),
-          {
-            type: "submenu",
-            title: t("Apply template"),
-            icon: <ShapesIcon />,
-            items: templateMenuItems,
-          },
-          actionToMenuItem(pinDocument, context),
-          actionToMenuItem(createDocumentFromTemplate, context),
-          {
-            type: "separator",
-          },
-          actionToMenuItem(openDocumentComments, context),
-          actionToMenuItem(openDocumentHistory, context),
-          actionToMenuItem(openDocumentInsights, context),
-          actionToMenuItem(downloadDocument, context),
-          actionToMenuItem(copyDocument, context),
-          actionToMenuItem(printDocument, context),
-          actionToMenuItem(searchInDocument, context),
-          {
-            type: "separator",
-          },
-          actionToMenuItem(deleteDocument, context),
-          actionToMenuItem(permanentlyDeleteDocument, context),
-          actionToMenuItem(leaveDocument, context),
-        ]}
-      />
-      {(showDisplayOptions || showToggleEmbeds) && can.update && (
-        <>
-          <Separator />
-          <DisplayOptions>
-            {showToggleEmbeds && (
-              <Style>
-                <ToggleMenuItem
-                  width={26}
-                  height={14}
-                  label={t("Enable embeds")}
-                  labelPosition="left"
-                  checked={!document.embedsDisabled}
-                  onChange={handleEmbedsToggle}
-                />
-              </Style>
-            )}
-            {showDisplayOptions && !isMobile && (
-              <Style>
-                <ToggleMenuItem
-                  width={26}
-                  height={14}
-                  label={t("Full width")}
-                  labelPosition="left"
-                  checked={document.fullWidth}
-                  onChange={handleFullWidthToggle}
-                />
-              </Style>
-            )}
-          </DisplayOptions>
-        </>
-      )}
-    </ContextMenu>
-  ) : null;
-});
-
-function DocumentMenu({
-  document,
-  modal = true,
-  showToggleEmbeds,
-  showDisplayOptions,
-  onSelectTemplate,
-  label,
-  onRename,
-  onOpen,
-  onClose,
-}: Props) {
-  const { collections, documents } = useStores();
-  const menuState = useMenuState({
-    modal,
-    unstable_preventOverflow: true,
-    unstable_fixed: true,
-    unstable_flip: true,
+  const templateMenuActions = useTemplateMenuActions({
+    document,
+    onSelectTemplate,
   });
-  const history = useHistory();
 
-  const { t } = useTranslation();
-  const [isMenuVisible, showMenu] = useBoolean(false);
-  const file = React.useRef<HTMLInputElement>(null);
-
-  const collection = document.collectionId
-    ? collections.get(document.collectionId)
-    : undefined;
-
-  const stopPropagation = React.useCallback((ev: React.SyntheticEvent) => {
-    ev.stopPropagation();
-  }, []);
-
-  const handleFilePicked = React.useCallback(
-    async (ev: React.ChangeEvent<HTMLInputElement>) => {
-      const files = getEventFiles(ev);
-
-      // Because this is the onChange handler it's possible for the change to be
-      // from previously selecting a file to not selecting a file – aka empty
-      if (!files.length) {
-        return;
-      }
-
-      if (!collection) {
-        return;
-      }
-
-      try {
-        const file = files[0];
-        const importedDocument = await documents.import(
-          file,
-          document.id,
-          collection.id,
-          {
-            publish: true,
-          }
-        );
-        history.push(importedDocument.url);
-      } catch (err) {
-        toast.error(err.message);
-        throw err;
-      } finally {
-        ev.target.value = "";
-      }
-    },
-    [history, collection, documents, document.id]
+  const actions = React.useMemo(
+    () => [
+      restoreDocument,
+      restoreDocumentToCollection,
+      starDocument,
+      unstarDocument,
+      subscribeDocument,
+      unsubscribeDocument,
+      createActionV2({
+        name: `${t("Find and replace")}…`,
+        section: ActiveDocumentSection,
+        icon: <SearchIcon />,
+        visible: !!onFindAndReplace && isMobile,
+        perform: () => onFindAndReplace?.(),
+      }),
+      ActionV2Separator,
+      editDocument,
+      createActionV2({
+        name: `${t("Rename")}…`,
+        section: ActiveDocumentSection,
+        icon: <InputIcon />,
+        visible: !!can.update && !user.separateEditMode && !!onRename,
+        perform: () => requestAnimationFrame(() => onRename?.()),
+      }),
+      shareDocument,
+      createNestedDocument,
+      importDocument,
+      createTemplateFromDocument,
+      duplicateDocument,
+      publishDocument,
+      unpublishDocument,
+      archiveDocument,
+      moveDocument,
+      moveTemplate,
+      applyTemplateFactory({ actions: templateMenuActions }),
+      pinDocument,
+      createDocumentFromTemplate,
+      ActionV2Separator,
+      openDocumentComments,
+      openDocumentHistory,
+      openDocumentInsights,
+      downloadDocument,
+      copyDocument,
+      printDocument,
+      searchInDocument,
+      ActionV2Separator,
+      deleteDocument,
+      permanentlyDeleteDocument,
+      leaveDocument,
+    ],
+    [
+      t,
+      isMobile,
+      templateMenuActions,
+      can.update,
+      user.separateEditMode,
+      onFindAndReplace,
+      onRename,
+    ]
   );
 
+  const rootAction = useMenuAction(actions);
+
+  const context = useActionContext({
+    isContextMenu: true,
+    activeDocumentId: document.id,
+    activeCollectionId: document.collectionId ?? undefined,
+  });
+
+  const toggleSwitches = React.useMemo<React.ReactNode>(() => {
+    if (!can.update || !(showDisplayOptions || showToggleEmbeds)) {
+      return;
+    }
+
+    return (
+      <>
+        <MenuSeparator />
+        <DisplayOptions>
+          {showToggleEmbeds && (
+            <Style>
+              <ToggleMenuItem
+                width={26}
+                height={14}
+                label={t("Enable embeds")}
+                labelPosition="left"
+                checked={!document.embedsDisabled}
+                onChange={handleEmbedsToggle}
+              />
+            </Style>
+          )}
+          {showDisplayOptions && !isMobile && (
+            <Style>
+              <ToggleMenuItem
+                width={26}
+                height={14}
+                label={t("Full width")}
+                labelPosition="left"
+                checked={document.fullWidth}
+                onChange={handleFullWidthToggle}
+              />
+            </Style>
+          )}
+        </DisplayOptions>
+      </>
+    );
+  }, [
+    t,
+    can.update,
+    document.embedsDisabled,
+    document.fullWidth,
+    isMobile,
+    showDisplayOptions,
+    showToggleEmbeds,
+    handleEmbedsToggle,
+    handleFullWidthToggle,
+  ]);
+
   return (
-    <>
-      <VisuallyHidden.Root>
-        <label>
-          {t("Import document")}
-          <input
-            type="file"
-            ref={file}
-            onChange={handleFilePicked}
-            onClick={stopPropagation}
-            accept={documents.importFileTypes.join(", ")}
-            tabIndex={-1}
-          />
-        </label>
-      </VisuallyHidden.Root>
-      <MenuContext.Provider value={{ model: document, menuState }}>
-        <MenuTrigger label={label} onTrigger={showMenu} />
-        {isMenuVisible ? (
-          <MenuContent
-            onOpen={onOpen}
-            onClose={onClose}
-            onRename={onRename}
-            onSelectTemplate={onSelectTemplate}
-            showDisplayOptions={showDisplayOptions}
-            showToggleEmbeds={showToggleEmbeds}
-          />
-        ) : null}
-      </MenuContext.Provider>
-    </>
+    <DropdownMenu
+      action={rootAction}
+      context={context}
+      align={align}
+      onOpen={onOpen}
+      onClose={onClose}
+      ariaLabel={t("Document options")}
+      append={toggleSwitches}
+    >
+      <OverflowMenuButton
+        neutral={neutral}
+        onPointerEnter={handlePointerEnter}
+      />
+    </DropdownMenu>
   );
 }
 

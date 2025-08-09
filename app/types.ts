@@ -151,6 +151,9 @@ type BaseActionV2 = {
 export type ActionV2 = BaseActionV2 & {
   variant: "action";
   dangerous?: boolean;
+  tooltip?:
+    | ((context: ActionContext) => React.ReactChild | undefined)
+    | React.ReactChild;
   perform: (context: ActionContext) => any;
 };
 
