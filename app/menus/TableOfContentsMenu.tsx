@@ -20,19 +20,25 @@ function TableOfContentsMenu() {
 
   const headingActions = useMemo(
     () =>
-      headings.map((heading) =>
-        createActionV2({
-          name: <HeadingWrapper>{t(heading.title)}</HeadingWrapper>,
-          section: ActiveDocumentSection,
-          perform: () =>
-            requestAnimationFrame(() =>
-              requestAnimationFrame(
-                () => (window.location.hash = `#${heading.id}`)
-              )
+      headings
+        .filter((heading) => heading.level < 4)
+        .map((heading) =>
+          createActionV2({
+            name: (
+              <HeadingWrapper $level={heading.level - minHeading}>
+                {t(heading.title)}
+              </HeadingWrapper>
             ),
-        })
-      ),
-    [t, headings]
+            section: ActiveDocumentSection,
+            perform: () =>
+              requestAnimationFrame(() =>
+                requestAnimationFrame(
+                  () => (window.location.hash = `#${heading.id}`)
+                )
+              ),
+          })
+        ),
+    [t, headings, minHeading]
   );
 
   const actions = useMemo(() => {
@@ -70,10 +76,12 @@ function TableOfContentsMenu() {
   );
 }
 
-const HeadingWrapper = styled.div`
+const HeadingWrapper = styled.div<{ $level?: number }>`
   max-width: 100%;
   white-space: normal;
   overflow-wrap: anywhere;
+
+  margin-left: ${({ $level }) => `${12 * ($level ?? 0)}px`};
 `;
 
 export default observer(TableOfContentsMenu);
