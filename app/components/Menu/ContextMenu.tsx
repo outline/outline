@@ -13,14 +13,22 @@ import { observer } from "mobx-react";
 import { useComputed } from "~/hooks/useComputed";
 
 type Props = {
+  /** Root action with children representing the menu items */
   action: ActionV2WithChildren;
+  /** Action context to use - new context will be created if not provided */
   context?: ActionContext;
+  /** Trigger for the menu */
   children: React.ReactNode;
+  /** ARIA label for the menu */
   ariaLabel: string;
+  /** Callback when menu is opened */
+  onOpen?: () => void;
+  /** Callback when menu is closed */
+  onClose?: () => void;
 };
 
 export const ContextMenu = observer(
-  ({ action, children, ariaLabel, context }: Props) => {
+  ({ action, children, ariaLabel, context, onOpen, onClose }: Props) => {
     const isMobile = useMobile();
     const contentRef =
       React.useRef<React.ElementRef<typeof ContextMenuContent>>(null);
@@ -40,6 +48,17 @@ export const ContextMenu = observer(
         actionV2ToMenuItem(childAction, actionContext)
       );
     }, [open, action.children, actionContext]);
+
+    const handleOpenChange = React.useCallback(
+      (open: boolean) => {
+        if (open) {
+          onOpen?.();
+        } else {
+          onClose?.();
+        }
+      },
+      [onOpen, onClose]
+    );
 
     const enablePointerEvents = React.useCallback(() => {
       if (contentRef.current) {
@@ -65,7 +84,7 @@ export const ContextMenu = observer(
     const content = toContextMenuItems(menuItems);
 
     return (
-      <ContextMenuRoot>
+      <ContextMenuRoot onOpenChange={handleOpenChange}>
         <ContextMenuTrigger aria-label={ariaLabel}>
           {children}
         </ContextMenuTrigger>
