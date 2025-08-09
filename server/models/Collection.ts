@@ -46,7 +46,11 @@ import {
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import type { CollectionSort, ProsemirrorData } from "@shared/types";
-import { CollectionPermission, NavigationNode } from "@shared/types";
+import {
+  CollectionPermission,
+  NavigationNode,
+  NavigationNodeType,
+} from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import slugify from "@shared/utils/slugify";
@@ -993,6 +997,7 @@ class Collection extends ParanoidModel<
     id: this.id,
     title: this.name,
     url: this.path,
+    type: NavigationNodeType.Collection,
     icon: isNil(this.icon) ? undefined : this.icon,
     color: isNil(this.color) ? undefined : this.color,
     children: sortNavigationNodes(this.documentStructure ?? [], this.sort),

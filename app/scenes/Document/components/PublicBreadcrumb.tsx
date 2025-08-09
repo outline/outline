@@ -1,6 +1,6 @@
 import * as React from "react";
 import Icon from "@shared/components/Icon";
-import { NavigationNode } from "@shared/types";
+import { NavigationNode, NavigationNodeType } from "@shared/types";
 import Breadcrumb from "~/components/Breadcrumb";
 import { MenuInternalLink } from "~/types";
 import { sharedModelPath } from "~/utils/routeHelpers";
@@ -50,7 +50,7 @@ const PublicBreadcrumb: React.FC<Props> = ({
   const items: MenuInternalLink[] = React.useMemo(
     () =>
       pathToDocument(sharedTree, documentId)
-        .slice(1, -1)
+        .slice(0, -1)
         .map((item) => ({
           ...item,
           icon: item.icon ? (
@@ -58,7 +58,10 @@ const PublicBreadcrumb: React.FC<Props> = ({
           ) : undefined,
           title: item.title,
           type: "route",
-          to: sharedModelPath(shareId, item.url),
+          to: sharedModelPath(
+            shareId,
+            item.type === NavigationNodeType.Collection ? undefined : item.url
+          ),
         })),
     [sharedTree, shareId, documentId]
   );
