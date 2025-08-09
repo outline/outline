@@ -9,7 +9,7 @@ import { settingsPath } from "@shared/utils/routeHelpers";
 import history from "~/utils/history";
 
 export const disconnectIntegrationFactory = (integration?: Integration) =>
-  createAction({
+  createActionV2({
     name: ({ t }) => t("Disconnect"),
     analyticsName: "Disconnect integration",
     section: SettingsSection,

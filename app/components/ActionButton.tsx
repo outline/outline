@@ -1,7 +1,7 @@
 /* oxlint-disable react/prop-types */
 import * as React from "react";
 import Tooltip, { Props as TooltipProps } from "~/components/Tooltip";
-import { performAction, performActionV2, resolve } from "~/actions";
+import { performActionV2, resolve } from "~/actions";
 import useIsMounted from "~/hooks/useIsMounted";
 import useActionContext from "~/hooks/useActionContext";
 import { ActionV2Variant, ActionV2WithChildren } from "~/types";
@@ -61,10 +61,7 @@ const ActionButton = React.forwardRef<HTMLButtonElement, Props>(
             ? (ev) => {
                 ev.preventDefault();
                 ev.stopPropagation();
-                const response =
-                  "variant" in action
-                    ? performActionV2(action, actionContext)
-                    : performAction(action, actionContext);
+                const response = performActionV2(action, actionContext);
                 if (response?.finally) {
                   setExecuting(true);
                   void response.finally(

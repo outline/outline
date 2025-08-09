@@ -106,31 +106,6 @@ export type ActionContext = {
   t: TFunction;
 };
 
-export type Action = {
-  type?: undefined;
-  id: string;
-  analyticsName?: string;
-  name: ((context: ActionContext) => string) | string;
-  section: ((context: ActionContext) => string) | string;
-  shortcut?: string[];
-  keywords?: string;
-  dangerous?: boolean;
-  /** Higher number is higher in results, default is 0. */
-  priority?: number;
-  iconInContextMenu?: boolean;
-  icon?: React.ReactNode;
-  placeholder?: ((context: ActionContext) => string) | string;
-  selected?: (context: ActionContext) => boolean;
-  visible?: (context: ActionContext) => boolean;
-  /**
-   * Perform the action – note this should generally not be called directly, use `performAction`
-   * instead. Errors will be caught and displayed to the user as a toast message.
-   */
-  perform?: (context: ActionContext) => any;
-  to?: string | { url: string; target?: string };
-  children?: ((context: ActionContext) => Action[]) | Action[];
-};
-
 type BaseActionV2 = {
   type: "action";
   id: string;
