@@ -1,14 +1,20 @@
 import { observer } from "mobx-react";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import OAuthClient from "~/models/oauth/OAuthClient";
 import OAuthClientDeleteDialog from "~/scenes/Settings/components/OAuthClientDeleteDialog";
-import ContextMenu from "~/components/ContextMenu";
-import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
-import Template from "~/components/ContextMenu/Template";
-import { useMenuState } from "~/hooks/useMenuState";
+import { DropdownMenu } from "~/components/Menu/DropdownMenu";
+import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import useStores from "~/hooks/useStores";
 import { settingsPath } from "~/utils/routeHelpers";
+import {
+  ActionV2Separator,
+  createActionV2,
+  createInternalLinkActionV2,
+} from "~/actions";
+import { useMenuAction } from "~/hooks/useMenuAction";
+
+const Section = "OAuth";
 
 type Props = {
   /** The oauthClient to associate with the menu */
@@ -18,9 +24,6 @@ type Props = {
 };
 
 function OAuthClientMenu({ oauthClient, showEdit }: Props) {
-  const menu = useMenuState({
-    modal: true,
-  });
   const { dialogs } = useStores();
   const { t } = useTranslation();
 
@@ -36,32 +39,31 @@ function OAuthClientMenu({ oauthClient, showEdit }: Props) {
     });
   }, [t, dialogs, oauthClient]);
 
+  const actions = useMemo(
+    () => [
+      createInternalLinkActionV2({
+        name: `${t("Edit")}…`,
+        section: Section,
+        visible: showEdit,
+        to: settingsPath("applications", oauthClient.id),
+      }),
+      ActionV2Separator,
+      createActionV2({
+        name: `${t("Delete")}…`,
+        section: Section,
+        dangerous: true,
+        perform: handleDelete,
+      }),
+    ],
+    [t, showEdit, oauthClient.id, handleDelete]
+  );
+
+  const rootAction = useMenuAction(actions);
+
   return (
-    <>
-      <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
-      <ContextMenu {...menu}>
-        <Template
-          {...menu}
-          items={[
-            {
-              type: "route",
-              title: `${t("Edit")}…`,
-              visible: showEdit,
-              to: settingsPath("applications", oauthClient.id),
-            },
-            {
-              type: "separator",
-            },
-            {
-              type: "button",
-              dangerous: true,
-              title: `${t("Delete")}…`,
-              onClick: handleDelete,
-            },
-          ]}
-        />
-      </ContextMenu>
-    </>
+    <DropdownMenu action={rootAction} ariaLabel={t("Show menu")}>
+      <OverflowMenuButton />
+    </DropdownMenu>
   );
 }
 

@@ -3,12 +3,13 @@ import { CrossIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import Import from "~/models/Import";
-import ContextMenu from "~/components/ContextMenu";
-import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
-import Template from "~/components/ContextMenu/Template";
-import { useMenuState } from "~/hooks/useMenuState";
+import { DropdownMenu } from "~/components/Menu/DropdownMenu";
+import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import usePolicy from "~/hooks/usePolicy";
-import { MenuItem } from "~/types";
+import { createActionV2 } from "~/actions";
+import { useMenuAction } from "~/hooks/useMenuAction";
+
+const Section = "Imports";
 
 type Props = {
   /** Import to which actions will be applied. */
@@ -23,40 +24,35 @@ export const ImportMenu = observer(
   ({ importModel, onCancel, onDelete }: Props) => {
     const { t } = useTranslation();
     const can = usePolicy(importModel);
-    const menu = useMenuState({
-      modal: true,
-    });
 
-    const items = React.useMemo(
-      () =>
-        [
-          {
-            type: "button",
-            title: t("Cancel"),
-            visible: can.cancel,
-            icon: <CrossIcon />,
-            dangerous: true,
-            onClick: onCancel,
-          },
-          {
-            type: "button",
-            title: t("Delete"),
-            visible: can.delete,
-            icon: <TrashIcon />,
-            dangerous: true,
-            onClick: onDelete,
-          },
-        ] satisfies MenuItem[],
-      [t, can.delete, can.cancel, onCancel, onDelete]
+    const actions = React.useMemo(
+      () => [
+        createActionV2({
+          name: t("Cancel"),
+          section: Section,
+          visible: !!can.cancel,
+          icon: <CrossIcon />,
+          dangerous: true,
+          perform: onCancel,
+        }),
+        createActionV2({
+          name: t("Delete"),
+          section: Section,
+          visible: !!can.delete,
+          icon: <TrashIcon />,
+          dangerous: true,
+          perform: onDelete,
+        }),
+      ],
+      [t, can.cancel, can.delete, onCancel, onDelete]
     );
 
+    const rootAction = useMenuAction(actions);
+
     return (
-      <>
-        <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
-        <ContextMenu {...menu} aria-label={t("Import menu options")}>
-          <Template {...menu} items={items} />
-        </ContextMenu>
-      </>
+      <DropdownMenu action={rootAction} ariaLabel={t("Import menu options")}>
+        <OverflowMenuButton />
+      </DropdownMenu>
     );
   }
 );

@@ -134,7 +134,7 @@ type BaseActionV2 = {
   type: "action";
   id: string;
   analyticsName?: string;
-  name: ((context: ActionContext) => string) | string;
+  name: ((context: ActionContext) => React.ReactNode) | React.ReactNode;
   section: ((context: ActionContext) => string) | string;
   shortcut?: string[];
   keywords?: string;
