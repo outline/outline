@@ -92,6 +92,11 @@ export const DropdownMenu = observer(function DropdownMenu({
     }
   }, []);
 
+  const handleCloseAutoFocus = React.useCallback(
+    (e: Event) => e.preventDefault(),
+    []
+  );
+
   if (isMobile) {
     return (
       <MobileDropdown
@@ -117,6 +122,7 @@ export const DropdownMenu = observer(function DropdownMenu({
         aria-label={ariaLabel}
         onAnimationStart={disablePointerEvents}
         onAnimationEnd={enablePointerEvents}
+        onCloseAutoFocus={handleCloseAutoFocus}
       >
         {content}
         {customNode}

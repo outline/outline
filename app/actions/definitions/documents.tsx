@@ -1094,7 +1094,7 @@ export const archiveDocument = createActionV2({
 });
 
 export const restoreDocument = createActionV2({
-  name: ({ t }) => `${t("Restore")}…`,
+  name: ({ t }) => `${t("Restore")}`,
   analyticsName: "Restore document",
   section: ActiveDocumentSection,
   icon: <RestoreIcon />,
@@ -1174,7 +1174,7 @@ export const restoreDocumentToCollection = createActionV2WithChildren({
         icon: <CollectionIcon collection={collection} />,
         visible: can.createDocument,
         perform: async () => {
-          await document.restore();
+          await document.restore({ collectionId: collection.id });
           toast.success(
             t("{{ documentName }} restored", {
               documentName: capitalize(document.noun),
