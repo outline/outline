@@ -24,14 +24,24 @@ import {
 } from "~/types";
 import { toDropdownMenuItems, toMobileMenuItems } from "./transformer";
 import { observer } from "mobx-react";
+import { useComputed } from "~/hooks/useComputed";
 
 type Props = {
+  /** Root action with children representing the menu items */
   action: ActionV2WithChildren;
+  /** Action context to use - new context will be created if not provided */
   context?: ActionContext;
+  /** Trigger for the menu */
   children: React.ReactNode;
+  /** Alignment w.r.t trigger - defaults to start */
   align?: "start" | "end";
+  /** ARIA label for the menu */
   ariaLabel: string;
+  /** Additional component to display at the bottom of the top-level menu */
+  append?: React.ReactNode;
+  /** Callback when menu is opened */
   onOpen?: () => void;
+  /** Callback when menu is closed */
   onClose?: () => void;
 };
 
@@ -43,19 +53,28 @@ export const DropdownMenu = observer(function DropdownMenu({
   ariaLabel,
   onOpen,
   onClose,
+  append,
 }: Props) {
   const [open, setOpen] = React.useState(false);
   const isMobile = useMobile();
   const contentRef =
     React.useRef<React.ElementRef<typeof DropdownMenuContent>>(null);
+
   const actionContext =
     context ??
     useActionContext({
       isContextMenu: true,
     });
-  const menuItems = (action.children as ActionV2Variant[]).map((childAction) =>
-    actionV2ToMenuItem(childAction, actionContext)
-  );
+
+  const menuItems = useComputed(() => {
+    if (!open) {
+      return [];
+    }
+
+    return (action.children as ActionV2Variant[]).map((childAction) =>
+      actionV2ToMenuItem(childAction, actionContext)
+    );
+  }, [open, action.children, actionContext]);
 
   const handleOpenChange = React.useCallback(
     (open: boolean) => {
@@ -81,21 +100,25 @@ export const DropdownMenu = observer(function DropdownMenu({
     }
   }, []);
 
+  const handleCloseAutoFocus = React.useCallback(
+    (e: Event) => e.preventDefault(),
+    []
+  );
+
   if (isMobile) {
     return (
       <MobileDropdown
+        open={open}
+        onOpenChange={handleOpenChange}
         items={menuItems}
         trigger={children}
         ariaLabel={ariaLabel}
+        append={append}
       />
     );
   }
 
   const content = toDropdownMenuItems(menuItems);
-
-  if (!content) {
-    return null;
-  }
 
   return (
     <DropdownMenuRoot open={open} onOpenChange={handleOpenChange}>
@@ -107,40 +130,32 @@ export const DropdownMenu = observer(function DropdownMenu({
         aria-label={ariaLabel}
         onAnimationStart={disablePointerEvents}
         onAnimationEnd={enablePointerEvents}
+        onCloseAutoFocus={handleCloseAutoFocus}
       >
         {content}
+        {append}
       </DropdownMenuContent>
     </DropdownMenuRoot>
   );
 });
 
 type MobileDropdownProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   items: MenuItem[];
   trigger: React.ReactNode;
-} & Pick<Props, "ariaLabel" | "onOpen" | "onClose">;
+} & Pick<Props, "ariaLabel" | "append">;
 
 function MobileDropdown({
+  open,
+  onOpenChange,
   items,
   trigger,
   ariaLabel,
-  onOpen,
-  onClose,
+  append,
 }: MobileDropdownProps) {
-  const [open, setOpen] = React.useState(false);
   const [submenuName, setSubmenuName] = React.useState<string>();
   const contentRef = React.useRef<React.ElementRef<typeof DrawerContent>>(null);
-
-  const handleOpenChange = React.useCallback(
-    (open: boolean) => {
-      setOpen(open);
-      if (open) {
-        onOpen?.();
-      } else {
-        onClose?.();
-      }
-    },
-    [onOpen, onClose]
-  );
 
   const enablePointerEvents = React.useCallback(() => {
     if (contentRef.current) {
@@ -155,9 +170,9 @@ function MobileDropdown({
   }, []);
 
   const closeDrawer = React.useCallback(() => {
-    handleOpenChange(false);
+    onOpenChange(false);
     setTimeout(() => setSubmenuName(undefined), 500); // needed for a Vaul bug where 'onAnimationEnd' is not called for controlled state.
-  }, [handleOpenChange]);
+  }, [onOpenChange]);
 
   const resetSubmenu = React.useCallback((isOpen: boolean) => {
     if (!isOpen) {
@@ -166,7 +181,7 @@ function MobileDropdown({
   }, []);
 
   const menuItems = React.useMemo(() => {
-    if (!submenuName) {
+    if (!items.length || !submenuName) {
       return items;
     }
 
@@ -180,12 +195,12 @@ function MobileDropdown({
 
   const content = toMobileMenuItems(menuItems, closeDrawer, setSubmenuName);
 
-  if (!content) {
-    return null;
-  }
-
   return (
-    <Drawer open={open} onOpenChange={setOpen} onAnimationEnd={resetSubmenu}>
+    <Drawer
+      open={open}
+      onOpenChange={onOpenChange}
+      onAnimationEnd={resetSubmenu}
+    >
       <DrawerTrigger aria-label={ariaLabel} asChild>
         {trigger}
       </DrawerTrigger>
@@ -197,7 +212,10 @@ function MobileDropdown({
         onAnimationEnd={enablePointerEvents}
       >
         <DrawerTitle>{ariaLabel}</DrawerTitle>
-        <StyledScrollable hiddenScrollbars>{content}</StyledScrollable>
+        <StyledScrollable hiddenScrollbars>
+          {content}
+          {!submenuName ? append : null}
+        </StyledScrollable>
       </DrawerContent>
     </Drawer>
   );
