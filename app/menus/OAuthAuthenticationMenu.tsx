@@ -1,13 +1,13 @@
 import { observer } from "mobx-react";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import OAuthAuthentication from "~/models/oauth/OAuthAuthentication";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
-import ContextMenu from "~/components/ContextMenu";
-import MenuItem from "~/components/ContextMenu/MenuItem";
-import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
-import { useMenuState } from "~/hooks/useMenuState";
+import { DropdownMenu } from "~/components/Menu/DropdownMenu";
+import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import useStores from "~/hooks/useStores";
+import { createActionV2 } from "~/actions";
+import { useMenuAction } from "~/hooks/useMenuAction";
 
 type Props = {
   /** The OAuthAuthentication to associate with the menu */
@@ -15,9 +15,6 @@ type Props = {
 };
 
 function OAuthAuthenticationMenu({ oauthAuthentication }: Props) {
-  const menu = useMenuState({
-    modal: true,
-  });
   const { dialogs } = useStores();
   const { t } = useTranslation();
 
@@ -42,15 +39,24 @@ function OAuthAuthenticationMenu({ oauthAuthentication }: Props) {
     });
   }, [t, dialogs, oauthAuthentication]);
 
+  const actions = useMemo(
+    () => [
+      createActionV2({
+        name: t("Revoke"),
+        section: "OAuth",
+        dangerous: true,
+        perform: handleRevoke,
+      }),
+    ],
+    [t, handleRevoke]
+  );
+
+  const rootAction = useMenuAction(actions);
+
   return (
-    <>
-      <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
-      <ContextMenu {...menu}>
-        <MenuItem {...menu} onClick={handleRevoke} dangerous>
-          {t("Revoke")}
-        </MenuItem>
-      </ContextMenu>
-    </>
+    <DropdownMenu action={rootAction} ariaLabel={t("Show menu")}>
+      <OverflowMenuButton />
+    </DropdownMenu>
   );
 }
 
