@@ -73,23 +73,23 @@ export async function signIn(
   // update the database when the user last signed in
   await user.updateSignedIn(ctx);
 
-  await Event.create(
+  await Event.createFromContext(
+    ctx,
     {
       name: "users.signin",
-      actorId: user.id,
       userId: user.id,
-      teamId: team.id,
       authType: AuthenticationType.APP,
       data: {
         name: user.name,
         service,
       },
-      ip: ctx.request.ip,
     },
     {
-      transaction,
+      actorId: user.id,
+      teamId: team.id,
     }
   );
+
   const domain = getCookieDomain(ctx.request.hostname, env.isCloudHosted);
   const expires = addMonths(new Date(), 3);
 
