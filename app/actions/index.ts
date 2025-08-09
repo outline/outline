@@ -1,3 +1,4 @@
+import { LocationDescriptor } from "history";
 import flattenDeep from "lodash/flattenDeep";
 import { toast } from "sonner";
 import { Optional } from "utility-types";
@@ -22,7 +23,7 @@ import Analytics from "~/utils/Analytics";
 import history from "~/utils/history";
 import { Action as KbarAction } from "kbar";
 
-function resolve<T>(value: any, context: ActionContext): T {
+export function resolve<T>(value: any, context: ActionContext): T {
   return typeof value === "function" ? value(context) : value;
 }
 
@@ -282,20 +283,22 @@ export function actionV2ToMenuItem(
             icon,
             visible,
             disabled,
-            selected: action.selected?.(context),
+            selected: resolve<boolean>(action.selected, context),
             dangerous: action.dangerous,
             onClick: () => performActionV2(action, context),
           };
 
-        case "internal_link":
+        case "internal_link": {
+          const to = resolve<LocationDescriptor>(action.to, context);
           return {
             type: "route",
             title,
             icon,
             visible,
             disabled,
-            to: action.to,
+            to,
           };
+        }
 
         case "external_link":
           return {
@@ -372,13 +375,6 @@ export function actionV2ToKBar(
     case "action":
     case "internal_link":
     case "external_link": {
-      const perform =
-        action.variant === "action"
-          ? () => performActionV2(action, context)
-          : action.variant === "internal_link"
-            ? () => history.push(action.to)
-            : () => window.open(action.url, action.target);
-
       return [
         {
           id: action.id,
@@ -388,7 +384,7 @@ export function actionV2ToKBar(
           shortcut: action.shortcut,
           icon,
           priority,
-          perform,
+          perform: () => performActionV2(action, context),
         },
       ];
     }
@@ -426,10 +422,17 @@ export function actionV2ToKBar(
 }
 
 export async function performActionV2(
-  action: ActionV2,
+  action: Exclude<ActionV2Variant, ActionV2WithChildren>,
   context: ActionContext
 ) {
-  const result = action.perform(context);
+  const perform =
+    action.variant === "action"
+      ? () => action.perform(context)
+      : action.variant === "internal_link"
+        ? () => history.push(resolve<LocationDescriptor>(action.to, context))
+        : () => window.open(action.url, action.target);
+
+  const result = perform();
 
   if (result instanceof Promise) {
     return result.catch((err: Error) => {
