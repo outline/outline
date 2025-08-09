@@ -510,13 +510,13 @@ class User extends ParanoidModel<
     });
   };
 
-  updateSignedIn = (ip: string) => {
+  updateSignedIn = (ctx: Context | APIContext) => {
     const now = new Date();
     this.lastActiveAt = now;
-    this.lastActiveIp = ip;
+    this.lastActiveIp = ctx.request.ip;
     this.lastSignedInAt = now;
-    this.lastSignedInIp = ip;
-    return this.save({ hooks: false });
+    this.lastSignedInIp = ctx.request.ip;
+    return this.save({ hooks: false, transaction: ctx.state.transaction });
   };
 
   /**
