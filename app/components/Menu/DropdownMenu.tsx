@@ -27,13 +27,21 @@ import { observer } from "mobx-react";
 import { useComputed } from "~/hooks/useComputed";
 
 type Props = {
+  /** Root action with children representing the menu items */
   action: ActionV2WithChildren;
+  /** Action context to use - new context will be created if not provided */
   context?: ActionContext;
+  /** Trigger for the menu */
   children: React.ReactNode;
+  /** Alignment w.r.t trigger - defaults to start */
   align?: "start" | "end";
+  /** ARIA label for the menu */
   ariaLabel: string;
+  /** Additional component to display at the bottom of the top-level menu */
   append?: React.ReactNode;
+  /** Callback when menu is opened */
   onOpen?: () => void;
+  /** Callback when menu is closed */
   onClose?: () => void;
 };
 
