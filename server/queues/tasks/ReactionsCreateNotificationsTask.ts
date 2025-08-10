@@ -6,6 +6,8 @@ import BaseTask, { TaskPriority } from "./BaseTask";
 
 export default class ReactionsCreateNotificationsTask extends BaseTask<CommentReactionEvent> {
   public async perform(event: CommentReactionEvent) {
+    const { emoji } = event.data;
+
     // Only handle add_reaction events, not remove_reaction
     if (event.name !== "comments.add_reaction") {
       return;
@@ -42,7 +44,11 @@ export default class ReactionsCreateNotificationsTask extends BaseTask<CommentRe
     }
 
     // Check if the comment author has this notification type enabled
-    if (!commentAuthor.subscribedToEventType(NotificationEventType.ReactionsCreate)) {
+    if (
+      !commentAuthor.subscribedToEventType(
+        NotificationEventType.ReactionsCreate
+      )
+    ) {
       return;
     }
 
@@ -59,6 +65,7 @@ export default class ReactionsCreateNotificationsTask extends BaseTask<CommentRe
       teamId: document.teamId,
       commentId: comment.id,
       documentId: document.id,
+      data: { emoji },
     });
   }
 

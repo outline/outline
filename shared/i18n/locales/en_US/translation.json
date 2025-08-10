@@ -606,7 +606,7 @@
   "mentioned you in": "mentioned you in",
   "left a comment on": "left a comment on",
   "resolved a comment on": "resolved a comment on",
-  "reacted to your comment on": "reacted to your comment on",
+  "reacted {{ emoji }} to your comment on": "reacted {{ emoji }} to your comment on",
   "shared": "shared",
   "invited you to": "invited you to",
   "Choose a date": "Choose a date",

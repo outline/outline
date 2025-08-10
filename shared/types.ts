@@ -362,6 +362,10 @@ export enum NotificationChannelType {
   Chat = "chat",
 }
 
+export type NotificationData = {
+  emoji?: string;
+};
+
 export type NotificationSettings = {
   [event in NotificationEventType]?:
     | {

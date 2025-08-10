@@ -1,6 +1,6 @@
 import { TFunction } from "i18next";
 import { action, computed, observable } from "mobx";
-import { NotificationEventType } from "@shared/types";
+import { NotificationData, NotificationEventType } from "@shared/types";
 import {
   collectionPath,
   commentPath,
@@ -74,6 +74,11 @@ class Notification extends Model {
   event: NotificationEventType;
 
   /**
+   * Additional data associated with the notification.
+   */
+  data: NotificationData;
+
+  /**
    * Mark the notification as read or unread
    *
    * @returns A promise that resolves when the notification has been saved.
@@ -122,7 +127,9 @@ class Notification extends Model {
       case NotificationEventType.ResolveComment:
         return t("resolved a comment on");
       case NotificationEventType.ReactionsCreate:
-        return t("reacted to your comment on");
+        return t("reacted {{ emoji }} to your comment on", {
+          emoji: this.data.emoji,
+        });
       case NotificationEventType.AddUserToDocument:
         return t("shared");
       case NotificationEventType.AddUserToCollection:
