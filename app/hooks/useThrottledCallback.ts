@@ -28,7 +28,7 @@ export default function useThrottledCallback<T extends (...args: any[]) => any>(
 ) {
   const handler = React.useMemo(
     () => throttle<T>(fn, wait, options),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
     dependencies
   );
 

@@ -1,37 +1,24 @@
 import { t } from "i18next";
 import { MoreIcon } from "outline-icons";
 import * as React from "react";
-import { MenuButton } from "reakit/Menu";
 import styled from "styled-components";
 import { s, hover } from "@shared/styles";
-import ContextMenu from "~/components/ContextMenu";
-import Template from "~/components/ContextMenu/Template";
+import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import NudeButton from "~/components/NudeButton";
-import { actionToMenuItem } from "~/actions";
 import { toggleViewerInsights } from "~/actions/definitions/documents";
-import useActionContext from "~/hooks/useActionContext";
-import { useMenuState } from "~/hooks/useMenuState";
-import { MenuItem } from "~/types";
+import { useMemo } from "react";
+import { useMenuAction } from "~/hooks/useMenuAction";
 
 const InsightsMenu: React.FC = () => {
-  const menuRef = React.useRef<HTMLDivElement>(null);
-  const menu = useMenuState();
-  const context = useActionContext();
-  const items: MenuItem[] = [actionToMenuItem(toggleViewerInsights, context)];
+  const actions = useMemo(() => [toggleViewerInsights], []);
+  const rootAction = useMenuAction(actions);
 
   return (
-    <>
-      <MenuButton {...menu}>
-        {(props) => (
-          <Button {...props}>
-            <MoreIcon />
-          </Button>
-        )}
-      </MenuButton>
-      <ContextMenu {...menu} menuRef={menuRef} aria-label={t("Notification")}>
-        <Template {...menu} items={items} />
-      </ContextMenu>
-    </>
+    <DropdownMenu action={rootAction} align="end" ariaLabel={t("Insights")}>
+      <Button>
+        <MoreIcon />
+      </Button>
+    </DropdownMenu>
   );
 };
 
@@ -39,7 +26,8 @@ const Button = styled(NudeButton)`
   color: ${s("textSecondary")};
 
   &:${hover},
-  &:active {
+  &:active,
+  &[data-state="open"] {
     color: ${s("text")};
     background: ${s("sidebarControlHoverBackground")};
   }

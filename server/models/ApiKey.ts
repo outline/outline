@@ -12,6 +12,7 @@ import {
   DataType,
   AfterFind,
   BeforeSave,
+  Scopes,
 } from "sequelize-typescript";
 import { randomString } from "@shared/random";
 import { ApiKeyValidation } from "@shared/validations";
@@ -24,6 +25,15 @@ import AuthenticationHelper from "./helpers/AuthenticationHelper";
 import Length from "./validators/Length";
 
 @Table({ tableName: "apiKeys", modelName: "apiKey" })
+@Scopes(() => ({
+  withUser: {
+    include: [
+      {
+        association: "user",
+      },
+    ],
+  },
+}))
 @Fix
 class ApiKey extends ParanoidModel<
   InferAttributes<ApiKey>,

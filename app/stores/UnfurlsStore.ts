@@ -7,7 +7,7 @@ import Logger from "~/utils/Logger";
 import RootStore from "./RootStore";
 import Store from "./base/Store";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any
 class UnfurlsStore extends Store<Unfurl<any>> {
   actions = []; // no default actions allowed for unfurls.
 

@@ -357,7 +357,7 @@ router.post(
     const { user } = ctx.state.auth;
     const share = await Share.findByPk(id);
 
-    if (!share?.document) {
+    if (!share?.collection && !share?.document) {
       throw NotFoundError();
     }
 

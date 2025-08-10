@@ -1,4 +1,4 @@
-/* eslint-disable lines-between-class-members */
+/* oxlint-disable lines-between-class-members */
 import fractionalIndex from "fractional-index";
 import find from "lodash/find";
 import findIndex from "lodash/findIndex";
@@ -662,7 +662,7 @@ class Collection extends ParanoidModel<
     user: User,
     options: FindOptions = {}
   ) {
-    const id = await user.collectionIds();
+    const id = await user.collectionIds({ transaction: options.transaction });
     return this.findOne({
       where: {
         teamId: user.teamId,

@@ -1035,6 +1035,26 @@ describe("#shares.revoke", () => {
     expect(res.status).toEqual(200);
   });
 
+  it("should allow author to revoke collection share", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      collectionId: collection.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post("/api/shares.revoke", {
+      body: {
+        token: user.getJwtToken(),
+        id: share.id,
+      },
+    });
+    expect(res.status).toEqual(200);
+  });
+
   it("should 404 if shares document is deleted", async () => {
     const user = await buildUser();
     const document = await buildDocument({

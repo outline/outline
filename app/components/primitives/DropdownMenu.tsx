@@ -4,17 +4,24 @@ import * as React from "react";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
 import Scrollable from "~/components/Scrollable";
+import Tooltip from "~/components/Tooltip";
 import { fadeAndScaleIn } from "~/styles/animations";
 import {
   MenuButton,
+  MenuDisclosure,
   MenuExternalLink,
   MenuHeader,
   MenuInternalLink,
   MenuLabel,
   MenuSeparator,
+  MenuSubTrigger,
+  SelectedIconWrapper,
 } from "./components/Menu";
+import { CheckmarkIcon } from "outline-icons";
 
 const DropdownMenu = DropdownMenuPrimitive.Root;
+
+const DropdownSubMenu = DropdownMenuPrimitive.Sub;
 
 const DropdownMenuTrigger = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Trigger>,
@@ -37,13 +44,63 @@ const DropdownMenuContent = React.forwardRef<
 
   return (
     <DropdownMenuPrimitive.Portal>
-      <DropdownMenuPrimitive.Content ref={ref} {...rest} asChild>
+      <DropdownMenuPrimitive.Content
+        ref={ref}
+        {...rest}
+        sideOffset={4}
+        collisionPadding={6}
+        asChild
+      >
         <StyledScrollable hiddenScrollbars>{children}</StyledScrollable>
       </DropdownMenuPrimitive.Content>
     </DropdownMenuPrimitive.Portal>
   );
 });
 DropdownMenuContent.displayName = DropdownMenuPrimitive.Content.displayName;
+
+type DropdownSubMenuTriggerProps = BaseDropdownItemProps &
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubTrigger>;
+
+const DropdownSubMenuTrigger = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.SubTrigger>,
+  DropdownSubMenuTriggerProps
+>((props, ref) => {
+  const { label, icon, disabled, ...rest } = props;
+
+  return (
+    <DropdownMenuPrimitive.SubTrigger ref={ref} {...rest} asChild>
+      <MenuSubTrigger disabled={disabled}>
+        {icon}
+        <MenuLabel>{label}</MenuLabel>
+        <MenuDisclosure />
+      </MenuSubTrigger>
+    </DropdownMenuPrimitive.SubTrigger>
+  );
+});
+DropdownSubMenuTrigger.displayName =
+  DropdownMenuPrimitive.SubTrigger.displayName;
+
+const DropdownSubMenuContent = React.forwardRef<
+  React.ElementRef<typeof DropdownMenuPrimitive.SubContent>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubContent>
+>((props, ref) => {
+  const { children, ...rest } = props;
+
+  return (
+    <DropdownMenuPrimitive.Portal>
+      <DropdownMenuPrimitive.SubContent
+        ref={ref}
+        {...rest}
+        collisionPadding={6}
+        asChild
+      >
+        <StyledScrollable hiddenScrollbars>{children}</StyledScrollable>
+      </DropdownMenuPrimitive.SubContent>
+    </DropdownMenuPrimitive.Portal>
+  );
+});
+DropdownSubMenuContent.displayName =
+  DropdownMenuPrimitive.SubContent.displayName;
 
 type DropdownMenuGroupProps = {
   label: string;
@@ -76,6 +133,8 @@ type BaseDropdownItemProps = {
 
 type DropdownMenuButtonProps = BaseDropdownItemProps & {
   onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  tooltip?: React.ReactChild;
+  selected?: boolean;
   dangerous?: boolean;
 } & Omit<
     React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item>,
@@ -86,15 +145,37 @@ const DropdownMenuButton = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Item>,
   DropdownMenuButtonProps
 >((props, ref) => {
-  const { label, icon, disabled, dangerous, onClick, ...rest } = props;
+  const {
+    label,
+    icon,
+    tooltip,
+    disabled,
+    selected,
+    dangerous,
+    onClick,
+    ...rest
+  } = props;
 
-  return (
-    <DropdownMenuPrimitive.Item ref={ref} {...rest} asChild>
+  const button = (
+    <DropdownMenuPrimitive.Item ref={ref} disabled={disabled} {...rest} asChild>
       <MenuButton disabled={disabled} $dangerous={dangerous} onClick={onClick}>
         {icon}
         <MenuLabel>{label}</MenuLabel>
+        {selected !== undefined && (
+          <SelectedIconWrapper aria-hidden>
+            {selected ? <CheckmarkIcon /> : null}
+          </SelectedIconWrapper>
+        )}
       </MenuButton>
     </DropdownMenuPrimitive.Item>
+  );
+
+  return tooltip ? (
+    <Tooltip content={tooltip} placement="bottom">
+      <div>{button}</div>
+    </Tooltip>
+  ) : (
+    <>{button}</>
   );
 });
 DropdownMenuButton.displayName = "DropdownMenuButton";
@@ -113,7 +194,7 @@ const DropdownMenuInternalLink = React.forwardRef<
   const { label, icon, disabled, to, ...rest } = props;
 
   return (
-    <DropdownMenuPrimitive.Item ref={ref} {...rest} asChild>
+    <DropdownMenuPrimitive.Item ref={ref} disabled={disabled} {...rest} asChild>
       <MenuInternalLink to={to} disabled={disabled}>
         {icon}
         <MenuLabel>{label}</MenuLabel>
@@ -138,7 +219,7 @@ const DropdownMenuExternalLink = React.forwardRef<
   const { label, icon, disabled, href, target, ...rest } = props;
 
   return (
-    <DropdownMenuPrimitive.Item ref={ref} {...rest} asChild>
+    <DropdownMenuPrimitive.Item ref={ref} disabled={disabled} {...rest} asChild>
       <MenuExternalLink href={href} target={target} disabled={disabled}>
         {icon}
         <MenuLabel>{label}</MenuLabel>
@@ -174,7 +255,7 @@ const StyledScrollable = styled(Scrollable)`
   min-width: 180px;
   max-width: 276px;
   min-height: 44px;
-  max-height: 75vh;
+  max-height: min(85vh, var(--radix-dropdown-menu-content-available-height));
   font-weight: normal;
 
   background: ${s("menuBackground")};
@@ -204,4 +285,7 @@ export {
   DropdownMenuSeparator,
   DropdownMenuGroup,
   DropdownMenuLabel,
+  DropdownSubMenu,
+  DropdownSubMenuTrigger,
+  DropdownSubMenuContent,
 };

@@ -1,4 +1,4 @@
-/* eslint-disable no-irregular-whitespace */
+/* oxlint-disable no-irregular-whitespace */
 import { lighten, transparentize } from "polished";
 import styled, { DefaultTheme, css, keyframes } from "styled-components";
 import { hover } from "../../styles";
@@ -594,7 +594,7 @@ iframe.embed {
   max-width: 100vw;
   clear: both;
   position: initial;
-  transform: translateX(calc(50% + var(--container-width) * -0.5));
+  transform: translateX(calc(50% + var(--container-width) * -0.5 + var(--full-width-transform-offset)));
 
   img {
     max-width: 100vw;
@@ -607,7 +607,7 @@ iframe.embed {
 .${EditorStyleHelper.tableFullWidth} {
   transform: translateX(calc(50% + ${
     EditorStyleHelper.padding
-  }px + var(--container-width) * -0.5));
+  }px + var(--container-width) * -0.5 + var(--full-width-transform-offset)));
 
   .${EditorStyleHelper.tableScrollable},
   table {

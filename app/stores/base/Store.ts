@@ -1,6 +1,6 @@
 import commandScore from "command-score";
 import invariant from "invariant";
-// eslint-disable-next-line lodash/import-scope
+// oxlint-disable-next-line lodash/import-scope
 import type { ObjectIterateeCustom } from "lodash";
 import deburr from "lodash/deburr";
 import filter from "lodash/filter";

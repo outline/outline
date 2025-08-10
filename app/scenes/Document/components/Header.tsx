@@ -1,10 +1,5 @@
 import { observer } from "mobx-react";
-import {
-  TableOfContentsIcon,
-  EditIcon,
-  PlusIcon,
-  MoreIcon,
-} from "outline-icons";
+import { TableOfContentsIcon, EditIcon, MoreIcon } from "outline-icons";
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -306,20 +301,7 @@ function DocumentHeader({
               !isCompact &&
               !isMobile && (
                 <Action>
-                  <NewChildDocumentMenu
-                    document={document}
-                    label={(props) => (
-                      <Tooltip
-                        content={t("New document")}
-                        shortcut="n"
-                        placement="bottom"
-                      >
-                        <Button icon={<PlusIcon />} {...props} neutral>
-                          {t("New doc")}
-                        </Button>
-                      </Tooltip>
-                    )}
-                  />
+                  <NewChildDocumentMenu document={document} />
                 </Action>
               )}
             {revision && revision.createdAt !== document.updatedAt && (
@@ -355,15 +337,8 @@ function DocumentHeader({
             <Action>
               <DocumentMenu
                 document={document}
-                isRevision={isRevision}
-                label={(props) => (
-                  <Button
-                    icon={<MoreIcon />}
-                    {...props}
-                    borderOnHover
-                    neutral
-                  />
-                )}
+                align="end"
+                neutral
                 onSelectTemplate={onSelectTemplate}
                 onFindAndReplace={editor?.commands.openFindAndReplace}
                 showToggleEmbeds={canToggleEmbeds}

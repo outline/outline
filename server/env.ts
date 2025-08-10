@@ -1,5 +1,5 @@
-/* eslint-disable no-console */
-// eslint-disable-next-line import/order
+/* oxlint-disable no-console */
+// oxlint-disable-next-line import/order
 import environment from "./utils/environment";
 import os from "os";
 import {

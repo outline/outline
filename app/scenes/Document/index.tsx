@@ -10,7 +10,6 @@ import Document from "./components/Document";
 type Params = {
   documentSlug: string;
   revisionId?: string;
-  shareId?: string;
 };
 
 type LocationState = {
