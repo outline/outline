@@ -230,7 +230,7 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
   );
 
   const dir = ref.current?.getComputedDirection();
-
+  const initial = title.slice(0, 1).toUpperCase();
   const fallbackIcon = icon ? (
     <Icon value={icon} color={color} size={40} />
   ) : null;
@@ -258,6 +258,7 @@ const DocumentTitle = React.forwardRef(function _DocumentTitle(
             <StyledIconPicker
               icon={icon ?? null}
               color={color}
+              initial={initial}
               size={40}
               popoverPosition="bottom-start"
               onChange={handleIconChange}

@@ -182,9 +182,11 @@ function InnerDocumentLink(
   const can = policies.abilities(node.id);
   const icon = document?.icon || node.icon || node.emoji;
   const color = document?.color || node.color;
+  const initial = document?.initial || node.title.charAt(0).toUpperCase();
 
   const iconElement = React.useMemo(
-    () => (icon ? <Icon value={icon} color={color} /> : undefined),
+    () =>
+      icon ? <Icon value={icon} color={color} initial={initial} /> : undefined,
     [icon, color]
   );
 
@@ -419,7 +421,7 @@ function InnerDocumentLink(
 const Draggable = styled.div<{ $isDragging?: boolean; $isMoving?: boolean }>`
   transition: opacity 250ms ease;
   opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.1 : 1)};
-  pointer-events: ${(props) => (props.$isMoving ? "none" : "all")};
+  pointer-events: ${(props) => (props.$isMoving ? "none" : "inherit")};
 `;
 
 const DocumentLink = observer(React.forwardRef(InnerDocumentLink));

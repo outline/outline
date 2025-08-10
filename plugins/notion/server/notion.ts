@@ -95,7 +95,7 @@ export class NotionClient {
   private async fetchWithRetry<T>(apiCall: () => Promise<T>): Promise<T> {
     let retries = 0;
 
-    // eslint-disable-next-line no-constant-condition
+    // oxlint-disable-next-line no-constant-condition
     while (true) {
       try {
         await this.limiter();

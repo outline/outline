@@ -1,4 +1,4 @@
-/* eslint-disable lines-between-class-members */
+/* oxlint-disable lines-between-class-members */
 import compact from "lodash/compact";
 import isNil from "lodash/isNil";
 import uniq from "lodash/uniq";
@@ -393,6 +393,15 @@ class Document extends ArchivableModel<
     return ProsemirrorHelper.getTasksSummary(
       DocumentHelper.toProsemirror(this)
     );
+  }
+
+  /**
+   * Returns the key used to store the collaborators of a document in Redis.
+   * @param documentId The ID of the document.
+   * @returns Redis key for collaborators
+   */
+  static getCollaboratorKey(documentId: string) {
+    return `collaborators:${documentId}`;
   }
 
   static getPath({ title, urlId }: { title: string; urlId: string }) {

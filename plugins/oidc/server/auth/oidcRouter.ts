@@ -24,6 +24,7 @@ import {
 import config from "../../plugin.json";
 import env from "../env";
 import { OIDCStrategy } from "./OIDCStrategy";
+import { createContext } from "@server/context";
 
 export interface OIDCEndpoints {
   authorizationURL: string;
@@ -65,7 +66,7 @@ export function createOIDCRouter(
       // Any claim supplied in response to the userinfo request will be
       // available on the `profile` parameter
       async function (
-        ctx: Context,
+        context: Context,
         accessToken: string,
         refreshToken: string,
         params: { expires_in: number; id_token: string },
@@ -118,8 +119,8 @@ export function createOIDCRouter(
             );
           }
 
-          const team = await getTeamFromContext(ctx);
-          const client = getClientFromContext(ctx);
+          const team = await getTeamFromContext(context);
+          const client = getClientFromContext(context);
           const { domain } = parseEmail(email);
 
           // Only a single OIDC provider is supported – find the existing, if any.
@@ -162,7 +163,12 @@ export function createOIDCRouter(
 
           if (!name) {
             throw AuthenticationError(
-              `Neither a ${env.OIDC_USERNAME_CLAIM}, name or username was returned in the profile parameter, but at least one is required.`
+              `Neither a ${env.OIDC_USERNAME_CLAIM}, "name" or "username" was returned in the profile loaded from ${endpoints.userInfoURL}, but at least one is required.`
+            );
+          }
+          if (!profileId) {
+            throw AuthenticationError(
+              `A user id was not returned in the profile loaded from ${endpoints.userInfoURL}, searched in "sub" and "id" fields.`
             );
           }
 
@@ -180,8 +186,8 @@ export function createOIDCRouter(
             avatarUrl = null;
           }
 
-          const result = await accountProvisioner({
-            ip: ctx.ip,
+          const ctx = createContext({ ip: context.ip });
+          const result = await accountProvisioner(ctx, {
             team: {
               teamId: team?.id,
               name: env.APP_NAME,

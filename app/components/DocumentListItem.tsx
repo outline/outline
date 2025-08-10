@@ -33,7 +33,6 @@ type Props = {
   showParentDocuments?: boolean;
   showCollection?: boolean;
   showPublished?: boolean;
-  showPin?: boolean;
   showDraft?: boolean;
   showTemplate?: boolean;
 };
@@ -68,7 +67,6 @@ function DocumentListItem(
     showParentDocuments,
     showCollection,
     showPublished,
-    showPin,
     showDraft = true,
     showTemplate,
     highlight,
@@ -107,7 +105,11 @@ function DocumentListItem(
         <Heading dir={document.dir}>
           {document.icon && (
             <>
-              <Icon value={document.icon} color={document.color ?? undefined} />
+              <Icon
+                value={document.icon}
+                color={document.color ?? undefined}
+                initial={document.initial}
+              />
               &nbsp;
             </>
           )}
@@ -152,10 +154,8 @@ function DocumentListItem(
       <Actions>
         <DocumentMenu
           document={document}
-          showPin={showPin}
           onOpen={handleMenuOpen}
           onClose={handleMenuClose}
-          modal={false}
         />
       </Actions>
     </DocumentLink>

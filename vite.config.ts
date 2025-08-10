@@ -20,7 +20,7 @@ if (environment.NODE_ENV === "development") {
       cert: fs.readFileSync("./server/config/certs/public.cert"),
     };
   } catch (_err) {
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line no-console
     console.warn("No local SSL certs found, HTTPS will not be available");
   }
 }
@@ -150,6 +150,9 @@ export default () =>
       // Generate a stats.json file for webpack that will be consumed by RelativeCI
       webpackStats(),
     ],
+    experimental: {
+      enableNativePlugin: true,
+    },
     resolve: {
       alias: {
         "~": path.resolve(__dirname, "./app"),

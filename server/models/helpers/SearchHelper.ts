@@ -219,18 +219,33 @@ export default class SearchHelper {
       statusFilter: [...(options.statusFilter || []), StatusFilter.Published],
     });
 
-    if (options.share?.includeChildDocuments) {
-      const sharedDocument = await options.share.$get("document");
-      invariant(sharedDocument, "Cannot find document for share");
+    if (options.share) {
+      let documentIds: string[] | undefined;
 
-      const childDocumentIds = await sharedDocument.findAllChildDocumentIds({
-        archivedAt: {
-          [Op.is]: null,
-        },
-      });
+      if (options.share.collectionId) {
+        const sharedCollection =
+          options.share.collection ??
+          (await options.share.$get("collection", { scope: "unscoped" }));
+        invariant(sharedCollection, "Cannot find collection for share");
+        documentIds = sharedCollection.getAllDocumentIds();
+      } else if (
+        options.share.documentId &&
+        options.share.includeChildDocuments
+      ) {
+        const sharedDocument = await options.share.$get("document");
+        invariant(sharedDocument, "Cannot find document for share");
+
+        const childDocumentIds = await sharedDocument.findAllChildDocumentIds({
+          archivedAt: {
+            [Op.is]: null,
+          },
+        });
+
+        documentIds = [sharedDocument.id, ...childDocumentIds];
+      }
 
       where[Op.and].push({
-        id: [sharedDocument.id, ...childDocumentIds],
+        id: documentIds,
       });
     }
 
@@ -304,6 +319,26 @@ export default class SearchHelper {
         separate: false,
       },
       {
+        association: "groupMemberships",
+        required: false,
+        separate: false,
+        include: [
+          {
+            association: "group",
+            required: true,
+            include: [
+              {
+                association: "groupUsers",
+                required: true,
+                where: {
+                  userId: user.id,
+                },
+              },
+            ],
+          },
+        ],
+      },
+      {
         model: User,
         as: "createdBy",
         paranoid: false,
@@ -374,6 +409,26 @@ export default class SearchHelper {
         },
         required: false,
         separate: false,
+      },
+      {
+        association: "groupMemberships",
+        required: false,
+        separate: false,
+        include: [
+          {
+            association: "group",
+            required: true,
+            include: [
+              {
+                association: "groupUsers",
+                required: true,
+                where: {
+                  userId: user.id,
+                },
+              },
+            ],
+          },
+        ],
       },
     ];
 
@@ -504,7 +559,10 @@ export default class SearchHelper {
     };
 
     if (model instanceof User) {
-      where[Op.or].push({ "$memberships.id$": { [Op.ne]: null } });
+      where[Op.or].push(
+        { "$memberships.id$": { [Op.ne]: null } },
+        { "$groupMemberships.id$": { [Op.ne]: null } }
+      );
     }
 
     // Ensure we're filtering by the users accessible collections. If

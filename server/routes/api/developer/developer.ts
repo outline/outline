@@ -1,6 +1,6 @@
 import { Context, Next } from "koa";
 import Router from "koa-router";
-import randomstring from "randomstring";
+import { randomString } from "@shared/random";
 import userInviter, { Invite } from "@server/commands/userInviter";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -29,11 +29,10 @@ router.post(
   validate(T.CreateTestUsersSchema),
   async (ctx: APIContext<T.CreateTestUsersReq>) => {
     const { count = 10 } = ctx.input.body;
-    const { user } = ctx.state.auth;
     const invites = Array(Math.min(count, 100))
       .fill(0)
       .map(() => {
-        const rando = randomstring.generate(10);
+        const rando = randomString(10);
 
         return {
           email: `${rando}@example.com`,
@@ -45,11 +44,7 @@ router.post(
     Logger.info("utils", `Creating ${count} test users`, invites);
 
     // Generate a bunch of invites
-    const response = await userInviter({
-      user,
-      invites,
-      ip: ctx.request.ip,
-    });
+    const response = await userInviter(ctx, { invites });
 
     // Convert from invites to active users by marking as active
     await Promise.all(

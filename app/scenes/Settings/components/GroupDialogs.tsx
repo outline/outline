@@ -4,7 +4,6 @@ import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { v4 as uuidv4 } from "uuid";
 import Group from "~/models/Group";
 import User from "~/models/User";
 import Invite from "~/scenes/Invite";
@@ -20,7 +19,6 @@ import Input from "~/components/Input";
 import PlaceholderList from "~/components/List/Placeholder";
 import PaginatedList from "~/components/PaginatedList";
 import { ListItem } from "~/components/Sharing/components/ListItem";
-import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -54,10 +52,10 @@ export function CreateGroupDialog() {
 
       try {
         await group.save();
+        dialogs.closeAllModals();
         dialogs.openModal({
           title: t("Group members"),
           content: <ViewGroupMembersDialog group={group} />,
-          fullscreen: true,
         });
       } catch (err) {
         toast.error(err.message);
@@ -197,7 +195,7 @@ export const ViewGroupMembersDialog = observer(function ({
         groupName: group.name,
       }),
       content: <AddPeopleToGroupDialog group={group} />,
-      fullscreen: true,
+      replace: true,
     });
   }, [t, group, dialogs]);
 
@@ -264,10 +262,7 @@ export const ViewGroupMembersDialog = observer(function ({
           />
         </Text>
       )}
-
-      <Subheading>
-        <Trans>Members</Trans>
-      </Subheading>
+      <br />
       <PaginatedList<User>
         items={users.inGroup(group.id)}
         fetch={groupUsers.fetchPage}
@@ -334,11 +329,10 @@ const AddPeopleToGroupDialog = observer(function ({
   );
 
   const handleInvitePeople = React.useCallback(() => {
-    const id = uuidv4();
     dialogs.openModal({
-      id,
       title: t("Invite people"),
-      content: <Invite onSubmit={() => dialogs.closeModal(id)} />,
+      content: <Invite onSubmit={dialogs.closeAllModals} />,
+      replace: true,
     });
   }, [t, dialogs]);
 

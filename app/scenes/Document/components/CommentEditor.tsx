@@ -11,6 +11,7 @@ import MentionMenuExtension from "~/editor/extensions/MentionMenu";
 import PasteHandler from "~/editor/extensions/PasteHandler";
 import PreventTab from "~/editor/extensions/PreventTab";
 import SmartText from "~/editor/extensions/SmartText";
+import UpArrowAtStart from "~/editor/extensions/UpArrowAtStart";
 import useCurrentUser from "~/hooks/useCurrentUser";
 
 const extensions = [
@@ -21,13 +22,19 @@ const extensions = [
   ClipboardTextSerializer,
   EmojiMenuExtension,
   MentionMenuExtension,
+  UpArrowAtStart,
   // Order these default key handlers last
   PreventTab,
   Keys,
 ];
 
+type CommentEditorProps = EditorProps & {
+  /** Callback when user presses up arrow at the start of the editor */
+  onUpArrowAtStart?: () => void;
+};
+
 const CommentEditor = (
-  props: EditorProps,
+  props: CommentEditorProps,
   ref: React.RefObject<SharedEditor>
 ) => {
   const user = useCurrentUser({ rejectOnEmpty: false });

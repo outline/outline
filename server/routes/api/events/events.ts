@@ -33,6 +33,7 @@ router.post(
 
     let where: WhereOptions<Event> = {
       teamId: user.teamId,
+      actorId: { [Op.ne]: null },
     };
 
     if (auditLog) {

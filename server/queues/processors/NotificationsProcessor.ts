@@ -86,9 +86,8 @@ export default class NotificationsProcessor extends BaseProcessor {
   async collectionCreated(event: CollectionEvent) {
     // never send notifications when batch importing
     if (
-      "data" in event &&
-      "source" in event.data &&
-      event.data.source === "import"
+      !!event.changes?.attributes.apiImportId ||
+      !!event.changes?.attributes.importId
     ) {
       return;
     }

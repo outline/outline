@@ -1,16 +1,14 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { MenuButton } from "reakit/Menu";
 import styled from "styled-components";
 import { s } from "@shared/styles";
-import { useMenuState } from "~/hooks/useMenuState";
 import lazyWithRetry from "~/utils/lazyWithRetry";
-import ContextMenu from "./ContextMenu";
 import DelayedMount from "./DelayedMount";
 import Input, { Props as InputProps } from "./Input";
 import NudeButton from "./NudeButton";
 import Relative from "./Sidebar/components/Relative";
 import Text from "./Text";
+import { Popover, PopoverContent, PopoverTrigger } from "./primitives/Popover";
 
 type Props = Omit<InputProps, "onChange"> & {
   value: string | undefined;
@@ -19,10 +17,6 @@ type Props = Omit<InputProps, "onChange"> & {
 
 const InputColor: React.FC<Props> = ({ value, onChange, ...rest }: Props) => {
   const { t } = useTranslation();
-  const menu = useMenuState({
-    modal: true,
-    placement: "bottom-end",
-  });
 
   return (
     <Relative>
@@ -33,30 +27,26 @@ const InputColor: React.FC<Props> = ({ value, onChange, ...rest }: Props) => {
         maxLength={7}
         {...rest}
       />
-      <MenuButton {...menu}>
-        {(props) => (
-          <SwatchButton
-            aria-label={t("Show menu")}
-            {...props}
-            $background={value}
-          />
-        )}
-      </MenuButton>
-      <ContextMenu {...menu} aria-label={t("Select a color")}>
-        <React.Suspense
-          fallback={
-            <DelayedMount>
-              <Text>{t("Loading")}…</Text>
-            </DelayedMount>
-          }
-        >
-          <StyledColorPicker
-            disableAlpha
-            color={value}
-            onChange={(color) => onChange(color.hex)}
-          />
-        </React.Suspense>
-      </ContextMenu>
+      <Popover modal={true}>
+        <PopoverTrigger>
+          <SwatchButton aria-label={t("Show menu")} $background={value} />
+        </PopoverTrigger>
+        <StyledContent aria-label={t("Select a color")} align="end">
+          <React.Suspense
+            fallback={
+              <DelayedMount>
+                <Text>{t("Loading")}…</Text>
+              </DelayedMount>
+            }
+          >
+            <StyledColorPicker
+              disableAlpha
+              color={value}
+              onChange={(color) => onChange(color.hex)}
+            />
+          </React.Suspense>
+        </StyledContent>
+      </Popover>
     </Relative>
   );
 };
@@ -68,6 +58,11 @@ const SwatchButton = styled(NudeButton)<{ $background: string | undefined }>`
   position: absolute;
   bottom: 20px;
   right: 6px;
+`;
+
+const StyledContent = styled(PopoverContent)`
+  width: auto;
+  padding: 8px;
 `;
 
 const ColorPicker = lazyWithRetry(

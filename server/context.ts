@@ -8,15 +8,20 @@ export function createContext({
   ip,
   transaction,
 }: {
-  user: User;
+  user?: User;
   authType?: AuthenticationType | null;
   ip?: string | null;
   transaction?: Transaction;
 }) {
+  const auth = { user, type: authType };
   return {
+    state: {
+      auth,
+      transaction,
+    },
     context: {
-      auth: { user, type: authType },
-      ip: ip ?? user.lastActiveIp,
+      auth,
+      ip: ip ?? user?.lastActiveIp,
       transaction,
     },
   } as APIContext;

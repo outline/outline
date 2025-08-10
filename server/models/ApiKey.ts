@@ -1,6 +1,5 @@
 import { Matches } from "class-validator";
 import { subMinutes } from "date-fns";
-import randomstring from "randomstring";
 import { InferAttributes, InferCreationAttributes, Op } from "sequelize";
 import {
   Column,
@@ -13,7 +12,9 @@ import {
   DataType,
   AfterFind,
   BeforeSave,
+  Scopes,
 } from "sequelize-typescript";
+import { randomString } from "@shared/random";
 import { ApiKeyValidation } from "@shared/validations";
 import { hash } from "@server/utils/crypto";
 import User from "./User";
@@ -24,6 +25,15 @@ import AuthenticationHelper from "./helpers/AuthenticationHelper";
 import Length from "./validators/Length";
 
 @Table({ tableName: "apiKeys", modelName: "apiKey" })
+@Scopes(() => ({
+  withUser: {
+    include: [
+      {
+        association: "user",
+      },
+    ],
+  },
+}))
 @Fix
 class ApiKey extends ParanoidModel<
   InferAttributes<ApiKey>,
@@ -95,7 +105,7 @@ class ApiKey extends ParanoidModel<
   @BeforeValidate
   public static async generateSecret(model: ApiKey) {
     if (!model.hash) {
-      const secret = `${ApiKey.prefix}${randomstring.generate(38)}`;
+      const secret = `${ApiKey.prefix}${randomString(38)}`;
       model.value = model.secret || secret;
       model.hash = hash(model.value);
     }

@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useHistory } from "react-router-dom";
 import { isModKey } from "@shared/utils/keyboard";
 import { isDocumentUrl, isInternalUrl } from "@shared/utils/urls";
-import { sharedDocumentPath } from "~/utils/routeHelpers";
+import { sharedModelPath } from "~/utils/routeHelpers";
 import { isHash } from "~/utils/urls";
 import useStores from "./useStores";
 
@@ -41,14 +41,19 @@ export default function useEditorClickHandlers({ shareId }: Params) {
           return;
         }
 
+        // parse shareId from link
+        const linkShareId = navigateTo.match(/\/s\/([^/]+)\/doc\//)?.[1];
+
         // If we're navigating to an internal document link then prepend the
         // share route to the URL so that the document is loaded in context
         if (
           shareId &&
-          navigateTo.includes("/doc/") &&
+          (!linkShareId || linkShareId === shareId) &&
+          (navigateTo.includes("/doc/") ||
+            navigateTo.includes("/collection/")) &&
           !navigateTo.includes(shareId)
         ) {
-          navigateTo = sharedDocumentPath(shareId, navigateTo);
+          navigateTo = sharedModelPath(shareId, navigateTo);
         }
 
         if (isDocumentUrl(navigateTo)) {
@@ -64,7 +69,10 @@ export default function useEditorClickHandlers({ shareId }: Params) {
           return;
         }
 
-        if (!event || (!isModKey(event) && !event.shiftKey)) {
+        if (
+          !event ||
+          (!isModKey(event) && !event.shiftKey && event.button !== 1)
+        ) {
           history.push(navigateTo, { sidebarContext: "collections" }); // optimistic preference of "collections"
         } else {
           window.open(navigateTo, "_blank");

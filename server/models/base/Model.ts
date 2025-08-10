@@ -4,6 +4,7 @@ import isObject from "lodash/isObject";
 import pick from "lodash/pick";
 import {
   Attributes,
+  CreateOptions,
   CreationAttributes,
   DataTypes,
   FindOptions,
@@ -24,6 +25,7 @@ import {
 import Logger from "@server/logging/Logger";
 import { Replace, APIContext } from "@server/types";
 import { getChangsetSkipped } from "../decorators/Changeset";
+import { InternalError } from "@server/errors";
 
 type EventOverrideOptions = {
   /** Override the default event name. */
@@ -150,10 +152,12 @@ class Model<
     this: ModelStatic<M>,
     ctx: APIContext,
     values?: CreationAttributes<M>,
-    eventOpts?: EventOverrideOptions
+    eventOpts?: EventOverrideOptions,
+    createOpts?: CreateOptions<M>
   ) {
-    const hookContext: HookContext = {
+    const hookContext = {
       ...ctx.context,
+      ...createOpts,
       event: {
         ...eventOpts,
         publish: true,
@@ -238,6 +242,12 @@ class Model<
       });
     }
 
+    if (context.event.name?.includes(".")) {
+      throw InternalError(
+        `Event name (${context.event.name}) should not include a period, the namespace is automatically prefixed`
+      );
+    }
+
     const attrs = {
       name: `${namespace}.${context.event.name ?? name}`,
       modelId: "modelId" in model ? model.modelId : model.id,
@@ -265,7 +275,11 @@ class Model<
           : model instanceof models.team
             ? model.id
             : context.auth?.user.teamId,
-      actorId: context.auth?.user?.id,
+      actorId:
+        context.auth?.user?.id ??
+        (model instanceof models.user && name === "create"
+          ? model.id
+          : undefined),
       authType: context.auth?.type,
       ip: context.ip,
       changes: model.previousChangeset,

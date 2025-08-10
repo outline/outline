@@ -12,8 +12,6 @@ import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
 
 type Props = ComponentProps & {
-  /** Callback triggered when the image is clicked */
-  onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
   /** Callback triggered when the download button is clicked */
   onDownload?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   /** Callback triggered when the image is resized */
@@ -72,7 +70,6 @@ const Image = (props: Props) => {
       <ImageWrapper
         isFullWidth={isFullWidth}
         className={isSelected || dragging ? "ProseMirror-selectednode" : ""}
-        onClick={dragging ? undefined : props.onClick}
         style={widthStyle}
       >
         {!dragging && width > 60 && isDownloadable && (

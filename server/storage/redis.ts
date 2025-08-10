@@ -95,4 +95,16 @@ export default class RedisAdapter extends Redis {
       }))
     );
   }
+
+  /**
+   * A Redis adapter for collaboration-related operations.
+   */
+  public static get collaborationClient(): RedisAdapter {
+    return (
+      this.client ||
+      (this.client = new this(env.REDIS_COLLABORATION_URL, {
+        connectionNameSuffix: "collab",
+      }))
+    );
+  }
 }

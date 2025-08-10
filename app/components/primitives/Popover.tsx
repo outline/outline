@@ -7,6 +7,8 @@ import { fadeAndScaleIn } from "~/styles/animations";
 
 const Popover = PopoverPrimitive.Root;
 
+const PopoverAnchor = PopoverPrimitive.Anchor;
+
 const PopoverTrigger = React.forwardRef<
   React.ElementRef<typeof PopoverPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Trigger>
@@ -116,4 +118,4 @@ const StyledContent = styled(PopoverPrimitive.Content)<StyledContentProps>`
   }
 `;
 
-export { Popover, PopoverTrigger, PopoverContent };
+export { Popover, PopoverAnchor, PopoverTrigger, PopoverContent };

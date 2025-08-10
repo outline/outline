@@ -27,6 +27,7 @@ import getTableCellMenuItems from "../menus/tableCell";
 import getTableColMenuItems from "../menus/tableCol";
 import getTableRowMenuItems from "../menus/tableRow";
 import { useEditor } from "./EditorContext";
+import { EmbedLinkEditor } from "./EmbedLinkEditor";
 import FloatingToolbar from "./FloatingToolbar";
 import LinkEditor from "./LinkEditor";
 import ToolbarMenu from "./ToolbarMenu";
@@ -71,7 +72,7 @@ function useIsActive(state: EditorState) {
   }
   if (
     selection instanceof NodeSelection &&
-    ["image", "attachment"].includes(selection.node.type.name)
+    ["image", "attachment", "embed"].includes(selection.node.type.name)
   ) {
     return true;
   }
@@ -192,6 +193,8 @@ export default function SelectionToolbar(props: Props) {
   const isAttachmentSelection =
     selection instanceof NodeSelection &&
     selection.node.type.name === "attachment";
+  const isEmbedSelection =
+    selection instanceof NodeSelection && selection.node.type.name === "embed";
   const isCodeSelection = isInCode(state, { onlyBlock: true });
   const isNoticeSelection = isInNotice(state);
 
@@ -250,7 +253,7 @@ export default function SelectionToolbar(props: Props) {
     <FloatingToolbar
       active={isActive}
       ref={menuRef}
-      width={showLinkToolbar ? 336 : undefined}
+      width={showLinkToolbar || isEmbedSelection ? 336 : undefined}
     >
       {showLinkToolbar ? (
         <LinkEditor
@@ -262,6 +265,13 @@ export default function SelectionToolbar(props: Props) {
           to={link.to}
           onClickLink={props.onClickLink}
           onSelectLink={handleOnSelectLink}
+        />
+      ) : isEmbedSelection ? (
+        <EmbedLinkEditor
+          key={`embed-${selection.from}`}
+          node={(selection as NodeSelection).node}
+          view={view}
+          dictionary={dictionary}
         />
       ) : (
         <ToolbarMenu items={items} {...rest} />

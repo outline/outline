@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
-/* eslint-disable import/order */
+/* oxlint-disable @typescript-eslint/no-misused-promises */
+/* oxlint-disable import/order */
 import env from "./env";
 
 import "./logging/tracer"; // must come before importing any instrumented module
@@ -24,19 +24,19 @@ import { checkUpdates } from "./utils/updates";
 import onerror from "./onerror";
 import ShutdownHelper, { ShutdownOrder } from "./utils/ShutdownHelper";
 import { checkConnection, sequelize } from "./storage/database";
-import RedisAdapter from "./storage/redis";
-import Metrics from "./logging/Metrics";
+import Redis from "@server/storage/redis";
+import Metrics from "@server/logging/Metrics";
 import { PluginManager } from "./utils/PluginManager";
 
 // The number of processes to run, defaults to the number of CPU's available
-// for the web service, and 1 for collaboration during the beta period.
+// for the web service, and 1 for collaboration unless REDIS_COLLABORATION_URL is set.
 let webProcessCount = env.WEB_CONCURRENCY;
 
-if (env.SERVICES.includes("collaboration")) {
+if (env.SERVICES.includes("collaboration") && !env.REDIS_COLLABORATION_URL) {
   if (webProcessCount !== 1) {
     Logger.info(
       "lifecycle",
-      "Note: Restricting process count to 1 due to use of collaborative service"
+      "Note: Restricting process count to 1 due to use of collaborative service without REDIS_COLLABORATION_URL"
     );
   }
 
@@ -149,7 +149,7 @@ async function start(_id: number, disconnect: () => void) {
     }
 
     try {
-      await RedisAdapter.defaultClient.ping();
+      await Redis.defaultClient.ping();
     } catch (err) {
       Logger.error("Redis ping failed", err);
       ctx.status = 500;
