@@ -68,6 +68,17 @@ class Storage {
       // Ignore errors
     }
   }
+
+  /**
+   * Clear all values from storage.
+   */
+  public clear() {
+    try {
+      this.interface.clear();
+    } catch (_err) {
+      // Ignore errors
+    }
+  }
 }
 
 /**
