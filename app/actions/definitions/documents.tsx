@@ -70,7 +70,6 @@ import env from "~/env";
 import { setPersistedState } from "~/hooks/usePersistedState";
 import history from "~/utils/history";
 import {
-  documentInsightsPath,
   documentHistoryPath,
   homePath,
   newDocumentPath,
@@ -1329,7 +1328,7 @@ export const openDocumentHistory = createInternalLinkActionV2({
   },
 });
 
-export const openDocumentInsights = createInternalLinkActionV2({
+export const openDocumentInsights = createActionV2({
   name: ({ t }) => t("Insights"),
   analyticsName: "Open document insights",
   section: ActiveDocumentSection,
@@ -1347,21 +1346,20 @@ export const openDocumentInsights = createInternalLinkActionV2({
       !document?.isDeleted
     );
   },
-  to: ({ activeDocumentId, stores, sidebarContext }) => {
+  perform: ({ activeDocumentId, stores, t }) => {
     const document = activeDocumentId
       ? stores.documents.get(activeDocumentId)
       : undefined;
     if (!document) {
-      return "";
+      return;
     }
 
-    const [pathname, search] = documentInsightsPath(document).split("?");
+    const Insights = require("~/scenes/Document/components/Insights").default;
 
-    return {
-      pathname,
-      search,
-      state: { sidebarContext },
-    };
+    stores.dialogs.openModal({
+      title: t("Insights"),
+      content: <Insights document={document} />,
+    });
   },
 });
 

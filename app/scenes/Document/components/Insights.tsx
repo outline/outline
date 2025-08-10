@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import { useTranslation } from "react-i18next";
-import { useHistory, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { stringToColor } from "@shared/utils/color";
@@ -13,43 +12,28 @@ import ListItem from "~/components/List/Item";
 import PaginatedList from "~/components/PaginatedList";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
-import useKeyDown from "~/hooks/useKeyDown";
-import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useTextSelection from "~/hooks/useTextSelection";
 import { useTextStats } from "~/hooks/useTextStats";
 import InsightsMenu from "~/menus/InsightsMenu";
-import { documentPath } from "~/utils/routeHelpers";
-import Sidebar from "./SidebarLayout";
 
-function Insights() {
-  const { views, documents } = useStores();
+type Props = {
+  document: any;
+};
+
+function Insights({ document }: Props) {
+  const { views } = useStores();
   const { t } = useTranslation();
-  const match = useRouteMatch<{ documentSlug: string }>();
-  const history = useHistory();
-  const sidebarContext = useLocationSidebarContext();
   const selectedText = useTextSelection();
-  const document = documents.getByUrl(match.params.documentSlug);
   const { editor } = useDocumentContext();
   const text = editor?.getPlainText();
   const stats = useTextStats(text ?? "", selectedText);
   const can = usePolicy(document);
   const documentViews = document ? views.inDocument(document.id) : [];
 
-  const onCloseInsights = () => {
-    if (document) {
-      history.push({
-        pathname: documentPath(document),
-        state: { sidebarContext },
-      });
-    }
-  };
-
-  useKeyDown("Escape", onCloseInsights);
-
   return (
-    <Sidebar title={t("Insights")} onClose={onCloseInsights}>
+    <div>
       {document ? (
         <Flex
           column
@@ -208,7 +192,7 @@ function Insights() {
           </div>
         </Flex>
       ) : null}
-    </Sidebar>
+    </div>
   );
 }
 
