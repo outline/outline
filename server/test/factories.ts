@@ -47,7 +47,9 @@ import {
   OAuthClient,
   AuthenticationProvider,
   OAuthAuthentication,
+  Relationship,
 } from "@server/models";
+import { RelationshipType } from "@server/models/Relationship";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { hash } from "@server/utils/crypto";
 import { OAuthInterface } from "@server/utils/oauth/OAuthInterface";
@@ -828,4 +830,30 @@ export function buildCommentMark(overrides: {
     type: "comment",
     attrs: overrides,
   };
+}
+
+export async function buildRelationship(overrides: Partial<Relationship> = {}) {
+  if (!overrides.userId) {
+    const user = await buildUser();
+    overrides.userId = user.id;
+  }
+
+  if (!overrides.documentId) {
+    const document = await buildDocument({
+      createdById: overrides.userId,
+    });
+    overrides.documentId = document.id;
+  }
+
+  if (!overrides.reverseDocumentId) {
+    const reverseDocument = await buildDocument({
+      createdById: overrides.userId,
+    });
+    overrides.reverseDocumentId = reverseDocument.id;
+  }
+
+  return Relationship.create({
+    type: RelationshipType.Backlink,
+    ...overrides,
+  });
 }

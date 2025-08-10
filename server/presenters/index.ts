@@ -19,6 +19,7 @@ import presentPolicies from "./policy";
 import presentProviderConfig from "./providerConfig";
 import presentPublicTeam from "./publicTeam";
 import presentReaction from "./reaction";
+import presentRelationship from "./relationship";
 import presentRevision from "./revision";
 import presentSearchQuery from "./searchQuery";
 import presentShare from "./share";
@@ -51,6 +52,7 @@ export {
   presentPolicies,
   presentProviderConfig,
   presentReaction,
+  presentRelationship,
   presentRevision,
   presentSearchQuery,
   presentShare,

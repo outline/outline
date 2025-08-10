@@ -13,6 +13,7 @@ import Fix from "./decorators/Fix";
 
 export enum RelationshipType {
   Backlink = "backlink",
+  Similar = "similar",
 }
 
 @Table({ tableName: "relationships", modelName: "relationship" })
@@ -54,6 +55,7 @@ class Relationship extends IdModel<
    *
    * @param documentId The document ID to find backlinks for
    * @param user The user to check access for
+   * @deprecated
    */
   public static async findSourceDocumentIdsForUser(
     documentId: string,

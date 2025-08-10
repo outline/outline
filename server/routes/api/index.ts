@@ -32,6 +32,7 @@ import oauthAuthentications from "./oauthAuthentications";
 import oauthClients from "./oauthClients";
 import pins from "./pins";
 import reactions from "./reactions";
+import relationships from "./relationships";
 import revisions from "./revisions";
 import searches from "./searches";
 import shares from "./shares";
@@ -102,6 +103,7 @@ router.use("/", fileOperationsRoute.routes());
 router.use("/", urls.routes());
 router.use("/", userMemberships.routes());
 router.use("/", reactions.routes());
+router.use("/", relationships.routes());
 router.use("/", imports.routes());
 
 if (!env.isCloudHosted) {
