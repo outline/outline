@@ -127,6 +127,19 @@ export const clearIndexedDB = createAction({
   },
 });
 
+export const clearLocalStorage = createAction({
+  name: ({ t }) => t("Clear local storage"),
+  icon: <TrashIcon />,
+  keywords: "cache clear localstorage",
+  section: DeveloperSection,
+  perform: ({ t }) => {
+    if ("localStorage" in window) {
+      localStorage.clear();
+      toast.success(t("Local storage cleared"));
+    }
+  },
+});
+
 export const createTestUsers = createAction({
   name: "Create 10 test users",
   icon: <UserIcon />,
@@ -201,6 +214,7 @@ export const developer = createAction({
     createToast,
     createTestUsers,
     clearIndexedDB,
+    clearLocalStorage,
     startTyping,
   ],
 });
