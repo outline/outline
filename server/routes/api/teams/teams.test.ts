@@ -225,6 +225,17 @@ describe("#team.update", () => {
     expect(res.status).toEqual(401);
   });
 
+  it("should not allow setting team name to null", async () => {
+    const admin = await buildAdmin();
+    const res = await server.post("/api/team.update", {
+      body: {
+        token: admin.getJwtToken(),
+        name: null,
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it("should update default collection", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
