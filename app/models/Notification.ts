@@ -121,6 +121,8 @@ class Notification extends Model {
         return t("left a comment on");
       case NotificationEventType.ResolveComment:
         return t("resolved a comment on");
+      case NotificationEventType.ReactionsCreate:
+        return t("reacted to your comment on");
       case NotificationEventType.AddUserToDocument:
         return t("shared");
       case NotificationEventType.AddUserToCollection:
@@ -173,7 +175,8 @@ class Notification extends Model {
       }
       case NotificationEventType.MentionedInComment:
       case NotificationEventType.ResolveComment:
-      case NotificationEventType.CreateComment: {
+      case NotificationEventType.CreateComment:
+      case NotificationEventType.ReactionsCreate: {
         return this.document && this.comment
           ? commentPath(this.document, this.comment)
           : this.document?.path;

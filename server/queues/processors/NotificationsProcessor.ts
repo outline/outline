@@ -12,6 +12,7 @@ import CollectionAddUserNotificationsTask from "../tasks/CollectionAddUserNotifi
 import CollectionCreatedNotificationsTask from "../tasks/CollectionCreatedNotificationsTask";
 import CommentCreatedNotificationsTask from "../tasks/CommentCreatedNotificationsTask";
 import CommentUpdatedNotificationsTask from "../tasks/CommentUpdatedNotificationsTask";
+import ReactionsCreateNotificationsTask from "../tasks/ReactionsCreateNotificationsTask";
 import DocumentAddGroupNotificationsTask from "../tasks/DocumentAddGroupNotificationsTask";
 import DocumentAddUserNotificationsTask from "../tasks/DocumentAddUserNotificationsTask";
 import DocumentPublishedNotificationsTask from "../tasks/DocumentPublishedNotificationsTask";
@@ -28,6 +29,7 @@ export default class NotificationsProcessor extends BaseProcessor {
     "collections.add_user",
     "comments.create",
     "comments.update",
+    "comments.add_reaction",
   ];
 
   async perform(event: Event) {
@@ -48,6 +50,8 @@ export default class NotificationsProcessor extends BaseProcessor {
         return this.commentCreated(event);
       case "comments.update":
         return this.commentUpdated(event);
+      case "comments.add_reaction":
+        return this.reactionCreated(event);
       default:
     }
   }
@@ -109,5 +113,9 @@ export default class NotificationsProcessor extends BaseProcessor {
 
   async commentUpdated(event: CommentEvent) {
     await new CommentUpdatedNotificationsTask().schedule(event);
+  }
+
+  async reactionCreated(event: CommentEvent) {
+    await new ReactionsCreateNotificationsTask().schedule(event);
   }
 }
