@@ -35,14 +35,12 @@ router.post(
       relationship.reverseDocumentId,
       {
         userId: user.id,
+        rejectOnEmpty: true,
       }
     );
+    authorize(user, "read", reverseDocument);
 
-    const documents = [document];
-
-    if (reverseDocument && can(user, "read", reverseDocument)) {
-      documents.push(reverseDocument);
-    }
+    const documents = [document, reverseDocument];
 
     ctx.body = {
       data: {
@@ -90,6 +88,7 @@ router.post(
         documents: await Promise.all(
           documents.map((document: Document) => presentDocument(ctx, document))
         ),
+        policies: presentPolicies(user, documents),
       },
       policies,
     };
