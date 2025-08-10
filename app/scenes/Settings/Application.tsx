@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import { CopyIcon, InternetIcon, ReplaceIcon } from "outline-icons";
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
@@ -29,6 +29,8 @@ import { ActionRow } from "./components/ActionRow";
 import { CopyButton } from "./components/CopyButton";
 import ImageInput from "./components/ImageInput";
 import SettingRow from "./components/SettingRow";
+import { createInternalLinkActionV2 } from "~/actions";
+import { NavigationSection } from "~/actions/sections";
 
 type Props = {
   oauthClient: OAuthClient;
@@ -77,6 +79,18 @@ const Application = observer(function Application({ oauthClient }: Props) {
     },
   });
 
+  const breadcrumbActions = useMemo(
+    () => [
+      createInternalLinkActionV2({
+        name: t("Applications"),
+        section: NavigationSection,
+        icon: <InternetIcon />,
+        to: settingsPath("applications"),
+      }),
+    ],
+    [t]
+  );
+
   const handleSubmit = useCallback(
     async (data: FormData) => {
       try {
@@ -118,18 +132,7 @@ const Application = observer(function Application({ oauthClient }: Props) {
   return (
     <Scene
       title={oauthClient.name}
-      left={
-        <Breadcrumb
-          items={[
-            {
-              type: "route",
-              title: t("Applications"),
-              to: settingsPath("applications"),
-              icon: <InternetIcon />,
-            },
-          ]}
-        />
-      }
+      left={<Breadcrumb actions={breadcrumbActions} />}
       actions={<OAuthClientMenu oauthClient={oauthClient} showEdit={false} />}
     >
       <form onSubmit={formHandleSubmit(handleSubmit)}>
