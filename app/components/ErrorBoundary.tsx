@@ -87,9 +87,10 @@ class ErrorBoundary extends React.Component<Props> {
       const cutoff = Date.now() - ERROR_TRACKING_WINDOW_MS;
 
       // Filter out old errors and add current one
-      const updatedErrors = errors
-        .filter((timestamp) => timestamp > cutoff)
-        .concat(Date.now());
+      const updatedErrors = [
+        ...errors.filter((timestamp) => timestamp > cutoff),
+        Date.now(),
+      ];
 
       Storage.set(ERROR_TRACKING_KEY, JSON.stringify(updatedErrors));
 
