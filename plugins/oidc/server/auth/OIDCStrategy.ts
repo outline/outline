@@ -21,8 +21,8 @@ export class OIDCStrategy extends Strategy {
 
   authorizationParams(options: any) {
     return {
-      ...(options.originalQuery || {}),
-      ...(super.authorizationParams?.(options) || {}),
+      ...options.originalQuery,
+      ...super.authorizationParams?.(options),
     };
   }
 }
