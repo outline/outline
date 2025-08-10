@@ -1,3 +1,4 @@
+import Storage from "@shared/utils/Storage";
 import copy from "copy-to-clipboard";
 import {
   BeakerIcon,
@@ -127,16 +128,14 @@ export const clearIndexedDB = createAction({
   },
 });
 
-export const clearLocalStorage = createAction({
+export const clearStorage = createAction({
   name: ({ t }) => t("Clear local storage"),
   icon: <TrashIcon />,
   keywords: "cache clear localstorage",
   section: DeveloperSection,
   perform: ({ t }) => {
-    if ("localStorage" in window) {
-      localStorage.clear();
-      toast.success(t("Local storage cleared"));
-    }
+    Storage.clear();
+    toast.success(t("Local storage cleared"));
   },
 });
 
@@ -214,7 +213,7 @@ export const developer = createAction({
     createToast,
     createTestUsers,
     clearIndexedDB,
-    clearLocalStorage,
+    clearStorage,
     startTyping,
   ],
 });
