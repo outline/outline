@@ -6,55 +6,89 @@ import { s, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
 import BreadcrumbMenu from "~/menus/BreadcrumbMenu";
 import { undraggableOnDesktop } from "~/styles";
-import { MenuInternalLink } from "~/types";
+import { InternalLinkActionV2, MenuInternalLink } from "~/types";
+import { actionV2ToMenuItem } from "~/actions";
+import useActionContext from "~/hooks/useActionContext";
+import { useComputed } from "~/hooks/useComputed";
+
+type TopLevelAction =
+  | InternalLinkActionV2
+  | { type: "menu"; actions: InternalLinkActionV2[] };
 
 type Props = React.PropsWithChildren<{
-  items: MenuInternalLink[];
+  actions: InternalLinkActionV2[];
   max?: number;
   highlightFirstItem?: boolean;
 }>;
 
 function Breadcrumb(
-  { items, highlightFirstItem, children, max = 2 }: Props,
+  { actions, highlightFirstItem, children, max = 2 }: Props,
   ref: React.RefObject<HTMLDivElement> | null
 ) {
-  const totalItems = items.length;
-  const topLevelItems: MenuInternalLink[] = [...items];
-  let overflowItems;
+  const actionContext = useActionContext({ isContextMenu: true });
+
+  const visibleActions = useComputed(
+    () =>
+      actions.filter((action) =>
+        typeof action.visible === "function"
+          ? action.visible(actionContext)
+          : (action.visible ?? true)
+      ),
+    [actions, actionContext]
+  );
+  const totalVisibleActions = visibleActions.length;
+
+  const topLevelActions: TopLevelAction[] = [...visibleActions];
 
   // chop middle breadcrumbs and present a "..." menu instead
-  if (totalItems > max) {
+  if (totalVisibleActions > max) {
     const halfMax = Math.floor(max / 2);
-    overflowItems = topLevelItems.splice(halfMax, totalItems - max);
+    const menuActions = topLevelActions.splice(
+      halfMax,
+      totalVisibleActions - max
+    ) as InternalLinkActionV2[];
 
-    topLevelItems.splice(halfMax, 0, {
-      to: "",
-      type: "route",
-      title: <BreadcrumbMenu items={overflowItems as MenuInternalLink[]} />,
+    topLevelActions.splice(halfMax, 0, {
+      type: "menu",
+      actions: menuActions,
     });
   }
 
+  const toBreadcrumb = React.useCallback(
+    (action: TopLevelAction, index: number) => {
+      if (action.type === "menu") {
+        return <BreadcrumbMenu key="menu" actions={action.actions} />;
+      }
+
+      const item = actionV2ToMenuItem(
+        action,
+        actionContext
+      ) as MenuInternalLink;
+
+      return (
+        <>
+          {item.icon}
+          <Item
+            to={item.to}
+            $withIcon={!!item.icon}
+            $highlight={!!highlightFirstItem && index === 0}
+          >
+            {item.title}
+          </Item>
+        </>
+      );
+    },
+    [actionContext, highlightFirstItem]
+  );
+
   return (
     <Flex justify="flex-start" align="center" ref={ref}>
-      {topLevelItems.map((item, index) => (
-        <React.Fragment
-          key={
-            (typeof item.to === "string" ? item.to : item.to.pathname) || index
-          }
-        >
-          {item.icon}
-          {item.to ? (
-            <Item
-              to={item.to}
-              $withIcon={!!item.icon}
-              $highlight={!!highlightFirstItem && index === 0}
-            >
-              {item.title}
-            </Item>
-          ) : (
-            item.title
-          )}
-          {index !== topLevelItems.length - 1 || !!children ? <Slash /> : null}
+      {topLevelActions.map((action, index) => (
+        <React.Fragment key={action.type === "menu" ? "menu" : `item-${index}`}>
+          {toBreadcrumb(action, index)}
+          {index !== topLevelActions.length - 1 || !!children ? (
+            <Slash />
+          ) : null}
         </React.Fragment>
       ))}
       {children}

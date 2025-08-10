@@ -1,27 +1,21 @@
 import { useTranslation } from "react-i18next";
-import ContextMenu from "~/components/ContextMenu";
-import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
-import Template from "~/components/ContextMenu/Template";
-import { useMenuState } from "~/hooks/useMenuState";
-import { MenuInternalLink } from "~/types";
+import { DropdownMenu } from "~/components/Menu/DropdownMenu";
+import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
+import { useMenuAction } from "~/hooks/useMenuAction";
+import { InternalLinkActionV2 } from "~/types";
 
 type Props = {
-  items: MenuInternalLink[];
+  actions: InternalLinkActionV2[];
 };
 
-export default function BreadcrumbMenu({ items }: Props) {
+export default function BreadcrumbMenu({ actions }: Props) {
   const { t } = useTranslation();
-  const menu = useMenuState({
-    modal: true,
-    placement: "bottom",
-  });
+
+  const rootAction = useMenuAction(actions);
 
   return (
-    <>
-      <OverflowMenuButton aria-label={t("Show path to document")} {...menu} />
-      <ContextMenu {...menu} aria-label={t("Path to document")}>
-        <Template {...menu} items={items} />
-      </ContextMenu>
-    </>
+    <DropdownMenu action={rootAction} ariaLabel={t("Show path to document")}>
+      <OverflowMenuButton />
+    </DropdownMenu>
   );
 }

@@ -268,7 +268,7 @@ export function actionV2ToMenuItem(
   switch (action.type) {
     case "action": {
       const title = resolve<string>(action.name, context);
-      const visible = resolve<boolean>(action.visible, context);
+      const visible = resolve<boolean>(action.visible, context) ?? true;
       const disabled = resolve<boolean>(action.disabled, context);
       const icon =
         !!action.icon && action.iconInContextMenu !== false

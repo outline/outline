@@ -3,9 +3,10 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import Collection from "~/models/Collection";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
-import { MenuInternalLink } from "~/types";
 import { archivePath, collectionPath } from "~/utils/routeHelpers";
 import Breadcrumb from "./Breadcrumb";
+import { createInternalLinkActionV2 } from "~/actions";
+import { ActiveCollectionSection } from "~/actions/sections";
 
 type Props = {
   collection: Collection;
@@ -14,32 +15,24 @@ type Props = {
 export const CollectionBreadcrumb: React.FC<Props> = ({ collection }) => {
   const { t } = useTranslation();
 
-  const items = React.useMemo(() => {
-    const collectionNode: MenuInternalLink = {
-      type: "route",
-      title: collection.name,
-      icon: <CollectionIcon collection={collection} expanded />,
-      to: collectionPath(collection.path),
-    };
+  const actions = React.useMemo(
+    () => [
+      createInternalLinkActionV2({
+        name: t("Archive"),
+        section: ActiveCollectionSection,
+        icon: <ArchiveIcon />,
+        visible: collection.isArchived,
+        to: archivePath(),
+      }),
+      createInternalLinkActionV2({
+        name: collection.name,
+        section: ActiveCollectionSection,
+        icon: <CollectionIcon collection={collection} expanded />,
+        to: collectionPath(collection.path),
+      }),
+    ],
+    [collection, t]
+  );
 
-    const category: MenuInternalLink | undefined = collection.isArchived
-      ? {
-          type: "route",
-          icon: <ArchiveIcon />,
-          title: t("Archive"),
-          to: archivePath(),
-        }
-      : undefined;
-
-    const output = [];
-    if (category) {
-      output.push(category);
-    }
-
-    output.push(collectionNode);
-
-    return output;
-  }, [collection, t]);
-
-  return <Breadcrumb items={items} highlightFirstItem />;
+  return <Breadcrumb actions={actions} highlightFirstItem />;
 };
