@@ -152,10 +152,13 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
       []
     );
 
-    const handleOptionSelect = (optionKey: string) => {
-      onSelect(optionKey);
-      setOpen(false);
-    };
+    const handleOptionSelect = React.useCallback(
+      (optionKey: string) => {
+        onSelect(optionKey);
+        setOpen(false);
+      },
+      [onSelect, setOpen]
+    );
 
     const renderItem = React.useCallback(
       (option: ComboboxOption) => (
@@ -184,7 +187,7 @@ export const Combobox = React.forwardRef<HTMLButtonElement, ComboboxProps>(
           )}
         </ComboboxOption>
       ),
-      [selectedKeys, handleEscapeFromList]
+      [selectedKeys, handleEscapeFromList, handleOptionSelect]
     );
 
     React.useEffect(() => {

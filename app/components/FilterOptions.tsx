@@ -27,20 +27,18 @@ const FilterOptions = ({
   showFilter,
   fetchQuery,
   fetchQueryOptions,
-}: Props) => {
-  return (
-    <Combobox
-      options={options}
-      selectedKeys={selectedKeys}
-      defaultLabel={defaultLabel}
-      className={className}
-      onSelect={onSelect}
-      showFilter={showFilter}
-      fetchQuery={fetchQuery}
-      fetchQueryOptions={fetchQueryOptions}
-    />
-  );
-};
+}: Props) => (
+  <Combobox
+    options={options}
+    selectedKeys={selectedKeys}
+    defaultLabel={defaultLabel}
+    className={className}
+    onSelect={onSelect}
+    showFilter={showFilter}
+    fetchQuery={fetchQuery}
+    fetchQueryOptions={fetchQueryOptions}
+  />
+);
 
 export const StyledButton = styled(Button)`
   box-shadow: none;
