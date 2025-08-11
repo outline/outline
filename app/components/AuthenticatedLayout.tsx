@@ -27,7 +27,6 @@ import {
   settingsPath,
   matchDocumentHistory,
   matchDocumentSlug as slug,
-  matchDocumentInsights,
 } from "~/utils/routeHelpers";
 import { DocumentContextProvider } from "./DocumentContext";
 import Fade from "./Fade";
@@ -39,9 +38,7 @@ const DocumentComments = lazyWithRetry(
 const DocumentHistory = lazyWithRetry(
   () => import("~/scenes/Document/components/History")
 );
-const DocumentInsights = lazyWithRetry(
-  () => import("~/scenes/Document/components/Insights")
-);
+
 const CommandBar = lazyWithRetry(() => import("~/components/CommandBar"));
 
 type Props = {
@@ -98,12 +95,7 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
     !!matchPath(location.pathname, {
       path: matchDocumentHistory,
     }) && can.listRevisions;
-  const showInsights =
-    !!matchPath(location.pathname, {
-      path: matchDocumentInsights,
-    }) && can.listViews;
   const showComments =
-    !showInsights &&
     !showHistory &&
     can.comment &&
     ui.activeDocumentId &&
@@ -115,12 +107,11 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
       initial={false}
       key={ui.activeDocumentId ? "active" : "inactive"}
     >
-      {(showHistory || showInsights || showComments) && (
+      {(showHistory || showComments) && (
         <Route path={`/doc/${slug}`}>
           <SidebarRight>
             <React.Suspense fallback={null}>
               {showHistory && <DocumentHistory />}
-              {showInsights && <DocumentInsights />}
               {showComments && <DocumentComments />}
             </React.Suspense>
           </SidebarRight>

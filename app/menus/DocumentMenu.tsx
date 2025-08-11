@@ -148,6 +148,13 @@ function DocumentMenu({
     [user, document]
   );
 
+  const handleInsightsToggle = React.useCallback(
+    (checked: boolean) => {
+      void document.save({ insightsEnabled: checked });
+    },
+    [document]
+  );
+
   const templateMenuActions = useTemplateMenuActions({
     document,
     onSelectTemplate,
@@ -231,6 +238,18 @@ function DocumentMenu({
       <>
         <MenuSeparator />
         <DisplayOptions>
+          {can.updateInsights && (
+            <Style>
+              <ToggleMenuItem
+                width={26}
+                height={14}
+                label={t("Enable viewer insights")}
+                labelPosition="left"
+                checked={document.insightsEnabled}
+                onChange={handleInsightsToggle}
+              />
+            </Style>
+          )}
           {showToggleEmbeds && (
             <Style>
               <ToggleMenuItem
@@ -263,6 +282,7 @@ function DocumentMenu({
     can.update,
     document.embedsDisabled,
     document.fullWidth,
+    document.insightsEnabled,
     isMobile,
     showDisplayOptions,
     showToggleEmbeds,

@@ -26,7 +26,6 @@ import {
   PublishIcon,
   CommentIcon,
   CopyIcon,
-  EyeIcon,
   PadlockIcon,
   GlobeIcon,
   LogoutIcon,
@@ -70,7 +69,6 @@ import env from "~/env";
 import { setPersistedState } from "~/hooks/usePersistedState";
 import history from "~/utils/history";
 import {
-  documentInsightsPath,
   documentHistoryPath,
   homePath,
   newDocumentPath,
@@ -84,6 +82,7 @@ import {
 import capitalize from "lodash/capitalize";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import { ActionV2, ActionV2Group, ActionV2Separator } from "~/types";
+import Insights from "~/scenes/Document/components/Insights";
 
 export const openDocument = createAction({
   name: ({ t }) => t("Open document"),
@@ -1329,7 +1328,7 @@ export const openDocumentHistory = createInternalLinkActionV2({
   },
 });
 
-export const openDocumentInsights = createInternalLinkActionV2({
+export const openDocumentInsights = createActionV2({
   name: ({ t }) => t("Insights"),
   analyticsName: "Open document insights",
   section: ActiveDocumentSection,
@@ -1347,51 +1346,17 @@ export const openDocumentInsights = createInternalLinkActionV2({
       !document?.isDeleted
     );
   },
-  to: ({ activeDocumentId, stores, sidebarContext }) => {
+  perform: ({ activeDocumentId, stores, t }) => {
     const document = activeDocumentId
       ? stores.documents.get(activeDocumentId)
       : undefined;
     if (!document) {
-      return "";
-    }
-
-    const [pathname, search] = documentInsightsPath(document).split("?");
-
-    return {
-      pathname,
-      search,
-      state: { sidebarContext },
-    };
-  },
-});
-
-export const toggleViewerInsights = createActionV2({
-  name: ({ t, stores, activeDocumentId }) => {
-    const document = activeDocumentId
-      ? stores.documents.get(activeDocumentId)
-      : undefined;
-    return document?.insightsEnabled
-      ? t("Disable viewer insights")
-      : t("Enable viewer insights");
-  },
-  analyticsName: "Toggle viewer insights",
-  section: ActiveDocumentSection,
-  icon: <EyeIcon />,
-  visible: ({ activeDocumentId, stores }) => {
-    const can = stores.policies.abilities(activeDocumentId ?? "");
-    return can.updateInsights;
-  },
-  perform: async ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
-      return;
-    }
-    const document = stores.documents.get(activeDocumentId);
-    if (!document) {
       return;
     }
 
-    await document.save({
-      insightsEnabled: !document.insightsEnabled,
+    stores.dialogs.openModal({
+      title: t("Insights"),
+      content: <Insights document={document} />,
     });
   },
 });
