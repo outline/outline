@@ -73,8 +73,7 @@ export default class NotificationsStore extends Store<Notification> {
    */
   @computed
   get approximateUnreadCount(): number {
-    return this.orderedData.filter((notification) => !notification.viewedAt)
-      .length;
+    return this.active.filter((notification) => !notification.viewedAt).length;
   }
 
   /**
@@ -86,5 +85,13 @@ export default class NotificationsStore extends Store<Notification> {
       orderBy(Array.from(this.data.values()), "createdAt", "desc"),
       (item) => (item.viewedAt ? 1 : -1)
     );
+  }
+
+  /**
+   * Returns only the active (non-archived) notifications.
+   */
+  @computed
+  get active(): Notification[] {
+    return this.orderedData.filter((n) => !n.archivedAt);
   }
 }
