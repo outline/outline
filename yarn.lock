@@ -2854,10 +2854,10 @@
   resolved "https://registry.yarnpkg.com/@octokit/openapi-types/-/openapi-types-25.0.0.tgz#adeead36992abf966e89dcd53518d8b0dc910e0d"
   integrity sha512-FZvktFu7HfOIJf2BScLKIEYjDsw6RKc7rBJCdvCTfKsVnx2GEB/Nbzjr29DUdb7vQhlzS/j8qDzdditP0OC6aw==
 
-"@octokit/openapi-webhooks-types@10.4.0":
-  version "10.4.0"
-  resolved "https://registry.yarnpkg.com/@octokit/openapi-webhooks-types/-/openapi-webhooks-types-10.4.0.tgz#2cf1e08b9ad9f66930865c9e555499ae2e7507a3"
-  integrity sha512-HMiF7FUiVBYfp8pPijMTkWuPELQB6XkPftrnSuK1C1YXaaq2+0ganiQkorEQfXTmhtwlgHJwXT6P8miVhIyjQA==
+"@octokit/openapi-webhooks-types@11.0.0":
+  version "11.0.0"
+  resolved "https://registry.yarnpkg.com/@octokit/openapi-webhooks-types/-/openapi-webhooks-types-11.0.0.tgz#27b170627e48ff8a2f6fffb159263dc20804917c"
+  integrity sha512-ZBzCFj98v3SuRM7oBas6BHZMJRadlnDoeFfvm1olVxZnYeU6Vh97FhPxyS5aLh5pN51GYv2I51l/hVUAVkGBlA==
 
 "@octokit/plugin-paginate-graphql@^4.0.0":
   version "4.0.0"
@@ -2974,12 +2974,12 @@
     "@octokit/webhooks-types" "7.6.1"
     aggregate-error "^3.1.0"
 
-"@octokit/webhooks@^13.8.0":
-  version "13.8.0"
-  resolved "https://registry.yarnpkg.com/@octokit/webhooks/-/webhooks-13.8.0.tgz#0d1f40f5b4217090deb5b810426052f477d8522b"
-  integrity sha512-3PCWyFBNbW2+Ox36VAkSqlPoIb96NZiPcICRYySHZrDTM2NuNxvrjPeaQDj2egqILs9EZFObRTHVMe4XxXJV7w==
+"@octokit/webhooks@^13.9.1":
+  version "13.9.1"
+  resolved "https://registry.yarnpkg.com/@octokit/webhooks/-/webhooks-13.9.1.tgz#9996ded76702f293974c08a05303ad6abcf02970"
+  integrity sha512-Nss2b4Jyn4wB3EAqAPJypGuCJFalz/ZujKBQQ5934To7Xw9xjf4hkr/EAByxQY7hp7MKd790bWGz7XYSTsHmaw==
   dependencies:
-    "@octokit/openapi-webhooks-types" "10.4.0"
+    "@octokit/openapi-webhooks-types" "11.0.0"
     "@octokit/request-error" "^6.1.7"
     "@octokit/webhooks-methods" "^5.1.1"
 
