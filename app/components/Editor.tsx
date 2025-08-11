@@ -43,7 +43,7 @@ export type Props = Optional<
 function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const { id, shareId, onChange, onCreateCommentMark, onDeleteCommentMark } =
     props;
-  const { comments } = useStores();
+  const { comments, ui } = useStores();
   const dictionary = useDictionary();
   const embeds = useEmbeds(!shareId);
   const localRef = React.useRef<SharedEditor>();
@@ -224,6 +224,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
             onChange={handleChange}
             placeholder={props.placeholder || ""}
             defaultValue={props.defaultValue || ""}
+            activeLightboxImgPos={ui.activeLightboxImgPos}
           />
         )}
         {props.editorStyle?.paddingBottom && !props.readOnly && (

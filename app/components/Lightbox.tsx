@@ -112,10 +112,14 @@ function Lightbox() {
   if (!activeLightboxImgPos) {
     return null;
   }
-  const imageNodes = findChildren(
-    view.state.doc,
-    (child) => child.type === view.state.schema.nodes.image,
-    true
+  const imageNodes = useMemo(
+    () =>
+      findChildren(
+        view.state.doc,
+        (child) => child.type === view.state.schema.nodes.image,
+        true
+      ),
+    []
   );
   const currNodeIndex = findIndex(
     imageNodes,
@@ -158,6 +162,10 @@ function Lightbox() {
   const animateOnClose = () => {
     if (imgRef.current) {
       const dom = view.nodeDOM(activeLightboxImgPos) as HTMLElement;
+      if (!dom) {
+        ui.setActiveLightboxImgPos(undefined);
+        return;
+      }
       // in editor
       const editorImageEl = dom.querySelector("img") as HTMLImageElement;
       const editorImgDOMRect = editorImageEl.getBoundingClientRect();
