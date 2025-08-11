@@ -137,6 +137,8 @@ export type Props = {
   style?: React.CSSProperties;
   /** Optional style overrides for the contenteeditable */
   editorStyle?: React.CSSProperties;
+  /** Position of image in doc that's being currently viewed in Lightbox */
+  activeLightboxImgPos?: number | null;
 };
 
 type State = {
@@ -832,7 +834,7 @@ export class Editor extends React.PureComponent<
               )}
             </Observer>
           </Flex>
-          {this.view && <Lightbox />}
+          {this.props.activeLightboxImgPos && <Lightbox />}
         </EditorContext.Provider>
       </PortalContext.Provider>
     );
