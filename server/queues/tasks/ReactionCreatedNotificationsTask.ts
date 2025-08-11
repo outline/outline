@@ -27,8 +27,8 @@ export default class ReactionCreatedNotificationsTask extends BaseTask<CommentRe
     }
 
     // Get the user who reacted (the actor)
-    const reactor = await User.findByPk(event.actorId);
-    if (!reactor) {
+    const actor = await User.findByPk(event.actorId);
+    if (!actor) {
       return;
     }
 
@@ -39,7 +39,7 @@ export default class ReactionCreatedNotificationsTask extends BaseTask<CommentRe
     }
 
     // Don't notify if the user reacted to their own comment
-    if (reactor.id === recipient.id) {
+    if (actor.id === recipient.id) {
       return;
     }
 
@@ -67,7 +67,9 @@ export default class ReactionCreatedNotificationsTask extends BaseTask<CommentRe
       // If a notification already exists for this reaction, update it
       // as we have a unique constraint on userId, commentId, and event.
       await existing.update({
-        actorId: reactor.id,
+        viewedAt: null,
+        archivedAt: null,
+        actorId: actor.id,
         data: { emoji },
       });
       return;
@@ -77,7 +79,7 @@ export default class ReactionCreatedNotificationsTask extends BaseTask<CommentRe
     await Notification.create({
       event: NotificationEventType.ReactionsCreate,
       userId: recipient.id,
-      actorId: reactor.id,
+      actorId: actor.id,
       teamId: document.teamId,
       commentId: comment.id,
       documentId: document.id,
