@@ -1,9 +1,12 @@
 import { i18n } from "i18next";
 import { locales, unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import Desktop from "./Desktop";
+import User from "~/models/User";
+import useUserLocale from "~/hooks/useUserLocale";
 
 /**
- * Formats a number using the user's locale where possible.
+ * Formats a number using the user's locale where possible. Use `useFormatNumber` hook
+ * instead of this function in React components, to automatically use the user's locale.
  *
  * @param number The number to format
  * @param locale The locale to use for formatting (BCP47 format)

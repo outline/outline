@@ -3,7 +3,7 @@ import { observer, useObserver } from "mobx-react";
 import { CommentIcon } from "outline-icons";
 import { useRef, Fragment } from "react";
 import { useTranslation } from "react-i18next";
-import { useRouteMatch } from "react-router-dom";
+import { Link, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { TeamPreference } from "@shared/types";
 import Document from "~/models/Document";
@@ -42,7 +42,6 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
   });
 
   const Wrapper = viewsLoadedOnMount.current ? Fragment : Fade;
-
 
   const commentsCount = comments.unresolvedCommentsInDocumentCount(document.id);
   const commentingEnabled = !!team.getPreference(TeamPreference.Commenting);
@@ -99,8 +98,8 @@ const InsightsButton = styled.button`
   padding: 0;
   color: inherit;
   font: inherit;
-  cursor: pointer;
   text-decoration: none;
+  cursor: var(--pointer);
 
   &:hover {
     text-decoration: underline;

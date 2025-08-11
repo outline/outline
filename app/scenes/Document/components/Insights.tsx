@@ -5,32 +5,26 @@ import { s } from "@shared/styles";
 import { stringToColor } from "@shared/utils/color";
 import User from "~/models/User";
 import { Avatar, AvatarSize } from "~/components/Avatar";
-import { useDocumentContext } from "~/components/DocumentContext";
-import DocumentViews from "~/components/DocumentViews";
 import Flex from "~/components/Flex";
 import ListItem from "~/components/List/Item";
 import PaginatedList from "~/components/PaginatedList";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
-import usePolicy from "~/hooks/usePolicy";
-import useStores from "~/hooks/useStores";
 import useTextSelection from "~/hooks/useTextSelection";
 import { useTextStats } from "~/hooks/useTextStats";
-import InsightsMenu from "~/menus/InsightsMenu";
+import type Document from "~/models/Document";
+import { useFormatNumber } from "~/hooks/useFormatNumber";
 
 type Props = {
-  document: any;
+  document: Document;
 };
 
 function Insights({ document }: Props) {
-  const { views } = useStores();
   const { t } = useTranslation();
   const selectedText = useTextSelection();
-  const { editor } = useDocumentContext();
-  const text = editor?.getPlainText();
+  const text = document.toPlainText();
   const stats = useTextStats(text ?? "", selectedText);
-  const can = usePolicy(document);
-  const documentViews = document ? views.inDocument(document.id) : [];
+  const formatNumber = useFormatNumber();
 
   return (
     <div>
@@ -42,69 +36,86 @@ function Insights({ document }: Props) {
           justify="space-between"
         >
           <div>
-            <Content column>
-              {document.sourceMetadata && (
-                <>
-                  <Heading>{t("Source")}</Heading>
-                  {
-                    <Text as="p" type="secondary" size="small">
+            <Flex column>
+              <Text as="h2" size="large">
+                {t("Source")}
+              </Text>
+              <Text as="p" type="secondary" size="small">
+                <List>
+                  <li>
+                    {t("Created")}{" "}
+                    <Time dateTime={document.createdAt} addSuffix />
+                  </li>
+                  <li>
+                    {t(`Last updated`)}{" "}
+                    <Time dateTime={document.updatedAt} addSuffix />
+                  </li>
+                  {document.sourceMetadata && (
+                    <li>
                       {t("Imported from {{ source }}", {
                         source:
                           document.sourceName ??
                           `“${document.sourceMetadata.fileName}”`,
                       })}
-                    </Text>
-                  }
-                </>
-              )}
-              <Heading>{t("Stats")}</Heading>
+                    </li>
+                  )}
+                </List>
+              </Text>
+
+              <Text as="h2" size="large">
+                {t("Stats")}
+              </Text>
               <Text as="p" type="secondary" size="small">
                 <List>
                   {stats.total.words > 0 && (
                     <li>
-                      {t(`{{ count }} minute read`, {
-                        count: stats.total.readingTime,
+                      {t(`{{ number }} minute read`, {
+                        number: formatNumber(stats.total.readingTime),
                       })}
                     </li>
                   )}
                   <li>
-                    {t(`{{ count }} words`, { count: stats.total.words })}
-                  </li>
-                  <li>
-                    {t(`{{ count }} characters`, {
-                      count: stats.total.characters,
+                    {t(`{{ number }} words`, {
+                      count: stats.total.words,
+                      number: formatNumber(stats.total.words),
                     })}
                   </li>
                   <li>
-                    {t(`{{ number }} emoji`, { number: stats.total.emoji })}
+                    {t(`{{ number }} characters`, {
+                      count: stats.total.characters,
+                      number: formatNumber(stats.total.characters),
+                    })}
+                  </li>
+                  <li>
+                    {t(`{{ number }} emoji`, {
+                      number: formatNumber(stats.total.emoji),
+                    })}
                   </li>
                   {stats.selected.characters === 0 ? (
                     <li>{t("No text selected")}</li>
                   ) : (
                     <>
                       <li>
-                        {t(`{{ count }} words selected`, {
+                        {t(`{{ number }} words selected`, {
                           count: stats.selected.words,
+                          number: formatNumber(stats.selected.words),
                         })}
                       </li>
                       <li>
-                        {t(`{{ count }} characters selected`, {
+                        {t(`{{ number }} characters selected`, {
                           count: stats.selected.characters,
+                          number: formatNumber(stats.selected.characters),
                         })}
                       </li>
                     </>
                   )}
                 </List>
               </Text>
-            </Content>
+            </Flex>
 
-            <Content column>
-              <Heading>{t("Contributors")}</Heading>
-              <Text as="p" type="secondary" size="small">
-                {t(`Created`)} <Time dateTime={document.createdAt} addSuffix />.
-                <br />
-                {t(`Last updated`)}{" "}
-                <Time dateTime={document.updatedAt} addSuffix />.
+            <Flex column>
+              <Text as="h2" size="large">
+                {t("Contributors")}
               </Text>
               <ListSpacing>
                 {document.sourceMetadata?.createdByName && (
@@ -150,45 +161,7 @@ function Insights({ document }: Props) {
                   )}
                 />
               </ListSpacing>
-            </Content>
-            {(document.insightsEnabled || can.updateInsights) && (
-              <Content column>
-                <Heading>
-                  <Flex justify="space-between">
-                    {t("Viewed by")}
-                    {can.updateInsights && <InsightsMenu />}
-                  </Flex>
-                </Heading>
-                {document.insightsEnabled ? (
-                  <>
-                    <Text as="p" type="secondary" size="small">
-                      {documentViews.length <= 1
-                        ? t("No one else has viewed yet")
-                        : t(
-                            `Viewed {{ count }} times by {{ teamMembers }} people`,
-                            {
-                              count: documentViews.reduce(
-                                (memo, view) => memo + view.count,
-                                0
-                              ),
-                              teamMembers: documentViews.length,
-                            }
-                          )}
-                      .
-                    </Text>
-                    {documentViews.length > 1 && (
-                      <ListSpacing>
-                        <DocumentViews document={document} />
-                      </ListSpacing>
-                    )}
-                  </>
-                ) : (
-                  <Text as="p" type="secondary" size="small">
-                    {t("Viewer insights are disabled.")}
-                  </Text>
-                )}
-              </Content>
-            )}
+            </Flex>
           </div>
         </Flex>
       ) : null}
@@ -202,7 +175,7 @@ const ListSpacing = styled("div")`
 `;
 
 const List = styled("ul")`
-  margin: 0;
+  margin: 0 0 1em;
   padding: 0;
   list-style: none;
 
@@ -213,15 +186,6 @@ const List = styled("ul")`
     color: ${s("textTertiary")};
     width: 10px;
   }
-`;
-
-const Content = styled(Flex)`
-  padding: 0 16px;
-  user-select: none;
-`;
-
-const Heading = styled("h3")`
-  font-size: 15px;
 `;
 
 export default observer(Insights);

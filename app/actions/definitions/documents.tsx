@@ -83,6 +83,7 @@ import {
 import capitalize from "lodash/capitalize";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import { ActionV2, ActionV2Group, ActionV2Separator } from "~/types";
+import Insights from "~/scenes/Document/components/Insights";
 
 export const openDocument = createAction({
   name: ({ t }) => t("Open document"),
@@ -1353,8 +1354,6 @@ export const openDocumentInsights = createActionV2({
     if (!document) {
       return;
     }
-
-    const Insights = require("~/scenes/Document/components/Insights").default;
 
     stores.dialogs.openModal({
       title: t("Insights"),
