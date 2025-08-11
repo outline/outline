@@ -362,7 +362,7 @@
     "rimraf": "^2.5.4",
     "rollup-plugin-webpack-stats": "^2.1.0",
     "terser": "^5.43.1",
-    "typescript": "^5.8.3",
+    "typescript": "^5.9.2",
     "vite-plugin-static-copy": "^0.17.0",
     "yarn-deduplicate": "^6.0.2"
   },
