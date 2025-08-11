@@ -26,7 +26,6 @@ import {
   PublishIcon,
   CommentIcon,
   CopyIcon,
-  EyeIcon,
   PadlockIcon,
   GlobeIcon,
   LogoutIcon,
@@ -1358,37 +1357,6 @@ export const openDocumentInsights = createActionV2({
     stores.dialogs.openModal({
       title: t("Insights"),
       content: <Insights document={document} />,
-    });
-  },
-});
-
-export const toggleViewerInsights = createActionV2({
-  name: ({ t, stores, activeDocumentId }) => {
-    const document = activeDocumentId
-      ? stores.documents.get(activeDocumentId)
-      : undefined;
-    return document?.insightsEnabled
-      ? t("Disable viewer insights")
-      : t("Enable viewer insights");
-  },
-  analyticsName: "Toggle viewer insights",
-  section: ActiveDocumentSection,
-  icon: <EyeIcon />,
-  visible: ({ activeDocumentId, stores }) => {
-    const can = stores.policies.abilities(activeDocumentId ?? "");
-    return can.updateInsights;
-  },
-  perform: async ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) {
-      return;
-    }
-    const document = stores.documents.get(activeDocumentId);
-    if (!document) {
-      return;
-    }
-
-    await document.save({
-      insightsEnabled: !document.insightsEnabled,
     });
   },
 });
