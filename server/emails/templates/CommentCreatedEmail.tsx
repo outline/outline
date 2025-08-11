@@ -137,7 +137,7 @@ export default class CommentCreatedEmail extends BaseEmail<
     return `
 ${actorName} ${isReply ? "replied to a thread in" : "commented on"} "${
       document.titleWithDefault
-    }"${collection?.name ? `in the ${collection.name} collection` : ""}.
+    }" ${collection?.name ? `in the ${collection.name} collection` : ""}.
 
 Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
 `;

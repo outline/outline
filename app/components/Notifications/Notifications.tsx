@@ -35,7 +35,7 @@ function Notifications(
   const context = useActionContext();
   const { notifications } = useStores();
   const { t } = useTranslation();
-  const isEmpty = notifications.orderedData.length === 0;
+  const isEmpty = notifications.active.length === 0;
 
   // Update the notification count in the dock icon, if possible.
   React.useEffect(() => {
@@ -80,7 +80,7 @@ function Notifications(
             <PaginatedList<Notification>
               fetch={notifications.fetchPage}
               options={{ archived: false }}
-              items={notifications.orderedData}
+              items={notifications.active}
               renderItem={(item) => (
                 <NotificationListItem
                   key={item.id}

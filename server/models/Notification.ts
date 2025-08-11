@@ -19,7 +19,7 @@ import {
   AfterCreate,
   DefaultScope,
 } from "sequelize-typescript";
-import { NotificationEventType } from "@shared/types";
+import { NotificationData, NotificationEventType } from "@shared/types";
 import { getBaseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import Model from "@server/models/base/Model";
@@ -120,6 +120,9 @@ class Notification extends Model<
 
   @CreatedAt
   createdAt: Date;
+
+  @Column(DataType.JSONB)
+  data: NotificationData | null;
 
   @Column(DataType.STRING)
   event: NotificationEventType;

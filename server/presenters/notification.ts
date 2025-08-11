@@ -26,5 +26,6 @@ export default async function presentNotification(
       : undefined,
     revisionId: notification.revisionId,
     collectionId: notification.collectionId,
+    data: notification.data,
   };
 }

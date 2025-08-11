@@ -347,6 +347,7 @@ export enum NotificationEventType {
   CreateCollection = "collections.create",
   CreateComment = "comments.create",
   ResolveComment = "comments.resolve",
+  ReactionsCreate = "reactions.create",
   MentionedInDocument = "documents.mentioned",
   MentionedInComment = "comments.mentioned",
   InviteAccepted = "emails.invite_accepted",
@@ -360,6 +361,10 @@ export enum NotificationChannelType {
   Email = "email",
   Chat = "chat",
 }
+
+export type NotificationData = {
+  emoji?: string;
+};
 
 export type NotificationSettings = {
   [event in NotificationEventType]?:
@@ -376,6 +381,7 @@ export const NotificationEventDefaults: Record<NotificationEventType, boolean> =
     [NotificationEventType.CreateCollection]: false,
     [NotificationEventType.CreateComment]: true,
     [NotificationEventType.ResolveComment]: true,
+    [NotificationEventType.ReactionsCreate]: true,
     [NotificationEventType.CreateRevision]: false,
     [NotificationEventType.MentionedInDocument]: true,
     [NotificationEventType.MentionedInComment]: true,
