@@ -33,7 +33,7 @@ import {
 import { depths, s } from "@shared/styles";
 import NudeButton from "./NudeButton";
 import usePrevious from "~/hooks/usePrevious";
-import { fadeIn } from "~/styles/animations";
+import { fadeIn, fadeOut } from "~/styles/animations";
 import useIdle from "~/hooks/useIdle";
 import { Second } from "@shared/utils/time";
 import { downloadImageNode } from "@shared/editor/nodes/Image";
@@ -448,6 +448,7 @@ const Actions = styled.div`
   right: 0;
   margin: 12px;
   display: flex;
+  animation: ${fadeIn} 0.3s;
 `;
 
 const StyledActionButton = styled(NudeButton)`
@@ -475,6 +476,7 @@ const Nav = styled.div<{ $hidden: boolean; dir: "left" | "right" }>`
   ${(props) => (props.dir === "left" ? "left: 0;" : "right: 0;")}
   transition: opacity 500ms ease-in-out;
   ${(props) => props.$hidden && "opacity: 0;"}
+  animation: ${fadeIn} 0.3s;
 `;
 
 const StyledNavButton = styled(NudeButton)`
