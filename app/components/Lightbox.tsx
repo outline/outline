@@ -7,7 +7,7 @@ import { findChildren } from "@shared/editor/queries/findChildren";
 import { filter, findIndex, isNil, map, uniq } from "lodash";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import useDragResize from "@shared/editor/components/hooks/useDragResize";
 import { ComponentProps } from "@shared/editor/types";
 import { EditorView } from "prosemirror-view";
@@ -39,7 +39,11 @@ import { Second } from "@shared/utils/time";
 import { downloadImageNode } from "@shared/editor/nodes/Image";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { useTranslation } from "react-i18next";
-
+enum LightboxStatus {
+  CLOSED,
+  OPENED,
+  CLOSING,
+}
 function Lightbox() {
   const { view } = useEditor();
   const { ui } = useStores();
@@ -51,6 +55,9 @@ function Lightbox() {
   const prevActiveLightboxImgPos = usePrevious(activeLightboxImgPos);
   const wasOpen = !!prevActiveLightboxImgPos;
   const shouldAnimate = isOpen && !wasOpen;
+  const [lightboxStatus, setLightboxStatus] = useState<LightboxStatus>(
+    LightboxStatus.CLOSED
+  );
 
   const animate = useCallback(() => {
     if (imgRef.current) {
@@ -103,6 +110,7 @@ function Lightbox() {
             lightboxImageEl.style.height = "";
             lightboxImageEl.style.transform = "";
             lightboxImageEl.style.transition = "";
+            setLightboxStatus(LightboxStatus.OPENED);
           };
         });
       } else {
@@ -204,11 +212,13 @@ function Lightbox() {
         lightboxImageEl.style.transform = `translate(${tx}px, ${ty}px)`;
 
         lightboxImageEl.ontransitionstart = () => {
+          setLightboxStatus(LightboxStatus.CLOSING);
           lightboxImageEl.style.width = `${editorImgWidth}px`;
           lightboxImageEl.style.height = `${editorImgHeight}px`;
         };
 
         lightboxImageEl.ontransitionend = () => {
+          setLightboxStatus(LightboxStatus.CLOSED);
           ui.setActiveLightboxImgPos(undefined);
         };
       });
@@ -240,12 +250,12 @@ function Lightbox() {
   return (
     <Dialog.Root open={!!activeLightboxImgPos}>
       <Dialog.Portal>
-        <StyledOverlay />
+        <StyledOverlay $lightboxStatus={lightboxStatus} />
         <StyledContent onKeyDown={handleKeyDown}>
           <VisuallyHidden.Root>
             <Dialog.Title>{t("Lightbox")}</Dialog.Title>
           </VisuallyHidden.Root>
-          <Actions>
+          <Actions $lightboxStatus={lightboxStatus}>
             <StyledActionButton onClick={download} size={32}>
               <DownloadIcon size={32} />
             </StyledActionButton>
@@ -255,7 +265,7 @@ function Lightbox() {
               </StyledActionButton>
             </Dialog.Close>
           </Actions>
-          <Nav dir="left" $hidden={isIdle}>
+          <Nav dir="left" $hidden={isIdle} $lightboxStatus={lightboxStatus}>
             <StyledNavButton onClick={prev} size={32}>
               <BackIcon size={32} />
             </StyledNavButton>
@@ -271,7 +281,7 @@ function Lightbox() {
             onSwipeLeft={prev}
             onSwipeDown={close}
           />
-          <Nav dir="right" $hidden={isIdle}>
+          <Nav dir="right" $hidden={isIdle} $lightboxStatus={lightboxStatus}>
             <StyledNavButton onClick={next} size={32}>
               <NextIcon size={32} />
             </StyledNavButton>
@@ -423,12 +433,25 @@ const Caption = styled("figcaption")`
   color: ${s("textSecondary")};
 `;
 
-const StyledOverlay = styled(Dialog.Overlay)`
+const StyledOverlay = styled(Dialog.Overlay)<{
+  $lightboxStatus: LightboxStatus;
+}>`
   position: fixed;
   inset: 0;
   background-color: ${s("background")};
   z-index: ${depths.overlay};
-  animation: ${fadeIn} 0.3s;
+  ${(props) =>
+    props.$lightboxStatus === LightboxStatus.CLOSED
+      ? css`
+          animation: ${fadeIn} 0.3s;
+        `
+      : props.$lightboxStatus === LightboxStatus.OPENED
+        ? css`
+            animation: none;
+          `
+        : css`
+            animation: ${fadeOut} 0.3s;
+          `}
 `;
 
 const StyledContent = styled(Dialog.Content)`
@@ -442,13 +465,26 @@ const StyledContent = styled(Dialog.Content)`
   padding: 0 56px;
 `;
 
-const Actions = styled.div`
+const Actions = styled.div<{
+  $lightboxStatus: LightboxStatus;
+}>`
   position: absolute;
   top: 0;
   right: 0;
   margin: 12px;
   display: flex;
-  animation: ${fadeIn} 0.3s;
+  ${(props) =>
+    props.$lightboxStatus === LightboxStatus.CLOSED
+      ? css`
+          animation: ${fadeIn} 0.3s;
+        `
+      : props.$lightboxStatus === LightboxStatus.OPENED
+        ? css`
+            animation: none;
+          `
+        : css`
+            animation: ${fadeOut} 0.3s;
+          `}
 `;
 
 const StyledActionButton = styled(NudeButton)`
@@ -471,12 +507,27 @@ const StyledActionButton = styled(NudeButton)`
   }
 `;
 
-const Nav = styled.div<{ $hidden: boolean; dir: "left" | "right" }>`
+const Nav = styled.div<{
+  $hidden: boolean;
+  dir: "left" | "right";
+  $lightboxStatus: LightboxStatus;
+}>`
   position: absolute;
   ${(props) => (props.dir === "left" ? "left: 0;" : "right: 0;")}
   transition: opacity 500ms ease-in-out;
   ${(props) => props.$hidden && "opacity: 0;"}
-  animation: ${fadeIn} 0.3s;
+  ${(props) =>
+    props.$lightboxStatus === LightboxStatus.CLOSED
+      ? css`
+          animation: ${fadeIn} 0.3s;
+        `
+      : props.$lightboxStatus === LightboxStatus.OPENED
+        ? css`
+            animation: none;
+          `
+        : css`
+            animation: ${fadeOut} 0.3s;
+          `}
 `;
 
 const StyledNavButton = styled(NudeButton)`
