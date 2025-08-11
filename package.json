@@ -125,7 +125,7 @@
     "crypto-js": "^4.2.0",
     "datadog-metrics": "^0.12.1",
     "date-fns": "^3.6.0",
-    "dd-trace": "^5.40.0",
+    "dd-trace": "^5.62.0",
     "diff": "^5.2.0",
     "dotenv": "^16.5.0",
     "email-providers": "^1.14.0",
