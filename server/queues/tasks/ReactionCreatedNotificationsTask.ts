@@ -4,7 +4,7 @@ import { CommentReactionEvent } from "@server/types";
 import { canUserAccessDocument } from "@server/utils/permissions";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
-export default class ReactionsCreateNotificationsTask extends BaseTask<CommentReactionEvent> {
+export default class ReactionCreatedNotificationsTask extends BaseTask<CommentReactionEvent> {
   public async perform(event: CommentReactionEvent) {
     const { emoji } = event.data;
 
@@ -33,34 +33,50 @@ export default class ReactionsCreateNotificationsTask extends BaseTask<CommentRe
     }
 
     // Get the comment author (the recipient of the notification)
-    const commentAuthor = await User.findByPk(comment.createdById);
-    if (!commentAuthor) {
+    const recipient = await User.findByPk(comment.createdById);
+    if (!recipient) {
       return;
     }
 
     // Don't notify if the user reacted to their own comment
-    if (reactor.id === commentAuthor.id) {
+    if (reactor.id === recipient.id) {
       return;
     }
 
     // Check if the comment author has this notification type enabled
     if (
-      !commentAuthor.subscribedToEventType(
-        NotificationEventType.ReactionsCreate
-      )
+      !recipient.subscribedToEventType(NotificationEventType.ReactionsCreate)
     ) {
       return;
     }
 
     // Check if the comment author can access the document
-    if (!(await canUserAccessDocument(commentAuthor, document.id))) {
+    if (!(await canUserAccessDocument(recipient, document.id))) {
+      return;
+    }
+
+    const existing = await Notification.findOne({
+      where: {
+        event: NotificationEventType.ReactionsCreate,
+        userId: recipient.id,
+        commentId: comment.id,
+      },
+    });
+
+    if (existing) {
+      // If a notification already exists for this reaction, update it
+      // as we have a unique constraint on userId, commentId, and event.
+      await existing.update({
+        actorId: reactor.id,
+        data: { emoji },
+      });
       return;
     }
 
     // Create the notification
     await Notification.create({
       event: NotificationEventType.ReactionsCreate,
-      userId: commentAuthor.id,
+      userId: recipient.id,
       actorId: reactor.id,
       teamId: document.teamId,
       commentId: comment.id,
