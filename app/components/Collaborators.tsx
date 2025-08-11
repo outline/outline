@@ -148,6 +148,10 @@ function Collaborators(props: Props) {
     [presentIds, editingIds, observingUserId, currentUserId, handleAvatarClick]
   );
 
+  if (!document.insightsEnabled) {
+    return null;
+  }
+
   return (
     <Popover>
       <PopoverTrigger>
