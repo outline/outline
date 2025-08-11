@@ -37,11 +37,14 @@ import { fadeIn } from "~/styles/animations";
 import useIdle from "~/hooks/useIdle";
 import { Second } from "@shared/utils/time";
 import { downloadImageNode } from "@shared/editor/nodes/Image";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+import { useTranslation } from "react-i18next";
 
 function Lightbox() {
   const { view } = useEditor();
   const { ui } = useStores();
   const isIdle = useIdle(3 * Second.ms);
+  const { t } = useTranslation();
   const imgRef = useRef<HTMLImageElement | null>(null);
   const { activeLightboxImgPos } = ui;
   const isOpen = !!activeLightboxImgPos;
@@ -239,6 +242,9 @@ function Lightbox() {
       <Dialog.Portal>
         <StyledOverlay />
         <StyledContent onKeyDown={handleKeyDown}>
+          <VisuallyHidden.Root>
+            <Dialog.Title>{t("Lightbox")}</Dialog.Title>
+          </VisuallyHidden.Root>
           <Actions>
             <StyledActionButton onClick={download} size={32}>
               <DownloadIcon size={32} />
