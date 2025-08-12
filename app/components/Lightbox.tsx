@@ -278,8 +278,6 @@ function Lightbox() {
             ref={imgRef}
             src={sanitizeUrl(currImgNode.attrs.src) ?? ""}
             alt={currImgNode.attrs.alt ?? ""}
-            width={currImgNode.attrs.width}
-            height={currImgNode.attrs.height}
             onLoad={animate}
             onSwipeRight={next}
             onSwipeLeft={prev}
@@ -304,8 +302,6 @@ enum Status {
 type Props = {
   src: string;
   alt: string;
-  width?: number;
-  height?: number;
   onLoad: () => void;
   onSwipeRight: () => void;
   onSwipeLeft: () => void;
@@ -313,22 +309,10 @@ type Props = {
 };
 
 const Image = forwardRef<HTMLImageElement, Props>(function _Image(
-  {
-    src,
-    alt,
-    width,
-    height,
-    onLoad,
-    onSwipeRight,
-    onSwipeLeft,
-    onSwipeDown,
-  }: Props,
+  { src, alt, onLoad, onSwipeRight, onSwipeLeft, onSwipeDown }: Props,
   ref
 ) {
   const [status, setStatus] = useState<Status | null>(null);
-
-  const [imgWidth, setImgWidth] = useState(width);
-  const [imgHeight, setImgHeight] = useState(height);
 
   let touchXStart: number | undefined;
   let touchXEnd: number | undefined;
@@ -382,7 +366,7 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
       <CrossIcon size={16} /> Image failed to load
     </Error>
   ) : (
-    <Figure style={{ width: imgWidth, height: imgHeight }}>
+    <Figure>
       <img
         ref={ref}
         src={src}
@@ -392,6 +376,7 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
           visibility: "hidden",
           maxHeight: "100%",
           maxWidth: "100%",
+          minHeight: 0,
           objectFit: "scale-down",
         }}
         alt={alt}
@@ -403,15 +388,6 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
           setStatus(Status.ERROR);
         }}
         onLoad={(ev: React.SyntheticEvent<HTMLImageElement>) => {
-          // For some SVG's Firefox does not provide the naturalWidth, in this
-          // rare case we need to provide a default so that the image can be
-          // seen and is not sized to 0px
-          const imgWidth =
-            width || (ev.target as HTMLImageElement).naturalWidth || 300;
-          setImgWidth(width);
-          const imgHeight =
-            height || (ev.target as HTMLImageElement).naturalHeight;
-          setImgHeight(height);
           setStatus(Status.LOADED);
           onLoad();
         }}
@@ -422,8 +398,8 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
 });
 
 const Figure = styled("figure")`
-  max-width: 100%;
-  max-height: 100%;
+  width: 100%;
+  height: 100%;
   margin: 0;
   display: flex;
   flex-direction: column;
@@ -435,6 +411,7 @@ const Caption = styled("figcaption")`
   font-size: 14px;
   font-weight: normal;
   color: ${s("textSecondary")};
+  flex-shrink: 0;
 `;
 
 const StyledOverlay = styled(Dialog.Overlay)<{
@@ -466,7 +443,7 @@ const StyledContent = styled(Dialog.Content)`
   justify-content: center;
   align-items: center;
   outline: none;
-  padding: 0 56px;
+  padding: 56px;
 `;
 
 const Actions = styled.div<{
