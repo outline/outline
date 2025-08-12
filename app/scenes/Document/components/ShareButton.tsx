@@ -24,7 +24,7 @@ function ShareButton({ document }: Props) {
   const { shares } = useStores();
   const isMobile = useMobile();
   const share = shares.getByDocumentId(document.id);
-  const sharedParent = shares.getByDocumentParents(document.id);
+  const sharedParent = shares.getByDocumentParents(document);
   const domain = share?.domain || sharedParent?.domain;
 
   const closePopover = useCallback(() => {

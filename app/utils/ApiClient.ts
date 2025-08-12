@@ -153,10 +153,12 @@ class ApiClient {
 
     // Handle 401, log out user
     if (response.status === 401) {
-      await stores.auth.logout({
-        savePath: true,
-        revokeToken: false,
-      });
+      if (!this.shareId) {
+        await stores.auth.logout({
+          savePath: true,
+          revokeToken: false,
+        });
+      }
       throw new AuthorizationError();
     }
 

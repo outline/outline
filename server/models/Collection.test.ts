@@ -1,5 +1,5 @@
-import randomstring from "randomstring";
 import { v4 as uuidv4 } from "uuid";
+import { randomString } from "@shared/random";
 import slugify from "@shared/utils/slugify";
 import {
   buildUser,
@@ -511,8 +511,41 @@ describe("#findByPk", () => {
   });
 
   it("should return null when no collection is found with urlId", async () => {
-    const id = `${slugify("test collection")}-${randomstring.generate(15)}`;
+    const id = `${slugify("test collection")}-${randomString(15)}`;
     const response = await Collection.findByPk(id);
     expect(response).toBe(null);
+  });
+});
+
+describe("#setIndex", () => {
+  it("should set index before creating a collection", async () => {
+    const collection = await buildCollection();
+    expect(collection.index).not.toBeNull();
+  });
+
+  it("should resolve index collision when creating a collection", async () => {
+    const collection = await buildCollection();
+    const anotherCollection = await buildCollection({
+      teamId: collection.teamId,
+      index: collection.index,
+    });
+    expect(anotherCollection.index).not.toBeNull();
+    expect(anotherCollection.index).not.toEqual(collection.index);
+  });
+
+  it("should ensure only transaction is used for finding the first collection for team", async () => {
+    const collection = await buildCollection();
+    const [anotherCollection] = await Collection.findOrCreate({
+      where: {
+        name: "Another collection",
+        teamId: collection.teamId,
+      },
+      defaults: {
+        createdById: collection.createdById,
+        index: collection.index,
+      },
+    });
+    expect(anotherCollection.index).not.toBeNull();
+    expect(anotherCollection.index).not.toEqual(collection.index);
   });
 });

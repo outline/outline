@@ -41,7 +41,7 @@ async function loadLanguage(language: string) {
     })
     .catch((err) => {
       // It will retry loading the language on the next render
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line no-console
       console.error(
         `Failed to load language ${language} for code highlighting`,
         err

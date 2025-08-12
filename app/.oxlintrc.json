@@ -1,0 +1,28 @@
+{
+  "extends": ["../.oxlintrc.json"],
+  "plugins": ["oxc", "eslint", "typescript", "react"],
+  "overrides": [
+    {
+      "files": ["**/*.{jsx,tsx}"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "reakit/Menu",
+                "importNames": ["useMenuState"],
+                "message": "Do not use useMenuState from reakit/Menu. Use useMenuState instead."
+              }
+            ]
+          }
+        ]
+      },
+      "plugins": ["import"]
+    }
+  ],
+  "env": {
+    "jest": true,
+    "browser": true
+  }
+}

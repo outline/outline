@@ -63,10 +63,6 @@ export function documentEditPath(doc: Document): string {
   return `${documentPath(doc)}/edit`;
 }
 
-export function documentInsightsPath(doc: Document): string {
-  return `${documentPath(doc)}/insights`;
-}
-
 export function documentHistoryPath(
   doc: Document,
   revisionId?: string
@@ -133,17 +129,20 @@ export function searchPath({
   return `/search${search}`;
 }
 
-export function sharedDocumentPath(shareId: string, docPath?: string) {
+export function sharedModelPath(shareId: string, modelPath?: string) {
   if (shareId === env.ROOT_SHARE_ID) {
-    return docPath ? docPath : "/";
+    return modelPath ? modelPath : "/";
   }
 
-  return docPath ? `/s/${shareId}${docPath}` : `/s/${shareId}`;
+  return modelPath ? `/s/${shareId}${modelPath}` : `/s/${shareId}`;
 }
 
 export function urlify(path: string): string {
   return `${window.location.origin}${path}`;
 }
+
+export const matchCollectionSlug =
+  ":collectionSlug([0-9a-zA-Z-_~]*-[a-zA-z0-9]{10,15})";
 
 export const matchDocumentSlug =
   ":documentSlug([0-9a-zA-Z-_~]*-[a-zA-z0-9]{10,15})";
@@ -151,5 +150,3 @@ export const matchDocumentSlug =
 export const matchDocumentEdit = `/doc/${matchDocumentSlug}/edit`;
 
 export const matchDocumentHistory = `/doc/${matchDocumentSlug}/history/:revisionId?`;
-
-export const matchDocumentInsights = `/doc/${matchDocumentSlug}/insights`;

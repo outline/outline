@@ -1,383 +1,402 @@
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import {
-  Select,
-  SelectOption,
-  useSelectState,
-  useSelectPopover,
-  SelectPopover,
-} from "@renderlesskit/react";
-import { CheckmarkIcon } from "outline-icons";
+import { QuestionMarkIcon } from "outline-icons";
+import { transparentize } from "polished";
 import * as React from "react";
-import styled, { css } from "styled-components";
+import styled from "styled-components";
 import { s } from "@shared/styles";
-import Button, { Props as ButtonProps, Inner } from "~/components/Button";
 import Text from "~/components/Text";
-import useMenuHeight from "~/hooks/useMenuHeight";
 import useMobile from "~/hooks/useMobile";
-import useOnClickOutside from "~/hooks/useOnClickOutside";
-import { fadeAndScaleIn } from "~/styles/animations";
-import {
-  Position,
-  Background as ContextMenuBackground,
-  Backdrop,
-  Placement,
-} from "./ContextMenu";
-import { MenuAnchorCSS } from "./ContextMenu/MenuItem";
 import Separator from "./ContextMenu/Separator";
+import Flex from "./Flex";
 import { LabelText } from "./Input";
+import NudeButton from "./NudeButton";
+import Scrollable from "./Scrollable";
+import Tooltip from "./Tooltip";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
+  DrawerTrigger,
+} from "./primitives/Drawer";
+import {
+  InputSelectRoot,
+  InputSelectContent,
+  InputSelectItem,
+  InputSelectSeparator,
+  InputSelectTrigger,
+  type TriggerButtonProps,
+} from "./primitives/InputSelect";
+import {
+  SelectItemIndicator,
+  SelectItem as SelectItemWrapper,
+  SelectButton,
+} from "./primitives/components/InputSelect";
 
-export type Option = {
-  label: string | JSX.Element;
+type Separator = {
+  /* Denotes a horizontal divider line to be rendered in the menu, */
+  type: "separator";
+};
+
+export type Item = {
+  /* Denotes a selectable option in the menu. */
+  type: "item";
+  /* Representative text shown in the menu for this option. */
+  label: string;
+  /* Actual value of this option. */
   value: string;
+  /* Additional info shown alongside the label.  */
   description?: string;
-  divider?: boolean;
+  /* An icon shown alongside the label.  */
+  icon?: React.ReactElement;
 };
 
-export type Props = Omit<ButtonProps<any>, "onChange"> & {
-  id?: string;
-  name?: string;
-  value?: string | null;
-  label?: React.ReactNode;
-  nude?: boolean;
-  ariaLabel: string;
-  short?: boolean;
-  disabled?: boolean;
-  className?: string;
-  labelHidden?: boolean;
-  icon?: React.ReactNode;
+export type Option = Item | Separator;
+
+type Props = {
+  /* Options to display in the select menu. */
   options: Option[];
-  /** @deprecated Removing soon, do not use. */
-  note?: React.ReactNode;
-  /** Callback function that is called when the value changes. Return false to cancel the change. */
-  onChange?: (value: string | null) => void | Promise<boolean | void>;
-  style?: React.CSSProperties;
-  /**
-   * Set to true if this component is rendered inside a Modal.
-   * The Modal will take care of preventing body scroll behaviour.
-   */
-  skipBodyScroll?: boolean;
-};
+  /* Current chosen value. */
+  value?: string | null;
+  /* Callback when an option is selected. */
+  onChange: (value: string) => void;
+  /* Label for the select menu. */
+  label: string;
+  /* When true, label is hidden in an accessible manner. */
+  hideLabel?: boolean;
+  /* When true, menu is disabled. */
+  disabled?: boolean;
+  /* When true, width of the menu trigger is restricted. Otherwise, takes up the full width of parent. */
+  short?: boolean;
+  /** Display a tooltip with the descriptive help text about the select menu. */
+  help?: string;
+} & TriggerButtonProps;
 
-export interface InputSelectRef {
-  value: string | null;
-  focus: () => void;
-  blur: () => void;
-}
+export const InputSelect = React.forwardRef<HTMLButtonElement, Props>(
+  (props, ref) => {
+    const {
+      options,
+      value,
+      onChange,
+      label,
+      hideLabel,
+      short,
+      help,
+      ...triggerProps
+    } = props;
 
-interface InnerProps extends React.HTMLAttributes<HTMLDivElement> {
-  placement: Placement;
-}
+    const [localValue, setLocalValue] = React.useState(value);
+    const [open, setOpen] = React.useState(false);
 
-const getOptionFromValue = (options: Option[], value: string | null) =>
-  options.find((option) => option.value === value);
+    const contentRef =
+      React.useRef<React.ElementRef<typeof InputSelectContent>>(null);
 
-const InputSelect = (props: Props, ref: React.RefObject<InputSelectRef>) => {
-  const {
-    value = null,
-    label,
-    className,
-    labelHidden,
-    options,
-    short,
-    ariaLabel,
-    onChange,
-    disabled,
-    note,
-    icon,
-    nude,
-    skipBodyScroll,
-    ...rest
-  } = props;
+    const isMobile = useMobile();
 
-  const select = useSelectState({
-    gutter: 0,
-    modal: true,
-    selectedValue: value,
-  });
+    const placeholder = `Select a ${label.toLowerCase()}`;
+    const optionsHaveIcon = options.some(
+      (opt) => opt.type === "item" && !!opt.icon
+    );
 
-  const popover = useSelectPopover({
-    ...select,
-    hideOnClickOutside: false,
-    preventBodyScroll: skipBodyScroll ? false : true,
-    disabled,
-  });
-
-  const isMobile = useMobile();
-  const previousValue = React.useRef<string | null>(value);
-  const selectedRef = React.useRef<HTMLDivElement>(null);
-  const buttonRef = React.useRef<HTMLButtonElement>(null);
-  const contentRef = React.useRef<HTMLDivElement>(null);
-  const minWidth = buttonRef.current?.offsetWidth || 0;
-  const margin = 8;
-  const menuMaxHeight = useMenuHeight({
-    visible: select.visible,
-    elementRef: select.unstable_disclosureRef,
-    margin,
-  });
-  const maxHeight = Math.min(
-    menuMaxHeight ?? 0,
-    window.innerHeight -
-      (buttonRef.current?.getBoundingClientRect().bottom ?? 0) -
-      margin
-  );
-
-  const wrappedLabel = <LabelText>{label}</LabelText>;
-  const selectedValueIndex = options.findIndex(
-    (opt) => opt.value === select.selectedValue
-  );
-
-  // Custom click outside handling rather than using `hideOnClickOutside` from reakit so that we can
-  // prevent event bubbling.
-  useOnClickOutside(
-    contentRef,
-    (event) => {
-      if (buttonRef.current?.contains(event.target as Node)) {
-        return;
-      }
-      if (select.visible) {
-        event.stopPropagation();
-        event.preventDefault();
-        select.hide();
-      }
-    },
-    { capture: true }
-  );
-
-  React.useImperativeHandle(ref, () => ({
-    focus: () => {
-      buttonRef.current?.focus();
-    },
-    blur: () => {
-      buttonRef.current?.blur();
-    },
-    value: select.selectedValue,
-  }));
-
-  React.useEffect(() => {
-    previousValue.current = value;
-
-    // Update the selected value if it changes from the outside – both of these lines are needed
-    // for correct functioning
-    select.selectedValue = value;
-    select.setSelectedValue(value);
-  }, [value]);
-
-  React.useEffect(() => {
-    if (previousValue.current === select.selectedValue) {
-      return;
-    }
-    const previous = previousValue.current;
-    previousValue.current = select.selectedValue;
-
-    const response = onChange?.(select.selectedValue);
-    if (response && response instanceof Promise) {
-      void response.then((success) => {
-        if (success === false) {
-          select.selectedValue = previous;
-          select.setSelectedValue(previous);
+    const renderOption = React.useCallback(
+      (option: Option, idx: number) => {
+        if (option.type === "separator") {
+          return <InputSelectSeparator key={`separator-${idx}`} />;
         }
-      });
-    }
-  }, [onChange, select.selectedValue]);
 
-  React.useLayoutEffect(() => {
-    if (select.visible) {
-      requestAnimationFrame(() => {
-        if (contentRef.current) {
-          contentRef.current.scrollTop = selectedValueIndex * 32;
-        }
-      });
-    }
-  }, [select.visible, selectedValueIndex]);
+        return (
+          <InputSelectItem key={option.value} value={option.value}>
+            <Option option={option} optionsHaveIcon={optionsHaveIcon} />
+          </InputSelectItem>
+        );
+      },
+      [optionsHaveIcon]
+    );
 
-  function labelForOption(opt: Option) {
+    const onValueChange = React.useCallback(
+      async (val: string) => {
+        setLocalValue(val);
+        onChange(val);
+      },
+      [onChange, setLocalValue]
+    );
+
+    const enablePointerEvents = React.useCallback(() => {
+      if (contentRef.current) {
+        contentRef.current.style.pointerEvents = "auto";
+      }
+    }, []);
+
+    const disablePointerEvents = React.useCallback(() => {
+      if (contentRef.current) {
+        contentRef.current.style.pointerEvents = "none";
+      }
+    }, []);
+
+    React.useEffect(() => {
+      setLocalValue(value);
+    }, [value]);
+
+    if (isMobile) {
+      return (
+        <MobileSelect
+          ref={ref}
+          {...props}
+          value={localValue}
+          onChange={onValueChange}
+          placeholder={placeholder}
+          optionsHaveIcon={optionsHaveIcon}
+        />
+      );
+    }
+
     return (
-      <>
-        {opt.label}
-        {opt.description && (
-          <>
-            &nbsp;
-            <Text as="span" type="tertiary" size="small" ellipsis>
-              – {opt.description}
-            </Text>
-          </>
-        )}
-      </>
+      <Wrapper short={short}>
+        <Label text={label} hidden={hideLabel ?? false} help={help} />
+        <InputSelectRoot
+          open={open}
+          onOpenChange={setOpen}
+          value={localValue ?? undefined}
+          onValueChange={onValueChange}
+        >
+          <InputSelectTrigger
+            ref={ref}
+            placeholder={placeholder}
+            {...triggerProps}
+          />
+          <InputSelectContent
+            ref={contentRef}
+            aria-label={label}
+            onAnimationStart={disablePointerEvents}
+            onAnimationEnd={enablePointerEvents}
+          >
+            {options.map(renderOption)}
+          </InputSelectContent>
+        </InputSelectRoot>
+      </Wrapper>
     );
   }
+);
+InputSelect.displayName = "InputSelect";
 
-  const option = getOptionFromValue(options, select.selectedValue);
-
-  return (
-    <>
-      <Wrapper short={short}>
-        {label &&
-          (labelHidden ? (
-            <VisuallyHidden.Root>{wrappedLabel}</VisuallyHidden.Root>
-          ) : (
-            wrappedLabel
-          ))}
-
-        <Select {...select} disabled={disabled} {...rest} ref={buttonRef}>
-          {(buttonProps) => (
-            <StyledButton
-              neutral
-              disclosure
-              className={className}
-              icon={icon}
-              $nude={nude}
-              {...buttonProps}
-            >
-              {option ? (
-                labelForOption(option)
-              ) : (
-                <Placeholder>Select a {ariaLabel.toLowerCase()}</Placeholder>
-              )}
-            </StyledButton>
-          )}
-        </Select>
-        <SelectPopover
-          {...select}
-          {...popover}
-          aria-label={ariaLabel}
-          preventBodyScroll={skipBodyScroll ? false : true}
-        >
-          {(popoverProps: InnerProps) => {
-            const topAnchor = popoverProps.style?.top === "0";
-            const rightAnchor = popoverProps.placement === "bottom-end";
-
-            return (
-              <Positioner {...popoverProps}>
-                <Background
-                  dir="auto"
-                  ref={contentRef}
-                  topAnchor={topAnchor}
-                  rightAnchor={rightAnchor}
-                  hiddenScrollbars
-                  maxWidth={400}
-                  style={
-                    maxHeight && topAnchor
-                      ? {
-                          maxHeight,
-                          minWidth,
-                        }
-                      : {
-                          minWidth,
-                        }
-                  }
-                >
-                  {select.visible
-                    ? options.map((opt) => {
-                        const isSelected = select.selectedValue === opt.value;
-                        const Icon = isSelected ? CheckmarkIcon : Spacer;
-                        return (
-                          <React.Fragment key={opt.value}>
-                            {opt.divider && <Separator />}
-                            <StyledSelectOption
-                              {...select}
-                              value={opt.value}
-                              key={opt.value}
-                              ref={isSelected ? selectedRef : undefined}
-                            >
-                              <Icon />
-                              &nbsp;
-                              {labelForOption(opt)}
-                            </StyledSelectOption>
-                          </React.Fragment>
-                        );
-                      })
-                    : null}
-                </Background>
-              </Positioner>
-            );
-          }}
-        </SelectPopover>
-      </Wrapper>
-      {note && (
-        <Text as="p" type="secondary" size="small">
-          {note}
-        </Text>
-      )}
-      {select.visible && isMobile && <Backdrop />}
-    </>
-  );
+type MobileSelectProps = Props & {
+  placeholder: string;
+  optionsHaveIcon: boolean;
 };
 
-const Background = styled(ContextMenuBackground)`
-  animation: ${fadeAndScaleIn} 200ms ease;
-`;
+const MobileSelect = React.forwardRef<HTMLButtonElement, MobileSelectProps>(
+  (props, ref) => {
+    const {
+      options,
+      value,
+      onChange,
+      label,
+      hideLabel,
+      disabled,
+      short,
+      placeholder,
+      optionsHaveIcon,
+      ...triggerProps
+    } = props;
 
-const Placeholder = styled.span`
-  color: ${s("placeholder")};
-`;
+    const [open, setOpen] = React.useState(false);
+    const contentRef =
+      React.useRef<React.ElementRef<typeof DrawerContent>>(null);
 
-const Spacer = styled.div`
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-`;
+    const selectedOption = React.useMemo(
+      () =>
+        value
+          ? options.find((opt) => opt.type === "item" && opt.value === value)
+          : undefined,
+      [value, options]
+    );
 
-const StyledButton = styled(Button)<{ $nude?: boolean }>`
-  font-weight: normal;
-  text-transform: none;
-  margin-bottom: 16px;
-  display: block;
-  width: 100%;
-  cursor: var(--pointer);
+    const handleSelect = React.useCallback(
+      async (val: string) => {
+        setOpen(false);
+        onChange(val);
+      },
+      [onChange]
+    );
 
-  &:hover:not(:disabled) {
-    background: ${s("buttonNeutralBackground")};
+    const renderOption = React.useCallback(
+      (option: Option) => {
+        if (option.type === "separator") {
+          return <Separator />;
+        }
+
+        const isSelected = option === selectedOption;
+
+        return (
+          <SelectItemWrapper
+            key={option.value}
+            onClick={() => handleSelect(option.value)}
+            data-state={isSelected ? "checked" : "unchecked"}
+          >
+            <Option option={option} optionsHaveIcon={optionsHaveIcon} />
+            {isSelected && <SelectItemIndicator />}
+          </SelectItemWrapper>
+        );
+      },
+      [handleSelect, selectedOption, optionsHaveIcon]
+    );
+
+    const enablePointerEvents = React.useCallback(() => {
+      if (contentRef.current) {
+        contentRef.current.style.pointerEvents = "auto";
+      }
+    }, []);
+
+    const disablePointerEvents = React.useCallback(() => {
+      if (contentRef.current) {
+        contentRef.current.style.pointerEvents = "none";
+      }
+    }, []);
+
+    return (
+      <Wrapper>
+        <Label text={label} hidden={hideLabel ?? false} />
+        <Drawer open={open} onOpenChange={setOpen}>
+          <DrawerTrigger asChild>
+            <SelectButton
+              ref={ref}
+              {...triggerProps}
+              neutral
+              disclosure
+              data-placeholder={selectedOption ? false : ""}
+            >
+              {selectedOption ? (
+                <Option
+                  option={selectedOption as Item}
+                  optionsHaveIcon={optionsHaveIcon}
+                />
+              ) : (
+                <>{placeholder}</>
+              )}
+            </SelectButton>
+          </DrawerTrigger>
+          <DrawerContent
+            ref={contentRef}
+            aria-label={label}
+            onAnimationStart={disablePointerEvents}
+            onAnimationEnd={enablePointerEvents}
+          >
+            <DrawerTitle hidden={!label}>{label}</DrawerTitle>
+            <StyledScrollable hiddenScrollbars>
+              {options.map(renderOption)}
+            </StyledScrollable>
+          </DrawerContent>
+        </Drawer>
+      </Wrapper>
+    );
   }
+);
+MobileSelect.displayName = "InputSelect";
 
-  ${(props) =>
-    props.$nude &&
-    css`
-      border-color: transparent;
-      box-shadow: none;
-    `}
+function Label({
+  text,
+  hidden,
+  help,
+}: {
+  text: string;
+  hidden: boolean;
+  help?: string;
+}) {
+  const content = (
+    <Flex align="center" gap={2} style={{ marginBottom: "4px" }}>
+      <LabelText style={{ paddingBottom: 0 }}>{text}</LabelText>
+      {help ? (
+        <Tooltip content={help}>
+          <TooltipButton size={18}>
+            <QuestionMarkIcon size={18} />
+          </TooltipButton>
+        </Tooltip>
+      ) : null}
+    </Flex>
+  );
 
-  ${Inner} {
-    line-height: 28px;
-    padding-left: 12px;
-    padding-right: 4px;
-  }
+  return hidden ? (
+    <VisuallyHidden.Root>{content}</VisuallyHidden.Root>
+  ) : (
+    content
+  );
+}
 
-  svg {
-    justify-self: flex-end;
-    margin-left: auto;
-  }
-`;
+function Option({
+  option,
+  optionsHaveIcon,
+}: {
+  option: Item;
+  optionsHaveIcon: boolean;
+}) {
+  const icon = optionsHaveIcon ? (
+    option.icon ? (
+      <IconWrapper>{option.icon}</IconWrapper>
+    ) : (
+      <IconSpacer />
+    )
+  ) : null;
 
-export const StyledSelectOption = styled(SelectOption)`
-  ${MenuAnchorCSS}
-  /* overriding the styles from MenuAnchorCSS because we use &nbsp; here */
-  svg:not(:last-child) {
-    margin-right: 0px;
-  }
-`;
+  return (
+    <OptionContainer align="center">
+      {icon}
+      {option.label}
+      {option.description && (
+        <>
+          &nbsp;
+          <Description type="tertiary" size="small" ellipsis>
+            – {option.description}
+          </Description>
+        </>
+      )}
+    </OptionContainer>
+  );
+}
 
 const Wrapper = styled.label<{ short?: boolean }>`
   display: block;
   max-width: ${(props) => (props.short ? "350px" : "100%")};
 `;
 
-export const Positioner = styled(Position)`
-  pointer-events: all;
+const OptionContainer = styled(Flex)`
+  min-height: 24px;
+`;
 
-  &:focus-visible {
-    ${StyledSelectOption} {
-      &[aria-selected="true"] {
-        color: ${(props) => props.theme.white};
-        background: ${s("accent")};
-        box-shadow: none;
-        cursor: var(--pointer);
-
-        svg {
-          fill: ${(props) => props.theme.white};
-        }
-      }
+const Description = styled(Text)`
+  @media (hover: hover) {
+    &:hover,
+    &:focus {
+      color: ${(props) => transparentize(0.5, props.theme.accentText)};
     }
   }
 `;
 
-export default React.forwardRef(InputSelect);
+const IconWrapper = styled.span`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 24px;
+  height: 24px;
+  margin-left: -4px;
+  margin-right: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
+`;
+
+const IconSpacer = styled.div`
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+`;
+
+const StyledScrollable = styled(Scrollable)`
+  max-height: 75vh;
+`;
+
+const TooltipButton = styled(NudeButton)`
+  color: ${s("textSecondary")};
+
+  &:hover,
+  &[aria-expanded="true"] {
+    background: none !important;
+  }
+`;

@@ -1,4 +1,5 @@
 import teamUpdater from "@server/commands/teamUpdater";
+import { createContext } from "@server/context";
 import { Team, User } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import { Event as TEvent, CollectionEvent } from "@server/types";
@@ -32,12 +33,16 @@ export default class CollectionsProcessor extends BaseProcessor {
           transaction,
         });
 
-        await teamUpdater({
+        const ctx = createContext({
+          user,
+          transaction,
+          ip: event.ip,
+        });
+
+        await teamUpdater(ctx, {
           params: { defaultCollectionId: null },
           user,
           team,
-          transaction,
-          ip: event.ip,
         });
       }
     });

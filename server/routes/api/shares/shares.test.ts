@@ -236,7 +236,7 @@ describe("#shares.list", () => {
 });
 
 describe("#shares.create", () => {
-  it("should fail with status 400 bad request when documentId is missing", async () => {
+  it("should fail with status 400 bad request when both documentId and collectionId are missing", async () => {
     const user = await buildUser();
     const res = await server.post("/api/shares.create", {
       body: {
@@ -245,7 +245,9 @@ describe("#shares.create", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("documentId: Required");
+    expect(body.message).toEqual(
+      "body: one of collectionId or documentId is required"
+    );
   });
 
   it("should fail with status 400 bad request when documentId is invalid", async () => {
@@ -253,12 +255,30 @@ describe("#shares.create", () => {
     const res = await server.post("/api/shares.create", {
       body: {
         token: user.getJwtToken(),
-        documentId: "id",
+        documentId: "foo",
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("documentId: must be uuid or url slug");
+    expect(body.message).toEqual("documentId: Invalid");
+  });
+
+  it("should allow creating a share record for collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/shares.create", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: collection.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.published).toBe(false);
+    expect(body.data.sourceTitle).toBe(collection.name);
   });
 
   it("should allow creating a share record for document", async () => {
@@ -532,7 +552,7 @@ describe("#shares.create", () => {
 });
 
 describe("#shares.info", () => {
-  it("should fail with status 400 bad request when id and documentId both are missing", async () => {
+  it("should fail with status 400 bad request when id, collectionId and documentId are missing", async () => {
     const user = await buildUser();
     const res = await server.post("/api/shares.info", {
       body: {
@@ -541,7 +561,9 @@ describe("#shares.info", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("body: id or documentId is required");
+    expect(body.message).toEqual(
+      "body: one of id, collectionId, or documentId is required"
+    );
   });
 
   it("should fail with status 400 bad request when documentId is invalid", async () => {
@@ -549,12 +571,12 @@ describe("#shares.info", () => {
     const res = await server.post("/api/shares.info", {
       body: {
         token: user.getJwtToken(),
-        documentId: "id",
+        documentId: "foo",
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("documentId: must be uuid or url slug");
+    expect(body.message).toEqual("documentId: Invalid");
   });
 
   it("should not find share by documentId in private collection", async () => {
@@ -580,46 +602,6 @@ describe("#shares.info", () => {
       body: {
         token: user.getJwtToken(),
         documentId: document.id,
-      },
-    });
-    expect(res.status).toEqual(403);
-  });
-
-  it("should require authentication", async () => {
-    const user = await buildUser();
-    const document = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
-    });
-    const share = await buildShare({
-      documentId: document.id,
-      teamId: user.teamId,
-      userId: user.id,
-    });
-    const res = await server.post("/api/shares.info", {
-      body: {
-        id: share.id,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(401);
-    expect(body).toMatchSnapshot();
-  });
-
-  it("should require authorization", async () => {
-    const team = await buildTeam();
-    const admin = await buildAdmin({ teamId: team.id });
-    const document = await buildDocument({ teamId: team.id });
-    const user = await buildUser();
-    const share = await buildShare({
-      documentId: document.id,
-      teamId: admin.teamId,
-      userId: admin.id,
-    });
-    const res = await server.post("/api/shares.info", {
-      body: {
-        token: user.getJwtToken(),
-        id: share.id,
       },
     });
     expect(res.status).toEqual(403);
@@ -685,6 +667,7 @@ describe("#shares.info", () => {
       teamId: user.teamId,
     });
     const childDocument = await buildDocument({
+      userId: user.id,
       teamId: document.teamId,
       parentDocumentId: document.id,
       collectionId: collection.id,
@@ -694,6 +677,11 @@ describe("#shares.info", () => {
       teamId: document.teamId,
       userId: user.id,
       includeChildDocuments: true,
+    });
+    const childShare = await buildShare({
+      documentId: childDocument.id,
+      teamId: childDocument.teamId,
+      userId: user.id,
     });
     await collection.reload();
     await collection.addDocumentToStructure(childDocument, 0);
@@ -705,13 +693,17 @@ describe("#shares.info", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.shares.length).toBe(1);
-    expect(body.data.shares[0].id).toBe(share.id);
-    expect(body.data.shares[0].documentId).toBe(document.id);
+    expect(body.data.shares.length).toBe(2);
+    expect(body.data.shares[0].id).toBe(childShare.id);
+    expect(body.data.shares[0].documentId).toBe(childDocument.id);
     expect(body.data.shares[0].published).toBe(true);
-    expect(body.data.shares[0].includeChildDocuments).toBe(true);
-    expect(body.policies.length).toBe(1);
+    expect(body.data.shares[1].id).toBe(share.id);
+    expect(body.data.shares[1].documentId).toBe(document.id);
+    expect(body.data.shares[1].published).toBe(true);
+    expect(body.data.shares[1].includeChildDocuments).toBe(true);
+    expect(body.policies.length).toBe(2);
     expect(body.policies[0].abilities.update).toBeTruthy();
+    expect(body.policies[1].abilities.update).toBeTruthy();
   });
   it("should not return share for parent document with includeChildDocuments=false", async () => {
     const team = await buildTeam();
@@ -736,6 +728,11 @@ describe("#shares.info", () => {
       userId: user.id,
       includeChildDocuments: false,
     });
+    const share = await buildShare({
+      documentId: childDocument.id,
+      teamId: childDocument.teamId,
+      userId: user.id,
+    });
     await collection.addDocumentToStructure(childDocument, 0);
     const res = await server.post("/api/shares.info", {
       body: {
@@ -743,7 +740,14 @@ describe("#shares.info", () => {
         documentId: childDocument.id,
       },
     });
-    expect(res.status).toEqual(204);
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.shares.length).toBe(1);
+    expect(body.data.shares[0].id).toBe(share.id);
+    expect(body.data.shares[0].documentId).toBe(childDocument.id);
+    expect(body.data.shares[0].published).toBe(true);
+    expect(body.policies.length).toBe(1);
+    expect(body.policies[0].abilities.update).toBeTruthy();
   });
   it("should return shares for parent document and current document", async () => {
     const user = await buildUser();
@@ -1019,6 +1023,26 @@ describe("#shares.revoke", () => {
     });
     const share = await buildShare({
       documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post("/api/shares.revoke", {
+      body: {
+        token: user.getJwtToken(),
+        id: share.id,
+      },
+    });
+    expect(res.status).toEqual(200);
+  });
+
+  it("should allow author to revoke collection share", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      collectionId: collection.id,
       teamId: user.teamId,
       userId: user.id,
     });

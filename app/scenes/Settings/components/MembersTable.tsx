@@ -97,7 +97,7 @@ export function MembersTable({ canManage, ...rest }: Props) {
               {user.isSuspended && <Badge>{t("Suspended")}</Badge>}
             </Badges>
           ),
-          width: "80px",
+          width: "2fr",
         },
         canManage
           ? {

@@ -1,6 +1,6 @@
 import * as React from "react";
 import {
-  // eslint-disable-next-line no-restricted-imports
+  // oxlint-disable-next-line no-restricted-imports
   useMenuState as reakitUseMenuState,
   MenuStateReturn,
 } from "reakit/Menu";

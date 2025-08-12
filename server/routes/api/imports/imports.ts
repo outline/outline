@@ -81,7 +81,7 @@ router.post(
 
     authorize(user, "listImports", user.team);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // oxlint-disable-next-line @typescript-eslint/no-explicit-any
     const where: WhereOptions<Import<any>> = { teamId: user.teamId };
 
     if (service) {
@@ -89,14 +89,14 @@ router.post(
     }
 
     const [imports, total] = await Promise.all([
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // oxlint-disable-next-line @typescript-eslint/no-explicit-any
       Import.findAll<Import<any>>({
         where,
         order: [[sort, direction]],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
       }),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // oxlint-disable-next-line @typescript-eslint/no-explicit-any
       Import.count<Import<any>>({
         where,
       }),

@@ -6,7 +6,6 @@ import {
   FileOperationState,
   FileOperationType,
 } from "@shared/types";
-import collectionDestroyer from "@server/commands/collectionDestroyer";
 import collectionExporter from "@server/commands/collectionExporter";
 import teamUpdater from "@server/commands/teamUpdater";
 import { parser } from "@server/editor";
@@ -19,7 +18,6 @@ import {
   UserMembership,
   GroupMembership,
   Team,
-  Event,
   User,
   Group,
   Attachment,
@@ -43,6 +41,7 @@ import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { collectionIndexing } from "@server/utils/indexing";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
+import { InvalidRequestError } from "@server/errors";
 
 const router = new Router();
 
@@ -88,15 +87,8 @@ router.post(
       collection.description = DocumentHelper.toMarkdown(collection);
     }
 
-    await collection.save({ transaction });
+    await collection.saveWithCtx(ctx);
 
-    await Event.createFromContext(ctx, {
-      name: "collections.create",
-      collectionId: collection.id,
-      data: {
-        name,
-      },
-    });
     // we must reload the collection to get memberships for policy presenter
     const reloaded = await Collection.findByPk(collection.id, {
       userId: user.id,
@@ -274,7 +266,9 @@ router.post(
     });
 
     if (!membership) {
-      ctx.throw(400, "This Group is not a part of the collection");
+      ctx.throw(
+        InvalidRequestError("This Group is not a part of the collection")
+      );
     }
 
     await membership.destroy(ctx.context);
@@ -419,7 +413,7 @@ router.post(
       transaction,
     });
     if (!membership) {
-      ctx.throw(400, "User is not a collection member");
+      ctx.throw(InvalidRequestError("User is not a collection member"));
     }
 
     await membership.destroy(ctx.context);
@@ -653,25 +647,7 @@ router.post(
       collection.commenting = commenting;
     }
 
-    await collection.save({ transaction });
-    await Event.createFromContext(ctx, {
-      name: "collections.update",
-      collectionId: collection.id,
-      data: {
-        name,
-      },
-    });
-
-    if (privacyChanged || sharingChanged) {
-      await Event.createFromContext(ctx, {
-        name: "collections.permission_changed",
-        collectionId: collection.id,
-        data: {
-          privacyChanged,
-          sharingChanged,
-        },
-      });
-    }
+    await collection.saveWithCtx(ctx);
 
     // must reload to update collection membership for correct policy calculation
     // if the privacy level has changed. Otherwise skip this query for speed.
@@ -686,12 +662,10 @@ router.post(
         collection.permission === null &&
         team?.defaultCollectionId === collection.id
       ) {
-        await teamUpdater({
+        await teamUpdater(ctx, {
           params: { defaultCollectionId: null },
-          ip: ctx.request.ip,
           user,
           team,
-          transaction,
         });
       }
     }
@@ -830,12 +804,7 @@ router.post(
 
     authorize(user, "delete", collection);
 
-    await collectionDestroyer({
-      collection,
-      transaction,
-      user,
-      ip: ctx.request.ip,
-    });
+    await collection.destroyWithCtx(ctx);
 
     ctx.body = {
       success: true,
@@ -863,8 +832,11 @@ router.post(
 
     collection.archivedAt = new Date();
     collection.archivedById = user.id;
-    await collection.save({ transaction });
     collection.archivedBy = user;
+
+    await collection.saveWithCtx(ctx, undefined, {
+      name: "archive",
+    });
 
     // Archive all documents within the collection
     await Document.update(
@@ -884,15 +856,6 @@ router.post(
       }
     );
 
-    await Event.createFromContext(ctx, {
-      name: "collections.archive",
-      collectionId: collection.id,
-      data: {
-        name: collection.name,
-        archivedAt: collection.archivedAt,
-      },
-    });
-
     ctx.body = {
       data: await presentCollection(ctx, collection),
       policies: presentPolicies(user, [collection]),
@@ -910,7 +873,7 @@ router.post(
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    const collection = await Collection.findByPk(id, {
+    let collection = await Collection.findByPk(id, {
       userId: user.id,
       includeDocumentStructure: true,
       rejectOnEmpty: true,
@@ -918,8 +881,6 @@ router.post(
     });
 
     authorize(user, "restore", collection);
-
-    const collectionArchivedAt = collection.archivedAt;
 
     await Document.update(
       {
@@ -938,15 +899,8 @@ router.post(
 
     collection.archivedAt = null;
     collection.archivedById = null;
-    await collection.save({ transaction });
-
-    await Event.createFromContext(ctx, {
-      name: "collections.restore",
-      collectionId: collection.id,
-      data: {
-        name: collection.name,
-        archivedAt: collectionArchivedAt,
-      },
+    collection = await collection.saveWithCtx(ctx, undefined, {
+      name: "restore",
     });
 
     ctx.body = {
@@ -972,21 +926,13 @@ router.post(
     });
     authorize(user, "move", collection);
 
-    collection = await collection.update(
+    collection = await collection.updateWithCtx(
+      ctx,
+      { index },
       {
-        index,
-      },
-      {
-        transaction,
+        name: "move",
       }
     );
-    await Event.createFromContext(ctx, {
-      name: "collections.move",
-      collectionId: collection.id,
-      data: {
-        index: collection.index,
-      },
-    });
 
     ctx.body = {
       success: true,

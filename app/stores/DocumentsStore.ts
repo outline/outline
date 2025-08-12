@@ -49,11 +49,6 @@ type ImportOptions = {
 };
 
 export default class DocumentsStore extends Store<Document> {
-  sharedCache: Map<
-    string,
-    { sharedTree: NavigationNode; team: PublicTeam } | undefined
-  > = new Map();
-
   @observable
   backlinks: Map<string, string[]> = new Map();
 
@@ -99,6 +94,7 @@ export default class DocumentsStore extends Store<Document> {
     return orderBy(this.all, "updatedAt", "desc");
   }
 
+  @computed
   get templates(): Document[] {
     return orderBy(
       filter(
@@ -298,10 +294,6 @@ export default class DocumentsStore extends Store<Document> {
       "title",
       "asc"
     );
-  }
-
-  getSharedTree(documentId: string): NavigationNode | undefined {
-    return this.sharedCache.get(documentId)?.sharedTree;
   }
 
   @action
@@ -514,74 +506,6 @@ export default class DocumentsStore extends Store<Document> {
       (res: { data: { document: PartialExcept<Document, "id"> } }) =>
         res.data.document
     );
-
-  @action
-  fetchWithSharedTree = async (
-    id: string,
-    options: FetchOptions = {}
-  ): Promise<{
-    document: Document;
-    team?: PublicTeam;
-    sharedTree?: NavigationNode;
-  }> => {
-    if (!options.prefetch) {
-      this.isFetching = true;
-    }
-
-    try {
-      const doc: Document | null | undefined =
-        this.data.get(id) || this.getByUrl(id);
-      const policy = doc ? this.rootStore.policies.get(doc.id) : undefined;
-
-      if (doc && policy && !options.shareId && !options.force) {
-        return {
-          document: doc,
-        };
-      }
-
-      if (
-        doc &&
-        options.shareId &&
-        !options.force &&
-        this.sharedCache.has(options.shareId)
-      ) {
-        return {
-          document: doc,
-          ...this.sharedCache.get(options.shareId),
-        };
-      }
-
-      const res = await client.post("/documents.info", {
-        id,
-        shareId: options.shareId,
-      });
-
-      invariant(res?.data, "Document not available");
-      this.addPolicies(res.policies);
-      this.add(res.data.document);
-
-      const document = this.data.get(res.data.document.id);
-      invariant(document, "Document not available");
-
-      if (options.shareId) {
-        this.sharedCache.set(options.shareId, {
-          sharedTree: res.data.sharedTree,
-          team: res.data.team,
-        });
-        return {
-          document,
-          sharedTree: res.data.sharedTree,
-          team: res.data.team,
-        };
-      }
-
-      return {
-        document,
-      };
-    } finally {
-      this.isFetching = false;
-    }
-  };
 
   @action
   move = async ({

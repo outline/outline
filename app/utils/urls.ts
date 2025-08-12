@@ -30,7 +30,7 @@ export function isHash(href: string) {
 export function decodeURIComponentSafe(text: string) {
   try {
     return text
-      ? decodeURIComponent(text.replace(/%(?![0-9][0-9a-fA-F]+)/g, "%25"))
+      ? decodeURIComponent(text.replace(/%(?![0-9a-fA-F]{2})/g, "%25"))
       : text;
   } catch (_) {
     return text;
@@ -53,6 +53,10 @@ export function redirectTo(url: string) {
  * @returns boolean indicating if the path is a valid redirect
  */
 export const isAllowedLoginRedirect = (input: string) => {
-  const path = input.split("?")[0];
-  return !["/", "/create", "/home", "/logout", "/auth/"].includes(path);
+  const path = input.split("?")[0].split("#")[0];
+  return (
+    !["/", "/create", "/home", "/logout"].includes(path) &&
+    !path.startsWith("/auth/") &&
+    !path.startsWith("/s/")
+  );
 };

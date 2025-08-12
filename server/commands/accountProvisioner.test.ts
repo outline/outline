@@ -7,36 +7,40 @@ import UserAuthentication from "@server/models/UserAuthentication";
 import { buildUser, buildTeam, buildAdmin } from "@server/test/factories";
 import { setSelfHosted } from "@server/test/support";
 import accountProvisioner from "./accountProvisioner";
+import { createContext } from "@server/context";
 
 describe("accountProvisioner", () => {
-  const ip = "127.0.0.1";
+  const ip = faker.internet.ip();
+  const ctx = createContext({ ip });
 
   describe("hosted", () => {
     it("should create a new user and team", async () => {
       const spy = jest.spyOn(WelcomeEmail.prototype, "schedule");
       const email = faker.internet.email().toLowerCase();
-      const { user, team, isNewTeam, isNewUser } = await accountProvisioner({
-        ip,
-        user: {
-          name: "Jenny Tester",
-          email,
-          avatarUrl: faker.internet.avatar(),
-        },
-        team: {
-          name: "New workspace",
-          avatarUrl: faker.internet.avatar(),
-          subdomain: faker.internet.domainWord(),
-        },
-        authenticationProvider: {
-          name: "google",
-          providerId: faker.internet.domainName(),
-        },
-        authentication: {
-          providerId: uuidv4(),
-          accessToken: "123",
-          scopes: ["read"],
-        },
-      });
+      const { user, team, isNewTeam, isNewUser } = await accountProvisioner(
+        ctx,
+        {
+          user: {
+            name: "Jenny Tester",
+            email,
+            avatarUrl: faker.image.avatar(),
+          },
+          team: {
+            name: "New workspace",
+            avatarUrl: faker.image.avatar(),
+            subdomain: faker.internet.domainWord(),
+          },
+          authenticationProvider: {
+            name: "google",
+            providerId: faker.internet.domainName(),
+          },
+          authentication: {
+            providerId: uuidv4(),
+            accessToken: "123",
+            scopes: ["read"],
+          },
+        }
+      );
       const authentications = await user.$get("authentications");
       const auth = authentications[0];
       expect(auth.accessToken).toEqual("123");
@@ -68,8 +72,7 @@ describe("accountProvisioner", () => {
       const authentications = await existing.$get("authentications");
       const authentication = authentications[0];
       const newEmail = faker.internet.email().toLowerCase();
-      const { user, isNewUser, isNewTeam } = await accountProvisioner({
-        ip,
+      const { user, isNewUser, isNewTeam } = await accountProvisioner(ctx, {
         user: {
           name: existing.name,
           email: newEmail,
@@ -117,8 +120,7 @@ describe("accountProvisioner", () => {
         authentications: [],
       });
 
-      const { user, isNewUser, isNewTeam } = await accountProvisioner({
-        ip,
+      const { user, isNewUser, isNewTeam } = await accountProvisioner(ctx, {
         user: {
           name: userWithoutAuth.name,
           email,
@@ -161,8 +163,7 @@ describe("accountProvisioner", () => {
       let error;
 
       try {
-        await accountProvisioner({
-          ip,
+        await accountProvisioner(ctx, {
           user: {
             name: existing.name,
             email: existing.email!,
@@ -210,8 +211,7 @@ describe("accountProvisioner", () => {
       });
       const authentications = await existing.$get("authentications");
       const authentication = authentications[0];
-      const { isNewUser, isNewTeam } = await accountProvisioner({
-        ip,
+      const { isNewUser, isNewTeam } = await accountProvisioner(ctx, {
         user: {
           name: existing.name,
           email: existing.email!,
@@ -256,12 +256,11 @@ describe("accountProvisioner", () => {
       let error;
 
       try {
-        await accountProvisioner({
-          ip,
+        await accountProvisioner(ctx, {
           user: {
             name: "Jenny Tester",
             email,
-            avatarUrl: faker.internet.avatar(),
+            avatarUrl: faker.image.avatar(),
           },
           team: {
             avatarUrl: existingTeam.avatarUrl,
@@ -299,12 +298,11 @@ describe("accountProvisioner", () => {
         createdById: admin.id,
       });
       const email = faker.internet.email({ provider: domain });
-      const { user, isNewUser } = await accountProvisioner({
-        ip,
+      const { user, isNewUser } = await accountProvisioner(ctx, {
         user: {
           name: "Jenny Tester",
           email,
-          avatarUrl: faker.internet.avatar(),
+          avatarUrl: faker.image.avatar(),
         },
         team: {
           avatarUrl: team.avatarUrl,
@@ -347,12 +345,11 @@ describe("accountProvisioner", () => {
       );
       const authenticationProvider = authenticationProviders[0];
       const email = faker.internet.email().toLowerCase();
-      const { user, isNewUser } = await accountProvisioner({
-        ip,
+      const { user, isNewUser } = await accountProvisioner(ctx, {
         user: {
           name: "Jenny Tester",
           email,
-          avatarUrl: faker.internet.avatar(),
+          avatarUrl: faker.image.avatar(),
         },
         team: {
           name: team.name,
@@ -397,12 +394,11 @@ describe("accountProvisioner", () => {
       const team = await buildTeam();
 
       try {
-        await accountProvisioner({
-          ip,
+        await accountProvisioner(ctx, {
           user: {
             name: "Jenny Tester",
             email: faker.internet.email(),
-            avatarUrl: faker.internet.avatar(),
+            avatarUrl: faker.image.avatar(),
           },
           team: {
             teamId: team.id,
@@ -430,12 +426,11 @@ describe("accountProvisioner", () => {
     it("should always use existing team if self-hosted", async () => {
       const team = await buildTeam();
       const domain = faker.internet.domainName();
-      const { user, isNewUser } = await accountProvisioner({
-        ip,
+      const { user, isNewUser } = await accountProvisioner(ctx, {
         user: {
           name: "Jenny Tester",
           email: faker.internet.email(),
-          avatarUrl: faker.internet.avatar(),
+          avatarUrl: faker.image.avatar(),
         },
         team: {
           teamId: team.id,

@@ -125,8 +125,6 @@ function PublicAccess({ document, share, sharedParent }: Props) {
     toast.success(t("Public link copied to clipboard"));
   }, [t]);
 
-  const documentTitle = sharedParent?.documentTitle;
-
   const shareUrl = sharedParent?.url
     ? `${sharedParent.url}${document.url}`
     : (share?.url ?? "");
@@ -148,13 +146,24 @@ function PublicAccess({ document, share, sharedParent }: Props) {
         subtitle={
           <>
             {sharedParent && !document.isDraft ? (
-              <Trans>
-                Anyone with the link can access because the parent document,{" "}
-                <StyledLink to={`/doc/${sharedParent.documentId}`}>
-                  {{ documentTitle }}
-                </StyledLink>
-                , is shared
-              </Trans>
+              sharedParent.collectionId ? (
+                <Trans>
+                  Anyone with the link can access because the containing
+                  collection,{" "}
+                  <StyledLink to={`/collection/${sharedParent.collectionId}`}>
+                    {sharedParent.sourceTitle}
+                  </StyledLink>
+                  , is shared
+                </Trans>
+              ) : (
+                <Trans>
+                  Anyone with the link can access because the parent document,{" "}
+                  <StyledLink to={`/doc/${sharedParent.documentId}`}>
+                    {sharedParent.sourceTitle}
+                  </StyledLink>
+                  , is shared
+                </Trans>
+              )
             ) : (
               t("Allow anyone with the link to access")
             )}
@@ -180,60 +189,59 @@ function PublicAccess({ document, share, sharedParent }: Props) {
       />
 
       <ResizingHeightContainer>
-        {share?.published && (
-          <ListItem
-            title={
-              <Text type="tertiary" as={Flex}>
-                {t("Search engine indexing")}&nbsp;
-                <Tooltip
-                  content={t(
-                    "Disable this setting to discourage search engines from indexing the page"
-                  )}
-                >
-                  <NudeButton size={18}>
-                    <QuestionMarkIcon size={18} />
-                  </NudeButton>
-                </Tooltip>
-              </Text>
-            }
-            actions={
-              <Switch
-                aria-label={t("Search engine indexing")}
-                checked={share?.allowIndexing ?? false}
-                onChange={handleIndexingChanged}
-                width={26}
-                height={14}
-              />
-            }
-          />
-        )}
-
-        {share?.published && (
-          <ListItem
-            title={
-              <Text type="tertiary" as={Flex}>
-                {t("Show last modified")}&nbsp;
-                <Tooltip
-                  content={t(
-                    "Display the last modified timestamp on the shared page"
-                  )}
-                >
-                  <NudeButton size={18}>
-                    <QuestionMarkIcon size={18} />
-                  </NudeButton>
-                </Tooltip>
-              </Text>
-            }
-            actions={
-              <Switch
-                aria-label={t("Show last modified")}
-                checked={share?.showLastUpdated ?? false}
-                onChange={handleShowLastModifiedChanged}
-                width={26}
-                height={14}
-              />
-            }
-          />
+        {share?.published && !sharedParent?.published && (
+          <>
+            <ListItem
+              title={
+                <Text type="tertiary" as={Flex}>
+                  {t("Search engine indexing")}&nbsp;
+                  <Tooltip
+                    content={t(
+                      "Disable this setting to discourage search engines from indexing the page"
+                    )}
+                  >
+                    <NudeButton size={18}>
+                      <QuestionMarkIcon size={18} />
+                    </NudeButton>
+                  </Tooltip>
+                </Text>
+              }
+              actions={
+                <Switch
+                  aria-label={t("Search engine indexing")}
+                  checked={share?.allowIndexing ?? false}
+                  onChange={handleIndexingChanged}
+                  width={26}
+                  height={14}
+                />
+              }
+            />
+            <ListItem
+              title={
+                <Text type="tertiary" as={Flex}>
+                  {t("Show last modified")}&nbsp;
+                  <Tooltip
+                    content={t(
+                      "Display the last modified timestamp on the shared page"
+                    )}
+                  >
+                    <NudeButton size={18}>
+                      <QuestionMarkIcon size={18} />
+                    </NudeButton>
+                  </Tooltip>
+                </Text>
+              }
+              actions={
+                <Switch
+                  aria-label={t("Show last modified")}
+                  checked={share?.showLastUpdated ?? false}
+                  onChange={handleShowLastModifiedChanged}
+                  width={26}
+                  height={14}
+                />
+              }
+            />
+          </>
         )}
 
         {sharedParent?.published ? (

@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import react from "@vitejs/plugin-react";
+import react from "@vitejs/plugin-react-oxc";
 import browserslistToEsbuild from "browserslist-to-esbuild";
 import webpackStats from "rollup-plugin-webpack-stats";
 import { ServerOptions, defineConfig } from "vite";
@@ -19,8 +19,8 @@ if (environment.NODE_ENV === "development") {
       key: fs.readFileSync("./server/config/certs/private.key"),
       cert: fs.readFileSync("./server/config/certs/public.cert"),
     };
-  } catch (err) {
-    // eslint-disable-next-line no-console
+  } catch (_err) {
+    // oxlint-disable-next-line no-console
     console.warn("No local SSL certs found, HTTPS will not be available");
   }
 }
@@ -45,35 +45,7 @@ export default () =>
           : { strict: true },
     },
     plugins: [
-      // https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#readme
-      react({
-        babel: {
-          env: {
-            production: {
-              plugins: [
-                [
-                  "babel-plugin-styled-components",
-                  {
-                    displayName: false,
-                  },
-                ],
-              ],
-            },
-          },
-          plugins: [
-            [
-              "babel-plugin-styled-components",
-              {
-                displayName: true,
-                fileName: false,
-              },
-            ],
-          ],
-          parserOpts: {
-            plugins: ["decorators-legacy", "classProperties"],
-          },
-        },
-      }),
+      react(),
       // https://github.com/sapphi-red/vite-plugin-static-copy#readme
       viteStaticCopy({
         targets: [
@@ -176,16 +148,10 @@ export default () =>
         },
       }),
       // Generate a stats.json file for webpack that will be consumed by RelativeCI
-      // @ts-expect-error Type mismatch with latest versions but Plugin runs without issue
       webpackStats(),
     ],
-    optimizeDeps: {
-      esbuildOptions: {
-        keepNames: true,
-        define: {
-          global: "globalThis",
-        },
-      },
+    experimental: {
+      enableNativePlugin: true,
     },
     resolve: {
       alias: {
@@ -197,15 +163,11 @@ export default () =>
       outDir: "./build/app",
       manifest: true,
       sourcemap: process.env.CI ? false : "hidden",
-      minify: "terser",
-      // Prevent asset inling as it does not conform to CSP rules
+      minify: "oxc",
+      // Prevent asset inlining as it does not conform to CSP rules
       assetsInlineLimit: 0,
       target: browserslistToEsbuild(),
       reportCompressedSize: false,
-      terserOptions: {
-        keep_classnames: true,
-        keep_fnames: true,
-      },
       rollupOptions: {
         onwarn(warning, warn) {
           // Suppress noisy warnings about module-level directives, e.g. "use client"

@@ -19,6 +19,7 @@ import {
 } from "@server/utils/passport";
 import config from "../../plugin.json";
 import env from "../env";
+import { createContext } from "@server/context";
 
 const router = new Router();
 const scopes: string[] = [];
@@ -38,7 +39,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
       scope: scopes,
     },
     async function (
-      ctx: Context,
+      context: Context,
       accessToken: string,
       refreshToken: string,
       params: { expires_in: number; id_token: string },
@@ -94,15 +95,15 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
           );
         }
 
-        const team = await getTeamFromContext(ctx);
-        const client = getClientFromContext(ctx);
+        const team = await getTeamFromContext(context);
+        const client = getClientFromContext(context);
 
         const domain = parseEmail(email).domain;
         const subdomain = slugifyDomain(domain);
 
         const teamName = organization.displayName;
-        const result = await accountProvisioner({
-          ip: ctx.ip,
+        const ctx = createContext({ ip: context.ip });
+        const result = await accountProvisioner(ctx, {
           team: {
             teamId: team?.id,
             name: teamName,

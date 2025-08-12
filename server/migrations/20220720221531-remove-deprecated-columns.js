@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 module.exports = {
   async up(queryInterface) {
@@ -16,7 +16,9 @@ module.exports = {
         );
 
         if (teams[0].count > 0 && authenticationProviders[0].count === 0) {
-          throw Error("Refusing to destroy deprecated columns without authentication providers");
+          throw Error(
+            "Refusing to destroy deprecated columns without authentication providers"
+          );
         }
       }
 
@@ -34,28 +36,28 @@ module.exports = {
         type: Sequelize.STRING(4096),
         allowNull: false,
         defaultValue: "",
-        transaction
+        transaction,
       });
       await queryInterface.addColumn("users", "service", {
         type: Sequelize.STRING,
         allowNull: true,
-        transaction
+        transaction,
       });
       await queryInterface.addColumn("users", "serviceId", {
         type: Sequelize.STRING,
         allowNull: true,
-        transaction
+        transaction,
       });
       await queryInterface.addColumn("teams", "slackId", {
         type: Sequelize.STRING,
         allowNull: true,
-        transaction
+        transaction,
       });
       await queryInterface.addColumn("teams", "googleId", {
         type: Sequelize.STRING,
         allowNull: true,
-        transaction
+        transaction,
       });
     });
-  }
+  },
 };

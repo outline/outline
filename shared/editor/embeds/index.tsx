@@ -587,6 +587,16 @@ const embeds: EmbedDescriptor[] = [
     component: Spotify,
   }),
   new EmbedDescriptor({
+    title: "Tella",
+    keywords: "video",
+    regexMatch: [/^https?:\/\/(?:www\.)?tella\.tv\/video\/([^\/]+)(?:.*)?$/],
+    transformMatch: (matches: RegExpMatchArray) =>
+      `https://www.tella.tv/video/${matches[1]}/embed?b=0&title=1&a=0&loop=0&t=0&muted=0&wt=1`,
+    icon: <Img src="/images/tella.png" alt="Tella" />,
+    defaultHidden: true,
+    hideToolbar: true,
+  }),
+  new EmbedDescriptor({
     title: "Tldraw",
     keywords: "draw schematics diagrams",
     regexMatch: [

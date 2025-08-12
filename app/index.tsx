@@ -1,4 +1,4 @@
-// eslint-disable-next-line import/no-unresolved
+// oxlint-disable-next-line import/no-unresolved
 import "vite/modulepreload-polyfill";
 import { LazyMotion } from "framer-motion";
 import { KBarProvider } from "kbar";

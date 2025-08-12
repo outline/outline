@@ -109,6 +109,7 @@ export default function useDictionary() {
       emptyTextBlockWithinToggleBlock: `${t(
         "Type or press 'Shift-Tab' to exit"
       )}…`,
+      deleteEmbed: t("Delete embed"),
     }),
     [t]
   );

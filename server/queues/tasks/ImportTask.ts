@@ -304,7 +304,6 @@ export default abstract class ImportTask extends BaseTask<Props> {
     const user = await User.findByPk(fileOperation.userId, {
       rejectOnEmpty: true,
     });
-    const ip = user.lastActiveIp || undefined;
 
     try {
       await this.preprocessDocUrlIds(data);
@@ -377,14 +376,15 @@ export default abstract class ImportTask extends BaseTask<Props> {
             importId: fileOperation.id,
           };
 
+          const ctx = createContext({ user, transaction });
+
           // check if collection with name exists
-          const response = await Collection.findOrCreate({
+          const response = await Collection.findOrCreateWithCtx(ctx, {
             where: {
               teamId: fileOperation.teamId,
               name: item.name,
             },
             defaults: sharedDefaults,
-            transaction,
           });
 
           let collection = response[0];
@@ -395,31 +395,12 @@ export default abstract class ImportTask extends BaseTask<Props> {
           // with right now
           if (!isCreated) {
             const name = `${item.name} (Imported)`;
-            collection = await Collection.create(
-              {
-                ...sharedDefaults,
-                name,
-                teamId: fileOperation.teamId,
-              },
-              { transaction }
-            );
+            collection = await Collection.createWithCtx(ctx, {
+              ...sharedDefaults,
+              name,
+              teamId: fileOperation.teamId,
+            });
           }
-
-          await Event.create(
-            {
-              name: "collections.create",
-              collectionId: collection.id,
-              teamId: collection.teamId,
-              actorId: fileOperation.userId,
-              data: {
-                name: collection.name,
-              },
-              ip,
-            },
-            {
-              transaction,
-            }
-          );
 
           collections.set(item.id, collection);
 

@@ -29,25 +29,18 @@ router.post(
       throw ValidationError("Installation already has existing teams");
     }
 
-    const team = await teamCreator({
+    const team = await teamCreator(ctx, {
       name: teamName,
       subdomain: slugify(teamName),
-      ip: ctx.request.ip,
-      transaction,
       authenticationProviders: [],
     });
 
-    const user = await User.create(
-      {
-        name: userName,
-        email: userEmail,
-        teamId: team.id,
-        role: UserRole.Admin,
-      },
-      {
-        transaction,
-      }
-    );
+    const user = await User.createWithCtx(ctx, {
+      name: userName,
+      email: userEmail,
+      teamId: team.id,
+      role: UserRole.Admin,
+    });
 
     await signIn(ctx, "email", {
       user,

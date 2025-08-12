@@ -20,10 +20,9 @@ import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { sequelize } from "@server/storage/database";
 import teamProvisioner from "./teamProvisioner";
 import userProvisioner from "./userProvisioner";
+import { APIContext } from "@server/types";
 
 type Props = {
-  /** The IP address of the incoming request */
-  ip: string;
   /** Details of the user logging in from SSO provider */
   user: {
     /** The displayed name of the user */
@@ -80,22 +79,23 @@ export type AccountProvisionerResult = {
   isNewUser: boolean;
 };
 
-async function accountProvisioner({
-  ip,
-  user: userParams,
-  team: teamParams,
-  authenticationProvider: authenticationProviderParams,
-  authentication: authenticationParams,
-}: Props): Promise<AccountProvisionerResult> {
+async function accountProvisioner(
+  ctx: APIContext,
+  {
+    user: userParams,
+    team: teamParams,
+    authenticationProvider: authenticationProviderParams,
+    authentication: authenticationParams,
+  }: Props
+): Promise<AccountProvisionerResult> {
   let result;
   let emailMatchOnly;
 
   try {
-    result = await teamProvisioner({
+    result = await teamProvisioner(ctx, {
       name: "Wiki",
       ...teamParams,
       authenticationProvider: authenticationProviderParams,
-      ip,
     });
   } catch (err) {
     // The account could not be provisioned for the provided teamId
@@ -142,14 +142,13 @@ async function accountProvisioner({
     throw AuthenticationProviderDisabledError();
   }
 
-  result = await userProvisioner({
+  result = await userProvisioner(ctx, {
     name: userParams.name,
     email: userParams.email,
     language: userParams.language,
     role: isNewTeam ? UserRole.Admin : undefined,
     avatarUrl: userParams.avatarUrl,
     teamId: team.id,
-    ip,
     authentication: emailMatchOnly
       ? undefined
       : {

@@ -1,6 +1,6 @@
 import { randomInt } from "crypto";
 import { Minute } from "@shared/utils/time";
-import RedisAdapter from "@server/storage/redis";
+import Redis from "@server/storage/redis";
 
 /**
  * This class manages verification codes for email authentication.
@@ -8,9 +8,11 @@ import RedisAdapter from "@server/storage/redis";
  */
 export class VerificationCode {
   /**
-   * Redis client instance
+   * Redis client instance (lazy initialized)
    */
-  private static redis = RedisAdapter.defaultClient;
+  private static get redis() {
+    return Redis.defaultClient;
+  }
 
   /**
    * TTL for verification codes in milliseconds (10 minutes)

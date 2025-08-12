@@ -63,34 +63,31 @@ function AppSidebar() {
           <DragPlaceholder />
 
           <TeamMenu>
-            {(props: SidebarButtonProps) => (
-              <SidebarButton
-                {...props}
-                title={team.name}
-                image={
-                  <TeamLogo
-                    model={team}
-                    size={24}
-                    alt={t("Logo")}
-                    style={{ marginLeft: 4 }}
-                  />
-                }
+            <SidebarButton
+              title={team.name}
+              image={
+                <TeamLogo
+                  model={team}
+                  size={24}
+                  alt={t("Logo")}
+                  style={{ marginLeft: 4 }}
+                />
+              }
+            >
+              <Tooltip
+                content={t("Toggle sidebar")}
+                shortcut={`${metaDisplay}+.`}
               >
-                <Tooltip
-                  content={t("Toggle sidebar")}
-                  shortcut={`${metaDisplay}+.`}
-                >
-                  <ToggleButton
-                    position="bottom"
-                    image={<SidebarIcon />}
-                    onClick={() => {
-                      ui.toggleCollapsedSidebar();
-                      (document.activeElement as HTMLElement)?.blur();
-                    }}
-                  />
-                </Tooltip>
-              </SidebarButton>
-            )}
+                <ToggleButton
+                  position="bottom"
+                  image={<SidebarIcon />}
+                  onClick={() => {
+                    ui.toggleCollapsedSidebar();
+                    (document.activeElement as HTMLElement)?.blur();
+                  }}
+                />
+              </Tooltip>
+            </SidebarButton>
           </TeamMenu>
           <Overflow>
             <Section>

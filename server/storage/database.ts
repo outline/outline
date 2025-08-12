@@ -75,6 +75,12 @@ export function createDatabaseInstance(
         acquire: 30000,
         idle: 10000,
       },
+      retry: {
+        match: [/deadlock/i],
+        max: 3,
+        backoffBase: 200,
+        backoffExponent: 1.5,
+      },
       schema,
     };
 
@@ -137,7 +143,7 @@ export function createMigrationRunner(
     migrations: {
       glob,
       resolve: ({ name, path, context }) => {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        // oxlint-disable-next-line @typescript-eslint/no-require-imports
         const migration = require(path as string);
         return {
           name,
