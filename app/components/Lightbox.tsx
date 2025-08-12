@@ -172,8 +172,12 @@ function Lightbox() {
 
   const animateOnClose = () => {
     if (imgRef.current) {
-      const dom = view.nodeDOM(activeLightboxImgPos) as HTMLElement;
-      if (!dom) {
+      const dom = view.nodeDOM(activeLightboxImgPos);
+      if (
+        !dom ||
+        !(dom instanceof HTMLSpanElement) ||
+        !dom.classList.contains("component-image")
+      ) {
         ui.setActiveLightboxImgPos(undefined);
         return;
       }
