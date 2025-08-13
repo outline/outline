@@ -143,6 +143,15 @@ function buildAgent(url: string, options: RequestInit = {}) {
 
   if (proxyURL) {
     const parsedProxyURL = parseProxy(parsedURL, proxyURL);
+
+    Logger.silly("http", `Using proxy for request`, {
+      url: parsedURL.toString(),
+      proxy: parsedProxyURL.href,
+      tunnelMethod: parsedProxyURL.tunnelMethod,
+      username: parsedProxyURL.username || undefined,
+      password: parsedProxyURL.password ? "******" : undefined,
+    });
+
     if (parsedProxyURL.tunnelMethod?.startsWith("httpOver")) {
       const proxyURL = new URL(parsedProxyURL.href);
       proxyURL.pathname = (parsedURL.protocol ?? "")
