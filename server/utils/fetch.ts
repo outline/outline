@@ -54,13 +54,13 @@ export default async function fetch(
 ): Promise<Response> {
   Logger.silly("http", `Network request to ${url}`, init);
 
-  const response = await fetchWithProxy(url, {
+  const response = await nodeFetch(url, {
     ...init,
     headers: {
       "User-Agent": outlineUserAgent,
       ...init?.headers,
     },
-    agent: useFilteringAgent(url),
+    agent: buildAgent(url),
   });
 
   if (!response.ok) {
@@ -127,14 +127,16 @@ const buildTunnel = (proxy: UrlWithTunnel, options: RequestInit) => {
 };
 
 /**
- * Fetches a URL using the proxy settings from the environment, if available.
+ * Creates a http or https agent for the given URL, applying request filtering
+ * if necessary. If a proxy is detected in the environment, it will use that
+ * proxy agent to tunnel the request.
  *
  * @param url The URL to fetch
  * @param options The fetch options
- * @returns A promise that resolves to the response
+ * @returns An http or https agent configured for the URL
  */
-function fetchWithProxy(url: string, options: RequestInit = {}) {
-  const AgentOptions = defaults(options, DefaultOptions);
+function buildAgent(url: string, options: RequestInit = {}) {
+  const agentOptions = defaults(options, DefaultOptions);
   const parsedURL = new URL(url);
   const proxyURL = getProxyForUrl(parsedURL.href);
   let agent: https.Agent | http.Agent | undefined;
@@ -151,20 +153,22 @@ function fetchWithProxy(url: string, options: RequestInit = {}) {
         proxyURL.username = parsedProxyURL.username;
         proxyURL.password = parsedProxyURL.password;
       }
-      agent = useFilteringAgent(parsedURL.toString(), AgentOptions);
+      agent = useFilteringAgent(parsedURL.toString(), agentOptions);
     } else {
       // Note request filtering agent does not support https tunneling via a proxy
       agent =
-        buildTunnel(parsedProxyURL, AgentOptions) ||
-        useFilteringAgent(parsedURL.toString(), AgentOptions);
+        buildTunnel(parsedProxyURL, agentOptions) ||
+        useFilteringAgent(parsedURL.toString(), agentOptions);
     }
   } else {
-    agent = useFilteringAgent(parsedURL.toString(), AgentOptions);
+    agent = useFilteringAgent(parsedURL.toString(), agentOptions);
   }
+
   if (!options.signal) {
     const controller = new AbortController();
     options.signal = controller.signal as AbortSignal;
   }
+
   options.signal?.addEventListener("abort", () => {
     if (agent && "destroy" in agent) {
       agent.destroy();
@@ -172,8 +176,5 @@ function fetchWithProxy(url: string, options: RequestInit = {}) {
     agent = undefined;
   });
 
-  return nodeFetch(url, {
-    ...options,
-    agent,
-  });
+  return agent;
 }
