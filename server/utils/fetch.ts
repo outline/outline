@@ -1,9 +1,27 @@
 /* oxlint-disable no-restricted-imports */
-import fetchWithProxy from "fetch-with-proxy";
-import nodeFetch, { RequestInit, Response } from "node-fetch";
-import { useAgent } from "request-filtering-agent";
+import http from "http";
+import https from "https";
+import nodeFetch, { type RequestInit, type Response } from "node-fetch";
+import { getProxyForUrl } from "proxy-from-env";
+import tunnelAgent, { type TunnelAgent } from "tunnel-agent";
+import { AbortController } from "node-abort-controller";
+import { useAgent as useFilteringAgent } from "request-filtering-agent";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
+import { capitalize, defaults } from "lodash";
+
+interface UrlWithTunnel extends URL {
+  tunnelMethod?: string;
+}
+
+const DefaultOptions = {
+  keepAlive: true,
+  timeout: 1000,
+  keepAliveMsecs: 500,
+  maxSockets: 200,
+  maxFreeSockets: 5,
+  maxCachedSessions: 500,
+};
 
 export type { RequestInit } from "node-fetch";
 
@@ -34,19 +52,15 @@ export default async function fetch(
   url: string,
   init?: RequestInit
 ): Promise<Response> {
-  // In self-hosted, webhooks support proxying and are also allowed to connect
-  // to internal services, so use fetchWithProxy without the filtering agent.
-  const fetchMethod = env.isCloudHosted ? nodeFetch : fetchWithProxy;
-
   Logger.silly("http", `Network request to ${url}`, init);
 
-  const response = await fetchMethod(url, {
+  const response = await fetchWithProxy(url, {
     ...init,
     headers: {
       "User-Agent": outlineUserAgent,
       ...init?.headers,
     },
-    agent: env.isCloudHosted ? useAgent(url) : undefined,
+    agent: useFilteringAgent(url),
   });
 
   if (!response.ok) {
@@ -59,4 +73,107 @@ export default async function fetch(
   }
 
   return response;
+}
+
+/**
+ * Parses the proxy URL and returns an object with the properties
+ *
+ * @param url The URL to be fetched
+ * @param proxyURL The proxy URL to be used
+ * @returns An object containing the parsed proxy URL and tunnel method
+ */
+const parseProxy = (url: URL, proxyURL: string) => {
+  const proxyObject = new URL(proxyURL) as UrlWithTunnel;
+  const proxyProtocol = proxyObject.protocol?.replace(":", "");
+  const proxyPort =
+    proxyObject.port || (proxyProtocol === "https" ? "443" : "80");
+  proxyObject.port = proxyPort;
+  proxyObject.tunnelMethod = url.protocol
+    ?.replace(":", "")
+    .concat("Over")
+    .concat(capitalize(proxyProtocol));
+  return proxyObject;
+};
+
+/**
+ * Builds a tunnel agent for the given proxy URL and options. Note that tunnel
+ * agents do not perform request filtering.
+ *
+ * @param proxy The parsed proxy URL
+ * @param options The request options
+ * @returns A tunnel agent for the proxy
+ */
+const buildTunnel = (proxy: UrlWithTunnel, options: RequestInit) => {
+  if (!proxy.tunnelMethod) {
+    throw new Error("Proxy tunnel method not defined");
+  }
+  if (!(proxy.tunnelMethod in tunnelAgent)) {
+    throw new Error(`Proxy tunnel method not supported: ${proxy.tunnelMethod}`);
+  }
+
+  const proxyAuth =
+    proxy.username || proxy.password
+      ? `${proxy.username}:${proxy.password}`
+      : undefined;
+
+  return tunnelAgent[proxy.tunnelMethod as keyof TunnelAgent]({
+    ...options,
+    proxy: {
+      port: proxy.port,
+      host: proxy.hostname,
+      proxyAuth,
+    },
+  });
+};
+
+/**
+ * Fetches a URL using the proxy settings from the environment, if available.
+ *
+ * @param url The URL to fetch
+ * @param options The fetch options
+ * @returns A promise that resolves to the response
+ */
+function fetchWithProxy(url: string, options: RequestInit = {}) {
+  const AgentOptions = defaults(options, DefaultOptions);
+  const parsedURL = new URL(url);
+  const proxyURL = getProxyForUrl(parsedURL.href);
+  let agent: https.Agent | http.Agent | undefined;
+
+  if (proxyURL) {
+    const parsedProxyURL = parseProxy(parsedURL, proxyURL);
+    if (parsedProxyURL.tunnelMethod?.startsWith("httpOver")) {
+      const proxyURL = new URL(parsedProxyURL.href);
+      proxyURL.pathname = (parsedURL.protocol ?? "")
+        .concat("//")
+        .concat(parsedURL.host ?? "")
+        .concat(parsedURL.pathname + parsedURL.search);
+      if (parsedProxyURL.username || parsedProxyURL.password) {
+        proxyURL.username = parsedProxyURL.username;
+        proxyURL.password = parsedProxyURL.password;
+      }
+      agent = useFilteringAgent(parsedURL.toString(), AgentOptions);
+    } else {
+      // Note request filtering agent does not support https tunneling via a proxy
+      agent =
+        buildTunnel(parsedProxyURL, AgentOptions) ||
+        useFilteringAgent(parsedURL.toString(), AgentOptions);
+    }
+  } else {
+    agent = useFilteringAgent(parsedURL.toString(), AgentOptions);
+  }
+  if (!options.signal) {
+    const controller = new AbortController();
+    options.signal = controller.signal as AbortSignal;
+  }
+  options.signal?.addEventListener("abort", () => {
+    if (agent && "destroy" in agent) {
+      agent.destroy();
+    }
+    agent = undefined;
+  });
+
+  return nodeFetch(url, {
+    ...options,
+    agent,
+  });
 }
