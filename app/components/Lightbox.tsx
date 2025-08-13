@@ -282,6 +282,7 @@ function Lightbox() {
             onSwipeRight={next}
             onSwipeLeft={prev}
             onSwipeDown={close}
+            lightboxStatus={lightboxStatus}
           />
           <Nav dir="right" $hidden={isIdle} $lightboxStatus={lightboxStatus}>
             <StyledNavButton onClick={next} size={32}>
@@ -306,10 +307,19 @@ type Props = {
   onSwipeRight: () => void;
   onSwipeLeft: () => void;
   onSwipeDown: () => void;
+  lightboxStatus: LightboxStatus;
 };
 
 const Image = forwardRef<HTMLImageElement, Props>(function _Image(
-  { src, alt, onLoad, onSwipeRight, onSwipeLeft, onSwipeDown }: Props,
+  {
+    src,
+    alt,
+    onLoad,
+    onSwipeRight,
+    onSwipeLeft,
+    onSwipeDown,
+    lightboxStatus,
+  }: Props,
   ref
 ) {
   const [status, setStatus] = useState<Status | null>(null);
@@ -392,7 +402,11 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
           onLoad();
         }}
       />
-      <Caption>{alt}</Caption>
+      <Caption>
+        {status === Status.LOADED && lightboxStatus === LightboxStatus.OPENED
+          ? alt
+          : ""}
+      </Caption>
     </Figure>
   );
 });
@@ -409,6 +423,7 @@ const Figure = styled("figure")`
 
 const Caption = styled("figcaption")`
   font-size: 14px;
+  min-height: 1.5em;
   font-weight: normal;
   color: ${s("textSecondary")};
   flex-shrink: 0;
