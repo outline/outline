@@ -269,11 +269,13 @@ function Lightbox() {
               </StyledActionButton>
             </Dialog.Close>
           </Actions>
-          <Nav dir="left" $hidden={isIdle} $lightboxStatus={lightboxStatus}>
-            <StyledNavButton onClick={prev} size={32}>
-              <BackIcon size={32} />
-            </StyledNavButton>
-          </Nav>
+          {currNodeIndex > 0 && (
+            <Nav dir="left" $hidden={isIdle} $lightboxStatus={lightboxStatus}>
+              <StyledNavButton onClick={prev} size={32}>
+                <BackIcon size={32} />
+              </StyledNavButton>
+            </Nav>
+          )}
           <Image
             ref={imgRef}
             src={sanitizeUrl(currImgNode.attrs.src) ?? ""}
@@ -284,11 +286,13 @@ function Lightbox() {
             onSwipeDown={close}
             lightboxStatus={lightboxStatus}
           />
-          <Nav dir="right" $hidden={isIdle} $lightboxStatus={lightboxStatus}>
-            <StyledNavButton onClick={next} size={32}>
-              <NextIcon size={32} />
-            </StyledNavButton>
-          </Nav>
+          {currNodeIndex < imageNodes.length - 1 && (
+            <Nav dir="right" $hidden={isIdle} $lightboxStatus={lightboxStatus}>
+              <StyledNavButton onClick={next} size={32}>
+                <NextIcon size={32} />
+              </StyledNavButton>
+            </Nav>
+          )}
         </StyledContent>
       </Dialog.Portal>
     </Dialog.Root>
