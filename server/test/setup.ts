@@ -3,6 +3,7 @@ import sharedEnv from "@shared/env";
 import env from "@server/env";
 
 require("jest-fetch-mock").enableMocks();
+fetchMock.dontMock();
 
 require("@server/storage/database");
 
