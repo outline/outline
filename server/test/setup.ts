@@ -2,6 +2,8 @@ import "reflect-metadata";
 import sharedEnv from "@shared/env";
 import env from "@server/env";
 
+require("jest-fetch-mock").enableMocks();
+
 require("@server/storage/database");
 
 // Enable mocks for Redis-related modules
