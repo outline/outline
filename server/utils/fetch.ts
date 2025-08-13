@@ -105,10 +105,12 @@ const parseProxy = (url: URL, proxyURL: string) => {
  */
 const buildTunnel = (proxy: UrlWithTunnel, options: RequestInit) => {
   if (!proxy.tunnelMethod) {
-    throw new Error("Proxy tunnel method not defined");
+    Logger.warn("Proxy tunnel method not defined");
+    return;
   }
   if (!(proxy.tunnelMethod in tunnelAgent)) {
-    throw new Error(`Proxy tunnel method not supported: ${proxy.tunnelMethod}`);
+    Logger.warn(`Proxy tunnel method not supported: ${proxy.tunnelMethod}`);
+    return;
   }
 
   const proxyAuth =
@@ -173,17 +175,13 @@ function buildAgent(url: string, options: RequestInit = {}) {
     agent = useFilteringAgent(parsedURL.toString(), agentOptions);
   }
 
-  if (!options.signal) {
-    const controller = new AbortController();
-    options.signal = controller.signal as AbortSignal;
+  if (options.signal) {
+    options.signal.addEventListener("abort", () => {
+      if (agent && "destroy" in agent) {
+        agent.destroy();
+      }
+    });
   }
-
-  options.signal?.addEventListener("abort", () => {
-    if (agent && "destroy" in agent) {
-      agent.destroy();
-    }
-    agent = undefined;
-  });
 
   return agent;
 }
