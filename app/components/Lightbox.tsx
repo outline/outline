@@ -39,6 +39,7 @@ import { Second } from "@shared/utils/time";
 import { downloadImageNode } from "@shared/editor/nodes/Image";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { useTranslation } from "react-i18next";
+import Tooltip from "~/components/Tooltip";
 enum LightboxStatus {
   CLOSED,
   OPENED,
@@ -260,13 +261,17 @@ function Lightbox() {
             <Dialog.Title>{t("Lightbox")}</Dialog.Title>
           </VisuallyHidden.Root>
           <Actions $lightboxStatus={lightboxStatus}>
-            <StyledActionButton onClick={download} size={32}>
-              <DownloadIcon size={32} />
-            </StyledActionButton>
-            <Dialog.Close asChild>
-              <StyledActionButton onClick={close} size={32}>
-                <CloseIcon size={32} />
+            <Tooltip content={t("Download")} placement="bottom">
+              <StyledActionButton tabIndex={-1} onClick={download} size={32}>
+                <DownloadIcon size={32} />
               </StyledActionButton>
+            </Tooltip>
+            <Dialog.Close asChild>
+              <Tooltip content={t("Close")} shortcut="Esc" placement="bottom">
+                <StyledActionButton tabIndex={-1} onClick={close} size={32}>
+                  <CloseIcon size={32} />
+                </StyledActionButton>
+              </Tooltip>
             </Dialog.Close>
           </Actions>
           {currNodeIndex > 0 && (
