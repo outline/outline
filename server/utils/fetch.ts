@@ -4,7 +4,6 @@ import https from "https";
 import nodeFetch, { type RequestInit, type Response } from "node-fetch";
 import { getProxyForUrl } from "proxy-from-env";
 import tunnelAgent, { type TunnelAgent } from "tunnel-agent";
-import { AbortController } from "node-abort-controller";
 import { useAgent as useFilteringAgent } from "request-filtering-agent";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
