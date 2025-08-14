@@ -85,20 +85,6 @@ export default () =>
               },
             },
             {
-              urlPattern: /api\/attachments\.redirect/,
-              handler: "CacheFirst",
-              options: {
-                cacheName: "attachments-redirect-cache",
-                expiration: {
-                  maxEntries: 100,
-                  maxAgeSeconds: 120, // 120 seconds
-                },
-                cacheableResponse: {
-                  statuses: [0, 200, 302], // Include redirects
-                },
-              },
-            },
-            {
               urlPattern: /api\/files\.get/,
               handler: "CacheFirst",
               options: {
@@ -110,6 +96,7 @@ export default () =>
                 cacheableResponse: {
                   statuses: [0, 200, 206], // Include partial content for range requests
                 },
+                rangeRequests: true, // Allow range requests for partial content
               },
             },
           ],
