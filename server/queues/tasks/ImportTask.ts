@@ -29,6 +29,7 @@ import { sequelize } from "@server/storage/database";
 import ZipHelper from "@server/utils/ZipHelper";
 import { generateUrlId } from "@server/utils/url";
 import BaseTask, { TaskPriority } from "./BaseTask";
+import env from "@server/env";
 
 type Props = {
   fileOperationId: string;
@@ -489,6 +490,9 @@ export default abstract class ImportTask extends BaseTask<Props> {
                 buffer: await item.buffer(),
                 user,
                 ctx: createContext({ user, transaction }),
+                fetchOptions: {
+                  timeout: env.FILE_STORAGE_IMPORT_TIMEOUT,
+                },
               });
               if (attachment) {
                 attachments.set(item.id, attachment);

@@ -666,6 +666,13 @@ export class Environment {
     1000000;
 
   /**
+   * Timeout in milliseconds for downloading files from remote locations to file storage.
+   */
+  @IsNumber()
+  public FILE_STORAGE_IMPORT_TIMEOUT =
+    this.toOptionalNumber(environment.FILE_STORAGE_IMPORT_TIMEOUT) ?? 60000;
+
+  /**
    * Set max allowed upload size for imports at workspace level.
    */
   @IsNumber()
