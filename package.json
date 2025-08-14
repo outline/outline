@@ -127,7 +127,7 @@
     "date-fns": "^3.6.0",
     "dd-trace": "^5.62.0",
     "diff": "^5.2.0",
-    "dotenv": "^16.5.0",
+    "@dotenvx/dotenvx": "^1.48.4",
     "email-providers": "^1.14.0",
     "emoji-mart": "^5.6.0",
     "emoji-regex": "^10.4.0",
