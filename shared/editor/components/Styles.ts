@@ -508,6 +508,7 @@ iframe.embed {
 
   .ProseMirror-selectednode img {
     pointer-events: initial;
+    cursor: zoom-in;
   }
 }
 
