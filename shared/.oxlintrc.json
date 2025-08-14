@@ -22,6 +22,10 @@
                 "allowTypeImports": true,
                 "group": ["@server/*"],
                 "message": "Do not reference server code from shared code."
+              },
+              {
+                "group": ["mime-types"],
+                "message": "Do not use the mime-types package in the browser."
               }
             ]
           }
