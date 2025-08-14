@@ -8,6 +8,12 @@
         "no-restricted-imports": [
           "error",
           {
+            "patterns": [
+              {
+                "group": ["mime-types"],
+                "message": "Do not use the mime-types package in the browser."
+              }
+            ],
             "paths": [
               {
                 "name": "reakit/Menu",
