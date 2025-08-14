@@ -11,7 +11,6 @@ import { ImageZoom } from "./ImageZoom";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
 import useStores from "../../hooks/useStores";
-import { Gestures } from "../../components/Gestures";
 
 type Props = ComponentProps & {
   /** Callback triggered when the download button is clicked */
@@ -31,6 +30,7 @@ const Image = (props: Props) => {
   const [error, setError] = React.useState(false);
   const [naturalWidth, setNaturalWidth] = React.useState(node.attrs.width);
   const [naturalHeight, setNaturalHeight] = React.useState(node.attrs.height);
+  const [lastTapTime, setLastTapTime] = React.useState(0);
   const ref = React.useRef<HTMLDivElement>(null);
   const { width, height, setSize, handlePointerDown, dragging } = useDragResize(
     {
@@ -69,6 +69,25 @@ const Image = (props: Props) => {
     ? { width: "var(--container-width)" }
     : { width: width || "auto" };
 
+  const handleImageTouchStart = (ev: React.TouchEvent<HTMLDivElement>) => {
+    const currentTime = Date.now();
+    const timeSinceLastTap = currentTime - lastTapTime;
+
+    if (timeSinceLastTap < 300 && isSelected) {
+      ev.preventDefault();
+      ui.setActiveLightboxImgPos(getPos());
+    }
+
+    setLastTapTime(currentTime);
+  };
+
+  const handleImageClick = (ev: React.MouseEvent<HTMLDivElement>) => {
+    if (isSelected) {
+      ev.preventDefault();
+      ui.setActiveLightboxImgPos(getPos());
+    }
+  };
+
   return (
     <div contentEditable={false} className={className} ref={ref}>
       <ImageWrapper
@@ -93,14 +112,7 @@ const Image = (props: Props) => {
             <CrossIcon size={16} /> Image failed to load
           </Error>
         ) : (
-          <Gestures
-            onDoubleClick={() => {
-              props.isSelected && ui.setActiveLightboxImgPos(getPos());
-            }}
-            onDoubleTap={() => {
-              props.isSelected && ui.setActiveLightboxImgPos(getPos());
-            }}
-          >
+          <>
             <img
               className={EditorStyleHelper.imageHandle}
               style={{
@@ -134,6 +146,8 @@ const Image = (props: Props) => {
                   }));
                 }
               }}
+              onClick={handleImageClick}
+              onTouchStart={handleImageTouchStart}
             />
             {!loaded && width && height && (
               <img
@@ -146,7 +160,7 @@ const Image = (props: Props) => {
                 )}`}
               />
             )}
-          </Gestures>
+          </>
         )}
         {isEditable && !isFullWidth && isResizable && (
           <>

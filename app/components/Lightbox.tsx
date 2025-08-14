@@ -225,6 +225,7 @@ function Lightbox() {
         lightboxImageEl.ontransitionend = () => {
           setLightboxStatus(LightboxStatus.CLOSED);
           ui.setActiveLightboxImgPos(undefined);
+          view.focus();
         };
       });
     }
@@ -236,6 +237,7 @@ function Lightbox() {
     void downloadImageNode(currImgNode);
   };
   const handleKeyDown = (ev: React.KeyboardEvent<HTMLDivElement>) => {
+    ev.preventDefault();
     switch (ev.key) {
       case "ArrowLeft": {
         prev();
