@@ -16,7 +16,7 @@ describe("accountProvisioner", () => {
   describe("hosted", () => {
     it("should create a new user and team", async () => {
       const spy = jest.spyOn(WelcomeEmail.prototype, "schedule");
-      const email = faker.internet.email().toLowerCase();
+      const email = faker.internet.email();
       const { user, team, isNewTeam, isNewUser } = await accountProvisioner(
         ctx,
         {
@@ -71,7 +71,7 @@ describe("accountProvisioner", () => {
       });
       const authentications = await existing.$get("authentications");
       const authentication = authentications[0];
-      const newEmail = faker.internet.email().toLowerCase();
+      const newEmail = faker.internet.email();
       const { user, isNewUser, isNewTeam } = await accountProvisioner(ctx, {
         user: {
           name: existing.name,
@@ -113,7 +113,7 @@ describe("accountProvisioner", () => {
 
       const providers = await existingTeam.$get("authenticationProviders");
       const authenticationProvider = providers[0];
-      const email = faker.internet.email().toLowerCase();
+      const email = faker.internet.email();
       const userWithoutAuth = await buildUser({
         email,
         teamId: existingTeam.id,
@@ -245,7 +245,7 @@ describe("accountProvisioner", () => {
       const admin = await buildAdmin({ teamId: existingTeam.id });
       const providers = await existingTeam.$get("authenticationProviders");
       const authenticationProvider = providers[0];
-      const email = faker.internet.email().toLowerCase();
+      const email = faker.internet.email();
 
       await TeamDomain.create({
         teamId: existingTeam.id,
@@ -344,7 +344,7 @@ describe("accountProvisioner", () => {
         "authenticationProviders"
       );
       const authenticationProvider = authenticationProviders[0];
-      const email = faker.internet.email().toLowerCase();
+      const email = faker.internet.email();
       const { user, isNewUser } = await accountProvisioner(ctx, {
         user: {
           name: "Jenny Tester",
@@ -381,6 +381,53 @@ describe("accountProvisioner", () => {
         },
       });
       expect(collectionCount).toEqual(1);
+
+      spy.mockRestore();
+    });
+
+    it("should handle emails with capital letters correctly", async () => {
+      const spy = jest.spyOn(WelcomeEmail.prototype, "schedule");
+      const email = "Jenny.Tester@EXAMPLE.COM";
+
+      const params = {
+        user: {
+          name: "Jenny Tester",
+          email,
+          avatarUrl: faker.image.avatar(),
+        },
+        team: {
+          name: "New workspace",
+          avatarUrl: faker.image.avatar(),
+          subdomain: faker.internet.domainWord(),
+        },
+        authenticationProvider: {
+          name: "google",
+          providerId: faker.internet.domainName(),
+        },
+        authentication: {
+          providerId: uuidv4(),
+          accessToken: "123",
+          scopes: ["read"],
+        },
+      };
+
+      const { user, isNewTeam, isNewUser } = await accountProvisioner(
+        ctx,
+        params
+      );
+
+      expect(user.email).toEqual(email);
+      expect(isNewUser).toEqual(true);
+      expect(isNewTeam).toEqual(true);
+      expect(spy).toHaveBeenCalled();
+
+      // Test that we can find the user again
+      const existing = await accountProvisioner(ctx, params);
+
+      expect(user.email).toEqual(email);
+      expect(existing.isNewTeam).toEqual(false);
+      expect(existing.isNewUser).toEqual(false);
+      expect(existing.user.id).toEqual(user.id);
 
       spy.mockRestore();
     });
