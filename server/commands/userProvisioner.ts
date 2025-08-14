@@ -1,4 +1,4 @@
-import { InferCreationAttributes } from "sequelize";
+import { InferCreationAttributes, Op } from "sequelize";
 import { UserRole } from "@shared/types";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
 import {
@@ -111,9 +111,10 @@ export default async function userProvisioner(
     "withTeam",
   ]).findOne({
     where: {
-      // Email from auth providers may be capitalized and we should respect that
-      // however any existing invites will always be lowercased.
-      email: email.toLowerCase(),
+      // Email from auth providers may be capitalized
+      email: {
+        [Op.iLike]: email,
+      },
       teamId,
     },
   });
