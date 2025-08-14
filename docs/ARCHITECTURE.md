@@ -1,6 +1,6 @@
 # Architecture
 
-Outline is composed of a backend and frontend codebase in this monorepo. As both are written in TypeScript, they share some code where possible. We utilize the latest ES6 language features, including `async`/`await`, and types. Prettier formatting and ESLint are enforced by CI.
+Outline is composed of a backend and frontend codebase in this monorepo. As both are written in TypeScript, they share some code where possible. We utilize the latest ES6 language features, including `async`/`await`, and types. Prettier formatting and Oxlint are enforced by CI.
 
 ## Frontend
 
