@@ -73,7 +73,8 @@ router.get(
   async (ctx: APIContext<T.FilesGetReq>) => {
     const actor = ctx.state.auth.user;
     const key = getKeyFromContext(ctx);
-    const forceDownload = !!ctx.input.query.download;
+    const forceDownload =
+      !!ctx.input.query.download || env.FILE_STORAGE === "local";
     const isSignedRequest = !!ctx.input.query.sig;
     const { isPublicBucket, fileName } = AttachmentHelper.parseKey(key);
     const skipAuthorize = isPublicBucket || isSignedRequest;
