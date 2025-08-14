@@ -163,7 +163,7 @@ function buildAgent(url: string, options: RequestInit = {}) {
         proxyURL.username = parsedProxyURL.username;
         proxyURL.password = parsedProxyURL.password;
       }
-      agent = useFilteringAgent(parsedURL.toString(), agentOptions);
+      agent = useFilteringAgent(proxyURL.toString(), agentOptions);
     } else {
       // Note request filtering agent does not support https tunneling via a proxy
       agent =
