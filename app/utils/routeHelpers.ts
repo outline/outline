@@ -63,8 +63,6 @@ export function documentEditPath(doc: Document): string {
   return `${documentPath(doc)}/edit`;
 }
 
-
-
 export function documentHistoryPath(
   doc: Document,
   revisionId?: string
@@ -152,5 +150,3 @@ export const matchDocumentSlug =
 export const matchDocumentEdit = `/doc/${matchDocumentSlug}/edit`;
 
 export const matchDocumentHistory = `/doc/${matchDocumentSlug}/history/:revisionId?`;
-
-
