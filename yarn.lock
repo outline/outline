@@ -14722,10 +14722,10 @@ vinyl@^3.0.0, vinyl@~3.0.0:
     replace-ext "^2.0.0"
     teex "^1.0.1"
 
-vite-plugin-pwa@^0.21.2:
-  version "0.21.2"
-  resolved "https://registry.yarnpkg.com/vite-plugin-pwa/-/vite-plugin-pwa-0.21.2.tgz#5c6c37f52e96939ba899c5e571c12b7faccc6c49"
-  integrity sha512-vFhH6Waw8itNu37hWUJxL50q+CBbNcMVzsKaYHQVrfxTt3ihk3PeLO22SbiP1UNWzcEPaTQv+YVxe4G0KOjAkg==
+vite-plugin-pwa@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/vite-plugin-pwa/-/vite-plugin-pwa-1.0.2.tgz#ad70181256633c56ce7aa85c66377d916b9e8296"
+  integrity sha512-O3UwjsCnoDclgJANoOgzzqW7SFgwXE/th2OmUP/ILxHKwzWxxKDBu+B/Xa9Cv4IgSVSnj2HgRVIJ7F15+vQFkA==
   dependencies:
     debug "^4.3.6"
     pretty-bytes "^6.1.1"
