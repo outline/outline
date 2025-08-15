@@ -103,6 +103,12 @@ export default function useDictionary() {
       video: t("Video"),
       untitled: t("Untitled"),
       none: t("None"),
+      toggleBlock: t("Toggle block"),
+      emptyToggleBlockHead: t("Toggle"),
+      emptyToggleBlockBody: `${t("Click to type here")}…`,
+      emptyTextBlockWithinToggleBlock: `${t(
+        "Type or press 'Shift-Tab' to exit"
+      )}…`,
       deleteEmbed: t("Delete embed"),
     }),
     [t]

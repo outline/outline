@@ -17,9 +17,11 @@ import {
   IndentIcon,
   CopyIcon,
   Heading3Icon,
+  CollapsedIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import styled from "styled-components";
+import { v4 } from "uuid";
 import Highlight from "@shared/editor/marks/Highlight";
 import { getMarksBetween } from "@shared/editor/queries/getMarksBetween";
 import { isInCode } from "@shared/editor/queries/isInCode";
@@ -161,6 +163,15 @@ export default function formattingMenuItems(
       icon: <BlockQuoteIcon />,
       active: isNodeActive(schema.nodes.blockquote),
       attrs: { level: 2 },
+      visible: !isCodeBlock && (!isMobile || isEmpty),
+    },
+    {
+      name: "container_toggle",
+      // tooltip: dictionary.quote,
+      // shortcut: `${metaDisplay}+]`,
+      icon: <CollapsedIcon />,
+      active: isNodeActive(schema.nodes.container_toggle),
+      attrs: { id: v4() },
       visible: !isCodeBlock && (!isMobile || isEmpty),
     },
     {

@@ -15,7 +15,13 @@ import {
   MarkSpec,
   Node as ProsemirrorNode,
 } from "prosemirror-model";
-import { EditorState, Selection, Plugin, Transaction } from "prosemirror-state";
+import {
+  EditorState,
+  Selection,
+  Plugin,
+  Transaction,
+  TextSelection,
+} from "prosemirror-state";
 import {
   AddMarkStep,
   RemoveMarkStep,
@@ -509,6 +515,12 @@ export class Editor extends React.PureComponent<
       this.mutationObserver = observe(
         hash,
         (element) => {
+          const pos = this.view.posAtDOM(element, 0, 1);
+          this.view.dispatch(
+            this.view.state.tr.setSelection(
+              TextSelection.near(this.view.state.doc.resolve(pos), 1)
+            )
+          );
           element.scrollIntoView();
         },
         this.elementRef.current || undefined

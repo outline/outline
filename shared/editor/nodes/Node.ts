@@ -19,6 +19,10 @@ export default abstract class Node extends Extension {
     return {};
   }
 
+  get attrs(): NodeSpec["attrs"] {
+    return {};
+  }
+
   get markdownToken(): string {
     return "";
   }
