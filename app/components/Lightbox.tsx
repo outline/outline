@@ -51,6 +51,7 @@ function Lightbox() {
   const isIdle = useIdle(3 * Second.ms);
   const { t } = useTranslation();
   const imgRef = useRef<HTMLImageElement | null>(null);
+  const overlayRef = useRef<HTMLDivElement | null>(null);
   const { activeLightboxImgPos } = ui;
   const isOpen = !!activeLightboxImgPos;
   const prevActiveLightboxImgPos = usePrevious(activeLightboxImgPos);
@@ -228,6 +229,16 @@ function Lightbox() {
           view.focus();
         };
       });
+    } else {
+      const lightboxOverlayEl = overlayRef.current;
+      setLightboxStatus(LightboxStatus.CLOSING);
+      requestAnimationFrame(() => {
+        lightboxOverlayEl!.onanimationend = () => {
+          setLightboxStatus(LightboxStatus.CLOSED);
+          ui.setActiveLightboxImgPos(undefined);
+          view.focus();
+        };
+      });
     }
   };
   const close = () => {
@@ -257,7 +268,7 @@ function Lightbox() {
   return (
     <Dialog.Root open={!!activeLightboxImgPos}>
       <Dialog.Portal>
-        <StyledOverlay $lightboxStatus={lightboxStatus} />
+        <StyledOverlay ref={overlayRef} $lightboxStatus={lightboxStatus} />
         <StyledContent onKeyDown={handleKeyDown}>
           <VisuallyHidden.Root>
             <Dialog.Title>{t("Lightbox")}</Dialog.Title>
@@ -383,9 +394,9 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
   };
 
   return status === Status.ERROR ? (
-    <Error>
+    <StyledError $lightboxStatus={lightboxStatus}>
       <CrossIcon size={16} /> Image failed to load
-    </Error>
+    </StyledError>
   ) : (
     <Figure>
       <img
@@ -523,6 +534,21 @@ const Nav = styled.div<{
   ${(props) => (props.dir === "left" ? "left: 0;" : "right: 0;")}
   transition: opacity 500ms ease-in-out;
   ${(props) => props.$hidden && "opacity: 0;"}
+  ${(props) =>
+    props.$lightboxStatus === LightboxStatus.CLOSED
+      ? css`
+          animation: ${fadeIn} 0.3s;
+        `
+      : props.$lightboxStatus === LightboxStatus.OPENED
+        ? css`
+            animation: none;
+          `
+        : css`
+            animation: ${fadeOut} 0.3s;
+          `}
+`;
+
+const StyledError = styled(Error)<{ $lightboxStatus: LightboxStatus }>`
   ${(props) =>
     props.$lightboxStatus === LightboxStatus.CLOSED
       ? css`
