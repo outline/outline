@@ -137,6 +137,11 @@ export default class Image extends SimpleImage {
         {
           tag: "img",
           getAttrs: (dom: HTMLImageElement) => {
+            // Don't parse images from our own editor with this rule.
+            if (dom.parentElement?.classList.contains("image")) {
+              return false;
+            }
+
             // First try HTML attributes
             let width = dom.getAttribute("width");
             let height = dom.getAttribute("height");
