@@ -3,7 +3,7 @@ import * as React from "react";
 import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
-import { s } from "@shared/styles";
+import { s, truncateMultiline } from "@shared/styles";
 import { isMobile } from "@shared/utils/browser";
 import NudeButton from "~/components/NudeButton";
 import { UnreadBadge } from "~/components/UnreadBadge";
@@ -272,8 +272,8 @@ const Link = styled(NavLink)<{
 const Label = styled.div`
   position: relative;
   width: 100%;
-  max-height: 4.8em;
   line-height: 24px;
+  ${truncateMultiline(3)}
 
   * {
     unicode-bidi: plaintext;
