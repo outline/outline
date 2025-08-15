@@ -158,6 +158,7 @@ allow(User, "move", Document, (actor, document) =>
     or(
       can(actor, "updateDocument", document?.collection),
       and(!!document?.isDraft && actor.id === document?.createdById),
+      and(!!document?.isDraft && !document?.collection),
       and(
         !!document?.isWorkspaceTemplate,
         or(
