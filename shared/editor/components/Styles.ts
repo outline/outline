@@ -371,6 +371,7 @@ width: 100%;
   h6 {
     margin-top: 1em;
     margin-bottom: 0.25em;
+    line-height: inherit;
     font-weight: 600;
     cursor: text;
 
