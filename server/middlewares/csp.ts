@@ -41,6 +41,7 @@ export default function createCSPMiddleware() {
 
     return contentSecurityPolicy({
       directives: {
+        baseUri: ["'none'"],
         defaultSrc,
         styleSrc,
         scriptSrc: [
