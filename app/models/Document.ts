@@ -666,6 +666,28 @@ export default class Document extends ArchivableModel implements Searchable {
   }
 
   /**
+   * Returns all children of the document.
+   * This is determined by the collection structure, or the user/group memberships in case it's a shared document.
+   *
+   * @returns An array of NavigationNode objects.
+   */
+  @computed
+  get children(): NavigationNode[] {
+    const { userMemberships, groupMemberships } = this.store.rootStore;
+    const collection = this.collection;
+
+    const membership =
+      userMemberships.getByDocumentId(this.id) ??
+      groupMemberships.getByDocumentId(this.id);
+
+    return (
+      collection?.getChildrenForDocument(this.id) ??
+      membership?.getChildrenForDocument(this.id) ??
+      []
+    );
+  }
+
+  /**
    * Returns the markdown representation of the document derived from the ProseMirror data.
    *
    * @returns The markdown representation of the document as a string.

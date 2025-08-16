@@ -28,10 +28,7 @@ function References({ document }: Props) {
   }, [documents, document.id]);
 
   const backlinks = document.backlinks;
-  const collection = document.collection;
-  const children = collection
-    ? collection.getChildrenForDocument(document.id)
-    : [];
+  const children = document.children;
   const showBacklinks = !!backlinks.length;
   const showChildDocuments = !!children.length;
   const shouldFade = useRef(!showBacklinks && !showChildDocuments);

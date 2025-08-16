@@ -40,21 +40,20 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
   const sidebarContext = useSidebarContext();
   const document = documentId ? documents.get(documentId) : undefined;
 
+  const isActiveDocumentInPath = ui.activeDocumentId
+    ? membership.pathToDocument(ui.activeDocumentId).length > 0
+    : false;
+
   const [expanded, setExpanded, setCollapsed] = useBoolean(
-    membership.documentId === ui.activeDocumentId &&
-      locationSidebarContext === sidebarContext
+    isActiveDocumentInPath && locationSidebarContext === sidebarContext
   );
 
   React.useEffect(() => {
-    if (
-      membership.documentId === ui.activeDocumentId &&
-      locationSidebarContext === sidebarContext
-    ) {
+    if (isActiveDocumentInPath && locationSidebarContext === sidebarContext) {
       setExpanded();
     }
   }, [
-    membership.documentId,
-    ui.activeDocumentId,
+    isActiveDocumentInPath,
     sidebarContext,
     locationSidebarContext,
     setExpanded,
@@ -63,6 +62,7 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
   React.useEffect(() => {
     if (documentId) {
       void documents.fetch(documentId);
+      void membership.fetchDocuments();
     }
   }, [documentId, documents]);
 
@@ -118,9 +118,7 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
       ? collections.get(document.collectionId)
       : undefined;
 
-    const node = document.asNavigationNode;
-    const childDocuments = node.children;
-    const hasChildDocuments = childDocuments.length > 0;
+    const childDocuments = membership.documents ?? [];
 
     return (
       <>
@@ -139,7 +137,9 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
                   state: { sidebarContext },
                 }}
                 expanded={
-                  hasChildDocuments && !isDragging ? expanded : undefined
+                  childDocuments.length > 0 && !isDragging
+                    ? expanded
+                    : undefined
                 }
                 onDisclosureClick={handleDisclosureClick}
                 icon={icon}
@@ -180,8 +180,9 @@ function SharedWithMeLink({ membership, depth = 0 }: Props) {
               key={childNode.id}
               node={childNode}
               collection={collection}
+              membership={membership}
               activeDocument={documents.active}
-              isDraft={node.isDraft}
+              isDraft={childNode.isDraft}
               depth={2}
               index={index}
             />
