@@ -5,7 +5,6 @@ import browserslistToEsbuild from "browserslist-to-esbuild";
 import webpackStats from "rollup-plugin-webpack-stats";
 import { ServerOptions, defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
-import { viteStaticCopy } from "vite-plugin-static-copy";
 import environment from "./server/utils/environment";
 
 let httpsConfig: ServerOptions["https"] | undefined;
@@ -46,15 +45,6 @@ export default () =>
     },
     plugins: [
       react(),
-      // https://github.com/sapphi-red/vite-plugin-static-copy#readme
-      viteStaticCopy({
-        targets: [
-          {
-            src: "./public/images",
-            dest: "./",
-          },
-        ],
-      }),
       // https://vite-pwa-org.netlify.app/
       VitePWA({
         injectRegister: "inline",
@@ -115,18 +105,18 @@ export default () =>
           // pixel-perfection, provide icons in increments of 48dp.
           icons: [
             {
-              src: "/static/images/icon-192.png",
+              src: "/images/icon-192.png",
               sizes: "192x192",
               type: "image/png",
             },
             {
-              src: "/static/images/icon-512.png",
+              src: "/images/icon-512.png",
               sizes: "512x512",
               type: "image/png",
             },
             // last one duplicated for purpose: 'any maskable'
             {
-              src: "/static/images/icon-512.png",
+              src: "/images/icon-512.png",
               sizes: "512x512",
               type: "image/png",
               purpose: "any maskable",
