@@ -73,7 +73,7 @@ export default function useCollectionTrees(): NavigationNode[] {
       parent: null,
     };
 
-    return addParent(addCollectionId(addDepth(addType(collectionNode))));
+    return addParent(addCollectionId(addDepth(addType(collectionNode), 1)));
   };
 
   const key = collections.orderedData.map((o) => o.documents?.length).join("-");
