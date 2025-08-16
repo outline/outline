@@ -25,7 +25,7 @@ import HistoryNavigation from "./components/HistoryNavigation";
 import Section from "./components/Section";
 import SharedWithMe from "./components/SharedWithMe";
 import SidebarAction from "./components/SidebarAction";
-import SidebarButton, { SidebarButtonProps } from "./components/SidebarButton";
+import SidebarButton from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
 import Starred from "./components/Starred";
 import ToggleButton from "./components/ToggleButton";

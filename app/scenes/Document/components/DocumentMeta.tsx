@@ -3,7 +3,7 @@ import { observer, useObserver } from "mobx-react";
 import { CommentIcon } from "outline-icons";
 import { useRef, Fragment } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useRouteMatch } from "react-router-dom";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { TeamPreference } from "@shared/types";
 import Document from "~/models/Document";
@@ -29,7 +29,6 @@ type Props = {
 function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
   const { views, comments, ui } = useStores();
   const { t } = useTranslation();
-  const match = useRouteMatch();
   const sidebarContext = useLocationSidebarContext();
   const team = useCurrentTeam();
   const documentViews = useObserver(() => views.inDocument(document.id));

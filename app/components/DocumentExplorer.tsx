@@ -15,7 +15,7 @@ import scrollIntoView from "scroll-into-view-if-needed";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Icon from "@shared/components/Icon";
-import { NavigationNode, NavigationNodeType } from "@shared/types";
+import { NavigationNode } from "@shared/types";
 import { isModKey } from "@shared/utils/keyboard";
 import DocumentExplorerNode from "~/components/DocumentExplorerNode";
 import DocumentExplorerSearchResult from "~/components/DocumentExplorerSearchResult";
