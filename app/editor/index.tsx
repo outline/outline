@@ -504,12 +504,24 @@ export class Editor extends React.PureComponent<
       return;
     }
 
+    function isVisible(element: HTMLElement | null) {
+      for (let e = element; e; e = e.parentElement) {
+        const s = getComputedStyle(e);
+        if (s.display === "none" || s.opacity === "0") {
+          return false;
+        }
+      }
+      return true;
+    }
+
     try {
       this.mutationObserver?.disconnect();
       this.mutationObserver = observe(
         hash,
         (element) => {
-          element.scrollIntoView();
+          if (isVisible(element)) {
+            element.scrollIntoView();
+          }
         },
         this.elementRef.current || undefined
       );
