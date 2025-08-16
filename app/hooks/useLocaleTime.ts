@@ -44,7 +44,7 @@ export const useLocaleTime = ({
     "MMMM do, yyyy h:mm a";
   // @ts-expect-error fallback to formatLocaleLong
   const formatLocale = format?.[userLocale] ?? formatLocaleLong;
-  const [_, setMinutesMounted] = useState(0);
+  const [, setMinutesMounted] = useState(0);
   const callback = useRef<() => void>();
 
   useEffect(() => {

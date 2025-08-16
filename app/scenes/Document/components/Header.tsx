@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { TableOfContentsIcon, EditIcon, MoreIcon } from "outline-icons";
+import { TableOfContentsIcon, EditIcon } from "outline-icons";
 import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";

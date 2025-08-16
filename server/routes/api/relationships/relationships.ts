@@ -2,7 +2,7 @@ import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { Document, Relationship } from "@server/models";
-import { authorize, can } from "@server/policies";
+import { authorize } from "@server/policies";
 import {
   presentRelationship,
   presentDocument,

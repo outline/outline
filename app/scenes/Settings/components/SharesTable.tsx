@@ -1,7 +1,6 @@
 import compact from "lodash/compact";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import Share from "~/models/Share";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Badge from "~/components/Badge";
