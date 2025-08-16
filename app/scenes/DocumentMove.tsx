@@ -1,4 +1,3 @@
-import flatten from "lodash/flatten";
 import { observer } from "mobx-react";
 import { useState, useMemo } from "react";
 import { useTranslation, Trans } from "react-i18next";
@@ -13,7 +12,6 @@ import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import useCollectionTrees from "~/hooks/useCollectionTrees";
 import useStores from "~/hooks/useStores";
-import { flattenTree } from "~/utils/tree";
 
 type Props = {
   document: Document;

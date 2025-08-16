@@ -134,6 +134,7 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
     (min, node) => (node.depth ? Math.min(min, node.depth) : min),
     Infinity
   );
+  const normalizedBaseDepth = baseDepth === Infinity ? 0 : baseDepth;
 
   const scrollNodeIntoView = React.useCallback(
     (node: number) => {
@@ -307,7 +308,7 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
           expanded={isExpanded(index)}
           icon={renderedIcon}
           title={title}
-          depth={(node.depth ?? 0) - baseDepth}
+          depth={(node.depth ?? 0) - normalizedBaseDepth}
           hasChildren={hasChildren(index)}
           ref={itemRefs[index]}
         />

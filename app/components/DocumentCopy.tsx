@@ -1,4 +1,3 @@
-import flatten from "lodash/flatten";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
@@ -11,7 +10,6 @@ import Button from "~/components/Button";
 import DocumentExplorer from "~/components/DocumentExplorer";
 import useCollectionTrees from "~/hooks/useCollectionTrees";
 import useStores from "~/hooks/useStores";
-import { flattenTree } from "~/utils/tree";
 import Switch from "./Switch";
 import Text from "./Text";
 
