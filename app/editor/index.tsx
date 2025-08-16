@@ -504,7 +504,7 @@ export class Editor extends React.PureComponent<
       return;
     }
 
-    const isVisible = (element: HTMLElement | null) => {
+    function isVisible(element: HTMLElement | null) {
       for (let e = element; e; e = e.parentElement) {
         const s = getComputedStyle(e);
         if (s.display === "none" || s.opacity === "0") {
@@ -512,7 +512,7 @@ export class Editor extends React.PureComponent<
         }
       }
       return true;
-    };
+    }
 
     try {
       this.mutationObserver?.disconnect();
