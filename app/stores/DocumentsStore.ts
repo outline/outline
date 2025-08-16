@@ -8,8 +8,6 @@ import { observable, action, computed, runInAction } from "mobx";
 import {
   SubscriptionType,
   type DateFilter,
-  type NavigationNode,
-  type PublicTeam,
   type StatusFilter,
 } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
