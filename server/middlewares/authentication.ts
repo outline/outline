@@ -63,15 +63,16 @@ export default function auth(options: AuthenticationOptions = {}) {
       token = ctx.cookies.get("accessToken");
 
       // check if the request is application/json encoded
-      if (
-        token &&
-        !ctx.request.is("application/json") &&
-        !options.allowMultipart
-      ) {
-        throw AuthenticationError(
-          "Mismatched content type. Expected application/json"
-        );
-      }
+      // TODO: Enable once clients have updated
+      // if (
+      //   token &&
+      //   !ctx.request.is("application/json") &&
+      //   !options.allowMultipart
+      // ) {
+      //   throw AuthenticationError(
+      //     "Mismatched content type. Expected application/json"
+      //   );
+      // }
     }
 
     try {
