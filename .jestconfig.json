@@ -12,7 +12,6 @@
       },
       "setupFiles": ["<rootDir>/__mocks__/console.js"],
       "setupFilesAfterEnv": ["<rootDir>/server/test/setup.ts"],
-      "globalSetup": "<rootDir>/server/test/globalSetup.js",
       "globalTeardown": "<rootDir>/server/test/globalTeardown.js",
       "testEnvironment": "node"
     },
