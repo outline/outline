@@ -28,7 +28,7 @@ const router = new Router();
 router.post(
   "files.create",
   rateLimiter(RateLimiterStrategy.TenPerMinute),
-  auth(),
+  auth({ allowMultipart: true }),
   validate(T.FilesCreateSchema),
   multipart({
     maximumFileSize: Math.max(

@@ -23,6 +23,12 @@ type AuthenticationOptions = {
   type?: AuthenticationType | AuthenticationType[];
   /** Authentication is parsed, but optional. */
   optional?: boolean;
+  /**
+   * Allow multipart requests with cookie authentication, otherwise
+   * the request will fail if the content type is not application/json.
+   * This is useful for file uploads where the cookie is used to authenticate.
+   */
+  allowMultipart?: boolean;
 };
 
 export default function auth(options: AuthenticationOptions = {}) {
@@ -55,6 +61,18 @@ export default function auth(options: AuthenticationOptions = {}) {
       token = ctx.request.query.token;
     } else {
       token = ctx.cookies.get("accessToken");
+
+      // check if the request is application/json encoded
+      // TODO: Enable once clients have updated
+      // if (
+      //   token &&
+      //   !ctx.request.is("application/json") &&
+      //   !options.allowMultipart
+      // ) {
+      //   throw AuthenticationError(
+      //     "Mismatched content type. Expected application/json"
+      //   );
+      // }
     }
 
     try {
