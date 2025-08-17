@@ -75,18 +75,17 @@ class ApiClient {
     } else if (method === "POST" || method === "PUT") {
       if (data instanceof FormData || typeof data === "string") {
         body = data;
-      } else {
-        isJson = true;
+      }
 
-        // Only stringify data if its a normal object and
-        // not if it's [object FormData], in addition to
-        // toggling Content-Type to application/json
-        if (
-          typeof data === "object" &&
-          (data || "").toString() === "[object Object]"
-        ) {
-          body = JSON.stringify(data);
-        }
+      // Only stringify data if its a normal object and
+      // not if it's [object FormData], in addition to
+      // toggling Content-Type to application/json
+      if (
+        typeof data === "object" &&
+        (data || "").toString() === "[object Object]"
+      ) {
+        isJson = true;
+        body = JSON.stringify(data);
       }
     }
 
