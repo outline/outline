@@ -75,11 +75,7 @@ router.get("/redirect", authMiddleware(), async (ctx: APIContext) => {
   );
 });
 
-app.use(
-  bodyParser({
-    multipart: true,
-  })
-);
+app.use(bodyParser());
 app.use(coalesceBody());
 app.use(router.routes());
 
