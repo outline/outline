@@ -141,7 +141,9 @@ export const ImportableIntegrationService = {
 
 export type IssueTrackerIntegrationService = Extract<
   IntegrationService,
-  IntegrationService.GitHub | IntegrationService.Linear | IntegrationService.GitLab
+  | IntegrationService.GitHub
+  | IntegrationService.Linear
+  | IntegrationService.GitLab
 >;
 
 export const IssueTrackerIntegrationService = {
@@ -192,7 +194,12 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
         workspace: { id: string; name: string; key: string; logoUrl?: string };
       };
       gitlab?: {
-        project: { id: string; name: string; path_with_namespace: string; avatar_url?: string };
+        project: {
+          id: string;
+          name: string;
+          path_with_namespace: string;
+          avatar_url?: string;
+        };
       };
     }
   : T extends IntegrationType.Analytics

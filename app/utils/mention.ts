@@ -43,7 +43,8 @@ export const isURLMentionable = ({
 
       return (
         hostname === "gitlab.com" &&
-        settings.gitlab?.project.path_with_namespace === pathParts.slice(1, -2).join("/") // ensure installed project path matches with the provided url.
+        settings.gitlab?.project.path_with_namespace ===
+          pathParts.slice(1, -2).join("/") // ensure installed project path matches with the provided url.
       );
     }
 

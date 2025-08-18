@@ -14,4 +14,3 @@ PluginManager.add([
     },
   },
 ]);
-

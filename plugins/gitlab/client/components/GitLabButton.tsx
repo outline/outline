@@ -21,4 +21,3 @@ export function GitLabConnectButton(props: Props<HTMLButtonElement>) {
     </Button>
   );
 }
-

@@ -49,4 +49,3 @@ export class GitLabUtils {
     return `${this.authBaseUrl}?${queryString.stringify(params)}`;
   }
 }
-

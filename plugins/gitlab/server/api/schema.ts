@@ -15,4 +15,3 @@ export const GitLabCallbackSchema = BaseSchema.extend({
 });
 
 export type GitLabCallbackReq = z.infer<typeof GitLabCallbackSchema>;
-

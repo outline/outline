@@ -5,4 +5,3 @@
   "description": "Adds a GitLab integration for link unfurling and converting links to mentions.",
   "after": "linear"
 }
-

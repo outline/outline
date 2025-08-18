@@ -48,4 +48,3 @@ export default function Icon({ size = 24, fill = "currentColor" }: Props) {
     </svg>
   );
 }
-

@@ -59,8 +59,8 @@ function GitLab() {
         <>
           <Text as="p">
             <Trans>
-              Enable previews of GitLab issues and merge requests in documents by connecting a
-              GitLab project to {appName}.
+              Enable previews of GitLab issues and merge requests in documents
+              by connecting a GitLab project to {appName}.
             </Trans>
           </Text>
           {integrations.gitlab.length ? (
@@ -73,8 +73,7 @@ function GitLab() {
               </Heading>
               <List>
                 {integrations.gitlab.map((integration) => {
-                  const gitlabProject =
-                    integration.settings?.gitlab?.project;
+                  const gitlabProject = integration.settings?.gitlab?.project;
                   const integrationCreatedBy = integration.user
                     ? integration.user.name
                     : undefined;
@@ -138,4 +137,3 @@ function GitLab() {
 }
 
 export default observer(GitLab);
-
