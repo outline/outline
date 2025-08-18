@@ -227,23 +227,22 @@ describe("#groups.list", () => {
       },
     });
     const body = await res.json();
-
     expect(res.status).toEqual(200);
     expect(body.data.groups.length).toEqual(2);
     expect(body.data.groups[0].id).toEqual(anotherGroup.id);
     expect(body.data.groups[1].id).toEqual(group.id);
-    type GroupMembership = { user: { id: string }; groupId: string };
+
     expect(body.data.groupMemberships.length).toEqual(2);
     expect(body.data.groupMemberships[0].groupId).toEqual(group.id);
     expect(body.data.groupMemberships[1].groupId).toEqual(group.id);
     expect(
       body.data.groupMemberships
-        .map((u: GroupMembership) => u.user.id)
+        .map((u: { user: { id: string }; groupId: string }) => u.user.id)
         .includes(user.id)
     ).toBe(true);
     expect(
       body.data.groupMemberships
-        .map((u: GroupMembership) => u.user.id)
+        .map((u: { user: { id: string }; groupId: string }) => u.user.id)
         .includes(anotherUser.id)
     ).toBe(true);
     expect(body.policies.length).toEqual(2);
@@ -262,11 +261,13 @@ describe("#groups.list", () => {
     expect(anotherBody.data.groupMemberships[0].groupId).toEqual(group.id);
     expect(anotherBody.data.groupMemberships[1].groupId).toEqual(group.id);
     expect(
-      body.data.groupMemberships.map((u: any) => u.user.id).includes(user.id)
+      body.data.groupMemberships
+        .map((u: { user: { id: string }; groupId: string }) => u.user.id)
+        .includes(user.id)
     ).toBe(true);
     expect(
       body.data.groupMemberships
-        .map((u: any) => u.user.id)
+        .map((u: { user: { id: string }; groupId: string }) => u.user.id)
         .includes(anotherUser.id)
     ).toBe(true);
   });

@@ -87,7 +87,7 @@ function useIsActive(state: EditorState) {
 
   const slice = selection.content();
   const fragment = slice.content;
-  const nodes = (fragment as any).content;
+  const nodes = (fragment as unknown).content;
 
   return some(nodes, (n) => n.content.size);
 }

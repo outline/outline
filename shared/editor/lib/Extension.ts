@@ -10,10 +10,10 @@ export type CommandFactory = (attrs?: Record<string, Primitive>) => Command;
 export type WidgetProps = { rtl: boolean; readOnly: boolean | undefined };
 
 export default class Extension {
-  options: any;
+  options: Record<string, unknown>;
   editor: Editor;
 
-  constructor(options: Record<string, any> = {}) {
+  constructor(options: Record<string, unknown> = {}) {
     this.options = {
       ...this.defaultOptions,
       ...options,

@@ -573,7 +573,7 @@ router.post(
     });
 
     let document: Document | null;
-    let serializedDocument: Record<string, any> | undefined;
+    let serializedDocument: Record<string, unknown> | undefined;
     let isPublic = false;
 
     if (shareId) {
