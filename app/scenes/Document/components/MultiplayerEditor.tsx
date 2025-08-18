@@ -51,7 +51,10 @@ type MessageEvent = {
   };
 };
 
-function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
+function MultiplayerEditor(
+  { onSynced, ...props }: Props,
+  ref: React.Ref<unknown>
+) {
   const documentId = props.id;
   const history = useHistory();
   const { t } = useTranslation();
