@@ -5,6 +5,7 @@ import { isInCode } from "../queries/isInCode";
 
 const newline = "\n";
 const tabSize = 2;
+const backticks = "```";
 
 /**
  * Moves the current selection to the previous newline, this is used inside
@@ -219,4 +220,60 @@ export const enterInCode: Command = (state, dispatch) => {
   }
 
   return newlineInCode(state, dispatch);
+};
+
+/**
+ * Split a code block into two when three backticks are typed within it.
+ * This creates a new code block below the current one with the same language.
+ *
+ * @returns A prosemirror command
+ */
+export const splitCodeBlockOnTripleBackticks: Command = (state, dispatch) => {
+  if (!isInCode(state, { onlyBlock: true })) {
+    return false;
+  }
+
+  const { tr, selection } = state;
+  const { $from, from } = selection;
+
+  // Get the text before the cursor to check for backticks
+  const nodeBefore = $from.nodeBefore;
+  const textBefore = nodeBefore?.text || "";
+
+  // Check if the last three characters are backticks
+  if (!textBefore.endsWith(backticks)) {
+    return false;
+  }
+
+  if (dispatch) {
+    // Delete the backticks
+    const backticksStart = from - backticks.length;
+    tr.delete(backticksStart, from);
+
+    // Split the node at the current position (minus the backticks)
+    const pos = tr.mapping.map(backticksStart);
+    const $pos = tr.doc.resolve(pos);
+
+    // Get the language of the current code block
+    const language = $pos.node(-1).attrs.language;
+
+    // Exit the current code block
+    exitCode(tr.setSelection(TextSelection.create(tr.doc, pos)), dispatch);
+
+    // Insert a new code block with the same language
+    const schema = state.schema;
+    const codeBlock = schema.nodes.code_fence.create({ language });
+
+    // Insert the new code block at the current position
+    const insertPos = tr.mapping.map(pos);
+    tr.insert(insertPos, codeBlock);
+
+    // Set the selection to the start of the new code block
+    const newPos = insertPos + 1; // +1 to get inside the code block
+    tr.setSelection(TextSelection.create(tr.doc, newPos));
+
+    return true;
+  }
+
+  return true;
 };
