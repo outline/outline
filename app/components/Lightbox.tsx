@@ -45,6 +45,7 @@ enum LightboxStatus {
   OPENED,
   CLOSING,
 }
+const ANIMATION_DURATION = 0.3 * Second.ms;
 function Lightbox() {
   const { view } = useEditor();
   const { ui } = useStores();
@@ -94,8 +95,7 @@ function Lightbox() {
         requestAnimationFrame(() => {
           const tx = lightboxImgLeft - editorImgLeft;
           const ty = lightboxImgTop - editorImgTop;
-          lightboxImageEl.style.transition =
-            "transform 300ms, width 300ms, height 300ms";
+          lightboxImageEl.style.transition = `transform ${ANIMATION_DURATION}ms, width ${ANIMATION_DURATION}ms, height ${ANIMATION_DURATION}ms`;
           lightboxImageEl.style.transform = `translate(${tx}px, ${ty}px)`;
 
           lightboxImageEl.ontransitionstart = () => {
@@ -213,8 +213,7 @@ function Lightbox() {
         const fromY = lightboxImgTop + lightboxImgHeight / 2;
         const tx = toX - fromX;
         const ty = toY - fromY;
-        lightboxImageEl.style.transition =
-          "width 300ms, height 300ms, transform 300ms";
+        lightboxImageEl.style.transition = `width ${ANIMATION_DURATION}ms, height ${ANIMATION_DURATION}ms, transform ${ANIMATION_DURATION}ms`;
         lightboxImageEl.style.transform = `translate(${tx}px, ${ty}px)`;
 
         lightboxImageEl.ontransitionstart = () => {
@@ -461,14 +460,14 @@ const StyledOverlay = styled(Dialog.Overlay)<{
   ${(props) =>
     props.$lightboxStatus === LightboxStatus.CLOSED
       ? css`
-          animation: ${fadeIn} 0.3s;
+          animation: ${fadeIn} ${ANIMATION_DURATION}ms;
         `
       : props.$lightboxStatus === LightboxStatus.OPENED
         ? css`
             animation: none;
           `
         : css`
-            animation: ${fadeOut} 0.3s;
+            animation: ${fadeOut} ${ANIMATION_DURATION}ms;
           `}
 `;
 
@@ -494,14 +493,14 @@ const Actions = styled.div<{
   ${(props) =>
     props.$lightboxStatus === LightboxStatus.CLOSED
       ? css`
-          animation: ${fadeIn} 0.3s;
+          animation: ${fadeIn} ${ANIMATION_DURATION}ms;
         `
       : props.$lightboxStatus === LightboxStatus.OPENED
         ? css`
             animation: none;
           `
         : css`
-            animation: ${fadeOut} 0.3s;
+            animation: ${fadeOut} ${ANIMATION_DURATION}ms;
           `}
 `;
 
@@ -537,14 +536,14 @@ const Nav = styled.div<{
   ${(props) =>
     props.$lightboxStatus === LightboxStatus.CLOSED
       ? css`
-          animation: ${fadeIn} 0.3s;
+          animation: ${fadeIn} ${ANIMATION_DURATION}ms;
         `
       : props.$lightboxStatus === LightboxStatus.OPENED
         ? css`
             animation: none;
           `
         : css`
-            animation: ${fadeOut} 0.3s;
+            animation: ${fadeOut} ${ANIMATION_DURATION}ms;
           `}
 `;
 
@@ -552,14 +551,14 @@ const StyledError = styled(Error)<{ $lightboxStatus: LightboxStatus }>`
   ${(props) =>
     props.$lightboxStatus === LightboxStatus.CLOSED
       ? css`
-          animation: ${fadeIn} 0.3s;
+          animation: ${fadeIn} ${ANIMATION_DURATION}ms;
         `
       : props.$lightboxStatus === LightboxStatus.OPENED
         ? css`
             animation: none;
           `
         : css`
-            animation: ${fadeOut} 0.3s;
+            animation: ${fadeOut} ${ANIMATION_DURATION}ms;
           `}
 `;
 
