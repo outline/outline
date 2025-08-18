@@ -37,6 +37,16 @@ export const isURLMentionable = ({
       );
     }
 
+    case IntegrationService.GitLab: {
+      const settings =
+        integration.settings as IntegrationSettings<IntegrationType.Embed>;
+
+      return (
+        hostname === "gitlab.com" &&
+        settings.gitlab?.project.path_with_namespace === pathParts.slice(1, -2).join("/") // ensure installed project path matches with the provided url.
+      );
+    }
+
     default:
       return false;
   }
@@ -65,6 +75,16 @@ export const determineMentionType = ({
     case IntegrationService.Linear: {
       const type = pathParts[2];
       return type === "issue" ? MentionType.Issue : undefined;
+    }
+
+    case IntegrationService.GitLab: {
+      const type = pathParts[pathParts.length - 2];
+      if (type === "issues") {
+        return MentionType.Issue;
+      } else if (type === "merge_requests") {
+        return MentionType.PullRequest;
+      }
+      return undefined;
     }
 
     default:

@@ -126,6 +126,7 @@ export enum IntegrationService {
   Umami = "umami",
   GitHub = "github",
   Linear = "linear",
+  GitLab = "gitlab",
   Notion = "notion",
 }
 
@@ -140,12 +141,13 @@ export const ImportableIntegrationService = {
 
 export type IssueTrackerIntegrationService = Extract<
   IntegrationService,
-  IntegrationService.GitHub | IntegrationService.Linear
+  IntegrationService.GitHub | IntegrationService.Linear | IntegrationService.GitLab
 >;
 
 export const IssueTrackerIntegrationService = {
   GitHub: IntegrationService.GitHub,
   Linear: IntegrationService.Linear,
+  GitLab: IntegrationService.GitLab,
 } as const;
 
 export type UserCreatableIntegrationService = Extract<
@@ -188,6 +190,9 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
       };
       linear?: {
         workspace: { id: string; name: string; key: string; logoUrl?: string };
+      };
+      gitlab?: {
+        project: { id: string; name: string; path_with_namespace: string; avatar_url?: string };
       };
     }
   : T extends IntegrationType.Analytics

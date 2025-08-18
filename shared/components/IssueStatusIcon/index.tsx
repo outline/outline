@@ -7,6 +7,7 @@ import {
   UnfurlResponse,
 } from "../../types";
 import { GitHubIssueStatusIcon } from "./GitHubIssueStatusIcon";
+import { GitLabIssueStatusIcon } from "./GitLabIssueStatusIcon";
 import { LinearIssueStatusIcon } from "./LinearIssueStatusIcon";
 
 export type BaseIconProps = {
@@ -33,6 +34,8 @@ function getIcon(props: Props) {
       return <GitHubIssueStatusIcon {...props} />;
     case IntegrationService.Linear:
       return <LinearIssueStatusIcon {...props} />;
+    case IntegrationService.GitLab:
+      return <GitLabIssueStatusIcon {...props} />;
   }
 }
 

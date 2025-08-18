@@ -30,10 +30,15 @@ const HoverPreviewIssue = React.forwardRef(function _HoverPreviewIssue(
 ) {
   const authorName = author.name;
   const urlObj = new URL(url);
-  const service =
-    urlObj.hostname === "github.com"
-      ? IntegrationService.GitHub
-      : IntegrationService.Linear;
+  let service;
+  
+  if (urlObj.hostname === "github.com") {
+    service = IntegrationService.GitHub;
+  } else if (urlObj.hostname === "gitlab.com") {
+    service = IntegrationService.GitLab;
+  } else {
+    service = IntegrationService.Linear;
+  }
 
   return (
     <Preview as="a" href={url} target="_blank" rel="noopener noreferrer">
