@@ -5323,3 +5323,140 @@ describe("#documents.empty_trash", () => {
     expect(body).toMatchSnapshot();
   });
 });
+
+describe("#documents.documents", () => {
+  it("should return document tree for a document in a collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const parent = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+    });
+    const child1 = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+      parentDocumentId: parent.id,
+      title: "Child 1",
+    });
+    const child2 = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+      parentDocumentId: parent.id,
+      title: "Child 2",
+    });
+
+    const res = await server.post("/api/documents.documents", {
+      body: {
+        token: user.getJwtToken(),
+        id: parent.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.data.id).toBe(parent.id);
+    const childIds = body.data.children.map((node: any) => node.id);
+    expect(childIds).toContain(child1.id);
+    expect(childIds).toContain(child2.id);
+  });
+
+  it("should have empty children nodes if document has no children", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const parent = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/documents.documents", {
+      body: {
+        token: user.getJwtToken(),
+        id: parent.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.data.id).toBe(parent.id);
+    expect(body.data.children.length).toBe(0);
+  });
+
+  it("should return undefined if document is not part of a collection", async () => {
+    const user = await buildUser();
+    const doc = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: null,
+    });
+
+    const res = await server.post("/api/documents.documents", {
+      body: {
+        token: user.getJwtToken(),
+        id: doc.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.data).toBeUndefined();
+  });
+
+  it("should require authentication", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const parent = await buildDocument({
+      userId: user.id,
+      collectionId: collection.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/documents.documents", {
+      body: {
+        id: parent.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toBe(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it("should return 403 if user does not have access to the document", async () => {
+    const user = await buildUser();
+    const otherUser = await buildUser();
+    const collection = await buildCollection({
+      userId: otherUser.id,
+      teamId: otherUser.teamId,
+      permission: null,
+    });
+    const parent = await buildDocument({
+      userId: otherUser.id,
+      collectionId: collection.id,
+      teamId: otherUser.teamId,
+    });
+
+    const res = await server.post("/api/documents.documents", {
+      body: {
+        token: user.getJwtToken(),
+        id: parent.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toBe(403);
+    expect(body).toMatchSnapshot();
+  });
+});
