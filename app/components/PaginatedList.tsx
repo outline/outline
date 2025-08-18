@@ -34,11 +34,11 @@ interface Props<T extends PaginatedItem>
    * @param options Pagination and other query options
    */
   fetch?: (
-    options: Record<string, any> | undefined
+    options: Record<string, unknown> | undefined
   ) => Promise<unknown[] | undefined> | undefined;
 
   /** Additional options to pass to the fetch function */
-  options?: Record<string, any>;
+  options?: Record<string, unknown>;
 
   /** Optional header content to display above the list */
   heading?: React.ReactNode;
@@ -77,7 +77,9 @@ interface Props<T extends PaginatedItem>
    * Function to render section headings (typically date-based)
    * @param name The heading text or element to render
    */
-  renderHeading?: (name: React.ReactElement<any> | string) => React.ReactNode;
+  renderHeading?: (
+    name: React.ReactElement<unknown> | string
+  ) => React.ReactNode;
 
   /**
    * Handler for escape key press
@@ -206,7 +208,7 @@ const PaginatedList = <T extends PaginatedItem>({
     if (fetch) {
       void fetchResults();
     }
-  }, [fetch]);
+  }, [fetch, fetchResults]);
 
   // Handle updates to fetch or options
   React.useEffect(() => {

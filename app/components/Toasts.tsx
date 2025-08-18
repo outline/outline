@@ -9,7 +9,7 @@ function Toasts() {
 
   return (
     <StyledToaster
-      theme={ui.resolvedTheme as any}
+      theme={ui.resolvedTheme as unknown}
       closeButton
       toastOptions={{
         duration: 5000,

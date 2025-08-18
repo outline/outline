@@ -14,7 +14,7 @@ describe("PaginatedList", () => {
     i18n,
     tReady: true,
     t: ((key: string) => key) as TFunction,
-  } as any;
+  } as unknown;
 
   it("with no items renders nothing", () => {
     const result = render(
