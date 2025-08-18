@@ -31,7 +31,7 @@ const HoverPreviewIssue = React.forwardRef(function _HoverPreviewIssue(
   const authorName = author.name;
   const urlObj = new URL(url);
   let service;
-  
+
   if (urlObj.hostname === "github.com") {
     service = IntegrationService.GitHub;
   } else if (urlObj.hostname === "gitlab.com") {
