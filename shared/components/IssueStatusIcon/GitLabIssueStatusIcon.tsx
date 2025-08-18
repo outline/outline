@@ -1,11 +1,9 @@
 import * as React from "react";
-import { useTheme } from "styled-components";
 import { isSafari } from "../../utils/browser";
 import { BaseIconProps } from ".";
 
 /** Renders an icon for a specific GitLab issue state */
 export function GitLabIssueStatusIcon(props: BaseIconProps) {
-  const theme = useTheme();
   const { state } = props;
   const isOpen = state.name === "opened";
   const color = state.color || (isOpen ? "#1aaa55" : "#db3b21"); // Green for open, red for closed
@@ -29,16 +27,8 @@ export function GitLabIssueStatusIcon(props: BaseIconProps) {
         />
       )}
       {state.draft && (
-        <rect
-          x="4"
-          y="7"
-          width="8"
-          height="2"
-          rx="1"
-          fill={color}
-        />
+        <rect x="4" y="7" width="8" height="2" rx="1" fill={color} />
       )}
     </svg>
   );
 }
-
