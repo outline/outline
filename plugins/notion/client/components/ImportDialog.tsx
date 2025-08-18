@@ -52,7 +52,15 @@ export function ImportDialog({ integrationId, onSubmit }: Props) {
       toast.error(err.message);
       resetSubmitting();
     }
-  }, [permission, onSubmit]);
+  }, [
+    permission,
+    onSubmit,
+    integrationId,
+    t,
+    imports,
+    resetSubmitting,
+    setSubmitting,
+  ]);
 
   return (
     <Flex column gap={12}>

@@ -184,7 +184,16 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
       setItems(items);
       setLoaded(true);
     }
-  }, [t, actorId, loading, search, users, documents, maxResultsInSection]);
+  }, [
+    t,
+    actorId,
+    loading,
+    search,
+    users,
+    documents,
+    maxResultsInSection,
+    collections,
+  ]);
 
   const handleSelect = useCallback(
     async (item: MentionItem) => {

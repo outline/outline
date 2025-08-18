@@ -70,7 +70,7 @@ const LinkEditor: React.FC<Props> = ({
     React.useCallback(async () => {
       const res = await client.post("/suggestions.mention", { query });
       res.data.documents.map(documents.add);
-    }, [query])
+    }, [query, documents.add])
   );
 
   useEffect(() => {
@@ -78,6 +78,22 @@ const LinkEditor: React.FC<Props> = ({
       void request();
     }
   }, [trimmedQuery, request]);
+
+  const save = React.useCallback(
+    (href: string, title?: string) => {
+      href = href.trim();
+
+      if (href.length === 0) {
+        return;
+      }
+
+      discardRef.current = true;
+      href = sanitizeUrl(href) ?? "";
+
+      onSelectLink({ href, title, from, to });
+    },
+    [onSelectLink, from, to]
+  );
 
   useEffect(() => {
     const handleGlobalKeyDown = (event: KeyboardEvent) => {
@@ -107,20 +123,7 @@ const LinkEditor: React.FC<Props> = ({
 
       save(trimmedQuery, trimmedQuery);
     };
-  }, [trimmedQuery, initialValue]);
-
-  const save = (href: string, title?: string) => {
-    href = href.trim();
-
-    if (href.length === 0) {
-      return;
-    }
-
-    discardRef.current = true;
-    href = sanitizeUrl(href) ?? "";
-
-    onSelectLink({ href, title, from, to });
-  };
+  }, [trimmedQuery, initialValue, handleRemoveLink, save]);
 
   const moveSelectionToEnd = () => {
     const { state, dispatch } = view;
@@ -195,7 +198,7 @@ const LinkEditor: React.FC<Props> = ({
     }
   };
 
-  const handleRemoveLink = () => {
+  const handleRemoveLink = React.useCallback(() => {
     discardRef.current = true;
 
     const { state, dispatch } = view;
@@ -203,9 +206,12 @@ const LinkEditor: React.FC<Props> = ({
       dispatch(state.tr.removeMark(from, to, mark));
     }
 
-    onRemoveLink?.();
+    if (onRemoveLink) {
+      onRemoveLink();
+    }
+
     view.focus();
-  };
+  }, [view, mark, from, to, onRemoveLink]);
 
   const isInternal = isInternalUrl(query);
   const hasResults = !!results.length;

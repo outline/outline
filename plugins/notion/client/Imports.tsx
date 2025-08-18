@@ -55,7 +55,15 @@ export const Notion = observer(() => {
         onClose: clearQueryParams,
       });
     }
-  }, [t, dialogs, oauthSuccess, service, clearQueryParams]);
+  }, [
+    t,
+    dialogs,
+    oauthSuccess,
+    service,
+    clearQueryParams,
+    handleSubmit,
+    integrationId,
+  ]);
 
   React.useEffect(() => {
     if (!oauthError) {
