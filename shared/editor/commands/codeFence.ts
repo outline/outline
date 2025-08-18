@@ -7,7 +7,6 @@ import { isCode } from "../lib/isCode";
 
 const newline = "\n";
 const tabSize = 2;
-const backticks = "```";
 
 /**
  * Moves the current selection to the previous newline, this is used inside
@@ -241,16 +240,18 @@ export const splitCodeBlockOnTripleBackticks: Command = (state, dispatch) => {
   // Get the text before the cursor to check for backticks
   const nodeBefore = $from.nodeBefore;
   const textBefore = nodeBefore?.text || "";
+  const backticks = "``";
 
-  // Check if the last three characters are backticks
-  if (!textBefore.endsWith(backticks.slice(0, -1))) {
+  // Check if the last three characters are backticks – this method is triggered on
+  // the third backtick being typed, so we only need to check the previous two.
+  if (!textBefore.endsWith(backticks)) {
     return false;
   }
 
   if (dispatch) {
     // Get position of parent node start
     const codeBlockStart = findParentNode(isCode)(selection)?.pos || 0;
-    const backticksStart = Math.max(0, from - backticks.length);
+    const backticksStart = Math.max(0, from - backticks.length - 1);
     if (backticksStart <= codeBlockStart) {
       return false;
     }
