@@ -2,6 +2,8 @@ import { exitCode } from "prosemirror-commands";
 import { Command, TextSelection } from "prosemirror-state";
 import { findNextNewline, findPreviousNewline } from "../queries/findNewlines";
 import { isInCode } from "../queries/isInCode";
+import { findParentNode } from "../queries/findParentNode";
+import { isCode } from "../lib/isCode";
 
 const newline = "\n";
 const tabSize = 2;
@@ -241,37 +243,25 @@ export const splitCodeBlockOnTripleBackticks: Command = (state, dispatch) => {
   const textBefore = nodeBefore?.text || "";
 
   // Check if the last three characters are backticks
-  if (!textBefore.endsWith(backticks)) {
+  if (!textBefore.endsWith(backticks.slice(0, -1))) {
     return false;
   }
 
   if (dispatch) {
-    // Delete the backticks
-    const backticksStart = from - backticks.length;
+    // Get position of parent node start
+    const codeBlockStart = findParentNode(isCode)(selection)?.pos || 0;
+    const backticksStart = Math.max(0, from - backticks.length);
+    if (backticksStart <= codeBlockStart) {
+      return false;
+    }
+
     tr.delete(backticksStart, from);
 
     // Split the node at the current position (minus the backticks)
     const pos = tr.mapping.map(backticksStart);
-    const $pos = tr.doc.resolve(pos);
+    tr.split(pos, 1);
 
-    // Get the language of the current code block
-    const language = $pos.node(-1).attrs.language;
-
-    // Exit the current code block
-    exitCode(tr.setSelection(TextSelection.create(tr.doc, pos)), dispatch);
-
-    // Insert a new code block with the same language
-    const schema = state.schema;
-    const codeBlock = schema.nodes.code_fence.create({ language });
-
-    // Insert the new code block at the current position
-    const insertPos = tr.mapping.map(pos);
-    tr.insert(insertPos, codeBlock);
-
-    // Set the selection to the start of the new code block
-    const newPos = insertPos + 1; // +1 to get inside the code block
-    tr.setSelection(TextSelection.create(tr.doc, newPos));
-
+    dispatch(tr);
     return true;
   }
 

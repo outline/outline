@@ -197,8 +197,8 @@ export default class CodeFence extends Node {
       new Plugin({
         key: new PluginKey("code-fence-split"),
         props: {
-          handleKeyDown: (view, event) => {
-            if (event.key === "`") {
+          handleTextInput: (view, _from, _to, text) => {
+            if (text === "`") {
               const { state, dispatch } = view;
               return splitCodeBlockOnTripleBackticks(state, dispatch);
             }
