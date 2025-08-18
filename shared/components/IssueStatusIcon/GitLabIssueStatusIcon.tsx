@@ -1,22 +1,18 @@
-import * as React from "react";
-import { isSafari } from "../../utils/browser";
+import React from "react";
 import { BaseIconProps } from ".";
 
-/** Renders an icon for a specific GitLab issue state */
 export function GitLabIssueStatusIcon(props: BaseIconProps) {
-  // No theme needed for this component
-  const { state } = props;
+  const { state, className, size = 16 } = props;
   const isOpen = state.name === "opened";
   const color = state.color || (isOpen ? "#1aaa55" : "#db3b21"); // Green for open, red for closed
 
   return (
     <svg
-      width="16"
-      height="16"
       viewBox="0 0 16 16"
+      width={size}
+      height={size}
       fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      style={{ marginTop: isSafari() ? 0 : -2 }}
+      className={className}
     >
       <circle cx="8" cy="8" r="7" stroke={color} strokeWidth="2" fill="none" />
       {!isOpen && (
