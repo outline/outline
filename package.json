@@ -351,7 +351,7 @@
     "babel-plugin-tsconfig-paths-module-resolver": "^1.0.4",
     "browserslist-to-esbuild": "^1.2.0",
     "concurrently": "^8.2.2",
-    "discord-api-types": "^0.37.119",
+    "discord-api-types": "^0.38.20",
     "husky": "^8.0.3",
     "i18next-parser": "^8.13.0",
     "ioredis-mock": "^8.9.0",
