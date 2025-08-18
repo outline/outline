@@ -393,6 +393,12 @@ export const DocumentsUsersSchema = BaseSchema.extend({
 
 export type DocumentsUsersReq = z.infer<typeof DocumentsUsersSchema>;
 
+export const DocumentsChildrenSchema = BaseSchema.extend({
+  body: BaseIdSchema,
+});
+
+export type DocumentsChildrenReq = z.infer<typeof DocumentsChildrenSchema>;
+
 export const DocumentsAddUserSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     /** Id of the user who is to be added */

@@ -3,12 +3,12 @@ import { DocumentPermission } from "@shared/types";
 import type UserMembershipsStore from "~/stores/UserMembershipsStore";
 import Document from "./Document";
 import User from "./User";
-import Model from "./base/Model";
 import Field from "./decorators/Field";
 import { AfterRemove } from "./decorators/Lifecycle";
 import Relation from "./decorators/Relation";
+import NavigableModel from "./base/NavigableModel";
 
-class UserMembership extends Model {
+class UserMembership extends NavigableModel {
   static modelName = "UserMembership";
 
   /** The sort order of the membership (In users sidebar) */
@@ -49,6 +49,23 @@ class UserMembership extends Model {
   createdById: string;
 
   store: UserMembershipsStore;
+
+  // methods
+
+  /**
+   * Fetches the child documents structure from the server.
+   */
+  async fetchDocuments(options: { force?: boolean } = {}) {
+    if (!this.documentId) {
+      return;
+    }
+
+    await super.fetchDocuments({
+      path: "/documents.documents",
+      params: { id: this.documentId },
+      ...options,
+    });
+  }
 
   /**
    * Returns the next membership for the same user in the list, or undefined if this is the last.

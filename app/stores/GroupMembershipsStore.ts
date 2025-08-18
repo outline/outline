@@ -140,4 +140,20 @@ export default class GroupMembershipsStore extends Store<GroupMembership> {
    */
   inDocument = (documentId: string) =>
     this.orderedData.filter((cgm) => cgm.documentId === documentId);
+
+  /**
+   * Returns the group membership associated with the document.
+   */
+  getByDocumentId = (documentId: string): GroupMembership | undefined => {
+    const membership = this.find({ documentId });
+
+    if (membership) {
+      return membership;
+    }
+
+    const document = this.rootStore.documents.get(documentId);
+    return document?.parentDocumentId
+      ? this.getByDocumentId(document.parentDocumentId)
+      : undefined;
+  };
 }
