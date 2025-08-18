@@ -3,7 +3,7 @@ import BaseTask from "./BaseTask";
 
 type Props = {
   templateName: string;
-  props: Record<string, any>;
+  props: Record<string, unknown>;
 };
 
 export default class EmailTask extends BaseTask<Props> {

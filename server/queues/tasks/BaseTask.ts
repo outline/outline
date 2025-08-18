@@ -14,7 +14,7 @@ export enum TaskSchedule {
   Minute = "minute",
 }
 
-export default abstract class BaseTask<T extends Record<string, any>> {
+export default abstract class BaseTask<T extends Record<string, unknown>> {
   /**
    * An optional schedule for this task to be run automatically.
    */
@@ -43,7 +43,7 @@ export default abstract class BaseTask<T extends Record<string, any>> {
    * @param props Properties to be used by the task
    * @returns A promise that resolves once the task has completed.
    */
-  public abstract perform(props: T): Promise<any>;
+  public abstract perform(props: T): Promise<unknown>;
 
   /**
    * Handle failure when all attempts are exhausted for the task.

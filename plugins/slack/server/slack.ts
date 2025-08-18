@@ -6,7 +6,7 @@ import env from "./env";
 
 const SLACK_API_URL = "https://slack.com/api";
 
-export async function post(endpoint: string, body: Record<string, any>) {
+export async function post(endpoint: string, body: Record<string, unknown>) {
   let data;
   const token = body.token;
 
@@ -30,7 +30,7 @@ export async function post(endpoint: string, body: Record<string, any>) {
   return data;
 }
 
-export async function request(endpoint: string, body: Record<string, any>) {
+export async function request(endpoint: string, body: Record<string, unknown>) {
   let data;
 
   try {

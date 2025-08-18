@@ -55,7 +55,7 @@ type Props = Omit<EditorProps, "editorStyle"> & {
  * The main document editor includes an editable title with metadata below it,
  * and support for commenting.
  */
-function DocumentEditor(props: Props, ref: React.RefObject<any>) {
+function DocumentEditor(props: Props, ref: React.RefObject<unknown>) {
   const titleRef = React.useRef<RefHandle>(null);
   const { t } = useTranslation();
   const match = useRouteMatch();
