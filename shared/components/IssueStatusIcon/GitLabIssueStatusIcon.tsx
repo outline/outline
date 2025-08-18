@@ -27,7 +27,7 @@ export function GitLabIssueStatusIcon(props: BaseIconProps) {
           strokeLinecap="round"
         />
       )}
-      {state.draft && (
+      {"draft" in state && state.draft && (
         <rect x="4" y="7" width="8" height="2" rx="1" fill={color} />
       )}
     </svg>
