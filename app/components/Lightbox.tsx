@@ -53,6 +53,7 @@ function Lightbox() {
   const { t } = useTranslation();
   const imgRef = useRef<HTMLImageElement | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
+  const captionRef = useRef<HTMLElement | null>(null);
   const { activeLightboxImgPos } = ui;
   const isOpen = !!activeLightboxImgPos;
   const prevActiveLightboxImgPos = usePrevious(activeLightboxImgPos);
@@ -218,11 +219,17 @@ function Lightbox() {
 
         lightboxImageEl.ontransitionstart = () => {
           setLightboxStatus(LightboxStatus.CLOSING);
+          // First we translate the image up by half the caption height
+          // so that the image doesn't end up being exactly centered as
+          // soon the the `position: fixed` gets applied
+          lightboxImageEl.style.translate = `0 -${captionRef.current!.clientHeight / 2}px`;
+          lightboxImageEl.style.position = "fixed";
           lightboxImageEl.style.width = `${editorImgWidth}px`;
           lightboxImageEl.style.height = `${editorImgHeight}px`;
         };
 
         lightboxImageEl.ontransitionend = () => {
+          lightboxImageEl.style.position = "";
           setLightboxStatus(LightboxStatus.CLOSED);
           ui.setActiveLightboxImgPos(undefined);
           view.focus();
@@ -295,6 +302,7 @@ function Lightbox() {
           )}
           <Image
             ref={imgRef}
+            captionRef={captionRef}
             src={sanitizeUrl(currImgNode.attrs.src) ?? ""}
             alt={currImgNode.attrs.alt ?? ""}
             onLoad={animate}
@@ -324,6 +332,7 @@ enum Status {
 type Props = {
   src: string;
   alt: string;
+  captionRef: React.RefObject<HTMLElement>;
   onLoad: () => void;
   onSwipeRight: () => void;
   onSwipeLeft: () => void;
@@ -335,6 +344,7 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
   {
     src,
     alt,
+    captionRef,
     onLoad,
     onSwipeRight,
     onSwipeLeft,
@@ -405,10 +415,9 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
           // Images start being hidden so that there's no flash of image
           // just as the animation starts
           visibility: "hidden",
-          maxHeight: "100%",
           maxWidth: "100%",
           minHeight: 0,
-          objectFit: "scale-down",
+          objectFit: "contain",
         }}
         alt={alt}
         onTouchStart={handleTouchStart}
@@ -423,7 +432,7 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
           onLoad();
         }}
       />
-      <Caption>
+      <Caption ref={captionRef}>
         {status === Status.LOADED && lightboxStatus === LightboxStatus.OPENED
           ? alt
           : ""}
