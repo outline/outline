@@ -825,7 +825,7 @@ describe("#documents.list", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data).toHaveLength(2);
-    const docIds = body.data.map((doc: any) => doc.id);
+    const docIds = body.data.map((doc: { id: string }) => doc.id);
     expect(docIds).toContain(docs[0].id);
     expect(docIds).toContain(docs[1].id);
     expect(docIds).not.toContain(docs[2].id);
@@ -5361,7 +5361,7 @@ describe("#documents.documents", () => {
 
     expect(res.status).toBe(200);
     expect(body.data.id).toBe(parent.id);
-    const childIds = body.data.children.map((node: any) => node.id);
+    const childIds = body.data.children.map((node: { id: string }) => node.id);
     expect(childIds).toContain(child1.id);
     expect(childIds).toContain(child2.id);
   });

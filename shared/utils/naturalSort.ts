@@ -14,7 +14,7 @@ const stripEmojis = (value: string) => value.replace(regex, "");
 
 const cleanValue = (value: string) => stripEmojis(deburr(value));
 
-function getSortByField<T extends Record<string, any>>(
+function getSortByField<T extends Record<string, unknown>>(
   item: T,
   keyOrCallback: string | ((item: T) => string)
 ) {
@@ -25,7 +25,7 @@ function getSortByField<T extends Record<string, any>>(
   return cleanValue(field);
 }
 
-function naturalSortBy<T extends Record<string, any>>(
+function naturalSortBy<T extends Record<string, unknown>>(
   items: T[],
   key: string | ((item: T) => string),
   sortOptions?: NaturalSortOptions
