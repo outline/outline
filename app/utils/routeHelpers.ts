@@ -33,7 +33,7 @@ export function settingsPath(...args: string[]): string {
 
 export function commentPath(document: Document, comment: Comment): string {
   return `${documentPath(document)}?commentId=${comment.id}${
-    comment.isResolved ? "&resolved=" : ""
+    comment.isResolved ? "&resolved=1" : ""
   }`;
 }
 

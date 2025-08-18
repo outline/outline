@@ -31,11 +31,13 @@ function Comments() {
   const { editor, isEditorInitialized } = useDocumentContext();
   const { t } = useTranslation();
   const match = useRouteMatch<{ documentSlug: string }>();
-  const params = useQuery();
   const document = documents.get(match.params.documentSlug);
   const focusedComment = useFocusedComment();
   const can = usePolicy(document);
-
+  const query = useQuery();
+  const [viewingResolved, setViewingResolved] = useState(
+    query.get("resolved") !== null || focusedComment?.isResolved || false
+  );
   const scrollableRef = useRef<HTMLDivElement | null>(null);
   const prevThreadCount = useRef(0);
   const isAtBottom = useRef(true);
@@ -57,7 +59,6 @@ function Comments() {
       }
     : { type: CommentSortType.MostRecent };
 
-  const viewingResolved = params.get("resolved") === "";
   const threads = !document
     ? []
     : viewingResolved
@@ -124,7 +125,12 @@ function Comments() {
       title={
         <Flex align="center" justify="space-between" auto>
           <span>{t("Comments")}</span>
-          <CommentSortMenu />
+          <CommentSortMenu
+            viewingResolved={viewingResolved}
+            onChange={(val) => {
+              setViewingResolved(val === "resolved");
+            }}
+          />
         </Flex>
       }
       onClose={() => ui.set({ commentsExpanded: false })}
