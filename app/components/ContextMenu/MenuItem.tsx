@@ -201,9 +201,7 @@ export const MenuAnchorCSS = css<MenuAnchorProps>`
   `}
 `;
 
-export const MenuAnchor = styled.a`
-  ${MenuAnchorCSS}
-`;
+export const MenuAnchor = styled.a(MenuAnchorCSS);
 
 const SelectedWrapper = styled.span`
   width: 24px;

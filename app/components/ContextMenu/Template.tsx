@@ -60,7 +60,7 @@ const SubMenu = React.forwardRef(function _Template(
     <>
       <MenuButton ref={ref} {...menu} {...rest}>
         {(props) => (
-          <MenuAnchor disclosure {...props}>
+          <MenuAnchor {...props} disclosure>
             {title} <Disclosure color={theme.textTertiary} />
           </MenuAnchor>
         )}
