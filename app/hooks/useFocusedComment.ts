@@ -4,7 +4,12 @@ import { useDocumentContext } from "~/components/DocumentContext";
 import { useEffect } from "react";
 import { useHistory } from "react-router-dom";
 
-export default function useFocusedComment() {
+/**
+ * Custom hook to retrieve the currently focused comment in a document.
+ * It checks both the document context and the query string for the comment ID.
+ * If a comment is focused, it returns the comment itself or the parent thread if it exists
+ */
+export function useFocusedComment() {
   const { comments } = useStores();
   const context = useDocumentContext();
   const query = useQuery();
@@ -23,14 +28,17 @@ export default function useFocusedComment() {
   useEffect(() => {
     if (focusedCommentId) {
       const params = new URLSearchParams(history.location.search);
-      params.delete("commentId");
-      history.replace({
-        pathname: history.location.pathname,
-        search: params.toString(),
-        state: history.location.state,
-      });
+
+      if (params.get("commentId") === focusedCommentId) {
+        params.delete("commentId");
+        history.replace({
+          pathname: history.location.pathname,
+          search: params.toString(),
+          state: history.location.state,
+        });
+      }
     }
-  }, []);
+  }, [focusedCommentId, history]);
 
   return comment?.parentCommentId
     ? comments.get(comment.parentCommentId)

@@ -19,7 +19,7 @@ import Time from "~/components/Time";
 import { withUIExtensions } from "~/editor/extensions";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import useFocusedComment from "~/hooks/useFocusedComment";
+import { useFocusedComment } from "~/hooks/useFocusedComment";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
