@@ -118,9 +118,12 @@ export class GitLab {
 
     // Get the first project the user has access to
     // In a real implementation, we would want to let the user select which project to connect
-    const res = await fetch("https://gitlab.com/api/v4/projects?membership=true&per_page=1", {
-      headers,
-    });
+    const res = await fetch(
+      "https://gitlab.com/api/v4/projects?membership=true&per_page=1",
+      {
+        headers,
+      }
+    );
 
     if (res.status !== 200) {
       throw new Error(
@@ -168,7 +171,7 @@ export class GitLab {
       };
 
       let apiUrl: string;
-      let resourceSchema: any;
+      let resourceSchema: z.ZodObject<any>;
       let resourceType: UnfurlResourceType;
 
       if (resource.type === "issues") {
@@ -214,7 +217,8 @@ export class GitLab {
         state: {
           name: data.state,
           color: data.state === "opened" ? "#1aaa55" : "#db3b21", // Green for open, red for closed
-          draft: resourceType === UnfurlResourceType.PR ? data.draft : undefined,
+          draft:
+            resourceType === UnfurlResourceType.PR ? data.draft : undefined,
         },
         createdAt: data.created_at,
       } satisfies UnfurlIssueOrPR;
@@ -256,11 +260,14 @@ export class GitLab {
     const type = parts[separatorIndex + 1];
     const id = parts[separatorIndex + 2];
 
-    if (!type || !id || !GitLab.supportedUnfurls.includes(type as UnfurlResourceType)) {
+    if (
+      !type ||
+      !id ||
+      !GitLab.supportedUnfurls.includes(type as UnfurlResourceType)
+    ) {
       return;
     }
 
     return { projectPath, type, id };
   }
 }
-

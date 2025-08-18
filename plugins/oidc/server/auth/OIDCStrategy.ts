@@ -1,5 +1,6 @@
 import { HttpsProxyAgent } from "https-proxy-agent";
 import OAuth2Strategy, { Strategy } from "passport-oauth2";
+import { Request } from "express";
 
 export class OIDCStrategy extends Strategy {
   constructor(
@@ -14,12 +15,12 @@ export class OIDCStrategy extends Strategy {
     }
   }
 
-  authenticate(req: any, options: any) {
+  authenticate(req: Request, options: Record<string, unknown>) {
     options.originalQuery = req.query;
     super.authenticate(req, options);
   }
 
-  authorizationParams(options: any) {
+  authorizationParams(options: Record<string, unknown>) {
     return {
       ...options.originalQuery,
       ...super.authorizationParams?.(options),

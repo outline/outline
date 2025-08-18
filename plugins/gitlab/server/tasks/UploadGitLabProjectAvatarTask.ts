@@ -1,4 +1,4 @@
-import { IntegrationService, IntegrationType } from "@shared/types";
+import { IntegrationType } from "@shared/types";
 import BaseTask from "@server/queues/tasks/BaseTask";
 import { Integration } from "@server/models";
 import { FileOperation } from "@server/models";
@@ -14,13 +14,13 @@ export default class UploadGitLabProjectAvatarTask extends BaseTask<Props> {
     const integration = await Integration.findByPk(integrationId, {
       rejectOnEmpty: true,
     });
-    
+
     try {
       const res = await fetch(avatarUrl);
       const buffer = await res.buffer();
       const name = avatarUrl.split("/").pop() || "avatar";
       const contentType = res.headers.get("content-type") || "image/png";
-      
+
       const operation = await FileOperation.createFromBuffer({
         buffer,
         contentType,
@@ -29,7 +29,7 @@ export default class UploadGitLabProjectAvatarTask extends BaseTask<Props> {
         teamId: integration.teamId,
         source: "gitlab",
       });
-      
+
       await integration.update({
         settings: {
           ...integration.settings,
@@ -48,8 +48,9 @@ export default class UploadGitLabProjectAvatarTask extends BaseTask<Props> {
       // If the avatar upload fails, we don't need to fail the entire task
       // as it's not critical to the integration's functionality.
       // Just log the error and continue.
-      this.logger.error(`Failed to upload GitLab project avatar: ${err.message}`);
+      this.logger.error(
+        `Failed to upload GitLab project avatar: ${err.message}`
+      );
     }
   }
 }
-
