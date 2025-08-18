@@ -1,27 +1,12 @@
 import { useEditor } from "~/editor/components/EditorContext";
-import breakpoint from "styled-components-breakpoint";
 import { observer } from "mobx-react";
 import useStores from "~/hooks/useStores";
 import * as Dialog from "@radix-ui/react-dialog";
 import { findChildren } from "@shared/editor/queries/findChildren";
-import { filter, findIndex, isNil, map, uniq } from "lodash";
-import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
-import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
+import findIndex from "lodash/findIndex";
 import styled, { css } from "styled-components";
-import useDragResize from "@shared/editor/components/hooks/useDragResize";
-import { ComponentProps } from "@shared/editor/types";
-import { EditorView } from "prosemirror-view";
-import {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { forwardRef, useCallback, useMemo, useRef, useState } from "react";
 import { sanitizeUrl } from "@shared/utils/urls";
-import { Node } from "prosemirror-model";
 import { Error } from "@shared/editor/components/Image";
 import {
   BackIcon,
@@ -140,7 +125,6 @@ function Lightbox() {
     (node) => node.pos === activeLightboxImgPos
   );
   const currImgNode = imageNodes[currNodeIndex].node;
-  const currImgPos = imageNodes[currNodeIndex].pos;
 
   const prev = () => {
     if (!activeLightboxImgPos) {
@@ -427,7 +411,7 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
         onError={() => {
           setStatus(Status.ERROR);
         }}
-        onLoad={(ev: React.SyntheticEvent<HTMLImageElement>) => {
+        onLoad={(_ev: React.SyntheticEvent<HTMLImageElement>) => {
           setStatus(Status.LOADED);
           onLoad();
         }}

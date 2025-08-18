@@ -7,7 +7,6 @@ import { s } from "../../styles";
 import { isExternalUrl, sanitizeUrl } from "../../utils/urls";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { ComponentProps } from "../types";
-import { ImageZoom } from "./ImageZoom";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
 import useStores from "../../hooks/useStores";
