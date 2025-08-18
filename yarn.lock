@@ -14451,10 +14451,10 @@ uid2@0.0.3, uid2@0.0.x:
   resolved "https://registry.yarnpkg.com/uid2/-/uid2-0.0.3.tgz#483126e11774df2f71b8b639dcd799c376162b82"
   integrity "sha1-SDEm4Rd03y9xuLY53NeZw3YWK4I= sha512-5gSP1liv10Gjp8cMEnFd6shzkL/D6W1uhXSFNCxDC+YI8+L8wkCYCbJ7n77Ezb4wE/xzMogecE+DtamEe9PZjg=="
 
-ukkonen@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/ukkonen/-/ukkonen-2.1.0.tgz#7af741397e603462290aa5d4e65e514f400b29f7"
-  integrity sha512-unACtiJBMpL5Q+JKEBYtB88DVClP4Ch42NFkuj7Ck7jcJ4UKkkfvvfGQ2WeaMeuq7OIGLkbm0X7YN+TGP9C5bw==
+ukkonen@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/ukkonen/-/ukkonen-2.2.0.tgz#5c8d6eaa54b3a9e6e90f53b56d26368feea5948e"
+  integrity sha512-tUad5tv8CxhXfA0xsogqXqiaZ1ldQdNni3iNOWOTXrf2/hnYa532Fg0fk6h+IyIEOPF324aLyovVAR/H/wR8rA==
 
 umzug@^2.3.0:
   version "2.3.0"
