@@ -38,7 +38,7 @@ describe("#searches.list", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data).toHaveLength(3);
-    const queries = body.data.map((d: any) => d.query);
+    const queries = body.data.map((d: { query: string }) => d.query);
     expect(queries).toContain("query");
     expect(queries).toContain("foo");
     expect(queries).toContain("bar");

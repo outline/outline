@@ -47,7 +47,7 @@ class ApiClient {
     this.shareId = shareId;
   };
 
-  fetch = async <T = any>(
+  fetch = async <T = unknown>(
     path: string,
     method: string,
     data: JSONObject | FormData | undefined,
@@ -180,7 +180,7 @@ class ApiClient {
     const error: {
       message?: string;
       error?: string;
-      data?: Record<string, any>;
+      data?: Record<string, unknown>;
     } = {};
 
     try {
@@ -244,13 +244,13 @@ class ApiClient {
     throw err;
   };
 
-  get = <T = any>(
+  get = <T = unknown>(
     path: string,
     data: JSONObject | undefined,
     options?: FetchOptions
   ) => this.fetch<T>(path, "GET", data, options);
 
-  post = <T = any>(
+  post = <T = unknown>(
     path: string,
     data?: JSONObject | FormData | undefined,
     options?: FetchOptions

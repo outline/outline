@@ -13,7 +13,7 @@ type LogCategory =
   | "plugins"
   | "policies";
 
-type Extra = Record<string, any>;
+type Extra = Record<string, unknown>;
 
 class Logger {
   /**

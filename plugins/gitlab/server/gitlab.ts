@@ -171,7 +171,7 @@ export class GitLab {
       };
 
       let apiUrl: string;
-      let resourceSchema: z.ZodObject<any>;
+      let resourceSchema: z.ZodObject<z.ZodRawShape>;
       let resourceType: UnfurlResourceType;
 
       if (resource.type === "issues") {
@@ -197,7 +197,7 @@ export class GitLab {
       // Fetch labels if they exist
       let labels = [];
       if (data.labels && data.labels.length > 0) {
-        labels = data.labels.map((label: string) => ({
+        labels = data.labels.map((label) => ({
           name: label,
           color: "#428BCA", // Default GitLab blue
         }));
