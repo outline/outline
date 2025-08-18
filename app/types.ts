@@ -125,7 +125,7 @@ export type Action = {
    * Perform the action – note this should generally not be called directly, use `performAction`
    * instead. Errors will be caught and displayed to the user as a toast message.
    */
-  perform?: (context: ActionContext) => any;
+  perform?: (context: ActionContext) => unknown;
   to?: string | { url: string; target?: string };
   children?: ((context: ActionContext) => Action[]) | Action[];
 };
@@ -154,7 +154,7 @@ export type ActionV2 = BaseActionV2 & {
   tooltip?:
     | ((context: ActionContext) => React.ReactChild | undefined)
     | React.ReactChild;
-  perform: (context: ActionContext) => any;
+  perform: (context: ActionContext) => unknown;
 };
 
 export type InternalLinkActionV2 = BaseActionV2 & {
