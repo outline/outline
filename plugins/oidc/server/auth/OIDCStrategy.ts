@@ -15,12 +15,13 @@ export class OIDCStrategy extends Strategy {
     }
   }
 
-  authenticate(req: Request, options: Record<string, unknown>) {
+  authenticate(req: Request, options?: any) {
+    options = options || {};
     options.originalQuery = req.query;
     super.authenticate(req, options);
   }
 
-  authorizationParams(options: Record<string, unknown>) {
+  authorizationParams(options: any) {
     return {
       ...options.originalQuery,
       ...super.authorizationParams?.(options),
