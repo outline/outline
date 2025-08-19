@@ -1,4 +1,4 @@
-import queryString from "query-string";
+import * as queryString from "query-string";
 import env from "@shared/env";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 
