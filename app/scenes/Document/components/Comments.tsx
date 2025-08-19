@@ -32,7 +32,7 @@ function Comments() {
   const { t } = useTranslation();
   const match = useRouteMatch<{ documentSlug: string }>();
   const params = useQuery();
-  const document = documents.getByUrl(match.params.documentSlug);
+  const document = documents.get(match.params.documentSlug);
   const focusedComment = useFocusedComment();
   const can = usePolicy(document);
 
