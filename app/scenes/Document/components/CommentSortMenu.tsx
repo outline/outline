@@ -1,12 +1,10 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { UserPreference } from "@shared/types";
 import { InputSelect, Option } from "~/components/InputSelect";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import { CommentSortType } from "~/types";
 
 type Props = {
@@ -18,9 +16,6 @@ type Props = {
 
 const CommentSortMenu = ({ viewingResolved, onChange }: Props) => {
   const { t } = useTranslation();
-  const location = useLocation();
-  const sidebarContext = useLocationSidebarContext();
-  const history = useHistory();
   const user = useCurrentUser();
 
   const preferredSortType = user.getPreference(
@@ -45,7 +40,7 @@ const CommentSortMenu = ({ viewingResolved, onChange }: Props) => {
 
       onChange?.(val);
     },
-    [history, location, sidebarContext, user, onChange, preferredSortType]
+    [user, onChange, preferredSortType]
   );
 
   const options: Option[] = React.useMemo(

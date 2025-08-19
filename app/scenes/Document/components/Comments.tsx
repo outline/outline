@@ -45,6 +45,13 @@ function Comments() {
 
   useKeyDown("Escape", () => document && ui.set({ commentsExpanded: false }));
 
+  // Account for the resolved status of the comment changing
+  useEffect(() => {
+    if (focusedComment && focusedComment.isResolved !== viewingResolved) {
+      setViewingResolved(focusedComment.isResolved);
+    }
+  }, [focusedComment, viewingResolved]);
+
   const [draft, onSaveDraft] = usePersistedState<ProsemirrorData | undefined>(
     `draft-${document?.id}-new`,
     undefined
