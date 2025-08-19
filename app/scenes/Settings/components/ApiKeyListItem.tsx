@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import { CopyIcon } from "outline-icons";
-import { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import ApiKey from "~/models/ApiKey";
