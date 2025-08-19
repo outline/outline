@@ -93,7 +93,7 @@
     "@outlinewiki/passport-azure-ad-oauth2": "^0.1.0",
     "@radix-ui/react-collapsible": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.14",
-    "@radix-ui/react-dropdown-menu": "^2.1.15",
+    "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-one-time-password-field": "^0.1.7",
     "@radix-ui/react-popover": "^1.1.14",
     "@radix-ui/react-select": "^2.1.4",
