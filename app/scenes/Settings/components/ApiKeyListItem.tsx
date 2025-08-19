@@ -50,10 +50,10 @@ const ApiKeyListItem = ({ apiKey }: Props) => {
       {apiKey.scope && (
         <Tooltip
           content={apiKey.scope.map((s) => (
-            <>
+            <React.Fragment key={s}>
               {s}
               <br />
-            </>
+            </React.Fragment>
           ))}
         >
           <Text type="tertiary">{t("Restricted scope")}</Text>

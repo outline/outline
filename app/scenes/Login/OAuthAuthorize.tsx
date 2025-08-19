@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
@@ -132,10 +132,10 @@ function Authorize() {
               {t("Required OAuth parameters are missing")}
               <Pre>
                 {missingParams.map((param) => (
-                  <>
+                  <React.Fragment key={param}>
                     {param}
                     <br />
-                  </>
+                  </React.Fragment>
                 ))}
               </Pre>
             </Text>
