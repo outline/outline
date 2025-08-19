@@ -7,7 +7,7 @@ import {
 import { Request } from "express";
 
 interface OIDCOptions extends StrategyOptionsWithRequest {
-  originalQuery?: Record<string, unknown>;
+  originalQuery?: Record<string, string | string[]>;
 }
 
 export class OIDCStrategy extends Strategy {
@@ -25,7 +25,7 @@ export class OIDCStrategy extends Strategy {
 
   authenticate(req: Request, options?: Record<string, unknown>) {
     const opts = options ? { ...options } : ({} as OIDCOptions);
-    opts.originalQuery = req.query;
+    opts.originalQuery = req.query as Record<string, string | string[]>;
     super.authenticate(req, opts);
   }
 
