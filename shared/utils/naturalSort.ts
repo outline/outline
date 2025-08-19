@@ -22,7 +22,7 @@ function getSortByField<T extends Record<string, unknown>>(
     typeof keyOrCallback === "string"
       ? item[keyOrCallback]
       : keyOrCallback(item);
-  return cleanValue(field);
+  return cleanValue(String(field));
 }
 
 function naturalSortBy<T extends Record<string, unknown>>(
