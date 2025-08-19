@@ -7,7 +7,7 @@ import {
 import Logger from "@server/logging/Logger";
 import { Integration } from "@server/models";
 import User from "@server/models/User";
-import { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
+import { UnfurlSignature } from "@server/types";
 import { GitLabUtils } from "../shared/GitLabUtils";
 import env from "./env";
 
@@ -197,31 +197,51 @@ export class GitLab {
       // Fetch labels if they exist
       let labels = [];
       if (data.labels && data.labels.length > 0) {
-        labels = data.labels.map((label) => ({
+        labels = data.labels.map((label: string) => ({
           name: label,
           color: "#428BCA", // Default GitLab blue
         }));
       }
 
-      return {
-        type: resourceType,
-        url,
-        id: `#${data.iid}`,
-        title: data.title,
-        description: data.description,
-        author: {
-          name: data.author.name,
-          avatarUrl: data.author.avatar_url || "",
-        },
-        labels,
-        state: {
-          name: data.state,
-          color: data.state === "opened" ? "#1aaa55" : "#db3b21", // Green for open, red for closed
-          draft:
-            resourceType === UnfurlResourceType.PR ? data.draft : undefined,
-        },
-        createdAt: data.created_at,
-      } satisfies UnfurlIssueOrPR;
+      // Create the appropriate response based on the resource type
+      if (resourceType === UnfurlResourceType.Issue) {
+        return {
+          type: UnfurlResourceType.Issue,
+          url,
+          id: `#${data.iid}`,
+          title: data.title,
+          description: data.description,
+          author: {
+            name: data.author.name,
+            avatarUrl: data.author.avatar_url || "",
+          },
+          labels,
+          state: {
+            name: data.state,
+            color: data.state === "opened" ? "#1aaa55" : "#db3b21", // Green for open, red for closed
+          },
+          createdAt: data.created_at,
+        };
+      } else {
+        return {
+          type: UnfurlResourceType.PR,
+          url,
+          id: `#${data.iid}`,
+          title: data.title,
+          description: data.description,
+          author: {
+            name: data.author.name,
+            avatarUrl: data.author.avatar_url || "",
+          },
+          labels,
+          state: {
+            name: data.state,
+            color: data.state === "opened" ? "#1aaa55" : "#db3b21", // Green for open, red for closed
+            draft: !!data.draft,
+          },
+          createdAt: data.created_at,
+        };
+      }
     } catch (err) {
       Logger.warn("Failed to fetch resource from GitLab", err);
       return { error: err.message || "Unknown error" };
