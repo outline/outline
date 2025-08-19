@@ -62,7 +62,10 @@ export default function init(app: Koa = new Koa(), server?: Server) {
     Metrics.gaugePerInstance("connections.count", 0);
   });
 
-  app.use(mount("/api", api));
+  // Mount routes with context path support
+  const contextPath = env.CONTEXT_PATH || "";
+  
+  app.use(mount(`${contextPath}/api`, api));
 
   // Apply CSP middleware after API as these responses are rendered in the browser
   app.use(csp());
@@ -80,9 +83,9 @@ export default function init(app: Koa = new Koa(), server?: Server) {
     })
   );
 
-  app.use(mount("/auth", auth));
-  app.use(mount("/oauth", oauth));
-  app.use(mount(routes));
+  app.use(mount(`${contextPath}/auth`, auth));
+  app.use(mount(`${contextPath}/oauth`, oauth));
+  app.use(mount(contextPath, routes));
 
   return app;
 }

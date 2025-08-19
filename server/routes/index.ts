@@ -61,9 +61,11 @@ router.use(
 );
 
 if (env.isProduction) {
-  router.get("/static/*", async (ctx) => {
+  const staticPath = `${env.CONTEXT_PATH || ""}/static/*`;
+  router.get(staticPath, async (ctx) => {
     try {
-      const pathname = ctx.path.substring(8);
+      const staticPrefix = `${env.CONTEXT_PATH || ""}/static/`;
+      const pathname = ctx.path.substring(staticPrefix.length);
       if (!pathname) {
         throw NotFoundError();
       }
@@ -74,7 +76,7 @@ if (env.isProduction) {
         maxAge: Day.ms * 365,
         immutable: true,
         setHeaders: (res) => {
-          res.setHeader("Service-Worker-Allowed", "/");
+          res.setHeader("Service-Worker-Allowed", env.CONTEXT_PATH || "/");
           res.setHeader("Access-Control-Allow-Origin", "*");
         },
       });
@@ -92,7 +94,7 @@ if (env.isProduction) {
   });
 }
 
-router.get("/locales/:lng.json", async (ctx) => {
+router.get(`${env.CONTEXT_PATH || ""}/locales/:lng.json`, async (ctx) => {
   const { lng } = ctx.params;
 
   if (!languages.includes(lng as (typeof languages)[number])) {
@@ -113,14 +115,14 @@ router.get("/locales/:lng.json", async (ctx) => {
   });
 });
 
-router.get("/robots.txt", (ctx) => {
+router.get(`${env.CONTEXT_PATH || ""}/robots.txt`, (ctx) => {
   ctx.body = robotsResponse();
 });
 
-router.get("/opensearch.xml", (ctx) => {
+router.get(`${env.CONTEXT_PATH || ""}/opensearch.xml`, (ctx) => {
   ctx.type = "text/xml";
   ctx.response.set("Cache-Control", `public, max-age=${7 * Day.seconds}`);
-  ctx.body = opensearchResponse(ctx.request.URL.origin);
+  ctx.body = opensearchResponse(ctx.request.URL.origin + (env.CONTEXT_PATH || ""));
 });
 
 router.get("/s/:shareId", shareDomains(), renderShare);

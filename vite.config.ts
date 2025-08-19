@@ -28,7 +28,7 @@ export default () =>
   defineConfig({
     root: "./",
     publicDir: "./server/static",
-    base: (environment.CDN_URL ?? "") + "/static/",
+    base: (environment.CDN_URL ?? "") + (environment.CONTEXT_PATH ?? "") + "/static/",
     server: {
       port: 3001,
       host: true,

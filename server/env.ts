@@ -12,6 +12,7 @@ import {
   IsIn,
   IsEmail,
   IsBoolean,
+  Matches,
 } from "class-validator";
 import uniq from "lodash/uniq";
 import { languages } from "@shared/i18n";
@@ -203,6 +204,19 @@ export class Environment {
     require_tld: false,
   })
   public URL = (environment.URL ?? "").replace(/\/$/, "");
+
+  /**
+   * The context path for the application (e.g., "/wiki" for deployment at example.com/wiki).
+   * Must start with "/" and cannot end with "/". Leave empty for root deployment.
+   */
+  @Public
+  @IsOptional()
+  @Matches(/^(|\/[a-zA-Z0-9\-._~!$&'()*+,;=:@]+)$/, {
+    message: "CONTEXT_PATH must be empty or start with / and contain only valid URL characters"
+  })
+  public CONTEXT_PATH = this.toOptionalString(
+    environment.CONTEXT_PATH ? environment.CONTEXT_PATH.replace(/\/$/, "") : ""
+  ) || "";
 
   /**
    * If using a Cloudfront/Cloudflare distribution or similar it can be set below.
