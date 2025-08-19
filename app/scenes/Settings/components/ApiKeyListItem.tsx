@@ -1,5 +1,6 @@
 import { observer } from "mobx-react";
 import { CopyIcon } from "outline-icons";
+import * as React from "react";
 import { useState, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -50,10 +51,10 @@ const ApiKeyListItem = ({ apiKey }: Props) => {
       {apiKey.scope && (
         <Tooltip
           content={apiKey.scope.map((s) => (
-            <>
+            <React.Fragment key={s}>
               {s}
               <br />
-            </>
+            </React.Fragment>
           ))}
         >
           <Text type="tertiary">{t("Restricted scope")}</Text>

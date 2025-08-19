@@ -1,3 +1,4 @@
+import * as React from "react";
 import { useState, useRef, useEffect } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -132,10 +133,10 @@ function Authorize() {
               {t("Required OAuth parameters are missing")}
               <Pre>
                 {missingParams.map((param) => (
-                  <>
+                  <React.Fragment key={param}>
                     {param}
                     <br />
-                  </>
+                  </React.Fragment>
                 ))}
               </Pre>
             </Text>
