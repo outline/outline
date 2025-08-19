@@ -3,7 +3,6 @@ import { toast } from "sonner";
 import Comment from "~/models/Comment";
 import CommentDeleteDialog from "~/components/CommentDeleteDialog";
 import ViewReactionsDialog from "~/components/Reactions/ViewReactionsDialog";
-import history from "~/utils/history";
 import { createActionV2 } from "..";
 import { ActiveDocumentSection } from "../sections";
 
@@ -50,16 +49,6 @@ export const resolveCommentFactory = ({
       stores.policies.abilities(comment.documentId).update,
     perform: async ({ t }) => {
       await comment.resolve();
-
-      const locationState = history.location.state as Record<string, unknown>;
-      history.replace({
-        ...history.location,
-        state: {
-          sidebarContext: locationState["sidebarContext"],
-          commentId: undefined,
-        },
-      });
-
       onResolve();
       toast.success(t("Thread resolved"));
     },
@@ -82,16 +71,6 @@ export const unresolveCommentFactory = ({
       stores.policies.abilities(comment.documentId).update,
     perform: async () => {
       await comment.unresolve();
-
-      const locationState = history.location.state as Record<string, unknown>;
-      history.replace({
-        ...history.location,
-        state: {
-          sidebarContext: locationState["sidebarContext"],
-          commentId: undefined,
-        },
-      });
-
       onUnresolve();
     },
   });

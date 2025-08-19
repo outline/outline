@@ -30,6 +30,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import CommentMenu from "~/menus/CommentMenu";
 import CommentEditor from "./CommentEditor";
 import { HighlightedText } from "./HighlightText";
+import { useDocumentContext } from "~/components/DocumentContext";
 
 /**
  * Hook to calculate if we should display a timestamp on a comment
@@ -111,6 +112,7 @@ function CommentThreadItem({
   onEditStart,
   onEditEnd,
 }: Props) {
+  const { setFocusedCommentId } = useDocumentContext();
   const { t } = useTranslation();
   const user = useCurrentUser();
   const [data, setData] = React.useState(comment.data);
@@ -154,6 +156,9 @@ function CommentThreadItem({
   const handleUpdate = React.useCallback(
     (attrs: { resolved: boolean }) => {
       onUpdate?.(comment.id, attrs);
+      if ("resolved" in attrs) {
+        setFocusedCommentId(null);
+      }
     },
     [comment.id, onUpdate]
   );

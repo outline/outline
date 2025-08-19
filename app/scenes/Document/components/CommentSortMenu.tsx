@@ -1,23 +1,22 @@
-import queryString from "query-string";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { UserPreference } from "@shared/types";
 import { InputSelect, Option } from "~/components/InputSelect";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
-import useQuery from "~/hooks/useQuery";
 import { CommentSortType } from "~/types";
 
-const CommentSortMenu = () => {
+type Props = {
+  /** Callback when the sort type changes */
+  onChange?: (sortType: CommentSortType | "resolved") => void;
+  /** Whether resolved comments are being viewed */
+  viewingResolved?: boolean;
+};
+
+const CommentSortMenu = ({ viewingResolved, onChange }: Props) => {
   const { t } = useTranslation();
-  const location = useLocation();
-  const sidebarContext = useLocationSidebarContext();
-  const history = useHistory();
   const user = useCurrentUser();
-  const params = useQuery();
 
   const preferredSortType = user.getPreference(
     UserPreference.SortCommentsByOrderInDocument
@@ -25,42 +24,23 @@ const CommentSortMenu = () => {
     ? CommentSortType.OrderInDocument
     : CommentSortType.MostRecent;
 
-  const viewingResolved = params.get("resolved") === "";
   const value = viewingResolved ? "resolved" : preferredSortType;
 
   const handleChange = React.useCallback(
-    (val: string) => {
-      if (val === "resolved") {
-        history.push({
-          search: queryString.stringify({
-            ...queryString.parse(location.search),
-            resolved: "",
-          }),
-          pathname: location.pathname,
-          state: { sidebarContext },
-        });
-        return;
+    (val: CommentSortType | "resolved") => {
+      if (val !== "resolved") {
+        if (val !== preferredSortType) {
+          user.setPreference(
+            UserPreference.SortCommentsByOrderInDocument,
+            val === CommentSortType.OrderInDocument
+          );
+          void user.save();
+        }
       }
 
-      const sortType = val as CommentSortType;
-      if (sortType !== preferredSortType) {
-        user.setPreference(
-          UserPreference.SortCommentsByOrderInDocument,
-          sortType === CommentSortType.OrderInDocument
-        );
-        void user.save();
-      }
-
-      history.push({
-        search: queryString.stringify({
-          ...queryString.parse(location.search),
-          resolved: undefined,
-        }),
-        pathname: location.pathname,
-        state: { sidebarContext },
-      });
+      onChange?.(val);
     },
-    [history, location, sidebarContext, user, preferredSortType]
+    [user, onChange, preferredSortType]
   );
 
   const options: Option[] = React.useMemo(
