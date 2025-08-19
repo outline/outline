@@ -1,6 +1,14 @@
 import { HttpsProxyAgent } from "https-proxy-agent";
-import { Strategy, StrategyOptionsWithRequest, VerifyFunctionWithRequest } from "passport-oauth2";
+import {
+  Strategy,
+  StrategyOptionsWithRequest,
+  VerifyFunctionWithRequest,
+} from "passport-oauth2";
 import { Request } from "express";
+
+interface OIDCOptions extends StrategyOptionsWithRequest {
+  originalQuery?: Record<string, unknown>;
+}
 
 export class OIDCStrategy extends Strategy {
   constructor(
@@ -16,12 +24,12 @@ export class OIDCStrategy extends Strategy {
   }
 
   authenticate(req: Request, options?: Record<string, unknown>) {
-    const opts = options || {};
+    const opts = options ? { ...options } : ({} as OIDCOptions);
     opts.originalQuery = req.query;
     super.authenticate(req, opts);
   }
 
-  authorizationParams(options: Record<string, unknown>) {
+  authorizationParams(options: OIDCOptions) {
     return {
       ...options.originalQuery,
       ...super.authorizationParams?.(options),
