@@ -67,9 +67,7 @@ function DataLoader({ match, children }: Props) {
   const { revisionId, documentSlug } = match.params;
 
   // Allows loading by /doc/slug-<urlId> or /doc/<id>
-  const document =
-    documents.getByUrl(match.params.documentSlug) ??
-    documents.get(match.params.documentSlug);
+  const document = documents.get(match.params.documentSlug);
 
   if (document) {
     setDocument(document);

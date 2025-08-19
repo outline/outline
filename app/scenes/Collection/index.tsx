@@ -75,8 +75,7 @@ const CollectionScene = observer(function _CollectionScene() {
   const id = params.id || "";
   const urlId = id.split("-").pop() ?? "";
 
-  const collection: Collection | null | undefined =
-    collections.getByUrl(id) || collections.get(id);
+  const collection: Collection | null | undefined = collections.get(id);
   const can = usePolicy(collection);
 
   const { pins, count } = usePinnedDocuments(urlId, collection?.id);
