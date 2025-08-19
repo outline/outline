@@ -78,7 +78,7 @@ export class Environment {
   /**
    * The url of the database.
    */
-  @IsNotEmpty()
+  @IsOptional()
   @IsUrl({
     require_tld: false,
     allow_underscores: true,
@@ -91,7 +91,7 @@ export class Environment {
     "DATABASE_USER",
     "DATABASE_PASSWORD",
   ])
-  public DATABASE_URL = environment.DATABASE_URL ?? "";
+  public DATABASE_URL = this.toOptionalString(environment.DATABASE_URL);
 
   /**
    * Database host for individual component configuration.
