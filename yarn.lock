@@ -758,20 +758,7 @@
     lru-cache "^5.1.1"
     semver "^6.3.1"
 
-"@babel/helper-create-class-features-plugin@^7.27.1":
-  version "7.27.1"
-  resolved "https://registry.yarnpkg.com/@babel/helper-create-class-features-plugin/-/helper-create-class-features-plugin-7.27.1.tgz#5bee4262a6ea5ddc852d0806199eb17ca3de9281"
-  integrity sha512-QwGAmuvM17btKU5VqXfb+Giw4JcN0hjuufz3DYnpeVDvZLAObloM77bhMXiqry3Iio+Ai4phVRDwl6WU10+r5A==
-  dependencies:
-    "@babel/helper-annotate-as-pure" "^7.27.1"
-    "@babel/helper-member-expression-to-functions" "^7.27.1"
-    "@babel/helper-optimise-call-expression" "^7.27.1"
-    "@babel/helper-replace-supers" "^7.27.1"
-    "@babel/helper-skip-transparent-expression-wrappers" "^7.27.1"
-    "@babel/traverse" "^7.27.1"
-    semver "^6.3.1"
-
-"@babel/helper-create-class-features-plugin@^7.28.3":
+"@babel/helper-create-class-features-plugin@^7.27.1", "@babel/helper-create-class-features-plugin@^7.28.3":
   version "7.28.3"
   resolved "https://registry.yarnpkg.com/@babel/helper-create-class-features-plugin/-/helper-create-class-features-plugin-7.28.3.tgz#3e747434ea007910c320c4d39a6b46f20f371d46"
   integrity sha512-V9f6ZFIYSLNEbuGA/92uOvYsGCJNsuA8ESZ4ldc09bWk/j8H8TKiPw8Mk1eG6olpnO0ALHJmYfZvF4MEE4gajg==
@@ -13213,7 +13200,7 @@ rollup-plugin-stats@1.5.0:
   resolved "https://registry.yarnpkg.com/rollup-plugin-stats/-/rollup-plugin-stats-1.5.0.tgz#f23c1e30ebaff970eaa33e93ea69853ca1529437"
   integrity sha512-TsWaV7ulwPA9JhqGJemrDJkvXNeNQb60lB13gIcT2kVDXlBM/PQD3GqVyhCJpvn43Y4YT5+VmWDRsbIAbuilBA==
 
-rollup-plugin-webpack-stats@^2.1.3:
+rollup-plugin-webpack-stats@2.1.3:
   version "2.1.3"
   resolved "https://registry.yarnpkg.com/rollup-plugin-webpack-stats/-/rollup-plugin-webpack-stats-2.1.3.tgz#3ae79db5b6af191c8d26a701f3cd47dde61038fe"
   integrity sha512-OOhpuwwoxW8J5pVd+RdokSbaVa21/4/mV1EsBBLfmcmc2hjL5VMFkytN0YTFGfPWcluWBCxrpA+8SP7P3xvloQ==
@@ -14835,10 +14822,10 @@ vinyl@^3.0.0, vinyl@~3.0.0:
     replace-ext "^2.0.0"
     teex "^1.0.1"
 
-vite-plugin-pwa@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/vite-plugin-pwa/-/vite-plugin-pwa-1.0.2.tgz#ad70181256633c56ce7aa85c66377d916b9e8296"
-  integrity sha512-O3UwjsCnoDclgJANoOgzzqW7SFgwXE/th2OmUP/ILxHKwzWxxKDBu+B/Xa9Cv4IgSVSnj2HgRVIJ7F15+vQFkA==
+vite-plugin-pwa@1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/vite-plugin-pwa/-/vite-plugin-pwa-1.0.3.tgz#607a7fda7170920280d85b1d2dbac293c3d2efdf"
+  integrity sha512-/OpqIpUldALGxcsEnv/ekQiQ5xHkQ53wcoN5ewX4jiIDNGs3W+eNcI1WYZeyOLmzoEjg09D7aX0O89YGjen1aw==
   dependencies:
     debug "^4.3.6"
     pretty-bytes "^6.1.1"
