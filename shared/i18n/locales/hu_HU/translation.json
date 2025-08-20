@@ -101,7 +101,7 @@
   "Permanently delete": "Végleges törlés",
   "Permanently delete {{ documentName }}": "{{ documentName }} végleges törlése",
   "Empty trash": "Lomtár ürítése",
-  "Permanently delete documents in trash": "Permanently delete documents in trash",
+  "Permanently delete documents in trash": "A kukában lévő dokumentumok végleges törlése",
   "Comments": "Hozzászólások",
   "History": "Előzmények",
   "Insights": "Részletek",
