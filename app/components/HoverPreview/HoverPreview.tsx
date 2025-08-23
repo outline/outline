@@ -4,7 +4,8 @@ import * as React from "react";
 import { Portal } from "react-portal";
 import styled from "styled-components";
 import { depths } from "@shared/styles";
-import { UnfurlResourceType } from "@shared/types";
+import { UnfurlResourceType, JiraIssueResponse } from "@shared/types";
+import env from "~/env";
 import useEventListener from "~/hooks/useEventListener";
 import useKeyDown from "~/hooks/useKeyDown";
 import useMobile from "~/hooks/useMobile";
@@ -14,13 +15,29 @@ import LoadingIndicator from "../LoadingIndicator";
 import { CARD_MARGIN } from "./Components";
 import HoverPreviewDocument from "./HoverPreviewDocument";
 import HoverPreviewIssue from "./HoverPreviewIssue";
+import HoverPreviewJiraIssue from "./HoverPreviewJiraIssue";
 import HoverPreviewLink from "./HoverPreviewLink";
 import HoverPreviewMention from "./HoverPreviewMention";
 import HoverPreviewPullRequest from "./HoverPreviewPullRequest";
+import HoverPreviewBitbucketPR from "./HoverPreviewBitbucketPR";
 
 const DELAY_CLOSE = 500;
 const POINTER_HEIGHT = 22;
 const POINTER_WIDTH = 22;
+
+// Helper function to check if a URL is a Jira URL
+const isJiraUrl = (url: string): boolean => {
+  if (!env.JIRA_URL) {
+    return false;
+  }
+  try {
+    const jiraDomain = new URL(env.JIRA_URL).hostname;
+    const urlDomain = new URL(url).hostname;
+    return urlDomain === jiraDomain;
+  } catch {
+    return false;
+  }
+};
 
 type Props = {
   /** The HTML element that is being hovered over, or null if none. */
@@ -142,28 +159,54 @@ const HoverPreviewDesktop = observer(
                   lastActivityByViewer={data.lastActivityByViewer}
                 />
               ) : data.type === UnfurlResourceType.Issue ? (
-                <HoverPreviewIssue
-                  ref={cardRef}
-                  url={data.url}
-                  id={data.id}
-                  title={data.title}
-                  description={data.description}
-                  author={data.author}
-                  labels={data.labels}
-                  state={data.state}
-                  createdAt={data.createdAt}
-                />
+                // Check if it's a Jira URL and use the appropriate component
+                isJiraUrl(data.url) ? (
+                  <HoverPreviewJiraIssue
+                    ref={cardRef}
+                    {...(data as JiraIssueResponse)}
+                  />
+                ) : (
+                  <HoverPreviewIssue
+                    ref={cardRef}
+                    url={data.url}
+                    id={data.id}
+                    title={data.title}
+                    description={data.description}
+                    author={data.author}
+                    labels={data.labels}
+                    state={data.state}
+                    createdAt={data.createdAt}
+                  />
+                )
               ) : data.type === UnfurlResourceType.PR ? (
-                <HoverPreviewPullRequest
-                  ref={cardRef}
-                  url={data.url}
-                  id={data.id}
-                  title={data.title}
-                  description={data.description}
-                  author={data.author}
-                  createdAt={data.createdAt}
-                  state={data.state}
-                />
+                // Check if it's a Bitbucket URL and use the appropriate component
+                data.url.includes("bitbucket.org") ? (
+                  <HoverPreviewBitbucketPR
+                    ref={cardRef}
+                    url={data.url}
+                    id={data.id}
+                    title={data.title}
+                    description={data.description}
+                    author={data.author}
+                    assignee={data.assignee}
+                    createdAt={data.createdAt}
+                    state={data.state}
+                    sourceBranch={data.sourceBranch}
+                    targetBranch={data.targetBranch}
+                    repository={data.repository}
+                  />
+                ) : (
+                  <HoverPreviewPullRequest
+                    ref={cardRef}
+                    url={data.url}
+                    id={data.id}
+                    title={data.title}
+                    description={data.description}
+                    author={data.author}
+                    createdAt={data.createdAt}
+                    state={data.state}
+                  />
+                )
               ) : (
                 <HoverPreviewLink
                   ref={cardRef}

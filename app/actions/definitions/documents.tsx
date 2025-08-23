@@ -1199,7 +1199,7 @@ export const deleteDocument = createActionV2({
     if (!activeDocumentId) {
       return false;
     }
-    return !!stores.policies.abilities(activeDocumentId).delete;
+    return !!stores.auth.user?.isAdmin;
   },
   perform: ({ activeDocumentId, stores, t }) => {
     if (activeDocumentId) {
@@ -1233,7 +1233,7 @@ export const permanentlyDeleteDocument = createActionV2({
     if (!activeDocumentId) {
       return false;
     }
-    return !!stores.policies.abilities(activeDocumentId).permanentDelete;
+    return !!stores.auth.user?.isAdmin;
   },
   perform: ({ activeDocumentId, stores, t }) => {
     if (activeDocumentId) {

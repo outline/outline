@@ -20,6 +20,7 @@ import CheckboxItem from "./CheckboxItem";
 import CheckboxList from "./CheckboxList";
 import CodeBlock from "./CodeBlock";
 import CodeFence from "./CodeFence";
+import Date from "./Date";
 import Doc from "./Doc";
 import Embed from "./Embed";
 import Emoji from "./Emoji";
@@ -106,6 +107,7 @@ export const richExtensions: Nodes = [
   Math,
   MathBlock,
   Mention,
+  Date,
   // Container type nodes should be last so that key handlers are registered for content inside
   // the container nodes first.
   ...listExtensions,

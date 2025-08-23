@@ -165,9 +165,9 @@ export default function blockMenuItems(
       attrs: { markup: "***" },
     },
     {
-      name: "date",
-      title: dictionary.insertDate,
-      keywords: "clock today",
+      name: "date_unfurl",
+      title: dictionary.insertDatePicker,
+      keywords: "date picker calendar unfurl",
       icon: <CalendarIcon />,
     },
     {
@@ -175,12 +175,6 @@ export default function blockMenuItems(
       title: dictionary.insertTime,
       keywords: "clock now",
       icon: <ClockIcon />,
-    },
-    {
-      name: "datetime",
-      title: dictionary.insertDateTime,
-      keywords: "clock today date",
-      icon: <CalendarIcon />,
     },
     {
       name: "separator",

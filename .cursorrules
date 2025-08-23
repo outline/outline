@@ -1,0 +1,110 @@
+# Cursor Rules for Outline Project Pre-Commit Hook
+
+## Pre-Commit Hook Context
+
+This project uses Husky with lint-staged for pre-commit hooks. The setup includes:
+
+- Code formatting with Prettier
+- Linting with Oxlint
+- i18n translation updates
+- Yarn dependency deduplication
+
+## Code Style & Formatting
+
+- Follow Prettier formatting rules (see .prettierrc)
+- Use TypeScript for all new code
+- Follow existing naming conventions in the codebase
+- Ensure all TypeScript/JavaScript files pass Oxlint checks
+
+## ESLint Rules & Patterns
+
+### Unused Variables & Imports
+
+- **Remove unused variable declarations**: If a variable is declared but never used, remove it entirely
+- **Remove unused imports**: Delete imports that are not used in the file
+- **Example**: `const isOpen = stateName === "open"` → Remove if `isOpen` is never used
+
+### Error Handling Patterns
+
+- **Unused catch parameters**: Prefix with underscore to indicate intentional non-use
+  - `catch (error)` → `catch (_error)`
+  - This applies to all catch blocks where the error parameter is not used
+- **Unused function parameters**: Prefix with underscore for intentionally unused parameters
+  - `(state, dispatch)` → `(state, _dispatch)` when dispatch is not used
+
+### Arrow Function Style
+
+- **Prefer implicit returns** for simple arrow functions
+  - `() => { return <Component />; }` → `() => <Component />`
+  - Use block statements only when multiple statements are needed
+
+### TypeScript Best Practices
+
+- **Avoid `any` type**: Use `unknown` or proper generic types instead
+  - `item as any` → `item as T` (where T is the proper generic type)
+- **React Hook Dependencies**: Include all dependencies in useEffect dependency arrays
+  - Add missing dependencies like `props` when they're used in the effect
+
+### Common ESLint Errors to Fix
+
+1. **no-unused-vars**: Remove unused variables, imports, and parameters
+2. **no-explicit-any**: Replace with proper types or `unknown`
+3. **arrow-body-style**: Use implicit returns for simple arrow functions
+4. **exhaustive-deps**: Include all dependencies in React hooks
+5. **Unused caught errors**: Prefix with underscore (`_error`)
+
+## Pre-Commit Hook Integration
+
+When making changes that will be committed:
+
+1. **Code Formatting**: Ensure code follows Prettier standards - the pre-commit hook will auto-format
+2. **Linting**: Fix any Oxlint errors before committing - the hook will run linting
+3. **Translations**: If adding new text strings, use i18n functions - the hook will update translation files
+4. **Dependencies**: When modifying package.json, the hook will deduplicate yarn.lock
+
+## File Patterns
+
+- **TypeScript/JS files** (`**/*.[tj]s?(x)`): Will be formatted, linted, and trigger i18n updates
+- **Package files** (`yarn.lock|package.json`): Will trigger dependency deduplication
+
+## Best Practices
+
+- Write code that will pass the pre-commit checks
+- Use existing patterns and conventions from the codebase
+- Follow the project's TypeScript configuration
+- Ensure all imports and exports are properly typed
+- Use the existing component patterns and file structure
+- **Always fix ESLint errors before committing**
+- **Use underscore prefix for intentionally unused parameters**
+
+## Pre-Commit Hook Commands
+
+The following commands run automatically on commit:
+
+- `prettier --write` (formatting)
+- `oxlint` or `yarn lint` (linting)
+- `yarn build:i18n` (translation updates)
+- `yarn yarn-deduplicate yarn.lock` (dependency cleanup)
+
+## Error Handling
+
+If pre-commit hooks fail:
+
+1. Fix formatting issues with `yarn format`
+2. Fix linting issues with `yarn lint`
+3. Ensure all TypeScript errors are resolved
+4. Check that i18n translations are properly formatted
+5. **Common fixes**:
+   - Remove unused variables and imports
+   - Prefix unused catch/function parameters with underscore
+   - Fix arrow function style issues
+   - Replace `any` types with proper types
+   - Add missing React hook dependencies
+
+## Development Workflow
+
+- Write code following project conventions
+- Test locally before committing
+- Let the pre-commit hook handle formatting and linting
+- Commit will only succeed if all checks pass
+- **Always run `yarn lint` before committing to catch ESLint issues early**

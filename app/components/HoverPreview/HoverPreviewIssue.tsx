@@ -33,7 +33,13 @@ const HoverPreviewIssue = React.forwardRef(function _HoverPreviewIssue(
   const service =
     urlObj.hostname === "github.com"
       ? IntegrationService.GitHub
-      : IntegrationService.Linear;
+      : urlObj.hostname === "linear.app"
+        ? IntegrationService.Linear
+        : urlObj.hostname.includes("bitbucket.org")
+          ? IntegrationService.Bitbucket
+          : urlObj.hostname.includes("atlassian.net")
+            ? IntegrationService.Jira
+            : IntegrationService.Linear; // fallback
 
   return (
     <Preview as="a" href={url} target="_blank" rel="noopener noreferrer">

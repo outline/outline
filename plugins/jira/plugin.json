@@ -1,0 +1,6 @@
+{
+  "id": "jira",
+  "name": "Jira",
+  "priority": 10,
+  "description": "Adds a Jira integration for link unfurling with app token authentication."
+}

@@ -1,0 +1,6 @@
+{
+  "id": "bitbucket",
+  "name": "Bitbucket",
+  "priority": 10,
+  "description": "Adds a Bitbucket integration for link unfurling."
+}

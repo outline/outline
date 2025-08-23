@@ -10,7 +10,14 @@ import { isUrl } from "@shared/utils/urls";
 import Integration from "~/models/Integration";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
-import { determineMentionType, isURLMentionable } from "~/utils/mention";
+import {
+  determineMentionType,
+  isURLMentionable,
+  isBitbucketURLMentionable,
+  determineBitbucketMentionType,
+  isJiraURLMentionable,
+  determineJiraMentionType,
+} from "~/utils/mention";
 import SuggestionsMenu, {
   Props as SuggestionsMenuProps,
 } from "./SuggestionsMenu";
@@ -76,13 +83,26 @@ function useItems({
 
     if (pastedText && isUrl(pastedText)) {
       const url = new URL(pastedText);
+
+      // First check for database integrations
       const integration = integrations.find((intg: Integration) =>
         isURLMentionable({ url, integration: intg })
       );
 
-      mentionType = integration
-        ? determineMentionType({ url, integration })
-        : undefined;
+      if (integration) {
+        mentionType = determineMentionType({ url, integration });
+      } else {
+        // Check for Bitbucket URLs that don't require database integration
+        const isBitbucket = isBitbucketURLMentionable(url);
+        if (isBitbucket) {
+          mentionType = determineBitbucketMentionType(url);
+        }
+        // Check for Jira URLs that don't require database integration
+        const isJira = isJiraURLMentionable(url);
+        if (isJira) {
+          mentionType = determineJiraMentionType(url);
+        }
+      }
     }
 
     return [
@@ -123,13 +143,25 @@ function useItems({
     }
 
     const url = new URL(text);
+
+    // First check for database integrations
     const integration = integrations.find((intg: Integration) =>
       isURLMentionable({ url, integration: intg })
     );
 
-    const mentionType = integration
-      ? determineMentionType({ url, integration })
-      : undefined;
+    let mentionType: MentionType | undefined;
+    if (integration) {
+      mentionType = determineMentionType({ url, integration });
+    } else {
+      // Check for Bitbucket URLs that don't require database integration
+      if (isBitbucketURLMentionable(url)) {
+        mentionType = determineBitbucketMentionType(url);
+      }
+      // Check for Jira URLs that don't require database integration
+      else if (isJiraURLMentionable(url)) {
+        mentionType = determineJiraMentionType(url);
+      }
+    }
 
     if (mentionType) {
       linksToMentionType[text] = mentionType;

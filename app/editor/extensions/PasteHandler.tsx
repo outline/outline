@@ -25,6 +25,15 @@ import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isCollectionUrl, isDocumentUrl, isUrl } from "@shared/utils/urls";
 import stores from "~/stores";
 import { PasteMenu } from "../components/PasteMenu";
+import {
+  determineMentionType,
+  isURLMentionable,
+  isBitbucketURLMentionable,
+  determineBitbucketMentionType,
+  isJiraURLMentionable,
+  determineJiraMentionType,
+} from "~/utils/mention";
+import Integration from "~/models/Integration";
 
 export default class PasteHandler extends Extension {
   state: {
@@ -215,7 +224,49 @@ export default class PasteHandler extends Extension {
                       });
                   }
                 } else {
-                  this.insertLink(text);
+                  // Check if this URL should be converted to a mention instead of showing paste menu
+                  const url = new URL(text);
+                  const { integrations } = stores;
+
+                  // Check for database integrations first
+                  const integration = integrations.find((intg: Integration) =>
+                    isURLMentionable({ url, integration: intg })
+                  );
+
+                  let mentionType: MentionType | undefined;
+                  if (integration) {
+                    mentionType = determineMentionType({ url, integration });
+                  } else {
+                    // Check for Bitbucket URLs that don't require database integration
+                    const isBitbucket = isBitbucketURLMentionable(url);
+                    if (isBitbucket) {
+                      mentionType = determineBitbucketMentionType(url);
+                    }
+                    // Check for Jira URLs that don't require database integration
+                    const isJira = isJiraURLMentionable(url);
+                    if (isJira) {
+                      mentionType = determineJiraMentionType(url);
+                    }
+                  }
+
+                  if (mentionType && state.schema.nodes.mention) {
+                    // Create a mention node instead of showing paste menu
+                    view.dispatch(
+                      view.state.tr.replaceWith(
+                        state.selection.from,
+                        state.selection.to,
+                        state.schema.nodes.mention.create({
+                          type: mentionType,
+                          modelId: v4(),
+                          label: text,
+                          href: text,
+                          id: v4(),
+                        })
+                      )
+                    );
+                  } else {
+                    this.insertLink(text);
+                  }
                 }
 
                 return true;

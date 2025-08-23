@@ -85,6 +85,7 @@ export enum MentionType {
   Collection = "collection",
   Issue = "issue",
   PullRequest = "pull_request",
+  JiraIssue = "jira_issue",
 }
 
 export type PublicEnv = {
@@ -127,6 +128,8 @@ export enum IntegrationService {
   GitHub = "github",
   Linear = "linear",
   Notion = "notion",
+  Bitbucket = "bitbucket",
+  Jira = "jira",
 }
 
 export type ImportableIntegrationService = Extract<
@@ -140,12 +143,17 @@ export const ImportableIntegrationService = {
 
 export type IssueTrackerIntegrationService = Extract<
   IntegrationService,
-  IntegrationService.GitHub | IntegrationService.Linear
+  | IntegrationService.GitHub
+  | IntegrationService.Linear
+  | IntegrationService.Bitbucket
+  | IntegrationService.Jira
 >;
 
 export const IssueTrackerIntegrationService = {
   GitHub: IntegrationService.GitHub,
   Linear: IntegrationService.Linear,
+  Bitbucket: IntegrationService.Bitbucket,
+  Jira: IntegrationService.Jira,
 } as const;
 
 export type UserCreatableIntegrationService = Extract<
@@ -188,6 +196,13 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
       };
       linear?: {
         workspace: { id: string; name: string; key: string; logoUrl?: string };
+      };
+      bitbucket?: {
+        user: {
+          id: string;
+          name: string;
+          avatarUrl: string;
+        };
       };
     }
   : T extends IntegrationType.Analytics
@@ -455,6 +470,8 @@ export type UnfurlResponse = {
     description: string | null;
     /** Issue's author */
     author: { name: string; avatarUrl: string };
+    /** Issue's assignee */
+    assignee?: { name: string; avatarUrl: string };
     /** Issue's labels */
     labels: Array<{ name: string; color: string }>;
     /** Issue's status */
@@ -480,11 +497,28 @@ export type UnfurlResponse = {
     description: string | null;
     /** Pull Request author */
     author: { name: string; avatarUrl: string };
+    /** Pull Request assignee */
+    assignee?: { name: string; avatarUrl: string };
     /** Pull Request status */
     state: { name: string; color: string; draft?: boolean };
     /** Pull Request creation time */
     createdAt: string;
+    /** Source branch name */
+    sourceBranch?: string;
+    /** Target branch name */
+    targetBranch?: string;
+    /** Repository name (owner/repo) */
+    repository?: string;
   };
+};
+
+// Jira-specific issue type with priority icons
+export type JiraIssueResponse = Omit<
+  UnfurlResponse[UnfurlResourceType.Issue],
+  "labels"
+> & {
+  labels: Array<{ name: string; color: string; iconUrl?: string }>;
+  issueTypeIconUrl?: string;
 };
 
 export enum QueryNotices {

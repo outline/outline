@@ -756,10 +756,48 @@ export class Environment {
     this.toOptionalNumber(environment.WEBHOOK_FAILURE_RATE_THRESHOLD) ?? 80;
 
   /**
+   * Bitbucket username for app password authentication.
+   */
+  @IsOptional()
+  public BITBUCKET_USERNAME = this.toOptionalString(
+    environment.BITBUCKET_USERNAME
+  );
+
+  /**
+   * Bitbucket app password for authentication.
+   */
+  @IsOptional()
+  public BITBUCKET_APP_PASSWORD = this.toOptionalString(
+    environment.BITBUCKET_APP_PASSWORD
+  );
+
+  /**
+   * Bitbucket webhook secret for validating webhook requests.
+   */
+  @IsOptional()
+  public BITBUCKET_WEBHOOK_SECRET = this.toOptionalString(
+    environment.BITBUCKET_WEBHOOK_SECRET
+  );
+
+  /**
    * The product name
    */
   @Public
   public APP_NAME = "Outline";
+
+  /**
+   * Jira instance URL (e.g., https://your-domain.atlassian.net)
+   */
+  @Public
+  @IsOptional()
+  public JIRA_URL = this.toOptionalString(environment.JIRA_URL);
+
+  /**
+   * Jira email for app token authentication.
+   */
+  @Public
+  @IsOptional()
+  public JIRA_EMAIL = this.toOptionalString(environment.JIRA_EMAIL);
 
   /**
    * Returns true if the current installation is the cloud hosted version at

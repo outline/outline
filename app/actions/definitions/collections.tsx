@@ -360,7 +360,7 @@ export const deleteCollection = createActionV2({
     if (!activeCollectionId) {
       return false;
     }
-    return stores.policies.abilities(activeCollectionId).delete;
+    return !!stores.auth.user?.isAdmin;
   },
   perform: ({ activeCollectionId, t, stores }) => {
     if (!activeCollectionId) {

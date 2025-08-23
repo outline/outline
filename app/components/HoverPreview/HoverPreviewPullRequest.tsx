@@ -21,7 +21,17 @@ type Props = Omit<UnfurlResponse[UnfurlResourceType.PR], "type">;
 
 const HoverPreviewPullRequest = React.forwardRef(
   function _HoverPreviewPullRequest(
-    { url, title, id, description, author, state, createdAt }: Props,
+    {
+      url,
+      title,
+      id,
+      description,
+      author,
+      state,
+      createdAt,
+      sourceBranch,
+      targetBranch,
+    }: Props,
     ref: React.Ref<HTMLDivElement>
   ) {
     const authorName = author.name;
@@ -48,7 +58,15 @@ const HoverPreviewPullRequest = React.forwardRef(
                     </Trans>
                   </Info>
                 </Flex>
-                <Description>{description}</Description>
+                {sourceBranch && targetBranch && (
+                  <Info>
+                    <Text type="secondary">
+                      <Backticks content={sourceBranch} /> →{" "}
+                      <Backticks content={targetBranch} />
+                    </Text>
+                  </Info>
+                )}
+                {description && <Description>{description}</Description>}
               </Flex>
             </CardContent>
           </Card>

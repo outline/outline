@@ -13,6 +13,7 @@ import PaginatedDocumentList from "~/components/PaginatedDocumentList";
 import PinnedDocuments from "~/components/PinnedDocuments";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Scene from "~/components/Scene";
+import SiteMap from "~/components/SiteMap";
 import Tab from "~/components/Tab";
 import Tabs from "~/components/Tabs";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -58,12 +59,18 @@ function Home() {
           <Tab to="/home" exact>
             {t("Recently viewed")}
           </Tab>
+          <Tab to="/home/sitemap" exact>
+            {t("Site Map")}
+          </Tab>
           <Tab to="/home/recent" exact>
             {t("Recently updated")}
           </Tab>
           <Tab to="/home/created">{t("Created by me")}</Tab>
         </Tabs>
         <Switch>
+          <Route path="/home/sitemap">
+            <SiteMap />
+          </Route>
           <Route path="/home/recent">
             <PaginatedDocumentList
               documents={documents.recentlyUpdated}

@@ -72,11 +72,14 @@ export default class HoverPreviews extends Extension {
                         documentId,
                       });
 
-                      if (unfurl) {
+                      // Only show hover preview if we have unfurl data
+                      // If no data (204 response), don't show any preview
+                      if (unfurl && unfurl.data) {
                         this.state.activeLinkElement = element;
                         this.state.unfurlId = transformedUrl;
                       } else {
                         this.state.activeLinkElement = null;
+                        this.state.unfurlId = null;
                       }
 
                       this.state.dataLoading = false;

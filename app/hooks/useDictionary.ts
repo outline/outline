@@ -96,6 +96,7 @@ export default function useDictionary() {
       success: t("Success"),
       successNotice: t("Success notice"),
       insertDate: t("Current date"),
+      insertDatePicker: t("Date picker"),
       insertTime: t("Current time"),
       insertDateTime: t("Current date and time"),
       indent: t("Indent"),

@@ -1,30 +1,25 @@
 import { observer } from "mobx-react";
-import {
-  DocumentIcon,
-  EmailIcon,
-  CollectionIcon,
-  WarningIcon,
-} from "outline-icons";
+import { DocumentIcon, EmailIcon, CollectionIcon } from "outline-icons";
 import { Node } from "prosemirror-model";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import styled from "styled-components";
 import { Backticks } from "../../components/Backticks";
 import Flex from "../../components/Flex";
 import Icon from "../../components/Icon";
 import { IssueStatusIcon } from "../../components/IssueStatusIcon";
 import { PullRequestIcon } from "../../components/PullRequestIcon";
+import { BitbucketPullRequestIcon } from "../../components/BitbucketPullRequestIcon";
 import Spinner from "../../components/Spinner";
 import Text from "../../components/Text";
 import useIsMounted from "../../hooks/useIsMounted";
 import useStores from "../../hooks/useStores";
-import theme from "../../styles/theme";
 import {
   IntegrationService,
   type JSONValue,
   type UnfurlResourceType,
   type UnfurlResponse,
+  type JiraIssueResponse,
 } from "../../types";
 import { cn } from "../styles/utils";
 import { ComponentProps } from "../types";
@@ -35,7 +30,7 @@ type Attrs = {
 } & Record<string, JSONValue>;
 
 const getAttributesFromNode = (node: Node): Attrs => {
-  const spec = node.type.spec.toDOM?.(node) as any as Record<
+  const spec = node.type.spec.toDOM?.(node) as unknown as Record<
     string,
     JSONValue
   >[];
@@ -43,7 +38,9 @@ const getAttributesFromNode = (node: Node): Attrs => {
 
   return {
     className: className as Attrs["className"],
-    unfurl: unfurl ? (JSON.parse(unfurl as any) as Attrs["unfurl"]) : undefined,
+    unfurl: unfurl
+      ? (JSON.parse(unfurl as string) as Attrs["unfurl"])
+      : undefined,
     ...attrs,
   };
 };
@@ -183,7 +180,18 @@ export const MentionIssue = observer((props: IssuePrProps) => {
     return !loaded ? (
       <MentionLoading className={className} />
     ) : (
-      <MentionError className={className} />
+      // When unfurl fails, show the URL as a regular link instead of an error
+      <a
+        {...attrs}
+        className={cn(className, {
+          "ProseMirror-selectednode": isSelected,
+        })}
+        href={attrs.href as string}
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+      >
+        <Text>{attrs.href}</Text>
+      </a>
     );
   }
 
@@ -193,7 +201,13 @@ export const MentionIssue = observer((props: IssuePrProps) => {
   const service =
     url.hostname === "github.com"
       ? IntegrationService.GitHub
-      : IntegrationService.Linear;
+      : url.hostname === "linear.app"
+        ? IntegrationService.Linear
+        : url.hostname.includes("bitbucket.org")
+          ? IntegrationService.Bitbucket
+          : url.hostname.includes("atlassian.net")
+            ? IntegrationService.Jira
+            : IntegrationService.Linear;
 
   return (
     <a
@@ -206,12 +220,23 @@ export const MentionIssue = observer((props: IssuePrProps) => {
       rel="noopener noreferrer nofollow"
     >
       <Flex align="center" gap={6}>
-        <IssueStatusIcon size={14} service={service} state={issue.state} />
+        {(issue as JiraIssueResponse).issueTypeIconUrl ? (
+          <img
+            src={(issue as JiraIssueResponse).issueTypeIconUrl}
+            alt="Issue Type"
+            style={{ width: "14px", height: "14px" }}
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+            }}
+          />
+        ) : (
+          <IssueStatusIcon size={14} service={service} state={issue.state} />
+        )}
         <Flex align="center" gap={4}>
+          <Text type="tertiary">{issue.id}</Text>
           <Text>
             <Backticks content={issue.title} />
           </Text>
-          <Text type="tertiary">{issue.id}</Text>
         </Flex>
       </Flex>
     </a>
@@ -264,11 +289,24 @@ export const MentionPullRequest = observer((props: IssuePrProps) => {
     return !loaded ? (
       <MentionLoading {...sharedProps} />
     ) : (
-      <MentionError {...sharedProps} />
+      // When unfurl fails, show the URL as a regular link instead of an error
+      <a
+        {...attrs}
+        {...sharedProps}
+        href={attrs.href as string}
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+      >
+        <Text>{attrs.href}</Text>
+      </a>
     );
   }
 
   const pullRequest = unfurl as UnfurlResponse[UnfurlResourceType.PR];
+
+  // Determine if this is a Bitbucket URL
+  const url = new URL(attrs.href as string);
+  const isBitbucket = url.hostname.includes("bitbucket.org");
 
   return (
     <a
@@ -279,12 +317,16 @@ export const MentionPullRequest = observer((props: IssuePrProps) => {
       rel="noopener noreferrer nofollow"
     >
       <Flex align="center" gap={6}>
-        <PullRequestIcon size={14} state={pullRequest.state} />
+        {isBitbucket ? (
+          <BitbucketPullRequestIcon size={14} state={pullRequest.state} />
+        ) : (
+          <PullRequestIcon size={14} state={pullRequest.state} />
+        )}
         <Flex align="center" gap={4}>
+          {!isBitbucket && <Text type="tertiary">{pullRequest.id}</Text>}
           <Text>
             <Backticks content={pullRequest.title} />
           </Text>
-          <Text type="tertiary">{pullRequest.id}</Text>
         </Flex>
       </Flex>
     </a>
@@ -301,18 +343,3 @@ const MentionLoading = ({ className }: { className: string }) => {
     </span>
   );
 };
-
-const MentionError = ({ className }: { className: string }) => {
-  const { t } = useTranslation();
-
-  return (
-    <span className={className}>
-      <StyledWarningIcon size={20} color={theme.danger} />
-      <Text type="secondary">{`${t("Error loading data")}`}</Text>
-    </span>
-  );
-};
-
-const StyledWarningIcon = styled(WarningIcon)`
-  margin: 0 -2px;
-`;

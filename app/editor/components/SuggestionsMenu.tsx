@@ -219,7 +219,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     setPosition(calculatePosition(props));
     setSelectedIndex(0);
     setInsertItem(undefined);
-  }, [calculatePosition, props.isActive]);
+  }, [calculatePosition, props.isActive, props]);
 
   React.useEffect(() => {
     setSelectedIndex(0);
@@ -275,6 +275,12 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           return triggerFilePick("*");
         case "embed":
           return triggerLinkInput(item);
+        case "date_unfurl":
+          insertNode({
+            ...item,
+            name: "date_unfurl",
+          });
+          return;
         default:
           insertNode(item);
       }
@@ -653,7 +659,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                         onPointerMove={handlePointerMove}
                         onPointerDown={handlePointerDown}
                       >
-                        {props.renderMenuItem(item as any, index, {
+                        {props.renderMenuItem(item as T, index, {
                           selected: index === selectedIndex,
                           onClick: () => handleClickItem(item),
                         })}
