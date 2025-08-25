@@ -166,7 +166,7 @@ function DocumentHeader({
   );
 
   useKeyDown(
-    (event) => event.ctrlKey && event.altKey && event.key === "˙",
+    (event) => event.ctrlKey && event.altKey && event.code === "KeyH",
     handleToggle,
     {
       allowInInput: true,
