@@ -363,10 +363,10 @@ function Security() {
       </SettingRow>
       {!isCloudHosted && (
         <SettingRow
-          label={t("Allow file:// links")}
+          label={t("Allow file protocol")}
           name="allowFileProtocol"
           description={t(
-            "Allow file:// links in documents. This is useful for companies with a local NAS but is a security risk. To enable, set the ALLOW_FILE_PROTOCOL=true environment variable and restart the server."
+            "To allow file:// links in documents, set the ALLOW_FILE_PROTOCOL=true environment variable and restart the server."
           )}
         >
           <Switch
