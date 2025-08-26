@@ -4,8 +4,8 @@ import useStores from "~/hooks/useStores";
 import * as Dialog from "@radix-ui/react-dialog";
 import { findChildren } from "@shared/editor/queries/findChildren";
 import findIndex from "lodash/findIndex";
-import styled, { css } from "styled-components";
-import { forwardRef, useCallback, useMemo, useRef, useState } from "react";
+import styled, { css, Keyframes, keyframes } from "styled-components";
+import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import { sanitizeUrl } from "@shared/utils/urls";
 import { Error } from "@shared/editor/components/Image";
 import {
@@ -17,19 +17,36 @@ import {
 } from "outline-icons";
 import { depths, s } from "@shared/styles";
 import NudeButton from "./NudeButton";
-import usePrevious from "~/hooks/usePrevious";
-import { fadeIn, fadeOut } from "~/styles/animations";
 import useIdle from "~/hooks/useIdle";
 import { Second } from "@shared/utils/time";
 import { downloadImageNode } from "@shared/editor/nodes/Image";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { useTranslation } from "react-i18next";
 import Tooltip from "~/components/Tooltip";
-enum LightboxStatus {
-  CLOSED,
-  OPENED,
-  CLOSING,
+
+namespace Status {
+  export enum Lightbox {
+    READY_TO_OPEN,
+    OPENING,
+    OPENED,
+    CLOSING,
+    CLOSED,
+  }
+
+  export enum Image {
+    READY_TO_LOAD,
+    LOADING,
+    ERROR,
+    LOADED,
+    READY_TO_ZOOM_IN,
+    ZOOMING_IN,
+    ZOOMED_IN,
+    READY_TO_ZOOM_OUT,
+    ZOOMING_OUT,
+    ZOOMED_OUT,
+  }
 }
+
 const ANIMATION_DURATION = 0.3 * Second.ms;
 function Lightbox() {
   const { view } = useEditor();
@@ -38,22 +55,285 @@ function Lightbox() {
   const { t } = useTranslation();
   const imgRef = useRef<HTMLImageElement | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
-  const captionRef = useRef<HTMLElement | null>(null);
   const { activeLightboxImgPos } = ui;
-  const isOpen = !!activeLightboxImgPos;
-  const prevActiveLightboxImgPos = usePrevious(activeLightboxImgPos);
-  const wasOpen = !!prevActiveLightboxImgPos;
-  const shouldAnimate = isOpen && !wasOpen;
-  const [lightboxStatus, setLightboxStatus] = useState<LightboxStatus>(
-    LightboxStatus.CLOSED
-  );
+  const [status, setStatus] = useState<{
+    lightbox: Status.Lightbox | null;
+    image: Status.Image | null;
+  }>({ lightbox: null, image: null });
+  const animation = useRef<{
+    fadeIn?: { apply: () => Keyframes; duration: number };
+    fadeOut?: { apply: () => Keyframes; duration: number };
+    zoomIn?: { apply: () => Keyframes; duration: number };
+    zoomOut?: { apply: () => Keyframes; duration: number };
+    startTime?: number;
+  } | null>(null);
+  const finalImagePosition = useRef<{
+    center: { x: number; y: number };
+    width: number;
+    height: number;
+  } | null>(null);
 
-  const animate = useCallback(() => {
+  // Debugging status changes
+  // useEffect(() => {
+  //   console.log(
+  //     `lstat:${status.lightbox === null ? status.lightbox : Status.Lightbox[status.lightbox]}, istat:${status.image === null ? status.image : Status.Image[status.image]}`
+  //   );
+  // }, [status]);
+
+  useEffect(() => () => view.focus(), []);
+
+  useEffect(() => {
+    !!activeLightboxImgPos &&
+      setStatus({
+        lightbox: Status.Lightbox.READY_TO_OPEN,
+        image: Status.Image.READY_TO_LOAD,
+      });
+  }, [!!activeLightboxImgPos]);
+
+  useEffect(() => {
+    if (status.lightbox === Status.Lightbox.READY_TO_OPEN) {
+      setupFadeIn();
+    }
+  }, [status.lightbox]);
+
+  useEffect(() => {
+    if (
+      status.image === Status.Image.ERROR &&
+      status.lightbox === Status.Lightbox.READY_TO_OPEN
+    ) {
+      setStatus({
+        lightbox: Status.Lightbox.OPENING,
+        image: status.image,
+      });
+    }
+  }, [status.lightbox, status.image]);
+
+  useEffect(() => {
+    if (status.image === Status.Image.LOADED) {
+      rememberImagePosition();
+    }
+  }, [status.image]);
+
+  useEffect(() => {
+    if (
+      status.image === Status.Image.LOADED &&
+      status.lightbox === Status.Lightbox.READY_TO_OPEN
+    ) {
+      setupZoomIn();
+      setStatus({
+        lightbox: status.lightbox,
+        image: Status.Image.READY_TO_ZOOM_IN,
+      });
+    }
+  }, [status.image, status.lightbox]);
+
+  useEffect(() => {
+    if (status.image === Status.Image.READY_TO_ZOOM_IN) {
+      setStatus({
+        lightbox: Status.Lightbox.OPENING,
+        image: Status.Image.ZOOMING_IN,
+      });
+    }
+  }, [status.image]);
+
+  useEffect(() => {
+    if (status.image === Status.Image.READY_TO_ZOOM_OUT) {
+      setStatus({
+        lightbox: Status.Lightbox.CLOSING,
+        image: Status.Image.ZOOMING_OUT,
+      });
+    }
+  }, [status.image]);
+
+  useEffect(() => {
+    if (status.lightbox === Status.Lightbox.CLOSED) {
+      ui.setActiveLightboxImgPos(undefined);
+    }
+  }, [status.lightbox]);
+
+  const rememberImagePosition = () => {
     if (imgRef.current) {
-      if (shouldAnimate) {
-        const dom = view.nodeDOM(activeLightboxImgPos) as HTMLElement;
-        // in editor
-        const editorImageEl = dom.querySelector("img") as HTMLImageElement;
+      const lightboxImageEl = imgRef.current;
+      const lightboxImgDOMRect = lightboxImageEl.getBoundingClientRect();
+      const {
+        top: lightboxImgTop,
+        left: lightboxImgLeft,
+        width: lightboxImgWidth,
+        height: lightboxImgHeight,
+      } = lightboxImgDOMRect;
+      finalImagePosition.current = {
+        center: {
+          x: lightboxImgLeft + lightboxImgWidth / 2,
+          y: lightboxImgTop + lightboxImgHeight / 2,
+        },
+        width: lightboxImgWidth,
+        height: lightboxImgHeight,
+      };
+    }
+  };
+
+  const setupZoomIn = () => {
+    if (imgRef.current) {
+      // in editor
+      const imgSrc = imgRef.current.src;
+      const imgUrlObj = new URL(imgSrc);
+      const imgPath = imgUrlObj.pathname.concat(imgUrlObj.search);
+      const editorImageEl = view.dom.querySelector(`img[src="${imgPath}"]`)!;
+      const editorImgDOMRect = editorImageEl.getBoundingClientRect();
+      const {
+        top: editorImgTop,
+        left: editorImgLeft,
+        width: editorImgWidth,
+        height: editorImgHeight,
+      } = editorImgDOMRect;
+
+      const from = {
+        center: {
+          x: editorImgLeft + editorImgWidth / 2,
+          y: editorImgTop + editorImgHeight / 2,
+        },
+        width: editorImgWidth,
+        height: editorImgHeight,
+      };
+
+      // in lightbox
+      const lightboxImageEl = imgRef.current;
+      const lightboxImgDOMRect = lightboxImageEl.getBoundingClientRect();
+      const {
+        top: lightboxImgTop,
+        left: lightboxImgLeft,
+        width: lightboxImgWidth,
+        height: lightboxImgHeight,
+      } = lightboxImgDOMRect;
+      const to = {
+        center: {
+          x: lightboxImgLeft + lightboxImgWidth / 2,
+          y: lightboxImgTop + lightboxImgHeight / 2,
+        },
+        width: lightboxImgWidth,
+        height: lightboxImgHeight,
+      };
+
+      lightboxImageEl.onanimationstart = () => {
+        lightboxImageEl.style.visibility = "visible";
+      };
+
+      lightboxImageEl.onanimationend = () => {
+        setStatus({
+          lightbox: Status.Lightbox.OPENED,
+          image: Status.Image.ZOOMED_IN,
+        });
+      };
+
+      const zoomIn = () => {
+        const tx = from.center.x - to.center.x;
+        const ty = from.center.y - to.center.y;
+        return keyframes`
+            from {
+              translate: ${tx}px ${ty}px;
+              scale: ${from.width / to.width};
+            }
+            to {
+              translate: 0;
+              scale: 1;
+            }
+        `;
+      };
+      animation.current = {
+        ...(animation.current ?? {}),
+        zoomOut: undefined,
+        zoomIn: { apply: zoomIn, duration: ANIMATION_DURATION },
+      };
+    }
+  };
+
+  const setupFadeIn = () => {
+    const fadeIn = () => keyframes`
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                    `;
+    const lightboxOverlayEl = overlayRef.current!;
+    lightboxOverlayEl.onanimationstart = () => {
+      animation.current = {
+        ...(animation.current ?? {}),
+        startTime: Date.now(),
+      };
+    };
+    lightboxOverlayEl.onanimationend = () => {
+      animation.current = {
+        ...(animation.current ?? {}),
+        startTime: undefined,
+      };
+    };
+    animation.current = {
+      ...(animation.current ?? {}),
+      fadeIn: { apply: fadeIn, duration: ANIMATION_DURATION },
+      fadeOut: undefined,
+    };
+  };
+
+  const setupFadeOut = () => {
+    const fadeOut = () => keyframes`
+              from { opacity: ${window.getComputedStyle(overlayRef.current!).opacity}; }
+              to { opacity: 0; }
+              `;
+    const lightboxOverlayEl = overlayRef.current!;
+    setStatus({
+      lightbox: Status.Lightbox.CLOSING,
+      image: status.image,
+    });
+    lightboxOverlayEl.onanimationend = () => {
+      setStatus({
+        lightbox: Status.Lightbox.CLOSED,
+        image: null,
+      });
+    };
+    animation.current = {
+      ...(animation.current ?? {}),
+      fadeIn: undefined,
+      fadeOut: {
+        apply: fadeOut,
+        duration: animation.current!.startTime
+          ? Date.now() - animation.current!.startTime!
+          : ANIMATION_DURATION,
+      },
+    };
+  };
+
+  const setupZoomOut = () => {
+    if (imgRef.current) {
+      // in lightbox
+      const lightboxImageEl = imgRef.current;
+      const lightboxImgDOMRect = lightboxImageEl.getBoundingClientRect();
+      const {
+        top: lightboxImgTop,
+        left: lightboxImgLeft,
+        width: lightboxImgWidth,
+        height: lightboxImgHeight,
+      } = lightboxImgDOMRect;
+      const from = {
+        center: {
+          x: lightboxImgLeft + lightboxImgWidth / 2,
+          y: lightboxImgTop + lightboxImgHeight / 2,
+        },
+        width: lightboxImgWidth,
+        height: lightboxImgHeight,
+      };
+
+      lightboxImageEl.onanimationend = () => {
+        setStatus({
+          lightbox: Status.Lightbox.CLOSED,
+          image: Status.Image.ZOOMED_OUT,
+        });
+      };
+
+      // in editor
+      const imgSrc = imgRef.current.src;
+      const imgUrlObj = new URL(imgSrc);
+      const imgPath = imgUrlObj.pathname.concat(imgUrlObj.search);
+      const editorImageEl = view.dom.querySelector(`img[src="${imgPath}"]`);
+      let to;
+      if (editorImageEl) {
         const editorImgDOMRect = editorImageEl.getBoundingClientRect();
         const {
           top: editorImgTop,
@@ -62,52 +342,66 @@ function Lightbox() {
           height: editorImgHeight,
         } = editorImgDOMRect;
 
-        // in lightbox
-        const lightboxImageEl = imgRef.current;
-        const lightboxImgDOMRect = lightboxImageEl.getBoundingClientRect();
-        const {
-          top: lightboxImgTop,
-          left: lightboxImgLeft,
+        to = {
+          center: {
+            x: editorImgLeft + editorImgWidth / 2,
+            y:
+              editorImgTop + editorImgHeight / 2 >
+              window.innerHeight + editorImgHeight / 2
+                ? window.innerHeight + editorImgHeight / 2
+                : editorImgTop + editorImgHeight / 2 < -editorImgHeight / 2
+                  ? -editorImgHeight / 2
+                  : editorImgTop + editorImgHeight / 2,
+          },
+          width: editorImgWidth,
+          height: editorImgHeight,
+        };
+      } else {
+        to = {
+          center: {
+            x: from.center.x,
+            y: window.innerHeight + lightboxImgHeight / 2,
+          },
           width: lightboxImgWidth,
           height: lightboxImgHeight,
-        } = lightboxImgDOMRect;
-
-        lightboxImageEl.style.position = "fixed";
-        lightboxImageEl.style.top = `${editorImgTop}px`;
-        lightboxImageEl.style.left = `${editorImgLeft}px`;
-        lightboxImageEl.style.width = `${editorImgWidth}px`;
-        lightboxImageEl.style.height = `${editorImgHeight}px`;
-
-        requestAnimationFrame(() => {
-          const tx = lightboxImgLeft - editorImgLeft;
-          const ty = lightboxImgTop - editorImgTop;
-          lightboxImageEl.style.transition = `transform ${ANIMATION_DURATION}ms, width ${ANIMATION_DURATION}ms, height ${ANIMATION_DURATION}ms`;
-          lightboxImageEl.style.transform = `translate(${tx}px, ${ty}px)`;
-
-          lightboxImageEl.ontransitionstart = () => {
-            lightboxImageEl.style.width = `${lightboxImgWidth}px`;
-            lightboxImageEl.style.height = `${lightboxImgHeight}px`;
-            lightboxImageEl.style.visibility = "visible";
-          };
-
-          lightboxImageEl.ontransitionend = () => {
-            lightboxImageEl.style.position = "";
-            lightboxImageEl.style.top = "";
-            lightboxImageEl.style.left = "";
-            lightboxImageEl.style.width = "";
-            lightboxImageEl.style.height = "";
-            lightboxImageEl.style.transform = "";
-            lightboxImageEl.style.transition = "";
-            setLightboxStatus(LightboxStatus.OPENED);
-          };
-        });
-      } else {
-        // If not animating, force image to be visible, since
-        // all images start as hidden
-        imgRef.current.style.visibility = "visible";
+        };
       }
+
+      const zoomOut = () => {
+        const final = finalImagePosition.current!;
+        const fromTx = from.center.x - final.center.x;
+        const fromTy = from.center.y - final.center.y;
+        const toTx = to.center.x - final.center.x;
+        const toTy = to.center.y - final.center.y;
+
+        const fromSx = from.width / final.width;
+        const fromSy = from.height / final.height;
+        const toSx = to.width / final.width;
+        const toSy = to.height / final.height;
+        return keyframes`
+            from {
+              translate: ${fromTx}px ${fromTy}px;
+              scale: ${fromSx} ${fromSy};
+            }
+            to {
+              translate: ${toTx}px ${toTy}px;
+              scale: ${toSx} ${toSy};
+            }
+        `;
+      };
+      animation.current = {
+        ...(animation.current ?? {}),
+        zoomIn: undefined,
+        zoomOut: {
+          apply: zoomOut,
+          duration: animation.current!.startTime
+            ? Date.now() - animation.current!.startTime!
+            : ANIMATION_DURATION,
+        },
+      };
     }
-  }, [shouldAnimate, imgRef.current]);
+  };
+
   if (!activeLightboxImgPos) {
     return null;
   }
@@ -158,79 +452,16 @@ function Lightbox() {
   };
 
   const animateOnClose = () => {
-    if (imgRef.current) {
-      const dom = view.nodeDOM(activeLightboxImgPos);
-      if (
-        !dom ||
-        !(dom instanceof HTMLSpanElement) ||
-        !dom.classList.contains("component-image")
-      ) {
-        ui.setActiveLightboxImgPos(undefined);
-        return;
-      }
-      // in editor
-      const editorImageEl = dom.querySelector("img") as HTMLImageElement;
-      const editorImgDOMRect = editorImageEl.getBoundingClientRect();
-      const {
-        top: editorImgTop,
-        left: editorImgLeft,
-        width: editorImgWidth,
-        height: editorImgHeight,
-      } = editorImgDOMRect;
-
-      // in lightbox
-      const lightboxImageEl = imgRef.current;
-      const lightboxImgDOMRect = lightboxImageEl.getBoundingClientRect();
-      const {
-        top: lightboxImgTop,
-        left: lightboxImgLeft,
-        width: lightboxImgWidth,
-        height: lightboxImgHeight,
-      } = lightboxImgDOMRect;
-
-      lightboxImageEl.style.width = `${lightboxImgWidth}px`;
-      lightboxImageEl.style.height = `${lightboxImgHeight}px`;
-
-      requestAnimationFrame(() => {
-        const toX = editorImgLeft + editorImgWidth / 2;
-        const toY = editorImgTop + editorImgHeight / 2;
-        const fromX = lightboxImgLeft + lightboxImgWidth / 2;
-        const fromY = lightboxImgTop + lightboxImgHeight / 2;
-        const tx = toX - fromX;
-        const ty = toY - fromY;
-        lightboxImageEl.style.transition = `width ${ANIMATION_DURATION}ms, height ${ANIMATION_DURATION}ms, transform ${ANIMATION_DURATION}ms`;
-        lightboxImageEl.style.transform = `translate(${tx}px, ${ty}px)`;
-
-        lightboxImageEl.ontransitionstart = () => {
-          setLightboxStatus(LightboxStatus.CLOSING);
-          // First we translate the image up by half the caption height
-          // so that the image doesn't end up being exactly centered as
-          // soon the the `position: fixed` gets applied
-          lightboxImageEl.style.translate = `0 -${captionRef.current!.clientHeight / 2}px`;
-          lightboxImageEl.style.position = "fixed";
-          lightboxImageEl.style.width = `${editorImgWidth}px`;
-          lightboxImageEl.style.height = `${editorImgHeight}px`;
-        };
-
-        lightboxImageEl.ontransitionend = () => {
-          lightboxImageEl.style.position = "";
-          setLightboxStatus(LightboxStatus.CLOSED);
-          ui.setActiveLightboxImgPos(undefined);
-          view.focus();
-        };
-      });
-    } else {
-      const lightboxOverlayEl = overlayRef.current;
-      setLightboxStatus(LightboxStatus.CLOSING);
-      requestAnimationFrame(() => {
-        lightboxOverlayEl!.onanimationend = () => {
-          setLightboxStatus(LightboxStatus.CLOSED);
-          ui.setActiveLightboxImgPos(undefined);
-          view.focus();
-        };
+    setupFadeOut();
+    if (status.image && status.image >= Status.Image.LOADED) {
+      setupZoomOut();
+      setStatus({
+        lightbox: status.lightbox,
+        image: Status.Image.READY_TO_ZOOM_OUT,
       });
     }
   };
+
   const close = () => {
     animateOnClose();
   };
@@ -258,12 +489,12 @@ function Lightbox() {
   return (
     <Dialog.Root open={!!activeLightboxImgPos}>
       <Dialog.Portal>
-        <StyledOverlay ref={overlayRef} $lightboxStatus={lightboxStatus} />
+        <StyledOverlay ref={overlayRef} animation={animation.current} />
         <StyledContent onKeyDown={handleKeyDown}>
           <VisuallyHidden.Root>
             <Dialog.Title>{t("Lightbox")}</Dialog.Title>
           </VisuallyHidden.Root>
-          <Actions $lightboxStatus={lightboxStatus}>
+          <Actions animation={animation.current}>
             <Tooltip content={t("Download")} placement="bottom">
               <StyledActionButton tabIndex={-1} onClick={download} size={32}>
                 <DownloadIcon size={32} />
@@ -278,7 +509,7 @@ function Lightbox() {
             </Dialog.Close>
           </Actions>
           {currNodeIndex > 0 && (
-            <Nav dir="left" $hidden={isIdle} $lightboxStatus={lightboxStatus}>
+            <Nav dir="left" $hidden={isIdle} animation={animation.current}>
               <StyledNavButton onClick={prev} size={32}>
                 <BackIcon size={32} />
               </StyledNavButton>
@@ -286,17 +517,34 @@ function Lightbox() {
           )}
           <Image
             ref={imgRef}
-            captionRef={captionRef}
             src={sanitizeUrl(currImgNode.attrs.src) ?? ""}
             alt={currImgNode.attrs.alt ?? ""}
-            onLoad={animate}
+            onLoading={() =>
+              setStatus({
+                lightbox: status.lightbox,
+                image: Status.Image.LOADING,
+              })
+            }
+            onLoad={() =>
+              setStatus({
+                lightbox: status.lightbox,
+                image: Status.Image.LOADED,
+              })
+            }
+            onError={() =>
+              setStatus({
+                lightbox: status.lightbox,
+                image: Status.Image.ERROR,
+              })
+            }
             onSwipeRight={next}
             onSwipeLeft={prev}
             onSwipeDown={close}
-            lightboxStatus={lightboxStatus}
+            status={status}
+            animation={animation.current}
           />
           {currNodeIndex < imageNodes.length - 1 && (
-            <Nav dir="right" $hidden={isIdle} $lightboxStatus={lightboxStatus}>
+            <Nav dir="right" $hidden={isIdle} animation={animation.current}>
               <StyledNavButton onClick={next} size={32}>
                 <NextIcon size={32} />
               </StyledNavButton>
@@ -308,37 +556,39 @@ function Lightbox() {
   );
 }
 
-enum Status {
-  ERROR,
-  LOADED,
-}
-
 type Props = {
   src: string;
   alt: string;
-  captionRef: React.RefObject<HTMLElement>;
+  onLoading: () => void;
   onLoad: () => void;
+  onError: () => void;
   onSwipeRight: () => void;
   onSwipeLeft: () => void;
   onSwipeDown: () => void;
-  lightboxStatus: LightboxStatus;
+  status: { lightbox: Status.Lightbox | null; image: Status.Image | null };
+  animation: {
+    zoomIn?: { apply: () => Keyframes; duration: number };
+    zoomOut?: { apply: () => Keyframes; duration: number };
+    fadeIn?: { apply: () => Keyframes; duration: number };
+    fadeOut?: { apply: () => Keyframes; duration: number };
+  } | null;
 };
 
 const Image = forwardRef<HTMLImageElement, Props>(function _Image(
   {
     src,
     alt,
-    captionRef,
+    onLoading,
     onLoad,
+    onError,
     onSwipeRight,
     onSwipeLeft,
     onSwipeDown,
-    lightboxStatus,
+    status,
+    animation,
   }: Props,
   ref
 ) {
-  const [status, setStatus] = useState<Status | null>(null);
-
   let touchXStart: number | undefined;
   let touchXEnd: number | undefined;
   let touchYStart: number | undefined;
@@ -386,38 +636,36 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
     touchYEnd = undefined;
   };
 
-  return status === Status.ERROR ? (
-    <StyledError $lightboxStatus={lightboxStatus}>
+  useEffect(() => {
+    onLoading();
+  }, [src]);
+
+  return status.image === Status.Image.ERROR ? (
+    <StyledError animation={animation}>
       <CrossIcon size={16} /> Image failed to load
     </StyledError>
   ) : (
     <Figure>
-      <img
+      <StyledImg
         ref={ref}
         src={src}
-        style={{
-          // Images start being hidden so that there's no flash of image
-          // just as the animation starts
-          visibility: "hidden",
-          maxWidth: "100%",
-          minHeight: 0,
-          objectFit: "contain",
-        }}
         alt={alt}
+        animation={animation}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onTouchCancel={handleTouchCancel}
         onError={() => {
-          setStatus(Status.ERROR);
+          onError();
         }}
         onLoad={(_ev: React.SyntheticEvent<HTMLImageElement>) => {
-          setStatus(Status.LOADED);
           onLoad();
         }}
       />
-      <Caption ref={captionRef}>
-        {status === Status.LOADED && lightboxStatus === LightboxStatus.OPENED
+      <Caption>
+        {status.image === Status.Image.ZOOMED_IN ||
+        (status.image === Status.Image.LOADED &&
+          status.lightbox === Status.Lightbox.OPENED)
           ? alt
           : ""}
       </Caption>
@@ -444,24 +692,55 @@ const Caption = styled("figcaption")`
 `;
 
 const StyledOverlay = styled(Dialog.Overlay)<{
-  $lightboxStatus: LightboxStatus;
+  animation: {
+    fadeIn?: { apply: () => Keyframes; duration: number };
+    fadeOut?: { apply: () => Keyframes; duration: number };
+  } | null;
 }>`
   position: fixed;
   inset: 0;
   background-color: ${s("background")};
   z-index: ${depths.overlay};
   ${(props) =>
-    props.$lightboxStatus === LightboxStatus.CLOSED
+    props.animation === null
       ? css`
-          animation: ${fadeIn} ${ANIMATION_DURATION}ms;
+          opacity: 0;
         `
-      : props.$lightboxStatus === LightboxStatus.OPENED
+      : props.animation.fadeIn
         ? css`
-            animation: none;
+            animation: ${props.animation.fadeIn.apply()}
+              ${props.animation.fadeIn.duration}ms;
           `
-        : css`
-            animation: ${fadeOut} ${ANIMATION_DURATION}ms;
-          `}
+        : props.animation.fadeOut
+          ? css`
+              animation: ${props.animation.fadeOut.apply()}
+                ${props.animation.fadeOut.duration}ms;
+            `
+          : ""}
+`;
+
+const StyledImg = styled.img<{
+  animation: {
+    zoomIn?: { apply: () => Keyframes; duration: number };
+    zoomOut?: { apply: () => Keyframes; duration: number };
+  } | null;
+}>`
+  visibility: hidden;
+  max-width: 100%;
+  min-height: 0;
+  object-fit: contain;
+  ${(props) =>
+    props.animation?.zoomIn
+      ? css`
+          animation: ${props.animation.zoomIn.apply()}
+            ${props.animation.zoomIn.duration}ms;
+        `
+      : props.animation?.zoomOut
+        ? css`
+            animation: ${props.animation.zoomOut.apply()}
+              ${props.animation.zoomOut.duration}ms;
+          `
+        : ""}
 `;
 
 const StyledContent = styled(Dialog.Content)`
@@ -476,7 +755,10 @@ const StyledContent = styled(Dialog.Content)`
 `;
 
 const Actions = styled.div<{
-  $lightboxStatus: LightboxStatus;
+  animation: {
+    fadeIn?: { apply: () => Keyframes; duration: number };
+    fadeOut?: { apply: () => Keyframes; duration: number };
+  } | null;
 }>`
   position: absolute;
   top: 0;
@@ -484,17 +766,21 @@ const Actions = styled.div<{
   margin: 12px;
   display: flex;
   ${(props) =>
-    props.$lightboxStatus === LightboxStatus.CLOSED
+    props.animation === null
       ? css`
-          animation: ${fadeIn} ${ANIMATION_DURATION}ms;
+          opacity: 0;
         `
-      : props.$lightboxStatus === LightboxStatus.OPENED
+      : props.animation.fadeIn
         ? css`
-            animation: none;
+            animation: ${props.animation.fadeIn.apply()}
+              ${props.animation.fadeIn.duration}ms;
           `
-        : css`
-            animation: ${fadeOut} ${ANIMATION_DURATION}ms;
-          `}
+        : props.animation.fadeOut
+          ? css`
+              animation: ${props.animation.fadeOut.apply()}
+                ${props.animation.fadeOut.duration}ms;
+            `
+          : ""}
 `;
 
 const StyledActionButton = styled(NudeButton)`
@@ -520,39 +806,55 @@ const StyledActionButton = styled(NudeButton)`
 const Nav = styled.div<{
   $hidden: boolean;
   dir: "left" | "right";
-  $lightboxStatus: LightboxStatus;
+  animation: {
+    fadeIn?: { apply: () => Keyframes; duration: number };
+    fadeOut?: { apply: () => Keyframes; duration: number };
+  } | null;
 }>`
   position: absolute;
   ${(props) => (props.dir === "left" ? "left: 0;" : "right: 0;")}
   transition: opacity 500ms ease-in-out;
   ${(props) => props.$hidden && "opacity: 0;"}
   ${(props) =>
-    props.$lightboxStatus === LightboxStatus.CLOSED
+    props.animation === null
       ? css`
-          animation: ${fadeIn} ${ANIMATION_DURATION}ms;
+          opacity: 0;
         `
-      : props.$lightboxStatus === LightboxStatus.OPENED
+      : props.animation.fadeIn
         ? css`
-            animation: none;
+            animation: ${props.animation.fadeIn.apply()}
+              ${props.animation.fadeIn.duration}ms;
           `
-        : css`
-            animation: ${fadeOut} ${ANIMATION_DURATION}ms;
-          `}
+        : props.animation.fadeOut
+          ? css`
+              animation: ${props.animation.fadeOut.apply()}
+                ${props.animation.fadeOut.duration}ms;
+            `
+          : ""}
 `;
 
-const StyledError = styled(Error)<{ $lightboxStatus: LightboxStatus }>`
+const StyledError = styled(Error)<{
+  animation: {
+    fadeIn?: { apply: () => Keyframes; duration: number };
+    fadeOut?: { apply: () => Keyframes; duration: number };
+  } | null;
+}>`
   ${(props) =>
-    props.$lightboxStatus === LightboxStatus.CLOSED
+    props.animation === null
       ? css`
-          animation: ${fadeIn} ${ANIMATION_DURATION}ms;
+          opacity: 0;
         `
-      : props.$lightboxStatus === LightboxStatus.OPENED
+      : props.animation.fadeIn
         ? css`
-            animation: none;
+            animation: ${props.animation.fadeIn.apply()}
+              ${props.animation.fadeIn.duration}ms;
           `
-        : css`
-            animation: ${fadeOut} ${ANIMATION_DURATION}ms;
-          `}
+        : props.animation.fadeOut
+          ? css`
+              animation: ${props.animation.fadeOut.apply()}
+                ${props.animation.fadeOut.duration}ms;
+            `
+          : ""}
 `;
 
 const StyledNavButton = styled(NudeButton)`
