@@ -120,6 +120,7 @@ export default class Mention extends Node {
         toPlainText(node),
       ],
       toPlainText,
+      leafText: toPlainText,
     };
   }
 
