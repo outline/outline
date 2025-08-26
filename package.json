@@ -95,7 +95,7 @@
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-one-time-password-field": "^0.1.7",
-    "@radix-ui/react-popover": "^1.1.14",
+    "@radix-ui/react-popover": "^1.1.15",
     "@radix-ui/react-select": "^2.1.4",
     "@radix-ui/react-switch": "^1.2.5",
     "@radix-ui/react-tabs": "^1.1.12",
