@@ -42,6 +42,11 @@
       "value": "true",
       "required": true
     },
+    "ALLOW_FILE_PROTOCOL": {
+      "description": "Allow file:// links in documents. This is a security risk and should only be enabled in self-hosted environments.",
+      "value": "false",
+      "required": false
+    },
     "URL": {
       "description": "https://{your app name}.herokuapp.com, or the domain you are binding to",
       "required": true
