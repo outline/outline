@@ -1906,10 +1906,10 @@
   dependencies:
     tslib "^2.0.0"
 
-"@dotenvx/dotenvx@^1.48.4":
-  version "1.48.4"
-  resolved "https://registry.yarnpkg.com/@dotenvx/dotenvx/-/dotenvx-1.48.4.tgz#697ca86d3cda1e6a7bde73bf129b9905149916d8"
-  integrity sha512-GpJWpGVI5JGhNzFlWOjCD3KMiN3xU1US4oLKQ7SiiGru4LvR7sUf3pDMpfjtlgzHStL5ydq4ekfZcRxWpHaJkA==
+"@dotenvx/dotenvx@^1.49.0":
+  version "1.49.0"
+  resolved "https://registry.yarnpkg.com/@dotenvx/dotenvx/-/dotenvx-1.49.0.tgz#221b96c39b85fe845f6c163b3521f92f2cb0132c"
+  integrity sha512-M1cyP6YstFQCjih54SAxCqHLMMi8QqV8tenpgGE48RTXWD7vfMYJiw/6xcCDpS2h28AcLpTsFCZA863Ge9yxzA==
   dependencies:
     commander "^11.1.0"
     dotenv "^17.2.1"
@@ -2172,10 +2172,10 @@
   dependencies:
     "@fortawesome/fontawesome-common-types" "6.7.2"
 
-"@fortawesome/react-fontawesome@^0.2.3":
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/@fortawesome/react-fontawesome/-/react-fontawesome-0.2.3.tgz#bde1bc0fd67693e140d5d21b2e4f6faea8aae657"
-  integrity sha512-HlJco8RDY8NrzFVjy23b/7mNS4g9NegcrBG3n7jinwpc2x/AmSVk53IhWniLYM4szYLxRAFTAGwGn0EIlclDeQ==
+"@fortawesome/react-fontawesome@^0.2.6":
+  version "0.2.6"
+  resolved "https://registry.yarnpkg.com/@fortawesome/react-fontawesome/-/react-fontawesome-0.2.6.tgz#b75d0c7710c646c9bb6b9bb61cb5b8548a9ef2f5"
+  integrity sha512-mtBFIi1UsYQo7rYonYFkjgYKGoL8T+fEH6NGUpvuqtY3ytMsAoDaPo5rk25KuMtKDipY4bGYM/CkmCHA1N3FUg==
   dependencies:
     prop-types "^15.8.1"
 
@@ -6866,7 +6866,7 @@ core-js-compat@^3.43.0, core-js-compat@^3.9.1:
   dependencies:
     browserslist "^4.25.1"
 
-core-js@3.41.0, core-js@^3.37.0:
+core-js@3.41.0:
   version "3.41.0"
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.41.0.tgz#57714dafb8c751a6095d028a7428f1fb5834a776"
   integrity sha512-SJ4/EHwS36QMJd6h/Rg+GyR4A5xE0FSI3eZ+iBVpfqf1x0eTSg1smWLHrA+2jQThZSh97fmSgFSU8B61nxosxA==
@@ -6875,6 +6875,11 @@ core-js@^2.4.0:
   version "2.6.11"
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-2.6.11.tgz#38831469f9922bded8ee21c9dc46985e0399308c"
   integrity "sha1-OIMUafmSK97Y7iHJ3EaYXgOZMIw= sha512-5wjnpaT/3dV+XB4borEsnAYQchn00XSgTAWKDkEqv+K8KevjbzmofK6hfJ9TZIlpj2N0xQpazy7PiRQiWHqzWg=="
+
+core-js@^3.45.1:
+  version "3.45.1"
+  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.45.1.tgz#5810e04a1b4e9bc5ddaa4dd12e702ff67300634d"
+  integrity sha512-L4NPsJlCfZsPeXukyzHFlg/i7IIVwHSItR0wg0FLNqYClJ4MQYTYLbC7EkjKYRLZF2iof2MUgN0EGy7MdQFChg==
 
 core-util-is@~1.0.0:
   version "1.0.2"
