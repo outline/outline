@@ -29,6 +29,7 @@ namespace Status {
     READY_TO_OPEN,
     OPENING,
     OPENED,
+    READY_TO_CLOSE,
     CLOSING,
     CLOSED,
   }
@@ -38,12 +39,6 @@ namespace Status {
     LOADING,
     ERROR,
     LOADED,
-    READY_TO_ZOOM_IN,
-    ZOOMING_IN,
-    ZOOMED_IN,
-    READY_TO_ZOOM_OUT,
-    ZOOMING_OUT,
-    ZOOMED_OUT,
   }
 }
 
@@ -121,29 +116,22 @@ function Lightbox() {
     ) {
       setupZoomIn();
       setStatus({
-        lightbox: status.lightbox,
-        image: Status.Image.READY_TO_ZOOM_IN,
+        lightbox: Status.Lightbox.OPENING,
+        image: status.image,
       });
     }
   }, [status.image, status.lightbox]);
 
   useEffect(() => {
-    if (status.image === Status.Image.READY_TO_ZOOM_IN) {
-      setStatus({
-        lightbox: Status.Lightbox.OPENING,
-        image: Status.Image.ZOOMING_IN,
-      });
-    }
-  }, [status.image]);
-
-  useEffect(() => {
-    if (status.image === Status.Image.READY_TO_ZOOM_OUT) {
+    if (status.lightbox === Status.Lightbox.READY_TO_CLOSE) {
+      setupFadeOut();
+      setupZoomOut();
       setStatus({
         lightbox: Status.Lightbox.CLOSING,
-        image: Status.Image.ZOOMING_OUT,
+        image: status.image,
       });
     }
-  }, [status.image]);
+  }, [status.lightbox]);
 
   useEffect(() => {
     if (status.lightbox === Status.Lightbox.CLOSED) {
@@ -218,13 +206,6 @@ function Lightbox() {
         lightboxImageEl.style.visibility = "visible";
       };
 
-      lightboxImageEl.onanimationend = () => {
-        setStatus({
-          lightbox: Status.Lightbox.OPENED,
-          image: Status.Image.ZOOMED_IN,
-        });
-      };
-
       const zoomIn = () => {
         const tx = from.center.x - to.center.x;
         const ty = from.center.y - to.center.y;
@@ -252,19 +233,6 @@ function Lightbox() {
                     from { opacity: 0; }
                     to { opacity: 1; }
                     `;
-    const lightboxOverlayEl = overlayRef.current!;
-    lightboxOverlayEl.onanimationstart = () => {
-      animation.current = {
-        ...(animation.current ?? {}),
-        startTime: Date.now(),
-      };
-    };
-    lightboxOverlayEl.onanimationend = () => {
-      animation.current = {
-        ...(animation.current ?? {}),
-        startTime: undefined,
-      };
-    };
     animation.current = {
       ...(animation.current ?? {}),
       fadeIn: { apply: fadeIn, duration: ANIMATION_DURATION },
@@ -277,17 +245,6 @@ function Lightbox() {
               from { opacity: ${window.getComputedStyle(overlayRef.current!).opacity}; }
               to { opacity: 0; }
               `;
-    const lightboxOverlayEl = overlayRef.current!;
-    setStatus({
-      lightbox: Status.Lightbox.CLOSING,
-      image: status.image,
-    });
-    lightboxOverlayEl.onanimationend = () => {
-      setStatus({
-        lightbox: Status.Lightbox.CLOSED,
-        image: null,
-      });
-    };
     animation.current = {
       ...(animation.current ?? {}),
       fadeIn: undefined,
@@ -318,13 +275,6 @@ function Lightbox() {
         },
         width: lightboxImgWidth,
         height: lightboxImgHeight,
-      };
-
-      lightboxImageEl.onanimationend = () => {
-        setStatus({
-          lightbox: Status.Lightbox.CLOSED,
-          image: Status.Image.ZOOMED_OUT,
-        });
       };
 
       // in editor
@@ -421,53 +371,59 @@ function Lightbox() {
   const currImgNode = imageNodes[currNodeIndex].node;
 
   const prev = () => {
-    if (!activeLightboxImgPos) {
-      return;
+    if (status.lightbox === Status.Lightbox.OPENED) {
+      if (!activeLightboxImgPos) {
+        return;
+      }
+      const currentIndex = findIndex(
+        imageNodes,
+        (node) => node.pos === activeLightboxImgPos
+      );
+      const prevIndex = currentIndex - 1;
+      if (prevIndex < 0) {
+        return;
+      }
+      const prevImgPos = imageNodes[prevIndex].pos;
+      ui.setActiveLightboxImgPos(prevImgPos);
     }
-    const currentIndex = findIndex(
-      imageNodes,
-      (node) => node.pos === activeLightboxImgPos
-    );
-    const prevIndex = currentIndex - 1;
-    if (prevIndex < 0) {
-      return;
-    }
-    const prevImgPos = imageNodes[prevIndex].pos;
-    ui.setActiveLightboxImgPos(prevImgPos);
-  };
-  const next = () => {
-    if (!activeLightboxImgPos) {
-      return;
-    }
-    const currentIndex = findIndex(
-      imageNodes,
-      (node) => node.pos === activeLightboxImgPos
-    );
-    const nextIndex = currentIndex + 1;
-    if (nextIndex >= imageNodes.length) {
-      return;
-    }
-    const nextImgPos = imageNodes[nextIndex].pos;
-    ui.setActiveLightboxImgPos(nextImgPos);
   };
 
-  const animateOnClose = () => {
-    setupFadeOut();
-    if (status.image && status.image >= Status.Image.LOADED) {
-      setupZoomOut();
-      setStatus({
-        lightbox: status.lightbox,
-        image: Status.Image.READY_TO_ZOOM_OUT,
-      });
+  const next = () => {
+    if (status.lightbox === Status.Lightbox.OPENED) {
+      if (!activeLightboxImgPos) {
+        return;
+      }
+      const currentIndex = findIndex(
+        imageNodes,
+        (node) => node.pos === activeLightboxImgPos
+      );
+      const nextIndex = currentIndex + 1;
+      if (nextIndex >= imageNodes.length) {
+        return;
+      }
+      const nextImgPos = imageNodes[nextIndex].pos;
+      ui.setActiveLightboxImgPos(nextImgPos);
     }
   };
 
   const close = () => {
-    animateOnClose();
+    if (
+      status.lightbox === Status.Lightbox.OPENING ||
+      status.lightbox === Status.Lightbox.OPENED
+    ) {
+      setStatus({
+        lightbox: Status.Lightbox.READY_TO_CLOSE,
+        image: status.image,
+      });
+    }
   };
+
   const download = () => {
-    void downloadImageNode(currImgNode);
+    if (status.lightbox === Status.Lightbox.OPENED) {
+      void downloadImageNode(currImgNode);
+    }
   };
+
   const handleKeyDown = (ev: React.KeyboardEvent<HTMLDivElement>) => {
     ev.preventDefault();
     switch (ev.key) {
@@ -486,13 +442,48 @@ function Lightbox() {
     }
   };
 
+  const handleFadeStart = () => {
+    if (animation.current?.fadeIn) {
+      animation.current = {
+        ...(animation.current ?? {}),
+        startTime: Date.now(),
+      };
+    }
+  };
+
+  const handleFadeEnd = () => {
+    if (animation.current?.fadeIn) {
+      animation.current = {
+        ...(animation.current ?? {}),
+        startTime: undefined,
+      };
+      setStatus({
+        lightbox: Status.Lightbox.OPENED,
+        image: status.image,
+      });
+    } else if (animation.current?.fadeOut) {
+      setStatus({
+        lightbox: Status.Lightbox.CLOSED,
+        image: null,
+      });
+    }
+  };
+
   return (
     <Dialog.Root open={!!activeLightboxImgPos}>
       <Dialog.Portal>
-        <StyledOverlay ref={overlayRef} animation={animation.current} />
+        <StyledOverlay
+          ref={overlayRef}
+          animation={animation.current}
+          onAnimationStart={handleFadeStart}
+          onAnimationEnd={handleFadeEnd}
+        />
         <StyledContent onKeyDown={handleKeyDown}>
           <VisuallyHidden.Root>
             <Dialog.Title>{t("Lightbox")}</Dialog.Title>
+            <Dialog.Description>
+              {t("View, navigate or download images contained in the doc")}
+            </Dialog.Description>
           </VisuallyHidden.Root>
           <Actions animation={animation.current}>
             <Tooltip content={t("Download")} placement="bottom">
@@ -663,9 +654,8 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
         }}
       />
       <Caption>
-        {status.image === Status.Image.ZOOMED_IN ||
-        (status.image === Status.Image.LOADED &&
-          status.lightbox === Status.Lightbox.OPENED)
+        {status.image === Status.Image.LOADED &&
+        status.lightbox === Status.Lightbox.OPENED
           ? alt
           : ""}
       </Caption>
