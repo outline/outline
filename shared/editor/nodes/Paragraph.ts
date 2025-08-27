@@ -3,6 +3,7 @@ import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
 import deleteEmptyFirstParagraph from "../commands/deleteEmptyFirstParagraph";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import Node from "./Node";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
 export default class Paragraph extends Node {
   get name() {
@@ -13,7 +14,23 @@ export default class Paragraph extends Node {
     return {
       content: "inline*",
       group: "block",
-      parseDOM: [{ tag: "p" }],
+      parseDOM: [
+        {
+          tag: "p",
+          getAttrs: (dom) => {
+            if (!(dom instanceof HTMLElement)) {
+              return false;
+            }
+
+            // We must suppress image captions from being parsed as a separate paragraph.
+            if (dom.classList.contains(EditorStyleHelper.imageCaption)) {
+              return false;
+            }
+
+            return {};
+          },
+        },
+      ],
       toDOM: () => ["p", { dir: "auto" }, 0],
     };
   }
