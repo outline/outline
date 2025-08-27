@@ -3,7 +3,7 @@ export default {
   // TypeScript files
   "**/*.[tj]s?(x)": [
     (f) => `prettier --write ${f.join(" ")}`,
-    (f) => (f.length > 20 ? `yarn lint` : `oxlint ${f.join(" ")}`),
+    (f) => (f.length > 20 ? `yarn lint --fix` : `oxlint ${f.join(" ")} --fix`),
     () => `yarn build:i18n`,
     () => "git add shared/i18n/locales/en_US/translation.json",
   ],
