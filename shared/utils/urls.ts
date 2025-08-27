@@ -113,9 +113,21 @@ export function isUrl(
 
   try {
     const url = new URL(text);
-    const blockedProtocols = ["javascript:", "file:", "vbscript:", "data:"];
-
-    if (blockedProtocols.includes(url.protocol)) {
+    // Define protocols that are always blocked
+    const alwaysBlockedProtocols = ["javascript:", "vbscript:", "data:"];
+    // Define protocols that can be conditionally allowed
+    const conditionallyBlockedProtocols = ["file:"];
+    
+    // Check if file:// links are allowed via environment variable
+    const allowFileProtocol = env.ALLOW_FILE_PROTOCOL === "true";
+    
+    // Block always-blocked protocols
+    if (alwaysBlockedProtocols.includes(url.protocol)) {
+      return false;
+    }
+    
+    // Block conditionally-blocked protocols if not explicitly allowed
+    if (conditionallyBlockedProtocols.includes(url.protocol) && !allowFileProtocol) {
       return false;
     }
     if (url.hostname) {
