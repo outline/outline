@@ -20,6 +20,7 @@ import {
   UnprocessableEntityError,
   UpdateRequiredError,
 } from "./errors";
+import { getCookie } from "tiny-cookie";
 
 type Options = {
   baseUrl?: string;
@@ -104,6 +105,15 @@ class ApiClient {
       pragma: "no-cache",
       ...options?.headers,
     };
+
+    // Add CSRF token for mutating requests
+    const isModifyingRequest = ["POST", "PUT", "PATCH", "DELETE"].includes(method);
+    if (isModifyingRequest) {
+      const csrfToken = getCookie("XSRF-TOKEN");
+      if (csrfToken) {
+        headerOptions["x-xsrf-token"] = csrfToken;
+      }
+    }
 
     // for multipart forms or other non JSON requests fetch
     // populates the Content-Type without needing to explicitly

@@ -44,6 +44,7 @@ import urls from "./urls";
 import userMemberships from "./userMemberships";
 import users from "./users";
 import views from "./views";
+import { createDefaultCsrfProtection } from "@server/middlewares/csrf";
 
 const api = new Koa<AppState, AppContext>();
 const router = new Router();
@@ -67,6 +68,11 @@ api.use(requestTracer());
 api.use(apiResponse());
 api.use(apiErrorHandler());
 api.use(editor());
+
+// CSRF
+const { attachToken, verifyToken } = createDefaultCsrfProtection();
+api.use(attachToken);
+api.use(verifyToken);
 
 // Register plugin API routes before others to allow for overrides
 PluginManager.getHooks(Hook.API).forEach((hook) =>

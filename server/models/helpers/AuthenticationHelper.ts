@@ -16,6 +16,7 @@ export default class AuthenticationHelper {
    */
   private static methodToScope = {
     create: Scope.Create,
+    config: Scope.Read,
     list: Scope.Read,
     info: Scope.Read,
     search: Scope.Read,
