@@ -66,7 +66,7 @@
     "@benrbray/prosemirror-math": "^0.2.2",
     "@bull-board/api": "^6.7.10",
     "@bull-board/koa": "^6.12.0",
-    "@css-inline/css-inline-wasm": "^0.14.3",
+    "@css-inline/css-inline-wasm": "^0.17.0",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/modifiers": "^6.0.1",
     "@dnd-kit/sortable": "^7.0.2",
