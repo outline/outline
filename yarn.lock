@@ -1787,10 +1787,10 @@
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.6.0.tgz#ec6cd237440700bc23ca23087f513c75508958b0"
   integrity sha512-Ir+AOibqzrIsL6ajt3Rz3LskB7OiMVHqltZmspbW/TJuTVuyOMirVqAkjfY6JISiLHgyNqicAC8AyHHGzNd/dA==
 
-"@css-inline/css-inline-wasm@^0.14.3":
-  version "0.14.3"
-  resolved "https://registry.yarnpkg.com/@css-inline/css-inline-wasm/-/css-inline-wasm-0.14.3.tgz#bfd0571a7d2dac340da6a18a829f0c0f05e98c2c"
-  integrity sha512-n+Alny5fjS0WgJwPP+VxC5HIWFdrP3HknLpqnN6shlJ1ZmsjQ57pIfsoEUVS44sWzMymkRjW5vfEE824rNrBsg==
+"@css-inline/css-inline-wasm@^0.17.0":
+  version "0.17.0"
+  resolved "https://registry.yarnpkg.com/@css-inline/css-inline-wasm/-/css-inline-wasm-0.17.0.tgz#11007348c7435d10d6476365cf464d152674a36a"
+  integrity sha512-EMIMHsEB5KUFElTyXYcz60b6eRG9NkopIC/xrXNq5NCppuF9CIK+vlZ70J6i/kHe0g3VsE+ocYROJrmg5VhpCA==
 
 "@dabh/diagnostics@^2.0.2":
   version "2.0.2"
