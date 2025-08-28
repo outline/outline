@@ -57,7 +57,7 @@ export default function useEditorClickHandlers({ shareId }: Params) {
         }
 
         if (isDocumentUrl(navigateTo)) {
-          const document = documents.getByUrl(navigateTo);
+          const document = documents.get(navigateTo);
           if (document) {
             navigateTo = document.path;
           }

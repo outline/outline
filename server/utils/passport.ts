@@ -64,7 +64,7 @@ export class StateStore {
 
     if (!state) {
       return callback(
-        OAuthStateMismatchError("State not return in OAuth flow"),
+        OAuthStateMismatchError("No state was available after OAuth flow"),
         false,
         state
       );
@@ -79,7 +79,11 @@ export class StateStore {
     });
 
     if (!token || token !== providedToken) {
-      return callback(OAuthStateMismatchError(), false, token);
+      return callback(
+        OAuthStateMismatchError("Token in state mismatched"),
+        false,
+        token
+      );
     }
 
     // @ts-expect-error Type in library is wrong

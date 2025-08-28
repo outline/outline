@@ -78,7 +78,7 @@ export class Environment {
   /**
    * The url of the database.
    */
-  @IsNotEmpty()
+  @IsOptional()
   @IsUrl({
     require_tld: false,
     allow_underscores: true,
@@ -91,7 +91,7 @@ export class Environment {
     "DATABASE_USER",
     "DATABASE_PASSWORD",
   ])
-  public DATABASE_URL = environment.DATABASE_URL ?? "";
+  public DATABASE_URL = this.toOptionalString(environment.DATABASE_URL);
 
   /**
    * Database host for individual component configuration.
@@ -664,6 +664,13 @@ export class Environment {
     this.toOptionalNumber(environment.MAXIMUM_IMPORT_SIZE) ??
     this.toOptionalNumber(environment.FILE_STORAGE_UPLOAD_MAX_SIZE) ??
     1000000;
+
+  /**
+   * Timeout in milliseconds for downloading files from remote locations to file storage.
+   */
+  @IsNumber()
+  public FILE_STORAGE_IMPORT_TIMEOUT =
+    this.toOptionalNumber(environment.FILE_STORAGE_IMPORT_TIMEOUT) ?? 60000;
 
   /**
    * Set max allowed upload size for imports at workspace level.

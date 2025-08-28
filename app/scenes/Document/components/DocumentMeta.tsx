@@ -3,18 +3,20 @@ import { observer, useObserver } from "mobx-react";
 import { CommentIcon } from "outline-icons";
 import { useRef, Fragment } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useRouteMatch } from "react-router-dom";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { TeamPreference } from "@shared/types";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
+import { openDocumentInsights } from "~/actions/definitions/documents";
 import DocumentMeta from "~/components/DocumentMeta";
 import Fade from "~/components/Fade";
+import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import { documentPath, documentInsightsPath } from "~/utils/routeHelpers";
+import { documentPath } from "~/utils/routeHelpers";
 
 type Props = {
   /* The document to display meta data for */
@@ -27,7 +29,6 @@ type Props = {
 function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
   const { views, comments, ui } = useStores();
   const { t } = useTranslation();
-  const match = useRouteMatch();
   const sidebarContext = useLocationSidebarContext();
   const team = useCurrentTeam();
   const documentViews = useObserver(() => views.inDocument(document.id));
@@ -35,10 +36,12 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
   const onlyYou = totalViewers === 1 && documentViews[0].userId;
   const viewsLoadedOnMount = useRef(totalViewers > 0);
   const can = usePolicy(document);
+  const actionContext = useActionContext({
+    activeDocumentId: document.id,
+  });
 
   const Wrapper = viewsLoadedOnMount.current ? Fragment : Fade;
 
-  const insightsPath = documentInsightsPath(document);
   const commentsCount = comments.unresolvedCommentsInDocumentCount(document.id);
   const commentingEnabled = !!team.getPreference(TeamPreference.Commenting);
 
@@ -67,14 +70,8 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
       !document.isTemplate ? (
         <Wrapper>
           &nbsp;•&nbsp;
-          <Link
-            to={{
-              pathname:
-                match.url === insightsPath
-                  ? documentPath(document)
-                  : insightsPath,
-              state: { sidebarContext },
-            }}
+          <InsightsButton
+            onClick={() => openDocumentInsights.perform(actionContext)}
           >
             {t("Viewed by")}{" "}
             {onlyYou
@@ -82,7 +79,7 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
               : `${totalViewers} ${
                   totalViewers === 1 ? t("person") : t("people")
                 }`}
-          </Link>
+          </InsightsButton>
         </Wrapper>
       ) : null}
     </Meta>
@@ -92,6 +89,20 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
 const CommentLink = styled(Link)`
   display: inline-flex;
   align-items: center;
+`;
+
+const InsightsButton = styled.button`
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+  cursor: var(--pointer);
+
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 export const Meta = styled(DocumentMeta)<{ rtl?: boolean }>`

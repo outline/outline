@@ -3,7 +3,8 @@ import { locales, unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import Desktop from "./Desktop";
 
 /**
- * Formats a number using the user's locale where possible.
+ * Formats a number using the user's locale where possible. Use `useFormatNumber` hook
+ * instead of this function in React components, to automatically use the user's locale.
  *
  * @param number The number to format
  * @param locale The locale to use for formatting (BCP47 format)

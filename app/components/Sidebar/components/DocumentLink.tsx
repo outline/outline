@@ -33,10 +33,13 @@ import Folder from "./Folder";
 import Relative from "./Relative";
 import { SidebarContextType, useSidebarContext } from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
+import UserMembership from "~/models/UserMembership";
+import GroupMembership from "~/models/GroupMembership";
 
 type Props = {
   node: NavigationNode;
   collection?: Collection;
+  membership?: UserMembership | GroupMembership;
   activeDocument: Document | null | undefined;
   prefetchDocument?: (documentId: string) => Promise<Document | void>;
   isDraft?: boolean;
@@ -49,6 +52,7 @@ function InnerDocumentLink(
   {
     node,
     collection,
+    membership,
     activeDocument,
     prefetchDocument,
     isDraft,
@@ -87,20 +91,27 @@ function InnerDocumentLink(
     isActiveDocument,
   ]);
 
-  const showChildren = React.useMemo(
-    () =>
-      !!(
-        hasChildDocuments &&
-        activeDocument &&
-        collection &&
-        (collection
-          .pathToDocument(activeDocument.id)
-          .map((entry) => entry.id)
-          .includes(node.id) ||
-          isActiveDocument)
-      ),
-    [hasChildDocuments, activeDocument, isActiveDocument, node, collection]
-  );
+  const showChildren = React.useMemo(() => {
+    if (!hasChildDocuments || !activeDocument) {
+      return false;
+    }
+
+    const pathToDocument =
+      collection?.pathToDocument(activeDocument.id) ??
+      membership?.pathToDocument(activeDocument.id);
+
+    return !!(
+      pathToDocument?.map((entry) => entry.id).includes(node.id) ||
+      isActiveDocument
+    );
+  }, [
+    hasChildDocuments,
+    activeDocument,
+    isActiveDocument,
+    node,
+    collection,
+    membership,
+  ]);
 
   const [expanded, setExpanded, setCollapsed] = useBoolean(showChildren);
 
@@ -404,6 +415,7 @@ function InnerDocumentLink(
           <DocumentLink
             key={childNode.id}
             collection={collection}
+            membership={membership}
             node={childNode}
             activeDocument={activeDocument}
             prefetchDocument={prefetchDocument}

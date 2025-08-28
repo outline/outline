@@ -9,9 +9,9 @@ import env from "@server/env";
  */
 export default function createCSPMiddleware() {
   // Construct scripts CSP based on options in use
-  const defaultSrc = ["'self'"];
-  const scriptSrc = ["'self'"];
-  const styleSrc = ["'self'", "'unsafe-inline'"];
+  const defaultSrc: string[] = ["'self'"];
+  const scriptSrc: string[] = [];
+  const styleSrc: string[] = ["'self'", "'unsafe-inline'"];
 
   if (env.isCloudHosted) {
     scriptSrc.push("www.googletagmanager.com");
@@ -41,6 +41,7 @@ export default function createCSPMiddleware() {
 
     return contentSecurityPolicy({
       directives: {
+        baseUri: ["'none'"],
         defaultSrc,
         styleSrc,
         scriptSrc: [

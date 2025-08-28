@@ -2,6 +2,7 @@ import path from "path";
 import fractionalIndex from "fractional-index";
 import fs from "fs-extra";
 import invariant from "invariant";
+import contentDisposition from "content-disposition";
 import JSZip from "jszip";
 import Router from "koa-router";
 import escapeRegExp from "lodash/escapeRegExp";
@@ -12,7 +13,7 @@ import uniq from "lodash/uniq";
 import mime from "mime-types";
 import { Op, ScopeOptions, Sequelize, WhereOptions } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
-import { StatusFilter, UserRole } from "@shared/types";
+import { NavigationNode, StatusFilter, UserRole } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
 import documentCreator from "@server/commands/documentCreator";
@@ -60,7 +61,6 @@ import {
   presentDocument,
   presentPolicies,
   presentMembership,
-  presentPublicTeam,
   presentUser,
   presentGroupMembership,
   presentGroup,
@@ -74,7 +74,6 @@ import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import ZipHelper from "@server/utils/ZipHelper";
 import { getTeamFromContext } from "@server/utils/passport";
-import { navigationNodeToSitemap } from "@server/utils/sitemap";
 import { assertPresent } from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -716,6 +715,32 @@ router.post(
 );
 
 router.post(
+  "documents.documents",
+  auth(),
+  validate(T.DocumentsChildrenSchema),
+  async (ctx: APIContext<T.DocumentsChildrenReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const document = await Document.findByPk(id, { userId: user.id });
+
+    authorize(user, "read", document);
+
+    let documentTree: NavigationNode | undefined;
+
+    if (document.collectionId) {
+      const collection = await Collection.findByPk(document.collectionId, {
+        includeDocumentStructure: true,
+      });
+      documentTree = collection?.getDocumentTree(document.id) ?? undefined;
+    }
+
+    ctx.body = {
+      data: documentTree,
+    };
+  }
+);
+
+router.post(
   "documents.export",
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   auth(),
@@ -775,7 +800,12 @@ router.post(
 
     if (attachments.length === 0) {
       ctx.set("Content-Type", contentType);
-      ctx.attachment(`${fileName}.${extension}`);
+      ctx.set(
+        "Content-Disposition",
+        contentDisposition(`${fileName}.${extension}`, {
+          type: "attachment",
+        })
+      );
       ctx.body = content;
       return;
     }
@@ -818,7 +848,12 @@ router.post(
     });
 
     ctx.set("Content-Type", "application/zip");
-    ctx.attachment(`${fileName}.zip`);
+    ctx.set(
+      "Content-Disposition",
+      contentDisposition(`${fileName}.zip`, {
+        type: "attachment",
+      })
+    );
     ctx.body = zip.generateNodeStream(ZipHelper.defaultStreamOptions);
   }
 );
@@ -1540,7 +1575,7 @@ router.post(
 
 router.post(
   "documents.import",
-  auth(),
+  auth({ allowMultipart: true }),
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   validate(T.DocumentsImportSchema),
   multipart({ maximumFileSize: env.FILE_STORAGE_IMPORT_MAX_SIZE }),
@@ -1549,17 +1584,20 @@ router.post(
     const file = ctx.input.file;
     const { user } = ctx.state.auth;
 
-    const collection = await Collection.findByPk(collectionId, {
-      userId: user.id,
-    });
-    authorize(user, "createDocument", collection);
-    let parentDocument;
+    if (collectionId) {
+      const collection = await Collection.findByPk(collectionId, {
+        userId: user.id,
+      });
+      authorize(user, "createDocument", collection);
+    }
+
+    let parentDocument: Document | null = null;
 
     if (parentDocumentId) {
       parentDocument = await Document.findByPk(parentDocumentId, {
         userId: user.id,
       });
-      authorize(user, "read", parentDocument);
+      authorize(user, "createChildDocument", parentDocument);
     }
 
     const buffer = await fs.readFile(file.filepath);
@@ -1589,7 +1627,7 @@ router.post(
         mimeType,
       },
       userId: user.id,
-      collectionId,
+      collectionId: collectionId ?? parentDocument?.collectionId, // collectionId will be null when parent document is shared to the user.
       parentDocumentId,
       publish,
       ip: ctx.request.ip,

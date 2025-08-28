@@ -34,7 +34,7 @@ function History() {
   const match = useRouteMatch<{ documentSlug: string }>();
   const history = useHistory();
   const sidebarContext = useLocationSidebarContext();
-  const document = documents.getByUrl(match.params.documentSlug);
+  const document = documents.get(match.params.documentSlug);
   const [revisionsOffset, setRevisionsOffset] = React.useState(0);
   const [eventsOffset, setEventsOffset] = React.useState(0);
 

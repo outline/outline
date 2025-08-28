@@ -33,7 +33,7 @@ export function settingsPath(...args: string[]): string {
 
 export function commentPath(document: Document, comment: Comment): string {
   return `${documentPath(document)}?commentId=${comment.id}${
-    comment.isResolved ? "&resolved=" : ""
+    comment.isResolved ? "&resolved=1" : ""
   }`;
 }
 
@@ -61,10 +61,6 @@ export function documentPath(doc: Document): string {
 
 export function documentEditPath(doc: Document): string {
   return `${documentPath(doc)}/edit`;
-}
-
-export function documentInsightsPath(doc: Document): string {
-  return `${documentPath(doc)}/insights`;
 }
 
 export function documentHistoryPath(
@@ -154,5 +150,3 @@ export const matchDocumentSlug =
 export const matchDocumentEdit = `/doc/${matchDocumentSlug}/edit`;
 
 export const matchDocumentHistory = `/doc/${matchDocumentSlug}/history/:revisionId?`;
-
-export const matchDocumentInsights = `/doc/${matchDocumentSlug}/insights`;
