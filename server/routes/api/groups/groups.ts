@@ -152,7 +152,20 @@ router.post(
 
     const group = await Group.findByPk(id, {
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      include: [
+        {
+          model: GroupUser,
+          as: "groupUsers",
+          required: false,
+          where: {
+            userId: user.id,
+          },
+        },
+      ],
+      lock: {
+        level: transaction.LOCK.UPDATE,
+        of: Group,
+      },
     });
     authorize(user, "update", group);
 
@@ -260,16 +273,18 @@ router.post(
     authorize(actor, "read", user);
 
     // Load group with group users for authorization
-    const group = await Group.findByPk(id, { 
+    const group = await Group.findByPk(id, {
       transaction,
-      include: [{
-        model: GroupUser,
-        as: "groupUsers",
-        required: false,
-        where: {
-          userId: actor.id
-        }
-      }]
+      include: [
+        {
+          model: GroupUser,
+          as: "groupUsers",
+          required: false,
+          where: {
+            userId: actor.id,
+          },
+        },
+      ],
     });
     authorize(actor, "update", group);
 
@@ -317,7 +332,19 @@ router.post(
     const actor = ctx.state.auth.user;
     const { transaction } = ctx.state;
 
-    const group = await Group.findByPk(id, { transaction });
+    const group = await Group.findByPk(id, {
+      transaction,
+      include: [
+        {
+          model: GroupUser,
+          as: "groupUsers",
+          required: false,
+          where: {
+            userId: actor.id,
+          },
+        },
+      ],
+    });
     authorize(actor, "update", group);
 
     const user = await User.findByPk(userId, { transaction });
@@ -353,16 +380,18 @@ router.post(
     const { transaction } = ctx.state;
 
     // Load group with group users for authorization
-    const group = await Group.findByPk(id, { 
+    const group = await Group.findByPk(id, {
       transaction,
-      include: [{
-        model: GroupUser,
-        as: "groupUsers",
-        required: false,
-        where: {
-          userId: actor.id
-        }
-      }]
+      include: [
+        {
+          model: GroupUser,
+          as: "groupUsers",
+          required: false,
+          where: {
+            userId: actor.id,
+          },
+        },
+      ],
     });
     authorize(actor, "update", group);
 

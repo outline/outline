@@ -1,5 +1,4 @@
 import GroupUser from "@server/models/GroupUser";
-import { UserRole } from "@shared/types";
 import { presentUser } from ".";
 
 export default function presentGroupUser(
