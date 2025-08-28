@@ -10,13 +10,31 @@ type BaseProps = {
   variant: "dropdown" | "context";
 };
 
-const Menu = ({ variant }: BaseProps) =>
-  variant === "dropdown"
-    ? DropdownMenuPrimitive.Root
-    : ContextMenuPrimitive.Root;
+type MenuProps = BaseProps &
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Root> &
+  React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Root>;
 
-const SubMenu = ({ variant }: BaseProps) =>
-  variant === "dropdown" ? DropdownMenuPrimitive.Sub : ContextMenuPrimitive.Sub;
+const Menu = ({ variant, children, ...rest }: MenuProps) => {
+  const Root =
+    variant === "dropdown"
+      ? DropdownMenuPrimitive.Root
+      : ContextMenuPrimitive.Root;
+
+  return <Root {...rest}>{children}</Root>;
+};
+
+type SubMenuProps = BaseProps &
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Sub> &
+  React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Sub>;
+
+const SubMenu = ({ variant, children, ...rest }: SubMenuProps) => {
+  const Sub =
+    variant === "dropdown"
+      ? DropdownMenuPrimitive.Sub
+      : ContextMenuPrimitive.Sub;
+
+  return <Sub {...rest}>{children}</Sub>;
+};
 
 type TriggerProps = BaseProps &
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Trigger> &

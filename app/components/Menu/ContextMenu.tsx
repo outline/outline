@@ -1,16 +1,14 @@
 import * as React from "react";
-import {
-  ContextMenu as ContextMenuRoot,
-  ContextMenuTrigger,
-  ContextMenuContent,
-} from "~/components/primitives/ContextMenu";
 import { actionV2ToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
 import useMobile from "~/hooks/useMobile";
 import { ActionContext, ActionV2Variant, ActionV2WithChildren } from "~/types";
-import { toContextMenuItems } from "./transformer";
+import { toMenuItems } from "./transformer";
 import { observer } from "mobx-react";
 import { useComputed } from "~/hooks/useComputed";
+import { Menu, MenuContent, MenuTrigger } from "../primitives/Menu";
+
+const Variant = "context" as const;
 
 type Props = {
   /** Root action with children representing the menu items */
@@ -30,8 +28,7 @@ type Props = {
 export const ContextMenu = observer(
   ({ action, children, ariaLabel, context, onOpen, onClose }: Props) => {
     const isMobile = useMobile();
-    const contentRef =
-      React.useRef<React.ElementRef<typeof ContextMenuContent>>(null);
+    const contentRef = React.useRef<React.ElementRef<typeof MenuContent>>(null);
 
     const actionContext =
       context ??
@@ -81,22 +78,23 @@ export const ContextMenu = observer(
       return <>{children}</>;
     }
 
-    const content = toContextMenuItems(menuItems);
+    const content = toMenuItems(menuItems, Variant);
 
     return (
-      <ContextMenuRoot onOpenChange={handleOpenChange}>
-        <ContextMenuTrigger aria-label={ariaLabel}>
+      <Menu variant={Variant} onOpenChange={handleOpenChange}>
+        <MenuTrigger variant={Variant} aria-label={ariaLabel}>
           {children}
-        </ContextMenuTrigger>
-        <ContextMenuContent
+        </MenuTrigger>
+        <MenuContent
+          variant={Variant}
           aria-label={ariaLabel}
           onAnimationStart={disablePointerEvents}
           onAnimationEnd={enablePointerEvents}
           onCloseAutoFocus={handleCloseAutoFocus}
         >
           {content}
-        </ContextMenuContent>
-      </ContextMenuRoot>
+        </MenuContent>
+      </Menu>
     );
   }
 );

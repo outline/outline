@@ -1,38 +1,21 @@
 import { CheckmarkIcon } from "outline-icons";
 import {
-  ContextMenuButton,
-  ContextMenuExternalLink,
-  ContextMenuGroup,
-  ContextMenuInternalLink,
-  ContextMenuSeparator,
-  ContextSubMenu,
-  ContextSubMenuContent,
-  ContextSubMenuTrigger,
-} from "~/components/primitives/ContextMenu";
-import {
-  DropdownMenuButton,
-  DropdownMenuExternalLink,
-  DropdownMenuGroup,
-  DropdownMenuInternalLink,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownSubMenu,
-  DropdownSubMenuContent,
-  DropdownSubMenuTrigger,
-} from "~/components/primitives/DropdownMenu";
-import {
   MenuButton,
-  MenuIconWrapper,
   MenuInternalLink,
   MenuExternalLink,
-  MenuLabel,
   MenuSeparator,
-  MenuDisclosure,
-  SelectedIconWrapper,
-} from "~/components/primitives/components/Menu";
+  SubMenu,
+  SubMenuTrigger,
+  SubMenuContent,
+  MenuGroup,
+} from "~/components/primitives/Menu";
+import * as Components from "~/components/primitives/components/Menu";
 import { MenuItem } from "~/types";
 
-export function toDropdownMenuItems(items: MenuItem[]) {
+export function toMenuItems(
+  items: MenuItem[],
+  variant: "dropdown" | "context"
+) {
   const filteredItems = filterMenuItems(items);
 
   if (!filteredItems.length) {
@@ -49,16 +32,17 @@ export function toDropdownMenuItems(items: MenuItem[]) {
 
   return filteredItems.map((item, index) => {
     const icon = showIcon ? (
-      <MenuIconWrapper aria-hidden>
+      <Components.MenuIconWrapper aria-hidden>
         {"icon" in item ? item.icon : null}
-      </MenuIconWrapper>
+      </Components.MenuIconWrapper>
     ) : undefined;
 
     switch (item.type) {
       case "button":
         return (
-          <DropdownMenuButton
+          <MenuButton
             key={`${item.type}-${item.title}-${index}`}
+            variant={variant}
             label={item.title as string}
             icon={icon}
             disabled={item.disabled}
@@ -71,8 +55,9 @@ export function toDropdownMenuItems(items: MenuItem[]) {
 
       case "route":
         return (
-          <DropdownMenuInternalLink
+          <MenuInternalLink
             key={`${item.type}-${item.title}-${index}`}
+            variant={variant}
             label={item.title as string}
             icon={icon}
             disabled={item.disabled}
@@ -82,8 +67,9 @@ export function toDropdownMenuItems(items: MenuItem[]) {
 
       case "link":
         return (
-          <DropdownMenuExternalLink
+          <MenuExternalLink
             key={`${item.type}-${item.title}-${index}`}
+            variant={variant}
             label={item.title as string}
             icon={icon}
             disabled={item.disabled}
@@ -95,34 +81,39 @@ export function toDropdownMenuItems(items: MenuItem[]) {
         );
 
       case "submenu": {
-        const submenuItems = toDropdownMenuItems(item.items);
+        const submenuItems = toMenuItems(item.items, variant);
 
         if (!submenuItems?.length) {
           return null;
         }
 
         return (
-          <DropdownSubMenu key={`${item.type}-${item.title}-${index}`}>
-            <DropdownSubMenuTrigger
+          <SubMenu
+            key={`${item.type}-${item.title}-${index}`}
+            variant={variant}
+          >
+            <SubMenuTrigger
+              variant={variant}
               label={item.title as string}
               icon={icon}
               disabled={item.disabled}
             />
-            <DropdownSubMenuContent>{submenuItems}</DropdownSubMenuContent>
-          </DropdownSubMenu>
+            <SubMenuContent variant={variant}>{submenuItems}</SubMenuContent>
+          </SubMenu>
         );
       }
 
       case "group": {
-        const groupItems = toDropdownMenuItems(item.items);
+        const groupItems = toMenuItems(item.items, variant);
 
         if (!groupItems?.length) {
           return null;
         }
 
         return (
-          <DropdownMenuGroup
+          <MenuGroup
             key={`${item.type}-${item.title}-${index}`}
+            variant={variant}
             label={item.title as string}
             items={groupItems}
           />
@@ -130,113 +121,9 @@ export function toDropdownMenuItems(items: MenuItem[]) {
       }
 
       case "separator":
-        return <DropdownMenuSeparator key={`${item.type}-${index}`} />;
-
-      default:
-        return null;
-    }
-  });
-}
-
-export function toContextMenuItems(items: MenuItem[]) {
-  const filteredItems = filterMenuItems(items);
-
-  if (!filteredItems.length) {
-    return null;
-  }
-
-  const showIcon = filteredItems.find(
-    (item) =>
-      item.type !== "separator" &&
-      item.type !== "heading" &&
-      item.type !== "group" &&
-      !!item.icon
-  );
-
-  return filteredItems.map((item, index) => {
-    const icon = showIcon ? (
-      <MenuIconWrapper aria-hidden>
-        {"icon" in item ? item.icon : null}
-      </MenuIconWrapper>
-    ) : undefined;
-
-    switch (item.type) {
-      case "button":
         return (
-          <ContextMenuButton
-            key={`${item.type}-${item.title}-${index}`}
-            label={item.title as string}
-            icon={icon}
-            disabled={item.disabled}
-            tooltip={item.tooltip}
-            selected={item.selected}
-            dangerous={item.dangerous}
-            onClick={item.onClick}
-          />
+          <MenuSeparator key={`${item.type}-${index}`} variant={variant} />
         );
-
-      case "route":
-        return (
-          <ContextMenuInternalLink
-            key={`${item.type}-${item.title}-${index}`}
-            label={item.title as string}
-            icon={icon}
-            disabled={item.disabled}
-            to={item.to}
-          />
-        );
-
-      case "link":
-        return (
-          <ContextMenuExternalLink
-            key={`${item.type}-${item.title}-${index}`}
-            label={item.title as string}
-            icon={icon}
-            disabled={item.disabled}
-            href={typeof item.href === "string" ? item.href : item.href.url}
-            target={
-              typeof item.href === "string" ? undefined : item.href.target
-            }
-          />
-        );
-
-      case "submenu": {
-        const submenuItems = toContextMenuItems(item.items);
-
-        if (!submenuItems?.length) {
-          return null;
-        }
-
-        return (
-          <ContextSubMenu key={`${item.type}-${item.title}-${index}`}>
-            <ContextSubMenuTrigger
-              label={item.title as string}
-              icon={icon}
-              disabled={item.disabled}
-            />
-            <ContextSubMenuContent>{submenuItems}</ContextSubMenuContent>
-          </ContextSubMenu>
-        );
-      }
-
-      case "group": {
-        const groupItems = toContextMenuItems(item.items);
-
-        if (!groupItems?.length) {
-          return null;
-        }
-
-        return (
-          <ContextMenuGroup
-            key={`${item.type}-${item.title}-${index}`}
-            label={item.title as string}
-            items={groupItems}
-          />
-        );
-      }
-
-      case "separator":
-        return <ContextMenuSeparator key={`${item.type}-${index}`} />;
 
       default:
         return null;
@@ -265,15 +152,15 @@ export function toMobileMenuItems(
 
   return filteredItems.map((item, index) => {
     const icon = showIcon ? (
-      <MenuIconWrapper aria-hidden>
+      <Components.MenuIconWrapper aria-hidden>
         {"icon" in item ? item.icon : null}
-      </MenuIconWrapper>
+      </Components.MenuIconWrapper>
     ) : undefined;
 
     switch (item.type) {
       case "button":
         return (
-          <MenuButton
+          <Components.MenuButton
             key={`${item.type}-${item.title}-${index}`}
             disabled={item.disabled}
             $dangerous={item.dangerous}
@@ -283,31 +170,31 @@ export function toMobileMenuItems(
             }}
           >
             {icon}
-            <MenuLabel>{item.title}</MenuLabel>
+            <Components.MenuLabel>{item.title}</Components.MenuLabel>
             {item.selected !== undefined && (
-              <SelectedIconWrapper aria-hidden>
+              <Components.SelectedIconWrapper aria-hidden>
                 {item.selected ? <CheckmarkIcon /> : null}
-              </SelectedIconWrapper>
+              </Components.SelectedIconWrapper>
             )}
-          </MenuButton>
+          </Components.MenuButton>
         );
 
       case "route":
         return (
-          <MenuInternalLink
+          <Components.MenuInternalLink
             key={`${item.type}-${item.title}-${index}`}
             to={item.to}
             disabled={item.disabled}
             onClick={closeMenu}
           >
             {icon}
-            <MenuLabel>{item.title}</MenuLabel>
-          </MenuInternalLink>
+            <Components.MenuLabel>{item.title}</Components.MenuLabel>
+          </Components.MenuInternalLink>
         );
 
       case "link":
         return (
-          <MenuExternalLink
+          <Components.MenuExternalLink
             key={`${item.type}-${item.title}-${index}`}
             href={typeof item.href === "string" ? item.href : item.href.url}
             target={
@@ -317,8 +204,8 @@ export function toMobileMenuItems(
             onClick={closeMenu}
           >
             {icon}
-            <MenuLabel>{item.title}</MenuLabel>
-          </MenuExternalLink>
+            <Components.MenuLabel>{item.title}</Components.MenuLabel>
+          </Components.MenuExternalLink>
         );
 
       case "submenu": {
@@ -333,7 +220,7 @@ export function toMobileMenuItems(
         }
 
         return (
-          <MenuButton
+          <Components.MenuButton
             key={`${item.type}-${item.title}-${index}`}
             disabled={item.disabled}
             onClick={() => {
@@ -341,9 +228,9 @@ export function toMobileMenuItems(
             }}
           >
             {icon}
-            <MenuLabel>{item.title}</MenuLabel>
-            <MenuDisclosure />
-          </MenuButton>
+            <Components.MenuLabel>{item.title}</Components.MenuLabel>
+            <Components.MenuDisclosure />
+          </Components.MenuButton>
         );
       }
 
@@ -360,14 +247,14 @@ export function toMobileMenuItems(
 
         return (
           <div key={`${item.type}-${item.title}-${index}`}>
-            <DropdownMenuLabel>{item.title}</DropdownMenuLabel>
+            <Components.MenuHeader>{item.title}</Components.MenuHeader>
             {groupItems}
           </div>
         );
       }
 
       case "separator":
-        return <MenuSeparator key={`${item.type}-${index}`} />;
+        return <Components.MenuSeparator key={`${item.type}-${index}`} />;
 
       default:
         return null;
