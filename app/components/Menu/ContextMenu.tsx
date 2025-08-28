@@ -6,9 +6,8 @@ import { ActionContext, ActionV2Variant, ActionV2WithChildren } from "~/types";
 import { toMenuItems } from "./transformer";
 import { observer } from "mobx-react";
 import { useComputed } from "~/hooks/useComputed";
-import { Menu, MenuContent, MenuTrigger } from "../primitives/Menu";
-
-const Variant = "context" as const;
+import { Menu, MenuContent, MenuTrigger } from "~/components/primitives/Menu";
+import { MenuProvider } from "~/components/primitives/Menu/MenuContext";
 
 type Props = {
   /** Root action with children representing the menu items */
@@ -78,23 +77,22 @@ export const ContextMenu = observer(
       return <>{children}</>;
     }
 
-    const content = toMenuItems(menuItems, Variant);
+    const content = toMenuItems(menuItems);
 
     return (
-      <Menu variant={Variant} onOpenChange={handleOpenChange}>
-        <MenuTrigger variant={Variant} aria-label={ariaLabel}>
-          {children}
-        </MenuTrigger>
-        <MenuContent
-          variant={Variant}
-          aria-label={ariaLabel}
-          onAnimationStart={disablePointerEvents}
-          onAnimationEnd={enablePointerEvents}
-          onCloseAutoFocus={handleCloseAutoFocus}
-        >
-          {content}
-        </MenuContent>
-      </Menu>
+      <MenuProvider variant={"context"}>
+        <Menu onOpenChange={handleOpenChange}>
+          <MenuTrigger aria-label={ariaLabel}>{children}</MenuTrigger>
+          <MenuContent
+            aria-label={ariaLabel}
+            onAnimationStart={disablePointerEvents}
+            onAnimationEnd={enablePointerEvents}
+            onCloseAutoFocus={handleCloseAutoFocus}
+          >
+            {content}
+          </MenuContent>
+        </Menu>
+      </MenuProvider>
     );
   }
 );

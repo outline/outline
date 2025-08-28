@@ -8,6 +8,8 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "~/components/primitives/Drawer";
+import { Menu, MenuContent, MenuTrigger } from "~/components/primitives/Menu";
+import { MenuProvider } from "~/components/primitives/Menu/MenuContext";
 import { actionV2ToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
 import useMobile from "~/hooks/useMobile";
@@ -21,9 +23,6 @@ import {
 import { toMenuItems, toMobileMenuItems } from "./transformer";
 import { observer } from "mobx-react";
 import { useComputed } from "~/hooks/useComputed";
-import { Menu, MenuContent, MenuTrigger } from "../primitives/Menu";
-
-const Variant = "dropdown" as const;
 
 type Props = {
   /** Root action with children representing the menu items */
@@ -124,30 +123,26 @@ export const DropdownMenu = observer(
         );
       }
 
-      const content = toMenuItems(menuItems, Variant);
+      const content = toMenuItems(menuItems);
 
       return (
-        <Menu variant={Variant} open={open} onOpenChange={handleOpenChange}>
-          <MenuTrigger
-            variant={Variant}
-            ref={ref}
-            aria-label={ariaLabel}
-            {...rest}
-          >
-            {children}
-          </MenuTrigger>
-          <MenuContent
-            variant={Variant}
-            align={align}
-            aria-label={ariaLabel}
-            onAnimationStart={disablePointerEvents}
-            onAnimationEnd={enablePointerEvents}
-            onCloseAutoFocus={handleCloseAutoFocus}
-          >
-            {content}
-            {append}
-          </MenuContent>
-        </Menu>
+        <MenuProvider variant={"dropdown"}>
+          <Menu open={open} onOpenChange={handleOpenChange}>
+            <MenuTrigger ref={ref} aria-label={ariaLabel} {...rest}>
+              {children}
+            </MenuTrigger>
+            <MenuContent
+              align={align}
+              aria-label={ariaLabel}
+              onAnimationStart={disablePointerEvents}
+              onAnimationEnd={enablePointerEvents}
+              onCloseAutoFocus={handleCloseAutoFocus}
+            >
+              {content}
+              {append}
+            </MenuContent>
+          </Menu>
+        </MenuProvider>
       );
     }
   )

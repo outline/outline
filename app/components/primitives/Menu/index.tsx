@@ -1,20 +1,20 @@
 import * as ContextMenuPrimitive from "@radix-ui/react-context-menu";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
-import * as Components from "./components/Menu";
+import * as Components from "../components/Menu";
 import { LocationDescriptor } from "history";
 import * as React from "react";
 import Tooltip from "~/components/Tooltip";
 import { CheckmarkIcon } from "outline-icons";
+import { useMenuContext } from "./MenuContext";
 
-type BaseProps = {
-  variant: "dropdown" | "context";
-};
-
-type MenuProps = BaseProps &
-  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Root> &
+type MenuProps = React.ComponentPropsWithoutRef<
+  typeof DropdownMenuPrimitive.Root
+> &
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Root>;
 
-const Menu = ({ variant, children, ...rest }: MenuProps) => {
+const Menu = ({ children, ...rest }: MenuProps) => {
+  const { variant } = useMenuContext();
+
   const Root =
     variant === "dropdown"
       ? DropdownMenuPrimitive.Root
@@ -23,11 +23,14 @@ const Menu = ({ variant, children, ...rest }: MenuProps) => {
   return <Root {...rest}>{children}</Root>;
 };
 
-type SubMenuProps = BaseProps &
-  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Sub> &
+type SubMenuProps = React.ComponentPropsWithoutRef<
+  typeof DropdownMenuPrimitive.Sub
+> &
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Sub>;
 
-const SubMenu = ({ variant, children, ...rest }: SubMenuProps) => {
+const SubMenu = ({ children, ...rest }: SubMenuProps) => {
+  const { variant } = useMenuContext();
+
   const Sub =
     variant === "dropdown"
       ? DropdownMenuPrimitive.Sub
@@ -36,8 +39,9 @@ const SubMenu = ({ variant, children, ...rest }: SubMenuProps) => {
   return <Sub {...rest}>{children}</Sub>;
 };
 
-type TriggerProps = BaseProps &
-  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Trigger> &
+type TriggerProps = React.ComponentPropsWithoutRef<
+  typeof DropdownMenuPrimitive.Trigger
+> &
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Trigger>;
 
 const MenuTrigger = React.forwardRef<
@@ -45,7 +49,8 @@ const MenuTrigger = React.forwardRef<
   | React.ElementRef<typeof ContextMenuPrimitive.Trigger>,
   TriggerProps
 >((props, ref) => {
-  const { variant, children, ...rest } = props;
+  const { variant } = useMenuContext();
+  const { children, ...rest } = props;
 
   const Trigger =
     variant === "dropdown"
@@ -60,8 +65,9 @@ const MenuTrigger = React.forwardRef<
 });
 MenuTrigger.displayName = "MenuTrigger";
 
-type ContentProps = BaseProps &
-  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content> &
+type ContentProps = React.ComponentPropsWithoutRef<
+  typeof DropdownMenuPrimitive.Content
+> &
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Content>;
 
 const MenuContent = React.forwardRef<
@@ -69,7 +75,8 @@ const MenuContent = React.forwardRef<
   | React.ElementRef<typeof ContextMenuPrimitive.Content>,
   ContentProps
 >((props, ref) => {
-  const { variant, children, ...rest } = props;
+  const { variant } = useMenuContext();
+  const { children, ...rest } = props;
 
   const Portal =
     variant === "dropdown"
@@ -107,8 +114,7 @@ const MenuContent = React.forwardRef<
 });
 MenuContent.displayName = "MenuContent";
 
-type SubMenuTriggerProps = BaseProps &
-  BaseItemProps &
+type SubMenuTriggerProps = BaseItemProps &
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubTrigger> &
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.SubTrigger>;
 
@@ -117,7 +123,8 @@ const SubMenuTrigger = React.forwardRef<
   | React.ElementRef<typeof ContextMenuPrimitive.SubTrigger>,
   SubMenuTriggerProps
 >((props, ref) => {
-  const { variant, label, icon, disabled, ...rest } = props;
+  const { variant } = useMenuContext();
+  const { label, icon, disabled, ...rest } = props;
 
   const Trigger =
     variant === "dropdown"
@@ -136,8 +143,9 @@ const SubMenuTrigger = React.forwardRef<
 });
 SubMenuTrigger.displayName = "SubMenuTrigger";
 
-type SubMenuContentProps = BaseProps &
-  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubContent> &
+type SubMenuContentProps = React.ComponentPropsWithoutRef<
+  typeof DropdownMenuPrimitive.SubContent
+> &
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.SubContent>;
 
 const SubMenuContent = React.forwardRef<
@@ -145,7 +153,8 @@ const SubMenuContent = React.forwardRef<
   | React.ElementRef<typeof ContextMenuPrimitive.SubContent>,
   SubMenuContentProps
 >((props, ref) => {
-  const { variant, children, ...rest } = props;
+  const { variant } = useMenuContext();
+  const { children, ...rest } = props;
 
   const Portal =
     variant === "dropdown"
@@ -180,13 +189,13 @@ const SubMenuContent = React.forwardRef<
 });
 SubMenuContent.displayName = "SubMenuContent";
 
-type MenuGroupProps = BaseProps & {
+type MenuGroupProps = {
   label: string;
   items: React.ReactNode[];
 } & Omit<
-    React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Group>,
-    "children" | "asChild"
-  > &
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Group>,
+  "children" | "asChild"
+> &
   Omit<
     React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Group>,
     "children" | "asChild"
@@ -197,7 +206,8 @@ const MenuGroup = React.forwardRef<
   | React.ElementRef<typeof ContextMenuPrimitive.Group>,
   MenuGroupProps
 >((props, ref) => {
-  const { variant, label, items, ...rest } = props;
+  const { variant } = useMenuContext();
+  const { label, items, ...rest } = props;
 
   const Group =
     variant === "dropdown"
@@ -206,7 +216,7 @@ const MenuGroup = React.forwardRef<
 
   return (
     <Group ref={ref} {...rest}>
-      <MenuLabel variant={variant}>{label}</MenuLabel>
+      <MenuLabel>{label}</MenuLabel>
       {items}
     </Group>
   );
@@ -219,13 +229,12 @@ type BaseItemProps = {
   disabled?: boolean;
 };
 
-type MenuButtonProps = BaseProps &
-  BaseItemProps & {
-    onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
-    tooltip?: React.ReactChild;
-    selected?: boolean;
-    dangerous?: boolean;
-  } & Omit<
+type MenuButtonProps = BaseItemProps & {
+  onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  tooltip?: React.ReactChild;
+  selected?: boolean;
+  dangerous?: boolean;
+} & Omit<
     React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item>,
     "children" | "asChild" | "onClick"
   > &
@@ -239,8 +248,8 @@ const MenuButton = React.forwardRef<
   | React.ElementRef<typeof ContextMenuPrimitive.Item>,
   MenuButtonProps
 >((props, ref) => {
+  const { variant } = useMenuContext();
   const {
-    variant,
     label,
     icon,
     tooltip,
@@ -284,10 +293,9 @@ const MenuButton = React.forwardRef<
 });
 MenuButton.displayName = "MenuButton";
 
-type MenuInternalLinkProps = BaseProps &
-  BaseItemProps & {
-    to: LocationDescriptor;
-  } & Omit<
+type MenuInternalLinkProps = BaseItemProps & {
+  to: LocationDescriptor;
+} & Omit<
     React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item>,
     "children" | "asChild" | "onClick"
   > &
@@ -301,7 +309,8 @@ const MenuInternalLink = React.forwardRef<
   | React.ElementRef<typeof ContextMenuPrimitive.Item>,
   MenuInternalLinkProps
 >((props, ref) => {
-  const { variant, label, icon, disabled, to, ...rest } = props;
+  const { variant } = useMenuContext();
+  const { label, icon, disabled, to, ...rest } = props;
 
   const Item =
     variant === "dropdown"
@@ -319,11 +328,10 @@ const MenuInternalLink = React.forwardRef<
 });
 MenuInternalLink.displayName = "MenuInternalLink";
 
-type MenuExternalLinkProps = BaseProps &
-  BaseItemProps & {
-    href: string;
-    target?: string;
-  } & Omit<
+type MenuExternalLinkProps = BaseItemProps & {
+  href: string;
+  target?: string;
+} & Omit<
     React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item>,
     "children" | "asChild" | "onClick"
   > &
@@ -337,7 +345,8 @@ const MenuExternalLink = React.forwardRef<
   | React.ElementRef<typeof ContextMenuPrimitive.Item>,
   MenuExternalLinkProps
 >((props, ref) => {
-  const { variant, label, icon, disabled, href, target, ...rest } = props;
+  const { variant } = useMenuContext();
+  const { label, icon, disabled, href, target, ...rest } = props;
 
   const Item =
     variant === "dropdown"
@@ -359,8 +368,9 @@ const MenuExternalLink = React.forwardRef<
 });
 MenuExternalLink.displayName = "MenuExternalLink";
 
-type MenuSeparatorProps = BaseProps &
-  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Separator> &
+type MenuSeparatorProps = React.ComponentPropsWithoutRef<
+  typeof DropdownMenuPrimitive.Separator
+> &
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Separator>;
 
 const MenuSeparator = React.forwardRef<
@@ -368,7 +378,7 @@ const MenuSeparator = React.forwardRef<
   | React.ElementRef<typeof ContextMenuPrimitive.Separator>,
   MenuSeparatorProps
 >((props, ref) => {
-  const { variant, ...rest } = props;
+  const { variant } = useMenuContext();
 
   const Separator =
     variant === "dropdown"
@@ -376,15 +386,16 @@ const MenuSeparator = React.forwardRef<
       : ContextMenuPrimitive.Separator;
 
   return (
-    <Separator ref={ref} {...rest} asChild>
+    <Separator ref={ref} {...props} asChild>
       <Components.MenuSeparator />
     </Separator>
   );
 });
 MenuSeparator.displayName = "MenuSeparator";
 
-type MenuLabelProps = BaseProps &
-  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Label> &
+type MenuLabelProps = React.ComponentPropsWithoutRef<
+  typeof DropdownMenuPrimitive.Label
+> &
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Label>;
 
 const MenuLabel = React.forwardRef<
@@ -392,7 +403,8 @@ const MenuLabel = React.forwardRef<
   | React.ElementRef<typeof ContextMenuPrimitive.Label>,
   MenuLabelProps
 >((props, ref) => {
-  const { variant, children, ...rest } = props;
+  const { variant } = useMenuContext();
+  const { children, ...rest } = props;
 
   const Label =
     variant === "dropdown"

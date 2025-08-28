@@ -12,10 +12,7 @@ import {
 import * as Components from "~/components/primitives/components/Menu";
 import { MenuItem } from "~/types";
 
-export function toMenuItems(
-  items: MenuItem[],
-  variant: "dropdown" | "context"
-) {
+export function toMenuItems(items: MenuItem[]) {
   const filteredItems = filterMenuItems(items);
 
   if (!filteredItems.length) {
@@ -42,7 +39,6 @@ export function toMenuItems(
         return (
           <MenuButton
             key={`${item.type}-${item.title}-${index}`}
-            variant={variant}
             label={item.title as string}
             icon={icon}
             disabled={item.disabled}
@@ -57,7 +53,6 @@ export function toMenuItems(
         return (
           <MenuInternalLink
             key={`${item.type}-${item.title}-${index}`}
-            variant={variant}
             label={item.title as string}
             icon={icon}
             disabled={item.disabled}
@@ -69,7 +64,6 @@ export function toMenuItems(
         return (
           <MenuExternalLink
             key={`${item.type}-${item.title}-${index}`}
-            variant={variant}
             label={item.title as string}
             icon={icon}
             disabled={item.disabled}
@@ -81,30 +75,26 @@ export function toMenuItems(
         );
 
       case "submenu": {
-        const submenuItems = toMenuItems(item.items, variant);
+        const submenuItems = toMenuItems(item.items);
 
         if (!submenuItems?.length) {
           return null;
         }
 
         return (
-          <SubMenu
-            key={`${item.type}-${item.title}-${index}`}
-            variant={variant}
-          >
+          <SubMenu key={`${item.type}-${item.title}-${index}`}>
             <SubMenuTrigger
-              variant={variant}
               label={item.title as string}
               icon={icon}
               disabled={item.disabled}
             />
-            <SubMenuContent variant={variant}>{submenuItems}</SubMenuContent>
+            <SubMenuContent>{submenuItems}</SubMenuContent>
           </SubMenu>
         );
       }
 
       case "group": {
-        const groupItems = toMenuItems(item.items, variant);
+        const groupItems = toMenuItems(item.items);
 
         if (!groupItems?.length) {
           return null;
@@ -113,7 +103,6 @@ export function toMenuItems(
         return (
           <MenuGroup
             key={`${item.type}-${item.title}-${index}`}
-            variant={variant}
             label={item.title as string}
             items={groupItems}
           />
@@ -121,9 +110,7 @@ export function toMenuItems(
       }
 
       case "separator":
-        return (
-          <MenuSeparator key={`${item.type}-${index}`} variant={variant} />
-        );
+        return <MenuSeparator key={`${item.type}-${index}`} />;
 
       default:
         return null;
