@@ -1,6 +1,7 @@
 import Router from "koa-router";
 import { Op, WhereOptions } from "sequelize";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
+import { UserRole } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -251,15 +252,32 @@ router.post(
   validate(T.GroupsAddUserSchema),
   transaction(),
   async (ctx: APIContext<T.GroupsAddUserReq>) => {
-    const { id, userId, isAdmin } = ctx.input.body;
+    const { id, userId, role, isAdmin } = ctx.input.body;
     const actor = ctx.state.auth.user;
     const { transaction } = ctx.state;
 
     const user = await User.findByPk(userId, { transaction });
     authorize(actor, "read", user);
 
-    const group = await Group.findByPk(id, { transaction });
+    // Load group with group users for authorization
+    const group = await Group.findByPk(id, { 
+      transaction,
+      include: [{
+        model: GroupUser,
+        as: "groupUsers",
+        required: false,
+        where: {
+          userId: actor.id
+        }
+      }]
+    });
     authorize(actor, "update", group);
+
+    // Determine role from input (support both new role and legacy isAdmin)
+    let userRole = role;
+    if (userRole === undefined && isAdmin !== undefined) {
+      userRole = isAdmin ? UserRole.Admin : UserRole.Member;
+    }
 
     const [groupUser] = await GroupUser.findOrCreateWithCtx(
       ctx,
@@ -270,15 +288,15 @@ router.post(
         },
         defaults: {
           createdById: actor.id,
-          isAdmin: isAdmin || false,
+          role: userRole || UserRole.Member,
         },
       },
       { name: "add_user" }
     );
 
-    // If the user already exists in the group, update the admin status if provided
-    if (isAdmin !== undefined && groupUser.isAdmin !== isAdmin) {
-      await groupUser.update({ isAdmin });
+    // If the user already exists in the group, update the role if provided
+    if (userRole !== undefined && groupUser.role !== userRole) {
+      await groupUser.update({ role: userRole });
     }
 
     groupUser.user = user;
@@ -334,11 +352,22 @@ router.post(
   validate(T.GroupsUpdateUserSchema),
   transaction(),
   async (ctx: APIContext<T.GroupsUpdateUserReq>) => {
-    const { id, userId, isAdmin } = ctx.input.body;
+    const { id, userId, role, isAdmin } = ctx.input.body;
     const actor = ctx.state.auth.user;
     const { transaction } = ctx.state;
 
-    const group = await Group.findByPk(id, { transaction });
+    // Load group with group users for authorization
+    const group = await Group.findByPk(id, { 
+      transaction,
+      include: [{
+        model: GroupUser,
+        as: "groupUsers",
+        required: false,
+        where: {
+          userId: actor.id
+        }
+      }]
+    });
     authorize(actor, "update", group);
 
     const user = await User.findByPk(userId, { transaction });
@@ -357,7 +386,13 @@ router.post(
       ctx.throw(404, "User is not a member of this group");
     }
 
-    await groupUser.update({ isAdmin });
+    // Determine role from input (support both new role and legacy isAdmin)
+    let userRole = role;
+    if (userRole === undefined && isAdmin !== undefined) {
+      userRole = isAdmin ? UserRole.Admin : UserRole.Member;
+    }
+
+    await groupUser.update({ role: userRole });
     groupUser.user = user;
 
     ctx.body = {

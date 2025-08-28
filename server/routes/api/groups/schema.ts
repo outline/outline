@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { UserRole } from "@shared/types";
 import { Group } from "@server/models";
 
 const BaseIdSchema = z.object({
@@ -85,8 +86,10 @@ export const GroupsAddUserSchema = z.object({
   body: BaseIdSchema.extend({
     /** User Id */
     userId: z.string().uuid(),
-    /** Whether the user is an admin of the group */
-    isAdmin: z.boolean().optional().default(false),
+    /** The role of the user in the group */
+    role: z.enum([UserRole.Admin, UserRole.Member]).optional().default(UserRole.Member),
+    /** @deprecated Whether the user is an admin of the group */
+    isAdmin: z.boolean().optional(),
   }),
 });
 
@@ -105,8 +108,10 @@ export const GroupsUpdateUserSchema = z.object({
   body: BaseIdSchema.extend({
     /** User Id */
     userId: z.string().uuid(),
-    /** Whether the user is an admin of the group */
-    isAdmin: z.boolean(),
+    /** The role of the user in the group */
+    role: z.enum([UserRole.Admin, UserRole.Member]),
+    /** @deprecated Whether the user is an admin of the group */
+    isAdmin: z.boolean().optional(),
   }),
 });
 

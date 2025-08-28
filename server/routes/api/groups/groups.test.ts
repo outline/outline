@@ -614,11 +614,12 @@ describe("#groups.add_user", () => {
         token: user.getJwtToken(),
         id: group.id,
         userId: anotherUser.id,
-        isAdmin: true,
+        role: "admin",
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
+    expect(body.data.groupMemberships[0].role).toEqual("admin");
     expect(body.data.groupMemberships[0].isAdmin).toEqual(true);
   });
 
@@ -738,7 +739,7 @@ describe("#groups.remove_user", () => {
 });
 
 describe("#groups.update_user", () => {
-  it("should update user admin status in group", async () => {
+  it("should update user role in group", async () => {
     const user = await buildAdmin();
     const anotherUser = await buildUser({
       teamId: user.teamId,
@@ -762,12 +763,13 @@ describe("#groups.update_user", () => {
         token: user.getJwtToken(),
         id: group.id,
         userId: anotherUser.id,
-        isAdmin: true,
+        role: "admin",
       },
     });
     
     const body = await res.json();
     expect(res.status).toEqual(200);
+    expect(body.data.groupMemberships[0].role).toEqual("admin");
     expect(body.data.groupMemberships[0].isAdmin).toEqual(true);
     
     // Update the user to not be an admin
@@ -776,12 +778,13 @@ describe("#groups.update_user", () => {
         token: user.getJwtToken(),
         id: group.id,
         userId: anotherUser.id,
-        isAdmin: false,
+        role: "member",
       },
     });
     
     const body2 = await res2.json();
     expect(res2.status).toEqual(200);
+    expect(body2.data.groupMemberships[0].role).toEqual("member");
     expect(body2.data.groupMemberships[0].isAdmin).toEqual(false);
   });
   
@@ -817,7 +820,7 @@ describe("#groups.update_user", () => {
         token: user.getJwtToken(),
         id: group.id,
         userId: anotherUser.id,
-        isAdmin: true,
+        role: "admin",
       },
     });
     
@@ -838,7 +841,7 @@ describe("#groups.update_user", () => {
         token: user.getJwtToken(),
         id: group.id,
         userId: anotherUser.id,
-        isAdmin: true,
+        role: "admin",
       },
     });
     

@@ -26,10 +26,10 @@ allow(User, "read", Group, (actor, team) =>
   )
 );
 
-allow(User, "update", Group, async (actor, group) => {
+allow(User, "update", Group, (actor, group) => {
   return and(
     //
-    await isGroupAdmin(actor, group),
+    isGroupAdmin(actor, group),
     isTeamMutable(actor)
   );
 });

@@ -8,6 +8,7 @@ import {
   DataType,
   Scopes,
 } from "sequelize-typescript";
+import { UserRole } from "@shared/types";
 import Group from "./Group";
 import User from "./User";
 import Model from "./base/Model";
@@ -65,8 +66,10 @@ class GroupUser extends Model<
   @Column(DataType.UUID)
   createdById: string;
 
-  @Column(DataType.BOOLEAN)
-  isAdmin: boolean;
+  @Column(DataType.ENUM(...Object.values(UserRole).filter(role => 
+    role === UserRole.Admin || role === UserRole.Member
+  )))
+  role: UserRole.Admin | UserRole.Member;
 
   get modelId() {
     return this.groupId;

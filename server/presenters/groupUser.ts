@@ -1,4 +1,5 @@
 import GroupUser from "@server/models/GroupUser";
+import { UserRole } from "@shared/types";
 import { presentUser } from ".";
 
 export default function presentGroupUser(
@@ -9,7 +10,8 @@ export default function presentGroupUser(
     id: `${membership.userId}-${membership.groupId}`,
     userId: membership.userId,
     groupId: membership.groupId,
-    isAdmin: membership.isAdmin,
+    role: membership.role,
+    isAdmin: membership.role === UserRole.Admin,
     user: options?.includeUser ? presentUser(membership.user) : undefined,
   };
 }

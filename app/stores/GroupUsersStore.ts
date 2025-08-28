@@ -3,6 +3,7 @@ import filter from "lodash/filter";
 import { action, runInAction } from "mobx";
 import GroupUser from "~/models/GroupUser";
 import { PaginationParams } from "~/types";
+import { UserRole } from "@shared/types";
 import { client } from "~/utils/ApiClient";
 import RootStore from "./RootStore";
 import Store, {
@@ -46,15 +47,18 @@ export default class GroupUsersStore extends Store<GroupUser> {
   async create({
     groupId,
     userId,
-    isAdmin = false,
+    role = UserRole.Member,
+    isAdmin,
   }: {
     groupId: string;
     userId: string;
+    role?: UserRole.Admin | UserRole.Member;
     isAdmin?: boolean;
   }) {
     const res = await client.post("/groups.add_user", {
       id: groupId,
       userId,
+      role,
       isAdmin,
     });
     invariant(res?.data, "Group Membership data should be available");
@@ -83,15 +87,18 @@ export default class GroupUsersStore extends Store<GroupUser> {
   async updateUser({
     groupId,
     userId,
+    role,
     isAdmin,
   }: {
     groupId: string;
     userId: string;
-    isAdmin: boolean;
+    role?: UserRole.Admin | UserRole.Member;
+    isAdmin?: boolean;
   }) {
     const res = await client.post("/groups.update_user", {
       id: groupId,
       userId,
+      role,
       isAdmin,
     });
     invariant(res?.data, "Group Membership data should be available");

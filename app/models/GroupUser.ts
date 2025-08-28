@@ -1,3 +1,4 @@
+import { UserRole } from "@shared/types";
 import Group from "./Group";
 import User from "./User";
 import Model from "./base/Model";
@@ -23,8 +24,8 @@ class GroupUser extends Model {
   @Relation(() => Group, { onDelete: "cascade" })
   group: Group;
 
-  /** Whether the user is an admin of the group. */
-  isAdmin: boolean;
+  /** The role of the user in the group. Can be either Admin or Member. */
+  role: UserRole.Admin | UserRole.Member;
 }
 
 export default GroupUser;
