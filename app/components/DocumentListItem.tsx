@@ -28,6 +28,7 @@ import { determineSidebarContext } from "./Sidebar/components/SidebarContext";
 import useActionContext from "~/hooks/useActionContext";
 import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
 import { ContextMenu } from "./Menu/ContextMenu";
+import useStores from "~/hooks/useStores";
 
 type Props = {
   document: Document;
@@ -53,6 +54,7 @@ function DocumentListItem(
 ) {
   const { t } = useTranslation();
   const user = useCurrentUser();
+  const { userMemberships, groupMemberships } = useStores();
   const locationSidebarContext = useLocationSidebarContext();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
 
@@ -81,6 +83,11 @@ function DocumentListItem(
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
   const canStar = !document.isArchived && !document.isTemplate;
 
+  const isShared = !!(
+    userMemberships.getByDocumentId(document.id) ||
+    groupMemberships.getByDocumentId(document.id)
+  );
+
   const sidebarContext = determineSidebarContext({
     document,
     user,
@@ -90,7 +97,8 @@ function DocumentListItem(
   const actionContext = useActionContext({
     isContextMenu: true,
     activeDocumentId: document.id,
-    activeCollectionId: document.collectionId ?? undefined,
+    activeCollectionId:
+      !isShared && document.collectionId ? document.collectionId : undefined,
   });
 
   const contextMenuAction = useDocumentMenuAction({ document });
