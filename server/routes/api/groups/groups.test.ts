@@ -111,7 +111,7 @@ describe("#groups.update", () => {
           token: admin.getJwtToken(),
           id: group.id,
           userId: user.id,
-          isAdmin: true,
+          role: "admin",
         },
       });
     });
@@ -620,7 +620,6 @@ describe("#groups.add_user", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.groupMemberships[0].role).toEqual("admin");
-    expect(body.data.groupMemberships[0].isAdmin).toEqual(true);
   });
 
   it("should require authentication", async () => {
@@ -770,7 +769,6 @@ describe("#groups.update_user", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.groupMemberships[0].role).toEqual("admin");
-    expect(body.data.groupMemberships[0].isAdmin).toEqual(true);
     
     // Update the user to not be an admin
     const res2 = await server.post("/api/groups.update_user", {
@@ -785,7 +783,6 @@ describe("#groups.update_user", () => {
     const body2 = await res2.json();
     expect(res2.status).toEqual(200);
     expect(body2.data.groupMemberships[0].role).toEqual("member");
-    expect(body2.data.groupMemberships[0].isAdmin).toEqual(false);
   });
   
   it("should require authentication", async () => {

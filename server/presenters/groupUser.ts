@@ -11,7 +11,6 @@ export default function presentGroupUser(
     userId: membership.userId,
     groupId: membership.groupId,
     role: membership.role,
-    isAdmin: membership.role === UserRole.Admin,
     user: options?.includeUser ? presentUser(membership.user) : undefined,
   };
 }

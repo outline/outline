@@ -252,7 +252,7 @@ router.post(
   validate(T.GroupsAddUserSchema),
   transaction(),
   async (ctx: APIContext<T.GroupsAddUserReq>) => {
-    const { id, userId, role, isAdmin } = ctx.input.body;
+    const { id, userId, role } = ctx.input.body;
     const actor = ctx.state.auth.user;
     const { transaction } = ctx.state;
 
@@ -273,11 +273,7 @@ router.post(
     });
     authorize(actor, "update", group);
 
-    // Determine role from input (support both new role and legacy isAdmin)
-    let userRole = role;
-    if (userRole === undefined && isAdmin !== undefined) {
-      userRole = isAdmin ? UserRole.Admin : UserRole.Member;
-    }
+    const userRole = role;
 
     const [groupUser] = await GroupUser.findOrCreateWithCtx(
       ctx,
@@ -352,7 +348,7 @@ router.post(
   validate(T.GroupsUpdateUserSchema),
   transaction(),
   async (ctx: APIContext<T.GroupsUpdateUserReq>) => {
-    const { id, userId, role, isAdmin } = ctx.input.body;
+    const { id, userId, role } = ctx.input.body;
     const actor = ctx.state.auth.user;
     const { transaction } = ctx.state;
 
@@ -386,13 +382,7 @@ router.post(
       ctx.throw(404, "User is not a member of this group");
     }
 
-    // Determine role from input (support both new role and legacy isAdmin)
-    let userRole = role;
-    if (userRole === undefined && isAdmin !== undefined) {
-      userRole = isAdmin ? UserRole.Admin : UserRole.Member;
-    }
-
-    await groupUser.update({ role: userRole });
+    await groupUser.update({ role });
     groupUser.user = user;
 
     ctx.body = {

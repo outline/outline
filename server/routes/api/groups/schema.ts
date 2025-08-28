@@ -88,8 +88,6 @@ export const GroupsAddUserSchema = z.object({
     userId: z.string().uuid(),
     /** The role of the user in the group */
     role: z.enum([UserRole.Admin, UserRole.Member]).optional().default(UserRole.Member),
-    /** @deprecated Whether the user is an admin of the group */
-    isAdmin: z.boolean().optional(),
   }),
 });
 
@@ -110,8 +108,6 @@ export const GroupsUpdateUserSchema = z.object({
     userId: z.string().uuid(),
     /** The role of the user in the group */
     role: z.enum([UserRole.Admin, UserRole.Member]),
-    /** @deprecated Whether the user is an admin of the group */
-    isAdmin: z.boolean().optional(),
   }),
 });
 

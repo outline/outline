@@ -48,18 +48,15 @@ export default class GroupUsersStore extends Store<GroupUser> {
     groupId,
     userId,
     role = UserRole.Member,
-    isAdmin,
   }: {
     groupId: string;
     userId: string;
     role?: UserRole.Admin | UserRole.Member;
-    isAdmin?: boolean;
   }) {
     const res = await client.post("/groups.add_user", {
       id: groupId,
       userId,
       role,
-      isAdmin,
     });
     invariant(res?.data, "Group Membership data should be available");
     res.data.users.forEach(this.rootStore.users.add);
@@ -88,18 +85,15 @@ export default class GroupUsersStore extends Store<GroupUser> {
     groupId,
     userId,
     role,
-    isAdmin,
   }: {
     groupId: string;
     userId: string;
     role?: UserRole.Admin | UserRole.Member;
-    isAdmin?: boolean;
   }) {
     const res = await client.post("/groups.update_user", {
       id: groupId,
       userId,
       role,
-      isAdmin,
     });
     invariant(res?.data, "Group Membership data should be available");
     res.data.users.forEach(this.rootStore.users.add);
