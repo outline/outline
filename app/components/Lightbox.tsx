@@ -186,10 +186,6 @@ function Lightbox() {
         height: lightboxImgHeight,
       };
 
-      lightboxImageEl.onanimationstart = () => {
-        lightboxImageEl.style.visibility = "visible";
-      };
-
       const zoomIn = () => {
         const tx = from.center.x - to.center.x;
         const ty = from.center.y - to.center.y;
@@ -611,6 +607,10 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
     touchYEnd = undefined;
   };
 
+  const [hidden, setHidden] = useState(
+    status.lightbox === Status.Lightbox.READY_TO_OPEN
+  );
+
   useEffect(() => {
     onLoading();
   }, [src]);
@@ -626,6 +626,7 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
         src={src}
         alt={alt}
         animation={animation}
+        onAnimationStart={() => setHidden(false)}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -636,6 +637,7 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
         onLoad={(_ev: React.SyntheticEvent<HTMLImageElement>) => {
           onLoad();
         }}
+        $hidden={hidden}
       />
       <Caption>
         {status.image === Status.Image.LOADED &&
@@ -694,12 +696,13 @@ const StyledOverlay = styled(Dialog.Overlay)<{
 `;
 
 const StyledImg = styled.img<{
+  $hidden: boolean;
   animation: {
     zoomIn?: { apply: () => Keyframes; duration: number };
     zoomOut?: { apply: () => Keyframes; duration: number };
   } | null;
 }>`
-  visibility: hidden;
+  visibility: ${(props) => (props.$hidden ? "hidden" : "visible")};
   max-width: 100%;
   min-height: 0;
   object-fit: contain;
