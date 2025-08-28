@@ -86,24 +86,6 @@ function Lightbox() {
   }, [!!activeLightboxImgPos]);
 
   useEffect(() => {
-    if (status.lightbox === Status.Lightbox.READY_TO_OPEN) {
-      setupFadeIn();
-    }
-  }, [status.lightbox]);
-
-  useEffect(() => {
-    if (
-      status.image === Status.Image.ERROR &&
-      status.lightbox === Status.Lightbox.READY_TO_OPEN
-    ) {
-      setStatus({
-        lightbox: Status.Lightbox.OPENING,
-        image: status.image,
-      });
-    }
-  }, [status.lightbox, status.image]);
-
-  useEffect(() => {
     if (status.image === Status.Image.LOADED) {
       rememberImagePosition();
     }
@@ -111,9 +93,11 @@ function Lightbox() {
 
   useEffect(() => {
     if (
-      status.image === Status.Image.LOADED &&
+      (status.image === Status.Image.ERROR ||
+        status.image === Status.Image.LOADED) &&
       status.lightbox === Status.Lightbox.READY_TO_OPEN
     ) {
+      setupFadeIn();
       setupZoomIn();
       setStatus({
         lightbox: Status.Lightbox.OPENING,
