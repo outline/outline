@@ -100,3 +100,36 @@ export function isCloudHosted() {
   }
   return true;
 }
+
+/**
+ * Check if the actor is an admin of the group.
+ *
+ * @param actor The actor to check
+ * @param model The group model to check
+ * @returns True if the actor is an admin of the group
+ */
+export async function isGroupAdmin(
+  actor: User,
+  model: Model | null | undefined
+): Promise<boolean> {
+  if (!model || !("id" in model)) {
+    return false;
+  }
+
+  // Team admins are always group admins
+  if (isTeamAdmin(actor, model)) {
+    return true;
+  }
+
+  // Check if the user is a group admin
+  const { GroupUser } = await import("@server/models");
+  const membership = await GroupUser.findOne({
+    where: {
+      userId: actor.id,
+      groupId: model.id,
+      isAdmin: true,
+    },
+  });
+
+  return !!membership;
+}

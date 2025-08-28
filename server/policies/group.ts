@@ -1,6 +1,6 @@
 import { Group, User, Team } from "@server/models";
 import { allow } from "./cancan";
-import { and, isTeamAdmin, isTeamModel, isTeamMutable } from "./utils";
+import { and, isTeamAdmin, isTeamModel, isTeamMutable, isGroupAdmin } from "./utils";
 
 allow(User, "createGroup", Team, (actor, team) =>
   and(
@@ -26,10 +26,18 @@ allow(User, "read", Group, (actor, team) =>
   )
 );
 
-allow(User, ["update", "delete"], Group, (actor, team) =>
+allow(User, "update", Group, async (actor, group) => {
+  return and(
+    //
+    await isGroupAdmin(actor, group),
+    isTeamMutable(actor)
+  );
+});
+
+allow(User, "delete", Group, (actor, group) =>
   and(
     //
-    isTeamAdmin(actor, team),
+    isTeamAdmin(actor, group),
     isTeamMutable(actor)
   )
 );

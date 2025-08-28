@@ -251,7 +251,7 @@ router.post(
   validate(T.GroupsAddUserSchema),
   transaction(),
   async (ctx: APIContext<T.GroupsAddUserReq>) => {
-    const { id, userId } = ctx.input.body;
+    const { id, userId, isAdmin } = ctx.input.body;
     const actor = ctx.state.auth.user;
     const { transaction } = ctx.state;
 
@@ -270,10 +270,16 @@ router.post(
         },
         defaults: {
           createdById: actor.id,
+          isAdmin: isAdmin || false,
         },
       },
       { name: "add_user" }
     );
+
+    // If the user already exists in the group, update the admin status if provided
+    if (isAdmin !== undefined && groupUser.isAdmin !== isAdmin) {
+      await groupUser.update({ isAdmin });
+    }
 
     groupUser.user = user;
 
@@ -316,6 +322,48 @@ router.post(
 
     ctx.body = {
       data: {
+        groups: [await presentGroup(group)],
+      },
+    };
+  }
+);
+
+router.post(
+  "groups.update_user",
+  auth(),
+  validate(T.GroupsUpdateUserSchema),
+  transaction(),
+  async (ctx: APIContext<T.GroupsUpdateUserReq>) => {
+    const { id, userId, isAdmin } = ctx.input.body;
+    const actor = ctx.state.auth.user;
+    const { transaction } = ctx.state;
+
+    const group = await Group.findByPk(id, { transaction });
+    authorize(actor, "update", group);
+
+    const user = await User.findByPk(userId, { transaction });
+    authorize(actor, "read", user);
+
+    const groupUser = await GroupUser.unscoped().findOne({
+      where: {
+        groupId: group.id,
+        userId: user.id,
+      },
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+
+    if (!groupUser) {
+      ctx.throw(404, "User is not a member of this group");
+    }
+
+    await groupUser.update({ isAdmin });
+    groupUser.user = user;
+
+    ctx.body = {
+      data: {
+        users: [presentUser(user)],
+        groupMemberships: [presentGroupUser(groupUser, { includeUser: true })],
         groups: [await presentGroup(group)],
       },
     };

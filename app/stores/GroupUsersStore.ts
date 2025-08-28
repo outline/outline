@@ -43,10 +43,19 @@ export default class GroupUsersStore extends Store<GroupUser> {
   };
 
   @action
-  async create({ groupId, userId }: { groupId: string; userId: string }) {
+  async create({
+    groupId,
+    userId,
+    isAdmin = false,
+  }: {
+    groupId: string;
+    userId: string;
+    isAdmin?: boolean;
+  }) {
     const res = await client.post("/groups.add_user", {
       id: groupId,
       userId,
+      isAdmin,
     });
     invariant(res?.data, "Group Membership data should be available");
     res.data.users.forEach(this.rootStore.users.add);
@@ -68,6 +77,29 @@ export default class GroupUsersStore extends Store<GroupUser> {
       res.data.groups.forEach(this.rootStore.groups.add);
       this.isLoaded = true;
     });
+  }
+
+  @action
+  async updateUser({
+    groupId,
+    userId,
+    isAdmin,
+  }: {
+    groupId: string;
+    userId: string;
+    isAdmin: boolean;
+  }) {
+    const res = await client.post("/groups.update_user", {
+      id: groupId,
+      userId,
+      isAdmin,
+    });
+    invariant(res?.data, "Group Membership data should be available");
+    res.data.users.forEach(this.rootStore.users.add);
+    res.data.groups.forEach(this.rootStore.groups.add);
+
+    const groupMemberships = res.data.groupMemberships.map(this.add);
+    return groupMemberships[0];
   }
 
   @action

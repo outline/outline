@@ -65,6 +65,9 @@ class GroupUser extends Model<
   @Column(DataType.UUID)
   createdById: string;
 
+  @Column(DataType.BOOLEAN)
+  isAdmin: boolean;
+
   get modelId() {
     return this.groupId;
   }

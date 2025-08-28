@@ -9,6 +9,7 @@ export default function presentGroupUser(
     id: `${membership.userId}-${membership.groupId}`,
     userId: membership.userId,
     groupId: membership.groupId,
+    isAdmin: membership.isAdmin,
     user: options?.includeUser ? presentUser(membership.user) : undefined,
   };
 }

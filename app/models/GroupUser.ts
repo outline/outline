@@ -22,6 +22,9 @@ class GroupUser extends Model {
   /** The group that the user belongs to. */
   @Relation(() => Group, { onDelete: "cascade" })
   group: Group;
+
+  /** Whether the user is an admin of the group. */
+  isAdmin: boolean;
 }
 
 export default GroupUser;

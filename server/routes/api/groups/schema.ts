@@ -85,6 +85,8 @@ export const GroupsAddUserSchema = z.object({
   body: BaseIdSchema.extend({
     /** User Id */
     userId: z.string().uuid(),
+    /** Whether the user is an admin of the group */
+    isAdmin: z.boolean().optional().default(false),
   }),
 });
 
@@ -98,3 +100,14 @@ export const GroupsRemoveUserSchema = z.object({
 });
 
 export type GroupsRemoveUserReq = z.infer<typeof GroupsRemoveUserSchema>;
+
+export const GroupsUpdateUserSchema = z.object({
+  body: BaseIdSchema.extend({
+    /** User Id */
+    userId: z.string().uuid(),
+    /** Whether the user is an admin of the group */
+    isAdmin: z.boolean(),
+  }),
+});
+
+export type GroupsUpdateUserReq = z.infer<typeof GroupsUpdateUserSchema>;
