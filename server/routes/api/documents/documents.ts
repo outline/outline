@@ -1584,17 +1584,20 @@ router.post(
     const file = ctx.input.file;
     const { user } = ctx.state.auth;
 
-    const collection = await Collection.findByPk(collectionId, {
-      userId: user.id,
-    });
-    authorize(user, "createDocument", collection);
-    let parentDocument;
+    if (collectionId) {
+      const collection = await Collection.findByPk(collectionId, {
+        userId: user.id,
+      });
+      authorize(user, "createDocument", collection);
+    }
+
+    let parentDocument: Document | null = null;
 
     if (parentDocumentId) {
       parentDocument = await Document.findByPk(parentDocumentId, {
         userId: user.id,
       });
-      authorize(user, "read", parentDocument);
+      authorize(user, "createChildDocument", parentDocument);
     }
 
     const buffer = await fs.readFile(file.filepath);
@@ -1624,7 +1627,7 @@ router.post(
         mimeType,
       },
       userId: user.id,
-      collectionId,
+      collectionId: collectionId ?? parentDocument?.collectionId, // collectionId will be null when parent document is shared to the user.
       parentDocumentId,
       publish,
       ip: ctx.request.ip,

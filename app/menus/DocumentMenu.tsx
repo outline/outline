@@ -95,7 +95,13 @@ function DocumentMenu({
   const isMobile = useMobile();
   const can = usePolicy(document);
 
-  const { subscriptions, pins } = useStores();
+  const { userMemberships, groupMemberships, subscriptions, pins } =
+    useStores();
+
+  const isShared = !!(
+    userMemberships.getByDocumentId(document.id) ||
+    groupMemberships.getByDocumentId(document.id)
+  );
 
   const {
     loading: auxDataLoading,
@@ -226,7 +232,8 @@ function DocumentMenu({
   const context = useActionContext({
     isContextMenu: true,
     activeDocumentId: document.id,
-    activeCollectionId: document.collectionId ?? undefined,
+    activeCollectionId:
+      !isShared && document.collectionId ? document.collectionId : undefined,
   });
 
   const toggleSwitches = React.useMemo<React.ReactNode>(() => {

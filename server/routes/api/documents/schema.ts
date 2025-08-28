@@ -311,16 +311,23 @@ export const DocumentsUnpublishSchema = BaseSchema.extend({
 export type DocumentsUnpublishReq = z.infer<typeof DocumentsUnpublishSchema>;
 
 export const DocumentsImportSchema = BaseSchema.extend({
-  body: z.object({
-    /** Whether to publish the imported docs. String as this is always multipart/form-data */
-    publish: z.preprocess((val) => val === "true", z.boolean()).optional(),
+  body: z
+    .object({
+      /** Whether to publish the imported docs. String as this is always multipart/form-data */
+      publish: z.preprocess((val) => val === "true", z.boolean()).optional(),
 
-    /** Import docs to this collection */
-    collectionId: z.string().uuid(),
+      /** Import docs to this collection */
+      collectionId: z.string().uuid().nullish(),
 
-    /** Import under this parent doc */
-    parentDocumentId: z.string().uuid().nullish(),
-  }),
+      /** Import under this parent doc */
+      parentDocumentId: z.string().uuid().nullish(),
+    })
+    .refine(
+      (req) => !(isEmpty(req.collectionId) && isEmpty(req.parentDocumentId)),
+      {
+        message: "one of collectionId or parentDocumentId is required",
+      }
+    ),
   file: z.custom<formidable.File>(),
 });
 
