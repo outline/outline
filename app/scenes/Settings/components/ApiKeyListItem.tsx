@@ -32,7 +32,7 @@ const ApiKeyListItem = ({ apiKey }: Props) => {
         {t(`Created`)} <Time dateTime={apiKey.createdAt} addSuffix />{" "}
         {apiKey.userId === user.id
           ? ""
-          : t(`by {{ name }}`, { name: user.name })}{" "}
+          : t(`by {{ name }}`, { name: apiKey.user.name })}{" "}
         &middot;{" "}
       </Text>
       {apiKey.lastActiveAt && (

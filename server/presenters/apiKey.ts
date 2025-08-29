@@ -1,8 +1,10 @@
 import ApiKey from "@server/models/ApiKey";
+import presentUser from "./user";
 
 export default function presentApiKey(apiKey: ApiKey) {
   return {
     id: apiKey.id,
+    user: presentUser(apiKey.user),
     userId: apiKey.userId,
     name: apiKey.name,
     scope: apiKey.scope,
