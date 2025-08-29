@@ -101,11 +101,26 @@ router.post(
     const { id, externalId } = ctx.input.body;
     const { user } = ctx.state.auth;
 
+    const include = [
+      {
+        model: GroupUser,
+        as: "groupUsers",
+        required: false,
+        where: {
+          userId: user.id,
+        },
+      },
+    ];
+
     const group = id
-      ? await Group.findByPk(id)
+      ? await Group.findByPk(id, { include })
       : externalId
-        ? await Group.findOne({ where: { externalId } })
+        ? await Group.findOne({
+            include,
+            where: { teamId: user.teamId, externalId },
+          })
         : null;
+
     authorize(user, "read", group);
 
     ctx.body = {
@@ -132,6 +147,8 @@ router.post(
       teamId: user.teamId,
       createdById: user.id,
     });
+
+    group.groupUsers = [];
 
     ctx.body = {
       data: await presentGroup(group),
@@ -404,14 +421,14 @@ router.post(
         userId: user.id,
       },
       transaction,
-      lock: transaction.LOCK.UPDATE,
+      rejectOnEmpty: true,
+      lock: {
+        level: transaction.LOCK.UPDATE,
+        of: GroupUser,
+      },
     });
 
-    if (!groupUser) {
-      ctx.throw(404, "User is not a member of this group");
-    }
-
-    await groupUser.update({ role });
+    await groupUser.updateWithCtx(ctx, { role });
     groupUser.user = user;
 
     ctx.body = {

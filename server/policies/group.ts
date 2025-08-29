@@ -24,10 +24,10 @@ allow(User, "listGroups", Team, (actor, team) =>
   )
 );
 
-allow(User, "read", Group, (actor, team) =>
+allow(User, "read", Group, (actor, group) =>
   and(
     //
-    isTeamModel(actor, team),
+    isTeamModel(actor, group),
     !actor.isGuest
   )
 );
