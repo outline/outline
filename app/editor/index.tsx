@@ -35,7 +35,6 @@ import Extension, {
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
 import textBetween from "@shared/editor/lib/textBetween";
-import { getTextSerializers } from "@shared/editor/lib/textSerializers";
 import Mark from "@shared/editor/marks/Mark";
 import { basicExtensions as extensions } from "@shared/editor/nodes";
 import Node from "@shared/editor/nodes/Node";
@@ -627,8 +626,7 @@ export class Editor extends React.PureComponent<
    *
    * @returns A list of headings in the document
    */
-  public getHeadings = () =>
-    ProsemirrorHelper.getHeadings(this.view.state.doc, this.schema);
+  public getHeadings = () => ProsemirrorHelper.getHeadings(this.view.state.doc);
 
   /**
    * Return the images in the current editor.
@@ -721,9 +719,8 @@ export class Editor extends React.PureComponent<
    */
   public getPlainText = () => {
     const { doc } = this.view.state;
-    const textSerializers = getTextSerializers(this.schema);
 
-    return textBetween(doc, 0, doc.content.size, textSerializers);
+    return textBetween(doc, 0, doc.content.size);
   };
 
   private dispatchThemeChanged = (event: CustomEvent) => {
