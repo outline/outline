@@ -3,7 +3,7 @@ import filter from "lodash/filter";
 import { action, runInAction } from "mobx";
 import GroupUser from "~/models/GroupUser";
 import { PaginationParams } from "~/types";
-import { UserRole } from "@shared/types";
+import { GroupPermission } from "@shared/types";
 import { client } from "~/utils/ApiClient";
 import RootStore from "./RootStore";
 import Store, {
@@ -13,7 +13,7 @@ import Store, {
 } from "./base/Store";
 
 export default class GroupUsersStore extends Store<GroupUser> {
-  actions = [RPCAction.Create, RPCAction.Delete];
+  actions = [RPCAction.Create, RPCAction.Update, RPCAction.Delete];
 
   constructor(rootStore: RootStore) {
     super(rootStore, GroupUser);
@@ -47,16 +47,16 @@ export default class GroupUsersStore extends Store<GroupUser> {
   async create({
     groupId,
     userId,
-    role = UserRole.Member,
+    permission = GroupPermission.Member,
   }: {
     groupId: string;
     userId: string;
-    role?: UserRole.Admin | UserRole.Member;
+    permission?: GroupPermission;
   }) {
     const res = await client.post("/groups.add_user", {
       id: groupId,
       userId,
-      role,
+      permission,
     });
     invariant(res?.data, "Group Membership data should be available");
     res.data.users.forEach(this.rootStore.users.add);
@@ -81,19 +81,19 @@ export default class GroupUsersStore extends Store<GroupUser> {
   }
 
   @action
-  async updateUser({
+  async update({
     groupId,
     userId,
-    role,
+    permission,
   }: {
     groupId: string;
     userId: string;
-    role?: UserRole.Admin | UserRole.Member;
+    permission?: GroupPermission;
   }) {
     const res = await client.post("/groups.update_user", {
       id: groupId,
       userId,
-      role,
+      permission,
     });
     invariant(res?.data, "Group Membership data should be available");
     res.data.users.forEach(this.rootStore.users.add);

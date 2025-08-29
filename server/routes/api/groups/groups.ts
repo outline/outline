@@ -60,6 +60,16 @@ router.post(
 
     const groups = await Group.filterByMember(userId).findAll({
       where,
+      include: [
+        {
+          model: GroupUser,
+          as: "groupUsers",
+          required: false,
+          where: {
+            userId: user.id,
+          },
+        },
+      ],
       order: [[sort, direction]],
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
