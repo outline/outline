@@ -34,6 +34,8 @@ router.post(
       scope: scope?.map((s) => (s.startsWith("/api/") ? s : `/api/${s}`)),
     });
 
+    apiKey.user = user;
+
     ctx.body = {
       data: presentApiKey(apiKey),
     };
