@@ -1,7 +1,7 @@
 import env from "@server/env";
 import { User, Team, type Group } from "@server/models";
 import Model from "@server/models/base/Model";
-import { UserRole } from "@shared/types";
+import { GroupPermission } from "@shared/types";
 import invariant from "invariant";
 
 type Args = boolean | string | Args[];
@@ -122,7 +122,7 @@ export function isGroupAdmin(actor: User, model: Group | null): boolean {
 
   // Check if the user is a group admin
   const membership = model.groupUsers.find(
-    (gu) => gu.userId === actor.id && gu.role === UserRole.Admin
+    (gu) => gu.userId === actor.id && gu.permission === GroupPermission.Admin
   );
   if (membership) {
     return true;

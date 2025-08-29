@@ -9,7 +9,7 @@ export default function presentGroupUser(
     id: `${membership.userId}-${membership.groupId}`,
     userId: membership.userId,
     groupId: membership.groupId,
-    role: membership.role,
+    permission: membership.permission,
     user: options?.includeUser ? presentUser(membership.user) : undefined,
   };
 }

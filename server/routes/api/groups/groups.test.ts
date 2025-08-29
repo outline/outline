@@ -6,7 +6,7 @@ import {
   buildGroupUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
-import { UserRole } from "@shared/types";
+import { GroupPermission } from "@shared/types";
 
 const server = getTestServer();
 
@@ -117,7 +117,7 @@ describe("#groups.update", () => {
           token: admin.getJwtToken(),
           id: group.id,
           userId: user.id,
-          role: "admin",
+          permission: "admin",
         },
       });
     });
@@ -620,12 +620,14 @@ describe("#groups.add_user", () => {
         token: user.getJwtToken(),
         id: group.id,
         userId: anotherUser.id,
-        role: "admin",
+        permission: GroupPermission.Admin,
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.groupMemberships[0].role).toEqual("admin");
+    expect(body.data.groupMemberships[0].permission).toEqual(
+      GroupPermission.Admin
+    );
   });
 
   it("should require authentication", async () => {
@@ -765,13 +767,15 @@ describe("#groups.update_user", () => {
         token: user.getJwtToken(),
         id: group.id,
         userId: anotherUser.id,
-        role: UserRole.Admin,
+        permission: GroupPermission.Admin,
       },
     });
 
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.groupMemberships[0].role).toEqual("admin");
+    expect(body.data.groupMemberships[0].permission).toEqual(
+      GroupPermission.Admin
+    );
 
     // Update the user to not be an admin
     const res2 = await server.post("/api/groups.update_user", {
@@ -779,13 +783,15 @@ describe("#groups.update_user", () => {
         token: user.getJwtToken(),
         id: group.id,
         userId: anotherUser.id,
-        role: "member",
+        permission: "member",
       },
     });
 
     const body2 = await res2.json();
     expect(res2.status).toEqual(200);
-    expect(body2.data.groupMemberships[0].role).toEqual("member");
+    expect(body2.data.groupMemberships[0].permission).toEqual(
+      GroupPermission.Member
+    );
   });
 
   it("should require authentication", async () => {
@@ -819,7 +825,7 @@ describe("#groups.update_user", () => {
         token: user.getJwtToken(),
         id: group.id,
         userId: anotherUser.id,
-        role: UserRole.Admin,
+        permission: GroupPermission.Admin,
       },
     });
 
@@ -840,7 +846,7 @@ describe("#groups.update_user", () => {
         token: user.getJwtToken(),
         id: group.id,
         userId: anotherUser.id,
-        role: UserRole.Admin,
+        permission: GroupPermission.Admin,
       },
     });
 

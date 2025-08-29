@@ -4,6 +4,7 @@ import {
   JSONValue,
   CollectionPermission,
   DocumentPermission,
+  GroupPermission,
 } from "@shared/types";
 import RootStore from "~/stores/RootStore";
 import { SidebarContextType } from "./components/Sidebar/components/SidebarContext";
@@ -311,7 +312,11 @@ export const EmptySelectValue = "__empty__";
 
 export type Permission = {
   label: string;
-  value: CollectionPermission | DocumentPermission | typeof EmptySelectValue;
+  value:
+    | CollectionPermission
+    | DocumentPermission
+    | GroupPermission
+    | typeof EmptySelectValue;
   divider?: boolean;
 };
 

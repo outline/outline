@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { UserRole } from "@shared/types";
+import { GroupPermission } from "@shared/types";
 import { Group } from "@server/models";
 
 const BaseIdSchema = z.object({
@@ -86,8 +86,11 @@ export const GroupsAddUserSchema = z.object({
   body: BaseIdSchema.extend({
     /** User Id */
     userId: z.string().uuid(),
-    /** The role of the user in the group */
-    role: z.enum([UserRole.Admin, UserRole.Member]).optional().default(UserRole.Member),
+    /** The permission of the user in the group */
+    permission: z
+      .nativeEnum(GroupPermission)
+      .optional()
+      .default(GroupPermission.Member),
   }),
 });
 
@@ -106,8 +109,8 @@ export const GroupsUpdateUserSchema = z.object({
   body: BaseIdSchema.extend({
     /** User Id */
     userId: z.string().uuid(),
-    /** The role of the user in the group */
-    role: z.enum([UserRole.Admin, UserRole.Member]),
+    /** The permission of the user in the group */
+    permission: z.nativeEnum(GroupPermission),
   }),
 });
 

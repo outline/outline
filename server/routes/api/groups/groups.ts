@@ -1,7 +1,7 @@
 import Router from "koa-router";
 import { Op, WhereOptions } from "sequelize";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
-import { UserRole } from "@shared/types";
+import { GroupPermission } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -282,7 +282,7 @@ router.post(
   validate(T.GroupsAddUserSchema),
   transaction(),
   async (ctx: APIContext<T.GroupsAddUserReq>) => {
-    const { id, userId, role } = ctx.input.body;
+    const { id, userId, permission } = ctx.input.body;
     const actor = ctx.state.auth.user;
     const { transaction } = ctx.state;
 
@@ -305,7 +305,7 @@ router.post(
     });
     authorize(actor, "update", group);
 
-    const userRole = role;
+    const userPermission = permission;
 
     const [groupUser] = await GroupUser.findOrCreateWithCtx(
       ctx,
@@ -316,15 +316,18 @@ router.post(
         },
         defaults: {
           createdById: actor.id,
-          role: userRole || UserRole.Member,
+          permission: userPermission || GroupPermission.Member,
         },
       },
       { name: "add_user" }
     );
 
-    // If the user already exists in the group, update the role if provided
-    if (userRole !== undefined && groupUser.role !== userRole) {
-      await groupUser.update({ role: userRole });
+    // If the user already exists in the group, update the permission if provided
+    if (
+      userPermission !== undefined &&
+      groupUser.permission !== userPermission
+    ) {
+      await groupUser.update({ permission: userPermission });
     }
 
     groupUser.user = user;
@@ -392,7 +395,7 @@ router.post(
   validate(T.GroupsUpdateUserSchema),
   transaction(),
   async (ctx: APIContext<T.GroupsUpdateUserReq>) => {
-    const { id, userId, role } = ctx.input.body;
+    const { id, userId, permission } = ctx.input.body;
     const actor = ctx.state.auth.user;
     const { transaction } = ctx.state;
 
@@ -428,7 +431,7 @@ router.post(
       },
     });
 
-    await groupUser.updateWithCtx(ctx, { role });
+    await groupUser.updateWithCtx(ctx, { permission });
     groupUser.user = user;
 
     ctx.body = {
