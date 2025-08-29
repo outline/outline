@@ -2,6 +2,8 @@ import { isPast } from "date-fns";
 import { computed, observable } from "mobx";
 import ParanoidModel from "./base/ParanoidModel";
 import Field from "./decorators/Field";
+import User from "./User";
+import Relation from "./decorators/Relation";
 
 class ApiKey extends ParanoidModel {
   static modelName = "ApiKey";
@@ -24,6 +26,10 @@ class ApiKey extends ParanoidModel {
   /** Timestamp that the API key was last used. */
   @observable
   lastActiveAt?: string;
+
+  /** The user who this API key belongs to. */
+  @Relation(() => User)
+  user: User;
 
   /** The user ID that the API key belongs to. */
   userId: string;
