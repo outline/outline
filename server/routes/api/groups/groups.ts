@@ -58,7 +58,22 @@ router.post(
       };
     }
 
-    const groups = await Group.filterByMember(userId).findAll({
+    if (userId) {
+      const groupIds = await Group.filterByMember(userId)
+        .findAll({
+          attributes: ["id"],
+        })
+        .then((groups) => groups.map((g) => g.id));
+
+      where = {
+        ...where,
+        id: {
+          [Op.in]: groupIds,
+        },
+      };
+    }
+
+    const groups = await Group.findAll({
       where,
       include: [
         {
