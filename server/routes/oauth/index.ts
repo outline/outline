@@ -128,10 +128,7 @@ router.post(
 app.use(requestTracer());
 app.use(oauthErrorHandler());
 app.use(bodyParser());
-
-// Apply CSRF middleware
-app.use(verifyCSRFToken);
-
+app.use(verifyCSRFToken());
 app.use(router.routes());
 
 export default app;

@@ -45,11 +45,8 @@ export default function init(app: Koa = new Koa(), server?: Server) {
     app.proxy = true;
   }
 
-  // Response compression middleware
   app.use(compress());
-
-  // Apply CSRF middleware
-  app.use(attachCSRFToken);
+  app.use(attachCSRFToken());
 
   // Monitor server connections
   if (server) {

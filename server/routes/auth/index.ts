@@ -78,10 +78,7 @@ router.get("/redirect", authMiddleware(), async (ctx: APIContext) => {
 
 app.use(bodyParser());
 app.use(coalesceBody());
-
-// Apply CSRF middleware
-app.use(verifyCSRFToken);
-
+app.use(verifyCSRFToken());
 app.use(router.routes());
 
 export default app;

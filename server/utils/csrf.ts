@@ -3,6 +3,7 @@ import { safeEqual } from "./crypto";
 
 /**
  * Generates cryptographically secure random bytes
+ *
  * @param size The number of bytes to generate
  * @returns A buffer containing random bytes
  */
@@ -10,6 +11,7 @@ export const generateRawToken = (size: number): Buffer => randomBytes(size);
 
 /**
  * Creates an HMAC-SHA256 signature for a token
+ *
  * @param token The token to sign
  * @param secret The secret key for signing
  * @returns The HMAC signature as a hex string
@@ -19,6 +21,7 @@ export const signToken = (token: Buffer, secret: string): string =>
 
 /**
  * Bundles a token with its HMAC signature
+ *
  * @param token The raw token
  * @param secret The secret key for signing
  * @returns A string containing the token and signature separated by a dot
@@ -30,6 +33,7 @@ export const bundleToken = (token: Buffer, secret: string): string => {
 
 /**
  * Unbundles and verifies a token with its HMAC signature
+ *
  * @param bundled The bundled token string
  * @param secret The secret key for verification
  * @returns An object indicating validity and the raw token if valid

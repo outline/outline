@@ -68,9 +68,7 @@ api.use(requestTracer());
 api.use(apiResponse());
 api.use(apiErrorHandler());
 api.use(editor());
-
-// Apply CSRF middleware
-api.use(verifyCSRFToken);
+api.use(verifyCSRFToken());
 
 // Register plugin API routes before others to allow for overrides
 PluginManager.getHooks(Hook.API).forEach((hook) =>
