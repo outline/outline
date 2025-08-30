@@ -8,11 +8,4 @@ declare module "prosemirror-model" {
     // https://github.com/ProseMirror/prosemirror-model/blob/bd13a2329fda39f1c4d09abd8f0db2032bdc8014/src/replace.js#L51
     removeBetween(from: number, to: number): Slice;
   }
-
-  interface NodeSpec {
-    /**
-     * Defines the text representation of the node when copying to clipboard.
-     */
-    toPlainText?: PlainTextSerializer;
-  }
 }

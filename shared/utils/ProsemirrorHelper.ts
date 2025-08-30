@@ -1,7 +1,6 @@
 import { Node, Schema } from "prosemirror-model";
 import headingToSlug from "../editor/lib/headingToSlug";
 import textBetween from "../editor/lib/textBetween";
-import { getTextSerializers } from "../editor/lib/textSerializers";
 import { ProsemirrorData } from "../types";
 import { TextHelper } from "./TextHelper";
 import env from "../env";
@@ -91,9 +90,8 @@ export class ProsemirrorHelper {
    * @param schema The schema to use.
    * @returns The document content as plain text without formatting.
    */
-  static toPlainText(root: Node, schema: Schema) {
-    const textSerializers = getTextSerializers(schema);
-    return textBetween(root, 0, root.content.size, textSerializers);
+  static toPlainText(root: Node) {
+    return textBetween(root, 0, root.content.size);
   }
 
   /**
@@ -102,7 +100,6 @@ export class ProsemirrorHelper {
    * @returns True if the editor is empty
    */
   static trim(doc: Node) {
-    const { schema } = doc.type;
     let index = 0,
       start = 0,
       end = doc.nodeSize - 2,
@@ -118,7 +115,7 @@ export class ProsemirrorHelper {
       if (!node) {
         break;
       }
-      isEmpty = ProsemirrorHelper.toPlainText(node, schema).trim() === "";
+      isEmpty = ProsemirrorHelper.toPlainText(node).trim() === "";
       if (isEmpty) {
         start += node.nodeSize;
       }
@@ -131,7 +128,7 @@ export class ProsemirrorHelper {
       if (!node) {
         break;
       }
-      isEmpty = ProsemirrorHelper.toPlainText(node, schema).trim() === "";
+      isEmpty = ProsemirrorHelper.toPlainText(node).trim() === "";
       if (isEmpty) {
         end -= node.nodeSize;
       }
@@ -150,8 +147,6 @@ export class ProsemirrorHelper {
       return !doc || doc.textContent.trim() === "";
     }
 
-    const textSerializers = getTextSerializers(schema);
-
     let empty = true;
     doc.descendants((child: Node) => {
       // If we've already found non-empty data, we can stop descending further
@@ -159,9 +154,8 @@ export class ProsemirrorHelper {
         return false;
       }
 
-      const toPlainText = textSerializers[child.type.name];
-      if (toPlainText) {
-        empty = !toPlainText(child).trim();
+      if (child.type.spec.leafText) {
+        empty = !child.type.spec.leafText(child).trim();
       } else if (child.isText) {
         empty = !child.text?.trim();
       }
@@ -331,10 +325,9 @@ export class ProsemirrorHelper {
    * Iterates through the document to find all of the headings and their level.
    *
    * @param doc Prosemirror document node
-   * @param schema Prosemirror schema
    * @returns Array<Heading>
    */
-  static getHeadings(doc: Node, schema: Schema) {
+  static getHeadings(doc: Node) {
     const headings: Heading[] = [];
     const previouslySeen: Record<string, number> = {};
 
@@ -356,7 +349,7 @@ export class ProsemirrorHelper {
           previouslySeen[id] !== undefined ? previouslySeen[id] + 1 : 1;
 
         headings.push({
-          title: ProsemirrorHelper.toPlainText(node, schema),
+          title: ProsemirrorHelper.toPlainText(node),
           level: node.attrs.level,
           id: name,
         });

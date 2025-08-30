@@ -44,9 +44,7 @@ export default class ClipboardTextSerializer extends Extension {
                   softBreak: true,
                 })
               : slice.content.content
-                  .map((node) =>
-                    ProsemirrorHelper.toPlainText(node, this.editor.schema)
-                  )
+                  .map((node) => ProsemirrorHelper.toPlainText(node))
                   .join("");
           },
         },

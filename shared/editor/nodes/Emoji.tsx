@@ -58,7 +58,7 @@ export default class Emoji extends Extension {
           getEmojiFromName(name),
         ];
       },
-      toPlainText: (node) => getEmojiFromName(node.attrs["data-name"]),
+      leafText: (node) => getEmojiFromName(node.attrs["data-name"]),
     };
   }
 
