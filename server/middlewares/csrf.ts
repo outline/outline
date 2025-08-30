@@ -39,11 +39,16 @@ export function attachCSRFToken() {
  */
 export function verifyCSRFToken() {
   /**
-   * Determines if a request requires CSRF protection based on the request path and scopes
+   * Determines if a request requires CSRF protection
    */
   const shouldProtectRequest = (ctx: AppContext): boolean => {
     // Skip if not a potentially mutating method
     if (["GET", "HEAD", "OPTIONS"].includes(ctx.method)) {
+      return false;
+    }
+
+    // If not using cookie-based auth, skip CSRF protection
+    if (!ctx.cookies.get("accessToken")) {
       return false;
     }
 
