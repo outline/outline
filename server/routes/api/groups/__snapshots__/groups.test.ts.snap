@@ -81,7 +81,7 @@ exports[`#groups.update should require authentication 1`] = `
 }
 `;
 
-exports[`#groups.update when user is admin fails with validation error when name already taken 1`] = `
+exports[`#groups.update when checking for noop updates fails with validation error when name already taken 1`] = `
 {
   "error": "validation_error",
   "message": "The name of this group is already in use (isUniqueNameInTeam)",

@@ -1,6 +1,12 @@
 import { Event, Group, User } from "@server/models";
-import { buildUser, buildAdmin, buildGroup } from "@server/test/factories";
+import {
+  buildUser,
+  buildAdmin,
+  buildGroup,
+  buildGroupUser,
+} from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
+import { GroupPermission } from "@shared/types";
 
 const server = getTestServer();
 
@@ -61,6 +67,7 @@ describe("#groups.update", () => {
     });
     expect(res.status).toEqual(403);
   });
+
   describe("when user is admin", () => {
     let user: User, group: Group;
     beforeEach(async () => {
@@ -90,6 +97,52 @@ describe("#groups.update", () => {
       expect(res.status).toEqual(200);
       expect(body.data.name).toBe("Test");
       expect(body.data.externalId).toBe("123");
+    });
+  });
+
+  describe("when user is group admin", () => {
+    let user: User, group: Group;
+    beforeEach(async () => {
+      user = await buildUser();
+      group = await buildGroup({
+        teamId: user.teamId,
+      });
+
+      // Make the user a group admin
+      const admin = await buildAdmin({
+        teamId: user.teamId,
+      });
+      await server.post("/api/groups.add_user", {
+        body: {
+          token: admin.getJwtToken(),
+          id: group.id,
+          userId: user.id,
+          permission: "admin",
+        },
+      });
+    });
+
+    it("allows group admin to edit a group", async () => {
+      const res = await server.post("/api/groups.update", {
+        body: {
+          token: user.getJwtToken(),
+          id: group.id,
+          name: "Test by Group Admin",
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.name).toBe("Test by Group Admin");
+    });
+  });
+
+  describe("when checking for noop updates", () => {
+    let user: User, group: Group;
+    beforeEach(async () => {
+      user = await buildAdmin();
+      group = await buildGroup({
+        teamId: user.teamId,
+      });
     });
 
     it("does not create an event if the update is a noop", async () => {
@@ -554,6 +607,29 @@ describe("#groups.add_user", () => {
     expect(users.length).toEqual(1);
   });
 
+  it("should add user to group as admin", async () => {
+    const user = await buildAdmin();
+    const anotherUser = await buildUser({
+      teamId: user.teamId,
+    });
+    const group = await buildGroup({
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/groups.add_user", {
+      body: {
+        token: user.getJwtToken(),
+        id: group.id,
+        userId: anotherUser.id,
+        permission: GroupPermission.Admin,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.groupMemberships[0].permission).toEqual(
+      GroupPermission.Admin
+    );
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/groups.add_user");
     expect(res.status).toEqual(401);
@@ -666,5 +742,114 @@ describe("#groups.remove_user", () => {
     const body = await res.json();
     expect(res.status).toEqual(403);
     expect(body).toMatchSnapshot();
+  });
+});
+
+describe("#groups.update_user", () => {
+  it("should update user role in group", async () => {
+    const user = await buildAdmin();
+    const anotherUser = await buildUser({
+      teamId: user.teamId,
+    });
+    const group = await buildGroup({
+      teamId: user.teamId,
+    });
+
+    await buildGroupUser({
+      groupId: group.id,
+      userId: anotherUser.id,
+      createdById: user.id,
+    });
+
+    // Then update the user to be an admin
+    const res = await server.post("/api/groups.update_user", {
+      body: {
+        token: user.getJwtToken(),
+        id: group.id,
+        userId: anotherUser.id,
+        permission: GroupPermission.Admin,
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.groupMemberships[0].permission).toEqual(
+      GroupPermission.Admin
+    );
+
+    // Update the user to not be an admin
+    const res2 = await server.post("/api/groups.update_user", {
+      body: {
+        token: user.getJwtToken(),
+        id: group.id,
+        userId: anotherUser.id,
+        permission: "member",
+      },
+    });
+
+    const body2 = await res2.json();
+    expect(res2.status).toEqual(200);
+    expect(body2.data.groupMemberships[0].permission).toEqual(
+      GroupPermission.Member
+    );
+  });
+
+  it("should require authentication", async () => {
+    const res = await server.post("/api/groups.update_user");
+    expect(res.status).toEqual(401);
+  });
+
+  it("should require admin", async () => {
+    const user = await buildUser();
+    const anotherUser = await buildUser({
+      teamId: user.teamId,
+    });
+    const group = await buildGroup({
+      teamId: user.teamId,
+    });
+
+    // Add the user to the group
+    const admin = await buildAdmin({
+      teamId: user.teamId,
+    });
+
+    await buildGroupUser({
+      groupId: group.id,
+      userId: anotherUser.id,
+      createdById: admin.id,
+    });
+
+    // Try to update as non-admin
+    const res = await server.post("/api/groups.update_user", {
+      body: {
+        token: user.getJwtToken(),
+        id: group.id,
+        userId: anotherUser.id,
+        permission: GroupPermission.Admin,
+      },
+    });
+
+    expect(res.status).toEqual(403);
+  });
+
+  it("should 404 if user is not in group", async () => {
+    const user = await buildAdmin();
+    const anotherUser = await buildUser({
+      teamId: user.teamId,
+    });
+    const group = await buildGroup({
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/groups.update_user", {
+      body: {
+        token: user.getJwtToken(),
+        id: group.id,
+        userId: anotherUser.id,
+        permission: GroupPermission.Admin,
+      },
+    });
+
+    expect(res.status).toEqual(404);
   });
 });

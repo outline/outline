@@ -177,6 +177,11 @@ export enum DocumentPermission {
   Admin = "admin",
 }
 
+export enum GroupPermission {
+  Member = "member",
+  Admin = "admin",
+}
+
 export type IntegrationSettings<T> = T extends IntegrationType.Embed
   ? {
       url?: string;

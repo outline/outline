@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { GroupPermission } from "@shared/types";
 import { Group } from "@server/models";
 
 const BaseIdSchema = z.object({
@@ -85,6 +86,11 @@ export const GroupsAddUserSchema = z.object({
   body: BaseIdSchema.extend({
     /** User Id */
     userId: z.string().uuid(),
+    /** The permission of the user in the group */
+    permission: z
+      .nativeEnum(GroupPermission)
+      .optional()
+      .default(GroupPermission.Member),
   }),
 });
 
@@ -98,3 +104,14 @@ export const GroupsRemoveUserSchema = z.object({
 });
 
 export type GroupsRemoveUserReq = z.infer<typeof GroupsRemoveUserSchema>;
+
+export const GroupsUpdateUserSchema = z.object({
+  body: BaseIdSchema.extend({
+    /** User Id */
+    userId: z.string().uuid(),
+    /** The permission of the user in the group */
+    permission: z.nativeEnum(GroupPermission),
+  }),
+});
+
+export type GroupsUpdateUserReq = z.infer<typeof GroupsUpdateUserSchema>;

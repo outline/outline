@@ -3,6 +3,7 @@ import filter from "lodash/filter";
 import { action, runInAction } from "mobx";
 import GroupUser from "~/models/GroupUser";
 import { PaginationParams } from "~/types";
+import { GroupPermission } from "@shared/types";
 import { client } from "~/utils/ApiClient";
 import RootStore from "./RootStore";
 import Store, {
@@ -12,7 +13,7 @@ import Store, {
 } from "./base/Store";
 
 export default class GroupUsersStore extends Store<GroupUser> {
-  actions = [RPCAction.Create, RPCAction.Delete];
+  actions = [RPCAction.Create, RPCAction.Update, RPCAction.Delete];
 
   constructor(rootStore: RootStore) {
     super(rootStore, GroupUser);
@@ -43,10 +44,19 @@ export default class GroupUsersStore extends Store<GroupUser> {
   };
 
   @action
-  async create({ groupId, userId }: { groupId: string; userId: string }) {
+  async create({
+    groupId,
+    userId,
+    permission = GroupPermission.Member,
+  }: {
+    groupId: string;
+    userId: string;
+    permission?: GroupPermission;
+  }) {
     const res = await client.post("/groups.add_user", {
       id: groupId,
       userId,
+      permission,
     });
     invariant(res?.data, "Group Membership data should be available");
     res.data.users.forEach(this.rootStore.users.add);
@@ -68,6 +78,29 @@ export default class GroupUsersStore extends Store<GroupUser> {
       res.data.groups.forEach(this.rootStore.groups.add);
       this.isLoaded = true;
     });
+  }
+
+  @action
+  async update({
+    groupId,
+    userId,
+    permission,
+  }: {
+    groupId: string;
+    userId: string;
+    permission?: GroupPermission;
+  }) {
+    const res = await client.post("/groups.update_user", {
+      id: groupId,
+      userId,
+      permission,
+    });
+    invariant(res?.data, "Group Membership data should be available");
+    res.data.users.forEach(this.rootStore.users.add);
+    res.data.groups.forEach(this.rootStore.groups.add);
+
+    const groupMemberships = res.data.groupMemberships.map(this.add);
+    return groupMemberships[0];
   }
 
   @action
