@@ -118,7 +118,6 @@
     "bull": "^4.16.5",
     "chalk": "^4.1.0",
     "class-validator": "^0.14.2",
-    "co-body": "^6.1.0",
     "command-score": "^0.1.2",
     "compressorjs": "^1.2.1",
     "content-disposition": "^0.5.4",

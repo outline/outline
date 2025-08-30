@@ -1,5 +1,4 @@
-import { Next } from "koa";
-
+import type { Next } from "koa";
 import { Scope } from "@shared/types";
 import env from "@server/env";
 import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
