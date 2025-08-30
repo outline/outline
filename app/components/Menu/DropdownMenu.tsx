@@ -8,11 +8,8 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "~/components/primitives/Drawer";
-import {
-  DropdownMenu as DropdownMenuRoot,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-} from "~/components/primitives/DropdownMenu";
+import { Menu, MenuContent, MenuTrigger } from "~/components/primitives/Menu";
+import { MenuProvider } from "~/components/primitives/Menu/MenuContext";
 import { actionV2ToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
 import useMobile from "~/hooks/useMobile";
@@ -23,7 +20,7 @@ import {
   MenuItem,
   MenuItemWithChildren,
 } from "~/types";
-import { toDropdownMenuItems, toMobileMenuItems } from "./transformer";
+import { toMenuItems, toMobileMenuItems } from "./transformer";
 import { observer } from "mobx-react";
 import { useComputed } from "~/hooks/useComputed";
 
@@ -66,7 +63,7 @@ export const DropdownMenu = observer(
       const [open, setOpen] = React.useState(false);
       const isMobile = useMobile();
       const contentRef =
-        React.useRef<React.ElementRef<typeof DropdownMenuContent>>(null);
+        React.useRef<React.ElementRef<typeof MenuContent>>(null);
 
       const actionContext =
         context ??
@@ -126,24 +123,26 @@ export const DropdownMenu = observer(
         );
       }
 
-      const content = toDropdownMenuItems(menuItems);
+      const content = toMenuItems(menuItems);
 
       return (
-        <DropdownMenuRoot open={open} onOpenChange={handleOpenChange}>
-          <DropdownMenuTrigger ref={ref} aria-label={ariaLabel} {...rest}>
-            {children}
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align={align}
-            aria-label={ariaLabel}
-            onAnimationStart={disablePointerEvents}
-            onAnimationEnd={enablePointerEvents}
-            onCloseAutoFocus={handleCloseAutoFocus}
-          >
-            {content}
-            {append}
-          </DropdownMenuContent>
-        </DropdownMenuRoot>
+        <MenuProvider variant={"dropdown"}>
+          <Menu open={open} onOpenChange={handleOpenChange}>
+            <MenuTrigger ref={ref} aria-label={ariaLabel} {...rest}>
+              {children}
+            </MenuTrigger>
+            <MenuContent
+              align={align}
+              aria-label={ariaLabel}
+              onAnimationStart={disablePointerEvents}
+              onAnimationEnd={enablePointerEvents}
+              onCloseAutoFocus={handleCloseAutoFocus}
+            >
+              {content}
+              {append}
+            </MenuContent>
+          </Menu>
+        </MenuProvider>
       );
     }
   )
