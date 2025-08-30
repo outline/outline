@@ -430,7 +430,7 @@ const GroupMemberListItem = observer(function ({
     () =>
       [
         {
-          label: t("Admin"),
+          label: t("Manage"),
           value: GroupPermission.Admin,
         },
         {
