@@ -12,19 +12,41 @@ export default function sanitizeLists(turndownService: TurndownService) {
   turndownService.addRule("listItem", {
     filter: "li",
 
-    replacement(content, node, options) {
+    replacement(content: string, node: HTMLElement, options: any) {
+      // Calculate the nesting level of this list item
+      let nestingLevel = 0;
+      let parent = node.parentNode;
+      
+      // Count how many list containers (OL/UL) we're nested within
+      while (parent && (parent.nodeName === "OL" || parent.nodeName === "UL")) {
+        nestingLevel++;
+        // Move up two levels: from OL/UL to LI to the next container
+        const grandParent = parent.parentNode;
+        if (grandParent && grandParent.parentNode) {
+          parent = grandParent.parentNode;
+        } else {
+          break;
+        }
+      }
+
+      // Apply proper indentation based on nesting level
+      const baseIndent = "  ".repeat(nestingLevel);
+      
+      // Process the content with proper indentation
       content = content
         .replace(/^\n+/, "") // remove leading newlines
         .replace(/\n+$/, "\n") // replace trailing newlines with just a single one
-        .replace(/\n/gm, "\n  "); // 2 space indent
+        .replace(/\n/gm, `\n${baseIndent}`); // apply proper indentation
 
+      // Determine the prefix for this list item
       let prefix = options.bulletListMarker + " ";
-      const parent = node.parentNode;
-      if (parent && parent.nodeName === "OL") {
-        const start = (parent as HTMLElement).getAttribute("start");
-        const index = Array.prototype.indexOf.call(parent.children, node);
+      const parentList = node.parentNode;
+      if (parentList && parentList.nodeName === "OL") {
+        const start = (parentList as HTMLElement).getAttribute("start");
+        const index = Array.prototype.indexOf.call(parentList.children, node);
         prefix = (start ? Number(start) + index : index + 1) + ". ";
       }
+      
       const output =
         prefix +
         content +
@@ -34,13 +56,13 @@ export default function sanitizeLists(turndownService: TurndownService) {
   });
 
   turndownService.addRule("headingsInLists", {
-    filter(node) {
+    filter(node: HTMLElement) {
       return (
         ["H1", "H2", "H3", "H4", "H5", "H6"].includes(node.nodeName) &&
         inHtmlContext(node, "LI")
       );
     },
-    replacement(content, node, options) {
+    replacement(content: string, node: HTMLElement, options: any) {
       if (!content.trim()) {
         return "";
       }
@@ -49,7 +71,7 @@ export default function sanitizeLists(turndownService: TurndownService) {
   });
 
   turndownService.addRule("strongInHeadings", {
-    filter(node) {
+    filter(node: HTMLElement) {
       return (
         (node.nodeName === "STRONG" || node.nodeName === "B") &&
         ["H1", "H2", "H3", "H4", "H5", "H6"].some((tag) =>
@@ -57,7 +79,7 @@ export default function sanitizeLists(turndownService: TurndownService) {
         )
       );
     },
-    replacement(content) {
+    replacement(content: string) {
       return content;
     },
   });
