@@ -33,6 +33,9 @@ class IntegrationAuthentication extends IdModel<
   @Encrypted
   refreshToken: string;
 
+  @Column(DataType.DATE)
+  expiresAt: Date | null;
+
   // associations
 
   @BelongsTo(() => User, "userId")
