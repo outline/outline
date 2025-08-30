@@ -25,6 +25,10 @@ import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { documentPath } from "~/utils/routeHelpers";
 import { determineSidebarContext } from "./Sidebar/components/SidebarContext";
+import useActionContext from "~/hooks/useActionContext";
+import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
+import { ContextMenu } from "./Menu/ContextMenu";
+import useStores from "~/hooks/useStores";
 
 type Props = {
   document: Document;
@@ -50,6 +54,7 @@ function DocumentListItem(
 ) {
   const { t } = useTranslation();
   const user = useCurrentUser();
+  const { userMemberships, groupMemberships } = useStores();
   const locationSidebarContext = useLocationSidebarContext();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
 
@@ -78,87 +83,109 @@ function DocumentListItem(
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
   const canStar = !document.isArchived && !document.isTemplate;
 
+  const isShared = !!(
+    userMemberships.getByDocumentId(document.id) ||
+    groupMemberships.getByDocumentId(document.id)
+  );
+
   const sidebarContext = determineSidebarContext({
     document,
     user,
     currentContext: locationSidebarContext,
   });
 
-  return (
-    <DocumentLink
-      ref={itemRef}
-      dir={document.dir}
-      role="menuitem"
-      $isStarred={document.isStarred}
-      $menuOpen={menuOpen}
-      to={{
-        pathname: documentPath(document),
-        state: {
-          title: document.titleWithDefault,
-          sidebarContext,
-        },
-      }}
-      {...rest}
-      {...rovingTabIndex}
-    >
-      <Content>
-        <Heading dir={document.dir}>
-          {document.icon && (
-            <>
-              <Icon
-                value={document.icon}
-                color={document.color ?? undefined}
-                initial={document.initial}
-              />
-              &nbsp;
-            </>
-          )}
-          <Title
-            text={document.titleWithDefault}
-            highlight={highlight}
-            dir={document.dir}
-          />
-          {document.isBadgedNew && document.createdBy?.id !== user.id && (
-            <Badge yellow>{t("New")}</Badge>
-          )}
-          {document.isDraft && showDraft && (
-            <Tooltip content={t("Only visible to you")} placement="top">
-              <Badge>{t("Draft")}</Badge>
-            </Tooltip>
-          )}
-          {canStar && (
-            <StarPositioner>
-              <StarButton document={document} />
-            </StarPositioner>
-          )}
-          {document.isTemplate && showTemplate && (
-            <Badge primary>{t("Template")}</Badge>
-          )}
-        </Heading>
+  const actionContext = useActionContext({
+    isContextMenu: true,
+    activeDocumentId: document.id,
+    activeCollectionId:
+      !isShared && document.collectionId ? document.collectionId : undefined,
+  });
 
-        {!queryIsInTitle && (
-          <ResultContext
-            text={context}
-            highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
-            processResult={replaceResultMarks}
+  const contextMenuAction = useDocumentMenuAction({ document });
+
+  return (
+    <ContextMenu
+      action={contextMenuAction}
+      context={actionContext}
+      ariaLabel={t("Document options")}
+      onOpen={handleMenuOpen}
+      onClose={handleMenuClose}
+    >
+      <DocumentLink
+        ref={itemRef}
+        dir={document.dir}
+        role="menuitem"
+        $isStarred={document.isStarred}
+        $menuOpen={menuOpen}
+        to={{
+          pathname: documentPath(document),
+          state: {
+            title: document.titleWithDefault,
+            sidebarContext,
+          },
+        }}
+        {...rest}
+        {...rovingTabIndex}
+      >
+        <Content>
+          <Heading dir={document.dir}>
+            {document.icon && (
+              <>
+                <Icon
+                  value={document.icon}
+                  color={document.color ?? undefined}
+                  initial={document.initial}
+                />
+                &nbsp;
+              </>
+            )}
+            <Title
+              text={document.titleWithDefault}
+              highlight={highlight}
+              dir={document.dir}
+            />
+            {document.isBadgedNew && document.createdBy?.id !== user.id && (
+              <Badge yellow>{t("New")}</Badge>
+            )}
+            {document.isDraft && showDraft && (
+              <Tooltip content={t("Only visible to you")} placement="top">
+                <Badge>{t("Draft")}</Badge>
+              </Tooltip>
+            )}
+            {canStar && (
+              <StarPositioner>
+                <StarButton document={document} />
+              </StarPositioner>
+            )}
+            {document.isTemplate && showTemplate && (
+              <Badge primary>{t("Template")}</Badge>
+            )}
+          </Heading>
+
+          {!queryIsInTitle && (
+            <ResultContext
+              text={context}
+              highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
+              processResult={replaceResultMarks}
+            />
+          )}
+          <DocumentMeta
+            document={document}
+            showCollection={showCollection}
+            showPublished={showPublished}
+            showParentDocuments={showParentDocuments}
+            showLastViewed
           />
-        )}
-        <DocumentMeta
-          document={document}
-          showCollection={showCollection}
-          showPublished={showPublished}
-          showParentDocuments={showParentDocuments}
-          showLastViewed
-        />
-      </Content>
-      <Actions>
-        <DocumentMenu
-          document={document}
-          onOpen={handleMenuOpen}
-          onClose={handleMenuClose}
-        />
-      </Actions>
-    </DocumentLink>
+        </Content>
+        <Actions>
+          <DocumentMenu
+            document={document}
+            onOpen={handleMenuOpen}
+            onClose={handleMenuClose}
+          />
+        </Actions>
+      </DocumentLink>
+    </ContextMenu>
   );
 }
 
