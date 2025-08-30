@@ -56,6 +56,9 @@ router.get(
           teamId: user.teamId,
           token: oauth.access_token,
           refreshToken: oauth.refresh_token,
+          expiresAt: oauth.expires_in
+            ? new Date(Date.now() + oauth.expires_in * 1000)
+            : undefined,
           scopes: oauth.scope.split(" "),
         },
         { transaction }
