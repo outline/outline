@@ -260,7 +260,7 @@
   "An error has occurred multiple times recently. If it continues please try clearing the cache or using a different browser.": "An error has occurred multiple times recently. If it continues please try clearing the cache or using a different browser.",
   "Sorry, an unrecoverable error occurred{{notified}}. Please try reloading the page, it may have been a temporary glitch.": "Entschuldigung, ein Fehler ist aufgetreten{{notified}}. Bitte versuche die Seite neu zu laden, es könnte inzwischen wieder funktionieren.",
   "our engineers have been notified": "unsere Entwickler wurden benachrichtigt",
-  "Clear cache + reload": "Clear cache + reload",
+  "Clear cache + reload": "Cache leeren + neu laden",
   "Show detail": "Details anzeigen",
   "{{userName}} archived": "{{userName}} archivierte",
   "{{userName}} restored": "{{userName}} stellte wieder her",
