@@ -15,6 +15,9 @@ import env from "./env";
 
 const AccessTokenResponseSchema = z.object({
   access_token: z.string(),
+  // Linear is in the process of switching to short-lived refresh tokens. Some apps
+  // may not return a refresh token before April 2026, hence it's optional here.
+  refresh_token: z.string().optional(),
   token_type: z.string(),
   expires_in: z.number(),
   scope: z.string(),
@@ -62,8 +65,15 @@ export class Linear {
     });
   }
 
-  static async getInstalledWorkspace(accessToken: string) {
-    const client = new LinearClient({ accessToken });
+  static async getInstalledWorkspace(
+    accessToken: string,
+    _refreshToken?: string
+  ) {
+    const client = new LinearClient({
+      accessToken,
+      // TODO, waiting on SDK support
+      // refreshToken
+    });
     return client.organization;
   }
 
@@ -95,6 +105,8 @@ export class Linear {
     try {
       const client = new LinearClient({
         accessToken: integration.authentication.token,
+        // TODO, waiting on SDK support
+        // refreshToken: integration.authentication.refreshToken,
       });
       const issue = await client.issue(resource.id);
 
@@ -193,7 +205,7 @@ export class Linear {
    * Parses a given URL and returns resource identifiers for Linear specific URLs
    *
    * @param url URL to parse
-   * @returns {object} Containing resource identifiers - `workspaceKey`, `type`, `id` and `name`.
+   * @returns An object containing resource identifiers - `workspaceKey`, `type`, `id` and `name`.
    */
   private static parseUrl(url: string) {
     const { hostname, pathname } = new URL(url);
