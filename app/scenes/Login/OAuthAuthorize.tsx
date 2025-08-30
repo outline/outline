@@ -26,8 +26,7 @@ import { Background } from "./components/Background";
 import { Centered } from "./components/Centered";
 import { ConnectHeader } from "./components/ConnectHeader";
 import { TeamSwitcher } from "./components/TeamSwitcher";
-import { CSRF } from "@shared/constants";
-import { useCsrfToken } from "~/hooks/useCsrfToken";
+import { Form } from "~/components/primitives/Form";
 
 export default function OAuthAuthorize() {
   const team = useCurrentTeam({ rejectOnEmpty: false });
@@ -58,7 +57,6 @@ function Authorize() {
   const team = useCurrentTeam();
   const params = useQuery();
   const { t } = useTranslation();
-  const csrfToken = useCsrfToken();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const timeoutRef = useRef<number>();
   const {
@@ -206,15 +204,12 @@ function Authorize() {
             </li>
           ))}
         </ul>
-        <form
+        <Form
           method="POST"
           action="/oauth/authorize"
           style={{ width: "100%" }}
           onSubmit={handleSubmit}
         >
-          {csrfToken && (
-            <input type="hidden" name={CSRF.fieldName} value={csrfToken} />
-          )}
           <input type="hidden" name="client_id" value={clientId ?? ""} />
           <input type="hidden" name="redirect_uri" value={redirectUri ?? ""} />
           <input
@@ -242,7 +237,7 @@ function Authorize() {
               {t("Authorize")}
             </Button>
           </Flex>
-        </form>
+        </Form>
       </Centered>
     </Background>
   );

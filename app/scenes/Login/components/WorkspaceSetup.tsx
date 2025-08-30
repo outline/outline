@@ -12,19 +12,17 @@ import { detectLanguage } from "~/utils/language";
 import { BackButton } from "./BackButton";
 import { Background } from "./Background";
 import { Centered } from "./Centered";
-import { useCsrfToken } from "~/hooks/useCsrfToken";
-import { CSRF } from "@shared/constants";
+import { Form } from "~/components/primitives/Form";
 
 const WorkspaceSetup = ({ onBack }: { onBack?: () => void }) => {
   const { t } = useTranslation();
-  const csrfToken = useCsrfToken();
 
   return (
     <Background>
       <BackButton onBack={onBack} />
       <ChangeLanguage locale={detectLanguage()} />
       <Centered
-        as="form"
+        as={Form}
         action="/api/installation.create"
         method="POST"
         gap={12}
@@ -36,9 +34,6 @@ const WorkspaceSetup = ({ onBack }: { onBack?: () => void }) => {
           )}
         </Content>
         <Flex column gap={12} style={{ width: "100%" }}>
-          {csrfToken && (
-            <input type="hidden" name={CSRF.fieldName} value={csrfToken} />
-          )}
           <Input
             name="teamName"
             type="text"
