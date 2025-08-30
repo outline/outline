@@ -143,7 +143,7 @@ export function exportTable({
         .map((row) =>
           row
             .map((cell) => {
-              let value = ProsemirrorHelper.toPlainText(cell, state.schema);
+              let value = ProsemirrorHelper.toPlainText(cell);
 
               // Escape double quotes by doubling them
               if (value.includes('"')) {
