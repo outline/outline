@@ -55,6 +55,7 @@ import EditorContext from "./components/EditorContext";
 import { NodeViewRenderer } from "./components/NodeViewRenderer";
 import SelectionToolbar from "./components/SelectionToolbar";
 import WithTheme from "./components/WithTheme";
+import Lightbox from "~/components/Lightbox";
 
 export type Props = {
   /** An optional identifier for the editor context. It is used to persist local settings */
@@ -137,6 +138,8 @@ export type Props = {
   style?: React.CSSProperties;
   /** Optional style overrides for the contenteeditable */
   editorStyle?: React.CSSProperties;
+  /** Position of image in doc that's being currently viewed in Lightbox */
+  activeLightboxImgPos?: number | null;
 };
 
 type State = {
@@ -834,6 +837,7 @@ export class Editor extends React.PureComponent<
               )}
             </Observer>
           </Flex>
+          {this.props.activeLightboxImgPos && <Lightbox />}
         </EditorContext.Provider>
       </PortalContext.Provider>
     );
