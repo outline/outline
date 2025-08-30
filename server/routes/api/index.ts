@@ -6,6 +6,7 @@ import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import coalesceBody from "@server/middlewares/coaleseBody";
 import requestTracer from "@server/middlewares/requestTracer";
+import { createDefaultCsrfProtection } from "@server/middlewares/csrf";
 import { AppState, AppContext } from "@server/types";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 import apiKeys from "./apiKeys";
@@ -44,7 +45,6 @@ import urls from "./urls";
 import userMemberships from "./userMemberships";
 import users from "./users";
 import views from "./views";
-import { createDefaultCsrfProtection } from "@server/middlewares/csrf";
 
 const api = new Koa<AppState, AppContext>();
 const router = new Router();
@@ -69,9 +69,8 @@ api.use(apiResponse());
 api.use(apiErrorHandler());
 api.use(editor());
 
-// CSRF
-const { attachToken, verifyToken } = createDefaultCsrfProtection();
-api.use(attachToken);
+// Apply CSRF middleware
+const { verifyToken } = createDefaultCsrfProtection();
 api.use(verifyToken);
 
 // Register plugin API routes before others to allow for overrides

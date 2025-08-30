@@ -1,10 +1,17 @@
 import { Next } from "koa";
+
 import { Scope } from "@shared/types";
 import env from "@server/env";
 import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
 import { AppContext } from "@server/types";
-import { generateRawToken, bundleToken, unbundleToken } from "@server/utils/csrf";
+import {
+  generateRawToken,
+  bundleToken,
+  unbundleToken,
+} from "@server/utils/csrf";
 import { getCookieDomain } from "@shared/utils/domains";
+import { CSRF } from "@shared/constants";
+import { AuthorizationError } from "@server/errors";
 
 export interface CsrfOptions {
   /** Name of the cookie to store the CSRF token */
@@ -15,8 +22,6 @@ export interface CsrfOptions {
   secret: string;
   /** Size of the raw token in bytes (default: 16) */
   tokenSize?: number;
-  /** Custom function to determine if a request requires CSRF protection */
-  requiresProtection?: (ctx: AppContext) => boolean;
 }
 
 /**
@@ -24,13 +29,7 @@ export interface CsrfOptions {
  * Integrates with AuthenticationHelper to determine if requests are read-only.
  */
 export const createCsrfProtection = (options: CsrfOptions) => {
-  const {
-    cookieName,
-    headerName,
-    secret,
-    tokenSize = 16,
-    requiresProtection,
-  } = options;
+  const { cookieName, headerName, secret, tokenSize = 16 } = options;
 
   /**
    * Middleware that generates and attaches CSRF tokens for safe methods
@@ -46,7 +45,7 @@ export const createCsrfProtection = (options: CsrfOptions) => {
         httpOnly: false,
         sameSite: "lax",
         secure: env.isProduction,
-        domain: getCookieDomain(ctx.request.hostname, env.isCloudHosted)
+        domain: getCookieDomain(ctx.request.hostname, env.isCloudHosted),
       });
     }
 
@@ -57,11 +56,6 @@ export const createCsrfProtection = (options: CsrfOptions) => {
    * Determines if a request requires CSRF protection based on the request path and scopes
    */
   const shouldProtectRequest = (ctx: AppContext): boolean => {
-    // Use custom function if provided
-    if (requiresProtection) {
-      return requiresProtection(ctx);
-    }
-
     // Skip if not a potentially mutating method
     if (["GET", "HEAD", "OPTIONS"].includes(ctx.method)) {
       return false;
@@ -70,10 +64,9 @@ export const createCsrfProtection = (options: CsrfOptions) => {
     // For API routes, use AuthenticationHelper to determine if the operation is read-only
     if (ctx.path.startsWith("/api/")) {
       // Check if the path can be accessed with only read scope
-      const canAccessWithReadOnly = AuthenticationHelper.canAccess(
-        ctx.path,
-        [Scope.Read]
-      );
+      const canAccessWithReadOnly = AuthenticationHelper.canAccess(ctx.path, [
+        Scope.Read,
+      ]);
 
       // If it can be accessed with read-only scope, it doesn't need CSRF protection
       if (canAccessWithReadOnly) {
@@ -97,35 +90,28 @@ export const createCsrfProtection = (options: CsrfOptions) => {
     // Get token from cookie
     const cookieVal = ctx.cookies.get(cookieName);
     if (!cookieVal) {
-      ctx.throw(403, "CSRF token missing from cookie");
-      return;
+      throw AuthorizationError("CSRF token missing from cookie");
     }
 
-    // Get token from header or body
-    const headerVal =
-      ctx.get(headerName) ||
-      (ctx.request.body && typeof ctx.request.body === "object"
-        ? (ctx.request.body as any)[headerName] || (ctx.request.body as any)._csrf
-        : undefined);
+    // Get token from header or form field depending on type
+    // Access the already-parsed body from koa-body middleware
+    const inputVal = ctx.get(headerName) || ctx.request.body?.[CSRF.fieldName];
 
-    if (!headerVal) {
-      ctx.throw(403, "CSRF token missing from request");
-      return;
+    if (!inputVal) {
+      throw AuthorizationError("CSRF token missing from request");
     }
 
     // Verify both tokens are valid HMAC-signed tokens
     const { valid: cookieValid } = unbundleToken(cookieVal, secret);
-    const { valid: headerValid } = unbundleToken(headerVal, secret);
+    const { valid: inputValid } = unbundleToken(inputVal, secret);
 
-    if (!cookieValid || !headerValid) {
-      ctx.throw(403, "Invalid CSRF token");
-      return;
+    if (!cookieValid || !inputValid) {
+      throw AuthorizationError("CSRF token invalid or malformed");
     }
 
     // Verify tokens match (double-submit check)
-    if (cookieVal !== headerVal) {
-      ctx.throw(403, "CSRF token mismatch");
-      return;
+    if (cookieVal !== inputVal) {
+      throw AuthorizationError("CSRF token mismatch");
     }
 
     await next();
@@ -139,8 +125,8 @@ export const createCsrfProtection = (options: CsrfOptions) => {
  */
 export const createDefaultCsrfProtection = () =>
   createCsrfProtection({
-    cookieName: "XSRF-TOKEN",
-    headerName: "x-xsrf-token",
+    cookieName: CSRF.cookieName,
+    headerName: CSRF.headerName,
     secret: env.SECRET_KEY,
     tokenSize: 16,
   });

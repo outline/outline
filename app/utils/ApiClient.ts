@@ -21,6 +21,7 @@ import {
   UpdateRequiredError,
 } from "./errors";
 import { getCookie } from "tiny-cookie";
+import { CSRF } from "@shared/constants";
 
 type Options = {
   baseUrl?: string;
@@ -107,11 +108,13 @@ class ApiClient {
     };
 
     // Add CSRF token for mutating requests
-    const isModifyingRequest = ["POST", "PUT", "PATCH", "DELETE"].includes(method);
+    const isModifyingRequest = ["POST", "PUT", "PATCH", "DELETE"].includes(
+      method
+    );
     if (isModifyingRequest) {
-      const csrfToken = getCookie("XSRF-TOKEN");
+      const csrfToken = getCookie(CSRF.cookieName);
       if (csrfToken) {
-        headerOptions["x-xsrf-token"] = csrfToken;
+        headerOptions[CSRF.headerName] = csrfToken;
       }
     }
 

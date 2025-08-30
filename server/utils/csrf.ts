@@ -39,11 +39,13 @@ export const unbundleToken = (
   secret: string
 ): { valid: boolean; raw?: Buffer } => {
   const [hex, sig] = bundled.split(".");
-  if (!hex || !sig) return { valid: false };
+  if (!hex || !sig) {
+    return { valid: false };
+  }
 
   const token = Buffer.from(hex, "hex");
   const expected = signToken(token, secret);
 
-  const valid = safeEqual((sig), (expected));
+  const valid = safeEqual(sig, expected);
   return { valid, raw: valid ? token : undefined };
 };
