@@ -22,6 +22,8 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { documentEditPath } from "~/utils/routeHelpers";
+import { useMenuState } from "~/hooks/useMenuState";
+import ContextMenu from "~/components/ContextMenu";
 import {
   useDragDocument,
   useDropToReorderDocument,
@@ -75,6 +77,11 @@ function InnerDocumentLink(
   const editableTitleRef = React.useRef<RefHandle>(null);
   const sidebarContext = useSidebarContext();
   const user = useCurrentUser();
+  
+  // Context menu state
+  const contextMenu = useMenuState({
+    modal: false,
+  });
 
   React.useEffect(() => {
     if (
@@ -279,6 +286,16 @@ function InnerDocumentLink(
     [setExpanded, setCollapsed, hasChildren, expanded]
   );
 
+  const handleContextMenu = React.useCallback(
+    (ev: React.MouseEvent) => {
+      ev.preventDefault();
+      if (document && !isMoving && !isEditing && !isDraggingAnyDocument) {
+        contextMenu.show();
+      }
+    },
+    [document, isMoving, isEditing, isDraggingAnyDocument, contextMenu]
+  );
+
   const [isAddingNewChild, setIsAddingNewChild, closeAddingNewChild] =
     useBoolean();
 
@@ -355,6 +372,7 @@ function InnerDocumentLink(
                 scrollIntoViewIfNeeded={sidebarContext === "collections"}
                 isDraft={isDraft}
                 ref={ref}
+                onContextMenu={handleContextMenu}
                 menu={
                   document &&
                   !isMoving &&
@@ -426,6 +444,22 @@ function InnerDocumentLink(
           />
         ))}
       </Folder>
+      
+      {/* Context Menu */}
+      {document && (
+        <ContextMenu
+          aria-label={t("Document options")}
+          {...contextMenu}
+          unstable_disclosureRef={ref}
+        >
+          <DocumentMenu
+            document={document}
+            onRename={handleRename}
+            onOpen={handleMenuOpen}
+            onClose={handleMenuClose}
+          />
+        </ContextMenu>
+      )}
     </>
   );
 }

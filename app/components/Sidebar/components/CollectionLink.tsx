@@ -20,6 +20,8 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import CollectionMenu from "~/menus/CollectionMenu";
 import { documentEditPath } from "~/utils/routeHelpers";
+import { useMenuState } from "~/hooks/useMenuState";
+import ContextMenu from "~/components/ContextMenu";
 import { useDropToChangeCollection } from "../hooks/useDragAndDrop";
 import DropToImport from "./DropToImport";
 import Relative from "./Relative";
@@ -53,6 +55,11 @@ const CollectionLink: React.FC<Props> = ({
   const sidebarContext = useSidebarContext();
   const user = useCurrentUser();
   const editableTitleRef = React.useRef<RefHandle>(null);
+  
+  // Context menu state
+  const contextMenu = useMenuState({
+    modal: false,
+  });
 
   const handleTitleChange = React.useCallback(
     async (name: string) => {
@@ -83,6 +90,16 @@ const CollectionLink: React.FC<Props> = ({
   const handleRename = React.useCallback(() => {
     editableTitleRef.current?.setIsEditing(true);
   }, [editableTitleRef]);
+
+  const handleContextMenu = React.useCallback(
+    (ev: React.MouseEvent) => {
+      ev.preventDefault();
+      if (!isEditing && !isDraggingAnyCollection) {
+        contextMenu.show();
+      }
+    },
+    [isEditing, isDraggingAnyCollection, contextMenu]
+  );
 
   const [isAddingNewChild, setIsAddingNewChild, closeAddingNewChild] =
     useBoolean();
@@ -143,6 +160,7 @@ const CollectionLink: React.FC<Props> = ({
             }
             exact={false}
             depth={depth ? depth : 0}
+            onContextMenu={handleContextMenu}
             menu={
               !isEditing &&
               !isDraggingAnyCollection && (
@@ -188,6 +206,20 @@ const CollectionLink: React.FC<Props> = ({
           }
         />
       )}
+      
+      {/* Context Menu */}
+      <ContextMenu
+        aria-label={t("Collection options")}
+        {...contextMenu}
+        unstable_disclosureRef={parentRef}
+      >
+        <CollectionMenu
+          collection={collection}
+          onRename={handleRename}
+          onOpen={handleMenuOpen}
+          onClose={handleMenuClose}
+        />
+      </ContextMenu>
     </>
   );
 };
