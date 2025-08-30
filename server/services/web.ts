@@ -13,7 +13,7 @@ import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
 import csp from "@server/middlewares/csp";
-import { createDefaultCsrfProtection } from "@server/middlewares/csrf";
+import { attachCSRFToken } from "@server/middlewares/csrf";
 import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
 import { initI18n } from "@server/utils/i18n";
 import routes from "../routes";
@@ -49,8 +49,7 @@ export default function init(app: Koa = new Koa(), server?: Server) {
   app.use(compress());
 
   // Apply CSRF middleware
-  const { attachToken } = createDefaultCsrfProtection();
-  app.use(attachToken);
+  app.use(attachCSRFToken);
 
   // Monitor server connections
   if (server) {

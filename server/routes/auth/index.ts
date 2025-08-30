@@ -9,7 +9,7 @@ import coalesceBody from "@server/middlewares/coaleseBody";
 import { Collection, Team, View } from "@server/models";
 import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
 import { AppState, AppContext, APIContext } from "@server/types";
-import { createDefaultCsrfProtection } from "@server/middlewares/csrf";
+import { verifyCSRFToken } from "@server/middlewares/csrf";
 
 const app = new Koa<AppState, AppContext>();
 const router = new Router();
@@ -80,8 +80,7 @@ app.use(bodyParser());
 app.use(coalesceBody());
 
 // Apply CSRF middleware
-const { verifyToken } = createDefaultCsrfProtection();
-app.use(verifyToken);
+app.use(verifyCSRFToken);
 
 app.use(router.routes());
 

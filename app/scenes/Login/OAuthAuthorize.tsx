@@ -212,7 +212,9 @@ function Authorize() {
           style={{ width: "100%" }}
           onSubmit={handleSubmit}
         >
-          <input type="hidden" name={CSRF.fieldName} value={csrfToken} />
+          {csrfToken && (
+            <input type="hidden" name={CSRF.fieldName} value={csrfToken} />
+          )}
           <input type="hidden" name="client_id" value={clientId ?? ""} />
           <input type="hidden" name="redirect_uri" value={redirectUri ?? ""} />
           <input

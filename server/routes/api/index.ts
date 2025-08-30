@@ -6,7 +6,7 @@ import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import coalesceBody from "@server/middlewares/coaleseBody";
 import requestTracer from "@server/middlewares/requestTracer";
-import { createDefaultCsrfProtection } from "@server/middlewares/csrf";
+import { verifyCSRFToken } from "@server/middlewares/csrf";
 import { AppState, AppContext } from "@server/types";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 import apiKeys from "./apiKeys";
@@ -70,8 +70,7 @@ api.use(apiErrorHandler());
 api.use(editor());
 
 // Apply CSRF middleware
-const { verifyToken } = createDefaultCsrfProtection();
-api.use(verifyToken);
+api.use(verifyCSRFToken);
 
 // Register plugin API routes before others to allow for overrides
 PluginManager.getHooks(Hook.API).forEach((hook) =>
