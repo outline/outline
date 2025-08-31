@@ -23,6 +23,7 @@ import { downloadImageNode } from "@shared/editor/nodes/Image";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { useTranslation } from "react-i18next";
 import Tooltip from "~/components/Tooltip";
+import LoadingIndicator from "./LoadingIndicator";
 
 namespace Status {
   export enum Lightbox {
@@ -35,7 +36,6 @@ namespace Status {
   }
 
   export enum Image {
-    READY_TO_LOAD,
     LOADING,
     ERROR,
     LOADED,
@@ -81,7 +81,7 @@ function Lightbox() {
     !!activeLightboxImgPos &&
       setStatus({
         lightbox: Status.Lightbox.READY_TO_OPEN,
-        image: Status.Image.READY_TO_LOAD,
+        image: status.image,
       });
   }, [!!activeLightboxImgPos]);
 
@@ -608,44 +608,51 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
   };
 
   const [hidden, setHidden] = useState(
-    status.lightbox === Status.Lightbox.READY_TO_OPEN
+    status.image === null || status.image === Status.Image.LOADING
   );
 
   useEffect(() => {
     onLoading();
   }, [src]);
 
+  useEffect(() => {
+    if (status.image === null || status.image === Status.Image.LOADING) {
+      setHidden(true);
+    } else if (status.image === Status.Image.LOADED) {
+      setHidden(false);
+    }
+  }, [status.image]);
+
   return status.image === Status.Image.ERROR ? (
     <StyledError animation={animation}>
       <CrossIcon size={16} /> Image failed to load
     </StyledError>
   ) : (
-    <Figure>
-      <StyledImg
-        ref={ref}
-        src={src}
-        alt={alt}
-        animation={animation}
-        onAnimationStart={() => setHidden(false)}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onTouchCancel={handleTouchCancel}
-        onError={() => {
-          onError();
-        }}
-        onLoad={(_ev: React.SyntheticEvent<HTMLImageElement>) => {
-          onLoad();
-        }}
-        $hidden={hidden}
-      />
-      <Caption>
-        {status.image === Status.Image.LOADED &&
-        status.lightbox === Status.Lightbox.OPENED
-          ? alt
-          : ""}
-      </Caption>
-    </Figure>
+    <>
+      {status.image === Status.Image.LOADING && <LoadingIndicator />}
+      <Figure>
+        <StyledImg
+          ref={ref}
+          src={src}
+          alt={alt}
+          animation={animation}
+          onAnimationStart={() => setHidden(false)}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchCancel}
+          onError={onError}
+          onLoad={onLoad}
+          $hidden={hidden}
+        />
+        <Caption>
+          {status.image === Status.Image.LOADED &&
+          status.lightbox === Status.Lightbox.OPENED
+            ? alt
+            : ""}
+        </Caption>
+      </Figure>
+    </>
   );
 });
 
