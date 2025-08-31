@@ -3,7 +3,9 @@ import { ellipsis } from "polished";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { s } from "@shared/styles";
+import { depths, s } from "@shared/styles";
+import Scrollable from "~/components/Scrollable";
+import { fadeAndScaleIn } from "~/styles/animations";
 
 type BaseMenuItemProps = {
   disabled?: boolean;
@@ -134,4 +136,32 @@ export const SelectedIconWrapper = styled.span`
   margin-right: -6px;
   color: ${s("textSecondary")};
   flex-shrink: 0;
+`;
+
+export const MenuContent = styled(Scrollable)<{
+  maxHeightVar: string;
+  transformOriginVar: string;
+}>`
+  z-index: ${depths.menu};
+  min-width: 180px;
+  max-width: 276px;
+  min-height: 44px;
+  max-height: ${({ maxHeightVar }) => `min(85vh, var(${maxHeightVar}))`};
+  font-weight: normal;
+
+  background: ${s("menuBackground")};
+  box-shadow: ${s("menuShadow")};
+  border-radius: 6px;
+  padding: 6px;
+  outline: none;
+
+  transform-origin: ${({ transformOriginVar }) => `var(${transformOriginVar})`};
+
+  &[data-state="open"] {
+    animation: ${fadeAndScaleIn} 150ms ease-out;
+  }
+
+  @media print {
+    display: none;
+  }
 `;

@@ -4,7 +4,6 @@ import ukkonen from "ukkonen";
 import { updateYFragment, yDocToProsemirrorJSON } from "y-prosemirror";
 import * as Y from "yjs";
 import textBetween from "@shared/editor/lib/textBetween";
-import { getTextSerializers } from "@shared/editor/lib/textSerializers";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { IconType, ProsemirrorData } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
@@ -141,8 +140,7 @@ export class DocumentHelper {
    */
   static toPlainText(document: Document | Revision | ProsemirrorData) {
     const node = DocumentHelper.toProsemirror(document);
-
-    return textBetween(node, 0, node.content.size, this.textSerializers);
+    return textBetween(node, 0, node.content.size);
   }
 
   /**
@@ -523,6 +521,4 @@ export class DocumentHelper {
     const distance = ukkonen(first, second, threshold + 1);
     return distance > threshold;
   }
-
-  private static textSerializers = getTextSerializers(schema);
 }

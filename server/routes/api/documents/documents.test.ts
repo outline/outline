@@ -3291,7 +3291,7 @@ describe("#documents.restore", () => {
 });
 
 describe("#documents.import", () => {
-  it("should require collectionId", async () => {
+  it("should require collectionId or parentDocumentId", async () => {
     const user = await buildUser();
     const res = await server.post("/api/documents.import", {
       body: {
@@ -3300,7 +3300,9 @@ describe("#documents.import", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("collectionId: Required");
+    expect(body.message).toEqual(
+      "body: one of collectionId or parentDocumentId is required"
+    );
   });
 
   it("should error if no file is passed", async () => {

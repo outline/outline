@@ -16,6 +16,7 @@ export default class AuthenticationHelper {
     info: Scope.Read,
     search: Scope.Read,
     documents: Scope.Read,
+    export: Scope.Read,
   };
 
   /**

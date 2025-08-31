@@ -44,7 +44,7 @@ jobs:
           node-version: 22.x
           cache: "yarn"
       - run: yarn install --frozen-lockfile --prefer-offline
-      - run: yarn lint
+      - run: yarn lint --quiet
 
   types:
     needs: build

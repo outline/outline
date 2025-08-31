@@ -136,7 +136,7 @@ class Comment extends ParanoidModel<
    */
   public toPlainText() {
     const node = Node.fromJSON(schema, this.data);
-    return ProsemirrorHelper.toPlainText(node, schema);
+    return ProsemirrorHelper.toPlainText(node);
   }
 
   // hooks

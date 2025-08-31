@@ -723,8 +723,7 @@ export default class Document extends ArchivableModel implements Searchable {
       marks: extensionManager.marks,
     });
     const text = ProsemirrorHelper.toPlainText(
-      Node.fromJSON(schema, this.data),
-      schema
+      Node.fromJSON(schema, this.data)
     );
     return text;
   };
