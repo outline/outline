@@ -10,7 +10,7 @@ import {
 } from "@server/utils/csrf";
 import { getCookieDomain } from "@shared/utils/domains";
 import { CSRF } from "@shared/constants";
-import { AuthorizationError } from "@server/errors";
+import { CSRFError } from "@server/errors";
 
 /**
  * Middleware that generates and attaches CSRF tokens for safe methods
@@ -77,7 +77,7 @@ export function verifyCSRFToken() {
     // Get token from cookie
     const cookieVal = ctx.cookies.get(CSRF.cookieName);
     if (!cookieVal) {
-      throw AuthorizationError("CSRF token missing from cookie");
+      throw CSRFError("CSRF token missing from cookie");
     }
 
     // Get token from header or form field depending on type
@@ -86,7 +86,7 @@ export function verifyCSRFToken() {
       ctx.get(CSRF.headerName) || ctx.request.body?.[CSRF.fieldName];
 
     if (!inputVal) {
-      throw AuthorizationError("CSRF token missing from request");
+      throw CSRFError("CSRF token missing from request");
     }
 
     // Verify both tokens are valid HMAC-signed tokens
@@ -94,12 +94,12 @@ export function verifyCSRFToken() {
     const { valid: inputValid } = unbundleToken(inputVal, env.SECRET_KEY);
 
     if (!cookieValid || !inputValid) {
-      throw AuthorizationError("CSRF token invalid or malformed");
+      throw CSRFError("CSRF token invalid or malformed");
     }
 
     // Verify tokens match (double-submit check)
     if (cookieVal !== inputVal) {
-      throw AuthorizationError("CSRF token mismatch");
+      throw CSRFError("CSRF token mismatch");
     }
 
     await next();

@@ -230,6 +230,12 @@ class ApiClient {
         });
       }
 
+      if (error.error === "csrf_error") {
+        throw new AuthorizationError(
+          "CSRF token invalid, please try reloading."
+        );
+      }
+
       throw new AuthorizationError(error.message);
     }
 
