@@ -20,7 +20,7 @@ import User from "@server/models/User";
 import ParanoidModel from "@server/models/base/ParanoidModel";
 import { SkipChangeset } from "@server/models/decorators/Changeset";
 import Fix from "@server/models/decorators/Fix";
-import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
+import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { hash } from "@server/utils/crypto";
 import OAuthClient from "./OAuthClient";
 

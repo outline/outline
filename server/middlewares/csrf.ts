@@ -1,7 +1,7 @@
 import type { Next } from "koa";
 import { Scope } from "@shared/types";
 import env from "@server/env";
-import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
+import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 import { AppContext } from "@server/types";
 import {
   generateRawToken,
@@ -53,7 +53,7 @@ export function verifyCSRFToken() {
     }
 
     // For API routes, use AuthenticationHelper to determine if the operation is read-only
-    if (ctx.path.startsWith("/api/")) {
+    if (ctx.originalUrl.startsWith("/api/")) {
       const canAccessWithReadOnly = AuthenticationHelper.canAccess(ctx.path, [
         Scope.Read,
       ]);

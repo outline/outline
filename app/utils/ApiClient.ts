@@ -2,7 +2,7 @@ import retry from "fetch-retry";
 import trim from "lodash/trim";
 import queryString from "query-string";
 import EDITOR_VERSION from "@shared/editor/version";
-import { JSONObject } from "@shared/types";
+import { JSONObject, Scope } from "@shared/types";
 import stores from "~/stores";
 import Logger from "./Logger";
 import download from "./download";
@@ -22,6 +22,7 @@ import {
 } from "./errors";
 import { getCookie } from "tiny-cookie";
 import { CSRF } from "@shared/constants";
+import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 
 type Options = {
   baseUrl?: string;
@@ -107,11 +108,14 @@ class ApiClient {
       ...options?.headers,
     };
 
-    // Add CSRF token for mutating requests
+    // Add CSRF token to headers for mutating requests
     const isModifyingRequest = ["POST", "PUT", "PATCH", "DELETE"].includes(
       method
     );
-    if (isModifyingRequest) {
+    const canAccessWithReadOnly = AuthenticationHelper.canAccess(path, [
+      Scope.Read,
+    ]);
+    if (isModifyingRequest && !canAccessWithReadOnly) {
       const csrfToken = getCookie(CSRF.cookieName);
       if (csrfToken) {
         headerOptions[CSRF.headerName] = csrfToken;
