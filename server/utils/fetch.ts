@@ -49,17 +49,20 @@ export const chromeUserAgent =
  */
 export default async function fetch(
   url: string,
-  init?: RequestInit
+  init?: RequestInit & {
+    allowPrivateIPAddress?: boolean;
+  }
 ): Promise<Response> {
   Logger.silly("http", `Network request to ${url}`, init);
 
+  const { allowPrivateIPAddress, ...rest } = init || {};
   const response = await nodeFetch(url, {
-    ...init,
+    ...rest,
     headers: {
       "User-Agent": outlineUserAgent,
-      ...init?.headers,
+      ...rest?.headers,
     },
-    agent: buildAgent(url),
+    agent: buildAgent(url, init),
   });
 
   if (!response.ok) {
@@ -136,7 +139,12 @@ const buildTunnel = (proxy: UrlWithTunnel, options: RequestInit) => {
  * @param options The fetch options
  * @returns An http or https agent configured for the URL
  */
-function buildAgent(url: string, options: RequestInit = {}) {
+function buildAgent(
+  url: string,
+  options: RequestInit & {
+    allowPrivateIPAddress?: boolean;
+  } = {}
+) {
   const agentOptions = defaults(options, DefaultOptions);
   const parsedURL = new URL(url);
   const proxyURL = getProxyForUrl(parsedURL.href);

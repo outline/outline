@@ -52,6 +52,7 @@ export async function fetchOIDCConfiguration(
         Accept: "application/json",
       },
       timeout: 10000, // 10 second timeout
+      allowPrivateIPAddress: true,
     });
 
     if (!response.ok) {
