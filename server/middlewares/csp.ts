@@ -23,6 +23,8 @@ export default function createCSPMiddleware() {
   if (!env.isProduction) {
     scriptSrc.push(env.URL.replace(`:${env.PORT}`, ":3001"));
     scriptSrc.push("localhost:3001");
+  } else {
+    scriptSrc.push(env.URL);
   }
 
   if (env.GOOGLE_ANALYTICS_ID) {
