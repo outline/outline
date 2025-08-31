@@ -13,11 +13,16 @@ import {
 } from "prosemirror-state";
 import { DecorationSet, Decoration } from "prosemirror-view";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
-import { findParentNodeClosestToPos } from "../queries/findParentNode";
+import {
+  findParentNode,
+  findParentNodeClosestToPos,
+} from "../queries/findParentNode";
 import { getParentListItem } from "../queries/getParentListItem";
 import { isInList } from "../queries/isInList";
 import { isList } from "../queries/isList";
 import Node from "./Node";
+import { isNodeActive } from "../queries/isNodeActive";
+import mergeForward from "../commands/mergeForward";
 
 export default class ListItem extends Node {
   get name() {
@@ -285,6 +290,20 @@ export default class ListItem extends Node {
         );
         return true;
       },
+      Delete: (state) => {
+        if (!isEndOfListNode(state)) {
+          return false;
+        }
+
+        const { selection } = state;
+        const { $from, $to } = selection;
+        if (!selection.empty && $from.sameParent($to)) {
+          return false;
+        }
+
+        mergeForward();
+        return true;
+      },
     };
   }
 
@@ -296,3 +315,27 @@ export default class ListItem extends Node {
     return { block: "list_item" };
   }
 }
+
+const isEndOfListNode = (state: EditorState): boolean => {
+  const { schema, selection } = state;
+  const listNodeTypes = [
+    schema.nodes.bullet_list,
+    schema.nodes.ordered_list,
+    schema.nodes.checkbox_list,
+  ].filter(Boolean);
+
+  const { $anchor } = selection;
+  const isAtEndOfAnyList = listNodeTypes.some((listType) => {
+    if (!isNodeActive(listType)(state)) {return false;}
+    const parentNode = findParentNode(
+      (node) => node.type.name === listType.name
+    )(selection);
+
+    if (!parentNode) {return false;}
+    const $parentPos = state.doc.resolve(parentNode.pos);
+
+    return $anchor.pos + 5 === $parentPos.end();
+  });
+
+  return isAtEndOfAnyList;
+};
