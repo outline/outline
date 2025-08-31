@@ -135,6 +135,7 @@ router.post(
     });
 
     const presignedPost = await FileStorage.getPresignedPost(
+      ctx,
       key,
       acl,
       maxUploadSize,

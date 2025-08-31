@@ -11,9 +11,12 @@ import env from "@server/env";
 import { InternalError, ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import BaseStorage from "./BaseStorage";
+import { CSRF } from "@shared/constants";
+import { AppContext } from "@server/types";
 
 export default class LocalStorage extends BaseStorage {
   public async getPresignedPost(
+    ctx: AppContext,
     key: string,
     acl: string,
     maxUploadSize: number,
@@ -26,6 +29,7 @@ export default class LocalStorage extends BaseStorage {
         acl,
         maxUploadSize: String(maxUploadSize),
         contentType,
+        [CSRF.fieldName]: ctx.cookies.get(CSRF.cookieName) || "",
       },
     });
   }

@@ -12,15 +12,17 @@ import { detectLanguage } from "~/utils/language";
 import { BackButton } from "./BackButton";
 import { Background } from "./Background";
 import { Centered } from "./Centered";
+import { Form } from "~/components/primitives/Form";
 
 const WorkspaceSetup = ({ onBack }: { onBack?: () => void }) => {
   const { t } = useTranslation();
+
   return (
     <Background>
       <BackButton onBack={onBack} />
       <ChangeLanguage locale={detectLanguage()} />
       <Centered
-        as="form"
+        as={Form}
         action="/api/installation.create"
         method="POST"
         gap={12}

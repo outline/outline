@@ -32,6 +32,12 @@ export function AuthorizationError(message = "Authorization error") {
   });
 }
 
+export function CSRFError(message = "Authorization error") {
+  return httpErrors(403, message, {
+    id: "csrf_error",
+  });
+}
+
 export function RateLimitExceededError(
   message = "Rate limit exceeded for this operation"
 ) {

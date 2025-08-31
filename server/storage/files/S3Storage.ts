@@ -20,6 +20,7 @@ import tmp from "tmp";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import BaseStorage from "./BaseStorage";
+import { AppContext } from "@server/types";
 
 export default class S3Storage extends BaseStorage {
   constructor() {
@@ -34,6 +35,7 @@ export default class S3Storage extends BaseStorage {
   }
 
   public async getPresignedPost(
+    _ctx: AppContext,
     key: string,
     acl: string,
     maxUploadSize: number,
