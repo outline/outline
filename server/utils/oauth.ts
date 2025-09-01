@@ -24,6 +24,7 @@ export default abstract class OAuthClient {
     try {
       response = await fetch(this.endpoints.userinfo, {
         method: "GET",
+        allowPrivateIPAddress: true,
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
@@ -59,6 +60,7 @@ export default abstract class OAuthClient {
 
       response = await fetch(endpoint, {
         method: "POST",
+        allowPrivateIPAddress: true,
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
