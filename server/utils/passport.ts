@@ -98,6 +98,7 @@ export async function request(
 ) {
   const response = await fetch(endpoint, {
     method,
+    allowPrivateIPAddress: true,
     headers: {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
