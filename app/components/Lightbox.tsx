@@ -508,8 +508,8 @@ function Lightbox() {
                 image: Status.Image.ERROR,
               })
             }
-            onSwipeRight={next}
-            onSwipeLeft={prev}
+            onSwipeRight={prev}
+            onSwipeLeft={next}
             onSwipeDown={close}
             status={status}
             animation={animation.current}
@@ -575,19 +575,18 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
     touchYEnd = e.changedTouches[0].screenY as number;
     const dx = touchXEnd - (touchXStart as number);
     const dy = touchYEnd - (touchYStart as number);
-    const theta = Math.abs(dy) / Math.abs(dx);
 
-    const swipeRight = dx > 0 && theta < 1;
+    const swipeRight = dx > 0 && Math.abs(dy) < Math.abs(dx);
     if (swipeRight) {
       return onSwipeRight();
     }
 
-    const swipeLeft = dx < 0 && theta < 1;
+    const swipeLeft = dx < 0 && Math.abs(dy) < Math.abs(dx);
     if (swipeLeft) {
       return onSwipeLeft();
     }
 
-    const swipeDown = dy > 0 && theta > 1;
+    const swipeDown = dy > 0 && Math.abs(dy) > Math.abs(dx);
     if (swipeDown) {
       return onSwipeDown();
     }
