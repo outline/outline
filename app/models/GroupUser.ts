@@ -1,7 +1,9 @@
+import { GroupPermission } from "@shared/types";
 import Group from "./Group";
 import User from "./User";
 import Model from "./base/Model";
 import Relation from "./decorators/Relation";
+import Field from "./decorators/Field";
 
 /**
  * Represents a user's membership to a group.
@@ -22,6 +24,10 @@ class GroupUser extends Model {
   /** The group that the user belongs to. */
   @Relation(() => Group, { onDelete: "cascade" })
   group: Group;
+
+  /** The permission of the user in the group. */
+  @Field
+  permission: GroupPermission;
 }
 
 export default GroupUser;
