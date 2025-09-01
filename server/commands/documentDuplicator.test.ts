@@ -1,7 +1,6 @@
-import { createContext } from "@server/context";
-import { sequelize } from "@server/storage/database";
 import { buildDocument, buildUser } from "@server/test/factories";
 import documentDuplicator from "./documentDuplicator";
+import { withAPIContext } from "@server/test/support";
 
 describe("documentDuplicator", () => {
   it("should duplicate existing document", async () => {
@@ -11,12 +10,10 @@ describe("documentDuplicator", () => {
       teamId: user.teamId,
     });
 
-    const response = await sequelize.transaction((transaction) =>
-      documentDuplicator({
+    const response = await withAPIContext(user, (ctx) =>
+      documentDuplicator(ctx, {
         document: original,
         collection: original.collection,
-        user,
-        ctx: createContext({ user, transaction }),
       })
     );
 
@@ -36,13 +33,11 @@ describe("documentDuplicator", () => {
       icon: "👋",
     });
 
-    const response = await sequelize.transaction((transaction) =>
-      documentDuplicator({
+    const response = await withAPIContext(user, (ctx) =>
+      documentDuplicator(ctx, {
         document: original,
         collection: original.collection,
         title: "New title",
-        user,
-        ctx: createContext({ user, transaction }),
       })
     );
 
@@ -69,13 +64,11 @@ describe("documentDuplicator", () => {
       collection: original.collection,
     });
 
-    const response = await sequelize.transaction((transaction) =>
-      documentDuplicator({
+    const response = await withAPIContext(user, (ctx) =>
+      documentDuplicator(ctx, {
         document: original,
         collection: original.collection,
-        user,
         recursive: true,
-        ctx: createContext({ user, transaction }),
       })
     );
 
@@ -89,13 +82,11 @@ describe("documentDuplicator", () => {
       teamId: user.teamId,
     });
 
-    const response = await sequelize.transaction((transaction) =>
-      documentDuplicator({
+    const response = await withAPIContext(user, (ctx) =>
+      documentDuplicator(ctx, {
         document: original,
         collection: original.collection,
         publish: false,
-        user,
-        ctx: createContext({ user, transaction }),
       })
     );
 
