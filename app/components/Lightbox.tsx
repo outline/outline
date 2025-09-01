@@ -42,7 +42,21 @@ namespace Status {
   }
 }
 
+type Status = {
+  lightbox: Status.Lightbox | null;
+  image: Status.Image | null;
+};
+
+type Animation = {
+  fadeIn?: { apply: () => Keyframes; duration: number };
+  fadeOut?: { apply: () => Keyframes; duration: number };
+  zoomIn?: { apply: () => Keyframes; duration: number };
+  zoomOut?: { apply: () => Keyframes; duration: number };
+  startTime?: number;
+};
+
 const ANIMATION_DURATION = 0.3 * Second.ms;
+
 function Lightbox() {
   const { view } = useEditor();
   const { ui } = useStores();
@@ -51,18 +65,9 @@ function Lightbox() {
   const imgRef = useRef<HTMLImageElement | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const { activeLightboxImgPos } = ui;
-  const [status, setStatus] = useState<{
-    lightbox: Status.Lightbox | null;
-    image: Status.Image | null;
-  }>({ lightbox: null, image: null });
-  const animation = useRef<{
-    fadeIn?: { apply: () => Keyframes; duration: number };
-    fadeOut?: { apply: () => Keyframes; duration: number };
-    zoomIn?: { apply: () => Keyframes; duration: number };
-    zoomOut?: { apply: () => Keyframes; duration: number };
-    startTime?: number;
-  } | null>(null);
-  const finalImagePosition = useRef<{
+  const [status, setStatus] = useState<Status>({ lightbox: null, image: null });
+  const animation = useRef<Animation | null>(null);
+  const finalImage = useRef<{
     center: { x: number; y: number };
     width: number;
     height: number;
@@ -133,7 +138,7 @@ function Lightbox() {
         width: lightboxImgWidth,
         height: lightboxImgHeight,
       } = lightboxImgDOMRect;
-      finalImagePosition.current = {
+      finalImage.current = {
         center: {
           x: lightboxImgLeft + lightboxImgWidth / 2,
           y: lightboxImgTop + lightboxImgHeight / 2,
@@ -298,7 +303,7 @@ function Lightbox() {
       }
 
       const zoomOut = () => {
-        const final = finalImagePosition.current!;
+        const final = finalImage.current!;
         const fromTx = from.center.x - final.center.x;
         const fromTy = from.center.y - final.center.y;
         const toTx = to.center.x - final.center.x;
@@ -335,6 +340,7 @@ function Lightbox() {
   if (!activeLightboxImgPos) {
     return null;
   }
+
   const imageNodes = useMemo(
     () =>
       findChildren(
@@ -536,13 +542,8 @@ type Props = {
   onSwipeRight: () => void;
   onSwipeLeft: () => void;
   onSwipeDown: () => void;
-  status: { lightbox: Status.Lightbox | null; image: Status.Image | null };
-  animation: {
-    zoomIn?: { apply: () => Keyframes; duration: number };
-    zoomOut?: { apply: () => Keyframes; duration: number };
-    fadeIn?: { apply: () => Keyframes; duration: number };
-    fadeOut?: { apply: () => Keyframes; duration: number };
-  } | null;
+  status: Status;
+  animation: Animation | null;
 };
 
 const Image = forwardRef<HTMLImageElement, Props>(function _Image(
@@ -674,10 +675,7 @@ const Caption = styled("figcaption")`
 `;
 
 const StyledOverlay = styled(Dialog.Overlay)<{
-  animation: {
-    fadeIn?: { apply: () => Keyframes; duration: number };
-    fadeOut?: { apply: () => Keyframes; duration: number };
-  } | null;
+  animation: Animation | null;
 }>`
   position: fixed;
   inset: 0;
@@ -703,10 +701,7 @@ const StyledOverlay = styled(Dialog.Overlay)<{
 
 const StyledImg = styled.img<{
   $hidden: boolean;
-  animation: {
-    zoomIn?: { apply: () => Keyframes; duration: number };
-    zoomOut?: { apply: () => Keyframes; duration: number };
-  } | null;
+  animation: Animation | null;
 }>`
   visibility: ${(props) => (props.$hidden ? "hidden" : "visible")};
   max-width: 100%;
@@ -738,10 +733,7 @@ const StyledContent = styled(Dialog.Content)`
 `;
 
 const Actions = styled.div<{
-  animation: {
-    fadeIn?: { apply: () => Keyframes; duration: number };
-    fadeOut?: { apply: () => Keyframes; duration: number };
-  } | null;
+  animation: Animation | null;
 }>`
   position: absolute;
   top: 0;
@@ -789,10 +781,7 @@ const StyledActionButton = styled(NudeButton)`
 const Nav = styled.div<{
   $hidden: boolean;
   dir: "left" | "right";
-  animation: {
-    fadeIn?: { apply: () => Keyframes; duration: number };
-    fadeOut?: { apply: () => Keyframes; duration: number };
-  } | null;
+  animation: Animation | null;
 }>`
   position: absolute;
   ${(props) => (props.dir === "left" ? "left: 0;" : "right: 0;")}
@@ -817,10 +806,7 @@ const Nav = styled.div<{
 `;
 
 const StyledError = styled(Error)<{
-  animation: {
-    fadeIn?: { apply: () => Keyframes; duration: number };
-    fadeOut?: { apply: () => Keyframes; duration: number };
-  } | null;
+  animation: Animation | null;
 }>`
   ${(props) =>
     props.animation === null
