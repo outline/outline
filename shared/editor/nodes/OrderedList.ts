@@ -71,8 +71,8 @@ export default class OrderedList extends Node {
   keys({ type, schema }: { type: NodeType; schema: Schema }) {
     return {
       "Shift-Ctrl-9": toggleList(type, schema.nodes.list_item),
-      "Alt-Shift-L": this.commands({ type, schema }).toggleLowerLetterList(),
-      "Alt-Shift-U": this.commands({ type, schema }).toggleUpperLetterList(),
+      "Shift-Ctrl-8": this.commands({ type, schema }).toggleUpperLetterList(),
+      "Shift-Ctrl-7": this.commands({ type, schema }).toggleLowerLetterList(),
     };
   }
 
