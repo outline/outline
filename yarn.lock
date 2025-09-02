@@ -14347,10 +14347,10 @@ tunnel-agent@^0.6.0:
   dependencies:
     safe-buffer "^5.0.1"
 
-turndown@^7.2.0:
-  version "7.2.0"
-  resolved "https://registry.yarnpkg.com/turndown/-/turndown-7.2.0.tgz#67d614fe8371fb511079a93345abfd156c0ffcf4"
-  integrity sha512-eCZGBN4nNNqM9Owkv9HAtWRYfLA4h909E/WGAWWBpmB275ehNhZyk87/Tpvjbp0jjNl9XwCsbe6bm6CqFsgD+A==
+turndown@^7.2.1:
+  version "7.2.1"
+  resolved "https://registry.yarnpkg.com/turndown/-/turndown-7.2.1.tgz#633ff4ff88951fe1db58f7dd32a25ba3f6ff2c48"
+  integrity sha512-7YiPJw6rLClQL3oUKN3KgMaXeJJ2lAyZItclgKDurqnH61so4k4IH/qwmMva0zpuJc/FhRExBBnk7EbeFANlgQ==
   dependencies:
     "@mixmark-io/domino" "^2.2.0"
 
