@@ -187,7 +187,7 @@
     "passport-oauth2": "^1.8.0",
     "passport-slack-oauth2": "^1.2.0",
     "patch-package": "^8.0.0",
-    "pg": "^8.15.6",
+    "pg": "^8.16.3",
     "pg-tsquery": "^8.4.2",
     "pluralize": "^8.0.0",
     "png-chunks-extract": "^1.0.0",
