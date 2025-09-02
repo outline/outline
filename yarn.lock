@@ -7425,10 +7425,10 @@ dc-polyfill@^0.1.10:
   resolved "https://registry.yarnpkg.com/dc-polyfill/-/dc-polyfill-0.1.10.tgz#6f2ada1a9e449587c363ca98cfb79b443cf74b70"
   integrity sha512-9iSbB8XZ7aIrhUtWI5ulEOJ+IyUN+axquodHK+bZO4r7HfY/xwmo6I4fYYf+aiDom+WMcN/wnzCz+pKvHDDCug==
 
-dd-trace@^5.63.0:
-  version "5.63.0"
-  resolved "https://registry.yarnpkg.com/dd-trace/-/dd-trace-5.63.0.tgz#654a6f700ad5860b417464c0f20e022f6cb34395"
-  integrity sha512-gmvcqeJ71BqbPvEDDd+vvED1ByjcnQJ60UJGParxOW0PrHCOmoGUK57K9vZDAfUIsduZLBcfkYtAgr0YWjpciA==
+dd-trace@^5.64.0:
+  version "5.64.0"
+  resolved "https://registry.yarnpkg.com/dd-trace/-/dd-trace-5.64.0.tgz#057ee30a6e1817820009e36b332a8cde1cc0db10"
+  integrity sha512-24vovvBujJ6zMv5CSro0X29YN8DkoSLd4IVEGUtIWA6ypltU38q+PtPngwRhjb/v11/jvJ+U0P0zyNjfP9FZWg==
   dependencies:
     "@datadog/libdatadog" "0.7.0"
     "@datadog/native-appsec" "10.1.0"
