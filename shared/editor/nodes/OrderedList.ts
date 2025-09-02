@@ -9,7 +9,6 @@ import {
 import toggleList from "../commands/toggleList";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import Node from "./Node";
-import { EditorState, Transaction } from "prosemirror-state";
 
 export default class OrderedList extends Node {
   get name() {
@@ -37,7 +36,7 @@ export default class OrderedList extends Node {
             order: dom.hasAttribute("start")
               ? parseInt(dom.getAttribute("start") || "1", 10)
               : 1,
-            listStyle: getValidListStyle(dom.style.listStyleType),
+            listStyle: dom.style.listStyleType,
           }),
         },
       ],
@@ -61,49 +60,12 @@ export default class OrderedList extends Node {
     return {
       toggleOrderedList: () => toggleList(type, schema.nodes.list_item),
 
-      toggleLowerLetterList:
-        () => (state: EditorState, dispatch?: (tr: Transaction) => void) =>
-          this._toggleListStyle(state, type, schema, "lower-alpha", dispatch),
+      toggleLowerLetterList: () =>
+        toggleList(type, schema.nodes.list_item, "lower-alpha"),
 
-      toggleUpperLetterList:
-        () => (state: EditorState, dispatch?: (tr: Transaction) => void) =>
-          this._toggleListStyle(state, type, schema, "upper-alpha", dispatch),
+      toggleUpperLetterList: () =>
+        toggleList(type, schema.nodes.list_item, "upper-alpha"),
     };
-  }
-
-  _toggleListStyle(
-    state: EditorState,
-    type: NodeType,
-    schema: Schema,
-    listStyle: string,
-    dispatch?: (tr: Transaction) => void
-  ) {
-    const result = toggleList(type, schema.nodes.list_item)(state, dispatch);
-    if (!result) {return false;}
-
-    if (dispatch) {
-      const { $from } = state.selection;
-      let depth = $from.depth;
-
-      while (depth > 0 && $from.node(depth).type !== type) {
-        depth--;
-      }
-
-      if (depth > 0) {
-        const listPos = $from.before(depth);
-        const node = state.doc.nodeAt(listPos);
-
-        if (node && node.type === type) {
-          const tr = state.tr.setNodeMarkup(listPos, null, {
-            ...node.attrs,
-            listStyle,
-          });
-          dispatch(tr);
-        }
-      }
-    }
-
-    return true;
   }
 
   keys({ type, schema }: { type: NodeType; schema: Schema }) {
@@ -208,11 +170,3 @@ export default class OrderedList extends Node {
     };
   }
 }
-
-const getValidListStyle = (listStyle: string) => {
-  if (listStyle === "lower-alpha" || listStyle === "upper-alpha") {
-    return listStyle;
-  }
-
-  return "number";
-};
