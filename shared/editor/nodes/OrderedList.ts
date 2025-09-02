@@ -126,7 +126,8 @@ export default class OrderedList extends Node {
       const space = state.repeat(" ", 4);
 
       state.renderList(node, space, (index: number) => {
-        const charCode = 96 + start + index;
+        const letterIndex = ((start + index - 1) % 26) + 1;
+        const charCode = 96 + letterIndex;
         const letter = String.fromCharCode(charCode);
         return `${letter}. `;
       });
@@ -134,7 +135,8 @@ export default class OrderedList extends Node {
       const space = state.repeat(" ", 4);
 
       state.renderList(node, space, (index: number) => {
-        const charCode = 64 + start + index;
+        const letterIndex = ((start + index - 1) % 26) + 1;
+        const charCode = 64 + letterIndex;
         const letter = String.fromCharCode(charCode);
         return `${letter}. `;
       });
