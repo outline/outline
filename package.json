@@ -64,7 +64,7 @@
     "@babel/preset-env": "^7.28.3",
     "@babel/preset-react": "^7.27.1",
     "@benrbray/prosemirror-math": "^0.2.2",
-    "@bull-board/api": "^6.7.10",
+    "@bull-board/api": "^6.12.7",
     "@bull-board/koa": "^6.12.0",
     "@css-inline/css-inline-wasm": "^0.17.0",
     "@dnd-kit/core": "^6.3.1",
