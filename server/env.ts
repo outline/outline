@@ -793,6 +793,18 @@ export class Environment {
   public get isTest() {
     return this.ENVIRONMENT === "test";
   }
+  
+  /**
+   * Allow file:// protocol links in the editor. This is a security risk and should
+   * only be enabled in self-hosted environments where you trust your users.
+   * This is useful for companies with a local NAS.
+   */
+  @Public
+  @IsBoolean()
+  @IsOptional()
+  public ALLOW_FILE_PROTOCOL = this.toBoolean(
+    environment.ALLOW_FILE_PROTOCOL ?? "false"
+  );
 
   protected toOptionalString(value: string | undefined) {
     return value ? value : undefined;

@@ -361,6 +361,21 @@ function Security() {
           onChange={handleDocumentEmbedsChange}
         />
       </SettingRow>
+      {!isCloudHosted && (
+        <SettingRow
+          label={t("Allow file protocol")}
+          name="allowFileProtocol"
+          description={t(
+            "To allow file:// links in documents, set the ALLOW_FILE_PROTOCOL=true environment variable and restart the server."
+          )}
+        >
+          <Switch
+            id="allowFileProtocol"
+            checked={env.ALLOW_FILE_PROTOCOL === "true"}
+            disabled
+          />
+        </SettingRow>
+      )}
       <SettingRow
         label={t("Collection creation")}
         name="memberCollectionCreate"
