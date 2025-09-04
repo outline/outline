@@ -247,7 +247,11 @@ export class GitHub {
           return GitHub.transformData(publicData, resource.type);
         }
       } catch (err) {
-        Logger.debug("Failed to fetch public resource from GitHub", err);
+        Logger.debug(
+          "plugins",
+          "Failed to fetch public resource from GitHub",
+          err
+        );
       }
       return;
     }
@@ -272,7 +276,7 @@ export class GitHub {
   /**
    * Fetches a GitHub resource using the public API with app authentication
    * This is used as a fallback when no GitHub integration is available
-   * 
+   *
    * @param resource The parsed GitHub URL resource
    * @param appClient The authenticated GitHub app client
    * @returns The resource data or null if not found/not public
@@ -320,9 +324,9 @@ export class GitHub {
       // Handle common error cases
       if (err && typeof err === 'object' && 'status' in err) {
         if (err.status === 404) {
-          Logger.debug(`GitHub resource not found or private: ${resource.owner}/${resource.repo}#${resource.id}`);
+          Logger.debug("plugins", `GitHub resource not found or private: ${resource.owner}/${resource.repo}#${resource.id}`);
         } else if (err.status === 403) {
-          Logger.debug(`GitHub API rate limit exceeded or access denied: ${resource.owner}/${resource.repo}#${resource.id}`);
+          Logger.debug("plugins", `GitHub API rate limit exceeded or access denied: ${resource.owner}/${resource.repo}#${resource.id}`);
         }
       }
       return null;
