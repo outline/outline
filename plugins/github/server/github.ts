@@ -15,7 +15,7 @@ import {
 import Logger from "@server/logging/Logger";
 import { Integration, User } from "@server/models";
 import { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
-import fetch, { outlineUserAgent } from "@server/utils/fetch";
+
 import { GitHubUtils } from "../shared/GitHubUtils";
 import env from "./env";
 
@@ -241,7 +241,8 @@ export class GitHub {
     if (!integration) {
       // Fallback: Try to fetch public repository data using GitHub's public API
       try {
-        const publicData = await GitHub.fetchPublicResource(resource);
+        const appClient = GitHub.authenticateAsApp();
+        const publicData = await GitHub.fetchPublicResource(resource, appClient);
         if (publicData) {
           return GitHub.transformData(publicData, resource.type);
         }
@@ -269,48 +270,63 @@ export class GitHub {
   };
 
   /**
-   * Fetches a GitHub resource using the public API (no authentication required)
+   * Fetches a GitHub resource using the public API with app authentication
    * This is used as a fallback when no GitHub integration is available
    * 
    * @param resource The parsed GitHub URL resource
+   * @param appClient The authenticated GitHub app client
    * @returns The resource data or null if not found/not public
    */
   private static async fetchPublicResource(
-    resource: NonNullable<ReturnType<typeof GitHub.parseUrl>>
+    resource: NonNullable<ReturnType<typeof GitHub.parseUrl>>,
+    appClient: Octokit
   ): Promise<Issue | PR | null> {
-    const baseUrl = "https://api.github.com";
-    let endpoint: string;
-    
-    switch (resource.type) {
-      case UnfurlResourceType.Issue:
-        endpoint = `/repos/${resource.owner}/${resource.repo}/issues/${resource.id}`;
-        break;
-      case UnfurlResourceType.PR:
-        endpoint = `/repos/${resource.owner}/${resource.repo}/pulls/${resource.id}`;
-        break;
-      default:
-        return null;
-    }
-
-    const response = await fetch(`${baseUrl}${endpoint}`, {
-      headers: {
-        Accept: "application/vnd.github.text+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-        "User-Agent": outlineUserAgent,
-      },
-    });
-
-    if (!response.ok) {
+    try {
+      switch (resource.type) {
+        case UnfurlResourceType.Issue: {
+          const issueResponse = await appClient.request(
+            "GET /repos/{owner}/{repo}/issues/{issue_number}",
+            {
+              owner: resource.owner,
+              repo: resource.repo,
+              issue_number: resource.id,
+              headers: {
+                Accept: "application/vnd.github.text+json",
+                "X-GitHub-Api-Version": "2022-11-28",
+              },
+            }
+          );
+          return issueResponse.data;
+        }
+        case UnfurlResourceType.PR: {
+          const prResponse = await appClient.request(
+            "GET /repos/{owner}/{repo}/pulls/{pull_number}",
+            {
+              owner: resource.owner,
+              repo: resource.repo,
+              pull_number: resource.id,
+              headers: {
+                Accept: "application/vnd.github.text+json",
+                "X-GitHub-Api-Version": "2022-11-28",
+              },
+            }
+          );
+          return prResponse.data;
+        }
+        default:
+          return null;
+      }
+    } catch (err: unknown) {
       // Handle common error cases
-      if (response.status === 404) {
-        Logger.debug(`GitHub resource not found or private: ${endpoint}`);
-      } else if (response.status === 403) {
-        Logger.debug(`GitHub API rate limit exceeded or access denied: ${endpoint}`);
+      if (err && typeof err === 'object' && 'status' in err) {
+        if (err.status === 404) {
+          Logger.debug(`GitHub resource not found or private: ${resource.owner}/${resource.repo}#${resource.id}`);
+        } else if (err.status === 403) {
+          Logger.debug(`GitHub API rate limit exceeded or access denied: ${resource.owner}/${resource.repo}#${resource.id}`);
+        }
       }
       return null;
     }
-
-    return await response.json();
   }
 
   private static transformData(data: Issue | PR, type: UnfurlResourceType) {
