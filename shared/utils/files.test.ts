@@ -1,17 +1,19 @@
 import { bytesToHumanReadable, getFileNameFromUrl } from "./files";
 
 describe("bytesToHumanReadable", () => {
-  it("outputs readable string", () => {
+  it("outputs readable string using binary units", () => {
     expect(bytesToHumanReadable(0)).toBe("0 Bytes");
     expect(bytesToHumanReadable(0.0)).toBe("0 Bytes");
     expect(bytesToHumanReadable(33)).toBe("33 Bytes");
     expect(bytesToHumanReadable(500)).toBe("500 Bytes");
-    expect(bytesToHumanReadable(1000)).toBe("1 kB");
-    expect(bytesToHumanReadable(15000)).toBe("15 kB");
-    expect(bytesToHumanReadable(12345)).toBe("12.34 kB");
-    expect(bytesToHumanReadable(123456)).toBe("123.45 kB");
-    expect(bytesToHumanReadable(1234567)).toBe("1.23 MB");
-    expect(bytesToHumanReadable(1234567890)).toBe("1.23 GB");
+    expect(bytesToHumanReadable(1000)).toBe("1000 Bytes");
+    expect(bytesToHumanReadable(1024)).toBe("1 KB");
+    expect(bytesToHumanReadable(1536)).toBe("1.5 KB");
+    expect(bytesToHumanReadable(15360)).toBe("15 KB");
+    expect(bytesToHumanReadable(12345)).toBe("12.06 KB");
+    expect(bytesToHumanReadable(126464)).toBe("123.5 KB");
+    expect(bytesToHumanReadable(1048576)).toBe("1 MB");
+    expect(bytesToHumanReadable(1291845632)).toBe("1.2 GB");
     expect(bytesToHumanReadable(undefined)).toBe("0 Bytes");
   });
 });

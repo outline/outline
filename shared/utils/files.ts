@@ -1,5 +1,5 @@
 /**
- * Converts bytes to human readable string for display
+ * Converts bytes to human readable string for display using binary units
  *
  * @param bytes filesize in bytes
  * @returns Human readable filesize as a string
@@ -9,19 +9,19 @@ export function bytesToHumanReadable(bytes: number | undefined) {
     return "0 Bytes";
   }
 
-  const out = ("0".repeat((bytes.toString().length * 2) % 3) + bytes).match(
-    /.{3}/g
-  );
-
-  if (!out || bytes < 1000) {
+  if (bytes < 1024) {
     return bytes + " Bytes";
   }
 
-  const f = (out[1] ?? "").substring(0, 2);
-
-  return `${Number(out[0])}${f === "00" ? "" : `.${f}`} ${
-    "  kMGTPEZY"[out.length]
-  }B`;
+  const units = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+  const base = 1024;
+  const exponent = Math.floor(Math.log(bytes) / Math.log(base));
+  const value = bytes / Math.pow(base, exponent);
+  
+  // Format to 2 decimal places and remove trailing zeros
+  const formatted = parseFloat(value.toFixed(2));
+  
+  return `${formatted} ${units[exponent]}`;
 }
 
 /**
