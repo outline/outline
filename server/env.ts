@@ -756,6 +756,17 @@ export class Environment {
     this.toOptionalNumber(environment.WEBHOOK_FAILURE_RATE_THRESHOLD) ?? 80;
 
   /**
+   * Comma-separated list of IP addresses that are allowed to be accessed
+   * even if they are private IP addresses. This is useful for allowing
+   * connections to OIDC providers or webhooks on private networks.
+   * Example: "10.0.0.1,192.168.1.100"
+   */
+  @IsOptional()
+  public ALLOW_IP_ADDRESS_LIST = this.toOptionalCommaList(
+    environment.ALLOW_IP_ADDRESS_LIST
+  );
+
+  /**
    * The product name
    */
   @Public
