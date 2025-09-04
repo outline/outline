@@ -762,8 +762,8 @@ export class Environment {
    * Example: "10.0.0.1,192.168.1.100"
    */
   @IsOptional()
-  public ALLOW_IP_ADDRESS_LIST = this.toOptionalCommaList(
-    environment.ALLOW_IP_ADDRESS_LIST
+  public ALLOWED_PRIVATE_IP_ADDRESSES = this.toOptionalCommaList(
+    environment.ALLOWED_PRIVATE_IP_ADDRESSES
   );
 
   /**

@@ -153,7 +153,7 @@ function buildAgent(
   // Add allowIPAddressList from environment configuration
   const filteringOptions = {
     ...agentOptions,
-    allowIPAddressList: env.ALLOW_IP_ADDRESS_LIST,
+    allowIPAddressList: env.ALLOWED_PRIVATE_IP_ADDRESSES,
   };
 
   if (proxyURL) {
