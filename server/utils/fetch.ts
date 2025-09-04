@@ -150,6 +150,12 @@ function buildAgent(
   const proxyURL = getProxyForUrl(parsedURL.href);
   let agent: https.Agent | http.Agent | undefined;
 
+  // Add allowIPAddressList from environment configuration
+  const filteringOptions = {
+    ...agentOptions,
+    allowIPAddressList: env.ALLOWED_PRIVATE_IP_ADDRESSES,
+  };
+
   if (proxyURL) {
     const parsedProxyURL = parseProxy(parsedURL, proxyURL);
 
@@ -171,15 +177,15 @@ function buildAgent(
         proxyURL.username = parsedProxyURL.username;
         proxyURL.password = parsedProxyURL.password;
       }
-      agent = useFilteringAgent(proxyURL.toString(), agentOptions);
+      agent = useFilteringAgent(proxyURL.toString(), filteringOptions);
     } else {
       // Note request filtering agent does not support https tunneling via a proxy
       agent =
         buildTunnel(parsedProxyURL, agentOptions) ||
-        useFilteringAgent(parsedURL.toString(), agentOptions);
+        useFilteringAgent(parsedURL.toString(), filteringOptions);
     }
   } else {
-    agent = useFilteringAgent(parsedURL.toString(), agentOptions);
+    agent = useFilteringAgent(parsedURL.toString(), filteringOptions);
   }
 
   if (options.signal) {
