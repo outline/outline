@@ -15,6 +15,7 @@ import {
 import Logger from "@server/logging/Logger";
 import { Integration, User } from "@server/models";
 import { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
+import fetch, { outlineUserAgent } from "@server/utils/fetch";
 import { GitHubUtils } from "../shared/GitHubUtils";
 import env from "./env";
 
@@ -238,6 +239,15 @@ export class GitHub {
     })) as Integration<IntegrationType.Embed>;
 
     if (!integration) {
+      // Fallback: Try to fetch public repository data using GitHub's public API
+      try {
+        const publicData = await GitHub.fetchPublicResource(resource);
+        if (publicData) {
+          return GitHub.transformData(publicData, resource.type);
+        }
+      } catch (err) {
+        Logger.debug("Failed to fetch public resource from GitHub", err);
+      }
       return;
     }
 
@@ -257,6 +267,51 @@ export class GitHub {
       return { error: err.message || "Unknown error" };
     }
   };
+
+  /**
+   * Fetches a GitHub resource using the public API (no authentication required)
+   * This is used as a fallback when no GitHub integration is available
+   * 
+   * @param resource The parsed GitHub URL resource
+   * @returns The resource data or null if not found/not public
+   */
+  private static async fetchPublicResource(
+    resource: NonNullable<ReturnType<typeof GitHub.parseUrl>>
+  ): Promise<Issue | PR | null> {
+    const baseUrl = "https://api.github.com";
+    let endpoint: string;
+    
+    switch (resource.type) {
+      case UnfurlResourceType.Issue:
+        endpoint = `/repos/${resource.owner}/${resource.repo}/issues/${resource.id}`;
+        break;
+      case UnfurlResourceType.PR:
+        endpoint = `/repos/${resource.owner}/${resource.repo}/pulls/${resource.id}`;
+        break;
+      default:
+        return null;
+    }
+
+    const response = await fetch(`${baseUrl}${endpoint}`, {
+      headers: {
+        Accept: "application/vnd.github.text+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": outlineUserAgent,
+      },
+    });
+
+    if (!response.ok) {
+      // Handle common error cases
+      if (response.status === 404) {
+        Logger.debug(`GitHub resource not found or private: ${endpoint}`);
+      } else if (response.status === 403) {
+        Logger.debug(`GitHub API rate limit exceeded or access denied: ${endpoint}`);
+      }
+      return null;
+    }
+
+    return await response.json();
+  }
 
   private static transformData(data: Issue | PR, type: UnfurlResourceType) {
     if (type === UnfurlResourceType.Issue) {
