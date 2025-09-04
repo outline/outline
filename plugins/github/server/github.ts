@@ -246,7 +246,7 @@ export class GitHub {
         if (publicData) {
           return GitHub.transformData(publicData, resource.type);
         }
-      } catch (err) {
+      } catch (err: unknown) {
         Logger.debug(
           "plugins",
           "Failed to fetch public resource from GitHub",
@@ -267,9 +267,13 @@ export class GitHub {
       }
 
       return GitHub.transformData(res.data, resource.type);
-    } catch (err) {
+    } catch (err: unknown) {
       Logger.warn("Failed to fetch resource from GitHub", err);
-      return { error: err.message || "Unknown error" };
+      return { 
+        error: err && typeof err === 'object' && 'message' in err 
+          ? (err.message as string) || "Unknown error"
+          : "Unknown error" 
+      };
     }
   };
 
