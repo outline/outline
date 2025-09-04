@@ -242,16 +242,17 @@ export class GitHub {
       // Fallback: Try to fetch public repository data using GitHub's public API
       try {
         const appClient = GitHub.authenticateAsApp();
-        const publicData = await GitHub.fetchPublicResource(resource, appClient);
+        const publicData = await GitHub.fetchPublicResource(
+          resource,
+          appClient
+        );
         if (publicData) {
           return GitHub.transformData(publicData, resource.type);
         }
       } catch (err: unknown) {
-        Logger.debug(
-          "plugins",
-          "Failed to fetch public resource from GitHub",
-          err
-        );
+        Logger.debug("plugins", "Failed to fetch public resource from GitHub", {
+          error: err,
+        });
       }
       return;
     }
@@ -268,11 +269,12 @@ export class GitHub {
 
       return GitHub.transformData(res.data, resource.type);
     } catch (err: unknown) {
-      Logger.warn("Failed to fetch resource from GitHub", err);
-      return { 
-        error: err && typeof err === 'object' && 'message' in err 
-          ? (err.message as string) || "Unknown error"
-          : "Unknown error" 
+      Logger.warn("Failed to fetch resource from GitHub", { error: err });
+      return {
+        error:
+          err && typeof err === "object" && "message" in err
+            ? (err.message as string) || "Unknown error"
+            : "Unknown error",
       };
     }
   };
@@ -326,11 +328,17 @@ export class GitHub {
       }
     } catch (err: unknown) {
       // Handle common error cases
-      if (err && typeof err === 'object' && 'status' in err) {
+      if (err && typeof err === "object" && "status" in err) {
         if (err.status === 404) {
-          Logger.debug("plugins", `GitHub resource not found or private: ${resource.owner}/${resource.repo}#${resource.id}`);
+          Logger.debug(
+            "plugins",
+            `GitHub resource not found or private: ${resource.owner}/${resource.repo}#${resource.id}`
+          );
         } else if (err.status === 403) {
-          Logger.debug("plugins", `GitHub API rate limit exceeded or access denied: ${resource.owner}/${resource.repo}#${resource.id}`);
+          Logger.debug(
+            "plugins",
+            `GitHub API rate limit exceeded or access denied: ${resource.owner}/${resource.repo}#${resource.id}`
+          );
         }
       }
       return null;
