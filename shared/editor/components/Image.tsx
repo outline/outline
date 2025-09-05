@@ -81,7 +81,7 @@ const Image = (props: Props) => {
   };
 
   const handleImageClick = (ev: React.MouseEvent<HTMLDivElement>) => {
-    if (isSelected) {
+    if (!isEditable || isSelected) {
       ev.preventDefault();
       ui.setActiveLightboxImgPos(getPos());
     }

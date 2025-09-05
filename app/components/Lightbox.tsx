@@ -517,7 +517,7 @@ function Lightbox() {
             }
             onSwipeRight={prev}
             onSwipeLeft={next}
-            onSwipeDown={close}
+            onSwipeUpOrDown={close}
             status={status}
             animation={animation.current}
           />
@@ -542,7 +542,7 @@ type ImageProps = {
   onError: () => void;
   onSwipeRight: () => void;
   onSwipeLeft: () => void;
-  onSwipeDown: () => void;
+  onSwipeUpOrDown: () => void;
   status: Status;
   animation: Animation | null;
 };
@@ -556,7 +556,7 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function _Image(
     onError,
     onSwipeRight,
     onSwipeLeft,
-    onSwipeDown,
+    onSwipeUpOrDown,
     status,
     animation,
   }: ImageProps,
@@ -590,8 +590,9 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function _Image(
     }
 
     const swipeDown = dy > 0 && Math.abs(dy) > Math.abs(dx);
-    if (swipeDown) {
-      return onSwipeDown();
+    const swipeUp = dy < 0 && Math.abs(dy) > Math.abs(dx);
+    if (swipeUp || swipeDown) {
+      return onSwipeUpOrDown();
     }
   };
 

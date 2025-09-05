@@ -509,7 +509,6 @@ iframe.embed {
 
   .ProseMirror-selectednode img {
     pointer-events: initial;
-    cursor: zoom-in;
   }
 }
 
@@ -693,6 +692,9 @@ img.ProseMirror-separator {
 .component-image + img.ProseMirror-separator,
 .component-image + img.ProseMirror-separator + br.ProseMirror-trailingBreak {
   display: none;
+}
+.component-image img {
+  cursor: zoom-in;
 }
 
 .${EditorStyleHelper.imageCaption} {
