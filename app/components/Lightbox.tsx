@@ -24,27 +24,25 @@ import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { useTranslation } from "react-i18next";
 import Tooltip from "~/components/Tooltip";
 import LoadingIndicator from "./LoadingIndicator";
+import Fade from "./Fade";
 
-namespace Status {
-  export enum Lightbox {
-    READY_TO_OPEN,
-    OPENING,
-    OPENED,
-    READY_TO_CLOSE,
-    CLOSING,
-    CLOSED,
-  }
-
-  export enum Image {
-    LOADING,
-    ERROR,
-    LOADED,
-  }
+export enum LightboxStatus {
+  READY_TO_OPEN,
+  OPENING,
+  OPENED,
+  READY_TO_CLOSE,
+  CLOSING,
+  CLOSED,
 }
 
+export enum ImageStatus {
+  LOADING,
+  ERROR,
+  LOADED,
+}
 type Status = {
-  lightbox: Status.Lightbox | null;
-  image: Status.Image | null;
+  lightbox: LightboxStatus | null;
+  image: ImageStatus | null;
 };
 
 type Animation = {
@@ -91,7 +89,7 @@ function Lightbox() {
   // Debugging status changes
   // useEffect(() => {
   //   console.log(
-  //     `lstat:${status.lightbox === null ? status.lightbox : Status.Lightbox[status.lightbox]}, istat:${status.image === null ? status.image : Status.Image[status.image]}`
+  //     `lstat:${status.lightbox === null ? status.lightbox : LightboxStatus[status.lightbox]}, istat:${status.image === null ? status.image : ImageStatus[status.image]}`
   //   );
   // }, [status]);
 
@@ -100,45 +98,45 @@ function Lightbox() {
   useEffect(() => {
     !!activeLightboxImgPos &&
       setStatus({
-        lightbox: Status.Lightbox.READY_TO_OPEN,
+        lightbox: LightboxStatus.READY_TO_OPEN,
         image: status.image,
       });
   }, [!!activeLightboxImgPos]);
 
   useEffect(() => {
-    if (status.image === Status.Image.LOADED) {
+    if (status.image === ImageStatus.LOADED) {
       rememberImagePosition();
     }
   }, [status.image]);
 
   useEffect(() => {
     if (
-      (status.image === Status.Image.ERROR ||
-        status.image === Status.Image.LOADED) &&
-      status.lightbox === Status.Lightbox.READY_TO_OPEN
+      (status.image === ImageStatus.ERROR ||
+        status.image === ImageStatus.LOADED) &&
+      status.lightbox === LightboxStatus.READY_TO_OPEN
     ) {
       setupFadeIn();
       setupZoomIn();
       setStatus({
-        lightbox: Status.Lightbox.OPENING,
+        lightbox: LightboxStatus.OPENING,
         image: status.image,
       });
     }
   }, [status.image, status.lightbox]);
 
   useEffect(() => {
-    if (status.lightbox === Status.Lightbox.READY_TO_CLOSE) {
+    if (status.lightbox === LightboxStatus.READY_TO_CLOSE) {
       setupFadeOut();
       setupZoomOut();
       setStatus({
-        lightbox: Status.Lightbox.CLOSING,
+        lightbox: LightboxStatus.CLOSING,
         image: status.image,
       });
     }
   }, [status.lightbox]);
 
   useEffect(() => {
-    if (status.lightbox === Status.Lightbox.CLOSED) {
+    if (status.lightbox === LightboxStatus.CLOSED) {
       ui.setActiveLightboxImgPos(undefined);
     }
   }, [status.lightbox]);
@@ -355,7 +353,7 @@ function Lightbox() {
   }
 
   const prev = () => {
-    if (status.lightbox === Status.Lightbox.OPENED) {
+    if (status.lightbox === LightboxStatus.OPENED) {
       if (!activeLightboxImgPos) {
         return;
       }
@@ -369,7 +367,7 @@ function Lightbox() {
   };
 
   const next = () => {
-    if (status.lightbox === Status.Lightbox.OPENED) {
+    if (status.lightbox === LightboxStatus.OPENED) {
       if (!activeLightboxImgPos) {
         return;
       }
@@ -384,18 +382,18 @@ function Lightbox() {
 
   const close = () => {
     if (
-      status.lightbox === Status.Lightbox.OPENING ||
-      status.lightbox === Status.Lightbox.OPENED
+      status.lightbox === LightboxStatus.OPENING ||
+      status.lightbox === LightboxStatus.OPENED
     ) {
       setStatus({
-        lightbox: Status.Lightbox.READY_TO_CLOSE,
+        lightbox: LightboxStatus.READY_TO_CLOSE,
         image: status.image,
       });
     }
   };
 
   const download = () => {
-    if (status.lightbox === Status.Lightbox.OPENED) {
+    if (status.lightbox === LightboxStatus.OPENED) {
       void downloadImageNode(currentImageNode);
     }
   };
@@ -434,12 +432,12 @@ function Lightbox() {
         startTime: undefined,
       };
       setStatus({
-        lightbox: Status.Lightbox.OPENED,
+        lightbox: LightboxStatus.OPENED,
         image: status.image,
       });
     } else if (animation.current?.fadeOut) {
       setStatus({
-        lightbox: Status.Lightbox.CLOSED,
+        lightbox: LightboxStatus.CLOSED,
         image: null,
       });
     }
@@ -458,18 +456,28 @@ function Lightbox() {
           <VisuallyHidden.Root>
             <Dialog.Title>{t("Lightbox")}</Dialog.Title>
             <Dialog.Description>
-              {t("View, navigate or download images contained in the doc")}
+              {t("View, navigate, or download images in the document")}
             </Dialog.Description>
           </VisuallyHidden.Root>
           <Actions animation={animation.current}>
             <Tooltip content={t("Download")} placement="bottom">
-              <StyledActionButton tabIndex={-1} onClick={download} size={32}>
+              <StyledActionButton
+                tabIndex={-1}
+                onClick={download}
+                size={32}
+                aria-label={t("Download")}
+              >
                 <DownloadIcon size={32} />
               </StyledActionButton>
             </Tooltip>
             <Dialog.Close asChild>
               <Tooltip content={t("Close")} shortcut="Esc" placement="bottom">
-                <StyledActionButton tabIndex={-1} onClick={close} size={32}>
+                <StyledActionButton
+                  tabIndex={-1}
+                  onClick={close}
+                  size={32}
+                  aria-label={t("Close")}
+                >
                   <CloseIcon size={32} />
                 </StyledActionButton>
               </Tooltip>
@@ -477,7 +485,11 @@ function Lightbox() {
           </Actions>
           {currentImageIndex > 0 && (
             <Nav dir="left" $hidden={isIdle} animation={animation.current}>
-              <StyledNavButton onClick={prev} size={32}>
+              <StyledNavButton
+                onClick={prev}
+                size={32}
+                aria-label={t("Previous")}
+              >
                 <BackIcon size={32} />
               </StyledNavButton>
             </Nav>
@@ -489,19 +501,19 @@ function Lightbox() {
             onLoading={() =>
               setStatus({
                 lightbox: status.lightbox,
-                image: Status.Image.LOADING,
+                image: ImageStatus.LOADING,
               })
             }
             onLoad={() =>
               setStatus({
                 lightbox: status.lightbox,
-                image: Status.Image.LOADED,
+                image: ImageStatus.LOADED,
               })
             }
             onError={() =>
               setStatus({
                 lightbox: status.lightbox,
-                image: Status.Image.ERROR,
+                image: ImageStatus.ERROR,
               })
             }
             onSwipeRight={prev}
@@ -512,7 +524,7 @@ function Lightbox() {
           />
           {currentImageIndex < imageNodes.length - 1 && (
             <Nav dir="right" $hidden={isIdle} animation={animation.current}>
-              <StyledNavButton onClick={next} size={32}>
+              <StyledNavButton onClick={next} size={32} aria-label={t("Next")}>
                 <NextIcon size={32} />
               </StyledNavButton>
             </Nav>
@@ -523,7 +535,7 @@ function Lightbox() {
   );
 }
 
-type Props = {
+type ImageProps = {
   src: string;
   alt: string;
   onLoading: () => void;
@@ -536,7 +548,7 @@ type Props = {
   animation: Animation | null;
 };
 
-const Image = forwardRef<HTMLImageElement, Props>(function _Image(
+const Image = forwardRef<HTMLImageElement, ImageProps>(function _Image(
   {
     src,
     alt,
@@ -548,9 +560,10 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
     onSwipeDown,
     status,
     animation,
-  }: Props,
+  }: ImageProps,
   ref
 ) {
+  const { t } = useTranslation();
   let touchXStart: number | undefined;
   let touchXEnd: number | undefined;
   let touchYStart: number | undefined;
@@ -598,7 +611,7 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
   };
 
   const [hidden, setHidden] = useState(
-    status.image === null || status.image === Status.Image.LOADING
+    status.image === null || status.image === ImageStatus.LOADING
   );
 
   useEffect(() => {
@@ -606,20 +619,20 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
   }, [src]);
 
   useEffect(() => {
-    if (status.image === null || status.image === Status.Image.LOADING) {
+    if (status.image === null || status.image === ImageStatus.LOADING) {
       setHidden(true);
-    } else if (status.image === Status.Image.LOADED) {
+    } else if (status.image === ImageStatus.LOADED) {
       setHidden(false);
     }
   }, [status.image]);
 
-  return status.image === Status.Image.ERROR ? (
+  return status.image === ImageStatus.ERROR ? (
     <StyledError animation={animation}>
-      <CrossIcon size={16} /> Image failed to load
+      <CrossIcon size={16} /> {t("Image failed to load")}
     </StyledError>
   ) : (
     <>
-      {status.image === Status.Image.LOADING && <LoadingIndicator />}
+      {status.image === ImageStatus.LOADING && <LoadingIndicator />}
       <Figure>
         <StyledImg
           ref={ref}
@@ -636,10 +649,10 @@ const Image = forwardRef<HTMLImageElement, Props>(function _Image(
           $hidden={hidden}
         />
         <Caption>
-          {status.image === Status.Image.LOADED &&
-          status.lightbox === Status.Lightbox.OPENED
-            ? alt
-            : ""}
+          {status.image === ImageStatus.LOADED &&
+          status.lightbox === LightboxStatus.OPENED ? (
+            <Fade>{alt}</Fade>
+          ) : null}
         </Caption>
       </Figure>
     </>
@@ -660,6 +673,7 @@ const Caption = styled("figcaption")`
   font-size: 14px;
   min-height: 1.5em;
   font-weight: normal;
+  margin-top: 8px;
   color: ${s("textSecondary")};
   flex-shrink: 0;
 `;
