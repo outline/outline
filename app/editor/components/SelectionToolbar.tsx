@@ -221,7 +221,7 @@ export default function SelectionToolbar(props: Props) {
   } else if (isNoticeSelection && selection.empty) {
     items = getNoticeMenuItems(state, readOnly, dictionary);
   } else {
-    items = getFormattingMenuItems(state, isTemplate, isMobile, dictionary);
+    items = getFormattingMenuItems(state, isTemplate, dictionary);
   }
 
   // Some extensions may be disabled, remove corresponding items
