@@ -30,17 +30,22 @@ import { MenuItem } from "@shared/editor/types";
 import { metaDisplay } from "@shared/utils/keyboard";
 import CircleIcon from "~/components/Icons/CircleIcon";
 import { Dictionary } from "~/hooks/useDictionary";
+import {
+  isMobile as isMobileDevice,
+  isTouchDevice,
+} from "@shared/utils/browser";
 
 export default function formattingMenuItems(
   state: EditorState,
   isTemplate: boolean,
-  isMobile: boolean,
   dictionary: Dictionary
 ): MenuItem[] {
   const { schema } = state;
   const isCode = isInCode(state);
   const isCodeBlock = isInCode(state, { onlyBlock: true });
   const isEmpty = state.selection.empty;
+  const isMobile = isMobileDevice();
+  const isTouch = isTouchDevice();
 
   const highlight = getMarksBetween(
     state.selection.from,
@@ -198,7 +203,7 @@ export default function formattingMenuItems(
       shortcut: `⇧+Tab`,
       icon: <OutdentIcon />,
       visible:
-        isMobile && isInList(state, { types: ["ordered_list", "bullet_list"] }),
+        isTouch && isInList(state, { types: ["ordered_list", "bullet_list"] }),
     },
     {
       name: "indentList",
@@ -206,21 +211,21 @@ export default function formattingMenuItems(
       shortcut: `Tab`,
       icon: <IndentIcon />,
       visible:
-        isMobile && isInList(state, { types: ["ordered_list", "bullet_list"] }),
+        isTouch && isInList(state, { types: ["ordered_list", "bullet_list"] }),
     },
     {
       name: "outdentCheckboxList",
       tooltip: dictionary.outdent,
       shortcut: `⇧+Tab`,
       icon: <OutdentIcon />,
-      visible: isMobile && isInList(state, { types: ["checkbox_list"] }),
+      visible: isTouch && isInList(state, { types: ["checkbox_list"] }),
     },
     {
       name: "indentCheckboxList",
       tooltip: dictionary.indent,
       shortcut: `Tab`,
       icon: <IndentIcon />,
-      visible: isMobile && isInList(state, { types: ["checkbox_list"] }),
+      visible: isTouch && isInList(state, { types: ["checkbox_list"] }),
     },
     {
       name: "separator",
