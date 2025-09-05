@@ -64,6 +64,9 @@ function Lightbox() {
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const { activeLightboxImgPos } = ui;
   const [status, setStatus] = useState<Status>({ lightbox: null, image: null });
+  const [imageElements] = useState(
+    view.dom.querySelectorAll(".component-image img")
+  );
   const animation = useRef<Animation | null>(null);
   const finalImage = useRef<{
     center: { x: number; y: number };
@@ -165,9 +168,7 @@ function Lightbox() {
   const setupZoomIn = () => {
     if (imgRef.current) {
       // in editor
-      const editorImageEl = view.dom.querySelectorAll(".component-image img")[
-        currentImageIndex
-      ];
+      const editorImageEl = imageElements[currentImageIndex];
       const editorImgDOMRect = editorImageEl.getBoundingClientRect();
       const {
         top: editorImgTop,
@@ -275,9 +276,7 @@ function Lightbox() {
       };
 
       // in editor
-      const editorImageEl = view.dom.querySelectorAll(".component-image img")[
-        currentImageIndex
-      ];
+      const editorImageEl = imageElements[currentImageIndex];
       let to;
       if (editorImageEl) {
         const editorImgDOMRect = editorImageEl.getBoundingClientRect();
