@@ -73,6 +73,21 @@ function Lightbox() {
     height: number;
   } | null>(null);
 
+  const imageNodes = useMemo(
+    () =>
+      findChildren(
+        view.state.doc,
+        (child) => child.type === view.state.schema.nodes.image,
+        true
+      ),
+    []
+  );
+  const currentImageIndex = findIndex(
+    imageNodes,
+    (node) => node.pos === activeLightboxImgPos
+  );
+  const currentImageNode = imageNodes[currentImageIndex].node;
+
   // Debugging status changes
   // useEffect(() => {
   //   console.log(
@@ -152,10 +167,9 @@ function Lightbox() {
   const setupZoomIn = () => {
     if (imgRef.current) {
       // in editor
-      const imgSrc = imgRef.current.src;
-      const imgUrlObj = new URL(imgSrc);
-      const imgPath = imgUrlObj.pathname.concat(imgUrlObj.search);
-      const editorImageEl = view.dom.querySelector(`img[src="${imgPath}"]`)!;
+      const editorImageEl = view.dom.querySelectorAll(".component-image img")[
+        currentImageIndex
+      ];
       const editorImgDOMRect = editorImageEl.getBoundingClientRect();
       const {
         top: editorImgTop,
@@ -263,10 +277,9 @@ function Lightbox() {
       };
 
       // in editor
-      const imgSrc = imgRef.current.src;
-      const imgUrlObj = new URL(imgSrc);
-      const imgPath = imgUrlObj.pathname.concat(imgUrlObj.search);
-      const editorImageEl = view.dom.querySelector(`img[src="${imgPath}"]`);
+      const editorImageEl = view.dom.querySelectorAll(".component-image img")[
+        currentImageIndex
+      ];
       let to;
       if (editorImageEl) {
         const editorImgDOMRect = editorImageEl.getBoundingClientRect();
@@ -341,31 +354,12 @@ function Lightbox() {
     return null;
   }
 
-  const imageNodes = useMemo(
-    () =>
-      findChildren(
-        view.state.doc,
-        (child) => child.type === view.state.schema.nodes.image,
-        true
-      ),
-    []
-  );
-  const currNodeIndex = findIndex(
-    imageNodes,
-    (node) => node.pos === activeLightboxImgPos
-  );
-  const currImgNode = imageNodes[currNodeIndex].node;
-
   const prev = () => {
     if (status.lightbox === Status.Lightbox.OPENED) {
       if (!activeLightboxImgPos) {
         return;
       }
-      const currentIndex = findIndex(
-        imageNodes,
-        (node) => node.pos === activeLightboxImgPos
-      );
-      const prevIndex = currentIndex - 1;
+      const prevIndex = currentImageIndex - 1;
       if (prevIndex < 0) {
         return;
       }
@@ -379,11 +373,7 @@ function Lightbox() {
       if (!activeLightboxImgPos) {
         return;
       }
-      const currentIndex = findIndex(
-        imageNodes,
-        (node) => node.pos === activeLightboxImgPos
-      );
-      const nextIndex = currentIndex + 1;
+      const nextIndex = currentImageIndex + 1;
       if (nextIndex >= imageNodes.length) {
         return;
       }
@@ -406,7 +396,7 @@ function Lightbox() {
 
   const download = () => {
     if (status.lightbox === Status.Lightbox.OPENED) {
-      void downloadImageNode(currImgNode);
+      void downloadImageNode(currentImageNode);
     }
   };
 
@@ -485,7 +475,7 @@ function Lightbox() {
               </Tooltip>
             </Dialog.Close>
           </Actions>
-          {currNodeIndex > 0 && (
+          {currentImageIndex > 0 && (
             <Nav dir="left" $hidden={isIdle} animation={animation.current}>
               <StyledNavButton onClick={prev} size={32}>
                 <BackIcon size={32} />
@@ -494,8 +484,8 @@ function Lightbox() {
           )}
           <Image
             ref={imgRef}
-            src={sanitizeUrl(currImgNode.attrs.src) ?? ""}
-            alt={currImgNode.attrs.alt ?? ""}
+            src={sanitizeUrl(currentImageNode.attrs.src) ?? ""}
+            alt={currentImageNode.attrs.alt ?? ""}
             onLoading={() =>
               setStatus({
                 lightbox: status.lightbox,
@@ -520,7 +510,7 @@ function Lightbox() {
             status={status}
             animation={animation.current}
           />
-          {currNodeIndex < imageNodes.length - 1 && (
+          {currentImageIndex < imageNodes.length - 1 && (
             <Nav dir="right" $hidden={isIdle} animation={animation.current}>
               <StyledNavButton onClick={next} size={32}>
                 <NextIcon size={32} />
