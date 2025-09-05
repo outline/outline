@@ -1,5 +1,8 @@
+import { isMac } from "./browser";
+
 /**
- * Converts bytes to human readable string for display using binary units
+ * Converts bytes to human readable string for display
+ * Uses binary units (1024-based) on Windows and decimal units (1000-based) on macOS
  *
  * @param bytes filesize in bytes
  * @returns Human readable filesize as a string
@@ -9,18 +12,22 @@ export function bytesToHumanReadable(bytes: number | undefined) {
     return "0 Bytes";
   }
 
-  if (bytes < 1024) {
+  // Use decimal units (base 1000) on macOS, binary units (base 1024) on other platforms
+  const useMacUnits = isMac();
+  const base = useMacUnits ? 1000 : 1024;
+  const threshold = useMacUnits ? 1000 : 1024;
+
+  if (bytes < threshold) {
     return bytes + " Bytes";
   }
 
   const units = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
-  const base = 1024;
   const exponent = Math.floor(Math.log(bytes) / Math.log(base));
   const value = bytes / Math.pow(base, exponent);
-  
+
   // Format to 2 decimal places and remove trailing zeros
   const formatted = parseFloat(value.toFixed(2));
-  
+
   return `${formatted} ${units[exponent]}`;
 }
 
