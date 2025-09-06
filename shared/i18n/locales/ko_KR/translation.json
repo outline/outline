@@ -315,6 +315,12 @@
   "Permission": "권한",
   "Change Language": "언어 변경",
   "Dismiss": "닫기",
+  "Lightbox": "Lightbox",
+  "View, navigate, or download images in the document": "View, navigate, or download images in the document",
+  "Close": "닫기",
+  "Previous": "Previous",
+  "Next": "Next",
+  "Image failed to load": "Image failed to load",
   "You’re offline.": "오프라인 상태입니다.",
   "Sorry, an error occurred.": "죄송합니다. 오류가 발생했습니다.",
   "Click to retry": "클릭하여 재시도하기",
@@ -714,7 +720,6 @@
   "Deleted by {{userName}}": "{{userName}} 에 의해 삭제됨",
   "Observing {{ userName }}": "{{ userName }} 관찰중",
   "Backlinks": "백링크",
-  "Close": "닫기",
   "This document is large which may affect performance": "이 문서의 크기가 커서 성능에 영향을 줄 수 있음",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "템플릿 <em>{{ documentTitle }}</em> 을 정말 삭제하시겠습니까?",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.": "정말 <em>{{ documentTitle }}</em> 문서를 삭제하시겠습니까? 문서를 삭제하면 모든 이력이 삭제됩니다.",
@@ -1255,5 +1260,6 @@
   "{{ user }} updated {{ timeAgo }}": "{{ user }} 업데이트 됨 {{ timeAgo }}",
   "You created {{ timeAgo }}": "{{ timeAgo }} 전에 내가 생성함",
   "{{ user }} created {{ timeAgo }}": "{{ user }} 이(가) {{ timeAgo }} 전에 생성",
+  "Open": "Open",
   "Error loading data": "데이터 로딩 오류"
 }
