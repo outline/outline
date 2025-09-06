@@ -315,6 +315,12 @@
   "Permission": "Behörighet",
   "Change Language": "Byt språk",
   "Dismiss": "Avfärda",
+  "Lightbox": "Lightbox",
+  "View, navigate, or download images in the document": "View, navigate, or download images in the document",
+  "Close": "Stäng",
+  "Previous": "Previous",
+  "Next": "Next",
+  "Image failed to load": "Image failed to load",
   "You’re offline.": "Du är offline.",
   "Sorry, an error occurred.": "Tyvärr, ett fel har uppstått.",
   "Click to retry": "Klicka för att försöka igen",
@@ -714,7 +720,6 @@
   "Deleted by {{userName}}": "Borttagen av {{userName}}",
   "Observing {{ userName }}": "Observerar {{ userName }}",
   "Backlinks": "Bakåtlänkar",
-  "Close": "Stäng",
   "This document is large which may affect performance": "This document is large which may affect performance",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "Är du säker på att du vill ta bort mallen <em>{{ documentTitle }}</em>?",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.": "Är du säker på det? Ta bort <em>{{ documentTitle }}</em> dokumentet kommer att ta bort all dess historik</em>.",
@@ -1255,5 +1260,6 @@
   "{{ user }} updated {{ timeAgo }}": "{{ user }} uppdaterade {{ timeAgo }}",
   "You created {{ timeAgo }}": "Du skapade {{ timeAgo }}",
   "{{ user }} created {{ timeAgo }}": "{{ user }} skapade {{ timeAgo }}",
+  "Open": "Open",
   "Error loading data": "Error loading data"
 }
