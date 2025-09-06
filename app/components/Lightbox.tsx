@@ -15,7 +15,7 @@ import {
   DownloadIcon,
   NextIcon,
 } from "outline-icons";
-import { depths, s } from "@shared/styles";
+import { depths, extraArea, s } from "@shared/styles";
 import NudeButton from "./NudeButton";
 import useIdle from "~/hooks/useIdle";
 import { Second } from "@shared/utils/time";
@@ -25,6 +25,7 @@ import { useTranslation } from "react-i18next";
 import Tooltip from "~/components/Tooltip";
 import LoadingIndicator from "./LoadingIndicator";
 import Fade from "./Fade";
+import Button from "./Button";
 
 export enum LightboxStatus {
   READY_TO_OPEN,
@@ -65,7 +66,7 @@ function Lightbox() {
   const { activeLightboxImgPos } = ui;
   const [status, setStatus] = useState<Status>({ lightbox: null, image: null });
   const [imageElements] = useState(
-    view.dom.querySelectorAll(".component-image img")
+    view?.dom.querySelectorAll(".component-image img")
   );
   const animation = useRef<Animation | null>(null);
   const finalImage = useRef<{
@@ -460,37 +461,35 @@ function Lightbox() {
           </VisuallyHidden.Root>
           <Actions animation={animation.current}>
             <Tooltip content={t("Download")} placement="bottom">
-              <StyledActionButton
+              <Button
                 tabIndex={-1}
                 onClick={download}
-                size={32}
                 aria-label={t("Download")}
-              >
-                <DownloadIcon size={32} />
-              </StyledActionButton>
+                size={32}
+                icon={<DownloadIcon />}
+                borderOnHover
+                neutral
+              />
             </Tooltip>
             <Dialog.Close asChild>
               <Tooltip content={t("Close")} shortcut="Esc" placement="bottom">
-                <StyledActionButton
+                <Button
                   tabIndex={-1}
                   onClick={close}
-                  size={32}
                   aria-label={t("Close")}
-                >
-                  <CloseIcon size={32} />
-                </StyledActionButton>
+                  size={32}
+                  icon={<CloseIcon />}
+                  borderOnHover
+                  neutral
+                />
               </Tooltip>
             </Dialog.Close>
           </Actions>
           {currentImageIndex > 0 && (
             <Nav dir="left" $hidden={isIdle} animation={animation.current}>
-              <StyledNavButton
-                onClick={prev}
-                size={32}
-                aria-label={t("Previous")}
-              >
+              <NavButton onClick={prev} size={32} aria-label={t("Previous")}>
                 <BackIcon size={32} />
-              </StyledNavButton>
+              </NavButton>
             </Nav>
           )}
           <Image
@@ -523,9 +522,9 @@ function Lightbox() {
           />
           {currentImageIndex < imageNodes.length - 1 && (
             <Nav dir="right" $hidden={isIdle} animation={animation.current}>
-              <StyledNavButton onClick={next} size={32} aria-label={t("Next")}>
+              <NavButton onClick={next} size={32} aria-label={t("Next")}>
                 <NextIcon size={32} />
-              </StyledNavButton>
+              </NavButton>
             </Nav>
           )}
         </StyledContent>
@@ -742,8 +741,10 @@ const Actions = styled.div<{
   position: absolute;
   top: 0;
   right: 0;
-  margin: 12px;
+  margin: 16px 12px;
   display: flex;
+  gap: 4px;
+
   ${(props) =>
     props.animation === null
       ? css`
@@ -760,26 +761,6 @@ const Actions = styled.div<{
                 ${props.animation.fadeOut.duration}ms;
             `
           : ""}
-`;
-
-const StyledActionButton = styled(NudeButton)`
-  opacity: 0.75;
-  color: ${s("text")};
-  outline: none;
-
-  &:is(:first-child) {
-    margin-right: 6px;
-    margin-left: 0;
-  }
-
-  &:is(:last-child) {
-    margin-right: 0;
-    margin-left: 6px;
-  }
-
-  &:hover {
-    opacity: 1;
-  }
 `;
 
 const Nav = styled.div<{
@@ -830,11 +811,12 @@ const StyledError = styled(Error)<{
           : ""}
 `;
 
-const StyledNavButton = styled(NudeButton)`
-  margin: 12px;
+const NavButton = styled(NudeButton)`
+  margin: 16px;
   opacity: 0.75;
   color: ${s("text")};
   outline: none;
+  ${extraArea(12)}
 
   &:hover {
     opacity: 1;
