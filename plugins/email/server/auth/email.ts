@@ -16,6 +16,7 @@ import { VerificationCode } from "@server/utils/VerificationCode";
 import { signIn } from "@server/utils/authentication";
 import { getUserForEmailSigninToken } from "@server/utils/jwt";
 import * as T from "./schema";
+import { CSRF } from "@shared/constants";
 
 const router = new Router();
 
@@ -108,7 +109,17 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
   // and spending the token before the user clicks on it. Instead we redirect
   // to the same URL with the follow query param added from the client side.
   if (!follow) {
-    return ctx.redirectOnClient(ctx.request.href + "&follow=true", "POST");
+    const csrfToken = ctx.cookies.get(CSRF.cookieName);
+    const fields = new URLSearchParams();
+    fields.append("follow", "true");
+
+    if (csrfToken) {
+      fields.append(CSRF.fieldName, csrfToken);
+    }
+    return ctx.redirectOnClient(
+      ctx.request.href + "&" + fields.toString(),
+      "POST"
+    );
   }
 
   let user!: User;
