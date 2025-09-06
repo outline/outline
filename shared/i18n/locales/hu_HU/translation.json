@@ -315,6 +315,12 @@
   "Permission": "Jogosultságok",
   "Change Language": "Nyelv megváltoztatása",
   "Dismiss": "Bezár",
+  "Lightbox": "Lightbox",
+  "View, navigate, or download images in the document": "View, navigate, or download images in the document",
+  "Close": "Bezár",
+  "Previous": "Previous",
+  "Next": "Next",
+  "Image failed to load": "Image failed to load",
   "You’re offline.": "Az Ön állapota offline.",
   "Sorry, an error occurred.": "Elnézést, valami hiba történt.",
   "Click to retry": "Kattintson az újrapróbáláshoz",
@@ -714,7 +720,6 @@
   "Deleted by {{userName}}": "Törölte: {{userName}}",
   "Observing {{ userName }}": "Vizsgálja: {{ userName }}",
   "Backlinks": "Vissza-hivatkozások",
-  "Close": "Bezár",
   "This document is large which may affect performance": "This document is large which may affect performance",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.": "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.",
@@ -1255,5 +1260,6 @@
   "{{ user }} updated {{ timeAgo }}": "{{ user }} updated {{ timeAgo }}",
   "You created {{ timeAgo }}": "Ön hozta létre {{ timeAgo }}",
   "{{ user }} created {{ timeAgo }}": "{{ user }} created {{ timeAgo }}",
+  "Open": "Open",
   "Error loading data": "Error loading data"
 }
