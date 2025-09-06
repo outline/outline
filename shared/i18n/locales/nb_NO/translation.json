@@ -315,6 +315,12 @@
   "Permission": "Tillatelse",
   "Change Language": "Bytt språk",
   "Dismiss": "Avvis",
+  "Lightbox": "Lightbox",
+  "View, navigate, or download images in the document": "View, navigate, or download images in the document",
+  "Close": "Lukk",
+  "Previous": "Previous",
+  "Next": "Next",
+  "Image failed to load": "Image failed to load",
   "You’re offline.": "Du er frakoblet.",
   "Sorry, an error occurred.": "Beklager, det oppstod en feil.",
   "Click to retry": "Klikk for å prøve igjen",
@@ -714,7 +720,6 @@
   "Deleted by {{userName}}": "Slettet av {{userName}}",
   "Observing {{ userName }}": "Observerer {{ userName }}",
   "Backlinks": "Tilbakekoblinger",
-  "Close": "Lukk",
   "This document is large which may affect performance": "Dette dokumentet er stort og kan påvirke ytelsen",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "Er du sikker på at du vil slette <em>{{ documentTitle }}</em>-malen?",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.": "Er du sikker på det? Sletting av <em>{{ documentTitle }}</em>-dokumentet vil slette hele dens historikk</em>.",
@@ -1255,5 +1260,6 @@
   "{{ user }} updated {{ timeAgo }}": "{{ user }} oppdaterte {{ timeAgo }}",
   "You created {{ timeAgo }}": "Du opprettet {{ timeAgo }}",
   "{{ user }} created {{ timeAgo }}": "{{ user }} opprettet {{ timeAgo }}",
+  "Open": "Open",
   "Error loading data": "Feil ved lasting av data"
 }
