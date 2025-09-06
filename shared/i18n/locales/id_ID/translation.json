@@ -315,6 +315,12 @@
   "Permission": "Permission",
   "Change Language": "Ubah Bahasa",
   "Dismiss": "Menutup",
+  "Lightbox": "Lightbox",
+  "View, navigate, or download images in the document": "View, navigate, or download images in the document",
+  "Close": "Menutup",
+  "Previous": "Previous",
+  "Next": "Next",
+  "Image failed to load": "Image failed to load",
   "You’re offline.": "Anda sedang luring.",
   "Sorry, an error occurred.": "Maaf, telah terjadi kesalahan.",
   "Click to retry": "Klik untuk mencoba lagi",
@@ -714,7 +720,6 @@
   "Deleted by {{userName}}": "Dihapus oleh {{userName}}",
   "Observing {{ userName }}": "Mengamati {{ userName }}",
   "Backlinks": "Tautan balik",
-  "Close": "Menutup",
   "This document is large which may affect performance": "This document is large which may affect performance",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "Anda yakin ingin menghapus templat <em>{{ documentTitle }}</em>?",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.": "Apakah Anda yakin? Menghapus dokumen <em>{{ documentTitle }}</em> akan menghapus semua riwayatnya</em>.",
@@ -1255,5 +1260,6 @@
   "{{ user }} updated {{ timeAgo }}": "{{ user }} updated {{ timeAgo }}",
   "You created {{ timeAgo }}": "You created {{ timeAgo }}",
   "{{ user }} created {{ timeAgo }}": "{{ user }} created {{ timeAgo }}",
+  "Open": "Open",
   "Error loading data": "Error loading data"
 }
