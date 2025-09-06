@@ -55,7 +55,7 @@ const parseTitleAttribute = (tokenTitle: string): TitleAttributes => {
   return attributes;
 };
 
-const downloadImageNode = async (node: ProsemirrorNode) => {
+export const downloadImageNode = async (node: ProsemirrorNode) => {
   const image = await fetch(node.attrs.src);
   const imageBlob = await image.blob();
   const imageURL = URL.createObjectURL(imageBlob);
@@ -240,7 +240,7 @@ export default class Image extends SimpleImage {
   }
 
   handleChangeSize =
-    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    ({ node, getPos }: ComponentProps) =>
     ({ width, height }: { width: number; height?: number }) => {
       const { view, commands } = this.editor;
       const { doc, tr } = view.state;
@@ -256,7 +256,7 @@ export default class Image extends SimpleImage {
     };
 
   handleDownload =
-    ({ node }: { node: ProsemirrorNode }) =>
+    ({ node }: ComponentProps) =>
     (event: React.MouseEvent) => {
       event.preventDefault();
       event.stopPropagation();
@@ -264,7 +264,7 @@ export default class Image extends SimpleImage {
     };
 
   handleCaptionKeyDown =
-    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    ({ node, getPos }: ComponentProps) =>
     (event: React.KeyboardEvent<HTMLParagraphElement>) => {
       // Pressing Enter in the caption field should move the cursor/selection
       // below the image and create a new paragraph.
@@ -297,7 +297,7 @@ export default class Image extends SimpleImage {
     };
 
   handleCaptionBlur =
-    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    ({ node, getPos }: ComponentProps) =>
     (event: React.FocusEvent<HTMLParagraphElement>) => {
       const caption = event.currentTarget.innerText;
       if (caption === node.attrs.alt) {
@@ -316,9 +316,16 @@ export default class Image extends SimpleImage {
       view.dispatch(transaction);
     };
 
+  handleClick =
+    ({ getPos }: ComponentProps) =>
+    () => {
+      this.editor.updateActiveLightbox(getPos());
+    };
+
   component = (props: ComponentProps) => (
     <ImageComponent
       {...props}
+      onClick={this.handleClick(props)}
       onDownload={this.handleDownload(props)}
       onChangeSize={this.handleChangeSize(props)}
     >
