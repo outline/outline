@@ -315,6 +315,12 @@
   "Permission": "Berechtigung",
   "Change Language": "Sprache ändern",
   "Dismiss": "Ablehnen",
+  "Lightbox": "Lightbox",
+  "View, navigate, or download images in the document": "View, navigate, or download images in the document",
+  "Close": "Schließen",
+  "Previous": "Previous",
+  "Next": "Next",
+  "Image failed to load": "Image failed to load",
   "You’re offline.": "Du bist offline.",
   "Sorry, an error occurred.": "Tut uns leid, ein Fehler ist aufgetreten.",
   "Click to retry": "Erneut versuchen",
@@ -714,7 +720,6 @@
   "Deleted by {{userName}}": "Gelöscht von {{userName}}",
   "Observing {{ userName }}": "Beobachte {{ userName }}",
   "Backlinks": "Backlinks",
-  "Close": "Schließen",
   "This document is large which may affect performance": "Dieses Dokument ist groß und kann die Leistung negativ beeinträchtigen",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "Möchtest du die Vorlage <em>{{ documentTitle }}</em> wirklich löschen?",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.": "Bist du sicher? Durch Löschen des Dokuments <em>{{ documentTitle }}</em> wird auch der gesamte Verlauf davon gelöscht</em>.",
@@ -1255,5 +1260,6 @@
   "{{ user }} updated {{ timeAgo }}": "{{ user }} aktualisierte vor {{ timeAgo }}",
   "You created {{ timeAgo }}": "Du hast vor {{ timeAgo }} erstellt",
   "{{ user }} created {{ timeAgo }}": "{{ user }} erstellte vor {{ timeAgo }}",
+  "Open": "Open",
   "Error loading data": "Fehler beim Laden der Daten"
 }
