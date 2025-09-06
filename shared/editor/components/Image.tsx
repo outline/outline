@@ -9,6 +9,7 @@ import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { ComponentProps } from "../types";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
+import { useTranslation } from "react-i18next";
 
 type Props = ComponentProps & {
   /** Callback triggered when the image is clicked */
@@ -25,12 +26,13 @@ type Props = ComponentProps & {
 const Image = (props: Props) => {
   const { isSelected, node, isEditable, onChangeSize, onClick } = props;
   const { src, layoutClass } = node.attrs;
+  const { t } = useTranslation();
   const className = layoutClass ? `image image-${layoutClass}` : "image";
   const [loaded, setLoaded] = React.useState(false);
   const [error, setError] = React.useState(false);
   const [naturalWidth, setNaturalWidth] = React.useState(node.attrs.width);
   const [naturalHeight, setNaturalHeight] = React.useState(node.attrs.height);
-  const [lastTapTime, setLastTapTime] = React.useState(0);
+  const lastTapTimeRef = React.useRef(0);
   const ref = React.useRef<HTMLDivElement>(null);
   const { width, height, setSize, handlePointerDown, dragging } = useDragResize(
     {
@@ -69,14 +71,14 @@ const Image = (props: Props) => {
 
   const handleImageTouchStart = (ev: React.TouchEvent<HTMLDivElement>) => {
     const currentTime = Date.now();
-    const timeSinceLastTap = currentTime - lastTapTime;
+    const timeSinceLastTap = currentTime - lastTapTimeRef.current;
 
     if (timeSinceLastTap < 300 && isSelected) {
       ev.preventDefault();
       onClick();
     }
 
-    setLastTapTime(currentTime);
+    lastTapTimeRef.current = currentTime;
   };
 
   const handleImageClick = (ev: React.MouseEvent<HTMLDivElement>) => {
@@ -96,11 +98,11 @@ const Image = (props: Props) => {
         {!dragging && width > 60 && isDownloadable && (
           <Actions>
             {isExternalUrl(src) && (
-              <Button onClick={handleOpen}>
+              <Button onClick={handleOpen} aria-label={t("Open")}>
                 <GlobeIcon />
               </Button>
             )}
-            <Button onClick={props.onDownload}>
+            <Button onClick={props.onDownload} aria-label={t("Download")}>
               <DownloadIcon />
             </Button>
           </Actions>

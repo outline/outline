@@ -88,7 +88,7 @@ function Lightbox({ onUpdate, activePos }: Props) {
             true
           )
         : [],
-    []
+    [view]
   );
   const currentImageIndex = findIndex(
     imageNodes,
@@ -258,8 +258,8 @@ function Lightbox({ onUpdate, activePos }: Props) {
       fadeIn: undefined,
       fadeOut: {
         apply: fadeOut,
-        duration: animation.current!.startTime
-          ? Date.now() - animation.current!.startTime!
+        duration: animation.current?.startTime
+          ? Date.now() - animation.current.startTime
           : ANIMATION_DURATION,
       },
     };
@@ -352,8 +352,8 @@ function Lightbox({ onUpdate, activePos }: Props) {
         zoomIn: undefined,
         zoomOut: {
           apply: zoomOut,
-          duration: animation.current!.startTime
-            ? Date.now() - animation.current!.startTime!
+          duration: animation.current?.startTime
+            ? Date.now() - animation.current.startTime
             : ANIMATION_DURATION,
         },
       };
@@ -576,21 +576,21 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function _Image(
   ref
 ) {
   const { t } = useTranslation();
-  let touchXStart: number | undefined;
-  let touchXEnd: number | undefined;
-  let touchYStart: number | undefined;
-  let touchYEnd: number | undefined;
+  const touchXStart = useRef<number>();
+  const touchXEnd = useRef<number>();
+  const touchYStart = useRef<number>();
+  const touchYEnd = useRef<number>();
 
   const handleTouchStart = (e: React.TouchEvent<HTMLImageElement>) => {
-    touchXStart = e.changedTouches[0].screenX;
-    touchYStart = e.changedTouches[0].screenY;
+    touchXStart.current = e.changedTouches[0].screenX;
+    touchYStart.current = e.changedTouches[0].screenY;
   };
 
   const handleTouchMove = (e: React.TouchEvent<HTMLImageElement>) => {
-    touchXEnd = e.changedTouches[0].screenX as number;
-    touchYEnd = e.changedTouches[0].screenY as number;
-    const dx = touchXEnd - (touchXStart as number);
-    const dy = touchYEnd - (touchYStart as number);
+    touchXEnd.current = e.changedTouches[0].screenX;
+    touchYEnd.current = e.changedTouches[0].screenY;
+    const dx = touchXEnd.current - (touchXStart.current ?? 0);
+    const dy = touchYEnd.current - (touchYStart.current ?? 0);
 
     const swipeRight = dx > 0 && Math.abs(dy) < Math.abs(dx);
     if (swipeRight) {
@@ -610,17 +610,17 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function _Image(
   };
 
   const handleTouchEnd = () => {
-    touchXStart = undefined;
-    touchXEnd = undefined;
-    touchYStart = undefined;
-    touchYEnd = undefined;
+    touchXStart.current = undefined;
+    touchXEnd.current = undefined;
+    touchYStart.current = undefined;
+    touchYEnd.current = undefined;
   };
 
   const handleTouchCancel = () => {
-    touchXStart = undefined;
-    touchXEnd = undefined;
-    touchYStart = undefined;
-    touchYEnd = undefined;
+    touchXStart.current = undefined;
+    touchXEnd.current = undefined;
+    touchYStart.current = undefined;
+    touchYEnd.current = undefined;
   };
 
   const [hidden, setHidden] = useState(

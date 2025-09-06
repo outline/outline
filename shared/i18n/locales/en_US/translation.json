@@ -1260,5 +1260,6 @@
   "{{ user }} updated {{ timeAgo }}": "{{ user }} updated {{ timeAgo }}",
   "You created {{ timeAgo }}": "You created {{ timeAgo }}",
   "{{ user }} created {{ timeAgo }}": "{{ user }} created {{ timeAgo }}",
+  "Open": "Open",
   "Error loading data": "Error loading data"
 }
