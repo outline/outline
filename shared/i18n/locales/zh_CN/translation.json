@@ -315,6 +315,12 @@
   "Permission": "权限",
   "Change Language": "更改语言",
   "Dismiss": "忽略",
+  "Lightbox": "Lightbox",
+  "View, navigate, or download images in the document": "View, navigate, or download images in the document",
+  "Close": "关闭",
+  "Previous": "Previous",
+  "Next": "Next",
+  "Image failed to load": "Image failed to load",
   "You’re offline.": "你已离线。",
   "Sorry, an error occurred.": "抱歉，出错了。",
   "Click to retry": "点击重试",
@@ -714,7 +720,6 @@
   "Deleted by {{userName}}": "已被 {{userName}} 删除",
   "Observing {{ userName }}": "观察 {{ userName }}",
   "Backlinks": "反向链接",
-  "Close": "关闭",
   "This document is large which may affect performance": "此文档较大，可能会影响性能",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "确认删除 <em>{{ documentTitle }}</em> 文档模板？",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.": "你确定吗？删除 <em>{{ documentTitle }}</em> 文档将一并清除其所有历史记录</em>。",
@@ -1255,5 +1260,6 @@
   "{{ user }} updated {{ timeAgo }}": "{{ timeAgo }} 由 {{ user }} 更新",
   "You created {{ timeAgo }}": "{{ timeAgo }} 由你创建",
   "{{ user }} created {{ timeAgo }}": "{{ timeAgo }} 由 {{ user }} 创建",
+  "Open": "Open",
   "Error loading data": "加载数据时出错"
 }
