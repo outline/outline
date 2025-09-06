@@ -7,11 +7,13 @@ import { s } from "../../styles";
 import { isExternalUrl, sanitizeUrl } from "../../utils/urls";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { ComponentProps } from "../types";
-import { ImageZoom } from "./ImageZoom";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
+import { useTranslation } from "react-i18next";
 
 type Props = ComponentProps & {
+  /** Callback triggered when the image is clicked */
+  onClick: () => void;
   /** Callback triggered when the download button is clicked */
   onDownload?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   /** Callback triggered when the image is resized */
@@ -22,13 +24,15 @@ type Props = ComponentProps & {
 };
 
 const Image = (props: Props) => {
-  const { isSelected, node, isEditable, onChangeSize } = props;
+  const { isSelected, node, isEditable, onChangeSize, onClick } = props;
   const { src, layoutClass } = node.attrs;
+  const { t } = useTranslation();
   const className = layoutClass ? `image image-${layoutClass}` : "image";
   const [loaded, setLoaded] = React.useState(false);
   const [error, setError] = React.useState(false);
   const [naturalWidth, setNaturalWidth] = React.useState(node.attrs.width);
   const [naturalHeight, setNaturalHeight] = React.useState(node.attrs.height);
+  const lastTapTimeRef = React.useRef(0);
   const ref = React.useRef<HTMLDivElement>(null);
   const { width, height, setSize, handlePointerDown, dragging } = useDragResize(
     {
@@ -65,6 +69,25 @@ const Image = (props: Props) => {
     ? { width: "var(--container-width)" }
     : { width: width || "auto" };
 
+  const handleImageTouchStart = (ev: React.TouchEvent<HTMLDivElement>) => {
+    const currentTime = Date.now();
+    const timeSinceLastTap = currentTime - lastTapTimeRef.current;
+
+    if (timeSinceLastTap < 300 && isSelected) {
+      ev.preventDefault();
+      onClick();
+    }
+
+    lastTapTimeRef.current = currentTime;
+  };
+
+  const handleImageClick = (ev: React.MouseEvent<HTMLDivElement>) => {
+    if (!isEditable || isSelected) {
+      ev.preventDefault();
+      onClick();
+    }
+  };
+
   return (
     <div contentEditable={false} className={className} ref={ref}>
       <ImageWrapper
@@ -75,11 +98,11 @@ const Image = (props: Props) => {
         {!dragging && width > 60 && isDownloadable && (
           <Actions>
             {isExternalUrl(src) && (
-              <Button onClick={handleOpen}>
+              <Button onClick={handleOpen} aria-label={t("Open")}>
                 <GlobeIcon />
               </Button>
             )}
-            <Button onClick={props.onDownload}>
+            <Button onClick={props.onDownload} aria-label={t("Download")}>
               <DownloadIcon />
             </Button>
           </Actions>
@@ -89,7 +112,7 @@ const Image = (props: Props) => {
             <CrossIcon size={16} /> Image failed to load
           </Error>
         ) : (
-          <ImageZoom caption={props.node.attrs.alt}>
+          <>
             <img
               className={EditorStyleHelper.imageHandle}
               style={{
@@ -123,6 +146,8 @@ const Image = (props: Props) => {
                   }));
                 }
               }}
+              onClick={handleImageClick}
+              onTouchStart={handleImageTouchStart}
             />
             {!loaded && width && height && (
               <img
@@ -135,7 +160,7 @@ const Image = (props: Props) => {
                 )}`}
               />
             )}
-          </ImageZoom>
+          </>
         )}
         {isEditable && !isFullWidth && isResizable && (
           <>
@@ -161,7 +186,7 @@ function getPlaceholder(width: number, height: number) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" />`;
 }
 
-const Error = styled(Flex)`
+export const Error = styled(Flex)`
   max-width: 100%;
   color: ${s("textTertiary")};
   font-size: 14px;

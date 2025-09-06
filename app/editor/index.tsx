@@ -54,6 +54,7 @@ import EditorContext from "./components/EditorContext";
 import { NodeViewRenderer } from "./components/NodeViewRenderer";
 import SelectionToolbar from "./components/SelectionToolbar";
 import WithTheme from "./components/WithTheme";
+import Lightbox from "~/components/Lightbox";
 
 export type Props = {
   /** An optional identifier for the editor context. It is used to persist local settings */
@@ -145,6 +146,8 @@ type State = {
   isEditorFocused: boolean;
   /** If the toolbar for a text selection is visible */
   selectionToolbarOpen: boolean;
+  /** Position of image in doc that's being currently viewed in Lightbox */
+  activeLightboxImgPos: number | null;
 };
 
 /**
@@ -174,6 +177,7 @@ export class Editor extends React.PureComponent<
     isRTL: false,
     isEditorFocused: false,
     selectionToolbarOpen: false,
+    activeLightboxImgPos: null,
   };
 
   isInitialized = false;
@@ -712,6 +716,13 @@ export class Editor extends React.PureComponent<
     dispatch(tr);
   };
 
+  public updateActiveLightbox = (pos: number | null) => {
+    this.setState((state) => ({
+      ...state,
+      activeLightboxImgPos: pos,
+    }));
+  };
+
   /**
    * Return the plain text content of the current editor.
    *
@@ -831,6 +842,12 @@ export class Editor extends React.PureComponent<
               )}
             </Observer>
           </Flex>
+          {this.state.activeLightboxImgPos && (
+            <Lightbox
+              onUpdate={this.updateActiveLightbox}
+              activePos={this.state.activeLightboxImgPos}
+            />
+          )}
         </EditorContext.Provider>
       </PortalContext.Provider>
     );
