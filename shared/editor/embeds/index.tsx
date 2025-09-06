@@ -446,6 +446,7 @@ const embeds: EmbedDescriptor[] = [
     title: "InVision",
     keywords: "design prototype",
     defaultHidden: true,
+    visible: false,
     regexMatch: [
       /^https:\/\/(invis\.io\/.*)|(projects\.invisionapp\.com\/share\/.*)$/,
       /^https:\/\/(opal\.invisionapp\.com\/static-signed\/live-embed\/.*)$/,
