@@ -315,6 +315,12 @@
   "Permission": "權限",
   "Change Language": "變更語言",
   "Dismiss": "知道了",
+  "Lightbox": "Lightbox",
+  "View, navigate, or download images in the document": "View, navigate, or download images in the document",
+  "Close": "關閉",
+  "Previous": "Previous",
+  "Next": "Next",
+  "Image failed to load": "Image failed to load",
   "You’re offline.": "您目前離線中。",
   "Sorry, an error occurred.": "抱歉，發生錯誤。",
   "Click to retry": "按此重新嘗試",
@@ -714,7 +720,6 @@
   "Deleted by {{userName}}": "已由 {{userName}} 刪除",
   "Observing {{ userName }}": "正在觀察 {{ userName }}",
   "Backlinks": "反向連結",
-  "Close": "關閉",
   "This document is large which may affect performance": "This document is large which may affect performance",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "您確定要刪除 <em>{{ documentTitle }}</em> 範本嗎？",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.": "你確定嗎？刪除 <em>{{ documentTitle }}</em> 文件將刪除其所有歷史記錄</em>。",
@@ -1255,5 +1260,6 @@
   "{{ user }} updated {{ timeAgo }}": "{{ timeAgo }} 由 {{ user }} 更新",
   "You created {{ timeAgo }}": "{{ timeAgo }} 由您新增",
   "{{ user }} created {{ timeAgo }}": "{{ timeAgo }} 由 {{ user }} 新增",
+  "Open": "Open",
   "Error loading data": "Error loading data"
 }
