@@ -315,6 +315,12 @@
   "Permission": "Phân quyền",
   "Change Language": "Đổi Ngôn Ngữ",
   "Dismiss": "Bỏ qua",
+  "Lightbox": "Lightbox",
+  "View, navigate, or download images in the document": "View, navigate, or download images in the document",
+  "Close": "Đóng",
+  "Previous": "Previous",
+  "Next": "Next",
+  "Image failed to load": "Image failed to load",
   "You’re offline.": "Bạn đang Offline.",
   "Sorry, an error occurred.": "Xin lỗi, đã xảy ra lỗi.",
   "Click to retry": "Nhấp để thử lại",
@@ -714,7 +720,6 @@
   "Deleted by {{userName}}": "Đã xóa bởi {{userName}}",
   "Observing {{ userName }}": "Quan sát {{ userName }}",
   "Backlinks": "Liên kết ngược",
-  "Close": "Đóng",
   "This document is large which may affect performance": "This document is large which may affect performance",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "Bạn có chắc chắn muốn xóa mẫu <em>{{ documentTitle }}</em> không?",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.": "Bạn có chắc chắn không? Xóa văn bản <em>{{ documentTitle }}</em> sẽ xóa tất cả lịch sử của nó</em>.",
@@ -1255,5 +1260,6 @@
   "{{ user }} updated {{ timeAgo }}": "{{ user }} updated {{ timeAgo }}",
   "You created {{ timeAgo }}": "You created {{ timeAgo }}",
   "{{ user }} created {{ timeAgo }}": "{{ user }} created {{ timeAgo }}",
+  "Open": "Open",
   "Error loading data": "Error loading data"
 }
