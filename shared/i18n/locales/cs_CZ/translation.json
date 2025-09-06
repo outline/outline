@@ -315,6 +315,12 @@
   "Permission": "Oprávnění",
   "Change Language": "Změnit jazyk",
   "Dismiss": "Zavřít",
+  "Lightbox": "Lightbox",
+  "View, navigate, or download images in the document": "View, navigate, or download images in the document",
+  "Close": "Zavřít",
+  "Previous": "Previous",
+  "Next": "Next",
+  "Image failed to load": "Image failed to load",
   "You’re offline.": "Jste offline.",
   "Sorry, an error occurred.": "Je nám líto, došlo k chybě.",
   "Click to retry": "Kliknutím zkuste znovu",
@@ -714,7 +720,6 @@
   "Deleted by {{userName}}": "Odstranil {{userName}}",
   "Observing {{ userName }}": "Pozorovatel {{ userName }}",
   "Backlinks": "Zpětné odkazy",
-  "Close": "Zavřít",
   "This document is large which may affect performance": "This document is large which may affect performance",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "Opravdu chcete odstranit šablonu <em>{{ documentTitle }}</em>?",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.": "Jsi si tím jisti? Při odstranění dokumentu <em>{{ documentTitle }}</em> se smaže i celá jeho historie</em>.",
@@ -1255,5 +1260,6 @@
   "{{ user }} updated {{ timeAgo }}": "{{ user }} aktualizoval před {{ timeAgo }}",
   "You created {{ timeAgo }}": "Vytvořili jste před {{ timeAgo }}",
   "{{ user }} created {{ timeAgo }}": "{{ user }} vytvořil před {{ timeAgo }}",
+  "Open": "Open",
   "Error loading data": "Error loading data"
 }
