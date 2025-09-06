@@ -315,6 +315,12 @@
   "Permission": "権限",
   "Change Language": "言語を変更",
   "Dismiss": "却下",
+  "Lightbox": "Lightbox",
+  "View, navigate, or download images in the document": "View, navigate, or download images in the document",
+  "Close": "閉じる",
+  "Previous": "Previous",
+  "Next": "Next",
+  "Image failed to load": "Image failed to load",
   "You’re offline.": "オフライン",
   "Sorry, an error occurred.": "エラーが発生しました",
   "Click to retry": "再試行",
@@ -714,7 +720,6 @@
   "Deleted by {{userName}}": "{{userName}} が削除しました",
   "Observing {{ userName }}": "{{ userName }} を観察中",
   "Backlinks": "ハイパーリンク",
-  "Close": "閉じる",
   "This document is large which may affect performance": "This document is large which may affect performance",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "<em>{{ documentTitle }}</em> を削除してもよろしいですか？",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.": "<em>{{ documentTitle }}</em>ドキュメントを削除すると、その履歴もすべて削除されます。このまま続けますか？",
@@ -1255,5 +1260,6 @@
   "{{ user }} updated {{ timeAgo }}": "{{ user }} が {{ timeAgo }} に更新しました",
   "You created {{ timeAgo }}": "あなたが {{ timeAgo }} に作成しました",
   "{{ user }} created {{ timeAgo }}": "{{ user }} が {{ timeAgo }} に作成しました",
+  "Open": "Open",
   "Error loading data": "データ読込エラー"
 }
