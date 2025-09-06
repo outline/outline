@@ -110,16 +110,21 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
   // to the same URL with the follow query param added from the client side.
   if (!follow) {
     const csrfToken = ctx.cookies.get(CSRF.cookieName);
-    const fields = new URLSearchParams();
-    fields.append("follow", "true");
 
+    // Parse the current URL to extract existing query parameters
+    const url = new URL(ctx.request.href);
+    const searchParams = url.searchParams;
+
+    // Add new parameters
+    searchParams.set("follow", "true");
     if (csrfToken) {
-      fields.append(CSRF.fieldName, csrfToken);
+      searchParams.set(CSRF.fieldName, csrfToken);
     }
-    return ctx.redirectOnClient(
-      ctx.request.href + "&" + fields.toString(),
-      "POST"
-    );
+
+    // Reconstruct the URL with merged parameters
+    url.search = searchParams.toString();
+
+    return ctx.redirectOnClient(url.toString(), "POST");
   }
 
   let user!: User;
