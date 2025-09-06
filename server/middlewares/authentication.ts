@@ -25,13 +25,13 @@ type AuthenticationOptions = {
   optional?: boolean;
 };
 
-type AuthTansport = "cookie" | "header" | "body" | "query";
+type AuthTransport = "cookie" | "header" | "body" | "query";
 
 type AuthInput = {
   /** The authentication token extracted from the request, if any. */
   token?: string;
-  /** The transport method used to send the authentication token. */
-  transport?: AuthTansport;
+  /** The method used to receive the authentication token. */
+  transport?: AuthTransport;
 };
 
 export default function auth(options: AuthenticationOptions = {}) {
@@ -39,7 +39,7 @@ export default function auth(options: AuthenticationOptions = {}) {
     try {
       const { type, token, user } = await validateAuthentication(ctx, options);
 
-      // not awaiting the promises here so that the request is not blocked
+      // We are not awaiting the promises here so that the request is not blocked
       user.updateActiveAt(ctx).catch((err) => {
         Logger.error("Failed to update user activeAt", err);
       });
@@ -155,7 +155,7 @@ async function validateAuthentication(
   let user: User | null;
   let type: AuthenticationType;
 
-  if (OAuthAuthentication.match(String(token))) {
+  if (OAuthAuthentication.match(token)) {
     if (transport !== "header") {
       throw AuthenticationError(
         "OAuth access token must be passed in the Authorization header"
@@ -198,7 +198,11 @@ async function validateAuthentication(
     }
 
     await authentication.updateActiveAt();
-  } else if (ApiKey.match(String(token))) {
+  } else if (ApiKey.match(token)) {
+    if (transport === "cookie") {
+      throw AuthenticationError("API key must not be passed in the cookie");
+    }
+
     type = AuthenticationType.API;
     let apiKey;
 
@@ -239,7 +243,7 @@ async function validateAuthentication(
     await apiKey.updateActiveAt();
   } else {
     type = AuthenticationType.APP;
-    user = await getUserForJWT(String(token));
+    user = await getUserForJWT(token);
   }
 
   if (user.isSuspended) {
