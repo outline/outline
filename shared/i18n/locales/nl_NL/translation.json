@@ -315,6 +315,12 @@
   "Permission": "Rechten",
   "Change Language": "Wijzig taal",
   "Dismiss": "Negeer",
+  "Lightbox": "Lightbox",
+  "View, navigate, or download images in the document": "View, navigate, or download images in the document",
+  "Close": "Sluiten",
+  "Previous": "Previous",
+  "Next": "Next",
+  "Image failed to load": "Image failed to load",
   "You’re offline.": "Je bent offline.",
   "Sorry, an error occurred.": "Sorry, er is iets fout gegaan.",
   "Click to retry": "Klik om opnieuw te proberen",
@@ -714,7 +720,6 @@
   "Deleted by {{userName}}": "Verwijderd door {{userName}}",
   "Observing {{ userName }}": "Observeer {{ userName }}",
   "Backlinks": "Backlinks",
-  "Close": "Sluiten",
   "This document is large which may affect performance": "Dit document is groot wat de prestaties kan beïnvloeden",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "Weet je zeker dat je het sjabloon <em>{{ documentTitle }}</em> wilt verwijderen?",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.": "Weet je het zeker? Door het <em>{{ documentTitle }}</em> document te verwijderen zal ook alle geschiedenis hiervan worden verwijderd</em>.",
@@ -1255,5 +1260,6 @@
   "{{ user }} updated {{ timeAgo }}": "{{ timeAgo }} door {{ user }} bijgewerkt",
   "You created {{ timeAgo }}": "{{ timeAgo }} door jou aangemaakt",
   "{{ user }} created {{ timeAgo }}": "{{ timeAgo }} door {{ user }} aangemaakt",
+  "Open": "Open",
   "Error loading data": "Fout bij laden van gegevens"
 }
