@@ -9,9 +9,10 @@ import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { ComponentProps } from "../types";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
-import useStores from "../../hooks/useStores";
 
 type Props = ComponentProps & {
+  /** Callback triggered when the image is clicked */
+  onClick: () => void;
   /** Callback triggered when the download button is clicked */
   onDownload?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   /** Callback triggered when the image is resized */
@@ -22,7 +23,7 @@ type Props = ComponentProps & {
 };
 
 const Image = (props: Props) => {
-  const { isSelected, node, isEditable, onChangeSize, getPos } = props;
+  const { isSelected, node, isEditable, onChangeSize, onClick } = props;
   const { src, layoutClass } = node.attrs;
   const className = layoutClass ? `image image-${layoutClass}` : "image";
   const [loaded, setLoaded] = React.useState(false);
@@ -42,8 +43,6 @@ const Image = (props: Props) => {
       ref,
     }
   );
-
-  const { ui } = useStores();
 
   const isFullWidth = layoutClass === "full-width";
   const isResizable = !!props.onChangeSize && !error;
@@ -74,7 +73,7 @@ const Image = (props: Props) => {
 
     if (timeSinceLastTap < 300 && isSelected) {
       ev.preventDefault();
-      ui.setActiveLightboxImgPos(getPos());
+      onClick();
     }
 
     setLastTapTime(currentTime);
@@ -83,7 +82,7 @@ const Image = (props: Props) => {
   const handleImageClick = (ev: React.MouseEvent<HTMLDivElement>) => {
     if (!isEditable || isSelected) {
       ev.preventDefault();
-      ui.setActiveLightboxImgPos(getPos());
+      onClick();
     }
   };
 

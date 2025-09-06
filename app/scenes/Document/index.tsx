@@ -33,7 +33,6 @@ export default function DocumentScene(props: Props) {
   }, [currentPath, setLastVisitedPath]);
 
   useEffect(() => () => ui.clearActiveDocument(), [ui]);
-  useEffect(() => () => ui.setActiveLightboxImgPos(undefined), [ui]);
 
   useEffect(() => {
     // When opening a document directly on app load, sidebarContext will not be set.

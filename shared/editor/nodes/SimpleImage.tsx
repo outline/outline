@@ -76,7 +76,15 @@ export default class SimpleImage extends Node {
     };
   }
 
-  component = (props: ComponentProps) => <ImageComponent {...props} />;
+  handleClick =
+    ({ getPos }: ComponentProps) =>
+    () => {
+      this.editor.updateActiveLightbox(getPos());
+    };
+
+  component = (props: ComponentProps) => (
+    <ImageComponent {...props} onClick={this.handleClick(props)} />
+  );
 
   keys(): Record<string, Command> {
     return {

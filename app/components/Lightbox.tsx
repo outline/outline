@@ -1,6 +1,5 @@
 import { useEditor } from "~/editor/components/EditorContext";
 import { observer } from "mobx-react";
-import useStores from "~/hooks/useStores";
 import * as Dialog from "@radix-ui/react-dialog";
 import { findChildren } from "@shared/editor/queries/findChildren";
 import findIndex from "lodash/findIndex";
@@ -56,14 +55,19 @@ type Animation = {
 
 const ANIMATION_DURATION = 0.3 * Second.ms;
 
-function Lightbox() {
+type Props = {
+  /** Callback triggered when the active image position is updated */
+  onUpdate: (pos: number | null) => void;
+  /** The position of the currently active image in the document */
+  activePos: number | null;
+};
+
+function Lightbox({ onUpdate, activePos }: Props) {
   const { view } = useEditor();
-  const { ui } = useStores();
   const isIdle = useIdle(3 * Second.ms);
   const { t } = useTranslation();
   const imgRef = useRef<HTMLImageElement | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
-  const { activeLightboxImgPos } = ui;
   const [status, setStatus] = useState<Status>({ lightbox: null, image: null });
   const [imageElements] = useState(
     view?.dom.querySelectorAll(".component-image img")
@@ -88,7 +92,7 @@ function Lightbox() {
   );
   const currentImageIndex = findIndex(
     imageNodes,
-    (node) => node.pos === activeLightboxImgPos
+    (node) => node.pos === activePos
   );
   const currentImageNode =
     currentImageIndex >= 0 ? imageNodes[currentImageIndex].node : undefined;
@@ -103,12 +107,12 @@ function Lightbox() {
   useEffect(() => () => view.focus(), []);
 
   useEffect(() => {
-    !!activeLightboxImgPos &&
+    !!activePos &&
       setStatus({
         lightbox: LightboxStatus.READY_TO_OPEN,
         image: status.image,
       });
-  }, [!!activeLightboxImgPos]);
+  }, [!!activePos]);
 
   useEffect(() => {
     if (status.image === ImageStatus.LOADED) {
@@ -144,14 +148,13 @@ function Lightbox() {
 
   useEffect(() => {
     if (status.lightbox === LightboxStatus.CLOSED) {
-      ui.setActiveLightboxImgPos(undefined);
+      onUpdate(null);
     }
   }, [status.lightbox]);
 
   const rememberImagePosition = () => {
     if (imgRef.current) {
-      const lightboxImageEl = imgRef.current;
-      const lightboxImgDOMRect = lightboxImageEl.getBoundingClientRect();
+      const lightboxImgDOMRect = imgRef.current.getBoundingClientRect();
       const {
         top: lightboxImgTop,
         left: lightboxImgLeft,
@@ -173,6 +176,10 @@ function Lightbox() {
     if (imgRef.current) {
       // in editor
       const editorImageEl = imageElements[currentImageIndex];
+      if (!editorImageEl) {
+        return;
+      }
+
       const editorImgDOMRect = editorImageEl.getBoundingClientRect();
       const {
         top: editorImgTop,
@@ -191,8 +198,7 @@ function Lightbox() {
       };
 
       // in lightbox
-      const lightboxImageEl = imgRef.current;
-      const lightboxImgDOMRect = lightboxImageEl.getBoundingClientRect();
+      const lightboxImgDOMRect = imgRef.current.getBoundingClientRect();
       const {
         top: lightboxImgTop,
         left: lightboxImgLeft,
@@ -244,7 +250,7 @@ function Lightbox() {
 
   const setupFadeOut = () => {
     const fadeOut = () => keyframes`
-              from { opacity: ${window.getComputedStyle(overlayRef.current!).opacity}; }
+              from { opacity: ${overlayRef.current ? window.getComputedStyle(overlayRef.current).opacity : 1}; }
               to { opacity: 0; }
               `;
     animation.current = {
@@ -262,8 +268,7 @@ function Lightbox() {
   const setupZoomOut = () => {
     if (imgRef.current) {
       // in lightbox
-      const lightboxImageEl = imgRef.current;
-      const lightboxImgDOMRect = lightboxImageEl.getBoundingClientRect();
+      const lightboxImgDOMRect = imgRef.current.getBoundingClientRect();
       const {
         top: lightboxImgTop,
         left: lightboxImgLeft,
@@ -317,7 +322,11 @@ function Lightbox() {
       }
 
       const zoomOut = () => {
-        const final = finalImage.current!;
+        const final = finalImage.current;
+        if (!final) {
+          return keyframes``;
+        }
+
         const fromTx = from.center.x - final.center.x;
         const fromTy = from.center.y - final.center.y;
         const toTx = to.center.x - final.center.x;
@@ -351,35 +360,33 @@ function Lightbox() {
     }
   };
 
-  if (!activeLightboxImgPos) {
+  if (!activePos) {
     return null;
   }
 
   const prev = () => {
     if (status.lightbox === LightboxStatus.OPENED) {
-      if (!activeLightboxImgPos) {
+      if (!activePos) {
         return;
       }
       const prevIndex = currentImageIndex - 1;
       if (prevIndex < 0) {
         return;
       }
-      const prevImgPos = imageNodes[prevIndex].pos;
-      ui.setActiveLightboxImgPos(prevImgPos);
+      onUpdate(imageNodes[prevIndex].pos);
     }
   };
 
   const next = () => {
     if (status.lightbox === LightboxStatus.OPENED) {
-      if (!activeLightboxImgPos) {
+      if (!activePos) {
         return;
       }
       const nextIndex = currentImageIndex + 1;
       if (nextIndex >= imageNodes.length) {
         return;
       }
-      const nextImgPos = imageNodes[nextIndex].pos;
-      ui.setActiveLightboxImgPos(nextImgPos);
+      onUpdate(imageNodes[nextIndex].pos);
     }
   };
 
@@ -451,7 +458,7 @@ function Lightbox() {
   }
 
   return (
-    <Dialog.Root open={!!activeLightboxImgPos}>
+    <Dialog.Root open={!!activePos}>
       <Dialog.Portal>
         <StyledOverlay
           ref={overlayRef}
