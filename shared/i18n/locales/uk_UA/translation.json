@@ -315,6 +315,12 @@
   "Permission": "Права доступу",
   "Change Language": "Змінити мову",
   "Dismiss": "Відхилити",
+  "Lightbox": "Lightbox",
+  "View, navigate, or download images in the document": "View, navigate, or download images in the document",
+  "Close": "Закрити",
+  "Previous": "Previous",
+  "Next": "Next",
+  "Image failed to load": "Image failed to load",
   "You’re offline.": "Ви поза мережею.",
   "Sorry, an error occurred.": "Вибачте, виникла помилка.",
   "Click to retry": "Натисніть, щоб повторити",
@@ -714,7 +720,6 @@
   "Deleted by {{userName}}": "Видалено {{userName}}",
   "Observing {{ userName }}": "Переглядається {{ userName }}",
   "Backlinks": "Зворотні посилання",
-  "Close": "Закрити",
   "This document is large which may affect performance": "This document is large which may affect performance",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "Ви впевнені, що хочете видалити шаблон <em>{{ documentTitle }}</em>?",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.": "Ви впевнені в цьому? Видалення документа <em>{{ documentTitle }}</em> призведе до видалення всієї його історії</em>.",
@@ -1255,5 +1260,6 @@
   "{{ user }} updated {{ timeAgo }}": "{{ user }} оновив {{ timeAgo }}",
   "You created {{ timeAgo }}": "Ви створили {{ timeAgo }}",
   "{{ user }} created {{ timeAgo }}": "{{ user }} створив {{ timeAgo }}",
+  "Open": "Open",
   "Error loading data": "Error loading data"
 }
