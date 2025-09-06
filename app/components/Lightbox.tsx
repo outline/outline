@@ -77,18 +77,21 @@ function Lightbox() {
 
   const imageNodes = useMemo(
     () =>
-      findChildren(
-        view.state.doc,
-        (child) => child.type === view.state.schema.nodes.image,
-        true
-      ),
+      view
+        ? findChildren(
+            view.state.doc,
+            (child) => child.type === view.state.schema.nodes.image,
+            true
+          )
+        : [],
     []
   );
   const currentImageIndex = findIndex(
     imageNodes,
     (node) => node.pos === activeLightboxImgPos
   );
-  const currentImageNode = imageNodes[currentImageIndex].node;
+  const currentImageNode =
+    currentImageIndex >= 0 ? imageNodes[currentImageIndex].node : undefined;
 
   // Debugging status changes
   // useEffect(() => {
@@ -393,7 +396,7 @@ function Lightbox() {
   };
 
   const download = () => {
-    if (status.lightbox === LightboxStatus.OPENED) {
+    if (currentImageNode && status.lightbox === LightboxStatus.OPENED) {
       void downloadImageNode(currentImageNode);
     }
   };
@@ -442,6 +445,10 @@ function Lightbox() {
       });
     }
   };
+
+  if (!currentImageNode) {
+    return null;
+  }
 
   return (
     <Dialog.Root open={!!activeLightboxImgPos}>
