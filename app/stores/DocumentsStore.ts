@@ -204,10 +204,10 @@ export default class DocumentsStore extends Store<Document> {
   }
 
   get(id: string): Document | undefined {
-    return (
-      this.data.get(id) ??
-      this.orderedData.find((doc) => id.endsWith(doc.urlId))
-    );
+    return id
+      ? (this.data.get(id) ??
+          this.orderedData.find((doc) => id.endsWith(doc.urlId)))
+      : undefined;
   }
 
   @computed

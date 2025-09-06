@@ -276,7 +276,7 @@ export default abstract class Store<T extends Model> {
    * @param id The ID of the item to get.
    */
   get(id: string): T | undefined {
-    return this.data.get(id);
+    return id ? this.data.get(id) : undefined;
   }
 
   @action
