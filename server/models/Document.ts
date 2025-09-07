@@ -780,7 +780,7 @@ class Document extends ArchivableModel<
     options: Omit<FindOptions<Document>, "where"> &
       Omit<AdditionalFindOptions, "rejectOnEmpty"> = {}
   ): Promise<Document[]> {
-    const { userId, includeViews, includeState, ...rest } = options;
+    const { userId, includeViews = true, includeState, ...rest } = options;
 
     const user = userId ? await User.findByPk(userId) : null;
     const documents = await this.scope([
