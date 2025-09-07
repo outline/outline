@@ -5,6 +5,7 @@ import { isDocumentUrl, isInternalUrl } from "@shared/utils/urls";
 import { sharedModelPath } from "~/utils/routeHelpers";
 import { isHash } from "~/utils/urls";
 import useStores from "./useStores";
+import { isFirefox } from "@shared/utils/browser";
 
 type Params = {
   /** The share ID of the document being viewed, if any */
@@ -78,6 +79,12 @@ export default function useEditorClickHandlers({ shareId }: Params) {
           window.open(navigateTo, "_blank");
         }
       } else {
+        // Middle-click events in Firefox are not prevented in the same way as other browsers
+        // so we need to explicitly return here to prevent two tabs from being opened when
+        // middle-clicking a link (#10083).
+        if (event?.button === 1 && isFirefox()) {
+          return;
+        }
         window.open(href, "_blank");
       }
     },

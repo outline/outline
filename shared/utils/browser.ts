@@ -91,6 +91,13 @@ export function isSafari(): boolean {
   );
 }
 
+export function isFirefox(): boolean {
+  if (!isBrowser) {
+    return false;
+  }
+  return window.navigator.userAgent.includes("Firefox");
+}
+
 let supportsPassive = false;
 
 try {
