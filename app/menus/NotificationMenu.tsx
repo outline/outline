@@ -20,7 +20,7 @@ const NotificationMenu: React.FC = () => {
 
   return (
     <DropdownMenu action={rootAction} ariaLabel={t("Notifications")}>
-      <Button>
+      <Button aria-label={t("Notifications")}>
         <MoreIcon />
       </Button>
     </DropdownMenu>

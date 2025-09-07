@@ -53,9 +53,10 @@ const ActionButton = React.forwardRef<HTMLButtonElement, Props>(
     }
 
     const label =
-      typeof action.name === "function"
+      rest["aria-label"] ??
+      (typeof action.name === "function"
         ? action.name(actionContext)
-        : action.name;
+        : action.name);
 
     const button = (
       <button
