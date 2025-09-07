@@ -364,7 +364,6 @@ function InnerDocumentLink(
                       {can.createChildDocument && (
                         <Tooltip content={t("New doc")}>
                           <NudeButton
-                            type={undefined}
                             aria-label={t("New nested document")}
                             onClick={(ev) => {
                               ev.preventDefault();

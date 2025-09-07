@@ -193,6 +193,7 @@ function Details() {
             )}
           >
             <ImageInput
+              alt={t("Workspace logo")}
               onSuccess={handleAvatarChange}
               onError={handleAvatarError}
               model={team}

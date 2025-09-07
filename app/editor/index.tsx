@@ -498,6 +498,7 @@ export class Editor extends React.PureComponent<
 
     // Tell third-party libraries and screen-readers that this is an input
     view.dom.setAttribute("role", "textbox");
+    view.dom.setAttribute("aria-label", "Editor content");
 
     return view;
   }
