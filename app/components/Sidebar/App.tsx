@@ -81,6 +81,11 @@ function AppSidebar() {
                 <ToggleButton
                   position="bottom"
                   image={<SidebarIcon />}
+                  aria-label={
+                    ui.sidebarCollapsed
+                      ? t("Expand sidebar")
+                      : t("Collapse sidebar")
+                  }
                   onClick={() => {
                     ui.toggleCollapsedSidebar();
                     (document.activeElement as HTMLElement)?.blur();

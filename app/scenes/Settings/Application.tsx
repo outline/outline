@@ -161,6 +161,7 @@ const Application = observer(function Application({ oauthClient }: Props) {
             name="avatarUrl"
             render={({ field }) => (
               <ImageInput
+                alt={t("Application icon")}
                 onSuccess={(url) => field.onChange(url)}
                 onError={(err) => setError("avatarUrl", { message: err })}
                 model={{

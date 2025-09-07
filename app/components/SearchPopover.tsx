@@ -168,6 +168,7 @@ function SearchPopover({ shareId, className }: Props) {
     <Popover open={open} onOpenChange={setOpen} modal={true}>
       <PopoverAnchor>
         <StyledInputSearch
+          role="combobox"
           aria-controls="search-results"
           aria-expanded={open}
           aria-haspopup="listbox"
@@ -176,6 +177,8 @@ function SearchPopover({ shareId, className }: Props) {
           onFocus={handleSearchInputFocus}
           onKeyDown={handleKeyDown}
           className={className}
+          label={t("Search")}
+          labelHidden
         />
       </PopoverAnchor>
       <PopoverContent
@@ -194,6 +197,7 @@ function SearchPopover({ shareId, className }: Props) {
         }}
       >
         <PaginatedList<SearchResult>
+          role="listbox"
           options={{ query, snippetMinWords: 10, snippetMaxWords: 11 }}
           items={cachedSearchResults}
           fetch={performSearch}

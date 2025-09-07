@@ -1,3 +1,4 @@
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import invariant from "invariant";
 import { observer } from "mobx-react";
 import { useCallback } from "react";
@@ -61,7 +62,12 @@ function DropToImport({ disabled, children, collectionId, documentId }: Props) {
           $isDragActive={isDragActive}
           tabIndex={-1}
         >
-          <input {...getInputProps()} />
+          <VisuallyHidden>
+            <label>
+              {t("Import files")}
+              <input {...getInputProps()} />
+            </label>
+          </VisuallyHidden>
           {isImporting && <LoadingIndicator />}
           {children}
         </DropzoneContainer>

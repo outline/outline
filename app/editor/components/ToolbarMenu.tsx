@@ -64,7 +64,11 @@ function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
     <>
       <MenuButton {...menu}>
         {(buttonProps) => (
-          <ToolbarButton {...buttonProps} hovering={menu.visible}>
+          <ToolbarButton
+            {...buttonProps}
+            hovering={menu.visible}
+            aria-label={item.tooltip}
+          >
             {item.label && <Label>{item.label}</Label>}
             {item.icon}
           </ToolbarButton>
@@ -118,6 +122,7 @@ function ToolbarMenu(props: Props) {
                 <ToolbarButton
                   onClick={handleClick(item)}
                   active={isActive && !item.label}
+                  aria-label={item.label ? undefined : item.tooltip}
                 >
                   {item.label && <Label>{item.label}</Label>}
                   {item.icon}

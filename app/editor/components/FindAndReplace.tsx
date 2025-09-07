@@ -347,6 +347,7 @@ export default function FindAndReplace({
         <ButtonLarge
           disabled={disabled}
           onClick={() => editor.commands.prevSearchMatch()}
+          aria-label={t("Previous match")}
         >
           <CaretUpIcon />
         </ButtonLarge>
@@ -355,6 +356,7 @@ export default function FindAndReplace({
         <ButtonLarge
           disabled={disabled}
           onClick={() => editor.commands.nextSearchMatch()}
+          aria-label={t("Next match")}
         >
           <CaretDownIcon />
         </ButtonLarge>
@@ -390,7 +392,10 @@ export default function FindAndReplace({
                   shortcut={`${altDisplay}+${metaDisplay}+c`}
                   placement="bottom"
                 >
-                  <ButtonSmall onClick={handleCaseSensitive}>
+                  <ButtonSmall
+                    onClick={handleCaseSensitive}
+                    aria-label={t("Match case")}
+                  >
                     <CaseSensitiveIcon
                       color={caseSensitive ? theme.accent : theme.textSecondary}
                     />
@@ -401,7 +406,10 @@ export default function FindAndReplace({
                   shortcut={`${altDisplay}+${metaDisplay}+r`}
                   placement="bottom"
                 >
-                  <ButtonSmall onClick={handleRegex}>
+                  <ButtonSmall
+                    onClick={handleRegex}
+                    aria-label={t("Enable regex")}
+                  >
                     <RegexIcon
                       color={regexEnabled ? theme.accent : theme.textSecondary}
                     />
@@ -416,7 +424,10 @@ export default function FindAndReplace({
                 shortcut={`${altDisplay}+${metaDisplay}+f`}
                 placement="bottom"
               >
-                <ButtonLarge onClick={handleMore}>
+                <ButtonLarge
+                  onClick={handleMore}
+                  aria-label={t("Replace options")}
+                >
                   <ReplaceIcon color={theme.textSecondary} />
                 </ButtonLarge>
               </Tooltip>

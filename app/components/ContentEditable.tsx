@@ -143,13 +143,14 @@ const ContentEditable = React.forwardRef(function _ContentEditable(
     },
     []
   );
+  const contentEditable = !disabled && !readOnly;
 
   return (
     <div className={className} dir={dir} onClick={onClick} tabIndex={-1}>
       {children}
       <Content
         ref={contentRef}
-        contentEditable={!disabled && !readOnly}
+        contentEditable={contentEditable}
         onInput={wrappedEvent(onInput)}
         onFocus={wrappedEvent(onFocus)}
         onBlur={wrappedEvent(onBlur)}
@@ -157,7 +158,7 @@ const ContentEditable = React.forwardRef(function _ContentEditable(
         onPaste={handlePaste}
         data-placeholder={placeholder}
         suppressContentEditableWarning
-        role="textbox"
+        role={contentEditable ? "textbox" : undefined}
         {...rest}
       >
         {innerValue}

@@ -52,6 +52,9 @@ function SettingsSidebar() {
       >
         <Tooltip content={t("Toggle sidebar")} shortcut={`${metaDisplay}+.`}>
           <ToggleButton
+            aria-label={
+              ui.sidebarCollapsed ? t("Expand sidebar") : t("Collapse sidebar")
+            }
             position="bottom"
             image={<SidebarIcon />}
             onClick={() => {

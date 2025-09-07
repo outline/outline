@@ -114,7 +114,6 @@ function DocumentListItem(
       <DocumentLink
         ref={itemRef}
         dir={document.dir}
-        role="menuitem"
         $isStarred={document.isStarred}
         $menuOpen={menuOpen}
         to={{
@@ -279,7 +278,7 @@ const DocumentLink = styled(Link)<{
     `}
 `;
 
-const Heading = styled.h3<{ rtl?: boolean }>`
+const Heading = styled.span<{ rtl?: boolean }>`
   display: flex;
   justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
   align-items: center;
@@ -289,6 +288,7 @@ const Heading = styled.h3<{ rtl?: boolean }>`
   color: ${s("text")};
   font-family: ${s("fontFamily")};
   font-weight: 500;
+  font-size: 20px;
 `;
 
 const StarPositioner = styled(Flex)`

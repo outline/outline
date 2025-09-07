@@ -7,6 +7,7 @@ import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { extraArea } from "@shared/styles";
 import Input, { NativeInput, Outline } from "~/components/Input";
 import { useEditor } from "./EditorContext";
+import { useTranslation } from "react-i18next";
 
 type Dimension = {
   width: string;
@@ -20,6 +21,7 @@ export function MediaDimension() {
     width: { min: number; max: number };
     height: { min: number; max: number };
   }>();
+  const { t } = useTranslation();
   const { view, commands } = useEditor();
   const { state } = view;
   const { selection } = state;
@@ -205,6 +207,8 @@ export function MediaDimension() {
   return (
     <StyledFlex ref={ref} align="center">
       <StyledInput
+        label={t("Image width")}
+        labelHidden
         value={localDimension.width}
         onChange={handleChange("width")}
         onBlur={handleBlur}
@@ -212,9 +216,11 @@ export function MediaDimension() {
         $error={error.width}
       />
       <Text size="xsmall" type="tertiary">
-        x
+        ×
       </Text>
       <StyledInput
+        label={t("Image height")}
+        labelHidden
         value={localDimension.height}
         onChange={handleChange("height")}
         onBlur={handleBlur}
