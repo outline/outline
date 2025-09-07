@@ -3,7 +3,7 @@ import * as React from "react";
 import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
-import { s, truncateMultiline } from "@shared/styles";
+import { s } from "@shared/styles";
 import { isMobile } from "@shared/utils/browser";
 import NudeButton from "~/components/NudeButton";
 import { UnreadBadge } from "~/components/UnreadBadge";
@@ -273,7 +273,6 @@ const Label = styled.div`
   position: relative;
   width: 100%;
   line-height: 24px;
-  ${truncateMultiline(3)}
 
   * {
     unicode-bidi: plaintext;
