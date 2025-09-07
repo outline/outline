@@ -134,6 +134,7 @@ function DocumentHeader({
       placement="bottom"
     >
       <Button
+        aria-label={t("Show contents")}
         onClick={handleToggle}
         icon={<TableOfContentsIcon />}
         borderOnHover

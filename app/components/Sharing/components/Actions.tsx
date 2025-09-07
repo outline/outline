@@ -25,6 +25,11 @@ export const AppearanceAction = observer(() => {
           onClick={() =>
             ui.setTheme(resolvedTheme === "light" ? Theme.Dark : Theme.Light)
           }
+          aria-label={
+            resolvedTheme === "light"
+              ? t("Switch to dark")
+              : t("Switch to light")
+          }
           neutral
           borderOnHover
         />
