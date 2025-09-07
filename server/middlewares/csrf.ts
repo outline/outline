@@ -11,6 +11,7 @@ import {
 import { getCookieDomain } from "@shared/utils/domains";
 import { CSRF } from "@shared/constants";
 import { CSRFError } from "@server/errors";
+import { parseAuthentication } from "./authentication";
 
 /**
  * Middleware that generates and attaches CSRF tokens for safe methods
@@ -48,7 +49,8 @@ export function verifyCSRFToken() {
     }
 
     // If not using cookie-based auth, skip CSRF protection
-    if (!ctx.cookies.get("accessToken")) {
+    const { transport } = parseAuthentication(ctx);
+    if (transport !== "cookie") {
       return false;
     }
 

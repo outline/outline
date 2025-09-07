@@ -1575,7 +1575,7 @@ router.post(
 
 router.post(
   "documents.import",
-  auth({ allowMultipart: true }),
+  auth(),
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
   validate(T.DocumentsImportSchema),
   multipart({ maximumFileSize: env.FILE_STORAGE_IMPORT_MAX_SIZE }),
