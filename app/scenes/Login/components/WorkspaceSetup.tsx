@@ -33,7 +33,7 @@ const WorkspaceSetup = ({ onBack }: { onBack?: () => void }) => {
             "Setup your workspace by providing a name and details for admin login. You can change these later."
           )}
         </Content>
-        <Flex column gap={12} style={{ width: "100%" }}>
+        <Inputs column gap={12}>
           <Input
             name="teamName"
             type="text"
@@ -57,7 +57,7 @@ const WorkspaceSetup = ({ onBack }: { onBack?: () => void }) => {
             required
             flex
           />
-        </Flex>
+        </Inputs>
         <ButtonLarge type="submit" fullwidth>
           {t("Continue")} →
         </ButtonLarge>
@@ -65,6 +65,11 @@ const WorkspaceSetup = ({ onBack }: { onBack?: () => void }) => {
     </Background>
   );
 };
+
+const Inputs = styled(Flex)`
+  width: 100%;
+  text-align: left;
+`;
 
 const StyledHeading = styled(Heading)`
   margin: 0;
