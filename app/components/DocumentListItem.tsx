@@ -289,6 +289,7 @@ const Heading = styled.span<{ rtl?: boolean }>`
   font-family: ${s("fontFamily")};
   font-weight: 500;
   font-size: 20px;
+  line-height: 1.2;
 `;
 
 const StarPositioner = styled(Flex)`
