@@ -239,7 +239,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
               position="bottom"
               image={
                 <Avatar
-                  alt={t("Avatar of {{ name} }", { name: user.name })}
+                  alt={t("Avatar of {{ name }}", { name: user.name })}
                   model={user}
                   size={24}
                   style={{ marginLeft: 4 }}
