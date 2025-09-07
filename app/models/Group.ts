@@ -2,6 +2,7 @@ import { computed, observable } from "mobx";
 import GroupMembership from "./GroupMembership";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
+import { GroupPermission } from "@shared/types";
 
 class Group extends Model {
   static modelName = "Group";
@@ -23,6 +24,18 @@ class Group extends Model {
   get users() {
     const { users } = this.store.rootStore;
     return users.inGroup(this.id);
+  }
+
+  @computed
+  get admins() {
+    const { groupUsers } = this.store.rootStore;
+    return groupUsers.orderedData
+      .filter(
+        (groupUser) =>
+          groupUser.groupId === this.id &&
+          groupUser.permission === GroupPermission.Admin
+      )
+      .map((groupUser) => groupUser.user);
   }
 
   /**

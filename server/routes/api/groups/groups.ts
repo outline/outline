@@ -102,6 +102,7 @@ router.post(
                 where: {
                   groupId: group.id,
                 },
+                order: [["permission", "ASC"]],
                 limit: MAX_AVATAR_DISPLAY,
               })
             )

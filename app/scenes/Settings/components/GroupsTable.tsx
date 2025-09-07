@@ -59,7 +59,7 @@ export function GroupsTable(props: Props) {
                 <Title onClick={() => handleViewMembers(group)}>
                   {group.name}
                 </Title>
-                <Text type="tertiary" size="small">
+                <Text type="tertiary" size="small" weight="normal">
                   <Trans
                     defaults="{{ count }} member"
                     values={{ count: group.memberCount }}
@@ -91,6 +91,30 @@ export function GroupsTable(props: Props) {
                 }
               >
                 <Facepile users={users} overflow={overflow} />
+              </GroupMembers>
+            );
+          },
+          width: "1fr",
+          sortable: false,
+        },
+        {
+          type: "data",
+          id: "admins",
+          header: t("Admins"),
+          accessor: (group) => `${group.memberCount} admins`,
+          component: (group) => {
+            const users = group.admins.slice(0, MAX_AVATAR_DISPLAY);
+
+            if (users.length === 0) {
+              return null;
+            }
+
+            return (
+              <GroupMembers
+                onClick={() => handleViewMembers(group)}
+                width={users.length * AvatarSize.Large}
+              >
+                <Facepile users={users} />
               </GroupMembers>
             );
           },
