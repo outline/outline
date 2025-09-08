@@ -286,6 +286,7 @@
   "Including uploaded images and files in the exported data": "내보낼 데이터에 업로드된 이미지 및 파일 포함",
   "{{count}} more user": "{{count}}명의 추가 사용자",
   "{{count}} more user_plural": "{{count}}명의 추가 사용자",
+  "Filter options": "Filter options",
   "Filter": "필터",
   "No results": "결과 없음",
   "{{authorName}} created <3></3>": "{{authorName }} 이(가) <3></3> 생성",
