@@ -162,7 +162,7 @@ const FilterOptions = ({
             {selectedItems.length ? selectedLabel : defaultLabel}
           </StyledButton>
         </MenuTrigger>
-        <MenuContent aria-label={defaultLabel}>
+        <MenuContent aria-label={defaultLabel} align="start">
           <PaginatedList<TFilterOption>
             listRef={listRef}
             options={{ query, ...fetchQueryOptions }}
