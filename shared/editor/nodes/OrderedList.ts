@@ -121,24 +121,30 @@ export default class OrderedList extends Node {
     state.write("\n");
 
     const start = node.attrs.order !== undefined ? node.attrs.order : 1;
+    const upperOrLowerAlpha =
+      node.attrs.listStyle === "lower-alpha" ||
+      node.attrs.listStyle === "upper-alpha";
 
-    if (node.attrs.listStyle && node.attrs.listStyle === "lower-alpha") {
+    if (upperOrLowerAlpha) {
       const space = state.repeat(" ", 4);
 
       state.renderList(node, space, (index: number) => {
-        const letterIndex = ((start + index - 1) % 26) + 1;
-        const charCode = 96 + letterIndex;
-        const letter = String.fromCharCode(charCode);
-        return `${letter}. `;
-      });
-    } else if (node.attrs.listStyle && node.attrs.listStyle === "upper-alpha") {
-      const space = state.repeat(" ", 4);
+        const alphabetSize = 26;
+        const position = start + index;
+        const asciiStart = node.attrs.listStyle === "lower-alpha" ? 97 : 65;
 
-      state.renderList(node, space, (index: number) => {
-        const letterIndex = ((start + index - 1) % 26) + 1;
-        const charCode = 64 + letterIndex;
-        const letter = String.fromCharCode(charCode);
-        return `${letter}. `;
+        let result = "";
+        // wraps around the alphabet size, so that 0 -> a, 26 -> a
+        let letterIndex = position;
+        while (letterIndex >= 0) {
+          // determine how much overflow we have at the end
+          const overFlow = letterIndex % alphabetSize;
+          letterIndex = Math.floor(letterIndex / alphabetSize) - 1;
+
+          result = String.fromCharCode(asciiStart + overFlow) + result;
+        }
+
+        return result + ". ";
       });
     } else {
       const maxW = `${start + node.childCount - 1}`.length;
