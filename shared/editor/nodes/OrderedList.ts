@@ -24,7 +24,8 @@ export default class OrderedList extends Node {
         },
         listStyle: {
           default: "number",
-          validate: "string",
+          validate: (style: string) =>
+            ["number", "lower-alpha", "upper-alpha"].includes(style),
         },
       },
       content: "list_item+",
