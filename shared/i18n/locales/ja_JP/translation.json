@@ -286,6 +286,7 @@
   "Including uploaded images and files in the exported data": "エクスポートデータにアップロードされた画像とファイルを含む",
   "{{count}} more user": "{{count}} more user",
   "{{count}} more user_plural": "{{count}} more users",
+  "Filter options": "Filter options",
   "Filter": "フィルター",
   "No results": "検索結果はありません",
   "{{authorName}} created <3></3>": "{{authorName}} が作成 <3></3>",
