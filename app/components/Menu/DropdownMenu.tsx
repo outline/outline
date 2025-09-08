@@ -126,7 +126,7 @@ export const DropdownMenu = observer(
       const content = toMenuItems(menuItems);
 
       return (
-        <MenuProvider variant={"dropdown"}>
+        <MenuProvider variant="dropdown">
           <Menu open={open} onOpenChange={handleOpenChange}>
             <MenuTrigger ref={ref} aria-label={ariaLabel} {...rest}>
               {children}
