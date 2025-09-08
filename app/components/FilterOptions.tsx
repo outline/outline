@@ -1,22 +1,19 @@
 import deburr from "lodash/deburr";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { MenuButton } from "reakit/Menu";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import type { FetchPageParams } from "~/stores/base/Store";
 import Button, { Inner } from "~/components/Button";
-import ContextMenu from "~/components/ContextMenu";
-import MenuItem from "~/components/ContextMenu/MenuItem";
 import Text from "~/components/Text";
-import { useMenuState } from "~/hooks/useMenuState";
 import Input, { NativeInput, Outline } from "./Input";
 import PaginatedList, { PaginatedItem } from "./PaginatedList";
+import { MenuProvider } from "./primitives/Menu/MenuContext";
+import { Menu, MenuContent, MenuTrigger, MenuButton } from "./primitives/Menu";
 
 interface TFilterOption extends PaginatedItem {
   key: string;
   label: string;
-  note?: string;
   icon?: React.ReactNode;
 }
 
@@ -34,19 +31,17 @@ type Props = {
 const FilterOptions = ({
   options,
   selectedKeys = [],
-  defaultLabel = "Filter options",
   className,
   onSelect,
   showFilter,
   fetchQuery,
   fetchQueryOptions,
+  ...rest
 }: Props) => {
   const { t } = useTranslation();
   const searchInputRef = React.useRef<HTMLInputElement>(null);
   const listRef = React.useRef<HTMLDivElement | null>(null);
-  const menu = useMenuState({
-    modal: false,
-  });
+  const [open, setOpen] = React.useState(false);
   const selectedItems = options.filter((option) =>
     selectedKeys.includes(option.key)
   );
@@ -58,32 +53,26 @@ const FilterOptions = ({
 
   const renderItem = React.useCallback(
     (option) => (
-      <MenuItem
+      <MenuButton
         key={option.key}
+        icon={option.icon}
+        label={option.label}
         onClick={() => {
           onSelect(option.key);
-          menu.hide();
+          setOpen(false);
         }}
         selected={selectedKeys.includes(option.key)}
-        {...menu}
-      >
-        {option.icon}
-        {option.note ? (
-          <LabelWithNote>
-            {option.label}
-            <Note>{option.note}</Note>
-          </LabelWithNote>
-        ) : (
-          option.label
-        )}
-      </MenuItem>
+      />
     ),
-    [menu, onSelect, selectedKeys]
+    [onSelect, selectedKeys]
   );
 
-  const handleFilter = (ev: React.ChangeEvent<HTMLInputElement>) => {
-    setQuery(ev.target.value);
-  };
+  const handleFilter = React.useCallback(
+    (ev: React.ChangeEvent<HTMLInputElement>) => {
+      setQuery(ev.target.value);
+    },
+    []
+  );
 
   const filteredOptions = React.useMemo(() => {
     const normalizedQuery = deburr(query.toLowerCase());
@@ -121,13 +110,13 @@ const FilterOptions = ({
 
       switch (ev.key) {
         case "Escape":
-          menu.hide();
+          setOpen(false);
           break;
         case "Enter":
           if (filteredOptions.length === 1) {
             ev.preventDefault();
             onSelect(filteredOptions[0].key);
-            menu.hide();
+            setOpen(false);
           }
           break;
         case "ArrowDown":
@@ -138,7 +127,7 @@ const FilterOptions = ({
           break;
       }
     },
-    [filteredOptions, menu, onSelect]
+    [filteredOptions, onSelect]
   );
 
   const handleEscapeFromList = React.useCallback((ev: React.KeyboardEvent) => {
@@ -150,21 +139,21 @@ const FilterOptions = ({
   }, []);
 
   React.useEffect(() => {
-    if (menu.visible) {
+    if (open) {
       searchInputRef.current?.focus();
     } else {
       setQuery("");
     }
-  }, [menu.visible]);
+  }, [open]);
 
   const showFilterInput = showFilter || options.length > 10;
+  const defaultLabel = rest.defaultLabel || t("Filter options");
 
   return (
-    <>
-      <MenuButton {...menu}>
-        {(props) => (
+    <MenuProvider variant="dropdown">
+      <Menu open={open} onOpenChange={setOpen}>
+        <MenuTrigger>
           <StyledButton
-            {...props}
             className={className}
             icon={selectedItems[0]?.key && selectedItems[0]?.icon}
             neutral
@@ -172,31 +161,31 @@ const FilterOptions = ({
           >
             {selectedItems.length ? selectedLabel : defaultLabel}
           </StyledButton>
-        )}
-      </MenuButton>
-      <ContextMenu aria-label={defaultLabel} minHeight={66} {...menu}>
-        <PaginatedList<TFilterOption>
-          listRef={listRef}
-          options={{ query, ...fetchQueryOptions }}
-          items={filteredOptions}
-          fetch={fetchQuery}
-          renderItem={renderItem}
-          onEscape={handleEscapeFromList}
-          heading={showFilterInput ? <Spacer /> : undefined}
-          empty={<Empty />}
-        />
-        {showFilterInput && (
-          <SearchInput
-            ref={searchInputRef}
-            value={query}
-            onChange={handleFilter}
-            onKeyDown={handleKeyDown}
-            placeholder={`${t("Filter")}…`}
-            autoFocus
+        </MenuTrigger>
+        <MenuContent aria-label={defaultLabel} align="start">
+          <PaginatedList<TFilterOption>
+            listRef={listRef}
+            options={{ query, ...fetchQueryOptions }}
+            items={filteredOptions}
+            fetch={fetchQuery}
+            renderItem={renderItem}
+            onEscape={handleEscapeFromList}
+            heading={showFilterInput ? <Spacer /> : undefined}
+            empty={<Empty />}
           />
-        )}
-      </ContextMenu>
-    </>
+          {showFilterInput && (
+            <SearchInput
+              ref={searchInputRef}
+              value={query}
+              onChange={handleFilter}
+              onKeyDown={handleKeyDown}
+              placeholder={`${t("Filter")}…`}
+              autoFocus
+            />
+          )}
+        </MenuContent>
+      </Menu>
+    </MenuProvider>
   );
 };
 
@@ -239,24 +228,6 @@ const SearchInput = styled(Input)`
 
   ${NativeInput} {
     font-size: 14px;
-  }
-`;
-
-const Note = styled(Text)`
-  display: block;
-  margin: 2px 0;
-  line-height: 1.2em;
-  font-size: 14px;
-  font-weight: 500;
-  color: ${s("textTertiary")};
-`;
-
-const LabelWithNote = styled.div`
-  font-weight: 500;
-  text-align: left;
-
-  &:hover ${Note} {
-    color: ${(props) => props.theme.white50};
   }
 `;
 

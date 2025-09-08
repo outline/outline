@@ -80,7 +80,7 @@ export const ContextMenu = observer(
     const content = toMenuItems(menuItems);
 
     return (
-      <MenuProvider variant={"context"}>
+      <MenuProvider variant="context">
         <Menu onOpenChange={handleOpenChange}>
           <MenuTrigger aria-label={ariaLabel}>{children}</MenuTrigger>
           <MenuContent
