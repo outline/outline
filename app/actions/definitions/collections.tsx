@@ -81,8 +81,7 @@ export const createCollection = createAction({
 });
 
 export const editCollection = createActionV2({
-  name: ({ t, isContextMenu }) =>
-    isContextMenu ? `${t("Edit")}…` : t("Edit collection"),
+  name: ({ t, isMenu }) => (isMenu ? `${t("Edit")}…` : t("Edit collection")),
   analyticsName: "Edit collection",
   section: ActiveCollectionSection,
   icon: <EditIcon />,
@@ -107,8 +106,8 @@ export const editCollection = createActionV2({
 });
 
 export const editCollectionPermissions = createActionV2({
-  name: ({ t, isContextMenu }) =>
-    isContextMenu ? `${t("Permissions")}…` : t("Collection permissions"),
+  name: ({ t, isMenu }) =>
+    isMenu ? `${t("Permissions")}…` : t("Collection permissions"),
   analyticsName: "Collection permissions",
   section: ActiveCollectionSection,
   icon: <PadlockIcon />,

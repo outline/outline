@@ -24,7 +24,6 @@ import Text from "~/components/Text";
 import Time from "~/components/Time";
 import Tooltip from "~/components/Tooltip";
 import { resolveCommentFactory } from "~/actions/definitions/comments";
-import useActionContext from "~/hooks/useActionContext";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import CommentMenu from "~/menus/CommentMenu";
@@ -312,14 +311,12 @@ const ResolveButton = ({
   comment: Comment;
   onUpdate: (attrs: { resolved: boolean }) => void;
 }) => {
-  const context = useActionContext();
   const { t } = useTranslation();
 
   return (
     <Tooltip content={t("Mark as resolved")} placement="top">
       <Action
         as={NudeButton}
-        context={context}
         action={resolveCommentFactory({
           comment,
           onResolve: () => onUpdate({ resolved: true }),
