@@ -384,8 +384,8 @@ export const subscribeDocument = createActionV2({
   analyticsName: "Subscribe to document",
   section: ActiveDocumentSection,
   icon: <SubscribeIcon />,
-  tooltip: ({ activeCollectionId, isContextMenu, stores, t }) => {
-    if (!isContextMenu || !activeCollectionId) {
+  tooltip: ({ activeCollectionId, isMenu, stores, t }) => {
+    if (!isMenu || !activeCollectionId) {
       return undefined;
     }
 
@@ -393,8 +393,8 @@ export const subscribeDocument = createActionV2({
       ? t("Subscription inherited from collection")
       : undefined;
   },
-  disabled: ({ activeCollectionId, isContextMenu, stores }) => {
-    if (!isContextMenu || !activeCollectionId) {
+  disabled: ({ activeCollectionId, isMenu, stores }) => {
+    if (!isMenu || !activeCollectionId) {
       return false;
     }
 
@@ -430,8 +430,8 @@ export const unsubscribeDocument = createActionV2({
   analyticsName: "Unsubscribe from document",
   section: ActiveDocumentSection,
   icon: <UnsubscribeIcon />,
-  tooltip: ({ activeCollectionId, isContextMenu, stores, t }) => {
-    if (!isContextMenu || !activeCollectionId) {
+  tooltip: ({ activeCollectionId, isMenu, stores, t }) => {
+    if (!isMenu || !activeCollectionId) {
       return undefined;
     }
 
@@ -439,8 +439,8 @@ export const unsubscribeDocument = createActionV2({
       ? t("Subscription inherited from collection")
       : undefined;
   },
-  disabled: ({ activeCollectionId, isContextMenu, stores }) => {
-    if (!isContextMenu || !activeCollectionId) {
+  disabled: ({ activeCollectionId, isMenu, stores }) => {
+    if (!isMenu || !activeCollectionId) {
       return false;
     }
 
@@ -571,8 +571,7 @@ export const downloadDocumentAsMarkdown = createActionV2({
 });
 
 export const downloadDocument = createActionV2WithChildren({
-  name: ({ t, isContextMenu }) =>
-    isContextMenu ? t("Download") : t("Download document"),
+  name: ({ t, isMenu }) => (isMenu ? t("Download") : t("Download document")),
   analyticsName: "Download document",
   section: ActiveDocumentSection,
   icon: <DownloadIcon />,
@@ -678,8 +677,7 @@ export const copyDocument = createActionV2WithChildren({
 });
 
 export const duplicateDocument = createActionV2({
-  name: ({ t, isContextMenu }) =>
-    isContextMenu ? t("Duplicate") : t("Duplicate document"),
+  name: ({ t, isMenu }) => (isMenu ? t("Duplicate") : t("Duplicate document")),
   analyticsName: "Duplicate document",
   section: ActiveDocumentSection,
   icon: <DuplicateIcon />,
@@ -829,8 +827,7 @@ export const searchInDocument = createInternalLinkActionV2({
 });
 
 export const printDocument = createActionV2({
-  name: ({ t, isContextMenu }) =>
-    isContextMenu ? t("Print") : t("Print document"),
+  name: ({ t, isMenu }) => (isMenu ? t("Print") : t("Print document")),
   analyticsName: "Print document",
   section: ActiveDocumentSection,
   icon: <PrintIcon />,

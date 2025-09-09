@@ -32,7 +32,7 @@ export const ContextMenu = observer(
     const actionContext =
       context ??
       useActionContext({
-        isContextMenu: true,
+        isMenu: true,
       });
 
     const menuItems = useComputed(() => {

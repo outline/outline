@@ -36,7 +36,7 @@ import {
   createDocument,
   exportCollection,
 } from "~/actions/definitions/collections";
-import useActionContext from "~/hooks/useActionContext";
+import { ActionContextProvider } from "~/hooks/useActionContext";
 import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
@@ -130,11 +130,6 @@ function CollectionMenu({
   );
 
   const can = usePolicy(collection);
-  const context = useActionContext({
-    isContextMenu: true,
-    activeCollectionId: collection.id,
-  });
-
   const sortAlphabetical = collection.sort.field === "title";
   const sortDir = collection.sort.direction;
 
@@ -228,7 +223,7 @@ function CollectionMenu({
   const rootAction = useMenuAction(actions);
 
   return (
-    <>
+    <ActionContextProvider value={{ activeCollectionId: collection.id }}>
       <VisuallyHidden.Root>
         <label>
           {t("Import document")}
@@ -244,7 +239,6 @@ function CollectionMenu({
       </VisuallyHidden.Root>
       <DropdownMenu
         action={rootAction}
-        context={context}
         align={align}
         onOpen={onOpen}
         onClose={onClose}
@@ -255,7 +249,7 @@ function CollectionMenu({
           onPointerEnter={handlePointerEnter}
         />
       </DropdownMenu>
-    </>
+    </ActionContextProvider>
   );
 }
 

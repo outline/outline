@@ -92,7 +92,7 @@ export type MenuItem =
   | MenuGroup;
 
 export type ActionContext = {
-  isContextMenu: boolean;
+  isMenu: boolean;
   isCommandBar: boolean;
   isButton: boolean;
   sidebarContext?: SidebarContextType;

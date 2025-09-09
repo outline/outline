@@ -8,24 +8,19 @@ import PaginatedDocumentList from "~/components/PaginatedDocumentList";
 import Scene from "~/components/Scene";
 import Subheading from "~/components/Subheading";
 import { permanentlyDeleteDocumentsInTrash } from "~/actions/definitions/documents";
-import useActionContext from "~/hooks/useActionContext";
 import useStores from "~/hooks/useStores";
 
 function Trash() {
   const { t } = useTranslation();
   const { documents } = useStores();
-  const context = useActionContext();
+
   return (
     <Scene
       icon={<TrashIcon />}
       title={t("Trash")}
       actions={
         documents.deleted.length > 0 && (
-          <Button
-            neutral
-            action={permanentlyDeleteDocumentsInTrash}
-            context={context}
-          >
+          <Button neutral action={permanentlyDeleteDocumentsInTrash}>
             {t("Empty trash")}
           </Button>
         )

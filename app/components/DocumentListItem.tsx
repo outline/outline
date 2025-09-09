@@ -95,7 +95,7 @@ function DocumentListItem(
   });
 
   const actionContext = useActionContext({
-    isContextMenu: true,
+    isMenu: true,
     activeDocumentId: document.id,
     activeCollectionId:
       !isShared && document.collectionId ? document.collectionId : undefined,

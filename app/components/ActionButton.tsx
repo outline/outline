@@ -9,6 +9,7 @@ import {
   ActionV2Variant,
   ActionV2WithChildren,
 } from "~/types";
+import useActionContext from "~/hooks/useActionContext";
 
 export type Props = React.HTMLAttributes<HTMLButtonElement> & {
   /** Show the button in a disabled state */
@@ -17,7 +18,7 @@ export type Props = React.HTMLAttributes<HTMLButtonElement> & {
   hideOnActionDisabled?: boolean;
   /** Action to use on button */
   action?: Action | Exclude<ActionV2Variant, ActionV2WithChildren>;
-  /** Context of action, must be provided with action */
+  /** Optional context overrides for action */
   context?: ActionContext;
   /** If tooltip props are provided the button will be wrapped in a tooltip */
   tooltip?: Omit<TooltipProps, "children">;
@@ -31,18 +32,20 @@ const ActionButton = React.forwardRef<HTMLButtonElement, Props>(
     { action, context, tooltip, hideOnActionDisabled, ...rest }: Props,
     ref: React.Ref<HTMLButtonElement>
   ) {
+    const actionContext = useActionContext({
+      ...context,
+      isButton: true,
+    });
     const isMounted = useIsMounted();
     const [executing, setExecuting] = React.useState(false);
     const disabled = rest.disabled;
 
-    if (action && !context) {
+    if (action && !actionContext) {
       throw new Error("Context must be provided with action");
     }
-    if (!context || !action) {
+    if (!actionContext || !action) {
       return <button {...rest} ref={ref} />;
     }
-
-    const actionContext = { ...context, isButton: true };
 
     if (
       action.visible &&
