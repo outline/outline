@@ -6,7 +6,6 @@ import { Inner } from "~/components/Button";
 import ButtonSmall from "~/components/ButtonSmall";
 import Fade from "~/components/Fade";
 import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelect";
-import useActionContext from "~/hooks/useActionContext";
 import { Action, Permission } from "~/types";
 
 export function PermissionAction({
@@ -21,7 +20,6 @@ export function PermissionAction({
   onChange: (permission: CollectionPermission | DocumentPermission) => void;
 }) {
   const { t } = useTranslation();
-  const context = useActionContext();
 
   return (
     <Fade timing="150ms" key="invite">
@@ -31,9 +29,7 @@ export function PermissionAction({
           onChange={onChange}
           value={permission}
         />
-        <ButtonSmall action={action} context={context}>
-          {t("Add")}
-        </ButtonSmall>
+        <ButtonSmall action={action}>{t("Add")}</ButtonSmall>
       </Flex>
     </Fade>
   );
