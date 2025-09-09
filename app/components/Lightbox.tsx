@@ -12,6 +12,7 @@ import {
   CloseIcon,
   CrossIcon,
   DownloadIcon,
+  LinkIcon,
   NextIcon,
 } from "outline-icons";
 import { depths, extraArea, s } from "@shared/styles";
@@ -25,6 +26,8 @@ import Tooltip from "~/components/Tooltip";
 import LoadingIndicator from "./LoadingIndicator";
 import Fade from "./Fade";
 import Button from "./Button";
+import CopyToClipboard from "./CopyToClipboard";
+import { Separator } from "./Actions";
 
 export enum LightboxStatus {
   READY_TO_OPEN,
@@ -457,6 +460,8 @@ function Lightbox({ onUpdate, activePos }: Props) {
     return null;
   }
 
+  const src = sanitizeUrl(currentImageNode.attrs.src) ?? "";
+
   return (
     <Dialog.Root open={!!activePos}>
       <Dialog.Portal>
@@ -474,6 +479,18 @@ function Lightbox({ onUpdate, activePos }: Props) {
             </Dialog.Description>
           </VisuallyHidden.Root>
           <Actions animation={animation.current}>
+            <Tooltip content={t("Copy link")} placement="bottom">
+              <CopyToClipboard text={imgRef.current?.src ?? ""}>
+                <Button
+                  tabIndex={-1}
+                  aria-label={t("Copy link")}
+                  size={32}
+                  icon={<LinkIcon />}
+                  borderOnHover
+                  neutral
+                />
+              </CopyToClipboard>
+            </Tooltip>
             <Tooltip content={t("Download")} placement="bottom">
               <Button
                 tabIndex={-1}
@@ -485,6 +502,7 @@ function Lightbox({ onUpdate, activePos }: Props) {
                 neutral
               />
             </Tooltip>
+            <Separator />
             <Dialog.Close asChild>
               <Tooltip content={t("Close")} shortcut="Esc" placement="bottom">
                 <Button
@@ -508,7 +526,7 @@ function Lightbox({ onUpdate, activePos }: Props) {
           )}
           <Image
             ref={imgRef}
-            src={sanitizeUrl(currentImageNode.attrs.src) ?? ""}
+            src={src}
             alt={currentImageNode.attrs.alt ?? ""}
             onLoading={() =>
               setStatus({
@@ -757,7 +775,8 @@ const Actions = styled.div<{
   right: 0;
   margin: 16px 12px;
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 8px;
 
   ${(props) =>
     props.animation === null
