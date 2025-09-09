@@ -32,9 +32,6 @@ const ActionButton = React.forwardRef<HTMLButtonElement, Props>(
     const [executing, setExecuting] = React.useState(false);
     const disabled = rest.disabled;
 
-    if (action && !actionContext) {
-      throw new Error("Context must be provided with action");
-    }
     if (!actionContext || !action) {
       return <button {...rest} ref={ref} />;
     }
