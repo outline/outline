@@ -8,9 +8,9 @@ import {
   copyLinkToRevision,
   restoreRevision,
 } from "~/actions/definitions/revisions";
-import useActionContext from "~/hooks/useActionContext";
 import { useMemo } from "react";
 import { useMenuAction } from "~/hooks/useMenuAction";
+import { ActionContextProvider } from "~/hooks/useActionContext";
 
 type Props = {
   document: Document;
@@ -19,11 +19,6 @@ type Props = {
 
 function RevisionMenu({ document }: Props) {
   const { t } = useTranslation();
-  const context = useActionContext({
-    isContextMenu: true,
-    activeDocumentId: document.id,
-  });
-
   const actions = useMemo(
     () => [restoreRevision, ActionV2Separator, copyLinkToRevision],
     []
@@ -32,14 +27,15 @@ function RevisionMenu({ document }: Props) {
   const rootAction = useMenuAction(actions);
 
   return (
-    <DropdownMenu
-      action={rootAction}
-      context={context}
-      align="end"
-      ariaLabel={t("Revision options")}
-    >
-      <OverflowMenuButton />
-    </DropdownMenu>
+    <ActionContextProvider value={{ activeDocumentId: document.id }}>
+      <DropdownMenu
+        action={rootAction}
+        align="end"
+        ariaLabel={t("Revision options")}
+      >
+        <OverflowMenuButton />
+      </DropdownMenu>
+    </ActionContextProvider>
   );
 }
 

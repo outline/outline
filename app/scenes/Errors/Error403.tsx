@@ -6,12 +6,10 @@ import Empty from "~/components/Empty";
 import Heading from "~/components/Heading";
 import Scene from "~/components/Scene";
 import { navigateToHome } from "~/actions/definitions/navigation";
-import useActionContext from "~/hooks/useActionContext";
 
 const Error403 = () => {
   const { t } = useTranslation();
   const history = useHistory();
-  const context = useActionContext();
 
   return (
     <Scene title={t("No access to this doc")}>
@@ -24,7 +22,7 @@ const Error403 = () => {
           {t("Please request access from the document owner.")}
         </Empty>
         <Flex gap={8}>
-          <Button action={navigateToHome} context={context} hideIcon>
+          <Button action={navigateToHome} hideIcon>
             {t("Home")}
           </Button>
           <Button onClick={history.goBack} neutral>

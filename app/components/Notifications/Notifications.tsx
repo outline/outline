@@ -6,7 +6,6 @@ import styled from "styled-components";
 import { s, hover } from "@shared/styles";
 import Notification from "~/models/Notification";
 import { markNotificationsAsRead } from "~/actions/definitions/notifications";
-import useActionContext from "~/hooks/useActionContext";
 import useStores from "~/hooks/useStores";
 import NotificationMenu from "~/menus/NotificationMenu";
 import Desktop from "~/utils/Desktop";
@@ -32,7 +31,6 @@ function Notifications(
   { onRequestClose }: Props,
   ref: React.RefObject<HTMLDivElement>
 ) {
-  const context = useActionContext();
   const { notifications } = useStores();
   const { t } = useTranslation();
   const isEmpty = notifications.active.length === 0;
@@ -69,7 +67,6 @@ function Notifications(
               <Tooltip content={t("Mark all as read")}>
                 <Button
                   action={markNotificationsAsRead}
-                  context={context}
                   aria-label={t("Mark all as read")}
                 >
                   <MarkAsReadIcon />

@@ -104,7 +104,7 @@ export function filterTemplateItems(items: TMenuItem[]): TMenuItem[] {
 
 function Template({ items, actions, context, showIcons, ...menu }: Props) {
   const ctx = useActionContext({
-    isContextMenu: true,
+    isMenu: true,
   });
 
   const templateItems = actions

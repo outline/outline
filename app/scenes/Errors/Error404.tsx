@@ -8,11 +8,9 @@ import {
   navigateToHome,
   navigateToSearch,
 } from "~/actions/definitions/navigation";
-import useActionContext from "~/hooks/useActionContext";
 
 const Error404 = () => {
   const { t } = useTranslation();
-  const context = useActionContext();
 
   return (
     <Scene title={t("Not found")}>
@@ -25,10 +23,10 @@ const Error404 = () => {
           </Trans>
         </Empty>
         <Flex gap={8}>
-          <Button action={navigateToHome} context={context} neutral hideIcon>
+          <Button action={navigateToHome} neutral hideIcon>
             {t("Home")}
           </Button>
-          <Button action={navigateToSearch} context={context} neutral>
+          <Button action={navigateToSearch} neutral>
             {t("Search")}…
           </Button>
         </Flex>

@@ -131,8 +131,8 @@ export const navigateToTemplateSettings = createAction({
 });
 
 export const navigateToNotificationSettings = createInternalLinkActionV2({
-  name: ({ t, isContextMenu }) =>
-    isContextMenu ? t("Notification settings") : t("Notifications"),
+  name: ({ t, isMenu }) =>
+    isMenu ? t("Notification settings") : t("Notifications"),
   analyticsName: "Navigate to notification settings",
   section: NavigationSection,
   iconInContextMenu: false,

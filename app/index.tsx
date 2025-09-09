@@ -25,6 +25,7 @@ import Logger from "./utils/Logger";
 import { PluginManager } from "./utils/PluginManager";
 import history from "./utils/history";
 import { initSentry } from "./utils/sentry";
+import { ActionContextProvider } from "./hooks/useActionContext";
 
 // Load plugins as soon as possible
 void PluginManager.loadPlugins();
@@ -53,25 +54,27 @@ if (element) {
         <Provider {...stores}>
           <Analytics>
             <Theme>
-              <ErrorBoundary showTitle>
-                <KBarProvider actions={[]} options={commandBarOptions}>
-                  <LazyPolyfill>
-                    <LazyMotion features={loadFeatures}>
-                      <Router history={history}>
-                        <PageScroll>
-                          <PageTheme />
-                          <ScrollToTop>
-                            <Routes />
-                          </ScrollToTop>
-                          <Toasts />
-                          <Dialogs />
-                          <Desktop />
-                        </PageScroll>
-                      </Router>
-                    </LazyMotion>
-                  </LazyPolyfill>
-                </KBarProvider>
-              </ErrorBoundary>
+              <Router history={history}>
+                <ErrorBoundary showTitle>
+                  <KBarProvider actions={[]} options={commandBarOptions}>
+                    <LazyPolyfill>
+                      <LazyMotion features={loadFeatures}>
+                        <ActionContextProvider>
+                          <PageScroll>
+                            <PageTheme />
+                            <ScrollToTop>
+                              <Routes />
+                            </ScrollToTop>
+                            <Toasts />
+                            <Dialogs />
+                            <Desktop />
+                          </PageScroll>
+                        </ActionContextProvider>
+                      </LazyMotion>
+                    </LazyPolyfill>
+                  </KBarProvider>
+                </ErrorBoundary>
+              </Router>
             </Theme>
           </Analytics>
         </Provider>

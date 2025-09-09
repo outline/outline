@@ -21,7 +21,7 @@ type Props = {
 
 const TeamMenu: React.FC = ({ children }: Props) => {
   const { t } = useTranslation();
-  const context = useActionContext({ isContextMenu: true });
+  const context = useActionContext({ isMenu: true });
 
   // NOTE: it's useful to memoize on the team id and session because the action
   // menu is not cached at all.

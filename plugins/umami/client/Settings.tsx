@@ -16,7 +16,6 @@ import useStores from "~/hooks/useStores";
 import Icon from "./Icon";
 import Flex from "~/components/Flex";
 import { disconnectAnalyticsIntegrationFactory } from "~/actions/definitions/integrations";
-import useActionContext from "~/hooks/useActionContext";
 import styled from "styled-components";
 
 type FormData = {
@@ -28,7 +27,6 @@ type FormData = {
 function Umami() {
   const { integrations } = useStores();
   const { t } = useTranslation();
-  const context = useActionContext();
 
   const integration = find(integrations.orderedData, {
     type: IntegrationType.Analytics,
@@ -149,7 +147,6 @@ function Umami() {
 
           <Button
             action={disconnectAnalyticsIntegrationFactory(integration)}
-            context={context}
             disabled={formState.isSubmitting}
             neutral
             hideIcon

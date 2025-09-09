@@ -2,7 +2,7 @@ import * as React from "react";
 import { actionV2ToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
 import useMobile from "~/hooks/useMobile";
-import { ActionContext, ActionV2Variant, ActionV2WithChildren } from "~/types";
+import { ActionV2Variant, ActionV2WithChildren } from "~/types";
 import { toMenuItems } from "./transformer";
 import { observer } from "mobx-react";
 import { useComputed } from "~/hooks/useComputed";
@@ -12,8 +12,6 @@ import { MenuProvider } from "~/components/primitives/Menu/MenuContext";
 type Props = {
   /** Root action with children representing the menu items */
   action: ActionV2WithChildren;
-  /** Action context to use - new context will be created if not provided */
-  context?: ActionContext;
   /** Trigger for the menu */
   children: React.ReactNode;
   /** ARIA label for the menu */
@@ -25,15 +23,12 @@ type Props = {
 };
 
 export const ContextMenu = observer(
-  ({ action, children, ariaLabel, context, onOpen, onClose }: Props) => {
+  ({ action, children, ariaLabel, onOpen, onClose }: Props) => {
     const isMobile = useMobile();
     const contentRef = React.useRef<React.ElementRef<typeof MenuContent>>(null);
-
-    const actionContext =
-      context ??
-      useActionContext({
-        isContextMenu: true,
-      });
+    const actionContext = useActionContext({
+      isMenu: true,
+    });
 
     const menuItems = useComputed(() => {
       if (!open) {

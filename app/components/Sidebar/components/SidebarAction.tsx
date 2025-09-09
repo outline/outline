@@ -12,7 +12,7 @@ type Props = {
 
 function SidebarAction({ action, ...rest }: Props) {
   const context = useActionContext({
-    isContextMenu: false,
+    isMenu: false,
     isCommandBar: false,
     activeCollectionId: undefined,
     activeDocumentId: undefined,

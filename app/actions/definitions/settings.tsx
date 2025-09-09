@@ -37,8 +37,7 @@ export const changeToSystemTheme = createActionV2({
 });
 
 export const changeTheme = createActionV2WithChildren({
-  name: ({ t, isContextMenu }) =>
-    isContextMenu ? t("Appearance") : t("Change theme"),
+  name: ({ t, isMenu }) => (isMenu ? t("Appearance") : t("Change theme")),
   analyticsName: "Change theme",
   placeholder: ({ t }) => t("Change theme to"),
   icon: ({ stores }) =>

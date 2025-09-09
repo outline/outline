@@ -16,7 +16,6 @@ import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import { inviteUser } from "~/actions/definitions/users";
 import env from "~/env";
-import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
@@ -32,7 +31,6 @@ function Members() {
   const location = useLocation();
   const history = useHistory();
   const team = useCurrentTeam();
-  const context = useActionContext();
   const { users } = useStores();
   const { t } = useTranslation();
   const params = useQuery();
@@ -128,7 +126,6 @@ function Members() {
                 data-event-category="invite"
                 data-event-action="peoplePage"
                 action={inviteUser}
-                context={context}
                 icon={<PlusIcon />}
               >
                 {t("Invite people")}…

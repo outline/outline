@@ -9,7 +9,6 @@ import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import { createApiKey } from "~/actions/definitions/apiKeys";
-import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -20,7 +19,6 @@ function ApiKeys() {
   const { t } = useTranslation();
   const { apiKeys } = useStores();
   const can = usePolicy(team);
-  const context = useActionContext();
 
   return (
     <Scene
@@ -34,7 +32,6 @@ function ApiKeys() {
                 type="submit"
                 value={`${t("New API key")}…`}
                 action={createApiKey}
-                context={context}
               />
             </Action>
           )}

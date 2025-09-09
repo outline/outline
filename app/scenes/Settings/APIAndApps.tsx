@@ -11,7 +11,6 @@ import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import { createApiKey } from "~/actions/definitions/apiKeys";
 import env from "~/env";
-import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
@@ -25,7 +24,6 @@ function APIAndApps() {
   const { t } = useTranslation();
   const { apiKeys, oauthAuthentications } = useStores();
   const can = usePolicy(team);
-  const context = useActionContext();
   const appName = env.APP_NAME;
 
   return (
@@ -40,7 +38,6 @@ function APIAndApps() {
                 type="submit"
                 value={`${t("New API key")}…`}
                 action={createApiKey}
-                context={context}
               />
             </Action>
           )}

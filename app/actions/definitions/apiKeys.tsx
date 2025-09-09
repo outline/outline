@@ -27,8 +27,8 @@ export const createApiKey = createAction({
 
 export const revokeApiKeyFactory = ({ apiKey }: { apiKey: ApiKey }) =>
   createActionV2({
-    name: ({ t, isContextMenu }) =>
-      isContextMenu
+    name: ({ t, isMenu }) =>
+      isMenu
         ? apiKey.isExpired
           ? t("Delete")
           : `${t("Revoke")}…`

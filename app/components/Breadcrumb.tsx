@@ -25,7 +25,7 @@ function Breadcrumb(
   { actions, highlightFirstItem, children, max = 2 }: Props,
   ref: React.RefObject<HTMLDivElement> | null
 ) {
-  const actionContext = useActionContext({ isContextMenu: true });
+  const actionContext = useActionContext({ isMenu: true });
 
   const visibleActions = useComputed(
     () =>

@@ -11,12 +11,12 @@ import Revision from "~/models/Revision";
 import { openDocumentInsights } from "~/actions/definitions/documents";
 import DocumentMeta from "~/components/DocumentMeta";
 import Fade from "~/components/Fade";
-import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { documentPath } from "~/utils/routeHelpers";
+import NudeButton from "~/components/NudeButton";
 
 type Props = {
   /* The document to display meta data for */
@@ -36,9 +36,6 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
   const onlyYou = totalViewers === 1 && documentViews[0].userId;
   const viewsLoadedOnMount = useRef(totalViewers > 0);
   const can = usePolicy(document);
-  const actionContext = useActionContext({
-    activeDocumentId: document.id,
-  });
 
   const Wrapper = viewsLoadedOnMount.current ? Fragment : Fade;
 
@@ -70,9 +67,7 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
       !document.isTemplate ? (
         <Wrapper>
           &nbsp;•&nbsp;
-          <InsightsButton
-            onClick={() => openDocumentInsights.perform(actionContext)}
-          >
+          <InsightsButton action={openDocumentInsights}>
             {t("Viewed by")}{" "}
             {onlyYou
               ? t("only you")
@@ -91,7 +86,7 @@ const CommentLink = styled(Link)`
   align-items: center;
 `;
 
-const InsightsButton = styled.button`
+const InsightsButton = styled(NudeButton)`
   background: none;
   border: none;
   padding: 0;

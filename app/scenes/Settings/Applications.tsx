@@ -9,7 +9,6 @@ import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import { createOAuthClient } from "~/actions/definitions/oauthClients";
-import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -20,7 +19,6 @@ function Applications() {
   const { t } = useTranslation();
   const { oauthClients } = useStores();
   const can = usePolicy(team);
-  const context = useActionContext();
 
   return (
     <Scene
@@ -34,7 +32,6 @@ function Applications() {
                 type="submit"
                 value={`${t("New App")}…`}
                 action={createOAuthClient}
-                context={context}
               />
             </Action>
           )}
