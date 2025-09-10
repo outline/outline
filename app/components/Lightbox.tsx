@@ -630,6 +630,13 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function _Image(
     }
   };
 
+  const handleTouchEnd = () => {
+    touchXStart = undefined;
+    touchXEnd = undefined;
+    touchYStart = undefined;
+    touchYEnd = undefined;
+  };
+
   const handleTouchCancel = () => {
     touchXStart = undefined;
     touchXEnd = undefined;
@@ -669,6 +676,7 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function _Image(
           onAnimationStart={() => setHidden(false)}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
           onTouchCancel={handleTouchCancel}
           onError={onError}
           onLoad={onLoad}
