@@ -442,6 +442,8 @@ function Lightbox({ onUpdate, activePos }: Props) {
     if (animation.current?.fadeIn) {
       animation.current = {
         ...(animation.current ?? {}),
+        zoomIn: undefined,
+        fadeIn: undefined,
         startTime: undefined,
       };
       setStatus({
