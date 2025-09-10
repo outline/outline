@@ -28,6 +28,7 @@ import Fade from "./Fade";
 import Button from "./Button";
 import CopyToClipboard from "./CopyToClipboard";
 import { Separator } from "./Actions";
+import { isNumber } from "lodash";
 
 export enum LightboxStatus {
   READY_TO_OPEN,
@@ -599,46 +600,48 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function _Image(
   const touchYStart = useRef<number>();
   const touchYEnd = useRef<number>();
 
+  const resetTouchPoints = () => {
+    touchXStart.current = undefined;
+    touchXEnd.current = undefined;
+    touchYStart.current = undefined;
+    touchYEnd.current = undefined;
+  };
+
   const handleTouchStart = (e: React.TouchEvent<HTMLImageElement>) => {
     touchXStart.current = e.changedTouches[0].screenX;
     touchYStart.current = e.changedTouches[0].screenY;
   };
 
   const handleTouchMove = (e: React.TouchEvent<HTMLImageElement>) => {
-    touchXEnd.current = e.changedTouches[0].screenX;
-    touchYEnd.current = e.changedTouches[0].screenY;
-    const dx = touchXEnd.current - (touchXStart.current ?? 0);
-    const dy = touchYEnd.current - (touchYStart.current ?? 0);
+    if (isNumber(touchXStart.current) && isNumber(touchYStart.current)) {
+      touchXEnd.current = e.changedTouches[0].screenX;
+      touchYEnd.current = e.changedTouches[0].screenY;
+      const dx = touchXEnd.current - touchXStart.current;
+      const dy = touchYEnd.current - touchYStart.current;
 
-    const swipeRight = dx > 0 && Math.abs(dy) < Math.abs(dx);
-    if (swipeRight) {
-      return onSwipeRight();
+      const swipeRight = dx > 0 && Math.abs(dy) < Math.abs(dx);
+      if (swipeRight) {
+        resetTouchPoints();
+        return onSwipeRight();
+      }
+
+      const swipeLeft = dx < 0 && Math.abs(dy) < Math.abs(dx);
+      if (swipeLeft) {
+        resetTouchPoints();
+        return onSwipeLeft();
+      }
+
+      const swipeDown = dy > 0 && Math.abs(dy) > Math.abs(dx);
+      const swipeUp = dy < 0 && Math.abs(dy) > Math.abs(dx);
+      if (swipeUp || swipeDown) {
+        resetTouchPoints();
+        return onSwipeUpOrDown();
+      }
     }
-
-    const swipeLeft = dx < 0 && Math.abs(dy) < Math.abs(dx);
-    if (swipeLeft) {
-      return onSwipeLeft();
-    }
-
-    const swipeDown = dy > 0 && Math.abs(dy) > Math.abs(dx);
-    const swipeUp = dy < 0 && Math.abs(dy) > Math.abs(dx);
-    if (swipeUp || swipeDown) {
-      return onSwipeUpOrDown();
-    }
-  };
-
-  const handleTouchEnd = () => {
-    touchXStart.current = undefined;
-    touchXEnd.current = undefined;
-    touchYStart.current = undefined;
-    touchYEnd.current = undefined;
   };
 
   const handleTouchCancel = () => {
-    touchXStart.current = undefined;
-    touchXEnd.current = undefined;
-    touchYStart.current = undefined;
-    touchYEnd.current = undefined;
+    resetTouchPoints();
   };
 
   const [hidden, setHidden] = useState(
@@ -673,7 +676,6 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function _Image(
           onAnimationStart={() => setHidden(false)}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
           onTouchCancel={handleTouchCancel}
           onError={onError}
           onLoad={onLoad}
