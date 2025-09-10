@@ -29,6 +29,10 @@ import Button from "./Button";
 import CopyToClipboard from "./CopyToClipboard";
 import { Separator } from "./Actions";
 import useSwipe from "~/hooks/useSwipe";
+import { isCode } from "@shared/editor/lib/isCode";
+import useStores from "@shared/hooks/useStores";
+import useBuildTheme from "~/hooks/useBuildTheme";
+import isNil from "lodash/isNil";
 
 export enum LightboxStatus {
   READY_TO_OPEN,
@@ -69,13 +73,12 @@ type Props = {
 function Lightbox({ onUpdate, activePos }: Props) {
   const { view } = useEditor();
   const isIdle = useIdle(3 * Second.ms);
+  const { ui } = useStores();
+  const theme = useBuildTheme();
   const { t } = useTranslation();
   const imgRef = useRef<HTMLImageElement | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const [status, setStatus] = useState<Status>({ lightbox: null, image: null });
-  const [imageElements] = useState(
-    view?.dom.querySelectorAll(".component-image img")
-  );
   const animation = useRef<Animation | null>(null);
   const finalImage = useRef<{
     center: { x: number; y: number };
@@ -83,12 +86,22 @@ function Lightbox({ onUpdate, activePos }: Props) {
     height: number;
   } | null>(null);
 
+  const imageElements = useMemo(
+    () =>
+      view?.dom.querySelectorAll(
+        ".component-image img, .mermaid-diagram-wrapper svg"
+      ),
+    [view]
+  );
+
   const imageNodes = useMemo(
     () =>
       view
         ? findChildren(
             view.state.doc,
-            (child) => child.type === view.state.schema.nodes.image,
+            (child) =>
+              child.type === view.state.schema.nodes.image ||
+              (isCode(child) && child.attrs.language === "mermaidjs"),
             true
           )
         : [],
@@ -107,6 +120,65 @@ function Lightbox({ onUpdate, activePos }: Props) {
   //     `lstat:${status.lightbox === null ? status.lightbox : LightboxStatus[status.lightbox]}, istat:${status.image === null ? status.image : ImageStatus[status.image]}`
   //   );
   // }, [status]);
+
+  const [mermaid, setMermaid] = useState<any>(null);
+  const [imgSrc, setImgSrc] = useState<string | undefined>();
+
+  useEffect(() => {
+    const importMermaid = async () => {
+      const mermaid = (await import("mermaid")).default;
+      mermaid.initialize({
+        startOnLoad: true,
+        // TODO: Make dynamic based on the width of the editor or remove in
+        // the future if Mermaid is able to handle this automatically.
+        gantt: { useWidth: 700 },
+        pie: { useWidth: 700 },
+        fontFamily: theme.fontFamily,
+        theme: ui.resolvedTheme === "dark" ? "dark" : "default",
+        darkMode: ui.resolvedTheme === "dark",
+      });
+      setMermaid(mermaid);
+    };
+    importMermaid();
+  }, []);
+
+  useEffect(() => {
+    if (activePos && mermaid) {
+      const node = view.state.doc.nodeAt(activePos);
+      if (node && isCode(node) && node.attrs.language === "mermaidjs") {
+        const renderMermaid = async () => {
+          // Create a temporary element that will render the diagram off-screen.
+          // This is necessary to prevent lightbox from flashing when the svg is rendered
+          const renderElement = document.createElement("div");
+          renderElement.style.position = "absolute";
+          renderElement.style.left = "-9999px";
+          renderElement.style.top = "-9999px";
+          document.body.appendChild(renderElement);
+
+          try {
+            const { svg } = await mermaid.render(
+              "mermaid-diagram",
+              node.textContent,
+              renderElement
+            );
+            const encode = encodeURIComponent(svg);
+            const dataURL = `data:image/svg+xml,${encode}`;
+            setImgSrc(dataURL);
+          } catch (_err) {
+            setImgSrc("");
+          } finally {
+            document.body.removeChild(renderElement);
+          }
+        };
+        renderMermaid();
+        return;
+      }
+
+      if (node && node.type === view.state.schema.nodes.image) {
+        setImgSrc(sanitizeUrl(node.attrs.src) ?? "");
+      }
+    }
+  }, [activePos, mermaid]);
 
   useEffect(() => () => view.focus(), []);
 
@@ -463,8 +535,6 @@ function Lightbox({ onUpdate, activePos }: Props) {
     return null;
   }
 
-  const src = sanitizeUrl(currentImageNode.attrs.src) ?? "";
-
   return (
     <Dialog.Root open={!!activePos}>
       <Dialog.Portal>
@@ -527,35 +597,37 @@ function Lightbox({ onUpdate, activePos }: Props) {
               </NavButton>
             </Nav>
           )}
-          <Image
-            ref={imgRef}
-            src={src}
-            alt={currentImageNode.attrs.alt ?? ""}
-            onLoading={() =>
-              setStatus({
-                lightbox: status.lightbox,
-                image: ImageStatus.LOADING,
-              })
-            }
-            onLoad={() =>
-              setStatus({
-                lightbox: status.lightbox,
-                image: ImageStatus.LOADED,
-              })
-            }
-            onError={() =>
-              setStatus({
-                lightbox: status.lightbox,
-                image: ImageStatus.ERROR,
-              })
-            }
-            onSwipeRight={prev}
-            onSwipeLeft={next}
-            onSwipeUp={close}
-            onSwipeDown={close}
-            status={status}
-            animation={animation.current}
-          />
+          {!isNil(imgSrc) && (
+            <Image
+              ref={imgRef}
+              src={imgSrc}
+              alt={currentImageNode.attrs.alt ?? ""}
+              onLoading={() =>
+                setStatus({
+                  lightbox: status.lightbox,
+                  image: ImageStatus.LOADING,
+                })
+              }
+              onLoad={() =>
+                setStatus({
+                  lightbox: status.lightbox,
+                  image: ImageStatus.LOADED,
+                })
+              }
+              onError={() =>
+                setStatus({
+                  lightbox: status.lightbox,
+                  image: ImageStatus.ERROR,
+                })
+              }
+              onSwipeRight={prev}
+              onSwipeLeft={next}
+              onSwipeUp={close}
+              onSwipeDown={close}
+              status={status}
+              animation={animation.current}
+            />
+          )}
           {currentImageIndex < imageNodes.length - 1 && (
             <Nav dir="right" $hidden={isIdle} animation={animation.current}>
               <NavButton onClick={next} size={32} aria-label={t("Next")}>
