@@ -28,6 +28,7 @@ import Fade from "./Fade";
 import Button from "./Button";
 import CopyToClipboard from "./CopyToClipboard";
 import { Separator } from "./Actions";
+import useSwipe from "~/hooks/useSwipe";
 
 export enum LightboxStatus {
   READY_TO_OPEN,
@@ -550,7 +551,8 @@ function Lightbox({ onUpdate, activePos }: Props) {
             }
             onSwipeRight={prev}
             onSwipeLeft={next}
-            onSwipeUpOrDown={close}
+            onSwipeUp={close}
+            onSwipeDown={close}
             status={status}
             animation={animation.current}
           />
@@ -575,7 +577,8 @@ type ImageProps = {
   onError: () => void;
   onSwipeRight: () => void;
   onSwipeLeft: () => void;
-  onSwipeUpOrDown: () => void;
+  onSwipeUp: () => void;
+  onSwipeDown: () => void;
   status: Status;
   animation: Animation | null;
 };
@@ -589,59 +592,21 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function _Image(
     onError,
     onSwipeRight,
     onSwipeLeft,
-    onSwipeUpOrDown,
+    onSwipeUp,
+    onSwipeDown,
     status,
     animation,
   }: ImageProps,
   ref
 ) {
   const { t } = useTranslation();
-  const touchXStart = useRef<number>();
-  const touchXEnd = useRef<number>();
-  const touchYStart = useRef<number>();
-  const touchYEnd = useRef<number>();
 
-  const handleTouchStart = (e: React.TouchEvent<HTMLImageElement>) => {
-    touchXStart.current = e.changedTouches[0].screenX;
-    touchYStart.current = e.changedTouches[0].screenY;
-  };
-
-  const handleTouchMove = (e: React.TouchEvent<HTMLImageElement>) => {
-    touchXEnd.current = e.changedTouches[0].screenX;
-    touchYEnd.current = e.changedTouches[0].screenY;
-    const dx = touchXEnd.current - (touchXStart.current ?? 0);
-    const dy = touchYEnd.current - (touchYStart.current ?? 0);
-
-    const swipeRight = dx > 0 && Math.abs(dy) < Math.abs(dx);
-    if (swipeRight) {
-      return onSwipeRight();
-    }
-
-    const swipeLeft = dx < 0 && Math.abs(dy) < Math.abs(dx);
-    if (swipeLeft) {
-      return onSwipeLeft();
-    }
-
-    const swipeDown = dy > 0 && Math.abs(dy) > Math.abs(dx);
-    const swipeUp = dy < 0 && Math.abs(dy) > Math.abs(dx);
-    if (swipeUp || swipeDown) {
-      return onSwipeUpOrDown();
-    }
-  };
-
-  const handleTouchEnd = () => {
-    touchXStart.current = undefined;
-    touchXEnd.current = undefined;
-    touchYStart.current = undefined;
-    touchYEnd.current = undefined;
-  };
-
-  const handleTouchCancel = () => {
-    touchXStart.current = undefined;
-    touchXEnd.current = undefined;
-    touchYStart.current = undefined;
-    touchYEnd.current = undefined;
-  };
+  const swipeHandlers = useSwipe({
+    onSwipeRight,
+    onSwipeLeft,
+    onSwipeUp,
+    onSwipeDown,
+  });
 
   const [hidden, setHidden] = useState(
     status.image === null || status.image === ImageStatus.LOADING
@@ -673,10 +638,7 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function _Image(
           alt={alt}
           animation={animation}
           onAnimationStart={() => setHidden(false)}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onTouchCancel={handleTouchCancel}
+          {...swipeHandlers}
           onError={onError}
           onLoad={onLoad}
           $hidden={hidden}
