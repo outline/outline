@@ -15,6 +15,7 @@ import { isCode } from "../lib/isCode";
 import { isRemoteTransaction } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
 import { NodeWithPos } from "../types";
+import type { Editor } from "../../../app/editor";
 
 type MermaidState = {
   decorationSet: DecorationSet;
@@ -49,14 +50,16 @@ class MermaidRenderer {
   readonly diagramId: string;
   readonly element: HTMLElement;
   readonly elementId: string;
+  readonly editor: Editor;
 
-  constructor() {
+  constructor(editor: Editor) {
     this.diagramId = uuidv4();
     this.elementId = `mermaid-diagram-wrapper-${this.diagramId}`;
     this.element =
       document.getElementById(this.elementId) || document.createElement("div");
     this.element.id = this.elementId;
     this.element.classList.add("mermaid-diagram-wrapper");
+    this.editor = editor;
   }
 
   renderImmediately = async (
@@ -175,10 +178,12 @@ function getNewState({
   doc,
   name,
   pluginState,
+  editor,
 }: {
   doc: Node;
   name: string;
   pluginState: MermaidState;
+  editor: Editor;
 }): MermaidState {
   const decorations: Decoration[] = [];
 
@@ -201,7 +206,7 @@ function getNewState({
     );
 
     const renderer: MermaidRenderer =
-      bestDecoration?.spec?.renderer ?? new MermaidRenderer();
+      bestDecoration?.spec?.renderer ?? new MermaidRenderer(editor);
 
     const diagramDecoration = Decoration.widget(
       block.pos + block.node.nodeSize,
@@ -239,9 +244,11 @@ function getNewState({
 export default function Mermaid({
   name,
   isDark,
+  editor,
 }: {
   name: string;
   isDark: boolean;
+  editor: Editor;
 }) {
   return new Plugin({
     key: new PluginKey("mermaid"),
@@ -255,6 +262,7 @@ export default function Mermaid({
           doc,
           name,
           pluginState,
+          editor,
         });
       },
       apply: (
@@ -285,6 +293,7 @@ export default function Mermaid({
             doc: transaction.doc,
             name,
             pluginState,
+            editor,
           });
         }
 
@@ -318,6 +327,16 @@ export default function Mermaid({
           const pos = view.posAtDOM(codeBlock, 0);
           if (!pos) {
             return false;
+          }
+
+          const { selection: textSelection } = view.state;
+          const $pos = view.state.doc.resolve(pos);
+          const selected =
+            textSelection.from >= $pos.start() &&
+            textSelection.to <= $pos.end();
+          if (selected) {
+            editor.updateActiveLightbox($pos.before());
+            return true;
           }
 
           // select node
