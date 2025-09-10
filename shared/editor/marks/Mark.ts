@@ -10,6 +10,7 @@ import { Command } from "prosemirror-state";
 import { toggleMark } from "../commands/toggleMark";
 import Extension, { CommandFactory } from "../lib/Extension";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { Primitive } from "utility-types";
 
 export default abstract class Mark extends Extension {
   get type() {
@@ -46,6 +47,6 @@ export default abstract class Mark extends Extension {
     type: MarkType;
     schema: Schema;
   }): Record<string, CommandFactory> | CommandFactory | undefined {
-    return (attrs) => toggleMark(type, attrs);
+    return (attrs) => toggleMark(type, attrs as Record<string, Primitive>);
   }
 }

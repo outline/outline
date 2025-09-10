@@ -11,10 +11,14 @@ export default function useDictionary() {
 
   return useMemo(
     () => ({
-      addColumnAfter: t("Add column after"),
-      addColumnBefore: t("Add column before"),
-      addRowAfter: t("Add row after"),
-      addRowBefore: t("Add row before"),
+      addColumnAfter: t("Insert after"),
+      addColumnBefore: t("Insert before"),
+      moveRowUp: t("Move up"),
+      moveRowDown: t("Move down"),
+      moveColumnLeft: t("Move left"),
+      moveColumnRight: t("Move right"),
+      addRowAfter: t("Insert after"),
+      addRowBefore: t("Insert before"),
       alignCenter: t("Align center"),
       alignLeft: t("Align left"),
       alignRight: t("Align right"),

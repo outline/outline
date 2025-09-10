@@ -1,6 +1,5 @@
 import { AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react";
-import { ArrowIcon } from "outline-icons";
 import { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useRouteMatch } from "react-router-dom";
@@ -24,6 +23,7 @@ import CommentForm from "./CommentForm";
 import CommentSortMenu from "./CommentSortMenu";
 import CommentThread from "./CommentThread";
 import Sidebar from "./SidebarLayout";
+import { ArrowDownIcon } from "~/components/Icons/ArrowIcon";
 
 function Comments() {
   const { ui, comments, documents } = useStores();
@@ -228,10 +228,6 @@ const JumpToRecent = styled(ButtonSmall)`
   &:hover {
     opacity: 1;
   }
-`;
-
-const ArrowDownIcon = styled(ArrowIcon)`
-  transform: rotate(90deg);
 `;
 
 const NewCommentForm = styled(CommentForm)<{ dir?: "ltr" | "rtl" }>`
