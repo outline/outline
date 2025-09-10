@@ -6,6 +6,7 @@ import { addRowBefore, selectRow, selectTable } from "../commands/table";
 import { getCellAttrs, setCellAttrs } from "../lib/table";
 import {
   getCellsInColumn,
+  getRowIndexInMap,
   isRowSelected,
   isTableSelected,
 } from "../queries/table";
@@ -155,7 +156,10 @@ export default class TableCell extends Node {
             const rows = getCellsInColumn(0)(state);
 
             if (rows) {
-              rows.forEach((pos, index) => {
+              rows.forEach((pos, visualIndex) => {
+                const actualRowIndex = getRowIndexInMap(visualIndex, state);
+                const index =
+                  actualRowIndex !== -1 ? actualRowIndex : visualIndex;
                 if (index === 0) {
                   const className = cn(EditorStyleHelper.tableGrip, {
                     selected: isTableSelected(state),
@@ -180,7 +184,7 @@ export default class TableCell extends Node {
                 const className = cn(EditorStyleHelper.tableGripRow, {
                   selected: isRowSelected(index)(state),
                   first: index === 0,
-                  last: index === rows.length - 1,
+                  last: visualIndex === rows.length - 1,
                 });
 
                 decorations.push(
