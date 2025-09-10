@@ -52,6 +52,42 @@ export function getRowIndex(state: EditorState): number | undefined {
   return undefined;
 }
 
+/**
+ * Get the actual row index in the table map for a given visual row index
+ * when merged cells are present.
+ *
+ * @param visualRowIndex The visual row index (0-based)
+ * @param state The editor state
+ * @returns The actual row index in the table map, or -1 if not found
+ */
+export function getRowIndexInMap(
+  visualRowIndex: number,
+  state: EditorState
+): number {
+  if (!isInTable(state)) {
+    return -1;
+  }
+
+  const rect = selectedRect(state);
+  const cells = getCellsInColumn(0)(state);
+
+  if (visualRowIndex >= 0 && visualRowIndex < cells.length) {
+    const cellPos = cells[visualRowIndex] - rect.tableStart;
+
+    // Find the row index in the table map for this cell position
+    for (let row = 0; row < rect.map.height; row++) {
+      const rowStart = row * rect.map.width;
+      for (let col = 0; col < rect.map.width; col++) {
+        if (rect.map.map[rowStart + col] === cellPos) {
+          return row;
+        }
+      }
+    }
+  }
+
+  return -1;
+}
+
 export function getCellsInColumn(index: number) {
   return (state: EditorState): number[] => {
     if (!isInTable(state)) {
