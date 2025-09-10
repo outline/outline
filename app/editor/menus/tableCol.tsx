@@ -5,15 +5,15 @@ import {
   AlignCenterIcon,
   InsertLeftIcon,
   InsertRightIcon,
-  ArrowIcon,
   MoreIcon,
   TableHeaderColumnIcon,
   TableMergeCellsIcon,
   TableSplitCellsIcon,
+  AlphabeticalSortIcon,
+  AlphabeticalReverseSortIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
-import { CellSelection } from "prosemirror-tables";
-import styled from "styled-components";
+import { CellSelection, selectedRect } from "prosemirror-tables";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import {
   isMergedCellSelection,
@@ -21,6 +21,7 @@ import {
 } from "@shared/editor/queries/table";
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
+import { ArrowLeftIcon, ArrowRightIcon } from "~/components/Icons/ArrowIcon";
 
 export default function tableColMenuItems(
   state: EditorState,
@@ -33,6 +34,8 @@ export default function tableColMenuItems(
   if (!(selection instanceof CellSelection)) {
     return [];
   }
+
+  const tableMap = selectedRect(state);
 
   return [
     {
@@ -75,13 +78,13 @@ export default function tableColMenuItems(
       name: "sortTable",
       tooltip: dictionary.sortAsc,
       attrs: { index, direction: "asc" },
-      icon: <SortAscIcon />,
+      icon: <AlphabeticalSortIcon />,
     },
     {
       name: "sortTable",
       tooltip: dictionary.sortDesc,
       attrs: { index, direction: "desc" },
-      icon: <SortDescIcon />,
+      icon: <AlphabeticalReverseSortIcon />,
     },
     {
       name: "separator",
@@ -108,6 +111,23 @@ export default function tableColMenuItems(
           attrs: { index },
         },
         {
+          name: "moveTableColumn",
+          label: dictionary.moveColumnLeft,
+          icon: <ArrowLeftIcon />,
+          attrs: { from: index, to: index - 1 },
+          visible: index > 0,
+        },
+        {
+          name: "moveTableColumn",
+          label: dictionary.moveColumnRight,
+          icon: <ArrowRightIcon />,
+          attrs: { from: index, to: index + 1 },
+          visible: index < tableMap.map.width - 1,
+        },
+        {
+          name: "separator",
+        },
+        {
           name: "mergeCells",
           label: dictionary.mergeCells,
           icon: <TableMergeCellsIcon />,
@@ -132,11 +152,3 @@ export default function tableColMenuItems(
     },
   ];
 }
-
-const SortAscIcon = styled(ArrowIcon)`
-  transform: rotate(-90deg);
-`;
-
-const SortDescIcon = styled(ArrowIcon)`
-  transform: rotate(90deg);
-`;

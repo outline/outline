@@ -203,7 +203,7 @@
     "prosemirror-model": "^1.25.2",
     "prosemirror-schema-list": "^1.5.1",
     "prosemirror-state": "^1.4.3",
-    "prosemirror-tables": "^1.7.1",
+    "prosemirror-tables": "^1.8.1",
     "prosemirror-transform": "1.10.0",
     "prosemirror-view": "^1.40.1",
     "proxy-from-env": "^1.1.0",
