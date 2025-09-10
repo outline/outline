@@ -459,6 +459,7 @@ export default class PasteHandler extends Extension {
     const { view, schema } = this.editor;
     const { state } = view;
     const { from } = state.selection;
+    let tr = state.tr;
 
     const links: string[] = [];
     let allLinks = true;
@@ -480,22 +481,26 @@ export default class PasteHandler extends Extension {
       return false;
     });
 
-    if (!allLinks || !links.length) {
-      return;
-    }
+    const showPasteMenu = allLinks && links.length;
 
-    const placeholderId = links[0];
-    const to = from + listNode.nodeSize;
+    // it's possible that the links can be converted to mentions
+    if (showPasteMenu) {
+      const placeholderId = links[0];
+      const to = from + listNode.nodeSize;
 
-    const transaction = state.tr
-      .replaceSelectionWith(listNode)
-      .setMeta(this.key, {
+      tr = state.tr.replaceSelectionWith(listNode).setMeta(this.key, {
         add: { from, to, id: placeholderId },
       });
+    } else {
+      // Paste as simple list
+      tr = tr.replaceSelectionWith(listNode, this.shiftKey);
+    }
 
-    view.dispatch(transaction);
+    view.dispatch(tr);
 
-    this.showPasteMenu(links);
+    if (showPasteMenu) {
+      this.showPasteMenu(links);
+    }
   }
 
   private placeholderId = () =>
