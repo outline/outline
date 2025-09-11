@@ -36,11 +36,8 @@ import CopyToClipboard from "./CopyToClipboard";
 import { Separator } from "./Actions";
 import useSwipe from "~/hooks/useSwipe";
 import { isCode } from "@shared/editor/lib/isCode";
-import useStores from "@shared/hooks/useStores";
-import useBuildTheme from "~/hooks/useBuildTheme";
 import isNil from "lodash/isNil";
 import { toast } from "sonner";
-import type MermaidUnsafe from "mermaid";
 
 export enum LightboxStatus {
   READY_TO_OPEN,
@@ -81,8 +78,6 @@ type Props = {
 function Lightbox({ onUpdate, activePos }: Props) {
   const { view } = useEditor();
   const isIdle = useIdle(3 * Second.ms);
-  const { ui } = useStores();
-  const theme = useBuildTheme();
   const { t } = useTranslation();
   const imgRef = useRef<HTMLImageElement | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
@@ -97,7 +92,7 @@ function Lightbox({ onUpdate, activePos }: Props) {
   const imageElements = useMemo(
     () =>
       view?.dom.querySelectorAll(
-        ".component-image img, .mermaid-diagram-wrapper svg"
+        ".component-image img, .code-block[data-language='mermaidjs']"
       ),
     [view]
   );
@@ -129,56 +124,30 @@ function Lightbox({ onUpdate, activePos }: Props) {
   //   );
   // }, [status]);
 
-  const [mermaid, setMermaid] = useState<typeof MermaidUnsafe>();
   const [imgSrc, setImgSrc] = useState<string>();
 
   useEffect(() => {
-    const initializeMermaid = async () => {
-      const mermaid = (await import("mermaid")).default;
-      mermaid.initialize({
-        startOnLoad: true,
-        // TODO: Make dynamic based on the width of the editor or remove in
-        // the future if Mermaid is able to handle this automatically.
-        gantt: { useWidth: 700 },
-        pie: { useWidth: 700 },
-        fontFamily: theme.fontFamily,
-        theme: ui.resolvedTheme === "dark" ? "dark" : "default",
-        darkMode: ui.resolvedTheme === "dark",
-      });
-      setMermaid(mermaid);
-    };
-    initializeMermaid();
-  }, [theme.fontFamily, ui.resolvedTheme]);
-
-  useEffect(() => {
-    if (activePos && mermaid) {
+    if (activePos) {
       const node = view.state.doc.nodeAt(activePos);
       if (node && isCode(node) && node.attrs.language === "mermaidjs") {
-        const renderMermaid = async () => {
-          // Create a temporary element that will render the diagram off-screen.
-          // This is necessary to prevent lightbox from flashing when the svg is rendered
-          const renderElement = document.createElement("div");
-          renderElement.style.position = "absolute";
-          renderElement.style.left = "-9999px";
-          renderElement.style.top = "-9999px";
-          document.body.appendChild(renderElement);
-
-          try {
-            const { svg } = await mermaid.render(
-              "mermaid-diagram",
-              node.textContent,
-              renderElement
-            );
-            const encode = encodeURIComponent(svg);
-            const dataURL = `data:image/svg+xml,${encode}`;
-            setImgSrc(dataURL);
-          } catch (_err) {
-            setImgSrc("");
-          } finally {
-            document.body.removeChild(renderElement);
-          }
-        };
-        renderMermaid();
+        const { node: domNode, offset } = view.domAtPos(activePos);
+        const nextSiblingElement = domNode.childNodes[offset]
+          .nextSibling as HTMLElement | null;
+        if (
+          !nextSiblingElement ||
+          !nextSiblingElement.classList.contains("mermaid-diagram-wrapper")
+        ) {
+          setImgSrc("");
+          return;
+        }
+        const firstChildEl =
+          nextSiblingElement.firstElementChild as HTMLElement | null;
+        if (!firstChildEl || !(firstChildEl instanceof SVGSVGElement)) {
+          setImgSrc("");
+          return;
+        }
+        const dataURL = `data:image/svg+xml,${encodeURIComponent(firstChildEl.outerHTML)}`;
+        setImgSrc(dataURL);
         return;
       }
 
@@ -186,7 +155,7 @@ function Lightbox({ onUpdate, activePos }: Props) {
         setImgSrc(sanitizeUrl(node.attrs.src) ?? "");
       }
     }
-  }, [activePos, mermaid, view]);
+  }, [activePos, view]);
 
   useEffect(() => () => view.focus(), []);
 
@@ -259,7 +228,14 @@ function Lightbox({ onUpdate, activePos }: Props) {
   const setupZoomIn = () => {
     if (imgRef.current) {
       // in editor
-      const editorImageEl = imageElements[currentImageIndex];
+      const domInEditor = imageElements[currentImageIndex];
+      if (!domInEditor) {
+        return;
+      }
+
+      const editorImageEl = domInEditor.classList.contains("code-block")
+        ? domInEditor.nextElementSibling?.firstElementChild
+        : domInEditor;
       if (!editorImageEl) {
         return;
       }
@@ -369,7 +345,10 @@ function Lightbox({ onUpdate, activePos }: Props) {
       };
 
       // in editor
-      const editorImageEl = imageElements[currentImageIndex];
+      const domInEditor = imageElements[currentImageIndex];
+      const editorImageEl = domInEditor?.classList.contains("code-block")
+        ? domInEditor.nextElementSibling?.firstElementChild
+        : domInEditor;
       let to;
       if (editorImageEl?.isConnected) {
         const editorImgDOMRect = editorImageEl.getBoundingClientRect();
