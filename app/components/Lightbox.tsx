@@ -133,7 +133,7 @@ function Lightbox({ onUpdate, activePos }: Props) {
   const [imgSrc, setImgSrc] = useState<string>();
 
   useEffect(() => {
-    const importMermaid = async () => {
+    const initializeMermaid = async () => {
       const mermaid = (await import("mermaid")).default;
       mermaid.initialize({
         startOnLoad: true,
@@ -147,7 +147,7 @@ function Lightbox({ onUpdate, activePos }: Props) {
       });
       setMermaid(mermaid);
     };
-    importMermaid();
+    initializeMermaid();
   }, [theme.fontFamily, ui.resolvedTheme]);
 
   useEffect(() => {
