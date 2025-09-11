@@ -40,6 +40,7 @@ import useStores from "@shared/hooks/useStores";
 import useBuildTheme from "~/hooks/useBuildTheme";
 import isNil from "lodash/isNil";
 import { toast } from "sonner";
+import type MermaidUnsafe from "mermaid";
 
 export enum LightboxStatus {
   READY_TO_OPEN,
@@ -128,8 +129,8 @@ function Lightbox({ onUpdate, activePos }: Props) {
   //   );
   // }, [status]);
 
-  const [mermaid, setMermaid] = useState<any>(null);
-  const [imgSrc, setImgSrc] = useState<string | undefined>();
+  const [mermaid, setMermaid] = useState<typeof MermaidUnsafe>();
+  const [imgSrc, setImgSrc] = useState<string>();
 
   useEffect(() => {
     const importMermaid = async () => {
@@ -147,7 +148,7 @@ function Lightbox({ onUpdate, activePos }: Props) {
       setMermaid(mermaid);
     };
     importMermaid();
-  }, []);
+  }, [theme.fontFamily, ui.resolvedTheme]);
 
   useEffect(() => {
     if (activePos && mermaid) {
