@@ -625,7 +625,7 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function _Image(
   }, [status.image]);
 
   return status.image === ImageStatus.ERROR ? (
-    <StyledError animation={animation}>
+    <StyledError animation={animation} {...swipeHandlers}>
       <CrossIcon size={16} /> {t("Image failed to load")}
     </StyledError>
   ) : (
