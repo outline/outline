@@ -513,9 +513,11 @@ function Lightbox({ onUpdate, activePos }: Props) {
     } else {
       // Assuming it's a mermaid svg
       imageBlob = svgDataURLToBlob(src);
-      if (!imageBlob) {
-        return toast.error(t("Unable to download image"));
-      }
+    }
+
+    if (!imageBlob) {
+      toast.error(t("Unable to download image"));
+      return;
     }
 
     const imageURL = URL.createObjectURL(imageBlob);
