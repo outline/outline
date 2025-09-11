@@ -4,8 +4,15 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { findChildren } from "@shared/editor/queries/findChildren";
 import findIndex from "lodash/findIndex";
 import styled, { css, Keyframes, keyframes } from "styled-components";
-import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
-import { sanitizeUrl } from "@shared/utils/urls";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { isInternalUrl, sanitizeUrl } from "@shared/utils/urls";
 import { Error } from "@shared/editor/components/Image";
 import {
   BackIcon,
@@ -19,7 +26,6 @@ import { depths, extraArea, s } from "@shared/styles";
 import NudeButton from "./NudeButton";
 import useIdle from "~/hooks/useIdle";
 import { Second } from "@shared/utils/time";
-import { downloadImageNode } from "@shared/editor/nodes/Image";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { useTranslation } from "react-i18next";
 import Tooltip from "~/components/Tooltip";
@@ -33,6 +39,7 @@ import { isCode } from "@shared/editor/lib/isCode";
 import useStores from "@shared/hooks/useStores";
 import useBuildTheme from "~/hooks/useBuildTheme";
 import isNil from "lodash/isNil";
+import { toast } from "sonner";
 
 export enum LightboxStatus {
   READY_TO_OPEN,
@@ -478,11 +485,63 @@ function Lightbox({ onUpdate, activePos }: Props) {
     }
   };
 
-  const download = () => {
-    if (currentImageNode && status.lightbox === LightboxStatus.OPENED) {
-      void downloadImageNode(currentImageNode);
+  const svgDataURLToBlob = (dataURL: string) => {
+    // Match the SVG data URL format
+    const match = dataURL.match(/^data:image\/svg\+xml,(.*)$/i);
+    if (!match) {
+      return;
     }
+
+    const svgData = dataURL.split(",")[1];
+    const svgString = decodeURIComponent(svgData);
+
+    // Convert string to Uint8Array
+    const uint8 = new Uint8Array(svgString.length);
+    for (let i = 0; i < svgString.length; ++i) {
+      uint8[i] = svgString.charCodeAt(i);
+    }
+
+    // Create and return the Blob
+    return new Blob([uint8], { type: "image/svg+xml" });
   };
+
+  const downloadImage = async (src: string, saveAs: string) => {
+    let imageBlob;
+    if (isInternalUrl(src)) {
+      const image = await fetch(src);
+      imageBlob = await image.blob();
+    } else {
+      // Assuming it's a mermaid svg
+      imageBlob = svgDataURLToBlob(src);
+      if (!imageBlob) {
+        return toast.error(t("Unable to download image"));
+      }
+    }
+
+    const imageURL = URL.createObjectURL(imageBlob);
+    const name = saveAs || "image";
+    const extension = imageBlob.type.split(/\/|\+/g)[1];
+
+    // create a temporary link node and click it with our image data
+    const link = document.createElement("a");
+    link.href = imageURL;
+    link.download = `${name}.${extension}`;
+    document.body.appendChild(link);
+    link.click();
+
+    // cleanup
+    document.body.removeChild(link);
+  };
+
+  const download = useCallback(() => {
+    if (
+      currentImageNode &&
+      status.lightbox === LightboxStatus.OPENED &&
+      imgSrc
+    ) {
+      void downloadImage(imgSrc, currentImageNode.attrs.alt);
+    }
+  }, [currentImageNode, status.lightbox, imgSrc]);
 
   const handleKeyDown = (ev: React.KeyboardEvent<HTMLDivElement>) => {
     ev.preventDefault();
