@@ -134,16 +134,15 @@ export default class OrderedList extends Node {
         const position = start + index;
         const asciiStart = node.attrs.listStyle === "lower-alpha" ? 97 : 65;
 
+        let n = position - 1;
         let result = "";
-        // wraps around the alphabet size, so that 0 -> a, 26 -> a
-        let letterIndex = position;
-        while (letterIndex >= 0) {
-          // determine how much overflow we have at the end
-          const overFlow = letterIndex % alphabetSize;
-          letterIndex = Math.floor(letterIndex / alphabetSize) - 1;
 
-          result = String.fromCharCode(asciiStart + overFlow) + result;
-        }
+        do {
+          const charCode = asciiStart + (n % alphabetSize);
+          result = String.fromCharCode(charCode) + result;
+
+          n = Math.floor(n / alphabetSize) - 1;
+        } while (n >= 0);
 
         return result + ". ";
       });
