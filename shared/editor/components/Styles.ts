@@ -1387,7 +1387,7 @@ mark {
     `
   }
 
-  &:is(.code-active) + .mermaid-diagram-wrapper > svg {
+  &:is(.code-active) + .mermaid-diagram-wrapper {
     cursor: zoom-in;
   }
 
@@ -1406,7 +1406,7 @@ mark {
     height: 0;
     overflow: hidden;
     margin: -0.5em 0 0 0;
-    & + .mermaid-diagram-wrapper > svg {
+    & + .mermaid-diagram-wrapper {
       cursor: zoom-in;
     }
 }
