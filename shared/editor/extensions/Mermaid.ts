@@ -315,7 +315,7 @@ export default function Mermaid({
         return this.getState(state)?.decorationSet;
       },
       handleDOMEvents: {
-        mousedown(view, event) {
+        mouseup(view, event) {
           const target = event.target as HTMLElement;
           const diagram = target?.closest(".mermaid-diagram-wrapper");
           const codeBlock = diagram?.previousElementSibling;
@@ -329,18 +329,18 @@ export default function Mermaid({
             return false;
           }
 
-          const { selection: textSelection } = view.state;
-          const $pos = view.state.doc.resolve(pos);
-          const selected =
-            textSelection.from >= $pos.start() &&
-            textSelection.to <= $pos.end();
-          if (selected) {
-            editor.updateActiveLightbox($pos.before());
-            return true;
-          }
-
-          // select node
           if (diagram && event.detail === 1) {
+            const { selection: textSelection } = view.state;
+            const $pos = view.state.doc.resolve(pos);
+            const selected =
+              textSelection.from >= $pos.start() &&
+              textSelection.to <= $pos.end();
+            if (selected || editor.props.readOnly) {
+              editor.updateActiveLightbox($pos.before());
+              return true;
+            }
+
+            // select node
             view.dispatch(
               view.state.tr
                 .setSelection(TextSelection.near(view.state.doc.resolve(pos)))
