@@ -185,7 +185,7 @@ function Lightbox({ onUpdate, activePos }: Props) {
         setImgSrc(sanitizeUrl(node.attrs.src) ?? "");
       }
     }
-  }, [activePos, mermaid]);
+  }, [activePos, mermaid, view]);
 
   useEffect(() => () => view.focus(), []);
 
@@ -492,13 +492,13 @@ function Lightbox({ onUpdate, activePos }: Props) {
       return;
     }
 
-    const svgData = dataURL.split(",")[1];
-    const svgString = decodeURIComponent(svgData);
+    const encodedSVGData = dataURL.split(",")[1];
+    const decodedSVGData = decodeURIComponent(encodedSVGData);
 
     // Convert string to Uint8Array
-    const uint8 = new Uint8Array(svgString.length);
-    for (let i = 0; i < svgString.length; ++i) {
-      uint8[i] = svgString.charCodeAt(i);
+    const uint8 = new Uint8Array(decodedSVGData.length);
+    for (let i = 0; i < decodedSVGData.length; ++i) {
+      uint8[i] = decodedSVGData.charCodeAt(i);
     }
 
     // Create and return the Blob
