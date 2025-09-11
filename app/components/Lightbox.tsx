@@ -491,7 +491,6 @@ function Lightbox({ onUpdate, activePos }: Props) {
                   icon={<LinkIcon />}
                   borderOnHover
                   neutral
-                  disabled={status.image !== ImageStatus.LOADED}
                 />
               </CopyToClipboard>
             </Tooltip>
@@ -504,7 +503,6 @@ function Lightbox({ onUpdate, activePos }: Props) {
                 icon={<DownloadIcon />}
                 borderOnHover
                 neutral
-                disabled={status.image !== ImageStatus.LOADED}
               />
             </Tooltip>
             <Separator />
