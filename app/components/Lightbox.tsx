@@ -131,6 +131,10 @@ function Lightbox({ onUpdate, activePos }: Props) {
       const node = view.state.doc.nodeAt(activePos);
       if (node && isCode(node) && node.attrs.language === "mermaidjs") {
         const { node: domNode, offset } = view.domAtPos(activePos);
+        if (offset < 0 || offset >= domNode.childNodes.length) {
+          setImgSrc("");
+          return;
+        }
         const nextSiblingElement = domNode.childNodes[offset]
           .nextSibling as HTMLElement | null;
         if (
@@ -472,7 +476,7 @@ function Lightbox({ onUpdate, activePos }: Props) {
       return;
     }
 
-    const encodedSVGData = dataURL.split(",")[1];
+    const encodedSVGData = match[1];
     const decodedSVGData = decodeURIComponent(encodedSVGData);
 
     // Convert string to Uint8Array
