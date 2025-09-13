@@ -222,6 +222,8 @@ function SharedScene() {
     );
   }
 
+  const hasSidebar = !!share.tree?.children.length;
+
   return (
     <>
       <Helmet>
@@ -238,7 +240,10 @@ function SharedScene() {
       <TeamContext.Provider value={team}>
         <ThemeProvider theme={theme}>
           <DocumentContextProvider>
-            <Layout title={pageTitle} sidebar={<Sidebar share={share} />}>
+            <Layout
+              title={pageTitle}
+              sidebar={hasSidebar ? <Sidebar share={share} /> : null}
+            >
               {model instanceof Document ? (
                 <DocumentScene
                   document={model}
