@@ -193,6 +193,7 @@ export default class CodeFence extends Node {
       Mermaid({
         name: this.name,
         isDark: this.editor.props.theme.isDark,
+        editor: this.editor,
       }),
       new Plugin({
         key: new PluginKey("code-fence-split"),
