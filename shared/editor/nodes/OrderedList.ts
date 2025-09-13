@@ -59,7 +59,7 @@ export default class OrderedList extends Node {
 
   commands({ type, schema }: { type: NodeType; schema: Schema }) {
     return {
-      toggleOrderedList: () => toggleList(type, schema.nodes.list_item),
+      ordered_list: () => toggleList(type, schema.nodes.list_item),
 
       toggleLowerLetterList: () =>
         toggleList(type, schema.nodes.list_item, "lower-alpha"),

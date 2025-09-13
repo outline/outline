@@ -185,7 +185,7 @@ export default function formattingMenuItems(
       visible: !isCodeBlock && (!isMobile || isEmpty),
     },
     {
-      name: "toggleOrderedList",
+      name: "ordered_list",
       tooltip: dictionary.orderedList,
       shortcut: `⇧+Ctrl+9`,
       icon: <OrderedListIcon />,
