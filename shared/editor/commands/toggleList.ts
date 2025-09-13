@@ -29,7 +29,10 @@ export default function toggleList(
       const currentStyle = parentList.node.attrs.listStyle;
       const differentListStyle = currentStyle && currentStyle !== listStyle;
 
-      if (parentList.node.type === listType && !differentListStyle) {
+      if (
+        parentList.node.type === listType &&
+        (!differentListStyle || !listStyle)
+      ) {
         return liftListItem(itemType)(state, dispatch);
       }
 
