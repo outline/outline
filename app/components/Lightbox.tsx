@@ -291,7 +291,7 @@ function Lightbox({ onUpdate, activePos }: Props) {
       // in editor
       const editorImageEl = imageElements[currentImageIndex];
       let to;
-      if (editorImageEl && editorImageEl.isConnected) {
+      if (editorImageEl?.isConnected) {
         const editorImgDOMRect = editorImageEl.getBoundingClientRect();
         const {
           top: editorImgTop,
