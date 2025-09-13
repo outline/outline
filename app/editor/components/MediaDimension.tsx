@@ -33,8 +33,8 @@ export function MediaDimension() {
     height = node.attrs.height as number;
 
   const [localDimension, setLocalDimension] = useState<Dimension>(() => ({
-    width: String(width),
-    height: String(height),
+    width: width ? String(width) : "",
+    height: height ? String(height) : "",
     changed: "none",
   }));
   const [error, setError] = useState<{ width: boolean; height: boolean }>({
@@ -59,8 +59,8 @@ export function MediaDimension() {
 
   const reset = useCallback(() => {
     setLocalDimension({
-      width: String(width),
-      height: String(height),
+      width: width ? String(width) : "",
+      height: height ? String(height) : "",
       changed: "none",
     });
     setError({ width: false, height: false });
@@ -209,6 +209,7 @@ export function MediaDimension() {
       <StyledInput
         label={t("Image width")}
         labelHidden
+        placeholder={t("Width")}
         value={localDimension.width}
         onChange={handleChange("width")}
         onBlur={handleBlur}
@@ -221,6 +222,7 @@ export function MediaDimension() {
       <StyledInput
         label={t("Image height")}
         labelHidden
+        placeholder={t("Height")}
         value={localDimension.height}
         onChange={handleChange("height")}
         onBlur={handleBlur}
