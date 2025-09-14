@@ -32,7 +32,22 @@ export const StarsCreateSchema = BaseSchema.extend({
         return !(isEmpty(body.documentId) && isEmpty(body.collectionId));
       },
       {
-        message: "Folders cannot have documentId or collectionId. Regular stars require one of documentId or collectionId.",
+        message: "One of documentId or collectionId is required",
+      }
+    )
+    .refine(
+      (body) => {
+        // Additional validation: folders cannot have documentId or collectionId
+        if (
+          body.isFolder &&
+          (!isEmpty(body.documentId) || !isEmpty(body.collectionId))
+        ) {
+          return false;
+        }
+        return true;
+      },
+      {
+        message: "Folders cannot have documentId or collectionId",
       }
     ),
 });
@@ -40,9 +55,11 @@ export const StarsCreateSchema = BaseSchema.extend({
 export type StarsCreateReq = z.infer<typeof StarsCreateSchema>;
 
 export const StarsListSchema = BaseSchema.extend({
-  body: z.object({
-    parentId: z.string().uuid().optional(),
-  }).optional(),
+  body: z
+    .object({
+      parentId: z.string().uuid().optional(),
+    })
+    .optional(),
 });
 
 export type StarsListReq = z.infer<typeof StarsListSchema>;
