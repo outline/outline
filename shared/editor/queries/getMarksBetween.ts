@@ -17,14 +17,19 @@ export function getMarksBetween(
   let marks: { start: number; end: number; mark: Mark }[] = [];
 
   state.doc.nodesBetween(start, end, (node, pos) => {
-    marks = [
-      ...marks,
-      ...node.marks.map((mark) => ({
-        start: pos,
-        end: pos + node.nodeSize,
-        mark,
-      })),
-    ];
+    if (node.isText) {
+      const nodeStart = Math.max(start, pos);
+      const nodeEnd = Math.min(end, pos + node.nodeSize);
+
+      marks = [
+        ...marks,
+        ...node.marks.map((mark) => ({
+          start: nodeStart,
+          end: nodeEnd,
+          mark,
+        })),
+      ];
+    }
   });
 
   return marks;
