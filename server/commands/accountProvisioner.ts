@@ -21,6 +21,7 @@ import { sequelize } from "@server/storage/database";
 import teamProvisioner from "./teamProvisioner";
 import userProvisioner from "./userProvisioner";
 import { APIContext } from "@server/types";
+import { addSeconds } from "date-fns";
 
 type Props = {
   /** Details of the user logging in from SSO provider */
@@ -155,7 +156,7 @@ async function accountProvisioner(
           authenticationProviderId: authenticationProvider.id,
           ...authenticationParams,
           expiresAt: authenticationParams.expiresIn
-            ? new Date(Date.now() + authenticationParams.expiresIn * 1000)
+            ? addSeconds(Date.now(), authenticationParams.expiresIn)
             : undefined,
         },
   });

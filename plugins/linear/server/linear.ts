@@ -12,9 +12,13 @@ import User from "@server/models/User";
 import { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
 import { LinearUtils } from "../shared/LinearUtils";
 import env from "./env";
+import { Minute } from "@shared/utils/time";
 
 const AccessTokenResponseSchema = z.object({
   access_token: z.string(),
+  // Linear is in the process of switching to short-lived refresh tokens. Some apps
+  // may not return a refresh token before April 2026, hence it's optional here.
+  refresh_token: z.string().optional(),
   token_type: z.string(),
   expires_in: z.number(),
   scope: z.string(),
@@ -45,6 +49,33 @@ export class Linear {
     if (res.status !== 200) {
       throw new Error(
         `Error while exchanging oauth code from Linear; status: ${res.status}`
+      );
+    }
+
+    return AccessTokenResponseSchema.parse(await res.json());
+  }
+
+  static async refreshToken(refreshToken: string) {
+    const headers = {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Accept: "application/json",
+    };
+
+    const body = new URLSearchParams();
+    body.set("refresh_token", refreshToken);
+    body.set("client_id", env.LINEAR_CLIENT_ID!);
+    body.set("client_secret", env.LINEAR_CLIENT_SECRET!);
+    body.set("grant_type", "refresh_token");
+
+    const res = await fetch(LinearUtils.tokenUrl, {
+      method: "POST",
+      headers,
+      body,
+    });
+
+    if (res.status !== 200) {
+      throw new Error(
+        `Error while refreshing access token from Linear; status: ${res.status}`
       );
     }
 
@@ -93,9 +124,12 @@ export class Linear {
     }
 
     try {
-      const client = new LinearClient({
-        accessToken: integration.authentication.token,
-      });
+      const accessToken = await integration.authentication.refreshTokenIfNeeded(
+        async (refreshToken: string) => Linear.refreshToken(refreshToken),
+        5 * Minute.ms
+      );
+
+      const client = new LinearClient({ accessToken });
       const issue = await client.issue(resource.id);
 
       if (!issue) {
@@ -193,7 +227,7 @@ export class Linear {
    * Parses a given URL and returns resource identifiers for Linear specific URLs
    *
    * @param url URL to parse
-   * @returns {object} Containing resource identifiers - `workspaceKey`, `type`, `id` and `name`.
+   * @returns An object containing resource identifiers - `workspaceKey`, `type`, `id` and `name`.
    */
   private static parseUrl(url: string) {
     const { hostname, pathname } = new URL(url);
