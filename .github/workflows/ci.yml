@@ -18,7 +18,6 @@ env:
   SMTP_USERNAME: localhost
 
 jobs:
-  # Optimized build job with enhanced caching
   build:
     runs-on: ubuntu-latest
     strategy:
@@ -26,16 +25,16 @@ jobs:
         node-version: [20.x, 22.x]
     outputs:
       cache-hit: ${{ steps.yarn-cache.outputs.cache-hit }}
-      
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: "yarn"
-          
+
       # Enhanced yarn cache with fallback keys
       - name: Cache yarn dependencies
         id: yarn-cache
@@ -49,20 +48,20 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-${{ matrix.node-version }}-
             ${{ runner.os }}-yarn-
-            
+
       - name: Install dependencies
         if: steps.yarn-cache.outputs.cache-hit != 'true'
         run: |
           echo "🔄 Cache miss - installing dependencies"
           echo "::notice title=Cache Status::Cache miss for Node.js ${{ matrix.node-version }} - full install required"
-          time yarn install --frozen-lockfile --prefer-offline --network-timeout 300000
-          
+          yarn install --frozen-lockfile --prefer-offline --network-timeout 300000
+
       - name: Verify installation (cache hit)
         if: steps.yarn-cache.outputs.cache-hit == 'true'
         run: |
           echo "✅ Cache hit - verifying installation"
           echo "::notice title=Cache Status::Cache hit for Node.js ${{ matrix.node-version }} - skipping full install"
-          time yarn install --frozen-lockfile --prefer-offline --check-files
+          yarn install --frozen-lockfile --prefer-offline --check-files
 
   lint:
     needs: build
@@ -73,7 +72,7 @@ jobs:
         with:
           node-version: 22.x
           cache: "yarn"
-          
+
       # Reuse cache from build job
       - name: Restore yarn dependencies
         uses: actions/cache@v4
@@ -86,8 +85,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-22.x-
             ${{ runner.os }}-yarn-
-            
-      - name: Install dependencies (if needed)
+
+      - name: Install dependencies
         run: yarn install --frozen-lockfile --prefer-offline --check-files
       - run: yarn lint --quiet
 
@@ -100,7 +99,7 @@ jobs:
         with:
           node-version: 22.x
           cache: "yarn"
-          
+
       # Reuse cache from build job
       - name: Restore yarn dependencies
         uses: actions/cache@v4
@@ -113,8 +112,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-22.x-
             ${{ runner.os }}-yarn-
-            
-      - name: Install dependencies (if needed)
+
+      - name: Install dependencies
         run: yarn install --frozen-lockfile --prefer-offline --check-files
       - run: yarn tsc
 
@@ -157,7 +156,7 @@ jobs:
         with:
           node-version: 22.x
           cache: "yarn"
-          
+
       # Reuse cache from build job
       - name: Restore yarn dependencies
         uses: actions/cache@v4
@@ -170,8 +169,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-22.x-
             ${{ runner.os }}-yarn-
-            
-      - name: Install dependencies (if needed)
+
+      - name: Install dependencies
         run: yarn install --frozen-lockfile --prefer-offline --check-files
       - run: yarn test:${{ matrix.test-group }}
 
@@ -204,7 +203,7 @@ jobs:
         with:
           node-version: 22.x
           cache: "yarn"
-          
+
       # Reuse cache from build job
       - name: Restore yarn dependencies
         uses: actions/cache@v4
@@ -217,8 +216,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-22.x-
             ${{ runner.os }}-yarn-
-            
-      - name: Install dependencies (if needed)
+
+      - name: Install dependencies
         run: yarn install --frozen-lockfile --prefer-offline --check-files
       - run: yarn sequelize db:migrate
       - name: Run server tests
@@ -236,7 +235,7 @@ jobs:
         with:
           node-version: 22.x
           cache: "yarn"
-          
+
       # Reuse cache from build job
       - name: Restore yarn dependencies
         uses: actions/cache@v4
@@ -249,8 +248,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-22.x-
             ${{ runner.os }}-yarn-
-            
-      - name: Install dependencies (if needed)
+
+      - name: Install dependencies
         run: yarn install --frozen-lockfile --prefer-offline --check-files
       - name: Set environment to production
         run: echo "NODE_ENV=production" >> $GITHUB_ENV
