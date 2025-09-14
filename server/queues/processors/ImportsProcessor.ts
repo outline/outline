@@ -19,6 +19,7 @@ import {
   MentionType,
   ProsemirrorData,
   ProsemirrorDoc,
+  SourceMetadata,
 } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
 import { CollectionValidation } from "@shared/validations";
@@ -357,6 +358,13 @@ export default abstract class ImportsProcessor<
                 }
               );
 
+              // Build sourceMetadata for the collection
+              const sourceMetadata: SourceMetadata = {
+                externalId: externalId,
+                externalName: output.title,
+                createdByName: output.author,
+              };
+
               const collection = Collection.build({
                 id: internalId,
                 name: output.title,
@@ -372,6 +380,7 @@ export default abstract class ImportsProcessor<
                 index: collectionIdx,
                 sort: Collection.DEFAULT_SORT,
                 permission: collectionItem.permission,
+                sourceMetadata,
                 createdAt: output.createdAt ?? now,
                 updatedAt: output.updatedAt ?? now,
               });
