@@ -17,7 +17,8 @@ import User from "./User";
 import IdModel from "./base/IdModel";
 import Encrypted from "./decorators/Encrypted";
 import Fix from "./decorators/Fix";
-import { Minute, toDate } from "@shared/utils/time";
+import { Minute } from "@shared/utils/time";
+import { addSeconds } from "date-fns";
 
 export interface TokenRefreshResponse {
   access_token: string;
@@ -126,7 +127,7 @@ class IntegrationAuthentication extends IdModel<
               token: tokenResponse.access_token,
               refreshToken:
                 tokenResponse.refresh_token || lockedAuth.refreshToken,
-              expiresAt: toDate(tokenResponse.expires_in),
+              expiresAt: addSeconds(Date.now(), tokenResponse.expires_in),
             },
             { transaction }
           );

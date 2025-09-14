@@ -11,7 +11,7 @@ import { Linear } from "../linear";
 import UploadLinearWorkspaceLogoTask from "../tasks/UploadLinearWorkspaceLogoTask";
 import * as T from "./schema";
 import { LinearUtils } from "plugins/linear/shared/LinearUtils";
-import { toDate } from "@shared/utils/time";
+import { addSeconds } from "date-fns";
 
 const router = new Router();
 
@@ -54,7 +54,9 @@ router.get(
           teamId: user.teamId,
           token: oauth.access_token,
           refreshToken: oauth.refresh_token,
-          expiresAt: oauth.expires_in ? toDate(oauth.expires_in) : undefined,
+          expiresAt: oauth.expires_in
+            ? addSeconds(Date.now(), oauth.expires_in)
+            : undefined,
           scopes: oauth.scope.split(" "),
         },
         { transaction }
