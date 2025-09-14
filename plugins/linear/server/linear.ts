@@ -12,6 +12,7 @@ import User from "@server/models/User";
 import { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
 import { LinearUtils } from "../shared/LinearUtils";
 import env from "./env";
+import { Minute } from "@shared/utils/time";
 
 const AccessTokenResponseSchema = z.object({
   access_token: z.string(),
@@ -54,6 +55,33 @@ export class Linear {
     return AccessTokenResponseSchema.parse(await res.json());
   }
 
+  static async refreshToken(refreshToken: string) {
+    const headers = {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Accept: "application/json",
+    };
+
+    const body = new URLSearchParams();
+    body.set("refresh_token", refreshToken);
+    body.set("client_id", env.LINEAR_CLIENT_ID!);
+    body.set("client_secret", env.LINEAR_CLIENT_SECRET!);
+    body.set("grant_type", "refresh_token");
+
+    const res = await fetch(LinearUtils.tokenUrl, {
+      method: "POST",
+      headers,
+      body,
+    });
+
+    if (res.status !== 200) {
+      throw new Error(
+        `Error while refreshing access token from Linear; status: ${res.status}`
+      );
+    }
+
+    return AccessTokenResponseSchema.parse(await res.json());
+  }
+
   static async revokeAccess(accessToken: string) {
     const headers = {
       Authorization: `Bearer ${accessToken}`,
@@ -69,11 +97,7 @@ export class Linear {
     accessToken: string,
     _refreshToken?: string
   ) {
-    const client = new LinearClient({
-      accessToken,
-      // TODO, waiting on SDK support
-      // refreshToken
-    });
+    const client = new LinearClient({ accessToken });
     return client.organization;
   }
 
@@ -103,11 +127,12 @@ export class Linear {
     }
 
     try {
-      const client = new LinearClient({
-        accessToken: integration.authentication.token,
-        // TODO, waiting on SDK support
-        // refreshToken: integration.authentication.refreshToken,
-      });
+      const accessToken = await integration.authentication.refreshTokenIfNeeded(
+        async (refreshToken: string) => Linear.refreshToken(refreshToken),
+        5 * Minute.ms
+      );
+
+      const client = new LinearClient({ accessToken });
       const issue = await client.issue(resource.id);
 
       if (!issue) {
