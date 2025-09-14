@@ -58,11 +58,9 @@ const DrawerTitle = React.forwardRef<
   const { hidden, children, ...rest } = props;
 
   const title = (
-    <TitleWrapper justify="center">
-      <Text size="medium" weight="bold">
-        {children}
-      </Text>
-    </TitleWrapper>
+    <Text size="medium" weight="bold" as={TitleWrapper} justify="center">
+      {children}
+    </Text>
   );
 
   return (

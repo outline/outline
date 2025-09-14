@@ -9,7 +9,7 @@ import { TeamPreference } from "@shared/types";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
 import { openDocumentInsights } from "~/actions/definitions/documents";
-import DocumentMeta from "~/components/DocumentMeta";
+import DocumentMeta, { Separator } from "~/components/DocumentMeta";
 import Fade from "~/components/Fade";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
@@ -47,7 +47,7 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
     <Meta document={document} revision={revision} to={to} replace {...rest}>
       {commentingEnabled && can.comment && (
         <>
-          &nbsp;•&nbsp;
+          <Separator />
           <CommentLink
             to={{
               pathname: documentPath(document),
@@ -67,7 +67,7 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
       !document.isDraft &&
       !document.isTemplate ? (
         <Wrapper>
-          &nbsp;•&nbsp;
+          <Separator />
           <InsightsButton action={openDocumentInsights}>
             {t("Viewed by")}{" "}
             {onlyYou
@@ -112,6 +112,11 @@ export const Meta = styled(DocumentMeta)<{ rtl?: boolean }>`
   ${breakpoint("mobile", "tablet")`
     flex-direction: column;
     align-items: flex-start;
+    line-height: 1.6;
+
+    ${Separator} {
+      display: none;
+    }
   `}
 
   a {

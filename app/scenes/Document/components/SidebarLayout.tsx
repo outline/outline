@@ -11,7 +11,11 @@ import Tooltip from "~/components/Tooltip";
 import useMobile from "~/hooks/useMobile";
 import { draggableOnDesktop } from "~/styles";
 import RightSidebar from "~/components/Sidebar/Right";
-import { Drawer, DrawerContent, DrawerTitle } from "~/components/primitives/Drawer";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
+} from "~/components/primitives/Drawer";
 
 type Props = Omit<React.HTMLAttributes<HTMLDivElement>, "title"> & {
   /* The title of the sidebar */
@@ -36,12 +40,14 @@ function SidebarLayout({ title, onClose, children, scrollable = true }: Props) {
     children
   );
 
-  return isMobile ? <Drawer defaultOpen>
-    <DrawerContent>
-      <DrawerTitle>{title}</DrawerTitle>
-      {content}
-    </DrawerContent>
-  </Drawer> : (
+  return isMobile ? (
+    <Drawer onClose={onClose} defaultOpen>
+      <DrawerContent>
+        <DrawerTitle>{title}</DrawerTitle>
+        {content}
+      </DrawerContent>
+    </Drawer>
+  ) : (
     <RightSidebar>
       <Header>
         <Title>{title}</Title>

@@ -133,8 +133,10 @@ function Comments() {
   return (
     <Sidebar
       title={
-        <Flex align="center" justify="space-between" auto>
-          <span>{t("Comments")}</span>
+        <Flex align="center" justify="space-between" gap={8} auto>
+          <div style={isMobile ? { padding: "0 8px" } : undefined}>
+            {t("Comments")}
+          </div>
           <CommentSortMenu
             viewingResolved={viewingResolved}
             onChange={(val) => {
