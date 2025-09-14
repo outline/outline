@@ -10,6 +10,10 @@ type Props = {
   documentId?: string;
   /** The collection to star */
   collectionId?: string;
+  /** The parent folder ID */
+  parentId?: string;
+  /** Whether this star is a folder */
+  isFolder?: boolean;
   /** The sorted index for the star in the sidebar If no index is provided then it will be at the end */
   index?: string;
   /** The request context */
@@ -27,6 +31,8 @@ export default async function starCreator({
   user,
   documentId,
   collectionId,
+  parentId,
+  isFolder = false,
   ctx,
   ...rest
 }: Props): Promise<Star> {
@@ -54,7 +60,13 @@ export default async function starCreator({
   }
 
   const [star] = await Star.findOrCreateWithCtx(ctx, {
-    where: documentId
+    where: isFolder
+      ? {
+          userId: user.id,
+          parentId,
+          isFolder: true,
+        }
+      : documentId
       ? {
           userId: user.id,
           documentId,
@@ -65,6 +77,8 @@ export default async function starCreator({
         },
     defaults: {
       index,
+      parentId,
+      isFolder,
     },
   });
 

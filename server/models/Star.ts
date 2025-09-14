@@ -7,6 +7,8 @@ import {
   Table,
   Length,
   HasMany,
+  BeforeCreate,
+  BeforeUpdate,
 } from "sequelize-typescript";
 import Collection from "./Collection";
 import Document from "./Document";
@@ -62,6 +64,18 @@ class Star extends IdModel<
 
   @HasMany(() => Star, "parentId")
   children: Star[];
+
+  @BeforeCreate
+  @BeforeUpdate
+  static async validateFolderNesting(star: Star) {
+    // Prevent folders from being nested inside other folders
+    if (star.isFolder && star.parentId) {
+      const parent = await Star.findByPk(star.parentId);
+      if (parent?.isFolder) {
+        throw new Error("Folders cannot be nested inside other folders");
+      }
+    }
+  }
 }
 
 export default Star;

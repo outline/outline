@@ -25,7 +25,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.StarsCreateReq>) => {
     const { transaction } = ctx.state;
-    const { documentId, collectionId, index } = ctx.input.body;
+    const { documentId, collectionId, parentId, isFolder, index } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     if (documentId) {
@@ -44,11 +44,29 @@ router.post(
       authorize(user, "star", collection);
     }
 
+    // Validate parent folder exists and belongs to user
+    if (parentId) {
+      const parentStar = await Star.findOne({
+        where: {
+          id: parentId,
+          userId: user.id,
+          isFolder: true,
+        },
+        transaction,
+      });
+      
+      if (!parentStar) {
+        ctx.throw(400, "Parent folder not found or is not a folder");
+      }
+    }
+
     const star = await starCreator({
       ctx,
       user,
       documentId,
       collectionId,
+      parentId,
+      isFolder: isFolder || false,
       index,
     });
 
@@ -66,12 +84,20 @@ router.post(
   validate(T.StarsListSchema),
   async (ctx: APIContext<T.StarsListReq>) => {
     const { user } = ctx.state.auth;
+    const { parentId } = ctx.input.body || {};
+
+    const whereClause: any = {
+      userId: user.id,
+    };
+
+    // Filter by parentId if provided
+    if (parentId !== undefined) {
+      whereClause.parentId = parentId;
+    }
 
     const [stars, collectionIds] = await Promise.all([
       Star.findAll({
-        where: {
-          userId: user.id,
-        },
+        where: whereClause,
         order: [
           Sequelize.literal('"star"."index" collate "C"'),
           ["updatedAt", "DESC"],
