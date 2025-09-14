@@ -1,9 +1,10 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Primitive } from "utility-types";
 import Storage from "@shared/utils/Storage";
 import { isBrowser } from "@shared/utils/browser";
 import Logger from "~/utils/Logger";
 import useEventListener from "./useEventListener";
+import usePrevious from "./usePrevious";
 
 type Options = {
   /* Whether to listen and react to changes in the value from other tabs */
@@ -41,6 +42,7 @@ export default function usePersistedState<T extends Primitive | object>(
   defaultValue: T,
   options?: Options
 ): [T, (value: T) => void] {
+  const previousKey = usePrevious(key);
   const [storedValue, setStoredValue] = useState(() => {
     if (!isBrowser) {
       return defaultValue;
@@ -64,6 +66,13 @@ export default function usePersistedState<T extends Primitive | object>(
     },
     [key, storedValue]
   );
+
+  // Sync state when key changes
+  useEffect(() => {
+    if (previousKey !== key) {
+      setStoredValue(Storage.get(key) ?? defaultValue);
+    }
+  }, [previousKey, key, defaultValue]);
 
   // Listen to the key changing in other tabs so we can keep UI in sync
   useEventListener("storage", (event: StorageEvent) => {

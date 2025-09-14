@@ -14,7 +14,7 @@ module.exports = {
         "relationships",
         "type",
         {
-          type: Sequelize.ENUM("backlink"),
+          type: Sequelize.ENUM("backlink", "similar"),
           allowNull: false,
           defaultValue: "backlink",
         },

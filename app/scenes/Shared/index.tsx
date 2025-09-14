@@ -31,6 +31,7 @@ import ErrorOffline from "../Errors/ErrorOffline";
 import Login from "../Login";
 import { Collection as CollectionScene } from "./Collection";
 import { Document as DocumentScene } from "./Document";
+import DelayedMount from "~/components/DelayedMount";
 
 // Parse the canonical origin from the SSR HTML, only needs to be done once.
 const canonicalUrl = document
@@ -214,8 +215,14 @@ function SharedScene() {
   }
 
   if (!share) {
-    return <Error404 />;
+    return (
+      <DelayedMount>
+        <Error404 />
+      </DelayedMount>
+    );
   }
+
+  const hasSidebar = !!share.tree?.children.length;
 
   return (
     <>
@@ -233,7 +240,10 @@ function SharedScene() {
       <TeamContext.Provider value={team}>
         <ThemeProvider theme={theme}>
           <DocumentContextProvider>
-            <Layout title={pageTitle} sidebar={<Sidebar share={share} />}>
+            <Layout
+              title={pageTitle}
+              sidebar={hasSidebar ? <Sidebar share={share} /> : null}
+            >
               {model instanceof Document ? (
                 <DocumentScene
                   document={model}

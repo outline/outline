@@ -6,6 +6,7 @@ import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import coalesceBody from "@server/middlewares/coaleseBody";
 import requestTracer from "@server/middlewares/requestTracer";
+import { verifyCSRFToken } from "@server/middlewares/csrf";
 import { AppState, AppContext } from "@server/types";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 import apiKeys from "./apiKeys";
@@ -32,6 +33,7 @@ import oauthAuthentications from "./oauthAuthentications";
 import oauthClients from "./oauthClients";
 import pins from "./pins";
 import reactions from "./reactions";
+import relationships from "./relationships";
 import revisions from "./revisions";
 import searches from "./searches";
 import shares from "./shares";
@@ -66,6 +68,7 @@ api.use(requestTracer());
 api.use(apiResponse());
 api.use(apiErrorHandler());
 api.use(editor());
+api.use(verifyCSRFToken());
 
 // Register plugin API routes before others to allow for overrides
 PluginManager.getHooks(Hook.API).forEach((hook) =>
@@ -102,6 +105,7 @@ router.use("/", fileOperationsRoute.routes());
 router.use("/", urls.routes());
 router.use("/", userMemberships.routes());
 router.use("/", reactions.routes());
+router.use("/", relationships.routes());
 router.use("/", imports.routes());
 
 if (!env.isCloudHosted) {

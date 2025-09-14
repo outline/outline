@@ -1,4 +1,4 @@
-/* eslint-disable lines-between-class-members */
+/* oxlint-disable lines-between-class-members */
 import fractionalIndex from "fractional-index";
 import find from "lodash/find";
 import findIndex from "lodash/findIndex";
@@ -45,7 +45,11 @@ import {
   AfterSave,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
-import type { CollectionSort, ProsemirrorData } from "@shared/types";
+import type {
+  CollectionSort,
+  ProsemirrorData,
+  SourceMetadata,
+} from "@shared/types";
 import { CollectionPermission, NavigationNode } from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { sortNavigationNodes } from "@shared/utils/collections";
@@ -305,6 +309,10 @@ class Collection extends ParanoidModel<
   @Default(null)
   @Column(DataType.BOOLEAN)
   commenting: boolean | null;
+
+  @AllowNull
+  @Column(DataType.JSONB)
+  sourceMetadata: SourceMetadata | null;
 
   // getters
 
@@ -662,7 +670,7 @@ class Collection extends ParanoidModel<
     user: User,
     options: FindOptions = {}
   ) {
-    const id = await user.collectionIds();
+    const id = await user.collectionIds({ transaction: options.transaction });
     return this.findOne({
       where: {
         teamId: user.teamId,

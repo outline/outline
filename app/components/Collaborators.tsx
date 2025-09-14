@@ -132,6 +132,7 @@ function Collaborators(props: Props) {
           isEditing={isEditing}
           isObserving={isObserving}
           isCurrentUser={currentUserId === collaborator.id}
+          alt={t("Avatar of {{ name }}", { name: collaborator.name })}
           onClick={
             isObservable
               ? handleAvatarClick(
@@ -147,6 +148,10 @@ function Collaborators(props: Props) {
     },
     [presentIds, editingIds, observingUserId, currentUserId, handleAvatarClick]
   );
+
+  if (!document.insightsEnabled) {
+    return null;
+  }
 
   return (
     <Popover>

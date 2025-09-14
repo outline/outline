@@ -2,7 +2,7 @@ import retry from "fetch-retry";
 import trim from "lodash/trim";
 import queryString from "query-string";
 import EDITOR_VERSION from "@shared/editor/version";
-import { JSONObject } from "@shared/types";
+import { JSONObject, Scope } from "@shared/types";
 import stores from "~/stores";
 import Logger from "./Logger";
 import download from "./download";
@@ -20,6 +20,9 @@ import {
   UnprocessableEntityError,
   UpdateRequiredError,
 } from "./errors";
+import { getCookie } from "tiny-cookie";
+import { CSRF } from "@shared/constants";
+import AuthenticationHelper from "@shared/helpers/AuthenticationHelper";
 
 type Options = {
   baseUrl?: string;
@@ -75,17 +78,18 @@ class ApiClient {
     } else if (method === "POST" || method === "PUT") {
       if (data instanceof FormData || typeof data === "string") {
         body = data;
-      }
-
-      // Only stringify data if its a normal object and
-      // not if it's [object FormData], in addition to
-      // toggling Content-Type to application/json
-      if (
-        typeof data === "object" &&
-        (data || "").toString() === "[object Object]"
-      ) {
+      } else {
         isJson = true;
-        body = JSON.stringify(data);
+
+        // Only stringify data if its a normal object and
+        // not if it's [object FormData], in addition to
+        // toggling Content-Type to application/json
+        if (
+          typeof data === "object" &&
+          (data || "").toString() === "[object Object]"
+        ) {
+          body = JSON.stringify(data);
+        }
       }
     }
 
@@ -103,6 +107,20 @@ class ApiClient {
       pragma: "no-cache",
       ...options?.headers,
     };
+
+    // Add CSRF token to headers for mutating requests
+    const isModifyingRequest = ["POST", "PUT", "PATCH", "DELETE"].includes(
+      method
+    );
+    const canAccessWithReadOnly = AuthenticationHelper.canAccess(path, [
+      Scope.Read,
+    ]);
+    if (isModifyingRequest && !canAccessWithReadOnly) {
+      const csrfToken = getCookie(CSRF.cookieName);
+      if (csrfToken) {
+        headerOptions[CSRF.headerName] = csrfToken;
+      }
+    }
 
     // for multipart forms or other non JSON requests fetch
     // populates the Content-Type without needing to explicitly
@@ -210,6 +228,12 @@ class ApiClient {
           savePath: false,
           revokeToken: false,
         });
+      }
+
+      if (error.error === "csrf_error") {
+        throw new AuthorizationError(
+          "CSRF token invalid, please try reloading."
+        );
       }
 
       throw new AuthorizationError(error.message);

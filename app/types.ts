@@ -4,6 +4,7 @@ import {
   JSONValue,
   CollectionPermission,
   DocumentPermission,
+  GroupPermission,
 } from "@shared/types";
 import RootStore from "~/stores/RootStore";
 import { SidebarContextType } from "./components/Sidebar/components/SidebarContext";
@@ -91,7 +92,7 @@ export type MenuItem =
   | MenuGroup;
 
 export type ActionContext = {
-  isContextMenu: boolean;
+  isMenu: boolean;
   isCommandBar: boolean;
   isButton: boolean;
   sidebarContext?: SidebarContextType;
@@ -134,28 +135,32 @@ type BaseActionV2 = {
   type: "action";
   id: string;
   analyticsName?: string;
-  name: ((context: ActionContext) => string) | string;
+  name: ((context: ActionContext) => React.ReactNode) | React.ReactNode;
   section: ((context: ActionContext) => string) | string;
   shortcut?: string[];
   keywords?: string;
   /** Higher number is higher in results, default is 0. */
   priority?: number;
-  icon?: React.ReactNode;
+  icon?: ((context: ActionContext) => React.ReactNode) | React.ReactNode;
   iconInContextMenu?: boolean;
   placeholder?: ((context: ActionContext) => string) | string;
-  selected?: (context: ActionContext) => boolean;
+  selected?: ((context: ActionContext) => boolean) | boolean;
   visible?: ((context: ActionContext) => boolean) | boolean;
+  disabled?: ((context: ActionContext) => boolean) | boolean;
 };
 
 export type ActionV2 = BaseActionV2 & {
   variant: "action";
   dangerous?: boolean;
+  tooltip?:
+    | ((context: ActionContext) => React.ReactChild | undefined)
+    | React.ReactChild;
   perform: (context: ActionContext) => any;
 };
 
 export type InternalLinkActionV2 = BaseActionV2 & {
   variant: "internal_link";
-  to: LocationDescriptor;
+  to: ((context: ActionContext) => LocationDescriptor) | LocationDescriptor;
 };
 
 export type ExternalLinkActionV2 = BaseActionV2 & {
@@ -307,7 +312,11 @@ export const EmptySelectValue = "__empty__";
 
 export type Permission = {
   label: string;
-  value: CollectionPermission | DocumentPermission | typeof EmptySelectValue;
+  value:
+    | CollectionPermission
+    | DocumentPermission
+    | GroupPermission
+    | typeof EmptySelectValue;
   divider?: boolean;
 };
 

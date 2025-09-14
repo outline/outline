@@ -465,7 +465,7 @@ export default abstract class ImportsProcessor<
     content: ProsemirrorDoc;
     attachments: Attachment[];
     idMap: Record<string, string>;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // oxlint-disable-next-line @typescript-eslint/no-explicit-any
     importInput: Record<string, ImportInput<any>[number]>;
     actorId: string;
   }): ProsemirrorDoc {

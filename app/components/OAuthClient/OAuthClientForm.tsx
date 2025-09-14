@@ -63,6 +63,7 @@ export const OAuthClientForm = observer(function OAuthClientForm_({
             name="avatarUrl"
             render={({ field }) => (
               <ImageInput
+                alt={t("OAuth client icon")}
                 onSuccess={(url) => field.onChange(url)}
                 onError={(err) => setError("avatarUrl", { message: err })}
                 model={{

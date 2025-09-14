@@ -1,3 +1,4 @@
+import { LocationDescriptor } from "history";
 import flattenDeep from "lodash/flattenDeep";
 import { toast } from "sonner";
 import { Optional } from "utility-types";
@@ -10,7 +11,6 @@ import {
   ActionV2Separator as TActionV2Separator,
   ActionV2Variant,
   ActionV2WithChildren,
-  CommandBarAction,
   ExternalLinkActionV2,
   InternalLinkActionV2,
   MenuExternalLink,
@@ -21,8 +21,9 @@ import {
 } from "~/types";
 import Analytics from "~/utils/Analytics";
 import history from "~/utils/history";
+import { Action as KbarAction } from "kbar";
 
-function resolve<T>(value: any, context: ActionContext): T {
+export function resolve<T>(value: any, context: ActionContext): T {
   return typeof value === "function" ? value(context) : value;
 }
 
@@ -111,7 +112,7 @@ export function actionToMenuItem(
 export function actionToKBar(
   action: Action,
   context: ActionContext
-): CommandBarAction[] {
+): KbarAction[] {
   if (typeof action.visible === "function" && !action.visible(context)) {
     return [];
   }
@@ -267,10 +268,11 @@ export function actionV2ToMenuItem(
   switch (action.type) {
     case "action": {
       const title = resolve<string>(action.name, context);
-      const visible = resolve<boolean>(action.visible, context);
+      const visible = resolve<boolean>(action.visible, context) ?? true;
+      const disabled = resolve<boolean>(action.disabled, context);
       const icon =
         !!action.icon && action.iconInContextMenu !== false
-          ? action.icon
+          ? resolve<React.ReactNode>(action.icon, context)
           : undefined;
 
       switch (action.variant) {
@@ -280,18 +282,24 @@ export function actionV2ToMenuItem(
             title,
             icon,
             visible,
+            disabled,
+            tooltip: resolve<React.ReactChild>(action.tooltip, context),
+            selected: resolve<boolean>(action.selected, context),
             dangerous: action.dangerous,
             onClick: () => performActionV2(action, context),
           };
 
-        case "internal_link":
+        case "internal_link": {
+          const to = resolve<LocationDescriptor>(action.to, context);
           return {
             type: "route",
             title,
             icon,
             visible,
-            to: action.to,
+            disabled,
+            to,
           };
+        }
 
         case "external_link":
           return {
@@ -299,6 +307,7 @@ export function actionV2ToMenuItem(
             title,
             icon,
             visible,
+            disabled,
             href: action.target
               ? { url: action.url, target: action.target }
               : action.url,
@@ -316,6 +325,7 @@ export function actionV2ToMenuItem(
             title,
             icon,
             items: subMenuItems,
+            disabled,
             visible: visible && hasVisibleItems(subMenuItems),
           };
         }
@@ -342,11 +352,88 @@ export function actionV2ToMenuItem(
   }
 }
 
+export function actionV2ToKBar(
+  action: ActionV2Variant,
+  context: ActionContext
+): KbarAction[] {
+  const visible = resolve<boolean>(action.visible, context);
+  if (visible === false) {
+    return [];
+  }
+
+  const name = resolve<string>(action.name, context);
+  const icon = resolve<React.ReactElement>(action.icon, context);
+  const section = resolve<string>(action.section, context);
+
+  const sectionPriority =
+    typeof action.section !== "string" && "priority" in action.section
+      ? ((action.section.priority as number) ?? 0)
+      : 0;
+
+  const priority = (1 + (action.priority ?? 0)) * (1 + (sectionPriority ?? 0));
+
+  switch (action.variant) {
+    case "action":
+    case "internal_link":
+    case "external_link": {
+      return [
+        {
+          id: action.id,
+          name,
+          section,
+          keywords: action.keywords,
+          shortcut: action.shortcut,
+          icon,
+          priority,
+          perform: () => performActionV2(action, context),
+        },
+      ];
+    }
+
+    case "action_with_children": {
+      const resolvedChildren = resolve<ActionV2Variant[]>(
+        action.children,
+        context
+      );
+      const children = resolvedChildren
+        .map((a) => actionV2ToKBar(a, context))
+        .flat()
+        .filter(Boolean);
+
+      return [
+        {
+          id: action.id,
+          name,
+          section,
+          keywords: action.keywords,
+          shortcut: action.shortcut,
+          icon,
+          priority,
+        },
+        ...children.map((child) => ({
+          ...child,
+          parent: child.parent ?? action.id,
+        })),
+      ];
+    }
+
+    default:
+      throw Error("invalid action variant");
+  }
+}
+
 export async function performActionV2(
-  action: ActionV2,
+  action: Exclude<ActionV2Variant, ActionV2WithChildren>,
   context: ActionContext
 ) {
-  const result = action.perform(context);
+  const perform =
+    action.variant === "action"
+      ? () => action.perform(context)
+      : action.variant === "internal_link"
+        ? () => history.push(resolve<LocationDescriptor>(action.to, context))
+        : () => window.open(action.url, action.target);
+
+  const result = perform();
 
   if (result instanceof Promise) {
     return result.catch((err: Error) => {

@@ -9,6 +9,7 @@ import coalesceBody from "@server/middlewares/coaleseBody";
 import { Collection, Team, View } from "@server/models";
 import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
 import { AppState, AppContext, APIContext } from "@server/types";
+import { verifyCSRFToken } from "@server/middlewares/csrf";
 
 const app = new Koa<AppState, AppContext>();
 const router = new Router();
@@ -75,12 +76,9 @@ router.get("/redirect", authMiddleware(), async (ctx: APIContext) => {
   );
 });
 
-app.use(
-  bodyParser({
-    multipart: true,
-  })
-);
+app.use(bodyParser());
 app.use(coalesceBody());
+app.use(verifyCSRFToken());
 app.use(router.routes());
 
 export default app;

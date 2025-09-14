@@ -15,6 +15,12 @@ export const Pagination = {
   sidebarLimit: 10,
 };
 
+export const CSRF = {
+  cookieName: "csrfToken",
+  headerName: "x-csrf-token",
+  fieldName: "_csrf",
+};
+
 export const TeamPreferenceDefaults: TeamPreferences = {
   [TeamPreference.SeamlessEdit]: true,
   [TeamPreference.ViewersCanExport]: true,

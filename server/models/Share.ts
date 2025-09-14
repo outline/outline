@@ -46,6 +46,7 @@ import Length from "./validators/Length";
     },
     {
       association: "team",
+      required: true,
     },
   ],
 }))

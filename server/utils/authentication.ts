@@ -7,7 +7,11 @@ import { getCookieDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { Event, Collection, View } from "@server/models";
-import { AuthenticationResult, AuthenticationType } from "@server/types";
+import {
+  APIContext,
+  AuthenticationResult,
+  AuthenticationType,
+} from "@server/types";
 
 /**
  * Parse and return the details from the "sessions" cookie in the request, if
@@ -28,10 +32,12 @@ export function getSessionsInCookie(ctx: Context) {
 }
 
 export async function signIn(
-  ctx: Context,
+  ctx: Context | APIContext,
   service: string,
   { user, team, client, isNewTeam }: AuthenticationResult
 ) {
+  const { transaction } = ctx.state;
+
   if (team.isSuspended) {
     return ctx.redirect("/?notice=team-suspended");
   }
@@ -50,9 +56,14 @@ export async function signIn(
           JSON.parse(querystring.unescape(cookie)),
           ["ref", "utm_content", "utm_medium", "utm_source", "utm_campaign"]
         );
-        await team.update({
-          signupQueryParams,
-        });
+        await team.update(
+          {
+            signupQueryParams,
+          },
+          {
+            transaction,
+          }
+        );
       } catch (error) {
         Logger.error(`Error persisting signup query params`, error);
       }
@@ -60,21 +71,25 @@ export async function signIn(
   }
 
   // update the database when the user last signed in
-  await user.updateSignedIn(ctx.request.ip);
+  await user.updateSignedIn(ctx);
 
-  // don't await event creation for a faster sign-in
-  void Event.create({
-    name: "users.signin",
-    actorId: user.id,
-    userId: user.id,
-    teamId: team.id,
-    authType: AuthenticationType.APP,
-    data: {
-      name: user.name,
-      service,
+  await Event.createFromContext(
+    ctx,
+    {
+      name: "users.signin",
+      userId: user.id,
+      authType: AuthenticationType.APP,
+      data: {
+        name: user.name,
+        service,
+      },
     },
-    ip: ctx.request.ip,
-  });
+    {
+      actorId: user.id,
+      teamId: team.id,
+    }
+  );
+
   const domain = getCookieDomain(ctx.request.hostname, env.isCloudHosted);
   const expires = addMonths(new Date(), 3);
 
@@ -135,6 +150,7 @@ export async function signIn(
           id: defaultCollectionId,
           teamId: team.id,
         },
+        transaction,
       });
 
       if (collection) {
@@ -144,11 +160,14 @@ export async function signIn(
     }
 
     const [collection, view] = await Promise.all([
-      Collection.findFirstCollectionForUser(user),
+      Collection.findFirstCollectionForUser(user, {
+        transaction,
+      }),
       View.findOne({
         where: {
           userId: user.id,
         },
+        transaction,
       }),
     ]);
     const hasViewedDocuments = !!view;

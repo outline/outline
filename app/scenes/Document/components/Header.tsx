@@ -1,16 +1,11 @@
 import { observer } from "mobx-react";
-import {
-  TableOfContentsIcon,
-  EditIcon,
-  PlusIcon,
-  MoreIcon,
-} from "outline-icons";
-import { useRef, useState, useCallback } from "react";
+import { TableOfContentsIcon, EditIcon } from "outline-icons";
+import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import Icon from "@shared/components/Icon";
-import { useComponentSize } from "@shared/hooks/useComponentSize";
+import useMeasure from "react-use-measure";
 import { NavigationNode } from "@shared/types";
 import { altDisplay, metaDisplay } from "@shared/utils/keyboard";
 import Document from "~/models/Document";
@@ -28,7 +23,6 @@ import Tooltip from "~/components/Tooltip";
 import { publishDocument } from "~/actions/definitions/documents";
 import { navigateToTemplateSettings } from "~/actions/definitions/navigation";
 import { restoreRevision } from "~/actions/definitions/revisions";
-import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useEditingFocus from "~/hooks/useEditingFocus";
@@ -90,8 +84,7 @@ function DocumentHeader({
   const isEditingFocus = useEditingFocus();
   const { hasHeadings, editor } = useDocumentContext();
   const sidebarContext = useLocationSidebarContext();
-  const ref = useRef<HTMLDivElement | null>(null);
-  const size = useComponentSize(ref);
+  const [measureRef, size] = useMeasure();
   const isMobile = isMobileMedia || size.width < 700;
   const isShare = !!shareId;
 
@@ -115,10 +108,6 @@ function DocumentHeader({
     }
   }, [ui, isShare]);
 
-  const context = useActionContext({
-    activeDocumentId: document?.id,
-  });
-
   const can = usePolicy(document);
   const { isDeleted, isTemplate } = document;
   const isTemplateEditable = can.update && isTemplate;
@@ -140,6 +129,7 @@ function DocumentHeader({
       placement="bottom"
     >
       <Button
+        aria-label={t("Show contents")}
         onClick={handleToggle}
         icon={<TableOfContentsIcon />}
         borderOnHover
@@ -172,7 +162,7 @@ function DocumentHeader({
   );
 
   useKeyDown(
-    (event) => event.ctrlKey && event.altKey && event.key === "˙",
+    (event) => event.ctrlKey && event.altKey && event.code === "KeyH",
     handleToggle,
     {
       allowInInput: true,
@@ -182,7 +172,7 @@ function DocumentHeader({
   if (shareId) {
     return (
       <StyledHeader
-        ref={ref}
+        ref={measureRef}
         $hidden={isEditingFocus}
         title={
           <Flex gap={4}>
@@ -221,7 +211,7 @@ function DocumentHeader({
   return (
     <>
       <StyledHeader
-        ref={ref}
+        ref={measureRef}
         $hidden={isEditingFocus}
         hasSidebar
         left={
@@ -284,7 +274,6 @@ function DocumentHeader({
                   placement="bottom"
                 >
                   <Button
-                    context={context}
                     action={isTemplate ? navigateToTemplateSettings : undefined}
                     onClick={isTemplate ? undefined : handleSave}
                     disabled={savingIsDisabled}
@@ -307,31 +296,13 @@ function DocumentHeader({
               !isCompact &&
               !isMobile && (
                 <Action>
-                  <NewChildDocumentMenu
-                    document={document}
-                    label={(props) => (
-                      <Tooltip
-                        content={t("New document")}
-                        shortcut="n"
-                        placement="bottom"
-                      >
-                        <Button icon={<PlusIcon />} {...props} neutral>
-                          {t("New doc")}
-                        </Button>
-                      </Tooltip>
-                    )}
-                  />
+                  <NewChildDocumentMenu document={document} />
                 </Action>
               )}
             {revision && revision.createdAt !== document.updatedAt && (
               <Action>
                 <Tooltip content={t("Restore version")} placement="bottom">
-                  <Button
-                    action={restoreRevision}
-                    context={context}
-                    neutral
-                    hideOnActionDisabled
-                  >
+                  <Button action={restoreRevision} neutral hideOnActionDisabled>
                     {t("Restore")}
                   </Button>
                 </Tooltip>
@@ -341,7 +312,6 @@ function DocumentHeader({
               <Action>
                 <Button
                   action={publishDocument}
-                  context={context}
                   disabled={publishingIsDisabled}
                   hideOnActionDisabled
                   hideIcon
@@ -356,15 +326,8 @@ function DocumentHeader({
             <Action>
               <DocumentMenu
                 document={document}
-                isRevision={isRevision}
-                label={(props) => (
-                  <Button
-                    icon={<MoreIcon />}
-                    {...props}
-                    borderOnHover
-                    neutral
-                  />
-                )}
+                align="end"
+                neutral
                 onSelectTemplate={onSelectTemplate}
                 onFindAndReplace={editor?.commands.openFindAndReplace}
                 showToggleEmbeds={canToggleEmbeds}

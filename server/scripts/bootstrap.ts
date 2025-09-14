@@ -1,6 +1,6 @@
 if (process.env.NODE_ENV !== "test") {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  require("dotenv").config({
+  // oxlint-disable-next-line @typescript-eslint/no-var-requires
+  require("@dotenvx/dotenvx").config({
     silent: true,
   });
 }

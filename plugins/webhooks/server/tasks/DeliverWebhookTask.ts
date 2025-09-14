@@ -787,7 +787,8 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     const failedDeliveries = deliveriesInWindow.filter(
       (delivery) => delivery.status === "failed"
     );
-    const failureRate = (failedDeliveries.length / deliveriesInWindow.length) * 100;
+    const failureRate =
+      (failedDeliveries.length / deliveriesInWindow.length) * 100;
 
     // Only log analysis if there are failures to report
     if (failedDeliveries.length > 0) {
@@ -802,7 +803,11 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     }
 
     // Check if failure rate exceeds threshold and we have enough data points
-    if (failureRate >= failureRateThreshold && deliveriesInWindow.length >= DeliverWebhookTask.MIN_DELIVERIES_FOR_ANALYSIS) {
+    if (
+      failureRate >= failureRateThreshold &&
+      deliveriesInWindow.length >=
+        DeliverWebhookTask.MIN_DELIVERIES_FOR_ANALYSIS
+    ) {
       Logger.warn("Disabling webhook due to high failure rate", {
         subscriptionId: subscription.id,
         failureRate: Math.round(failureRate * 100) / 100,

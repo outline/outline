@@ -35,7 +35,6 @@ import Extension, {
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
 import textBetween from "@shared/editor/lib/textBetween";
-import { getTextSerializers } from "@shared/editor/lib/textSerializers";
 import Mark from "@shared/editor/marks/Mark";
 import { basicExtensions as extensions } from "@shared/editor/nodes";
 import Node from "@shared/editor/nodes/Node";
@@ -55,6 +54,7 @@ import EditorContext from "./components/EditorContext";
 import { NodeViewRenderer } from "./components/NodeViewRenderer";
 import SelectionToolbar from "./components/SelectionToolbar";
 import WithTheme from "./components/WithTheme";
+import Lightbox from "~/components/Lightbox";
 
 export type Props = {
   /** An optional identifier for the editor context. It is used to persist local settings */
@@ -146,6 +146,8 @@ type State = {
   isEditorFocused: boolean;
   /** If the toolbar for a text selection is visible */
   selectionToolbarOpen: boolean;
+  /** Position of image in doc that's being currently viewed in Lightbox */
+  activeLightboxImgPos: number | null;
 };
 
 /**
@@ -175,6 +177,7 @@ export class Editor extends React.PureComponent<
     isRTL: false,
     isEditorFocused: false,
     selectionToolbarOpen: false,
+    activeLightboxImgPos: null,
   };
 
   isInitialized = false;
@@ -448,7 +451,7 @@ export class Editor extends React.PureComponent<
           step.mark.type.name === this.schema.marks.comment.name
       );
 
-    const self = this; // eslint-disable-line
+    const self = this; // oxlint-disable-line
     const view = new EditorView(this.elementRef.current, {
       handleDOMEvents: {
         blur: this.handleEditorBlur,
@@ -495,6 +498,7 @@ export class Editor extends React.PureComponent<
 
     // Tell third-party libraries and screen-readers that this is an input
     view.dom.setAttribute("role", "textbox");
+    view.dom.setAttribute("aria-label", "Editor content");
 
     return view;
   }
@@ -504,12 +508,24 @@ export class Editor extends React.PureComponent<
       return;
     }
 
+    function isVisible(element: HTMLElement | null) {
+      for (let e = element; e; e = e.parentElement) {
+        const s = getComputedStyle(e);
+        if (s.display === "none" || s.opacity === "0") {
+          return false;
+        }
+      }
+      return true;
+    }
+
     try {
       this.mutationObserver?.disconnect();
       this.mutationObserver = observe(
         hash,
         (element) => {
-          element.scrollIntoView();
+          if (isVisible(element)) {
+            element.scrollIntoView();
+          }
         },
         this.elementRef.current || undefined
       );
@@ -615,8 +631,7 @@ export class Editor extends React.PureComponent<
    *
    * @returns A list of headings in the document
    */
-  public getHeadings = () =>
-    ProsemirrorHelper.getHeadings(this.view.state.doc, this.schema);
+  public getHeadings = () => ProsemirrorHelper.getHeadings(this.view.state.doc);
 
   /**
    * Return the images in the current editor.
@@ -702,6 +717,13 @@ export class Editor extends React.PureComponent<
     dispatch(tr);
   };
 
+  public updateActiveLightbox = (pos: number | null) => {
+    this.setState((state) => ({
+      ...state,
+      activeLightboxImgPos: pos,
+    }));
+  };
+
   /**
    * Return the plain text content of the current editor.
    *
@@ -709,9 +731,8 @@ export class Editor extends React.PureComponent<
    */
   public getPlainText = () => {
     const { doc } = this.view.state;
-    const textSerializers = getTextSerializers(this.schema);
 
-    return textBetween(doc, 0, doc.content.size, textSerializers);
+    return textBetween(doc, 0, doc.content.size);
   };
 
   private dispatchThemeChanged = (event: CustomEvent) => {
@@ -822,6 +843,12 @@ export class Editor extends React.PureComponent<
               )}
             </Observer>
           </Flex>
+          {this.state.activeLightboxImgPos && (
+            <Lightbox
+              onUpdate={this.updateActiveLightbox}
+              activePos={this.state.activeLightboxImgPos}
+            />
+          )}
         </EditorContext.Provider>
       </PortalContext.Provider>
     );

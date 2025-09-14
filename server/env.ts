@@ -1,5 +1,5 @@
-/* eslint-disable no-console */
-// eslint-disable-next-line import/order
+/* oxlint-disable no-console */
+// oxlint-disable-next-line import/order
 import environment from "./utils/environment";
 import os from "os";
 import {
@@ -78,7 +78,7 @@ export class Environment {
   /**
    * The url of the database.
    */
-  @IsNotEmpty()
+  @IsOptional()
   @IsUrl({
     require_tld: false,
     allow_underscores: true,
@@ -91,7 +91,7 @@ export class Environment {
     "DATABASE_USER",
     "DATABASE_PASSWORD",
   ])
-  public DATABASE_URL = environment.DATABASE_URL ?? "";
+  public DATABASE_URL = this.toOptionalString(environment.DATABASE_URL);
 
   /**
    * Database host for individual component configuration.
@@ -666,6 +666,13 @@ export class Environment {
     1000000;
 
   /**
+   * Timeout in milliseconds for downloading files from remote locations to file storage.
+   */
+  @IsNumber()
+  public FILE_STORAGE_IMPORT_TIMEOUT =
+    this.toOptionalNumber(environment.FILE_STORAGE_IMPORT_TIMEOUT) ?? 60000;
+
+  /**
    * Set max allowed upload size for imports at workspace level.
    */
   @IsNumber()
@@ -747,6 +754,17 @@ export class Environment {
   @IsOptional()
   public WEBHOOK_FAILURE_RATE_THRESHOLD =
     this.toOptionalNumber(environment.WEBHOOK_FAILURE_RATE_THRESHOLD) ?? 80;
+
+  /**
+   * Comma-separated list of IP addresses that are allowed to be accessed
+   * even if they are private IP addresses. This is useful for allowing
+   * connections to OIDC providers or webhooks on private networks.
+   * Example: "10.0.0.1,192.168.1.100"
+   */
+  @IsOptional()
+  public ALLOWED_PRIVATE_IP_ADDRESSES = this.toOptionalCommaList(
+    environment.ALLOWED_PRIVATE_IP_ADDRESSES
+  );
 
   /**
    * The product name

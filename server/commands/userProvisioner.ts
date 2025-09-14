@@ -1,8 +1,9 @@
-import { InferCreationAttributes } from "sequelize";
+import { InferCreationAttributes, Op } from "sequelize";
 import { UserRole } from "@shared/types";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
 import {
   DomainNotAllowedError,
+  InternalError,
   InvalidAuthenticationError,
   InviteRequiredError,
 } from "@server/errors";
@@ -80,7 +81,7 @@ export default async function userProvisioner(
     // hosted google domain). This is possible in Google Auth when moving domains.
     // In the future we may auto-migrate these.
     if (auth.authenticationProviderId !== authenticationProviderId) {
-      throw new Error(
+      throw InternalError(
         `User authentication ${providerId} already exists for ${auth.authenticationProviderId}, tried to assign to ${authenticationProviderId}`
       );
     }
@@ -110,9 +111,10 @@ export default async function userProvisioner(
     "withTeam",
   ]).findOne({
     where: {
-      // Email from auth providers may be capitalized and we should respect that
-      // however any existing invites will always be lowercased.
-      email: email.toLowerCase(),
+      // Email from auth providers may be capitalized
+      email: {
+        [Op.iLike]: email,
+      },
       teamId,
     },
   });
@@ -179,7 +181,9 @@ export default async function userProvisioner(
   } else if (!authentication && !team?.allowedDomains.length) {
     // There's no existing invite or user that matches the external auth email
     // and there is no possibility of matching an allowed domain.
-    throw InvalidAuthenticationError();
+    throw InvalidAuthenticationError(
+      "No matching user for email or allowed domain"
+    );
   }
 
   //

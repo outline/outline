@@ -10,6 +10,8 @@ import {
   deleteRow,
   deleteTable,
   goToNextCell,
+  moveTableColumn,
+  moveTableRow,
   tableEditing,
   toggleHeader,
 } from "prosemirror-tables";
@@ -87,6 +89,8 @@ export default class Table extends Node {
       deleteColumn: () => deleteColumn,
       addRowBefore,
       addRowAfter: () => addRowAfter,
+      moveTableRow,
+      moveTableColumn,
       deleteRow: () => deleteRow,
       deleteTable: () => deleteTable,
       exportTable,

@@ -1,8 +1,11 @@
+import { ExpandedIcon } from "outline-icons";
 import { ellipsis } from "polished";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { s } from "@shared/styles";
+import { depths, s } from "@shared/styles";
+import Scrollable from "~/components/Scrollable";
+import { fadeAndScaleIn } from "~/styles/animations";
 
 type BaseMenuItemProps = {
   disabled?: boolean;
@@ -35,6 +38,10 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
   svg {
     flex-shrink: 0;
     opacity: ${(props) => (props.disabled ? ".5" : 1)};
+  }
+
+  &:focus-visible {
+    outline: 0; // Disable default outline on Firefox
   }
 
   ${(props) =>
@@ -82,6 +89,10 @@ export const MenuExternalLink = styled.a`
   ${BaseMenuItemCSS}
 `;
 
+export const MenuSubTrigger = styled.div<BaseMenuItemProps>`
+  ${BaseMenuItemCSS}
+`;
+
 export const MenuSeparator = styled.hr`
   margin: 6px 0;
 `;
@@ -103,6 +114,13 @@ export const MenuHeader = styled.h3`
   margin: 1em 12px 0.5em;
 `;
 
+export const MenuDisclosure = styled(ExpandedIcon)`
+  transform: rotate(270deg);
+  position: absolute;
+  right: 8px;
+  color: ${s("textTertiary")};
+`;
+
 export const MenuIconWrapper = styled.span`
   width: 24px;
   height: 24px;
@@ -110,4 +128,40 @@ export const MenuIconWrapper = styled.span`
   margin-left: -4px;
   color: ${s("textSecondary")};
   flex-shrink: 0;
+`;
+
+export const SelectedIconWrapper = styled.span`
+  width: 24px;
+  height: 24px;
+  margin-right: -6px;
+  color: ${s("textSecondary")};
+  flex-shrink: 0;
+`;
+
+export const MenuContent = styled(Scrollable)<{
+  maxHeightVar: string;
+  transformOriginVar: string;
+}>`
+  z-index: ${depths.menu};
+  min-width: 180px;
+  max-width: 276px;
+  min-height: 44px;
+  max-height: ${({ maxHeightVar }) => `min(85vh, var(${maxHeightVar}))`};
+  font-weight: normal;
+
+  background: ${s("menuBackground")};
+  box-shadow: ${s("menuShadow")};
+  border-radius: 6px;
+  padding: 6px;
+  outline: none;
+
+  transform-origin: ${({ transformOriginVar }) => `var(${transformOriginVar})`};
+
+  &[data-state="open"] {
+    animation: ${fadeAndScaleIn} 150ms ease-out;
+  }
+
+  @media print {
+    display: none;
+  }
 `;

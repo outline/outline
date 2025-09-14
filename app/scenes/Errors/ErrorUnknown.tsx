@@ -6,11 +6,9 @@ import Empty from "~/components/Empty";
 import Heading from "~/components/Heading";
 import PageTitle from "~/components/PageTitle";
 import { navigateToHome } from "~/actions/definitions/navigation";
-import useActionContext from "~/hooks/useActionContext";
 
 const ErrorUnknown = () => {
   const { t } = useTranslation();
-  const context = useActionContext();
 
   return (
     <CenteredContent>
@@ -24,7 +22,7 @@ const ErrorUnknown = () => {
           </Trans>
         </Empty>
         <Flex gap={8}>
-          <Button action={navigateToHome} context={context} neutral hideIcon>
+          <Button action={navigateToHome} neutral hideIcon>
             {t("Home")}
           </Button>
         </Flex>

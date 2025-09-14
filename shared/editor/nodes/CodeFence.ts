@@ -22,6 +22,7 @@ import {
   moveToPreviousNewline,
   outdentInCode,
   enterInCode,
+  splitCodeBlockOnTripleBackticks,
 } from "../commands/codeFence";
 import { selectAll } from "../commands/selectAll";
 import toggleBlockType from "../commands/toggleBlockType";
@@ -192,6 +193,18 @@ export default class CodeFence extends Node {
       Mermaid({
         name: this.name,
         isDark: this.editor.props.theme.isDark,
+      }),
+      new Plugin({
+        key: new PluginKey("code-fence-split"),
+        props: {
+          handleTextInput: (view, _from, _to, text) => {
+            if (text === "`") {
+              const { state, dispatch } = view;
+              return splitCodeBlockOnTripleBackticks(state, dispatch);
+            }
+            return false;
+          },
+        },
       }),
       new Plugin({
         key: new PluginKey("triple-click"),

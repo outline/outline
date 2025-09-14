@@ -457,6 +457,11 @@ class DocumentScene extends React.Component<Props> {
       (isShare
         ? ui.tocVisible !== false
         : !document.isTemplate && ui.tocVisible === true);
+    const tocOffset =
+      tocPos === TOCPosition.Left
+        ? EditorStyleHelper.tocWidth / -2
+        : EditorStyleHelper.tocWidth / 2;
+
     const multiplayerEditor =
       !document.isArchived && !document.isDeleted && !revision && !isShare;
 
@@ -469,6 +474,10 @@ class DocumentScene extends React.Component<Props> {
       ? document.titleWithDefault.replace(document.icon!, "")
       : document.titleWithDefault;
     const favicon = hasEmojiInTitle ? emojiToUrl(document.icon!) : undefined;
+
+    const fullWidthTransformOffsetStyle = {
+      ["--full-width-transform-offset"]: `${document.fullWidth && showContents ? tocOffset : 0}px`,
+    } as React.CSSProperties;
 
     return (
       <ErrorBoundary showTitle>
@@ -531,7 +540,11 @@ class DocumentScene extends React.Component<Props> {
               onSelectTemplate={this.replaceSelection}
               onSave={this.onSave}
             />
-            <Main fullWidth={document.fullWidth} tocPosition={tocPos}>
+            <Main
+              fullWidth={document.fullWidth}
+              tocPosition={tocPos}
+              style={fullWidthTransformOffsetStyle}
+            >
               <React.Suspense
                 fallback={
                   <EditorContainer

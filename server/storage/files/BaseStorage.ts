@@ -7,6 +7,7 @@ import { isBase64Url, isInternalUrl } from "@shared/utils/urls";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import fetch, { chromeUserAgent, RequestInit } from "@server/utils/fetch";
+import { AppContext } from "@server/types";
 
 export default abstract class BaseStorage {
   /** The default number of seconds until a signed URL expires. */
@@ -15,6 +16,7 @@ export default abstract class BaseStorage {
   /**
    * Returns a presigned post for uploading files to the storage provider.
    *
+   * @param ctx The request context
    * @param key The path to store the file at
    * @param acl The ACL to use
    * @param maxUploadSize The maximum upload size in bytes
@@ -22,6 +24,7 @@ export default abstract class BaseStorage {
    * @returns The presigned post object to use on the client (TODO: Abstract away from S3)
    */
   public abstract getPresignedPost(
+    ctx: AppContext,
     key: string,
     acl: string,
     maxUploadSize: number,

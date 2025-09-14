@@ -31,10 +31,12 @@ async function teamCreator(
     avatarUrl = null;
   }
 
-  const team = await Team.createWithCtx(
+  const availableSubdomain = await findAvailableSubdomain(ctx, subdomain);
+  return await Team.createWithCtx(
     ctx,
     {
       name,
+      subdomain: availableSubdomain,
       avatarUrl,
       authenticationProviders,
     } as Partial<InferCreationAttributes<Team>>,
@@ -43,19 +45,12 @@ async function teamCreator(
       include: ["authenticationProviders"],
     }
   );
-
-  const availableSubdomain = await findAvailableSubdomain(team, subdomain);
-  await team.update(
-    { subdomain: availableSubdomain },
-    {
-      transaction: ctx.context.transaction,
-    }
-  );
-
-  return team;
 }
 
-async function findAvailableSubdomain(team: Team, requestedSubdomain: string) {
+async function findAvailableSubdomain(
+  ctx: APIContext,
+  requestedSubdomain: string
+) {
   // filter subdomain to only valid characters
   // if there are less than the minimum length, use a default subdomain
   const normalizedSubdomain = slugify(requestedSubdomain, {
@@ -74,6 +69,7 @@ async function findAvailableSubdomain(team: Team, requestedSubdomain: string) {
     const existing = await Team.findOne({
       where: { subdomain },
       paranoid: false,
+      transaction: ctx.state.transaction,
     });
 
     if (existing) {

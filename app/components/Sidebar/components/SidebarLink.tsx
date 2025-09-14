@@ -272,7 +272,6 @@ const Link = styled(NavLink)<{
 const Label = styled.div`
   position: relative;
   width: 100%;
-  max-height: 4.8em;
   line-height: 24px;
 
   * {

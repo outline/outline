@@ -19,8 +19,9 @@ import NotificationIcon from "../Notifications/NotificationIcon";
 import NotificationsPopover from "../Notifications/NotificationsPopover";
 import { TooltipProvider } from "../TooltipContext";
 import ResizeBorder from "./components/ResizeBorder";
-import SidebarButton, { SidebarButtonProps } from "./components/SidebarButton";
+import SidebarButton from "./components/SidebarButton";
 import ToggleButton from "./components/ToggleButton";
+import { useTranslation } from "react-i18next";
 
 const ANIMATION_MS = 250;
 
@@ -35,6 +36,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
   ref: React.RefObject<HTMLDivElement>
 ) {
   const [isCollapsing, setCollapsing] = React.useState(false);
+  const { t } = useTranslation();
   const theme = useTheme();
   const { ui } = useStores();
   const location = useLocation();
@@ -231,29 +233,27 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
 
         {user && (
           <AccountMenu>
-            {(props: SidebarButtonProps) => (
-              <SidebarButton
-                {...props}
-                showMoreMenu
-                title={user.name}
-                position="bottom"
-                image={
-                  <Avatar
-                    alt={user.name}
-                    model={user}
-                    size={24}
-                    style={{ marginLeft: 4 }}
-                  />
-                }
-              >
-                <NotificationsPopover>
-                  <SidebarButton
-                    position="bottom"
-                    image={<NotificationIcon />}
-                  />
-                </NotificationsPopover>
-              </SidebarButton>
-            )}
+            <SidebarButton
+              showMoreMenu
+              title={user.name}
+              position="bottom"
+              image={
+                <Avatar
+                  alt={t("Avatar of {{ name }}", { name: user.name })}
+                  model={user}
+                  size={24}
+                  style={{ marginLeft: 4 }}
+                />
+              }
+            >
+              <NotificationsPopover>
+                <SidebarButton
+                  position="bottom"
+                  image={<NotificationIcon />}
+                  aria-label={t("Notifications")}
+                />
+              </NotificationsPopover>
+            </SidebarButton>
           </AccountMenu>
         )}
         <ResizeBorder

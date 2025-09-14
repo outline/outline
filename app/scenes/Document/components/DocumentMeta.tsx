@@ -3,19 +3,21 @@ import { observer, useObserver } from "mobx-react";
 import { CommentIcon } from "outline-icons";
 import { useRef, Fragment } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useRouteMatch } from "react-router-dom";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { TeamPreference } from "@shared/types";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
+import { openDocumentInsights } from "~/actions/definitions/documents";
 import DocumentMeta from "~/components/DocumentMeta";
 import Fade from "~/components/Fade";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import { documentPath, documentInsightsPath } from "~/utils/routeHelpers";
 import breakpoint from "styled-components-breakpoint";
+import { documentPath } from "~/utils/routeHelpers";
+import NudeButton from "~/components/NudeButton";
 
 type Props = {
   /* The document to display meta data for */
@@ -28,7 +30,6 @@ type Props = {
 function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
   const { views, comments, ui } = useStores();
   const { t } = useTranslation();
-  const match = useRouteMatch();
   const sidebarContext = useLocationSidebarContext();
   const team = useCurrentTeam();
   const documentViews = useObserver(() => views.inDocument(document.id));
@@ -39,7 +40,6 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
 
   const Wrapper = viewsLoadedOnMount.current ? Fragment : Fade;
 
-  const insightsPath = documentInsightsPath(document);
   const commentsCount = comments.unresolvedCommentsInDocumentCount(document.id);
   const commentingEnabled = !!team.getPreference(TeamPreference.Commenting);
 
@@ -68,22 +68,14 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
       !document.isTemplate ? (
         <Wrapper>
           &nbsp;•&nbsp;
-          <Link
-            to={{
-              pathname:
-                match.url === insightsPath
-                  ? documentPath(document)
-                  : insightsPath,
-              state: { sidebarContext },
-            }}
-          >
+          <InsightsButton action={openDocumentInsights}>
             {t("Viewed by")}{" "}
             {onlyYou
               ? t("only you")
               : `${totalViewers} ${
                   totalViewers === 1 ? t("person") : t("people")
                 }`}
-          </Link>
+          </InsightsButton>
         </Wrapper>
       ) : null}
     </Meta>
@@ -93,6 +85,20 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
 const CommentLink = styled(Link)`
   display: inline-flex;
   align-items: center;
+`;
+
+const InsightsButton = styled(NudeButton)`
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+  cursor: var(--pointer);
+
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 export const Meta = styled(DocumentMeta)<{ rtl?: boolean }>`
