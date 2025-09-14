@@ -39,17 +39,18 @@ module.exports = {
     await queryInterface.sequelize.query(`
       ALTER TABLE stars ADD CONSTRAINT stars_folder_content_check 
       CHECK (
-        (isFolder = true AND documentId IS NULL AND collectionId IS NULL) OR
-        (isFolder = false)
+        ("isFolder" = true AND "documentId" IS NULL AND "collectionId" IS NULL) OR
+        ("isFolder" = false)
       )
     `);
   },
 
   down: async (queryInterface, Sequelize) => {
     // Remove check constraint
-    await queryInterface.sequelize.query(`
-      ALTER TABLE stars DROP CONSTRAINT IF EXISTS stars_folder_content_check
-    `);
+    await queryInterface.removeConstraint(
+      "stars",
+      "stars_folder_content_check"
+    );
 
     // Remove indexes
     await queryInterface.removeIndex("stars", "stars_user_id_is_folder");
