@@ -14,6 +14,16 @@ class Star extends Model {
   @observable
   index: string;
 
+  /** Whether this star represents a folder */
+  @Field
+  @observable
+  isFolder: boolean;
+
+  /** The parent folder ID */
+  @Field
+  @observable
+  parentId?: string;
+
   /** The document ID that is starred. */
   documentId?: string;
 
@@ -43,7 +53,31 @@ class Star extends Model {
    */
   previous(): Star | undefined {
     const index = this.store.orderedData.indexOf(this);
-    return this.store.orderedData[index + 1];
+    return this.store.orderedData[index - 1];
+  }
+
+  /**
+   * Returns true if this star is a folder.
+   */
+  get isStarFolder(): boolean {
+    return this.isFolder === true;
+  }
+
+  /**
+   * Returns the children of this folder, or empty array if not a folder.
+   */
+  get folderChildren(): Star[] {
+    if (!this.isStarFolder) {
+      return [];
+    }
+    return this.store.orderedData.filter(star => star.parentId === this.id);
+  }
+
+  /**
+   * Returns true if this star has content (document or collection).
+   */
+  get hasContent(): boolean {
+    return !!(this.documentId || this.collectionId);
   }
 }
 
