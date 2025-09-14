@@ -59,6 +59,15 @@ export default async function presentCollection(
   if (!options.isPublic) {
     res.archivedBy =
       collection.archivedBy && presentUser(collection.archivedBy);
+    res.sourceMetadata = collection.sourceMetadata
+      ? {
+          externalId: collection.sourceMetadata.externalId,
+          externalName: collection.sourceMetadata.externalName,
+          createdByName: collection.sourceMetadata.createdByName,
+          fileName: collection.sourceMetadata?.fileName,
+          mimeType: collection.sourceMetadata?.mimeType,
+        }
+      : undefined;
   }
 
   return res;
