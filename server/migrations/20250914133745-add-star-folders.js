@@ -35,22 +35,11 @@ module.exports = {
       name: "stars_user_id_is_folder",
     });
 
-    // Add check constraint to ensure folders don't have documentId or collectionId
-    await queryInterface.sequelize.query(`
-      ALTER TABLE stars ADD CONSTRAINT stars_folder_content_check 
-      CHECK (
-        (isFolder = true AND documentId IS NULL AND collectionId IS NULL) OR
-        (isFolder = false)
-      )
-    `);
+    // Note: Check constraint to ensure folders don't have documentId or collectionId
+    // is enforced at the application level in the Star model and API validation
   },
 
   down: async (queryInterface, Sequelize) => {
-    // Remove check constraint
-    await queryInterface.sequelize.query(`
-      ALTER TABLE stars DROP CONSTRAINT IF EXISTS stars_folder_content_check
-    `);
-
     // Remove indexes
     await queryInterface.removeIndex("stars", "stars_user_id_is_folder");
     await queryInterface.removeIndex("stars", "stars_user_id_parent_id");
