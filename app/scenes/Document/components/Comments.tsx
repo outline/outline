@@ -23,6 +23,7 @@ import CommentForm from "./CommentForm";
 import CommentSortMenu from "./CommentSortMenu";
 import CommentThread from "./CommentThread";
 import Sidebar from "./SidebarLayout";
+import useMobile from "~/hooks/useMobile";
 import { ArrowDownIcon } from "~/components/Icons/ArrowIcon";
 
 function Comments() {
@@ -34,6 +35,8 @@ function Comments() {
   const document = documents.get(match.params.documentSlug);
   const focusedComment = useFocusedComment();
   const can = usePolicy(document);
+  const isMobile = useMobile();
+
   const query = useQuery();
   const [viewingResolved, setViewingResolved] = useState(
     query.get("resolved") !== null || focusedComment?.isResolved || false
@@ -130,8 +133,10 @@ function Comments() {
   return (
     <Sidebar
       title={
-        <Flex align="center" justify="space-between" auto>
-          <span>{t("Comments")}</span>
+        <Flex align="center" justify="space-between" gap={8} auto>
+          <div style={isMobile ? { padding: "0 8px" } : undefined}>
+            {t("Comments")}
+          </div>
           <CommentSortMenu
             viewingResolved={viewingResolved}
             onChange={(val) => {
@@ -184,7 +189,7 @@ function Comments() {
         </Wrapper>
       </Scrollable>
       <AnimatePresence initial={false}>
-        {!focusedComment && can.comment && !viewingResolved && (
+        {(!focusedComment || isMobile) && can.comment && !viewingResolved && (
           <NewCommentForm
             draft={draft}
             onSaveDraft={onSaveDraft}

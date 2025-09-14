@@ -13,7 +13,6 @@ import ErrorSuspended from "~/scenes/Errors/ErrorSuspended";
 import Layout from "~/components/Layout";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import Sidebar from "~/components/Sidebar";
-import SidebarRight from "~/components/Sidebar/Right";
 import SettingsSidebar from "~/components/Sidebar/Settings";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import { usePostLoginPath } from "~/hooks/useLastVisitedPath";
@@ -109,12 +108,10 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
     >
       {(showHistory || showComments) && (
         <Route path={`/doc/${slug}`}>
-          <SidebarRight>
-            <React.Suspense fallback={null}>
-              {showHistory && <DocumentHistory />}
-              {showComments && <DocumentComments />}
-            </React.Suspense>
-          </SidebarRight>
+          <React.Suspense fallback={null}>
+            {showHistory && <DocumentHistory />}
+            {showComments && <DocumentComments />}
+          </React.Suspense>
         </Route>
       )}
     </AnimatePresence>
