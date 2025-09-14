@@ -45,10 +45,7 @@ router.get(
     try {
       // validation middleware ensures that code is non-null at this point.
       const oauth = await Linear.oauthAccess(code!);
-      const workspace = await Linear.getInstalledWorkspace(
-        oauth.access_token,
-        oauth.refresh_token
-      );
+      const workspace = await Linear.getInstalledWorkspace(oauth.access_token);
 
       const authentication = await IntegrationAuthentication.create(
         {

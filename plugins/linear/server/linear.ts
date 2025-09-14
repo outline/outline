@@ -93,10 +93,7 @@ export class Linear {
     });
   }
 
-  static async getInstalledWorkspace(
-    accessToken: string,
-    _refreshToken?: string
-  ) {
+  static async getInstalledWorkspace(accessToken: string) {
     const client = new LinearClient({ accessToken });
     return client.organization;
   }
