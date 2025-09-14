@@ -27,3 +27,13 @@ export class Day {
   /** Minutes in a day */
   public static minutes = 24 * Hour.minutes;
 }
+
+/**
+ * Returns a Date in the future by adding the specified milliseconds to the current time.
+ *
+ * @param inMs - The number of milliseconds to add to the current time.
+ * @returns A Date object representing the future time.
+ */
+export function toDate(inMs: number) {
+  return new Date(Date.now() + inMs * Second.ms);
+}

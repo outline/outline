@@ -17,7 +17,7 @@ import User from "./User";
 import IdModel from "./base/IdModel";
 import Encrypted from "./decorators/Encrypted";
 import Fix from "./decorators/Fix";
-import { Minute, Second } from "@shared/utils/time";
+import { Minute, toDate } from "@shared/utils/time";
 
 export interface TokenRefreshResponse {
   access_token: string;
@@ -119,7 +119,6 @@ class IntegrationAuthentication extends IdModel<
           Logger.info("plugins", `Refreshing ${this.service} access token`);
 
           const tokenResponse = await refreshCallback(lockedAuth.refreshToken);
-          const now = new Date();
 
           // Update the authentication record with new tokens
           await lockedAuth.update(
@@ -127,9 +126,7 @@ class IntegrationAuthentication extends IdModel<
               token: tokenResponse.access_token,
               refreshToken:
                 tokenResponse.refresh_token || lockedAuth.refreshToken,
-              expiresAt: new Date(
-                now.getTime() + tokenResponse.expires_in * Second.ms
-              ),
+              expiresAt: toDate(tokenResponse.expires_in),
             },
             { transaction }
           );
