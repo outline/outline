@@ -29,7 +29,7 @@ class Star extends IdModel<
   @Column
   index: string | null;
 
-  @Column(DataType.BOOLEAN)
+  @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
   isFolder: boolean;
 
   // associations
