@@ -64,8 +64,6 @@ export default async function presentCollection(
           externalId: collection.sourceMetadata.externalId,
           externalName: collection.sourceMetadata.externalName,
           createdByName: collection.sourceMetadata.createdByName,
-          fileName: collection.sourceMetadata?.fileName,
-          mimeType: collection.sourceMetadata?.mimeType,
         }
       : undefined;
   }
