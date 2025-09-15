@@ -725,9 +725,12 @@ class User extends ParanoidModel<
 
   @BeforeSave
   static setAvatarChangedFlag = (model: User) => {
-    // Check if avatarUrl has changed (for updates) or is being set (for creates)
-    if (model.changed("avatarUrl") || (model.isNewRecord && model.avatarUrl)) {
-      model.setFlag(UserFlag.AvatarChanged);
+    // Only set flag if avatarUrl changed from one set value to another (not on initial value)
+    if (model.changed("avatarUrl") && !model.isNewRecord) {
+      const previousAvatarUrl = model.previous("avatarUrl");
+      if (previousAvatarUrl && previousAvatarUrl !== model.avatarUrl) {
+        model.setFlag(UserFlag.AvatarChanged);
+      }
     }
   };
 
