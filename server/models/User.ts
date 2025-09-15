@@ -868,9 +868,6 @@ class User extends ParanoidModel<
       suspended: parseInt(counts.suspendedCount),
     };
   };
-
-  // Make UserFlag enum accessible as a static property
-  static UserFlag = UserFlag;
 }
 
 export default User;
