@@ -234,4 +234,63 @@ describe("user model", () => {
       expect(response[0]).toEqual(collection.id);
     });
   });
+
+  describe("avatarChanged flag", () => {
+    it("should set avatarChanged flag when avatarUrl is set on new user", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({
+        teamId: team.id,
+        avatarUrl: "https://example.com/avatar.jpg",
+      });
+
+      expect(user.getFlag(User.UserFlag.AvatarChanged)).toBe(1);
+    });
+
+    it("should set avatarChanged flag when avatarUrl is updated", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({
+        teamId: team.id,
+      });
+
+      // Initially no flag should be set
+      expect(user.getFlag(User.UserFlag.AvatarChanged)).toBe(0);
+
+      // Update avatarUrl
+      user.avatarUrl = "https://example.com/new-avatar.jpg";
+      await user.save();
+
+      expect(user.getFlag(User.UserFlag.AvatarChanged)).toBe(1);
+    });
+
+    it("should not set avatarChanged flag when avatarUrl is not changed", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({
+        teamId: team.id,
+      });
+
+      // Update other field
+      user.name = "New Name";
+      await user.save();
+
+      expect(user.getFlag(User.UserFlag.AvatarChanged)).toBe(0);
+    });
+
+    it("should set avatarChanged flag when avatarUrl changes from one value to another", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({
+        teamId: team.id,
+        avatarUrl: "https://example.com/old-avatar.jpg",
+      });
+
+      // Reset the flag to test the change
+      user.setFlag(User.UserFlag.AvatarChanged, false);
+      await user.save();
+
+      // Change avatarUrl
+      user.avatarUrl = "https://example.com/new-avatar.jpg";
+      await user.save();
+
+      expect(user.getFlag(User.UserFlag.AvatarChanged)).toBe(1);
+    });
+  });
 });

@@ -30,6 +30,7 @@ import {
   AllowNull,
   AfterUpdate,
   BeforeUpdate,
+  BeforeSave,
 } from "sequelize-typescript";
 import { UserPreferenceDefaults } from "@shared/constants";
 import { languages } from "@shared/i18n";
@@ -77,6 +78,7 @@ export enum UserFlag {
   Desktop = "desktop",
   DesktopWeb = "desktopWeb",
   MobileWeb = "mobileWeb",
+  AvatarChanged = "avatarChanged",
 }
 
 @Scopes(() => ({
@@ -719,6 +721,14 @@ class User extends ParanoidModel<
   @BeforeCreate
   static setRandomJwtSecret = (model: User) => {
     model.jwtSecret = crypto.randomBytes(64).toString("hex");
+  };
+
+  @BeforeSave
+  static setAvatarChangedFlag = (model: User) => {
+    // Check if avatarUrl has changed (for updates) or is being set (for creates)
+    if (model.changed("avatarUrl") || (model.isNewRecord && model.avatarUrl)) {
+      model.setFlag(UserFlag.AvatarChanged);
+    }
   };
 
   @BeforeUpdate
