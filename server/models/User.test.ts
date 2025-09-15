@@ -9,7 +9,7 @@ import {
   buildCollection,
   buildAdmin,
 } from "@server/test/factories";
-import User from "./User";
+import User, { UserFlag } from "./User";
 import UserMembership from "./UserMembership";
 
 beforeAll(() => {
@@ -243,7 +243,7 @@ describe("user model", () => {
         avatarUrl: "https://example.com/avatar.jpg",
       });
 
-      expect(user.getFlag(User.UserFlag.AvatarChanged)).toBe(0);
+      expect(user.getFlag(UserFlag.AvatarChanged)).toBe(0);
     });
 
     it("should NOT set avatarChanged flag when avatarUrl is initially set on existing user", async () => {
@@ -253,14 +253,14 @@ describe("user model", () => {
       });
 
       // Initially no flag should be set
-      expect(user.getFlag(User.UserFlag.AvatarChanged)).toBe(0);
+      expect(user.getFlag(UserFlag.AvatarChanged)).toBe(0);
 
       // Set avatarUrl for the first time
       user.avatarUrl = "https://example.com/new-avatar.jpg";
       await user.save();
 
       // Flag should still not be set since there was no previous value
-      expect(user.getFlag(User.UserFlag.AvatarChanged)).toBe(0);
+      expect(user.getFlag(UserFlag.AvatarChanged)).toBe(0);
     });
 
     it("should not set avatarChanged flag when avatarUrl is not changed", async () => {
@@ -273,7 +273,7 @@ describe("user model", () => {
       user.name = "New Name";
       await user.save();
 
-      expect(user.getFlag(User.UserFlag.AvatarChanged)).toBe(0);
+      expect(user.getFlag(UserFlag.AvatarChanged)).toBe(0);
     });
 
     it("should set avatarChanged flag when avatarUrl changes from one value to another", async () => {
@@ -284,13 +284,13 @@ describe("user model", () => {
       });
 
       // Initially no flag should be set
-      expect(user.getFlag(User.UserFlag.AvatarChanged)).toBe(0);
+      expect(user.getFlag(UserFlag.AvatarChanged)).toBe(0);
 
       // Change avatarUrl from existing value to new value
       user.avatarUrl = "https://example.com/new-avatar.jpg";
       await user.save();
 
-      expect(user.getFlag(User.UserFlag.AvatarChanged)).toBe(1);
+      expect(user.getFlag(UserFlag.AvatarChanged)).toBe(1);
     });
 
     it("should NOT set avatarChanged flag when avatarUrl is set to the same value", async () => {
@@ -304,7 +304,7 @@ describe("user model", () => {
       user.avatarUrl = "https://example.com/avatar.jpg";
       await user.save();
 
-      expect(user.getFlag(User.UserFlag.AvatarChanged)).toBe(0);
+      expect(user.getFlag(UserFlag.AvatarChanged)).toBe(0);
     });
 
     it("should set avatarChanged flag when avatarUrl is changed to null from existing value", async () => {
@@ -318,7 +318,7 @@ describe("user model", () => {
       user.avatarUrl = null;
       await user.save();
 
-      expect(user.getFlag(User.UserFlag.AvatarChanged)).toBe(1);
+      expect(user.getFlag(UserFlag.AvatarChanged)).toBe(1);
     });
   });
 });
