@@ -127,39 +127,38 @@ function Lightbox({ onUpdate, activePos }: Props) {
   const [imgSrc, setImgSrc] = useState<string>();
 
   useEffect(() => {
-    if (activePos) {
-      const node = view.state.doc.nodeAt(activePos);
-      if (node && isCode(node) && node.attrs.language === "mermaidjs") {
-        const { node: domNode, offset } = view.domAtPos(activePos);
-        if (offset < 0 || offset >= domNode.childNodes.length) {
-          setImgSrc("");
-          return;
-        }
-        const nextSiblingElement = domNode.childNodes[offset]
-          .nextSibling as HTMLElement | null;
-        if (
-          !nextSiblingElement ||
-          !nextSiblingElement.classList.contains("mermaid-diagram-wrapper")
-        ) {
-          setImgSrc("");
-          return;
-        }
-        const firstChildEl =
-          nextSiblingElement.firstElementChild as HTMLElement | null;
-        if (!firstChildEl || !(firstChildEl instanceof SVGSVGElement)) {
-          setImgSrc("");
-          return;
-        }
-        const dataURL = `data:image/svg+xml,${encodeURIComponent(firstChildEl.outerHTML)}`;
-        setImgSrc(dataURL);
+    if (
+      currentImageNode &&
+      isCode(currentImageNode) &&
+      currentImageNode.attrs.language === "mermaidjs"
+    ) {
+      const nextSiblingElement = imageElements[currentImageIndex]
+        .nextSibling as HTMLElement | null;
+      if (
+        !nextSiblingElement ||
+        !nextSiblingElement.classList.contains("mermaid-diagram-wrapper")
+      ) {
+        setImgSrc("");
         return;
       }
-
-      if (node && node.type === view.state.schema.nodes.image) {
-        setImgSrc(sanitizeUrl(node.attrs.src) ?? "");
+      const firstChildEl =
+        nextSiblingElement.firstElementChild as HTMLElement | null;
+      if (!firstChildEl || !(firstChildEl instanceof SVGElement)) {
+        setImgSrc("");
+        return;
       }
+      const dataURL = `data:image/svg+xml,${encodeURIComponent(firstChildEl.outerHTML)}`;
+      setImgSrc(dataURL);
+      return;
     }
-  }, [activePos, view]);
+
+    if (
+      currentImageNode &&
+      currentImageNode.type === view.state.schema.nodes.image
+    ) {
+      setImgSrc(sanitizeUrl(currentImageNode.attrs.src) ?? "");
+    }
+  }, [currentImageNode]);
 
   useEffect(() => () => view.focus(), []);
 
