@@ -308,16 +308,15 @@ export default abstract class ImportsProcessor<
 
           for (const input of importTask.input) {
             const externalId = input.externalId;
-            const internalId = this.getInternalId(externalId, idMap);
-
+            const internalId = await this.getInternalId(externalId, idMap);
             const parentExternalId = input.parentExternalId;
             const parentInternalId = parentExternalId
-              ? this.getInternalId(parentExternalId, idMap)
+              ? await this.getInternalId(parentExternalId, idMap)
               : undefined;
 
             const collectionExternalId = input.collectionExternalId;
             const collectionInternalId = collectionExternalId
-              ? this.getInternalId(collectionExternalId, idMap)
+              ? await this.getInternalId(collectionExternalId, idMap)
               : undefined;
 
             const output = outputMap[externalId];
@@ -339,12 +338,13 @@ export default abstract class ImportsProcessor<
               transaction,
             });
 
-            const transformedContent = this.updateMentionsAndAttachments({
+            const transformedContent = await this.updateMentionsAndAttachments({
               content: output.content,
               attachments,
               importInput,
               idMap,
               actorId: importModel.createdById,
+              teamId: importModel.teamId,
             });
 
             if (collectionItem) {
@@ -464,12 +464,13 @@ export default abstract class ImportsProcessor<
    * @param actorId ID of the user who created the import.
    * @returns Updated ProseMirrorDoc.
    */
-  private updateMentionsAndAttachments({
+  private async updateMentionsAndAttachments({
     content,
     attachments,
     idMap,
     importInput,
     actorId,
+    teamId,
   }: {
     content: ProsemirrorDoc;
     attachments: Attachment[];
@@ -477,7 +478,8 @@ export default abstract class ImportsProcessor<
     // oxlint-disable-next-line @typescript-eslint/no-explicit-any
     importInput: Record<string, ImportInput<any>[number]>;
     actorId: string;
-  }): ProsemirrorDoc {
+    teamId: string;
+  }): Promise<ProsemirrorDoc> {
     // special case when the doc content is empty.
     if (!content.content.length) {
       return content;
@@ -486,7 +488,7 @@ export default abstract class ImportsProcessor<
     const attachmentsMap = keyBy(attachments, "id");
     const doc = ProsemirrorHelper.toProsemirror(content);
 
-    const transformMentionNode = (node: Node): Node => {
+    const transformMentionNode = async (node: Node): Promise<Node> => {
       const json = node.toJSON() as ProsemirrorData;
       const attrs = json.attrs ?? {};
 
@@ -494,7 +496,7 @@ export default abstract class ImportsProcessor<
       attrs.actorId = actorId;
 
       const externalId = attrs.modelId as string;
-      attrs.modelId = this.getInternalId(externalId, idMap);
+      attrs.modelId = await this.getInternalId(externalId, idMap, teamId);
 
       const isCollectionMention = !!importInput[externalId]; // the referenced externalId is a root page.
       attrs.type = isCollectionMention
@@ -515,37 +517,66 @@ export default abstract class ImportsProcessor<
       return Node.fromJSON(schema, json);
     };
 
-    const transformFragment = (fragment: Fragment): Fragment => {
-      const nodes: Node[] = [];
+    const transformFragment = async (fragment: Fragment): Promise<Fragment> => {
+      const nodePromises: Promise<Node>[] = [];
 
       fragment.forEach((node) => {
-        nodes.push(
-          node.type.name === "mention"
-            ? transformMentionNode(node)
-            : node.type.name === "attachment"
-              ? transformAttachmentNode(node)
-              : node.copy(transformFragment(node.content))
-        );
+        if (node.type.name === "mention") {
+          nodePromises.push(transformMentionNode(node));
+        } else if (node.type.name === "attachment") {
+          nodePromises.push(Promise.resolve(transformAttachmentNode(node)));
+        } else {
+          nodePromises.push(
+            transformFragment(node.content).then((transformedContent) =>
+              node.copy(transformedContent)
+            )
+          );
+        }
       });
 
+      const nodes = await Promise.all(nodePromises);
       return Fragment.fromArray(nodes);
     };
 
-    return doc.copy(transformFragment(doc.content)).toJSON();
+    return doc.copy(await transformFragment(doc.content)).toJSON();
   }
 
   /**
    * Get internalId for the given externalId.
    * Returned internalId will be used as "id" for collections and documents created in the import.
    *
+   * @param teamId teamId associated with the import.
    * @param externalId externalId from a source.
    * @param idMap Map of internalId to externalId.
    * @returns Mapped internalId.
    */
-  private getInternalId(externalId: string, idMap: Record<string, string>) {
-    const internalId = idMap[externalId] ?? uuidv4();
-    idMap[externalId] = internalId;
-    return internalId;
+  private async getInternalId(
+    externalId: string,
+    idMap: Record<string, string>,
+    teamId?: string
+  ) {
+    let internalId = idMap[externalId];
+
+    if (!internalId && teamId) {
+      const existingId = (
+        await Document.findOne({
+          attributes: ["id"],
+          where: {
+            teamId,
+            sourceMetadata: {
+              externalId,
+            },
+          },
+        })
+      )?.id;
+
+      if (existingId) {
+        return existingId;
+      }
+    }
+
+    idMap[externalId] = internalId ?? uuidv4();
+    return idMap[externalId];
   }
 
   /**
