@@ -9,6 +9,7 @@ import { CustomTheme } from "@shared/types";
 import type { Theme } from "~/stores/UiStore";
 import useMediaQuery from "~/hooks/useMediaQuery";
 import useStores from "./useStores";
+import useQuery from "./useQuery";
 
 /**
  * Builds a theme based on the current user's preferences, the current device
@@ -23,9 +24,11 @@ export default function useBuildTheme(
   overrideTheme?: Theme
 ) {
   const { ui } = useStores();
+  const params = useQuery();
   const isMobile = useMediaQuery(`(max-width: ${breakpoints.tablet}px)`);
   const isPrinting = useMediaQuery("print");
-  const resolvedTheme = overrideTheme ?? ui.resolvedTheme;
+  const queryTheme = (params.get("theme") as Theme) || undefined;
+  const resolvedTheme = overrideTheme ?? queryTheme ?? ui.resolvedTheme;
 
   const theme = useMemo(
     () =>

@@ -53,8 +53,8 @@ if (element) {
       <HelmetProvider>
         <Provider {...stores}>
           <Analytics>
-            <Theme>
-              <Router history={history}>
+            <Router history={history}>
+              <Theme>
                 <ErrorBoundary showTitle>
                   <KBarProvider actions={[]} options={commandBarOptions}>
                     <LazyPolyfill>
@@ -74,8 +74,8 @@ if (element) {
                     </LazyPolyfill>
                   </KBarProvider>
                 </ErrorBoundary>
-              </Router>
-            </Theme>
+              </Theme>
+            </Router>
           </Analytics>
         </Provider>
       </HelmetProvider>
