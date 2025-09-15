@@ -728,10 +728,11 @@ class User extends ParanoidModel<
     // Only set flag if avatarUrl changed and there was a previous value
     if (model.changed("avatarUrl") && !model.isNewRecord) {
       const previousAvatarUrl = model.previous("avatarUrl");
-      // Set flag if there was a previous value and it's different from current value
-      if (previousAvatarUrl !== null && previousAvatarUrl !== model.avatarUrl) {
+      // Set flag only when changing from an existing avatar to a different value
+      if (previousAvatarUrl !== null) {
         model.setFlag(UserFlag.AvatarChanged);
       }
+    }
     }
   };
 
