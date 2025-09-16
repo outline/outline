@@ -3,7 +3,7 @@ import compact from "lodash/compact";
 import flatten from "lodash/flatten";
 import isMatch from "lodash/isMatch";
 import uniq from "lodash/uniq";
-import { Node, DOMSerializer, Fragment } from "prosemirror-model";
+import { Node, DOMSerializer, Fragment, Schema } from "prosemirror-model";
 import * as React from "react";
 import { renderToString } from "react-dom/server";
 import styled, { ServerStyleSheet, ThemeProvider } from "styled-components";
@@ -48,6 +48,7 @@ export type MentionAttrs = {
   href?: string;
   unfurl?: UnfurlResponse[keyof UnfurlResponse];
 };
+
 
 @trace()
 export class ProsemirrorHelper {
