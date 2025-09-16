@@ -315,7 +315,7 @@
     "@types/node": "20.17.30",
     "@types/node-fetch": "^2.6.9",
     "@types/nodemailer": "^6.4.17",
-    "@types/passport-oauth2": "^1.4.17",
+    "@types/passport-oauth2": "^1.8.0",
     "@types/pluralize": "^0.0.33",
     "@types/png-chunks-extract": "^1.0.2",
     "@types/proxy-from-env": "^1.0.4",
