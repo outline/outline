@@ -82,7 +82,7 @@
     "@hocuspocus/extension-throttle": "1.1.2",
     "@hocuspocus/provider": "1.1.2",
     "@hocuspocus/server": "1.1.2",
-    "@joplin/turndown-plugin-gfm": "^1.0.49",
+    "@joplin/turndown-plugin-gfm": "^1.0.63",
     "@juggle/resize-observer": "^3.4.0",
     "@linear/sdk": "^58.1.0",
     "@node-oauth/oauth2-server": "^5.2.0",
