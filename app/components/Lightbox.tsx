@@ -505,6 +505,7 @@ function Lightbox({ onUpdate, activePos }: Props) {
 
     // cleanup
     document.body.removeChild(link);
+    URL.revokeObjectURL(imageURL);
   };
 
   const download = useCallback(() => {
