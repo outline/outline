@@ -297,6 +297,8 @@ export enum TeamPreference {
   CustomTheme = "customTheme",
   /** Side to display the document's table of contents in relation to the main content. */
   TocPosition = "tocPosition",
+  /** Whether to prevent shared documents from being embedded in iframes on external websites. */
+  PreventDocumentEmbedding = "preventDocumentEmbedding",
 }
 
 export type TeamPreferences = {
@@ -310,6 +312,7 @@ export type TeamPreferences = {
   [TeamPreference.Commenting]?: boolean;
   [TeamPreference.CustomTheme]?: Partial<CustomTheme>;
   [TeamPreference.TocPosition]?: TOCPosition;
+  [TeamPreference.PreventDocumentEmbedding]?: boolean;
 };
 
 export enum NavigationNodeType {

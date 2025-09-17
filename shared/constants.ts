@@ -32,6 +32,7 @@ export const TeamPreferenceDefaults: TeamPreferences = {
   [TeamPreference.Commenting]: true,
   [TeamPreference.CustomTheme]: undefined,
   [TeamPreference.TocPosition]: TOCPosition.Left,
+  [TeamPreference.PreventDocumentEmbedding]: false,
 };
 
 export const UserPreferenceDefaults: UserPreferences = {
