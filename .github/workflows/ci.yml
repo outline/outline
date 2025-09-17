@@ -133,7 +133,8 @@ jobs:
       - run: yarn sequelize db:migrate
       - name: Run server tests
         run: |
-          TESTFILES=$(find . -name "*.test.ts" -path "*/server/*" | sort | split -n -d -l $(($(find . -name "*.test.ts" -path "*/server/*" | wc -l)/${{ matrix.shard }})) - | sed -n "${{ matrix.shard }}p")
+          find . -name "*.test.ts" -path "*/server/*" | sort > all_tests.txt
+          TESTFILES=$(split -n l/${{ matrix.shard }} --numeric-suffixes=1 all_tests.txt test_chunk_ && cat test_chunk_${{ matrix.shard }})
           yarn test --maxWorkers=2 $TESTFILES
 
   bundle-size:
