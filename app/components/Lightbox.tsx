@@ -72,7 +72,7 @@ type Props = {
   /** Callback triggered when the active image position is updated */
   onUpdate: (pos: number | null) => void;
   /** The position of the currently active image in the document */
-  activePos: number | null;
+  activePos: number;
 };
 
 function Lightbox({ onUpdate, activePos }: Props) {
@@ -163,12 +163,11 @@ function Lightbox({ onUpdate, activePos }: Props) {
   useEffect(() => () => view.focus(), []);
 
   useEffect(() => {
-    !!activePos &&
-      setStatus({
-        lightbox: LightboxStatus.READY_TO_OPEN,
-        image: status.image,
-      });
-  }, [!!activePos]);
+    setStatus({
+      lightbox: LightboxStatus.READY_TO_OPEN,
+      image: status.image,
+    });
+  }, []);
 
   useEffect(() => {
     if (status.image === ImageStatus.LOADED) {
@@ -426,15 +425,8 @@ function Lightbox({ onUpdate, activePos }: Props) {
     }
   };
 
-  if (!activePos) {
-    return null;
-  }
-
   const prev = () => {
     if (status.lightbox === LightboxStatus.OPENED) {
-      if (!activePos) {
-        return;
-      }
       const prevIndex = currentImageIndex - 1;
       if (prevIndex < 0) {
         return;
@@ -445,9 +437,6 @@ function Lightbox({ onUpdate, activePos }: Props) {
 
   const next = () => {
     if (status.lightbox === LightboxStatus.OPENED) {
-      if (!activePos) {
-        return;
-      }
       const nextIndex = currentImageIndex + 1;
       if (nextIndex >= imageNodes.length) {
         return;
@@ -580,7 +569,7 @@ function Lightbox({ onUpdate, activePos }: Props) {
   }
 
   return (
-    <Dialog.Root open={!!activePos}>
+    <Dialog.Root open={true}>
       <Dialog.Portal>
         <StyledOverlay
           ref={overlayRef}

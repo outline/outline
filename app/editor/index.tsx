@@ -55,6 +55,7 @@ import { NodeViewRenderer } from "./components/NodeViewRenderer";
 import SelectionToolbar from "./components/SelectionToolbar";
 import WithTheme from "./components/WithTheme";
 import Lightbox from "~/components/Lightbox";
+import isNumber from "lodash/isNumber";
 
 export type Props = {
   /** An optional identifier for the editor context. It is used to persist local settings */
@@ -843,7 +844,7 @@ export class Editor extends React.PureComponent<
               )}
             </Observer>
           </Flex>
-          {this.state.activeLightboxImgPos && (
+          {isNumber(this.state.activeLightboxImgPos) && (
             <Lightbox
               onUpdate={this.updateActiveLightbox}
               activePos={this.state.activeLightboxImgPos}
