@@ -121,6 +121,12 @@ export default function blockMenuItems(
       keywords: "file upload attach",
     },
     {
+      name: "uploadPdf",
+      title: dictionary.pdf,
+      icon: <AttachmentIcon />,
+      keywords: "pdf upload attach",
+    },
+    {
       name: "table",
       title: dictionary.table,
       icon: <TableIcon />,
