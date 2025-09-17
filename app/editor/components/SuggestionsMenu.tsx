@@ -274,6 +274,8 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           return triggerFilePick("video/*");
         case "attachment":
           return triggerFilePick("*");
+        case "uploadPdf":
+          return triggerFilePick("application/pdf");
         case "embed":
           return triggerLinkInput(item);
         default:

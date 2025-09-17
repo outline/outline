@@ -65,6 +65,7 @@ const insertFiles = async function (
         FileHelper.isVideo(file.type) &&
         !options.isAttachment &&
         !!schema.nodes.video;
+      const isPdf = FileHelper.isPdf(file.type) && !options.isAttachment;
       const getDimensions = isImage
         ? FileHelper.getImageDimensions
         : isVideo
@@ -77,6 +78,7 @@ const insertFiles = async function (
         source: await FileHelper.getImageSourceAttr(file),
         isImage,
         isVideo,
+        isPdf,
         file,
       };
     })
@@ -99,6 +101,7 @@ const insertFiles = async function (
     // to allow all placeholders to be entered at once with the uploads
     // happening in the background in parallel.
     uploadFile?.(upload.file)
+      // then this should be able to get the full URL as well
       .then(async (src) => {
         if (view.isDestroyed) {
           return;
@@ -178,8 +181,10 @@ const insertFiles = async function (
                 to || from,
                 schema.nodes.attachment.create({
                   href: src,
+                  type: upload.isPdf ? "pdf" : null,
                   title: upload.file.name ?? dictionary.untitled,
                   size: upload.file.size,
+                  preview: upload.isPdf,
                 })
               )
               .setMeta(uploadPlaceholderPlugin, { remove: { id: upload.id } })

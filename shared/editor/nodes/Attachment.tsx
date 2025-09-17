@@ -15,6 +15,7 @@ import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import attachmentsRule from "../rules/links";
 import { ComponentProps } from "../types";
 import Node from "./Node";
+import PdfViewer from "../components/PDF";
 
 export default class Attachment extends Node {
   get name() {
@@ -37,6 +38,12 @@ export default class Attachment extends Node {
         title: {},
         size: {
           default: 0,
+        },
+        type: {
+          default: null,
+        },
+        preview: {
+          default: false,
         },
       },
       group: "block",
@@ -80,7 +87,9 @@ export default class Attachment extends Node {
 
   component = (props: ComponentProps) => {
     const { isSelected, isEditable, theme, node } = props;
-    return (
+    return node.attrs.preview ? (
+      <PdfViewer pdfUrl={node.attrs.href} />
+    ) : (
       <Widget
         icon={<FileExtension title={node.attrs.title} />}
         href={node.attrs.href}
@@ -114,6 +123,7 @@ export default class Attachment extends Node {
 
   commands({ type }: { type: NodeType }) {
     return {
+      uploadPdf: (attrs: Record<string, Primitive>) => toggleWrap(type, attrs), // placeholder
       createAttachment: (attrs: Record<string, Primitive>) =>
         toggleWrap(type, attrs),
       deleteAttachment: (): Command => (state, dispatch) => {

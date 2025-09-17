@@ -37,6 +37,16 @@ export default class FileHelper {
   }
 
   /**
+   * Checks if a file is a pdf.
+   *
+   * @param contentType The content type of the file
+   * @returns True if the file is a pdf
+   */
+  static isPdf(contentType: string) {
+    return /^application\/pdf$/i.test(contentType);
+  }
+
+  /**
    * Download a file from a URL and return it as a File object.
    *
    * @param url The URL to download the file from

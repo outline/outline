@@ -296,15 +296,29 @@ const handleAttachmentsRedirect = async (
     }
   );
 
-  if (attachment.isPrivate) {
-    ctx.set(
-      "Cache-Control",
-      `max-age=${BaseStorage.defaultSignedUrlExpires}, immutable`
-    );
-    ctx.redirect(await attachment.signedUrl);
+  const { url, maxAge } = attachment.isPrivate
+    ? {
+        url: await attachment.signedUrl,
+        maxAge: BaseStorage.defaultSignedUrlExpires,
+      }
+    : {
+        url: attachment.canonicalUrl,
+        maxAge: 604800,
+      };
+
+  ctx.set("Cache-Control", `max-age=${maxAge}, immutable`);
+
+  if (
+    attachment.contentType === "application/pdf" &&
+    !!ctx.input.query.preview
+  ) {
+    const buffer = await FileStorage.getFileBuffer(attachment.key);
+    const base64String = buffer.toString("base64");
+
+    ctx.set("Content-Type", "application/json");
+    ctx.body = { data: base64String };
   } else {
-    ctx.set("Cache-Control", `max-age=604800, immutable`);
-    ctx.redirect(attachment.canonicalUrl);
+    ctx.redirect(url);
   }
 };
 
