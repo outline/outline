@@ -7,14 +7,13 @@
   <img width="1640" alt="screenshot" src="https://user-images.githubusercontent.com/380914/110356468-26374600-7fef-11eb-9f6a-f2cc2c8c6590.png">
 </p>
 <p align="center">
-  <a href="https://circleci.com/gh/outline/outline" rel="nofollow"><img src="https://circleci.com/gh/outline/outline.svg?style=shield"></a>
   <a href="http://www.typescriptlang.org" rel="nofollow"><img src="https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg" alt="TypeScript"></a>
   <a href="https://github.com/prettier/prettier"><img src="https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat" alt="Prettier"></a>
   <a href="https://github.com/styled-components/styled-components"><img src="https://img.shields.io/badge/style-%F0%9F%92%85%20styled--components-orange.svg" alt="Styled Components"></a>
   <a href="https://translate.getoutline.com/project/outline" alt="Localized"><img src="https://badges.crowdin.net/outline/localized.svg"></a>
 </p>
 
-This is the source code that runs [**Outline**](https://www.getoutline.com) and all the associated services. If you want to use Outline then you don't need to run this code, we offer a hosted version of the app at [getoutline.com](https://www.getoutline.com). You can also find documentation on using Outline in [our guide](https://docs.getoutline.com/s/guide).
+This is the source code that runs [**Outline**](https://www.getoutline.com) and all the associated services. If you want to use Outline then you don't need to run this code, A hosted version of the app is offered at [getoutline.com](https://www.getoutline.com). You can also find documentation on using Outline in [our guide](https://docs.getoutline.com/s/guide).
 
 If you'd like to run your own copy of Outline or contribute to development then this is the place for you.
 
@@ -51,13 +50,14 @@ please refer to the [architecture document](docs/ARCHITECTURE.md) first for a hi
 
 In development Outline outputs simple logging to the console, prefixed by categories. In production it outputs JSON logs, these can be easily parsed by your preferred log ingestion pipeline.
 
-HTTP logging is disabled by default, but can be enabled by setting the `DEBUG=http` environment variable.
+HTTP logging is disabled by default, but can be enabled by setting the `DEBUG=http` environment variable. logging
+can be enabled for all categories by setting `DEBUG=*` or for specific categories such as `DEBUG=database` and `LOG_LEVEL=debug`, or `LOG_LEVEL=silly` for very verbose logging.
 
 ## Tests
 
 We aim to have sufficient test coverage for critical parts of the application and aren't aiming for 100% unit test coverage. All API endpoints and anything authentication related should be thoroughly tested.
 
-To add new tests, write your tests with [Jest](https://facebook.github.io/jest/) and add a file with `.test.js` extension next to the tested code.
+To add new tests, write your tests with [Jest](https://facebook.github.io/jest/) and add a file with `.test.ts` extension next to the tested code.
 
 ```shell
 # To run all tests
@@ -68,14 +68,14 @@ make watch
 ```
 
 Once the test database is created with `make test` you may individually run
-frontend and backend tests directly.
+frontend and backend tests directly with jest:
 
 ```shell
 # To run backend tests
 yarn test:server
 
-# To run a specific backend test
-yarn test:server myTestFile
+# To run a specific backend test in watch mode
+yarn test path/to/file.test.ts --watch
 
 # To run frontend tests
 yarn test:app
@@ -86,14 +86,15 @@ yarn test:app
 Sequelize is used to create and run migrations, for example:
 
 ```shell
-yarn sequelize migration:generate --name my-migration
-yarn sequelize db:migrate
+yarn db:create-migration --name my-migration
+yarn db:migrate
+yarn db:rollback
 ```
 
-Or to run migrations on test database:
+Or, to run migrations on test database:
 
 ```shell
-yarn sequelize db:migrate --env test
+yarn db:migrate --env test
 ```
 
 # Activity
