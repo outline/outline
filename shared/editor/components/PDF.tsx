@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 
 interface PdfViewerProps {
   pdfUrl: string;
+  name: string;
 }
 
 const useOnClickOutside = (
@@ -22,9 +23,8 @@ const useOnClickOutside = (
   }, [callback, ref]);
 };
 
-export default function PdfViewer({ pdfUrl }: PdfViewerProps) {
+export default function PdfViewer({ pdfUrl, name }: PdfViewerProps) {
   const [data, setData] = useState<string>();
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const pdfWrapperRef = useRef<HTMLObjectElement>(null);
 
@@ -34,8 +34,7 @@ export default function PdfViewer({ pdfUrl }: PdfViewerProps) {
     fetch(pdfUrl + "&preview=true")
       .then((res) => res.json())
       .then((res) => {
-        setIsLoading(false);
-        setData(res.data);
+        setData(res.url);
       })
       // eslint-disable-next-line no-console
       .catch((error) => console.log("there is an error", error)); // placeholder
@@ -48,21 +47,14 @@ export default function PdfViewer({ pdfUrl }: PdfViewerProps) {
         setIsFocused(true);
       }}
     >
-      {isLoading && <div>Loading PDF...</div>}
-
-      {data && (
-        <object
-          type="application/pdf"
-          data={`data:application/pdf;base64,${data}`}
-          width="100%"
-          height="800px"
-          style={{ pointerEvents: isFocused ? "auto" : "none" }}
-        >
-          <p>
-            Unable to display PDF. <a href={pdfUrl}>Click to Download</a>
-          </p>
-        </object>
-      )}
+      <iframe
+        title={name}
+        src={data}
+        width="100%"
+        height="800px"
+        onClick={() => setIsFocused(true)}
+        style={{ pointerEvents: isFocused ? "auto" : "none" }}
+       />
     </div>
   );
 }
