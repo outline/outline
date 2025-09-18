@@ -48,6 +48,7 @@ import MembershipPreview from "./components/MembershipPreview";
 import Notices from "./components/Notices";
 import Overview from "./components/Overview";
 import ShareButton from "./components/ShareButton";
+import first from "lodash/first";
 
 const IconPicker = lazy(() => import("~/components/IconPicker"));
 
@@ -206,7 +207,7 @@ const CollectionScene = observer(function _CollectionScene() {
                 <Suspense fallback={fallbackIcon}>
                   <IconPicker
                     icon={collection.icon ?? "collection"}
-                    color={collection.color ?? colorPalette[0]}
+                    color={collection.color ?? (first(colorPalette) as string)}
                     initial={collection.initial}
                     size={40}
                     popoverPosition="bottom-start"
