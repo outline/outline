@@ -126,9 +126,65 @@ function Comments() {
     prevThreadCount.current = threads.length;
   }, [sortOption.type, threads.length, viewingResolved]);
 
-  if (!document || !isEditorInitialized) {
-    return null;
-  }
+  const content =
+    !document || !isEditorInitialized ? null : (
+      <>
+        <Scrollable
+          id="comments"
+          bottomShadow={!focusedComment}
+          hiddenScrollbars
+          topShadow
+          ref={scrollableRef}
+          onScroll={handleScroll}
+        >
+          <Wrapper $hasComments={hasComments}>
+            {hasComments ? (
+              threads.map((thread) => (
+                <CommentThread
+                  key={thread.id}
+                  comment={thread}
+                  document={document}
+                  recessed={!!focusedComment && focusedComment.id !== thread.id}
+                  focused={focusedComment?.id === thread.id}
+                />
+              ))
+            ) : (
+              <NoComments align="center" justify="center" auto>
+                <PositionedEmpty>
+                  {viewingResolved
+                    ? t("No resolved comments")
+                    : t("No comments yet")}
+                </PositionedEmpty>
+              </NoComments>
+            )}
+            {showJumpToRecentBtn && (
+              <Fade>
+                <JumpToRecent onClick={scrollToBottom}>
+                  <Flex align="center">
+                    {t("New comments")}&nbsp;
+                    <ArrowDownIcon size={20} />
+                  </Flex>
+                </JumpToRecent>
+              </Fade>
+            )}
+          </Wrapper>
+        </Scrollable>
+        <AnimatePresence initial={false}>
+          {(!focusedComment || isMobile) && can.comment && !viewingResolved && (
+            <NewCommentForm
+              draft={draft}
+              onSaveDraft={onSaveDraft}
+              documentId={document.id}
+              placeholder={`${t("Add a comment")}…`}
+              autoFocus={false}
+              dir={document.dir}
+              animatePresence
+              standalone
+            />
+          )}
+        </AnimatePresence>
+      </>
+    );
 
   return (
     <Sidebar
@@ -148,60 +204,7 @@ function Comments() {
       onClose={() => ui.set({ commentsExpanded: false })}
       scrollable={false}
     >
-      <Scrollable
-        id="comments"
-        bottomShadow={!focusedComment}
-        hiddenScrollbars
-        topShadow
-        ref={scrollableRef}
-        onScroll={handleScroll}
-      >
-        <Wrapper $hasComments={hasComments}>
-          {hasComments ? (
-            threads.map((thread) => (
-              <CommentThread
-                key={thread.id}
-                comment={thread}
-                document={document}
-                recessed={!!focusedComment && focusedComment.id !== thread.id}
-                focused={focusedComment?.id === thread.id}
-              />
-            ))
-          ) : (
-            <NoComments align="center" justify="center" auto>
-              <PositionedEmpty>
-                {viewingResolved
-                  ? t("No resolved comments")
-                  : t("No comments yet")}
-              </PositionedEmpty>
-            </NoComments>
-          )}
-          {showJumpToRecentBtn && (
-            <Fade>
-              <JumpToRecent onClick={scrollToBottom}>
-                <Flex align="center">
-                  {t("New comments")}&nbsp;
-                  <ArrowDownIcon size={20} />
-                </Flex>
-              </JumpToRecent>
-            </Fade>
-          )}
-        </Wrapper>
-      </Scrollable>
-      <AnimatePresence initial={false}>
-        {(!focusedComment || isMobile) && can.comment && !viewingResolved && (
-          <NewCommentForm
-            draft={draft}
-            onSaveDraft={onSaveDraft}
-            documentId={document.id}
-            placeholder={`${t("Add a comment")}…`}
-            autoFocus={false}
-            dir={document.dir}
-            animatePresence
-            standalone
-          />
-        )}
-      </AnimatePresence>
+      {content}
     </Sidebar>
   );
 }
