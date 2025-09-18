@@ -408,8 +408,7 @@ export default abstract class ImportsProcessor<
             const isRootDocument =
               !parentExternalId || !!importInput[parentExternalId];
 
-            const document = Document.build({
-              id: internalId,
+            const defaults = {
               title: output.title,
               icon: output.emoji,
               content: transformedContent,
@@ -430,16 +429,39 @@ export default abstract class ImportsProcessor<
               createdAt: output.createdAt ?? now,
               updatedAt: output.updatedAt ?? now,
               publishedAt: output.updatedAt ?? output.createdAt ?? now,
-            });
+            };
 
-            await document.saveWithCtx(
-              ctx,
-              { silent: true },
-              {
-                name: "create",
-                data: { title: output.title, source: "import" },
+            try {
+              await Document.findOrCreateWithCtx(
+                ctx,
+                {
+                  where: {
+                    id: internalId,
+                  },
+                  defaults,
+                  silent: true,
+                },
+                {
+                  name: "create",
+                  data: { title: output.title, source: "import" },
+                }
+              );
+            } catch (err) {
+              if (err instanceof UniqueConstraintError) {
+                Logger.error(
+                  `ImportsProcessor document creation failed due to unique constraint error (${internalId}: ${defaults.title})`,
+                  err,
+                  {
+                    fields: err.fields,
+                    documentId: internalId,
+                    title: defaults.title,
+                    collectionId: defaults.collectionId,
+                    parentDocumentId: defaults.parentDocumentId,
+                  }
+                );
               }
-            );
+              throw err;
+            }
 
             // Update document id for attachments in document content.
             await Attachment.update(
