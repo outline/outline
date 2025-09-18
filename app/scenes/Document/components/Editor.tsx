@@ -1,4 +1,3 @@
-import last from "lodash/last";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -33,6 +32,7 @@ import { decodeURIComponentSafe } from "~/utils/urls";
 import MultiplayerEditor from "./AsyncMultiplayerEditor";
 import DocumentMeta from "./DocumentMeta";
 import DocumentTitle from "./DocumentTitle";
+import first from "lodash/first";
 
 const extensions = withUIExtensions(withComments(richExtensions));
 
@@ -80,7 +80,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const can = usePolicy(document);
   const commentingEnabled = !!team?.getPreference(TeamPreference.Commenting);
 
-  const iconColor = document.color ?? (last(colorPalette) as string);
+  const iconColor = document.color ?? (first(colorPalette) as string);
   const childRef = React.useRef<HTMLDivElement>(null);
   const focusAtStart = React.useCallback(() => {
     if (ref.current) {
