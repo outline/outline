@@ -88,7 +88,7 @@ export default class Attachment extends Node {
   component = (props: ComponentProps) => {
     const { isSelected, isEditable, theme, node } = props;
     return node.attrs.preview ? (
-      <PdfViewer pdfUrl={node.attrs.href} />
+      <PdfViewer name={node.attrs.title} pdfUrl={node.attrs.href} />
     ) : (
       <Widget
         icon={<FileExtension title={node.attrs.title} />}

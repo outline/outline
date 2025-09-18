@@ -58,7 +58,6 @@ export default function createCSPMiddleware() {
         // Do not use connect-src: because self + websockets does not work in
         // Safari, ref: https://bugs.webkit.org/show_bug.cgi?id=201591
         connectSrc: ["*"],
-        objectSrc: ["data:"],
       },
     })(ctx, next);
   };

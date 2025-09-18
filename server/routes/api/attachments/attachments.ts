@@ -312,11 +312,8 @@ const handleAttachmentsRedirect = async (
     attachment.contentType === "application/pdf" &&
     !!ctx.input.query.preview
   ) {
-    const buffer = await FileStorage.getFileBuffer(attachment.key);
-    const base64String = buffer.toString("base64");
-
     ctx.set("Content-Type", "application/json");
-    ctx.body = { data: base64String };
+    ctx.body = { url };
   } else {
     ctx.redirect(url);
   }
