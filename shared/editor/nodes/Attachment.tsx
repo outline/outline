@@ -15,7 +15,6 @@ import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import attachmentsRule from "../rules/links";
 import { ComponentProps } from "../types";
 import Node from "./Node";
-import PdfViewer from "../components/PDF";
 
 export default class Attachment extends Node {
   get name() {
@@ -38,12 +37,6 @@ export default class Attachment extends Node {
         title: {},
         size: {
           default: 0,
-        },
-        type: {
-          default: null,
-        },
-        preview: {
-          default: false,
         },
       },
       group: "block",
@@ -87,9 +80,7 @@ export default class Attachment extends Node {
 
   component = (props: ComponentProps) => {
     const { isSelected, isEditable, theme, node } = props;
-    return node.attrs.preview ? (
-      <PdfViewer name={node.attrs.title} pdfUrl={node.attrs.href} />
-    ) : (
+    return (
       <Widget
         icon={<FileExtension title={node.attrs.title} />}
         href={node.attrs.href}
