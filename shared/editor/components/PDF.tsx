@@ -62,18 +62,18 @@ export default function PdfViewer(props: Props) {
       ref={pdfWrapperRef}
       style={{
         position: "relative",
-        width,
-        height,
+        width: "max-content",
+        height: "max-content",
       }}
     >
       <iframe
         ref={iframeRef}
         title={name}
         src={data}
-        width="100%"
-        height="100%"
+        width={width}
+        height={height}
         style={{ pointerEvents: isSelected ? "auto" : "none" }}
-       />
+      />
       {isEditable && !isFullWidth && isResizable && (
         <>
           <ResizeLeft
