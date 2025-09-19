@@ -36,6 +36,7 @@ import Node from "./Node";
 import Notice from "./Notice";
 import OrderedList from "./OrderedList";
 import Paragraph from "./Paragraph";
+import PDF from "./PDF";
 import SimpleImage from "./SimpleImage";
 import Table from "./Table";
 import TableCell from "./TableCell";
@@ -99,6 +100,7 @@ export const richExtensions: Nodes = [
   Blockquote,
   Embed,
   Attachment,
+  PDF,
   Video,
   Notice,
   Heading,

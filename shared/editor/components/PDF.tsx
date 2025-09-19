@@ -1,60 +1,91 @@
 import React, { useEffect, useState, useRef } from "react";
+import useDragResize from "./hooks/useDragResize";
+import { ResizeLeft, ResizeRight } from "./ResizeHandle";
+import { ComponentProps } from "../types";
 
-interface PdfViewerProps {
-  pdfUrl: string;
-  name: string;
-}
-
-const useOnClickOutside = (
-  ref: React.RefObject<HTMLElement | null>,
-  callback: (event: MouseEvent | TouchEvent) => void
-) => {
-  useEffect(() => {
-    const listener = (event: MouseEvent | TouchEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        callback(event);
-      }
-    };
-    window.addEventListener("click", listener);
-
-    return () => {
-      window.removeEventListener("click", listener);
-    };
-  }, [callback, ref]);
+type Props = ComponentProps & {
+  /** Callback triggered when the download button is clicked */
+  onDownload?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  /** Callback triggered when the image is resized */
+  onChangeSize?: (props: { width: number; height?: number }) => void;
+  /** The editor view */
 };
 
-export default function PdfViewer({ pdfUrl, name }: PdfViewerProps) {
+export default function PdfViewer(props: Props) {
+  const { node, isEditable, onChangeSize, isSelected } = props;
+  const { href, name } = node.attrs;
   const [data, setData] = useState<string>();
-  const [isFocused, setIsFocused] = useState<boolean>(false);
+  // const [isFocused, setIsFocused] = useState<boolean>(false);
   const pdfWrapperRef = useRef<HTMLObjectElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [error, setError] = React.useState(false);
+  const { width, height, setSize, handlePointerDown, dragging } = useDragResize(
+    {
+      width: node.attrs.width,
+      height: node.attrs.height,
+      naturalWidth: 730,
+      naturalHeight: 1033,
+      gridSnap: 5,
+      onChangeSize,
+      ref: iframeRef,
+    }
+  );
 
-  useOnClickOutside(pdfWrapperRef, () => setIsFocused(false));
+  // useOnClickOutside(pdfWrapperRef, () => setIsFocused(false));
 
+  const isFullWidth = false;
+  const isResizable = !!props.onChangeSize && !error;
   useEffect(() => {
-    fetch(pdfUrl + "&preview=true")
+    fetch(href + "&preview=true")
       .then((res) => res.json())
       .then((res) => {
         setData(res.url);
       })
-      // eslint-disable-next-line no-console
-      .catch((error) => console.log("there is an error", error)); // placeholder
-  }, [pdfUrl]);
+      .catch((error) => {
+        // to do: better error handling
+        setError(error.message);
+      });
+  }, [href]);
+
+  useEffect(() => {
+    if (node.attrs.width && node.attrs.width !== width) {
+      setSize({
+        width: node.attrs.width,
+        height: node.attrs.height,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [node.attrs.width]);
 
   return (
     <div
       ref={pdfWrapperRef}
-      onClick={() => {
-        setIsFocused(true);
+      style={{
+        position: "relative",
+        width,
+        height,
       }}
     >
       <iframe
+        ref={iframeRef}
         title={name}
         src={data}
         width="100%"
-        height="800px"
-        onClick={() => setIsFocused(true)}
-        style={{ pointerEvents: isFocused ? "auto" : "none" }}
+        height="100%"
+        style={{ pointerEvents: isSelected ? "auto" : "none" }}
        />
+      {isEditable && !isFullWidth && isResizable && (
+        <>
+          <ResizeLeft
+            onPointerDown={handlePointerDown("left")}
+            $dragging={isSelected || dragging}
+          />
+          <ResizeRight
+            onPointerDown={handlePointerDown("right")}
+            $dragging={isSelected || dragging}
+          />
+        </>
+      )}
     </div>
   );
 }
