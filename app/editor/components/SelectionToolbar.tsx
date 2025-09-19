@@ -72,7 +72,7 @@ function useIsActive(state: EditorState) {
   }
   if (
     selection instanceof NodeSelection &&
-    ["image", "attachment", "embed"].includes(selection.node.type.name)
+    ["image", "attachment", "embed", "pdf"].includes(selection.node.type.name)
   ) {
     return true;
   }
@@ -193,6 +193,8 @@ export default function SelectionToolbar(props: Props) {
   const isAttachmentSelection =
     selection instanceof NodeSelection &&
     selection.node.type.name === "attachment";
+  const isPDFSelection =
+    selection instanceof NodeSelection && selection.node.type.name === "pdf";
   const isEmbedSelection =
     selection instanceof NodeSelection && selection.node.type.name === "embed";
   const isCodeSelection = isInCode(state, { onlyBlock: true });
@@ -214,7 +216,7 @@ export default function SelectionToolbar(props: Props) {
     items = getTableCellMenuItems(state, dictionary);
   } else if (isImageSelection) {
     items = readOnly ? [] : getImageMenuItems(state, dictionary);
-  } else if (isAttachmentSelection) {
+  } else if (isAttachmentSelection || isPDFSelection) {
     items = readOnly ? [] : getAttachmentMenuItems(state, dictionary);
   } else if (isDividerSelection) {
     items = getDividerMenuItems(state, dictionary);
