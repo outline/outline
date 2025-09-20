@@ -65,7 +65,7 @@ export function useCollectionMenuAction({ collectionId, onRename }: Props) {
       ActionV2Separator,
       deleteCollection,
     ],
-    [t, can.createDocument, can.update, onRename, collection]
+    [t, can.createDocument, can.update, onRename]
   );
 
   return useMenuAction(actions);

@@ -26,6 +26,7 @@ import Relative from "./Relative";
 import { SidebarContextType, useSidebarContext } from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
 import { useCollectionMenuAction } from "~/hooks/useCollectionMenuAction";
+import { ActionContextProvider } from "~/hooks/useActionContext";
 
 type Props = {
   collection: Collection;
@@ -115,7 +116,7 @@ const CollectionLink: React.FC<Props> = ({
   });
 
   return (
-    <>
+    <ActionContextProvider value={{ activeCollectionId: collection.id }}>
       <Relative ref={mergeRefs([parentRef, dropRef])}>
         <DropToImport collectionId={collection.id}>
           <SidebarLink
@@ -195,7 +196,7 @@ const CollectionLink: React.FC<Props> = ({
           }
         />
       )}
-    </>
+    </ActionContextProvider>
   );
 };
 
