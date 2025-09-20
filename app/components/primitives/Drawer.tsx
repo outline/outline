@@ -6,6 +6,8 @@ import { depths, s } from "@shared/styles";
 import Flex from "../Flex";
 import Text from "../Text";
 import { Overlay } from "./components/Overlay";
+import { m } from "framer-motion";
+import useMeasure from "react-use-measure";
 
 /** Root Drawer component - all the other components are rendered inside it. */
 const Drawer = (props: React.ComponentProps<typeof DrawerPrimitive.Root>) => (
@@ -16,21 +18,33 @@ Drawer.displayName = "Drawer";
 /** Drawer's trigger. */
 const DrawerTrigger = DrawerPrimitive.Trigger;
 
+const DrawerHandle = DrawerPrimitive.Handle;
+
 /** Drawer's content - renders the overlay and the actual content. */
 const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
 >((props, ref) => {
   const { children, ...rest } = props;
+  const [measureRef, bounds] = useMeasure();
 
   return (
     <DrawerPrimitive.Portal>
       <DrawerPrimitive.Overlay asChild>
         <Overlay />
       </DrawerPrimitive.Overlay>
-      <StyledContent ref={ref} {...rest}>
-        {children}
-      </StyledContent>
+      <DrawerPrimitive.Content ref={ref} asChild>
+        <StyledContent
+          animate={{
+            height: bounds.height,
+            transition: { bounce: 0, duration: 0.2 },
+          }}
+        >
+          <StyledInnerContent ref={measureRef} {...rest}>
+            {children}
+          </StyledInnerContent>
+        </StyledContent>
+      </DrawerPrimitive.Content>
     </DrawerPrimitive.Portal>
   );
 });
@@ -44,11 +58,9 @@ const DrawerTitle = React.forwardRef<
   const { hidden, children, ...rest } = props;
 
   const title = (
-    <TitleWrapper justify="center">
-      <Text size="medium" weight="bold">
-        {children}
-      </Text>
-    </TitleWrapper>
+    <Text size="medium" weight="bold" as={TitleWrapper} justify="center">
+      {children}
+    </Text>
   );
 
   return (
@@ -64,7 +76,7 @@ const DrawerTitle = React.forwardRef<
 DrawerTitle.displayName = DrawerPrimitive.Title.displayName;
 
 /** Styled components. */
-const StyledContent = styled(DrawerPrimitive.Content)`
+const StyledContent = styled(m.div)`
   z-index: ${depths.menu};
   position: fixed;
   left: 0;
@@ -75,16 +87,17 @@ const StyledContent = styled(DrawerPrimitive.Content)`
   min-height: 44px;
   max-height: 90vh;
 
-  padding: 6px;
   border-radius: 6px;
 
   background: ${s("menuBackground")};
+`;
 
-  animation-duration: 0.3s;
+const StyledInnerContent = styled.div`
+  padding: 6px;
 `;
 
 const TitleWrapper = styled(Flex)`
   padding: 8px 0;
 `;
 
-export { Drawer, DrawerTrigger, DrawerContent, DrawerTitle };
+export { Drawer, DrawerTrigger, DrawerHandle, DrawerContent, DrawerTitle };

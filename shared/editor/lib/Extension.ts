@@ -2,10 +2,9 @@ import { PluginSimple } from "markdown-it";
 import { InputRule } from "prosemirror-inputrules";
 import { NodeType, MarkType, Schema } from "prosemirror-model";
 import { Command, Plugin } from "prosemirror-state";
-import { Primitive } from "utility-types";
 import type { Editor } from "../../../app/editor";
 
-export type CommandFactory = (attrs?: Record<string, Primitive>) => Command;
+export type CommandFactory = (attrs?: unknown) => Command;
 
 export type WidgetProps = { rtl: boolean; readOnly: boolean | undefined };
 

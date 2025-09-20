@@ -242,8 +242,8 @@ export default class AuthStore extends Store<Team> {
         // Update the user's timezone if it has changed
         const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         if (data.user.timezone !== timezone) {
-          const user = this.rootStore.users.get(data.user.id)!;
-          void user.save({ timezone });
+          const user = this.rootStore.users.get(data.user.id);
+          void user?.save({ timezone });
         }
       });
     } catch (err) {

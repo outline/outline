@@ -143,7 +143,7 @@ export function exportTable({
         .map((row) =>
           row
             .map((cell) => {
-              let value = ProsemirrorHelper.toPlainText(cell, state.schema);
+              let value = ProsemirrorHelper.toPlainText(cell);
 
               // Escape double quotes by doubling them
               if (value.includes('"')) {
@@ -364,9 +364,6 @@ export function addColumnBefore({ index }: { index?: number }): Command {
     // Special case when adding column to the beginning of the table to ensure the header does not
     // move inwards.
     const headerSpecialCase = position === 0 && isHeaderColumnEnabled;
-
-    // Determine which column to copy alignment from (using original table indices)
-    const copyFromColumn = position === 0 ? 0 : position - 1;
 
     chainTransactions(
       headerSpecialCase ? toggleHeader("column") : undefined,

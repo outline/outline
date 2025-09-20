@@ -2,7 +2,6 @@ import { observer } from "mobx-react";
 import { darken } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
 import scrollIntoView from "scroll-into-view-if-needed";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -17,7 +16,6 @@ import Facepile from "~/components/Facepile";
 import Fade from "~/components/Fade";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import useBoolean from "~/hooks/useBoolean";
-import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 import usePersistedState from "~/hooks/usePersistedState";
 import usePolicy from "~/hooks/usePolicy";
@@ -51,14 +49,11 @@ function CommentThread({
   collapseNumDisplayed = 3,
 }: Props) {
   const [scrollOnMount] = React.useState(focused && !window.location.hash);
-  const { editor } = useDocumentContext();
+  const { editor, setFocusedCommentId } = useDocumentContext();
   const { comments } = useStores();
   const topRef = React.useRef<HTMLDivElement>(null);
   const replyRef = React.useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
-  const history = useHistory();
-  const location = useLocation();
-  const sidebarContext = useLocationSidebarContext();
   const [autoFocus, setAutoFocusOn, setAutoFocusOff] = useBoolean(thread.isNew);
   const user = useCurrentUser();
 
@@ -102,14 +97,7 @@ function CommentThread({
       !(event.target as HTMLElement).classList.contains("comment") &&
       event.defaultPrevented === false
     ) {
-      history.replace({
-        search: location.search,
-        pathname: location.pathname,
-        state: {
-          commentId: undefined,
-          sidebarContext,
-        },
-      });
+      setFocusedCommentId(null);
     }
   });
 
@@ -118,15 +106,7 @@ function CommentThread({
   }, [editor, thread.id]);
 
   const handleClickThread = () => {
-    history.replace({
-      // Clear any commentId from the URL when explicitly focusing a thread
-      search: thread.isResolved ? "resolved=" : "",
-      pathname: location.pathname.replace(/\/history$/, ""),
-      state: {
-        commentId: thread.id,
-        sidebarContext,
-      },
-    });
+    setFocusedCommentId(thread.id);
   };
 
   const handleClickExpand = (ev: React.SyntheticEvent) => {

@@ -1,7 +1,8 @@
-/* eslint-disable lines-between-class-members */
+/* oxlint-disable lines-between-class-members */
 import fractionalIndex from "fractional-index";
 import find from "lodash/find";
 import findIndex from "lodash/findIndex";
+import isNil from "lodash/isNil";
 import remove from "lodash/remove";
 import uniq from "lodash/uniq";
 import {
@@ -44,7 +45,11 @@ import {
   AfterSave,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
-import type { CollectionSort, ProsemirrorData } from "@shared/types";
+import type {
+  CollectionSort,
+  ProsemirrorData,
+  SourceMetadata,
+} from "@shared/types";
 import { CollectionPermission, NavigationNode } from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { sortNavigationNodes } from "@shared/utils/collections";
@@ -304,6 +309,10 @@ class Collection extends ParanoidModel<
   @Default(null)
   @Column(DataType.BOOLEAN)
   commenting: boolean | null;
+
+  @AllowNull
+  @Column(DataType.JSONB)
+  sourceMetadata: SourceMetadata | null;
 
   // getters
 
@@ -661,7 +670,7 @@ class Collection extends ParanoidModel<
     user: User,
     options: FindOptions = {}
   ) {
-    const id = await user.collectionIds();
+    const id = await user.collectionIds({ transaction: options.transaction });
     return this.findOne({
       where: {
         teamId: user.teamId,
@@ -958,6 +967,44 @@ class Collection extends ParanoidModel<
 
     return this;
   };
+
+  /**
+   * Get all of the document ids that are in this collection by
+   * recursively iterating through `documentStructure`.
+   *
+   * @returns list of document ids
+   */
+  getAllDocumentIds = (): string[] => {
+    if (!this.documentStructure) {
+      return [];
+    }
+
+    const allDocumentIds: string[] = [];
+
+    const loopChildren = (node: NavigationNode) => {
+      allDocumentIds.push(node.id);
+      (node.children ?? []).forEach((childNode) => {
+        loopChildren(childNode);
+      });
+    };
+
+    this.documentStructure.forEach(loopChildren);
+    return allDocumentIds;
+  };
+
+  /**
+   * Returns a JSON representation of this collection suitable for use in the frontend navigation.
+   *
+   * @returns NavigationNode
+   */
+  toNavigationNode = (): NavigationNode => ({
+    id: this.id,
+    title: this.name,
+    url: this.path,
+    icon: isNil(this.icon) ? undefined : this.icon,
+    color: isNil(this.color) ? undefined : this.color,
+    children: sortNavigationNodes(this.documentStructure ?? [], this.sort),
+  });
 }
 
 export default Collection;

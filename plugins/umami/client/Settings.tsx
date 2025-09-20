@@ -14,6 +14,9 @@ import Input from "~/components/Input";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import Icon from "./Icon";
+import Flex from "~/components/Flex";
+import { disconnectAnalyticsIntegrationFactory } from "~/actions/definitions/integrations";
+import styled from "styled-components";
 
 type FormData = {
   umamiDomain: string;
@@ -30,6 +33,10 @@ function Umami() {
     service: IntegrationService.Umami,
   }) as Integration<IntegrationType.Analytics> | undefined;
 
+  const instanceUrl = integration?.settings.instanceUrl;
+  const scriptName = integration?.settings.scriptName;
+  const measurementId = integration?.settings.measurementId;
+
   const {
     register,
     reset,
@@ -38,37 +45,33 @@ function Umami() {
   } = useForm<FormData>({
     mode: "all",
     defaultValues: {
-      umamiDomain: integration?.settings.instanceUrl,
-      umamiScriptName: integration?.settings.scriptName,
-      umamiWebsiteId: integration?.settings.measurementId,
+      umamiDomain: instanceUrl,
+      umamiScriptName: scriptName,
+      umamiWebsiteId: measurementId,
     },
   });
 
   React.useEffect(() => {
     reset({
-      umamiWebsiteId: integration?.settings.measurementId,
-      umamiDomain: integration?.settings.instanceUrl,
-      umamiScriptName: integration?.settings.scriptName,
+      umamiDomain: instanceUrl,
+      umamiScriptName: scriptName,
+      umamiWebsiteId: measurementId,
     });
-  }, [integration, reset]);
+  }, [reset, instanceUrl, scriptName, measurementId]);
 
   const handleSubmit = React.useCallback(
     async (data: FormData) => {
       try {
-        if (data.umamiDomain && data.umamiScriptName && data.umamiWebsiteId) {
-          await integrations.save({
-            id: integration?.id,
-            type: IntegrationType.Analytics,
-            service: IntegrationService.Umami,
-            settings: {
-              measurementId: data.umamiWebsiteId,
-              instanceUrl: data.umamiDomain.replace(/\/?$/, "/"),
-              scriptName: data.umamiScriptName,
-            } as Integration<IntegrationType.Analytics>["settings"],
-          });
-        } else {
-          await integration?.delete();
-        }
+        await integrations.save({
+          id: integration?.id,
+          type: IntegrationType.Analytics,
+          service: IntegrationService.Umami,
+          settings: {
+            measurementId: data.umamiWebsiteId,
+            instanceUrl: data.umamiDomain.replace(/\/?$/, "/"),
+            scriptName: data.umamiScriptName,
+          } as Integration<IntegrationType.Analytics>["settings"],
+        });
 
         toast.success(t("Settings saved"));
       } catch (err) {
@@ -101,9 +104,8 @@ function Umami() {
           border={false}
         >
           <Input
-            required
             placeholder="https://cloud.umami.is/"
-            {...register("umamiDomain")}
+            {...register("umamiDomain", { required: true })}
           />
         </SettingRow>
         <SettingRow
@@ -115,9 +117,8 @@ function Umami() {
           border={false}
         >
           <Input
-            required
             placeholder="script.js"
-            {...register("umamiScriptName")}
+            {...register("umamiScriptName", { required: true })}
           />
         </SettingRow>
         <SettingRow
@@ -129,18 +130,42 @@ function Umami() {
           border={false}
         >
           <Input
-            required
             placeholder="xxx-xxx-xxx-xxx"
-            {...register("umamiWebsiteId")}
+            {...register("umamiWebsiteId", { required: true })}
           />
         </SettingRow>
 
-        <Button type="submit" disabled={formState.isSubmitting}>
-          {formState.isSubmitting ? `${t("Saving")}…` : t("Save")}
-        </Button>
+        <Actions reverse justify="end" gap={8}>
+          <StyledSubmit
+            type="submit"
+            disabled={
+              !formState.isDirty || !formState.isValid || formState.isSubmitting
+            }
+          >
+            {formState.isSubmitting ? `${t("Saving")}…` : t("Save")}
+          </StyledSubmit>
+
+          <Button
+            action={disconnectAnalyticsIntegrationFactory(integration)}
+            disabled={formState.isSubmitting}
+            neutral
+            hideIcon
+            hideOnActionDisabled
+          >
+            {t("Disconnect")}
+          </Button>
+        </Actions>
       </form>
     </IntegrationScene>
   );
 }
+
+const Actions = styled(Flex)`
+  margin-top: 8px;
+`;
+
+const StyledSubmit = styled(Button)`
+  width: 80px;
+`;
 
 export default observer(Umami);

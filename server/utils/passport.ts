@@ -64,7 +64,7 @@ export class StateStore {
 
     if (!state) {
       return callback(
-        OAuthStateMismatchError("State not return in OAuth flow"),
+        OAuthStateMismatchError("No state was available after OAuth flow"),
         false,
         state
       );
@@ -79,7 +79,11 @@ export class StateStore {
     });
 
     if (!token || token !== providedToken) {
-      return callback(OAuthStateMismatchError(), false, token);
+      return callback(
+        OAuthStateMismatchError("Token in state mismatched"),
+        false,
+        token
+      );
     }
 
     // @ts-expect-error Type in library is wrong
@@ -94,6 +98,7 @@ export async function request(
 ) {
   const response = await fetch(endpoint, {
     method,
+    allowPrivateIPAddress: true,
     headers: {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
@@ -131,10 +136,24 @@ export function getClientFromContext(ctx: Context): Client {
   return client === Client.Desktop ? Client.Desktop : Client.Web;
 }
 
-export async function getTeamFromContext(ctx: Context) {
+type TeamFromContextOptions = {
+  /**
+   * Whether to consider the state cookie in the context when determining the team.
+   * If true, the state cookie will be parsed to determine the host and infer the team
+   * this should only be used in the authentication process.
+   */
+  includeStateCookie?: boolean;
+};
+
+export async function getTeamFromContext(
+  ctx: Context,
+  options: TeamFromContextOptions = { includeStateCookie: true }
+) {
   // "domain" is the domain the user came from when attempting auth
   // we use it to infer the team they intend on signing into
-  const state = ctx.cookies.get("state");
+  const state = options.includeStateCookie
+    ? ctx.cookies.get("state")
+    : undefined;
   const host = state ? parseState(state).host : ctx.hostname;
   const domain = parseDomain(host);
 

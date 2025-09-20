@@ -15,7 +15,7 @@ import scrollIntoView from "scroll-into-view-if-needed";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Icon from "@shared/components/Icon";
-import { NavigationNode, NavigationNodeType } from "@shared/types";
+import { NavigationNode } from "@shared/types";
 import { isModKey } from "@shared/utils/keyboard";
 import DocumentExplorerNode from "~/components/DocumentExplorerNode";
 import DocumentExplorerSearchResult from "~/components/DocumentExplorerSearchResult";
@@ -26,7 +26,8 @@ import InputSearch from "~/components/InputSearch";
 import Text from "~/components/Text";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
-import { ancestors, descendants } from "~/utils/tree";
+import { ancestors, descendants, flattenTree } from "~/utils/tree";
+import flatten from "lodash/flatten";
 
 type Props = {
   /** Action taken upon submission of selected item, could be publish, move etc. */
@@ -80,7 +81,7 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
 
   const searchIndex = React.useMemo(
     () =>
-      new FuzzySearch(items, ["title"], {
+      new FuzzySearch(flatten(items.map(flattenTree)), ["title"], {
         caseSensitive: false,
       }),
     [items]
@@ -125,11 +126,7 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
 
     return searchTerm
       ? searchIndex.search(searchTerm)
-      : items
-          .concat(
-            items.filter((item) => item.type === NavigationNodeType.Collection)
-          )
-          .flatMap(includeDescendants);
+      : items.flatMap(includeDescendants);
   }
 
   const nodes = getNodes();
@@ -137,6 +134,7 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
     (min, node) => (node.depth ? Math.min(min, node.depth) : min),
     Infinity
   );
+  const normalizedBaseDepth = baseDepth === Infinity ? 0 : baseDepth;
 
   const scrollNodeIntoView = React.useCallback(
     (node: number) => {
@@ -310,7 +308,7 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
           expanded={isExpanded(index)}
           icon={renderedIcon}
           title={title}
-          depth={(node.depth ?? 0) - baseDepth}
+          depth={(node.depth ?? 0) - normalizedBaseDepth}
           hasChildren={hasChildren(index)}
           ref={itemRefs[index]}
         />

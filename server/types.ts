@@ -438,7 +438,7 @@ export type OAuthClientEvent = BaseEvent<OAuthClient> & {
   modelId: string;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any
 export type ImportEvent = BaseEvent<Import<any>> & {
   name:
     | "imports.create"

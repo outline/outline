@@ -206,7 +206,8 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key symbol>{metaDisplay}</Key> + <Key>Ctrl</Key> + <Key>h</Key>
+                <Key symbol>{metaDisplay}</Key> + <Key symbol>⇧</Key> +{" "}
+                <Key>h</Key>
               </>
             ),
             label: t("Highlight"),

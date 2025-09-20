@@ -25,6 +25,8 @@ type Props = {
   onClick?: React.MouseEventHandler<HTMLImageElement>;
   /** Size of the avatar, defaults to AvatarSize.Large */
   size?: AvatarSize;
+  /** Optional alt text for the avatar image */
+  alt?: string;
   /** Optional inline styles to apply to the avatar wrapper */
   style?: React.CSSProperties;
 };
@@ -53,6 +55,7 @@ function AvatarWithPresence({
   isCurrentUser,
   size = AvatarSize.Large,
   style,
+  alt,
 }: Props) {
   const { t } = useTranslation();
   const status = isPresent
@@ -83,7 +86,7 @@ function AvatarWithPresence({
           $color={user.color}
           style={style}
         >
-          <Avatar model={user} onClick={onClick} size={size} />
+          <Avatar model={user} onClick={onClick} size={size} alt={alt} />
         </AvatarPresence>
       </Tooltip>
     </>

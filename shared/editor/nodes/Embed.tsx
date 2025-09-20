@@ -87,7 +87,7 @@ export default class Embed extends Node {
           ];
         }
       },
-      toPlainText: (node) => node.attrs.href,
+      leafText: (node) => node.attrs.href,
     };
   }
 

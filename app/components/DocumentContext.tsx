@@ -11,9 +11,15 @@ class DocumentContext {
   /** The editor instance for this document */
   editor?: Editor;
 
+  /** The ID of the currently focused comment, or null if no comment is focused */
+  @observable
+  focusedCommentId: string | null = null;
+
+  /** Whether the editor has been initialized */
   @observable
   isEditorInitialized: boolean = false;
 
+  /** The headings in the document */
   @observable
   headings: Heading[] = [];
 
@@ -37,6 +43,11 @@ class DocumentContext {
   @action
   setEditorInitialized = (initialized: boolean) => {
     this.isEditorInitialized = initialized;
+  };
+
+  @action
+  setFocusedCommentId = (commentId: string | null) => {
+    this.focusedCommentId = commentId;
   };
 
   @action

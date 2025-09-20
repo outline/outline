@@ -230,7 +230,7 @@ export default class Link extends Mark {
           click: (_view: EditorView, event: MouseEvent) => {
             if (
               !(event.target instanceof HTMLAnchorElement) ||
-              event.button !== 0
+              (event.button !== 0 && event.button !== 1)
             ) {
               return false;
             }

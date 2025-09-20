@@ -1,6 +1,11 @@
 import { v4 } from "uuid";
 import { Scope } from "@shared/types";
 import { OAuthInterface } from "./OAuthInterface";
+import {
+  buildOAuthAuthentication,
+  buildOAuthClient,
+  buildUser,
+} from "@server/test/factories";
 
 describe("OAuthInterface", () => {
   const user = {
@@ -11,6 +16,78 @@ describe("OAuthInterface", () => {
     grants: ["authorization_code", "refresh_token"],
     redirectUris: ["https://example.com/callback"],
   };
+
+  describe("#getAccessToken", () => {
+    it("should return correct token details", async () => {
+      const user = await buildUser();
+      const scope = [Scope.Read, Scope.Write];
+      const oAuthClient = await buildOAuthClient({ teamId: user.teamId });
+      const oAuthAuthentication = await buildOAuthAuthentication({
+        user,
+        oauthClientId: oAuthClient.id,
+        scope,
+      });
+
+      const result = await OAuthInterface.getAccessToken(
+        oAuthAuthentication.accessToken!
+      );
+
+      expect(result).toEqual({
+        accessToken: oAuthAuthentication.accessToken,
+        accessTokenExpiresAt: oAuthAuthentication.accessTokenExpiresAt,
+        scope,
+        client: {
+          id: oAuthClient.clientId,
+          grants: OAuthInterface.grants,
+        },
+        user: expect.objectContaining({
+          id: user.id,
+          email: user.email,
+        }),
+      });
+    });
+
+    it("should return false for invalid access token", async () => {
+      const result = await OAuthInterface.getAccessToken("invalid_token");
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("#getRefreshToken", () => {
+    it("should return correct token details", async () => {
+      const user = await buildUser();
+      const scope = [Scope.Read, Scope.Write];
+      const oAuthClient = await buildOAuthClient({ teamId: user.teamId });
+      const oAuthAuthentication = await buildOAuthAuthentication({
+        user,
+        oauthClientId: oAuthClient.id,
+        scope,
+      });
+
+      const result = await OAuthInterface.getRefreshToken(
+        oAuthAuthentication.refreshToken!
+      );
+
+      expect(result).toEqual({
+        refreshToken: oAuthAuthentication.refreshToken,
+        refreshTokenExpiresAt: oAuthAuthentication.refreshTokenExpiresAt,
+        scope,
+        client: {
+          id: oAuthClient.clientId,
+          grants: OAuthInterface.grants,
+        },
+        user: expect.objectContaining({
+          id: user.id,
+          email: user.email,
+        }),
+      });
+    });
+
+    it("should return false for invalid refresh token", async () => {
+      const result = await OAuthInterface.getRefreshToken("invalid_token");
+      expect(result).toBe(false);
+    });
+  });
 
   describe("#validateRedirectUri", () => {
     it("should return true for valid redirect URI", async () => {

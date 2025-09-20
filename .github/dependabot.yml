@@ -26,3 +26,6 @@ updates:
       aws:
         patterns:
           - "@aws-sdk/*"
+      radix-ui:
+        patterns:
+          - "@radix-ui/*"

@@ -8,7 +8,6 @@ import { AvatarSize } from "~/components/Avatar";
 import Facepile from "~/components/Facepile";
 import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
-import useActionContext from "~/hooks/useActionContext";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 
@@ -24,7 +23,6 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
   const { t } = useTranslation();
   const { memberships, groupMemberships, users } = useStores();
   const collectionUsers = users.inCollection(collection.id);
-  const context = useActionContext();
   const isMobile = useMobile();
 
   useEffect(() => {
@@ -72,7 +70,6 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
 
   return (
     <NudeButton
-      context={context}
       tooltip={{
         content:
           usersCount > 0

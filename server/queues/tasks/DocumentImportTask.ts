@@ -11,7 +11,7 @@ type Props = {
   userId: string;
   sourceMetadata: Pick<Required<SourceMetadata>, "fileName" | "mimeType">;
   publish?: boolean;
-  collectionId?: string;
+  collectionId?: string | null;
   parentDocumentId?: string | null;
   ip: string;
   key: string;

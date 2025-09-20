@@ -16,6 +16,7 @@ import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { OAuthInterface } from "@server/utils/oauth/OAuthInterface";
 import oauthErrorHandler from "./middlewares/oauthErrorHandler";
 import * as T from "./schema";
+import { verifyCSRFToken } from "@server/middlewares/csrf";
 
 const app = new Koa();
 const router = new Router();
@@ -127,6 +128,7 @@ router.post(
 app.use(requestTracer());
 app.use(oauthErrorHandler());
 app.use(bodyParser());
+app.use(verifyCSRFToken());
 app.use(router.routes());
 
 export default app;

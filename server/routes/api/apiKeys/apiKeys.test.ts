@@ -47,7 +47,13 @@ describe("#apiKeys.create", () => {
       body: {
         token: user.getJwtToken(),
         name: "My API Key",
-        scope: ["/api/documents.list", "*.info", "users.*"],
+        scope: [
+          "/api/documents.list",
+          "/revisions.list",
+          "*.info",
+          "users.*",
+          "collections:read",
+        ],
       },
     });
     const body = await res.json();
@@ -56,8 +62,10 @@ describe("#apiKeys.create", () => {
     expect(body.data.name).toEqual("My API Key");
     expect(body.data.scope).toEqual([
       "/api/documents.list",
+      "/api/revisions.list",
       "/api/*.info",
       "/api/users.*",
+      "collections:read",
     ]);
   });
 
@@ -139,6 +147,42 @@ describe("#apiKeys.delete", () => {
     const res = await server.post("/api/apiKeys.delete", {
       body: {
         token: user.getJwtToken(),
+        id: apiKey.id,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+  });
+
+  it("should not allow deleting another user's api key", async () => {
+    const user = await buildUser();
+    const otherUser = await buildUser({ teamId: user.teamId });
+    const apiKey = await buildApiKey({
+      name: "Other User's API Key",
+      userId: otherUser.id,
+    });
+
+    const res = await server.post("/api/apiKeys.delete", {
+      body: {
+        token: user.getJwtToken(),
+        id: apiKey.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should allow admin to delete another user's api key", async () => {
+    const user = await buildUser();
+    const admin = await buildAdmin({ teamId: user.teamId });
+
+    const apiKey = await buildApiKey({
+      name: "User's API Key",
+      userId: user.id,
+    });
+
+    const res = await server.post("/api/apiKeys.delete", {
+      body: {
+        token: admin.getJwtToken(),
         id: apiKey.id,
       },
     });

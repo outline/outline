@@ -10,6 +10,7 @@ import {
   EditIcon,
   EmailIcon,
   PublishIcon,
+  SmileyIcon,
   StarredIcon,
   UserIcon,
 } from "outline-icons";
@@ -75,6 +76,14 @@ function Notifications() {
       title: t("Resolved"),
       description: t(
         "Receive a notification when a comment thread you were involved in is resolved"
+      ),
+    },
+    {
+      event: NotificationEventType.ReactionsCreate,
+      icon: <SmileyIcon />,
+      title: t("Reaction added"),
+      description: t(
+        "Receive a notification when someone reacts to your comment"
       ),
     },
     {

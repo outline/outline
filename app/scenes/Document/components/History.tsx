@@ -15,6 +15,7 @@ import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
 import { documentPath } from "~/utils/routeHelpers";
 import Sidebar from "./SidebarLayout";
+import useMobile from "~/hooks/useMobile";
 
 const DocumentEvents = [
   "documents.publish",
@@ -34,9 +35,10 @@ function History() {
   const match = useRouteMatch<{ documentSlug: string }>();
   const history = useHistory();
   const sidebarContext = useLocationSidebarContext();
-  const document = documents.getByUrl(match.params.documentSlug);
+  const document = documents.get(match.params.documentSlug);
   const [revisionsOffset, setRevisionsOffset] = React.useState(0);
   const [eventsOffset, setEventsOffset] = React.useState(0);
+  const isMobile = useMobile();
 
   const fetchHistory = React.useCallback(async () => {
     if (!document) {
@@ -125,6 +127,10 @@ function History() {
   }, [revisions, document, revisionEvents, nonRevisionEvents]);
 
   const onCloseHistory = React.useCallback(() => {
+    if (isMobile) {
+      // Allow closing the history drawer on mobile to view revision content
+      return;
+    }
     if (document) {
       history.push({
         pathname: documentPath(document),
