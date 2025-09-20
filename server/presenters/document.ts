@@ -99,6 +99,7 @@ async function presentDocument(
           importType: source?.format,
           createdByName: document.sourceMetadata.createdByName,
           fileName: document.sourceMetadata?.fileName,
+          originalDocumentId: document.sourceMetadata?.originalDocumentId,
         }
       : undefined;
   }
