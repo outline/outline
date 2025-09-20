@@ -1,6 +1,8 @@
 import { buildDocument, buildUser } from "@server/test/factories";
 import documentDuplicator from "./documentDuplicator";
 import { withAPIContext } from "@server/test/support";
+import { sequelize } from "@server/storage/database";
+import { createContext } from "@server/context";
 
 describe("documentDuplicator", () => {
   it("should duplicate existing document", async () => {
@@ -107,11 +109,9 @@ describe("documentDuplicator", () => {
     });
 
     const response = await sequelize.transaction((transaction) =>
-      documentDuplicator({
+      documentDuplicator(createContext({ user, transaction }), {
         document: original,
         collection: original.collection,
-        user,
-        ctx: createContext({ user, transaction }),
       })
     );
 
@@ -139,12 +139,10 @@ describe("documentDuplicator", () => {
     });
 
     const response = await sequelize.transaction((transaction) =>
-      documentDuplicator({
+      documentDuplicator(createContext({ user, transaction }), {
         document: original,
         collection: original.collection,
-        user,
         recursive: true,
-        ctx: createContext({ user, transaction }),
       })
     );
 
