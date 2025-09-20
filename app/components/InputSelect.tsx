@@ -6,7 +6,6 @@ import styled from "styled-components";
 import { s } from "@shared/styles";
 import Text from "~/components/Text";
 import useMobile from "~/hooks/useMobile";
-import Separator from "./ContextMenu/Separator";
 import Flex from "./Flex";
 import { LabelText } from "./Input";
 import NudeButton from "./NudeButton";
@@ -219,9 +218,9 @@ const MobileSelect = React.forwardRef<HTMLButtonElement, MobileSelectProps>(
     );
 
     const renderOption = React.useCallback(
-      (option: Option) => {
+      (option: Option, idx: number) => {
         if (option.type === "separator") {
-          return <Separator />;
+          return <InputSelectSeparator key={`separator-${idx}`} />;
         }
 
         const isSelected = option === selectedOption;
