@@ -257,6 +257,8 @@ export type SourceMetadata = {
   externalName?: string;
   /** Whether the item was created through a trial license. */
   trial?: boolean;
+  /** The ID of the original document when this document was duplicated. */
+  originalDocumentId?: string;
 };
 
 export type CustomTheme = {
