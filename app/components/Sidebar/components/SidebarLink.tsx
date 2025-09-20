@@ -14,6 +14,7 @@ import NavLink, { Props as NavLinkProps } from "./NavLink";
 import { ActionV2WithChildren } from "~/types";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { useTranslation } from "react-i18next";
+import useBoolean from "~/hooks/useBoolean";
 
 type Props = Omit<NavLinkProps, "to"> & {
   to?: LocationDescriptor;
@@ -90,15 +91,30 @@ function SidebarLink(
     [theme.text, theme.sidebarActiveBackground, style]
   );
 
+  const hoverStyle = React.useMemo(
+    () => ({
+      color: theme.text,
+      ...style,
+    }),
+    [theme.text, style]
+  );
+
+  const [openContextMenu, setOpen, setClosed] = useBoolean(false);
+
   return (
     <>
-      <ContextMenu action={contextAction} ariaLabel={t("Link options")}>
+      <ContextMenu
+        action={contextAction}
+        ariaLabel={t("Link options")}
+        onOpen={setOpen}
+        onClose={setClosed}
+      >
         <Link
           $isActiveDrop={isActiveDrop}
           $isDraft={isDraft}
           $disabled={disabled}
           activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
-          style={active ? activeStyle : style}
+          style={openContextMenu ? hoverStyle : active ? activeStyle : style}
           onClick={onClick}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}

@@ -43,7 +43,7 @@ import { useTemplateMenuActions } from "./useTemplateMenuActions";
 import { useMenuAction } from "./useMenuAction";
 
 type Props = {
-  /** Document for which the actions are generated */
+  /** Document ID for which the actions are generated */
   documentId: string;
   /** Invoked when the "Find and replace" menu item is clicked */
   onFindAndReplace?: () => void;
