@@ -257,6 +257,8 @@ export type SourceMetadata = {
   externalName?: string;
   /** Whether the item was created through a trial license. */
   trial?: boolean;
+  /** The ID of the original document when this document was duplicated. */
+  originalDocumentId?: string;
 };
 
 export type CustomTheme = {
@@ -297,6 +299,8 @@ export enum TeamPreference {
   CustomTheme = "customTheme",
   /** Side to display the document's table of contents in relation to the main content. */
   TocPosition = "tocPosition",
+  /** Whether to prevent shared documents from being embedded in iframes on external websites. */
+  PreventDocumentEmbedding = "preventDocumentEmbedding",
 }
 
 export type TeamPreferences = {
@@ -310,6 +314,7 @@ export type TeamPreferences = {
   [TeamPreference.Commenting]?: boolean;
   [TeamPreference.CustomTheme]?: Partial<CustomTheme>;
   [TeamPreference.TocPosition]?: TOCPosition;
+  [TeamPreference.PreventDocumentEmbedding]?: boolean;
 };
 
 export enum NavigationNodeType {
