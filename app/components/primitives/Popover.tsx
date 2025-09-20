@@ -90,7 +90,7 @@ type StyledContentProps = {
 
 const StyledContent = styled(PopoverPrimitive.Content)<StyledContentProps>`
   z-index: ${depths.modal};
-  max-height: var(--radix-popover-content-available-height);
+  max-height: min(85vh, var(--radix-popover-content-available-height));
   transform-origin: var(--radix-popover-content-transform-origin);
 
   background: ${s("menuBackground")};
