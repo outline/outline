@@ -52,6 +52,10 @@ export default async function documentDuplicator({
       DocumentHelper.toProsemirror(document),
       ["comment"]
     ),
+    sourceMetadata: {
+      ...document.sourceMetadata,
+      originalDocumentId: document.id,
+    },
     ...sharedProperties,
   });
 
@@ -85,6 +89,10 @@ export default async function documentDuplicator({
           DocumentHelper.toProsemirror(childDocument),
           ["comment"]
         ),
+        sourceMetadata: {
+          ...childDocument.sourceMetadata,
+          originalDocumentId: childDocument.id,
+        },
         ...sharedProperties,
       });
 
