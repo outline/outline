@@ -1,9 +1,11 @@
-import { NodeSpec, Node as ProsemirrorNode } from "prosemirror-model";
+import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
 import Attachment from "./Attachment";
 import { NodeSelection } from "prosemirror-state";
 import { ComponentProps } from "../types";
 import PdfViewer from "../components/PDF";
 import { Token } from "markdown-it";
+import { Primitive } from "utility-types";
+import toggleWrap from "../commands/toggleWrap";
 
 export default class PDF extends Attachment {
   get name() {
@@ -26,6 +28,13 @@ export default class PDF extends Attachment {
           validate: "string|null",
         },
       },
+    };
+  }
+
+  commands({ type }: { type: NodeType }) {
+    return {
+      ...super.commands({ type }),
+      createPdf: (attrs: Record<string, Primitive>) => toggleWrap(type, attrs),
     };
   }
 
