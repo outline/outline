@@ -26,6 +26,7 @@ import getTableMenuItems from "../menus/table";
 import getTableCellMenuItems from "../menus/tableCell";
 import getTableColMenuItems from "../menus/tableCol";
 import getTableRowMenuItems from "../menus/tableRow";
+import getPDFMenuItems from "../menus/pdf";
 import { useEditor } from "./EditorContext";
 import { EmbedLinkEditor } from "./EmbedLinkEditor";
 import FloatingToolbar from "./FloatingToolbar";
@@ -216,7 +217,9 @@ export default function SelectionToolbar(props: Props) {
     items = getTableCellMenuItems(state, dictionary);
   } else if (isImageSelection) {
     items = readOnly ? [] : getImageMenuItems(state, dictionary);
-  } else if (isAttachmentSelection || isPDFSelection) {
+  } else if (isPDFSelection) {
+    items = readOnly ? [] : getPDFMenuItems(state, dictionary);
+  } else if (isAttachmentSelection) {
     items = readOnly ? [] : getAttachmentMenuItems(state, dictionary);
   } else if (isDividerSelection) {
     items = getDividerMenuItems(state, dictionary);

@@ -16,10 +16,10 @@ export default class PDF extends Attachment {
       attrs: {
         ...super.schema.attrs,
         width: {
-          default: undefined,
+          default: 300,
         },
         height: {
-          default: undefined,
+          default: 424,
         },
         layoutClass: {
           default: null,
