@@ -51,7 +51,7 @@ export default function PdfViewer(props: Props) {
 
   return (
     <div
-      className={layoutClass ? `pdf pdf-${layoutClass}` : "pdf"}
+      className={isFullWidth ? `pdf pdf-${layoutClass}` : "pdf"}
       contentEditable={false}
     >
       <iframe
