@@ -109,6 +109,9 @@ export default function useDictionary() {
       untitled: t("Untitled"),
       none: t("None"),
       deleteEmbed: t("Delete embed"),
+      dowloadPDF: t("Download PDF"),
+      replacePDF: t("Replace PDF"),
+      deletePDF: t("Delete PDF"),
     }),
     [t]
   );
