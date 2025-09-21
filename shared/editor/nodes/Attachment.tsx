@@ -114,7 +114,6 @@ export default class Attachment extends Node {
 
   commands({ type }: { type: NodeType }) {
     return {
-      uploadPdf: (attrs: Record<string, Primitive>) => toggleWrap(type, attrs), // placeholder
       createAttachment: (attrs: Record<string, Primitive>) =>
         toggleWrap(type, attrs),
       deleteAttachment: (): Command => (state, dispatch) => {
