@@ -112,6 +112,9 @@ export default function useDictionary() {
       deleteEmbed: t("Delete embed"),
       uploadImage: t("Upload an image"),
       distributeColumns: t("Distribute columns"),
+      dowloadPDF: t("Download PDF"),
+      replacePDF: t("Replace PDF"),
+      deletePDF: t("Delete PDF"),
     }),
     [t]
   );

@@ -4,21 +4,18 @@ import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import { ComponentProps } from "../types";
 
 type Props = ComponentProps & {
-  /** Callback triggered when the download button is clicked */
-  onDownload?: (event: React.MouseEvent<HTMLButtonElement>) => void;
-  /** Callback triggered when the image is resized */
+  /** Callback triggered when the pdf is resized */
   onChangeSize?: (props: { width: number; height?: number }) => void;
-  /** The editor view */
 };
 
 export default function PdfViewer(props: Props) {
   const { node, isEditable, onChangeSize, isSelected } = props;
-  const { href, name } = node.attrs;
+  const { href, name, layoutClass } = node.attrs;
   const [data, setData] = useState<string>();
-  // const [isFocused, setIsFocused] = useState<boolean>(false);
-  const pdfWrapperRef = useRef<HTMLObjectElement>(null);
+  // const [error, setError] = useState<string>("");
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [error, setError] = React.useState(false);
+  const isFullWidth = layoutClass === "full-width";
+
   const { width, height, setSize, handlePointerDown, dragging } = useDragResize(
     {
       width: node.attrs.width,
@@ -31,20 +28,15 @@ export default function PdfViewer(props: Props) {
     }
   );
 
-  // useOnClickOutside(pdfWrapperRef, () => setIsFocused(false));
-
-  const isFullWidth = false;
-  const isResizable = !!props.onChangeSize && !error;
   useEffect(() => {
     fetch(href + "&preview=true")
       .then((res) => res.json())
       .then((res) => {
         setData(res.url);
-      })
-      .catch((error) => {
-        // to do: better error handling
-        setError(error.message);
       });
+    // .catch((error) => {
+    //   setError(error.message);
+    // });
   }, [href]);
 
   useEffect(() => {
@@ -59,22 +51,18 @@ export default function PdfViewer(props: Props) {
 
   return (
     <div
-      ref={pdfWrapperRef}
-      style={{
-        position: "relative",
-        width: "max-content",
-        height: "max-content",
-      }}
+      className={layoutClass ? `pdf pdf-${layoutClass}` : "pdf"}
+      contentEditable={false}
     >
       <iframe
         ref={iframeRef}
         title={name}
         src={data}
-        width={width}
+        width={isFullWidth ? "730px" : width}
         height={height}
         style={{ pointerEvents: isSelected ? "auto" : "none" }}
       />
-      {isEditable && !isFullWidth && isResizable && (
+      {isEditable && !!props.onChangeSize && !isFullWidth && (
         <>
           <ResizeLeft
             onPointerDown={handlePointerDown("left")}

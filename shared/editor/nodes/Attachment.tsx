@@ -134,13 +134,21 @@ export default class Attachment extends Node {
           throw new Error("uploadFile prop is required to replace attachments");
         }
 
-        if (node.type.name !== "attachment") {
+        const accept =
+          node.type.name === "pdf"
+            ? ".pdf"
+            : node.type.name === "attachment"
+              ? "*"
+              : null;
+
+        if (accept === null) {
           return false;
         }
 
         // create an input element and click to trigger picker
         const inputElement = document.createElement("input");
         inputElement.type = "file";
+        inputElement.accept = accept;
         inputElement.onchange = (event) => {
           const files = getEventFiles(event);
           void insertFiles(view, event, state.selection.from, files, {

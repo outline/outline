@@ -25,6 +25,7 @@ import getReadOnlyMenuItems from "../menus/readOnly";
 import getTableMenuItems from "../menus/table";
 import getTableColMenuItems from "../menus/tableCol";
 import getTableRowMenuItems from "../menus/tableRow";
+import getPDFMenuItems from "../menus/pdf";
 import { useEditor } from "./EditorContext";
 import { MediaLinkEditor } from "./MediaLinkEditor";
 import FloatingToolbar from "./FloatingToolbar";
@@ -195,7 +196,9 @@ export function SelectionToolbar(props: Props) {
     });
   } else if (isImageSelection) {
     items = readOnly ? [] : getImageMenuItems(state, dictionary);
-  } else if (isAttachmentSelection || isPDFSelection) {
+  } else if (isPDFSelection) {
+    items = readOnly ? [] : getPDFMenuItems(state, dictionary);
+  } else if (isAttachmentSelection) {
     items = readOnly ? [] : getAttachmentMenuItems(state, dictionary);
   } else if (isDividerSelection) {
     items = getDividerMenuItems(state, readOnly, dictionary);

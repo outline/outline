@@ -118,16 +118,16 @@ export default function blockMenuItems(
       keywords: "mov avi upload player",
     },
     {
-      name: "attachment",
-      title: dictionary.file,
-      icon: <AttachmentIcon />,
-      keywords: "file upload attach",
-    },
-    {
       name: "uploadPdf",
       title: dictionary.pdf,
       icon: <FontAwesomeIcon icon={faFilePdf} />,
       keywords: "pdf upload attach",
+    },
+    {
+      name: "attachment",
+      title: dictionary.file,
+      icon: <AttachmentIcon />,
+      keywords: "file upload attach",
     },
     {
       name: "table",
