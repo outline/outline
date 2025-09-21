@@ -230,16 +230,17 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     (item: MenuItem | EmbedDescriptor) => {
       handleClearSearch();
 
-      const command = item.name ? commands[item.name] : undefined;
+      const commandName = item.name?.split("-")[0];
+      const command = commandName ? commands[commandName] : undefined;
       const attrs =
         typeof item.attrs === "function" ? item.attrs(view.state) : item.attrs;
 
-      if (item.name === "noop") {
+      if (commandName === "noop") {
         // Do nothing
       } else if (command) {
         command(attrs);
       } else {
-        commands[`create${capitalize(item.name)}`](attrs);
+        commands[`create${capitalize(commandName)}`](attrs);
       }
       if ("appendSpace" in item) {
         const { dispatch } = view;
@@ -274,7 +275,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           return triggerFilePick("video/*");
         case "attachment":
           return triggerFilePick("*");
-        case "pdf":
+        case "attachment-pdf":
           return triggerFilePick("application/pdf");
         case "embed":
           return triggerLinkInput(item);
@@ -437,11 +438,12 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
       }
 
       // Some extensions may be disabled, remove corresponding menu items
+      const commandName = item.name?.split("-")[0];
       if (
-        item.name &&
-        !commands[item.name] &&
-        !commands[`create${capitalize(item.name)}`] &&
-        item.name !== "noop"
+        commandName &&
+        !commands[commandName] &&
+        !commands[`create${capitalize(commandName)}`] &&
+        commandName !== "noop"
       ) {
         return false;
       }

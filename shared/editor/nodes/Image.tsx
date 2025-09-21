@@ -468,7 +468,7 @@ export default class Image extends SimpleImage {
         const { node } = state.selection;
         const attrs = {
           ...node.attrs,
-          title: node.type.name === "pdf" ? node.attrs.title : null,
+          title: node.type.name === "attachment" ? node.attrs.title : null,
           layoutClass: "right-50",
         };
 
@@ -483,7 +483,7 @@ export default class Image extends SimpleImage {
         const { node } = state.selection;
         const attrs = {
           ...node.attrs,
-          title: node.type.name === "pdf" ? node.attrs.title : null,
+          title: node.type.name === "attachment" ? node.attrs.title : null,
           layoutClass: "left-50",
         };
         const { selection } = state;
@@ -501,7 +501,7 @@ export default class Image extends SimpleImage {
         const { node } = state.selection;
         const attrs = {
           ...node.attrs,
-          title: node.type.name === "pdf" ? node.attrs.title : null,
+          title: node.type.name === "attachment" ? node.attrs.title : null,
           layoutClass,
         };
         const { selection } = state;
@@ -515,7 +515,7 @@ export default class Image extends SimpleImage {
         const { node } = state.selection;
         const attrs = {
           ...node.attrs,
-          title: node.type.name === "pdf" ? node.attrs.title : null,
+          title: node.type.name === "attachment" ? node.attrs.title : null,
           layoutClass: null,
         };
         const { selection } = state;

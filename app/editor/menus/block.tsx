@@ -118,7 +118,7 @@ export default function blockMenuItems(
       keywords: "mov avi upload player",
     },
     {
-      name: "pdf",
+      name: "attachment-pdf",
       title: dictionary.pdf,
       icon: <FontAwesomeIcon icon={faFilePdf} />,
       keywords: "pdf upload attach",

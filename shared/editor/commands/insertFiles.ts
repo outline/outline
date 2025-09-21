@@ -173,17 +173,18 @@ const insertFiles = async function (
           }
 
           const [from, to] = result;
-          const nodeType = upload.isPdf ? "pdf" : "attachment";
 
           view.dispatch(
             view.state.tr
               .replaceWith(
                 from,
                 to || from,
-                schema.nodes[nodeType].create({
+                schema.nodes.attachment.create({
                   href: src,
                   title: upload.file.name ?? dictionary.untitled,
                   size: upload.file.size,
+                  preview: upload.isPdf,
+                  type: upload.isPdf ? "pdf" : null,
                 })
               )
               .setMeta(uploadPlaceholderPlugin, { remove: { id: upload.id } })

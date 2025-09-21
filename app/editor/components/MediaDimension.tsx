@@ -9,6 +9,8 @@ import Input, { NativeInput, Outline } from "~/components/Input";
 import { useEditor } from "./EditorContext";
 import { useTranslation } from "react-i18next";
 
+// to do: make some modifications to make this more node agnostic
+// for better handling of other attachments
 type Dimension = {
   width: string;
   height: string;
@@ -154,6 +156,11 @@ export function MediaDimension() {
 
     if (nodeType === "image") {
       commands["resizeImage"]({
+        width: finalWidth,
+        height: finalHeight,
+      });
+    } else if (nodeType === "attachment") {
+      commands["resizeAttachment"]({
         width: finalWidth,
         height: finalHeight,
       });

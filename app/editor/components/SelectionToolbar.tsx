@@ -25,7 +25,6 @@ import getReadOnlyMenuItems from "../menus/readOnly";
 import getTableMenuItems from "../menus/table";
 import getTableColMenuItems from "../menus/tableCol";
 import getTableRowMenuItems from "../menus/tableRow";
-import getPDFMenuItems from "../menus/pdf";
 import { useEditor } from "./EditorContext";
 import { MediaLinkEditor } from "./MediaLinkEditor";
 import FloatingToolbar from "./FloatingToolbar";
@@ -75,7 +74,7 @@ function useIsActive(state: EditorState) {
   }
   if (
     selection instanceof NodeSelection &&
-    ["image", "attachment", "embed", "pdf"].includes(selection.node.type.name)
+    ["image", "attachment", "embed"].includes(selection.node.type.name)
   ) {
     return true;
   }
@@ -170,8 +169,6 @@ export function SelectionToolbar(props: Props) {
   const isAttachmentSelection =
     selection instanceof NodeSelection &&
     selection.node.type.name === "attachment";
-  const isPDFSelection =
-    selection instanceof NodeSelection && selection.node.type.name === "pdf";
   const isEmbedSelection =
     selection instanceof NodeSelection && selection.node.type.name === "embed";
   const isCodeSelection = isInCode(state, { onlyBlock: true });
@@ -196,8 +193,6 @@ export function SelectionToolbar(props: Props) {
     });
   } else if (isImageSelection) {
     items = readOnly ? [] : getImageMenuItems(state, dictionary);
-  } else if (isPDFSelection) {
-    items = readOnly ? [] : getPDFMenuItems(state, dictionary);
   } else if (isAttachmentSelection) {
     items = readOnly ? [] : getAttachmentMenuItems(state, dictionary);
   } else if (isDividerSelection) {

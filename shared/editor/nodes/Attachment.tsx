@@ -15,6 +15,7 @@ import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import attachmentsRule from "../rules/links";
 import { ComponentProps } from "../types";
 import Node from "./Node";
+import PdfViewer from "../components/PDF";
 
 export default class Attachment extends Node {
   get name() {
@@ -22,6 +23,7 @@ export default class Attachment extends Node {
   }
 
   get rulePlugins() {
+    // to do: modify the rules plugin to include preview for PDFs
     return [attachmentsRule];
   }
 
@@ -37,6 +39,23 @@ export default class Attachment extends Node {
         title: {},
         size: {
           default: 0,
+        },
+        preview: {
+          default: false,
+        },
+        width: {
+          default: 300,
+        },
+        height: {
+          default: 424,
+        },
+        type: {
+          default: null,
+          validate: "string|null",
+        },
+        layoutClass: {
+          default: null,
+          validate: "string|null",
         },
       },
       group: "block",
@@ -78,9 +97,33 @@ export default class Attachment extends Node {
       view.dispatch(transaction);
     };
 
+  handleChangeSize =
+    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    ({ width, height }: { width: number; height?: number }) => {
+      if (!node.attrs.preview) {
+        return;
+      }
+
+      const { view } = this.editor;
+      const { tr } = view.state;
+
+      const pos = getPos();
+      const transaction = tr
+        .setNodeMarkup(pos, undefined, {
+          ...node.attrs,
+          width,
+          height,
+        })
+        .setMeta("addToHistory", true);
+      const $pos = transaction.doc.resolve(getPos());
+      view.dispatch(transaction.setSelection(new NodeSelection($pos)));
+    };
+
   component = (props: ComponentProps) => {
     const { isSelected, isEditable, theme, node } = props;
-    return (
+    return node.attrs.preview && node.attrs.type === "pdf" ? (
+      <PdfViewer {...props} onChangeSize={this.handleChangeSize(props)} />
+    ) : (
       <Widget
         icon={<FileExtension title={node.attrs.title} />}
         href={node.attrs.href}
@@ -134,7 +177,7 @@ export default class Attachment extends Node {
         }
 
         const accept =
-          node.type.name === "pdf"
+          node.attrs.type === "pdf"
             ? ".pdf"
             : node.type.name === "attachment"
               ? "*"
@@ -178,13 +221,54 @@ export default class Attachment extends Node {
         document.body.removeChild(link);
         return true;
       },
+      resizeAttachment:
+        ({ width, height }: { width: number; height?: number }): Command =>
+        (state, dispatch) => {
+          if (
+            !(state.selection instanceof NodeSelection) ||
+            !state.selection.node.attrs.preview
+          ) {
+            return false;
+          }
+
+          const { view } = this.editor;
+          const { tr } = view.state;
+          const { attrs } = state.selection.node;
+
+          const transaction = tr
+            .setNodeMarkup(state.selection.from, undefined, {
+              ...attrs,
+              width,
+              height,
+            })
+            .setMeta("addToHistory", true);
+          const $pos = transaction.doc.resolve(state.selection.from);
+          dispatch?.(transaction.setSelection(new NodeSelection($pos)));
+          return true;
+        },
     };
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     state.ensureNewLine();
+
+    const attrs = [
+      `href="${node.attrs.href}"`,
+      `title="${node.attrs.title}"`,
+      `size="${node.attrs.size}"`,
+    ];
+
+    if (node.attrs.preview) {
+      attrs.push(`preview="${node.attrs.preview}"`);
+
+      if (node.attrs.width) {attrs.push(`width="${node.attrs.width}"`);}
+      if (node.attrs.height) {attrs.push(`height="${node.attrs.height}"`);}
+      if (node.attrs.layoutClass)
+        {attrs.push(`layoutClass="${node.attrs.layoutClass}"`);}
+    }
+
     state.write(
-      `[${node.attrs.title} ${node.attrs.size}](${node.attrs.href})\n\n`
+      `[${node.attrs.title}](${node.attrs.href}){${attrs.join(" ")}}\n\n`
     );
     state.ensureNewLine();
   }
@@ -196,6 +280,10 @@ export default class Attachment extends Node {
         href: tok.attrGet("href"),
         title: tok.attrGet("title"),
         size: tok.attrGet("size"),
+        width: tok.attrGet("width"),
+        height: tok.attrGet("height"),
+        preview: tok.attrGet("preview"),
+        layoutClass: tok.attrGet("layoutClass"),
       }),
     };
   }
