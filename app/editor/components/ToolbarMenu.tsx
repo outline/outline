@@ -16,6 +16,7 @@ import { MenuContent } from "~/components/primitives/Menu";
 import { MenuProvider } from "~/components/primitives/Menu/MenuContext";
 import { Menu, MenuTrigger } from "~/components/primitives/Menu";
 import { useTranslation } from "react-i18next";
+import EventBoundary from "@shared/components/EventBoundary";
 
 type Props = {
   items: MenuItem[];
@@ -62,30 +63,30 @@ function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
       : [];
   }, [item.children, commands, state]);
 
-  const handleCloseAutoFocus = useCallback(
-    (e: Event) => e.preventDefault(),
-    []
-  );
+  const handleCloseAutoFocus = useCallback((ev: Event) => {
+    ev.stopImmediatePropagation();
+  }, []);
 
   return (
-    <MenuProvider variant="dropdown">
-      <Menu>
-        <MenuTrigger>
-          <ToolbarButton
-            aria-label={item.label ? undefined : item.tooltip}
+    <EventBoundary>
+      <MenuProvider variant="dropdown">
+        <Menu>
+          <MenuTrigger>
+            <ToolbarButton aria-label={item.label ? undefined : item.tooltip}>
+              {item.label && <Label>{item.label}</Label>}
+              {item.icon}
+            </ToolbarButton>
+          </MenuTrigger>
+          <MenuContent
+            align="end"
+            aria-label={item.tooltip || t("More options")}
+            onCloseAutoFocus={handleCloseAutoFocus}
           >
-            {item.label && <Label>{item.label}</Label>}
-            {item.icon}
-          </ToolbarButton>
-        </MenuTrigger>
-        <MenuContent
-          aria-label={item.tooltip || t("More options")}
-          onCloseAutoFocus={handleCloseAutoFocus}
-        >
-          {toMenuItems(items)}
-        </MenuContent>
-      </Menu>
-    </MenuProvider>
+            {toMenuItems(items)}
+          </MenuContent>
+        </Menu>
+      </MenuProvider>
+    </EventBoundary>
   );
 }
 
@@ -126,7 +127,10 @@ function ToolbarMenu(props: Props) {
                 {item.name === "dimensions" ? (
                   <MediaDimension key={index} />
                 ) : item.children ? (
-                  <ToolbarDropdown active={isActive && !item.label} item={item} />
+                  <ToolbarDropdown
+                    active={isActive && !item.label}
+                    item={item}
+                  />
                 ) : (
                   <Toolbar.Button asChild>
                     <ToolbarButton
