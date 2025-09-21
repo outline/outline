@@ -662,20 +662,38 @@ iframe.embed {
   }
 }
 
+.pdf {
+  position: relative;
+  width: max-content;
+  height: max-content;
+  margin-right: auto;
+  margin-left: auto;
+
+  .pdf-full-width {
+    width: 100vw;
+    clear: both;
+    position: initial;
+
+    iframe {
+      width: 100vw;
+    }
+  }
+}
+
 .image-replacement-uploading {
   img {
     opacity: 0.5;
   }
 }
 
-.image-right-50 {
+.image-right-50, .pdf-right-50 {
   float: right;
   margin-left: 2em;
   margin-bottom: 1em;
   clear: initial;
 }
 
-.image-left-50 {
+.image-left-50, .pdf-left-50 {
   float: left;
   margin-right: 2em;
   margin-bottom: 1em;
