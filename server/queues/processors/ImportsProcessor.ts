@@ -533,7 +533,7 @@ export default abstract class ImportsProcessor<
       const json = node.toJSON() as ProsemirrorData;
       const attrs = json.attrs ?? {};
 
-      attrs.size = attachmentsMap[attrs.id as string].size;
+      attrs.size = attachmentsMap[attrs.id as string]?.size;
 
       json.attrs = attrs;
       return Node.fromJSON(schema, json);
