@@ -6,6 +6,8 @@ import useStores from "~/hooks/useStores";
 function Dialogs() {
   const { dialogs } = useStores();
   const { guide, modalStack } = dialogs;
+  const modals = [...modalStack];
+
   return (
     <>
       {guide ? (
@@ -17,11 +19,10 @@ function Dialogs() {
           {guide.content}
         </Guide>
       ) : undefined}
-      {[...modalStack].map(([id, modal]) => (
+      {modals.map(([id, modal]) => (
         <Modal
           key={id}
           isOpen={modal.isOpen}
-          fullscreen={modal.fullscreen ?? false}
           onRequestClose={() => {
             modal.onClose?.();
             dialogs.closeModal(id);

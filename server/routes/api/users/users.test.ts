@@ -210,6 +210,43 @@ describe("#users.list", () => {
     expect(body.data[0].id).toEqual(user.id);
   });
 
+  it("should allow filtering by email case-insensitively", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const user = await buildUser({ teamId: team.id });
+
+    // Test with uppercase email
+    const res = await server.post("/api/users.list", {
+      body: {
+        token: admin.getJwtToken(),
+        emails: [user.email!.toUpperCase()],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(user.id);
+
+    // Test with mixed case email
+    const mixedCaseEmail = user
+      .email!.split("@")
+      .map((part, index) =>
+        index === 0 ? part.charAt(0).toUpperCase() + part.slice(1) : part
+      )
+      .join("@");
+
+    const res2 = await server.post("/api/users.list", {
+      body: {
+        token: admin.getJwtToken(),
+        emails: [mixedCaseEmail],
+      },
+    });
+    const body2 = await res2.json();
+    expect(res2.status).toEqual(200);
+    expect(body2.data.length).toEqual(1);
+    expect(body2.data[0].id).toEqual(user.id);
+  });
+
   it("should restrict guest from viewing other user's email", async () => {
     const team = await buildTeam();
     await buildUser({ teamId: team.id });
@@ -750,7 +787,7 @@ describe("#users.updateEmail", () => {
 
       await TeamDomain.create({
         teamId: user.teamId,
-        name: "example.com",
+        name: "getoutline.com",
         createdById: user.id,
       });
 
@@ -971,7 +1008,7 @@ describe("#users.suspend", () => {
     expect(res.status).toEqual(200);
   });
 
-  it("should not allow suspending the user themselves", async () => {
+  it("should not allow suspending self", async () => {
     const admin = await buildAdmin();
     const res = await server.post("/api/users.suspend", {
       body: {
@@ -980,7 +1017,7 @@ describe("#users.suspend", () => {
       },
     });
     const body = await res.json();
-    expect(res.status).toEqual(400);
+    expect(res.status).toEqual(403);
     expect(body).toMatchSnapshot();
   });
 

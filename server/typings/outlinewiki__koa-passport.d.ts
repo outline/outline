@@ -12,7 +12,7 @@ declare module "@outlinewiki/koa-passport" {
   // TypeScript Version: 2.3
 
   import { IncomingMessage } from "http";
-  // eslint-disable-next-line
+  // oxlint-disable-next-line
   import Express from "express";
   import { Request } from "koa";
   import { IMiddleware } from "koa-router";

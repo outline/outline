@@ -11,8 +11,9 @@ import CollectionIcon from "~/components/Icons/CollectionIcon";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import { MenuInternalLink } from "~/types";
 import { archivePath, settingsPath, trashPath } from "~/utils/routeHelpers";
+import { createInternalLinkActionV2 } from "~/actions";
+import { ActiveDocumentSection } from "~/actions/sections";
 
 type Props = {
   children?: React.ReactNode;
@@ -27,46 +28,12 @@ type Props = {
   maxDepth?: number;
 };
 
-function useCategory(document: Document): MenuInternalLink | null {
-  const { t } = useTranslation();
-
-  if (document.isDeleted) {
-    return {
-      type: "route",
-      icon: <TrashIcon />,
-      title: t("Trash"),
-      to: trashPath(),
-    };
-  }
-
-  if (document.isArchived) {
-    return {
-      type: "route",
-      icon: <ArchiveIcon />,
-      title: t("Archive"),
-      to: archivePath(),
-    };
-  }
-
-  if (document.template) {
-    return {
-      type: "route",
-      icon: <ShapesIcon />,
-      title: t("Templates"),
-      to: settingsPath("templates"),
-    };
-  }
-
-  return null;
-}
-
 function DocumentBreadcrumb(
   { document, children, onlyText, reverse = false, maxDepth }: Props,
   ref: React.RefObject<HTMLDivElement> | null
 ) {
   const { collections } = useStores();
   const { t } = useTranslation();
-  const category = useCategory(document);
   const sidebarContext = useLocationSidebarContext();
   const collection = document.collectionId
     ? collections.get(document.collectionId)
@@ -78,69 +45,91 @@ function DocumentBreadcrumb(
     void document.loadRelations({ withoutPolicies: true });
   }, [document]);
 
-  let collectionNode: MenuInternalLink | undefined;
-
-  if (collection && can.readDocument) {
-    collectionNode = {
-      type: "route",
-      title: collection.name,
-      icon: <CollectionIcon collection={collection} expanded />,
-      to: {
-        pathname: collection.path,
-        state: { sidebarContext },
-      },
-    };
-  } else if (document.isCollectionDeleted) {
-    collectionNode = {
-      type: "route",
-      title: t("Deleted Collection"),
-      icon: undefined,
-      to: "",
-    };
-  }
-
   const path = document.pathTo.slice(0, -1);
 
-  const items = React.useMemo(() => {
-    const output: MenuInternalLink[] = [];
-
+  const actions = React.useMemo(() => {
     if (depth === 0) {
-      return output;
+      return [];
     }
 
-    if (category) {
-      output.push(category);
-    }
-    if (collectionNode) {
-      output.push(collectionNode);
-    }
-
-    path.forEach((node: NavigationNode) => {
-      const title = node.title || t("Untitled");
-      output.push({
-        type: "route",
-        title: node.icon ? (
-          <>
-            <StyledIcon value={node.icon} color={node.color} /> {title}
-          </>
-        ) : (
-          title
-        ),
-        to: {
-          pathname: node.url,
-          state: { sidebarContext },
-        },
-      });
-    });
+    const outputActions = [
+      createInternalLinkActionV2({
+        name: t("Trash"),
+        section: ActiveDocumentSection,
+        icon: <TrashIcon />,
+        visible: document.isDeleted,
+        to: trashPath(),
+      }),
+      createInternalLinkActionV2({
+        name: t("Archive"),
+        section: ActiveDocumentSection,
+        icon: <ArchiveIcon />,
+        visible: document.isArchived,
+        to: archivePath(),
+      }),
+      createInternalLinkActionV2({
+        name: t("Templates"),
+        section: ActiveDocumentSection,
+        icon: <ShapesIcon />,
+        visible: document.template,
+        to: settingsPath("templates"),
+      }),
+      createInternalLinkActionV2({
+        name: collection?.name,
+        section: ActiveDocumentSection,
+        icon: collection ? (
+          <CollectionIcon collection={collection} expanded />
+        ) : undefined,
+        visible: !!(collection && can.readDocument),
+        to: collection
+          ? {
+              pathname: collection.path,
+              state: { sidebarContext },
+            }
+          : "",
+      }),
+      createInternalLinkActionV2({
+        name: t("Deleted Collection"),
+        section: ActiveDocumentSection,
+        visible: document.isCollectionDeleted,
+        to: "",
+      }),
+      ...path.map((node) => {
+        const title = node.title || t("Untitled");
+        return createInternalLinkActionV2({
+          name: node.icon ? (
+            <>
+              <StyledIcon value={node.icon} color={node.color} /> {title}
+            </>
+          ) : (
+            title
+          ),
+          section: ActiveDocumentSection,
+          to: {
+            pathname: node.url,
+            state: { sidebarContext },
+          },
+        });
+      }),
+    ];
 
     return reverse
       ? depth !== undefined
-        ? output.slice(-depth)
-        : output
+        ? outputActions.slice(-depth)
+        : outputActions
       : depth !== undefined
-        ? output.slice(0, depth)
-        : output;
-  }, [t, path, category, sidebarContext, collectionNode, reverse, depth]);
+        ? outputActions.slice(0, depth)
+        : outputActions;
+  }, [
+    t,
+    document,
+    collection,
+    can.readDocument,
+    sidebarContext,
+    path,
+    reverse,
+    depth,
+  ]);
 
   if (!collections.isLoaded) {
     return null;
@@ -176,7 +165,7 @@ function DocumentBreadcrumb(
   }
 
   return (
-    <Breadcrumb items={items} ref={ref} highlightFirstItem>
+    <Breadcrumb actions={actions} ref={ref} highlightFirstItem>
       {children}
     </Breadcrumb>
   );

@@ -70,7 +70,7 @@ export const OAuthInterface: RefreshTokenModel &
       accessTokenExpiresAt: authentication.accessTokenExpiresAt,
       scope: authentication.scope,
       client: {
-        id: authentication.oauthClientId,
+        id: authentication.oauthClient.clientId,
         grants: this.grants,
       },
       user: authentication.user,
@@ -89,7 +89,7 @@ export const OAuthInterface: RefreshTokenModel &
       refreshTokenExpiresAt: authentication.refreshTokenExpiresAt,
       scope: authentication.scope,
       client: {
-        id: authentication.oauthClientId,
+        id: authentication.oauthClient.clientId,
         grants: this.grants,
       },
       user: authentication.user,

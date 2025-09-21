@@ -1,6 +1,7 @@
 import { randomInt } from "crypto";
 import { Minute } from "@shared/utils/time";
-import RedisAdapter from "@server/storage/redis";
+import Redis from "@server/storage/redis";
+import { safeEqual } from "./crypto";
 
 /**
  * This class manages verification codes for email authentication.
@@ -8,9 +9,11 @@ import RedisAdapter from "@server/storage/redis";
  */
 export class VerificationCode {
   /**
-   * Redis client instance
+   * Redis client instance (lazy initialized)
    */
-  private static redis = RedisAdapter.defaultClient;
+  private static get redis() {
+    return Redis.defaultClient;
+  }
 
   /**
    * TTL for verification codes in milliseconds (10 minutes)
@@ -51,9 +54,9 @@ export class VerificationCode {
    * @param email The email address associated with the code
    * @returns Promise resolving to the code or null if not found
    */
-  public static async retrieve(email: string): Promise<string | null> {
+  public static async retrieve(email: string): Promise<string | undefined> {
     const key = this.getKey(email);
-    return await this.redis.get(key);
+    return (await this.redis.get(key)) ?? undefined;
   }
 
   /**
@@ -65,7 +68,7 @@ export class VerificationCode {
    */
   public static async verify(email: string, code: string): Promise<boolean> {
     const storedCode = await this.retrieve(email);
-    return storedCode === code;
+    return safeEqual(storedCode, code);
   }
 
   /**

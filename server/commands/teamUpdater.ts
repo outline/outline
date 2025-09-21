@@ -5,13 +5,12 @@ import { Team, TeamDomain, User } from "@server/models";
 import { APIContext } from "@server/types";
 
 type Props = {
-  ctx: APIContext;
   params: Partial<Omit<Team, "allowedDomains">> & { allowedDomains?: string[] };
   user: User;
   team: Team;
 };
 
-const teamUpdater = async ({ ctx, params, user, team }: Props) => {
+const teamUpdater = async (ctx: APIContext, { params, user, team }: Props) => {
   const { allowedDomains, preferences, subdomain, ...attributes } = params;
   team.setAttributes(attributes);
 
@@ -22,7 +21,7 @@ const teamUpdater = async ({ ctx, params, user, team }: Props) => {
   if (allowedDomains !== undefined) {
     const existingAllowedDomains = await TeamDomain.findAll({
       where: { teamId: team.id },
-      transaction: ctx.context.transaction,
+      transaction: ctx.state.transaction,
     });
 
     // Only keep existing domains if they are still in the list of allowed domains

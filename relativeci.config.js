@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-undef
+// oxlint-disable-next-line no-undef
 module.exports = {
   includeCommitMessage: true,
   webpack: {

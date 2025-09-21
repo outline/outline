@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import contentDisposition from "content-disposition";
 import { Op } from "sequelize";
 import { UserRole } from "@shared/types";
 import { RevisionHelper } from "@shared/utils/RevisionHelper";
@@ -166,7 +167,12 @@ router.post(
     if (accept?.includes("text/html")) {
       const name = `${slugify(document.titleWithDefault)}-${revision.id}.html`;
       ctx.set("Content-Type", "text/html");
-      ctx.attachment(name);
+      ctx.set(
+        "Content-Disposition",
+        contentDisposition(name, {
+          type: "attachment",
+        })
+      );
       ctx.body = content;
       return;
     }

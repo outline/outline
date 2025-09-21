@@ -255,6 +255,7 @@ const PaginatedList = <T extends PaginatedItem>({
     <React.Fragment>
       {heading}
       <ArrowKeyNavigation
+        role={rest.role}
         aria-label={rest["aria-label"]}
         onEscape={onEscape}
         className={className}

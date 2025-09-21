@@ -201,6 +201,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
             grow={props.grow}
             style={props.style}
             editorStyle={props.editorStyle}
+            commenting={!!props.onClickCommentMark}
           >
             <div className="ProseMirror">
               {paragraphs.map((paragraph, index) => (

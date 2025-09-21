@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: 20.x
           cache: "yarn"
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --frozen-lockfile --prefer-offline
       - run: yarn lint --fix
 
       - name: Commit changes

@@ -1,26 +1,24 @@
 import copy from "copy-to-clipboard";
 import { observer } from "mobx-react";
 import { CopyIcon, EditIcon } from "outline-icons";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import EventBoundary from "@shared/components/EventBoundary";
 import Comment from "~/models/Comment";
-import ContextMenu from "~/components/ContextMenu";
-import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
-import Template from "~/components/ContextMenu/Template";
-import { actionToMenuItem } from "~/actions";
+import { DropdownMenu } from "~/components/Menu/DropdownMenu";
+import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
 import {
   deleteCommentFactory,
   resolveCommentFactory,
   unresolveCommentFactory,
   viewCommentReactionsFactory,
 } from "~/actions/definitions/comments";
-import useActionContext from "~/hooks/useActionContext";
-import { useMenuState } from "~/hooks/useMenuState";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { commentPath, urlify } from "~/utils/routeHelpers";
+import { ActionV2Separator, createActionV2 } from "~/actions";
+import { ActiveDocumentSection } from "~/actions/sections";
+import { useMenuAction } from "~/hooks/useMenuAction";
 
 type Props = {
   /** The comment to associate with the menu */
@@ -42,13 +40,9 @@ function CommentMenu({
   onUpdate,
   className,
 }: Props) {
-  const menu = useMenuState({
-    modal: true,
-  });
   const { documents } = useStores();
   const { t } = useTranslation();
   const can = usePolicy(comment);
-  const context = useActionContext({ isContextMenu: true });
   const document = documents.get(comment.documentId);
 
   const handleCopyLink = useCallback(() => {
@@ -58,65 +52,48 @@ function CommentMenu({
     }
   }, [t, document, comment]);
 
+  const actions = useMemo(
+    () => [
+      createActionV2({
+        name: `${t("Edit")}…`,
+        icon: <EditIcon />,
+        section: ActiveDocumentSection,
+        visible: can.update && !comment.isResolved,
+        perform: onEdit,
+      }),
+      resolveCommentFactory({
+        comment,
+        onResolve: () => onUpdate({ resolved: true }),
+      }),
+      unresolveCommentFactory({
+        comment,
+        onUnresolve: () => onUpdate({ resolved: false }),
+      }),
+      viewCommentReactionsFactory({
+        comment,
+      }),
+      createActionV2({
+        name: t("Copy link"),
+        icon: <CopyIcon />,
+        section: ActiveDocumentSection,
+        perform: handleCopyLink,
+      }),
+      ActionV2Separator,
+      deleteCommentFactory({ comment, onDelete }),
+    ],
+    [t, comment, can.update, onEdit, onUpdate, onDelete, handleCopyLink]
+  );
+
+  const rootAction = useMenuAction(actions);
+
   return (
-    <>
-      <EventBoundary>
-        <OverflowMenuButton
-          aria-label={t("Show menu")}
-          className={className}
-          {...menu}
-        />
-      </EventBoundary>
-      {menu.visible && (
-        <ContextMenu {...menu} aria-label={t("Comment options")}>
-          <Template
-            {...menu}
-            items={[
-              {
-                type: "button",
-                title: `${t("Edit")}…`,
-                icon: <EditIcon />,
-                onClick: onEdit,
-                visible: can.update && !comment.isResolved,
-              },
-              actionToMenuItem(
-                resolveCommentFactory({
-                  comment,
-                  onResolve: () => onUpdate({ resolved: true }),
-                }),
-                context
-              ),
-              actionToMenuItem(
-                unresolveCommentFactory({
-                  comment,
-                  onUnresolve: () => onUpdate({ resolved: false }),
-                }),
-                context
-              ),
-              actionToMenuItem(
-                viewCommentReactionsFactory({
-                  comment,
-                }),
-                context
-              ),
-              {
-                type: "button",
-                icon: <CopyIcon />,
-                title: t("Copy link"),
-                onClick: handleCopyLink,
-              },
-              {
-                type: "separator",
-              },
-              actionToMenuItem(
-                deleteCommentFactory({ comment, onDelete }),
-                context
-              ),
-            ]}
-          />
-        </ContextMenu>
-      )}
-    </>
+    <DropdownMenu
+      action={rootAction}
+      align="end"
+      ariaLabel={t("Comment options")}
+    >
+      <OverflowMenuButton className={className} />
+    </DropdownMenu>
   );
 }
 

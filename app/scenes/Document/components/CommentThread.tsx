@@ -2,7 +2,6 @@ import { observer } from "mobx-react";
 import { darken } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
 import scrollIntoView from "scroll-into-view-if-needed";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -17,11 +16,11 @@ import Facepile from "~/components/Facepile";
 import Fade from "~/components/Fade";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import useBoolean from "~/hooks/useBoolean";
-import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 import usePersistedState from "~/hooks/usePersistedState";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import { sidebarAppearDuration } from "~/styles/animations";
 import CommentForm from "./CommentForm";
 import CommentThreadItem from "./CommentThreadItem";
@@ -50,21 +49,24 @@ function CommentThread({
   collapseNumDisplayed = 3,
 }: Props) {
   const [scrollOnMount] = React.useState(focused && !window.location.hash);
-  const { editor } = useDocumentContext();
+  const { editor, setFocusedCommentId } = useDocumentContext();
   const { comments } = useStores();
   const topRef = React.useRef<HTMLDivElement>(null);
   const replyRef = React.useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
-  const history = useHistory();
-  const location = useLocation();
-  const sidebarContext = useLocationSidebarContext();
   const [autoFocus, setAutoFocusOn, setAutoFocusOff] = useBoolean(thread.isNew);
+  const user = useCurrentUser();
 
   const can = usePolicy(document);
 
   const [draft, onSaveDraft] = usePersistedState<ProsemirrorData | undefined>(
     `draft-${document.id}-${thread.id}`,
     undefined
+  );
+
+  // Track edit states for all comments in the thread
+  const [editingCommentIds, setEditingCommentIds] = React.useState<Set<string>>(
+    new Set()
   );
 
   const canReply = can.comment && !thread.isResolved;
@@ -95,14 +97,7 @@ function CommentThread({
       !(event.target as HTMLElement).classList.contains("comment") &&
       event.defaultPrevented === false
     ) {
-      history.replace({
-        search: location.search,
-        pathname: location.pathname,
-        state: {
-          commentId: undefined,
-          sidebarContext,
-        },
-      });
+      setFocusedCommentId(null);
     }
   });
 
@@ -111,21 +106,37 @@ function CommentThread({
   }, [editor, thread.id]);
 
   const handleClickThread = () => {
-    history.replace({
-      // Clear any commentId from the URL when explicitly focusing a thread
-      search: thread.isResolved ? "resolved=" : "",
-      pathname: location.pathname.replace(/\/history$/, ""),
-      state: {
-        commentId: thread.id,
-        sidebarContext,
-      },
-    });
+    setFocusedCommentId(thread.id);
   };
 
   const handleClickExpand = (ev: React.SyntheticEvent) => {
     ev.stopPropagation();
     setCollapse(null);
   };
+
+  const handleUpArrowAtStart = React.useCallback(() => {
+    // Find the previous comment by the current user in reverse order
+    const userComments = commentsInThread
+      .filter((comment) => comment.createdById === user.id)
+      .reverse(); // Start from most recent
+
+    if (userComments.length > 0) {
+      const previousComment = userComments[0];
+      setEditingCommentIds((prev) => new Set(prev).add(previousComment.id));
+    }
+  }, [commentsInThread, user.id]);
+
+  const handleCommentEditStart = React.useCallback((commentId: string) => {
+    setEditingCommentIds((prev) => new Set(prev).add(commentId));
+  }, []);
+
+  const handleCommentEditEnd = React.useCallback((commentId: string) => {
+    setEditingCommentIds((prev) => {
+      const newSet = new Set(prev);
+      newSet.delete(commentId);
+      return newSet;
+    });
+  }, []);
 
   const renderShowMore = (collapse: { begin: number; final: number }) => {
     const count = collapse.final - collapse.begin + 1;
@@ -242,6 +253,9 @@ function CommentThread({
             lastOfAuthor={lastOfAuthor}
             previousCommentCreatedAt={commentsInThread[index - 1]?.createdAt}
             dir={document.dir}
+            forceEdit={editingCommentIds.has(comment.id)}
+            onEditStart={() => handleCommentEditStart(comment.id)}
+            onEditEnd={() => handleCommentEditEnd(comment.id)}
           />
         );
       })}
@@ -261,6 +275,7 @@ function CommentThread({
               highlightedText={
                 commentsInThread.length === 0 ? highlightedText : undefined
               }
+              onUpArrowAtStart={handleUpArrowAtStart}
             />
           </Fade>
         )}

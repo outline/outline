@@ -1,10 +1,9 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { observer } from "mobx-react";
 import { CloseIcon, BackIcon } from "outline-icons";
-import { transparentize } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import styled, { DefaultTheme } from "styled-components";
+import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
 import Flex from "~/components/Flex";
@@ -13,17 +12,14 @@ import Scrollable from "~/components/Scrollable";
 import Text from "~/components/Text";
 import useMobile from "~/hooks/useMobile";
 import usePrevious from "~/hooks/usePrevious";
-import useUnmount from "~/hooks/useUnmount";
-import { fadeAndScaleIn } from "~/styles/animations";
+import { fadeAndScaleIn, fadeIn } from "~/styles/animations";
 import Desktop from "~/utils/Desktop";
 import ErrorBoundary from "./ErrorBoundary";
-
-let openModals = 0;
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 
 type Props = {
   children?: React.ReactNode;
   isOpen: boolean;
-  fullscreen?: boolean;
   title?: React.ReactNode;
   style?: React.CSSProperties;
   onRequestClose: () => void;
@@ -32,31 +28,13 @@ type Props = {
 const Modal: React.FC<Props> = ({
   children,
   isOpen,
-  fullscreen = true,
   title = "Untitled",
   style,
   onRequestClose,
 }: Props) => {
-  const [depth, setDepth] = React.useState(0);
   const wasOpen = usePrevious(isOpen);
   const isMobile = useMobile();
   const { t } = useTranslation();
-
-  React.useEffect(() => {
-    if (!wasOpen && isOpen) {
-      setDepth(openModals++);
-    }
-
-    if (wasOpen && !isOpen) {
-      setDepth(openModals--);
-    }
-  }, [wasOpen, isOpen]);
-
-  useUnmount(() => {
-    if (isOpen) {
-      openModals--;
-    }
-  });
 
   if (!isOpen && !wasOpen) {
     return null;
@@ -68,86 +46,71 @@ const Modal: React.FC<Props> = ({
       onOpenChange={(open) => !open && onRequestClose()}
     >
       <Dialog.Portal>
-        <StyledOverlay $fullscreen={fullscreen}>
-          <StyledContent
-            onEscapeKeyDown={onRequestClose}
-            onPointerDownOutside={fullscreen ? undefined : onRequestClose}
-            aria-describedby={undefined}
-          >
-            {fullscreen || isMobile ? (
-              <Fullscreen
-                $nested={!!depth}
-                style={
-                  isMobile
-                    ? undefined
-                    : {
-                        marginLeft: `${depth * 12}px`,
-                      }
-                }
-              >
-                <Content>
-                  <Centered onClick={(ev) => ev.stopPropagation()} column>
-                    {title && (
-                      <Text size="xlarge" weight="bold">
-                        {title}
-                      </Text>
-                    )}
-                    <ErrorBoundary>{children}</ErrorBoundary>
-                  </Centered>
-                </Content>
-                <Close onClick={onRequestClose}>
-                  <CloseIcon size={32} />
-                </Close>
-                <Back onClick={onRequestClose}>
-                  <BackIcon size={32} />
-                  <Text>{t("Back")} </Text>
-                </Back>
-              </Fullscreen>
-            ) : (
-              <Small>
-                <Centered
-                  onClick={(ev) => ev.stopPropagation()}
-                  // maxHeight needed for proper overflow behavior in Safari
-                  style={{ maxHeight: "65vh" }}
-                  column
-                  reverse
-                >
-                  <SmallContent style={style} shadow>
-                    <ErrorBoundary component="div">{children}</ErrorBoundary>
-                  </SmallContent>
-                  <Header>
-                    {title && <Text size="large">{title}</Text>}
-                    <NudeButton onClick={onRequestClose}>
-                      <CloseIcon />
-                    </NudeButton>
-                  </Header>
+        <StyledOverlay />
+        <Dialog.Title asChild>
+          <VisuallyHidden.Root>{title}</VisuallyHidden.Root>
+        </Dialog.Title>
+        <StyledContent
+          onEscapeKeyDown={onRequestClose}
+          onPointerDownOutside={onRequestClose}
+          aria-describedby={undefined}
+        >
+          {isMobile ? (
+            <Mobile>
+              <Content>
+                <Centered onClick={(ev) => ev.stopPropagation()} column>
+                  {title && (
+                    <Text size="xlarge" weight="bold">
+                      {title}
+                    </Text>
+                  )}
+                  <ErrorBoundary>{children}</ErrorBoundary>
                 </Centered>
-              </Small>
-            )}
-          </StyledContent>
-        </StyledOverlay>
+              </Content>
+              <Close onClick={onRequestClose}>
+                <CloseIcon size={32} />
+              </Close>
+              <Back onClick={onRequestClose}>
+                <BackIcon size={32} />
+                <Text>{t("Back")} </Text>
+              </Back>
+            </Mobile>
+          ) : (
+            <Small>
+              <Centered
+                onClick={(ev) => ev.stopPropagation()}
+                // maxHeight needed for proper overflow behavior in Safari
+                style={{ maxHeight: "65vh" }}
+                column
+                reverse
+              >
+                <SmallContent style={style} shadow>
+                  <ErrorBoundary component="div">{children}</ErrorBoundary>
+                </SmallContent>
+                <Header>
+                  {title && <Text size="large">{title}</Text>}
+                  <NudeButton onClick={onRequestClose}>
+                    <CloseIcon />
+                  </NudeButton>
+                </Header>
+              </Centered>
+            </Small>
+          )}
+        </StyledContent>
       </Dialog.Portal>
     </Dialog.Root>
   );
 };
 
-const StyledOverlay = styled(Dialog.Overlay)<{ $fullscreen?: boolean }>`
+const StyledOverlay = styled(Dialog.Overlay)`
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: ${(props) =>
-    props.$fullscreen
-      ? transparentize(0.25, props.theme.background)
-      : props.theme.modalBackdrop} !important;
+  background-color: ${(props) => props.theme.modalBackdrop} !important;
   z-index: ${depths.overlay};
-  transition: opacity 50ms ease-in-out;
-  opacity: 0;
-
-  &[data-state="open"] {
-    opacity: 1;
-  }
+  animation: ${fadeIn} 200ms ease;
 `;
 
 const StyledContent = styled(Dialog.Content)`
@@ -163,12 +126,7 @@ const StyledContent = styled(Dialog.Content)`
   outline: none;
 `;
 
-type FullscreenProps = {
-  $nested: boolean;
-  theme: DefaultTheme;
-};
-
-const Fullscreen = styled.div<FullscreenProps>`
+const Mobile = styled.div`
   animation: ${fadeAndScaleIn} 250ms ease;
 
   position: absolute;
@@ -182,16 +140,6 @@ const Fullscreen = styled.div<FullscreenProps>`
   align-items: flex-start;
   background: ${s("background")};
   outline: none;
-
-  ${breakpoint("tablet")`
-  ${(props: FullscreenProps) =>
-    props.$nested &&
-    `
-      box-shadow: 0 -2px 10px ${props.theme.shadow};
-      border-radius: 8px 0 0 8px;
-      overflow: hidden;
-  `}
-`}
 `;
 
 const Content = styled(Scrollable)`
@@ -256,7 +204,7 @@ const Header = styled(Flex)`
   align-items: center;
   justify-content: space-between;
   font-weight: 600;
-  padding: 24px 24px 4px;
+  padding: 24px 24px 12px;
 `;
 
 const Small = styled.div`
@@ -290,7 +238,7 @@ const Small = styled.div`
 `;
 
 const SmallContent = styled(Scrollable)`
-  padding: 12px 24px 24px;
+  padding: 8px 24px 24px;
 `;
 
 export default observer(Modal);

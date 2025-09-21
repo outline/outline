@@ -33,10 +33,13 @@ import Folder from "./Folder";
 import Relative from "./Relative";
 import { SidebarContextType, useSidebarContext } from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
+import UserMembership from "~/models/UserMembership";
+import GroupMembership from "~/models/GroupMembership";
 
 type Props = {
   node: NavigationNode;
   collection?: Collection;
+  membership?: UserMembership | GroupMembership;
   activeDocument: Document | null | undefined;
   prefetchDocument?: (documentId: string) => Promise<Document | void>;
   isDraft?: boolean;
@@ -49,6 +52,7 @@ function InnerDocumentLink(
   {
     node,
     collection,
+    membership,
     activeDocument,
     prefetchDocument,
     isDraft,
@@ -87,20 +91,27 @@ function InnerDocumentLink(
     isActiveDocument,
   ]);
 
-  const showChildren = React.useMemo(
-    () =>
-      !!(
-        hasChildDocuments &&
-        activeDocument &&
-        collection &&
-        (collection
-          .pathToDocument(activeDocument.id)
-          .map((entry) => entry.id)
-          .includes(node.id) ||
-          isActiveDocument)
-      ),
-    [hasChildDocuments, activeDocument, isActiveDocument, node, collection]
-  );
+  const showChildren = React.useMemo(() => {
+    if (!hasChildDocuments || !activeDocument) {
+      return false;
+    }
+
+    const pathToDocument =
+      collection?.pathToDocument(activeDocument.id) ??
+      membership?.pathToDocument(activeDocument.id);
+
+    return !!(
+      pathToDocument?.map((entry) => entry.id).includes(node.id) ||
+      isActiveDocument
+    );
+  }, [
+    hasChildDocuments,
+    activeDocument,
+    isActiveDocument,
+    node,
+    collection,
+    membership,
+  ]);
 
   const [expanded, setExpanded, setCollapsed] = useBoolean(showChildren);
 
@@ -182,9 +193,11 @@ function InnerDocumentLink(
   const can = policies.abilities(node.id);
   const icon = document?.icon || node.icon || node.emoji;
   const color = document?.color || node.color;
+  const initial = document?.initial || node.title.charAt(0).toUpperCase();
 
   const iconElement = React.useMemo(
-    () => (icon ? <Icon value={icon} color={color} /> : undefined),
+    () =>
+      icon ? <Icon value={icon} color={color} initial={initial} /> : undefined,
     [icon, color]
   );
 
@@ -351,7 +364,6 @@ function InnerDocumentLink(
                       {can.createChildDocument && (
                         <Tooltip content={t("New doc")}>
                           <NudeButton
-                            type={undefined}
                             aria-label={t("New nested document")}
                             onClick={(ev) => {
                               ev.preventDefault();
@@ -402,6 +414,7 @@ function InnerDocumentLink(
           <DocumentLink
             key={childNode.id}
             collection={collection}
+            membership={membership}
             node={childNode}
             activeDocument={activeDocument}
             prefetchDocument={prefetchDocument}
@@ -419,7 +432,7 @@ function InnerDocumentLink(
 const Draggable = styled.div<{ $isDragging?: boolean; $isMoving?: boolean }>`
   transition: opacity 250ms ease;
   opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.1 : 1)};
-  pointer-events: ${(props) => (props.$isMoving ? "none" : "all")};
+  pointer-events: ${(props) => (props.$isMoving ? "none" : "inherit")};
 `;
 
 const DocumentLink = observer(React.forwardRef(InnerDocumentLink));

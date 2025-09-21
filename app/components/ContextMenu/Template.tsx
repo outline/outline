@@ -104,7 +104,7 @@ export function filterTemplateItems(items: TMenuItem[]): TMenuItem[] {
 
 function Template({ items, actions, context, showIcons, ...menu }: Props) {
   const ctx = useActionContext({
-    isContextMenu: true,
+    isMenu: true,
   });
 
   const templateItems = actions
@@ -231,6 +231,12 @@ function Template({ items, actions, context, showIcons, ...menu }: Props) {
           return (
             <Header key={`heading-${item.title}-${index}`}>{item.title}</Header>
           );
+        }
+
+        // This should never be reached for Reakit dropdown menu.
+        // Added for exhaustiveness check.
+        if (item.type === "group") {
+          return null;
         }
 
         const _exhaustiveCheck: never = item;

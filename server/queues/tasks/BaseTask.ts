@@ -51,7 +51,7 @@ export default abstract class BaseTask<T extends Record<string, any>> {
    * @param props Properties to be used by the task
    * @returns A promise that resolves once the task handles the failure.
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // oxlint-disable-next-line @typescript-eslint/no-unused-vars
   public onFailed(props: T): Promise<void> {
     return Promise.resolve();
   }

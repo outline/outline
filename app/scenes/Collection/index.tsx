@@ -38,6 +38,7 @@ import usePersistedState from "~/hooks/usePersistedState";
 import { usePinnedDocuments } from "~/hooks/usePinnedDocuments";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import { NotFoundError } from "~/utils/errors";
 import { collectionPath, updateCollectionPath } from "~/utils/routeHelpers";
 import Error404 from "../Errors/Error404";
 import Actions from "./components/Actions";
@@ -47,6 +48,7 @@ import MembershipPreview from "./components/MembershipPreview";
 import Notices from "./components/Notices";
 import Overview from "./components/Overview";
 import ShareButton from "./components/ShareButton";
+import first from "lodash/first";
 
 const IconPicker = lazy(() => import("~/components/IconPicker"));
 
@@ -65,7 +67,7 @@ const CollectionScene = observer(function _CollectionScene() {
   const match = useRouteMatch();
   const location = useLocation();
   const { t } = useTranslation();
-  const { documents, collections, ui } = useStores();
+  const { documents, collections, shares, ui } = useStores();
   const [error, setError] = useState<Error | undefined>();
   const currentPath = location.pathname;
   const [, setLastVisitedPath] = useLastVisitedPath();
@@ -74,8 +76,7 @@ const CollectionScene = observer(function _CollectionScene() {
   const id = params.id || "";
   const urlId = id.split("-").pop() ?? "";
 
-  const collection: Collection | null | undefined =
-    collections.getByUrl(id) || collections.get(id);
+  const collection: Collection | null | undefined = collections.get(id);
   const can = usePolicy(collection);
 
   const { pins, count } = usePinnedDocuments(urlId, collection?.id);
@@ -129,6 +130,16 @@ const CollectionScene = observer(function _CollectionScene() {
 
     void fetchData();
   }, []);
+
+  useEffect(() => {
+    if (collection) {
+      shares.fetchOne({ collectionId: collection.id }).catch((err) => {
+        if (!(err instanceof NotFoundError)) {
+          throw err;
+        }
+      });
+    }
+  }, [shares, collection]);
 
   useCommandBarActions([editCollection], [ui.activeCollectionId ?? "none"]);
 
@@ -196,8 +207,8 @@ const CollectionScene = observer(function _CollectionScene() {
                 <Suspense fallback={fallbackIcon}>
                   <IconPicker
                     icon={collection.icon ?? "collection"}
-                    color={collection.color ?? colorPalette[0]}
-                    initial={collection.name[0]}
+                    color={collection.color ?? (first(colorPalette) as string)}
+                    initial={collection.initial}
                     size={40}
                     popoverPosition="bottom-start"
                     onChange={handleIconChange}

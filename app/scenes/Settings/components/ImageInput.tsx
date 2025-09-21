@@ -10,9 +10,10 @@ import ImageUpload, { Props as ImageUploadProps } from "./ImageUpload";
 
 type Props = ImageUploadProps & {
   model: IAvatar;
+  alt: string;
 };
 
-export default function ImageInput({ model, onSuccess, ...rest }: Props) {
+export default function ImageInput({ model, onSuccess, alt, ...rest }: Props) {
   const { t } = useTranslation();
 
   return (
@@ -27,6 +28,7 @@ export default function ImageInput({ model, onSuccess, ...rest }: Props) {
             model={model}
             size={AvatarSize.Upload}
             variant={AvatarVariant.Square}
+            alt={alt}
           />
           <Flex auto align="center" justify="center" className="upload">
             <EditIcon />

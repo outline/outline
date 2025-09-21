@@ -6,7 +6,6 @@ import { Team } from "@server/models";
 import { APIContext } from "@server/types";
 
 type Props = {
-  ctx: APIContext;
   /** The displayed name of the team */
   name: string;
   /** The domain name from the email of the user logging in */
@@ -24,21 +23,20 @@ type Props = {
   }[];
 };
 
-async function teamCreator({
-  ctx,
-  name,
-  subdomain,
-  avatarUrl,
-  authenticationProviders,
-}: Props): Promise<Team> {
+async function teamCreator(
+  ctx: APIContext,
+  { name, subdomain, avatarUrl, authenticationProviders }: Props
+): Promise<Team> {
   if (!avatarUrl?.startsWith("http")) {
     avatarUrl = null;
   }
 
-  const team = await Team.createWithCtx(
+  const availableSubdomain = await findAvailableSubdomain(ctx, subdomain);
+  return await Team.createWithCtx(
     ctx,
     {
       name,
+      subdomain: availableSubdomain,
       avatarUrl,
       authenticationProviders,
     } as Partial<InferCreationAttributes<Team>>,
@@ -47,19 +45,12 @@ async function teamCreator({
       include: ["authenticationProviders"],
     }
   );
-
-  const availableSubdomain = await findAvailableSubdomain(team, subdomain);
-  await team.update(
-    { subdomain: availableSubdomain },
-    {
-      transaction: ctx.context.transaction,
-    }
-  );
-
-  return team;
 }
 
-async function findAvailableSubdomain(team: Team, requestedSubdomain: string) {
+async function findAvailableSubdomain(
+  ctx: APIContext,
+  requestedSubdomain: string
+) {
   // filter subdomain to only valid characters
   // if there are less than the minimum length, use a default subdomain
   const normalizedSubdomain = slugify(requestedSubdomain, {
@@ -78,6 +69,7 @@ async function findAvailableSubdomain(team: Team, requestedSubdomain: string) {
     const existing = await Team.findOne({
       where: { subdomain },
       paranoid: false,
+      transaction: ctx.state.transaction,
     });
 
     if (existing) {

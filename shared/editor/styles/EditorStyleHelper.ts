@@ -12,6 +12,10 @@ export class EditorStyleHelper {
 
   static readonly comment = "comment-marker";
 
+  // Code
+
+  static readonly codeWord = "code-word";
+
   // Tables
 
   /** Table wrapper */

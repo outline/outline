@@ -31,8 +31,14 @@ router.post(
       name,
       userId: user.id,
       expiresAt,
-      scope: scope?.map((s) => (s.startsWith("/api/") ? s : `/api/${s}`)),
+      scope: scope?.map((s) =>
+        s.startsWith("/api/") || s.includes(":")
+          ? s
+          : `/api/${s.replace(/^\//, "")}`
+      ),
     });
+
+    apiKey.user = user;
 
     ctx.body = {
       data: presentApiKey(apiKey),
@@ -104,8 +110,11 @@ router.post(
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
-    const key = await ApiKey.findByPk(id, {
-      lock: transaction.LOCK.UPDATE,
+    const key = await ApiKey.scope("withUser").findByPk(id, {
+      lock: {
+        level: transaction.LOCK.UPDATE,
+        of: ApiKey,
+      },
       transaction,
     });
     authorize(user, "delete", key);

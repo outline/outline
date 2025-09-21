@@ -2,6 +2,7 @@ import path from "path";
 import fractionalIndex from "fractional-index";
 import fs from "fs-extra";
 import invariant from "invariant";
+import contentDisposition from "content-disposition";
 import JSZip from "jszip";
 import Router from "koa-router";
 import escapeRegExp from "lodash/escapeRegExp";
@@ -16,8 +17,8 @@ import {
   FileOperationFormat,
   FileOperationState,
   FileOperationType,
+  NavigationNode,
   StatusFilter,
-  TeamPreference,
   UserRole,
 } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
@@ -34,6 +35,7 @@ import {
   AuthenticationError,
   ValidationError,
   IncorrectEditionError,
+  NotFoundError,
 } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
@@ -67,7 +69,6 @@ import {
   presentDocument,
   presentPolicies,
   presentMembership,
-  presentPublicTeam,
   presentUser,
   presentGroupMembership,
   presentGroup,
@@ -82,10 +83,10 @@ import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import ZipHelper from "@server/utils/ZipHelper";
 import { getTeamFromContext } from "@server/utils/passport";
-import { navigationNodeToSitemap } from "@server/utils/sitemap";
 import { assertPresent } from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
+import { loadPublicShare } from "@server/commands/shareLoader";
 
 const router = new Router();
 
@@ -576,43 +577,63 @@ router.post(
     const { id, shareId } = ctx.input.body;
     const { user } = ctx.state.auth;
     const apiVersion = getAPIVersion(ctx);
-    const teamFromCtx = await getTeamFromContext(ctx);
-    const { document, share, collection } = await documentLoader({
-      id,
-      shareId,
-      user,
-      teamId: teamFromCtx?.id,
+    const teamFromCtx = await getTeamFromContext(ctx, {
+      includeStateCookie: false,
     });
-    const isPublic = cannot(user, "read", document);
-    const [serializedDocument, team] = await Promise.all([
-      presentDocument(ctx, document, {
+
+    let document: Document | null;
+    let serializedDocument: Record<string, any> | undefined;
+    let isPublic = false;
+
+    if (shareId) {
+      const result = await loadPublicShare({
+        id: shareId,
+        documentId: id,
+        teamId: teamFromCtx?.id,
+      });
+
+      document = result.document;
+
+      if (!document) {
+        throw NotFoundError("Document could not be found for shareId");
+      }
+
+      // reload with membership scope if user is authenticated
+      if (user) {
+        document = await Document.findByPk(document.id, {
+          userId: user.id,
+          rejectOnEmpty: true,
+        });
+      }
+
+      isPublic = cannot(user, "read", document);
+
+      serializedDocument = await presentDocument(ctx, document, {
         isPublic,
         shareId,
-        includeUpdatedAt: share?.showLastUpdated,
-      }),
-      teamFromCtx?.id === document.teamId ? teamFromCtx : document.$get("team"),
-    ]);
+        includeUpdatedAt: result.share.showLastUpdated,
+      });
+    } else {
+      if (!user) {
+        throw AuthenticationError("Authentication required");
+      }
 
-    // Passing apiVersion=2 has a single effect, to change the response payload to
-    // include top level keys for document, sharedTree, and team.
-    const data =
-      apiVersion >= 2
-        ? {
-            document: serializedDocument,
-            team: team
-              ? presentPublicTeam(
-                  team,
-                  !!team?.getPreference(TeamPreference.PublicBranding)
-                )
-              : undefined,
-            sharedTree:
-              share && share.includeChildDocuments && collection
-                ? collection.getDocumentTree(share.documentId)
-                : null,
-          }
-        : serializedDocument;
+      document = await documentLoader({
+        id: id!, // validation ensures id will be present here
+        user,
+      });
+      serializedDocument = await presentDocument(ctx, document);
+    }
+
     ctx.body = {
-      data,
+      // Passing apiVersion=2 has a single effect, to change the response payload to
+      // include top level keys for document.
+      data:
+        apiVersion >= 2
+          ? {
+              document: serializedDocument,
+            }
+          : serializedDocument,
       policies: isPublic ? undefined : presentPolicies(user, [document]),
     };
   }
@@ -702,40 +723,43 @@ router.post(
   }
 );
 
-router.get(
-  "documents.sitemap",
-  rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
-  auth({ optional: true }),
-  validate(T.DocumentsSitemapSchema),
-  async (ctx: APIContext<T.DocumentsSitemapReq>) => {
-    const { shareId } = ctx.input.query;
-    const { collection, share } = await documentLoader({
-      shareId,
-    });
+router.post(
+  "documents.documents",
+  auth(),
+  validate(T.DocumentsChildrenSchema),
+  async (ctx: APIContext<T.DocumentsChildrenReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const document = await Document.findByPk(id, { userId: user.id });
 
-    let tree;
-    if (share && share.includeChildDocuments && share.allowIndexing) {
-      tree = collection?.getDocumentTree(share.documentId);
+    authorize(user, "read", document);
+
+    let documentTree: NavigationNode | undefined;
+
+    if (document.collectionId) {
+      const collection = await Collection.findByPk(document.collectionId, {
+        includeDocumentStructure: true,
+      });
+      documentTree = collection?.getDocumentTree(document.id) ?? undefined;
     }
 
-    const baseUrl = `${process.env.URL}/s/${shareId}`;
-
-    ctx.set("Content-Type", "application/xml");
-    ctx.body = navigationNodeToSitemap(tree, baseUrl);
+    ctx.body = {
+      data: documentTree,
+    };
   }
 );
 
 router.post(
   "documents.export",
   rateLimiter(RateLimiterStrategy.TwentyFivePerMinute),
-  auth({ optional: true }),
+  auth(),
   validate(T.DocumentsExportSchema),
   async (ctx: APIContext<T.DocumentsExportReq>) => {
     const { id, includeChildDocuments } = ctx.input.body;
     const { user } = ctx.state.auth;
     const accept = ctx.request.headers["accept"];
 
-    const { document } = await documentLoader({
+    const document = await documentLoader({
       id,
       user,
       // We need the collaborative state to generate HTML.
@@ -832,7 +856,12 @@ router.post(
 
     if (attachments.length === 0) {
       ctx.set("Content-Type", contentType);
-      ctx.attachment(`${fileName}.${extension}`);
+      ctx.set(
+        "Content-Disposition",
+        contentDisposition(`${fileName}.${extension}`, {
+          type: "attachment",
+        })
+      );
       ctx.body = content;
       return;
     }
@@ -875,7 +904,12 @@ router.post(
     });
 
     ctx.set("Content-Type", "application/zip");
-    ctx.attachment(`${fileName}.zip`);
+    ctx.set(
+      "Content-Disposition",
+      contentDisposition(`${fileName}.zip`, {
+        type: "attachment",
+      })
+    );
     ctx.body = zip.generateNodeStream(ZipHelper.defaultStreamOptions);
   }
 );
@@ -1074,17 +1108,32 @@ router.post(
     let isPublic = false;
 
     if (shareId) {
-      const teamFromCtx = await getTeamFromContext(ctx);
-      const { document, ...loaded } = await documentLoader({
+      const teamFromCtx = await getTeamFromContext(ctx, {
+        includeStateCookie: false,
+      });
+      const result = await loadPublicShare({
+        id: shareId,
         teamId: teamFromCtx?.id,
-        shareId,
-        user,
       });
 
-      share = loaded.share;
-      isPublic = cannot(user, "read", document);
+      share = result.share;
+      let { collection, document } = result; // One of collection or document should be available
 
-      if (!share?.includeChildDocuments) {
+      // reload with membership scope if user is authenticated
+      if (user) {
+        collection = collection
+          ? await Collection.findByPk(collection.id, { userId: user.id })
+          : null;
+        document = document
+          ? await Document.findByPk(document.id, { userId: user.id })
+          : null;
+      }
+
+      isPublic = collection
+        ? cannot(user, "read", collection)
+        : cannot(user, "read", document);
+
+      if (share.documentId && !share?.includeChildDocuments) {
         throw InvalidRequestError("Child documents cannot be searched");
       }
 
@@ -1094,7 +1143,7 @@ router.post(
 
       response = await SearchHelper.searchForTeam(team, {
         query,
-        collectionId: document.collectionId,
+        collectionId: collection?.id || document?.collectionId,
         share,
         dateFilter,
         statusFilter,
@@ -1591,17 +1640,20 @@ router.post(
     const file = ctx.input.file;
     const { user } = ctx.state.auth;
 
-    const collection = await Collection.findByPk(collectionId, {
-      userId: user.id,
-    });
-    authorize(user, "createDocument", collection);
-    let parentDocument;
+    if (collectionId) {
+      const collection = await Collection.findByPk(collectionId, {
+        userId: user.id,
+      });
+      authorize(user, "createDocument", collection);
+    }
+
+    let parentDocument: Document | null = null;
 
     if (parentDocumentId) {
       parentDocument = await Document.findByPk(parentDocumentId, {
         userId: user.id,
       });
-      authorize(user, "read", parentDocument);
+      authorize(user, "createChildDocument", parentDocument);
     }
 
     const buffer = await fs.readFile(file.filepath);
@@ -1631,7 +1683,7 @@ router.post(
         mimeType,
       },
       userId: user.id,
-      collectionId,
+      collectionId: collectionId ?? parentDocument?.collectionId, // collectionId will be null when parent document is shared to the user.
       parentDocumentId,
       publish,
       ip: ctx.request.ip,

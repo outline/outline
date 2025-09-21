@@ -56,13 +56,14 @@ export const OAuthClientForm = observer(function OAuthClientForm_({
   return (
     <form onSubmit={formHandleSubmit(handleSubmit)}>
       <>
-        <label style={{ marginBottom: "1em" }}>
+        <label style={{ marginBottom: "1em", display: "block" }}>
           <LabelText>{t("Icon")}</LabelText>
           <Controller
             control={control}
             name="avatarUrl"
             render={({ field }) => (
               <ImageInput
+                alt={t("OAuth client icon")}
                 onSuccess={(url) => field.onChange(url)}
                 onError={(err) => setError("avatarUrl", { message: err })}
                 model={{

@@ -1,9 +1,14 @@
 import * as React from "react";
-import { Dialog, DialogBackdrop, useDialogState } from "reakit/Dialog";
+import * as Dialog from "@radix-ui/react-dialog";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
 import Scrollable from "~/components/Scrollable";
-import usePrevious from "~/hooks/usePrevious";
+import {
+  fadeIn,
+  fadeOut,
+  fadeInAndSlideLeft,
+  fadeOutAndSlideRight,
+} from "~/styles/animations";
 
 type Props = {
   children?: React.ReactNode;
@@ -18,55 +23,33 @@ const Guide: React.FC<Props> = ({
   title = "Untitled",
   onRequestClose,
   ...rest
-}: Props) => {
-  const dialog = useDialogState({
-    animated: 250,
-  });
-  const wasOpen = usePrevious(isOpen);
+}: Props) => (
+  <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onRequestClose()}>
+    <Dialog.Portal>
+      <StyledOverlay>
+        <Scene
+          onEscapeKeyDown={onRequestClose}
+          onPointerDownOutside={onRequestClose}
+          aria-describedby={undefined}
+          {...rest}
+        >
+          <Content>
+            {title && <Header>{title}</Header>}
+            {children}
+          </Content>
+        </Scene>
+      </StyledOverlay>
+    </Dialog.Portal>
+  </Dialog.Root>
+);
 
-  React.useEffect(() => {
-    if (!wasOpen && isOpen) {
-      dialog.show();
-    }
-
-    if (wasOpen && !isOpen) {
-      dialog.hide();
-    }
-  }, [dialog, wasOpen, isOpen]);
-
-  return (
-    <DialogBackdrop {...dialog}>
-      {(backdropProps) => (
-        <Backdrop {...backdropProps}>
-          <Dialog
-            {...dialog}
-            aria-label={title}
-            preventBodyScroll
-            hideOnEsc
-            hide={onRequestClose}
-          >
-            {(dialogProps) => (
-              <Scene {...dialogProps} {...rest}>
-                <Content>
-                  {title && <Header>{title}</Header>}
-                  {children}
-                </Content>
-              </Scene>
-            )}
-          </Dialog>
-        </Backdrop>
-      )}
-    </DialogBackdrop>
-  );
-};
-
-const Header = styled.h1`
+const Header = styled(Dialog.Title)`
   font-size: 18px;
   margin-top: 0;
   margin-bottom: 1em;
 `;
 
-const Backdrop = styled.div`
+const StyledOverlay = styled(Dialog.Overlay)`
   position: fixed;
   top: 0;
   left: 0;
@@ -74,37 +57,37 @@ const Backdrop = styled.div`
   bottom: 0;
   background-color: ${s("backdrop")} !important;
   z-index: ${depths.overlay};
-  transition: opacity 200ms ease-in-out;
-  opacity: 0;
 
-  &[data-enter] {
-    opacity: 1;
+  &[data-state="open"] {
+    animation: ${fadeIn} 200ms ease;
+  }
+
+  &[data-state="closed"] {
+    animation: ${fadeOut} 200ms ease;
   }
 `;
 
-const Scene = styled.div`
+const Scene = styled(Dialog.Content)`
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
   margin: 12px;
-  z-index: ${depths.modal};
   display: flex;
+  z-index: ${depths.modal};
   justify-content: center;
   align-items: flex-start;
   width: 350px;
   background: ${s("background")};
   border-radius: 8px;
   outline: none;
-  opacity: 0;
-  transform: translateX(16px);
-  transition:
-    transform 250ms ease,
-    opacity 250ms ease;
 
-  &[data-enter] {
-    opacity: 1;
-    transform: translateX(0px);
+  &[data-state="open"] {
+    animation: ${fadeInAndSlideLeft} 200ms ease;
+  }
+
+  &[data-state="closed"] {
+    animation: ${fadeOutAndSlideRight} 200ms ease;
   }
 `;
 

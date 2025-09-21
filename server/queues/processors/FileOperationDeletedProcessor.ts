@@ -1,5 +1,5 @@
 import { FileOperationState, FileOperationType } from "@shared/types";
-import collectionDestroyer from "@server/commands/collectionDestroyer";
+import { createContext } from "@server/context";
 import Logger from "@server/logging/Logger";
 import { Collection, FileOperation, User } from "@server/models";
 import { sequelize } from "@server/storage/database";
@@ -58,12 +58,9 @@ export default class FileOperationDeletedProcessor extends BaseProcessor {
         Logger.debug("processor", "Destroying collection created from import", {
           collectionId: collection.id,
         });
-        await collectionDestroyer({
-          collection,
-          transaction,
-          user,
-          ip: event.ip,
-        });
+        await collection.destroyWithCtx(
+          createContext({ user, ip: event.ip, transaction })
+        );
       }
     });
   }

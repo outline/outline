@@ -7,6 +7,8 @@ import { fadeAndScaleIn } from "~/styles/animations";
 
 const Popover = PopoverPrimitive.Root;
 
+const PopoverAnchor = PopoverPrimitive.Anchor;
+
 const PopoverTrigger = React.forwardRef<
   React.ElementRef<typeof PopoverPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Trigger>
@@ -88,7 +90,7 @@ type StyledContentProps = {
 
 const StyledContent = styled(PopoverPrimitive.Content)<StyledContentProps>`
   z-index: ${depths.modal};
-  max-height: var(--radix-popover-content-available-height);
+  max-height: min(85vh, var(--radix-popover-content-available-height));
   transform-origin: var(--radix-popover-content-transform-origin);
 
   background: ${s("menuBackground")};
@@ -116,4 +118,4 @@ const StyledContent = styled(PopoverPrimitive.Content)<StyledContentProps>`
   }
 `;
 
-export { Popover, PopoverTrigger, PopoverContent };
+export { Popover, PopoverAnchor, PopoverTrigger, PopoverContent };

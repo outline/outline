@@ -25,15 +25,14 @@ jobs:
         node-version: [20.x, 22.x]
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'yarn'
-
-    - name: Install dependencies
-      run: yarn install --frozen-lockfile
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "yarn"
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile --prefer-offline
 
   lint:
     needs: build
@@ -44,8 +43,8 @@ jobs:
         with:
           node-version: 22.x
           cache: "yarn"
-      - run: yarn install --frozen-lockfile
-      - run: yarn lint
+      - run: yarn install --frozen-lockfile --prefer-offline
+      - run: yarn lint --quiet
 
   types:
     needs: build
@@ -56,7 +55,7 @@ jobs:
         with:
           node-version: 22.x
           cache: "yarn"
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --frozen-lockfile --prefer-offline
       - run: yarn tsc
 
   changes:
@@ -98,7 +97,7 @@ jobs:
         with:
           node-version: 22.x
           cache: "yarn"
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --frozen-lockfile --prefer-offline
       - run: yarn test:${{ matrix.test-group }}
 
   test-server:
@@ -130,7 +129,7 @@ jobs:
         with:
           node-version: 22.x
           cache: "yarn"
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --frozen-lockfile --prefer-offline
       - run: yarn sequelize db:migrate
       - name: Run server tests
         run: |
@@ -147,7 +146,7 @@ jobs:
         with:
           node-version: 22.x
           cache: "yarn"
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --frozen-lockfile --prefer-offline
       - name: Set environment to production
         run: echo "NODE_ENV=production" >> $GITHUB_ENV
       - run: yarn vite:build

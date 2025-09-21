@@ -2,9 +2,10 @@ import { useCallback } from "react";
 import { useHistory } from "react-router-dom";
 import { isModKey } from "@shared/utils/keyboard";
 import { isDocumentUrl, isInternalUrl } from "@shared/utils/urls";
-import { sharedDocumentPath } from "~/utils/routeHelpers";
+import { sharedModelPath } from "~/utils/routeHelpers";
 import { isHash } from "~/utils/urls";
 import useStores from "./useStores";
+import { isFirefox } from "@shared/utils/browser";
 
 type Params = {
   /** The share ID of the document being viewed, if any */
@@ -41,18 +42,23 @@ export default function useEditorClickHandlers({ shareId }: Params) {
           return;
         }
 
+        // parse shareId from link
+        const linkShareId = navigateTo.match(/\/s\/([^/]+)\/doc\//)?.[1];
+
         // If we're navigating to an internal document link then prepend the
         // share route to the URL so that the document is loaded in context
         if (
           shareId &&
-          navigateTo.includes("/doc/") &&
+          (!linkShareId || linkShareId === shareId) &&
+          (navigateTo.includes("/doc/") ||
+            navigateTo.includes("/collection/")) &&
           !navigateTo.includes(shareId)
         ) {
-          navigateTo = sharedDocumentPath(shareId, navigateTo);
+          navigateTo = sharedModelPath(shareId, navigateTo);
         }
 
         if (isDocumentUrl(navigateTo)) {
-          const document = documents.getByUrl(navigateTo);
+          const document = documents.get(navigateTo);
           if (document) {
             navigateTo = document.path;
           }
@@ -73,6 +79,12 @@ export default function useEditorClickHandlers({ shareId }: Params) {
           window.open(navigateTo, "_blank");
         }
       } else {
+        // Middle-click events in Firefox are not prevented in the same way as other browsers
+        // so we need to explicitly return here to prevent two tabs from being opened when
+        // middle-clicking a link (#10083).
+        if (event?.button === 1 && isFirefox()) {
+          return;
+        }
         window.open(href, "_blank");
       }
     },

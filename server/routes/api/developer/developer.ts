@@ -29,7 +29,6 @@ router.post(
   validate(T.CreateTestUsersSchema),
   async (ctx: APIContext<T.CreateTestUsersReq>) => {
     const { count = 10 } = ctx.input.body;
-    const { user } = ctx.state.auth;
     const invites = Array(Math.min(count, 100))
       .fill(0)
       .map(() => {
@@ -45,11 +44,7 @@ router.post(
     Logger.info("utils", `Creating ${count} test users`, invites);
 
     // Generate a bunch of invites
-    const response = await userInviter({
-      user,
-      invites,
-      ip: ctx.request.ip,
-    });
+    const response = await userInviter(ctx, { invites });
 
     // Convert from invites to active users by marking as active
     await Promise.all(

@@ -8,11 +8,18 @@ type Props = {
   children: React.ReactNode;
 };
 
-const MobileWrapper = styled.div`
-  width: 100vw;
-  height: 100vh;
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
+const StableWrapper = styled.div<{ $shouldApplyMobileStyles: boolean }>`
+  ${({ $shouldApplyMobileStyles }) =>
+    $shouldApplyMobileStyles
+      ? `
+        width: 100vw;
+        height: 100vh;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+      `
+      : `
+        display: contents;
+      `}
 `;
 
 /**
@@ -27,12 +34,17 @@ const PageScroll = ({ children }: Props) => {
   const isPrinting = useMediaQuery("print");
   const ref = React.useRef<HTMLDivElement>(null);
 
-  return isMobile && !isPrinting ? (
-    <ScrollContext.Provider value={ref}>
-      <MobileWrapper ref={ref}>{children}</MobileWrapper>
+  const shouldApplyMobileStyles = isMobile && !isPrinting;
+
+  return (
+    <ScrollContext.Provider value={shouldApplyMobileStyles ? ref : undefined}>
+      <StableWrapper
+        ref={ref}
+        $shouldApplyMobileStyles={shouldApplyMobileStyles}
+      >
+        {children}
+      </StableWrapper>
     </ScrollContext.Provider>
-  ) : (
-    <>{children}</>
   );
 };
 
