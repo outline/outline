@@ -12,7 +12,6 @@ export default function PdfViewer(props: Props) {
   const { node, isEditable, onChangeSize, isSelected } = props;
   const { href, name, layoutClass } = node.attrs;
   const [data, setData] = useState<string>();
-  // const [error, setError] = useState<string>("");
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const isFullWidth = layoutClass === "full-width";
 
@@ -33,10 +32,11 @@ export default function PdfViewer(props: Props) {
       .then((res) => res.json())
       .then((res) => {
         setData(res.url);
+      })
+      .catch(() => {
+        // don't really need to do anything here
+        // the browser already handles it quite well
       });
-    // .catch((error) => {
-    //   setError(error.message);
-    // });
   }, [href]);
 
   useEffect(() => {
