@@ -4,7 +4,7 @@ import { Op, WhereOptions } from "sequelize";
 import { EventHelper } from "@shared/utils/EventHelper";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
-import { Event, User, Collection } from "@server/models";
+import { Event, User, Collection, Document } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentEvent } from "@server/presenters";
 import { APIContext } from "@server/types";
@@ -52,20 +52,25 @@ router.post(
     }
 
     if (actorId) {
+      const actor = await User.findByPk(actorId);
+      authorize(user, "readDetails", actor);
       where = { ...where, actorId };
     }
 
     if (documentId) {
+      const document = await Document.findByPk(documentId, {
+        userId: user.id,
+      });
+      authorize(user, "read", document);
       where = { ...where, documentId };
     }
 
     if (collectionId) {
-      where = { ...where, collectionId };
-
       const collection = await Collection.findByPk(collectionId, {
         userId: user.id,
       });
       authorize(user, "read", collection);
+      where = { ...where, collectionId };
     } else {
       const collectionIds = await user.collectionIds({
         paranoid: false,
