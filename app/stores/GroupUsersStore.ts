@@ -59,11 +59,14 @@ export default class GroupUsersStore extends Store<GroupUser> {
       permission,
     });
     invariant(res?.data, "Group Membership data should be available");
-    res.data.users.forEach(this.rootStore.users.add);
-    res.data.groups.forEach(this.rootStore.groups.add);
 
-    const groupMemberships = res.data.groupMemberships.map(this.add);
-    return groupMemberships[0];
+    return runInAction(`GroupUsersStore#create`, () => {
+      res.data.users.forEach(this.rootStore.users.add);
+      res.data.groups.forEach(this.rootStore.groups.add);
+
+      const groupMemberships = res.data.groupMemberships.map(this.add);
+      return groupMemberships[0];
+    });
   }
 
   @action
@@ -96,11 +99,14 @@ export default class GroupUsersStore extends Store<GroupUser> {
       permission,
     });
     invariant(res?.data, "Group Membership data should be available");
-    res.data.users.forEach(this.rootStore.users.add);
-    res.data.groups.forEach(this.rootStore.groups.add);
 
-    const groupMemberships = res.data.groupMemberships.map(this.add);
-    return groupMemberships[0];
+    return runInAction(`GroupUsersStore#update`, () => {
+      res.data.users.forEach(this.rootStore.users.add);
+      res.data.groups.forEach(this.rootStore.groups.add);
+
+      const groupMemberships = res.data.groupMemberships.map(this.add);
+      return groupMemberships[0];
+    });
   }
 
   @action

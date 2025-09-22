@@ -4,6 +4,7 @@ import User from "./User";
 import Model from "./base/Model";
 import Relation from "./decorators/Relation";
 import Field from "./decorators/Field";
+import { observable } from "mobx";
 
 /**
  * Represents a user's membership to a group.
@@ -27,6 +28,7 @@ class GroupUser extends Model {
 
   /** The permission of the user in the group. */
   @Field
+  @observable
   permission: GroupPermission;
 }
 
