@@ -1,12 +1,9 @@
-import { useMemo } from "react";
-import { useMenuState } from "reakit";
-import { MenuButton } from "reakit/Menu";
+import { useCallback, useMemo } from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import * as Toolbar from "@radix-ui/react-toolbar";
 import { MenuItem } from "@shared/editor/types";
 import { s } from "@shared/styles";
-import ContextMenu from "~/components/ContextMenu";
-import Template from "~/components/ContextMenu/Template";
 import { TooltipProvider } from "~/components/TooltipContext";
 import { MenuItem as TMenuItem } from "~/types";
 import { useEditor } from "./EditorContext";
@@ -14,6 +11,12 @@ import { MediaDimension } from "./MediaDimension";
 import ToolbarButton from "./ToolbarButton";
 import ToolbarSeparator from "./ToolbarSeparator";
 import Tooltip from "./Tooltip";
+import { toMenuItems } from "~/components/Menu/transformer";
+import { MenuContent } from "~/components/primitives/Menu";
+import { MenuProvider } from "~/components/primitives/Menu/MenuContext";
+import { Menu, MenuTrigger } from "~/components/primitives/Menu";
+import { useTranslation } from "react-i18next";
+import EventBoundary from "@shared/components/EventBoundary";
 
 type Props = {
   items: MenuItem[];
@@ -23,8 +26,8 @@ type Props = {
  * Renders a dropdown menu in the floating toolbar.
  */
 function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
-  const menu = useMenuState();
   const { commands, view } = useEditor();
+  const { t } = useTranslation();
   const { item } = props;
   const { state } = view;
 
@@ -60,24 +63,30 @@ function ToolbarDropdown(props: { active: boolean; item: MenuItem }) {
       : [];
   }, [item.children, commands, state]);
 
+  const handleCloseAutoFocus = useCallback((ev: Event) => {
+    ev.stopImmediatePropagation();
+  }, []);
+
   return (
-    <>
-      <MenuButton {...menu}>
-        {(buttonProps) => (
-          <ToolbarButton
-            {...buttonProps}
-            hovering={menu.visible}
-            aria-label={item.tooltip}
+    <EventBoundary>
+      <MenuProvider variant="dropdown">
+        <Menu>
+          <MenuTrigger>
+            <ToolbarButton aria-label={item.label ? undefined : item.tooltip}>
+              {item.label && <Label>{item.label}</Label>}
+              {item.icon}
+            </ToolbarButton>
+          </MenuTrigger>
+          <MenuContent
+            align="end"
+            aria-label={item.tooltip || t("More options")}
+            onCloseAutoFocus={handleCloseAutoFocus}
           >
-            {item.label && <Label>{item.label}</Label>}
-            {item.icon}
-          </ToolbarButton>
-        )}
-      </MenuButton>
-      <ContextMenu aria-label={item.label} {...menu}>
-        <Template {...menu} items={items} />
-      </ContextMenu>
-    </>
+            {toMenuItems(items)}
+          </MenuContent>
+        </Menu>
+      </MenuProvider>
+    </EventBoundary>
   );
 }
 
@@ -98,40 +107,47 @@ function ToolbarMenu(props: Props) {
 
   return (
     <TooltipProvider>
-      <FlexibleWrapper>
-        {items.map((item, index) => {
-          if (item.name === "separator" && item.visible !== false) {
-            return <ToolbarSeparator key={index} />;
-          }
-          if (item.visible === false || (!item.skipIcon && !item.icon)) {
-            return null;
-          }
-          const isActive = item.active ? item.active(state) : false;
+      <Toolbar.Root asChild>
+        <FlexibleWrapper>
+          {items.map((item, index) => {
+            if (item.name === "separator" && item.visible !== false) {
+              return <ToolbarSeparator key={index} />;
+            }
+            if (item.visible === false || (!item.skipIcon && !item.icon)) {
+              return null;
+            }
+            const isActive = item.active ? item.active(state) : false;
 
-          return (
-            <Tooltip
-              key={index}
-              shortcut={item.shortcut}
-              content={item.label === item.tooltip ? undefined : item.tooltip}
-            >
-              {item.name === "dimensions" ? (
-                <MediaDimension key={index} />
-              ) : item.children ? (
-                <ToolbarDropdown active={isActive && !item.label} item={item} />
-              ) : (
-                <ToolbarButton
-                  onClick={handleClick(item)}
-                  active={isActive && !item.label}
-                  aria-label={item.label ? undefined : item.tooltip}
-                >
-                  {item.label && <Label>{item.label}</Label>}
-                  {item.icon}
-                </ToolbarButton>
-              )}
-            </Tooltip>
-          );
-        })}
-      </FlexibleWrapper>
+            return (
+              <Tooltip
+                key={index}
+                shortcut={item.shortcut}
+                content={item.label === item.tooltip ? undefined : item.tooltip}
+              >
+                {item.name === "dimensions" ? (
+                  <MediaDimension key={index} />
+                ) : item.children ? (
+                  <ToolbarDropdown
+                    active={isActive && !item.label}
+                    item={item}
+                  />
+                ) : (
+                  <Toolbar.Button asChild>
+                    <ToolbarButton
+                      onClick={handleClick(item)}
+                      active={isActive && !item.label}
+                      aria-label={item.label ? undefined : item.tooltip}
+                    >
+                      {item.label && <Label>{item.label}</Label>}
+                      {item.icon}
+                    </ToolbarButton>
+                  </Toolbar.Button>
+                )}
+              </Tooltip>
+            );
+          })}
+        </FlexibleWrapper>
+      </Toolbar.Root>
     </TooltipProvider>
   );
 }

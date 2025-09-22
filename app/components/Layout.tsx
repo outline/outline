@@ -12,7 +12,6 @@ import SkipNavLink from "~/components/SkipNavLink";
 import env from "~/env";
 import useAutoRefresh from "~/hooks/useAutoRefresh";
 import useKeyDown from "~/hooks/useKeyDown";
-import { MenuProvider } from "~/hooks/useMenuContext";
 import useStores from "~/hooks/useStores";
 
 type Props = {
@@ -38,41 +37,39 @@ const Layout = React.forwardRef(function Layout_(
   });
 
   return (
-    <MenuProvider>
-      <Container column auto ref={ref}>
-        <Helmet>
-          <title>{title ? title : env.APP_NAME}</title>
-        </Helmet>
+    <Container column auto ref={ref}>
+      <Helmet>
+        <title>{title ? title : env.APP_NAME}</title>
+      </Helmet>
 
-        <SkipNavLink />
+      <SkipNavLink />
 
-        {ui.progressBarVisible && <LoadingIndicatorBar />}
+      {ui.progressBarVisible && <LoadingIndicatorBar />}
 
-        <Container auto>
-          <MenuProvider>{sidebar}</MenuProvider>
+      <Container auto>
+        {sidebar}
 
-          <SkipNavContent />
-          <Content
-            auto
-            justify="center"
-            $isResizing={ui.sidebarIsResizing}
-            $sidebarCollapsed={sidebarCollapsed}
-            $hasSidebar={!!sidebar}
-            style={
-              sidebarCollapsed
-                ? undefined
-                : {
-                    marginLeft: `${ui.sidebarWidth}px`,
-                  }
-            }
-          >
-            {children}
-          </Content>
+        <SkipNavContent />
+        <Content
+          auto
+          justify="center"
+          $isResizing={ui.sidebarIsResizing}
+          $sidebarCollapsed={sidebarCollapsed}
+          $hasSidebar={!!sidebar}
+          style={
+            sidebarCollapsed
+              ? undefined
+              : {
+                  marginLeft: `${ui.sidebarWidth}px`,
+                }
+          }
+        >
+          {children}
+        </Content>
 
-          {sidebarRight}
-        </Container>
+        {sidebarRight}
       </Container>
-    </MenuProvider>
+    </Container>
   );
 });
 

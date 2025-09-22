@@ -7,7 +7,6 @@ import { depths, s } from "@shared/styles";
 import { Avatar } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import useMenuContext from "~/hooks/useMenuContext";
 import useMobile from "~/hooks/useMobile";
 import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
@@ -41,11 +40,10 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
   const { ui } = useStores();
   const location = useLocation();
   const previousLocation = usePrevious(location);
-  const { isMenuOpen } = useMenuContext();
   const user = useCurrentUser({ rejectOnEmpty: false });
   const isMobile = useMobile();
   const width = ui.sidebarWidth;
-  const collapsed = ui.sidebarIsClosed && !isMenuOpen;
+  const collapsed = ui.sidebarIsClosed;
   const maxWidth = theme.sidebarMaxWidth;
   const minWidth = theme.sidebarMinWidth + 16; // padding
 

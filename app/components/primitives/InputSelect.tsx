@@ -3,7 +3,6 @@ import * as React from "react";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
 import { Props as ButtonProps } from "~/components/Button";
-import Separator from "~/components/ContextMenu/Separator";
 import { fadeAndSlideDown, fadeAndSlideUp } from "~/styles/animations";
 import {
   SelectItemIndicator,
@@ -98,6 +97,10 @@ const InputSelectSeparator = React.forwardRef<
   </InputSelectPrimitive.Separator>
 ));
 InputSelectSeparator.displayName = InputSelectPrimitive.Separator.displayName;
+
+const Separator = styled.hr`
+  margin: 6px 0;
+`;
 
 /** Styled components. */
 const StyledContent = styled(InputSelectPrimitive.Content)`

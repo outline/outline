@@ -104,7 +104,7 @@ const MenuContent = React.forwardRef<
 
   return (
     <Portal>
-      <Content ref={ref} {...rest} {...offsetProp} collisionPadding={6} asChild>
+      <Content ref={ref} {...offsetProp} {...rest} collisionPadding={6} asChild>
         <Components.MenuContent {...contentProps} hiddenScrollbars>
           {children}
         </Components.MenuContent>

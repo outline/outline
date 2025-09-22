@@ -2,8 +2,8 @@ import { transparentize } from "polished";
 import * as React from "react";
 import scrollIntoView from "scroll-into-view-if-needed";
 import styled from "styled-components";
-import MenuItem from "~/components/ContextMenu/MenuItem";
 import { usePortalContext } from "~/components/Portal";
+import { MenuButton, MenuLabel } from "~/components/primitives/components/Menu";
 
 export type Props = {
   /** Whether the item is selected */
@@ -53,17 +53,22 @@ function SuggestionsMenuItem({
   );
 
   return (
-    <MenuItem
+    <MenuButton
       ref={ref}
-      active={selected}
-      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      onClick={onClick}
       onPointerMove={disabled ? undefined : onPointerMove}
-      icon={icon}
+      $active={selected}
     >
-      {title}
-      {subtitle && <Subtitle $active={selected}>&middot; {subtitle}</Subtitle>}
-      {shortcut && <Shortcut $active={selected}>{shortcut}</Shortcut>}
-    </MenuItem>
+      {icon}
+      <MenuLabel>
+        {title}
+        {subtitle && (
+          <Subtitle $active={selected}>&middot; {subtitle}</Subtitle>
+        )}
+        {shortcut && <Shortcut $active={selected}>{shortcut}</Shortcut>}
+      </MenuLabel>
+    </MenuButton>
   );
 }
 

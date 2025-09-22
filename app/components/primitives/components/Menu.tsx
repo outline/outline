@@ -9,6 +9,7 @@ import { fadeAndScaleIn } from "~/styles/animations";
 
 type BaseMenuItemProps = {
   disabled?: boolean;
+  $active?: boolean;
   $dangerous?: boolean;
 };
 
@@ -45,6 +46,24 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
   }
 
   ${(props) =>
+    props.$active &&
+    !props.disabled &&
+    `
+    color: ${props.theme.accentText};
+    background: ${props.$dangerous ? props.theme.danger : props.theme.accent};
+    outline-color: ${
+      props.$dangerous ? props.theme.danger : props.theme.accent
+    };
+    box-shadow: none;
+    cursor: var(--pointer);
+
+    svg {
+      color: ${props.theme.accentText};
+      fill: ${props.theme.accentText};
+    }
+  `}
+
+  ${(props) =>
     !props.disabled &&
     `
     @media (hover: hover) {
@@ -58,7 +77,7 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
           };
           box-shadow: none;
           cursor: var(--pointer);
-    
+
           svg {
             color: ${props.theme.accentText};
             fill: ${props.theme.accentText};
