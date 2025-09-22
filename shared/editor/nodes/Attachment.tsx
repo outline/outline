@@ -23,7 +23,6 @@ export default class Attachment extends Node {
   }
 
   get rulePlugins() {
-    // to do: modify the rules plugin to include preview for PDFs
     return [attachmentsRule];
   }
 
@@ -261,10 +260,15 @@ export default class Attachment extends Node {
     if (node.attrs.preview) {
       attrs.push(`preview="${node.attrs.preview}"`);
 
-      if (node.attrs.width) {attrs.push(`width="${node.attrs.width}"`);}
-      if (node.attrs.height) {attrs.push(`height="${node.attrs.height}"`);}
-      if (node.attrs.layoutClass)
-        {attrs.push(`layoutClass="${node.attrs.layoutClass}"`);}
+      if (node.attrs.width) {
+        attrs.push(`width="${node.attrs.width}"`);
+      }
+      if (node.attrs.height) {
+        attrs.push(`height="${node.attrs.height}"`);
+      }
+      if (node.attrs.layoutClass) {
+        attrs.push(`layoutClass="${node.attrs.layoutClass}"`);
+      }
     }
 
     state.write(

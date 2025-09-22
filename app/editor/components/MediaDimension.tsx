@@ -9,8 +9,6 @@ import Input, { NativeInput, Outline } from "~/components/Input";
 import { useEditor } from "./EditorContext";
 import { useTranslation } from "react-i18next";
 
-// to do: make some modifications to make this more node agnostic
-// for better handling of other attachments
 type Dimension = {
   width: string;
   height: string;
@@ -28,7 +26,7 @@ export function MediaDimension() {
   const { state } = view;
   const { selection } = state;
 
-  // This component will be rendered only when the selection is image or video (NodeSelection types).
+  // This component will be rendered for specific media nodes like image, video or pdfs (NodeSelection types).
   const node = (selection as NodeSelection).node;
   const nodeType = node.type.name,
     width = node.attrs.width as number,
