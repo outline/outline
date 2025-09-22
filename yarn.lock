@@ -1904,10 +1904,10 @@
   dependencies:
     tslib "^2.0.0"
 
-"@dotenvx/dotenvx@^1.49.0":
-  version "1.49.0"
-  resolved "https://registry.yarnpkg.com/@dotenvx/dotenvx/-/dotenvx-1.49.0.tgz#221b96c39b85fe845f6c163b3521f92f2cb0132c"
-  integrity sha512-M1cyP6YstFQCjih54SAxCqHLMMi8QqV8tenpgGE48RTXWD7vfMYJiw/6xcCDpS2h28AcLpTsFCZA863Ge9yxzA==
+"@dotenvx/dotenvx@^1.50.1":
+  version "1.50.1"
+  resolved "https://registry.yarnpkg.com/@dotenvx/dotenvx/-/dotenvx-1.50.1.tgz#35279adc3dd228f4f0c0510fb06e7b73fded43da"
+  integrity sha512-0hymEluMsQwwukPcnF7IjhmgA6j2jaZtfOtFafOgeZi24BJHY1lHlqwD7dO46KF9WCfpBB3J5uAEwlgBOzAAxg==
   dependencies:
     commander "^11.1.0"
     dotenv "^17.2.1"
