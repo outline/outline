@@ -28,7 +28,7 @@ const isFlagEmojiSupported = (): boolean => {
     const CANVAS_WIDTH = 20;
     const textSize = Math.floor(CANVAS_HEIGHT / 2);
 
-    // Initialize convas context
+    // Initialize canvas context
     ctx.font = textSize + "px Arial, Sans-Serif";
     ctx.textBaseline = "top";
     ctx.canvas.width = CANVAS_WIDTH * 2;
@@ -56,7 +56,7 @@ const isFlagEmojiSupported = (): boolean => {
     }
 
     // Emoji has immutable color, so we check the color of the emoji in two different colors
-    // the result show be the same.
+    // the result should be the same.
     const x = CANVAS_WIDTH + ((i / 4) % CANVAS_WIDTH);
     const y = Math.floor(i / 4 / CANVAS_WIDTH);
     const b = ctx.getImageData(x, y, 1, 1).data;
@@ -215,7 +215,7 @@ export const search = ({
 };
 
 /**
- * Get am emoji's human-readable ID from its string.
+ * Get an emoji's human-readable ID from its string.
  *
  * @param emoji - The string representation of the emoji.
  * @returns The emoji id, if found.
