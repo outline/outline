@@ -327,7 +327,7 @@
     "@types/react-helmet": "^6.1.11",
     "@types/react-portal": "^4.0.7",
     "@types/react-router-dom": "^5.3.3",
-    "@types/react-virtualized-auto-sizer": "^1.0.4",
+    "@types/react-virtualized-auto-sizer": "^1.0.8",
     "@types/react-window": "^1.8.8",
     "@types/readable-stream": "^4.0.21",
     "@types/redis-info": "^3.0.3",
