@@ -104,7 +104,7 @@ class WebhookSubscription extends ParanoidModel<
   /**
    * Rotate the secret value. Does not persist to database.
    */
-  public async rotateSecret() {
+  public rotateSecret() {
     this.secret = `ol_whs_${randomString(32)}`;
   }
 
