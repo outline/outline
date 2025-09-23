@@ -17,6 +17,7 @@ import Logger from "~/utils/Logger";
 import { useEditor } from "./EditorContext";
 
 type Props = {
+  align?: "start" | "end" | "center";
   active?: boolean;
   children: React.ReactNode;
   width?: number;
@@ -35,16 +36,18 @@ const defaultPosition = {
 function usePosition({
   menuRef,
   active,
+  align = "center",
 }: {
   menuRef: React.RefObject<HTMLDivElement>;
   active?: boolean;
+  align?: Props["align"];
 }) {
   const { view } = useEditor();
   const { selection } = view.state;
-  const menuWidth = menuRef.current?.offsetWidth;
-  const menuHeight = menuRef.current?.offsetHeight;
+  const menuWidth = menuRef.current?.offsetWidth ?? 0;
+  const menuHeight = menuRef.current?.offsetHeight ?? 0;
 
-  if (!active || !menuWidth || !menuHeight || !menuRef.current) {
+  if (!active || !menuRef.current) {
     return defaultPosition;
   }
 
@@ -94,7 +97,7 @@ function usePosition({
       const element = view.nodeDOM(position);
       const bounds = (element as HTMLElement).getBoundingClientRect();
       selectionBounds.top = bounds.top;
-      selectionBounds.left = bounds.right - menuWidth;
+      selectionBounds.left = bounds.right;
       selectionBounds.right = bounds.right;
     }
   }
@@ -180,7 +183,11 @@ function usePosition({
     ),
     Math.max(
       Math.max(offsetParent.x, margin),
-      centerOfSelection - menuWidth / 2
+      align === "center"
+        ? centerOfSelection - menuWidth / 2
+        : align === "start"
+          ? selectionBounds.left
+          : selectionBounds.right
     )
   );
   const top = Math.max(
@@ -216,6 +223,7 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
   let position = usePosition({
     menuRef,
     active: props.active,
+    align: props.align,
   });
 
   if (isSelectingText) {
@@ -277,7 +285,7 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
           left: `${position.left}px`,
         }}
       >
-        {props.children}
+        <Background align={props.align}>{props.children}</Background>
       </Wrapper>
     </Portal>
   );
@@ -302,7 +310,7 @@ const arrow = (props: WrapperProps) =>
           border-radius: 3px;
           z-index: -1;
           position: absolute;
-          bottom: -2px;
+          bottom: -3px;
           left: calc(50% - ${props.$offset || 0}px);
           pointer-events: none;
         }
@@ -335,22 +343,42 @@ const MobileWrapper = styled.div`
   }
 `;
 
-const Wrapper = styled.div<WrapperProps>`
-  will-change: opacity, transform;
-  padding: 6px;
-  position: absolute;
-  z-index: ${depths.editorToolbar};
-  opacity: 0;
+const Background = styled.div<{ align: Props["align"] }>`
+  position: relative;
   background-color: ${s("menuBackground")};
   box-shadow: ${s("menuShadow")};
   border-radius: 4px;
+  height: 36px;
+  padding: 6px;
+
+  ${(props) =>
+    props.align === "start" &&
+    `
+    position: absolute;
+    left: 0;
+    bottom: 0;
+  `}
+
+  ${(props) =>
+    props.align === "end" &&
+    `
+    position: absolute;
+    right: 0;
+    bottom: 0;
+  `}
+`;
+
+const Wrapper = styled.div<WrapperProps>`
+  will-change: opacity, transform;
+  position: absolute;
+  z-index: ${depths.editorToolbar};
+  opacity: 0;
   transform: scale(0.95);
   transition:
     opacity 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275),
     transform 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
   transition-delay: 150ms;
   line-height: 0;
-  height: 36px;
   box-sizing: border-box;
   pointer-events: none;
   white-space: nowrap;

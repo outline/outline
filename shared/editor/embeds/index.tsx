@@ -31,14 +31,14 @@ export type EmbedProps = {
   };
 };
 
-const Img = styled(Image)<{ invertable?: boolean }>`
+const Img = styled(Image)<{ $invertable?: boolean }>`
   border-radius: 3px;
   margin: 3px;
   width: 18px;
   height: 18px;
 
   ${(props) =>
-    props.invertable &&
+    props.$invertable &&
     props.theme.isDark &&
     `
     filter: invert(1);
@@ -230,7 +230,7 @@ const embeds: EmbedDescriptor[] = [
     regexMatch: [new RegExp("^https://codepen.io/(.*?)/(pen|embed)/(.*)$")],
     transformMatch: (matches) =>
       `https://codepen.io/${matches[1]}/embed/${matches[3]}`,
-    icon: <Img src="/images/codepen.png" alt="Codepen" invertable />,
+    icon: <Img src="/images/codepen.png" alt="Codepen" $invertable />,
   }),
   new EmbedDescriptor({
     title: "DBDiagram",
@@ -293,7 +293,7 @@ const embeds: EmbedDescriptor[] = [
     keywords: "design prototyping",
     regexMatch: [new RegExp("^https://framer.cloud/(.*)$")],
     transformMatch: (matches) => matches[0],
-    icon: <Img src="/images/framer.png" alt="Framer" invertable />,
+    icon: <Img src="/images/framer.png" alt="Framer" $invertable />,
   }),
   new EmbedDescriptor({
     title: "GitHub Gist",
@@ -303,7 +303,7 @@ const embeds: EmbedDescriptor[] = [
         "^https://gist\\.github\\.com/([a-zA-Z\\d](?:[a-zA-Z\\d]|-(?=[a-zA-Z\\d])){0,38})/(.*)$"
       ),
     ],
-    icon: <Img src="/images/github-gist.png" alt="GitHub" invertable />,
+    icon: <Img src="/images/github-gist.png" alt="GitHub" $invertable />,
     component: Gist,
   }),
   new EmbedDescriptor({
@@ -464,7 +464,7 @@ const embeds: EmbedDescriptor[] = [
     keywords: "code",
     defaultHidden: true,
     regexMatch: [new RegExp("^https?://jsfiddle\\.net/(.*)/(.*)$")],
-    icon: <Img src="/images/jsfiddle.png" alt="JSFiddle" invertable />,
+    icon: <Img src="/images/jsfiddle.png" alt="JSFiddle" $invertable />,
     component: JSFiddle,
   }),
   new EmbedDescriptor({
@@ -609,7 +609,7 @@ const embeds: EmbedDescriptor[] = [
       new RegExp("^https?://(beta|www|old)\\.tldraw\\.com/[rsvopf]+/(.*)"),
     ],
     transformMatch: (matches: RegExpMatchArray) => matches[0],
-    icon: <Img src="/images/tldraw.png" alt="Tldraw" invertable />,
+    icon: <Img src="/images/tldraw.png" alt="Tldraw" $invertable />,
   }),
   new EmbedDescriptor({
     title: "Trello",
@@ -627,7 +627,7 @@ const embeds: EmbedDescriptor[] = [
       ),
     ],
     transformMatch: (matches: RegExpMatchArray) => matches[0],
-    icon: <Img src="/images/typeform.png" alt="Typeform" invertable />,
+    icon: <Img src="/images/typeform.png" alt="Typeform" $invertable />,
   }),
   new EmbedDescriptor({
     title: "Valtown",
@@ -635,7 +635,7 @@ const embeds: EmbedDescriptor[] = [
     regexMatch: [/^https?:\/\/(?:www.)?val\.town\/(?:v|embed)\/(.*)$/],
     transformMatch: (matches: RegExpMatchArray) =>
       `https://www.val.town/embed/${matches[1]}`,
-    icon: <Img src="/images/valtown.png" alt="Valtown" invertable />,
+    icon: <Img src="/images/valtown.png" alt="Valtown" $invertable />,
   }),
   new EmbedDescriptor({
     title: "Vimeo",

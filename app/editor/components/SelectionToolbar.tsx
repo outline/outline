@@ -199,9 +199,11 @@ export default function SelectionToolbar(props: Props) {
   const isNoticeSelection = isInNotice(state);
 
   let items: MenuItem[] = [];
+  let align: "center" | "start" | "end" = "center";
 
   if (isCodeSelection && selection.empty) {
     items = getCodeMenuItems(state, readOnly, dictionary);
+    align = "end";
   } else if (isTableSelection) {
     items = getTableMenuItems(state, dictionary);
   } else if (colIndex !== undefined) {
@@ -220,6 +222,7 @@ export default function SelectionToolbar(props: Props) {
     items = getReadOnlyMenuItems(state, !!canUpdate, dictionary);
   } else if (isNoticeSelection && selection.empty) {
     items = getNoticeMenuItems(state, readOnly, dictionary);
+    align = "end";
   } else {
     items = getFormattingMenuItems(state, isTemplate, dictionary);
   }
@@ -251,6 +254,7 @@ export default function SelectionToolbar(props: Props) {
 
   return (
     <FloatingToolbar
+      align={align}
       active={isActive}
       ref={menuRef}
       width={showLinkToolbar || isEmbedSelection ? 336 : undefined}
