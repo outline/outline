@@ -1,4 +1,5 @@
 import "./bootstrap";
+import * as readline from "readline";
 import { Transaction } from "sequelize";
 
 import {
@@ -10,7 +11,44 @@ import {
 
 import { sequelize } from "@server/storage/database";
 
+// Helper function to prompt user for input
+function askQuestion(question: string): Promise<string> {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => {
+      rl.close();
+      resolve(answer.trim().toLowerCase());
+    });
+  });
+}
+
+// Helper function to pause and wait for user confirmation
+async function waitForConfirmation(message: string): Promise<boolean> {
+  const answer = await askQuestion(`${message} (y/N): `);
+  return answer === "y" || answer === "yes";
+}
+
 export default async function main() {
+  console.log("🔐 Reset Encrypted Data Script");
+  console.log("This script will:");
+  console.log("- Delete all user authentication tokens");
+  console.log("- Rotate webhook signing secrets");
+  console.log("- Rotate OAuth client secrets");
+  console.log("- Rotate JWT secrets for all users (logging them out)");
+  console.log("");
+
+  const shouldContinue = await waitForConfirmation(
+    "⚠️  This will log out all users and invalidate tokens. Continue?"
+  );
+  if (!shouldContinue) {
+    console.log("❌ Operation cancelled.");
+    process.exit(0);
+  }
+
   await sequelize.transaction(async (transaction) => {
     await UserAuthentication.destroy({
       where: {},
