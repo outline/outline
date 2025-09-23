@@ -16,6 +16,7 @@ import { isRemoteTransaction } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
 import { NodeWithPos } from "../types";
 import type { Editor } from "../../../app/editor";
+import { LightboxImageFactory } from "../lib/Lightbox";
 
 type MermaidState = {
   decorationSet: DecorationSet;
@@ -336,7 +337,9 @@ export default function Mermaid({
               textSelection.from >= $pos.start() &&
               textSelection.to <= $pos.end();
             if (selected || editor.props.readOnly) {
-              editor.updateActiveLightbox($pos.before());
+              editor.updateActiveLightboxImage(
+                LightboxImageFactory.createLightboxImage(view, $pos.before())
+              );
               return true;
             }
 
