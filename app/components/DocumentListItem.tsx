@@ -94,7 +94,7 @@ function DocumentListItem(
     currentContext: locationSidebarContext,
   });
 
-  const contextMenuAction = useDocumentMenuAction({ document });
+  const contextMenuAction = useDocumentMenuAction({ documentId: document.id });
 
   return (
     <ActionContextProvider

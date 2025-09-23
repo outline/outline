@@ -17,7 +17,7 @@ import { useComputed } from "./useComputed";
 
 type Props = {
   /** The document to which the templates will be applied */
-  document: Document;
+  documentId: string;
   /** Callback to handle when a template is selected */
   onSelectTemplate?: (template: Document) => void;
 };
@@ -33,10 +33,14 @@ type Props = {
  * @returns An array of Action objects representing templates that can be applied
  * to the current document. Returns an empty array if no callback is provided.
  */
-export function useTemplateMenuActions({ document, onSelectTemplate }: Props) {
+export function useTemplateMenuActions({
+  documentId,
+  onSelectTemplate,
+}: Props) {
   const user = useCurrentUser();
   const { documents } = useStores();
   const { t } = useTranslation();
+  const document = documents.get(documentId);
 
   const templateToAction = useCallback(
     (template: Document): ActionV2 =>
@@ -70,7 +74,7 @@ export function useTemplateMenuActions({ document, onSelectTemplate }: Props) {
       .filter(
         (template) =>
           !template.isWorkspaceTemplate &&
-          template.collectionId === document.collectionId
+          template.collectionId === document?.collectionId
       )
       .map(templateToAction);
 

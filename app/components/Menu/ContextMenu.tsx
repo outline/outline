@@ -11,7 +11,7 @@ import { MenuProvider } from "~/components/primitives/Menu/MenuContext";
 
 type Props = {
   /** Root action with children representing the menu items */
-  action: ActionV2WithChildren;
+  action?: ActionV2WithChildren;
   /** Trigger for the menu */
   children: React.ReactNode;
   /** ARIA label for the menu */
@@ -35,10 +35,10 @@ export const ContextMenu = observer(
         return [];
       }
 
-      return (action.children as ActionV2Variant[]).map((childAction) =>
-        actionV2ToMenuItem(childAction, actionContext)
+      return ((action?.children as ActionV2Variant[]) ?? []).map(
+        (childAction) => actionV2ToMenuItem(childAction, actionContext)
       );
-    }, [open, action.children, actionContext]);
+    }, [open, action?.children, actionContext]);
 
     const handleOpenChange = React.useCallback(
       (open: boolean) => {
@@ -68,7 +68,7 @@ export const ContextMenu = observer(
       []
     );
 
-    if (isMobile) {
+    if (isMobile || !action || menuItems.length === 0) {
       return <>{children}</>;
     }
 

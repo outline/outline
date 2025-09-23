@@ -28,10 +28,172 @@ import SidebarContext, {
   starredSidebarContext,
 } from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
+import { ActionContextProvider } from "~/hooks/useActionContext";
+import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
+import { type ConnectDragSource } from "react-dnd";
 
 type Props = {
   star: Star;
 };
+
+type StarredDocumentLinkProps = {
+  star: Star;
+  documentId: string;
+  expanded: boolean;
+  sidebarContext: SidebarContextType;
+  isDragging: boolean;
+  handleDisclosureClick: (ev?: React.MouseEvent<HTMLButtonElement>) => void;
+  handlePrefetch: () => void;
+  icon: React.ReactNode;
+  label: React.ReactNode;
+  menuOpen: boolean;
+  handleMenuOpen: () => void;
+  handleMenuClose: () => void;
+  draggableRef: ConnectDragSource;
+  cursor: React.ReactNode;
+};
+
+type StarredCollectionLinkProps = {
+  star: Star;
+  collection: any;
+  expanded: boolean;
+  sidebarContext: SidebarContextType;
+  isDragging: boolean;
+  handleDisclosureClick: (ev?: React.MouseEvent<HTMLButtonElement>) => void;
+  draggableRef: ConnectDragSource;
+  cursor: React.ReactNode;
+  displayChildDocuments: boolean;
+  reorderStarProps: any;
+};
+
+function StarredDocumentLink({
+  star,
+  documentId,
+  expanded,
+  sidebarContext,
+  isDragging,
+  handleDisclosureClick,
+  handlePrefetch,
+  icon,
+  label,
+  menuOpen,
+  handleMenuOpen,
+  handleMenuClose,
+  draggableRef,
+  cursor,
+}: StarredDocumentLinkProps) {
+  const { collections, documents } = useStores();
+
+  const document = documents.get(documentId);
+  if (!document) {
+    return null;
+  }
+
+  const documentCollection = document.collectionId
+    ? collections.get(document.collectionId)
+    : undefined;
+  const childDocuments = documentCollection
+    ? documentCollection.getChildrenForDocument(documentId)
+    : [];
+  const hasChildDocuments = childDocuments.length > 0;
+  const displayChildDocuments = expanded && !isDragging;
+  const contextMenuAction = useDocumentMenuAction({ documentId: document.id });
+
+  return (
+    <ActionContextProvider
+      value={{
+        activeDocumentId: document.id,
+      }}
+    >
+      <Draggable key={star.id} ref={draggableRef} $isDragging={isDragging}>
+        <SidebarLink
+          depth={0}
+          to={{
+            pathname: document.url,
+            state: { sidebarContext },
+          }}
+          expanded={hasChildDocuments && !isDragging ? expanded : undefined}
+          onDisclosureClick={handleDisclosureClick}
+          onClickIntent={handlePrefetch}
+          contextAction={contextMenuAction}
+          icon={icon}
+          isActive={(
+            match,
+            location: Location<{ sidebarContext?: SidebarContextType }>
+          ) => !!match && location.state?.sidebarContext === sidebarContext}
+          label={label}
+          exact={false}
+          showActions={menuOpen}
+          menu={
+            document && !isDragging ? (
+              <Fade>
+                <DocumentMenu
+                  document={document}
+                  onOpen={handleMenuOpen}
+                  onClose={handleMenuClose}
+                />
+              </Fade>
+            ) : undefined
+          }
+        />
+      </Draggable>
+      <SidebarContext.Provider value={sidebarContext}>
+        <Relative>
+          <Folder expanded={displayChildDocuments}>
+            {childDocuments.map((node, index) => (
+              <DocumentLink
+                key={node.id}
+                node={node}
+                collection={documentCollection}
+                activeDocument={documents.active}
+                prefetchDocument={documents.prefetchDocument}
+                isDraft={node.isDraft}
+                depth={2}
+                index={index}
+              />
+            ))}
+          </Folder>
+          {cursor}
+        </Relative>
+      </SidebarContext.Provider>
+    </ActionContextProvider>
+  );
+}
+
+function StarredCollectionLink({
+  star,
+  collection,
+  sidebarContext,
+  isDragging,
+  handleDisclosureClick,
+  draggableRef,
+  cursor,
+  displayChildDocuments,
+  reorderStarProps,
+}: StarredCollectionLinkProps) {
+  const { documents } = useStores();
+
+  return (
+    <SidebarContext.Provider value={sidebarContext}>
+      <Draggable key={star?.id} ref={draggableRef} $isDragging={isDragging}>
+        <CollectionLink
+          collection={collection}
+          expanded={isDragging ? undefined : displayChildDocuments}
+          activeDocument={documents.active}
+          onDisclosureClick={handleDisclosureClick}
+          isDraggingAnyCollection={reorderStarProps.isDragging}
+        />
+      </Draggable>
+      <Relative>
+        <CollectionLinkChildren
+          collection={collection}
+          expanded={displayChildDocuments}
+        />
+        {cursor}
+      </Relative>
+    </SidebarContext.Provider>
+  );
+}
 
 function StarredLink({ star }: Props) {
   const theme = useTheme();
@@ -123,95 +285,40 @@ function StarredLink({ star }: Props) {
   );
 
   if (documentId) {
-    const document = documents.get(documentId);
-    if (!document) {
-      return null;
-    }
-
-    const documentCollection = document.collectionId
-      ? collections.get(document.collectionId)
-      : undefined;
-    const childDocuments = documentCollection
-      ? documentCollection.getChildrenForDocument(documentId)
-      : [];
-    const hasChildDocuments = childDocuments.length > 0;
-
     return (
-      <>
-        <Draggable key={star.id} ref={draggableRef} $isDragging={isDragging}>
-          <SidebarLink
-            depth={0}
-            to={{
-              pathname: document.url,
-              state: { sidebarContext },
-            }}
-            expanded={hasChildDocuments && !isDragging ? expanded : undefined}
-            onDisclosureClick={handleDisclosureClick}
-            onClickIntent={handlePrefetch}
-            icon={icon}
-            isActive={(
-              match,
-              location: Location<{ sidebarContext?: SidebarContextType }>
-            ) => !!match && location.state?.sidebarContext === sidebarContext}
-            label={label}
-            exact={false}
-            showActions={menuOpen}
-            menu={
-              document && !isDragging ? (
-                <Fade>
-                  <DocumentMenu
-                    document={document}
-                    onOpen={handleMenuOpen}
-                    onClose={handleMenuClose}
-                  />
-                </Fade>
-              ) : undefined
-            }
-          />
-        </Draggable>
-        <SidebarContext.Provider value={sidebarContext}>
-          <Relative>
-            <Folder expanded={displayChildDocuments}>
-              {childDocuments.map((node, index) => (
-                <DocumentLink
-                  key={node.id}
-                  node={node}
-                  collection={documentCollection}
-                  activeDocument={documents.active}
-                  prefetchDocument={documents.prefetchDocument}
-                  isDraft={node.isDraft}
-                  depth={2}
-                  index={index}
-                />
-              ))}
-            </Folder>
-            {cursor}
-          </Relative>
-        </SidebarContext.Provider>
-      </>
+      <StarredDocumentLink
+        star={star}
+        documentId={documentId}
+        expanded={expanded}
+        sidebarContext={sidebarContext}
+        isDragging={isDragging}
+        handleDisclosureClick={handleDisclosureClick}
+        handlePrefetch={handlePrefetch}
+        icon={icon}
+        label={label}
+        menuOpen={menuOpen}
+        handleMenuOpen={handleMenuOpen}
+        handleMenuClose={handleMenuClose}
+        draggableRef={draggableRef}
+        cursor={cursor}
+      />
     );
   }
 
   if (collection) {
     return (
-      <SidebarContext.Provider value={sidebarContext}>
-        <Draggable key={star?.id} ref={draggableRef} $isDragging={isDragging}>
-          <CollectionLink
-            collection={collection}
-            expanded={isDragging ? undefined : displayChildDocuments}
-            activeDocument={documents.active}
-            onDisclosureClick={handleDisclosureClick}
-            isDraggingAnyCollection={reorderStarProps.isDragging}
-          />
-        </Draggable>
-        <Relative>
-          <CollectionLinkChildren
-            collection={collection}
-            expanded={displayChildDocuments}
-          />
-          {cursor}
-        </Relative>
-      </SidebarContext.Provider>
+      <StarredCollectionLink
+        star={star}
+        collection={collection}
+        expanded={expanded}
+        sidebarContext={sidebarContext}
+        isDragging={isDragging}
+        handleDisclosureClick={handleDisclosureClick}
+        draggableRef={draggableRef}
+        cursor={cursor}
+        displayChildDocuments={displayChildDocuments}
+        reorderStarProps={reorderStarProps}
+      />
     );
   }
 
