@@ -55,7 +55,7 @@ export function redirectTo(url: string) {
 export const isAllowedLoginRedirect = (input: string) => {
   const path = input.split("?")[0].split("#")[0];
   return (
-    !["/", "/create", "/home", "/logout"].includes(path) &&
+    !["/", "/create", "/home", "/logout", "/desktop-redirect"].includes(path) &&
     !path.startsWith("/auth/") &&
     !path.startsWith("/s/")
   );
