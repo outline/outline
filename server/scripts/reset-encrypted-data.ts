@@ -1,12 +1,13 @@
 import "./bootstrap";
 import { Transaction } from "sequelize";
+
 import {
-  IntegrationAuthentication,
   OAuthClient,
   User,
   UserAuthentication,
   WebhookSubscription,
 } from "@server/models";
+
 import { sequelize } from "@server/storage/database";
 
 export default async function main() {
