@@ -11,7 +11,7 @@ export abstract class LightboxImage {
 
   constructor() {}
 
-  public abstract getElement(): Element;
+  public abstract getElement(): Element | null | undefined;
   public abstract getSrc(): string;
   public abstract getAlt(): string;
   public abstract getPos(): number;
@@ -28,7 +28,7 @@ class LightboxRegularImage extends LightboxImage {
   }
 
   getElement() {
-    return this.element.querySelector("img") as HTMLImageElement;
+    return this.element.querySelector("img");
   }
 
   getSrc() {
@@ -71,7 +71,7 @@ class LightboxMermaidImage extends LightboxImage {
   }
 
   getElement() {
-    return this.element.nextElementSibling?.firstElementChild as SVGElement;
+    return this.element.nextElementSibling?.firstElementChild;
   }
 
   getSrc() {
