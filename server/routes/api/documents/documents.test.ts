@@ -4432,7 +4432,7 @@ describe("#documents.delete", () => {
     expect(deletedDoc?.deletedAt).not.toBe(null);
   });
 
-  it("should allow permanently deleting a document", async () => {
+  it("should allow permanently deleting a document as admin", async () => {
     const user = await buildAdmin();
     const document = await buildDocument({
       userId: user.id,
@@ -4454,6 +4454,31 @@ describe("#documents.delete", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.success).toEqual(true);
+  });
+
+  it("should not allow permanently deleting a document as non-admin", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+    });
+    await server.post("/api/documents.delete", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+      },
+    });
+    const res = await server.post("/api/documents.delete", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        permanent: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(403);
+    expect(body.message).toEqual("Authorization required");
   });
 
   it("should allow deleting document without collection", async () => {
