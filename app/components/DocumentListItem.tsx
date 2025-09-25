@@ -22,10 +22,13 @@ import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
-import usePolicy from "~/hooks/usePolicy";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { documentPath } from "~/utils/routeHelpers";
 import { determineSidebarContext } from "./Sidebar/components/SidebarContext";
+import { ActionContextProvider } from "~/hooks/useActionContext";
+import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
+import { ContextMenu } from "./Menu/ContextMenu";
+import useStores from "~/hooks/useStores";
 
 type Props = {
   document: Document;
@@ -34,7 +37,6 @@ type Props = {
   showParentDocuments?: boolean;
   showCollection?: boolean;
   showPublished?: boolean;
-  showPin?: boolean;
   showDraft?: boolean;
 };
 
@@ -51,7 +53,7 @@ function DocumentListItem(
 ) {
   const { t } = useTranslation();
   const user = useCurrentUser();
-  const can = usePolicy(props.document);
+  const { userMemberships, groupMemberships } = useStores();
   const locationSidebarContext = useLocationSidebarContext();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
 
@@ -69,7 +71,6 @@ function DocumentListItem(
     showParentDocuments,
     showCollection,
     showPublished,
-    showPin,
     showDraft = true,
     highlight,
     context,
@@ -79,82 +80,107 @@ function DocumentListItem(
     !!highlight &&
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
 
+  const isShared = !!(
+    userMemberships.getByDocumentId(document.id) ||
+    groupMemberships.getByDocumentId(document.id)
+  );
+
   const sidebarContext = determineSidebarContext({
     document,
     user,
     currentContext: locationSidebarContext,
   });
 
-  return (
-    <DocumentLink
-      ref={itemRef}
-      dir={document.dir}
-      role="menuitem"
-      $isStarred={document.isStarred}
-      $menuOpen={menuOpen}
-      to={{
-        pathname: documentPath(document),
-        state: {
-          title: document.titleWithDefault,
-          sidebarContext,
-        },
-      }}
-      {...rest}
-      {...rovingTabIndex}
-    >
-      <Content>
-        <Heading dir={document.dir}>
-          {document.icon && (
-            <>
-              <Icon value={document.icon} color={document.color ?? undefined} />
-              &nbsp;
-            </>
-          )}
-          <Title
-            text={document.titleWithDefault}
-            highlight={highlight}
-            dir={document.dir}
-          />
-          {document.isBadgedNew && document.createdBy?.id !== user.id && (
-            <Badge yellow>{t("New")}</Badge>
-          )}
-          {document.isDraft && showDraft && (
-            <Tooltip content={t("Only visible to you")} placement="top">
-              <Badge>{t("Draft")}</Badge>
-            </Tooltip>
-          )}
-          {(can.star || can.unstar) && (
-            <StarPositioner>
-              <StarButton document={document} />
-            </StarPositioner>
-          )}
-        </Heading>
+  const contextMenuAction = useDocumentMenuAction({ document });
 
-        {!queryIsInTitle && (
-          <ResultContext
-            text={context}
-            highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
-            processResult={replaceResultMarks}
-          />
-        )}
-        <DocumentMeta
-          document={document}
-          showCollection={showCollection}
-          showPublished={showPublished}
-          showParentDocuments={showParentDocuments}
-          showLastViewed
-        />
-      </Content>
-      <Actions>
-        <DocumentMenu
-          document={document}
-          showPin={showPin}
-          onOpen={handleMenuOpen}
-          onClose={handleMenuClose}
-          modal={false}
-        />
-      </Actions>
-    </DocumentLink>
+  return (
+    <ActionContextProvider
+      value={{
+        activeDocumentId: document.id,
+        activeCollectionId:
+          !isShared && document.collectionId
+            ? document.collectionId
+            : undefined,
+      }}
+    >
+      <ContextMenu
+        action={contextMenuAction}
+        ariaLabel={t("Document options")}
+        onOpen={handleMenuOpen}
+        onClose={handleMenuClose}
+      >
+        <DocumentLink
+          ref={itemRef}
+          dir={document.dir}
+          $isStarred={document.isStarred}
+          $menuOpen={menuOpen}
+          to={{
+            pathname: documentPath(document),
+            state: {
+              title: document.titleWithDefault,
+              sidebarContext,
+            },
+          }}
+          {...rest}
+          {...rovingTabIndex}
+        >
+          <Content>
+            <Heading dir={document.dir}>
+              {document.icon && (
+                <>
+                  <Icon
+                    value={document.icon}
+                    color={document.color ?? undefined}
+                    initial={document.initial}
+                  />
+                  &nbsp;
+                </>
+              )}
+              <Title
+                text={document.titleWithDefault}
+                highlight={highlight}
+                dir={document.dir}
+              />
+              {document.isBadgedNew && document.createdBy?.id !== user.id && (
+                <Badge yellow>{t("New")}</Badge>
+              )}
+              {document.isDraft && showDraft && (
+                <Tooltip content={t("Only visible to you")} placement="top">
+                  <Badge>{t("Draft")}</Badge>
+                </Tooltip>
+              )}
+              {!document.isArchived && (
+                <StarPositioner>
+                  <StarButton document={document} />
+                </StarPositioner>
+              )}
+            </Heading>
+
+            {!queryIsInTitle && (
+              <ResultContext
+                text={context}
+                highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
+                processResult={replaceResultMarks}
+              />
+            )}
+            <DocumentMeta
+              document={document}
+              showCollection={showCollection}
+              showPublished={showPublished}
+              showParentDocuments={showParentDocuments}
+              showLastViewed
+            />
+          </Content>
+          <Actions>
+            <DocumentMenu
+              document={document}
+              onOpen={handleMenuOpen}
+              onClose={handleMenuClose}
+            />
+          </Actions>
+        </DocumentLink>
+      </ContextMenu>
+    </ActionContextProvider>
   );
 }
 
@@ -173,7 +199,9 @@ const Actions = styled(EventBoundary)`
   color: ${s("textSecondary")};
 
   ${NudeButton} {
-    &: ${hover}, &[aria-expanded= "true"] {
+    &:
+      ${hover},
+      &[aria-expanded= "true"] {
       background: ${s("sidebarControlHoverBackground")};
     }
   }
@@ -246,7 +274,7 @@ const DocumentLink = styled(Link)<{
     `}
 `;
 
-const Heading = styled.h3<{ rtl?: boolean }>`
+const Heading = styled.span<{ rtl?: boolean }>`
   display: flex;
   justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
   align-items: center;
@@ -256,6 +284,8 @@ const Heading = styled.h3<{ rtl?: boolean }>`
   color: ${s("text")};
   font-family: ${s("fontFamily")};
   font-weight: 500;
+  font-size: 20px;
+  line-height: 1.2;
 `;
 
 const StarPositioner = styled(Flex)`

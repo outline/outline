@@ -1,4 +1,3 @@
-import * as Popover from "@radix-ui/react-popover";
 import filter from "lodash/filter";
 import isEqual from "lodash/isEqual";
 import orderBy from "lodash/orderBy";
@@ -6,16 +5,18 @@ import uniq from "lodash/uniq";
 import { observer } from "mobx-react";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
-import { depths, s } from "@shared/styles";
 import Document from "~/models/Document";
 import { AvatarSize, AvatarWithPresence } from "~/components/Avatar";
 import DocumentViews from "~/components/DocumentViews";
 import Facepile from "~/components/Facepile";
 import NudeButton from "~/components/NudeButton";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "~/components/primitives/Popover";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
-import { fadeAndScaleIn } from "~/styles/animations";
 
 type Props = {
   /** The document to display live collaborators for */
@@ -23,21 +24,6 @@ type Props = {
   /** The maximum number of collaborators to display, defaults to 6 */
   limit?: number;
 };
-
-// Styled components to match the original Popover styling
-const StyledPopoverContent = styled(Popover.Content)`
-  animation: ${fadeAndScaleIn} 200ms ease;
-  transform-origin: 75% 0;
-  background: ${s("menuBackground")};
-  border-radius: 6px;
-  padding: 12px 24px;
-  max-height: 75vh;
-  box-shadow: ${s("menuShadow")};
-  z-index: ${depths.modal};
-  overflow-x: hidden;
-  overflow-y: auto;
-  outline: none;
-`;
 
 /**
  * Displays a list of live collaborators for a document, including their avatars
@@ -49,7 +35,6 @@ function Collaborators(props: Props) {
   const user = useCurrentUser();
   const currentUserId = user?.id;
   const [requestedUserIds, setRequestedUserIds] = useState<string[]>([]);
-  const [popoverOpen, setPopoverOpen] = useState(false);
   const { users, presence, ui } = useStores();
   const { document } = props;
   const { observingUserId } = ui;
@@ -116,11 +101,11 @@ function Collaborators(props: Props) {
   // Memoize onClick handler to avoid inline function creation
   const handleAvatarClick = useCallback(
     (
-        collaboratorId: string,
-        isPresent: boolean,
-        isObserving: boolean,
-        isObservable: boolean
-      ) =>
+      collaboratorId: string,
+      isPresent: boolean,
+      isObserving: boolean,
+      isObservable: boolean
+    ) =>
       (ev: React.MouseEvent) => {
         if (isObservable && isPresent) {
           ev.preventDefault();
@@ -147,6 +132,7 @@ function Collaborators(props: Props) {
           isEditing={isEditing}
           isObserving={isObserving}
           isCurrentUser={currentUserId === collaborator.id}
+          alt={t("Avatar of {{ name }}", { name: collaborator.name })}
           onClick={
             isObservable
               ? handleAvatarClick(
@@ -163,9 +149,13 @@ function Collaborators(props: Props) {
     [presentIds, editingIds, observingUserId, currentUserId, handleAvatarClick]
   );
 
+  if (!document.insightsEnabled) {
+    return null;
+  }
+
   return (
-    <Popover.Root open={popoverOpen} onOpenChange={setPopoverOpen}>
-      <Popover.Trigger asChild>
+    <Popover>
+      <PopoverTrigger>
         <NudeButton
           width={Math.min(collaborators.length, limit) * AvatarSize.Large}
           height={AvatarSize.Large}
@@ -178,19 +168,11 @@ function Collaborators(props: Props) {
             renderAvatar={renderAvatar}
           />
         </NudeButton>
-      </Popover.Trigger>
-      <Popover.Portal>
-        <StyledPopoverContent
-          side="bottom"
-          align="end"
-          sideOffset={0}
-          aria-label={t("Viewers")}
-          style={{ width: 300 }}
-        >
-          <DocumentViews document={document} />
-        </StyledPopoverContent>
-      </Popover.Portal>
-    </Popover.Root>
+      </PopoverTrigger>
+      <PopoverContent aria-label={t("Viewers")} side="bottom" align="end">
+        <DocumentViews document={document} />
+      </PopoverContent>
+    </Popover>
   );
 }
 

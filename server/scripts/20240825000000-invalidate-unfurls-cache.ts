@@ -18,7 +18,7 @@ const deleteKeys = async (keys: string[]): Promise<void> => {
   Keys.Total += keys.length;
 
   const pipeline = redis.pipeline();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any
   keys.forEach((key: any) => pipeline.del(key));
 
   const res = await pipeline.exec();

@@ -1,9 +1,8 @@
-import last from "lodash/last";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
-import { useHistory, useRouteMatch } from "react-router-dom";
+import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import Text from "@shared/components/Text";
 import { richExtensions, withComments } from "@shared/editor/nodes";
@@ -20,7 +19,7 @@ import Time from "~/components/Time";
 import { withUIExtensions } from "~/editor/extensions";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import useFocusedComment from "~/hooks/useFocusedComment";
+import { useFocusedComment } from "~/hooks/useFocusedComment";
 import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
@@ -34,6 +33,7 @@ import { decodeURIComponentSafe } from "~/utils/urls";
 import MultiplayerEditor from "./AsyncMultiplayerEditor";
 import DocumentMeta from "./DocumentMeta";
 import DocumentTitle from "./DocumentTitle";
+import first from "lodash/first";
 
 const extensions = withUIExtensions(withComments(richExtensions));
 
@@ -60,11 +60,11 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const titleRef = React.useRef<RefHandle>(null);
   const { t } = useTranslation();
   const match = useRouteMatch();
+  const { setFocusedCommentId } = useDocumentContext();
   const focusedComment = useFocusedComment();
-  const { ui, comments, collections } = useStores();
+  const { ui, comments } = useStores();
   const user = useCurrentUser({ rejectOnEmpty: false });
   const team = useCurrentTeam({ rejectOnEmpty: false });
-  const history = useHistory();
   const sidebarContext = useLocationSidebarContext();
   const params = useQuery();
   const {
@@ -79,16 +79,9 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     ...rest
   } = props;
   const can = usePolicy(document);
+  const commentingEnabled = !!team?.getPreference(TeamPreference.Commenting);
 
-  // Check collection-level commenting setting
-  const collection = document.collectionId
-    ? collections.get(document.collectionId)
-    : undefined;
-  const collectionCommentingEnabled =
-    collection?.canCreateComment ??
-    !!team?.getPreference(TeamPreference.Commenting);
-
-  const iconColor = document.color ?? (last(colorPalette) as string);
+  const iconColor = document.color ?? (first(colorPalette) as string);
   const childRef = React.useRef<HTMLDivElement>(null);
   const focusAtStart = React.useCallback(() => {
     if (ref.current) {
@@ -103,18 +96,11 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         (focusedComment.isResolved && !viewingResolved) ||
         (!focusedComment.isResolved && viewingResolved)
       ) {
-        history.replace({
-          search: focusedComment.isResolved ? "resolved=" : "",
-          pathname: location.pathname,
-          state: {
-            commentId: focusedComment.id,
-            sidebarContext,
-          },
-        });
+        setFocusedCommentId(focusedComment.id);
       }
       ui.set({ commentsExpanded: true });
     }
-  }, [focusedComment, ui, document.id, history, params, sidebarContext]);
+  }, [focusedComment, ui, document.id, params]);
 
   // Save document when blurring title, but delay so that if clicking on a
   // button this is allowed to execute first.
@@ -133,16 +119,6 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       focusAtStart();
     },
     [focusAtStart, ref]
-  );
-
-  const handleClickComment = React.useCallback(
-    (commentId: string) => {
-      history.replace({
-        pathname: window.location.pathname.replace(/\/history$/, ""),
-        state: { commentId, sidebarContext },
-      });
-    },
-    [history, sidebarContext]
   );
 
   // Create a Comment model in local store when a comment mark is created, this
@@ -164,13 +140,9 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       );
       comment.id = commentId;
       comments.add(comment);
-
-      history.replace({
-        pathname: window.location.pathname.replace(/\/history$/, ""),
-        state: { commentId, sidebarContext },
-      });
+      setFocusedCommentId(commentId);
     },
-    [comments, user?.id, props.id, history, sidebarContext]
+    [comments, user?.id, props.id]
   );
 
   // Soft delete the Comment model when associated mark is totally removed.
@@ -265,16 +237,14 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         shareId={shareId}
         userId={user?.id}
         focusedCommentId={focusedComment?.id}
-        onClickCommentMark={handleClickComment}
+        onClickCommentMark={
+          commentingEnabled && can.comment ? setFocusedCommentId : undefined
+        }
         onCreateCommentMark={
-          collectionCommentingEnabled && can.comment
-            ? handleDraftComment
-            : undefined
+          commentingEnabled && can.comment ? handleDraftComment : undefined
         }
         onDeleteCommentMark={
-          collectionCommentingEnabled && can.comment
-            ? handleRemoveComment
-            : undefined
+          commentingEnabled && can.comment ? handleRemoveComment : undefined
         }
         onInit={handleInit}
         onDestroy={handleDestroy}

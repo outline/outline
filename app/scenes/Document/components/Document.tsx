@@ -458,6 +458,11 @@ class DocumentScene extends React.Component<Props> {
       (isShare
         ? ui.tocVisible !== false
         : !(document instanceof Template) && ui.tocVisible === true);
+    const tocOffset =
+      tocPos === TOCPosition.Left
+        ? EditorStyleHelper.tocWidth / -2
+        : EditorStyleHelper.tocWidth / 2;
+
     const multiplayerEditor =
       !document.isArchived && !document.isDeleted && !revision && !isShare;
 
@@ -470,6 +475,10 @@ class DocumentScene extends React.Component<Props> {
       ? document.titleWithDefault.replace(document.icon!, "")
       : document.titleWithDefault;
     const favicon = hasEmojiInTitle ? emojiToUrl(document.icon!) : undefined;
+
+    const fullWidthTransformOffsetStyle = {
+      ["--full-width-transform-offset"]: `${document.fullWidth && showContents ? tocOffset : 0}px`,
+    } as React.CSSProperties;
 
     return (
       <ErrorBoundary showTitle>
@@ -532,7 +541,11 @@ class DocumentScene extends React.Component<Props> {
               onSelectTemplate={this.replaceSelection}
               onSave={this.onSave}
             />
-            <Main fullWidth={document.fullWidth} tocPosition={tocPos}>
+            <Main
+              fullWidth={document.fullWidth}
+              tocPosition={tocPos}
+              style={fullWidthTransformOffsetStyle}
+            >
               <React.Suspense
                 fallback={
                   <EditorContainer
@@ -744,7 +757,6 @@ const RevisionContainer = styled.div<RevisionContainerProps>`
 
 const Footer = styled.div`
   position: fixed;
-  width: 100%;
   bottom: 12px;
   right: 20px;
   text-align: right;
@@ -759,7 +771,7 @@ const Background = styled(Container)`
 `;
 
 const ReferencesWrapper = styled.div`
-  margin-top: 16px;
+  margin: 12px 0;
 
   @media print {
     display: none;

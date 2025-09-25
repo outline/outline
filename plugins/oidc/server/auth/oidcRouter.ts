@@ -5,6 +5,7 @@ import Router from "koa-router";
 import get from "lodash/get";
 import { slugifyDomain } from "@shared/utils/domains";
 import { parseEmail } from "@shared/utils/email";
+import { isBase64Url } from "@shared/utils/urls";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import {
   OIDCMalformedUserInfoError,
@@ -23,12 +24,14 @@ import {
 import config from "../../plugin.json";
 import env from "../env";
 import { OIDCStrategy } from "./OIDCStrategy";
+import { createContext } from "@server/context";
 
 export interface OIDCEndpoints {
   authorizationURL: string;
   tokenURL: string;
   userInfoURL: string;
   logoutURL?: string;
+  pkce?: boolean;
 }
 
 /**
@@ -52,9 +55,9 @@ export function createOIDCRouter(
         passReqToCallback: true,
         scope: env.OIDC_SCOPES,
         // @ts-expect-error custom state store
-        store: new StateStore(),
+        store: new StateStore(endpoints.pkce),
         state: true,
-        pkce: false,
+        pkce: endpoints.pkce ?? false,
       },
       // OpenID Connect standard profile claims can be found in the official
       // specification.
@@ -63,7 +66,7 @@ export function createOIDCRouter(
       // Any claim supplied in response to the userinfo request will be
       // available on the `profile` parameter
       async function (
-        ctx: Context,
+        context: Context,
         accessToken: string,
         refreshToken: string,
         params: { expires_in: number; id_token: string },
@@ -116,13 +119,13 @@ export function createOIDCRouter(
             );
           }
 
-          const team = await getTeamFromContext(ctx);
-          const client = getClientFromContext(ctx);
+          const team = await getTeamFromContext(context);
+          const client = getClientFromContext(context);
           const { domain } = parseEmail(email);
 
           // Only a single OIDC provider is supported – find the existing, if any.
           const authenticationProvider = team
-            ? (await AuthenticationProvider.findOne({
+            ? ((await AuthenticationProvider.findOne({
                 where: {
                   name: "oidc",
                   teamId: team.id,
@@ -134,7 +137,7 @@ export function createOIDCRouter(
                   name: "oidc",
                   teamId: team.id,
                 },
-              }))
+              })))
             : undefined;
 
           // Derive a providerId from the OIDC location if there is no existing provider.
@@ -160,12 +163,31 @@ export function createOIDCRouter(
 
           if (!name) {
             throw AuthenticationError(
-              `Neither a ${env.OIDC_USERNAME_CLAIM}, name or username was returned in the profile parameter, but at least one is required.`
+              `Neither a ${env.OIDC_USERNAME_CLAIM}, "name" or "username" was returned in the profile loaded from ${endpoints.userInfoURL}, but at least one is required.`
+            );
+          }
+          if (!profileId) {
+            throw AuthenticationError(
+              `A user id was not returned in the profile loaded from ${endpoints.userInfoURL}, searched in "sub" and "id" fields.`
             );
           }
 
-          const result = await accountProvisioner({
-            ip: ctx.ip,
+          // Check if the picture field is a Base64 data URL and filter it out
+          // to avoid validation errors in the User model
+          let avatarUrl = profile.picture;
+          if (profile.picture && isBase64Url(profile.picture)) {
+            Logger.debug(
+              "authentication",
+              "Filtering out Base64 data URL from avatar",
+              {
+                email,
+              }
+            );
+            avatarUrl = null;
+          }
+
+          const ctx = createContext({ ip: context.ip });
+          const result = await accountProvisioner(ctx, {
             team: {
               teamId: team?.id,
               name: env.APP_NAME,
@@ -175,7 +197,7 @@ export function createOIDCRouter(
             user: {
               name,
               email,
-              avatarUrl: profile.picture,
+              avatarUrl,
             },
             authenticationProvider: {
               name: config.id,

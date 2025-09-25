@@ -1,4 +1,4 @@
-/* eslint-disable lines-between-class-members */
+/* oxlint-disable lines-between-class-members */
 import compact from "lodash/compact";
 import isNil from "lodash/isNil";
 import uniq from "lodash/uniq";
@@ -8,6 +8,7 @@ import type {
   InferCreationAttributes,
   NonNullFindOptions,
   SaveOptions,
+  ScopeOptions,
 } from "sequelize";
 import {
   Transaction,
@@ -80,8 +81,13 @@ const stateIfContentEmpty = Sequelize.literal(
 );
 
 type AdditionalFindOptions = {
+  /** The user ID to load associated permissions for. */
   userId?: string;
+  /** Whether to include the state column in the attributes. */
   includeState?: boolean;
+  /** Whether to views (default: true). */
+  includeViews?: boolean;
+  /** Whether to reject the query if no document is found. */
   rejectOnEmpty?: boolean | Error;
 };
 
@@ -396,6 +402,15 @@ class Document extends ArchivableModel<
     );
   }
 
+  /**
+   * Returns the key used to store the collaborators of a document in Redis.
+   * @param documentId The ID of the document.
+   * @returns Redis key for collaborators
+   */
+  static getCollaboratorKey(documentId: string) {
+    return `collaborators:${documentId}`;
+  }
+
   static getPath({ title, urlId }: { title: string; urlId: string }) {
     if (!title.length) {
       return `/doc/untitled-${urlId}`;
@@ -693,16 +708,25 @@ class Document extends ArchivableModel<
       return null;
     }
 
-    const { includeState, userId, ...rest } = options;
+    const {
+      includeViews = true,
+      includeState = false,
+      userId,
+      ...rest
+    } = options;
 
     // allow default preloading of collection membership if `userId` is passed in find options
     // almost every endpoint needs the collection membership to determine policy permissions.
     const scope = this.scope([
       "withDrafts",
       includeState ? "withState" : "withoutState",
-      {
-        method: ["withViews", userId],
-      },
+      ...((includeViews
+        ? [
+            {
+              method: ["withViews", userId],
+            },
+          ]
+        : []) as ScopeOptions[]),
       {
         method: ["withMembership", userId, rest.paranoid],
       },
@@ -757,14 +781,19 @@ class Document extends ArchivableModel<
     options: Omit<FindOptions<Document>, "where"> &
       Omit<AdditionalFindOptions, "rejectOnEmpty"> = {}
   ): Promise<Document[]> {
-    const { userId, ...rest } = options;
+    const { userId, includeViews = true, includeState, ...rest } = options;
 
     const user = userId ? await User.findByPk(userId) : null;
     const documents = await this.scope([
       "withDrafts",
-      {
-        method: ["withViews", userId],
-      },
+      includeState ? "withState" : "withoutState",
+      ...((includeViews
+        ? [
+            {
+              method: ["withViews", userId],
+            },
+          ]
+        : []) as ScopeOptions[]),
       {
         method: ["withMembership", userId],
       },

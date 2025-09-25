@@ -50,6 +50,7 @@ import IsFQDN from "./validators/IsFQDN";
 import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
+import { SkipChangeset } from "./decorators/Changeset";
 
 @Scopes(() => ({
   withDomains: {
@@ -90,10 +91,14 @@ class Team extends ParanoidModel<
   @IsLowercase
   @Unique
   @Length({
-    min: 2,
-    max: env.isCloudHosted ? 32 : 255,
-    msg: `subdomain must be between 2 and ${
-      env.isCloudHosted ? 32 : 255
+    min: TeamValidation.minSubdomainLength,
+    max: env.isCloudHosted
+      ? TeamValidation.maxSubdomainLength
+      : TeamValidation.maxSubdomainSelfHostedLength,
+    msg: `subdomain must be between ${TeamValidation.minSubdomainLength} and ${
+      env.isCloudHosted
+        ? TeamValidation.maxSubdomainLength
+        : TeamValidation.maxSubdomainSelfHostedLength
     } characters`,
   })
   @Is({
@@ -170,6 +175,7 @@ class Team extends ParanoidModel<
   /** Approximate size in bytes of all attachments in the team. */
   @IsNumeric
   @Column(DataType.BIGINT)
+  @SkipChangeset
   approximateTotalAttachmentsSize: number;
 
   @AllowNull
@@ -182,9 +188,11 @@ class Team extends ParanoidModel<
 
   @IsDate
   @Column
+  @SkipChangeset
   lastActiveAt: Date | null;
 
   @Column(DataType.ARRAY(DataType.STRING))
+  @SkipChangeset
   previousSubdomains: string[] | null;
 
   // getters

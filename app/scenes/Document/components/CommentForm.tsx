@@ -53,6 +53,8 @@ type Props = {
   onFocus?: () => void;
   /** Callback when the editor is blurred */
   onBlur?: () => void;
+  /** Callback when user presses up arrow at the start of the editor */
+  onUpArrowAtStart?: () => void;
 };
 
 function CommentForm({
@@ -63,6 +65,7 @@ function CommentForm({
   onSaveDraft,
   onFocus,
   onBlur,
+  onUpArrowAtStart,
   autoFocus,
   standalone,
   placeholder,
@@ -227,6 +230,13 @@ function CommentForm({
     file.current?.click();
   };
 
+  const handleUpArrowAtStart = () => {
+    if (onUpArrowAtStart) {
+      onUpArrowAtStart();
+      setInputFocused(false);
+    }
+  };
+
   // Focus the editor when it's a new comment just mounted, after a delay as the
   // editor is mounted within a fade transition.
   React.useEffect(() => {
@@ -296,6 +306,7 @@ function CommentForm({
             onSave={handleSave}
             onFocus={handleFocus}
             onBlur={handleBlur}
+            onUpArrowAtStart={handleUpArrowAtStart}
             maxLength={CommentValidation.maxLength}
             placeholder={
               placeholder ||

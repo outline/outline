@@ -1,0 +1,27 @@
+{
+  "extends": ["../.oxlintrc.json"],
+  "plugins": ["oxc", "eslint", "typescript", "react"],
+  "overrides": [
+    {
+      "files": ["**/*.{jsx,tsx}"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["mime-types"],
+                "message": "Do not use the mime-types package in the browser."
+              }
+            ]
+          }
+        ]
+      },
+      "plugins": ["import"]
+    }
+  ],
+  "env": {
+    "jest": true,
+    "browser": true
+  }
+}

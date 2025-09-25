@@ -11,7 +11,7 @@ import Model from "./Model";
 
 class IdModel<
   TModelAttributes extends object = any,
-  TCreationAttributes extends object = TModelAttributes
+  TCreationAttributes extends object = TModelAttributes,
 > extends Model<TModelAttributes, TCreationAttributes> {
   @IsUUID(4)
   @PrimaryKey

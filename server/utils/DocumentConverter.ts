@@ -20,6 +20,16 @@ export class DocumentConverter {
     fileName: string,
     mimeType: string
   ) {
+    return (
+      await this.internalConvertToMarkdown(content, fileName, mimeType)
+    ).trim();
+  }
+
+  private static async internalConvertToMarkdown(
+    content: Buffer | string,
+    fileName: string,
+    mimeType: string
+  ) {
     // First try to convert the file based on the mime type.
     switch (mimeType) {
       case "application/msword":

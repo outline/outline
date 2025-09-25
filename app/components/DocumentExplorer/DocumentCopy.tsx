@@ -1,4 +1,3 @@
-import flatten from "lodash/flatten";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
@@ -11,7 +10,6 @@ import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useCollectionTrees from "~/hooks/useCollectionTrees";
 import useStores from "~/hooks/useStores";
-import { flattenTree } from "~/utils/tree";
 import { FlexContainer, Footer } from "./Components";
 import DocumentExplorer from "./DocumentExplorer";
 
@@ -32,7 +30,7 @@ function DocumentCopy({ document, onSubmit }: Props) {
   );
 
   const items = React.useMemo(() => {
-    const nodes = flatten(collectionTrees.map(flattenTree)).filter((node) =>
+    const nodes = collectionTrees.filter((node) =>
       node.collectionId
         ? policies.get(node.collectionId)?.abilities.createDocument
         : true
@@ -122,9 +120,11 @@ function DocumentCopy({ document, onSubmit }: Props) {
 }
 
 const OptionsContainer = styled.div`
-  margin: 16px 0 8px 0;
-  padding-left: 24px;
-  padding-right: 24px;
+  border-top: 1px solid ${(props) => props.theme.horizontalRule};
+  padding: 16px 24px 0;
+  margin-bottom: -1px;
+  background: ${(props) => props.theme.modalBackground};
+  z-index: 1;
 `;
 
 export default observer(DocumentCopy);

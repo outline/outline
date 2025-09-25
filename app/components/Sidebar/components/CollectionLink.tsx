@@ -150,6 +150,7 @@ const CollectionLink: React.FC<Props> = ({
                   {can.createDocument && (
                     <NudeButton
                       tooltip={{ content: t("New doc"), delay: 500 }}
+                      aria-label={t("New nested document")}
                       onClick={(ev) => {
                         ev.preventDefault();
                         setIsAddingNewChild();

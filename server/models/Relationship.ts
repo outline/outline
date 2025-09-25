@@ -13,6 +13,7 @@ import Fix from "./decorators/Fix";
 
 export enum RelationshipType {
   Backlink = "backlink",
+  Similar = "similar",
 }
 
 @Table({ tableName: "relationships", modelName: "relationship" })
@@ -54,6 +55,7 @@ class Relationship extends IdModel<
    *
    * @param documentId The document ID to find backlinks for
    * @param user The user to check access for
+   * @deprecated
    */
   public static async findSourceDocumentIdsForUser(
     documentId: string,
@@ -69,7 +71,12 @@ class Relationship extends IdModel<
 
     const documents = await Document.findByIds(
       relationships.map((relationship) => relationship.reverseDocumentId),
-      { userId: user.id }
+      {
+        attributes: ["id"],
+        userId: user.id,
+        includeState: false,
+        includeViews: false,
+      }
     );
 
     return documents.map((doc) => doc.id);

@@ -37,7 +37,7 @@ type Props = {
 };
 
 export default abstract class APIImportTask<
-  T extends ImportableIntegrationService
+  T extends ImportableIntegrationService,
 > extends BaseTask<Props> {
   /**
    * Run the import task.

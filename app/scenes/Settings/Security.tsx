@@ -10,7 +10,7 @@ import { TeamPreference } from "@shared/types";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
-import { InputSelectNew, Option } from "~/components/InputSelectNew";
+import { InputSelect, Option } from "~/components/InputSelect";
 import PluginIcon from "~/components/PluginIcon";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
@@ -295,11 +295,10 @@ function Security() {
           )}
           border={false}
         >
-          <InputSelectNew
+          <InputSelect
             value={data.defaultUserRole}
             options={userRoleOptions}
             onChange={handleDefaultRoleChange}
-            ariaLabel={t("Default role")}
             label={t("Default role")}
             hideLabel
             short

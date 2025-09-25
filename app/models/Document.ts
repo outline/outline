@@ -250,6 +250,14 @@ export default class Document extends ArchivableModel implements Searchable {
     return isRTL(this.title);
   }
 
+  /**
+   * Returns the initial character of the document title in uppercase
+   */
+  @computed
+  get initial(): string {
+    return (this.title?.charAt(0) ?? "?").toUpperCase();
+  }
+
   @computed
   get path(): string {
     if (!this.title) {
@@ -312,7 +320,7 @@ export default class Document extends ArchivableModel implements Searchable {
   get isPubliclyShared(): boolean {
     const { shares, auth } = this.store.rootStore;
     const share = shares.getByDocumentId(this.id);
-    const sharedParent = shares.getByDocumentParents(this.id);
+    const sharedParent = shares.getByDocumentParents(this);
 
     return !!(
       auth.team?.sharing !== false &&
@@ -433,6 +441,7 @@ export default class Document extends ArchivableModel implements Searchable {
   @action
   share = async () =>
     this.store.rootStore.shares.create({
+      type: "document",
       documentId: this.id,
     });
 
@@ -637,6 +646,28 @@ export default class Document extends ArchivableModel implements Searchable {
   }
 
   /**
+   * Returns all children of the document.
+   * This is determined by the collection structure, or the user/group memberships in case it's a shared document.
+   *
+   * @returns An array of NavigationNode objects.
+   */
+  @computed
+  get children(): NavigationNode[] {
+    const { userMemberships, groupMemberships } = this.store.rootStore;
+    const collection = this.collection;
+
+    const membership =
+      userMemberships.getByDocumentId(this.id) ??
+      groupMemberships.getByDocumentId(this.id);
+
+    return (
+      collection?.getChildrenForDocument(this.id) ??
+      membership?.getChildrenForDocument(this.id) ??
+      []
+    );
+  }
+
+  /**
    * Returns the markdown representation of the document derived from the ProseMirror data.
    *
    * @returns The markdown representation of the document as a string.
@@ -648,7 +679,13 @@ export default class Document extends ArchivableModel implements Searchable {
       nodes: extensionManager.nodes,
       marks: extensionManager.marks,
     });
-    const markdown = serializer.serialize(Node.fromJSON(schema, this.data), {
+
+    const doc = Node.fromJSON(
+      schema,
+      ProsemirrorHelper.attachmentsToAbsoluteUrls(this.data)
+    );
+
+    const markdown = serializer.serialize(doc, {
       softBreak: true,
     });
     return markdown;
@@ -666,8 +703,7 @@ export default class Document extends ArchivableModel implements Searchable {
       marks: extensionManager.marks,
     });
     const text = ProsemirrorHelper.toPlainText(
-      Node.fromJSON(schema, this.data),
-      schema
+      Node.fromJSON(schema, this.data)
     );
     return text;
   };

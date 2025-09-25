@@ -25,7 +25,7 @@ import HistoryNavigation from "./components/HistoryNavigation";
 import Section from "./components/Section";
 import SharedWithMe from "./components/SharedWithMe";
 import SidebarAction from "./components/SidebarAction";
-import SidebarButton, { SidebarButtonProps } from "./components/SidebarButton";
+import SidebarButton from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
 import Starred from "./components/Starred";
 import ToggleButton from "./components/ToggleButton";
@@ -63,34 +63,36 @@ function AppSidebar() {
           <DragPlaceholder />
 
           <TeamMenu>
-            {(props: SidebarButtonProps) => (
-              <SidebarButton
-                {...props}
-                title={team.name}
-                image={
-                  <TeamLogo
-                    model={team}
-                    size={24}
-                    alt={t("Logo")}
-                    style={{ marginLeft: 4 }}
-                  />
-                }
+            <SidebarButton
+              title={team.name}
+              image={
+                <TeamLogo
+                  model={team}
+                  size={24}
+                  alt={t("Logo")}
+                  style={{ marginLeft: 4 }}
+                />
+              }
+            >
+              <Tooltip
+                content={t("Toggle sidebar")}
+                shortcut={`${metaDisplay}+.`}
               >
-                <Tooltip
-                  content={t("Toggle sidebar")}
-                  shortcut={`${metaDisplay}+.`}
-                >
-                  <ToggleButton
-                    position="bottom"
-                    image={<SidebarIcon />}
-                    onClick={() => {
-                      ui.toggleCollapsedSidebar();
-                      (document.activeElement as HTMLElement)?.blur();
-                    }}
-                  />
-                </Tooltip>
-              </SidebarButton>
-            )}
+                <ToggleButton
+                  position="bottom"
+                  image={<SidebarIcon />}
+                  aria-label={
+                    ui.sidebarCollapsed
+                      ? t("Expand sidebar")
+                      : t("Collapse sidebar")
+                  }
+                  onClick={() => {
+                    ui.toggleCollapsedSidebar();
+                    (document.activeElement as HTMLElement)?.blur();
+                  }}
+                />
+              </Tooltip>
+            </SidebarButton>
           </TeamMenu>
           <Overflow>
             <Section>

@@ -23,12 +23,11 @@ export default class GroupMembershipsStore extends Store<GroupMembership> {
     collectionId,
     documentId,
     ...params
-  }:
-    | PaginationParams & {
-        documentId?: string;
-        collectionId?: string;
-        groupId?: string;
-      }): Promise<PaginatedResponse<GroupMembership>> => {
+  }: PaginationParams & {
+    documentId?: string;
+    collectionId?: string;
+    groupId?: string;
+  }): Promise<PaginatedResponse<GroupMembership>> => {
     this.isFetching = true;
 
     try {
@@ -38,11 +37,11 @@ export default class GroupMembershipsStore extends Store<GroupMembership> {
             ...params,
           })
         : documentId
-        ? await client.post(`/documents.group_memberships`, {
-            id: documentId,
-            ...params,
-          })
-        : await client.post(`/groupMemberships.list`, params);
+          ? await client.post(`/documents.group_memberships`, {
+              id: documentId,
+              ...params,
+            })
+          : await client.post(`/groupMemberships.list`, params);
       invariant(res?.data, "Data not available");
 
       let response: PaginatedResponse<GroupMembership> = [];
@@ -141,4 +140,20 @@ export default class GroupMembershipsStore extends Store<GroupMembership> {
    */
   inDocument = (documentId: string) =>
     this.orderedData.filter((cgm) => cgm.documentId === documentId);
+
+  /**
+   * Returns the group membership associated with the document.
+   */
+  getByDocumentId = (documentId: string): GroupMembership | undefined => {
+    const membership = this.find({ documentId });
+
+    if (membership) {
+      return membership;
+    }
+
+    const document = this.rootStore.documents.get(documentId);
+    return document?.parentDocumentId
+      ? this.getByDocumentId(document.parentDocumentId)
+      : undefined;
+  };
 }

@@ -1,9 +1,10 @@
-/* eslint-disable react/prop-types */
+/* oxlint-disable react/prop-types */
 import * as React from "react";
 import Tooltip, { Props as TooltipProps } from "~/components/Tooltip";
-import { performAction } from "~/actions";
+import { performAction, performActionV2, resolve } from "~/actions";
 import useIsMounted from "~/hooks/useIsMounted";
-import { Action, ActionContext } from "~/types";
+import { Action, ActionV2Variant, ActionV2WithChildren } from "~/types";
+import useActionContext from "~/hooks/useActionContext";
 
 export type Props = React.HTMLAttributes<HTMLButtonElement> & {
   /** Show the button in a disabled state */
@@ -11,9 +12,7 @@ export type Props = React.HTMLAttributes<HTMLButtonElement> & {
   /** Hide the button entirely if action is not applicable */
   hideOnActionDisabled?: boolean;
   /** Action to use on button */
-  action?: Action;
-  /** Context of action, must be provided with action */
-  context?: ActionContext;
+  action?: Action | Exclude<ActionV2Variant, ActionV2WithChildren>;
   /** If tooltip props are provided the button will be wrapped in a tooltip */
   tooltip?: Omit<TooltipProps, "children">;
 };
@@ -23,34 +22,33 @@ export type Props = React.HTMLAttributes<HTMLButtonElement> & {
  */
 const ActionButton = React.forwardRef<HTMLButtonElement, Props>(
   function _ActionButton(
-    { action, context, tooltip, hideOnActionDisabled, ...rest }: Props,
+    { action, tooltip, hideOnActionDisabled, ...rest }: Props,
     ref: React.Ref<HTMLButtonElement>
   ) {
+    const actionContext = useActionContext({
+      isButton: true,
+    });
     const isMounted = useIsMounted();
     const [executing, setExecuting] = React.useState(false);
     const disabled = rest.disabled;
 
-    if (action && !context) {
-      throw new Error("Context must be provided with action");
-    }
-    if (!context || !action) {
+    if (!actionContext || !action) {
       return <button {...rest} ref={ref} />;
     }
 
-    const actionContext = { ...context, isButton: true };
-
     if (
-      action?.visible &&
-      !action.visible(actionContext) &&
+      action.visible &&
+      !resolve<boolean>(action.visible, actionContext) &&
       hideOnActionDisabled
     ) {
       return null;
     }
 
     const label =
-      typeof action.name === "function"
+      rest["aria-label"] ??
+      (typeof action.name === "function"
         ? action.name(actionContext)
-        : action.name;
+        : action.name);
 
     const button = (
       <button
@@ -59,11 +57,14 @@ const ActionButton = React.forwardRef<HTMLButtonElement, Props>(
         disabled={disabled || executing}
         ref={ref}
         onClick={
-          action?.perform && actionContext
+          actionContext
             ? (ev) => {
                 ev.preventDefault();
                 ev.stopPropagation();
-                const response = performAction(action, actionContext);
+                const response =
+                  "variant" in action
+                    ? performActionV2(action, actionContext)
+                    : performAction(action, actionContext);
                 if (response?.finally) {
                   setExecuting(true);
                   void response.finally(

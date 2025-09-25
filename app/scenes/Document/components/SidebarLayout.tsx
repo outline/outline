@@ -3,15 +3,19 @@ import { BackIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { depths, s, ellipsis } from "@shared/styles";
+import { s, ellipsis } from "@shared/styles";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import { Portal } from "~/components/Portal";
 import Scrollable from "~/components/Scrollable";
 import Tooltip from "~/components/Tooltip";
 import useMobile from "~/hooks/useMobile";
 import { draggableOnDesktop } from "~/styles";
-import { fadeIn } from "~/styles/animations";
+import RightSidebar from "~/components/Sidebar/Right";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
+} from "~/components/primitives/Drawer";
 
 type Props = Omit<React.HTMLAttributes<HTMLDivElement>, "title"> & {
   /* The title of the sidebar */
@@ -19,7 +23,7 @@ type Props = Omit<React.HTMLAttributes<HTMLDivElement>, "title"> & {
   /* The content of the sidebar */
   children: React.ReactNode;
   /* Called when the sidebar is closed */
-  onClose: React.MouseEventHandler;
+  onClose: () => void;
   /* Whether the sidebar should be scrollable */
   scrollable?: boolean;
 };
@@ -28,8 +32,23 @@ function SidebarLayout({ title, onClose, children, scrollable = true }: Props) {
   const { t } = useTranslation();
   const isMobile = useMobile();
 
-  return (
-    <>
+  const content = scrollable ? (
+    <Scrollable hiddenScrollbars topShadow>
+      {children}
+    </Scrollable>
+  ) : (
+    children
+  );
+
+  return isMobile ? (
+    <Drawer onClose={onClose} defaultOpen>
+      <DrawerContent>
+        <DrawerTitle>{title}</DrawerTitle>
+        {content}
+      </DrawerContent>
+    </Drawer>
+  ) : (
+    <RightSidebar>
       <Header>
         <Title>{title}</Title>
         <Tooltip content={t("Close")} shortcut="Esc">
@@ -41,34 +60,10 @@ function SidebarLayout({ title, onClose, children, scrollable = true }: Props) {
           />
         </Tooltip>
       </Header>
-      {scrollable ? (
-        <Scrollable hiddenScrollbars topShadow>
-          {children}
-        </Scrollable>
-      ) : (
-        children
-      )}
-
-      {isMobile && (
-        <Portal>
-          <Backdrop onClick={onClose} />
-        </Portal>
-      )}
-    </>
+      {content}
+    </RightSidebar>
   );
 }
-
-const Backdrop = styled.a`
-  animation: ${fadeIn} 250ms ease-in-out;
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  cursor: default;
-  z-index: ${depths.mobileSidebar - 1};
-  background: ${s("backdrop")};
-`;
 
 const ForwardIcon = styled(BackIcon)`
   transform: rotate(180deg);

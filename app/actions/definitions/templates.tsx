@@ -4,10 +4,10 @@ import { toast } from "sonner";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import TemplateMove from "~/components/DocumentExplorer/TemplateMove";
 import { TemplateNew } from "~/components/Template/TemplateNew";
-import { createAction } from "~/actions";
+import { createActionV2 } from "~/actions";
 import { ActiveTemplateSection, TemplateSection } from "../sections";
 
-export const createTemplate = createAction({
+export const createTemplate = createActionV2({
   name: ({ t }) => t("New template"),
   analyticsName: "New template",
   section: TemplateSection,
@@ -22,12 +22,11 @@ export const createTemplate = createAction({
     stores.dialogs.openModal({
       title: "",
       content: <TemplateNew onSubmit={stores.dialogs.closeAllModals} />,
-      fullscreen: true,
     });
   },
 });
 
-export const deleteTemplate = createAction({
+export const deleteTemplate = createActionV2({
   name: ({ t }) => `${t("Delete")}…`,
   analyticsName: "Delete template",
   section: ActiveTemplateSection,
@@ -75,7 +74,7 @@ export const deleteTemplate = createAction({
   },
 });
 
-export const moveTemplate = createAction({
+export const moveTemplate = createActionV2({
   name: ({ t }) => t("Move"),
   analyticsName: "Move template",
   section: ActiveTemplateSection,

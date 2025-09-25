@@ -55,7 +55,7 @@ const parseTitleAttribute = (tokenTitle: string): TitleAttributes => {
   return attributes;
 };
 
-const downloadImageNode = async (node: ProsemirrorNode) => {
+export const downloadImageNode = async (node: ProsemirrorNode) => {
   const image = await fetch(node.attrs.src);
   const imageBlob = await image.blob();
   const imageURL = URL.createObjectURL(imageBlob);
@@ -137,8 +137,29 @@ export default class Image extends SimpleImage {
         {
           tag: "img",
           getAttrs: (dom: HTMLImageElement) => {
-            const width = dom.getAttribute("width");
-            const height = dom.getAttribute("height");
+            // Don't parse images from our own editor with this rule.
+            if (dom.parentElement?.classList.contains("image")) {
+              return false;
+            }
+
+            // First try HTML attributes
+            let width = dom.getAttribute("width");
+            let height = dom.getAttribute("height");
+
+            // If no HTML attributes, try CSS styles
+            if (!width && dom.style.width) {
+              const styleWidth = dom.style.width;
+              if (styleWidth.endsWith("px")) {
+                width = styleWidth.slice(0, -2);
+              }
+            }
+            if (!height && dom.style.height) {
+              const styleHeight = dom.style.height;
+              if (styleHeight.endsWith("px")) {
+                height = styleHeight.slice(0, -2);
+              }
+            }
+
             return {
               src: dom.getAttribute("src"),
               alt: dom.getAttribute("alt"),
@@ -183,7 +204,7 @@ export default class Image extends SimpleImage {
           ...children,
         ];
       },
-      toPlainText: (node) =>
+      leafText: (node) =>
         node.attrs.alt ? `(image: ${node.attrs.alt})` : "(image)",
     };
   }
@@ -219,7 +240,7 @@ export default class Image extends SimpleImage {
   }
 
   handleChangeSize =
-    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    ({ node, getPos }: ComponentProps) =>
     ({ width, height }: { width: number; height?: number }) => {
       const { view, commands } = this.editor;
       const { doc, tr } = view.state;
@@ -235,7 +256,7 @@ export default class Image extends SimpleImage {
     };
 
   handleDownload =
-    ({ node }: { node: ProsemirrorNode }) =>
+    ({ node }: ComponentProps) =>
     (event: React.MouseEvent) => {
       event.preventDefault();
       event.stopPropagation();
@@ -243,7 +264,7 @@ export default class Image extends SimpleImage {
     };
 
   handleCaptionKeyDown =
-    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    ({ node, getPos }: ComponentProps) =>
     (event: React.KeyboardEvent<HTMLParagraphElement>) => {
       // Pressing Enter in the caption field should move the cursor/selection
       // below the image and create a new paragraph.
@@ -276,7 +297,7 @@ export default class Image extends SimpleImage {
     };
 
   handleCaptionBlur =
-    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    ({ node, getPos }: ComponentProps) =>
     (event: React.FocusEvent<HTMLParagraphElement>) => {
       const caption = event.currentTarget.innerText;
       if (caption === node.attrs.alt) {
@@ -295,10 +316,16 @@ export default class Image extends SimpleImage {
       view.dispatch(transaction);
     };
 
+  handleClick =
+    ({ getPos }: ComponentProps) =>
+    () => {
+      this.editor.updateActiveLightbox(getPos());
+    };
+
   component = (props: ComponentProps) => (
     <ImageComponent
       {...props}
-      onClick={this.handleSelect(props)}
+      onClick={this.handleClick(props)}
       onDownload={this.handleDownload(props)}
       onChangeSize={this.handleChangeSize(props)}
     >
@@ -351,9 +378,7 @@ export default class Image extends SimpleImage {
       node: "image",
       getAttrs: (token: Token) => ({
         src: token.attrGet("src"),
-        alt:
-          (token?.children && token.children[0] && token.children[0].content) ||
-          null,
+        alt: token.content || null,
         ...parseTitleAttribute(token?.attrGet("title") || ""),
       }),
     };

@@ -5,6 +5,7 @@ import {
   isFullPage,
   isFullPageOrDatabase,
   isFullUser,
+  RequestTimeoutError,
 } from "@notionhq/client";
 import {
   BlockObjectResponse,
@@ -94,12 +95,32 @@ export class NotionClient {
   private async fetchWithRetry<T>(apiCall: () => Promise<T>): Promise<T> {
     let retries = 0;
 
-    // eslint-disable-next-line no-constant-condition
+    // oxlint-disable-next-line no-constant-condition
     while (true) {
       try {
         await this.limiter();
         return await apiCall();
       } catch (error) {
+        // Check if this is a timeout and try again
+        if (error instanceof RequestTimeoutError) {
+          if (retries < this.maxRetries) {
+            retries++;
+            const delay = this.retryDelay * retries;
+            Logger.info(
+              "task",
+              `Notion API timed out, retrying in ${delay}ms (retry ${retries}/${this.maxRetries})`
+            );
+
+            // Wait before retrying
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            continue;
+          }
+
+          Logger.warn(`Notion API timed out after ${this.maxRetries} retries`, {
+            error: error.message,
+          });
+        }
+
         // Check if this is a rate limit error
         if (
           error instanceof APIResponseError &&
@@ -107,7 +128,11 @@ export class NotionClient {
         ) {
           if (retries < this.maxRetries) {
             retries++;
-            const delay = this.retryDelay * retries;
+            const headers = error.headers as Record<string, string>;
+            const retryAfter = headers["Retry-After"]
+              ? parseInt(headers["Retry-After"], 10) * 1000 // Convert seconds to milliseconds
+              : undefined;
+            const delay = retryAfter ?? this.retryDelay * retries;
             Logger.info(
               "task",
               `Notion API rate limit hit, retrying in ${delay}ms (retry ${retries}/${this.maxRetries})`

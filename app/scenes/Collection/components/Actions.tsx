@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { MoreIcon, PlusIcon } from "outline-icons";
+import { PlusIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import Collection from "~/models/Collection";
@@ -42,19 +42,7 @@ function Actions({ collection }: Props) {
         </>
       )}
       <Action>
-        <CollectionMenu
-          collection={collection}
-          placement="bottom-end"
-          label={(props) => (
-            <Button
-              aria-label={t("Collection menu")}
-              icon={<MoreIcon />}
-              {...props}
-              borderOnHover
-              neutral
-            />
-          )}
-        />
+        <CollectionMenu collection={collection} align="end" neutral />
       </Action>
     </>
   );

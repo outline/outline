@@ -5,20 +5,24 @@ import RootStore from "~/stores/RootStore";
 import { LoginDialog } from "~/scenes/Login/components/LoginDialog";
 import TeamNew from "~/scenes/TeamNew";
 import TeamLogo from "~/components/TeamLogo";
-import { createAction } from "~/actions";
-import { ActionContext } from "~/types";
+import {
+  createActionV2,
+  createActionV2WithChildren,
+  createExternalLinkActionV2,
+} from "~/actions";
+import { ActionContext, ExternalLinkActionV2 } from "~/types";
 import Desktop from "~/utils/Desktop";
 import { TeamSection } from "../sections";
 
 export const switchTeamsList = ({ stores }: { stores: RootStore }) =>
-  stores.auth.availableTeams?.map((session) => ({
-    id: `switch-${session.id}`,
-    name: session.name,
-    analyticsName: "Switch workspace",
-    section: TeamSection,
-    keywords: "change switch workspace organization team",
-    icon: function _Icon() {
-      return (
+  stores.auth.availableTeams?.map<ExternalLinkActionV2>((session) =>
+    createExternalLinkActionV2({
+      id: `switch-${session.id}`,
+      name: session.name,
+      analyticsName: "Switch workspace",
+      section: TeamSection,
+      keywords: "change switch workspace organization team",
+      icon: (
         <StyledTeamLogo
           alt={session.name}
           model={{
@@ -29,13 +33,15 @@ export const switchTeamsList = ({ stores }: { stores: RootStore }) =>
           }}
           size={24}
         />
-      );
-    },
-    visible: ({ currentTeamId }: ActionContext) => currentTeamId !== session.id,
-    perform: () => (window.location.href = session.url),
-  })) ?? [];
+      ),
+      visible: ({ currentTeamId }: ActionContext) =>
+        currentTeamId !== session.id,
+      url: session.url,
+      target: "_self",
+    })
+  ) ?? [];
 
-export const switchTeam = createAction({
+export const switchTeam = createActionV2WithChildren({
   name: ({ t }) => t("Switch workspace"),
   placeholder: ({ t }) => t("Select a workspace"),
   analyticsName: "Switch workspace",
@@ -46,7 +52,7 @@ export const switchTeam = createAction({
   children: switchTeamsList,
 });
 
-export const createTeam = createAction({
+export const createTeam = createActionV2({
   name: ({ t }) => `${t("New workspace")}…`,
   analyticsName: "New workspace",
   keywords: "create change switch workspace organization team",
@@ -62,14 +68,13 @@ export const createTeam = createAction({
     if (user) {
       stores.dialogs.openModal({
         title: t("Create a workspace"),
-        fullscreen: true,
         content: <TeamNew user={user} />,
       });
     }
   },
 });
 
-export const desktopLoginTeam = createAction({
+export const desktopLoginTeam = createActionV2({
   name: ({ t }) => t("Login to workspace"),
   analyticsName: "Login to workspace",
   keywords: "change switch workspace organization team",

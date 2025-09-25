@@ -59,7 +59,8 @@ allow(User, "comment", Document, (actor, document) =>
       and(can(actor, "update", document), actor.isGuest)
     ),
     isTeamMutable(actor),
-    !!document?.isActive
+    !!document?.isActive,
+    or(!document?.collection, document?.collection?.commenting !== false)
   )
 );
 
@@ -127,7 +128,8 @@ allow(User, "move", Document, (actor, document) =>
     can(actor, "update", document),
     or(
       can(actor, "updateDocument", document?.collection),
-      !!document?.isDraft && actor.id === document?.createdById
+      and(!!document?.isDraft && actor.id === document?.createdById),
+      and(!!document?.isDraft && !document?.collection)
     )
   )
 );

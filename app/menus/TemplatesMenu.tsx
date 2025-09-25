@@ -1,14 +1,12 @@
 import { observer } from "mobx-react";
 import { ShapesIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
-import { MenuButton } from "reakit/Menu";
 import Document from "~/models/Document";
 import Template from "~/models/Template";
 import Button from "~/components/Button";
-import ContextMenu from "~/components/ContextMenu";
-import ContextMenuTemplate from "~/components/ContextMenu/Template";
-import { useMenuState } from "~/hooks/useMenuState";
-import { useTemplateMenuItems } from "~/hooks/useTemplateMenuItems";
+import { DropdownMenu } from "~/components/Menu/DropdownMenu";
+import { useMenuAction } from "~/hooks/useMenuAction";
+import { useTemplateMenuActions } from "~/hooks/useTemplateMenuActions";
 
 type Props = {
   /** The document to which the templates will be applied */
@@ -21,34 +19,23 @@ type Props = {
 
 function TemplatesMenu({ isCompact, onSelectTemplate, document }: Props) {
   const { t } = useTranslation();
-  const menu = useMenuState({
-    modal: true,
-  });
+  const allActions = useTemplateMenuActions({ onSelectTemplate, document });
+  const rootAction = useMenuAction(allActions);
 
-  const items = useTemplateMenuItems({ onSelectTemplate, document });
-
-  if (!items.length) {
+  if (!allActions.length) {
     return null;
   }
 
   return (
-    <>
-      <MenuButton {...menu}>
-        {(props) => (
-          <Button
-            {...props}
-            icon={isCompact ? <ShapesIcon /> : undefined}
-            disclosure={!isCompact}
-            neutral
-          >
-            {isCompact ? undefined : t("Templates")}
-          </Button>
-        )}
-      </MenuButton>
-      <ContextMenu {...menu} aria-label={t("Templates")}>
-        <ContextMenuTemplate {...menu} items={items} />
-      </ContextMenu>
-    </>
+    <DropdownMenu action={rootAction} align="start" ariaLabel={t("Templates")}>
+      <Button
+        icon={isCompact ? <ShapesIcon /> : undefined}
+        disclosure={!isCompact}
+        neutral
+      >
+        {isCompact ? undefined : t("Templates")}
+      </Button>
+    </DropdownMenu>
   );
 }
 

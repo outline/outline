@@ -43,7 +43,6 @@ export function TemplatesTable(props: Props) {
           onSubmit={dialogs.closeAllModals}
         />
       ),
-      fullscreen: true,
     });
   };
 

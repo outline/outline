@@ -208,7 +208,7 @@ export default abstract class Model {
 
     for (const property in this) {
       if (
-        // eslint-disable-next-line no-prototype-builtins
+        // oxlint-disable-next-line no-prototype-builtins
         this.hasOwnProperty(property) &&
         !["persistedAttributes", "store", "isSaving", "isNew"].includes(
           property

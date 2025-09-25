@@ -1,5 +1,6 @@
 import { buildUser } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
+import { parseEmail } from "@shared/utils/email";
 
 const server = getTestServer();
 
@@ -29,5 +30,23 @@ describe("#slack.post", () => {
     const body = await res.json();
     expect(res.status).toEqual(400);
     expect(body.message).toEqual("query: one of code or error is required");
+  });
+});
+
+describe("Slack authentication domain extraction", () => {
+  it("should correctly extract domain from user email", () => {
+    const testCases = [
+      { email: "user@gmail.com", expectedDomain: "gmail.com" },
+      { email: "test@company.com", expectedDomain: "company.com" },
+      {
+        email: "admin@subdomain.domain.com",
+        expectedDomain: "subdomain.domain.com",
+      },
+    ];
+
+    testCases.forEach(({ email, expectedDomain }) => {
+      const { domain } = parseEmail(email);
+      expect(domain).toEqual(expectedDomain);
+    });
   });
 });

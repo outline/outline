@@ -1,8 +1,9 @@
-import { InferCreationAttributes, Transaction } from "sequelize";
+import { InferCreationAttributes } from "sequelize";
 import slugify from "slugify";
 import { RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import { traceFunction } from "@server/logging/tracing";
-import { Team, Event } from "@server/models";
+import { Team } from "@server/models";
+import { APIContext } from "@server/types";
 
 type Props = {
   /** The displayed name of the team */
@@ -20,54 +21,36 @@ type Props = {
     /** External identifier of the authentication provider */
     providerId: string;
   }[];
-  /** The IP address of the incoming request */
-  ip: string;
-  /** Optional transaction to be chained from outside */
-  transaction: Transaction;
 };
 
-async function teamCreator({
-  name,
-  subdomain,
-  avatarUrl,
-  authenticationProviders,
-  ip,
-  transaction,
-}: Props): Promise<Team> {
+async function teamCreator(
+  ctx: APIContext,
+  { name, subdomain, avatarUrl, authenticationProviders }: Props
+): Promise<Team> {
   if (!avatarUrl?.startsWith("http")) {
     avatarUrl = null;
   }
 
-  const team = await Team.create(
+  const availableSubdomain = await findAvailableSubdomain(ctx, subdomain);
+  return await Team.createWithCtx(
+    ctx,
     {
       name,
+      subdomain: availableSubdomain,
       avatarUrl,
       authenticationProviders,
     } as Partial<InferCreationAttributes<Team>>,
+    undefined,
     {
       include: ["authenticationProviders"],
-      transaction,
     }
   );
-
-  await Event.create(
-    {
-      name: "teams.create",
-      teamId: team.id,
-      ip,
-    },
-    {
-      transaction,
-    }
-  );
-
-  const availableSubdomain = await findAvailableSubdomain(team, subdomain);
-  await team.update({ subdomain: availableSubdomain }, { transaction });
-
-  return team;
 }
 
-async function findAvailableSubdomain(team: Team, requestedSubdomain: string) {
+async function findAvailableSubdomain(
+  ctx: APIContext,
+  requestedSubdomain: string
+) {
   // filter subdomain to only valid characters
   // if there are less than the minimum length, use a default subdomain
   const normalizedSubdomain = slugify(requestedSubdomain, {
@@ -86,6 +69,7 @@ async function findAvailableSubdomain(team: Team, requestedSubdomain: string) {
     const existing = await Team.findOne({
       where: { subdomain },
       paranoid: false,
+      transaction: ctx.state.transaction,
     });
 
     if (existing) {

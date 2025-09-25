@@ -1,12 +1,12 @@
-/* eslint-disable */
+/* oxlint-disable */
 import stores from "~/stores";
 
-describe('Collection model', () => {
-  test('should initialize with data', () => {
+describe("Collection model", () => {
+  test("should initialize with data", () => {
     const collection = stores.collections.add({
       id: "123",
-      name: 'Engineering'
+      name: "Engineering",
     });
-    expect(collection.name).toBe('Engineering');
+    expect(collection.name).toBe("Engineering");
   });
 });

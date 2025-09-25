@@ -7,13 +7,14 @@ import { Sequelize } from "sequelize";
 import isUUID from "validator/lib/isUUID";
 import { IntegrationType, TeamPreference } from "@shared/types";
 import { unicodeCLDRtoISO639 } from "@shared/utils/date";
-import documentLoader from "@server/commands/documentLoader";
 import env from "@server/env";
 import { Integration } from "@server/models";
+import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import presentEnv from "@server/presenters/env";
 import { getTeamFromContext } from "@server/utils/passport";
 import prefetchTags from "@server/utils/prefetchTags";
 import readManifestFile from "@server/utils/readManifestFile";
+import { loadPublicShare } from "@server/commands/shareLoader";
 
 const readFile = util.promisify(fs.readFile);
 const entry = "app/index.tsx";
@@ -49,6 +50,7 @@ export const renderApp = async (
   options: {
     title?: string;
     description?: string;
+    content?: string;
     canonical?: string;
     shortcutIcon?: string;
     rootShareId?: string;
@@ -61,6 +63,7 @@ export const renderApp = async (
     title = env.APP_NAME,
     description = "A modern team knowledge base for your internal documentation, product specs, support answers, meeting notes, onboarding, &amp; more…",
     canonical = "",
+    content = "",
     shortcutIcon = `${env.CDN_URL || ""}/images/favicon-32.png`,
     allowIndexing = true,
   } = options;
@@ -122,6 +125,7 @@ export const renderApp = async (
     .replace(/\{lang\}/g, unicodeCLDRtoISO639(env.DEFAULT_LANGUAGE))
     .replace(/\{title\}/g, escape(title))
     .replace(/\{description\}/g, escape(description))
+    .replace(/\{content\}/g, content)
     .replace(/\{noindex\}/g, noIndexTag)
     .replace(
       /\{manifest-url\}/g,
@@ -139,22 +143,26 @@ export const renderApp = async (
 export const renderShare = async (ctx: Context, next: Next) => {
   const rootShareId = ctx.state?.rootShare?.id;
   const shareId = rootShareId ?? ctx.params.shareId;
+  const collectionSlug = ctx.params.collectionSlug;
   const documentSlug = ctx.params.documentSlug;
 
-  // Find the share record if publicly published so that the document title
-  // can be returned in the server-rendered HTML. This allows it to appear in
-  // unfurls with more reliability
-  let share, document, team;
+  // Find the share record if published so that the document title can be returned
+  // in the server-rendered HTML. This allows it to appear in unfurls more reliably.
+  let share, collection, document, team;
   let analytics: Integration<IntegrationType.Analytics>[] = [];
 
   try {
-    team = await getTeamFromContext(ctx);
-    const result = await documentLoader({
-      id: documentSlug,
-      shareId,
+    team = await getTeamFromContext(ctx, { includeStateCookie: false });
+    const result = await loadPublicShare({
+      id: shareId,
+      collectionId: collectionSlug,
+      documentId: documentSlug,
       teamId: team?.id,
     });
     share = result.share;
+    collection = result.collection;
+    document = result.document;
+
     if (isUUID(shareId) && share?.urlId) {
       // Redirect temporarily because the url slug
       // can be modified by the user at any time
@@ -162,11 +170,10 @@ export const renderShare = async (ctx: Context, next: Next) => {
       ctx.status = 307;
       return;
     }
-    document = result.document;
 
     analytics = await Integration.findAll({
       where: {
-        teamId: document.teamId,
+        teamId: share.teamId,
         type: IntegrationType.Analytics,
       },
     });
@@ -187,27 +194,58 @@ export const renderShare = async (ctx: Context, next: Next) => {
     ctx.status = 404;
   }
 
-  // Allow shares to be embedded in iframes on other websites
-  ctx.remove("X-Frame-Options");
+  // Allow shares to be embedded in iframes on other websites unless prevented by team preference
+  const preventEmbedding =
+    team?.getPreference(TeamPreference.PreventDocumentEmbedding) ?? false;
+  if (!preventEmbedding) {
+    ctx.remove("X-Frame-Options");
+  }
 
   const publicBranding =
     team?.getPreference(TeamPreference.PublicBranding) ?? false;
 
+  const title = document
+    ? document.title
+    : collection
+      ? collection.name
+      : publicBranding && team?.name
+        ? team.name
+        : undefined;
+
+  const content =
+    document || collection
+      ? await DocumentHelper.toHTML(document || collection!, {
+          includeStyles: false,
+          includeHead: false,
+          includeTitle: true,
+          signedUrls: true,
+        })
+      : undefined;
+
+  const canonicalUrl =
+    share && share.canonicalUrl !== ctx.request.origin + ctx.request.url
+      ? `${share.canonicalUrl}${
+          documentSlug && document
+            ? document.path
+            : collectionSlug && collection
+              ? collection.path
+              : ""
+        }`
+      : undefined;
+
   // Inject share information in SSR HTML
   return renderApp(ctx, next, {
-    title:
-      document?.title || (publicBranding && team?.name ? team.name : undefined),
+    title,
     description:
       document?.getSummary() ||
       (publicBranding && team?.description ? team.description : undefined),
+    content,
     shortcutIcon:
       publicBranding && team?.avatarUrl ? team.avatarUrl : undefined,
     analytics,
     isShare: true,
     rootShareId,
-    canonical: share
-      ? `${share.canonicalUrl}${documentSlug && document ? document.url : ""}`
-      : undefined,
+    canonical: canonicalUrl,
     allowIndexing: share?.allowIndexing,
   });
 };

@@ -36,8 +36,19 @@ class Revision extends ParanoidModel {
   /** HTML string representing the revision as a diff from the previous version */
   html: string;
 
+  /** @deprecated The ID of the user who created the revision */
+  createdById: string;
+
+  /** @deprecated Use collaborators instead*/
   @Relation(() => User)
   createdBy: User;
+
+  /** Array of user IDs who collaborated on this revision */
+  collaboratorIds: string[];
+
+  /** The user IDs who authored this revision */
+  @Relation(() => User, { multiple: true, onDelete: "ignore" })
+  collaborators: User[];
 
   /**
    * Returns the direction of the revision text, either "rtl" or "ltr"

@@ -13,10 +13,12 @@ import {
   DataType,
   Scopes,
 } from "sequelize-typescript";
+import { APIContext } from "@server/types";
 import Document from "./Document";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
+import { SkipChangeset } from "./decorators/Changeset";
 
 @Scopes(() => ({
   withUser: () => ({
@@ -40,6 +42,7 @@ class View extends IdModel<
 
   @Default(1)
   @Column(DataType.INTEGER)
+  @SkipChangeset
   count: number;
 
   // associations
@@ -59,20 +62,23 @@ class View extends IdModel<
   documentId: string;
 
   static async incrementOrCreate(
+    ctx: APIContext,
     where: {
       userId: string;
       documentId: string;
     },
     options?: FindOrCreateOptions<InferAttributes<View>>
   ) {
-    const [model, created] = await this.findOrCreate({
+    const [model, created] = await this.findOrCreateWithCtx(ctx, {
       ...options,
       where,
     });
 
     if (!created) {
       model.count += 1;
-      await model.save(options);
+      await model.saveWithCtx(ctx, options, {
+        name: "create",
+      });
     }
 
     return model;

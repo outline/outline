@@ -68,8 +68,8 @@ const insertFiles = async function (
       const getDimensions = isImage
         ? FileHelper.getImageDimensions
         : isVideo
-        ? FileHelper.getVideoDimensions
-        : undefined;
+          ? FileHelper.getVideoDimensions
+          : undefined;
 
       return {
         id: `upload-${uuidv4()}`,
@@ -187,7 +187,7 @@ const insertFiles = async function (
       .catch((error) => {
         Sentry.captureException(error);
 
-        // eslint-disable-next-line no-console
+        // oxlint-disable-next-line no-console
         console.error(error);
 
         if (view.isDestroyed) {

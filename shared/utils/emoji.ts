@@ -28,7 +28,7 @@ const isFlagEmojiSupported = (): boolean => {
     const CANVAS_WIDTH = 20;
     const textSize = Math.floor(CANVAS_HEIGHT / 2);
 
-    // Initialize convas context
+    // Initialize canvas context
     ctx.font = textSize + "px Arial, Sans-Serif";
     ctx.textBaseline = "top";
     ctx.canvas.width = CANVAS_WIDTH * 2;
@@ -47,7 +47,7 @@ const isFlagEmojiSupported = (): boolean => {
     let i = 0;
 
     // Search the first visible pixel
-    // eslint-disable-next-line curly
+    // oxlint-disable-next-line curly
     for (; i < count && !a[i + 3]; i += 4);
 
     // No visible pixel
@@ -56,7 +56,7 @@ const isFlagEmojiSupported = (): boolean => {
     }
 
     // Emoji has immutable color, so we check the color of the emoji in two different colors
-    // the result show be the same.
+    // the result should be the same.
     const x = CANVAS_WIDTH + ((i / 4) % CANVAS_WIDTH);
     const y = Math.floor(i / 4 / CANVAS_WIDTH);
     const b = ctx.getImageData(x, y, 1, 1).data;
@@ -143,15 +143,18 @@ const EMOJI_ID_TO_VARIANTS = Object.entries(Emojis).reduce(
 );
 
 const CATEGORY_TO_EMOJI_IDS: Record<EmojiCategory, string[]> =
-  Categories.reduce((obj, { id, emojis }) => {
-    const key = capitalize(id) as EmojiCategory;
-    const category = EmojiCategory[key];
-    if (!category) {
+  Categories.reduce(
+    (obj, { id, emojis }) => {
+      const key = capitalize(id) as EmojiCategory;
+      const category = EmojiCategory[key];
+      if (!category) {
+        return obj;
+      }
+      obj[category] = emojis;
       return obj;
-    }
-    obj[category] = emojis;
-    return obj;
-  }, {} as Record<EmojiCategory, string[]>);
+    },
+    {} as Record<EmojiCategory, string[]>
+  );
 
 export const getEmojis = ({
   ids,
@@ -171,16 +174,19 @@ export const getEmojisWithCategory = ({
 }: {
   skinTone: EmojiSkinTone;
 }): Record<EmojiCategory, Emoji[]> =>
-  Object.keys(CATEGORY_TO_EMOJI_IDS).reduce((obj, category: EmojiCategory) => {
-    const emojiIds = CATEGORY_TO_EMOJI_IDS[category];
-    const emojis = emojiIds.map(
-      (emojiId) =>
-        EMOJI_ID_TO_VARIANTS[emojiId][skinTone] ??
-        EMOJI_ID_TO_VARIANTS[emojiId][EmojiSkinTone.Default]
-    );
-    obj[category] = emojis;
-    return obj;
-  }, {} as Record<EmojiCategory, Emoji[]>);
+  Object.keys(CATEGORY_TO_EMOJI_IDS).reduce(
+    (obj, category: EmojiCategory) => {
+      const emojiIds = CATEGORY_TO_EMOJI_IDS[category];
+      const emojis = emojiIds.map(
+        (emojiId) =>
+          EMOJI_ID_TO_VARIANTS[emojiId][skinTone] ??
+          EMOJI_ID_TO_VARIANTS[emojiId][EmojiSkinTone.Default]
+      );
+      obj[category] = emojis;
+      return obj;
+    },
+    {} as Record<EmojiCategory, Emoji[]>
+  );
 
 export const getEmojiVariants = ({ id }: { id: string }) =>
   EMOJI_ID_TO_VARIANTS[id];
@@ -209,7 +215,7 @@ export const search = ({
 };
 
 /**
- * Get am emoji's human-readable ID from its string.
+ * Get an emoji's human-readable ID from its string.
  *
  * @param emoji - The string representation of the emoji.
  * @returns The emoji id, if found.

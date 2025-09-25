@@ -150,12 +150,15 @@ const PaginatedList = <T extends PaginatedItem>({
         offset,
         ...options,
       });
+      if (!results) {
+        return;
+      }
 
       if (offset !== 0) {
         setRenderCount((prevCount) => prevCount + limit);
       }
 
-      if (results && (results.length === 0 || results.length < limit)) {
+      if (results.length === 0 || results.length < limit) {
         setAllowLoadMore(false);
       } else {
         setOffset((prevOffset) => prevOffset + limit);
@@ -252,6 +255,7 @@ const PaginatedList = <T extends PaginatedItem>({
     <React.Fragment>
       {heading}
       <ArrowKeyNavigation
+        role={rest.role}
         aria-label={rest["aria-label"]}
         onEscape={onEscape}
         className={className}
@@ -275,8 +279,8 @@ const PaginatedList = <T extends PaginatedItem>({
               "updatedAt" in item && item.updatedAt
                 ? item.updatedAt
                 : "createdAt" in item && item.createdAt
-                ? item.createdAt
-                : previousHeading;
+                  ? item.createdAt
+                  : previousHeading;
             const currentHeading = dateToHeading(
               currentDate,
               t,
@@ -305,7 +309,10 @@ const PaginatedList = <T extends PaginatedItem>({
       </ArrowKeyNavigation>
       {allowLoadMore && (
         <div style={{ height: "1px" }}>
-          <Waypoint key={renderCount} onEnter={loadMoreResults} />
+          <Waypoint
+            key={items?.length + renderCount}
+            onEnter={loadMoreResults}
+          />
         </div>
       )}
     </React.Fragment>

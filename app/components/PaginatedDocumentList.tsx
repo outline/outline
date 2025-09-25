@@ -44,7 +44,6 @@ const PaginatedDocumentList = React.memo<Props>(function PaginatedDocumentList({
         <DocumentListItem
           key={item.id}
           document={item}
-          showPin={!!options?.collectionId}
           showParentDocuments={showParentDocuments}
           showCollection={showCollection}
           showPublished={showPublished}

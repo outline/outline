@@ -1,11 +1,15 @@
 import { observer } from "mobx-react";
 import { GlobeIcon } from "outline-icons";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import Document from "~/models/Document";
 import Button from "~/components/Button";
-import Popover from "~/components/Popover";
 import SharePopover from "~/components/Sharing/Document";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "~/components/primitives/Popover";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 
@@ -16,18 +20,17 @@ type Props = {
 
 function ShareButton({ document }: Props) {
   const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
   const { shares } = useStores();
+  const isMobile = useMobile();
   const share = shares.getByDocumentId(document.id);
-  const sharedParent = shares.getByDocumentParents(document.id);
+  const sharedParent = shares.getByDocumentParents(document);
   const domain = share?.domain || sharedParent?.domain;
 
-  const popover = usePopoverState({
-    gutter: 0,
-    placement: "bottom-end",
-    unstable_fixed: true,
-  });
+  const closePopover = useCallback(() => {
+    setOpen(false);
+  }, []);
 
-  const isMobile = useMobile();
   if (isMobile) {
     return null;
   }
@@ -35,28 +38,25 @@ function ShareButton({ document }: Props) {
   const icon = document.isPubliclyShared ? <GlobeIcon /> : undefined;
 
   return (
-    <>
-      <PopoverDisclosure {...popover}>
-        {(props) => (
-          <Button icon={icon} neutral {...props}>
-            {t("Share")} {domain && <>&middot; {domain}</>}
-          </Button>
-        )}
-      </PopoverDisclosure>
-
-      <Popover
-        {...popover}
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger>
+        <Button icon={icon} neutral>
+          {t("Share")} {domain && <>&middot; {domain}</>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
         aria-label={t("Share")}
         width={400}
-        scrollable={false}
+        side="bottom"
+        align="end"
       >
         <SharePopover
           document={document}
-          onRequestClose={popover.hide}
-          visible={popover.visible}
+          onRequestClose={closePopover}
+          visible={open}
         />
-      </Popover>
-    </>
+      </PopoverContent>
+    </Popover>
   );
 }
 

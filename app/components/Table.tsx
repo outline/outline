@@ -383,7 +383,7 @@ const TD = styled.span`
     right: 0;
   }
 
-  ${NudeButton} {
+  ${NudeButton}[aria-haspopup="menu"] {
     &:hover,
     &[aria-expanded="true"] {
       background: ${s("sidebarControlHoverBackground")};

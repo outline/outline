@@ -20,7 +20,8 @@ export const Preview = styled(Link)`
   cursor: ${(props: { as?: string }) =>
     props.as === "div" ? "default" : "var(--pointer)"};
   border-radius: 4px;
-  box-shadow: 0 30px 90px -20px rgba(0, 0, 0, 0.3),
+  box-shadow:
+    0 30px 90px -20px rgba(0, 0, 0, 0.3),
     0 0 1px 1px rgba(0, 0, 0, 0.05);
   overflow: hidden;
   position: absolute;

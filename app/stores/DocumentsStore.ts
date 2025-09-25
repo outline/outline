@@ -1,15 +1,12 @@
 import invariant from "invariant";
 import compact from "lodash/compact";
 import filter from "lodash/filter";
-import find from "lodash/find";
 import omitBy from "lodash/omitBy";
 import orderBy from "lodash/orderBy";
 import { observable, action, computed, runInAction } from "mobx";
 import {
   SubscriptionType,
   type DateFilter,
-  type NavigationNode,
-  type PublicTeam,
   type StatusFilter,
 } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
@@ -49,11 +46,6 @@ type ImportOptions = {
 };
 
 export default class DocumentsStore extends Store<Document> {
-  sharedCache: Map<
-    string,
-    { sharedTree: NavigationNode; team: PublicTeam } | undefined
-  > = new Map();
-
   @observable
   backlinks: Map<string, string[]> = new Map();
 
@@ -182,10 +174,10 @@ export default class DocumentsStore extends Store<Document> {
   }
 
   get(id: string): Document | undefined {
-    return (
-      this.data.get(id) ??
-      this.orderedData.find((doc) => id.endsWith(doc.urlId))
-    );
+    return id
+      ? (this.data.get(id) ??
+          this.orderedData.find((doc) => id.endsWith(doc.urlId)))
+      : undefined;
   }
 
   @computed
@@ -264,10 +256,6 @@ export default class DocumentsStore extends Store<Document> {
       "title",
       "asc"
     );
-  }
-
-  getSharedTree(documentId: string): NavigationNode | undefined {
-    return this.sharedCache.get(documentId)?.sharedTree;
   }
 
   @action
@@ -436,7 +424,7 @@ export default class DocumentsStore extends Store<Document> {
 
   @action
   prefetchDocument = async (id: string) => {
-    if (!this.data.get(id) && !this.getByUrl(id)) {
+    if (!this.get(id)) {
       return this.fetch(id, {
         prefetch: true,
       });
@@ -476,74 +464,6 @@ export default class DocumentsStore extends Store<Document> {
       (res: { data: { document: PartialExcept<Document, "id"> } }) =>
         res.data.document
     );
-
-  @action
-  fetchWithSharedTree = async (
-    id: string,
-    options: FetchOptions = {}
-  ): Promise<{
-    document: Document;
-    team?: PublicTeam;
-    sharedTree?: NavigationNode;
-  }> => {
-    if (!options.prefetch) {
-      this.isFetching = true;
-    }
-
-    try {
-      const doc: Document | null | undefined =
-        this.data.get(id) || this.getByUrl(id);
-      const policy = doc ? this.rootStore.policies.get(doc.id) : undefined;
-
-      if (doc && policy && !options.shareId && !options.force) {
-        return {
-          document: doc,
-        };
-      }
-
-      if (
-        doc &&
-        options.shareId &&
-        !options.force &&
-        this.sharedCache.has(options.shareId)
-      ) {
-        return {
-          document: doc,
-          ...this.sharedCache.get(options.shareId),
-        };
-      }
-
-      const res = await client.post("/documents.info", {
-        id,
-        shareId: options.shareId,
-      });
-
-      invariant(res?.data, "Document not available");
-      this.addPolicies(res.policies);
-      this.add(res.data.document);
-
-      const document = this.data.get(res.data.document.id);
-      invariant(document, "Document not available");
-
-      if (options.shareId) {
-        this.sharedCache.set(options.shareId, {
-          sharedTree: res.data.sharedTree,
-          team: res.data.team,
-        });
-        return {
-          document,
-          sharedTree: res.data.sharedTree,
-          team: res.data.team,
-        };
-      }
-
-      return {
-        document,
-      };
-    } finally {
-      this.isFetching = false;
-    }
-  };
 
   @action
   move = async ({
@@ -785,12 +705,6 @@ export default class DocumentsStore extends Store<Document> {
 
     return subscription?.delete();
   };
-
-  getByUrl = (url = ""): Document | undefined =>
-    find(
-      this.orderedData,
-      (doc) => url.endsWith(doc.urlId) || url.endsWith(doc.id)
-    );
 
   getCollectionForDocument(document: Document) {
     return document.collectionId

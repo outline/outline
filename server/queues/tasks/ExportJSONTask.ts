@@ -62,15 +62,44 @@ export default class ExportJSONTask extends ExportTask {
   ) {
     const output: CollectionJSONExport = {
       collection: {
-        ...omit(await presentCollection(undefined, collection), [
+        ...(omit(await presentCollection(undefined, collection), [
           "url",
           "description",
-        ]),
+        ]) as CollectionJSONExport["collection"]),
         documentStructure: collection.documentStructure,
       },
       documents: {},
       attachments: {},
     };
+
+    async function addAttachments(attachments: Attachment[]) {
+      await Promise.all(
+        attachments.map(async (attachment) => {
+          zip.file(
+            attachment.key,
+            new Promise<Buffer>((resolve) => {
+              attachment.buffer.then(resolve).catch((err) => {
+                Logger.warn(`Failed to read attachment from storage`, {
+                  attachmentId: attachment.id,
+                  teamId: attachment.teamId,
+                  error: err.message,
+                });
+                resolve(Buffer.from(""));
+              });
+            }),
+            {
+              date: attachment.updatedAt,
+              createFolders: true,
+            }
+          );
+
+          output.attachments[attachment.id] = {
+            ...omit(presentAttachment(attachment), "url"),
+            key: attachment.key,
+          };
+        })
+      );
+    }
 
     async function addDocumentTree(nodes: NavigationNode[]) {
       for (const node of nodes) {
@@ -82,7 +111,7 @@ export default class ExportJSONTask extends ExportTask {
           continue;
         }
 
-        const attachments = includeAttachments
+        const documentAttachments = includeAttachments
           ? await Attachment.findAll({
               where: {
                 teamId: document.teamId,
@@ -93,32 +122,7 @@ export default class ExportJSONTask extends ExportTask {
             })
           : [];
 
-        await Promise.all(
-          attachments.map(async (attachment) => {
-            zip.file(
-              attachment.key,
-              new Promise<Buffer>((resolve) => {
-                attachment.buffer.then(resolve).catch((err) => {
-                  Logger.warn(`Failed to read attachment from storage`, {
-                    attachmentId: attachment.id,
-                    teamId: attachment.teamId,
-                    error: err.message,
-                  });
-                  resolve(Buffer.from(""));
-                });
-              }),
-              {
-                date: attachment.updatedAt,
-                createFolders: true,
-              }
-            );
-
-            output.attachments[attachment.id] = {
-              ...omit(presentAttachment(attachment), "url"),
-              key: attachment.key,
-            };
-          })
-        );
+        await addAttachments(documentAttachments);
 
         output.documents[document.id] = {
           id: document.id,
@@ -145,6 +149,19 @@ export default class ExportJSONTask extends ExportTask {
         }
       }
     }
+
+    const collectionAttachments = includeAttachments
+      ? await Attachment.findAll({
+          where: {
+            teamId: collection.teamId,
+            id: ProsemirrorHelper.parseAttachmentIds(
+              DocumentHelper.toProsemirror(collection)
+            ),
+          },
+        })
+      : [];
+
+    await addAttachments(collectionAttachments);
 
     if (collection.documentStructure) {
       await addDocumentTree(collection.documentStructure);

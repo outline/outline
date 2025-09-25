@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+/* oxlint-disable no-console */
 import { IncomingMessage } from "http";
 import chalk from "chalk";
 import isArray from "lodash/isArray";
@@ -27,6 +27,7 @@ type LogCategory =
   | "utils"
   | "plugins";
 
+// oxlint-disable-next-line @typescript-eslint/no-explicit-any
 type Extra = Record<string, any>;
 
 class Logger {
@@ -125,7 +126,7 @@ class Logger {
           scope.setExtra(key, this.sanitize(extra[key]));
         }
 
-        Sentry.captureMessage(message);
+        Sentry.captureException(new Error(message));
       });
     }
 
@@ -223,14 +224,17 @@ class Logger {
     ];
 
     if (level > 3) {
+      // oxlint-disable-next-line @typescript-eslint/no-explicit-any
       return "[…]" as any as T;
     }
 
     if (isArray(input)) {
+      // oxlint-disable-next-line @typescript-eslint/no-explicit-any
       return input.map((item) => this.sanitize(item, level + 1)) as any as T;
     }
 
     if (isObject(input)) {
+      // oxlint-disable-next-line @typescript-eslint/no-explicit-any
       const output: Record<string, any> = { ...input };
 
       for (const key of Object.keys(output)) {
