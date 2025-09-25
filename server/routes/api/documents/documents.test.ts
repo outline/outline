@@ -4478,7 +4478,7 @@ describe("#documents.delete", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(403);
-    expect(body.message).toEqual("Authorization required");
+    expect(body.message).toEqual("Authorization error");
   });
 
   it("should allow deleting document without collection", async () => {
