@@ -1,6 +1,5 @@
 import fetch from "./fetch";
 import OAuthClient from "./oauth";
-import { AuthenticationError, InvalidRequestError } from "../errors";
 
 // Mock the fetch utility
 jest.mock("./fetch");
@@ -36,7 +35,7 @@ describe("OAuthClient", () => {
       mockFetch.mockResolvedValue({
         status: 200,
         json: jest.fn().mockResolvedValue(mockUserData),
-      } as any);
+      } as unknown as Response);
 
       const result = await client.userInfo("valid-access-token");
 
@@ -57,10 +56,10 @@ describe("OAuthClient", () => {
         json: jest
           .fn()
           .mockRejectedValue(new Error("Unexpected end of JSON input")),
-      } as any);
+      } as unknown as Response);
 
       await expect(client.userInfo("invalid-access-token")).rejects.toThrow(
-        AuthenticationError
+        "Authentication required"
       );
     });
 
@@ -68,10 +67,10 @@ describe("OAuthClient", () => {
       mockFetch.mockResolvedValue({
         status: 401,
         json: jest.fn().mockResolvedValue({ error: "unauthorized" }),
-      } as any);
+      } as unknown as Response);
 
       await expect(client.userInfo("invalid-access-token")).rejects.toThrow(
-        AuthenticationError
+        "Authentication required"
       );
     });
 
@@ -79,10 +78,10 @@ describe("OAuthClient", () => {
       mockFetch.mockResolvedValue({
         status: 403,
         json: jest.fn().mockResolvedValue({ error: "forbidden" }),
-      } as any);
+      } as unknown as Response);
 
       await expect(client.userInfo("access-token")).rejects.toThrow(
-        AuthenticationError
+        "Authentication required"
       );
     });
 
@@ -90,7 +89,7 @@ describe("OAuthClient", () => {
       mockFetch.mockRejectedValue(new Error("Network error"));
 
       await expect(client.userInfo("access-token")).rejects.toThrow(
-        InvalidRequestError
+        "Request invalid"
       );
     });
 
@@ -98,10 +97,10 @@ describe("OAuthClient", () => {
       mockFetch.mockResolvedValue({
         status: 200,
         json: jest.fn().mockRejectedValue(new Error("Invalid JSON")),
-      } as any);
+      } as unknown as Response);
 
       await expect(client.userInfo("access-token")).rejects.toThrow(
-        InvalidRequestError
+        "Request invalid"
       );
     });
   });
