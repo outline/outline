@@ -2268,7 +2268,7 @@ describe("#documents.deleted", () => {
     expect(body.data.length).toEqual(1);
     expect(body.policies[0].abilities.delete).toEqual(false);
     expect(body.policies[0].abilities.restore).toBeTruthy();
-    expect(body.policies[0].abilities.permanentDelete).toBeTruthy();
+    expect(body.policies[0].abilities.permanentDelete).toEqual(false);
   });
 
   it("should return deleted documents, including users drafts without collection", async () => {
@@ -2301,6 +2301,26 @@ describe("#documents.deleted", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(2);
+    expect(body.policies[0].abilities.delete).toEqual(false);
+    expect(body.policies[0].abilities.restore).toBeTruthy();
+    expect(body.policies[0].abilities.permanentDelete).toEqual(false);
+  });
+
+  it("should return deleted documents with permanent delete abilities for admin users", async () => {
+    const admin = await buildAdmin();
+    const document = await buildDocument({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+    await document.delete(admin);
+    const res = await server.post("/api/documents.deleted", {
+      body: {
+        token: admin.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
     expect(body.policies[0].abilities.delete).toEqual(false);
     expect(body.policies[0].abilities.restore).toBeTruthy();
     expect(body.policies[0].abilities.permanentDelete).toBeTruthy();
