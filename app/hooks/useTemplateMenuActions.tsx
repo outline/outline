@@ -14,12 +14,13 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import { ActionV2 } from "~/types";
 import { useComputed } from "./useComputed";
+import Template from "~/models/Template";
 
 type Props = {
   /** The document to which the templates will be applied */
   document: Document;
   /** Callback to handle when a template is selected */
-  onSelectTemplate?: (template: Document) => void;
+  onSelectTemplate?: (template: Template) => void;
 };
 
 /**
@@ -35,11 +36,11 @@ type Props = {
  */
 export function useTemplateMenuActions({ document, onSelectTemplate }: Props) {
   const user = useCurrentUser();
-  const { documents } = useStores();
+  const { templates } = useStores();
   const { t } = useTranslation();
 
   const templateToAction = useCallback(
-    (template: Document): ActionV2 =>
+    (template: Template): ActionV2 =>
       createActionV2({
         name: TextHelper.replaceTemplateVariables(
           template.titleWithDefault,
@@ -62,11 +63,7 @@ export function useTemplateMenuActions({ document, onSelectTemplate }: Props) {
       return [];
     }
 
-    const templates = documents.templates.filter(
-      (template) => template.publishedAt
-    );
-
-    const collectionTemplatesActions = templates
+    const collectionTemplatesActions = templates.orderedData
       .filter(
         (template) =>
           !template.isWorkspaceTemplate &&
@@ -74,8 +71,8 @@ export function useTemplateMenuActions({ document, onSelectTemplate }: Props) {
       )
       .map(templateToAction);
 
-    const workspaceTemplatesActions = templates
-      .filter((tmpl) => tmpl.isWorkspaceTemplate)
+    const workspaceTemplatesActions = templates.orderedData
+      .filter((template) => template.isWorkspaceTemplate)
       .map(templateToAction);
 
     return [

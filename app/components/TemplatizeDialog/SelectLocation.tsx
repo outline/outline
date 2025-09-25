@@ -88,7 +88,7 @@ const SelectLocation = ({ defaultCollectionId, onSelect }: Props) => {
       options={options}
       value={defaultCollectionId ?? "workspace"}
       onChange={handleSelection}
-      label={t("Location")}
+      label={t("Visibility")}
     />
   );
 };

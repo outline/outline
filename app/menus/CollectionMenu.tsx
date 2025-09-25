@@ -28,14 +28,13 @@ import {
   starCollection,
   unstarCollection,
   searchInCollection,
-  createTemplate,
   archiveCollection,
   restoreCollection,
   subscribeCollection,
   unsubscribeCollection,
-  createDocument,
   exportCollection,
 } from "~/actions/definitions/collections";
+import { createDocument } from "~/actions/definitions/documents";
 import { ActionContextProvider } from "~/hooks/useActionContext";
 import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
@@ -202,7 +201,6 @@ function CollectionMenu({
       }),
       editCollection,
       editCollectionPermissions,
-      createTemplate,
       sortAction,
       exportCollection,
       archiveCollection,

@@ -15,7 +15,6 @@ type Props = {
   showCollection?: boolean;
   showPublished?: boolean;
   showDraft?: boolean;
-  showTemplate?: boolean;
 };
 
 const PaginatedDocumentList = React.memo<Props>(function PaginatedDocumentList({
@@ -27,7 +26,6 @@ const PaginatedDocumentList = React.memo<Props>(function PaginatedDocumentList({
   showParentDocuments,
   showCollection,
   showPublished,
-  showTemplate,
   showDraft,
   ...rest
 }: Props) {
@@ -49,7 +47,6 @@ const PaginatedDocumentList = React.memo<Props>(function PaginatedDocumentList({
           showParentDocuments={showParentDocuments}
           showCollection={showCollection}
           showPublished={showPublished}
-          showTemplate={showTemplate}
           showDraft={showDraft}
         />
       )}

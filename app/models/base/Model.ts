@@ -27,7 +27,7 @@ export default abstract class Model {
 
   store: Store<Model>;
 
-  constructor(fields: Record<string, any>, store: Store<Model>) {
+  constructor(fields: Record<string, any> = {}, store: Store<Model>) {
     this.store = store;
     this.updateData(fields);
     this.isNew = !this.id;

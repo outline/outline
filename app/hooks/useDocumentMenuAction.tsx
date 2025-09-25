@@ -19,7 +19,6 @@ import {
   unpublishDocument,
   archiveDocument,
   moveDocument,
-  moveTemplate,
   applyTemplateFactory,
   pinDocument,
   createDocumentFromTemplate,
@@ -41,6 +40,7 @@ import usePolicy from "./usePolicy";
 import useCurrentUser from "./useCurrentUser";
 import { useTemplateMenuActions } from "./useTemplateMenuActions";
 import { useMenuAction } from "./useMenuAction";
+import Template from "~/models/Template";
 
 type Props = {
   /** Document for which the actions are generated */
@@ -50,7 +50,7 @@ type Props = {
   /** Invoked when the "Rename" menu item is clicked */
   onRename?: () => void;
   /** Callback when a template is selected to apply its content to the document */
-  onSelectTemplate?: (template: Document) => void;
+  onSelectTemplate?: (template: Template) => void;
 };
 
 export function useDocumentMenuAction({
@@ -103,7 +103,6 @@ export function useDocumentMenuAction({
       unpublishDocument,
       archiveDocument,
       moveDocument,
-      moveTemplate,
       applyTemplateFactory({ actions: templateMenuActions }),
       pinDocument,
       createDocumentFromTemplate,

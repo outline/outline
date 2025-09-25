@@ -15,23 +15,23 @@ allow(User, "createDocument", Team, (actor, document) =>
   )
 );
 
-allow(User, "read", Document, (actor, document) =>
-  and(
-    isTeamModel(actor, document),
-    or(
-      includesMembership(document, [
-        DocumentPermission.Read,
-        DocumentPermission.ReadWrite,
-        DocumentPermission.Admin,
-      ]),
-      and(!!document?.isDraft, actor.id === document?.createdById),
-      and(
-        !!document?.isWorkspaceTemplate,
-        can(actor, "readTemplate", actor.team)
-      ),
-      can(actor, "readDocument", document?.collection)
+allow(
+  User,
+  ["read", "star", "unstar", "subscribe", "unsubscribe"],
+  Document,
+  (actor, document) =>
+    and(
+      isTeamModel(actor, document),
+      or(
+        includesMembership(document, [
+          DocumentPermission.Read,
+          DocumentPermission.ReadWrite,
+          DocumentPermission.Admin,
+        ]),
+        !!document?.isDraft && actor.id === document?.createdById,
+        can(actor, "readDocument", document?.collection)
+      )
     )
-  )
 );
 
 allow(User, ["listRevisions", "listViews"], Document, (actor, document) =>
@@ -60,21 +60,8 @@ allow(User, "comment", Document, (actor, document) =>
     ),
     isTeamMutable(actor),
     !!document?.isActive,
-    !document?.template,
     or(!document?.collection, document?.collection?.commenting !== false)
   )
-);
-
-allow(
-  User,
-  ["star", "unstar", "subscribe", "unsubscribe"],
-  Document,
-  (actor, document) =>
-    and(
-      //
-      can(actor, "read", document),
-      !document?.template
-    )
 );
 
 allow(User, "share", Document, (actor, document) =>
@@ -82,7 +69,6 @@ allow(User, "share", Document, (actor, document) =>
     can(actor, "read", document),
     isTeamMutable(actor),
     !!document?.isActive,
-    !document?.template,
     or(!document?.collection, can(actor, "share", document?.collection))
   )
 );
@@ -99,14 +85,7 @@ allow(User, "update", Document, (actor, document) =>
       ]),
       or(
         can(actor, "updateDocument", document?.collection),
-        and(!!document?.isDraft && actor.id === document?.createdById),
-        and(
-          !!document?.isWorkspaceTemplate,
-          or(
-            actor.id === document?.createdById,
-            can(actor, "updateTemplate", actor.team)
-          )
-        )
+        !!document?.isDraft && actor.id === document?.createdById
       )
     )
   )
@@ -122,7 +101,6 @@ allow(User, "publish", Document, (actor, document) =>
 
 allow(User, "manageUsers", Document, (actor, document) =>
   and(
-    !document?.template,
     can(actor, "update", document),
     or(
       includesMembership(document, [DocumentPermission.Admin]),
@@ -140,14 +118,7 @@ allow(User, "duplicate", Document, (actor, document) =>
       includesMembership(document, [DocumentPermission.Admin]),
       and(isTeamAdmin(actor, document), can(actor, "read", document)),
       can(actor, "updateDocument", document?.collection),
-      !!document?.isDraft && actor.id === document?.createdById,
-      and(
-        !!document?.isWorkspaceTemplate,
-        or(
-          actor.id === document?.createdById,
-          can(actor, "updateTemplate", actor.team)
-        )
-      )
+      !!document?.isDraft && actor.id === document?.createdById
     )
   )
 );
@@ -158,20 +129,13 @@ allow(User, "move", Document, (actor, document) =>
     or(
       can(actor, "updateDocument", document?.collection),
       and(!!document?.isDraft && actor.id === document?.createdById),
-      and(!!document?.isDraft && !document?.collection),
-      and(
-        !!document?.isWorkspaceTemplate,
-        or(
-          actor.id === document?.createdById,
-          can(actor, "updateTemplate", actor.team)
-        )
-      )
+      and(!!document?.isDraft && !document?.collection)
     )
   )
 );
 
 allow(User, "createChildDocument", Document, (actor, document) =>
-  and(can(actor, "update", document), !document?.isDraft, !document?.template)
+  and(can(actor, "update", document), !document?.isDraft)
 );
 
 allow(User, ["updateInsights", "pin", "unpin"], Document, (actor, document) =>
@@ -179,7 +143,6 @@ allow(User, ["updateInsights", "pin", "unpin"], Document, (actor, document) =>
     can(actor, "update", document),
     can(actor, "update", document?.collection),
     !document?.isDraft,
-    !document?.template,
     !actor.isGuest
   )
 );
@@ -190,7 +153,6 @@ allow(User, "pinToHome", Document, (actor, document) =>
     isTeamAdmin(actor, document),
     isTeamMutable(actor),
     !document?.isDraft,
-    !document?.template,
     !!document?.isActive
   )
 );
@@ -200,11 +162,7 @@ allow(User, "delete", Document, (actor, document) =>
     isTeamModel(actor, document),
     isTeamMutable(actor),
     !document?.isDeleted,
-    or(
-      can(actor, "unarchive", document),
-      can(actor, "update", document),
-      and(!document?.isWorkspaceTemplate, !document?.collection)
-    )
+    or(can(actor, "unarchive", document), can(actor, "update", document))
   )
 );
 
@@ -219,11 +177,7 @@ allow(User, ["restore", "permanentDelete"], Document, (actor, document) =>
         DocumentPermission.Admin,
       ]),
       can(actor, "updateDocument", document?.collection),
-      and(!!document?.isDraft && actor.id === document?.createdById),
-      and(
-        !!document?.isWorkspaceTemplate,
-        can(actor, "updateTemplate", actor.team)
-      ),
+      !!document?.isDraft && actor.id === document?.createdById,
       !document?.collection
     )
   )
@@ -231,7 +185,6 @@ allow(User, ["restore", "permanentDelete"], Document, (actor, document) =>
 
 allow(User, "archive", Document, (actor, document) =>
   and(
-    !document?.template,
     !document?.isDraft,
     !!document?.isActive,
     can(actor, "update", document),
@@ -245,7 +198,6 @@ allow(User, "archive", Document, (actor, document) =>
 
 allow(User, "unarchive", Document, (actor, document) =>
   and(
-    !document?.template,
     !document?.isDraft,
     !document?.isDeleted,
     !!document?.archivedAt,
@@ -256,7 +208,7 @@ allow(User, "unarchive", Document, (actor, document) =>
         DocumentPermission.Admin,
       ]),
       can(actor, "updateDocument", document?.collection),
-      and(!!document?.isDraft && actor.id === document?.createdById)
+      !!document?.isDraft && actor.id === document?.createdById
     )
   )
 );
@@ -277,13 +229,6 @@ allow(User, "unpublish", Document, (user, document) => {
     document.isDraft
   ) {
     return false;
-  }
-
-  if (
-    document.isWorkspaceTemplate &&
-    (user.id === document.createdById || can(user, "updateTemplate", user.team))
-  ) {
-    return true;
   }
 
   invariant(

@@ -71,10 +71,7 @@ export default class DocumentsStore extends Store<Document> {
 
   @computed
   get all(): Document[] {
-    return filter(
-      this.orderedData,
-      (d) => !d.archivedAt && !d.deletedAt && !d.template
-    );
+    return filter(this.orderedData, (d) => !d.archivedAt && !d.deletedAt);
   }
 
   @computed
@@ -89,18 +86,6 @@ export default class DocumentsStore extends Store<Document> {
   @computed
   get recentlyUpdated(): Document[] {
     return orderBy(this.all, "updatedAt", "desc");
-  }
-
-  @computed
-  get templates(): Document[] {
-    return orderBy(
-      filter(
-        this.orderedData,
-        (d) => !d.archivedAt && !d.deletedAt && d.template
-      ),
-      "updatedAt",
-      "desc"
-    );
   }
 
   createdByUser(userId: string): Document[] {
@@ -142,21 +127,6 @@ export default class DocumentsStore extends Store<Document> {
         document.collectionId === collectionId &&
         !document.isArchived &&
         !document.isDeleted
-    );
-  }
-
-  templatesInCollection(collectionId: string): Document[] {
-    return orderBy(
-      filter(
-        this.orderedData,
-        (d) =>
-          !d.archivedAt &&
-          !d.deletedAt &&
-          d.template === true &&
-          d.collectionId === collectionId
-      ),
-      "updatedAt",
-      "desc"
     );
   }
 
@@ -222,11 +192,6 @@ export default class DocumentsStore extends Store<Document> {
     return orderBy(this.orderedData, "deletedAt", "desc").filter(
       (d) => d.deletedAt
     );
-  }
-
-  @computed
-  get templatesAlphabetical(): Document[] {
-    return naturalSort(this.templates, "title");
   }
 
   @computed
@@ -480,10 +445,6 @@ export default class DocumentsStore extends Store<Document> {
   }): Promise<Document | null | undefined> => {
     const doc: Document | null | undefined = this.data.get(id);
     invariant(doc, "Document should exist");
-
-    if (doc.template) {
-      return;
-    }
 
     const res = await client.post("/documents.templatize", {
       id,

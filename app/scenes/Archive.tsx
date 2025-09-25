@@ -22,7 +22,6 @@ function Archive() {
           <Empty>{t("The document archive is empty at the moment.")}</Empty>
         }
         showCollection
-        showTemplate
       />
     </Scene>
   );

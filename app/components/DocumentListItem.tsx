@@ -38,7 +38,6 @@ type Props = {
   showCollection?: boolean;
   showPublished?: boolean;
   showDraft?: boolean;
-  showTemplate?: boolean;
 };
 
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
@@ -73,7 +72,6 @@ function DocumentListItem(
     showCollection,
     showPublished,
     showDraft = true,
-    showTemplate,
     highlight,
     context,
     ...rest
@@ -81,7 +79,6 @@ function DocumentListItem(
   const queryIsInTitle =
     !!highlight &&
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
-  const canStar = !document.isArchived && !document.isTemplate;
 
   const isShared = !!(
     userMemberships.getByDocumentId(document.id) ||
@@ -152,13 +149,10 @@ function DocumentListItem(
                   <Badge>{t("Draft")}</Badge>
                 </Tooltip>
               )}
-              {canStar && (
+              {!document.isArchived && (
                 <StarPositioner>
                   <StarButton document={document} />
                 </StarPositioner>
-              )}
-              {document.isTemplate && showTemplate && (
-                <Badge primary>{t("Template")}</Badge>
               )}
             </Heading>
 

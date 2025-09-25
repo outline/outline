@@ -1,13 +1,11 @@
-import { RouteComponentProps, Switch } from "react-router-dom";
-import DocumentNew from "~/scenes/DocumentNew";
+import { Switch } from "react-router-dom";
 import Error404 from "~/scenes/Errors/Error404";
 import Route from "~/components/ProfiledRoute";
 import useSettingsConfig from "~/hooks/useSettingsConfig";
 import lazy from "~/utils/lazyWithRetry";
-import { matchDocumentSlug, settingsPath } from "~/utils/routeHelpers";
+import { settingsPath } from "~/utils/routeHelpers";
 
 const Application = lazy(() => import("~/scenes/Settings/Application"));
-const Document = lazy(() => import("~/scenes/Document"));
 
 export default function SettingsRoutes() {
   const configs = useSettingsConfig();
@@ -27,18 +25,6 @@ export default function SettingsRoutes() {
         exact
         path={`${settingsPath("applications")}/:id`}
         component={Application}
-      />
-      <Route
-        exact
-        path={`${settingsPath("templates")}/${matchDocumentSlug}`}
-        component={Document}
-      />
-      <Route
-        exact
-        path={`${settingsPath("templates")}/new`}
-        component={(props: RouteComponentProps) => (
-          <DocumentNew {...props} template />
-        )}
       />
       <Route component={Error404} />
     </Switch>

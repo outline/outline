@@ -17,8 +17,6 @@ import breakpoint from "styled-components-breakpoint";
 import Icon from "@shared/components/Icon";
 import { NavigationNode } from "@shared/types";
 import { isModKey } from "@shared/utils/keyboard";
-import DocumentExplorerNode from "~/components/DocumentExplorerNode";
-import DocumentExplorerSearchResult from "~/components/DocumentExplorerSearchResult";
 import Flex from "~/components/Flex";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import { Outline } from "~/components/Input";
@@ -27,6 +25,8 @@ import Text from "~/components/Text";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import { ancestors, descendants, flattenTree } from "~/utils/tree";
+import DocumentExplorerNode from "./DocumentExplorerNode";
+import DocumentExplorerSearchResult from "./DocumentExplorerSearchResult";
 import flatten from "lodash/flatten";
 
 type Props = {
@@ -38,9 +38,17 @@ type Props = {
   items: NavigationNode[];
   /** Automatically expand to and select item with the given id */
   defaultValue?: string;
+  /** Whether to show child documents */
+  showDocuments?: boolean;
 };
 
-function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
+function DocumentExplorer({
+  onSubmit,
+  onSelect,
+  items,
+  showDocuments,
+  defaultValue,
+}: Props) {
   const isMobile = useMobile();
   const { collections, documents } = useStores();
   const { t } = useTranslation();
@@ -130,10 +138,11 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
   }
 
   const nodes = getNodes();
-  const baseDepth = nodes.reduce(
-    (min, node) => (node.depth ? Math.min(min, node.depth) : min),
-    Infinity
-  );
+  const baseDepth =
+    nodes.reduce(
+      (min, node) => (node.depth ? Math.min(min, node.depth) : min),
+      Infinity
+    ) - 1;
   const normalizedBaseDepth = baseDepth === Infinity ? 0 : baseDepth;
 
   const scrollNodeIntoView = React.useCallback(
@@ -209,7 +218,7 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
   };
 
   const hasChildren = (node: number) =>
-    nodes[node].children.length > 0 || nodes[node].type === "collection";
+    nodes[node].children.length > 0 || showDocuments !== false;
 
   const toggleCollapse = (node: number) => {
     if (!hasChildren(node)) {
@@ -249,7 +258,7 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
         path;
 
       if (isCollection) {
-        const col = collections.get(node.collectionId as string);
+        const col = collections.get(node.id);
         renderedIcon = col && (
           <CollectionIcon collection={col} expanded={isExpanded(index)} />
         );

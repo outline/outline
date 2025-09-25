@@ -18,6 +18,7 @@ import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { MenuSeparator } from "~/components/primitives/components/Menu";
 import { useDocumentMenuAction } from "~/hooks/useDocumentMenuAction";
+import Template from "~/models/Template";
 
 type Props = {
   /** Document for which the menu is to be shown */
@@ -32,8 +33,8 @@ type Props = {
   showToggleEmbeds?: boolean;
   /** Invoked when the "Find and replace" menu item is clicked */
   onFindAndReplace?: () => void;
-  /** Callback when a template is selected to apply its content to the document */
-  onSelectTemplate?: (template: Document) => void;
+  /** Invoked when the "Apply template" menu item is clicked */
+  onSelectTemplate?: (template: Template) => void;
   /** Invoked when the "Rename" menu item is clicked */
   onRename?: () => void;
   /** Invoked when menu is opened */

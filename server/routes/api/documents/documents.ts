@@ -56,7 +56,7 @@ import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import SearchHelper from "@server/models/helpers/SearchHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
-import { authorize, can, cannot } from "@server/policies";
+import { authorize, cannot } from "@server/policies";
 import {
   presentDocument,
   presentPolicies,
@@ -90,7 +90,6 @@ router.post(
     const {
       sort,
       direction,
-      template,
       collectionId,
       backlinkDocumentId,
       parentDocumentId,
@@ -116,12 +115,6 @@ router.post(
     // Exclude archived docs by default
     if (!statusFilter) {
       where[Op.and].push({ archivedAt: { [Op.eq]: null } });
-    }
-
-    if (template) {
-      where[Op.and].push({
-        template: true,
-      });
     }
 
     // if a specific user is passed then add to filters. If the user doesn't
@@ -153,12 +146,7 @@ router.post(
     } else if (!backlinkDocumentId) {
       const collectionIds = await user.collectionIds();
       where[Op.and].push({
-        collectionId:
-          template && can(user, "readTemplate", user.team)
-            ? {
-                [Op.or]: [{ [Op.in]: collectionIds }, { [Op.is]: null }],
-              }
-            : collectionIds,
+        collectionId: collectionIds,
       });
     }
 
@@ -894,8 +882,7 @@ router.post(
         })
       : undefined;
 
-    // In case of workspace templates, both source and destination collections are undefined.
-    if (!document.isWorkspaceTemplate && !destCollection?.isActive) {
+    if (!destCollection?.isActive) {
       throw ValidationError(
         "Unable to restore, the collection may have been deleted or archived"
       );
@@ -910,19 +897,7 @@ router.post(
       });
     }
 
-    if (document.deletedAt && document.isWorkspaceTemplate) {
-      authorize(user, "restore", document);
-
-      await document.restore({ transaction });
-      await Event.createFromContext(ctx, {
-        name: "documents.restore",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        data: {
-          title: document.title,
-        },
-      });
-    } else if (document.deletedAt) {
+    if (document.deletedAt) {
       authorize(user, "restore", document);
       authorize(user, "updateDocument", destCollection);
 
@@ -1278,7 +1253,7 @@ router.post(
         authorize(user, "publish", document);
       }
 
-      if (!document.collectionId && !document.isWorkspaceTemplate) {
+      if (!document.collectionId) {
         assertPresent(
           collectionId,
           "collectionId is required to publish a draft without collection"
@@ -1298,8 +1273,6 @@ router.post(
           }
         );
         authorize(user, "createChildDocument", parentDocument, { collection });
-      } else if (document.isWorkspaceTemplate) {
-        authorize(user, "createTemplate", user.team);
       } else {
         authorize(user, "createDocument", collection);
       }
@@ -1348,8 +1321,6 @@ router.post(
 
     if (collection) {
       authorize(user, "updateDocument", collection);
-    } else if (document.isWorkspaceTemplate) {
-      authorize(user, "createTemplate", user.team);
     }
 
     if (parentDocumentId) {
@@ -1408,8 +1379,6 @@ router.post(
         transaction,
       });
       authorize(user, "updateDocument", collection);
-    } else if (document.template) {
-      authorize(user, "updateTemplate", user.team);
     } else if (!parentDocumentId) {
       throw InvalidRequestError("collectionId is required to move a document");
     }

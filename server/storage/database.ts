@@ -93,9 +93,9 @@ export function createDatabaseInstance(
 
     sequelizeStrictAttributes(instance);
     return instance;
-  } catch (_err) {
+  } catch (error) {
     Logger.fatal(
-      "Could not connect to database",
+      env.isDevelopment ? error.message : "Could not connect to database",
       typeof databaseConfig === "string"
         ? new Error(
             `Failed to parse: "${databaseConfig}". Ensure special characters in database URL are encoded`

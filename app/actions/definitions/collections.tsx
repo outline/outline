@@ -3,12 +3,10 @@ import {
   CollectionIcon,
   EditIcon,
   ExportIcon,
-  NewDocumentIcon,
   PadlockIcon,
   PlusIcon,
   RestoreIcon,
   SearchIcon,
-  ShapesIcon,
   StarredIcon,
   SubscribeIcon,
   TrashIcon,
@@ -31,11 +29,7 @@ import {
 } from "~/actions";
 import { ActiveCollectionSection, CollectionSection } from "~/actions/sections";
 import { setPersistedState } from "~/hooks/usePersistedState";
-import {
-  newDocumentPath,
-  newTemplatePath,
-  searchPath,
-} from "~/utils/routeHelpers";
+import { searchPath } from "~/utils/routeHelpers";
 import ExportDialog from "~/components/ExportDialog";
 
 const ColorCollectionIcon = ({ collection }: { collection: Collection }) => (
@@ -349,40 +343,6 @@ export const restoreCollection = createActionV2({
   },
 });
 
-export const deleteCollection = createActionV2({
-  name: ({ t }) => `${t("Delete")}…`,
-  analyticsName: "Delete collection",
-  section: ActiveCollectionSection,
-  dangerous: true,
-  icon: <TrashIcon />,
-  visible: ({ activeCollectionId, stores }) => {
-    if (!activeCollectionId) {
-      return false;
-    }
-    return stores.policies.abilities(activeCollectionId).delete;
-  },
-  perform: ({ activeCollectionId, t, stores }) => {
-    if (!activeCollectionId) {
-      return;
-    }
-
-    const collection = stores.collections.get(activeCollectionId);
-    if (!collection) {
-      return;
-    }
-
-    stores.dialogs.openModal({
-      title: t("Delete collection"),
-      content: (
-        <CollectionDeleteDialog
-          collection={collection}
-          onSubmit={stores.dialogs.closeAllModals}
-        />
-      ),
-    });
-  },
-});
-
 export const exportCollection = createActionV2({
   name: ({ t }) => `${t("Export")}…`,
   analyticsName: "Export collection",
@@ -419,47 +379,37 @@ export const exportCollection = createActionV2({
   },
 });
 
-export const createDocument = createInternalLinkActionV2({
-  name: ({ t }) => t("New document"),
-  analyticsName: "New document",
+export const deleteCollection = createActionV2({
+  name: ({ t }) => `${t("Delete")}…`,
+  analyticsName: "Delete collection",
   section: ActiveCollectionSection,
-  icon: <NewDocumentIcon />,
-  keywords: "new create document",
-  visible: ({ activeCollectionId, stores }) =>
-    !!(
-      !!activeCollectionId &&
-      stores.policies.abilities(activeCollectionId).createDocument
-    ),
-  to: ({ activeCollectionId, sidebarContext }) => {
-    const [pathname, search] = newDocumentPath(activeCollectionId).split("?");
-
-    return {
-      pathname,
-      search,
-      state: { sidebarContext },
-    };
+  dangerous: true,
+  icon: <TrashIcon />,
+  visible: ({ activeCollectionId, stores }) => {
+    if (!activeCollectionId) {
+      return false;
+    }
+    return stores.policies.abilities(activeCollectionId).delete;
   },
-});
+  perform: ({ activeCollectionId, t, stores }) => {
+    if (!activeCollectionId) {
+      return;
+    }
 
-export const createTemplate = createInternalLinkActionV2({
-  name: ({ t }) => t("New template"),
-  analyticsName: "New template",
-  section: ActiveCollectionSection,
-  icon: <ShapesIcon />,
-  keywords: "new create template",
-  visible: ({ activeCollectionId, stores }) =>
-    !!(
-      !!activeCollectionId &&
-      stores.policies.abilities(activeCollectionId).createDocument
-    ),
-  to: ({ activeCollectionId, sidebarContext }) => {
-    const [pathname, search] = newTemplatePath(activeCollectionId).split("?");
+    const collection = stores.collections.get(activeCollectionId);
+    if (!collection) {
+      return;
+    }
 
-    return {
-      pathname,
-      search,
-      state: { sidebarContext },
-    };
+    stores.dialogs.openModal({
+      title: t("Delete collection"),
+      content: (
+        <CollectionDeleteDialog
+          collection={collection}
+          onSubmit={stores.dialogs.closeAllModals}
+        />
+      ),
+    });
   },
 });
 
