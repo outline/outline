@@ -208,7 +208,7 @@ allow(User, "delete", Document, (actor, document) =>
   )
 );
 
-allow(User, ["restore", "permanentDelete"], Document, (actor, document) =>
+allow(User, "restore", Document, (actor, document) =>
   and(
     isTeamModel(actor, document),
     !actor.isGuest,
@@ -226,6 +226,15 @@ allow(User, ["restore", "permanentDelete"], Document, (actor, document) =>
       ),
       !document?.collection
     )
+  )
+);
+
+allow(User, "permanentDelete", Document, (actor, document) =>
+  and(
+    isTeamModel(actor, document),
+    !actor.isGuest,
+    !!document?.isDeleted,
+    isTeamAdmin(actor, document)
   )
 );
 
