@@ -6,6 +6,7 @@ import {
   ForeignKey,
   Table,
   Length,
+  HasMany,
 } from "sequelize-typescript";
 import Collection from "./Collection";
 import Document from "./Document";
@@ -25,6 +26,9 @@ class Star extends IdModel<
   })
   @Column
   index: string | null;
+
+  @Column(DataType.BOOLEAN)
+  isFolder: boolean;
 
   // associations
 
@@ -48,6 +52,16 @@ class Star extends IdModel<
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
   collectionId: string | null;
+
+  @BelongsTo(() => Star, "parentId")
+  parent: Star | null;
+
+  @ForeignKey(() => Star)
+  @Column(DataType.UUID)
+  parentId: string | null;
+
+  @HasMany(() => Star, "parentId")
+  children: Star[];
 }
 
 export default Star;

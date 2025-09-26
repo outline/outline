@@ -25,7 +25,7 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.StarsCreateReq>) => {
     const { transaction } = ctx.state;
-    const { documentId, collectionId, index } = ctx.input.body;
+    const { documentId, collectionId, parentId, isFolder, index } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     if (documentId) {
@@ -44,11 +44,32 @@ router.post(
       authorize(user, "star", collection);
     }
 
+    // If parentId is provided, verify the parent exists and belongs to the user
+    if (parentId) {
+      const parentStar = await Star.findOne({
+        where: {
+          id: parentId,
+          userId: user.id,
+        },
+        transaction,
+      });
+      
+      if (!parentStar) {
+        ctx.throw(400, "Parent star not found or does not belong to user");
+      }
+      
+      if (!parentStar.isFolder) {
+        ctx.throw(400, "Parent must be a folder");
+      }
+    }
+
     const star = await starCreator({
       ctx,
       user,
       documentId,
       collectionId,
+      parentId,
+      isFolder: isFolder || false,
       index,
     });
 
