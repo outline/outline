@@ -29,7 +29,7 @@ import getTableMenuItems from "../menus/table";
 import getTableColMenuItems from "../menus/tableCol";
 import getTableRowMenuItems from "../menus/tableRow";
 import { useEditor } from "./EditorContext";
-import { EmbedLinkEditor } from "./EmbedLinkEditor";
+import { EmbededMediaLinkEditor } from "./EmbededMediaLinkEditor";
 import FloatingToolbar from "./FloatingToolbar";
 import LinkEditor from "./LinkEditor";
 import ToolbarMenu from "./ToolbarMenu";
@@ -252,6 +252,9 @@ export default function SelectionToolbar(props: Props) {
   const showLinkToolbar =
     link && link.from === selection.from && link.to === selection.to;
 
+  const isEditingMedia =
+    isEmbedSelection || (isImageSelection && selection.node.attrs.editing);
+
   return (
     <FloatingToolbar
       align={align}
@@ -270,10 +273,10 @@ export default function SelectionToolbar(props: Props) {
           onClickLink={props.onClickLink}
           onSelectLink={handleOnSelectLink}
         />
-      ) : isEmbedSelection ? (
-        <EmbedLinkEditor
+      ) : isEditingMedia ? (
+        <EmbededMediaLinkEditor
           key={`embed-${selection.from}`}
-          node={(selection as NodeSelection).node}
+          node={selection.node}
           view={view}
           dictionary={dictionary}
         />
