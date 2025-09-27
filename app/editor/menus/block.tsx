@@ -223,5 +223,11 @@ export default function blockMenuItems(
       keywords: "diagram flowchart",
       attrs: { language: "mermaidjs" },
     },
+    {
+      name: "excalidraw",
+      title: "Excalidraw",
+      icon: <ImageIcon />,
+      keywords: "drawing whiteboard sketch diagram",
+    },
   ];
 }

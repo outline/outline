@@ -1,4 +1,5 @@
 import DateTime from "../extensions/DateTime";
+import ExcalidrawExtension from "../extensions/ExcalidrawExtension";
 import History from "../extensions/History";
 import MaxLength from "../extensions/MaxLength";
 import TrailingNode from "../extensions/TrailingNode";
@@ -23,6 +24,7 @@ import CodeFence from "./CodeFence";
 import Doc from "./Doc";
 import Embed from "./Embed";
 import Emoji from "./Emoji";
+import Excalidraw from "./Excalidraw";
 import HardBreak from "./HardBreak";
 import Heading from "./Heading";
 import HorizontalRule from "./HorizontalRule";
@@ -106,6 +108,8 @@ export const richExtensions: Nodes = [
   Math,
   MathBlock,
   Mention,
+  Excalidraw,
+  ExcalidrawExtension,
   // Container type nodes should be last so that key handlers are registered for content inside
   // the container nodes first.
   ...listExtensions,

@@ -51,10 +51,12 @@ export default function createCSPMiddleware() {
           env.DEVELOPMENT_UNSAFE_INLINE_CSP
             ? "'unsafe-inline'"
             : `'nonce-${ctx.state.cspNonce}'`,
+          "'unsafe-eval'", // Required for Excalidraw
         ],
         mediaSrc: ["*", "data:", "blob:"],
         imgSrc: ["*", "data:", "blob:"],
         frameSrc: ["*", "data:"],
+        fontSrc: ["'self'", "data:", "https://esm.sh"], // Required for Excalidraw fonts
         // Do not use connect-src: because self + websockets does not work in
         // Safari, ref: https://bugs.webkit.org/show_bug.cgi?id=201591
         connectSrc: ["*"],
