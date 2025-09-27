@@ -1,6 +1,7 @@
 import debounce from "lodash/debounce";
 import last from "lodash/last";
 import sortBy from "lodash/sortBy";
+import * as yaml from "js-yaml";
 import type MermaidUnsafe from "mermaid";
 import { Node } from "prosemirror-model";
 import {
@@ -15,12 +16,29 @@ import { isCode } from "../lib/isCode";
 import { isRemoteTransaction } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
 import { NodeWithPos } from "../types";
+import { merge } from "lodash";
+import { icons as logosIcons } from '@iconify-json/logos';
+import { icons as notoIcons } from '@iconify-json/noto';
+import { icons as streamlineIcons } from '@iconify-json/streamline-color';
+import { icons as codeIcons } from '@iconify-json/vscode-icons';
 import type { Editor } from "../../../app/editor";
 import { LightboxImageFactory } from "../lib/Lightbox";
 
 type MermaidState = {
   decorationSet: DecorationSet;
   isDark: boolean;
+};
+
+type FrontMatterMetadata = {
+  title?: string;
+  displayMode?: string;
+  config?: Record<string, unknown>;
+  [key: string]: unknown;
+};
+
+type ExtractedFrontMatter = {
+  metadata: FrontMatterMetadata;
+  text: string;
 };
 
 class Cache {
@@ -41,11 +59,46 @@ class Cache {
 }
 
 let mermaid: typeof MermaidUnsafe;
+let elkLayoutsRegistered = false;
+let iconPacksRegistered = false;
 
 type RendererFunc = (
   block: { node: Node; pos: number },
   isDark: boolean
 ) => void;
+
+/**
+ * Extract Frontmatter configuration from Mermaid diagram text
+ */
+function extractFrontMatter(text: string): ExtractedFrontMatter {
+  const frontMatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n/;
+  const match = text.match(frontMatterRegex);
+  
+  if (!match) {
+    return {
+      metadata: {},
+      text,
+    };
+  }
+
+  try {
+    const yamlContent = match[1];
+    const metadata = yaml.load(yamlContent, { schema: yaml.JSON_SCHEMA }) as FrontMatterMetadata || {};
+    const cleanedText = text.replace(frontMatterRegex, '');
+    
+    return {
+      metadata,
+      text: cleanedText,
+    };
+  } catch (_error) {
+    // If YAML parsing fails, return original text without frontmatter
+    return {
+      metadata: {},
+      text: text.replace(frontMatterRegex, ''),
+    };
+  }
+}
+
 
 class MermaidRenderer {
   readonly diagramId: string;
@@ -68,9 +121,12 @@ class MermaidRenderer {
     isDark: boolean
   ) => {
     const element = this.element;
-    const text = block.node.textContent;
+    const originalText = block.node.textContent;
+    const { metadata, text } = extractFrontMatter(originalText);
 
-    const cacheKey = `${isDark ? "dark" : "light"}-${text}`;
+    // Include config in cache key to ensure different configs produce different cached renders
+    const configHash = metadata.config ? JSON.stringify(metadata.config) : '';
+    const cacheKey = `${isDark ? "dark" : "light"}-${configHash}-${originalText}`;
     const cache = Cache.get(cacheKey);
     if (cache) {
       element.classList.remove("parse-error", "empty");
@@ -88,16 +144,70 @@ class MermaidRenderer {
 
     try {
       mermaid ??= (await import("mermaid")).default;
-      mermaid.initialize({
+
+      // Register ELK layout loaders if not already done
+      if (!elkLayoutsRegistered) {
+        try {
+          const elkLayouts = await import("@mermaid-js/layout-elk");
+          mermaid.registerLayoutLoaders(elkLayouts.default);
+          elkLayoutsRegistered = true;
+        } catch (_error) {
+          // ELK layout package not available, continue without it
+        }
+      }
+
+      // Register icon packs if not already done
+      if (!iconPacksRegistered) {
+        try {
+          mermaid.registerIconPacks([
+            {
+              name: 'logos',
+              icons: logosIcons,
+            },
+            {
+              name: 'noto',
+              icons: notoIcons,
+            },
+            {
+              name: 'streamline',
+              icons: streamlineIcons,
+            },
+            {
+              name: 'code',
+              icons: codeIcons,
+            },
+          ]);
+          iconPacksRegistered = true;
+        } catch (_error) {
+          // Icon packs not available, continue without them
+        }
+      }
+      
+      // Create default configuration
+      const defaultConfig = {
         startOnLoad: true,
         // TODO: Make dynamic based on the width of the editor or remove in
         // the future if Mermaid is able to handle this automatically.
         gantt: { useWidth: 700 },
         pie: { useWidth: 700 },
+        elk: { mergeEdges: true },
         fontFamily: getComputedStyle(this.element).fontFamily || "inherit",
-        theme: isDark ? "dark" : "default",
+        theme: (isDark ? "dark" : "default") as "dark" | "default",
         darkMode: isDark,
-      });
+      };
+      
+      // Merge default config with frontmatter config
+      let finalConfig = defaultConfig;
+      if (metadata.config) {
+        finalConfig = merge({}, defaultConfig, metadata.config) as typeof defaultConfig;
+        // Preserve theme switching capability - don't override theme if isDark is set
+        if (isDark && !metadata.config.theme) {
+          finalConfig.theme = "dark";
+        }
+        finalConfig.darkMode = isDark;
+      }
+      
+      mermaid.initialize(finalConfig);
 
       const { svg, bindFunctions } = await mermaid.render(
         `mermaid-diagram-${this.diagramId}`,
@@ -116,14 +226,14 @@ class MermaidRenderer {
 
       // Allow the user to interact with the diagram
       bindFunctions?.(element);
-    } catch (error) {
+    } catch (_error) {
       const isEmpty = block.node.textContent.trim().length === 0;
 
       if (isEmpty) {
         element.innerText = "Empty diagram";
         element.classList.add("empty");
       } else {
-        element.innerText = error;
+        element.innerText = String(_error);
         element.classList.add("parse-error");
       }
     } finally {
