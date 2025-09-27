@@ -5,7 +5,7 @@ node_modules/*
 .env.local
 .env.production
 .log
-.vscode/*
+.yarn
 npm-debug.log
 stats.json
 .DS_Store
@@ -14,3 +14,4 @@ data/*
 *.pem
 *.key
 *.cert
+.vscode

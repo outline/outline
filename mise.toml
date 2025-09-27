@@ -1,0 +1,3 @@
+[tools]
+node = "22"
+yarn = "latest"
