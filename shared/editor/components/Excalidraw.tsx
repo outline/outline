@@ -1,9 +1,7 @@
 import * as React from "react";
-import { useState, useCallback, useContext } from "react";
+import { useState, useCallback } from "react";
 import styled from "styled-components";
-import { ResizeIcon } from "outline-icons";
 import * as Y from "yjs";
-import { s } from "../../styles";
 import ExcalidrawModal from "./ExcalidrawModal";
 import { ComponentProps } from "../types";
 import type { ExcalidrawElement, AppState } from "@excalidraw/excalidraw/types/types";
@@ -24,13 +22,13 @@ const ExcalidrawComponent: React.FC<Props> = ({
   node,
   isSelected,
   isEditable,
-  onEdit,
+  _onEdit,
   onUpdateData,
-  onChangeSize,
+  _onChangeSize,
   yDoc,
   children,
 }) => {
-  const { id, data, svg, width, height, alt } = node.attrs;
+  const { id, data, svg, width, height } = node.attrs;
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleClick = useCallback(() => {

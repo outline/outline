@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import styled from "styled-components";
 import * as Y from "yjs";
 import { s } from "../../styles";
@@ -35,25 +35,23 @@ const ExcalidrawWrapper: React.FC<{
   excalidrawAPI: (api: ExcalidrawImperativeAPI) => void;
   initialData?: { elements: ExcalidrawElement[]; appState: Partial<AppState> };
   onChange: (elements: ExcalidrawElement[], appState: AppState) => void;
-}> = ({ excalidrawAPI, initialData, onChange }) => {
-  return (
-    <React.Suspense fallback={<div>Loading Excalidraw...</div>}>
-      <ExcalidrawLazy
-        excalidrawAPI={excalidrawAPI}
-        initialData={initialData}
-        onChange={onChange}
-        theme="light"
-        UIOptions={{
-          canvasActions: {
-            loadScene: false,
-            saveToActiveFile: false,
-            export: false,
-          },
-        }}
-      />
-    </React.Suspense>
-  );
-};
+}> = ({ excalidrawAPI, initialData, onChange }) => (
+  <React.Suspense fallback={<div>Loading Excalidraw...</div>}>
+    <ExcalidrawLazy
+      excalidrawAPI={excalidrawAPI}
+      initialData={initialData}
+      onChange={onChange}
+      theme="light"
+      UIOptions={{
+        canvasActions: {
+          loadScene: false,
+          saveToActiveFile: false,
+          export: false,
+        },
+      }}
+    />
+  </React.Suspense>
+);
 
 const ExcalidrawModal: React.FC<Props> = ({
   isOpen,
@@ -64,11 +62,8 @@ const ExcalidrawModal: React.FC<Props> = ({
   onClose,
 }) => {
   const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawImperativeAPI | null>(null);
-  const [elements, setElements] = useState<ExcalidrawElement[]>(initialData?.elements || []);
-  const [appState, setAppState] = useState<Partial<AppState>>(initialData?.appState || {});
-  const [isLoaded, setIsLoaded] = useState(false);
   const [ySubDoc, setYSubDoc] = useState<Y.Doc | null>(null);
-  const [yElements, setYElements] = useState<Y.Array<any> | null>(null);
+  const [yElements, setYElements] = useState<Y.Array<ExcalidrawElement> | null>(null);
 
   // Dynamically load Excalidraw styles (browser only)
   useEffect(() => {
@@ -101,7 +96,6 @@ const ExcalidrawModal: React.FC<Props> = ({
             elements: remoteElements,
           });
         }
-        setElements(remoteElements);
       };
 
       elementsArray.observe(handleElementsChange);
@@ -119,14 +113,10 @@ const ExcalidrawModal: React.FC<Props> = ({
         elements: initialData.elements,
         appState: initialData.appState,
       });
-      setIsLoaded(true);
     }
   }, [excalidrawAPI, initialData, isOpen]);
 
-  const handleChange = useCallback((newElements: ExcalidrawElement[], newAppState: AppState) => {
-    setElements(newElements);
-    setAppState(newAppState);
-
+  const handleChange = useCallback((newElements: ExcalidrawElement[], _newAppState: AppState) => {
     // Sync to Y.js for collaboration
     if (yElements && ySubDoc) {
       ySubDoc.transact(() => {
@@ -137,7 +127,9 @@ const ExcalidrawModal: React.FC<Props> = ({
   }, [yElements, ySubDoc]);
 
   const handleSave = useCallback(async () => {
-    if (!excalidrawAPI) return;
+    if (!excalidrawAPI) {
+      return;
+    }
 
     try {
       const currentElements = excalidrawAPI.getSceneElements();
@@ -167,14 +159,16 @@ const ExcalidrawModal: React.FC<Props> = ({
         },
         svg: svgString,
       });
-    } catch (error) {
-      console.error("Failed to save Excalidraw:", error);
+    } catch (_error) {
+      // Silently handle save errors
     }
   }, [excalidrawAPI, onSave]);
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     // Only handle keys when the modal is focused
-    if (!isOpen) return;
+    if (!isOpen) {
+      return;
+    }
 
     if (event.key === "Escape") {
       event.preventDefault();

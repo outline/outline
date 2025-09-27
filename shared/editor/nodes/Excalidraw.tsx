@@ -2,7 +2,6 @@ import { InputRule } from "prosemirror-inputrules";
 import { Node as ProsemirrorNode, NodeSpec, NodeType } from "prosemirror-model";
 import { NodeSelection, Plugin, Command, TextSelection } from "prosemirror-state";
 import * as React from "react";
-import { sanitizeUrl } from "../../utils/urls";
 import Caption from "../components/Caption";
 import ExcalidrawComponent from "../components/Excalidraw";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
@@ -134,7 +133,7 @@ export default class Excalidraw extends ReactNode {
     return [
       new Plugin({
         props: {
-          handleDoubleClick: (view, pos, event) => {
+          handleDoubleClick: (view, pos, _event) => {
             const { state } = view;
             const { doc } = state;
             const $pos = doc.resolve(pos);
@@ -227,15 +226,14 @@ export default class Excalidraw extends ReactNode {
     };
 
   handleEdit =
-    ({ node, getPos }: ComponentProps) =>
+    ({ _node, _getPos }: ComponentProps) =>
     () => {
       // This will be called when the user clicks to edit
-      console.log("Opening Excalidraw editor for node:", node.attrs.id);
     };
 
   handleUpdateData =
     ({ node, getPos }: ComponentProps) =>
-    (newData: { elements: any[]; appState: any; svg: string }) => {
+    (newData: { elements: unknown[]; appState: unknown; svg: string }) => {
       const { view } = this.editor;
       const { tr } = view.state;
 
@@ -292,7 +290,7 @@ export default class Excalidraw extends ReactNode {
   parseMarkdown() {
     return {
       block: "excalidraw",
-      getAttrs: (token: any) => {
+      getAttrs: (token: unknown) => {
         try {
           const data = JSON.parse(token.content);
           return {
@@ -335,7 +333,6 @@ export default class Excalidraw extends ReactNode {
 
         if (dispatch) {
           const { tr } = state;
-          const { selection } = state;
           tr.replaceSelectionWith(node);
           dispatch(tr);
         }

@@ -53,9 +53,8 @@ export default class ExcalidrawExtension extends Extension {
                   transform.replaceWith(pos, pos + node.nodeSize, excalidrawNode);
                   modified = true;
                 }
-              } catch (error) {
+              } catch (_error) {
                 // Invalid JSON, leave as code block
-                console.warn("Invalid Excalidraw JSON:", error);
               }
             }
           });
