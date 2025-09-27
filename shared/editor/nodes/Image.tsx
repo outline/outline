@@ -507,7 +507,7 @@ export default class Image extends SimpleImage {
           dispatch?.(tr.setSelection(new NodeSelection($pos)));
           return true;
         },
-      editLink: (): Command => (state, dispatch) => {
+      editImageUrl: (): Command => (state, dispatch) => {
         if (!(state.selection instanceof NodeSelection)) {
           return false;
         }

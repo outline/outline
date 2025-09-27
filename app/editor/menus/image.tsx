@@ -6,7 +6,6 @@ import {
   AlignImageRightIcon,
   AlignImageCenterIcon,
   AlignFullWidthIcon,
-  EditIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
@@ -29,14 +28,6 @@ export default function imageMenuItems(
   });
 
   return [
-    {
-      name: "editLink",
-      tooltip: dictionary.editLink,
-      icon: <EditIcon />,
-    },
-    {
-      name: "separator",
-    },
     {
       name: "alignLeft",
       tooltip: dictionary.alignLeft,
@@ -84,9 +75,18 @@ export default function imageMenuItems(
       visible: !!fetch,
     },
     {
-      name: "replaceImage",
       tooltip: dictionary.replaceImage,
       icon: <ReplaceIcon />,
+      children: [
+        {
+          name: "replaceImage",
+          label: dictionary.selectNewImage,
+        },
+        {
+          name: "editImageUrl",
+          label: dictionary.editImageUrl,
+        },
+      ],
     },
     {
       name: "deleteImage",
