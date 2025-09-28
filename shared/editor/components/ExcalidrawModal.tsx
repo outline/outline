@@ -1,8 +1,38 @@
 import * as React from "react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import styled from "styled-components";
 import * as Y from "yjs";
-import { s } from "../../styles";
+import { ExcalidrawCollaboration, type CollaborationState, type CollaborationCallbacks } from "../lib/excalidraw/collaboration";
+import ExcalidrawCollabUI from "./ExcalidrawCollabUI";
+import { ConnectionStatus, CollabErrorType } from "../lib/excalidraw/constants";
+
+// Helper functions for collaboration - now integrated with Outline's auth system
+const getCollaborationServerUrl = (): string => {
+  if (typeof window !== "undefined") {
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const host = window.location.host;
+    return `${protocol}//${host}`;
+  }
+  return "http://localhost:3000";
+};
+
+const getUserName = (user?: { name: string }): string => {
+  return user?.name || "Anonymous User";
+};
+
+const getCollaborationToken = (): string | undefined => {
+  // Extract token from cookies - this matches how Outline's websockets work
+  if (typeof document !== "undefined") {
+    const cookies = document.cookie.split(';');
+    for (const cookie of cookies) {
+      const [name, value] = cookie.trim().split('=');
+      if (name === 'accessToken') {
+        return value;
+      }
+    }
+  }
+  return undefined;
+};
 
 // Dynamic imports for Excalidraw to avoid SSR issues
 const ExcalidrawLazy = React.lazy(() =>
@@ -11,12 +41,19 @@ const ExcalidrawLazy = React.lazy(() =>
   }))
 );
 
-// Type imports only
-import type { ExcalidrawElement, AppState, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
+// Type imports - using any for now due to module resolution issues
+// These will be resolved when the build system processes the imports
+type ExcalidrawElement = any;
+type AppState = any;
+type ExcalidrawImperativeAPI = any;
+
 
 type Props = {
   isOpen: boolean;
   excalidrawId: string;
+  documentId?: string;
+  collaborationToken?: string;
+  user?: { name: string; id: string }; // Add user prop for real user data
   initialData?: {
     elements: ExcalidrawElement[];
     appState: Partial<AppState>;
@@ -35,35 +72,53 @@ const ExcalidrawWrapper: React.FC<{
   excalidrawAPI: (api: ExcalidrawImperativeAPI) => void;
   initialData?: { elements: ExcalidrawElement[]; appState: Partial<AppState> };
   onChange: (elements: ExcalidrawElement[], appState: AppState) => void;
-}> = ({ excalidrawAPI, initialData, onChange }) => (
-  <React.Suspense fallback={<div>Loading Excalidraw...</div>}>
-    <ExcalidrawLazy
-      excalidrawAPI={excalidrawAPI}
-      initialData={initialData}
-      onChange={onChange}
-      theme="light"
-      UIOptions={{
-        canvasActions: {
-          loadScene: false,
-          saveToActiveFile: false,
-          export: false,
-        },
-      }}
-    />
-  </React.Suspense>
+  onPointerUpdate?: (update: { pointer: { x: number; y: number }; button: string }) => void;
+}> = ({ excalidrawAPI, initialData, onChange, onPointerUpdate }) => (
+    <React.Suspense fallback={<div>Loading Excalidraw...</div>}>
+      <ExcalidrawLazy
+        excalidrawAPI={excalidrawAPI}
+        initialData={initialData}
+        onChange={onChange}
+        onPointerUpdate={onPointerUpdate}
+        isCollaborating={true}
+        theme="light"
+        UIOptions={{
+          canvasActions: {
+            loadScene: false,
+            saveToActiveFile: false,
+            export: false,
+          },
+        }}
+        renderTopRightUI={() => null}
+        detectScroll={false}
+        handleKeyboardGlobally={false}
+      />
+    </React.Suspense>
 );
 
 const ExcalidrawModal: React.FC<Props> = ({
   isOpen,
   excalidrawId,
+  documentId,
+  collaborationToken,
+  user,
   initialData,
-  yDoc,
+  yDoc: _yDoc,
   onSave,
   onClose,
 }) => {
   const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawImperativeAPI | null>(null);
-  const [ySubDoc, setYSubDoc] = useState<Y.Doc | null>(null);
-  const [yElements, setYElements] = useState<Y.Array<ExcalidrawElement> | null>(null);
+  const [collaboration, setCollaboration] = useState<ExcalidrawCollaboration | null>(null);
+  const [collabState, setCollabState] = useState<CollaborationState>({
+    connectionStatus: ConnectionStatus.DISCONNECTED,
+    collaborators: new Map(),
+    isCollaborating: false,
+    error: null,
+    retryCount: 0
+  });
+  const isMountedRef = useRef(true);
+  const hasInitialized = useRef(false);
+  const [showCollabUI, setShowCollabUI] = useState(false);
 
   // Dynamically load Excalidraw styles (browser only)
   useEffect(() => {
@@ -72,39 +127,86 @@ const ExcalidrawModal: React.FC<Props> = ({
     }
   }, [isOpen]);
 
-  // Initialize Y.js subdocument for collaboration
+  // Reset mounted ref when modal opens
   useEffect(() => {
-    if (yDoc && excalidrawId && isOpen) {
-      const subdocKey = `excalidraw-${excalidrawId}`;
-      let subdoc = yDoc.getSubDoc(subdocKey);
-
-      if (!subdoc) {
-        subdoc = new Y.Doc();
-        yDoc.setSubDoc(subdocKey, subdoc);
-      }
-
-      const elementsArray = subdoc.getArray("elements");
-
-      setYSubDoc(subdoc);
-      setYElements(elementsArray);
-
-      // Listen for remote changes
-      const handleElementsChange = () => {
-        const remoteElements = elementsArray.toArray();
-        if (excalidrawAPI && remoteElements.length > 0) {
-          excalidrawAPI.updateScene({
-            elements: remoteElements,
-          });
-        }
-      };
-
-      elementsArray.observe(handleElementsChange);
-
-      return () => {
-        elementsArray.unobserve(handleElementsChange);
-      };
+    if (isOpen) {
+      isMountedRef.current = true;
+      hasInitialized.current = false;
     }
-  }, [yDoc, excalidrawId, isOpen, excalidrawAPI]);
+  }, [isOpen]);
+
+  // Handle collaboration state changes
+  const handleCollabStateChange = useCallback((newState: CollaborationState) => {
+    if (!isMountedRef.current) {
+      return;
+    }
+    setCollabState(newState);
+
+    // Show/hide collaboration UI based on collaboration state
+    setShowCollabUI(newState.isCollaborating);
+  }, []);
+
+  // Handle collaboration errors
+  const handleCollabError = useCallback((message: string, _type: CollabErrorType) => {
+    setCollabState(prev => ({ ...prev, error: message }));
+  }, []);
+
+  // Handle retry connection
+  const handleRetryConnection = useCallback(() => {
+    if (collaboration && !collabState.isCollaborating) {
+      collaboration.startCollaboration();
+    }
+  }, [collaboration, collabState.isCollaborating]);
+
+  // Handle dismiss error
+  const handleDismissError = useCallback(() => {
+    setCollabState(prev => ({ ...prev, error: null }));
+  }, []);
+
+  // Initialize collaboration when modal opens
+  useEffect(() => {
+    if (isOpen && documentId && excalidrawId && !collaboration) {
+      const callbacks: CollaborationCallbacks = {
+        onStateChange: handleCollabStateChange,
+        onError: handleCollabError,
+      };
+
+      const config = {
+        documentId,
+        excalidrawId,
+        collaborationServerUrl: getCollaborationServerUrl(),
+        username: getUserName(user),
+        collaborationToken: collaborationToken || getCollaborationToken(),
+      };
+
+      const collabInstance = new ExcalidrawCollaboration(config, callbacks);
+      setCollaboration(collabInstance);
+    }
+  }, [isOpen, documentId, excalidrawId, user, collaborationToken, collaboration, handleCollabStateChange, handleCollabError]);
+
+  // Set Excalidraw API and start collaboration
+  useEffect(() => {
+    if (collaboration && excalidrawAPI && !hasInitialized.current) {
+      hasInitialized.current = true;
+      collaboration.setExcalidrawAPI(excalidrawAPI);
+      collaboration.startCollaboration();
+    }
+  }, [collaboration, excalidrawAPI]);
+
+  // Stop collaboration when modal closes
+  useEffect(() => {
+    if (!isOpen && collaboration && hasInitialized.current) {
+      collaboration.stopCollaboration();
+      hasInitialized.current = false;
+    }
+  }, [isOpen, collaboration]);
+
+  // Cleanup collaboration when modal unmounts
+  useEffect(() => () => {
+    if (collaboration) {
+      collaboration.destroy();
+    }
+  }, [collaboration]);
 
   // Initialize Excalidraw with initial data
   useEffect(() => {
@@ -116,15 +218,12 @@ const ExcalidrawModal: React.FC<Props> = ({
     }
   }, [excalidrawAPI, initialData, isOpen]);
 
-  const handleChange = useCallback((newElements: ExcalidrawElement[], _newAppState: AppState) => {
-    // Sync to Y.js for collaboration
-    if (yElements && ySubDoc) {
-      ySubDoc.transact(() => {
-        yElements.delete(0, yElements.length);
-        yElements.insert(0, newElements);
-      });
+  const handleChange = useCallback((newElements: ExcalidrawElement[], newAppState: AppState) => {
+    // Sync changes via collaboration
+    if (collaboration && collabState.isCollaborating) {
+      collaboration.syncElements(newElements, newAppState);
     }
-  }, [yElements, ySubDoc]);
+  }, [collaboration, collabState.isCollaborating]);
 
   const handleSave = useCallback(async () => {
     if (!excalidrawAPI) {
@@ -148,6 +247,7 @@ const ExcalidrawModal: React.FC<Props> = ({
       // Convert SVG to string
       const svgString = new XMLSerializer().serializeToString(svg);
 
+      // Save and close modal only for this user
       onSave({
         elements: currentElements,
         appState: {
@@ -159,10 +259,13 @@ const ExcalidrawModal: React.FC<Props> = ({
         },
         svg: svgString,
       });
+
+      // Close modal only for this user
+      onClose();
     } catch (_error) {
       // Silently handle save errors
     }
-  }, [excalidrawAPI, onSave]);
+  }, [excalidrawAPI, onSave, onClose]);
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     // Only handle keys when the modal is focused
@@ -199,6 +302,7 @@ const ExcalidrawModal: React.FC<Props> = ({
       document.addEventListener("keydown", handleKeyDown);
       return () => document.removeEventListener("keydown", handleKeyDown);
     }
+    return undefined;
   }, [isOpen, handleKeyDown]);
 
   if (!isOpen) {
@@ -256,8 +360,28 @@ const ExcalidrawModal: React.FC<Props> = ({
             excalidrawAPI={setExcalidrawAPI}
             initialData={initialData}
             onChange={handleChange}
+            onPointerUpdate={collaboration ? (update) => {
+              if (!excalidrawAPI || !isMountedRef.current || !collabState.isCollaborating) {
+                return;
+              }
+              collaboration.updatePointer(update.pointer, update.button);
+            } : undefined}
           />
+
+          {/* Collaboration is now handled by the collaboration instance */}
         </ExcalidrawContainer>
+
+        {/* Collaboration UI */}
+        {showCollabUI && (
+          <ExcalidrawCollabUI
+            connectionStatus={collabState.connectionStatus}
+            collaborators={collabState.collaborators}
+            isCollaborating={collabState.isCollaborating}
+            error={collabState.error}
+            onRetryConnection={handleRetryConnection}
+            onDismissError={handleDismissError}
+          />
+        )}
       </Container>
     </Overlay>
   );
@@ -290,7 +414,7 @@ const Container = styled.div`
 `;
 
 const Header = styled.div`
-  padding: ${s(3)};
+  padding: 16px;
   border-bottom: 1px solid ${(props) => props.theme.divider};
   background: ${(props) => props.theme.background};
 `;
@@ -310,25 +434,25 @@ const Title = styled.h2`
 
 const ButtonGroup = styled.div`
   display: flex;
-  gap: ${s(2)};
+  gap: 8px;
 `;
 
 const StyledButton = styled.button<{ $primary?: boolean }>`
   padding: 8px 16px;
   border: 1px solid ${(props) => props.theme.divider};
   border-radius: 4px;
-  background: ${(props) => props.$primary ? props.theme.primary : props.theme.background};
+  background: ${(props) => props.$primary ? '#007bff' : props.theme.background};
   color: ${(props) => props.$primary ? "#fff" : props.theme.text};
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:hover {
-    background: ${(props) => props.$primary ? props.theme.primaryHover || props.theme.primary : props.theme.backgroundSecondary};
+    background: ${(props) => props.$primary ? '#0056b3' : props.theme.backgroundSecondary};
   }
 
   &:focus {
-    outline: 2px solid ${(props) => props.theme.primary};
+    outline: 2px solid #007bff;
     outline-offset: 2px;
   }
 `;

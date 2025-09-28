@@ -2,6 +2,7 @@ import { InputRule } from "prosemirror-inputrules";
 import { Node as ProsemirrorNode, NodeSpec, NodeType } from "prosemirror-model";
 import { NodeSelection, Plugin, Command, TextSelection } from "prosemirror-state";
 import * as React from "react";
+import * as Y from "yjs";
 import Caption from "../components/Caption";
 import ExcalidrawComponent from "../components/Excalidraw";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
@@ -254,30 +255,69 @@ export default class Excalidraw extends ReactNode {
       view.dispatch(transaction);
     };
 
-  component = (props: ComponentProps) => {
-    // Try to get Y.doc from editor options for collaboration
-    const yDoc = this.editor?.options?.collaboration?.document;
+  component = (props: ComponentProps) => React.createElement(() => {
+      // Use React hooks to access context
+      const [collaborationData, setCollaborationData] = React.useState<{
+        documentId?: string;
+        token?: string;
+        yDoc?: Y.Doc;
+      }>({});
 
-    return (
-      <ExcalidrawComponent
-        {...props}
-        onEdit={this.handleEdit(props)}
-        onUpdateData={this.handleUpdateData(props)}
-        onChangeSize={this.handleChangeSize(props)}
-        yDoc={yDoc}
-      >
-        <Caption
-          width={props.node.attrs.width}
-          onBlur={this.handleCaptionBlur(props)}
-          onKeyDown={this.handleCaptionKeyDown(props)}
-          isSelected={props.isSelected}
-          placeholder={this.options.dictionary.excalidrawCaptionPlaceholder || "Add a caption..."}
+      React.useEffect(() => {
+        // Try to get collaboration data from various sources
+        const yDoc = this.editor?.options?.collaboration?.document;
+
+        // Try to extract document ID from URL or DOM
+        let documentId: string | undefined;
+
+        // Check if we're in a browser environment
+        if (typeof window !== 'undefined') {
+          // Try to get from URL path
+          const pathMatch = window.location.pathname.match(/\/doc\/([^\/]+)/);
+          if (pathMatch) {
+            documentId = pathMatch[1];
+          }
+
+          // Try to get from DOM
+          if (!documentId) {
+            const docElement = document.querySelector('[data-document-id]');
+            if (docElement) {
+              documentId = docElement.getAttribute('data-document-id') || undefined;
+            }
+          }
+        }
+
+        // Try to get collaboration token from global state
+        let token: string | undefined;
+        if (typeof window !== 'undefined' && (window as unknown as { __STORES__?: { auth?: { collaborationToken?: string } } }).__STORES__) {
+          token = (window as unknown as { __STORES__: { auth: { collaborationToken: string } } }).__STORES__.auth.collaborationToken;
+        }
+
+        setCollaborationData({ documentId, token, yDoc });
+      }, []);
+
+      return (
+        <ExcalidrawComponent
+          {...props}
+          onEdit={this.handleEdit(props)}
+          onUpdateData={this.handleUpdateData(props)}
+          onChangeSize={this.handleChangeSize(props)}
+          yDoc={collaborationData.yDoc}
+          documentId={collaborationData.documentId}
+          collaborationToken={collaborationData.token}
         >
-          {props.node.attrs.alt}
-        </Caption>
-      </ExcalidrawComponent>
-    );
-  };
+          <Caption
+            width={props.node.attrs.width}
+            onBlur={this.handleCaptionBlur(props)}
+            onKeyDown={this.handleCaptionKeyDown(props)}
+            isSelected={props.isSelected}
+            placeholder={this.options.dictionary.excalidrawCaptionPlaceholder || "Add a caption..."}
+          >
+            {props.node.attrs.alt}
+          </Caption>
+        </ExcalidrawComponent>
+      );
+    });
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     // Serialize as a code block with excalidraw type

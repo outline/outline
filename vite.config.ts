@@ -29,6 +29,10 @@ export default () =>
     root: "./",
     publicDir: "./server/static",
     base: (environment.CDN_URL ?? "") + "/static/",
+    define: {
+      // Required for Excalidraw build compatibility
+      "process.env.IS_PREACT": JSON.stringify("false"),
+    },
     server: {
       port: 3001,
       host: true,

@@ -15,6 +15,8 @@ type Props = ComponentProps & {
   }) => void;
   onChangeSize?: ({ width, height }: { width: number; height: number }) => void;
   yDoc?: Y.Doc;
+  documentId?: string;
+  collaborationToken?: string;
   children?: React.ReactNode;
 };
 
@@ -22,10 +24,10 @@ const ExcalidrawComponent: React.FC<Props> = ({
   node,
   isSelected,
   isEditable,
-  _onEdit,
   onUpdateData,
-  _onChangeSize,
   yDoc,
+  documentId,
+  collaborationToken,
   children,
 }) => {
   const { id, data, svg, width, height } = node.attrs;
@@ -90,6 +92,8 @@ const ExcalidrawComponent: React.FC<Props> = ({
       <ExcalidrawModal
         isOpen={isModalOpen}
         excalidrawId={id}
+        documentId={documentId}
+        collaborationToken={collaborationToken}
         initialData={data}
         yDoc={yDoc}
         onSave={handleModalSave}
