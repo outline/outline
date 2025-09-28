@@ -237,15 +237,23 @@ const ExcalidrawModal: React.FC<Props> = ({
       // Dynamically import exportToSvg to avoid SSR issues
       const { exportToSvg } = await import("@excalidraw/excalidraw");
 
-      // Export to SVG
+      // Export to SVG with optimized settings
       const svg = await exportToSvg({
         elements: currentElements,
-        appState: currentAppState,
+        appState: {
+          ...currentAppState,
+          exportWithDarkMode: false,
+          exportEmbedScene: false,
+        },
         files: {},
+        exportPadding: 10, // Minimal padding
       });
 
-      // Convert SVG to string
-      const svgString = new XMLSerializer().serializeToString(svg);
+      // Convert SVG to string and optimize it
+      let svgString = new XMLSerializer().serializeToString(svg);
+
+      // Remove unnecessary whitespace and optimize viewBox
+      svgString = svgString.replace(/\s+/g, ' ').trim();
 
       // Save and close modal only for this user
       onSave({
@@ -401,10 +409,10 @@ const Overlay = styled.div`
 `;
 
 const Container = styled.div`
-  width: 90vw;
-  height: 90vh;
-  max-width: 1200px;
-  max-height: 800px;
+  width: 95vw;
+  height: 95vh;
+  max-width: 2200px;
+  max-height: 1400px;
   background: ${(props) => props.theme.background};
   border-radius: 8px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
@@ -460,9 +468,29 @@ const StyledButton = styled.button<{ $primary?: boolean }>`
 const ExcalidrawContainer = styled.div`
   flex: 1;
   overflow: hidden;
+  position: relative;
 
   .excalidraw {
-    height: 100%;
+    height: 100% !important;
+    width: 100% !important;
+  }
+
+  .excalidraw .App-menu_top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+  }
+
+  .excalidraw .layer-ui__wrapper {
+    height: 100% !important;
+  }
+
+  .excalidraw .layer-ui__wrapper__top-left,
+  .excalidraw .layer-ui__wrapper__top-right,
+  .excalidraw .layer-ui__wrapper__bottom-left,
+  .excalidraw .layer-ui__wrapper__bottom-right {
+    position: absolute;
   }
 `;
 

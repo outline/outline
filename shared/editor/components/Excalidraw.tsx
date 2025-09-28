@@ -52,10 +52,9 @@ const ExcalidrawComponent: React.FC<Props> = ({
     setIsModalOpen(false);
   }, [onUpdateData]);
 
-  // Simplified resize handling - removed complex useDragResize for now
-
-  const displayWidth = width || 600;
-  const displayHeight = height || 400;
+  // Calculate display dimensions based on SVG content or use defaults
+  const displayWidth = width || (svg ? 'auto' : 600);
+  const displayHeight = height || (svg ? 'auto' : 400);
 
   return (
     <>
@@ -63,19 +62,21 @@ const ExcalidrawComponent: React.FC<Props> = ({
         onClick={handleClick}
         $isSelected={isSelected}
         $isEditable={isEditable}
-        style={{
-          width: displayWidth,
-          height: displayHeight,
-        }}
+        $hasContent={!!svg}
+        style={
+          svg
+            ? {} // No fixed dimensions when SVG exists - let it size naturally
+            : {
+                width: displayWidth,
+                height: displayHeight,
+              }
+        }
       >
         <Content>
           {svg ? (
             <SvgContainer
               dangerouslySetInnerHTML={{ __html: svg }}
-              style={{
-                width: displayWidth,
-                height: displayHeight,
-              }}
+              $svg={svg}
             />
           ) : (
             <Placeholder>
@@ -106,6 +107,7 @@ const ExcalidrawComponent: React.FC<Props> = ({
 const Container = styled.div<{
   $isSelected: boolean;
   $isEditable: boolean;
+  $hasContent: boolean;
 }>`
   position: relative;
   margin: 0.5em 0;
@@ -113,6 +115,10 @@ const Container = styled.div<{
   overflow: hidden;
   transition: all 150ms ease-in-out;
   cursor: ${(props) => (props.$isEditable ? "pointer" : "default")};
+  padding: 0;
+  display: ${(props) => (props.$hasContent ? "inline-block" : "block")};
+  width: ${(props) => (props.$hasContent ? "fit-content" : "auto")};
+  height: ${(props) => (props.$hasContent ? "fit-content" : "auto")};
 
   ${(props) =>
     props.$isSelected &&
@@ -131,36 +137,46 @@ const Container = styled.div<{
 `;
 
 const Content = styled.div`
-  width: 100%;
-  height: 100%;
   background: ${(props) => props.theme.background};
-  border: 1px solid ${(props) => props.theme.divider};
   border-radius: 8px;
   overflow: hidden;
+  padding: 0;
+  margin: 0;
+  display: block;
+  width: fit-content;
+  height: fit-content;
 `;
 
-const SvgContainer = styled.div`
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+const SvgContainer = styled.div<{ $svg?: string }>`
+  display: block;
+  padding: 0;
+  margin: 0;
+  width: fit-content;
+  height: fit-content;
 
   svg {
-    max-width: 100%;
-    max-height: 100%;
+    display: block;
+    margin: 0;
+    padding: 0;
+    width: auto;
+    height: auto;
+
+    /* Scale down large SVGs while maintaining aspect ratio */
+    max-width: min(800px, 80vw);
+    max-height: min(600px, 60vh);
   }
 `;
 
 const Placeholder = styled.div`
-  width: 100%;
-  height: 100%;
+  width: 600px;
+  height: 400px;
   min-height: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px dashed ${(props) => props.theme.divider};
+  border: 1px dashed ${(props) => props.theme.divider};
   background: ${(props) => props.theme.background};
+  border-radius: 8px;
 `;
 
 const PlaceholderText = styled.span`
