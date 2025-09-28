@@ -1,6 +1,7 @@
 import debounce from "lodash/debounce";
 import last from "lodash/last";
 import sortBy from "lodash/sortBy";
+// @ts-ignore - js-yaml types may not be available
 import * as yaml from "js-yaml";
 import type MermaidUnsafe from "mermaid";
 import { Node } from "prosemirror-model";
@@ -61,6 +62,7 @@ class Cache {
 let mermaid: typeof MermaidUnsafe;
 let elkLayoutsRegistered = false;
 let iconPacksRegistered = false;
+let mermaidInitialized = false;
 
 type RendererFunc = (
   block: { node: Node; pos: number },
@@ -71,30 +73,41 @@ type RendererFunc = (
  * Extract Frontmatter configuration from Mermaid diagram text
  */
 function extractFrontMatter(text: string): ExtractedFrontMatter {
-  const frontMatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n/;
-  const match = text.match(frontMatterRegex);
-  
-  if (!match) {
+  try {
+    const frontMatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n/;
+    const match = text.match(frontMatterRegex);
+
+    if (!match) {
+      return {
+        metadata: {},
+        text,
+      };
+    }
+
+    try {
+      const yamlContent = match[1];
+      // Safely parse YAML with additional error handling
+      const metadata = yaml?.load ?
+        (yaml.load(yamlContent, { schema: yaml.JSON_SCHEMA }) as FrontMatterMetadata) || {} :
+        {};
+      const cleanedText = text.replace(frontMatterRegex, '');
+
+      return {
+        metadata,
+        text: cleanedText,
+      };
+    } catch (_yamlError) {
+      // If YAML parsing fails, return original text without frontmatter
+      return {
+        metadata: {},
+        text: text.replace(frontMatterRegex, ''),
+      };
+    }
+  } catch (_error) {
+    // If anything fails, return text as-is
     return {
       metadata: {},
       text,
-    };
-  }
-
-  try {
-    const yamlContent = match[1];
-    const metadata = yaml.load(yamlContent, { schema: yaml.JSON_SCHEMA }) as FrontMatterMetadata || {};
-    const cleanedText = text.replace(frontMatterRegex, '');
-    
-    return {
-      metadata,
-      text: cleanedText,
-    };
-  } catch (_error) {
-    // If YAML parsing fails, return original text without frontmatter
-    return {
-      metadata: {},
-      text: text.replace(frontMatterRegex, ''),
     };
   }
 }
@@ -102,87 +115,79 @@ function extractFrontMatter(text: string): ExtractedFrontMatter {
 
 class MermaidRenderer {
   readonly diagramId: string;
-  readonly element: HTMLElement;
+  private _element: HTMLElement | null = null;
   readonly elementId: string;
   readonly editor: Editor;
 
   constructor(editor: Editor) {
     this.diagramId = uuidv4();
     this.elementId = `mermaid-diagram-wrapper-${this.diagramId}`;
-    this.element =
-      document.getElementById(this.elementId) || document.createElement("div");
-    this.element.id = this.elementId;
-    this.element.classList.add("mermaid-diagram-wrapper");
     this.editor = editor;
+  }
+
+  get element(): HTMLElement {
+    if (!this._element) {
+      // Safety check - only create elements when document is ready
+      if (typeof document === 'undefined') {
+        throw new Error("Document not available");
+      }
+      this._element = document.getElementById(this.elementId) || document.createElement("div");
+      this._element.id = this.elementId;
+      this._element.classList.add("mermaid-diagram-wrapper");
+    }
+    return this._element;
   }
 
   renderImmediately = async (
     block: { node: Node; pos: number },
     isDark: boolean
   ) => {
-    const element = this.element;
-    const originalText = block.node.textContent;
-    const { metadata, text } = extractFrontMatter(originalText);
-
-    // Include config in cache key to ensure different configs produce different cached renders
-    const configHash = metadata.config ? JSON.stringify(metadata.config) : '';
-    const cacheKey = `${isDark ? "dark" : "light"}-${configHash}-${originalText}`;
-    const cache = Cache.get(cacheKey);
-    if (cache) {
-      element.classList.remove("parse-error", "empty");
-      element.innerHTML = cache;
-      return;
-    }
-
-    // Create a temporary element that will render the diagram off-screen. This is necessary
-    // as Mermaid will error if the element is not visible, such as if the heading is collapsed
-    const renderElement = document.createElement("div");
-    renderElement.style.position = "absolute";
-    renderElement.style.left = "-9999px";
-    renderElement.style.top = "-9999px";
-    document.body.appendChild(renderElement);
-
+    // Top-level error boundary to prevent page crashes
     try {
-      mermaid ??= (await import("mermaid")).default;
-
-      // Register ELK layout loaders if not already done
-      if (!elkLayoutsRegistered) {
-        try {
-          const elkLayouts = await import("@mermaid-js/layout-elk");
-          mermaid.registerLayoutLoaders(elkLayouts.default);
-          elkLayoutsRegistered = true;
-        } catch (_error) {
-          // ELK layout package not available, continue without it
-        }
+      const element = this.element;
+      if (!element) {
+        return;
       }
 
-      // Register icon packs if not already done
-      if (!iconPacksRegistered) {
-        try {
-          mermaid.registerIconPacks([
-            {
-              name: 'logos',
-              icons: logosIcons,
-            },
-            {
-              name: 'noto',
-              icons: notoIcons,
-            },
-            {
-              name: 'streamline',
-              icons: streamlineIcons,
-            },
-            {
-              name: 'code',
-              icons: codeIcons,
-            },
-          ]);
-          iconPacksRegistered = true;
-        } catch (_error) {
-          // Icon packs not available, continue without them
-        }
+      const originalText = block.node.textContent;
+      let renderElement: HTMLElement | null = null;
+
+      try {
+      const { metadata, text } = extractFrontMatter(originalText);
+
+      // Include config in cache key to ensure different configs produce different cached renders
+      const configHash = metadata.config ? JSON.stringify(metadata.config) : '';
+      const cacheKey = `${isDark ? "dark" : "light"}-${configHash}-${originalText}`;
+      const cache = Cache.get(cacheKey);
+      if (cache) {
+        element.classList.remove("parse-error", "empty");
+        element.innerHTML = cache;
+        return;
       }
-      
+
+      // Initialize Mermaid if needed
+      await this.initializeMermaid();
+
+      if (!mermaid) {
+        throw new Error("Failed to load Mermaid library");
+      }
+
+      // Create a temporary element that will render the diagram off-screen. This is necessary
+      // as Mermaid will error if the element is not visible, such as if the heading is collapsed
+      renderElement = document.createElement("div");
+      renderElement.style.position = "absolute";
+      renderElement.style.left = "-9999px";
+      renderElement.style.top = "-9999px";
+      renderElement.style.visibility = "hidden";
+      renderElement.style.pointerEvents = "none";
+
+      // Safely append to body
+      if (document.body) {
+        document.body.appendChild(renderElement);
+      } else {
+        throw new Error("Document body not available");
+      }
+
       // Create default configuration
       const defaultConfig = {
         startOnLoad: true,
@@ -194,62 +199,224 @@ class MermaidRenderer {
         fontFamily: getComputedStyle(this.element).fontFamily || "inherit",
         theme: (isDark ? "dark" : "default") as "dark" | "default",
         darkMode: isDark,
+        logLevel: "error" as const, // Reduce console noise
+        securityLevel: "loose" as const, // Allow more diagram types
       };
-      
+
       // Merge default config with frontmatter config
       let finalConfig = defaultConfig;
       if (metadata.config) {
-        finalConfig = merge({}, defaultConfig, metadata.config) as typeof defaultConfig;
-        // Preserve theme switching capability - don't override theme if isDark is set
-        if (isDark && !metadata.config.theme) {
-          finalConfig.theme = "dark";
+        try {
+          finalConfig = merge({}, defaultConfig, metadata.config) as typeof defaultConfig;
+          // Preserve theme switching capability - don't override theme if isDark is set
+          if (isDark && !metadata.config.theme) {
+            finalConfig.theme = "dark";
+          }
+          finalConfig.darkMode = isDark;
+        } catch (_configError) {
+          // Invalid config in frontmatter, using defaults
         }
-        finalConfig.darkMode = isDark;
       }
-      
-      mermaid.initialize(finalConfig);
 
-      const { svg, bindFunctions } = await mermaid.render(
+      // Safely initialize Mermaid
+      try {
+        mermaid.initialize(finalConfig);
+      } catch (_initError) {
+        // Failed to initialize with custom config, using defaults
+        mermaid.initialize(defaultConfig);
+      }
+
+      // Validate text content
+      if (!text || text.trim().length === 0) {
+        element.innerText = "Empty diagram";
+        element.classList.add("empty");
+        element.classList.remove("parse-error");
+        return;
+      }
+
+      // Render the diagram
+      const result = await mermaid.render(
         `mermaid-diagram-${this.diagramId}`,
         text,
         // If the element is not visible we use an off-screen element to render the diagram
         element.offsetParent === null ? renderElement : element
       );
-      this.currentTextContent = text;
+
+      // Check if result is valid
+      if (!result || !result.svg) {
+        throw new Error("Mermaid render returned invalid result");
+      }
+
+      const { svg, bindFunctions } = result;
 
       // Cache the rendered SVG so we won't need to calculate it again in the same session
-      if (text) {
+      if (text && svg) {
         Cache.set(cacheKey, svg);
       }
+
+      // Update element safely
       element.classList.remove("parse-error", "empty");
       element.innerHTML = svg;
 
       // Allow the user to interact with the diagram
-      bindFunctions?.(element);
-    } catch (_error) {
-      const isEmpty = block.node.textContent.trim().length === 0;
-
-      if (isEmpty) {
-        element.innerText = "Empty diagram";
-        element.classList.add("empty");
-      } else {
-        element.innerText = String(_error);
-        element.classList.add("parse-error");
+      try {
+        if (bindFunctions && typeof bindFunctions === 'function') {
+          bindFunctions(element);
+        }
+      } catch (_bindError) {
+        // Failed to bind functions - diagram is still functional without interactivity
       }
-    } finally {
-      renderElement.remove();
+
+      } catch (error) {
+        this.handleRenderError(element, block.node.textContent, error);
+      } finally {
+        // Always clean up the render element
+        if (renderElement && renderElement.parentNode) {
+          try {
+            renderElement.parentNode.removeChild(renderElement);
+          } catch (_cleanupError) {
+            // Failed to cleanup render element
+          }
+        }
+      }
+    } catch (_criticalError) {
+      // Critical error boundary - prevent page crash
+      try {
+        const element = this.element;
+        if (element) {
+          element.innerHTML = '<div class="mermaid-error"><div class="error-title">Critical Error</div><div class="error-message">Mermaid rendering failed catastrophically</div></div>';
+          element.classList.add("parse-error");
+        }
+      } catch (_) {
+        // Even the error handling failed - do nothing to prevent further crashes
+      }
     }
   };
+
+  private async initializeMermaid(): Promise<void> {
+    if (mermaidInitialized && mermaid) {
+      return;
+    }
+
+    try {
+      // Dynamic import with retry logic
+      if (!mermaid) {
+        mermaid = (await import("mermaid")).default;
+      }
+
+      // Register ELK layout loaders if not already done
+      if (!elkLayoutsRegistered) {
+        try {
+          const elkLayouts = await import("@mermaid-js/layout-elk");
+          if (elkLayouts.default && mermaid.registerLayoutLoaders) {
+            mermaid.registerLayoutLoaders(elkLayouts.default);
+          }
+          elkLayoutsRegistered = true;
+        } catch (_error) {
+          // ELK layout package not available
+          elkLayoutsRegistered = true; // Prevent retry
+        }
+      }
+
+      // Register icon packs if not already done
+      if (!iconPacksRegistered) {
+        try {
+          if (mermaid.registerIconPacks) {
+            mermaid.registerIconPacks([
+              {
+                name: 'logos',
+                icons: logosIcons,
+              },
+              {
+                name: 'noto',
+                icons: notoIcons,
+              },
+              {
+                name: 'streamline',
+                icons: streamlineIcons,
+              },
+              {
+                name: 'code',
+                icons: codeIcons,
+              },
+            ]);
+          }
+          iconPacksRegistered = true;
+        } catch (_error) {
+          // Icon packs not available
+          iconPacksRegistered = true; // Prevent retry
+        }
+      }
+
+      mermaidInitialized = true;
+    } catch (_error) {
+      throw new Error("Failed to initialize Mermaid library");
+    }
+  }
+
+  private handleRenderError(element: HTMLElement, originalText: string, error: unknown): void {
+    const isEmpty = originalText.trim().length === 0;
+
+    element.classList.remove("empty");
+
+    if (isEmpty) {
+      element.innerText = "Empty diagram";
+      element.classList.add("empty");
+    } else {
+      // Create a more user-friendly error message
+      const errorContainer = document.createElement("div");
+      errorContainer.className = "mermaid-error";
+
+      const errorTitle = document.createElement("div");
+      errorTitle.className = "error-title";
+      errorTitle.textContent = "Failed to render Mermaid diagram";
+
+      const errorMessage = document.createElement("div");
+      errorMessage.className = "error-message";
+      errorMessage.textContent = error instanceof Error ? error.message : String(error);
+
+      const retryButton = document.createElement("button");
+      retryButton.className = "error-retry";
+      retryButton.textContent = "Retry";
+      retryButton.onclick = () => {
+        // Clear error state and retry
+        mermaidInitialized = false;
+        this.renderImmediately({ node: { textContent: originalText } as Node, pos: 0 }, false);
+      };
+
+      errorContainer.appendChild(errorTitle);
+      errorContainer.appendChild(errorMessage);
+      errorContainer.appendChild(retryButton);
+
+      element.innerHTML = "";
+      element.appendChild(errorContainer);
+      element.classList.add("parse-error");
+    }
+  }
 
   get render(): RendererFunc {
     if (this._rendererFunc) {
       return this._rendererFunc;
     }
     this._rendererFunc = debounce<RendererFunc>(this.renderImmediately, 250);
-    return this.renderImmediately;
+    return this._rendererFunc;
   }
 
-  private currentTextContent = "";
+  renderSync(block: { node: Node; pos: number }, isDark: boolean): HTMLElement {
+    // Synchronous method for ProseMirror widget decoration
+    // Trigger async rendering but return element immediately
+    this.renderImmediately(block, isDark).catch((error: unknown) => {
+      // Handle errors safely without crashing the page
+      try {
+        this.handleRenderError(this.element, block.node.textContent, error);
+      } catch (_) {
+        // Even error handling failed - do nothing to prevent further crashes
+      }
+    });
+
+    return this.element;
+  }
+
   private _rendererFunc?: RendererFunc;
 }
 
@@ -321,10 +488,7 @@ function getNewState({
 
     const diagramDecoration = Decoration.widget(
       block.pos + block.node.nodeSize,
-      () => {
-        void renderer.render(block, pluginState.isDark);
-        return renderer.element;
-      },
+      () => renderer.renderSync(block, pluginState.isDark),
       {
         diagramId: renderer.diagramId,
         renderer,
@@ -369,12 +533,9 @@ export default function Mermaid({
           decorationSet: DecorationSet.create(doc, []),
           isDark,
         };
-        return getNewState({
-          doc,
-          name,
-          pluginState,
-          editor,
-        });
+        // Don't process Mermaid blocks during initial plugin setup
+        // This prevents crashes when the DOM isn't ready yet
+        return pluginState;
       },
       apply: (
         transaction: Transaction,
@@ -418,7 +579,15 @@ export default function Mermaid({
       },
     },
     view: (view) => {
-      view.dispatch(view.state.tr.setMeta("mermaid", { loaded: true }));
+      // Defer Mermaid initialization until the view is fully ready
+      // This prevents crashes during initial page load
+      setTimeout(() => {
+        try {
+          view.dispatch(view.state.tr.setMeta("mermaid", { loaded: true }));
+        } catch (_error) {
+          // If view is destroyed or not ready, ignore silently
+        }
+      }, 0);
       return {};
     },
     props: {

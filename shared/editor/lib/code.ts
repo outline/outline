@@ -163,10 +163,10 @@ export const codeLanguages: Record<string, CodeLanguage> = {
     loader: () => import("refractor/lang/markdown").then((m) => m.default),
   },
   mermaidjs: {
-    lang: "mermaid",
+    lang: "text",
     label: "Mermaid Diagram",
-    // @ts-expect-error Mermaid is not in types but exists
-    loader: () => import("refractor/lang/markup").then((m) => m.default),
+    // No loader needed for plain text - prevents crash
+    loader: () => Promise.resolve({}),
   },
   excalidraw: {
     lang: "json",
