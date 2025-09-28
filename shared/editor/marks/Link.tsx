@@ -11,7 +11,7 @@ import {
 import { Command, EditorState, Plugin, TextSelection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { toast } from "sonner";
-import { sanitizeUrl } from "../../utils/urls";
+import { isUrl, sanitizeUrl } from "../../utils/urls";
 import { getMarkRange } from "../queries/getMarkRange";
 import { isMarkActive } from "../queries/isMarkActive";
 import Mark from "./Mark";
@@ -248,6 +248,43 @@ export default class Link extends Mark {
               event.stopPropagation();
               event.preventDefault();
             }
+
+            return false;
+          },
+          keydown: (view: EditorView, event: KeyboardEvent) => {
+            if (event.key !== " " && event.key !== "Enter") {return false;}
+
+            const { state } = view;
+            const { selection, schema } = state;
+            if (!selection.empty || !selection.$from.parent.isTextblock)
+              {return false;}
+
+            const textContent = selection.$from.parent.textContent;
+            const words = textContent.split(/\s+/);
+            if (!words.length) {return false;}
+
+            const lastWord = words[words.length - 1];
+            if (!lastWord) {return false;}
+            if (!isUrl(lastWord)) {
+              return false;
+            }
+
+            const lastWordIndex = textContent.lastIndexOf(lastWord);
+            if (lastWordIndex === -1) {return false;}
+
+            const start = selection.$from.start() + lastWordIndex;
+            const end = start + lastWord.length;
+            const href = lastWord.startsWith("www.")
+              ? `https://${lastWord}`
+              : lastWord;
+
+            const tr = state.tr.addMark(
+              start,
+              end,
+              schema.marks.link.create({ href })
+            );
+
+            view.dispatch(tr);
 
             return false;
           },

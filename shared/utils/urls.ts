@@ -105,10 +105,16 @@ export function isUrl(
     requireHostname?: boolean;
     /** Require the url not to use HTTP, custom protocols are ok. */
     requireHttps?: boolean;
+    /** Require the url to have a protocol. */
+    requireProtocol?: boolean;
   }
 ) {
   if (text.match(/\n/)) {
     return false;
+  }
+
+  if (!options?.requireProtocol && text.startsWith("www.")) {
+    text = `https://${text}`;
   }
 
   try {
