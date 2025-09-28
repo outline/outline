@@ -183,16 +183,22 @@ export class ExcalidrawCollaboration {
 
       socket.on("disconnect", () => {
         console.log("[Collaboration] Socket disconnected");
-        this.updateState({
-          connectionStatus: ConnectionStatus.DISCONNECTED,
-        });
-        this.attemptReconnection();
+        // Only attempt reconnection if we're still supposed to be collaborating
+        if (!this.isDestroyed && this.state.isCollaborating) {
+          this.updateState({
+            connectionStatus: ConnectionStatus.DISCONNECTED,
+          });
+          this.attemptReconnection();
+        }
       });
 
       socket.on("connect_error", (error: any) => {
         console.error("[Collaboration] Connection error:", error);
-        this.handleError("Failed to connect to collaboration server", CollabErrorType.CONNECTION_FAILED);
-        this.attemptReconnection();
+        // Only attempt reconnection if we're still supposed to be collaborating
+        if (!this.isDestroyed && this.state.isCollaborating) {
+          this.handleError("Failed to connect to collaboration server", CollabErrorType.CONNECTION_FAILED);
+          this.attemptReconnection();
+        }
       });
 
       // Open portal connection
@@ -243,13 +249,9 @@ export class ExcalidrawCollaboration {
    * Stop collaboration
    */
   stopCollaboration(): void {
-    if (!this.state.isCollaborating && !this.isDestroyed) {
-      return;
-    }
-
     console.log("[Collaboration] Stopping collaboration");
 
-    // Clear timers
+    // Clear timers first to prevent any pending reconnections
     if (this.socketInitializationTimer) {
       clearTimeout(this.socketInitializationTimer);
       this.socketInitializationTimer = undefined;
@@ -263,7 +265,7 @@ export class ExcalidrawCollaboration {
     // Close portal
     this.portal.close();
 
-    // Reset state
+    // Reset state - always reset regardless of current state to ensure cleanup
     this.updateState({
       isCollaborating: false,
       connectionStatus: ConnectionStatus.DISCONNECTED,
@@ -438,6 +440,11 @@ export class ExcalidrawCollaboration {
       return;
     }
 
+    // Don't attempt reconnection if we're not currently collaborating
+    if (!this.state.isCollaborating) {
+      return;
+    }
+
     const delay = Math.min(1000 * Math.pow(2, this.state.retryCount), 30000); // Max 30 seconds
     console.log(`[Collaboration] Attempting reconnection in ${delay}ms (attempt ${this.state.retryCount + 1})`);
 
@@ -447,7 +454,10 @@ export class ExcalidrawCollaboration {
     });
 
     this.reconnectTimeoutId = setTimeout(() => {
-      this.startCollaboration();
+      // Double-check we're still supposed to be collaborating before reconnecting
+      if (!this.isDestroyed && this.state.isCollaborating) {
+        this.startCollaboration();
+      }
     }, delay);
   }
 

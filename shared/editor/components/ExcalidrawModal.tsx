@@ -6,6 +6,7 @@ import * as Y from "yjs";
 import { ExcalidrawCollaboration, type CollaborationState, type CollaborationCallbacks } from "../lib/excalidraw/collaboration";
 import ExcalidrawCollabUI from "./ExcalidrawCollabUI";
 import { ConnectionStatus, CollabErrorType } from "../lib/excalidraw/constants";
+import { getDefaultLibraries } from "../lib/excalidraw/defaultLibraries";
 import useStores from "../../hooks/useStores";
 
 // Helper functions for collaboration - now integrated with Outline's auth system
@@ -18,9 +19,7 @@ const getCollaborationServerUrl = (): string => {
   return "http://localhost:3000";
 };
 
-const getUserName = (user?: { name: string }): string => {
-  return user?.name || "Anonymous User";
-};
+const getUserName = (user?: { name: string }): string => user?.name || "Anonymous User";
 
 const getCollaborationToken = (): string | undefined => {
   // Extract token from cookies - this matches how Outline's websockets work
@@ -48,6 +47,7 @@ const ExcalidrawLazy = React.lazy(() =>
 type ExcalidrawElement = any;
 type AppState = any;
 type ExcalidrawImperativeAPI = any;
+type LibraryItem = any;
 
 
 type Props = {
@@ -72,7 +72,7 @@ type Props = {
 // Dynamic import wrapper to handle SSR
 const ExcalidrawWrapper: React.FC<{
   excalidrawAPI: (api: ExcalidrawImperativeAPI) => void;
-  initialData?: { elements: ExcalidrawElement[]; appState: Partial<AppState> };
+  initialData?: { elements: ExcalidrawElement[]; appState: Partial<AppState>; libraryItems?: LibraryItem[] };
   onChange: (elements: ExcalidrawElement[], appState: AppState) => void;
   onPointerUpdate?: (update: { pointer: { x: number; y: number }; button: string }) => void;
   theme?: "light" | "dark";
@@ -123,6 +123,7 @@ const ExcalidrawModal: React.FC<Props> = observer(({
     error: null,
     retryCount: 0
   });
+  const [libraryItems, setLibraryItems] = useState<LibraryItem[]>([]);
   const isMountedRef = useRef(true);
   const hasInitialized = useRef(false);
   const [showCollabUI, setShowCollabUI] = useState(false);
@@ -131,6 +132,13 @@ const ExcalidrawModal: React.FC<Props> = observer(({
   useEffect(() => {
     if (isOpen && typeof window !== "undefined") {
       void import("@excalidraw/excalidraw/index.css");
+    }
+  }, [isOpen]);
+
+  // Load default libraries when modal opens
+  useEffect(() => {
+    if (isOpen && typeof window !== "undefined") {
+      getDefaultLibraries().then(setLibraryItems);
     }
   }, [isOpen]);
 
@@ -373,7 +381,11 @@ const ExcalidrawModal: React.FC<Props> = observer(({
         >
           <ExcalidrawWrapper
             excalidrawAPI={setExcalidrawAPI}
-            initialData={initialData}
+            initialData={{
+              elements: initialData?.elements || [],
+              appState: initialData?.appState || {},
+              libraryItems,
+            }}
             onChange={handleChange}
             onPointerUpdate={collaboration ? (update) => {
               if (!excalidrawAPI || !isMountedRef.current || !collabState.isCollaborating) {
