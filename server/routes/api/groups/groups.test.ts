@@ -360,6 +360,23 @@ describe("#groups.list", () => {
     expect(body.data.groups.length).toEqual(1);
     expect(body.data.groups[0].id).toEqual(group.id);
   });
+
+  it.only("should return correct group total even when the limit is less than the total", async () => {
+    const user = await buildUser();
+    await buildGroup({ teamId: user.teamId });
+    await buildGroup({ teamId: user.teamId });
+
+    const res = await server.post("/api/groups.list", {
+      body: {
+        limit: 1,
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.pagination.total).toEqual(2);
+    expect(body.data.groups.length).toEqual(1);
+  });
 });
 
 describe("#groups.info", () => {
