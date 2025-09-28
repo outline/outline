@@ -1,10 +1,12 @@
 import * as React from "react";
 import { useState, useEffect, useCallback, useRef } from "react";
+import { observer } from "mobx-react";
 import styled from "styled-components";
 import * as Y from "yjs";
 import { ExcalidrawCollaboration, type CollaborationState, type CollaborationCallbacks } from "../lib/excalidraw/collaboration";
 import ExcalidrawCollabUI from "./ExcalidrawCollabUI";
 import { ConnectionStatus, CollabErrorType } from "../lib/excalidraw/constants";
+import useStores from "../../hooks/useStores";
 
 // Helper functions for collaboration - now integrated with Outline's auth system
 const getCollaborationServerUrl = (): string => {
@@ -73,7 +75,8 @@ const ExcalidrawWrapper: React.FC<{
   initialData?: { elements: ExcalidrawElement[]; appState: Partial<AppState> };
   onChange: (elements: ExcalidrawElement[], appState: AppState) => void;
   onPointerUpdate?: (update: { pointer: { x: number; y: number }; button: string }) => void;
-}> = ({ excalidrawAPI, initialData, onChange, onPointerUpdate }) => (
+  theme?: "light" | "dark";
+}> = ({ excalidrawAPI, initialData, onChange, onPointerUpdate, theme = "light" }) => (
     <React.Suspense fallback={<div>Loading Excalidraw...</div>}>
       <ExcalidrawLazy
         excalidrawAPI={excalidrawAPI}
@@ -81,10 +84,10 @@ const ExcalidrawWrapper: React.FC<{
         onChange={onChange}
         onPointerUpdate={onPointerUpdate}
         isCollaborating={true}
-        theme="light"
+        theme={theme}
         UIOptions={{
           canvasActions: {
-            loadScene: false,
+            loadScene: true,
             saveToActiveFile: false,
             export: false,
           },
@@ -96,7 +99,7 @@ const ExcalidrawWrapper: React.FC<{
     </React.Suspense>
 );
 
-const ExcalidrawModal: React.FC<Props> = ({
+const ExcalidrawModal: React.FC<Props> = observer(({
   isOpen,
   excalidrawId,
   documentId,
@@ -107,6 +110,10 @@ const ExcalidrawModal: React.FC<Props> = ({
   onSave,
   onClose,
 }) => {
+  const stores = useStores();
+  const resolvedTheme = stores?.ui?.resolvedTheme || "light";
+  const excalidrawTheme = resolvedTheme === "dark" ? "dark" : "light";
+
   const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawImperativeAPI | null>(null);
   const [collaboration, setCollaboration] = useState<ExcalidrawCollaboration | null>(null);
   const [collabState, setCollabState] = useState<CollaborationState>({
@@ -374,6 +381,7 @@ const ExcalidrawModal: React.FC<Props> = ({
               }
               collaboration.updatePointer(update.pointer, update.button);
             } : undefined}
+            theme={excalidrawTheme}
           />
 
           {/* Collaboration is now handled by the collaboration instance */}
@@ -393,7 +401,7 @@ const ExcalidrawModal: React.FC<Props> = ({
       </Container>
     </Overlay>
   );
-};
+});
 
 const Overlay = styled.div`
   position: fixed;

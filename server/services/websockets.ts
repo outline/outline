@@ -25,10 +25,16 @@ type SocketWithAuth = IO.Socket & {
 };
 
 // Excalidraw collaboration types
+interface ExcalidrawCollaborator {
+  socketId: string;
+  userId: string;
+  name: string;
+}
+
 interface ExcalidrawRoom {
   roomId: string;
   documentId: string;
-  collaborators: Set<string>; // socket IDs
+  collaborators: Map<string, ExcalidrawCollaborator>; // socket ID -> collaborator info
   createdAt: Date;
   lastActivity: Date;
 }
@@ -43,7 +49,7 @@ function getOrCreateExcalidrawRoom(roomId: string, documentId: string): Excalidr
     room = {
       roomId,
       documentId,
-      collaborators: new Set(),
+      collaborators: new Map(),
       createdAt: new Date(),
       lastActivity: new Date(),
     };
@@ -249,20 +255,31 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
         return;
       }
 
-      Logger.debug("websockets", `Socket ${socket.id} joining Excalidraw room ${roomId}`);
+      const { user } = socket.client;
+      if (!user) {
+        socket.emit("excalidraw-error", { message: "User not authenticated" });
+        return;
+      }
+
+      Logger.debug("websockets", `Socket ${socket.id} (${user.name}) joining Excalidraw room ${roomId}`);
 
       const room = getOrCreateExcalidrawRoom(roomId, documentId);
       const isFirstInRoom = room.collaborators.size === 0;
 
-      // Add user to room
-      room.collaborators.add(socket.id);
+      // Add user to room with user information
+      const collaborator: ExcalidrawCollaborator = {
+        socketId: socket.id,
+        userId: user.id,
+        name: user.name,
+      };
+      room.collaborators.set(socket.id, collaborator);
       await socket.join(`excalidraw-${roomId}`);
 
       // Notify user they joined the room
       socket.emit("excalidraw-joined-room", {
         roomId,
         documentId,
-        collaborators: Array.from(room.collaborators),
+        collaborators: Array.from(room.collaborators.values()),
         isFirstInRoom,
       });
 
@@ -270,15 +287,18 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
         socket.emit("excalidraw-first-in-room");
       } else {
         // Notify other users in the room about new user
-        socket.to(`excalidraw-${roomId}`).emit("excalidraw-new-user", { socketId: socket.id });
+        socket.to(`excalidraw-${roomId}`).emit("excalidraw-new-user", {
+          socketId: socket.id,
+          user: { id: user.id, name: user.name }
+        });
       }
 
       // Send updated collaborators list to all room members
       socket.nsp.to(`excalidraw-${roomId}`).emit("excalidraw-room-user-change", {
-        collaborators: Array.from(room.collaborators),
+        collaborators: Array.from(room.collaborators.values()),
       });
 
-      Logger.info("websockets", `Socket ${socket.id} joined Excalidraw room ${roomId}`, {
+      Logger.info("websockets", `Socket ${socket.id} (${user.name}) joined Excalidraw room ${roomId}`, {
         collaborators: room.collaborators.size,
         isFirstInRoom,
       });
@@ -307,7 +327,7 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
 
         // Send updated collaborators list to remaining room members
         socket.nsp.to(`excalidraw-${roomId}`).emit("excalidraw-room-user-change", {
-          collaborators: Array.from(room.collaborators),
+          collaborators: Array.from(room.collaborators.values()),
         });
 
         // Clean up empty rooms
@@ -435,7 +455,7 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
 
         // Send updated collaborators list
         socket.nsp.to(`excalidraw-${roomId}`).emit("excalidraw-room-user-change", {
-          collaborators: Array.from(room.collaborators),
+          collaborators: Array.from(room.collaborators.values()),
         });
 
         // Clean up empty rooms

@@ -364,15 +364,15 @@ export class ExcalidrawCollaboration {
   /**
    * Handle room user change
    */
-  private handleRoomUserChange(clients: SocketId[]): void {
+  private handleRoomUserChange(collaborators: Array<{ socketId: string; userId: string; name: string }>): void {
     const newCollaborators = new Map<SocketId, Collaborator>();
 
-    clients.forEach((socketId, index) => {
-      if (socketId !== this.portal.socket?.id) {
-        newCollaborators.set(socketId, {
-          id: socketId,
-          socketId,
-          username: `User ${index + 1}`,
+    collaborators.forEach((collaborator, index) => {
+      if (collaborator.socketId !== this.portal.socket?.id) {
+        newCollaborators.set(collaborator.socketId, {
+          id: collaborator.userId,
+          socketId: collaborator.socketId,
+          username: collaborator.name,
           color: {
             background: DEFAULT_USER_COLORS[index % DEFAULT_USER_COLORS.length],
             stroke: DEFAULT_USER_COLORS[index % DEFAULT_USER_COLORS.length],

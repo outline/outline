@@ -17,6 +17,7 @@ type Props = ComponentProps & {
   yDoc?: Y.Doc;
   documentId?: string;
   collaborationToken?: string;
+  user?: { name: string; id: string };
   children?: React.ReactNode;
 };
 
@@ -28,6 +29,7 @@ const ExcalidrawComponent: React.FC<Props> = ({
   yDoc,
   documentId,
   collaborationToken,
+  user,
   children,
 }) => {
   const { id, data, svg, width, height } = node.attrs;
@@ -95,6 +97,7 @@ const ExcalidrawComponent: React.FC<Props> = ({
         excalidrawId={id}
         documentId={documentId}
         collaborationToken={collaborationToken}
+        user={user}
         initialData={data}
         yDoc={yDoc}
         onSave={handleModalSave}

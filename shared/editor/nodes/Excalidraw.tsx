@@ -261,6 +261,7 @@ export default class Excalidraw extends ReactNode {
         documentId?: string;
         token?: string;
         yDoc?: Y.Doc;
+        user?: { name: string; id: string };
       }>({});
 
       React.useEffect(() => {
@@ -287,13 +288,16 @@ export default class Excalidraw extends ReactNode {
           }
         }
 
-        // Try to get collaboration token from global state
+        // Try to get collaboration token and user from global state
         let token: string | undefined;
-        if (typeof window !== 'undefined' && (window as unknown as { __STORES__?: { auth?: { collaborationToken?: string } } }).__STORES__) {
-          token = (window as unknown as { __STORES__: { auth: { collaborationToken: string } } }).__STORES__.auth.collaborationToken;
+        let user: { name: string; id: string } | undefined;
+        if (typeof window !== 'undefined' && (window as unknown as { __STORES__?: { auth?: { collaborationToken?: string; user?: { name: string; id: string } } } }).__STORES__) {
+          const stores = (window as unknown as { __STORES__: { auth: { collaborationToken: string; user?: { name: string; id: string } } } }).__STORES__;
+          token = stores.auth.collaborationToken;
+          user = stores.auth.user;
         }
 
-        setCollaborationData({ documentId, token, yDoc });
+        setCollaborationData({ documentId, token, yDoc, user });
       }, []);
 
       return (
@@ -305,6 +309,7 @@ export default class Excalidraw extends ReactNode {
           yDoc={collaborationData.yDoc}
           documentId={collaborationData.documentId}
           collaborationToken={collaborationData.token}
+          user={collaborationData.user}
         >
           <Caption
             width={props.node.attrs.width}
