@@ -359,7 +359,7 @@
     "jest-fetch-mock": "^3.0.3",
     "lint-staged": "^13.3.0",
     "nodemon": "^3.1.10",
-    "oxlint": "1.11.2",
+    "oxlint": "1.19.0",
     "oxlint-tsgolint": "^0.1.6",
     "postinstall-postinstall": "^2.1.0",
     "prettier": "^3.6.2",
