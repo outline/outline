@@ -4,7 +4,17 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { findChildren } from "@shared/editor/queries/findChildren";
 import findIndex from "lodash/findIndex";
 import styled, { css, Keyframes, keyframes } from "styled-components";
-import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ComponentProps,
+  createContext,
+  forwardRef,
+  ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { sanitizeUrl } from "@shared/utils/urls";
 import { Error } from "@shared/editor/components/Image";
 import {
@@ -29,6 +39,11 @@ import Button from "./Button";
 import CopyToClipboard from "./CopyToClipboard";
 import { Separator } from "./Actions";
 import useSwipe from "~/hooks/useSwipe";
+import {
+  TransformWrapper,
+  TransformComponent,
+  useTransformEffect,
+} from "react-zoom-pan-pinch";
 
 export enum LightboxStatus {
   READY_TO_OPEN,
@@ -43,6 +58,8 @@ export enum ImageStatus {
   LOADING,
   ERROR,
   LOADED,
+  ZOOMED_OUT,
+  ZOOMED_IN,
 }
 type Status = {
   lightbox: LightboxStatus | null;
@@ -65,6 +82,80 @@ type Props = {
   /** The position of the currently active image in the document */
   activePos: number | null;
 };
+
+const ZoomPanPinchContext = createContext({ isImagePanning: false });
+type ZoomablePannablePinchableProps = {
+  children: ReactNode;
+  panningDisabled: boolean;
+};
+const ZoomablePannablePinchable = ({
+  children,
+  panningDisabled,
+}: ZoomablePannablePinchableProps) => {
+  const { isPanning, ...panningHandlers } = usePanning();
+  return (
+    <ZoomPanPinchContext.Provider value={{ isImagePanning: isPanning }}>
+      <TransformWrapper
+        doubleClick={{ disabled: true }}
+        panning={{
+          disabled: panningDisabled,
+        }}
+        {...panningHandlers}
+      >
+        <TransformComponent
+          wrapperStyle={{ width: "100%", height: "100%" }}
+          contentStyle={{ width: "100%", height: "100%" }}
+        >
+          {children}
+        </TransformComponent>
+      </TransformWrapper>
+    </ZoomPanPinchContext.Provider>
+  );
+};
+
+function usePanning() {
+  const [isPanning, setPanning] = useState(false);
+  const dragged = useRef(false);
+
+  const onPanningStart: ComponentProps<
+    typeof TransformWrapper
+  >["onPanningStart"] = (ref) => {
+    const zoomedIn = ref.state.scale > 1;
+    if (zoomedIn) {
+      setPanning(ref.instance.isPanning);
+    }
+  };
+
+  const onPanning: ComponentProps<
+    typeof TransformWrapper
+  >["onPanning"] = () => {
+    dragged.current = true;
+  };
+
+  const onPanningStop: ComponentProps<
+    typeof TransformWrapper
+  >["onPanningStop"] = (ref) => {
+    setPanning(ref.instance.isPanning);
+    if (dragged.current) {
+      dragged.current = false;
+      ref.zoomIn(0);
+    } else {
+      const zoomedOut = ref.state.scale === 1;
+      if (zoomedOut) {
+        ref.zoomIn();
+      } else {
+        ref.resetTransform();
+      }
+    }
+  };
+
+  return {
+    isPanning,
+    onPanningStart,
+    onPanning,
+    onPanningStop,
+  };
+}
 
 function Lightbox({ onUpdate, activePos }: Props) {
   const { view } = useEditor();
@@ -138,6 +229,18 @@ function Lightbox({ onUpdate, activePos }: Props) {
       });
     }
   }, [status.image, status.lightbox]);
+
+  useEffect(() => {
+    if (
+      status.lightbox === LightboxStatus.OPENED &&
+      status.image === ImageStatus.LOADED
+    ) {
+      setStatus({
+        lightbox: LightboxStatus.OPENED,
+        image: ImageStatus.ZOOMED_OUT,
+      });
+    }
+  }, [status.lightbox, status.image]);
 
   useEffect(() => {
     if (status.lightbox === LightboxStatus.READY_TO_CLOSE) {
@@ -270,7 +373,7 @@ function Lightbox({ onUpdate, activePos }: Props) {
   };
 
   const setupZoomOut = () => {
-    if (imgRef.current) {
+    if (imgRef.current && status.image === ImageStatus.ZOOMED_OUT) {
       // in lightbox
       const lightboxImgDOMRect = imgRef.current.getBoundingClientRect();
       const {
@@ -527,35 +630,52 @@ function Lightbox({ onUpdate, activePos }: Props) {
               </NavButton>
             </Nav>
           )}
-          <Image
-            ref={imgRef}
-            src={src}
-            alt={currentImageNode.attrs.alt ?? ""}
-            onLoading={() =>
-              setStatus({
-                lightbox: status.lightbox,
-                image: ImageStatus.LOADING,
-              })
-            }
-            onLoad={() =>
-              setStatus({
-                lightbox: status.lightbox,
-                image: ImageStatus.LOADED,
-              })
-            }
-            onError={() =>
-              setStatus({
-                lightbox: status.lightbox,
-                image: ImageStatus.ERROR,
-              })
-            }
-            onSwipeRight={prev}
-            onSwipeLeft={next}
-            onSwipeUp={close}
-            onSwipeDown={close}
-            status={status}
-            animation={animation.current}
-          />
+          <ZoomablePannablePinchable
+            panningDisabled={status.image !== ImageStatus.ZOOMED_IN}
+          >
+            <Image
+              ref={imgRef}
+              src={src}
+              alt={currentImageNode.attrs.alt ?? ""}
+              onLoading={() =>
+                setStatus({
+                  lightbox: status.lightbox,
+                  image: ImageStatus.LOADING,
+                })
+              }
+              onLoad={() =>
+                setStatus({
+                  lightbox: status.lightbox,
+                  image: ImageStatus.LOADED,
+                })
+              }
+              onError={() =>
+                setStatus({
+                  lightbox: status.lightbox,
+                  image: ImageStatus.ERROR,
+                })
+              }
+              onSwipeRight={prev}
+              onSwipeLeft={next}
+              onSwipeUp={close}
+              onSwipeDown={close}
+              status={status}
+              animation={animation.current}
+              onZoomIn={() =>
+                setStatus({
+                  lightbox: status.lightbox,
+                  image: ImageStatus.ZOOMED_IN,
+                })
+              }
+              onZoomOut={() =>
+                setStatus({
+                  lightbox: status.lightbox,
+                  image: ImageStatus.ZOOMED_OUT,
+                })
+              }
+            />
+          </ZoomablePannablePinchable>
+
           {currentImageIndex < imageNodes.length - 1 && (
             <Nav dir="right" $hidden={isIdle} animation={animation.current}>
               <NavButton onClick={next} size={32} aria-label={t("Next")}>
@@ -581,6 +701,8 @@ type ImageProps = {
   onSwipeDown: () => void;
   status: Status;
   animation: Animation | null;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
 };
 
 const Image = forwardRef<HTMLImageElement, ImageProps>(function _Image(
@@ -596,6 +718,8 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function _Image(
     onSwipeDown,
     status,
     animation,
+    onZoomIn,
+    onZoomOut,
   }: ImageProps,
   ref
 ) {
@@ -606,6 +730,17 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function _Image(
     onSwipeLeft,
     onSwipeUp,
     onSwipeDown,
+  });
+
+  const { isImagePanning } = useContext(ZoomPanPinchContext);
+
+  useTransformEffect(({ state }) => {
+    const { scale } = state;
+    if (scale > 1 && status.image === ImageStatus.ZOOMED_OUT) {
+      onZoomIn();
+    } else if (scale === 1 && status.image === ImageStatus.ZOOMED_IN) {
+      onZoomOut();
+    }
   });
 
   const [hidden, setHidden] = useState(
@@ -642,9 +777,12 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function _Image(
           onError={onError}
           onLoad={onLoad}
           $hidden={hidden}
+          $zoomedIn={status.image === ImageStatus.ZOOMED_IN}
+          $zoomedOut={status.image === ImageStatus.ZOOMED_OUT}
+          $panning={isImagePanning}
         />
         <Caption>
-          {status.image === ImageStatus.LOADED &&
+          {status.image === ImageStatus.ZOOMED_OUT &&
           status.lightbox === LightboxStatus.OPENED ? (
             <Fade>{alt}</Fade>
           ) : null}
@@ -700,12 +838,25 @@ const StyledOverlay = styled(Dialog.Overlay)<{
 
 const StyledImg = styled.img<{
   $hidden: boolean;
+  $zoomedIn: boolean;
+  $zoomedOut: boolean;
+  $panning: boolean;
   animation: Animation | null;
 }>`
   visibility: ${(props) => (props.$hidden ? "hidden" : "visible")};
+  pointer-events: auto !important;
   max-width: 100%;
   min-height: 0;
   object-fit: contain;
+  cursor: ${(props) =>
+    props.$panning
+      ? "grab"
+      : props.$zoomedOut
+        ? "zoom-in"
+        : props.$zoomedIn
+          ? "zoom-out"
+          : "default"};
+
   ${(props) =>
     props.animation?.zoomIn
       ? css`
@@ -717,7 +868,12 @@ const StyledImg = styled.img<{
             animation: ${props.animation.zoomOut.apply()}
               ${props.animation.zoomOut.duration}ms;
           `
-        : ""}
+        : props.animation?.fadeOut
+          ? css`
+              animation: ${props.animation.fadeOut.apply()}
+                ${props.animation.fadeOut.duration}ms;
+            `
+          : ""}
 `;
 
 const StyledContent = styled(Dialog.Content)`
