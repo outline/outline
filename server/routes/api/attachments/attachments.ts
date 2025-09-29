@@ -296,9 +296,15 @@ const handleAttachmentsRedirect = async (
       "Cache-Control",
       `max-age=${BaseStorage.defaultSignedUrlExpires}, immutable`
     );
+    ctx.set("Access-Control-Allow-Origin", "*");
+    ctx.set("Access-Control-Allow-Methods", "GET, OPTIONS");
+    ctx.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
     ctx.redirect(await attachment.signedUrl);
   } else {
     ctx.set("Cache-Control", `max-age=604800, immutable`);
+    ctx.set("Access-Control-Allow-Origin", "*");
+    ctx.set("Access-Control-Allow-Methods", "GET, OPTIONS");
+    ctx.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
     ctx.redirect(attachment.canonicalUrl);
   }
 };
