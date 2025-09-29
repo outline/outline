@@ -87,6 +87,9 @@ const handleFileOperationsRedirect = async (
   }
 
   const accessUrl = await FileStorage.getSignedUrl(fileOperation.key);
+  ctx.set("Access-Control-Allow-Origin", "*");
+  ctx.set("Access-Control-Allow-Methods", "GET, OPTIONS");
+  ctx.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
   ctx.redirect(accessUrl);
 };
 
