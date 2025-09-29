@@ -209,6 +209,7 @@ describe("#groups.list", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
+    expect(body.pagination.total).toEqual(1);
     expect(body.data.groups.length).toEqual(1);
     expect(body.data.groups[0].id).toEqual(group.id);
     expect(body.data.groupMemberships.length).toEqual(1);
@@ -245,6 +246,7 @@ describe("#groups.list", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.groups.length).toEqual(1);
+    expect(body.pagination.total).toEqual(1);
     expect(body.data.groups[0].id).toEqual(group.id);
     expect(body.data.groupMemberships.length).toEqual(1);
     expect(body.data.groupMemberships[0].groupId).toEqual(group.id);
@@ -282,6 +284,7 @@ describe("#groups.list", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
+    expect(body.pagination.total).toEqual(2);
     expect(body.data.groups.length).toEqual(2);
     expect(body.data.groups[0].id).toEqual(anotherGroup.id);
     expect(body.data.groups[1].id).toEqual(group.id);
@@ -306,6 +309,7 @@ describe("#groups.list", () => {
     });
     const anotherBody = await anotherRes.json();
     expect(anotherRes.status).toEqual(200);
+    expect(anotherBody.pagination.total).toEqual(1);
     expect(anotherBody.data.groups.length).toEqual(1);
     expect(anotherBody.data.groups[0].id).toEqual(group.id);
     expect(anotherBody.data.groupMemberships.length).toEqual(2);
@@ -334,6 +338,7 @@ describe("#groups.list", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
+    expect(body.pagination.total).toEqual(1);
     expect(body.data.groups.length).toEqual(1);
     expect(body.data.groups[0].id).toEqual(group.id);
   });
@@ -351,8 +356,26 @@ describe("#groups.list", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
+    expect(body.pagination.total).toEqual(1);
     expect(body.data.groups.length).toEqual(1);
     expect(body.data.groups[0].id).toEqual(group.id);
+  });
+
+  it.only("should return correct group total even when the limit is less than the total", async () => {
+    const user = await buildUser();
+    await buildGroup({ teamId: user.teamId });
+    await buildGroup({ teamId: user.teamId });
+
+    const res = await server.post("/api/groups.list", {
+      body: {
+        limit: 1,
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.pagination.total).toEqual(2);
+    expect(body.data.groups.length).toEqual(1);
   });
 });
 
