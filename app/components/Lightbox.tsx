@@ -378,7 +378,7 @@ function Lightbox({ onUpdate, activePos }: Props) {
   };
 
   const setupZoomOut = () => {
-    if (imgRef.current && status.image === ImageStatus.ZOOMED_OUT) {
+    if (imgRef.current && status.image !== ImageStatus.ZOOMED_IN) {
       // in lightbox
       const lightboxImgDOMRect = imgRef.current.getBoundingClientRect();
       const {
