@@ -107,7 +107,7 @@ const ZoomablePannablePinchable = ({
       >
         <TransformComponent
           wrapperStyle={{ width: "100%", height: "100%" }}
-          contentStyle={{ width: "100%", height: "100%" }}
+          contentStyle={{ width: "100%", height: "100%", padding: "56px" }}
         >
           {children}
         </TransformComponent>
@@ -122,7 +122,10 @@ function usePanning() {
 
   const onPanningStart: ComponentProps<
     typeof TransformWrapper
-  >["onPanningStart"] = (ref) => {
+  >["onPanningStart"] = (ref, event) => {
+    if (!(event.target instanceof HTMLImageElement)) {
+      return;
+    }
     const zoomedIn = ref.state.scale > 1;
     if (zoomedIn) {
       setPanning(ref.instance.isPanning);
@@ -137,7 +140,10 @@ function usePanning() {
 
   const onPanningStop: ComponentProps<
     typeof TransformWrapper
-  >["onPanningStop"] = (ref) => {
+  >["onPanningStop"] = (ref, event) => {
+    if (!(event.target instanceof HTMLImageElement)) {
+      return;
+    }
     setPanning(ref.instance.isPanning);
     if (dragged.current) {
       dragged.current = false;
@@ -458,7 +464,10 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
   };
 
   const prev = () => {
-    if (status.lightbox === LightboxStatus.OPENED) {
+    if (
+      status.lightbox === LightboxStatus.OPENED &&
+      status.image === ImageStatus.ZOOMED_OUT
+    ) {
       const prevIndex = currentImageIndex - 1;
       if (prevIndex < 0) {
         return;
@@ -468,7 +477,10 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
   };
 
   const next = () => {
-    if (status.lightbox === LightboxStatus.OPENED) {
+    if (
+      status.lightbox === LightboxStatus.OPENED &&
+      status.image === ImageStatus.ZOOMED_OUT
+    ) {
       const nextIndex = currentImageIndex + 1;
       if (nextIndex >= images.length) {
         return;
@@ -648,7 +660,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
               </Tooltip>
             </Dialog.Close>
           </Actions>
-          {currentImageIndex > 0 && (
+          {currentImageIndex > 0 && status.image !== ImageStatus.ZOOMED_IN && (
             <Nav dir="left" $hidden={isIdle} animation={animation.current}>
               <NavButton onClick={prev} size={32} aria-label={t("Previous")}>
                 <BackIcon size={32} />
@@ -700,14 +712,14 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
               }
             />
           </ZoomablePannablePinchable>
-
-          {currentImageIndex < images.length - 1 && (
-            <Nav dir="right" $hidden={isIdle} animation={animation.current}>
-              <NavButton onClick={next} size={32} aria-label={t("Next")}>
-                <NextIcon size={32} />
-              </NavButton>
-            </Nav>
-          )}
+          {currentImageIndex < images.length - 1 &&
+            status.image !== ImageStatus.ZOOMED_IN && (
+              <Nav dir="right" $hidden={isIdle} animation={animation.current}>
+                <NavButton onClick={next} size={32} aria-label={t("Next")}>
+                  <NextIcon size={32} />
+                </NavButton>
+              </Nav>
+            )}
         </StyledContent>
       </Dialog.Portal>
     </Dialog.Root>
@@ -909,7 +921,6 @@ const StyledContent = styled(Dialog.Content)`
   justify-content: center;
   align-items: center;
   outline: none;
-  padding: 56px;
 `;
 
 const Actions = styled.div<{
@@ -922,6 +933,7 @@ const Actions = styled.div<{
   display: flex;
   align-items: center;
   gap: 8px;
+  z-index: ${depths.modal};
 
   ${(props) =>
     props.animation === null
@@ -949,6 +961,7 @@ const Nav = styled.div<{
   position: absolute;
   ${(props) => (props.dir === "left" ? "left: 0;" : "right: 0;")}
   transition: opacity 500ms ease-in-out;
+  z-index: ${depths.modal};
   ${(props) => props.$hidden && "opacity: 0;"}
   ${(props) =>
     props.animation === null
