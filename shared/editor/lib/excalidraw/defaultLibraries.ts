@@ -3,56 +3,51 @@ import { loadLibraryFiles } from "./libraryLoader";
 // Type for LibraryItem (avoiding direct import due to build issues)
 type LibraryItem = any;
 
-// List of library files to preload - all available libraries
-const DEFAULT_LIBRARY_FILES = [
-  "aws-architecture-icons.excalidrawlib",
-  "cloud-design-patterns.excalidrawlib",
-  "cloud.excalidrawlib",
-  "data-viz.excalidrawlib",
-  "db-eng.excalidrawlib",
-  "dev_ops.excalidrawlib",
-  "drwnio.excalidrawlib",
-  "forms.excalidrawlib",
-  "google-icons.excalidrawlib",
-  "icons.excalidrawlib",
-  "microsoft-azure-cloud-icons.excalidrawlib",
-  "azure-cloud-services.excalidrawlib",
-  "software-architecture.excalidrawlib",
-  "system-design.excalidrawlib",
-  "technology-logos.excalidrawlib",
-] as const;
-
-// Cache for the loaded default libraries
-let cachedDefaultLibraries: LibraryItem[] | null = null;
-let loadingPromise: Promise<LibraryItem[]> | null = null;
+// Cache for the loaded libraries by configuration
+const libraryCache = new Map<string, LibraryItem[]>();
+const loadingPromises = new Map<string, Promise<LibraryItem[]>>();
 
 /**
- * Loads the default library files and returns them as LibraryItems
- * Uses caching to avoid reloading on subsequent calls
+ * Loads library files and returns them as LibraryItems
+ * Uses caching based on the library configuration to avoid reloading
+ *
+ * @param libraryUrls Array of library URLs or filenames to load
+ * @returns Promise resolving to array of LibraryItems
  */
-export async function getDefaultLibraries(): Promise<LibraryItem[]> {
+export async function getDefaultLibraries(
+  libraryUrls?: string[]
+): Promise<LibraryItem[]> {
+  // If no libraries specified, return empty array
+  if (!libraryUrls || libraryUrls.length === 0) {
+    return [];
+  }
+
+  // Create cache key from sorted URLs
+  const cacheKey = [...libraryUrls].sort().join("|");
+
   // Return cached result if available
-  if (cachedDefaultLibraries) {
-    return cachedDefaultLibraries;
+  if (libraryCache.has(cacheKey)) {
+    return libraryCache.get(cacheKey)!;
   }
 
   // Return existing loading promise if already loading
-  if (loadingPromise) {
-    return loadingPromise;
+  if (loadingPromises.has(cacheKey)) {
+    return loadingPromises.get(cacheKey)!;
   }
 
   // Start loading libraries
-  loadingPromise = loadLibraryFiles([...DEFAULT_LIBRARY_FILES]);
+  const loadingPromise = loadLibraryFiles(libraryUrls);
+  loadingPromises.set(cacheKey, loadingPromise);
 
   try {
     const libraries = await loadingPromise;
-    cachedDefaultLibraries = libraries;
+    libraryCache.set(cacheKey, libraries);
     return libraries;
   } catch (_error) {
     // Failed to load libraries, return empty array
     return [];
   } finally {
-    loadingPromise = null;
+    loadingPromises.delete(cacheKey);
   }
 }
 
@@ -64,16 +59,9 @@ export async function getLibrariesByFiles(filenames: string[]): Promise<LibraryI
 }
 
 /**
- * Clears the cached default libraries (useful for testing or forced refresh)
+ * Clears the cached libraries (useful for testing or forced refresh)
  */
 export function clearDefaultLibrariesCache(): void {
-  cachedDefaultLibraries = null;
-  loadingPromise = null;
-}
-
-/**
- * Gets the list of available library files
- */
-export function getAvailableLibraryFiles(): readonly string[] {
-  return DEFAULT_LIBRARY_FILES;
+  libraryCache.clear();
+  loadingPromises.clear();
 }

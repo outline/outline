@@ -4,4 +4,8 @@
   "typescript.validate.enable": true,
   "typescript.format.enable": true,
   "editor.formatOnSave": true,
+  "debug.javascript.defaultRuntimeExecutable": {
+    "pwa-node": "/home/nkemp/.local/share/mise/shims/node"
+  },
+  "python.defaultInterpreterPath": "/home/nkemp/.local/share/mise/installs/python/3.13.5/bin/python",
 }

@@ -301,6 +301,8 @@ export enum TeamPreference {
   TocPosition = "tocPosition",
   /** Whether to prevent shared documents from being embedded in iframes on external websites. */
   PreventDocumentEmbedding = "preventDocumentEmbedding",
+  /** Excalidraw library URLs or filenames to load in the Excalidraw editor. */
+  ExcalidrawLibraries = "excalidrawLibraries",
 }
 
 export type TeamPreferences = {
@@ -315,6 +317,7 @@ export type TeamPreferences = {
   [TeamPreference.CustomTheme]?: Partial<CustomTheme>;
   [TeamPreference.TocPosition]?: TOCPosition;
   [TeamPreference.PreventDocumentEmbedding]?: boolean;
+  [TeamPreference.ExcalidrawLibraries]?: string[];
 };
 
 export enum NavigationNodeType {

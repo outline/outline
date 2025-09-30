@@ -33,6 +33,7 @@ export const TeamPreferenceDefaults: TeamPreferences = {
   [TeamPreference.CustomTheme]: undefined,
   [TeamPreference.TocPosition]: TOCPosition.Left,
   [TeamPreference.PreventDocumentEmbedding]: false,
+  [TeamPreference.ExcalidrawLibraries]: [],
 };
 
 export const UserPreferenceDefaults: UserPreferences = {

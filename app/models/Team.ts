@@ -113,7 +113,10 @@ class Team extends Model {
    * @param key The TeamPreference key to retrieve
    * @param value The value to set
    */
-  setPreference(key: TeamPreference, value: boolean) {
+  setPreference<T extends keyof TeamPreferences>(
+    key: T,
+    value: TeamPreferences[T]
+  ) {
     this.preferences = {
       ...this.preferences,
       [key]: value,

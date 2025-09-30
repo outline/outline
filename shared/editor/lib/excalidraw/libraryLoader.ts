@@ -5,16 +5,29 @@ type LibraryItem = any;
 const libraryCache = new Map<string, LibraryItem[]>();
 
 /**
- * Loads a single .excalidrawlib file and converts it to LibraryItem format using Excalidraw's utilities
+ * Determines if a string is a URL or a local filename
  */
-export async function loadLibraryFile(filename: string): Promise<LibraryItem[]> {
+function isUrl(urlOrFilename: string): boolean {
+  return urlOrFilename.startsWith("http://") || urlOrFilename.startsWith("https://");
+}
+
+/**
+ * Loads a single .excalidrawlib file and converts it to LibraryItem format using Excalidraw's utilities
+ * Supports both local filenames and remote URLs
+ */
+export async function loadLibraryFile(urlOrFilename: string): Promise<LibraryItem[]> {
   // Check cache first
-  if (libraryCache.has(filename)) {
-    return libraryCache.get(filename)!;
+  if (libraryCache.has(urlOrFilename)) {
+    return libraryCache.get(urlOrFilename)!;
   }
 
   try {
-    const response = await fetch(`/excalidraw/libraries/${filename}`);
+    // Determine the fetch URL
+    const fetchUrl = isUrl(urlOrFilename)
+      ? urlOrFilename
+      : `/excalidraw/libraries/${urlOrFilename}`;
+
+    const response = await fetch(fetchUrl);
     if (!response.ok) {
       // Failed to load library file, return empty array
       return [];
@@ -28,7 +41,7 @@ export async function loadLibraryFile(filename: string): Promise<LibraryItem[]> 
     const libraryItems = await loadLibraryFromBlob(blob);
 
     // Cache the result
-    libraryCache.set(filename, libraryItems);
+    libraryCache.set(urlOrFilename, libraryItems);
 
     return libraryItems;
   } catch (_error) {

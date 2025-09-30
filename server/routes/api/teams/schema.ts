@@ -60,6 +60,8 @@ export const TeamsUpdateSchema = BaseSchema.extend({
         tocPosition: z.nativeEnum(TOCPosition).optional(),
         /** Whether to prevent shared documents from being embedded in iframes on external websites. */
         preventDocumentEmbedding: z.boolean().optional(),
+        /** Excalidraw library URLs or filenames to load in the Excalidraw editor. */
+        excalidrawLibraries: z.array(z.string()).optional(),
       })
       .optional(),
   }),

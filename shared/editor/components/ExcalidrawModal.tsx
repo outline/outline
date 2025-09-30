@@ -135,12 +135,25 @@ const ExcalidrawModal: React.FC<Props> = observer(({
     }
   }, [isOpen]);
 
-  // Load default libraries when modal opens
+  // Load libraries from team preferences when modal opens
   useEffect(() => {
-    if (isOpen && typeof window !== "undefined") {
-      getDefaultLibraries().then(setLibraryItems);
+    if (!isOpen || typeof window === "undefined") {
+      return;
     }
-  }, [isOpen]);
+
+    let mounted = true;
+    const libraryUrls = stores?.auth?.team?.getPreference("excalidrawLibraries");
+
+    getDefaultLibraries(libraryUrls).then((items) => {
+      if (mounted) {
+        setLibraryItems(items);
+      }
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, [isOpen, stores?.auth?.team]);
 
   // Reset mounted ref when modal opens
   useEffect(() => {
@@ -149,6 +162,16 @@ const ExcalidrawModal: React.FC<Props> = observer(({
       hasInitialized.current = false;
     }
   }, [isOpen]);
+
+  // Update library when items are loaded and API is available
+  useEffect(() => {
+    if (excalidrawAPI && libraryItems.length > 0 && isMountedRef.current) {
+      excalidrawAPI.updateLibrary({
+        libraryItems,
+        openLibraryMenu: true,
+      });
+    }
+  }, [excalidrawAPI, libraryItems]);
 
   // Handle collaboration state changes
   const handleCollabStateChange = useCallback((newState: CollaborationState) => {
@@ -384,7 +407,6 @@ const ExcalidrawModal: React.FC<Props> = observer(({
             initialData={{
               elements: initialData?.elements || [],
               appState: initialData?.appState || {},
-              libraryItems,
             }}
             onChange={handleChange}
             onPointerUpdate={collaboration ? (update) => {
