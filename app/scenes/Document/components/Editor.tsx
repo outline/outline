@@ -79,6 +79,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   } = props;
   const can = usePolicy(document);
   const commentingEnabled = !!team?.getPreference(TeamPreference.Commenting);
+  const mermaidIconPacks = team?.getPreference(TeamPreference.MermaidIconPacks) || undefined;
 
   const iconColor = document.color ?? (first(colorPalette) as string);
   const childRef = React.useRef<HTMLDivElement>(null);
@@ -250,6 +251,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         onChange={updateDocState}
         extensions={extensions}
         editorStyle={editorStyle}
+        mermaidIconPacks={mermaidIconPacks}
         {...rest}
       />
       <div ref={childRef}>{children}</div>

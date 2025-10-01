@@ -62,6 +62,8 @@ export const TeamsUpdateSchema = BaseSchema.extend({
         preventDocumentEmbedding: z.boolean().optional(),
         /** Excalidraw library URLs or filenames to load in the Excalidraw editor. */
         excalidrawLibraries: z.array(z.string()).optional(),
+        /** Mermaid icon pack configurations with name and URL pairs. */
+        mermaidIconPacks: z.array(z.object({ name: z.string(), url: z.string() })).optional(),
       })
       .optional(),
   }),

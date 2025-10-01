@@ -18,10 +18,6 @@ import { isRemoteTransaction } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
 import { NodeWithPos } from "../types";
 import { merge } from "lodash";
-import { icons as logosIcons } from '@iconify-json/logos';
-import { icons as notoIcons } from '@iconify-json/noto';
-import { icons as streamlineIcons } from '@iconify-json/streamline-color';
-import { icons as codeIcons } from '@iconify-json/vscode-icons';
 import type { Editor } from "../../../app/editor";
 import { LightboxImageFactory } from "../lib/Lightbox";
 
@@ -105,12 +101,14 @@ class MermaidRenderer {
   private _element: HTMLElement | null = null;
   readonly elementId: string;
   readonly editor: Editor;
+  readonly iconPackConfigs?: Array<{ name: string; url: string }>;
   private _rendererFunc?: (block: { node: Node; pos: number }, isDark: boolean) => void;
 
-  constructor(editor: Editor) {
+  constructor(editor: Editor, iconPackConfigs?: Array<{ name: string; url: string }>) {
     this.diagramId = uuidv4();
     this.elementId = `mermaid-diagram-wrapper-${this.diagramId}`;
     this.editor = editor;
+    this.iconPackConfigs = iconPackConfigs;
   }
 
   get element(): HTMLElement {
@@ -270,28 +268,16 @@ class MermaidRenderer {
       elkLayoutsRegistered = true;
     }
 
-    // Register icon packs if not already done
-    if (!iconPacksRegistered) {
+    // Register icon packs if not already done and configs provided
+    if (!iconPacksRegistered && this.iconPackConfigs && this.iconPackConfigs.length > 0) {
       try {
         if (mermaid.registerIconPacks) {
-          mermaid.registerIconPacks([
-            {
-              name: 'logos',
-              icons: logosIcons,
-            },
-            {
-              name: 'noto',
-              icons: notoIcons,
-            },
-            {
-              name: 'streamline',
-              icons: streamlineIcons,
-            },
-            {
-              name: 'code',
-              icons: codeIcons,
-            },
-          ]);
+          // Use the loader pattern to fetch icon packs dynamically
+          const iconPacks = this.iconPackConfigs.map((config) => ({
+            name: config.name,
+            loader: () => fetch(config.url).then((res) => res.json()),
+          }));
+          mermaid.registerIconPacks(iconPacks);
         }
       } catch {
         // Icon packs not available
@@ -356,11 +342,13 @@ function getNewState({
   name,
   pluginState,
   editor,
+  iconPackConfigs,
 }: {
   doc: Node;
   name: string;
   pluginState: MermaidState;
   editor: Editor;
+  iconPackConfigs?: Array<{ name: string; url: string }>;
 }): MermaidState {
   const decorations: Decoration[] = [];
 
@@ -383,7 +371,7 @@ function getNewState({
     );
 
     const renderer: MermaidRenderer =
-      bestDecoration?.spec?.renderer ?? new MermaidRenderer(editor);
+      bestDecoration?.spec?.renderer ?? new MermaidRenderer(editor, iconPackConfigs);
 
     const diagramDecoration = Decoration.widget(
       block.pos + block.node.nodeSize,
@@ -422,10 +410,12 @@ export default function Mermaid({
   name,
   isDark,
   editor,
+  iconPackConfigs,
 }: {
   name: string;
   isDark: boolean;
   editor: Editor;
+  iconPackConfigs?: Array<{ name: string; url: string }>;
 }) {
   return new Plugin({
     key: new PluginKey("mermaid"),
@@ -439,6 +429,8 @@ export default function Mermaid({
           doc,
           name,
           pluginState,
+          editor,
+          iconPackConfigs,
         });
       },
       apply: (
@@ -470,6 +462,7 @@ export default function Mermaid({
             name,
             pluginState,
             editor,
+            iconPackConfigs,
           });
         }
 
