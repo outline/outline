@@ -1,7 +1,9 @@
 import { observer } from "mobx-react";
-import Guide from "~/components/Guide";
-import Modal from "~/components/Modal";
 import useStores from "~/hooks/useStores";
+import lazyWithRetry from "~/utils/lazyWithRetry";
+
+const Guide = lazyWithRetry(() => import("~/components/Guide"));
+const Modal = lazyWithRetry(() => import("~/components/Modal"));
 
 function Dialogs() {
   const { dialogs } = useStores();
