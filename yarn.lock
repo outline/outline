@@ -3550,43 +3550,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@iconify-json/logos@npm:^1.2.9":
-  version: 1.2.9
-  resolution: "@iconify-json/logos@npm:1.2.9"
-  dependencies:
-    "@iconify/types": "npm:*"
-  checksum: 10c0/7f5e2c8026560fb63489566cfc90497375543ca3649e7c7d13079f0a166dc4a738cf5686ec66a4cb9a319b8213303bc7c5ae74070e88d4bf0e5c1ef57cb3bacc
-  languageName: node
-  linkType: hard
-
-"@iconify-json/noto@npm:^1.2.7":
-  version: 1.2.7
-  resolution: "@iconify-json/noto@npm:1.2.7"
-  dependencies:
-    "@iconify/types": "npm:*"
-  checksum: 10c0/140ef337b9fb99ac241b2e24106627a67fb2ee9d96fb634ea72fbb461bc42c5f318044b38d5c63fa76ca0c117aa4d478e23c276e6b09534405c67e48dd03e31e
-  languageName: node
-  linkType: hard
-
-"@iconify-json/streamline-color@npm:^1.2.2":
-  version: 1.2.2
-  resolution: "@iconify-json/streamline-color@npm:1.2.2"
-  dependencies:
-    "@iconify/types": "npm:*"
-  checksum: 10c0/0b62a39c9ae210dbb16fdae8ffac7d3066d25ed2a1b2a2231eccfdbd8fb07e46a1a54f4b376a7d4038926d1c380798240f325922aa90e808a45af037780df14f
-  languageName: node
-  linkType: hard
-
-"@iconify-json/vscode-icons@npm:^1.2.30":
-  version: 1.2.30
-  resolution: "@iconify-json/vscode-icons@npm:1.2.30"
-  dependencies:
-    "@iconify/types": "npm:*"
-  checksum: 10c0/de73ec85301e6b7ca48b90ca75f74415aefb2ffdf017415c6c2178eca5666a251284d0943e34cbd94ed9755a1da8d92a74158f48d27c2cb145f0bbac1dacae1c
-  languageName: node
-  linkType: hard
-
-"@iconify/types@npm:*, @iconify/types@npm:^2.0.0":
+"@iconify/types@npm:^2.0.0":
   version: 2.0.0
   resolution: "@iconify/types@npm:2.0.0"
   checksum: 10c0/65a3be43500c7ccacf360e136d00e1717f050b7b91da644e94370256ac66f582d59212bdb30d00788aab4fc078262e91c95b805d1808d654b72f6d2072a7e4b2
@@ -17917,10 +17881,6 @@ __metadata:
     "@hocuspocus/extension-throttle": "npm:1.1.2"
     "@hocuspocus/provider": "npm:1.1.2"
     "@hocuspocus/server": "npm:1.1.2"
-    "@iconify-json/logos": "npm:^1.2.9"
-    "@iconify-json/noto": "npm:^1.2.7"
-    "@iconify-json/streamline-color": "npm:^1.2.2"
-    "@iconify-json/vscode-icons": "npm:^1.2.30"
     "@joplin/turndown-plugin-gfm": "npm:^1.0.49"
     "@juggle/resize-observer": "npm:^3.4.0"
     "@linear/sdk": "npm:^58.1.0"
