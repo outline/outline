@@ -82,7 +82,11 @@ import {
 import capitalize from "lodash/capitalize";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import { ActionV2, ActionV2Group, ActionV2Separator } from "~/types";
-import Insights from "~/scenes/Document/components/Insights";
+import lazyWithRetry from "~/utils/lazyWithRetry";
+
+const Insights = lazyWithRetry(
+  () => import("~/scenes/Document/components/Insights")
+);
 
 export const openDocument = createAction({
   name: ({ t }) => t("Open document"),
@@ -593,12 +597,15 @@ export const copyDocumentAsMarkdown = createActionV2({
   iconInContextMenu: false,
   visible: ({ activeDocumentId, stores }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
-  perform: ({ stores, activeDocumentId, t }) => {
+  perform: async ({ stores, activeDocumentId, t }) => {
     const document = activeDocumentId
       ? stores.documents.get(activeDocumentId)
       : undefined;
     if (document) {
-      copy(document.toMarkdown());
+      const { ProsemirrorHelper } = await import(
+        "~/models/helpers/ProsemirrorHelper"
+      );
+      copy(ProsemirrorHelper.toMarkdown(document));
       toast.success(t("Markdown copied to clipboard"));
     }
   },
@@ -612,12 +619,15 @@ export const copyDocumentAsPlainText = createActionV2({
   iconInContextMenu: false,
   visible: ({ activeDocumentId, stores }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
-  perform: ({ stores, activeDocumentId, t }) => {
+  perform: async ({ stores, activeDocumentId, t }) => {
     const document = activeDocumentId
       ? stores.documents.get(activeDocumentId)
       : undefined;
     if (document) {
-      copy(document.toPlainText());
+      const { ProsemirrorHelper } = await import(
+        "~/models/helpers/ProsemirrorHelper"
+      );
+      copy(ProsemirrorHelper.toPlainText(document));
       toast.success(t("Text copied to clipboard"));
     }
   },

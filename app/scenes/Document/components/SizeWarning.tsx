@@ -7,6 +7,7 @@ import type Document from "~/models/Document";
 import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
+import { ProsemirrorHelper } from "~/models/helpers/ProsemirrorHelper";
 
 type Props = {
   document: Document;
@@ -14,7 +15,7 @@ type Props = {
 
 export const SizeWarning = ({ document }: Props) => {
   const { t } = useTranslation();
-  const length = document.toPlainText().length;
+  const length = ProsemirrorHelper.toPlainText(document).length;
 
   if (length < DocumentValidation.maxRecommendedLength) {
     return null;
