@@ -23,6 +23,8 @@ import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
 import TemplateMenu from "~/menus/TemplateMenu";
 import { FILTER_HEIGHT } from "./StickyFilters";
+import history from "~/utils/history";
+import { settingsPath } from "~/utils/routeHelpers";
 
 const ROW_HEIGHT = 60;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
@@ -35,15 +37,7 @@ export function TemplatesTable(props: Props) {
   const { dialogs } = useStores();
 
   const handleOpen = (template: Template) => () => {
-    dialogs.openModal({
-      title: "",
-      content: (
-        <TemplateEdit
-          templateId={template.id}
-          onSubmit={dialogs.closeAllModals}
-        />
-      ),
-    });
+    history.push(settingsPath("templates", template.id));
   };
 
   const columns = React.useMemo<TableColumn<Template>[]>(

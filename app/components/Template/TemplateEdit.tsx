@@ -3,18 +3,18 @@ import { useCallback } from "react";
 import { toast } from "sonner";
 import useStores from "~/hooks/useStores";
 import { TemplateForm } from "./TemplateForm";
+import Template from "~/models/Template";
 
 type Props = {
-  templateId: string;
+  template: Template;
   onSubmit: () => void;
 };
 
 export const TemplateEdit = observer(function TemplateEdit_({
-  templateId,
+  template,
   onSubmit,
 }: Props) {
   const { templates } = useStores();
-  const template = templates.get(templateId);
 
   const handleSubmit = useCallback(async () => {
     try {

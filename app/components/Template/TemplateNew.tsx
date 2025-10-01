@@ -11,7 +11,7 @@ type Props = {
 
 export const TemplateNew = observer(function TemplateNew_({ onSubmit }: Props) {
   const { templates } = useStores();
-  const [template] = useState(new Template({}, templates));
+  const [template] = useState(new Template({ title: "" }, templates));
 
   const handleSubmit = useCallback(async () => {
     try {

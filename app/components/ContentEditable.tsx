@@ -182,7 +182,6 @@ function placeCaret(element: HTMLElement, atStart: boolean) {
 }
 
 const Content = styled.span`
-  background: ${s("background")};
   color: ${s("text")};
   -webkit-text-fill-color: ${s("text")};
   outline: none;
