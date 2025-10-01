@@ -40,8 +40,12 @@ import { BackButton } from "./components/BackButton";
 import { Background } from "./components/Background";
 import { Centered } from "./components/Centered";
 import { Notices } from "./components/Notices";
-import WorkspaceSetup from "./components/WorkspaceSetup";
 import { getRedirectUrl, navigateToSubdomain } from "./urls";
+import lazyWithRetry from "~/utils/lazyWithRetry";
+
+const WorkspaceSetup = lazyWithRetry(
+  () => import("./components/WorkspaceSetup")
+);
 
 type Props = {
   children?: (config?: Config) => React.ReactNode;
@@ -205,7 +209,11 @@ function Login({ children, onBack }: Props) {
   const preferOTP = isPWA;
 
   if (firstRun) {
-    return <WorkspaceSetup onBack={onBack} />;
+    return (
+      <React.Suspense fallback={null}>
+        <WorkspaceSetup onBack={onBack} />
+      </React.Suspense>
+    );
   }
 
   if (emailLinkSentTo) {
