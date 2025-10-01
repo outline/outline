@@ -1,8 +1,7 @@
 import debounce from "lodash/debounce";
 import last from "lodash/last";
 import sortBy from "lodash/sortBy";
-// @ts-ignore - js-yaml types may not be available
-import * as yaml from "js-yaml";
+import { load as loadYaml, JSON_SCHEMA } from "js-yaml";
 import type MermaidUnsafe from "mermaid";
 import { Node } from "prosemirror-model";
 import {
@@ -17,7 +16,6 @@ import { isCode } from "../lib/isCode";
 import { isRemoteTransaction } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
 import { NodeWithPos } from "../types";
-import { merge } from "lodash";
 import type { Editor } from "../../../app/editor";
 import { LightboxImageFactory } from "../lib/Lightbox";
 
@@ -55,43 +53,90 @@ class Cache {
   private static data: Map<string, string> = new Map();
 }
 
+// Module-level state for Mermaid library management
+// Note: These are intentionally global since Mermaid itself is a singleton
 let mermaid: typeof MermaidUnsafe;
 let elkLayoutsRegistered = false;
 let iconPacksRegistered = false;
 let mermaidInitialized = false;
+let lastInitializedConfigHash = "";
 
+// Cache for frontmatter extraction to avoid re-parsing YAML on every render
+const frontMatterCache = new Map<string, ExtractedFrontMatter>();
+
+/**
+ * Reset all caches and flags - useful for testing
+ * @internal
+ */
+export function resetMermaidState(): void {
+  frontMatterCache.clear();
+  lastInitializedConfigHash = "";
+  elkLayoutsRegistered = false;
+  iconPacksRegistered = false;
+  mermaidInitialized = false;
+}
+
+/**
+ * Generate a stable hash for a config object
+ * Sorts keys to ensure consistent hashing
+ */
+function hashConfig(config: Record<string, unknown>): string {
+  if (!config || Object.keys(config).length === 0) {
+    return "";
+  }
+  const sortedKeys = Object.keys(config).sort();
+  const sortedConfig = sortedKeys.reduce((acc, key) => {
+    acc[key] = config[key];
+    return acc;
+  }, {} as Record<string, unknown>);
+  return JSON.stringify(sortedConfig);
+}
 
 /**
  * Extract Frontmatter configuration from Mermaid diagram text
+ * Results are cached to avoid re-parsing YAML on every render
  */
 function extractFrontMatter(text: string): ExtractedFrontMatter {
+  // Check cache first
+  if (frontMatterCache.has(text)) {
+    return frontMatterCache.get(text)!;
+  }
+
   const frontMatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n/;
   const match = text.match(frontMatterRegex);
 
   if (!match) {
-    return {
-      metadata: {},
-      text,
-    };
+    const result = { metadata: {}, text };
+    frontMatterCache.set(text, result);
+    return result;
   }
 
   try {
     const yamlContent = match[1];
-    const metadata = yaml?.load ?
-      (yaml.load(yamlContent, { schema: yaml.JSON_SCHEMA }) as FrontMatterMetadata) || {} :
-      {};
+    const metadata = (loadYaml(yamlContent, { schema: JSON_SCHEMA }) as FrontMatterMetadata) || {};
     const cleanedText = text.replace(frontMatterRegex, '');
 
-    return {
+    const result = {
       metadata,
       text: cleanedText,
     };
+
+    // Cache with size limit
+    if (frontMatterCache.size > 50) {
+      const firstKey = frontMatterCache.keys().next().value;
+      frontMatterCache.delete(firstKey);
+    }
+    frontMatterCache.set(text, result);
+
+    return result;
   } catch {
     // If YAML parsing fails, return text without frontmatter
-    return {
+    const result = {
       metadata: {},
       text: text.replace(frontMatterRegex, ''),
     };
+    frontMatterCache.set(text, result);
+    return result;
   }
 }
 
@@ -135,8 +180,8 @@ class MermaidRenderer {
     try {
       const { metadata, text } = extractFrontMatter(originalText);
 
-      // Include config in cache key to ensure different configs produce different cached renders
-      const configHash = metadata.config ? JSON.stringify(metadata.config) : '';
+      // Use stable hash for cache key
+      const configHash = metadata.config ? hashConfig(metadata.config) : '';
       const cacheKey = `${isDark ? "dark" : "light"}-${configHash}-${originalText}`;
       const cache = Cache.get(cacheKey);
       if (cache) {
@@ -170,7 +215,7 @@ class MermaidRenderer {
       renderElement.style.pointerEvents = "none";
       document.body.appendChild(renderElement);
 
-      // Create default configuration
+      // Build configuration
       const defaultConfig = {
         startOnLoad: true,
         // TODO: Make dynamic based on the width of the editor or remove in
@@ -182,22 +227,23 @@ class MermaidRenderer {
         theme: (isDark ? "dark" : "default") as "dark" | "default",
         darkMode: isDark,
         logLevel: "error" as const, // Reduce console noise
-        securityLevel: "loose" as const, // Allow more diagram types
+        securityLevel: "strict" as const, // Allow more diagram types
       };
 
-      // Merge default config with frontmatter config
-      let finalConfig = defaultConfig;
-      if (metadata.config) {
-        finalConfig = merge({}, defaultConfig, metadata.config) as typeof defaultConfig;
-        // Preserve theme switching capability - don't override theme if isDark is set
-        if (isDark && !metadata.config.theme) {
-          finalConfig.theme = "dark";
-        }
-        finalConfig.darkMode = isDark;
-      }
+      // Merge frontmatter config if present, ensuring theme and darkMode are always set correctly
+      const finalConfig = {
+        ...defaultConfig,
+        ...(metadata.config || {}),
+        theme: (isDark ? "dark" : "default") as "dark" | "default",
+        darkMode: isDark,
+      };
 
-      // Initialize Mermaid
-      mermaid.initialize(finalConfig);
+      // Only re-initialize if config has changed
+      const finalConfigHash = hashConfig(finalConfig);
+      if (finalConfigHash !== lastInitializedConfigHash) {
+        mermaid.initialize(finalConfig);
+        lastInitializedConfigHash = finalConfigHash;
+      }
 
       // Render the diagram
       // Use off-screen element only if the main element is not visible
