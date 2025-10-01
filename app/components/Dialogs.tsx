@@ -1,4 +1,5 @@
 import { observer } from "mobx-react";
+import { Suspense } from "react";
 import useStores from "~/hooks/useStores";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 
@@ -32,7 +33,7 @@ function Dialogs() {
           title={modal.title}
           style={modal.style}
         >
-          {modal.content}
+          <Suspense fallback={null}>{modal.content}</Suspense>
         </Modal>
       ))}
     </>

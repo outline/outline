@@ -50,7 +50,6 @@ import DeleteDocumentsInTrash from "~/scenes/Trash/components/DeleteDocumentsInT
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import DocumentCopy from "~/components/DocumentCopy";
 import MarkdownIcon from "~/components/Icons/MarkdownIcon";
-import SharePopover from "~/components/Sharing/Document";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import DocumentTemplatizeDialog from "~/components/TemplatizeDialog";
 import {
@@ -86,6 +85,9 @@ import lazyWithRetry from "~/utils/lazyWithRetry";
 
 const Insights = lazyWithRetry(
   () => import("~/scenes/Document/components/Insights")
+);
+const SharePopover = lazyWithRetry(
+  () => import("~/components/Sharing/Document/SharePopover")
 );
 
 export const openDocument = createAction({
