@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
-import { depths, s } from "@shared/styles";
+import { depths, hideScrollbars, s } from "@shared/styles";
 import { useDocumentContext } from "~/components/DocumentContext";
 import useWindowScrollPosition from "~/hooks/useWindowScrollPosition";
 import { decodeURIComponentSafe } from "~/utils/urls";
@@ -56,7 +56,7 @@ function Contents() {
 
   return (
     <StickyWrapper>
-      <Heading>{t("Contents")}</Heading>
+      <Heading>{t("On this page")}</Heading>
       <List>
         {headings
           .filter((heading) => heading.level < 4)
@@ -76,16 +76,16 @@ function Contents() {
 
 const StickyWrapper = styled.div`
   display: none;
-
   position: sticky;
   top: 90px;
   max-height: calc(100vh - 90px);
   width: ${EditorStyleHelper.tocWidth}px;
 
+  ${hideScrollbars()}
+
   padding: 0 16px;
   overflow-y: auto;
   border-radius: 8px;
-
   background: ${s("background")};
 
   @supports (backdrop-filter: blur(20px)) {
