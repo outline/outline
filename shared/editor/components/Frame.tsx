@@ -43,7 +43,6 @@ const Frame = ({
   referrerPolicy,
   className = "",
   src,
-  allow,
   ...rest
 }: PropsWithRef) => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -69,13 +68,6 @@ const Frame = ({
 
   const showBottomBar = !!(icon || canonicalUrl);
 
-  // Ensure clipboard permissions are always included
-  const defaultAllow =
-    "fullscreen; encrypted-media; picture-in-picture; clipboard-read; clipboard-write";
-  const allowPolicy = allow
-    ? `${allow}; clipboard-read; clipboard-write`
-    : defaultAllow;
-
   return (
     <Rounded
       style={style}
@@ -90,7 +82,7 @@ const Frame = ({
           ref={forwardedRef}
           $showBottomBar={showBottomBar}
           sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-downloads allow-storage-access-by-user-activation"
-          allow={allowPolicy}
+          allow="fullscreen; encrypted-media; picture-in-picture; clipboard-read; clipboard-write"
           style={style}
           frameBorder="0"
           title="embed"
