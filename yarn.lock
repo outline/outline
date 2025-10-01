@@ -8308,6 +8308,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/js-yaml@npm:^4.0.9":
+  version: 4.0.9
+  resolution: "@types/js-yaml@npm:4.0.9"
+  checksum: 10c0/24de857aa8d61526bbfbbaa383aa538283ad17363fcd5bb5148e2c7f604547db36646440e739d78241ed008702a8920665d1add5618687b6743858fae00da211
+  languageName: node
+  linkType: hard
+
 "@types/jsdom@npm:^20.0.0":
   version: 20.0.1
   resolution: "@types/jsdom@npm:20.0.1"
@@ -17958,6 +17965,7 @@ __metadata:
     "@types/invariant": "npm:^2.2.37"
     "@types/ioredis-mock": "npm:^8.2.6"
     "@types/jest": "npm:^29.5.14"
+    "@types/js-yaml": "npm:^4.0.9"
     "@types/jsonwebtoken": "npm:^8.5.9"
     "@types/katex": "npm:^0.16.7"
     "@types/koa": "npm:^2.15.0"
