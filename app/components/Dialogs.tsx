@@ -12,7 +12,7 @@ function Dialogs() {
   const modals = [...modalStack];
 
   return (
-    <>
+    <Suspense fallback={null}>
       {guide ? (
         <Guide
           isOpen={guide.isOpen}
@@ -33,10 +33,10 @@ function Dialogs() {
           title={modal.title}
           style={modal.style}
         >
-          <Suspense fallback={null}>{modal.content}</Suspense>
+          {modal.content}
         </Modal>
       ))}
-    </>
+    </Suspense>
   );
 }
 
