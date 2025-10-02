@@ -238,6 +238,7 @@ router.post(
       includeChildDocuments,
       allowIndexing,
       showLastUpdated,
+      showTOC,
     } = ctx.input.body;
     const { user } = ctx.state.auth;
     authorize(user, "createShare", user.team);
@@ -274,6 +275,7 @@ router.post(
         includeChildDocuments,
         allowIndexing,
         showLastUpdated,
+        showTOC,
         urlId,
       },
     });
@@ -303,6 +305,7 @@ router.post(
       urlId,
       allowIndexing,
       showLastUpdated,
+      showTOC,
     } = ctx.input.body;
 
     const { user } = ctx.state.auth;
@@ -333,9 +336,11 @@ router.post(
     if (allowIndexing !== undefined) {
       share.allowIndexing = allowIndexing;
     }
-
     if (showLastUpdated !== undefined) {
       share.showLastUpdated = showLastUpdated;
+    }
+    if (showTOC !== undefined) {
+      share.showTOC = showTOC;
     }
 
     await share.saveWithCtx(ctx);

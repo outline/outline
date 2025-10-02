@@ -22,6 +22,7 @@ import { SharedCollectionLink } from "./components/SharedCollectionLink";
 import { SharedDocumentLink } from "./components/SharedDocumentLink";
 import SidebarButton from "./components/SidebarButton";
 import ToggleButton from "./components/ToggleButton";
+import { useEffect } from "react";
 
 type Props = {
   share: Share;
@@ -36,6 +37,10 @@ function SharedSidebar({ share }: Props) {
   const teamAvailable = !!team?.name;
   const rootNode = share.tree;
   const shareId = share.urlId || share.id;
+
+  useEffect(() => {
+    ui.tocVisible = share.showTOC;
+  }, []);
 
   if (!rootNode?.children.length) {
     return null;

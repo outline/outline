@@ -54,6 +54,7 @@ export const SharesUpdateSchema = BaseSchema.extend({
     published: z.boolean().optional(),
     allowIndexing: z.boolean().optional(),
     showLastUpdated: z.boolean().optional(),
+    showTOC: z.boolean().optional(),
     urlId: z
       .string()
       .regex(UrlHelper.SHARE_URL_SLUG_REGEX, {
@@ -73,6 +74,7 @@ export const SharesCreateSchema = BaseSchema.extend({
       published: z.boolean().default(false),
       allowIndexing: z.boolean().optional(),
       showLastUpdated: z.boolean().optional(),
+      showTOC: z.boolean().optional(),
       urlId: z
         .string()
         .regex(UrlHelper.SHARE_URL_SLUG_REGEX, {
