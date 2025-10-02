@@ -56,7 +56,7 @@ function Contents() {
 
   return (
     <StickyWrapper>
-      <Heading>{t("On this page")}</Heading>
+      <Heading>{t("Contents")}</Heading>
       <List>
         {headings
           .filter((heading) => heading.level < 4)
