@@ -365,6 +365,8 @@
   "Disable this setting to discourage search engines from indexing the page": "Disable this setting to discourage search engines from indexing the page",
   "Show last modified": "Show last modified",
   "Display the last modified timestamp on the shared page": "Display the last modified timestamp on the shared page",
+  "Show table of contents": "Show table of contents",
+  "Display the table of contents on documents by default": "Display the table of contents on documents by default",
   "All documents in this collection will be shared on the web, including any new documents added later": "All documents in this collection will be shared on the web, including any new documents added later",
   "Invite": "Invite",
   "{{ userName }} was added to the collection": "{{ userName }} was added to the collection",

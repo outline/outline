@@ -150,6 +150,10 @@ class Share extends IdModel<
   @Column
   showLastUpdated: boolean;
 
+  @Default(false)
+  @Column
+  showTOC: boolean;
+
   // hooks
 
   @BeforeUpdate
