@@ -43,8 +43,8 @@ import { useTemplateMenuActions } from "./useTemplateMenuActions";
 import { useMenuAction } from "./useMenuAction";
 
 type Props = {
-  /** Document for which the actions are generated */
-  document: Document;
+  /** Document ID for which the actions are generated */
+  documentId: string;
   /** Invoked when the "Find and replace" menu item is clicked */
   onFindAndReplace?: () => void;
   /** Invoked when the "Rename" menu item is clicked */
@@ -54,7 +54,7 @@ type Props = {
 };
 
 export function useDocumentMenuAction({
-  document,
+  documentId,
   onFindAndReplace,
   onRename,
   onSelectTemplate,
@@ -62,11 +62,10 @@ export function useDocumentMenuAction({
   const { t } = useTranslation();
   const isMobile = useMobile();
   const user = useCurrentUser();
-
-  const can = usePolicy(document);
+  const can = usePolicy(documentId);
 
   const templateMenuActions = useTemplateMenuActions({
-    document,
+    documentId,
     onSelectTemplate,
   });
 

@@ -1,8 +1,12 @@
 import {
+  AlphabeticalReverseSortIcon,
+  AlphabeticalSortIcon,
   ArchiveIcon,
   CollectionIcon,
   EditIcon,
   ExportIcon,
+  ImportIcon,
+  ManualSortIcon,
   NewDocumentIcon,
   PadlockIcon,
   PlusIcon,
@@ -26,6 +30,7 @@ import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import {
   createAction,
   createActionV2,
+  createActionV2WithChildren,
   createInternalLinkActionV2,
 } from "~/actions";
 import { ActiveCollectionSection, CollectionSection } from "~/actions/sections";
@@ -36,6 +41,8 @@ import {
   searchPath,
 } from "~/utils/routeHelpers";
 import ExportDialog from "~/components/ExportDialog";
+import { getEventFiles } from "@shared/utils/files";
+import history from "~/utils/history";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 
 const ColorCollectionIcon = ({ collection }: { collection: Collection }) => (
@@ -138,6 +145,129 @@ export const editCollectionPermissions = createActionV2({
       ),
     });
   },
+});
+
+export const importDocument = createActionV2({
+  name: ({ t }) => t("Import document"),
+  analyticsName: "Import document",
+  section: ActiveCollectionSection,
+  icon: <ImportIcon />,
+  visible: ({ activeCollectionId, stores }) => {
+    if (activeCollectionId) {
+      return !!stores.policies.abilities(activeCollectionId).createDocument;
+    }
+
+    return false;
+  },
+  perform: ({ activeCollectionId, stores }) => {
+    const { documents } = stores;
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = documents.importFileTypes.join(", ");
+
+    input.onchange = async (ev) => {
+      const files = getEventFiles(ev);
+      const file = files[0];
+
+      try {
+        const document = await documents.import(
+          file,
+          null,
+          activeCollectionId,
+          {
+            publish: true,
+          }
+        );
+        history.push(document.url);
+      } catch (err) {
+        toast.error(err.message);
+      }
+    };
+
+    input.click();
+  },
+});
+
+export const sortCollection = createActionV2WithChildren({
+  name: ({ t }) => t("Sort in sidebar"),
+  section: ActiveCollectionSection,
+  visible: ({ activeCollectionId, stores }) =>
+    !!activeCollectionId &&
+    !!stores.policies.abilities(activeCollectionId).update,
+  icon: ({ activeCollectionId, stores }) => {
+    const collection = stores.collections.get(activeCollectionId);
+    const sortAlphabetical = collection?.sort.field === "title";
+    const sortDir = collection?.sort.direction;
+
+    return sortAlphabetical ? (
+      sortDir === "asc" ? (
+        <AlphabeticalSortIcon />
+      ) : (
+        <AlphabeticalReverseSortIcon />
+      )
+    ) : (
+      <ManualSortIcon />
+    );
+  },
+  children: [
+    createActionV2({
+      name: ({ t }) => t("A-Z sort"),
+      section: ActiveCollectionSection,
+      selected: ({ activeCollectionId, stores }) => {
+        const collection = stores.collections.get(activeCollectionId);
+        return (
+          collection?.sort.field === "title" &&
+          collection?.sort.direction === "asc"
+        );
+      },
+      perform: ({ activeCollectionId, stores }) => {
+        const collection = stores.collections.get(activeCollectionId);
+        return collection?.save({
+          sort: {
+            field: "title",
+            direction: "asc",
+          },
+        });
+      },
+    }),
+    createActionV2({
+      name: ({ t }) => t("Z-A sort"),
+      section: ActiveCollectionSection,
+      selected: ({ activeCollectionId, stores }) => {
+        const collection = stores.collections.get(activeCollectionId);
+        return (
+          collection?.sort.field === "title" &&
+          collection?.sort.direction === "desc"
+        );
+      },
+      perform: ({ activeCollectionId, stores }) => {
+        const collection = stores.collections.get(activeCollectionId);
+        return collection?.save({
+          sort: {
+            field: "title",
+            direction: "desc",
+          },
+        });
+      },
+    }),
+    createActionV2({
+      name: ({ t }) => t("Manual sort"),
+      section: ActiveCollectionSection,
+      selected: ({ activeCollectionId, stores }) => {
+        const collection = stores.collections.get(activeCollectionId);
+        return collection?.sort.field !== "title";
+      },
+      perform: ({ activeCollectionId, stores }) => {
+        const collection = stores.collections.get(activeCollectionId);
+        return collection?.save({
+          sort: {
+            field: "index",
+            direction: "asc",
+          },
+        });
+      },
+    }),
+  ],
 });
 
 export const searchInCollection = createInternalLinkActionV2({

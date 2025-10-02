@@ -18,7 +18,10 @@ type Props = {
 
 function TemplatesMenu({ isCompact, onSelectTemplate, document }: Props) {
   const { t } = useTranslation();
-  const allActions = useTemplateMenuActions({ onSelectTemplate, document });
+  const allActions = useTemplateMenuActions({
+    onSelectTemplate,
+    documentId: document.id,
+  });
   const rootAction = useMenuAction(allActions);
 
   if (!allActions.length) {
