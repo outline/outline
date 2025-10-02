@@ -861,7 +861,7 @@ export const importDocument = createActionV2({
     }
 
     if (activeCollectionId) {
-      return !!stores.policies.abilities(activeCollectionId).update;
+      return !!stores.policies.abilities(activeCollectionId).createDocument;
     }
 
     return false;
@@ -874,7 +874,6 @@ export const importDocument = createActionV2({
 
     input.onchange = async (ev) => {
       const files = getEventFiles(ev);
-
       const file = files[0];
 
       try {
