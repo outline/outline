@@ -30,7 +30,6 @@ export default abstract class OAuthClient {
           "Content-Type": "application/json",
         },
       });
-      data = await response.json();
     } catch (err) {
       throw InvalidRequestError(err.message);
     }
@@ -38,6 +37,12 @@ export default abstract class OAuthClient {
     const success = response.status >= 200 && response.status < 300;
     if (!success) {
       throw AuthenticationError();
+    }
+
+    try {
+      data = await response.json();
+    } catch (err) {
+      throw InvalidRequestError(err.message);
     }
 
     return data;

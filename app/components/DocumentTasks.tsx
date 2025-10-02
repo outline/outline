@@ -39,6 +39,7 @@ function DocumentTasks({ document }: Props) {
   const done = completed === total;
   const previousDone = usePrevious(done);
   const message = getMessage(t, total, completed);
+
   return (
     <>
       {completed === total ? (

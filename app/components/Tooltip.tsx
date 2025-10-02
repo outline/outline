@@ -1,7 +1,7 @@
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { transparentize } from "polished";
 import * as React from "react";
-import styled, { createGlobalStyle, keyframes } from "styled-components";
+import styled, { keyframes } from "styled-components";
 import { s } from "@shared/styles";
 import useMobile from "~/hooks/useMobile";
 import { useTooltipContext } from "./TooltipContext";
@@ -283,10 +283,6 @@ const StyledContent = styled(TooltipPrimitive.Content)`
   &[data-state="delayed-open"][data-side="left"] {
     animation: ${slideRightAndFade} 200ms cubic-bezier(0.16, 1, 0.3, 1);
   }
-`;
-
-export const TooltipStyles = createGlobalStyle`
-  /* Legacy styles for backward compatibility - can be removed after migration */
 `;
 
 export default Tooltip;

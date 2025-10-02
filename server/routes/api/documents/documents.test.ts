@@ -2268,7 +2268,7 @@ describe("#documents.deleted", () => {
     expect(body.data.length).toEqual(1);
     expect(body.policies[0].abilities.delete).toEqual(false);
     expect(body.policies[0].abilities.restore).toBeTruthy();
-    expect(body.policies[0].abilities.permanentDelete).toBeTruthy();
+    expect(body.policies[0].abilities.permanentDelete).toEqual(false);
   });
 
   it("should return deleted documents, including users drafts without collection", async () => {
@@ -2301,6 +2301,26 @@ describe("#documents.deleted", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(2);
+    expect(body.policies[0].abilities.delete).toEqual(false);
+    expect(body.policies[0].abilities.restore).toBeTruthy();
+    expect(body.policies[0].abilities.permanentDelete).toEqual(false);
+  });
+
+  it("should return deleted documents with permanent delete abilities for admin users", async () => {
+    const admin = await buildAdmin();
+    const document = await buildDocument({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+    await document.delete(admin);
+    const res = await server.post("/api/documents.deleted", {
+      body: {
+        token: admin.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
     expect(body.policies[0].abilities.delete).toEqual(false);
     expect(body.policies[0].abilities.restore).toBeTruthy();
     expect(body.policies[0].abilities.permanentDelete).toBeTruthy();
@@ -4432,7 +4452,7 @@ describe("#documents.delete", () => {
     expect(deletedDoc?.deletedAt).not.toBe(null);
   });
 
-  it("should allow permanently deleting a document", async () => {
+  it("should allow permanently deleting a document as admin", async () => {
     const user = await buildAdmin();
     const document = await buildDocument({
       userId: user.id,
@@ -4454,6 +4474,31 @@ describe("#documents.delete", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.success).toEqual(true);
+  });
+
+  it("should not allow permanently deleting a document as non-admin", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+    });
+    await server.post("/api/documents.delete", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+      },
+    });
+    const res = await server.post("/api/documents.delete", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        permanent: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(403);
+    expect(body.message).toEqual("Authorization error");
   });
 
   it("should allow deleting document without collection", async () => {

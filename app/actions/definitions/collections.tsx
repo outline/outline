@@ -26,7 +26,6 @@ import { CollectionNew } from "~/components/Collection/CollectionNew";
 import CollectionDeleteDialog from "~/components/CollectionDeleteDialog";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import DynamicCollectionIcon from "~/components/Icons/CollectionIcon";
-import SharePopover from "~/components/Sharing/Collection/SharePopover";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import {
   createAction,
@@ -44,9 +43,13 @@ import {
 import ExportDialog from "~/components/ExportDialog";
 import { getEventFiles } from "@shared/utils/files";
 import history from "~/utils/history";
+import lazyWithRetry from "~/utils/lazyWithRetry";
 
 const ColorCollectionIcon = ({ collection }: { collection: Collection }) => (
   <DynamicCollectionIcon collection={collection} />
+);
+const SharePopover = lazyWithRetry(
+  () => import("~/components/Sharing/Collection/SharePopover")
 );
 
 export const openCollection = createAction({

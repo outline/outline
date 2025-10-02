@@ -27,16 +27,13 @@ import {
 } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { TextHelper } from "@shared/utils/TextHelper";
-import { parseDomain } from "@shared/utils/domains";
 import { determineIconType } from "@shared/utils/icon";
 import { isModKey } from "@shared/utils/keyboard";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
-import ConnectionStatus from "~/scenes/Document/components/ConnectionStatus";
 import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPublish from "~/scenes/DocumentPublish";
-import Branding from "~/components/Branding";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import PageTitle from "~/components/PageTitle";
@@ -57,13 +54,11 @@ import Container from "./Container";
 import Contents from "./Contents";
 import Editor from "./Editor";
 import Header from "./Header";
-import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
 import { MeasuredContainer } from "./MeasuredContainer";
 import Notices from "./Notices";
 import PublicReferences from "./PublicReferences";
 import References from "./References";
 import RevisionViewer from "./RevisionViewer";
-import { SizeWarning } from "./SizeWarning";
 
 const AUTOSAVE_DELAY = 3000;
 
@@ -433,6 +428,7 @@ class DocumentScene extends React.Component<Props> {
 
   render() {
     const {
+      children,
       document,
       revision,
       readOnly,
@@ -633,19 +629,8 @@ class DocumentScene extends React.Component<Props> {
                 )}
               </React.Suspense>
             </Main>
-            {isShare &&
-              !parseDomain(window.location.origin).custom &&
-              !auth.user && (
-                <Branding href="//www.getoutline.com?ref=sharelink" />
-              )}
+            {children}
           </Container>
-          {!isShare && (
-            <Footer>
-              <KeyboardShortcutsButton />
-              <ConnectionStatus />
-              <SizeWarning document={document} />
-            </Footer>
-          )}
         </MeasuredContainer>
       </ErrorBoundary>
     );
@@ -752,16 +737,6 @@ const RevisionContainer = styled.div<RevisionContainerProps>`
     grid-column: ${({ docFullWidth }: RevisionContainerProps) =>
       docFullWidth ? "1 / -1" : 2};
   `}
-`;
-
-const Footer = styled.div`
-  position: fixed;
-  bottom: 12px;
-  right: 20px;
-  text-align: right;
-  display: flex;
-  justify-content: flex-end;
-  gap: 20px;
 `;
 
 const Background = styled(Container)`

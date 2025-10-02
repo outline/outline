@@ -3,8 +3,8 @@ import { CSS } from "@dnd-kit/utilities";
 import { subDays } from "date-fns";
 import { m } from "framer-motion";
 import { observer } from "mobx-react";
-import { CloseIcon, DocumentIcon, ClockIcon, EyeIcon } from "outline-icons";
-import { useRef, useCallback, useMemo } from "react";
+import { CloseIcon, DocumentIcon, ClockIcon } from "outline-icons";
+import { useRef, useCallback, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
@@ -19,10 +19,12 @@ import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
-import { useTextStats } from "~/hooks/useTextStats";
 import CollectionIcon from "./Icons/CollectionIcon";
 import Text from "./Text";
 import Tooltip from "./Tooltip";
+import lazyWithRetry from "~/utils/lazyWithRetry";
+
+const ReadingTime = lazyWithRetry(() => import("./ReadingTime"));
 
 type Props = {
   /** The pin record */
@@ -75,6 +77,13 @@ function DocumentCard(props: Props) {
   // If the document was updated within the last 7 days, show a timestamp instead of reading time
   const isRecentlyUpdated =
     new Date(document.updatedAt) > subDays(new Date(), 7);
+
+  const updatedAt = (
+    <>
+      <Clock size={18} />
+      <Time dateTime={document.updatedAt} addSuffix shorten />
+    </>
+  );
 
   return (
     <Reorderable
@@ -150,12 +159,11 @@ function DocumentCard(props: Props) {
               </Heading>
               <DocumentMeta size="xsmall">
                 {isRecentlyUpdated ? (
-                  <>
-                    <Clock size={18} />
-                    <Time dateTime={document.updatedAt} addSuffix shorten />
-                  </>
+                  updatedAt
                 ) : (
-                  <ReadingTime document={document} />
+                  <Suspense fallback={updatedAt}>
+                    <ReadingTime document={document} />
+                  </Suspense>
                 )}
               </DocumentMeta>
             </div>
@@ -176,21 +184,6 @@ function DocumentCard(props: Props) {
     </Reorderable>
   );
 }
-
-const ReadingTime = ({ document }: { document: Document }) => {
-  const { t } = useTranslation();
-  const markdown = useMemo(() => document.toMarkdown(), [document]);
-  const stats = useTextStats(markdown);
-
-  return (
-    <>
-      <EyeIcon size={18} />
-      {t(`{{ minutes }}m read`, {
-        minutes: stats.total.readingTime,
-      })}
-    </>
-  );
-};
 
 const DocumentSquircle = ({
   icon,
