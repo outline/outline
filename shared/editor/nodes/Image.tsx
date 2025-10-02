@@ -268,14 +268,6 @@ export default class Image extends SimpleImage {
       });
     };
 
-  handleDownload =
-    ({ node }: ComponentProps) =>
-    (event: React.MouseEvent) => {
-      event.preventDefault();
-      event.stopPropagation();
-      void downloadImageNode(node);
-    };
-
   handleCaptionKeyDown =
     ({ node, getPos }: ComponentProps) =>
     (event: React.KeyboardEvent<HTMLParagraphElement>) => {
@@ -335,24 +327,41 @@ export default class Image extends SimpleImage {
       this.editor.updateActiveLightbox(getPos());
     };
 
-  component = (props: ComponentProps) => (
-    <ImageComponent
-      {...props}
-      onClick={this.handleClick(props)}
-      onDownload={this.handleDownload(props)}
-      onChangeSize={this.handleChangeSize(props)}
-    >
-      <Caption
-        width={props.node.attrs.width}
-        onBlur={this.handleCaptionBlur(props)}
-        onKeyDown={this.handleCaptionKeyDown(props)}
-        isSelected={props.isSelected}
-        placeholder={this.options.dictionary.imageCaptionPlaceholder}
+  component = (props: ComponentProps) => {
+    const [isDownloading, setIsDownloading] = React.useState(false);
+
+    const handleDownload = React.useCallback(
+      async (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (isDownloading) {return;}
+        setIsDownloading(true);
+        await downloadImageNode(props.node);
+        setIsDownloading(false);
+      },
+      [isDownloading, props]
+    );
+
+    return (
+      <ImageComponent
+        {...props}
+        onClick={this.handleClick(props)}
+        onDownload={handleDownload}
+        onChangeSize={this.handleChangeSize(props)}
       >
-        {props.node.attrs.alt}
-      </Caption>
-    </ImageComponent>
-  );
+        <Caption
+          width={props.node.attrs.width}
+          onBlur={this.handleCaptionBlur(props)}
+          onKeyDown={this.handleCaptionKeyDown(props)}
+          isSelected={props.isSelected}
+          placeholder={this.options.dictionary.imageCaptionPlaceholder}
+        >
+          {props.node.attrs.alt}
+        </Caption>
+      </ImageComponent>
+    );
+  };
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     // Skip the preceding space for images at the start of a list item or Markdown parsers may
