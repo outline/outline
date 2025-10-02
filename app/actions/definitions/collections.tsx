@@ -22,7 +22,6 @@ import { CollectionNew } from "~/components/Collection/CollectionNew";
 import CollectionDeleteDialog from "~/components/CollectionDeleteDialog";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import DynamicCollectionIcon from "~/components/Icons/CollectionIcon";
-import SharePopover from "~/components/Sharing/Collection/SharePopover";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import {
   createAction,
@@ -37,9 +36,13 @@ import {
   searchPath,
 } from "~/utils/routeHelpers";
 import ExportDialog from "~/components/ExportDialog";
+import lazyWithRetry from "~/utils/lazyWithRetry";
 
 const ColorCollectionIcon = ({ collection }: { collection: Collection }) => (
   <DynamicCollectionIcon collection={collection} />
+);
+const SharePopover = lazyWithRetry(
+  () => import("~/components/Sharing/Collection/SharePopover")
 );
 
 export const openCollection = createAction({
