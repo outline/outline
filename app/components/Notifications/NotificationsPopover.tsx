@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import * as React from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Popover,
@@ -7,7 +7,9 @@ import {
   PopoverContent,
 } from "~/components/primitives/Popover";
 import useStores from "~/hooks/useStores";
-import Notifications from "./Notifications";
+import lazyWithRetry from "~/utils/lazyWithRetry";
+
+const Notifications = lazyWithRetry(() => import("./Notifications"));
 
 type Props = {
   children?: React.ReactNode;
@@ -16,18 +18,18 @@ type Props = {
 const NotificationsPopover: React.FC = ({ children }: Props) => {
   const { t } = useTranslation();
   const { notifications } = useStores();
-  const [open, setOpen] = React.useState(false);
-  const scrollableRef = React.useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  const scrollableRef = useRef<HTMLDivElement>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     void notifications.fetchPage({ archived: false });
   }, [notifications]);
 
-  const handleRequestClose = React.useCallback(() => {
+  const handleRequestClose = useCallback(() => {
     setOpen(false);
   }, []);
 
-  const handleAutoFocus = React.useCallback((event: Event) => {
+  const handleAutoFocus = useCallback((event: Event) => {
     // Prevent focus from moving to the popover content
     event.preventDefault();
 
@@ -48,10 +50,12 @@ const NotificationsPopover: React.FC = ({ children }: Props) => {
         onOpenAutoFocus={handleAutoFocus}
         shrink
       >
-        <Notifications
-          onRequestClose={handleRequestClose}
-          ref={scrollableRef}
-        />
+        <Suspense fallback={null}>
+          <Notifications
+            onRequestClose={handleRequestClose}
+            ref={scrollableRef}
+          />
+        </Suspense>
       </PopoverContent>
     </Popover>
   );

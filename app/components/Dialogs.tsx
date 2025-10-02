@@ -1,7 +1,10 @@
 import { observer } from "mobx-react";
-import Guide from "~/components/Guide";
-import Modal from "~/components/Modal";
+import { Suspense } from "react";
 import useStores from "~/hooks/useStores";
+import lazyWithRetry from "~/utils/lazyWithRetry";
+
+const Guide = lazyWithRetry(() => import("~/components/Guide"));
+const Modal = lazyWithRetry(() => import("~/components/Modal"));
 
 function Dialogs() {
   const { dialogs } = useStores();
@@ -9,7 +12,7 @@ function Dialogs() {
   const modals = [...modalStack];
 
   return (
-    <>
+    <Suspense fallback={null}>
       {guide ? (
         <Guide
           isOpen={guide.isOpen}
@@ -33,7 +36,7 @@ function Dialogs() {
           {modal.content}
         </Modal>
       ))}
-    </>
+    </Suspense>
   );
 }
 

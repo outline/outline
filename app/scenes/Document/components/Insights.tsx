@@ -14,6 +14,7 @@ import useTextSelection from "~/hooks/useTextSelection";
 import { useTextStats } from "~/hooks/useTextStats";
 import type Document from "~/models/Document";
 import { useFormatNumber } from "~/hooks/useFormatNumber";
+import { ProsemirrorHelper } from "~/models/helpers/ProsemirrorHelper";
 
 type Props = {
   document: Document;
@@ -22,7 +23,7 @@ type Props = {
 function Insights({ document }: Props) {
   const { t } = useTranslation();
   const selectedText = useTextSelection();
-  const text = document.toPlainText();
+  const text = ProsemirrorHelper.toPlainText(document);
   const stats = useTextStats(text ?? "", selectedText);
   const formatNumber = useFormatNumber();
 

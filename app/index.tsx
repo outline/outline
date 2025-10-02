@@ -55,11 +55,11 @@ if (element) {
           <Analytics>
             <Router history={history}>
               <Theme>
-                <ErrorBoundary showTitle>
-                  <KBarProvider actions={[]} options={commandBarOptions}>
-                    <LazyPolyfill>
-                      <LazyMotion features={loadFeatures}>
-                        <ActionContextProvider>
+                <ActionContextProvider>
+                  <ErrorBoundary showTitle>
+                    <KBarProvider actions={[]} options={commandBarOptions}>
+                      <LazyPolyfill>
+                        <LazyMotion features={loadFeatures}>
                           <PageScroll>
                             <PageTheme />
                             <ScrollToTop>
@@ -69,11 +69,11 @@ if (element) {
                             <Dialogs />
                             <Desktop />
                           </PageScroll>
-                        </ActionContextProvider>
-                      </LazyMotion>
-                    </LazyPolyfill>
-                  </KBarProvider>
-                </ErrorBoundary>
+                        </LazyMotion>
+                      </LazyPolyfill>
+                    </KBarProvider>
+                  </ErrorBoundary>
+                </ActionContextProvider>
               </Theme>
             </Router>
           </Analytics>

@@ -6,13 +6,17 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { s, hover, truncateMultiline } from "@shared/styles";
 import Notification from "~/models/Notification";
-import CommentEditor from "~/scenes/Document/components/CommentEditor";
 import useStores from "~/hooks/useStores";
 import { Avatar, AvatarSize, AvatarVariant } from "../Avatar";
 import Flex from "../Flex";
 import Text from "../Text";
 import Time from "../Time";
 import { UnreadBadge } from "../UnreadBadge";
+import lazyWithRetry from "~/utils/lazyWithRetry";
+
+const CommentEditor = lazyWithRetry(
+  () => import("~/scenes/Document/components/CommentEditor")
+);
 
 type Props = {
   notification: Notification;

@@ -37,7 +37,9 @@ function Contents() {
       }
     }
 
-    setActiveSlug(activeId);
+    if (activeSlug !== activeId) {
+      setActiveSlug(activeId);
+    }
   }, [scrollPosition, headings]);
 
   // calculate the minimum heading level and adjust all the headings to make

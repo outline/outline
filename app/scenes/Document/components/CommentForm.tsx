@@ -22,9 +22,11 @@ import type { Editor as SharedEditor } from "~/editor";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 import useStores from "~/hooks/useStores";
-import CommentEditor from "./CommentEditor";
 import { Bubble } from "./CommentThreadItem";
 import { HighlightedText } from "./HighlightText";
+import lazyWithRetry from "~/utils/lazyWithRetry";
+
+const CommentEditor = lazyWithRetry(() => import("./CommentEditor"));
 
 type Props = {
   /** Callback when the form is submitted. */

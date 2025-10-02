@@ -5,7 +5,6 @@ import GlobalStyles from "@shared/styles/globals";
 import { TeamPreference, UserPreference } from "@shared/types";
 import useBuildTheme from "~/hooks/useBuildTheme";
 import useStores from "~/hooks/useStores";
-import { TooltipStyles } from "./Tooltip";
 
 type Props = {
   children?: React.ReactNode;
@@ -30,7 +29,6 @@ const Theme: React.FC = ({ children }: Props) => {
   return (
     <ThemeProvider theme={theme}>
       <>
-        <TooltipStyles />
         <GlobalStyles
           useCursorPointer={auth.user?.getPreference(
             UserPreference.UseCursorPointer

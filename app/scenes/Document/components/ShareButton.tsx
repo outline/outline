@@ -1,10 +1,9 @@
 import { observer } from "mobx-react";
 import { GlobeIcon } from "outline-icons";
-import { useCallback, useState } from "react";
+import { Suspense, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Document from "~/models/Document";
 import Button from "~/components/Button";
-import SharePopover from "~/components/Sharing/Document";
 import {
   Popover,
   PopoverTrigger,
@@ -12,6 +11,11 @@ import {
 } from "~/components/primitives/Popover";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
+import lazyWithRetry from "~/utils/lazyWithRetry";
+
+const SharePopover = lazyWithRetry(
+  () => import("~/components/Sharing/Document")
+);
 
 type Props = {
   /** Document being shared */
@@ -50,11 +54,13 @@ function ShareButton({ document }: Props) {
         side="bottom"
         align="end"
       >
-        <SharePopover
-          document={document}
-          onRequestClose={closePopover}
-          visible={open}
-        />
+        <Suspense fallback={null}>
+          <SharePopover
+            document={document}
+            onRequestClose={closePopover}
+            visible={open}
+          />
+        </Suspense>
       </PopoverContent>
     </Popover>
   );
