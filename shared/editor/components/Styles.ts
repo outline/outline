@@ -1958,6 +1958,61 @@ del[data-operation-index] {
   blockquote {
     font-family: "SF Pro Text", ${props.theme.fontFamily};
   }
+
+  /* Table print styles */
+  .${EditorStyleHelper.table} {
+    page-break-before: auto;
+    page-break-after: auto;
+    break-before: auto;
+    break-after: auto;
+  }
+
+  .${EditorStyleHelper.tableScrollable} {
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .${EditorStyleHelper.tableShadowLeft}::before,
+  .${EditorStyleHelper.tableShadowRight}::after,
+  .${EditorStyleHelper.tableGrip},
+  .${EditorStyleHelper.tableGripRow},
+  .${EditorStyleHelper.tableGripColumn},
+  .${EditorStyleHelper.tableAddRow},
+  .${EditorStyleHelper.tableAddColumn} {
+    display: none !important;
+  }
+
+  table {
+    width: 100% !important;
+    max-width: 100% !important;
+    table-layout: auto !important;
+    border-collapse: collapse !important;
+  }
+
+  table thead {
+    display: table-header-group;
+  }
+
+  table tbody {
+    display: table-row-group;
+  }
+
+  table tr {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  table td,
+  table th {
+    overflow: visible !important;
+    word-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+    padding: 4px 8px !important;
+  }
 }
 `;
 
