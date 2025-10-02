@@ -5,6 +5,7 @@ import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Collection from "~/models/Collection";
+import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
 import Error from "~/components/List/Error";
 import PaginatedList from "~/components/PaginatedList";
@@ -59,6 +60,7 @@ function Collections() {
               aria-label={t("Collections")}
               items={collections.allActive}
               loading={<PlaceholderCollections />}
+              empty={<Empty>{t("No collections yet. Want to create your first one?")}</Empty>}
               heading={
                 isDraggingAnyCollection ? (
                   <DropCursor
