@@ -335,7 +335,9 @@ export default class Image extends SimpleImage {
         event.preventDefault();
         event.stopPropagation();
 
-        if (isDownloading) {return;}
+        if (isDownloading) {
+          return;
+        }
         setIsDownloading(true);
         await downloadImageNode(props.node);
         setIsDownloading(false);
@@ -346,6 +348,7 @@ export default class Image extends SimpleImage {
     return (
       <ImageComponent
         {...props}
+        isDownloading={isDownloading}
         onClick={this.handleClick(props)}
         onDownload={handleDownload}
         onChangeSize={this.handleChangeSize(props)}
