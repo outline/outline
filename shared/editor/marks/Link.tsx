@@ -252,25 +252,31 @@ export default class Link extends Mark {
             return false;
           },
           keydown: (view: EditorView, event: KeyboardEvent) => {
-            if (event.key !== " " && event.key !== "Enter") {return false;}
+            if (event.key !== " " && event.key !== "Enter") {
+              return false;
+            }
 
             const { state } = view;
             const { selection, schema } = state;
-            if (!selection.empty || !selection.$from.parent.isTextblock)
-              {return false;}
+            if (!selection.empty || !selection.$from.parent.isTextblock) {
+              return false;
+            }
 
             const textContent = selection.$from.parent.textContent;
             const words = textContent.split(/\s+/);
-            if (!words.length) {return false;}
+            if (!words.length) {
+              return false;
+            }
 
             const lastWord = words[words.length - 1];
-            if (!lastWord) {return false;}
-            if (!isUrl(lastWord)) {
+            if (!lastWord || !isUrl(lastWord)) {
               return false;
             }
 
             const lastWordIndex = textContent.lastIndexOf(lastWord);
-            if (lastWordIndex === -1) {return false;}
+            if (lastWordIndex === -1) {
+              return false;
+            }
 
             const start = selection.$from.start() + lastWordIndex;
             const end = start + lastWord.length;
