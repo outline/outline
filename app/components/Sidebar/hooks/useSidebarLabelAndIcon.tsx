@@ -22,7 +22,11 @@ export function useSidebarLabelAndIcon(
       return {
         label: document.titleWithDefault,
         icon: document.icon ? (
-          <Icon value={document.icon} color={document.color ?? undefined} />
+          <Icon
+            value={document.icon}
+            initial={document.initial}
+            color={document.color ?? undefined}
+          />
         ) : (
           icon
         ),
