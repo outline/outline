@@ -7,6 +7,7 @@ import { User, Team } from "@server/models";
 import { UserFlag } from "@server/models/User";
 import { APIContext } from "@server/types";
 import { DomainNotAllowedError } from "@server/errors";
+import { can } from "@server/policies";
 
 export type Invite = {
   name: string;
@@ -43,9 +44,11 @@ export default async function userInviter(
   // filter out any existing users in the system
   const emails = normalizedInvites.map((invite) => invite.email);
 
-  for (const email of emails) {
-    if (!(await team.isDomainAllowed(email))) {
-      throw DomainNotAllowedError();
+  if (!can(user, "update", team)) {
+    for (const email of emails) {
+      if (!(await team.isDomainAllowed(email))) {
+        throw DomainNotAllowedError();
+      }
     }
   }
 
