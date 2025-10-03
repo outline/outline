@@ -19,10 +19,8 @@ import {
   UserIdleState,
 } from "./constants";
 
-// Type imports - using any for now due to module resolution issues
-type ExcalidrawElement = any;
-type OrderedExcalidrawElement = any;
-type SocketId = string;
+import type { ExcalidrawElement, OrderedExcalidrawElement, SocketId } from "./types";
+import { LRUCache } from "./lru-cache";
 
 export interface PortalCallbacks {
   onElementsChange: (elements: readonly ExcalidrawElement[], messageType?: string) => void;
@@ -31,6 +29,13 @@ export interface PortalCallbacks {
   onNewUser: (socketId: string) => void;
   onFirstInRoom: () => void;
   onUserFollowRoomChange: (followedBy: SocketId[]) => void;
+  onMouseLocation: (payload: {
+    socketId: SocketId;
+    pointer: { x: number; y: number; tool: "pointer" | "laser" };
+    button: "up" | "down";
+    selectedElementIds: Record<string, boolean>;
+    username: string;
+  }) => void;
 }
 
 export class ExcalidrawPortal {
@@ -38,7 +43,7 @@ export class ExcalidrawPortal {
   socketInitialized: boolean = false;
   roomId: string | null = null;
   roomKey: string | null = null;
-  broadcastedElementVersions: Map<string, number> = new Map();
+  broadcastedElementVersions: LRUCache<string, number> = new LRUCache(5000); // Limit to 5000 elements
   callbacks: PortalCallbacks | null = null;
 
   constructor(callbacks: PortalCallbacks) {
@@ -52,6 +57,13 @@ export class ExcalidrawPortal {
     this.socket = socket;
     this.roomId = roomId;
     this.roomKey = roomKey;
+
+    // If socket is already connected, set flag immediately
+    // This handles the case where portal.open() is called after socket connection (e.g., in onJoinedRoom callback)
+    if (socket.connected) {
+      this.socketInitialized = true;
+      console.log("[Portal] Socket already connected, setting socketInitialized = true");
+    }
 
     this.setupSocketListeners();
     return socket;
@@ -76,6 +88,13 @@ export class ExcalidrawPortal {
     this.socket.on("excalidraw-room-user-change", (data: { collaborators: SocketId[] }) => {
       console.log(`[Portal] Room users changed:`, data.collaborators);
       this.callbacks?.onRoomUserChange(data.collaborators);
+    });
+
+    // Handle user leaving room
+    this.socket.on("excalidraw-user-left", (data: { socketId: string }) => {
+      console.log(`[Portal] User left room: ${data.socketId}`);
+      // Actual cleanup is handled by excalidraw-room-user-change event
+      // This handler is for logging and potential future cleanup logic
     });
 
     // Handle when user is first in room
@@ -138,8 +157,8 @@ export class ExcalidrawPortal {
         break;
 
       case WS_SUBTYPES.MOUSE_LOCATION:
-        // Mouse location updates are handled by the collaboration orchestrator
-        console.log(`[Portal] Mouse location from ${data.payload.socketId}`);
+        // Update collaborator pointer position
+        this.callbacks?.onMouseLocation(data.payload);
         break;
 
       case WS_SUBTYPES.IDLE_STATUS:
@@ -156,21 +175,22 @@ export class ExcalidrawPortal {
   }
 
   /**
-   * Closes the Socket.io connection
+   * Closes the portal (socket is managed by ConnectionManager)
    */
   close(): void {
     if (!this.socket) {
       return;
     }
 
-    console.log("[Portal] Closing connection");
+    console.log("[Portal] Closing portal (socket managed by ConnectionManager)");
     this.queueFileUpload.flush();
-    this.socket.close();
+    // DO NOT close socket here - ConnectionManager owns it
+    // Removing socket.close() to prevent double-close
     this.socket = null;
     this.roomId = null;
     this.roomKey = null;
     this.socketInitialized = false;
-    this.broadcastedElementVersions = new Map();
+    this.broadcastedElementVersions.clear();
   }
 
   /**
@@ -209,7 +229,7 @@ export class ExcalidrawPortal {
         iv: Array.from(iv) // Convert to array for transmission
       });
 
-      console.log(`[Portal] Broadcasted ${data.type} via excalidraw-broadcast`);
+      // console.log(`[Portal] Broadcasted ${data.type} via excalidraw-broadcast`);
     } catch (error) {
       console.error("[Portal] Failed to broadcast data:", error);
     }
@@ -223,6 +243,7 @@ export class ExcalidrawPortal {
     elements: readonly OrderedExcalidrawElement[],
     syncAll: boolean
   ): Promise<void> {
+    console.log("[Portal] broadcastScene called, type:", updateType, "elements:", elements.length, "syncAll:", syncAll);
     if (updateType === WS_SUBTYPES.INIT && !syncAll) {
       throw new Error("syncAll must be true when sending SCENE.INIT");
     }
@@ -258,7 +279,8 @@ export class ExcalidrawPortal {
   }
 
   /**
-   * Broadcasts mouse location
+   * Broadcasts mouse location using encrypted channel
+   * Matches official Excalidraw pattern
    */
   async broadcastMouseLocation(payload: {
     pointer: { x: number; y: number };
@@ -266,20 +288,23 @@ export class ExcalidrawPortal {
     selectedElementIds?: Record<string, boolean>;
     username?: string;
   }): Promise<void> {
-    if (!this.socket?.id || !this.roomId) {
+    if (!this.socket?.id) {
       return;
     }
 
-    this.socket.emit("excalidraw-cursor", {
-      roomId: this.roomId,
-      pointer: {
-        x: payload.pointer.x,
-        y: payload.pointer.y,
+    const data: SocketUpdateDataSource["MOUSE_LOCATION"] = {
+      type: WS_SUBTYPES.MOUSE_LOCATION,
+      payload: {
+        socketId: this.socket.id as SocketId,
+        pointer: payload.pointer,
+        button: payload.button || "up",
+        selectedElementIds: payload.selectedElementIds || {},
+        username: payload.username || "Anonymous",
       },
-      button: payload.button || "up",
-    });
+    };
 
-    console.log(`[Portal] Broadcasted cursor location`);
+    await this.broadcastSocketData(data as SocketUpdateData, true); // volatile
+    // console.log(`[Portal] Broadcasted cursor location via encrypted channel`);
   }
 
   /**

@@ -1,38 +1,19 @@
 /**
- * Main Excalidraw collaboration orchestrator
- * Manages Socket.io connections, element synchronization, and cursors
- * Based on Excalidraw's Collab.tsx implementation
+ * Main Excalidraw collaboration orchestrator (Refactored)
+ * Coordinates connection, element sync, and collaborator management
  */
 
-import throttle from "lodash/throttle";
 import { ExcalidrawPortal, type PortalCallbacks } from "./portal";
+import { ConnectionManager, type ConnectionCallbacks } from "./connection-manager";
+import { ElementSyncManager } from "./element-sync-manager";
+import { CollaboratorManager } from "./collaborator-manager";
 import {
-  CURSOR_SYNC_TIMEOUT,
-  SYNC_FULL_SCENE_INTERVAL_MS,
-  INITIAL_SCENE_UPDATE_TIMEOUT,
   UserIdleState,
   ConnectionStatus,
   CollabErrorType,
-  MAX_RETRIES,
-  DEFAULT_USER_COLORS,
 } from "./constants";
-
-import {
-  reconcileElements,
-  reconcileAppState,
-  createVersionMap,
-  detectElementChanges,
-} from "./reconcile";
-
-import { WS_SUBTYPES } from "./socket-types";
-
-// Type imports - using any for now due to module resolution issues
-type ExcalidrawElement = any;
-type OrderedExcalidrawElement = any;
-type AppState = any;
-type ExcalidrawImperativeAPI = any;
-type SocketId = string;
-type Collaborator = any;
+import type { ExcalidrawElement, OrderedExcalidrawElement, AppState, ExcalidrawImperativeAPI, SocketId } from "./types";
+import type { Collaborator } from "./collaborator-manager";
 
 export interface CollaborationState {
   isCollaborating: boolean;
@@ -50,6 +31,7 @@ export interface CollaborationCallbacks {
 export interface ExcalidrawCollaborationConfig {
   documentId: string;
   excalidrawId: string;
+  excalidrawDataId: string;
   collaborationServerUrl?: string;
   roomKey?: string;
   username?: string;
@@ -58,21 +40,15 @@ export interface ExcalidrawCollaborationConfig {
 
 export class ExcalidrawCollaboration {
   private portal: ExcalidrawPortal;
+  private connectionManager: ConnectionManager | null = null;
+  private elementSyncManager: ElementSyncManager | null = null;
+  private collaboratorManager: CollaboratorManager | null = null;
   private excalidrawAPI: ExcalidrawImperativeAPI | null = null;
   private state: CollaborationState;
   private callbacks: CollaborationCallbacks;
   private config: ExcalidrawCollaborationConfig;
-
-  // Tracking and timing
-  private lastBroadcastedOrReceivedSceneVersion: number = -1;
-  private collaborators = new Map<SocketId, Collaborator>();
-  private socketInitializationTimer?: number;
-  private reconnectTimeoutId?: NodeJS.Timeout;
   private isDestroyed = false;
-
-  // Throttled functions
-  private throttledPointerUpdate: ((payload: any) => void) | null = null;
-  private queueBroadcastAllElements: (() => void) | null = null;
+  private roomKey: string = "";
 
   constructor(config: ExcalidrawCollaborationConfig, callbacks: CollaborationCallbacks = {}) {
     this.config = config;
@@ -89,48 +65,32 @@ export class ExcalidrawCollaboration {
     // Initialize portal with callbacks
     const portalCallbacks: PortalCallbacks = {
       onElementsChange: (elements: readonly ExcalidrawElement[], messageType?: string) => {
-        this.handleRemoteElementsChange(elements, messageType);
+        this.elementSyncManager?.handleRemoteElementsChange(elements, messageType);
       },
-      onCollaboratorsChange: this.handleCollaboratorsChange.bind(this),
-      onRoomUserChange: this.handleRoomUserChange.bind(this),
-      onNewUser: this.handleNewUser.bind(this),
-      onFirstInRoom: this.handleFirstInRoom.bind(this),
-      onUserFollowRoomChange: this.handleUserFollowRoomChange.bind(this),
+      onCollaboratorsChange: () => {
+        // Handled by onRoomUserChange
+      },
+      onRoomUserChange: (collaborators: any) => {
+        this.collaboratorManager?.handleRoomUserChange(collaborators);
+        this.updateState({
+          collaborators: this.collaboratorManager?.getCollaborators() || new Map(),
+        });
+      },
+      onNewUser: () => {
+        this.elementSyncManager?.handleNewUser();
+      },
+      onFirstInRoom: () => {
+        console.log("[Collaboration] First in room");
+      },
+      onUserFollowRoomChange: () => {
+        // Handle viewport following if needed
+      },
+      onMouseLocation: (payload) => {
+        this.collaboratorManager?.handleMouseLocation(payload);
+      },
     };
 
     this.portal = new ExcalidrawPortal(portalCallbacks);
-
-    // Initialize throttled functions
-    this.initializeThrottledFunctions();
-  }
-
-  /**
-   * Initialize throttled functions
-   */
-  private initializeThrottledFunctions(): void {
-    this.throttledPointerUpdate = throttle(
-      (payload: { pointer: { x: number; y: number }; button: string }) => {
-        if (this.portal.isOpen()) {
-          this.portal.broadcastMouseLocation({
-            ...payload,
-            selectedElementIds: this.excalidrawAPI?.getAppState().selectedElementIds || {},
-            username: this.config.username || "Anonymous",
-          });
-        }
-      },
-      CURSOR_SYNC_TIMEOUT
-    );
-
-    this.queueBroadcastAllElements = throttle(() => {
-      if (this.excalidrawAPI && this.portal.isOpen()) {
-        const elements = this.excalidrawAPI.getSceneElementsIncludingDeleted();
-        this.portal.broadcastScene(WS_SUBTYPES.UPDATE, elements, true);
-        this.lastBroadcastedOrReceivedSceneVersion = Math.max(
-          this.lastBroadcastedOrReceivedSceneVersion,
-          this.getSceneVersion(elements)
-        );
-      }
-    }, SYNC_FULL_SCENE_INTERVAL_MS);
   }
 
   /**
@@ -139,6 +99,13 @@ export class ExcalidrawCollaboration {
   setExcalidrawAPI(api: ExcalidrawImperativeAPI): void {
     this.excalidrawAPI = api;
   }
+
+  /**
+   * Get the Excalidraw API instance
+   */
+  private getExcalidrawAPI = (): ExcalidrawImperativeAPI | null => {
+    return this.excalidrawAPI;
+  };
 
   /**
    * Start collaboration
@@ -155,86 +122,94 @@ export class ExcalidrawCollaboration {
         retryCount: 0,
       });
 
-      // Generate room ID
+      // Generate room ID and key
       const roomId = this.generateRoomId();
       const roomKey = this.config.roomKey || await this.generateRoomKey();
 
-      // Import and initialize Socket.io client
-      const { default: socketIOClient } = await import("socket.io-client");
+      // Store roomKey for use in onJoinedRoom callback
+      this.roomKey = roomKey;
 
+      // Get server URL
       const serverUrl = this.config.collaborationServerUrl || this.getDefaultServerUrl();
-      console.log(`[Collaboration] Connecting to: ${serverUrl}`);
 
-      const socket = socketIOClient(serverUrl, {
-        path: "/realtime",
-        transports: ["websocket", "polling"],
-        withCredentials: true, // Include cookies for JWT auth
-      });
-
-      // Set up connection event handlers
-      socket.on("connect", () => {
-        console.log("[Collaboration] Socket connected");
-        this.updateState({
-          connectionStatus: ConnectionStatus.CONNECTED,
-          isCollaborating: true,
-          error: null,
-        });
-      });
-
-      socket.on("disconnect", () => {
-        console.log("[Collaboration] Socket disconnected");
-        // Only attempt reconnection if we're still supposed to be collaborating
-        if (!this.isDestroyed && this.state.isCollaborating) {
+      // Create connection manager
+      const connectionCallbacks: ConnectionCallbacks = {
+        onConnect: () => {
+          // Don't set CONNECTED yet - wait for room join
+          console.log("[Collaboration] Socket connected, waiting for room join");
+        },
+        onDisconnect: () => {
           this.updateState({
             connectionStatus: ConnectionStatus.DISCONNECTED,
           });
-          this.attemptReconnection();
-        }
-      });
+        },
+        onError: (message: string, type: CollabErrorType) => {
+          this.handleError(message, type);
+        },
+        onAuthenticated: () => {
+          console.log("[Collaboration] Authentication successful");
+        },
+        onJoinedRoom: (data) => {
+          console.log("[Collaboration] Joined Excalidraw room:", data.roomId, "isFirstInRoom:", data.isFirstInRoom, "collaborators:", data.collaborators);
 
-      socket.on("connect_error", (error: any) => {
-        console.error("[Collaboration] Connection error:", error);
-        // Only attempt reconnection if we're still supposed to be collaborating
-        if (!this.isDestroyed && this.state.isCollaborating) {
-          this.handleError("Failed to connect to collaboration server", CollabErrorType.CONNECTION_FAILED);
-          this.attemptReconnection();
-        }
-      });
+          // Initialize portal and managers AFTER room join confirmation
+          // This prevents race condition where broadcasts happen before room membership
+          const socket = this.connectionManager?.getSocket();
+          if (socket) {
+            console.log("[Collaboration] Initializing portal with roomId:", data.roomId, "socket:", socket.id);
 
-      // Open portal connection
-      this.portal.open(socket as any, roomId, roomKey);
+            // Open portal connection
+            this.portal.open(socket, data.roomId, this.roomKey);
 
-      // Set up authentication and room joining
-      socket.on("authenticated", () => {
-        console.log("[Collaboration] Authentication successful");
-        // Join the Excalidraw room after authentication
-        socket.emit("join-excalidraw-room", {
+            // Initialize managers
+            this.elementSyncManager = new ElementSyncManager(
+              this.portal,
+              this.getExcalidrawAPI
+            );
+
+            this.collaboratorManager = new CollaboratorManager(
+              this.portal,
+              this.getExcalidrawAPI,
+              this.config.username || "Anonymous"
+            );
+
+            console.log("[Collaboration] Portal initialized, isOpen:", this.portal.isOpen());
+
+            // NOW we're truly connected and ready to collaborate
+            this.updateState({
+              connectionStatus: ConnectionStatus.CONNECTED,
+              isCollaborating: true,
+              error: null,
+            });
+          } else {
+            console.error("[Collaboration] No socket available for portal initialization!");
+          }
+
+          if (data.isFirstInRoom) {
+            console.log("[Collaboration] First in room");
+          }
+        },
+        onFirstInRoom: () => {
+          console.log("[Collaboration] First in room event");
+        },
+        onNewUser: (socketId) => {
+          console.log(`[Collaboration] New user joined: ${socketId}`);
+          this.elementSyncManager?.handleNewUser();
+        },
+      };
+
+      this.connectionManager = new ConnectionManager(
+        {
+          serverUrl,
           roomId,
           documentId: this.config.documentId,
-        });
-      });
+          excalidrawDataId: this.config.excalidrawDataId,
+          collaborationToken: this.config.collaborationToken,
+        },
+        connectionCallbacks
+      );
 
-      socket.on("unauthorized", (data: { message: string }) => {
-        console.error("[Collaboration] Authentication failed:", data.message);
-        this.handleError("Authentication failed: " + data.message, CollabErrorType.CONNECTION_FAILED);
-      });
-
-      socket.on("excalidraw-joined-room", (data: { roomId: string; documentId: string; collaborators: string[]; isFirstInRoom: boolean }) => {
-        console.log("[Collaboration] Joined Excalidraw room:", data.roomId);
-        if (data.isFirstInRoom) {
-          this.handleFirstInRoom();
-        }
-      });
-
-      socket.on("excalidraw-first-in-room", () => {
-        console.log("[Collaboration] First in room event received");
-        this.handleFirstInRoom();
-      });
-
-      socket.on("excalidraw-error", (data: { message: string }) => {
-        console.error("[Collaboration] Excalidraw error:", data.message);
-        this.handleError(data.message, CollabErrorType.CONNECTION_FAILED);
-      });
+      await this.connectionManager.connect();
 
     } catch (error) {
       console.error("[Collaboration] Failed to start collaboration:", error);
@@ -251,21 +226,20 @@ export class ExcalidrawCollaboration {
   stopCollaboration(): void {
     console.log("[Collaboration] Stopping collaboration");
 
-    // Clear timers first to prevent any pending reconnections
-    if (this.socketInitializationTimer) {
-      clearTimeout(this.socketInitializationTimer);
-      this.socketInitializationTimer = undefined;
-    }
-
-    if (this.reconnectTimeoutId) {
-      clearTimeout(this.reconnectTimeoutId);
-      this.reconnectTimeoutId = undefined;
-    }
+    // Destroy managers
+    this.elementSyncManager?.destroy();
+    this.collaboratorManager?.destroy();
+    this.connectionManager?.destroy();
 
     // Close portal
     this.portal.close();
 
-    // Reset state - always reset regardless of current state to ensure cleanup
+    // Reset managers
+    this.elementSyncManager = null;
+    this.collaboratorManager = null;
+    this.connectionManager = null;
+
+    // Reset state
     this.updateState({
       isCollaborating: false,
       connectionStatus: ConnectionStatus.DISCONNECTED,
@@ -273,9 +247,6 @@ export class ExcalidrawCollaboration {
       error: null,
       retryCount: 0,
     });
-
-    this.collaborators.clear();
-    this.lastBroadcastedOrReceivedSceneVersion = -1;
   }
 
   /**
@@ -284,181 +255,28 @@ export class ExcalidrawCollaboration {
   destroy(): void {
     this.isDestroyed = true;
     this.stopCollaboration();
-
-    // Cancel throttled functions
-    if (this.throttledPointerUpdate) {
-      this.throttledPointerUpdate.cancel?.();
-    }
-    if (this.queueBroadcastAllElements) {
-      this.queueBroadcastAllElements.cancel?.();
-    }
   }
 
   /**
    * Sync elements to other collaborators
    */
-  syncElements(elements: OrderedExcalidrawElement[], appState: AppState): void {
-    if (!this.portal.isOpen() || !this.excalidrawAPI) {
-      return;
-    }
-
-    const currentVersion = this.getSceneVersion(elements);
-    if (currentVersion > this.lastBroadcastedOrReceivedSceneVersion) {
-      this.portal.broadcastScene(WS_SUBTYPES.UPDATE, elements, false);
-      this.lastBroadcastedOrReceivedSceneVersion = currentVersion;
-      this.queueBroadcastAllElements?.();
-    }
+  syncElements(elements: OrderedExcalidrawElement[], _appState: AppState): void {
+    console.log("[Collaboration] syncElements called, elements:", elements.length, "elementSyncManager:", !!this.elementSyncManager);
+    this.elementSyncManager?.syncElements(elements);
   }
 
   /**
    * Update pointer position
    */
   updatePointer(pointer: { x: number; y: number }, button: string): void {
-    this.throttledPointerUpdate?.({ pointer, button });
+    this.collaboratorManager?.updatePointer(pointer, button);
   }
 
   /**
    * Update user idle state
    */
   updateUserState(userState: UserIdleState): void {
-    if (this.portal.isOpen()) {
-      this.portal.broadcastIdleChange(userState, this.config.username);
-    }
-  }
-
-  /**
-   * Handle remote elements change
-   */
-  private handleRemoteElementsChange(elements: readonly ExcalidrawElement[], messageType?: string): void {
-    if (!this.excalidrawAPI || this.isDestroyed) {
-      return;
-    }
-
-    try {
-      const localElements = this.excalidrawAPI.getSceneElementsIncludingDeleted();
-      // Determine if this is a full sync (INIT) or partial sync (UPDATE)
-      const isFullSync = messageType === WS_SUBTYPES.INIT;
-      const reconciledElements = reconcileElements(localElements, elements as ExcalidrawElement[], isFullSync);
-
-      if (reconciledElements.hasChanges) {
-        // Update version tracking
-        this.lastBroadcastedOrReceivedSceneVersion = this.getSceneVersion(reconciledElements.elements);
-
-        // Update Excalidraw without capturing for undo/redo
-        this.excalidrawAPI.updateScene({
-          elements: reconciledElements.elements,
-          captureUpdate: false, // Use NEVER equivalent
-        });
-      }
-    } catch (error) {
-      console.error("[Collaboration] Failed to handle remote elements:", error);
-      this.handleError("Failed to sync remote changes", CollabErrorType.SYNC_FAILED);
-    }
-  }
-
-  /**
-   * Handle collaborators change
-   */
-  private handleCollaboratorsChange(collaboratorIds: SocketId[]): void {
-    // This is handled by handleRoomUserChange
-  }
-
-  /**
-   * Handle room user change
-   */
-  private handleRoomUserChange(collaborators: Array<{ socketId: string; userId: string; name: string }>): void {
-    const newCollaborators = new Map<SocketId, Collaborator>();
-
-    collaborators.forEach((collaborator, index) => {
-      if (collaborator.socketId !== this.portal.socket?.id) {
-        newCollaborators.set(collaborator.socketId, {
-          id: collaborator.userId,
-          socketId: collaborator.socketId,
-          username: collaborator.name,
-          color: {
-            background: DEFAULT_USER_COLORS[index % DEFAULT_USER_COLORS.length],
-            stroke: DEFAULT_USER_COLORS[index % DEFAULT_USER_COLORS.length],
-          },
-          pointer: { x: 0, y: 0, tool: "pointer" },
-          button: "up",
-          selectedElementIds: {},
-          userState: UserIdleState.ACTIVE,
-          isCurrentUser: false,
-        });
-      }
-    });
-
-    this.collaborators = newCollaborators;
-    this.updateState({ collaborators: newCollaborators });
-
-    // Update Excalidraw collaborators
-    if (this.excalidrawAPI) {
-      this.excalidrawAPI.updateScene({
-        collaborators: newCollaborators,
-        captureUpdate: false,
-      });
-    }
-  }
-
-  /**
-   * Handle new user joining
-   */
-  private handleNewUser(socketId: string): void {
-    console.log(`[Collaboration] New user joined: ${socketId}`);
-    // Send current scene to new user
-    if (this.excalidrawAPI) {
-      const elements = this.excalidrawAPI.getSceneElementsIncludingDeleted();
-      this.portal.broadcastScene(WS_SUBTYPES.INIT, elements, true);
-    }
-  }
-
-  /**
-   * Handle being first in room
-   */
-  private handleFirstInRoom(): void {
-    console.log("[Collaboration] First in room");
-    // Clear initialization timer
-    if (this.socketInitializationTimer) {
-      clearTimeout(this.socketInitializationTimer);
-      this.socketInitializationTimer = undefined;
-    }
-  }
-
-  /**
-   * Handle user follow room change
-   */
-  private handleUserFollowRoomChange(followedBy: SocketId[]): void {
-    console.log(`[Collaboration] User follow room change:`, followedBy);
-    // Handle viewport following logic here if needed
-  }
-
-  /**
-   * Attempt reconnection with exponential backoff
-   */
-  private attemptReconnection(): void {
-    if (this.isDestroyed || this.state.retryCount >= MAX_RETRIES.RECONNECT) {
-      return;
-    }
-
-    // Don't attempt reconnection if we're not currently collaborating
-    if (!this.state.isCollaborating) {
-      return;
-    }
-
-    const delay = Math.min(1000 * Math.pow(2, this.state.retryCount), 30000); // Max 30 seconds
-    console.log(`[Collaboration] Attempting reconnection in ${delay}ms (attempt ${this.state.retryCount + 1})`);
-
-    this.updateState({
-      connectionStatus: ConnectionStatus.RECONNECTING,
-      retryCount: this.state.retryCount + 1,
-    });
-
-    this.reconnectTimeoutId = setTimeout(() => {
-      // Double-check we're still supposed to be collaborating before reconnecting
-      if (!this.isDestroyed && this.state.isCollaborating) {
-        this.startCollaboration();
-      }
-    }, delay);
+    this.collaboratorManager?.updateUserState(userState);
   }
 
   /**
@@ -479,10 +297,10 @@ export class ExcalidrawCollaboration {
   }
 
   /**
-   * Generate room ID
+   * Generate room ID - uses diagram UUID directly for simplicity
    */
   private generateRoomId(): string {
-    return `excalidraw.${this.config.documentId}.${this.config.excalidrawId}`;
+    return this.config.excalidrawId;
   }
 
   /**
@@ -495,7 +313,6 @@ export class ExcalidrawCollaboration {
       return generateEncryptionKey();
     } catch (error) {
       console.error("[Collaboration] Failed to generate encryption key:", error);
-      // Fallback to simple key generation
       return this.generateSimpleKey();
     }
   }
@@ -513,21 +330,12 @@ export class ExcalidrawCollaboration {
    * Get default collaboration server URL
    */
   private getDefaultServerUrl(): string {
-    // Try to get from environment or use the excalidraw-room server
     if (typeof window !== "undefined") {
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
       const host = window.location.host;
       return `${protocol}//${host}`;
     }
-    return "http://localhost:3002"; // Default excalidraw-room port
-  }
-
-  /**
-   * Get scene version for tracking
-   */
-  private getSceneVersion(elements: readonly ExcalidrawElement[]): number {
-    // Simple version calculation based on element versions
-    return elements.reduce((acc, element) => acc + (element.version || 0), 0);
+    return "http://localhost:3002";
   }
 
   /**

@@ -1318,5 +1318,7 @@
   "Failed to add library": "Failed to add library",
   "Library removed": "Library removed",
   "Failed to remove library": "Failed to remove library",
-  "Configure editor settings and preferences for the workspace.": "Configure editor settings and preferences for the workspace."
+  "Configure editor settings and preferences for the workspace.": "Configure editor settings and preferences for the workspace.",
+  "//example.com/library.excalidrawlib or filename.excalidrawlib": "//example.com/library.excalidrawlib or filename.excalidrawlib",
+  "//unpkg.com/@iconify-json/logos@1/icons.json": "//unpkg.com/@iconify-json/logos@1/icons.json"
 }

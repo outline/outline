@@ -256,6 +256,7 @@
     "styled-components": "^5.3.11",
     "styled-components-breakpoint": "^2.1.1",
     "styled-normalize": "^8.1.1",
+    "svgo": "^4.0.0",
     "throng": "^5.0.0",
     "tiny-cookie": "^2.5.1",
     "tmp": "^0.2.5",

@@ -1,11 +1,10 @@
 import { loadLibraryFiles } from "./libraryLoader";
+import type { LibraryItem } from "@excalidraw/excalidraw/types/types";
+import { LRUCache } from "./lru-cache";
 
-// Type for LibraryItem (avoiding direct import due to build issues)
-type LibraryItem = any;
-
-// Cache for the loaded libraries by configuration
-const libraryCache = new Map<string, LibraryItem[]>();
-const loadingPromises = new Map<string, Promise<LibraryItem[]>>();
+// Cache for the loaded libraries by configuration (limited to prevent memory leaks)
+const libraryCache = new LRUCache<string, LibraryItem[]>(50); // Limit to 50 library configs
+const loadingPromises = new LRUCache<string, Promise<LibraryItem[]>>(50);
 
 /**
  * Loads library files and returns them as LibraryItems

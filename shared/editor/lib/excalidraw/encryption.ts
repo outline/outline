@@ -42,7 +42,7 @@ export function generateEncryptionKey(): string {
 export async function encryptData(key: string, data: Uint8Array): Promise<EncryptionResult> {
   // For now, skip encryption and just pass through the data
   // This ensures collaboration works while we can add proper encryption later
-  console.log('[Encryption] Using passthrough mode for collaboration data');
+  // console.log('[Encryption] Using passthrough mode for collaboration data');
   return {
     encryptedBuffer: data.buffer,
     iv: new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]) // Zero IV indicates unencrypted

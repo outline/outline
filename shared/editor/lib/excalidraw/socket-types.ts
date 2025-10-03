@@ -4,11 +4,7 @@
  */
 
 import type { UserIdleState } from "./constants";
-
-// Type imports - using any for now due to module resolution issues
-type ExcalidrawElement = any;
-type SocketId = string;
-type SceneBounds = any;
+import type { ExcalidrawElement, SocketId, SceneBounds } from "./types";
 
 // WebSocket event names (matches excalidraw-app/app_constants.ts)
 export const WS_EVENTS = {

@@ -51,7 +51,6 @@ export default function createCSPMiddleware() {
           env.DEVELOPMENT_UNSAFE_INLINE_CSP
             ? "'unsafe-inline'"
             : `'nonce-${ctx.state.cspNonce}'`,
-          "'unsafe-eval'", // Required for Excalidraw
         ],
         mediaSrc: ["*", "data:", "blob:"],
         imgSrc: ["*", "data:", "blob:"],

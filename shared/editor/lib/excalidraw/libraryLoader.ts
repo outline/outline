@@ -1,8 +1,8 @@
-// Types for Excalidraw elements and library items (avoiding direct import due to build issues)
-type LibraryItem = any;
+import type { LibraryItem } from "@excalidraw/excalidraw/types/types";
+import { LRUCache } from "./lru-cache";
 
-// Cache for loaded libraries to avoid re-fetching
-const libraryCache = new Map<string, LibraryItem[]>();
+// Cache for loaded libraries to avoid re-fetching (limited to prevent memory leaks)
+const libraryCache = new LRUCache<string, LibraryItem[]>(100); // Limit to 100 library files
 
 /**
  * Determines if a string is a URL or a local filename

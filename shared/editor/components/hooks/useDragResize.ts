@@ -51,92 +51,171 @@ export default function useDragResize(props: Params): ReturnValue {
   const [dragging, setDragging] = React.useState<DragDirection>();
   const isResizable = !!props.onChangeSize;
 
-  const constrainWidth = (width: number, max: number) => {
-    const minWidth = Math.min(props.naturalWidth, (props.gridSnap / 100) * max);
-    return Math.round(Math.min(max, Math.max(width, minWidth)));
-  };
+  // Use ref for callback to avoid recreating handlers when callback changes
+  const onChangeSizeRef = React.useRef(props.onChangeSize);
+  React.useEffect(() => {
+    onChangeSizeRef.current = props.onChangeSize;
+  }, [props.onChangeSize]);
 
-  const handlePointerMove = (event: PointerEvent) => {
-    event.preventDefault();
+  // Use refs to keep current values accessible without recreating callbacks
+  const sizeRef = React.useRef(size);
+  const draggingRef = React.useRef(dragging);
+  const offsetRef = React.useRef(offset);
+  const sizeAtDragStartRef = React.useRef(sizeAtDragStart);
+  const maxWidthRef = React.useRef(maxWidth);
 
-    let diffX, diffY;
-    if (dragging === "left") {
-      diffX = offset - event.pageX;
-    } else if (dragging === "right") {
-      diffX = event.pageX - offset;
-    } else {
-      diffY = event.pageY - offset;
-    }
+  // Store props in refs to make callbacks stable
+  const gridSnapRef = React.useRef(props.gridSnap);
+  const naturalWidthRef = React.useRef(props.naturalWidth);
+  const naturalHeightRef = React.useRef(props.naturalHeight);
 
-    if (diffX && sizeAtDragStart.width) {
-      const gridWidth = (props.gridSnap / 100) * maxWidth;
-      const newWidth = sizeAtDragStart.width + diffX * 2;
-      const widthOnGrid = Math.round(newWidth / gridWidth) * gridWidth;
-      const constrainedWidth = constrainWidth(widthOnGrid, maxWidth);
-      const aspectRatio = props.naturalHeight / props.naturalWidth;
+  React.useEffect(() => {
+    sizeRef.current = size;
+  }, [size]);
 
-      setSize({
-        width:
-          // If the natural width is the same as the constrained width, use the natural width -
-          // special case for images resized to the full width of the editor.
-          constrainedWidth === Math.min(newWidth, maxWidth)
-            ? props.naturalWidth
-            : constrainedWidth,
-        height: props.naturalWidth
-          ? Math.round(constrainedWidth * aspectRatio)
-          : undefined,
-      });
-    }
+  React.useEffect(() => {
+    draggingRef.current = dragging;
+  }, [dragging]);
 
-    if (diffY && sizeAtDragStart.height) {
-      const gridHeight = (props.gridSnap / 100) * maxWidth;
-      const newHeight = sizeAtDragStart.height + diffY;
-      const heightOnGrid = Math.round(newHeight / gridHeight) * gridHeight;
+  React.useEffect(() => {
+    offsetRef.current = offset;
+  }, [offset]);
 
-      setSize((state) => ({
-        ...state,
-        height: heightOnGrid,
-      }));
-    }
-  };
+  React.useEffect(() => {
+    sizeAtDragStartRef.current = sizeAtDragStart;
+  }, [sizeAtDragStart]);
 
-  const handlePointerUp = (event: PointerEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
+  React.useEffect(() => {
+    maxWidthRef.current = maxWidth;
+  }, [maxWidth]);
 
-    setOffset(0);
-    setDragging(undefined);
-    props.onChangeSize?.(size);
+  React.useEffect(() => {
+    gridSnapRef.current = props.gridSnap;
+  }, [props.gridSnap]);
 
-    document.removeEventListener("pointerup", handlePointerUp);
-    document.removeEventListener("pointermove", handlePointerMove);
-  };
+  React.useEffect(() => {
+    naturalWidthRef.current = props.naturalWidth;
+  }, [props.naturalWidth]);
 
-  const handleKeyDown = (event: KeyboardEvent) => {
-    if (event.key === "Escape") {
+  React.useEffect(() => {
+    naturalHeightRef.current = props.naturalHeight;
+  }, [props.naturalHeight]);
+
+  const constrainWidth = React.useCallback(
+    (width: number, max: number) => {
+      const minWidth = Math.min(naturalWidthRef.current, (gridSnapRef.current / 100) * max);
+      return Math.round(Math.min(max, Math.max(width, minWidth)));
+    },
+    []
+  );
+
+  // Create stable event listener functions that use refs
+  const handlePointerMoveStable = React.useCallback(
+    (event: PointerEvent) => {
+      event.preventDefault();
+
+      const currentDragging = draggingRef.current;
+      const currentOffset = offsetRef.current;
+      const currentSizeAtDragStart = sizeAtDragStartRef.current;
+      const currentMaxWidth = maxWidthRef.current;
+
+      let diffX, diffY;
+      if (currentDragging === "left") {
+        diffX = currentOffset - event.pageX;
+      } else if (currentDragging === "right") {
+        diffX = event.pageX - currentOffset;
+      } else {
+        diffY = event.pageY - currentOffset;
+      }
+
+      if (diffX && currentSizeAtDragStart.width) {
+        const gridWidth = (gridSnapRef.current / 100) * currentMaxWidth;
+        const newWidth = currentSizeAtDragStart.width + diffX * 2;
+        const widthOnGrid = Math.round(newWidth / gridWidth) * gridWidth;
+        const constrainedWidth = constrainWidth(widthOnGrid, currentMaxWidth);
+        const aspectRatio = naturalHeightRef.current / naturalWidthRef.current;
+
+        setSize({
+          width:
+            // If the natural width is the same as the constrained width, use the natural width -
+            // special case for images resized to the full width of the editor.
+            constrainedWidth === Math.min(newWidth, currentMaxWidth)
+              ? naturalWidthRef.current
+              : constrainedWidth,
+          height: naturalWidthRef.current
+            ? Math.round(constrainedWidth * aspectRatio)
+            : undefined,
+        });
+      }
+
+      if (diffY && currentSizeAtDragStart.height) {
+        // For height resizing, use a fixed grid size (50px) instead of percentage-based
+        const gridHeight = 50;
+        const newHeight = currentSizeAtDragStart.height + diffY;
+        const heightOnGrid = Math.round(newHeight / gridHeight) * gridHeight;
+
+        setSize((state) => ({
+          ...state,
+          height: Math.max(heightOnGrid, 200), // Minimum height of 200px
+        }));
+      }
+    },
+    [constrainWidth]
+  );
+
+  const handlePointerUpStable = React.useCallback(
+    (event: PointerEvent) => {
       event.preventDefault();
       event.stopPropagation();
 
-      setSize(sizeAtDragStart);
+      const currentSize = sizeRef.current;
+
+      setOffset(0);
       setDragging(undefined);
-    }
-  };
+
+      // Defer ProseMirror transaction until after React render cycle completes
+      requestAnimationFrame(() => {
+        onChangeSizeRef.current?.(currentSize);
+      });
+
+      // Event listeners are removed by useEffect cleanup when dragging becomes undefined
+    },
+    []
+  );
+
+  const handleKeyDownStable = React.useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const currentSizeAtDragStart = sizeAtDragStartRef.current;
+        setSize(currentSizeAtDragStart);
+        setDragging(undefined);
+      }
+    },
+    []
+  );
 
   const handlePointerDown =
-    (dragDirection: "left" | "right") =>
+    (dragDirection: DragDirection) =>
     (event: React.PointerEvent<HTMLDivElement>) => {
       event.preventDefault();
       event.stopPropagation();
 
       // Calculate constraints once at the start of dragging as it's relatively expensive operation
-      const max = props.ref.current
-        ? parseInt(
-            getComputedStyle(props.ref.current).getPropertyValue(
-              "--document-width"
-            )
-          ) -
-          EditorStyleHelper.padding * 2
-        : Infinity;
+      let max = Infinity;
+      if (props.ref.current) {
+        const docWidth = parseInt(
+          getComputedStyle(props.ref.current).getPropertyValue(
+            "--document-width"
+          )
+        );
+        // Fallback to actual container width if --document-width is not available
+        max = !isNaN(docWidth)
+          ? docWidth - EditorStyleHelper.padding * 2
+          : props.ref.current.clientWidth;
+      }
       setMaxWidth(max);
       setSizeAtDragStart({
         width: constrainWidth(size.width, max),
@@ -158,18 +237,18 @@ export default function useDragResize(props: Params): ReturnValue {
     if (dragging) {
       document.body.style.cursor =
         dragging === "left" || dragging === "right" ? "ew-resize" : "ns-resize";
-      document.addEventListener("keydown", handleKeyDown);
-      document.addEventListener("pointermove", handlePointerMove);
-      document.addEventListener("pointerup", handlePointerUp);
+      document.addEventListener("keydown", handleKeyDownStable);
+      document.addEventListener("pointermove", handlePointerMoveStable);
+      document.addEventListener("pointerup", handlePointerUpStable);
     }
 
     return () => {
       document.body.style.cursor = "initial";
-      document.removeEventListener("keydown", handleKeyDown);
-      document.removeEventListener("pointermove", handlePointerMove);
-      document.removeEventListener("pointerup", handlePointerUp);
+      document.removeEventListener("keydown", handleKeyDownStable);
+      document.removeEventListener("pointermove", handlePointerMoveStable);
+      document.removeEventListener("pointerup", handlePointerUpStable);
     };
-  }, [dragging, handlePointerMove, handlePointerUp, isResizable]);
+  }, [dragging, isResizable, handleKeyDownStable, handlePointerMoveStable, handlePointerUpStable]);
 
   return {
     handlePointerDown,

@@ -226,7 +226,7 @@ export default function blockMenuItems(
     {
       name: "excalidraw",
       title: "Excalidraw",
-      icon: <ImageIcon />,
+      icon: <Img src="/images/excalidraw.png" alt="Excalidraw" />,
       keywords: "drawing whiteboard sketch diagram",
     },
   ];

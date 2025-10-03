@@ -3,10 +3,8 @@
  * Handles merging local and remote changes efficiently
  */
 
-// Type imports - using any for now due to module resolution issues
-type ExcalidrawElement = any;
-type AppState = any;
 import { SYNCABLE_APP_STATE_FIELDS, type SyncableAppStateField } from "./constants";
+import type { ExcalidrawElement, AppState } from "./types";
 
 export interface ElementUpdate {
   id: string;
@@ -21,19 +19,73 @@ export interface ReconcileResult {
   updates: ElementUpdate[];
 }
 
+// Cache for element hashes to avoid recomputation
+const elementHashCache = new WeakMap<ExcalidrawElement, string>();
+
+/**
+ * Fast hash function for element comparison
+ * Uses key properties to generate a deterministic hash
+ */
+function hashElement(element: ExcalidrawElement): string {
+  // Check cache first
+  const cached = elementHashCache.get(element);
+  if (cached) return cached;
+
+  // Create hash from critical properties only
+  // This avoids expensive JSON.stringify and focuses on properties that actually matter
+  const parts = [
+    element.id,
+    element.version,
+    element.versionNonce,
+    element.type,
+    element.x,
+    element.y,
+    element.width,
+    element.height,
+    element.angle || 0,
+    element.isDeleted ? '1' : '0',
+    element.opacity !== undefined ? element.opacity : 100,
+    element.strokeColor || '',
+    element.backgroundColor || '',
+    element.fillStyle || '',
+    element.strokeWidth !== undefined ? element.strokeWidth : 1,
+    element.strokeStyle || '',
+    element.roughness !== undefined ? element.roughness : 1,
+    // For text elements
+    element.text || '',
+    element.fontSize || '',
+    // For bound elements
+    JSON.stringify(element.boundElements || []),
+  ];
+
+  const hash = parts.join('|');
+  elementHashCache.set(element, hash);
+  return hash;
+}
+
 /**
  * Fast element comparison focusing on key properties that indicate changes
+ * Uses hash-based comparison for better performance
  */
 function hasElementChanged(local: ExcalidrawElement, remote: ExcalidrawElement): boolean {
-  if (local.versionNonce !== remote.versionNonce) return true;
+  // Fast-path checks first (most common cases)
   if (local.version !== remote.version) return true;
+  if (local.versionNonce !== remote.versionNonce) return true;
+
+  // Position/size checks (frequently changed)
   if (local.x !== remote.x || local.y !== remote.y) return true;
   if (local.width !== remote.width || local.height !== remote.height) return true;
+
+  // Rotation and deletion
   if (local.angle !== remote.angle) return true;
   if (local.isDeleted !== remote.isDeleted) return true;
 
-  // For performance, we do a deep comparison only if shallow comparison suggests changes
-  return JSON.stringify(local) !== JSON.stringify(remote);
+  // Type check (if type changed, definitely different)
+  if (local.type !== remote.type) return true;
+
+  // For more complex comparison, use hash-based approach
+  // This is much faster than JSON.stringify
+  return hashElement(local) !== hashElement(remote);
 }
 
 /**
@@ -85,8 +137,8 @@ export function reconcileElements(
     processedIds.add(remoteElement.id);
 
     if (!localElement) {
-      // New element from remote
-      reconciledElements.push(remoteElement);
+      // New element from remote - create new reference to ensure React detects change
+      reconciledElements.push({...remoteElement});
       updates.push({
         id: remoteElement.id,
         element: remoteElement,
@@ -96,7 +148,8 @@ export function reconcileElements(
     } else if (hasElementChanged(localElement, remoteElement)) {
       // Element exists locally and remotely but has changes
       const resolvedElement = resolveElementConflict(localElement, remoteElement);
-      reconciledElements.push(resolvedElement);
+      // Always create new reference to ensure React detects change
+      reconciledElements.push({...resolvedElement});
 
       if (resolvedElement === remoteElement) {
         updates.push({
@@ -107,8 +160,8 @@ export function reconcileElements(
         });
       }
     } else {
-      // No changes, keep local version
-      reconciledElements.push(localElement);
+      // No changes, but create new reference anyway to ensure React detects update
+      reconciledElements.push({...localElement});
     }
   }
 
@@ -127,7 +180,8 @@ export function reconcileElements(
         }
       } else {
         // In partial sync (UPDATE), preserve local elements that aren't in the update
-        reconciledElements.push(localElement);
+        // Create new reference to ensure React detects change
+        reconciledElements.push({...localElement});
       }
     }
   }
