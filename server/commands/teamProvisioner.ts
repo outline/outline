@@ -57,7 +57,10 @@ async function teamProvisioner(
         paranoid: false,
       },
     ],
-    order: [["enabled", "DESC"]],
+    order: [
+      [Team, "deletedAt", "DESC"],
+      ["enabled", "DESC"],
+    ],
   });
 
   // This authentication provider already exists which means we have a team and

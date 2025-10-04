@@ -93,6 +93,36 @@ describe("teamProvisioner", () => {
       expect(isNewTeam).toEqual(false);
     });
 
+    it("should return non-deleted team if multiple matches", async () => {
+      const subdomain = faker.internet.domainWord();
+      const authenticationProvider = {
+        name: "google",
+        providerId: `${subdomain}.com`,
+      };
+      await buildTeam({
+        subdomain: undefined,
+        deletedAt: new Date(),
+        authenticationProviders: [authenticationProvider],
+      });
+      const notDeleted = await buildTeam({
+        subdomain: undefined,
+        authenticationProviders: [authenticationProvider],
+      });
+      await buildTeam({
+        subdomain: undefined,
+        deletedAt: new Date(),
+        authenticationProviders: [authenticationProvider],
+      });
+      const result = await teamProvisioner(ctx, {
+        name: faker.company.name(),
+        subdomain,
+        authenticationProvider,
+      });
+      const { team, isNewTeam } = result;
+      expect(team.id).toEqual(notDeleted.id);
+      expect(isNewTeam).toEqual(false);
+    });
+
     it("should error on mismatched team and authentication provider", async () => {
       const subdomain = faker.internet.domainWord();
 
