@@ -15,6 +15,7 @@ import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { ComponentProps } from "../types";
 import SimpleImage from "./SimpleImage";
+import { LightboxImageFactory } from "../lib/Lightbox";
 
 const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
 
@@ -322,9 +323,11 @@ export default class Image extends SimpleImage {
     };
 
   handleClick =
-    ({ getPos }: ComponentProps) =>
+    ({ getPos, view }: ComponentProps) =>
     () => {
-      this.editor.updateActiveLightbox(getPos());
+      this.editor.updateActiveLightboxImage(
+        LightboxImageFactory.createLightboxImage(view, getPos())
+      );
     };
 
   component = (props: ComponentProps) => {

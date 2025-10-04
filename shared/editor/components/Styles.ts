@@ -1387,6 +1387,10 @@ mark {
     `
   }
 
+  &:is(.code-active) + .mermaid-diagram-wrapper {
+    cursor: zoom-in;
+  }
+
   // Hide code without display none so toolbar can still be positioned against it
   &:not(.code-active) {
     height: ${props.staticHTML || props.readOnly ? "auto" : "0"};
@@ -1402,6 +1406,9 @@ mark {
     height: 0;
     overflow: hidden;
     margin: -0.5em 0 0 0;
+    & + .mermaid-diagram-wrapper {
+      cursor: zoom-in;
+    }
 }
 
 .code-block.with-line-numbers {

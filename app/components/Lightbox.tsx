@@ -1,12 +1,9 @@
-import { useEditor } from "~/editor/components/EditorContext";
 import { observer } from "mobx-react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { findChildren } from "@shared/editor/queries/findChildren";
-import findIndex from "lodash/findIndex";
 import styled, { css, Keyframes, keyframes } from "styled-components";
-import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
-import { sanitizeUrl } from "@shared/utils/urls";
-import { Error } from "@shared/editor/components/Image";
+import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
+import { isInternalUrl } from "@shared/utils/urls";
+import { Error as ImageError } from "@shared/editor/components/Image";
 import {
   BackIcon,
   CloseIcon,
@@ -19,7 +16,6 @@ import { depths, extraArea, s } from "@shared/styles";
 import NudeButton from "./NudeButton";
 import useIdle from "~/hooks/useIdle";
 import { Second } from "@shared/utils/time";
-import { downloadImageNode } from "@shared/editor/nodes/Image";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { useTranslation } from "react-i18next";
 import Tooltip from "~/components/Tooltip";
@@ -29,6 +25,9 @@ import Button from "./Button";
 import CopyToClipboard from "./CopyToClipboard";
 import { Separator } from "./Actions";
 import useSwipe from "~/hooks/useSwipe";
+import { toast } from "sonner";
+import { findIndex } from "lodash";
+import { LightboxImage } from "@shared/editor/lib/Lightbox";
 
 export enum LightboxStatus {
   READY_TO_OPEN,
@@ -60,22 +59,22 @@ type Animation = {
 const ANIMATION_DURATION = 0.3 * Second.ms;
 
 type Props = {
-  /** Callback triggered when the active image position is updated */
-  onUpdate: (pos: number | null) => void;
+  /** List of allowed images */
+  images: LightboxImage[];
   /** The position of the currently active image in the document */
-  activePos: number | null;
+  activeImage: LightboxImage;
+  /** Callback triggered when the active image is updated */
+  onUpdate: (activeImage: LightboxImage | null) => void;
+  /** Callback triggered when Lightbox closes */
+  onClose: () => void;
 };
 
-function Lightbox({ onUpdate, activePos }: Props) {
-  const { view } = useEditor();
+function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
   const isIdle = useIdle(3 * Second.ms);
   const { t } = useTranslation();
   const imgRef = useRef<HTMLImageElement | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const [status, setStatus] = useState<Status>({ lightbox: null, image: null });
-  const [imageElements] = useState(
-    view?.dom.querySelectorAll(".component-image img")
-  );
   const animation = useRef<Animation | null>(null);
   const finalImage = useRef<{
     center: { x: number; y: number };
@@ -83,23 +82,10 @@ function Lightbox({ onUpdate, activePos }: Props) {
     height: number;
   } | null>(null);
 
-  const imageNodes = useMemo(
-    () =>
-      view
-        ? findChildren(
-            view.state.doc,
-            (child) => child.type === view.state.schema.nodes.image,
-            true
-          )
-        : [],
-    [view]
-  );
   const currentImageIndex = findIndex(
-    imageNodes,
-    (node) => node.pos === activePos
+    images,
+    (img) => img.getPos() === activeImage.getPos()
   );
-  const currentImageNode =
-    currentImageIndex >= 0 ? imageNodes[currentImageIndex].node : undefined;
 
   // Debugging status changes
   // useEffect(() => {
@@ -108,15 +94,21 @@ function Lightbox({ onUpdate, activePos }: Props) {
   //   );
   // }, [status]);
 
-  useEffect(() => () => view.focus(), []);
+  useEffect(
+    () => () => {
+      if (status.lightbox === LightboxStatus.CLOSED) {
+        onClose();
+      }
+    },
+    [status.lightbox]
+  );
 
   useEffect(() => {
-    !!activePos &&
-      setStatus({
-        lightbox: LightboxStatus.READY_TO_OPEN,
-        image: status.image,
-      });
-  }, [!!activePos]);
+    setStatus({
+      lightbox: LightboxStatus.READY_TO_OPEN,
+      image: status.image,
+    });
+  }, []);
 
   useEffect(() => {
     if (status.image === ImageStatus.LOADED) {
@@ -179,11 +171,10 @@ function Lightbox({ onUpdate, activePos }: Props) {
   const setupZoomIn = () => {
     if (imgRef.current) {
       // in editor
-      const editorImageEl = imageElements[currentImageIndex];
+      const editorImageEl = activeImage.getElement();
       if (!editorImageEl) {
         return;
       }
-
       const editorImgDOMRect = editorImageEl.getBoundingClientRect();
       const {
         top: editorImgTop,
@@ -289,7 +280,7 @@ function Lightbox({ onUpdate, activePos }: Props) {
       };
 
       // in editor
-      const editorImageEl = imageElements[currentImageIndex];
+      const editorImageEl = activeImage.getElement();
       let to;
       if (editorImageEl?.isConnected) {
         const editorImgDOMRect = editorImageEl.getBoundingClientRect();
@@ -364,33 +355,23 @@ function Lightbox({ onUpdate, activePos }: Props) {
     }
   };
 
-  if (!activePos) {
-    return null;
-  }
-
   const prev = () => {
     if (status.lightbox === LightboxStatus.OPENED) {
-      if (!activePos) {
-        return;
-      }
       const prevIndex = currentImageIndex - 1;
       if (prevIndex < 0) {
         return;
       }
-      onUpdate(imageNodes[prevIndex].pos);
+      onUpdate(images[prevIndex]);
     }
   };
 
   const next = () => {
     if (status.lightbox === LightboxStatus.OPENED) {
-      if (!activePos) {
-        return;
-      }
       const nextIndex = currentImageIndex + 1;
-      if (nextIndex >= imageNodes.length) {
+      if (nextIndex >= images.length) {
         return;
       }
-      onUpdate(imageNodes[nextIndex].pos);
+      onUpdate(images[nextIndex]);
     }
   };
 
@@ -406,11 +387,62 @@ function Lightbox({ onUpdate, activePos }: Props) {
     }
   };
 
-  const download = () => {
-    if (currentImageNode && status.lightbox === LightboxStatus.OPENED) {
-      void downloadImageNode(currentImageNode);
+  const svgDataURLToBlob = (dataURL: string) => {
+    // Match the SVG data URL format
+    const match = dataURL.match(/^data:image\/svg\+xml,(.*)$/i);
+    if (!match) {
+      return;
     }
+
+    const encodedSVGData = match[1];
+    const decodedSVGData = decodeURIComponent(encodedSVGData);
+
+    // Convert string to Uint8Array
+    const uint8 = new Uint8Array(decodedSVGData.length);
+    for (let i = 0; i < decodedSVGData.length; ++i) {
+      uint8[i] = decodedSVGData.charCodeAt(i);
+    }
+
+    // Create and return the Blob
+    return new Blob([uint8], { type: "image/svg+xml" });
   };
+
+  const downloadImage = async (src: string, saveAs: string) => {
+    let imageBlob;
+    if (isInternalUrl(src)) {
+      const image = await fetch(src);
+      imageBlob = await image.blob();
+    } else {
+      // Assuming it's a mermaid svg
+      imageBlob = svgDataURLToBlob(src);
+    }
+
+    if (!imageBlob) {
+      toast.error(t("Unable to download image"));
+      return;
+    }
+
+    const imageURL = URL.createObjectURL(imageBlob);
+    const name = saveAs || "image";
+    const extension = imageBlob.type.split(/\/|\+/g)[1];
+
+    // create a temporary link node and click it with our image data
+    const link = document.createElement("a");
+    link.href = imageURL;
+    link.download = `${name}.${extension}`;
+    document.body.appendChild(link);
+    link.click();
+
+    // cleanup
+    document.body.removeChild(link);
+    URL.revokeObjectURL(imageURL);
+  };
+
+  const download = useCallback(() => {
+    if (activeImage && status.lightbox === LightboxStatus.OPENED) {
+      void downloadImage(activeImage.getSrc(), activeImage.getAlt());
+    }
+  }, [activeImage, status.lightbox]);
 
   const handleKeyDown = (ev: React.KeyboardEvent<HTMLDivElement>) => {
     ev.preventDefault();
@@ -459,14 +491,8 @@ function Lightbox({ onUpdate, activePos }: Props) {
     }
   };
 
-  if (!currentImageNode) {
-    return null;
-  }
-
-  const src = sanitizeUrl(currentImageNode.attrs.src) ?? "";
-
   return (
-    <Dialog.Root open={!!activePos}>
+    <Dialog.Root open={true}>
       <Dialog.Portal>
         <StyledOverlay
           ref={overlayRef}
@@ -529,8 +555,8 @@ function Lightbox({ onUpdate, activePos }: Props) {
           )}
           <Image
             ref={imgRef}
-            src={src}
-            alt={currentImageNode.attrs.alt ?? ""}
+            src={activeImage.getSrc()}
+            alt={activeImage.getAlt()}
             onLoading={() =>
               setStatus({
                 lightbox: status.lightbox,
@@ -556,7 +582,7 @@ function Lightbox({ onUpdate, activePos }: Props) {
             status={status}
             animation={animation.current}
           />
-          {currentImageIndex < imageNodes.length - 1 && (
+          {currentImageIndex < images.length - 1 && (
             <Nav dir="right" $hidden={isIdle} animation={animation.current}>
               <NavButton onClick={next} size={32} aria-label={t("Next")}>
                 <NextIcon size={32} />
@@ -787,7 +813,7 @@ const Nav = styled.div<{
           : ""}
 `;
 
-const StyledError = styled(Error)<{
+const StyledError = styled(ImageError)<{
   animation: Animation | null;
 }>`
   ${(props) =>

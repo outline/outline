@@ -54,6 +54,12 @@ import EditorContext from "./components/EditorContext";
 import { NodeViewRenderer } from "./components/NodeViewRenderer";
 import SelectionToolbar from "./components/SelectionToolbar";
 import WithTheme from "./components/WithTheme";
+import isNull from "lodash/isNull";
+import { map } from "lodash";
+import {
+  LightboxImage,
+  LightboxImageFactory,
+} from "@shared/editor/lib/Lightbox";
 import Lightbox from "~/components/Lightbox";
 
 export type Props = {
@@ -146,8 +152,8 @@ type State = {
   isEditorFocused: boolean;
   /** If the toolbar for a text selection is visible */
   selectionToolbarOpen: boolean;
-  /** Position of image in doc that's being currently viewed in Lightbox */
-  activeLightboxImgPos: number | null;
+  /** Image that's being currently viewed in Lightbox */
+  activeLightboxImage: LightboxImage | null;
 };
 
 /**
@@ -177,7 +183,7 @@ export class Editor extends React.PureComponent<
     isRTL: false,
     isEditorFocused: false,
     selectionToolbarOpen: false,
-    activeLightboxImgPos: null,
+    activeLightboxImage: null,
   };
 
   isInitialized = false;
@@ -640,6 +646,16 @@ export class Editor extends React.PureComponent<
    */
   public getImages = () => ProsemirrorHelper.getImages(this.view.state.doc);
 
+  public getLightboxImages = (): LightboxImage[] => {
+    const lightboxNodes = ProsemirrorHelper.getLightboxNodes(
+      this.view.state.doc
+    );
+
+    return map(lightboxNodes, (node) =>
+      LightboxImageFactory.createLightboxImage(this.view, node.pos)
+    );
+  };
+
   /**
    * Return the tasks/checkmarks in the current editor.
    *
@@ -717,10 +733,10 @@ export class Editor extends React.PureComponent<
     dispatch(tr);
   };
 
-  public updateActiveLightbox = (pos: number | null) => {
+  public updateActiveLightboxImage = (activeImage: LightboxImage | null) => {
     this.setState((state) => ({
       ...state,
-      activeLightboxImgPos: pos,
+      activeLightboxImage: activeImage,
     }));
   };
 
@@ -843,10 +859,12 @@ export class Editor extends React.PureComponent<
               )}
             </Observer>
           </Flex>
-          {this.state.activeLightboxImgPos && (
+          {!isNull(this.state.activeLightboxImage) && (
             <Lightbox
-              onUpdate={this.updateActiveLightbox}
-              activePos={this.state.activeLightboxImgPos}
+              images={this.getLightboxImages()}
+              activeImage={this.state.activeLightboxImage}
+              onUpdate={this.updateActiveLightboxImage}
+              onClose={() => this.view.focus()}
             />
           )}
         </EditorContext.Provider>
