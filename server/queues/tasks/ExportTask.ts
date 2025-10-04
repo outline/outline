@@ -43,6 +43,7 @@ export default abstract class ExportTask extends BaseTask<Props> {
 
     const where = fileOperation.collectionId
       ? {
+          teamId: user.teamId,
           id: fileOperation.collectionId,
         }
       : {
