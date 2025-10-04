@@ -78,8 +78,16 @@ function SidebarLink(
   const style = React.useMemo(
     () => ({
       paddingLeft: `${(depth || 0) * 16 + 12}px`,
+      paddingRight: unreadBadge ? "32px" : undefined,
     }),
     [depth]
+  );
+
+  const unreadStyle = React.useMemo(
+    () => ({
+      right: -12,
+    }),
+    []
   );
 
   const activeStyle = React.useMemo(
@@ -139,7 +147,7 @@ function SidebarLink(
             )}
             {icon && <IconWrapper>{icon}</IconWrapper>}
             <Label>{label}</Label>
-            {unreadBadge && <UnreadBadge />}
+            {unreadBadge && <UnreadBadge style={unreadStyle} />}
           </Content>
         </Link>
       </ContextMenu>
