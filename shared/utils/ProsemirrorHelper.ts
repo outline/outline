@@ -4,6 +4,8 @@ import textBetween from "../editor/lib/textBetween";
 import { ProsemirrorData } from "../types";
 import { TextHelper } from "./TextHelper";
 import env from "../env";
+import { findChildren } from "@shared/editor/queries/findChildren";
+import { isLightboxNode } from "@shared/editor/lib/Lightbox";
 
 export type Heading = {
   /* The heading in plain text */
@@ -228,6 +230,15 @@ export class ProsemirrorHelper {
 
     return images;
   }
+
+  /**
+   * Iterates through the document to find all valid Lightbox nodes.
+   *
+   * @param doc Prosemirror document node
+   * @returns Array<NodeWithPos> of nodes allowed in Lightbox
+   */
+  static getLightboxNodes = (doc: Node) =>
+    findChildren(doc, isLightboxNode, true);
 
   /**
    * Iterates through the document to find all of the videos.
