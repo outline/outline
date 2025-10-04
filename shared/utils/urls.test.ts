@@ -2,7 +2,7 @@ import env from "../env";
 import * as urlsUtils from "./urls";
 import { urlRegex } from "./urls";
 
-describe.only("isUrl", () => {
+describe("isUrl", () => {
   it("should return false for invalid url", () => {
     expect(urlsUtils.isUrl("")).toBe(false);
     expect(urlsUtils.isUrl("#invalidurl")).toBe(false);

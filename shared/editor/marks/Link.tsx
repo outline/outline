@@ -15,6 +15,7 @@ import { isUrl, sanitizeUrl } from "../../utils/urls";
 import { getMarkRange } from "../queries/getMarkRange";
 import { isMarkActive } from "../queries/isMarkActive";
 import Mark from "./Mark";
+import { isInCode } from "../queries/isInCode";
 
 const LINK_INPUT_REGEX = /\[([^[]+)]\((\S+)\)$/;
 
@@ -267,9 +268,17 @@ export default class Link extends Mark {
             if (!words.length) {
               return false;
             }
+            if (isInCode(view.state)) {
+              return false;
+            }
 
             const lastWord = words[words.length - 1];
-            if (!lastWord || !isUrl(lastWord)) {
+            if (
+              !lastWord ||
+              !isUrl(lastWord, {
+                requireProtocol: false,
+              })
+            ) {
               return false;
             }
 
