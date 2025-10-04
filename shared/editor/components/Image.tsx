@@ -21,10 +21,12 @@ type Props = ComponentProps & {
   /** The editor view */
   view: EditorView;
   children?: React.ReactElement;
+  isDownloading?: boolean;
 };
 
 const Image = (props: Props) => {
-  const { isSelected, node, isEditable, onChangeSize, onClick } = props;
+  const { isSelected, node, isEditable, onChangeSize, onClick, isDownloading } =
+    props;
   const { src, layoutClass } = node.attrs;
   const { t } = useTranslation();
   const className = layoutClass ? `image image-${layoutClass}` : "image";
@@ -102,7 +104,11 @@ const Image = (props: Props) => {
                 <GlobeIcon />
               </Button>
             )}
-            <Button onClick={props.onDownload} aria-label={t("Download")}>
+            <Button
+              onClick={props.onDownload}
+              aria-label={t("Download")}
+              disabled={isDownloading}
+            >
               <DownloadIcon />
             </Button>
           </Actions>
@@ -224,7 +230,7 @@ const Button = styled.button`
   width: 24px;
   height: 24px;
   display: inline-block;
-  cursor: var(--pointer) !important;
+  cursor: var(--pointer);
   transition: opacity 150ms ease-in-out;
 
   &:first-child:not(:last-child) {
@@ -243,6 +249,20 @@ const Button = styled.button`
 
   &:hover {
     color: ${s("text")};
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: wait;
+    pointer-events: none;
+
+    &:hover {
+      color: ${s("textSecondary")};
+    }
+
+    &:active {
+      transform: none;
+    }
   }
 `;
 
