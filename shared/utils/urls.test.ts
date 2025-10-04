@@ -9,6 +9,7 @@ describe("isUrl", () => {
     expect(urlsUtils.isUrl("mailto:")).toBe(false);
     expect(urlsUtils.isUrl("sms:")).toBe(false);
     expect(urlsUtils.isUrl("://")).toBe(false);
+    expect(urlsUtils.isUrl("www.example.com")).toBe(false);
   });
 
   it("should return true for valid urls", () => {
@@ -17,6 +18,9 @@ describe("isUrl", () => {
     expect(urlsUtils.isUrl("seafile://openfile")).toBe(true);
     expect(urlsUtils.isUrl("figma://launch")).toBe(true);
     expect(urlsUtils.isUrl("outline:https://getoutline.com")).toBe(true);
+    expect(urlsUtils.isUrl("www.example.com", { requireProtocol: false })).toBe(
+      true
+    );
   });
 });
 
