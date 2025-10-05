@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { RouteComponentProps } from "react-router-dom";
 import styled from "styled-components";
 import FullscreenLoading from "~/components/FullscreenLoading";
@@ -7,7 +7,7 @@ import useStores from "~/hooks/useStores";
 import useQuery from "~/hooks/useQuery";
 import Document from "~/models/Document";
 import Error404 from "~/scenes/Errors/Error404";
-import ExcalidrawComponent from "~/editor/excalidraw/components/Excalidraw";
+import ExcalidrawIframe from "~/editor/excalidraw/components/ExcalidrawIframe";
 
 type Params = {
   id: string;
@@ -19,12 +19,14 @@ function ExcalidrawViewer(props: Props) {
   const { id } = props.match.params;
   const query = useQuery();
   const documentId = query.get("documentId");
+  const position = parseInt(query.get("position") || "0", 10);
   const mode = query.get("mode") || "view";
   const { documents, auth, ui } = useStores();
   const [document, setDocument] = useState<Document | null | undefined>(
     undefined
   );
   const [isLoading, setIsLoading] = useState(true);
+  const [initialSvg, setInitialSvg] = useState<string>("");
 
   useEffect(() => {
     if (!documentId) {
@@ -48,6 +50,55 @@ function ExcalidrawViewer(props: Props) {
     loadDocument();
   }, [documentId, documents]);
 
+  // Send ready message to parent when mounted
+  useEffect(() => {
+    if (window.parent !== window) {
+      window.parent.postMessage(
+        {
+          type: "excalidraw:ready",
+        },
+        window.location.origin
+      );
+    }
+  }, []);
+
+  // Listen for init message from parent
+  const handleMessage = useCallback((event: MessageEvent) => {
+    // Validate origin
+    if (event.origin !== window.location.origin) {
+      return;
+    }
+
+    const { type, data } = event.data;
+
+    if (type === "excalidraw:init" && data) {
+      setInitialSvg(data.svg || "");
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("message", handleMessage);
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
+  }, [handleMessage]);
+
+  // Handle save from ExcalidrawIframe
+  const handleSave = useCallback((svg: string, height?: number) => {
+    if (window.parent !== window) {
+      window.parent.postMessage(
+        {
+          type: "excalidraw:save",
+          data: {
+            svg,
+            height,
+          },
+        },
+        window.location.origin
+      );
+    }
+  }, []);
+
   // Show loading state
   if (isLoading) {
     return (
@@ -67,18 +118,14 @@ function ExcalidrawViewer(props: Props) {
 
   return (
     <Container>
-      <ExcalidrawComponent
-        node={{
-          attrs: { id, alt: null },
-        } as any}
-        isSelected={false}
-        isEditable={isEditable}
-        getPos={() => 0}
-        onEdit={() => {}}
-        documentId={documentId}
-        collaborationToken={auth.collaborationToken || undefined}
+      <ExcalidrawIframe
+        svg={initialSvg}
+        documentId={documentId || ""}
+        position={position}
         user={auth.user ? { name: auth.user.name, id: auth.user.id } : undefined}
-        theme={ui.resolvedTheme}
+        collaborationToken={auth.collaborationToken || undefined}
+        theme={ui.resolvedTheme as "light" | "dark"}
+        onSave={handleSave}
       />
     </Container>
   );

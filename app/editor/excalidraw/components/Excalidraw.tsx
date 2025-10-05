@@ -612,13 +612,6 @@ const ExcalidrawComponent: React.FC<Props> = observer(({
           $isViewMode={isViewMode}
           $hasResizeBar={isEditable && isResizable}
           style={{ pointerEvents: dragging ? "none" : "all" }}
-          onPointerDown={(e) => {
-            // Stop propagation in edit mode to prevent ProseMirror from intercepting
-            // drag events, allowing Excalidraw to handle all interactions internally
-            if (!isViewMode) {
-              e.stopPropagation();
-            }
-          }}
         >
           <React.Suspense fallback={<LoadingPlaceholder>Loading Excalidraw...</LoadingPlaceholder>}>
             <ExcalidrawLazy

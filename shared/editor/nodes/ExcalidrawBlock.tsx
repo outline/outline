@@ -1,13 +1,10 @@
 import { Token } from "markdown-it";
 import { NodeSpec, Node as ProsemirrorNode, NodeType } from "prosemirror-model";
 import { Command } from "prosemirror-state";
-import * as React from "react";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { ComponentProps } from "../types";
 import Node from "./Node";
-
-// Lazy load the Excalidraw component to avoid server-side import errors
-const ExcalidrawComponent = React.lazy(() => import("~/editor/excalidraw/components/Excalidraw").then(m => ({ default: m.default })));
+import ExcalidrawEmbed from "../components/ExcalidrawEmbed";
 
 /**
  * Get empty SVG placeholder for a new Excalidraw diagram
@@ -141,62 +138,58 @@ export default class ExcalidrawBlock extends Node {
     };
   }
 
-  handleChangeSize =
-    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
-    ({ width, height }: { width?: number; height?: number }) => {
-      // Only update if height has actually changed (width is not in schema)
-      if (node.attrs.height === height) {
-        return;
-      }
 
-      try {
-        const { view } = this.editor;
-        if (!view) {
-          console.error("[ExcalidrawBlock] No editor view available");
-          return;
-        }
+  component = (props: ComponentProps) => {
+    const { node, getPos } = props;
+    const documentId = this.editor?.props.id || "";
+    const position = typeof getPos === "function" ? getPos() : 0;
 
-        const pos = getPos();
-        if (pos === null || pos === undefined || pos < 0) {
-          console.error("[ExcalidrawBlock] Invalid position from getPos:", pos);
-          return;
-        }
+    return (
+      <ExcalidrawEmbed
+        svg={node.attrs.svg || ""}
+        documentId={documentId}
+        position={position}
+        height={node.attrs.height}
+        isSelected={props.isSelected}
+        onSave={(data) => {
+          // Update node attributes when iframe saves
+          if (typeof getPos === "function") {
+            try {
+              const { view } = this.editor;
+              if (!view) {
+                return;
+              }
 
-        const { tr } = view.state;
+              const pos = getPos();
+              if (pos === null || pos === undefined || pos < 0) {
+                return;
+              }
 
-        // Validate position is within document bounds
-        if (pos >= tr.doc.content.size) {
-          console.error("[ExcalidrawBlock] Position out of bounds:", pos, "doc size:", tr.doc.content.size);
-          return;
-        }
+              const { tr } = view.state;
+              if (pos >= tr.doc.content.size) {
+                return;
+              }
 
-        const transaction = tr
-          .setNodeMarkup(pos, undefined, {
-            ...node.attrs,
-            height,
-          })
-          .setMeta("addToHistory", true);
+              const currentNode = tr.doc.nodeAt(pos);
+              if (!currentNode) {
+                return;
+              }
 
-        // Dispatch without changing selection to avoid component unmount/remount
-        view.dispatch(transaction);
-      } catch (error) {
-        console.error("[ExcalidrawBlock] Error in handleChangeSize:", error);
-      }
-    };
+              const transaction = tr
+                .setNodeMarkup(pos, undefined, {
+                  ...currentNode.attrs,
+                  svg: data.svg,
+                  height: data.height || currentNode.attrs.height,
+                })
+                .setMeta("addToHistory", true);
 
-  component = (props: ComponentProps) => (
-    <React.Suspense fallback={<div>Loading Excalidraw...</div>}>
-      <ExcalidrawComponent
-        {...props}
-        editor={this.editor}
-        documentId={this.editor?.props.id}
-        theme={this.editor?.props.theme.isDark ? "dark" : "light"}
-        user={this.editor?.props.userId ? {
-          id: this.editor.props.userId,
-          name: "User"
-        } : undefined}
-        onChangeSize={this.handleChangeSize(props)}
+              view.dispatch(transaction);
+            } catch {
+              // Silently ignore save errors
+            }
+          }
+        }}
       />
-    </React.Suspense>
-  );
+    );
+  };
 }
