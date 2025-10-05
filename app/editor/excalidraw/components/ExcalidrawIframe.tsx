@@ -119,6 +119,7 @@ const ExcalidrawIframe: React.FC<Props> = ({
                 scrollX: scene.appState?.scrollX ?? 0,
                 scrollY: scene.appState?.scrollY ?? 0,
                 zoom: scene.appState?.zoom ?? { value: 1 },
+                userToFollow: null,
               },
             });
           } else {
@@ -128,6 +129,7 @@ const ExcalidrawIframe: React.FC<Props> = ({
                 scrollX: 0,
                 scrollY: 0,
                 zoom: { value: 1 },
+                userToFollow: null,
               },
             });
           }
@@ -138,6 +140,7 @@ const ExcalidrawIframe: React.FC<Props> = ({
               scrollX: 0,
               scrollY: 0,
               zoom: { value: 1 },
+              userToFollow: null,
             },
           });
         }
@@ -330,6 +333,21 @@ const ExcalidrawIframe: React.FC<Props> = ({
     // Sync via collaboration
     if (collaboration?.isCollaborating() && !isViewMode) {
       collaboration.syncElements(newElements, newAppState);
+    }
+
+    // Handle userToFollow changes from Excalidraw's built-in UI
+    if (newAppState.userToFollow !== undefined) {
+      const currentFollow = collaboration?.getUserToFollow();
+      const newFollow = newAppState.userToFollow;
+
+      // Check if follow state changed
+      if (newFollow && (!currentFollow || currentFollow.socketId !== newFollow.socketId)) {
+        // User clicked to follow someone
+        collaboration?.setUserToFollow(newFollow);
+      } else if (!newFollow && currentFollow) {
+        // User clicked to unfollow
+        collaboration?.clearUserToFollow();
+      }
     }
 
     // Generate and save SVG (only in edit mode)

@@ -49,3 +49,6 @@ export interface SceneBounds {
   maxX: number;
   maxY: number;
 }
+
+// User following types (re-exported from socket-types for convenience)
+export type { UserToFollow } from "./socket-types";

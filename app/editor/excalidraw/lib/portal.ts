@@ -19,7 +19,7 @@ import {
   UserIdleState,
 } from "./constants";
 
-import type { ExcalidrawElement, OrderedExcalidrawElement, SocketId } from "./types";
+import type { ExcalidrawElement, OrderedExcalidrawElement, SocketId, SceneBounds } from "./types";
 import { LRUCache } from "./lru-cache";
 
 export interface PortalCallbacks {
@@ -35,6 +35,11 @@ export interface PortalCallbacks {
     button: "up" | "down";
     selectedElementIds: Record<string, boolean>;
     username: string;
+  }) => void;
+  onViewportUpdate: (payload: {
+    socketId: SocketId;
+    username: string;
+    sceneBounds: SceneBounds;
   }) => void;
 }
 
@@ -154,6 +159,8 @@ export class ExcalidrawPortal {
         break;
 
       case WS_SUBTYPES.USER_VISIBLE_SCENE_BOUNDS:
+        // Update viewport for users following this collaborator
+        this.callbacks?.onViewportUpdate(data.payload);
         break;
 
       default:

@@ -3,6 +3,7 @@
  * Coordinates connection, element sync, and collaborator management
  */
 
+import throttle from "lodash/throttle";
 import { ExcalidrawPortal, type PortalCallbacks } from "./portal";
 import { ConnectionManager, type ConnectionCallbacks } from "./connection-manager";
 import { ElementSyncManager } from "./element-sync-manager";
@@ -12,8 +13,9 @@ import {
   ConnectionStatus,
   CollabErrorType,
 } from "./constants";
-import type { ExcalidrawElement, OrderedExcalidrawElement, AppState, ExcalidrawImperativeAPI, SocketId } from "./types";
+import type { ExcalidrawElement, OrderedExcalidrawElement, AppState, ExcalidrawImperativeAPI, SocketId, UserToFollow } from "./types";
 import type { Collaborator } from "./collaborator-manager";
+import { getVisibleSceneBounds, calculateViewportToFitBounds } from "./viewport-utils";
 
 export interface CollaborationState {
   isCollaborating: boolean;
@@ -50,6 +52,12 @@ export class ExcalidrawCollaboration {
   private isDestroyed = false;
   private roomKey: string = "";
 
+  // Follow feature state
+  private userToFollow: UserToFollow | null = null;
+  private followersSocketIds: Set<SocketId> = new Set();
+  private onScrollChangeUnsubscribe: (() => void) | null = null;
+  private throttledBroadcastViewport: (() => void) | null = null;
+
   constructor(config: ExcalidrawCollaborationConfig, callbacks: CollaborationCallbacks = {}) {
     this.config = config;
     this.callbacks = callbacks;
@@ -82,11 +90,20 @@ export class ExcalidrawCollaboration {
       onFirstInRoom: () => {
         // First in room
       },
-      onUserFollowRoomChange: () => {
-        // Handle viewport following if needed
+      onUserFollowRoomChange: (followedBy) => {
+        // Update followers list
+        this.followersSocketIds = new Set(followedBy);
+
+        // Broadcast viewport immediately if we have new followers
+        if (this.followersSocketIds.size > 0) {
+          this.broadcastViewportBounds();
+        }
       },
       onMouseLocation: (payload) => {
         this.collaboratorManager?.handleMouseLocation(payload);
+      },
+      onViewportUpdate: (payload) => {
+        this.handleViewportUpdate(payload);
       },
     };
 
@@ -98,6 +115,9 @@ export class ExcalidrawCollaboration {
    */
   setExcalidrawAPI(api: ExcalidrawImperativeAPI): void {
     this.excalidrawAPI = api;
+
+    // Subscribe to scroll changes for viewport broadcasting
+    this.setupScrollChangeListener();
   }
 
   /**
@@ -237,7 +257,120 @@ export class ExcalidrawCollaboration {
    */
   destroy(): void {
     this.isDestroyed = true;
+    this.onScrollChangeUnsubscribe?.();
+    this.throttledBroadcastViewport = null;
     this.stopCollaboration();
+  }
+
+  /**
+   * Set up scroll change listener for viewport broadcasting
+   */
+  private setupScrollChangeListener(): void {
+    if (!this.excalidrawAPI) {
+      return;
+    }
+
+    // Create throttled broadcast function
+    this.throttledBroadcastViewport = throttle(() => {
+      this.broadcastViewportBounds();
+    }, 100);
+
+    // Subscribe to scroll changes
+    this.onScrollChangeUnsubscribe = this.excalidrawAPI.onScrollChange(() => {
+      // Only broadcast if someone is following us
+      if (this.followersSocketIds.size > 0) {
+        this.throttledBroadcastViewport?.();
+      }
+    });
+  }
+
+  /**
+   * Broadcast viewport bounds to followers
+   */
+  private broadcastViewportBounds(): void {
+    const api = this.excalidrawAPI;
+    if (!api || !this.portal.isOpen()) {
+      return;
+    }
+
+    const appState = api.getAppState();
+    const sceneBounds = getVisibleSceneBounds(appState);
+
+    this.portal.broadcastVisibleSceneBounds(
+      { sceneBounds },
+      this.portal.roomId || "",
+      this.config.username
+    );
+  }
+
+  /**
+   * Handle viewport update from followed user
+   */
+  private handleViewportUpdate(payload: {
+    socketId: SocketId;
+    username: string;
+    sceneBounds: any;
+  }): void {
+    // Only update if we're following this user
+    if (!this.userToFollow || this.userToFollow.socketId !== payload.socketId) {
+      return;
+    }
+
+    const api = this.excalidrawAPI;
+    if (!api) {
+      return;
+    }
+
+    const appState = api.getAppState();
+    const newViewport = calculateViewportToFitBounds(payload.sceneBounds, appState);
+
+    api.updateScene({
+      appState: newViewport,
+    });
+  }
+
+  /**
+   * Set user to follow
+   */
+  setUserToFollow(userToFollow: UserToFollow): void {
+    this.userToFollow = userToFollow;
+    this.broadcastUserFollow("FOLLOW");
+  }
+
+  /**
+   * Clear user to follow
+   */
+  clearUserToFollow(): void {
+    if (this.userToFollow) {
+      this.broadcastUserFollow("UNFOLLOW");
+      this.userToFollow = null;
+    }
+  }
+
+  /**
+   * Get current user being followed
+   */
+  getUserToFollow(): UserToFollow | null {
+    return this.userToFollow;
+  }
+
+  /**
+   * Broadcast user follow/unfollow event
+   */
+  private broadcastUserFollow(action: "FOLLOW" | "UNFOLLOW"): void {
+    if (!this.userToFollow) {
+      return;
+    }
+
+    this.portal.broadcastUserFollowed({
+      userToFollow: this.userToFollow,
+      action,
+    });
+
+    // If we just started following, request immediate viewport update
+    if (action === "FOLLOW") {
+      // The followed user will broadcast their viewport when they receive the follow event
+    }
   }
 
   /**
