@@ -1,7 +1,8 @@
 import { observer } from "mobx-react";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { RouteComponentProps } from "react-router-dom";
 import styled from "styled-components";
+import { TeamPreference } from "@shared/types";
 import FullscreenLoading from "~/components/FullscreenLoading";
 import useStores from "~/hooks/useStores";
 import useQuery from "~/hooks/useQuery";
@@ -20,13 +21,17 @@ function ExcalidrawViewer(props: Props) {
   const query = useQuery();
   const documentId = query.get("documentId");
   const position = parseInt(query.get("position") || "0", 10);
-  const mode = query.get("mode") || "view";
   const { documents, auth, ui } = useStores();
   const [document, setDocument] = useState<Document | null | undefined>(
     undefined
   );
   const [isLoading, setIsLoading] = useState(true);
   const [initialSvg, setInitialSvg] = useState<string>("");
+
+  const libraryUrls = useMemo(
+    () => auth.team?.getPreference(TeamPreference.ExcalidrawLibraries) || [],
+    [auth.team]
+  );
 
   useEffect(() => {
     if (!documentId) {
@@ -39,8 +44,7 @@ function ExcalidrawViewer(props: Props) {
       try {
         const doc = await documents.fetch(documentId);
         setDocument(doc);
-      } catch (error) {
-        console.error("Failed to load document:", error);
+      } catch (_error) {
         setDocument(null);
       } finally {
         setIsLoading(false);
@@ -119,9 +123,6 @@ function ExcalidrawViewer(props: Props) {
     return <Error404 />;
   }
 
-  const isViewMode = mode === "view";
-  const isEditable = !isViewMode;
-
   return (
     <Container>
       <ExcalidrawIframe
@@ -133,6 +134,7 @@ function ExcalidrawViewer(props: Props) {
         theme={ui.resolvedTheme as "light" | "dark"}
         onSave={handleSave}
         scrollToContentTrigger={shouldScrollToContent}
+        libraryUrls={libraryUrls}
       />
     </Container>
   );

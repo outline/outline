@@ -378,14 +378,13 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
     }
   });
 
-  // Broadcast encrypted collaboration data
-  socket.on("excalidraw-broadcast", async (event: {
+  // Broadcast collaboration data (plain JSON over WSS)
+  socket.on("excalidraw-broadcast", (event: {
     roomId: string;
-    encryptedData: number[]; // Array format from client
-    iv: number[]; // Array format from client
+    payload: any; // SocketUpdateData from client
   }) => {
     try {
-      const { roomId, encryptedData, iv } = event;
+      const { roomId, payload } = event;
       if (!roomId) return;
 
       const room = excalidrawRooms.get(roomId);
@@ -396,10 +395,9 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
 
       room.lastActivity = new Date();
 
-      // Broadcast to all other users in the room (keep array format for consistency)
+      // Broadcast to all other users in the room
       socket.to(`excalidraw-${roomId}`).emit("excalidraw-client-broadcast", {
-        encryptedData,
-        iv,
+        payload,
         socketId: socket.id,
       });
 

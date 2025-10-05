@@ -14,6 +14,8 @@ export class ElementSyncManager {
   private lastBroadcastedOrReceivedSceneVersion: number = -1;
   private queueBroadcastAllElements: (() => void) | null = null;
   private isApplyingRemoteChanges: boolean = false;
+  private lastProcessedUpdateTime: number = 0;
+  private lastProcessedUpdateHash: string = "";
 
   constructor(
     private portal: ExcalidrawPortal,
@@ -70,6 +72,20 @@ export class ElementSyncManager {
       return;
     }
 
+    // Defense in depth: prevent processing duplicate updates in quick succession
+    // This guards against any remaining edge cases with duplicate event listeners
+    const now = Date.now();
+    const updateHash = `${messageType}:${elements.length}:${this.getSceneVersion(elements)}`;
+    const timeSinceLastUpdate = now - this.lastProcessedUpdateTime;
+
+    // If we processed the exact same update within 100ms, skip it
+    if (timeSinceLastUpdate < 100 && updateHash === this.lastProcessedUpdateHash) {
+      return;
+    }
+
+    this.lastProcessedUpdateTime = now;
+    this.lastProcessedUpdateHash = updateHash;
+
     try {
       // Set flag to prevent broadcast loop
       this.isApplyingRemoteChanges = true;
@@ -123,6 +139,8 @@ export class ElementSyncManager {
    */
   reset(): void {
     this.lastBroadcastedOrReceivedSceneVersion = -1;
+    this.lastProcessedUpdateTime = 0;
+    this.lastProcessedUpdateHash = "";
   }
 
   /**

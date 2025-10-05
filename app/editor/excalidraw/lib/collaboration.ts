@@ -144,7 +144,7 @@ export class ExcalidrawCollaboration {
 
       // Generate room ID and key
       const roomId = this.generateRoomId();
-      const roomKey = this.config.roomKey || await this.generateRoomKey();
+      const roomKey = this.config.roomKey || this.generateRoomKey();
 
       // Store roomKey for use in onJoinedRoom callback
       this.roomKey = roomKey;
@@ -173,6 +173,15 @@ export class ExcalidrawCollaboration {
           // This prevents race condition where broadcasts happen before room membership
           const socket = this.connectionManager?.getSocket();
           if (socket) {
+            // Destroy old managers before creating new ones to prevent memory leaks
+            // and duplicate processing on reconnect
+            if (this.elementSyncManager) {
+              this.elementSyncManager.destroy();
+            }
+            if (this.collaboratorManager) {
+              this.collaboratorManager.destroy();
+            }
+
             // Open portal connection
             this.portal.open(socket, data.roomId, this.roomKey);
 
@@ -418,22 +427,9 @@ export class ExcalidrawCollaboration {
   }
 
   /**
-   * Generate room key
+   * Generate room key (simple random hex string)
    */
-  private async generateRoomKey(): Promise<string> {
-    try {
-      const { getEncryptionFunctions } = await import("./encryption");
-      const { generateEncryptionKey } = await getEncryptionFunctions();
-      return generateEncryptionKey();
-    } catch (error) {
-      return this.generateSimpleKey();
-    }
-  }
-
-  /**
-   * Simple key generation fallback
-   */
-  private generateSimpleKey(): string {
+  private generateRoomKey(): string {
     const array = new Uint8Array(32);
     crypto.getRandomValues(array);
     return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');

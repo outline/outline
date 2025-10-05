@@ -4,14 +4,17 @@ import styled from "styled-components";
 import { v5 as uuidv5 } from "uuid";
 import debounce from "lodash/debounce";
 import { EditIcon, EyeIcon, ExpandedIcon, CollapseIcon } from "outline-icons";
-import ExcalidrawErrorBoundary from "./ExcalidrawErrorBoundary";
+import ErrorBoundary from "~/components/ErrorBoundary";
+import Spinner from "@shared/components/Spinner";
+import Flex from "@shared/components/Flex";
+import NudeButton from "~/components/NudeButton";
 import type { ExcalidrawElement, AppState, ExcalidrawImperativeAPI } from "../lib/types";
-import type { LibraryItem } from "@excalidraw/excalidraw/types/types";
 import { ExcalidrawCollaboration, type CollaborationCallbacks } from "../lib/collaboration";
 import { ConnectionStatus } from "../lib/constants";
-import { getDefaultLibraries } from "../lib/defaultLibraries";
 import { extractSceneFromSVG, hasEmbeddedScene } from "../lib/svgExtractor";
 import { generateExcalidrawSVG } from "../lib/svgGenerator";
+import { getCollaborationServerUrl, getUserName, getCollaborationToken } from "../lib/utils";
+import { useExcalidrawLibraries } from "../hooks/useExcalidrawLibraries";
 import { Excalidraw } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
 
@@ -27,31 +30,7 @@ type Props = {
   theme: "light" | "dark";
   onSave?: (svg: string, height?: number) => void;
   scrollToContentTrigger?: number;
-};
-
-// Helper functions for collaboration
-const getCollaborationServerUrl = (): string => {
-  if (typeof window !== "undefined") {
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const host = window.location.host;
-    return `${protocol}//${host}`;
-  }
-  return "http://localhost:3000";
-};
-
-const getUserName = (user?: { name: string }): string => user?.name || "Anonymous User";
-
-const getCollaborationToken = (): string | undefined => {
-  if (typeof document !== "undefined") {
-    const cookies = document.cookie.split(';');
-    for (const cookie of cookies) {
-      const [name, value] = cookie.trim().split('=');
-      if (name === 'accessToken') {
-        return value;
-      }
-    }
-  }
-  return undefined;
+  libraryUrls?: string[];
 };
 
 const ExcalidrawIframe: React.FC<Props> = ({
@@ -63,12 +42,12 @@ const ExcalidrawIframe: React.FC<Props> = ({
   theme,
   onSave,
   scrollToContentTrigger,
+  libraryUrls,
 }) => {
   const [isViewMode, setIsViewMode] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawImperativeAPI | null>(null);
   const [collaboration, setCollaboration] = useState<ExcalidrawCollaboration | null>(null);
-  const [libraryItems, setLibraryItems] = useState<LibraryItem[]>([]);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(ConnectionStatus.CONNECTING);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [initialData, setInitialData] = useState<{ elements: ExcalidrawElement[]; appState: Partial<AppState> } | null>(null);
@@ -79,6 +58,9 @@ const ExcalidrawIframe: React.FC<Props> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const lastLoadedSvgRef = useRef<string>("");
   const hasInitiallyLoadedRef = useRef(false);
+
+  // Load libraries from team preferences
+  useExcalidrawLibraries(excalidrawAPI, isMountedRef, libraryUrls);
 
   // Track component mounted state
   useEffect(() => {
@@ -166,37 +148,6 @@ const ExcalidrawIframe: React.FC<Props> = ({
 
     loadScene();
   }, [svg]);
-
-  // Load libraries from team preferences
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    let mounted = true;
-    const stores = (window as any).__STORES__;
-    const libraryUrls = stores?.auth?.team?.getPreference("excalidrawLibraries");
-
-    getDefaultLibraries(libraryUrls).then((items) => {
-      if (mounted) {
-        setLibraryItems(items);
-      }
-    });
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  // Update library when items are loaded and API is available
-  useEffect(() => {
-    if (excalidrawAPI && libraryItems.length > 0 && isMountedRef.current) {
-      excalidrawAPI.updateLibrary({
-        libraryItems,
-        openLibraryMenu: false,
-      });
-    }
-  }, [excalidrawAPI, libraryItems]);
 
   // Scroll to content when initial data is loaded and API is ready
   useEffect(() => {
@@ -457,21 +408,19 @@ const ExcalidrawIframe: React.FC<Props> = ({
   }, [isViewMode, scrollToContentHelper]);
 
   // Save on unmount
-  useEffect(() => {
-    return () => {
-      debouncedSaveRef.current?.cancel();
-      if (excalidrawAPI && onSave) {
-        const elements = excalidrawAPI.getSceneElements();
-        const appState = excalidrawAPI.getAppState();
-        generateExcalidrawSVG(elements, appState)
-          .then((svg) => {
-            onSave(svg);
-          })
-          .catch(() => {
-            // Silently ignore
-          });
-      }
-    };
+  useEffect(() => () => {
+    debouncedSaveRef.current?.cancel();
+    if (excalidrawAPI && onSave) {
+      const elements = excalidrawAPI.getSceneElements();
+      const appState = excalidrawAPI.getAppState();
+      generateExcalidrawSVG(elements, appState)
+        .then((svg) => {
+          onSave(svg);
+        })
+        .catch(() => {
+          // Silently ignore
+        });
+    }
   }, [excalidrawAPI, onSave]);
 
   if (typeof window === "undefined") {
@@ -480,19 +429,19 @@ const ExcalidrawIframe: React.FC<Props> = ({
 
   if (isLoadingInitialData || !initialData) {
     return (
-      <ExcalidrawErrorBoundary>
+      <ErrorBoundary>
         <Container $isFullscreen={false}>
-          <LoadingPlaceholder>
-            <Spinner />
+          <Flex column align="center" justify="center" gap={16} style={{ width: '100%', height: '100%', color: 'var(--text-secondary)' }}>
+            <Spinner style={{ width: '48px', height: '48px' }} />
             <span>Loading diagram...</span>
-          </LoadingPlaceholder>
+          </Flex>
         </Container>
-      </ExcalidrawErrorBoundary>
+      </ErrorBoundary>
     );
   }
 
   return (
-    <ExcalidrawErrorBoundary>
+    <ErrorBoundary>
       <Container ref={containerRef} $isFullscreen={isFullscreen}>
         <Excalidraw
           excalidrawAPI={setExcalidrawAPI}
@@ -514,26 +463,22 @@ const ExcalidrawIframe: React.FC<Props> = ({
             },
           }}
           renderTopRightUI={() => (
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', pointerEvents: 'auto' }}>
-              <button
-                className="help-icon"
+            <Flex gap={8} align="center" style={{ pointerEvents: 'auto' }}>
+              <StyledButton
                 onClick={handleToggleViewMode}
                 title={isViewMode ? "Enter Edit Mode" : "Enter View Mode"}
                 aria-label={isViewMode ? "Enter Edit Mode" : "Enter View Mode"}
-                style={{ pointerEvents: 'auto' }}
               >
                 {isViewMode ? <EditIcon size={20} /> : <EyeIcon size={20} />}
-              </button>
-              <button
-                className="help-icon"
+              </StyledButton>
+              <StyledButton
                 onClick={handleToggleFullscreen}
                 title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
                 aria-label={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-                style={{ pointerEvents: 'auto' }}
               >
                 {isFullscreen ? <CollapseIcon size={20} /> : <ExpandedIcon size={20} />}
-              </button>
-            </div>
+              </StyledButton>
+            </Flex>
           )}
           handleKeyboardGlobally={true}
         />
@@ -543,22 +488,53 @@ const ExcalidrawIframe: React.FC<Props> = ({
           connectionStatus === ConnectionStatus.RECONNECTING ||
           connectionStatus === ConnectionStatus.DISCONNECTED) && (
           <ConnectionOverlay $isDark={theme === "dark"}>
-            <OverlayContent>
-              <Spinner />
-              <StatusText>
+            <Flex column align="center" gap={16}>
+              <Spinner style={{ width: '48px', height: '48px' }} />
+              <div style={{ fontSize: '16px', textAlign: 'center', maxWidth: '300px', lineHeight: 1.5 }}>
                 {connectionStatus === ConnectionStatus.CONNECTING && "Connecting to collaboration..."}
                 {connectionStatus === ConnectionStatus.RECONNECTING && "Reconnecting..."}
                 {connectionStatus === ConnectionStatus.DISCONNECTED && (
                   connectionError || "Connection lost. Reconnecting..."
                 )}
-              </StatusText>
-            </OverlayContent>
+              </div>
+            </Flex>
           </ConnectionOverlay>
         )}
       </Container>
-    </ExcalidrawErrorBoundary>
+    </ErrorBoundary>
   );
 };
+
+const StyledButton = styled(NudeButton)`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: 0.5rem;
+  box-shadow: ${(props) => props.theme.isDark
+    ? '0 0 0 1px hsl(0, 0%, 7%)'
+    : '0 0 0 1px #ffffff'};
+  background-color: ${(props) => props.theme.isDark
+    ? 'hsl(240, 8%, 15%)'
+    : '#ececf4'};
+  cursor: pointer;
+  transition: background-color 0.1s ease, box-shadow 0.1s ease;
+
+  &:hover {
+    background-color: ${(props) => props.theme.isDark
+      ? 'hsl(240, 8%, 18%)'
+      : '#e0e0e8'};
+  }
+
+  &:active {
+    background-color: ${(props) => props.theme.isDark
+      ? 'hsl(240, 8%, 20%)'
+      : '#d4d4dc'};
+  }
+`;
 
 const Container = styled.div<{ $isFullscreen: boolean }>`
   position: fixed;
@@ -583,19 +559,6 @@ const Container = styled.div<{ $isFullscreen: boolean }>`
   }
 `;
 
-const LoadingPlaceholder = styled.div`
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  color: ${(props) => props.theme.textSecondary};
-  font-size: 16px;
-  background: ${(props) => props.theme.background};
-`;
-
 const ConnectionOverlay = styled.div<{ $isDark: boolean }>`
   position: absolute;
   top: 0;
@@ -608,34 +571,6 @@ const ConnectionOverlay = styled.div<{ $isDark: boolean }>`
   justify-content: center;
   z-index: 9999;
   pointer-events: all;
-`;
-
-const OverlayContent = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-`;
-
-const Spinner = styled.div`
-  width: 48px;
-  height: 48px;
-  border: 4px solid ${(props) => props.theme.divider};
-  border-top-color: #007bff;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-`;
-
-const StatusText = styled.div`
-  font-size: 16px;
-  color: ${(props) => props.theme.text};
-  text-align: center;
-  max-width: 300px;
-  line-height: 1.5;
 `;
 
 export default ExcalidrawIframe;

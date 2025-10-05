@@ -50,6 +50,7 @@ export class ExcalidrawPortal {
   roomKey: string | null = null;
   broadcastedElementVersions: LRUCache<string, number> = new LRUCache(5000); // Limit to 5000 elements
   callbacks: PortalCallbacks | null = null;
+  private listenersSetUp: boolean = false;
 
   constructor(callbacks: PortalCallbacks) {
     this.callbacks = callbacks;
@@ -69,7 +70,11 @@ export class ExcalidrawPortal {
       this.socketInitialized = true;
     }
 
-    this.setupSocketListeners();
+    // Only set up listeners once to prevent duplicates on reconnect
+    if (!this.listenersSetUp) {
+      this.setupSocketListeners();
+      this.listenersSetUp = true;
+    }
     return socket;
   }
 
@@ -103,19 +108,10 @@ export class ExcalidrawPortal {
       this.callbacks?.onFirstInRoom();
     });
 
-    // Handle encrypted collaboration data
-    this.socket.on("excalidraw-client-broadcast", async (data: { encryptedData: number[]; iv: number[]; socketId: string }) => {
-      if (!this.roomKey) {
-        return;
-      }
-
+    // Handle collaboration data (plain JSON over WSS)
+    this.socket.on("excalidraw-client-broadcast", (data: { payload: SocketUpdateData; socketId: string }) => {
       try {
-        // Convert arrays back to proper types
-        const iv = new Uint8Array(data.iv);
-        const encryptedData = new Uint8Array(data.encryptedData).buffer;
-
-        const decryptedData = await this.decryptPayload(iv, encryptedData, this.roomKey);
-        this.handleDecryptedMessage(decryptedData);
+        this.handleMessage(data.payload);
       } catch (error) {
         // Silent error handling
       }
@@ -138,9 +134,9 @@ export class ExcalidrawPortal {
   }
 
   /**
-   * Handles decrypted collaboration messages
+   * Handles collaboration messages
    */
-  private handleDecryptedMessage(data: SocketUpdateData): void {
+  private handleMessage(data: SocketUpdateData): void {
     switch (data.type) {
       case WS_SUBTYPES.INVALID_RESPONSE:
         break;
@@ -184,6 +180,7 @@ export class ExcalidrawPortal {
     this.roomId = null;
     this.roomKey = null;
     this.socketInitialized = false;
+    this.listenersSetUp = false;
     this.broadcastedElementVersions.clear();
   }
 
@@ -200,40 +197,31 @@ export class ExcalidrawPortal {
   }
 
   /**
-   * Broadcasts socket data (with encryption)
+   * Broadcasts socket data (plain JSON over WSS)
    */
-  async broadcastSocketData(
+  broadcastSocketData(
     data: SocketUpdateData,
     volatile: boolean = false,
     roomId?: string
-  ): Promise<void> {
+  ): void {
     if (!this.isOpen()) {
       return;
     }
 
-    try {
-      const json = JSON.stringify(data);
-      const encoded = new TextEncoder().encode(json);
-      const { encryptedBuffer, iv } = await this.encryptData(this.roomKey!, encoded);
-
-      this.socket!.emit("excalidraw-broadcast", {
-        roomId: roomId ?? this.roomId,
-        encryptedData: Array.from(new Uint8Array(encryptedBuffer)), // Convert to array for transmission
-        iv: Array.from(iv) // Convert to array for transmission
-      });
-    } catch (error) {
-      // Silent error handling
-    }
+    this.socket!.emit("excalidraw-broadcast", {
+      roomId: roomId ?? this.roomId,
+      payload: data
+    });
   }
 
   /**
    * Broadcasts scene elements to collaborators
    */
-  async broadcastScene(
+  broadcastScene(
     updateType: WS_SUBTYPES.INIT | WS_SUBTYPES.UPDATE,
     elements: readonly OrderedExcalidrawElement[],
     syncAll: boolean
-  ): Promise<void> {
+  ): void {
     if (updateType === WS_SUBTYPES.INIT && !syncAll) {
       throw new Error("syncAll must be true when sending SCENE.INIT");
     }
@@ -264,19 +252,19 @@ export class ExcalidrawPortal {
     }
 
     this.queueFileUpload();
-    await this.broadcastSocketData(data as SocketUpdateData);
+    this.broadcastSocketData(data as SocketUpdateData);
   }
 
   /**
-   * Broadcasts mouse location using encrypted channel
+   * Broadcasts mouse location over WSS
    * Matches official Excalidraw pattern
    */
-  async broadcastMouseLocation(payload: {
+  broadcastMouseLocation(payload: {
     pointer: { x: number; y: number };
     button: "up" | "down";
     selectedElementIds?: Record<string, boolean>;
     username?: string;
-  }): Promise<void> {
+  }): void {
     if (!this.socket?.id) {
       return;
     }
@@ -292,13 +280,13 @@ export class ExcalidrawPortal {
       },
     };
 
-    await this.broadcastSocketData(data as SocketUpdateData, true); // volatile
+    this.broadcastSocketData(data as SocketUpdateData, true); // volatile
   }
 
   /**
    * Broadcasts idle status change
    */
-  async broadcastIdleChange(userState: UserIdleState, username?: string): Promise<void> {
+  broadcastIdleChange(userState: UserIdleState, username?: string): void {
     if (!this.socket?.id || !this.roomId) {
       return;
     }
@@ -312,11 +300,11 @@ export class ExcalidrawPortal {
   /**
    * Broadcasts visible scene bounds
    */
-  async broadcastVisibleSceneBounds(
+  broadcastVisibleSceneBounds(
     payload: { sceneBounds: any },
     roomId: string,
     username?: string
-  ): Promise<void> {
+  ): void {
     if (!this.socket?.id) {
       return;
     }
@@ -330,7 +318,7 @@ export class ExcalidrawPortal {
       },
     };
 
-    await this.broadcastSocketData(data as SocketUpdateData, true, roomId); // volatile
+    this.broadcastSocketData(data as SocketUpdateData, true, roomId); // volatile
   }
 
   /**
@@ -354,39 +342,4 @@ export class ExcalidrawPortal {
     // File upload logic would go here
     // For now, this is a placeholder to maintain API compatibility
   }, FILE_UPLOAD_TIMEOUT);
-
-  /**
-   * Encrypts data for transmission
-   */
-  private async encryptData(key: string, data: Uint8Array): Promise<{ encryptedBuffer: ArrayBuffer; iv: Uint8Array }> {
-    try {
-      const { getEncryptionFunctions } = await import("./encryption");
-      const { encryptData } = await getEncryptionFunctions();
-      return await encryptData(key, data);
-    } catch (error) {
-      throw new Error("Encryption not available");
-    }
-  }
-
-  /**
-   * Decrypts received data
-   */
-  private async decryptPayload(
-    iv: Uint8Array,
-    encryptedData: ArrayBuffer,
-    decryptionKey: string
-  ): Promise<SocketUpdateData> {
-    try {
-      const { getEncryptionFunctions } = await import("./encryption");
-      const { decryptData } = await getEncryptionFunctions();
-      const decrypted = await decryptData(iv, encryptedData, decryptionKey);
-
-      const decodedData = new TextDecoder("utf-8").decode(new Uint8Array(decrypted));
-      return JSON.parse(decodedData);
-    } catch (error) {
-      return {
-        type: WS_SUBTYPES.INVALID_RESPONSE,
-      };
-    }
-  }
 }
