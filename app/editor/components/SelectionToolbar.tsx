@@ -180,7 +180,7 @@ export default function SelectionToolbar(props: Props) {
   const { state } = view;
   const { selection } = state;
 
-  if ((readOnly && !canComment) || isDragging) {
+  if (isDragging) {
     return null;
   }
 
@@ -205,11 +205,13 @@ export default function SelectionToolbar(props: Props) {
     items = getCodeMenuItems(state, readOnly, dictionary);
     align = "end";
   } else if (isTableSelected(state)) {
-    items = getTableMenuItems(state, dictionary);
+    items = readOnly ? [] : getTableMenuItems(state, dictionary);
   } else if (colIndex !== undefined) {
-    items = getTableColMenuItems(state, colIndex, rtl, dictionary);
+    items = readOnly
+      ? []
+      : getTableColMenuItems(state, colIndex, rtl, dictionary);
   } else if (rowIndex !== undefined) {
-    items = getTableRowMenuItems(state, rowIndex, dictionary);
+    items = readOnly ? [] : getTableRowMenuItems(state, rowIndex, dictionary);
   } else if (isImageSelection) {
     items = readOnly ? [] : getImageMenuItems(state, dictionary);
   } else if (isAttachmentSelection) {
