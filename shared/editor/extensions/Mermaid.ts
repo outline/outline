@@ -56,9 +56,6 @@ class Cache {
 // Module-level state for Mermaid library management
 // Note: These are intentionally global since Mermaid itself is a singleton
 let mermaid: typeof MermaidUnsafe;
-let elkLayoutsRegistered = false;
-let iconPacksRegistered = false;
-let mermaidInitialized = false;
 let lastInitializedConfigHash = "";
 
 // Cache for frontmatter extraction to avoid re-parsing YAML on every render
@@ -71,9 +68,6 @@ const frontMatterCache = new Map<string, ExtractedFrontMatter>();
 export function resetMermaidState(): void {
   frontMatterCache.clear();
   lastInitializedConfigHash = "";
-  elkLayoutsRegistered = false;
-  iconPacksRegistered = false;
-  mermaidInitialized = false;
 }
 
 /**
@@ -292,30 +286,24 @@ class MermaidRenderer {
   }
 
   private async initializeMermaid(): Promise<void> {
-    if (mermaidInitialized && mermaid) {
-      return;
-    }
-
     // Dynamic import
     if (!mermaid) {
       mermaid = (await import("mermaid")).default;
     }
 
-    // Register ELK layout loaders if not already done
-    if (!elkLayoutsRegistered) {
-      try {
-        const elkLayouts = await import("@mermaid-js/layout-elk");
-        if (elkLayouts.default && mermaid.registerLayoutLoaders) {
-          mermaid.registerLayoutLoaders(elkLayouts.default);
-        }
-      } catch {
-        // ELK layout package not available
+    // Always register ELK layout loaders to ensure they're available
+    // Re-registering is safe and ensures loaders are available after page navigation
+    try {
+      const elkLayouts = await import("@mermaid-js/layout-elk");
+      if (elkLayouts.default && mermaid.registerLayoutLoaders) {
+        mermaid.registerLayoutLoaders(elkLayouts.default);
       }
-      elkLayoutsRegistered = true;
+    } catch {
+      // ELK layout package not available
     }
 
-    // Register icon packs if not already done and configs provided
-    if (!iconPacksRegistered && this.iconPackConfigs && this.iconPackConfigs.length > 0) {
+    // Always register icon packs if configs provided
+    if (this.iconPackConfigs && this.iconPackConfigs.length > 0) {
       try {
         if (mermaid.registerIconPacks) {
           // Use the loader pattern to fetch icon packs dynamically
@@ -328,10 +316,7 @@ class MermaidRenderer {
       } catch {
         // Icon packs not available
       }
-      iconPacksRegistered = true;
     }
-
-    mermaidInitialized = true;
   }
 
   handleRenderError(element: HTMLElement, originalText: string, error: unknown): void {
