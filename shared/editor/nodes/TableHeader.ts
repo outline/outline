@@ -4,7 +4,11 @@ import { Plugin } from "prosemirror-state";
 import { DecorationSet, Decoration, EditorView } from "prosemirror-view";
 import { addColumnBefore, selectColumn } from "../commands/table";
 import { getCellAttrs, setCellAttrs } from "../lib/table";
-import { getCellsInRow, isColumnSelected } from "../queries/table";
+import {
+  getCellsInRow,
+  isColumnSelected,
+  isTableSelected,
+} from "../queries/table";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { cn } from "../styles/utils";
 import Node from "./Node";
@@ -115,7 +119,8 @@ export default class TableHeader extends Node {
             if (cols) {
               cols.forEach((pos, index) => {
                 const className = cn(EditorStyleHelper.tableGripColumn, {
-                  selected: isColumnSelected(index)(state),
+                  selected:
+                    isColumnSelected(index)(state) || isTableSelected(state),
                   first: index === 0,
                   last: index === cols.length - 1,
                 });

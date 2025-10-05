@@ -119,5 +119,6 @@ export function EmbedLinkEditor({ node, view, dictionary }: Props) {
 
 const Wrapper = styled(Flex)`
   pointer-events: all;
-  gap: 8px;
+  gap: 6px;
+  padding: 6px;
 `;
