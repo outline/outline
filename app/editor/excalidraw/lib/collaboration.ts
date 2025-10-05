@@ -80,7 +80,7 @@ export class ExcalidrawCollaboration {
         this.elementSyncManager?.handleNewUser();
       },
       onFirstInRoom: () => {
-        console.log("[Collaboration] First in room");
+        // First in room
       },
       onUserFollowRoomChange: () => {
         // Handle viewport following if needed
@@ -136,7 +136,6 @@ export class ExcalidrawCollaboration {
       const connectionCallbacks: ConnectionCallbacks = {
         onConnect: () => {
           // Don't set CONNECTED yet - wait for room join
-          console.log("[Collaboration] Socket connected, waiting for room join");
         },
         onDisconnect: () => {
           this.updateState({
@@ -147,17 +146,13 @@ export class ExcalidrawCollaboration {
           this.handleError(message, type);
         },
         onAuthenticated: () => {
-          console.log("[Collaboration] Authentication successful");
+          // Authentication successful
         },
         onJoinedRoom: (data) => {
-          console.log("[Collaboration] Joined Excalidraw room:", data.roomId, "isFirstInRoom:", data.isFirstInRoom, "collaborators:", data.collaborators);
-
           // Initialize portal and managers AFTER room join confirmation
           // This prevents race condition where broadcasts happen before room membership
           const socket = this.connectionManager?.getSocket();
           if (socket) {
-            console.log("[Collaboration] Initializing portal with roomId:", data.roomId, "socket:", socket.id);
-
             // Open portal connection
             this.portal.open(socket, data.roomId, this.roomKey);
 
@@ -173,27 +168,18 @@ export class ExcalidrawCollaboration {
               this.config.username || "Anonymous"
             );
 
-            console.log("[Collaboration] Portal initialized, isOpen:", this.portal.isOpen());
-
             // NOW we're truly connected and ready to collaborate
             this.updateState({
               connectionStatus: ConnectionStatus.CONNECTED,
               isCollaborating: true,
               error: null,
             });
-          } else {
-            console.error("[Collaboration] No socket available for portal initialization!");
-          }
-
-          if (data.isFirstInRoom) {
-            console.log("[Collaboration] First in room");
           }
         },
         onFirstInRoom: () => {
-          console.log("[Collaboration] First in room event");
+          // First in room event
         },
         onNewUser: (socketId) => {
-          console.log(`[Collaboration] New user joined: ${socketId}`);
           this.elementSyncManager?.handleNewUser();
         },
       };
@@ -212,7 +198,6 @@ export class ExcalidrawCollaboration {
       await this.connectionManager.connect();
 
     } catch (error) {
-      console.error("[Collaboration] Failed to start collaboration:", error);
       this.handleError(
         `Failed to start collaboration: ${error instanceof Error ? error.message : 'Unknown error'}`,
         CollabErrorType.CONNECTION_FAILED
@@ -224,8 +209,6 @@ export class ExcalidrawCollaboration {
    * Stop collaboration
    */
   stopCollaboration(): void {
-    console.log("[Collaboration] Stopping collaboration");
-
     // Destroy managers
     this.elementSyncManager?.destroy();
     this.collaboratorManager?.destroy();
@@ -261,7 +244,6 @@ export class ExcalidrawCollaboration {
    * Sync elements to other collaborators
    */
   syncElements(elements: OrderedExcalidrawElement[], _appState: AppState): void {
-    console.log("[Collaboration] syncElements called, elements:", elements.length, "elementSyncManager:", !!this.elementSyncManager);
     this.elementSyncManager?.syncElements(elements);
   }
 
@@ -283,7 +265,6 @@ export class ExcalidrawCollaboration {
    * Handle errors
    */
   private handleError(message: string, type: CollabErrorType): void {
-    console.error(`[Collaboration] ${type}:`, message);
     this.updateState({ error: message });
     this.callbacks.onError?.(message, type);
   }
@@ -312,7 +293,6 @@ export class ExcalidrawCollaboration {
       const { generateEncryptionKey } = await getEncryptionFunctions();
       return generateEncryptionKey();
     } catch (error) {
-      console.error("[Collaboration] Failed to generate encryption key:", error);
       return this.generateSimpleKey();
     }
   }

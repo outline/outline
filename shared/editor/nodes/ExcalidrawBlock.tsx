@@ -2,13 +2,25 @@ import { Token } from "markdown-it";
 import { NodeSpec, Node as ProsemirrorNode, NodeType } from "prosemirror-model";
 import { Command } from "prosemirror-state";
 import * as React from "react";
-import { getEmptyExcalidrawSVG } from "../lib/excalidraw/svgExtractor";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { ComponentProps } from "../types";
 import Node from "./Node";
 
 // Lazy load the Excalidraw component to avoid server-side import errors
-const ExcalidrawComponent = React.lazy(() => import("../components/Excalidraw").then(m => ({ default: m.default })));
+const ExcalidrawComponent = React.lazy(() => import("~/editor/excalidraw/components/Excalidraw").then(m => ({ default: m.default })));
+
+/**
+ * Get empty SVG placeholder for a new Excalidraw diagram
+ */
+function getEmptyExcalidrawSVG(): string {
+  return `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+  <rect width="800" height="600" fill="#ffffff"/>
+  <text x="400" y="300" text-anchor="middle" font-family="Arial" font-size="20" fill="#aaa">
+    Click to start drawing
+  </text>
+</svg>`;
+}
 
 /**
  * Excalidraw diagram block node.
@@ -33,7 +45,7 @@ export default class ExcalidrawBlock extends Node {
       group: "block",
       atom: true,
       selectable: true,
-      draggable: true,
+      draggable: false,
       parseDOM: [
         {
           tag: "div.excalidraw-block",

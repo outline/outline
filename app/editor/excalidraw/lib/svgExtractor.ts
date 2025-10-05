@@ -2,7 +2,6 @@
  * Utilities for extracting and embedding Excalidraw scene data in SVG
  */
 
-import { loadSceneOrLibraryFromBlob, MIME_TYPES } from "@excalidraw/excalidraw";
 import type { ExcalidrawElement, AppState } from "./types";
 
 export interface ExcalidrawScene {
@@ -16,6 +15,9 @@ export interface ExcalidrawScene {
  */
 export async function extractSceneFromSVG(svgString: string): Promise<ExcalidrawScene | null> {
   try {
+    // Dynamic import to avoid Node.js ESM resolution errors during backend build
+    const { loadSceneOrLibraryFromBlob, MIME_TYPES } = await import("@excalidraw/excalidraw");
+
     // Convert SVG string to Blob
     const blob = new Blob([svgString], { type: MIME_TYPES.svg });
 
@@ -24,18 +26,14 @@ export async function extractSceneFromSVG(svgString: string): Promise<Excalidraw
     const contents = await loadSceneOrLibraryFromBlob(blob, null, null);
 
     if (contents.type === MIME_TYPES.excalidraw) {
-      console.log('[svgExtractor] Successfully loaded scene from SVG, elements:', contents.data.elements.length);
-
       return {
         elements: contents.data.elements || [],
         appState: contents.data.appState || {},
       };
     }
 
-    console.warn('[svgExtractor] SVG does not contain Excalidraw scene data');
     return null;
   } catch (error) {
-    console.error("[svgExtractor] Failed to extract scene from SVG:", error);
     return null;
   }
 }

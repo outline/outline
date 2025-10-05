@@ -8,15 +8,16 @@ import debounce from "lodash/debounce";
 import { EditIcon, EyeIcon, ExpandedIcon, CollapseIcon } from "outline-icons";
 import Image from "@shared/editor/components/Img";
 import ExcalidrawErrorBoundary from "./ExcalidrawErrorBoundary";
-import useDragResize from "./hooks/useDragResize";
-import { ComponentProps } from "../types";
-import type { ExcalidrawElement, AppState, ExcalidrawImperativeAPI } from "../lib/excalidraw/types";
+import useDragResize from "@shared/editor/components/hooks/useDragResize";
+import { ComponentProps } from "@shared/editor/types";
+import type { ExcalidrawElement, AppState, ExcalidrawImperativeAPI } from "../lib/types";
 import type { LibraryItem } from "@excalidraw/excalidraw/types/types";
-import { ExcalidrawCollaboration, type CollaborationCallbacks } from "../lib/excalidraw/collaboration";
-import { ConnectionStatus } from "../lib/excalidraw/constants";
-import { getDefaultLibraries } from "../lib/excalidraw/defaultLibraries";
-import { extractSceneFromSVG, hasEmbeddedScene } from "../lib/excalidraw/svgExtractor";
-import { generateExcalidrawSVG } from "../lib/excalidraw/svgGenerator";
+import { ExcalidrawCollaboration, type CollaborationCallbacks } from "../lib/collaboration";
+import { ConnectionStatus } from "../lib/constants";
+import { getDefaultLibraries } from "../lib/defaultLibraries";
+import { extractSceneFromSVG, hasEmbeddedScene } from "../lib/svgExtractor";
+import { generateExcalidrawSVG } from "../lib/svgGenerator";
+import "@excalidraw/excalidraw/index.css";
 
 // Namespace UUID for Excalidraw diagrams (generated once, used for all diagrams)
 const EXCALIDRAW_NAMESPACE = "6ba7b810-9dad-11d1-80b4-00c04fd430c8";
@@ -219,12 +220,6 @@ const ExcalidrawComponent: React.FC<Props> = observer(({
     loadScene();
   }, [node]);
 
-  // Dynamically load Excalidraw styles (browser only)
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      void import("@excalidraw/excalidraw/index.css");
-    }
-  }, []);
 
   // Load libraries from team preferences
   useEffect(() => {
@@ -613,11 +608,6 @@ const ExcalidrawComponent: React.FC<Props> = observer(({
         $isFullscreen={isFullscreen}
         $height={height}
       >
-        <DragHandleBar>
-          <Img src="/images/excalidraw.png" alt="Excalidraw" />
-          Excalidraw
-        </DragHandleBar>
-
         <ExcalidrawWrapper
           $isViewMode={isViewMode}
           $hasResizeBar={isEditable && isResizable}
@@ -700,7 +690,11 @@ const ExcalidrawComponent: React.FC<Props> = observer(({
             onPointerDown={handlePointerDown("bottom")}
             $dragging={!!dragging}
           >
-            {dragging ? "Resizing..." : "⋮"}
+            <BrandingContainer>
+              <ExcalidrawLogo src="/images/excalidraw.png" alt="Excalidraw" />
+              <span>Excalidraw</span>
+            </BrandingContainer>
+            <ResizeIcon>{dragging ? "Resizing..." : "⋮"}</ResizeIcon>
           </ResizeHandleBar>
         )}
 
@@ -753,8 +747,8 @@ const Container = styled.div<{
 const ExcalidrawWrapper = styled.div<{ $isViewMode: boolean; $hasResizeBar: boolean }>`
   position: relative;
   width: 100%;
-  height: ${(props) => props.$hasResizeBar ? 'calc(100% - 56px)' : 'calc(100% - 28px)'};
-  /* Account for top bar (28px) + optional bottom bar (28px) */
+  height: ${(props) => props.$hasResizeBar ? 'calc(100% - 28px)' : '100%'};
+  /* Account for optional bottom resize bar (28px) */
   background: ${(props) => props.theme.background};
   border-radius: 8px;
   overflow: hidden;
@@ -847,38 +841,11 @@ const StatusText = styled.div`
   line-height: 1.5;
 `;
 
-const Img = styled(Image)`
-  border-radius: 2px;
-  background: #fff;
-  box-shadow: 0 0 0 1px #fff;
-  margin: 4px;
-  width: 18px;
-  height: 18px;
-`;
-
-const DragHandleBar = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  border-bottom: 1px solid ${(props) => props.theme.divider};
-  background: ${(props) => props.theme.backgroundSecondary};
-  color: ${(props) => props.theme.textSecondary};
-  padding: 0 8px;
-  user-select: none;
-  height: 28px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: grab;
-
-  &:active {
-    cursor: grabbing;
-  }
-`;
-
 const ResizeHandleBar = styled.div<{ $dragging: boolean }>`
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 8px;
   border-top: 1px solid ${(props) => props.theme.divider};
   background: ${(props) => props.theme.backgroundSecondary};
   color: ${(props) => props.theme.textSecondary};
@@ -903,6 +870,25 @@ const ResizeHandleBar = styled.div<{ $dragging: boolean }>`
     `
     background: ${props.theme.divider};
   `}
+`;
+
+const BrandingContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+`;
+
+const ExcalidrawLogo = styled(Image)`
+  border-radius: 2px;
+  background: #fff;
+  box-shadow: 0 0 0 1px #fff;
+  width: 18px;
+  height: 18px;
+`;
+
+const ResizeIcon = styled.span`
+  font-weight: 700;
+  letter-spacing: -2px;
 `;
 
 export default ExcalidrawComponent;

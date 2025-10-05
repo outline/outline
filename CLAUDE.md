@@ -107,9 +107,10 @@ Outline is a fast, collaborative knowledge base built using React and Node.js. I
 
 ### Testing Strategy
 - Backend tests are colocated with source files using `.test.ts` extension
-- Tests use Jest with separate configurations for server, app, and shared code
+- Tests use Jest with separate configurations for server, app, shared-node, and shared-jsdom
 - Focus on API endpoints and authentication-related functionality
 - Run specific tests: `yarn test path/to/file.test.ts --watch`
+- Test database migrations on test environment: `yarn db:migrate --env test`
 
 ### Code Quality Standards
 - **Oxlint** for linting with TypeScript awareness (`yarn lint`)
@@ -148,11 +149,36 @@ Outline is a fast, collaborative knowledge base built using React and Node.js. I
 - Socket.io for real-time notifications
 - Bull queues for async processing
 
+### Queue System
+- Backend uses Bull with Redis for async job processing
+- Queues are organized into processors (event bus handlers) and tasks (arbitrary async jobs)
+- Processors located in `server/queues/processors/`
+- Tasks located in `server/queues/tasks/`
+
 ## Debugging
 
 ### Logging
 - Development: Simple console logging with category prefixes
 - Production: JSON logs for ingestion pipelines
 - Enable HTTP logging: `DEBUG=http`
+- Enable specific categories: `DEBUG=database`
 - Enable all logging: `DEBUG=*`
 - Verbose logging: `LOG_LEVEL=debug` or `LOG_LEVEL=silly`
+
+## Important Notes
+
+### Component Organization
+- Unless global, state logic and styles are co-located with React components
+- Subcomponents are nested with parent components to make the tree easier to manage
+- Use async chunk loading with Suspense for routes
+
+### Services Architecture
+- Server can run different services independently via the `--services` flag
+- Available services: `api`, `collaboration`, `websockets`, `admin`, `web`, `worker`, `cron`
+- In development, typically run: `api,collaboration,websockets,admin,web,worker`
+
+### Custom Vite Build
+- Uses `rolldown-vite` (custom Vite fork) instead of standard Vite
+- Development server runs on port 3001
+- Backend API typically runs on port 3000
+- HTTPS requires local SSL certs (run `yarn install-local-ssl`)

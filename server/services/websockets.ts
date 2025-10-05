@@ -61,7 +61,6 @@ function getOrCreateExcalidrawRoom(roomId: string, documentId: string, excalidra
       pendingSave: false,
     };
     excalidrawRooms.set(roomId, room);
-    Logger.debug("websockets", `Created Excalidraw room: ${roomId}`);
   }
   room.lastActivity = new Date();
   return room;
@@ -136,18 +135,7 @@ export default function init(
       if (inactiveTime > ROOM_INACTIVITY_TIMEOUT) {
         excalidrawRooms.delete(roomId);
         cleanedCount++;
-        Logger.info("websockets", `Cleaned up inactive Excalidraw room: ${roomId}`, {
-          inactiveMinutes: Math.floor(inactiveTime / 60000),
-          collaborators: room.collaborators.size,
-        });
       }
-    }
-
-    if (cleanedCount > 0) {
-      Logger.info("websockets", `Excalidraw room cleanup completed`, {
-        cleanedRooms: cleanedCount,
-        remainingRooms: excalidrawRooms.size,
-      });
     }
   }, ROOM_CLEANUP_INTERVAL);
 
@@ -184,8 +172,6 @@ export default function init(
     setTimeout(function () {
       // If the socket didn't authenticate after connection, disconnect it
       if (!socket.client.user) {
-        Logger.debug("websockets", `Disconnecting socket ${socket.id}`);
-
         // @ts-expect-error should be boolean
         socket.disconnect("unauthorized");
       }
@@ -193,13 +179,9 @@ export default function init(
 
     try {
       await authenticate(socket);
-      Logger.debug("websockets", `Authenticated socket ${socket.id}`);
 
       await authenticated(io, socket);
     } catch (err) {
-      Logger.debug("websockets", `Authentication error socket ${socket.id}`, {
-        error: err.message,
-      });
       socket.emit("unauthorized", { message: err.message }, function () {
         socket.disconnect();
       });
@@ -324,8 +306,6 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
         return;
       }
 
-      Logger.debug("websockets", `Socket ${socket.id} (${user.name}) joining Excalidraw room ${roomId}`);
-
       // Get or create collaboration room
       const room = getOrCreateExcalidrawRoom(roomId, documentId, excalidrawDataId);
       const isFirstInRoom = room.collaborators.size === 0;
@@ -362,11 +342,6 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
         collaborators: Array.from(room.collaborators.values()),
       });
 
-      Logger.info("websockets", `Socket ${socket.id} (${user.name}) joined Excalidraw room ${roomId}`, {
-        collaborators: room.collaborators.size,
-        isFirstInRoom,
-      });
-
     } catch (error) {
       Logger.error("websockets", "Error joining Excalidraw room", error);
       socket.emit("excalidraw-error", { message: "Failed to join room" });
@@ -378,8 +353,6 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
     try {
       const { roomId } = event;
       if (!roomId) return;
-
-      Logger.debug("websockets", `Socket ${socket.id} leaving Excalidraw room ${roomId}`);
 
       const room = excalidrawRooms.get(roomId);
       if (room) {
@@ -397,7 +370,6 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
         // Clean up empty rooms
         if (room.collaborators.size === 0) {
           excalidrawRooms.delete(roomId);
-          Logger.debug("websockets", `Cleaned up empty Excalidraw room ${roomId}`);
         }
       }
 
@@ -506,7 +478,6 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
         // Clean up empty rooms
         if (room.collaborators.size === 0) {
           excalidrawRooms.delete(roomId);
-          Logger.debug("websockets", `Cleaned up empty Excalidraw room ${roomId} after disconnect`);
         }
       }
     }

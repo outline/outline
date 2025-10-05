@@ -50,8 +50,6 @@ export class ConnectionManager {
       // Dynamically import Socket.io client
       const { default: socketIOClient } = await import("socket.io-client");
 
-      console.log(`[ConnectionManager] Connecting to: ${this.config.serverUrl}`);
-
       this.socket = socketIOClient(this.config.serverUrl, {
         path: "/realtime",
         transports: ["websocket", "polling"],
@@ -74,14 +72,12 @@ export class ConnectionManager {
     if (!this.socket) return;
 
     this.socket.on("connect", () => {
-      console.log("[ConnectionManager] Socket connected");
       this.updateStatus(ConnectionStatus.CONNECTED);
       this.retryCount = 0;
       this.callbacks.onConnect();
     });
 
     this.socket.on("disconnect", () => {
-      console.log("[ConnectionManager] Socket disconnected");
       if (!this.isDestroyed) {
         this.updateStatus(ConnectionStatus.DISCONNECTED);
         this.callbacks.onDisconnect();
@@ -90,7 +86,6 @@ export class ConnectionManager {
     });
 
     this.socket.on("connect_error", (error: any) => {
-      console.error("[ConnectionManager] Connection error:", error);
       if (!this.isDestroyed) {
         this.callbacks.onError("Connection error", CollabErrorType.CONNECTION_FAILED);
         this.attemptReconnection();
@@ -98,7 +93,6 @@ export class ConnectionManager {
     });
 
     this.socket.on("authenticated", () => {
-      console.log("[ConnectionManager] Authentication successful");
       this.callbacks.onAuthenticated();
 
       // Join the Excalidraw room after authentication
@@ -110,27 +104,22 @@ export class ConnectionManager {
     });
 
     this.socket.on("unauthorized", (data: { message: string }) => {
-      console.error("[ConnectionManager] Authentication failed:", data.message);
       this.callbacks.onError("Authentication failed: " + data.message, CollabErrorType.AUTHENTICATION_FAILED);
     });
 
     this.socket.on("excalidraw-joined-room", (data: { roomId: string; documentId: string; collaborators: string[]; isFirstInRoom: boolean }) => {
-      console.log("[ConnectionManager] Joined Excalidraw room:", data.roomId);
       this.callbacks.onJoinedRoom(data);
     });
 
     this.socket.on("excalidraw-first-in-room", () => {
-      console.log("[ConnectionManager] First in room event received");
       this.callbacks.onFirstInRoom();
     });
 
     this.socket.on("excalidraw-new-user", (data: { socketId: string }) => {
-      console.log("[ConnectionManager] New user joined:", data.socketId);
       this.callbacks.onNewUser(data.socketId);
     });
 
     this.socket.on("excalidraw-error", (data: { message: string }) => {
-      console.error("[ConnectionManager] Excalidraw error:", data.message);
       this.callbacks.onError(data.message, CollabErrorType.CONNECTION_FAILED);
     });
   }
@@ -147,7 +136,6 @@ export class ConnectionManager {
     if (this.socket) {
       // Gracefully leave the room before disconnecting
       if (this.socket.connected) {
-        console.log("[ConnectionManager] Leaving Excalidraw room before disconnect");
         this.socket.emit("leave-excalidraw-room", {
           roomId: this.config.roomId
         });
@@ -179,7 +167,6 @@ export class ConnectionManager {
     }
 
     const delay = Math.min(1000 * Math.pow(2, this.retryCount), 30000); // Max 30 seconds
-    console.log(`[ConnectionManager] Attempting reconnection in ${delay}ms (attempt ${this.retryCount + 1})`);
 
     this.updateStatus(ConnectionStatus.RECONNECTING);
     this.retryCount++;

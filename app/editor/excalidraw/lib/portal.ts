@@ -62,7 +62,6 @@ export class ExcalidrawPortal {
     // This handles the case where portal.open() is called after socket connection (e.g., in onJoinedRoom callback)
     if (socket.connected) {
       this.socketInitialized = true;
-      console.log("[Portal] Socket already connected, setting socketInitialized = true");
     }
 
     this.setupSocketListeners();
@@ -77,7 +76,6 @@ export class ExcalidrawPortal {
 
     // Handle new user joining the room
     this.socket.on("excalidraw-new-user", (data: { socketId: string }) => {
-      console.log(`[Portal] New user joined: ${data.socketId}`);
       this.callbacks?.onNewUser(data.socketId);
 
       // Note: Broadcasting the current scene is handled by the collaboration orchestrator
@@ -86,27 +84,23 @@ export class ExcalidrawPortal {
 
     // Handle room user changes (collaborators list)
     this.socket.on("excalidraw-room-user-change", (data: { collaborators: SocketId[] }) => {
-      console.log(`[Portal] Room users changed:`, data.collaborators);
       this.callbacks?.onRoomUserChange(data.collaborators);
     });
 
     // Handle user leaving room
     this.socket.on("excalidraw-user-left", (data: { socketId: string }) => {
-      console.log(`[Portal] User left room: ${data.socketId}`);
       // Actual cleanup is handled by excalidraw-room-user-change event
       // This handler is for logging and potential future cleanup logic
     });
 
     // Handle when user is first in room
     this.socket.on("excalidraw-first-in-room", () => {
-      console.log(`[Portal] First in room`);
       this.callbacks?.onFirstInRoom();
     });
 
     // Handle encrypted collaboration data
     this.socket.on("excalidraw-client-broadcast", async (data: { encryptedData: number[]; iv: number[]; socketId: string }) => {
       if (!this.roomKey) {
-        console.warn("[Portal] Received encrypted data but no room key available");
         return;
       }
 
@@ -118,25 +112,22 @@ export class ExcalidrawPortal {
         const decryptedData = await this.decryptPayload(iv, encryptedData, this.roomKey);
         this.handleDecryptedMessage(decryptedData);
       } catch (error) {
-        console.error("[Portal] Failed to decrypt collaboration data:", error);
+        // Silent error handling
       }
     });
 
     // Handle user follow events
     this.socket.on("excalidraw-user-follow-change", (data: { followerId: string; followUserId?: string }) => {
-      console.log(`[Portal] User follow change:`, data);
       this.callbacks?.onUserFollowRoomChange([data.followerId]);
     });
 
     // Handle disconnection
     this.socket.on("disconnect", () => {
-      console.log("[Portal] Socket disconnected");
       this.socketInitialized = false;
     });
 
     // Handle connection
     this.socket.on("connect", () => {
-      console.log("[Portal] Socket connected");
       this.socketInitialized = true;
     });
   }
@@ -147,12 +138,10 @@ export class ExcalidrawPortal {
   private handleDecryptedMessage(data: SocketUpdateData): void {
     switch (data.type) {
       case WS_SUBTYPES.INVALID_RESPONSE:
-        console.warn("[Portal] Received invalid response");
         break;
 
       case WS_SUBTYPES.INIT:
       case WS_SUBTYPES.UPDATE:
-        console.log(`[Portal] Received ${data.type}:`, data.payload.elements.length, "elements");
         this.callbacks?.onElementsChange(data.payload.elements, data.type);
         break;
 
@@ -162,15 +151,14 @@ export class ExcalidrawPortal {
         break;
 
       case WS_SUBTYPES.IDLE_STATUS:
-        console.log(`[Portal] User ${data.payload.socketId} is ${data.payload.userState}`);
         break;
 
       case WS_SUBTYPES.USER_VISIBLE_SCENE_BOUNDS:
-        console.log(`[Portal] Scene bounds from ${data.payload.socketId}`);
         break;
 
       default:
-        console.warn("[Portal] Unknown message type:", data);
+        // Unknown message type
+        break;
     }
   }
 
@@ -182,7 +170,6 @@ export class ExcalidrawPortal {
       return;
     }
 
-    console.log("[Portal] Closing portal (socket managed by ConnectionManager)");
     this.queueFileUpload.flush();
     // DO NOT close socket here - ConnectionManager owns it
     // Removing socket.close() to prevent double-close
@@ -214,7 +201,6 @@ export class ExcalidrawPortal {
     roomId?: string
   ): Promise<void> {
     if (!this.isOpen()) {
-      console.warn("[Portal] Cannot broadcast - portal not open");
       return;
     }
 
@@ -228,10 +214,8 @@ export class ExcalidrawPortal {
         encryptedData: Array.from(new Uint8Array(encryptedBuffer)), // Convert to array for transmission
         iv: Array.from(iv) // Convert to array for transmission
       });
-
-      // console.log(`[Portal] Broadcasted ${data.type} via excalidraw-broadcast`);
     } catch (error) {
-      console.error("[Portal] Failed to broadcast data:", error);
+      // Silent error handling
     }
   }
 
@@ -243,7 +227,6 @@ export class ExcalidrawPortal {
     elements: readonly OrderedExcalidrawElement[],
     syncAll: boolean
   ): Promise<void> {
-    console.log("[Portal] broadcastScene called, type:", updateType, "elements:", elements.length, "syncAll:", syncAll);
     if (updateType === WS_SUBTYPES.INIT && !syncAll) {
       throw new Error("syncAll must be true when sending SCENE.INIT");
     }
@@ -258,7 +241,6 @@ export class ExcalidrawPortal {
     });
 
     if (syncableElements.length === 0 && !syncAll) {
-      console.log("[Portal] No elements to sync");
       return;
     }
 
@@ -304,7 +286,6 @@ export class ExcalidrawPortal {
     };
 
     await this.broadcastSocketData(data as SocketUpdateData, true); // volatile
-    // console.log(`[Portal] Broadcasted cursor location via encrypted channel`);
   }
 
   /**
@@ -319,8 +300,6 @@ export class ExcalidrawPortal {
       roomId: this.roomId,
       userState,
     });
-
-    console.log(`[Portal] Broadcasted idle status: ${userState}`);
   }
 
   /**
@@ -359,8 +338,6 @@ export class ExcalidrawPortal {
       roomId: this.roomId,
       followUserId: payload.userToFollow,
     });
-
-    console.log(`[Portal] Broadcasted user follow:`, payload.userToFollow);
   }
 
   /**
@@ -369,7 +346,6 @@ export class ExcalidrawPortal {
   queueFileUpload = throttle(() => {
     // File upload logic would go here
     // For now, this is a placeholder to maintain API compatibility
-    console.log("[Portal] File upload queued");
   }, FILE_UPLOAD_TIMEOUT);
 
   /**
@@ -381,7 +357,6 @@ export class ExcalidrawPortal {
       const { encryptData } = await getEncryptionFunctions();
       return await encryptData(key, data);
     } catch (error) {
-      console.error("[Portal] Failed to encrypt data:", error);
       throw new Error("Encryption not available");
     }
   }
@@ -402,7 +377,6 @@ export class ExcalidrawPortal {
       const decodedData = new TextDecoder("utf-8").decode(new Uint8Array(decrypted));
       return JSON.parse(decodedData);
     } catch (error) {
-      console.error("[Portal] Decryption failed:", error);
       return {
         type: WS_SUBTYPES.INVALID_RESPONSE,
       };

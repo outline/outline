@@ -30,7 +30,6 @@ export function generateEncryptionKey(): string {
     }
     return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
   } catch (error) {
-    console.error('[Encryption] Failed to generate key:', error);
     // Emergency fallback
     return Date.now().toString(36) + Math.random().toString(36).substring(2);
   }
@@ -60,13 +59,11 @@ export async function decryptData(
   // Check if data is unencrypted (zero IV) - our current passthrough mode
   const isZeroIV = iv.every(byte => byte === 0);
   if (isZeroIV) {
-    console.log('[Encryption] Decrypting passthrough data');
     return encryptedData; // Return as-is if unencrypted
   }
 
   // If we get here, it means we received encrypted data but we're in passthrough mode
   // This shouldn't happen with the current setup, but handle it gracefully
-  console.warn('[Encryption] Received encrypted data in passthrough mode, returning as-is');
   return encryptedData;
 }
 

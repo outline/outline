@@ -2,7 +2,6 @@
  * Browser-side Excalidraw SVG generation
  * Uses Excalidraw's exportToSvg directly (no jsdom needed in browser)
  */
-import { exportToSvg } from "@excalidraw/excalidraw";
 import type { AppState, BinaryFiles } from "@excalidraw/excalidraw/types";
 import type {
   ExcalidrawElement,
@@ -24,6 +23,9 @@ export async function generateExcalidrawSVG(
   const { exportPadding = 10, skipInliningFonts = true } = options;
 
   try {
+    // Dynamic import to avoid Node.js ESM resolution errors during backend build
+    const { exportToSvg } = await import("@excalidraw/excalidraw");
+
     // Generate SVG using Excalidraw's exportToSvg utility
     // exportEmbedScene: true ensures the scene data is embedded in the SVG metadata
     const svgElement = await exportToSvg({
@@ -41,18 +43,6 @@ export async function generateExcalidrawSVG(
 
     // Convert SVG element to string - no optimization
     const svgString = svgElement.outerHTML;
-
-    // Verify scene data was embedded
-    const hasPayload = svgString.includes('<!-- payload-start -->');
-    console.log('[SVGGenerator] Generated SVG:', {
-      length: svgString.length,
-      hasPayload,
-      elementCount: (elements as any[]).length,
-    });
-
-    if (!hasPayload) {
-      console.warn('[SVGGenerator] WARNING: Scene data not embedded in SVG!');
-    }
 
     return svgString;
   } catch (error) {

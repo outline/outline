@@ -7,7 +7,7 @@ import useStores from "~/hooks/useStores";
 import useQuery from "~/hooks/useQuery";
 import Document from "~/models/Document";
 import Error404 from "~/scenes/Errors/Error404";
-import ExcalidrawComponent from "@shared/editor/components/Excalidraw";
+import ExcalidrawComponent from "~/editor/excalidraw/components/Excalidraw";
 
 type Params = {
   id: string;
