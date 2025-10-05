@@ -5,6 +5,8 @@ import {
   isInTable,
   selectedRect,
 } from "prosemirror-tables";
+import { ColumnSelection } from "../selection/ColumnSelection";
+import { RowSelection } from "../selection/RowSelection";
 
 /**
  * Checks if the current selection is a column selection.
@@ -12,7 +14,7 @@ import {
  * @returns True if the selection is a column selection, false otherwise.
  */
 export function isColSelection(state: EditorState): boolean {
-  if (state.selection instanceof CellSelection) {
+  if (state.selection instanceof ColumnSelection) {
     return state.selection.isColSelection();
   }
   return false;
@@ -24,14 +26,14 @@ export function isColSelection(state: EditorState): boolean {
  * @returns True if the selection is a row selection, false otherwise.
  */
 export function isRowSelection(state: EditorState): boolean {
-  if (state.selection instanceof CellSelection) {
+  if (state.selection instanceof RowSelection) {
     return state.selection.isRowSelection();
   }
   return false;
 }
 
 export function getColumnIndex(state: EditorState): number | undefined {
-  if (state.selection instanceof CellSelection) {
+  if (state.selection instanceof ColumnSelection) {
     if (state.selection.isColSelection()) {
       const rect = selectedRect(state);
       return rect.left;
@@ -42,7 +44,7 @@ export function getColumnIndex(state: EditorState): number | undefined {
 }
 
 export function getRowIndex(state: EditorState): number | undefined {
-  if (state.selection instanceof CellSelection) {
+  if (state.selection instanceof RowSelection) {
     if (state.selection.isRowSelection()) {
       const rect = selectedRect(state);
       return rect.top;

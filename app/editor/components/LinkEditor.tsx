@@ -282,7 +282,8 @@ const LinkEditor: React.FC<Props> = ({
 
 const Wrapper = styled(Flex)`
   pointer-events: all;
-  gap: 8px;
+  gap: 6px;
+  padding: 6px;
 `;
 
 const SearchResults = styled(Scrollable)<{ $hasResults: boolean }>`
