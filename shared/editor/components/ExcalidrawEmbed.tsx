@@ -1,7 +1,10 @@
 import * as React from "react";
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
+import styled from "styled-components";
 import Frame from "./Frame";
 import Image from "./Img";
+import { ResizeBottom } from "./ResizeHandle";
+import useDragResize from "./hooks/useDragResize";
 
 type Props = {
   svg: string;
@@ -9,6 +12,7 @@ type Props = {
   position: number;
   height?: number;
   isSelected?: boolean;
+  isEditable?: boolean;
   onSave?: (data: { svg: string; height?: number }) => void;
   style?: React.CSSProperties;
 };
@@ -21,13 +25,56 @@ function ExcalidrawEmbed({
   svg,
   documentId,
   position,
-  height = 500,
+  height: initialHeight = 500,
   isSelected,
+  isEditable = true,
   onSave,
   style,
 }: Props) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const hasInitialized = useRef(false);
+  const [currentSvg, setCurrentSvg] = useState(svg);
+
+  // Resize functionality
+  const naturalWidth = 0; // Full width
+  const naturalHeight = 500;
+  const isResizable = !!onSave && isEditable;
+
+  const { width, height, setSize, handlePointerDown, dragging } = useDragResize({
+    width: naturalWidth,
+    height: initialHeight,
+    naturalWidth,
+    naturalHeight,
+    gridSnap: 5,
+    onChangeSize: (size) => {
+      // Trigger save with new height
+      if (onSave && size.height) {
+        onSave({ svg: currentSvg, height: size.height });
+      }
+
+      // Tell iframe to scroll to content after resize
+      if (iframeRef.current?.contentWindow) {
+        iframeRef.current.contentWindow.postMessage(
+          {
+            type: "excalidraw:resize",
+          },
+          window.location.origin
+        );
+      }
+    },
+    ref: wrapperRef,
+  });
+
+  // Sync node height changes with resize hook
+  useEffect(() => {
+    if (initialHeight && initialHeight !== height && !dragging) {
+      setSize({
+        width: naturalWidth,
+        height: initialHeight,
+      });
+    }
+  }, [initialHeight, height, dragging, setSize]);
 
   // Build iframe URL with query params
   // Use a stable ID based on position for the route param
@@ -67,8 +114,10 @@ function ExcalidrawEmbed({
         case "excalidraw:save":
           // Iframe wants to save
           if (onSave && data) {
+            const newSvg = data.svg;
+            setCurrentSvg(newSvg);
             onSave({
-              svg: data.svg,
+              svg: newSvg,
               height: data.height,
             });
           }
@@ -113,31 +162,62 @@ function ExcalidrawEmbed({
   }, [svg, documentId, position]);
 
   const frameStyle: React.CSSProperties = {
-    width: "100%",
+    width: width || "100%",
     height: height || 500,
+    maxWidth: "100%",
+    pointerEvents: dragging ? "none" : "all",
     ...style,
   };
 
   return (
-    <Frame
-      ref={iframeRef}
-      src={iframeUrl}
-      style={frameStyle}
-      isSelected={isSelected}
-      icon={
-        <Image
-          src="/images/excalidraw.png"
-          alt="Excalidraw"
-          width={16}
-          height={16}
+    <FrameWrapper ref={wrapperRef}>
+      <Frame
+        ref={iframeRef}
+        src={iframeUrl}
+        style={frameStyle}
+        isSelected={isSelected}
+        icon={
+          <Image
+            src="/images/excalidraw.png"
+            alt="Excalidraw"
+            width={16}
+            height={16}
+          />
+        }
+        title="Excalidraw"
+        border
+        onLoad={handleIframeLoad}
+      />
+      {isEditable && isResizable && (
+        <StyledResizeBottom
+          onPointerDown={handlePointerDown("bottom")}
+          $dragging={!!dragging}
         />
-      }
-      title="Excalidraw"
-      canonicalUrl={`${window.location.origin}${iframeUrl}`}
-      border
-      onLoad={handleIframeLoad}
-    />
+      )}
+    </FrameWrapper>
   );
 }
+
+const FrameWrapper = styled.div`
+  line-height: 0;
+  position: relative;
+  margin-left: auto;
+  margin-right: auto;
+  white-space: nowrap;
+  cursor: default;
+  border-radius: 8px;
+  user-select: none;
+  max-width: 100%;
+
+  transition-property: width, max-height;
+  transition-duration: 150ms;
+  transition-timing-function: ease-in-out;
+`;
+
+const StyledResizeBottom = styled(ResizeBottom)`
+  &:hover {
+    opacity: 1;
+  }
+`;
 
 export default ExcalidrawEmbed;

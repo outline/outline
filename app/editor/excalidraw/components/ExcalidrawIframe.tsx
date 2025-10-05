@@ -12,17 +12,11 @@ import { ConnectionStatus } from "../lib/constants";
 import { getDefaultLibraries } from "../lib/defaultLibraries";
 import { extractSceneFromSVG, hasEmbeddedScene } from "../lib/svgExtractor";
 import { generateExcalidrawSVG } from "../lib/svgGenerator";
+import { Excalidraw } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
 
 // Namespace UUID for Excalidraw diagrams
 const EXCALIDRAW_NAMESPACE = "6ba7b810-9dad-11d1-80b4-00c04fd430c8";
-
-// Dynamic imports for Excalidraw
-const ExcalidrawLazy = React.lazy(() =>
-  import("@excalidraw/excalidraw").then((module) => ({
-    default: module.Excalidraw
-  }))
-);
 
 type Props = {
   svg: string;
@@ -32,6 +26,7 @@ type Props = {
   collaborationToken?: string;
   theme: "light" | "dark";
   onSave?: (svg: string, height?: number) => void;
+  scrollToContentTrigger?: number;
 };
 
 // Helper functions for collaboration
@@ -67,6 +62,7 @@ const ExcalidrawIframe: React.FC<Props> = ({
   collaborationToken,
   theme,
   onSave,
+  scrollToContentTrigger,
 }) => {
   const [isViewMode, setIsViewMode] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -81,6 +77,8 @@ const ExcalidrawIframe: React.FC<Props> = ({
   const hasInitialized = useRef(false);
   const debouncedSaveRef = useRef<ReturnType<typeof debounce>>();
   const containerRef = useRef<HTMLDivElement>(null);
+  const lastLoadedSvgRef = useRef<string>("");
+  const hasInitiallyLoadedRef = useRef(false);
 
   // Track component mounted state
   useEffect(() => {
@@ -93,6 +91,19 @@ const ExcalidrawIframe: React.FC<Props> = ({
   // Load initial diagram data from SVG
   useEffect(() => {
     if (typeof window === "undefined" || !svg) {
+      return;
+    }
+
+    // Guard: Skip reload if SVG hasn't actually changed from what we're currently showing
+    // This prevents unnecessary reloads and state resets
+    if (svg === lastLoadedSvgRef.current) {
+      return;
+    }
+
+    // Guard: Skip reload if already initially loaded
+    // Once loaded, Excalidraw's internal state is the source of truth
+    // We only reload when the SVG actually changes (external edits)
+    if (hasInitiallyLoadedRef.current) {
       return;
     }
 
@@ -130,6 +141,10 @@ const ExcalidrawIframe: React.FC<Props> = ({
             },
           });
         }
+
+        // Update tracking refs
+        lastLoadedSvgRef.current = svg;
+        hasInitiallyLoadedRef.current = true;
       } catch {
         setInitialData({
           elements: [],
@@ -140,6 +155,7 @@ const ExcalidrawIframe: React.FC<Props> = ({
           },
         });
         setConnectionError("Failed to load diagram data");
+        hasInitiallyLoadedRef.current = true;
       } finally {
         setIsLoadingInitialData(false);
       }
@@ -230,15 +246,15 @@ const ExcalidrawIframe: React.FC<Props> = ({
     };
   }, [documentId, position, user, collaborationToken]);
 
-  // Memoize pointer update callback - only active in edit mode
+  // Memoize pointer update callback - active in both view and edit modes
   const memoizedPointerUpdate = useMemo(() =>
-    (!isViewMode && collaboration) ? (update: { pointer: { x: number; y: number }; button: "up" | "down" }) => {
+    collaboration ? (update: { pointer: { x: number; y: number }; button: "up" | "down" }) => {
       if (!excalidrawAPI || !isMountedRef.current || !collaboration.isCollaborating()) {
         return;
       }
       collaboration.updatePointer(update.pointer, update.button);
     } : undefined
-  , [collaboration, excalidrawAPI, isViewMode]);
+  , [collaboration, excalidrawAPI]);
 
   // Initialize collaboration
   useEffect(() => {
@@ -395,6 +411,33 @@ const ExcalidrawIframe: React.FC<Props> = ({
     };
   }, [excalidrawAPI, onSave, scrollToContentHelper]);
 
+  // Scroll to content when triggered by parent (e.g., after resize)
+  useEffect(() => {
+    if (scrollToContentTrigger && scrollToContentTrigger > 0) {
+      scrollToContentHelper({ animate: true, delay: 100 });
+    }
+  }, [scrollToContentTrigger, scrollToContentHelper]);
+
+  // Listen for window resize events and scroll to content in view mode
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const debouncedResizeHandler = debounce(() => {
+      if (isViewMode) {
+        scrollToContentHelper({ animate: true, delay: 100 });
+      }
+    }, 300);
+
+    window.addEventListener("resize", debouncedResizeHandler);
+
+    return () => {
+      window.removeEventListener("resize", debouncedResizeHandler);
+      debouncedResizeHandler.cancel();
+    };
+  }, [isViewMode, scrollToContentHelper]);
+
   // Save on unmount
   useEffect(() => {
     return () => {
@@ -420,7 +463,7 @@ const ExcalidrawIframe: React.FC<Props> = ({
   if (isLoadingInitialData || !initialData) {
     return (
       <ExcalidrawErrorBoundary>
-        <Container>
+        <Container $isFullscreen={false}>
           <LoadingPlaceholder>
             <Spinner />
             <span>Loading diagram...</span>
@@ -433,51 +476,49 @@ const ExcalidrawIframe: React.FC<Props> = ({
   return (
     <ExcalidrawErrorBoundary>
       <Container ref={containerRef} $isFullscreen={isFullscreen}>
-        <React.Suspense fallback={<LoadingPlaceholder>Loading Excalidraw...</LoadingPlaceholder>}>
-          <ExcalidrawLazy
-            excalidrawAPI={setExcalidrawAPI}
-            initialData={initialData}
-            onChange={handleChange}
-            onPointerUpdate={memoizedPointerUpdate}
-            viewModeEnabled={isViewMode}
-            isCollaborating={true}
-            theme={theme}
-            UIOptions={{
-              canvasActions: {
-                clearCanvas: true,
-                export: {
-                  saveFileToDisk: false,
-                },
-                loadScene: true,
-                toggleTheme: true,
-                saveAsImage: true,
-              },
-            }}
-            renderTopRightUI={() => (
-              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', pointerEvents: 'auto' }}>
-                <button
-                  className="help-icon"
-                  onClick={handleToggleViewMode}
-                  title={isViewMode ? "Enter Edit Mode" : "Enter View Mode"}
-                  aria-label={isViewMode ? "Enter Edit Mode" : "Enter View Mode"}
-                  style={{ pointerEvents: 'auto' }}
-                >
-                  {isViewMode ? <EditIcon size={20} /> : <EyeIcon size={20} />}
-                </button>
-                <button
-                  className="help-icon"
-                  onClick={handleToggleFullscreen}
-                  title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-                  aria-label={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-                  style={{ pointerEvents: 'auto' }}
-                >
-                  {isFullscreen ? <CollapseIcon size={20} /> : <ExpandedIcon size={20} />}
-                </button>
-              </div>
-            )}
-            handleKeyboardGlobally={true}
-          />
-        </React.Suspense>
+        <Excalidraw
+          excalidrawAPI={setExcalidrawAPI}
+          initialData={initialData}
+          onChange={handleChange}
+          onPointerUpdate={memoizedPointerUpdate}
+          viewModeEnabled={isViewMode}
+          isCollaborating={true}
+          theme={theme}
+          UIOptions={{
+            canvasActions: {
+              changeViewBackgroundColor: true,
+              clearCanvas: true,
+              export: false,
+              loadScene: true,
+              saveToActiveFile: false,
+              toggleTheme: true,
+              saveAsImage: true,
+            },
+          }}
+          renderTopRightUI={() => (
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', pointerEvents: 'auto' }}>
+              <button
+                className="help-icon"
+                onClick={handleToggleViewMode}
+                title={isViewMode ? "Enter Edit Mode" : "Enter View Mode"}
+                aria-label={isViewMode ? "Enter Edit Mode" : "Enter View Mode"}
+                style={{ pointerEvents: 'auto' }}
+              >
+                {isViewMode ? <EditIcon size={20} /> : <EyeIcon size={20} />}
+              </button>
+              <button
+                className="help-icon"
+                onClick={handleToggleFullscreen}
+                title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                aria-label={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                style={{ pointerEvents: 'auto' }}
+              >
+                {isFullscreen ? <CollapseIcon size={20} /> : <ExpandedIcon size={20} />}
+              </button>
+            </div>
+          )}
+          handleKeyboardGlobally={true}
+        />
 
         {/* Connection status overlay */}
         {(connectionStatus === ConnectionStatus.CONNECTING ||

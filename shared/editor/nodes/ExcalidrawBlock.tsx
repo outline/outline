@@ -140,7 +140,7 @@ export default class ExcalidrawBlock extends Node {
 
 
   component = (props: ComponentProps) => {
-    const { node, getPos } = props;
+    const { node, getPos, isEditable } = props;
     const documentId = this.editor?.props.id || "";
     const position = typeof getPos === "function" ? getPos() : 0;
 
@@ -151,6 +151,7 @@ export default class ExcalidrawBlock extends Node {
         position={position}
         height={node.attrs.height}
         isSelected={props.isSelected}
+        isEditable={isEditable}
         onSave={(data) => {
           // Update node attributes when iframe saves
           if (typeof getPos === "function") {

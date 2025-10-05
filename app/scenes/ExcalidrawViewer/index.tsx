@@ -62,6 +62,9 @@ function ExcalidrawViewer(props: Props) {
     }
   }, []);
 
+  // State to trigger scroll in iframe
+  const [shouldScrollToContent, setShouldScrollToContent] = useState(0);
+
   // Listen for init message from parent
   const handleMessage = useCallback((event: MessageEvent) => {
     // Validate origin
@@ -73,6 +76,9 @@ function ExcalidrawViewer(props: Props) {
 
     if (type === "excalidraw:init" && data) {
       setInitialSvg(data.svg || "");
+    } else if (type === "excalidraw:resize") {
+      // Trigger scroll to content in iframe
+      setShouldScrollToContent(prev => prev + 1);
     }
   }, []);
 
@@ -126,6 +132,7 @@ function ExcalidrawViewer(props: Props) {
         collaborationToken={auth.collaborationToken || undefined}
         theme={ui.resolvedTheme as "light" | "dark"}
         onSave={handleSave}
+        scrollToContentTrigger={shouldScrollToContent}
       />
     </Container>
   );
