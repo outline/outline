@@ -182,7 +182,8 @@ export default class TableCell extends Node {
                 }
 
                 const className = cn(EditorStyleHelper.tableGripRow, {
-                  selected: isRowSelected(index)(state),
+                  selected:
+                    isRowSelected(index)(state) || isTableSelected(state),
                   first: index === 0,
                   last: visualIndex === rows.length - 1,
                 });

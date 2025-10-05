@@ -1,5 +1,5 @@
 import { NodeSelection } from "prosemirror-state";
-import { CellSelection, selectedRect } from "prosemirror-tables";
+import { selectedRect } from "prosemirror-tables";
 import * as React from "react";
 import { Portal as ReactPortal } from "react-portal";
 import styled, { css } from "styled-components";
@@ -15,6 +15,9 @@ import useMobile from "~/hooks/useMobile";
 import useWindowSize from "~/hooks/useWindowSize";
 import Logger from "~/utils/Logger";
 import { useEditor } from "./EditorContext";
+import { ColumnSelection } from "@shared/editor/selection/ColumnSelection";
+import { RowSelection } from "@shared/editor/selection/RowSelection";
+import { isTableSelected } from "@shared/editor/queries/table";
 
 type Props = {
   align?: "start" | "end" | "center";
@@ -104,11 +107,11 @@ function usePosition({
 
   // tables are an oddity, and need their own positioning logic
   const isColSelection =
-    selection instanceof CellSelection && selection.isColSelection();
+    selection instanceof ColumnSelection && selection.isColSelection();
   const isRowSelection =
-    selection instanceof CellSelection && selection.isRowSelection();
+    selection instanceof RowSelection && selection.isRowSelection();
 
-  if (isColSelection && isRowSelection) {
+  if (isTableSelected(view.state)) {
     const rect = selectedRect(view.state);
     const table = view.domAtPos(rect.tableStart);
     const bounds = (table.node as HTMLElement).getBoundingClientRect();
@@ -349,7 +352,6 @@ const Background = styled.div<{ align: Props["align"] }>`
   box-shadow: ${s("menuShadow")};
   border-radius: 4px;
   height: 36px;
-  padding: 6px;
 
   ${(props) =>
     props.align === "start" &&

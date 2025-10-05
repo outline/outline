@@ -157,6 +157,7 @@ const FlexibleWrapper = styled.div`
   overflow: hidden;
   display: flex;
   gap: 6px;
+  padding: 6px;
 
   ${breakpoint("mobile", "tablet")`
     justify-content: space-evenly;
