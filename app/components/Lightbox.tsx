@@ -46,6 +46,7 @@ import {
   useTransformEffect,
   ReactZoomPanPinchRef,
 } from "react-zoom-pan-pinch";
+import { transparentize } from "polished";
 
 export enum LightboxStatus {
   READY_TO_OPEN,
@@ -645,7 +646,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
           </VisuallyHidden.Root>
           <Actions animation={animation.current}>
             <Tooltip content={t("Zoom in")} placement="bottom">
-              <Button
+              <ActionButton
                 tabIndex={-1}
                 disabled={status.image === ImageStatus.MAX_ZOOM}
                 onClick={() => {
@@ -661,7 +662,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
               />
             </Tooltip>
             <Tooltip content={t("Zoom out")} placement="bottom">
-              <Button
+              <ActionButton
                 tabIndex={-1}
                 disabled={
                   !(
@@ -684,7 +685,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
             <Separator />
             <Tooltip content={t("Copy link")} placement="bottom">
               <CopyToClipboard text={imgRef.current?.src ?? ""}>
-                <Button
+                <ActionButton
                   tabIndex={-1}
                   aria-label={t("Copy link")}
                   size={32}
@@ -695,7 +696,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
               </CopyToClipboard>
             </Tooltip>
             <Tooltip content={t("Download")} placement="bottom">
-              <Button
+              <ActionButton
                 tabIndex={-1}
                 onClick={download}
                 aria-label={t("Download")}
@@ -708,7 +709,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
             <Separator />
             <Dialog.Close asChild>
               <Tooltip content={t("Close")} shortcut="Esc" placement="bottom">
-                <Button
+                <ActionButton
                   tabIndex={-1}
                   onClick={close}
                   aria-label={t("Close")}
@@ -1009,6 +1010,10 @@ const StyledContent = styled(Dialog.Content)`
   outline: none;
 `;
 
+const ActionButton = styled(Button)`
+  background: transparent;
+`;
+
 const Actions = styled.div<{
   animation: Animation | null;
 }>`
@@ -1020,6 +1025,9 @@ const Actions = styled.div<{
   align-items: center;
   gap: 8px;
   z-index: ${depths.modal};
+  background: ${(props) => transparentize(0.2, props.theme.background)};
+  backdrop-filter: blur(4px);
+  border-radius: 6px;
 
   ${(props) =>
     props.animation === null
