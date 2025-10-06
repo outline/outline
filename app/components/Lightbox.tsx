@@ -21,6 +21,8 @@ import {
   DownloadIcon,
   LinkIcon,
   NextIcon,
+  ZoomInIcon,
+  ZoomOutIcon,
 } from "outline-icons";
 import { depths, extraArea, s } from "@shared/styles";
 import NudeButton from "./NudeButton";
@@ -42,6 +44,7 @@ import {
   TransformWrapper,
   TransformComponent,
   useTransformEffect,
+  ReactZoomPanPinchRef,
 } from "react-zoom-pan-pinch";
 
 export enum LightboxStatus {
@@ -57,8 +60,9 @@ export enum ImageStatus {
   LOADING,
   ERROR,
   LOADED,
-  ZOOMED_OUT,
-  ZOOMED_IN,
+  MIN_ZOOM,
+  MAX_ZOOM,
+  ZOOMED,
 }
 type Status = {
   lightbox: LightboxStatus | null;
@@ -91,14 +95,15 @@ type ZoomablePannablePinchableProps = {
   children: ReactNode;
   panningDisabled: boolean;
 };
-const ZoomablePannablePinchable = ({
-  children,
-  panningDisabled,
-}: ZoomablePannablePinchableProps) => {
+const ZoomablePannablePinchable = forwardRef<
+  ReactZoomPanPinchRef,
+  ZoomablePannablePinchableProps
+>(({ children, panningDisabled }, ref) => {
   const { isPanning, ...panningHandlers } = usePanning();
   return (
     <ZoomPanPinchContext.Provider value={{ isImagePanning: isPanning }}>
       <TransformWrapper
+        ref={ref}
         doubleClick={{ disabled: true }}
         panning={{
           disabled: panningDisabled,
@@ -114,7 +119,7 @@ const ZoomablePannablePinchable = ({
       </TransformWrapper>
     </ZoomPanPinchContext.Provider>
   );
-};
+});
 
 function usePanning() {
   const [isPanning, setPanning] = useState(false);
@@ -170,6 +175,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
   const { t } = useTranslation();
   const imgRef = useRef<HTMLImageElement | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
   const [status, setStatus] = useState<Status>({ lightbox: null, image: null });
   const animation = useRef<Animation | null>(null);
   const finalImage = useRef<{
@@ -177,6 +183,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
     width: number;
     height: number;
   } | null>(null);
+  const zoomPanPinchRef = useRef<ReactZoomPanPinchRef>(null);
 
   const currentImageIndex = findIndex(
     images,
@@ -234,7 +241,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
     ) {
       setStatus({
         lightbox: LightboxStatus.OPENED,
-        image: ImageStatus.ZOOMED_OUT,
+        image: ImageStatus.MIN_ZOOM,
       });
     }
   }, [status.lightbox, status.image]);
@@ -255,6 +262,15 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
       onUpdate(null);
     }
   }, [status.lightbox]);
+
+  useEffect(() => {
+    if (status.image === ImageStatus.MIN_ZOOM) {
+      // It was observed that focus went to `body` as the zoom out button was disabled
+      // upon clicking it. This stopped navigating to next/previous image using arrow keys.
+      // So focusing the content div here to restore the functionality.
+      contentRef.current?.focus();
+    }
+  }, [status.image]);
 
   const rememberImagePosition = () => {
     if (imgRef.current) {
@@ -369,7 +385,13 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
   };
 
   const setupZoomOut = () => {
-    if (imgRef.current && status.image !== ImageStatus.ZOOMED_IN) {
+    if (
+      imgRef.current &&
+      !(
+        status.image === ImageStatus.ZOOMED ||
+        status.image === ImageStatus.MAX_ZOOM
+      )
+    ) {
       // in lightbox
       const lightboxImgDOMRect = imgRef.current.getBoundingClientRect();
       const {
@@ -466,7 +488,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
   const prev = () => {
     if (
       status.lightbox === LightboxStatus.OPENED &&
-      status.image === ImageStatus.ZOOMED_OUT
+      status.image === ImageStatus.MIN_ZOOM
     ) {
       const prevIndex = currentImageIndex - 1;
       if (prevIndex < 0) {
@@ -479,7 +501,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
   const next = () => {
     if (
       status.lightbox === LightboxStatus.OPENED &&
-      status.image === ImageStatus.ZOOMED_OUT
+      status.image === ImageStatus.MIN_ZOOM
     ) {
       const nextIndex = currentImageIndex + 1;
       if (nextIndex >= images.length) {
@@ -614,7 +636,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
           onAnimationStart={handleFadeStart}
           onAnimationEnd={handleFadeEnd}
         />
-        <StyledContent onKeyDown={handleKeyDown}>
+        <StyledContent onKeyDown={handleKeyDown} ref={contentRef}>
           <VisuallyHidden.Root>
             <Dialog.Title>{t("Lightbox")}</Dialog.Title>
             <Dialog.Description>
@@ -622,6 +644,44 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
             </Dialog.Description>
           </VisuallyHidden.Root>
           <Actions animation={animation.current}>
+            <Tooltip content={t("Zoom in")} placement="bottom">
+              <Button
+                tabIndex={-1}
+                disabled={status.image === ImageStatus.MAX_ZOOM}
+                onClick={() => {
+                  if (zoomPanPinchRef.current) {
+                    zoomPanPinchRef.current.zoomIn();
+                  }
+                }}
+                aria-label={t("Zoom in")}
+                size={32}
+                icon={<ZoomInIcon />}
+                borderOnHover
+                neutral
+              />
+            </Tooltip>
+            <Tooltip content={t("Zoom out")} placement="bottom">
+              <Button
+                tabIndex={-1}
+                disabled={
+                  !(
+                    status.image === ImageStatus.ZOOMED ||
+                    status.image === ImageStatus.MAX_ZOOM
+                  )
+                }
+                onClick={() => {
+                  if (zoomPanPinchRef.current) {
+                    zoomPanPinchRef.current.zoomOut();
+                  }
+                }}
+                aria-label={t("Zoom out")}
+                size={32}
+                icon={<ZoomOutIcon />}
+                borderOnHover
+                neutral
+              />
+            </Tooltip>
+            <Separator />
             <Tooltip content={t("Copy link")} placement="bottom">
               <CopyToClipboard text={imgRef.current?.src ?? ""}>
                 <Button
@@ -660,15 +720,25 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
               </Tooltip>
             </Dialog.Close>
           </Actions>
-          {currentImageIndex > 0 && status.image !== ImageStatus.ZOOMED_IN && (
-            <Nav dir="left" $hidden={isIdle} animation={animation.current}>
-              <NavButton onClick={prev} size={32} aria-label={t("Previous")}>
-                <BackIcon size={32} />
-              </NavButton>
-            </Nav>
-          )}
+          {currentImageIndex > 0 &&
+            !(
+              status.image === ImageStatus.ZOOMED ||
+              status.image === ImageStatus.MAX_ZOOM
+            ) && (
+              <Nav dir="left" $hidden={isIdle} animation={animation.current}>
+                <NavButton onClick={prev} size={32} aria-label={t("Previous")}>
+                  <BackIcon size={32} />
+                </NavButton>
+              </Nav>
+            )}
           <ZoomablePannablePinchable
-            panningDisabled={status.image !== ImageStatus.ZOOMED_IN}
+            panningDisabled={
+              !(
+                status.image === ImageStatus.ZOOMED ||
+                status.image === ImageStatus.MAX_ZOOM
+              )
+            }
+            ref={zoomPanPinchRef}
           >
             <Image
               ref={imgRef}
@@ -698,22 +768,31 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
               onSwipeDown={close}
               status={status}
               animation={animation.current}
-              onZoomIn={() =>
+              onMinZoom={() => {
                 setStatus({
                   lightbox: status.lightbox,
-                  image: ImageStatus.ZOOMED_IN,
+                  image: ImageStatus.MIN_ZOOM,
+                });
+              }}
+              onZoom={() =>
+                setStatus({
+                  lightbox: status.lightbox,
+                  image: ImageStatus.ZOOMED,
                 })
               }
-              onZoomOut={() =>
+              onMaxZoom={() =>
                 setStatus({
                   lightbox: status.lightbox,
-                  image: ImageStatus.ZOOMED_OUT,
+                  image: ImageStatus.MAX_ZOOM,
                 })
               }
             />
           </ZoomablePannablePinchable>
           {currentImageIndex < images.length - 1 &&
-            status.image !== ImageStatus.ZOOMED_IN && (
+            !(
+              status.image === ImageStatus.ZOOMED ||
+              status.image === ImageStatus.MAX_ZOOM
+            ) && (
               <Nav dir="right" $hidden={isIdle} animation={animation.current}>
                 <NavButton onClick={next} size={32} aria-label={t("Next")}>
                   <NextIcon size={32} />
@@ -738,8 +817,9 @@ type ImageProps = {
   onSwipeDown: () => void;
   status: Status;
   animation: Animation | null;
-  onZoomIn: () => void;
-  onZoomOut: () => void;
+  onMinZoom: () => void;
+  onZoom: () => void;
+  onMaxZoom: () => void;
 };
 
 const Image = forwardRef<HTMLImageElement, ImageProps>(function _Image(
@@ -755,8 +835,9 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function _Image(
     onSwipeDown,
     status,
     animation,
-    onZoomIn,
-    onZoomOut,
+    onMinZoom,
+    onZoom,
+    onMaxZoom,
   }: ImageProps,
   ref
 ) {
@@ -773,10 +854,12 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function _Image(
 
   useTransformEffect(({ state }) => {
     const { scale } = state;
-    if (scale > 1 && status.image === ImageStatus.ZOOMED_OUT) {
-      onZoomIn();
-    } else if (scale === 1 && status.image === ImageStatus.ZOOMED_IN) {
-      onZoomOut();
+    if (scale === 1 && status.image === ImageStatus.ZOOMED) {
+      onMinZoom();
+    } else if (scale === 8 && status.image === ImageStatus.ZOOMED) {
+      onMaxZoom();
+    } else if (scale > 1 && scale < 8 && status.image !== ImageStatus.ZOOMED) {
+      onZoom();
     }
   });
 
@@ -814,12 +897,15 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function _Image(
           onError={onError}
           onLoad={onLoad}
           $hidden={hidden}
-          $zoomedIn={status.image === ImageStatus.ZOOMED_IN}
-          $zoomedOut={status.image === ImageStatus.ZOOMED_OUT}
+          $zoomedIn={
+            status.image === ImageStatus.ZOOMED ||
+            status.image === ImageStatus.MAX_ZOOM
+          }
+          $zoomedOut={status.image === ImageStatus.MIN_ZOOM}
           $panning={isImagePanning}
         />
         <Caption>
-          {status.image === ImageStatus.ZOOMED_OUT &&
+          {status.image === ImageStatus.MIN_ZOOM &&
           status.lightbox === LightboxStatus.OPENED ? (
             <Fade>{alt}</Fade>
           ) : null}
