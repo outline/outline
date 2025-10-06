@@ -49,7 +49,7 @@ export default abstract class ExportTask extends BaseTask<Props> {
       : {
           teamId: user.teamId,
           archivedAt: {
-            [Op.ne]: null,
+            [Op.eq]: null,
           },
         };
 
