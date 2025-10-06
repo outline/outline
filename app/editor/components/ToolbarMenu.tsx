@@ -20,7 +20,7 @@ import EventBoundary from "@shared/components/EventBoundary";
 
 type Props = {
   items: MenuItem[];
-  handlers?: Record<string, Function>;
+  handlers?: Record<string, (...args: any[]) => void>;
 };
 
 /*
