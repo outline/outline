@@ -3732,10 +3732,10 @@
   version "1.0.0-beta.28-commit.59ccf5f"
   resolved "https://pkg.pr.new/rolldown/rolldown/@rolldown/binding-win32-x64-msvc@59ccf5f#2e016b3948f01b395dc0c918acdd6143ab932d0f"
 
-"@rolldown/pluginutils@1.0.0-beta.11":
-  version "1.0.0-beta.11"
-  resolved "https://registry.yarnpkg.com/@rolldown/pluginutils/-/pluginutils-1.0.0-beta.11.tgz#1e3e8044dd053c3dfa4bbbb3861f6e180ee78343"
-  integrity sha512-L/gAA/hyCSuzTF1ftlzUSI/IKr2POHsv1Dd78GfqkR83KMNuswWD61JxGV2L7nRwBBBSDr6R1gCkdTmoN7W4ag==
+"@rolldown/pluginutils@1.0.0-beta.35":
+  version "1.0.0-beta.35"
+  resolved "https://registry.yarnpkg.com/@rolldown/pluginutils/-/pluginutils-1.0.0-beta.35.tgz#1a477e7742b154b67519d40e4fc17485de338e7a"
+  integrity sha512-slYrCpoxJUqzFDDNlvrOYRazQUNRvWPjXA17dAOISY3rDMxX6k8K4cj2H+hEYMHF81HO3uNd5rHVigAWRM5dSg==
 
 "@rolldown/pluginutils@https://pkg.pr.new/rolldown/rolldown/@rolldown/pluginutils@59ccf5f":
   version "1.0.0-beta.28-commit.59ccf5f"
@@ -5573,12 +5573,12 @@
   dependencies:
     "@types/node" "*"
 
-"@vitejs/plugin-react-oxc@^0.2.3":
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/@vitejs/plugin-react-oxc/-/plugin-react-oxc-0.2.3.tgz#f4e6b71682c78d6a4fb2796350191aba56737849"
-  integrity sha512-ONriHoEGQv+ITmeJQsHIpx7u1ms8Z68oIo3AdKCoaBTvZtF+AfDVviQ3tKgCTnIbz9NW8V2Rd/Q+5zjzpsht1g==
+"@vitejs/plugin-react-oxc@^0.4.2":
+  version "0.4.2"
+  resolved "https://registry.yarnpkg.com/@vitejs/plugin-react-oxc/-/plugin-react-oxc-0.4.2.tgz#f6884645478e6c97b72ad962983aa350a4db4eb7"
+  integrity sha512-wPfjQrCQMk9J2caEN2A2yDMBS4pxBG23S1J9kzvrTS5LHkXIAA64o4kfF+f6mA7W148U+7eBrYR9awoo0t3yYA==
   dependencies:
-    "@rolldown/pluginutils" "1.0.0-beta.11"
+    "@rolldown/pluginutils" "1.0.0-beta.35"
 
 "@xmldom/xmldom@^0.8.6":
   version "0.8.10"
