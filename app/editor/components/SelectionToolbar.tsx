@@ -29,7 +29,7 @@ import getTableMenuItems from "../menus/table";
 import getTableColMenuItems from "../menus/tableCol";
 import getTableRowMenuItems from "../menus/tableRow";
 import { useEditor } from "./EditorContext";
-import { EmbededMediaLinkEditor } from "./EmbededMediaLinkEditor";
+import { EmbeddedMediaLinkEditor } from "./EmbeddedMediaLinkEditor";
 import FloatingToolbar from "./FloatingToolbar";
 import LinkEditor from "./LinkEditor";
 import ToolbarMenu from "./ToolbarMenu";
@@ -274,7 +274,7 @@ export default function SelectionToolbar(props: Props) {
           onSelectLink={handleOnSelectLink}
         />
       ) : isEditingMedia ? (
-        <EmbededMediaLinkEditor
+        <EmbeddedMediaLinkEditor
           key={`embed-${selection.from}`}
           node={selection.node}
           view={view}

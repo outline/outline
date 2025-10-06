@@ -80,7 +80,7 @@ export default function imageMenuItems(
       children: [
         {
           name: "replaceImage",
-          label: dictionary.selectNewImage,
+          label: dictionary.uploadImage,
         },
         {
           name: "editImageUrl",

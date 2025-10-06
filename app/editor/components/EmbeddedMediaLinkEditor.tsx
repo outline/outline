@@ -16,7 +16,7 @@ type Props = {
   dictionary: Dictionary;
 };
 
-export function EmbededMediaLinkEditor({ node, view, dictionary }: Props) {
+export function EmbeddedMediaLinkEditor({ node, view, dictionary }: Props) {
   const url = (node.attrs.href ?? node.attrs.src) as string;
   const [localUrl, setLocalUrl] = useState(url);
 
