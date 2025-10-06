@@ -2,7 +2,7 @@ import { OpenIcon, TrashIcon } from "outline-icons";
 import { Node } from "prosemirror-model";
 import { Selection, TextSelection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
 import Tooltip from "~/components/Tooltip";
@@ -75,29 +75,6 @@ export function EmbeddedMediaLinkEditor({ node, view, dictionary }: Props) {
       }
     },
     [update, moveSelectionToEnd]
-  );
-
-  useEffect(
-    () => () => {
-      const { state } = view;
-      let transaction = state.tr;
-      let modified = false;
-
-      state.doc.descendants((node, pos) => {
-        if (node.type.name === "image" && node.attrs.editing) {
-          transaction = transaction.setNodeMarkup(pos, undefined, {
-            ...node.attrs,
-            editing: false,
-          });
-          modified = true;
-        }
-      });
-
-      if (modified) {
-        view.dispatch(transaction);
-      }
-    },
-    [view]
   );
 
   return (

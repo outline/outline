@@ -111,6 +111,7 @@ export default function SelectionToolbar(props: Props) {
   const isActive = useIsActive(view.state) || isMobile;
   const isDragging = useIsDragging();
   const previousIsActive = usePrevious(isActive);
+  const [isEditingImgUrl, setIsEditingImgUrl] = React.useState(false);
 
   React.useEffect(() => {
     // Trigger callbacks when the toolbar is opened or closed
@@ -124,6 +125,8 @@ export default function SelectionToolbar(props: Props) {
 
   React.useEffect(() => {
     const handleClickOutside = (ev: MouseEvent): void => {
+      setIsEditingImgUrl(false);
+
       if (
         ev.target instanceof HTMLElement &&
         menuRef.current &&
@@ -253,7 +256,7 @@ export default function SelectionToolbar(props: Props) {
     link && link.from === selection.from && link.to === selection.to;
 
   const isEditingMedia =
-    isEmbedSelection || (isImageSelection && selection.node.attrs.editing);
+    isEmbedSelection || (isImageSelection && isEditingImgUrl);
 
   return (
     <FloatingToolbar
@@ -281,7 +284,13 @@ export default function SelectionToolbar(props: Props) {
           dictionary={dictionary}
         />
       ) : (
-        <ToolbarMenu items={items} {...rest} />
+        <ToolbarMenu
+          items={items}
+          {...rest}
+          handlers={{
+            editImageUrl: () => setIsEditingImgUrl(true),
+          }}
+        />
       )}
     </FloatingToolbar>
   );

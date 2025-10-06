@@ -114,10 +114,6 @@ export default class Image extends SimpleImage {
           default: null,
           validate: "string|null",
         },
-        editing: {
-          default: false,
-          validate: "boolean",
-        },
       },
       content: "text*",
       marks: "",
@@ -507,30 +503,6 @@ export default class Image extends SimpleImage {
           dispatch?.(tr.setSelection(new NodeSelection($pos)));
           return true;
         },
-      editImageUrl: (): Command => (state, dispatch) => {
-        if (!(state.selection instanceof NodeSelection)) {
-          return false;
-        }
-
-        const { node, from } = state.selection;
-        const { attrs } = node;
-
-        if (!attrs?.editing) {
-          const tr = state.tr.setNodeMarkup(from, undefined, {
-            ...attrs,
-            editing: true,
-          });
-
-          const $pos = tr.doc.resolve(from);
-          const newSelection = new NodeSelection($pos);
-          tr.setSelection(newSelection);
-
-          dispatch?.(tr);
-          return true;
-        }
-
-        return false;
-      },
     };
   }
 
