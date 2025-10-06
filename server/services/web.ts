@@ -46,7 +46,6 @@ export default function init(app: Koa = new Koa(), server?: Server) {
   }
 
   app.use(compress());
-  app.use(attachCSRFToken());
 
   // Monitor server connections
   if (server) {
@@ -65,6 +64,9 @@ export default function init(app: Koa = new Koa(), server?: Server) {
   });
 
   app.use(mount("/api", api));
+
+  // Generate and attach a CSRF token to the session on non-API requests
+  app.use(attachCSRFToken());
 
   // Apply CSP middleware after API as these responses are rendered in the browser
   app.use(csp());
