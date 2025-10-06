@@ -12,8 +12,9 @@ import useStores from "~/hooks/useStores";
 import { settingsPath } from "~/utils/routeHelpers";
 import IntegrationCard from "./components/IntegrationCard";
 import { StickyFilters } from "./components/StickyFilters";
+import { observer } from "mobx-react";
 
-export function Integrations() {
+function Integrations() {
   const { t } = useTranslation();
   const { integrations } = useStores();
   const items = useSettingsConfig();
@@ -70,3 +71,5 @@ const Cards = styled(Flex)`
   margin-top: 20px;
   width: "100%";
 `;
+
+export default observer(Integrations);

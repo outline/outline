@@ -14,13 +14,13 @@ import { MenuItem } from "@shared/editor/types";
 import { depths, s } from "@shared/styles";
 import { getEventFiles } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
-import Header from "~/components/ContextMenu/Header";
 import { Portal } from "~/components/Portal";
 import Scrollable from "~/components/Scrollable";
 import useDictionary from "~/hooks/useDictionary";
 import Logger from "~/utils/Logger";
 import { useEditor } from "./EditorContext";
 import Input from "./Input";
+import { MenuHeader } from "~/components/primitives/components/Menu";
 
 type TopAnchor = {
   top: number;
@@ -647,7 +647,9 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                   const response = (
                     <React.Fragment key={`${index}-${item.name}`}>
                       {currentHeading !== previousHeading && (
-                        <Header key={currentHeading}>{currentHeading}</Header>
+                        <MenuHeader key={currentHeading}>
+                          {currentHeading}
+                        </MenuHeader>
                       )}
                       <ListItem
                         onPointerMove={handlePointerMove}

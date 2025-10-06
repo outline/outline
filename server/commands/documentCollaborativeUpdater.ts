@@ -44,9 +44,11 @@ export default async function documentCollaborativeUpdater({
     const state = Y.encodeStateAsUpdate(ydoc);
     const content = yDocToProsemirrorJSON(ydoc, "default") as ProsemirrorData;
     const isUnchanged = isEqual(document.content, content);
-    const lastModifiedById =
-      sessionCollaboratorIds[sessionCollaboratorIds.length - 1] ??
-      document.lastModifiedById;
+    const isDeleted = !!document.deletedAt;
+    const lastModifiedById = isDeleted
+      ? document.lastModifiedById
+      : (sessionCollaboratorIds[sessionCollaboratorIds.length - 1] ??
+        document.lastModifiedById);
 
     if (isUnchanged) {
       return;

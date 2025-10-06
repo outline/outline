@@ -31,6 +31,8 @@ import {
 } from "../queries/table";
 import { TableLayout } from "../types";
 import { collapseSelection } from "./collapseSelection";
+import { RowSelection } from "../selection/RowSelection";
+import { ColumnSelection } from "../selection/ColumnSelection";
 
 export function createTable({
   rowsCount,
@@ -492,8 +494,8 @@ export function selectRow(index: number, expand = false): Command {
       const $pos = state.doc.resolve(rect.tableStart + pos);
       const rowSelection =
         expand && state.selection instanceof CellSelection
-          ? CellSelection.rowSelection(state.selection.$anchorCell, $pos)
-          : CellSelection.rowSelection($pos);
+          ? RowSelection.rowSelection(state.selection.$anchorCell, $pos)
+          : RowSelection.rowSelection($pos);
       dispatch(state.tr.setSelection(rowSelection));
       return true;
     }
@@ -509,8 +511,8 @@ export function selectColumn(index: number, expand = false): Command {
       const $pos = state.doc.resolve(rect.tableStart + pos);
       const colSelection =
         expand && state.selection instanceof CellSelection
-          ? CellSelection.colSelection(state.selection.$anchorCell, $pos)
-          : CellSelection.colSelection($pos);
+          ? ColumnSelection.colSelection(state.selection.$anchorCell, $pos)
+          : ColumnSelection.colSelection($pos);
       dispatch(state.tr.setSelection(colSelection));
       return true;
     }

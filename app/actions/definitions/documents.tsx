@@ -47,7 +47,6 @@ import ConfirmationDialog from "~/components/ConfirmationDialog";
 import DocumentCopy from "~/components/DocumentCopy";
 import { DocumentDownload } from "~/components/DocumentDownload";
 import MarkdownIcon from "~/components/Icons/MarkdownIcon";
-import SharePopover from "~/components/Sharing/Document";
 import { getHeaderExpandedKey } from "~/components/Sidebar/components/Header";
 import DocumentTemplatizeDialog from "~/components/TemplatizeDialog";
 import {
@@ -78,7 +77,14 @@ import {
 import capitalize from "lodash/capitalize";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import { ActionV2, ActionV2Group, ActionV2Separator } from "~/types";
-import Insights from "~/scenes/Document/components/Insights";
+import lazyWithRetry from "~/utils/lazyWithRetry";
+
+const Insights = lazyWithRetry(
+  () => import("~/scenes/Document/components/Insights")
+);
+const SharePopover = lazyWithRetry(
+  () => import("~/components/Sharing/Document/SharePopover")
+);
 
 export const openDocument = createAction({
   name: ({ t }) => t("Open document"),
@@ -538,12 +544,15 @@ export const copyDocumentAsMarkdown = createActionV2({
   iconInContextMenu: false,
   visible: ({ activeDocumentId, stores }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
-  perform: ({ stores, activeDocumentId, t }) => {
+  perform: async ({ stores, activeDocumentId, t }) => {
     const document = activeDocumentId
       ? stores.documents.get(activeDocumentId)
       : undefined;
     if (document) {
-      copy(document.toMarkdown());
+      const { ProsemirrorHelper } = await import(
+        "~/models/helpers/ProsemirrorHelper"
+      );
+      copy(ProsemirrorHelper.toMarkdown(document));
       toast.success(t("Markdown copied to clipboard"));
     }
   },
@@ -557,12 +566,15 @@ export const copyDocumentAsPlainText = createActionV2({
   iconInContextMenu: false,
   visible: ({ activeDocumentId, stores }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
-  perform: ({ stores, activeDocumentId, t }) => {
+  perform: async ({ stores, activeDocumentId, t }) => {
     const document = activeDocumentId
       ? stores.documents.get(activeDocumentId)
       : undefined;
     if (document) {
-      copy(document.toPlainText());
+      const { ProsemirrorHelper } = await import(
+        "~/models/helpers/ProsemirrorHelper"
+      );
+      copy(ProsemirrorHelper.toPlainText(document));
       toast.success(t("Text copied to clipboard"));
     }
   },
@@ -794,7 +806,7 @@ export const importDocument = createActionV2({
     }
 
     if (activeCollectionId) {
-      return !!stores.policies.abilities(activeCollectionId).update;
+      return !!stores.policies.abilities(activeCollectionId).createDocument;
     }
 
     return false;
@@ -807,7 +819,6 @@ export const importDocument = createActionV2({
 
     input.onchange = async (ev) => {
       const files = getEventFiles(ev);
-
       const file = files[0];
 
       try {

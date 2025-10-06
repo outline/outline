@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
-import { depths, s } from "@shared/styles";
+import { depths, hideScrollbars, s } from "@shared/styles";
 import { useDocumentContext } from "~/components/DocumentContext";
 import useWindowScrollPosition from "~/hooks/useWindowScrollPosition";
 import { decodeURIComponentSafe } from "~/utils/urls";
@@ -37,7 +37,9 @@ function Contents() {
       }
     }
 
-    setActiveSlug(activeId);
+    if (activeSlug !== activeId) {
+      setActiveSlug(activeId);
+    }
   }, [scrollPosition, headings]);
 
   // calculate the minimum heading level and adjust all the headings to make
@@ -76,16 +78,16 @@ function Contents() {
 
 const StickyWrapper = styled.div`
   display: none;
-
   position: sticky;
   top: 90px;
   max-height: calc(100vh - 90px);
   width: ${EditorStyleHelper.tocWidth}px;
 
+  ${hideScrollbars()}
+
   padding: 0 16px;
   overflow-y: auto;
   border-radius: 8px;
-
   background: ${s("background")};
 
   @supports (backdrop-filter: blur(20px)) {

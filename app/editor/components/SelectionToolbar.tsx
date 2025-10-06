@@ -1,6 +1,5 @@
 import some from "lodash/some";
 import { EditorState, NodeSelection, TextSelection } from "prosemirror-state";
-import { CellSelection } from "prosemirror-tables";
 import * as React from "react";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { getMarkRange } from "@shared/editor/queries/getMarkRange";
@@ -8,7 +7,11 @@ import { isInCode } from "@shared/editor/queries/isInCode";
 import { isInNotice } from "@shared/editor/queries/isInNotice";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
-import { getColumnIndex, getRowIndex } from "@shared/editor/queries/table";
+import {
+  getColumnIndex,
+  getRowIndex,
+  isTableSelected,
+} from "@shared/editor/queries/table";
 import { MenuItem } from "@shared/editor/types";
 import useBoolean from "~/hooks/useBoolean";
 import useDictionary from "~/hooks/useDictionary";
@@ -23,7 +26,6 @@ import getImageMenuItems from "../menus/image";
 import getNoticeMenuItems from "../menus/notice";
 import getReadOnlyMenuItems from "../menus/readOnly";
 import getTableMenuItems from "../menus/table";
-import getTableCellMenuItems from "../menus/tableCell";
 import getTableColMenuItems from "../menus/tableCol";
 import getTableRowMenuItems from "../menus/tableRow";
 import { useEditor } from "./EditorContext";
@@ -178,15 +180,13 @@ export default function SelectionToolbar(props: Props) {
   const { state } = view;
   const { selection } = state;
 
-  if ((readOnly && !canComment) || isDragging) {
+  if (isDragging) {
     return null;
   }
 
   const isDividerSelection = isNodeActive(state.schema.nodes.hr)(state);
   const colIndex = getColumnIndex(state);
   const rowIndex = getRowIndex(state);
-  const isTableSelection = colIndex !== undefined && rowIndex !== undefined;
-  const isCellSelection = selection instanceof CellSelection;
   const link = getMarkRange(selection.$from, state.schema.marks.link);
   const isImageSelection =
     selection instanceof NodeSelection && selection.node.type.name === "image";
@@ -199,17 +199,19 @@ export default function SelectionToolbar(props: Props) {
   const isNoticeSelection = isInNotice(state);
 
   let items: MenuItem[] = [];
+  let align: "center" | "start" | "end" = "center";
 
   if (isCodeSelection && selection.empty) {
     items = getCodeMenuItems(state, readOnly, dictionary);
-  } else if (isTableSelection) {
-    items = getTableMenuItems(state, dictionary);
+    align = "end";
+  } else if (isTableSelected(state)) {
+    items = readOnly ? [] : getTableMenuItems(state, dictionary);
   } else if (colIndex !== undefined) {
-    items = getTableColMenuItems(state, colIndex, rtl, dictionary);
+    items = readOnly
+      ? []
+      : getTableColMenuItems(state, colIndex, rtl, dictionary);
   } else if (rowIndex !== undefined) {
-    items = getTableRowMenuItems(state, rowIndex, dictionary);
-  } else if (isCellSelection) {
-    items = getTableCellMenuItems(state, dictionary);
+    items = readOnly ? [] : getTableRowMenuItems(state, rowIndex, dictionary);
   } else if (isImageSelection) {
     items = readOnly ? [] : getImageMenuItems(state, dictionary);
   } else if (isAttachmentSelection) {
@@ -220,6 +222,7 @@ export default function SelectionToolbar(props: Props) {
     items = getReadOnlyMenuItems(state, !!canUpdate, dictionary);
   } else if (isNoticeSelection && selection.empty) {
     items = getNoticeMenuItems(state, readOnly, dictionary);
+    align = "end";
   } else {
     items = getFormattingMenuItems(state, isTemplate, dictionary);
   }
@@ -251,6 +254,7 @@ export default function SelectionToolbar(props: Props) {
 
   return (
     <FloatingToolbar
+      align={align}
       active={isActive}
       ref={menuRef}
       width={showLinkToolbar || isEmbedSelection ? 336 : undefined}
