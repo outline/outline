@@ -184,6 +184,8 @@ export default function init(
     setTimeout(function () {
       // If the socket didn't authenticate after connection, disconnect it
       if (!socket.client.user) {
+        Logger.debug("websockets", `Disconnecting socket ${socket.id}`);
+        
         // @ts-expect-error should be boolean
         socket.disconnect("unauthorized");
       }
@@ -191,9 +193,13 @@ export default function init(
 
     try {
       await authenticate(socket);
+      Logger.debug("websockets", `Authenticated socket ${socket.id}`);
 
       await authenticated(io, socket);
     } catch (err) {
+      Logger.debug("websockets", `Authentication error socket ${socket.id}`, {
+        error: err.message,
+      });
       socket.emit("unauthorized", { message: err.message }, function () {
         socket.disconnect();
       });
