@@ -138,7 +138,6 @@ export default function init(
 
   const roomCleanupInterval = setInterval(() => {
     const now = Date.now();
-    let cleanedCount = 0;
 
     for (const [roomId, room] of excalidrawRooms.entries()) {
       const inactiveTime = now - room.lastActivity.getTime();
@@ -146,7 +145,6 @@ export default function init(
       // Clean up rooms that have been inactive for more than 1 hour
       if (inactiveTime > ROOM_INACTIVITY_TIMEOUT) {
         excalidrawRooms.delete(roomId);
-        cleanedCount++;
       }
     }
   }, ROOM_CLEANUP_INTERVAL);
@@ -185,7 +183,7 @@ export default function init(
       // If the socket didn't authenticate after connection, disconnect it
       if (!socket.client.user) {
         Logger.debug("websockets", `Disconnecting socket ${socket.id}`);
-        
+
         // @ts-expect-error should be boolean
         socket.disconnect("unauthorized");
       }
@@ -306,20 +304,20 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
       // Validate all IDs are valid UUIDs (roomId is now just the diagram UUID)
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       if (!uuidRegex.test(roomId)) {
-        Logger.warn("websockets", `Invalid roomId format: ${roomId}`);
+        Logger.debug("websockets", `Invalid roomId format: ${roomId}`);
         socket.emit("excalidraw-error", { message: "Invalid roomId format" });
         return;
       }
 
       if (!uuidRegex.test(documentId)) {
-        Logger.warn("websockets", `Invalid documentId format: ${documentId}`);
+        Logger.debug("websockets", `Invalid documentId format: ${documentId}`);
         socket.emit("excalidraw-error", { message: "Invalid documentId format" });
         return;
       }
 
       // Validate excalidrawDataId is a valid UUID (should match roomId now)
       if (!uuidRegex.test(excalidrawDataId)) {
-        Logger.warn("websockets", `Invalid excalidrawDataId format: ${excalidrawDataId}`);
+        Logger.debug("websockets", `Invalid excalidrawDataId format: ${excalidrawDataId}`);
         socket.emit("excalidraw-error", { message: "Invalid excalidrawDataId format" });
         return;
       }
@@ -361,7 +359,7 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
       });
 
     } catch (error) {
-      Logger.error("websockets", "Error joining Excalidraw room", error);
+      Logger.error("Error joining Excalidraw room", error);
       socket.emit("excalidraw-error", { message: "Failed to join room" });
     }
   });
@@ -370,7 +368,9 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
   socket.on("leave-excalidraw-room", async (event: { roomId: string }) => {
     try {
       const { roomId } = event;
-      if (!roomId) return;
+      if (!roomId) {
+        return;
+      }
 
       const room = excalidrawRooms.get(roomId);
       if (room) {
@@ -392,18 +392,20 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
       }
 
     } catch (error) {
-      Logger.error("websockets", "Error leaving Excalidraw room", error);
+      Logger.error("Error leaving Excalidraw room", error);
     }
   });
 
   // Broadcast collaboration data (plain JSON over WSS)
   socket.on("excalidraw-broadcast", (event: {
     roomId: string;
-    payload: any; // SocketUpdateData from client
+    payload: unknown;
   }) => {
     try {
       const { roomId, payload } = event;
-      if (!roomId) return;
+      if (!roomId) {
+        return;
+      }
 
       const room = excalidrawRooms.get(roomId);
       if (!room || !room.collaborators.has(socket.id)) {
@@ -420,7 +422,7 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
       });
 
     } catch (error) {
-      Logger.error("websockets", "Error broadcasting Excalidraw data", error);
+      Logger.error("Error broadcasting Excalidraw data", error);
     }
   });
 
@@ -437,10 +439,14 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
   }) => {
     try {
       const { roomId, userState } = event;
-      if (!roomId) return;
+      if (!roomId) {
+        return;
+      }
 
       const room = excalidrawRooms.get(roomId);
-      if (!room || !room.collaborators.has(socket.id)) return;
+      if (!room || !room.collaborators.has(socket.id)) {
+        return;
+      }
 
       // Broadcast idle status to other users in the room
       socket.to(`excalidraw-${roomId}`).emit("excalidraw-idle-status-change", {
@@ -449,7 +455,7 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
       });
 
     } catch (error) {
-      Logger.error("websockets", "Error handling idle status", error);
+      Logger.error("Error handling idle status", error);
     }
   });
 
@@ -460,10 +466,14 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
   }) => {
     try {
       const { roomId, followUserId } = event;
-      if (!roomId) return;
+      if (!roomId) {
+        return;
+      }
 
       const room = excalidrawRooms.get(roomId);
-      if (!room || !room.collaborators.has(socket.id)) return;
+      if (!room || !room.collaborators.has(socket.id)) {
+        return;
+      }
 
       // Broadcast follow event to room
       socket.nsp.to(`excalidraw-${roomId}`).emit("excalidraw-user-follow-change", {
@@ -472,7 +482,7 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
       });
 
     } catch (error) {
-      Logger.error("websockets", "Error handling follow event", error);
+      Logger.error("Error handling follow event", error);
     }
   });
 
