@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { v5 as uuidv5 } from "uuid";
 import debounce from "lodash/debounce";
@@ -45,6 +46,7 @@ const ExcalidrawIframe: React.FC<Props> = ({
   scrollToContentTrigger,
   libraryUrls,
 }) => {
+  const { t } = useTranslation();
   const [isViewMode, setIsViewMode] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawImperativeAPI | null>(null);
@@ -485,7 +487,7 @@ const ExcalidrawIframe: React.FC<Props> = ({
         <Container $isFullscreen={false}>
           <Flex column align="center" justify="center" gap={16} style={{ width: '100%', height: '100%', color: 'var(--text-secondary)' }}>
             <Spinner style={{ width: '48px', height: '48px' }} />
-            <span>Loading diagram...</span>
+            <span>{t("Loading diagram...")}</span>
           </Flex>
         </Container>
       </ErrorBoundary>
@@ -518,15 +520,15 @@ const ExcalidrawIframe: React.FC<Props> = ({
             <Flex gap={8} align="center" style={{ pointerEvents: 'auto' }}>
               <StyledButton
                 onClick={handleToggleViewMode}
-                title={isViewMode ? "Enter Edit Mode" : "Enter View Mode"}
-                aria-label={isViewMode ? "Enter Edit Mode" : "Enter View Mode"}
+                title={isViewMode ? t("Enter Edit Mode") : t("Enter View Mode")}
+                aria-label={isViewMode ? t("Enter Edit Mode") : t("Enter View Mode")}
               >
                 {isViewMode ? <EditIcon size={20} /> : <EyeIcon size={20} />}
               </StyledButton>
               <StyledButton
                 onClick={handleToggleFullscreen}
-                title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-                aria-label={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                title={isFullscreen ? t("Exit Fullscreen") : t("Enter Fullscreen")}
+                aria-label={isFullscreen ? t("Exit Fullscreen") : t("Enter Fullscreen")}
               >
                 {isFullscreen ? <CollapseIcon size={20} /> : <ExpandedIcon size={20} />}
               </StyledButton>
@@ -543,10 +545,10 @@ const ExcalidrawIframe: React.FC<Props> = ({
             <Flex column align="center" gap={16}>
               <Spinner style={{ width: '48px', height: '48px' }} />
               <div style={{ fontSize: '16px', textAlign: 'center', maxWidth: '300px', lineHeight: 1.5 }}>
-                {connectionStatus === ConnectionStatus.CONNECTING && "Connecting to collaboration..."}
-                {connectionStatus === ConnectionStatus.RECONNECTING && "Reconnecting..."}
+                {connectionStatus === ConnectionStatus.CONNECTING && t("Connecting to collaboration...")}
+                {connectionStatus === ConnectionStatus.RECONNECTING && t("Reconnecting...")}
                 {connectionStatus === ConnectionStatus.DISCONNECTED && (
-                  connectionError || "Connection lost. Reconnecting..."
+                  connectionError || t("Connection lost. Reconnecting...")
                 )}
               </div>
             </Flex>

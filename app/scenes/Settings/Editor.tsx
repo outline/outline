@@ -39,9 +39,9 @@ function Editor() {
 
       const trimmedUrl = url.trim();
 
-      // Basic validation for URL or filename
-      if (!trimmedUrl.endsWith(".excalidrawlib") && !trimmedUrl.startsWith("http")) {
-        toast.error(t("Please enter a valid URL or filename ending with .excalidrawlib"));
+      // Basic validation for URL
+      if (!trimmedUrl.startsWith("http") || !trimmedUrl.endsWith(".excalidrawlib")) {
+        toast.error(t("Please enter a valid URL ending with .excalidrawlib"));
         return;
       }
 
@@ -159,7 +159,7 @@ function Editor() {
       <Heading as="h2">{t("Excalidraw Libraries")}</Heading>
       <Text as="p" type="secondary">
         {t(
-          "Configure which Excalidraw libraries are available in the drawing editor. You can add URLs to remote .excalidrawlib files or filenames for local libraries in the public/excalidraw/libraries folder."
+          "Configure which Excalidraw libraries are available in the drawing editor. Add URLs to remote .excalidrawlib files."
         )}
       </Text>
 
@@ -184,7 +184,7 @@ function Editor() {
 
         <Flex gap={8} align="center">
           <Input
-            placeholder={t("https://example.com/library.excalidrawlib or filename.excalidrawlib")}
+            placeholder={"https://example.com/library.excalidrawlib"}
             value={newLibraryUrl}
             onChange={(e) => setNewLibraryUrl(e.target.value)}
             onKeyDown={(e) => {
@@ -208,9 +208,7 @@ function Editor() {
 
         <Text as="p" type="secondary" size="small">
           <Trans>
-            Available local libraries can be placed in the{" "}
-            <code>public/excalidraw/libraries/</code> folder. Remote URLs must
-            point to valid .excalidrawlib files.
+            URLs must point to valid .excalidrawlib files.
           </Trans>
         </Text>
       </Flex>
@@ -258,7 +256,7 @@ function Editor() {
             margin={0}
           />
           <Input
-            placeholder={t("https://unpkg.com/@iconify-json/logos@1/icons.json")}
+            placeholder={"https://unpkg.com/@iconify-json/logos@1/icons.json"}
             value={newIconPackUrl}
             onChange={(e) => setNewIconPackUrl(e.target.value)}
             onKeyDown={(e) => {
