@@ -2,7 +2,6 @@ import { observer } from "mobx-react";
 import { EmailIcon, LinkIcon } from "outline-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { v4 } from "uuid";
 import { EmbedDescriptor } from "@shared/editor/embeds";
 import { MenuItem } from "@shared/editor/types";
 import { MentionType } from "@shared/types";
@@ -97,11 +96,11 @@ function useItems({
         icon: <EmailIcon />,
         visible: !!mentionType,
         attrs: {
-          id: v4(),
+          id: crypto.randomUUID(),
           type: mentionType,
           label: pastedText,
           href: pastedText,
-          modelId: v4(),
+          modelId: crypto.randomUUID(),
           actorId: user?.id,
         },
         appendSpace: true,

@@ -1,4 +1,4 @@
-import { v4 } from "uuid";
+import { randomUUID } from "crypto";
 import { Scope } from "@shared/types";
 import { OAuthInterface } from "./OAuthInterface";
 import {
@@ -9,10 +9,10 @@ import {
 
 describe("OAuthInterface", () => {
   const user = {
-    id: v4(),
+    id: randomUUID(),
   };
   const client = {
-    id: v4(),
+    id: randomUUID(),
     grants: ["authorization_code", "refresh_token"],
     redirectUris: ["https://example.com/callback"],
   };

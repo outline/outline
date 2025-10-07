@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import {
   FileOperationFormat,
   FileOperationType,
@@ -25,7 +25,7 @@ function getKeyForFileOp(
 ) {
   return `${
     Buckets.uploads
-  }/${teamId}/${uuidv4()}/${name}-export.${format.replace(/outline-/, "")}.zip`;
+  }/${teamId}/${randomUUID()}/${name}-export.${format.replace(/outline-/, "")}.zip`;
 }
 
 async function collectionExporter({
