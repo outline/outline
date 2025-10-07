@@ -108,6 +108,8 @@ const ZoomablePannablePinchable = forwardRef<
         ref={ref}
         disabled={disabled}
         doubleClick={{ disabled: true }}
+        minScale={1}
+        maxScale={8}
         panning={{
           disabled: panningDisabled,
         }}
@@ -869,13 +871,19 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function _Image(
 
   const { isImagePanning } = useContext(ZoomPanPinchContext);
 
-  useTransformEffect(({ state }) => {
+  useTransformEffect(({ state, instance }) => {
+    const minScale = instance.props.minScale ?? 1;
+    const maxScale = instance.props.maxScale ?? 8;
     const { scale } = state;
-    if (scale === 1 && status.image === ImageStatus.ZOOMED) {
+    if (scale === minScale && status.image === ImageStatus.ZOOMED) {
       onMinZoom();
-    } else if (scale === 8 && status.image === ImageStatus.ZOOMED) {
+    } else if (scale === maxScale && status.image === ImageStatus.ZOOMED) {
       onMaxZoom();
-    } else if (scale > 1 && scale < 8 && status.image !== ImageStatus.ZOOMED) {
+    } else if (
+      scale > minScale &&
+      scale < maxScale &&
+      status.image !== ImageStatus.ZOOMED
+    ) {
       onZoom();
     }
   });
