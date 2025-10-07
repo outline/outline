@@ -95,16 +95,18 @@ const ZoomPanPinchContext = createContext({ isImagePanning: false });
 type ZoomablePannablePinchableProps = {
   children: ReactNode;
   panningDisabled: boolean;
+  disabled: boolean;
 };
 const ZoomablePannablePinchable = forwardRef<
   ReactZoomPanPinchRef,
   ZoomablePannablePinchableProps
->(({ children, panningDisabled }, ref) => {
+>(({ children, panningDisabled, disabled }, ref) => {
   const { isPanning, ...panningHandlers } = usePanning();
   return (
     <ZoomPanPinchContext.Provider value={{ isImagePanning: isPanning }}>
       <TransformWrapper
         ref={ref}
+        disabled={disabled}
         doubleClick={{ disabled: true }}
         panning={{
           disabled: panningDisabled,
@@ -113,7 +115,13 @@ const ZoomablePannablePinchable = forwardRef<
       >
         <TransformComponent
           wrapperStyle={{ width: "100%", height: "100%" }}
-          contentStyle={{ width: "100%", height: "100%", padding: "56px" }}
+          contentStyle={{
+            width: "100%",
+            height: "100%",
+            padding: "56px",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
         >
           {children}
         </TransformComponent>
@@ -489,7 +497,8 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
   const prev = () => {
     if (
       status.lightbox === LightboxStatus.OPENED &&
-      status.image === ImageStatus.MIN_ZOOM
+      (status.image === ImageStatus.MIN_ZOOM ||
+        status.image === ImageStatus.ERROR)
     ) {
       const prevIndex = currentImageIndex - 1;
       if (prevIndex < 0) {
@@ -502,7 +511,8 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
   const next = () => {
     if (
       status.lightbox === LightboxStatus.OPENED &&
-      status.image === ImageStatus.MIN_ZOOM
+      (status.image === ImageStatus.MIN_ZOOM ||
+        status.image === ImageStatus.ERROR)
     ) {
       const nextIndex = currentImageIndex + 1;
       if (nextIndex >= images.length) {
@@ -648,7 +658,10 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
             <Tooltip content={t("Zoom in")} placement="bottom">
               <ActionButton
                 tabIndex={-1}
-                disabled={status.image === ImageStatus.MAX_ZOOM}
+                disabled={
+                  status.image === ImageStatus.MAX_ZOOM ||
+                  status.image === ImageStatus.ERROR
+                }
                 onClick={() => {
                   if (zoomPanPinchRef.current) {
                     zoomPanPinchRef.current.zoomIn();
@@ -687,6 +700,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
               <CopyToClipboard text={imgRef.current?.src ?? ""}>
                 <ActionButton
                   tabIndex={-1}
+                  disabled={status.image === ImageStatus.ERROR}
                   aria-label={t("Copy link")}
                   size={32}
                   icon={<LinkIcon />}
@@ -698,6 +712,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
             <Tooltip content={t("Download")} placement="bottom">
               <ActionButton
                 tabIndex={-1}
+                disabled={status.image === ImageStatus.ERROR}
                 onClick={download}
                 aria-label={t("Download")}
                 size={32}
@@ -739,6 +754,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
                 status.image === ImageStatus.MAX_ZOOM
               )
             }
+            disabled={status.image === ImageStatus.ERROR}
             ref={zoomPanPinchRef}
           >
             <Image
