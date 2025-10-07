@@ -158,22 +158,38 @@ export default class ExcalidrawBlock extends Node {
             try {
               const { view } = this.editor;
               if (!view) {
+                // oxlint-disable-next-line no-console
+                console.warn("[ExcalidrawBlock] Cannot save: editor view not available");
                 return;
               }
 
               const pos = getPos();
               if (pos === null || pos === undefined || pos < 0) {
+                // oxlint-disable-next-line no-console
+                console.warn("[ExcalidrawBlock] Cannot save: invalid position", pos);
                 return;
               }
 
               const { tr } = view.state;
               if (pos >= tr.doc.content.size) {
+                // oxlint-disable-next-line no-console
+                console.warn("[ExcalidrawBlock] Cannot save: position out of bounds", pos, tr.doc.content.size);
                 return;
               }
 
               const currentNode = tr.doc.nodeAt(pos);
               if (!currentNode) {
+                // oxlint-disable-next-line no-console
+                console.warn("[ExcalidrawBlock] Cannot save: node not found at position", pos);
                 return;
+              }
+
+              // Only dispatch if SVG actually changed to avoid unnecessary updates
+              const svgChanged = currentNode.attrs.svg !== data.svg;
+              const heightChanged = data.height && currentNode.attrs.height !== data.height;
+
+              if (!svgChanged && !heightChanged) {
+                return; // No changes, skip dispatch
               }
 
               const transaction = tr
@@ -185,8 +201,10 @@ export default class ExcalidrawBlock extends Node {
                 .setMeta("addToHistory", true);
 
               view.dispatch(transaction);
-            } catch {
-              // Silently ignore save errors
+            } catch (error) {
+              // Fix #2: Log errors instead of silently ignoring
+              // oxlint-disable-next-line no-console
+              console.error("[ExcalidrawBlock] Save failed:", error);
             }
           }
         }}

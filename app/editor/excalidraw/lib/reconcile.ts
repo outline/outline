@@ -132,6 +132,7 @@ export function reconcileElements(
   const processedIds = new Set<string>();
 
   // Process remote elements (they may contain new or updated elements)
+  // Fix #7: Only create new refs when elements actually changed
   for (const remoteElement of remoteElements) {
     const localElement = localMap.get(remoteElement.id);
     processedIds.add(remoteElement.id);
@@ -148,7 +149,7 @@ export function reconcileElements(
     } else if (hasElementChanged(localElement, remoteElement)) {
       // Element exists locally and remotely but has changes
       const resolvedElement = resolveElementConflict(localElement, remoteElement);
-      // Always create new reference to ensure React detects change
+      // Create new reference only when using the resolved element
       reconciledElements.push({...resolvedElement});
 
       if (resolvedElement === remoteElement) {
@@ -160,12 +161,13 @@ export function reconcileElements(
         });
       }
     } else {
-      // No changes, but create new reference anyway to ensure React detects update
-      reconciledElements.push({...localElement});
+      // No changes, reuse existing reference (Fix #7: optimize re-renders)
+      reconciledElements.push(localElement);
     }
   }
 
   // Process local elements that weren't in remote
+  // Fix #7: Only create new refs when elements actually changed
   for (const localElement of localElements) {
     if (!processedIds.has(localElement.id)) {
       if (isFullSync) {
@@ -180,8 +182,8 @@ export function reconcileElements(
         }
       } else {
         // In partial sync (UPDATE), preserve local elements that aren't in the update
-        // Create new reference to ensure React detects change
-        reconciledElements.push({...localElement});
+        // Reuse existing reference (Fix #7: optimize re-renders)
+        reconciledElements.push(localElement);
       }
     }
   }

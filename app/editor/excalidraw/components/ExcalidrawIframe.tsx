@@ -8,6 +8,7 @@ import ErrorBoundary from "~/components/ErrorBoundary";
 import Spinner from "@shared/components/Spinner";
 import Flex from "@shared/components/Flex";
 import NudeButton from "~/components/NudeButton";
+import Logger from "~/utils/Logger";
 import type { ExcalidrawElement, AppState, ExcalidrawImperativeAPI } from "../lib/types";
 import { ExcalidrawCollaboration, type CollaborationCallbacks } from "../lib/collaboration";
 import { ConnectionStatus } from "../lib/constants";
@@ -58,9 +59,20 @@ const ExcalidrawIframe: React.FC<Props> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const lastLoadedSvgRef = useRef<string>("");
   const hasInitiallyLoadedRef = useRef(false);
+  const excalidrawAPIRef = useRef<ExcalidrawImperativeAPI | null>(null);
+  const onSaveRef = useRef(onSave);
 
   // Load libraries from team preferences
   useExcalidrawLibraries(excalidrawAPI, isMountedRef, libraryUrls);
+
+  // Keep refs up to date (Fix #4: Prevent stale closures)
+  useEffect(() => {
+    excalidrawAPIRef.current = excalidrawAPI;
+  }, [excalidrawAPI]);
+
+  useEffect(() => {
+    onSaveRef.current = onSave;
+  }, [onSave]);
 
   // Track component mounted state
   useEffect(() => {
@@ -239,16 +251,33 @@ const ExcalidrawIframe: React.FC<Props> = ({
     }
   }, [collaboration]);
 
+  // Centralized save function with error handling (Fix #2, #10)
+  const performSave = useCallback(async (svg: string, immediate = false): Promise<boolean> => {
+    const saveCallback = onSaveRef.current;
+    if (!saveCallback) {
+      return false;
+    }
+
+    try {
+      saveCallback(svg);
+      return true;
+    } catch (error) {
+      // Fix #2: Log errors instead of silently ignoring
+      Logger.error("Excalidraw save failed", error);
+      return false;
+    }
+  }, []);
+
   // Initialize debounced save function
   useEffect(() => {
     debouncedSaveRef.current = debounce((svg: string) => {
-      onSave?.(svg);
+      void performSave(svg, false);
     }, 2000);
 
     return () => {
       debouncedSaveRef.current?.cancel();
     };
-  }, [onSave]);
+  }, [performSave]);
 
   // Scroll to content helper
   const scrollToContentHelper = useCallback(
@@ -302,13 +331,18 @@ const ExcalidrawIframe: React.FC<Props> = ({
     }
 
     // Generate and save SVG (only in edit mode)
+    // Fix #6: Snapshot elements/appState before async operation to prevent race conditions
     if (excalidrawAPI && onSave && !isViewMode) {
-      generateExcalidrawSVG(newElements, newAppState)
+      const elementSnapshot = [...newElements];
+      const appStateSnapshot = { ...newAppState };
+
+      generateExcalidrawSVG(elementSnapshot, appStateSnapshot)
         .then((svg) => {
           debouncedSaveRef.current?.(svg);
         })
-        .catch(() => {
-          // Silently ignore save errors
+        .catch((error) => {
+          // Fix #2: Log errors instead of silently ignoring
+          Logger.error("Excalidraw failed to generate SVG for save", error);
         });
     }
   }, [collaboration, excalidrawAPI, onSave, isViewMode]);
@@ -318,14 +352,18 @@ const ExcalidrawIframe: React.FC<Props> = ({
     const wasEditMode = !isViewMode;
 
     // Save when switching from edit to view mode
-    if (wasEditMode && excalidrawAPI && onSave) {
-      const elements = excalidrawAPI.getSceneElements();
-      const appState = excalidrawAPI.getAppState();
+    // Fix #3: Cancel pending debounced save before immediate save
+    if (wasEditMode && excalidrawAPIRef.current && onSaveRef.current) {
+      debouncedSaveRef.current?.cancel();
+
+      const elements = excalidrawAPIRef.current.getSceneElements();
+      const appState = excalidrawAPIRef.current.getAppState();
       try {
         const svg = await generateExcalidrawSVG(elements, appState);
-        onSave(svg);
-      } catch {
-        // Silently ignore
+        await performSave(svg, true);
+      } catch (error) {
+        // Fix #2: Log errors instead of silently ignoring
+        Logger.error("Excalidraw failed to save on view mode toggle", error);
       }
     }
 
@@ -336,7 +374,7 @@ const ExcalidrawIframe: React.FC<Props> = ({
     if (wasEditMode) {
       scrollToContentHelper({ animate: true, delay: 100 });
     }
-  }, [isViewMode, excalidrawAPI, onSave, scrollToContentHelper]);
+  }, [isViewMode, scrollToContentHelper, performSave]);
 
   // Toggle fullscreen
   const handleToggleFullscreen = useCallback(() => {
@@ -361,14 +399,18 @@ const ExcalidrawIframe: React.FC<Props> = ({
       setIsFullscreen(isNowFullscreen);
 
       // Save and scroll when exiting fullscreen
-      if (!isNowFullscreen && excalidrawAPI && onSave) {
-        const elements = excalidrawAPI.getSceneElements();
-        const appState = excalidrawAPI.getAppState();
+      // Fix #3: Cancel pending debounced save before immediate save
+      if (!isNowFullscreen && excalidrawAPIRef.current && onSaveRef.current) {
+        debouncedSaveRef.current?.cancel();
+
+        const elements = excalidrawAPIRef.current.getSceneElements();
+        const appState = excalidrawAPIRef.current.getAppState();
         try {
           const svg = await generateExcalidrawSVG(elements, appState);
-          onSave(svg);
-        } catch {
-          // Silently ignore
+          await performSave(svg, true);
+        } catch (error) {
+          // Fix #2: Log errors instead of silently ignoring
+          Logger.error("Excalidraw failed to save on fullscreen exit", error);
         }
         scrollToContentHelper({ animate: true, delay: 300 });
       }
@@ -378,7 +420,7 @@ const ExcalidrawIframe: React.FC<Props> = ({
     return () => {
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
     };
-  }, [excalidrawAPI, onSave, scrollToContentHelper]);
+  }, [scrollToContentHelper, performSave]);
 
   // Scroll to content when triggered by parent (e.g., after resize)
   useEffect(() => {
@@ -408,20 +450,30 @@ const ExcalidrawIframe: React.FC<Props> = ({
   }, [isViewMode, scrollToContentHelper]);
 
   // Save on unmount
+  // Fix #4: Use refs to avoid stale closures
   useEffect(() => () => {
     debouncedSaveRef.current?.cancel();
-    if (excalidrawAPI && onSave) {
-      const elements = excalidrawAPI.getSceneElements();
-      const appState = excalidrawAPI.getAppState();
+    const api = excalidrawAPIRef.current;
+    const saveCallback = onSaveRef.current;
+
+    if (api && saveCallback) {
+      const elements = api.getSceneElements();
+      const appState = api.getAppState();
       generateExcalidrawSVG(elements, appState)
         .then((svg) => {
-          onSave(svg);
+          try {
+            saveCallback(svg);
+          } catch (error) {
+            // Fix #2: Log errors instead of silently ignoring
+            Logger.error("Excalidraw failed to save on unmount", error);
+          }
         })
-        .catch(() => {
-          // Silently ignore
+        .catch((error) => {
+          // Fix #2: Log errors instead of silently ignoring
+          Logger.error("Excalidraw failed to generate SVG on unmount", error);
         });
     }
-  }, [excalidrawAPI, onSave]);
+  }, []);
 
   if (typeof window === "undefined") {
     return null;

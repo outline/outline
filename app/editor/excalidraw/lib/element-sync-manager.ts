@@ -12,10 +12,11 @@ import type { ExcalidrawPortal } from "./portal";
 
 export class ElementSyncManager {
   private lastBroadcastedOrReceivedSceneVersion: number = -1;
-  private queueBroadcastAllElements: (() => void) | null = null;
+  private queueBroadcastAllElements: ReturnType<typeof throttle> | null = null;
   private isApplyingRemoteChanges: boolean = false;
   private lastProcessedUpdateTime: number = 0;
   private lastProcessedUpdateHash: string = "";
+  private lastProcessedNonce: number = 0;
 
   constructor(
     private portal: ExcalidrawPortal,
@@ -72,19 +73,30 @@ export class ElementSyncManager {
       return;
     }
 
-    // Defense in depth: prevent processing duplicate updates in quick succession
-    // This guards against any remaining edge cases with duplicate event listeners
-    const now = Date.now();
-    const updateHash = `${messageType}:${elements.length}:${this.getSceneVersion(elements)}`;
-    const timeSinceLastUpdate = now - this.lastProcessedUpdateTime;
+    // Fix #9: Improved deduplication using element version nonces
+    // Calculate a nonce based on the sum of all element version nonces
+    // This is more reliable than time-based deduplication
+    const updateNonce = elements.reduce((sum, el) => sum + (el.versionNonce || 0), 0);
+    const sceneVersion = this.getSceneVersion(elements);
 
-    // If we processed the exact same update within 100ms, skip it
-    if (timeSinceLastUpdate < 100 && updateHash === this.lastProcessedUpdateHash) {
+    // Skip if this exact update (same nonce + version) was already processed
+    if (updateNonce === this.lastProcessedNonce &&
+        sceneVersion === this.lastBroadcastedOrReceivedSceneVersion) {
+      return;
+    }
+
+    // Fallback time-based check for edge cases (e.g., empty scenes or version rollbacks)
+    const now = Date.now();
+    const timeSinceLastUpdate = now - this.lastProcessedUpdateTime;
+    const updateHash = `${messageType}:${elements.length}:${sceneVersion}`;
+
+    if (timeSinceLastUpdate < 50 && updateHash === this.lastProcessedUpdateHash) {
       return;
     }
 
     this.lastProcessedUpdateTime = now;
     this.lastProcessedUpdateHash = updateHash;
+    this.lastProcessedNonce = updateNonce;
 
     try {
       // Set flag to prevent broadcast loop
@@ -141,6 +153,7 @@ export class ElementSyncManager {
     this.lastBroadcastedOrReceivedSceneVersion = -1;
     this.lastProcessedUpdateTime = 0;
     this.lastProcessedUpdateHash = "";
+    this.lastProcessedNonce = 0;
   }
 
   /**
