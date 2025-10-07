@@ -28,6 +28,8 @@ export default function useSwipe({
 
   const onTouchStartCapture = (e: React.TouchEvent<HTMLImageElement>) => {
     if (e.touches.length === 1) {
+      // Stop propagation only for single touch gestures, otherwise it prevents
+      // multi-touch gestures like pinch to zoom to take effect
       e.stopPropagation();
       touchXStart.current = e.changedTouches[0].screenX;
       touchYStart.current = e.changedTouches[0].screenY;
