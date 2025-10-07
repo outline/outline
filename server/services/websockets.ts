@@ -87,12 +87,23 @@ export default function init(
     },
   });
 
-  // Handle origin validation for websocket connections to this service
+  // Remove the upgrade handler that we just added when registering the IO engine
+  // And re-add it with a check to only handle the realtime path, this allows
+  // collaboration websockets to exist in the same process as engine.io.
+  const listeners = server.listeners("upgrade");
+  const ioHandleUpgrade = listeners.pop();
+
+  if (ioHandleUpgrade) {
+    server.removeListener(
+      "upgrade",
+      ioHandleUpgrade as (...args: any[]) => void
+    );
+  }
+
   server.on(
     "upgrade",
     function (req: IncomingMessage, socket: Duplex, head: Buffer) {
-      // Only handle realtime websockets - let other services handle their own paths
-      if (req.url?.startsWith(path)) {
+      if (req.url?.startsWith(path) && ioHandleUpgrade) {
         // For on-premise deployments, ensure the websocket origin matches the deployed URL.
         // In cloud-hosted we support any origin for custom domains.
         if (
@@ -102,16 +113,17 @@ export default function init(
           socket.end(`HTTP/1.1 400 Bad Request\r\n`);
           return;
         }
-        // Let Socket.io handle the upgrade for realtime path
+
+        ioHandleUpgrade(req, socket, head);
         return;
       }
 
-      // For collaboration, let it handle its own upgrades
-      if (serviceNames.includes("collaboration") && req.url?.startsWith("/collaboration")) {
-        return; // Let collaboration service handle its own upgrades
+      if (serviceNames.includes("collaboration")) {
+        // Nothing to do, the collaboration service will handle this request
+        return;
       }
 
-      // If no service should handle this request, close the connection
+      // If the collaboration service isn't running then we need to close the connection
       socket.end(`HTTP/1.1 400 Bad Request\r\n`);
     }
   );
