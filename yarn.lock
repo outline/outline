@@ -1702,34 +1702,34 @@
   resolved "https://registry.yarnpkg.com/@braintree/sanitize-url/-/sanitize-url-7.1.1.tgz#15e19737d946559289b915e5dad3b4c28407735e"
   integrity sha512-i1L7noDNxtFyL5DmZafWy1wRVhGehQmzZaz1HiN5e7iylJMSZR7ekOV7NsIqa5qBldlLrsKv4HbgFUVlQrz8Mw==
 
-"@bull-board/api@6.12.0", "@bull-board/api@^6.7.10":
-  version "6.12.0"
-  resolved "https://registry.yarnpkg.com/@bull-board/api/-/api-6.12.0.tgz#0df55e98c71e73005be8c92242befb1337532bc1"
-  integrity sha512-tlMQTc0EAiYbv8gjR0lCYAXDL1Uc8/dPD9tKjxvG+m9lUUpPAoRUXUHNtzwVQo+AHiF6WHEK9iA3+8KHJamc/w==
+"@bull-board/api@6.13.0", "@bull-board/api@^6.7.10":
+  version "6.13.0"
+  resolved "https://registry.yarnpkg.com/@bull-board/api/-/api-6.13.0.tgz#66e416b1d8eb096349cfbb82165403c4a9f893ee"
+  integrity sha512-GZ0On0VeL5uZVS1x7UdU90F9GV1kdmHa1955hW3Ow1PmslCY/2YwmvnapVdbvCUSVBqluTfbVZsE9X3h79r1kw==
   dependencies:
     redis-info "^3.1.0"
 
-"@bull-board/koa@^6.12.0":
-  version "6.12.0"
-  resolved "https://registry.yarnpkg.com/@bull-board/koa/-/koa-6.12.0.tgz#3a25ee1b47e1134510378ac20c48910f78bd4b7d"
-  integrity sha512-4g6r2K/l+bUQXE5qbLPTs2QhjhAH0UNYOcPK3alXNy/s/wQ4EIJcrcIOmWbTIzKYMpchYp6yHc2I47pWJpShfg==
+"@bull-board/koa@^6.13.0":
+  version "6.13.0"
+  resolved "https://registry.yarnpkg.com/@bull-board/koa/-/koa-6.13.0.tgz#6bba079cd47ce6a7cd4036bb8d2ad3ec608bfb12"
+  integrity sha512-HTKdyXIL6ThAu3E96QW06ef8XffaKz8517ioXupFPxOUJ9lZx8f3ZT0FFqm/NSPjA+PpyLuzlz7Q8oHLxpCDuw==
   dependencies:
-    "@bull-board/api" "6.12.0"
-    "@bull-board/ui" "6.12.0"
+    "@bull-board/api" "6.13.0"
+    "@bull-board/ui" "6.13.0"
     "@koa/bodyparser" "^5.1.2"
     "@ladjs/koa-views" "^9.0.0"
     ejs "^3.1.10"
-    koa "^3.0.0"
+    koa "^3.0.1"
     koa-mount "^4.2.0"
-    koa-router "^13.0.1"
+    koa-router "^13.1.1"
     koa-static "^5.0.0"
 
-"@bull-board/ui@6.12.0":
-  version "6.12.0"
-  resolved "https://registry.yarnpkg.com/@bull-board/ui/-/ui-6.12.0.tgz#57ad8b2e2bb1e5b7002a0ae7da023d4521e3444b"
-  integrity sha512-a1+9bUlNViXIQcO9KPOd1EP66Ts4caYHgsc5OuunDMZ9Q6Y7sfrQXMhfnv3JWahSNo3hiX6Fc8wIL4p/bcTwsw==
+"@bull-board/ui@6.13.0":
+  version "6.13.0"
+  resolved "https://registry.yarnpkg.com/@bull-board/ui/-/ui-6.13.0.tgz#761d65417f98ef46bf3f75d19ceceb09ba2fba72"
+  integrity sha512-63I6b3nZnKWI5ok6mw/Tk2rIObuzMTY/tLGyO51p0GW4rAImdXxrK6mT7j4SgEuP2B+tt/8L1jU7sLu8MMcCNw==
   dependencies:
-    "@bull-board/api" "6.12.0"
+    "@bull-board/api" "6.13.0"
 
 "@bundle-stats/plugin-webpack-filter@4.19.1":
   version "4.19.1"
@@ -10417,14 +10417,15 @@ koa-router@7.4.0:
     path-to-regexp "^1.1.1"
     urijs "^1.19.0"
 
-koa-router@^13.0.1:
-  version "13.0.1"
-  resolved "https://registry.yarnpkg.com/koa-router/-/koa-router-13.0.1.tgz#09607d35011960847b864231e3d502e28509866b"
-  integrity sha512-4/sijXdSxocIe2wv7RFFSxvo2ic1pDzPSmy11yCGztng1hx408qfw1wVmN3aqhQaU7U6nJ039JKC8ObE73Ohgw==
+koa-router@^13.1.1:
+  version "13.1.1"
+  resolved "https://registry.yarnpkg.com/koa-router/-/koa-router-13.1.1.tgz#7b7d08b1aba82c4cc50ad71164b0d6d33d368784"
+  integrity sha512-3GxRi7CxEgsfGhdFf4OW4OLv0DFdyNl2drcOCtoezi+LDSnkg0mhr1Iq5Q25R4FJt3Gw6dcAKrcpaCJ7WJfhYg==
   dependencies:
+    debug "^4.4.1"
     http-errors "^2.0.0"
     koa-compose "^4.1.0"
-    path-to-regexp "^8.1.0"
+    path-to-regexp "^6.3.0"
 
 koa-send@5.0.1, koa-send@^5.0.0, koa-send@^5.0.1:
   version "5.0.1"
@@ -10455,7 +10456,7 @@ koa-useragent@*, koa-useragent@^4.1.0:
   dependencies:
     express-useragent "^1.0.15"
 
-koa@^3.0.0, koa@^3.0.1:
+koa@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/koa/-/koa-3.0.1.tgz#b211a0f350d1cc6185047671f8ef7e019c16351d"
   integrity sha512-oDxVkRwPOHhGlxKIDiDB2h+/l05QPtefD7nSqRgDfZt8P+QVYFWjfeK8jANf5O2YXjk8egd7KntvXKYx82wOag==
@@ -11918,10 +11919,10 @@ path-to-regexp@^1.1.1, path-to-regexp@^1.7.0:
   dependencies:
     isarray "0.0.1"
 
-path-to-regexp@^8.1.0:
-  version "8.2.0"
-  resolved "https://registry.yarnpkg.com/path-to-regexp/-/path-to-regexp-8.2.0.tgz#73990cc29e57a3ff2a0d914095156df5db79e8b4"
-  integrity sha512-TdrF7fW9Rphjq4RjrW0Kp2AW0Ahwu9sRGTkS6bvDi0SCwZlEZYmcfDbEsTz8RVk0EHIS/Vd1bv3JhG+1xZuAyQ==
+path-to-regexp@^6.3.0:
+  version "6.3.0"
+  resolved "https://registry.yarnpkg.com/path-to-regexp/-/path-to-regexp-6.3.0.tgz#2b6a26a337737a8e1416f9272ed0766b1c0389f4"
+  integrity sha512-Yhpw4T9C6hPpgPeA28us07OJeqZ5EzQTkbfwuhsUg0c237RomFoETJgmp2sa3F/41gfLE6G5cqcYwznmeEeOlQ==
 
 pathe@^2.0.1, pathe@^2.0.3:
   version "2.0.3"
