@@ -22,6 +22,8 @@ type HTMLOptions = {
   includeStyles?: boolean;
   /** Whether to include the Mermaid script in the generated HTML (defaults to false) */
   includeMermaid?: boolean;
+  /** Icon pack configurations for Mermaid diagrams */
+  iconPackConfigs?: Array<{ name: string; url: string }>;
   /** Whether to include the doctype,head, etc in the generated HTML (defaults to false) */
   includeHead?: boolean;
   /** Whether to include styles to center diff (defaults to true) */
@@ -207,6 +209,7 @@ export class DocumentHelper {
           : undefined,
       includeStyles: options?.includeStyles,
       includeMermaid: options?.includeMermaid,
+      iconPackConfigs: options?.iconPackConfigs,
       includeHead: options?.includeHead,
       centered: options?.centered,
       baseUrl: options?.baseUrl,

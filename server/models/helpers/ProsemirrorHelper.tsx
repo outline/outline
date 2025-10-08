@@ -30,6 +30,8 @@ export type HTMLOptions = {
   includeStyles?: boolean;
   /** Whether to include mermaidjs scripts in the generated HTML (defaults to false) */
   includeMermaid?: boolean;
+  /** Icon pack configurations for Mermaid diagrams */
+  iconPackConfigs?: Array<{ name: string; url: string }>;
   /** Whether to include head tags in the generated HTML (defaults to true) */
   includeHead?: boolean;
   /** Whether to include styles to center diff (defaults to true) */
@@ -586,11 +588,28 @@ export class ProsemirrorHelper {
 
       // Inject Mermaid script
       if (mermaidElements.length) {
+        const iconPacksCode = options?.iconPackConfigs?.length
+          ? `
+          // Register icon packs
+          const iconPacks = ${JSON.stringify(options.iconPackConfigs)}.map((config) => ({
+            name: config.name,
+            loader: () => fetch(config.url).then((res) => res.json()),
+          }));
+          mermaid.registerIconPacks(iconPacks);
+          `
+          : '';
+
         element.innerHTML = `
           import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+
+          // Import and register ELK layout
+          import elkLayouts from 'https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0/dist/mermaid-layout-elk.esm.min.mjs';
+          mermaid.registerLayoutLoaders(elkLayouts);
+          ${iconPacksCode}
           mermaid.initialize({
             startOnLoad: true,
             fontFamily: "inherit",
+            elk: { mergeEdges: true },
           });
           window.status = "ready";
         `;

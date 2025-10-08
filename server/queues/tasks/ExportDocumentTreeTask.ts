@@ -1,7 +1,7 @@
 import path from "path";
 import JSZip from "jszip";
 import escapeRegExp from "lodash/escapeRegExp";
-import { FileOperationFormat, NavigationNode } from "@shared/types";
+import { FileOperationFormat, NavigationNode, TeamPreference } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { Collection } from "@server/models";
 import Attachment from "@server/models/Attachment";
@@ -28,6 +28,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     format = FileOperationFormat.MarkdownZip,
     includeAttachments,
     pathMap,
+    team,
   }: {
     zip: JSZip;
     pathInZip: string;
@@ -35,6 +36,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     format: FileOperationFormat;
     includeAttachments: boolean;
     pathMap: Map<string, string>;
+    team: import("@server/models").Team;
   }) {
     Logger.debug("task", `Adding document to archive`, { documentId });
     const document = await Document.findByPk(documentId);
@@ -44,7 +46,11 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
 
     let text =
       format === FileOperationFormat.HTMLZip
-        ? await DocumentHelper.toHTML(document, { centered: true })
+        ? await DocumentHelper.toHTML(document, {
+            centered: true,
+            includeMermaid: true,
+            iconPackConfigs: team.getPreference(TeamPreference.MermaidIconPacks) as Array<{ name: string; url: string }> | undefined,
+          })
         : DocumentHelper.toMarkdown(document);
 
     const attachmentIds = includeAttachments
@@ -134,6 +140,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
    * @param collections The collections to export
    * @param format The format to export in
    * @param includeAttachments Whether to include attachments in the export
+   * @param team The team object for preferences
    *
    * @returns The path to the zip file in tmp.
    */
@@ -141,7 +148,8 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     zip: JSZip,
     collections: Collection[],
     format: FileOperationFormat,
-    includeAttachments = true
+    includeAttachments = true,
+    team: import("@server/models").Team
   ) {
     const pathMap = this.createPathMap(collections, format);
     Logger.debug(
@@ -160,6 +168,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
         includeAttachments,
         format,
         pathMap,
+        team,
       });
     }
 
