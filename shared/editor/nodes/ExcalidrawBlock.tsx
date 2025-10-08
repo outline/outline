@@ -47,12 +47,13 @@ export default class ExcalidrawBlock extends Node {
         {
           tag: "div.excalidraw-block",
           getAttrs: (dom: HTMLDivElement) => {
-            const svg = dom.querySelector("svg")?.outerHTML || "";
+            // Try data-svg first (SSR case), then actual SVG element (client case)
+            const svgContent = dom.dataset.svg || dom.querySelector("svg")?.outerHTML || "";
             const xmlDecl = dom.dataset.xmlDecl || "";
             const doctype = dom.dataset.doctype || "";
             const height = dom.dataset.height ? parseInt(dom.dataset.height, 10) : 500;
             return {
-              svg: xmlDecl + doctype + svg,
+              svg: xmlDecl + doctype + svgContent,
               height,
             };
           },
@@ -69,9 +70,9 @@ export default class ExcalidrawBlock extends Node {
           .replace(/^<\?xml[^>]*\?>\s*/, "")
           .replace(/<!DOCTYPE[^>]*>\s*/, "");
 
-        // Safely parse SVG using DOMParser to avoid XSS
+        // Use DOM APIs (works with JSDOM on server, native DOM on client)
         const container = document.createElement("div");
-        if (svgOnly && typeof window !== "undefined") {
+        if (svgOnly) {
           try {
             const parser = new window.DOMParser();
             const doc = parser.parseFromString(svgOnly, "image/svg+xml");

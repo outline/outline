@@ -503,14 +503,55 @@ export class ProsemirrorHelper {
     const doc = dom.window.document;
     const target = doc.getElementById("content");
 
-    DOMSerializer.fromSchema(schema).serializeFragment(
-      node.content,
-      {
-        document: doc,
-      },
-      // @ts-expect-error incorrect library type, third argument is target node
-      target
-    );
+    // Temporarily set JSDOM's document and window as globals for SSR
+    // This allows node toDOM methods to use document.createElement, window.DOMParser, etc.
+    // oxlint-disable-next-line no-explicit-any
+    const originalDocument = (global as any).document;
+    // oxlint-disable-next-line no-explicit-any
+    const originalWindow = (global as any).window;
+    // oxlint-disable-next-line no-explicit-any
+    const originalDOMParser = (global as any).DOMParser;
+
+    try {
+      // oxlint-disable-next-line no-explicit-any
+      (global as any).document = doc;
+      // oxlint-disable-next-line no-explicit-any
+      (global as any).window = dom.window;
+      // oxlint-disable-next-line no-explicit-any
+      (global as any).DOMParser = dom.window.DOMParser;
+
+      DOMSerializer.fromSchema(schema).serializeFragment(
+        node.content,
+        {
+          document: doc,
+        },
+        // @ts-expect-error incorrect library type, third argument is target node
+        target
+      );
+    } finally {
+      // Restore original globals
+      if (originalDocument === undefined) {
+        // oxlint-disable-next-line no-explicit-any
+        delete (global as any).document;
+      } else {
+        // oxlint-disable-next-line no-explicit-any
+        (global as any).document = originalDocument;
+      }
+      if (originalWindow === undefined) {
+        // oxlint-disable-next-line no-explicit-any
+        delete (global as any).window;
+      } else {
+        // oxlint-disable-next-line no-explicit-any
+        (global as any).window = originalWindow;
+      }
+      if (originalDOMParser === undefined) {
+        // oxlint-disable-next-line no-explicit-any
+        delete (global as any).DOMParser;
+      } else {
+        // oxlint-disable-next-line no-explicit-any
+        (global as any).DOMParser = originalDOMParser;
+      }
+    }
 
     // Convert relative urls to absolute
     if (options?.baseUrl) {
