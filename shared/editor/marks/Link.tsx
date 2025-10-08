@@ -268,7 +268,7 @@ export default class Link extends Mark {
             if (!words.length) {
               return false;
             }
-            if (isInCode(view.state)) {
+            if (isInCode(view.state, { inclusive: true })) {
               return false;
             }
 
