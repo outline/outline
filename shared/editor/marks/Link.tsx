@@ -268,7 +268,15 @@ export default class Link extends Mark {
             if (!words.length) {
               return false;
             }
-            if (isInCode(view.state)) {
+
+            // check if there is a code mark at the current cursor position
+            const hasCodeMark = schema.marks.code_inline.isInSet(selection.$from.marks());
+            if (hasCodeMark) {
+              return false;
+            }
+
+            // check if we are in a code block or code fence
+            if (isInCode(view.state, { onlyBlock: true })) {
               return false;
             }
 
