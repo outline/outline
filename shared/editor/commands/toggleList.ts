@@ -39,7 +39,7 @@ export default function toggleList(
       const currentItemType = parentList.node.content.firstChild?.type;
       const differentType = currentItemType && currentItemType !== itemType;
 
-      if (differentType || differentListStyle) {
+      if (differentType) {
         return chainTransactions(
           clearNodes(),
           wrapInList(listType, { listStyle })
@@ -50,10 +50,14 @@ export default function toggleList(
         isList(parentList.node, schema) &&
         listType.validContent(parentList.node.content)
       ) {
-        tr.setNodeMarkup(
+        tr.doc.nodesBetween(
           parentList.pos,
-          listType,
-          listStyle ? { listStyle } : {}
+          parentList.pos + parentList.node.nodeSize,
+          (node, pos) => {
+            if (isList(node, schema)) {
+              tr.setNodeMarkup(pos, listType, listStyle ? { listStyle } : {});
+            }
+          }
         );
 
         dispatch?.(tr);
