@@ -155,7 +155,6 @@ export default class ExcalidrawBlock extends Node {
     };
   }
 
-
   component = (props: ComponentProps) => {
     const { node, getPos, isEditable } = props;
     const documentId = this.editor?.props.id || "";

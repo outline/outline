@@ -260,7 +260,7 @@ export class ExcalidrawPortal {
    * Matches official Excalidraw pattern
    */
   broadcastMouseLocation(payload: {
-    pointer: { x: number; y: number };
+    pointer: { x: number; y: number; tool: "pointer" | "laser" };
     button: "up" | "down";
     selectedElementIds?: Record<string, boolean>;
     username?: string;

@@ -34,9 +34,12 @@ export class CollaboratorManager {
       (payload: { pointer: { x: number; y: number }; button: "up" | "down" }) => {
         if (this.portal.isOpen()) {
           const api = this.getExcalidrawAPI();
+          const appState = api?.getAppState();
+          const tool = appState?.activeTool?.type === "laser" ? "laser" : "pointer";
           this.portal.broadcastMouseLocation({
-            ...payload,
-            selectedElementIds: api?.getAppState().selectedElementIds || {},
+            pointer: { x: payload.pointer.x, y: payload.pointer.y, tool },
+            button: payload.button,
+            selectedElementIds: appState?.selectedElementIds || {},
             username: this.username,
           });
         }

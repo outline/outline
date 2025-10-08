@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import type { LibraryItem } from "@excalidraw/excalidraw/types/types";
+import type { LibraryItem } from "@excalidraw/excalidraw/dist/types/excalidraw/types";
 import type { ExcalidrawImperativeAPI } from "../lib/types";
 import { getDefaultLibraries } from "../lib/defaultLibraries";
 

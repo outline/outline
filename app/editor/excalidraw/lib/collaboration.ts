@@ -13,8 +13,7 @@ import {
   ConnectionStatus,
   CollabErrorType,
 } from "./constants";
-import type { ExcalidrawElement, OrderedExcalidrawElement, AppState, ExcalidrawImperativeAPI, SocketId, UserToFollow } from "./types";
-import type { Collaborator } from "./collaborator-manager";
+import type { ExcalidrawElement, OrderedExcalidrawElement, AppState, ExcalidrawImperativeAPI, SocketId, UserToFollow, Collaborator } from "./types";
 import { getVisibleSceneBounds, calculateViewportToFitBounds } from "./viewport-utils";
 
 export interface CollaborationState {
@@ -392,7 +391,7 @@ export class ExcalidrawCollaboration {
   /**
    * Update pointer position
    */
-  updatePointer(pointer: { x: number; y: number }, button: string): void {
+  updatePointer(pointer: { x: number; y: number }, button: "up" | "down"): void {
     this.collaboratorManager?.updatePointer(pointer, button);
   }
 

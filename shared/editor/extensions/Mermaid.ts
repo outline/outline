@@ -158,7 +158,7 @@ class MermaidRenderer {
     if (!this._element) {
       // Safety check - only create elements when document is ready
       if (typeof document === 'undefined') {
-        throw new Error("Document not available");
+        throw new Error('Document not available');
       }
       this._element = document.getElementById(this.elementId) || document.createElement("div");
       this._element.id = this.elementId;

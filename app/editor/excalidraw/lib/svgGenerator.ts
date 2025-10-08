@@ -2,11 +2,11 @@
  * Browser-side Excalidraw SVG generation
  * Uses Excalidraw's exportToSvg directly (no jsdom needed in browser)
  */
-import type { AppState, BinaryFiles } from "@excalidraw/excalidraw/types";
+import type { AppState, BinaryFiles } from "@excalidraw/excalidraw/dist/types/excalidraw/types";
 import type {
   ExcalidrawElement,
   NonDeleted,
-} from "@excalidraw/excalidraw/element/types";
+} from "@excalidraw/excalidraw/dist/types/excalidraw/element/types";
 
 /**
  * Generate SVG from Excalidraw elements and appState with embedded scene data.

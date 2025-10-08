@@ -138,8 +138,8 @@ export function reconcileElements(
     processedIds.add(remoteElement.id);
 
     if (!localElement) {
-      // New element from remote - create new reference to ensure React detects change
-      reconciledElements.push({...remoteElement});
+      // New element from remote - push directly without unnecessary spread
+      reconciledElements.push(remoteElement);
       updates.push({
         id: remoteElement.id,
         element: remoteElement,

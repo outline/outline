@@ -1,5 +1,5 @@
 import { loadLibraryFiles } from "./libraryLoader";
-import type { LibraryItem } from "@excalidraw/excalidraw/types/types";
+import type { LibraryItem } from "@excalidraw/excalidraw/dist/types/excalidraw/types";
 import { LRUCache } from "./lru-cache";
 
 // Cache for the loaded libraries by configuration (limited to prevent memory leaks)

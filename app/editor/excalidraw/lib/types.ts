@@ -20,7 +20,7 @@ export type {
   ExcalidrawArrowElement,
   FileId,
   ExcalidrawElementType,
-} from "@excalidraw/excalidraw/types/element/types";
+} from "@excalidraw/excalidraw/dist/types/excalidraw/element/types";
 
 export type {
   AppState,
@@ -28,19 +28,19 @@ export type {
   DataURL,
   UIAppState,
   Zoom,
-} from "@excalidraw/excalidraw/types/types";
+} from "@excalidraw/excalidraw/dist/types/excalidraw/types";
 
 export type {
   ExcalidrawImperativeAPI,
   ExcalidrawProps,
   ExcalidrawInitialDataState,
-} from "@excalidraw/excalidraw/types/types";
+} from "@excalidraw/excalidraw/dist/types/excalidraw/types";
 
 // Collaboration types - use official Excalidraw types
 export type {
   Collaborator,
   SocketId,
-} from "@excalidraw/excalidraw/types";
+} from "@excalidraw/excalidraw/dist/types/excalidraw/types";
 
 // Scene types
 export interface SceneBounds {
