@@ -164,7 +164,7 @@ function usePanning() {
     if (dragged.current) {
       dragged.current = false;
     } else {
-      const zoomedOut = ref.state.scale === 1;
+      const zoomedOut = Math.abs(ref.state.scale - 1) < 0.001;
       if (zoomedOut) {
         ref.zoomIn();
       } else {
