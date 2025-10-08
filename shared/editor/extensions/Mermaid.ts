@@ -61,6 +61,9 @@ let lastInitializedConfigHash = "";
 // Cache for frontmatter extraction to avoid re-parsing YAML on every render
 const frontMatterCache = new Map<string, ExtractedFrontMatter>();
 
+// Regex for extracting YAML frontmatter from Mermaid diagrams
+const FRONTMATTER_REGEX = /^---\s*\n([\s\S]*?)\n---\s*\n/;
+
 /**
  * Reset all caches and flags - useful for testing
  * @internal
@@ -96,8 +99,7 @@ function extractFrontMatter(text: string): ExtractedFrontMatter {
     return frontMatterCache.get(text)!;
   }
 
-  const frontMatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n/;
-  const match = text.match(frontMatterRegex);
+  const match = text.match(FRONTMATTER_REGEX);
 
   if (!match) {
     const result = { metadata: {}, text };
@@ -105,10 +107,12 @@ function extractFrontMatter(text: string): ExtractedFrontMatter {
     return result;
   }
 
+  // Extract cleaned text once from the match instead of using replace
+  const cleanedText = text.slice(match[0].length);
+
   try {
     const yamlContent = match[1];
     const metadata = (loadYaml(yamlContent, { schema: JSON_SCHEMA }) as FrontMatterMetadata) || {};
-    const cleanedText = text.replace(frontMatterRegex, '');
 
     const result = {
       metadata,
@@ -127,7 +131,7 @@ function extractFrontMatter(text: string): ExtractedFrontMatter {
     // If YAML parsing fails, return text without frontmatter
     const result = {
       metadata: {},
-      text: text.replace(frontMatterRegex, ''),
+      text: cleanedText,
     };
     frontMatterCache.set(text, result);
     return result;

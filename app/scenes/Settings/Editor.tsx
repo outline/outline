@@ -98,8 +98,8 @@ function Editor() {
       const trimmedUrl = url.trim();
 
       // Basic validation for URL
-      if (!trimmedUrl.endsWith(".json") && !trimmedUrl.startsWith("http")) {
-        toast.error(t("Please enter a valid URL ending with .json"));
+      if (!trimmedUrl.startsWith("http") || !trimmedUrl.endsWith(".json")) {
+        toast.error(t("Please enter a valid URL starting with http and ending with .json"));
         return;
       }
 

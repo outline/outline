@@ -69,18 +69,34 @@ export default class ExcalidrawBlock extends Node {
           .replace(/^<\?xml[^>]*\?>\s*/, "")
           .replace(/<!DOCTYPE[^>]*>\s*/, "");
 
-        return [
-          "div",
-          {
-            class: "excalidraw-block",
-            "data-xml-decl": xmlDecl,
-            "data-doctype": doctype,
-            "data-height": String(node.attrs.height || 500),
-            contentEditable: "false",
-          },
-          // Use dangerouslySetInnerHTML equivalent by parsing SVG
-          ["div", { innerHTML: svgOnly }],
-        ];
+        // Safely parse SVG using DOMParser to avoid XSS
+        const container = document.createElement("div");
+        if (svgOnly && typeof window !== "undefined") {
+          try {
+            const parser = new window.DOMParser();
+            const doc = parser.parseFromString(svgOnly, "image/svg+xml");
+            const svgElement = doc.querySelector("svg");
+
+            // Check for parsing errors
+            const parserError = doc.querySelector("parsererror");
+            if (!parserError && svgElement) {
+              container.appendChild(svgElement);
+            }
+          } catch (error) {
+            // oxlint-disable-next-line no-console
+            console.warn("[ExcalidrawBlock] Failed to parse SVG:", error);
+          }
+        }
+
+        const outerDiv = document.createElement("div");
+        outerDiv.className = "excalidraw-block";
+        outerDiv.setAttribute("data-xml-decl", xmlDecl);
+        outerDiv.setAttribute("data-doctype", doctype);
+        outerDiv.setAttribute("data-height", String(node.attrs.height || 500));
+        outerDiv.contentEditable = "false";
+        outerDiv.appendChild(container);
+
+        return outerDiv;
       },
     };
   }

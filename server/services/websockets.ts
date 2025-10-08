@@ -509,12 +509,12 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
     }
   });
 
-  // Emit authenticated event AFTER all event listeners are registered
-  // This prevents race condition where client emits events before listeners are ready
-  socket.emit("authenticated", true);
-
   // join all of the rooms at once
   await socket.join(rooms);
+
+  // Emit authenticated event AFTER all event listeners are registered AND rooms are joined
+  // This prevents race conditions where client emits events before setup is complete
+  socket.emit("authenticated", true);
 }
 
 /**
