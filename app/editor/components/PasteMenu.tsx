@@ -82,7 +82,7 @@ function useItems({
 
       mentionType = integration
         ? determineMentionType({ url, integration })
-        : undefined;
+        : MentionType.URL;
     }
 
     return [

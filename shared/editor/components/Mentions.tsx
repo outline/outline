@@ -143,6 +143,65 @@ type IssuePrProps = ComponentProps & {
   ) => void;
 };
 
+export const MentionURL = (props: ComponentProps) => {
+  const { unfurls } = useStores();
+  const isMounted = useIsMounted();
+  const [loaded, setLoaded] = React.useState(false);
+
+  const { isSelected, node } = props;
+  const {
+    className,
+    unfurl: unfurlAttr,
+    ...attrs
+  } = getAttributesFromNode(node);
+
+  const unfurl = unfurls.get(attrs.href)?.data ?? unfurlAttr;
+
+  React.useEffect(() => {
+    const fetchUnfurl = async () => {
+      await unfurls.fetchUnfurl({ url: attrs.href });
+
+      if (!isMounted()) {
+        return;
+      }
+
+      setLoaded(true);
+    };
+
+    void fetchUnfurl();
+  }, [unfurls, attrs.href, isMounted]);
+
+  if (!unfurl) {
+    return !loaded ? (
+      <MentionLoading className={className} />
+    ) : (
+      <MentionError className={className} />
+    );
+  }
+
+  return (
+    <a
+      {...attrs}
+      className={cn(className, {
+        "ProseMirror-selectednode": isSelected,
+      })}
+      href={attrs.href as string}
+      target="_blank"
+      rel="noopener noreferrer nofollow"
+    >
+      <Flex align="center" gap={6}>
+        <img
+          src={unfurl.faviconUrl}
+          style={{ width: "16px", height: "16px" }}
+        />
+        <Text>
+          <Backticks content={unfurl.title} />
+        </Text>
+      </Flex>
+    </a>
+  );
+};
+
 export const MentionIssue = observer((props: IssuePrProps) => {
   const { unfurls } = useStores();
   const isMounted = useIsMounted();
