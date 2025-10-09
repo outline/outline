@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import { SidebarIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { hover } from "@shared/styles";
 import { metaDisplay } from "@shared/utils/keyboard";
 import Share from "~/models/Share";
 import Flex from "~/components/Flex";
@@ -146,7 +147,7 @@ const StyledSidebar = styled(Sidebar)<{ $hoverTransition: boolean }>`
     $hoverTransition &&
     `
       @media (hover: hover) {
-        &:hover {
+        &:${hover} {
         ${StyledSearchPopover} {
           width: 85%;
         }
