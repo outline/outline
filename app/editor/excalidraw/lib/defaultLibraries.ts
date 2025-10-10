@@ -1,10 +1,67 @@
-import { loadLibraryFiles } from "./libraryLoader";
 import type { LibraryItem } from "@excalidraw/excalidraw/dist/types/excalidraw/types";
-import { LRUCache } from "./lru-cache";
+import { LRUCache } from "lru-cache";
 
-// Cache for the loaded libraries by configuration (limited to prevent memory leaks)
-const libraryCache = new LRUCache<string, LibraryItem[]>(50); // Limit to 50 library configs
-const loadingPromises = new LRUCache<string, Promise<LibraryItem[]>>(50);
+// Unified cache for library files and configurations (limited to prevent memory leaks)
+const libraryFileCache = new LRUCache<string, LibraryItem[]>({ max: 100 }); // Individual library files
+const libraryConfigCache = new LRUCache<string, LibraryItem[]>({ max: 50 }); // Library configurations
+const loadingPromises = new LRUCache<string, Promise<LibraryItem[]>>({ max: 50 });
+
+/**
+ * Determines if a string is a URL or a local filename
+ */
+function isUrl(urlOrFilename: string): boolean {
+  return urlOrFilename.startsWith("http://") || urlOrFilename.startsWith("https://");
+}
+
+/**
+ * Loads a single .excalidrawlib file and converts it to LibraryItem format using Excalidraw's utilities
+ * Supports both local filenames and remote URLs
+ */
+async function loadLibraryFile(urlOrFilename: string): Promise<LibraryItem[]> {
+  // Check cache first
+  if (libraryFileCache.has(urlOrFilename)) {
+    return libraryFileCache.get(urlOrFilename)!;
+  }
+
+  try {
+    // Determine the fetch URL
+    const fetchUrl = isUrl(urlOrFilename)
+      ? urlOrFilename
+      : `/excalidraw/libraries/${urlOrFilename}`;
+
+    const response = await fetch(fetchUrl);
+    if (!response.ok) {
+      // Failed to load library file, return empty array
+      return [];
+    }
+
+    // Get the response as a Blob
+    const blob = await response.blob();
+
+    // Use Excalidraw's loadLibraryFromBlob utility to properly parse the library
+    const { loadLibraryFromBlob } = await import("@excalidraw/excalidraw");
+    const libraryItems = await loadLibraryFromBlob(blob);
+
+    // Cache the result
+    libraryFileCache.set(urlOrFilename, libraryItems);
+
+    return libraryItems;
+  } catch (_error) {
+    // Error loading library file, return empty array
+    return [];
+  }
+}
+
+/**
+ * Loads multiple library files and combines them
+ */
+async function loadLibraryFiles(filenames: string[]): Promise<LibraryItem[]> {
+  const promises = filenames.map(filename => loadLibraryFile(filename));
+  const results = await Promise.all(promises);
+
+  // Flatten all library items into a single array
+  return results.flat();
+}
 
 /**
  * Loads library files and returns them as LibraryItems
@@ -25,8 +82,8 @@ export async function getDefaultLibraries(
   const cacheKey = [...libraryUrls].sort().join("|");
 
   // Return cached result if available
-  if (libraryCache.has(cacheKey)) {
-    return libraryCache.get(cacheKey)!;
+  if (libraryConfigCache.has(cacheKey)) {
+    return libraryConfigCache.get(cacheKey)!;
   }
 
   // Return existing loading promise if already loading
@@ -40,7 +97,7 @@ export async function getDefaultLibraries(
 
   try {
     const libraries = await loadingPromise;
-    libraryCache.set(cacheKey, libraries);
+    libraryConfigCache.set(cacheKey, libraries);
     return libraries;
   } catch (_error) {
     // Failed to load libraries, return empty array
@@ -58,9 +115,10 @@ export async function getLibrariesByFiles(filenames: string[]): Promise<LibraryI
 }
 
 /**
- * Clears the cached libraries (useful for testing or forced refresh)
+ * Clears all cached libraries (useful for testing or forced refresh)
  */
 export function clearDefaultLibrariesCache(): void {
-  libraryCache.clear();
+  libraryFileCache.clear();
+  libraryConfigCache.clear();
   loadingPromises.clear();
 }

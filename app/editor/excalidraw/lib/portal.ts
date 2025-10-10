@@ -3,9 +3,7 @@
  * Based on Excalidraw's Portal implementation
  */
 
-import throttle from "lodash/throttle";
 import {
-  WS_EVENTS,
   WS_SUBTYPES,
   type SocketUpdateData,
   type SocketUpdateDataSource,
@@ -14,13 +12,11 @@ import {
 } from "./socket-types";
 
 import {
-  FILE_UPLOAD_TIMEOUT,
-  CURSOR_SYNC_TIMEOUT,
   UserIdleState,
 } from "./constants";
 
 import type { ExcalidrawElement, OrderedExcalidrawElement, SocketId, SceneBounds } from "./types";
-import { LRUCache } from "./lru-cache";
+import { LRUCache } from "lru-cache";
 
 export interface PortalCallbacks {
   onElementsChange: (elements: readonly ExcalidrawElement[], messageType?: string) => void;
@@ -48,7 +44,7 @@ export class ExcalidrawPortal {
   socketInitialized: boolean = false;
   roomId: string | null = null;
   roomKey: string | null = null;
-  broadcastedElementVersions: LRUCache<string, number> = new LRUCache(5000); // Limit to 5000 elements
+  broadcastedElementVersions: LRUCache<string, number> = new LRUCache({ max: 5000 }); // Limit to 5000 elements
   callbacks: PortalCallbacks | null = null;
   private listenersSetUp: boolean = false;
 
@@ -93,8 +89,8 @@ export class ExcalidrawPortal {
     });
 
     // Handle room user changes (collaborators list)
-    this.socket.on("excalidraw-room-user-change", (data: { collaborators: SocketId[] }) => {
-      this.callbacks?.onRoomUserChange(data.collaborators);
+    this.socket.on("excalidraw-room-user-change", (_data: { collaborators: SocketId[] }) => {
+      this.callbacks?.onRoomUserChange(_data.collaborators);
     });
 
     // Handle user leaving room
@@ -109,10 +105,10 @@ export class ExcalidrawPortal {
     });
 
     // Handle collaboration data (plain JSON over WSS)
-    this.socket.on("excalidraw-client-broadcast", (data: { payload: SocketUpdateData; socketId: string }) => {
+    this.socket.on("excalidraw-client-broadcast", (_data: { payload: SocketUpdateData; socketId: string }) => {
       try {
-        this.handleMessage(data.payload);
-      } catch (error) {
+        this.handleMessage(_data.payload);
+      } catch (_error) {
         // Silent error handling
       }
     });
@@ -173,7 +169,6 @@ export class ExcalidrawPortal {
       return;
     }
 
-    this.queueFileUpload.flush();
     // DO NOT close socket here - ConnectionManager owns it
     // Removing socket.close() to prevent double-close
     this.socket = null;
@@ -201,7 +196,7 @@ export class ExcalidrawPortal {
    */
   broadcastSocketData(
     data: SocketUpdateData,
-    volatile: boolean = false,
+    _volatile: boolean = false,
     roomId?: string
   ): void {
     if (!this.isOpen()) {
@@ -251,7 +246,6 @@ export class ExcalidrawPortal {
       this.broadcastedElementVersions.set(element.id, element.version);
     }
 
-    this.queueFileUpload();
     this.broadcastSocketData(data as SocketUpdateData);
   }
 
@@ -286,7 +280,7 @@ export class ExcalidrawPortal {
   /**
    * Broadcasts idle status change
    */
-  broadcastIdleChange(userState: UserIdleState, username?: string): void {
+  broadcastIdleChange(userState: UserIdleState, _username?: string): void {
     if (!this.socket?.id || !this.roomId) {
       return;
     }
@@ -301,7 +295,7 @@ export class ExcalidrawPortal {
    * Broadcasts visible scene bounds
    */
   broadcastVisibleSceneBounds(
-    payload: { sceneBounds: any },
+    payload: { sceneBounds: SceneBounds },
     roomId: string,
     username?: string
   ): void {
@@ -334,12 +328,4 @@ export class ExcalidrawPortal {
       followUserId: payload.userToFollow,
     });
   }
-
-  /**
-   * Throttled file upload queue (placeholder for now)
-   */
-  queueFileUpload = throttle(() => {
-    // File upload logic would go here
-    // For now, this is a placeholder to maintain API compatibility
-  }, FILE_UPLOAD_TIMEOUT);
 }
