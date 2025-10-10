@@ -6,7 +6,6 @@ import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { v4 as uuidv4 } from "uuid";
 import { Pagination } from "@shared/constants";
 import { hideScrollbars } from "@shared/styles";
 import {
@@ -105,7 +104,7 @@ function Search() {
     // without a flash of loading.
     if (query) {
       searches.add({
-        id: uuidv4(),
+        id: crypto.randomUUID(),
         query,
         createdAt: new Date().toISOString(),
       });
