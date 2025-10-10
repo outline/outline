@@ -162,11 +162,32 @@ describe("#urls.unfurl", () => {
       Promise.resolve({
         url: "https://www.flickr.com",
         type: "rich",
-        title: "Flickr",
-        description:
-          "The safest and most inclusive global community of photography enthusiasts. The best place for inspiration, connection, and sharing!",
-        thumbnail_url:
-          "https://farm4.staticflickr.com/3914/15118079089_489aa62638_b.jpg",
+        meta: {
+          title: "Flickr",
+          description:
+            "The safest and most inclusive global community of photography enthusiasts. The best place for inspiration, connection, and sharing!",
+        },
+        links: {
+          thumbnail: [
+            {
+              href: "https://combo.staticflickr.com/66a031f9fc343c5e42d965ca/671aaf5d51c929e483e8b26d_Open%20Graph%20Home.jpg",
+              type: "image/jpg",
+              rel: ["twitter", "thumbnail", "ssl", "og"],
+              content_length: 412824,
+              media: {
+                width: 1200,
+                height: 630,
+              },
+            },
+          ],
+          icon: [
+            {
+              href: "https://combo.staticflickr.com/66a031f9fc343c5e42d965ca/67167dd041b0982f0f230dab_flickr-webclip.png",
+              rel: ["apple-touch-icon", "icon", "ssl"],
+              type: "image/png",
+            },
+          ],
+        },
       })
     );
 
@@ -182,13 +203,13 @@ describe("#urls.unfurl", () => {
 
     expect(res.status).toEqual(200);
     expect(body.url).toEqual("https://www.flickr.com");
-    expect(body.type).toEqual(UnfurlResourceType.OEmbed);
+    expect(body.type).toEqual(UnfurlResourceType.URL);
     expect(body.title).toEqual("Flickr");
     expect(body.description).toEqual(
       "The safest and most inclusive global community of photography enthusiasts. The best place for inspiration, connection, and sharing!"
     );
     expect(body.thumbnailUrl).toEqual(
-      "https://farm4.staticflickr.com/3914/15118079089_489aa62638_b.jpg"
+      "https://combo.staticflickr.com/66a031f9fc343c5e42d965ca/671aaf5d51c929e483e8b26d_Open%20Graph%20Home.jpg"
     );
   });
 
