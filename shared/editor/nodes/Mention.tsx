@@ -22,6 +22,7 @@ import {
   MentionDocument,
   MentionIssue,
   MentionPullRequest,
+  MentionURL,
   MentionUser,
 } from "../components/Mentions";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
@@ -145,6 +146,8 @@ export default class Mention extends Node {
             onChangeUnfurl={this.handleChangeUnfurl(props)}
           />
         );
+      case MentionType.URL:
+        return <MentionURL {...props} />;
       default:
         return null;
     }
