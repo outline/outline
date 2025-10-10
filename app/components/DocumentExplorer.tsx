@@ -3,6 +3,7 @@ import concat from "lodash/concat";
 import difference from "lodash/difference";
 import fill from "lodash/fill";
 import filter from "lodash/filter";
+import flatten from "lodash/flatten";
 import includes from "lodash/includes";
 import map from "lodash/map";
 import { observer } from "mobx-react";
@@ -27,7 +28,6 @@ import Text from "~/components/Text";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import { ancestors, descendants, flattenTree } from "~/utils/tree";
-import flatten from "lodash/flatten";
 
 type Props = {
   /** Action taken upon submission of selected item, could be publish, move etc. */
