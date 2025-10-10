@@ -7,7 +7,6 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useTheme } from "styled-components";
-import { v4 as uuidv4 } from "uuid";
 import { ProsemirrorData } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import { AttachmentValidation, CommentValidation } from "@shared/validations";
@@ -156,7 +155,7 @@ function CommentForm({
       comments
     );
 
-    comment.id = uuidv4();
+    comment.id = crypto.randomUUID();
     comments.add(comment);
 
     comment

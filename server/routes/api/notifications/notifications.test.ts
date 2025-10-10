@@ -1,5 +1,5 @@
 import queryString from "query-string";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import { randomElement } from "@shared/random";
 import { NotificationEventType } from "@shared/types";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
@@ -335,7 +335,7 @@ describe("#notifications.pixel", () => {
   it("should return 404 for notification that does not exist", async () => {
     const res = await server.get(
       `/api/notifications.pixel?${queryString.stringify({
-        id: uuidv4(),
+        id: randomUUID(),
         token: "invalid-token",
       })}`
     );

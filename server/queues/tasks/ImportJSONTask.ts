@@ -3,7 +3,7 @@ import fs from "fs-extra";
 import find from "lodash/find";
 import mime from "mime-types";
 import { Fragment, Node } from "prosemirror-model";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import { ProsemirrorData } from "@shared/types";
 import { schema, serializer } from "@server/editor";
 import Logger from "@server/logging/Logger";
@@ -72,7 +72,7 @@ export default class ImportJSONTask extends ImportTask {
       collectionId: string
     ) {
       Object.values(documents).forEach((node) => {
-        const id = uuidv4();
+        const id = randomUUID();
         output.documents.push({
           ...node,
           path: "",
@@ -101,7 +101,7 @@ export default class ImportJSONTask extends ImportTask {
       [id: string]: AttachmentJSONExport;
     }) {
       Object.values(attachments).forEach((node) => {
-        const id = uuidv4();
+        const id = randomUUID();
         const mimeType = mime.lookup(node.key) || "application/octet-stream";
 
         output.attachments.push({
@@ -128,7 +128,7 @@ export default class ImportJSONTask extends ImportTask {
         throw new Error(`Could not parse ${node.path}. ${err.message}`);
       }
 
-      const collectionId = uuidv4();
+      const collectionId = randomUUID();
 
       output.collections.push({
         ...item.collection,

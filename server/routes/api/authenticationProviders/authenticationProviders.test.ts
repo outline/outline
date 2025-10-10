@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import { buildUser, buildAdmin, buildTeam } from "@server/test/factories";
 import { getTestServer, setSelfHosted } from "@server/test/support";
 
@@ -77,7 +77,7 @@ describe("#authenticationProviders.update", () => {
     });
     const googleProvider = await team.$create("authenticationProvider", {
       name: "google",
-      providerId: uuidv4(),
+      providerId: randomUUID(),
     });
     const res = await server.post("/api/authenticationProviders.update", {
       body: {

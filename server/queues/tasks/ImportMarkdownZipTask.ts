@@ -2,7 +2,7 @@ import path from "path";
 import fs from "fs-extra";
 import escapeRegExp from "lodash/escapeRegExp";
 import mime from "mime-types";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import documentImporter from "@server/commands/documentImporter";
 import { createContext } from "@server/context";
 import Logger from "@server/logging/Logger";
@@ -66,7 +66,7 @@ export default class ImportMarkdownZipTask extends ImportTask {
             return parseNodeChildren(child.children, collectionId);
           }
 
-          const id = uuidv4();
+          const id = randomUUID();
 
           // this is an attachment
           if (
@@ -144,7 +144,7 @@ export default class ImportMarkdownZipTask extends ImportTask {
     // All nodes in the root level should be collections
     for (const node of tree) {
       if (node.children.length > 0) {
-        const collectionId = uuidv4();
+        const collectionId = randomUUID();
         output.collections.push({
           id: collectionId,
           name: node.title,

@@ -9,7 +9,7 @@ import {
   Transaction,
   UniqueConstraintError,
 } from "sequelize";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import { randomElement } from "@shared/random";
 import { ImportInput, ImportTaskInput } from "@shared/schema";
 import {
@@ -514,7 +514,7 @@ export default abstract class ImportsProcessor<
       const json = node.toJSON() as ProsemirrorData;
       const attrs = json.attrs ?? {};
 
-      attrs.id = uuidv4();
+      attrs.id = randomUUID();
       attrs.actorId = actorId;
 
       const externalId = attrs.modelId as string;
@@ -597,7 +597,7 @@ export default abstract class ImportsProcessor<
       }
     }
 
-    idMap[externalId] = internalId ?? uuidv4();
+    idMap[externalId] = internalId ?? randomUUID();
     return idMap[externalId];
   }
 

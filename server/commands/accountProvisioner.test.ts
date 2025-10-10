@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
 import { TeamDomain } from "@server/models";
 import Collection from "@server/models/Collection";
@@ -35,7 +35,7 @@ describe("accountProvisioner", () => {
             providerId: faker.internet.domainName(),
           },
           authentication: {
-            providerId: uuidv4(),
+            providerId: randomUUID(),
             accessToken: "123",
             scopes: ["read"],
           },
@@ -137,7 +137,7 @@ describe("accountProvisioner", () => {
           providerId: authenticationProvider.providerId,
         },
         authentication: {
-          providerId: uuidv4(),
+          providerId: randomUUID(),
           accessToken: "123",
           scopes: ["read"],
         },
@@ -271,7 +271,7 @@ describe("accountProvisioner", () => {
             providerId: authenticationProvider.providerId,
           },
           authentication: {
-            providerId: uuidv4(),
+            providerId: randomUUID(),
             accessToken: "123",
             scopes: ["read"],
           },
@@ -313,7 +313,7 @@ describe("accountProvisioner", () => {
           providerId: authenticationProvider.providerId,
         },
         authentication: {
-          providerId: uuidv4(),
+          providerId: randomUUID(),
           accessToken: "123",
           scopes: ["read"],
         },
@@ -361,7 +361,7 @@ describe("accountProvisioner", () => {
           providerId: authenticationProvider.providerId,
         },
         authentication: {
-          providerId: uuidv4(),
+          providerId: randomUUID(),
           accessToken: "123",
           scopes: ["read"],
         },
@@ -405,7 +405,7 @@ describe("accountProvisioner", () => {
           providerId: faker.internet.domainName(),
         },
         authentication: {
-          providerId: uuidv4(),
+          providerId: randomUUID(),
           accessToken: "123",
           scopes: ["read"],
         },
@@ -458,7 +458,7 @@ describe("accountProvisioner", () => {
             providerId: faker.internet.domainName(),
           },
           authentication: {
-            providerId: uuidv4(),
+            providerId: randomUUID(),
             accessToken: "123",
             scopes: ["read"],
           },
@@ -491,7 +491,7 @@ describe("accountProvisioner", () => {
           providerId: domain,
         },
         authentication: {
-          providerId: uuidv4(),
+          providerId: randomUUID(),
           accessToken: "123",
           scopes: ["read"],
         },

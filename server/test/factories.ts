@@ -4,7 +4,7 @@ import isNull from "lodash/isNull";
 import { Node } from "prosemirror-model";
 import { InferCreationAttributes } from "sequelize";
 import { DeepPartial } from "utility-types";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import { randomString } from "@shared/random";
 import {
   CollectionPermission,
@@ -282,7 +282,7 @@ export async function buildIntegration(overrides: Partial<Integration> = {}) {
     type: IntegrationType.Post,
     events: ["documents.update", "documents.publish"],
     settings: {
-      serviceTeamId: uuidv4(),
+      serviceTeamId: randomUUID(),
     },
     authenticationId: authentication.id,
     ...overrides,
@@ -559,7 +559,7 @@ export async function buildAttachment(
     overrides.documentId = document.id;
   }
 
-  const id = uuidv4();
+  const id = randomUUID();
   const acl = overrides.acl || "public-read";
   const name = fileName || faker.system.fileName();
   return Attachment.create({

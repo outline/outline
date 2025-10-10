@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import { AttachmentPreset } from "@shared/types";
 import { Attachment, User } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
@@ -47,7 +47,7 @@ export default async function attachmentCreator({
   const acl = AttachmentHelper.presetToAcl(preset);
   const key = AttachmentHelper.getKey({
     acl,
-    id: uuidv4(),
+    id: randomUUID(),
     name,
     userId: user.id,
   });

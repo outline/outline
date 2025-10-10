@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import { WhereOptions } from "sequelize";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import { AttachmentPreset } from "@shared/types";
 import { bytesToHumanReadable, getFileNameFromUrl } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
@@ -113,7 +113,7 @@ router.post(
       );
     }
 
-    const modelId = uuidv4();
+    const modelId = randomUUID();
     const acl = AttachmentHelper.presetToAcl(preset);
     const key = AttachmentHelper.getKey({
       acl,
@@ -185,7 +185,7 @@ router.post(
     authorize(user, "update", document);
 
     const name = getFileNameFromUrl(url) ?? "file";
-    const modelId = uuidv4();
+    const modelId = randomUUID();
     const acl = AttachmentHelper.presetToAcl(preset);
     const key = AttachmentHelper.getKey({
       acl,

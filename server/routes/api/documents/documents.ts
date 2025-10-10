@@ -12,7 +12,7 @@ import remove from "lodash/remove";
 import uniq from "lodash/uniq";
 import mime from "mime-types";
 import { Op, ScopeOptions, Sequelize, WhereOptions } from "sequelize";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import { NavigationNode, StatusFilter, UserRole } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
@@ -1607,7 +1607,7 @@ router.post(
 
     const key = AttachmentHelper.getKey({
       acl,
-      id: uuidv4(),
+      id: randomUUID(),
       name: fileName,
       userId: user.id,
     });
