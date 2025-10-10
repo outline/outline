@@ -7,6 +7,7 @@ import Logger from "@server/logging/Logger";
 import { Document, Event } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import { AuthenticationType } from "@server/types";
+import semver from "semver";
 
 type Props = {
   /** The document ID to update. */
@@ -17,6 +18,8 @@ type Props = {
   sessionCollaboratorIds: string[];
   /** Whether the last connection to the document left. */
   isLastConnection: boolean;
+  /** The client version, if available. */
+  clientVersion: string | null;
 };
 
 export default async function documentCollaborativeUpdater({
@@ -24,6 +27,7 @@ export default async function documentCollaborativeUpdater({
   ydoc,
   sessionCollaboratorIds,
   isLastConnection,
+  clientVersion,
 }: Props) {
   return sequelize.transaction(async (transaction) => {
     const document = await Document.unscoped()
@@ -74,6 +78,10 @@ export default async function documentCollaborativeUpdater({
         state: Buffer.from(state),
         lastModifiedById,
         collaboratorIds,
+        editorVersion:
+          clientVersion && semver.gt(clientVersion, document.editorVersion)
+            ? clientVersion
+            : document.editorVersion,
       },
       {
         transaction,
