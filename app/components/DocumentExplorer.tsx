@@ -49,8 +49,13 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
   const [searchTerm, setSearchTerm] = React.useState<string>();
   const [selectedNode, selectNode] = React.useState<NavigationNode | null>(
     () => {
-      const node =
-        defaultValue && items.find((item) => item.id === defaultValue);
+      if (!defaultValue) {
+        return null;
+      }
+
+      // Search through all nodes in the tree, not just top-level items
+      const allNodes = flatten(items.map(flattenTree));
+      const node = allNodes.find((item) => item.id === defaultValue);
       return node || null;
     }
   );
@@ -59,7 +64,9 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
   const [activeNode, setActiveNode] = React.useState<number>(0);
   const [expandedNodes, setExpandedNodes] = React.useState<string[]>(() => {
     if (defaultValue) {
-      const node = items.find((item) => item.id === defaultValue);
+      // Search through all nodes in the tree, not just top-level items
+      const allNodes = flatten(items.map(flattenTree));
+      const node = allNodes.find((item) => item.id === defaultValue);
       if (node) {
         return ancestors(node).map((ancestorNode) => ancestorNode.id);
       }
@@ -115,7 +122,7 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
         setTimeout(() => listRef.current?.scrollToItem(index, "center"), 50);
       }
     }
-  }, []);
+  }, [defaultValue, selectedNode, nodes]);
 
   function getNodes() {
     function includeDescendants(item: NavigationNode): NavigationNode[] {
