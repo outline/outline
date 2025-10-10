@@ -47,7 +47,7 @@ export default class RedisAdapter extends Redis {
 
     if (!url || !url.startsWith("ioredis://")) {
       super(
-        env.REDIS_URL ?? "",
+        url || env.REDIS_URL || "",
         defaults(options, { connectionName }, defaultOptions)
       );
     } else {
@@ -101,6 +101,10 @@ export default class RedisAdapter extends Redis {
    * A Redis adapter for collaboration-related operations.
    */
   public static get collaborationClient(): RedisAdapter {
+    if (!env.REDIS_COLLABORATION_URL) {
+      return this.defaultClient;
+    }
+
     return (
       this.collabClient ||
       (this.collabClient = new this(env.REDIS_COLLABORATION_URL, {
