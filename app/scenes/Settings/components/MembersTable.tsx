@@ -53,6 +53,7 @@ export function MembersTable({ canManage, ...rest }: Props) {
             </Flex>
           ),
           width: "4fr",
+          sortable: true,
         },
         canManage && !isMobile
           ? {
