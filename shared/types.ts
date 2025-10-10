@@ -83,6 +83,7 @@ export enum MentionType {
   User = "user",
   Document = "document",
   Collection = "collection",
+  Group = "group",
   Issue = "issue",
   PullRequest = "pull_request",
   URL = "url",

@@ -18,6 +18,7 @@ import { MentionType, UnfurlResourceType, UnfurlResponse } from "../../types";
 import {
   MentionCollection,
   MentionDocument,
+  MentionGroup,
   MentionIssue,
   MentionPullRequest,
   MentionURL,
@@ -126,6 +127,8 @@ export default class Mention extends Node {
     switch (props.node.attrs.type) {
       case MentionType.User:
         return <MentionUser {...props} />;
+      case MentionType.Group:
+        return <MentionGroup {...props} />;
       case MentionType.Document:
         return <MentionDocument {...props} />;
       case MentionType.Collection:
