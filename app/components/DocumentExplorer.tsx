@@ -3,6 +3,7 @@ import concat from "lodash/concat";
 import difference from "lodash/difference";
 import fill from "lodash/fill";
 import filter from "lodash/filter";
+import flatten from "lodash/flatten";
 import includes from "lodash/includes";
 import map from "lodash/map";
 import { observer } from "mobx-react";
@@ -27,7 +28,6 @@ import Text from "~/components/Text";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import { ancestors, descendants, flattenTree } from "~/utils/tree";
-import flatten from "lodash/flatten";
 
 type Props = {
   /** Action taken upon submission of selected item, could be publish, move etc. */
@@ -49,8 +49,13 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
   const [searchTerm, setSearchTerm] = React.useState<string>();
   const [selectedNode, selectNode] = React.useState<NavigationNode | null>(
     () => {
-      const node =
-        defaultValue && items.find((item) => item.id === defaultValue);
+      if (!defaultValue) {
+        return null;
+      }
+
+      // Search through all nodes in the tree, not just top-level items
+      const allNodes = flatten(items.map(flattenTree));
+      const node = allNodes.find((item) => item.id === defaultValue);
       return node || null;
     }
   );
@@ -59,7 +64,9 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
   const [activeNode, setActiveNode] = React.useState<number>(0);
   const [expandedNodes, setExpandedNodes] = React.useState<string[]>(() => {
     if (defaultValue) {
-      const node = items.find((item) => item.id === defaultValue);
+      // Search through all nodes in the tree, not just top-level items
+      const allNodes = flatten(items.map(flattenTree));
+      const node = allNodes.find((item) => item.id === defaultValue);
       if (node) {
         return ancestors(node).map((ancestorNode) => ancestorNode.id);
       }
@@ -104,19 +111,6 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
     );
   }, [items.length]);
 
-  React.useEffect(() => {
-    onSelect(selectedNode);
-  }, [selectedNode, onSelect]);
-
-  React.useEffect(() => {
-    if (defaultValue && selectedNode && listRef) {
-      const index = nodes.findIndex((node) => node.id === selectedNode.id);
-      if (index > 0) {
-        setTimeout(() => listRef.current?.scrollToItem(index, "center"), 50);
-      }
-    }
-  }, []);
-
   function getNodes() {
     function includeDescendants(item: NavigationNode): NavigationNode[] {
       return expandedNodes.includes(item.id)
@@ -130,6 +124,19 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
   }
 
   const nodes = getNodes();
+
+  React.useEffect(() => {
+    onSelect(selectedNode);
+  }, [selectedNode, onSelect]);
+
+  React.useEffect(() => {
+    if (defaultValue && selectedNode && listRef) {
+      const index = nodes.findIndex((node) => node.id === selectedNode.id);
+      if (index > 0) {
+        setTimeout(() => listRef.current?.scrollToItem(index, "center"), 50);
+      }
+    }
+  }, [defaultValue, selectedNode, nodes]);
   const baseDepth = nodes.reduce(
     (min, node) => (node.depth ? Math.min(min, node.depth) : min),
     Infinity
