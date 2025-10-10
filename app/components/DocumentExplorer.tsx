@@ -111,19 +111,6 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
     );
   }, [items.length]);
 
-  React.useEffect(() => {
-    onSelect(selectedNode);
-  }, [selectedNode, onSelect]);
-
-  React.useEffect(() => {
-    if (defaultValue && selectedNode && listRef) {
-      const index = nodes.findIndex((node) => node.id === selectedNode.id);
-      if (index > 0) {
-        setTimeout(() => listRef.current?.scrollToItem(index, "center"), 50);
-      }
-    }
-  }, [defaultValue, selectedNode, nodes]);
-
   function getNodes() {
     function includeDescendants(item: NavigationNode): NavigationNode[] {
       return expandedNodes.includes(item.id)
@@ -137,6 +124,19 @@ function DocumentExplorer({ onSubmit, onSelect, items, defaultValue }: Props) {
   }
 
   const nodes = getNodes();
+
+  React.useEffect(() => {
+    onSelect(selectedNode);
+  }, [selectedNode, onSelect]);
+
+  React.useEffect(() => {
+    if (defaultValue && selectedNode && listRef) {
+      const index = nodes.findIndex((node) => node.id === selectedNode.id);
+      if (index > 0) {
+        setTimeout(() => listRef.current?.scrollToItem(index, "center"), 50);
+      }
+    }
+  }, [defaultValue, selectedNode, nodes]);
   const baseDepth = nodes.reduce(
     (min, node) => (node.depth ? Math.min(min, node.depth) : min),
     Infinity
