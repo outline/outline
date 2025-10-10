@@ -43,7 +43,7 @@ export function MembersTable({ canManage, ...rest }: Props) {
             <Flex align="center" gap={8}>
               <Avatar model={user} size={AvatarSize.Large} />{" "}
               <Flex column>
-                <Text>
+                <Text selectable>
                   {user.name} {currentUser.id === user.id && `(${t("You")})`}
                 </Text>
                 {isMobile && canManage && (
@@ -53,7 +53,6 @@ export function MembersTable({ canManage, ...rest }: Props) {
             </Flex>
           ),
           width: "4fr",
-          sortable: true,
         },
         canManage && !isMobile
           ? {
