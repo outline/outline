@@ -57,6 +57,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const { presence, auth, ui } = useStores();
+  const [editorVersionBehind, setEditorVersionBehind] = useState(false);
   const [showCursorNames, setShowCursorNames] = useState(false);
   const [remoteProvider, setRemoteProvider] =
     useState<HocuspocusProvider | null>(null);
@@ -161,7 +162,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
         ui.setMultiplayerStatus("disconnected", ev.event.code);
 
         if (ev.event.code === EditorUpdateError.code) {
-          window.location.reload();
+          setEditorVersionBehind(true);
         }
       }
     });
@@ -309,6 +310,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       )}
       <Editor
         {...props}
+        readOnly={props.readOnly || editorVersionBehind}
         value={undefined}
         defaultValue={undefined}
         extensions={extensions}

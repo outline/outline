@@ -7,6 +7,7 @@ import {
   AuthenticationFailed,
   AuthorizationFailed,
   DocumentTooLarge,
+  EditorUpdateError,
   TooManyConnections,
 } from "@shared/collaboration/CloseEvents";
 import Fade from "~/components/Fade";
@@ -37,6 +38,10 @@ function ConnectionStatus() {
       title: t("Too many users connected to document"),
       body: t("Your edits will sync once other users leave the document"),
     },
+    [EditorUpdateError.code]: {
+      title: t("New version available"),
+      body: t("Please reload the page to update to the latest version"),
+    },
   };
 
   const message = ui.multiplayerErrorCode
@@ -63,20 +68,29 @@ function ConnectionStatus() {
       }
       placement="bottom"
     >
-      <Button>
-        <Fade>
+      <Fade>
+        <Button width="auto">
+          {message?.title ?? t("Offline")}
           <DisconnectedIcon />
-        </Fade>
-      </Button>
+        </Button>
+      </Fade>
     </Tooltip>
   ) : null;
 }
 
 const Button = styled(NudeButton)`
   display: none;
+  background: ${(props) => props.theme.backgroundTertiary};
+  color: ${(props) => props.theme.textSecondary};
+  font-size: 14px;
+  font-weight: 500;
+  padding-left: 6px;
+  padding-right: 6px;
 
   ${breakpoint("tablet")`
-    display: block;
+    display: flex;
+    gap: 4px;
+    align-items: center;
   `};
 
   @media print {
