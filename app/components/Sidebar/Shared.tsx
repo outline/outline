@@ -146,7 +146,8 @@ const StyledSidebar = styled(Sidebar)<{ $hoverTransition: boolean }>`
   ${({ $hoverTransition }) =>
     $hoverTransition &&
     `
-      &: ${hover} {
+      @media (hover: hover) {
+        &:${hover} {
         ${StyledSearchPopover} {
           width: 85%;
         }
@@ -154,6 +155,7 @@ const StyledSidebar = styled(Sidebar)<{ $hoverTransition: boolean }>`
         ${ToggleWrapper} {
           opacity: 1;
           transform: translateX(0);
+          }
         }
       }
     `}
