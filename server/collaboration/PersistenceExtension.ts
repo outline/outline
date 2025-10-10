@@ -94,8 +94,10 @@ export default class PersistenceExtension implements Extension {
     context,
     documentName,
     clientsCount,
+    requestParameters,
   }: onStoreDocumentPayload) {
     const [, documentId] = documentName.split(".");
+    const clientVersion = requestParameters.get("editorVersion");
 
     const key = Document.getCollaboratorKey(documentId);
     const sessionCollaboratorIds = await Redis.defaultClient.smembers(key);
@@ -110,6 +112,7 @@ export default class PersistenceExtension implements Extension {
         ydoc: document,
         sessionCollaboratorIds,
         isLastConnection: clientsCount === 0,
+        clientVersion,
       });
     } catch (err) {
       Logger.error("Unable to persist document", err, {
