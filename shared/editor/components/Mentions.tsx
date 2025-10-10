@@ -28,6 +28,7 @@ import {
 } from "../../types";
 import { cn } from "../styles/utils";
 import { ComponentProps } from "../types";
+import { sanitizeUrl } from "@shared/utils/urls";
 
 type Attrs = {
   className: string;
@@ -190,10 +191,9 @@ export const MentionURL = (props: ComponentProps) => {
       rel="noopener noreferrer nofollow"
     >
       <Flex align="center" gap={6}>
-        <img
-          src={unfurl.faviconUrl}
-          style={{ width: "16px", height: "16px" }}
-        />
+        {unfurl.faviconUrl ? (
+          <Logo src={sanitizeUrl(unfurl.faviconUrl)} alt="" />
+        ) : null}
         <Text>
           <Backticks content={unfurl.title} />
         </Text>
@@ -374,4 +374,9 @@ const MentionError = ({ className }: { className: string }) => {
 
 const StyledWarningIcon = styled(WarningIcon)`
   margin: 0 -2px;
+`;
+
+const Logo = styled.img`
+  width: 16px;
+  height: 16px;
 `;

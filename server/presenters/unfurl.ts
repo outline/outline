@@ -30,8 +30,8 @@ const presentURL = (
   url: data.url,
   title: data.meta.title,
   description: data.meta.description,
-  thumbnailUrl: data.links.thumbnail[0].href,
-  faviconUrl: data.links.icon[0].href,
+  thumbnailUrl: (data.links.thumbnail ?? [])[0]?.href ?? "",
+  faviconUrl: (data.links.icon ?? [])[0]?.href ?? "",
 });
 
 const presentMention = async (
