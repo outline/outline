@@ -57,6 +57,7 @@ class Cache {
 // Note: These are intentionally global since Mermaid itself is a singleton
 let mermaid: typeof MermaidUnsafe;
 let lastInitializedConfigHash = "";
+let elkLoadersRegistered = false;
 
 // Cache for frontmatter extraction to avoid re-parsing YAML on every render
 const frontMatterCache = new Map<string, ExtractedFrontMatter>();
@@ -71,6 +72,7 @@ const FRONTMATTER_REGEX = /^---\s*\n([\s\S]*?)\n---\s*\n/;
 export function resetMermaidState(): void {
   frontMatterCache.clear();
   lastInitializedConfigHash = "";
+  elkLoadersRegistered = false;
 }
 
 /**
@@ -236,9 +238,13 @@ class MermaidRenderer {
         darkMode: isDark,
       };
 
-      // Only re-initialize if config has changed
+      // Re-initialize if config has changed OR if ELK loaders were just registered
+      // This ensures ELK is available after registration, matching server-side export behavior
       const finalConfigHash = hashConfig(finalConfig);
-      if (finalConfigHash !== lastInitializedConfigHash) {
+      const configChanged = finalConfigHash !== lastInitializedConfigHash;
+      const needsInitForElk = elkLoadersRegistered && lastInitializedConfigHash === "";
+
+      if (configChanged || needsInitForElk) {
         mermaid.initialize(finalConfig);
         lastInitializedConfigHash = finalConfigHash;
       }
@@ -301,6 +307,10 @@ class MermaidRenderer {
       const elkLayouts = await import("@mermaid-js/layout-elk");
       if (elkLayouts.default && mermaid.registerLayoutLoaders) {
         mermaid.registerLayoutLoaders(elkLayouts.default);
+        // Mark that ELK was just registered so we force initialization
+        if (!elkLoadersRegistered) {
+          elkLoadersRegistered = true;
+        }
       }
     } catch {
       // ELK layout package not available
