@@ -166,6 +166,8 @@ function usePosition({
         top: Math.round(top - menuHeight - offsetParent.top),
         offset: 0,
         visible: true,
+        blockSelection: false,
+        maxWidth: width,
       };
     }
   }
