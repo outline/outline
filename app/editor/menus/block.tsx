@@ -28,6 +28,8 @@ import Image from "@shared/editor/components/Img";
 import { MenuItem } from "@shared/editor/types";
 import { metaDisplay } from "@shared/utils/keyboard";
 import { Dictionary } from "~/hooks/useDictionary";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faFilePdf } from "@fortawesome/free-solid-svg-icons";
 
 const Img = styled(Image)`
   border-radius: 2px;
@@ -113,6 +115,12 @@ export default function blockMenuItems(
       title: dictionary.video,
       icon: <EmbedIcon />,
       keywords: "mov avi upload player",
+    },
+    {
+      name: "attachment-pdf",
+      title: dictionary.pdf,
+      icon: <FontAwesomeIcon icon={faFilePdf} />,
+      keywords: "pdf upload attach",
     },
     {
       name: "attachment",
