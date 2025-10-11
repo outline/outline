@@ -1,4 +1,4 @@
-import { computed, observable, runInAction } from "mobx";
+import { action, computed, observable, runInAction } from "mobx";
 import { JSONObject, type NavigationNode } from "@shared/types";
 import { client } from "~/utils/ApiClient";
 import ParanoidModel from "./ParanoidModel";
@@ -108,5 +108,30 @@ export default abstract class NavigableModel extends ParanoidModel {
     }
 
     return result;
+  }
+
+  /**
+   * Removes the document identified by the given id from the navigation tree
+   * in memory. Does not remove the document from the database.
+   *
+   * @param documentId The id of the document to remove.
+   */
+  @action
+  removeDocument(documentId: string) {
+    if (!this.node?.children) {
+      return;
+    }
+
+    this.node.children = this.node.children.filter(function f(node): boolean {
+      if (node.id === documentId) {
+        return false;
+      }
+
+      if (node.children) {
+        node.children = node.children.filter(f);
+      }
+
+      return true;
+    });
   }
 }

@@ -636,6 +636,13 @@ export default class DocumentsStore extends Store<Document> {
       this.rootStore.shares.remove(share.id);
     }
 
+    this.rootStore.userMemberships.orderedData.forEach((m) => {
+      m.removeDocument(document.id);
+    });
+    this.rootStore.groupMemberships.orderedData.forEach((m) => {
+      m.removeDocument(document.id);
+    });
+
     const collection = this.getCollectionForDocument(document);
     if (collection) {
       await collection.refresh();

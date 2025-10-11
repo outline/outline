@@ -300,6 +300,8 @@ function InnerDocumentLink(
       );
       collection?.addDocument(newDocument, node.id);
 
+      await membership?.fetchDocuments({ force: true });
+
       closeAddingNewChild();
       history.push({
         pathname: documentEditPath(newDocument),
@@ -315,6 +317,7 @@ function InnerDocumentLink(
       doc,
       history,
       closeAddingNewChild,
+      membership,
     ]
   );
 

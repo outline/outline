@@ -14,3 +14,4 @@ data/*
 *.pem
 *.key
 *.cert
+.history
