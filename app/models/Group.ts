@@ -27,6 +27,11 @@ class Group extends Model {
   }
 
   @computed
+  get searchContent(): string[] {
+    return [this.name].filter(Boolean);
+  }
+
+  @computed
   get admins() {
     const { groupUsers } = this.store.rootStore;
     return groupUsers.orderedData
