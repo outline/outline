@@ -7,7 +7,6 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useTheme } from "styled-components";
-import { v4 as uuidv4 } from "uuid";
 import { ProsemirrorData } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import { AttachmentValidation, CommentValidation } from "@shared/validations";
@@ -107,6 +106,7 @@ function CommentForm({
     setForceRender((s) => ++s);
     setInputFocused(false);
 
+    const commentDraft = draft;
     const comment =
       thread ??
       new Comment(
@@ -126,6 +126,9 @@ function CommentForm({
       })
       .then(() => onSubmit?.())
       .catch(() => {
+        onSaveDraft(commentDraft);
+        setForceRender((s) => ++s);
+
         comment.isNew = true;
         toast.error(t("Error creating comment"));
       });
@@ -142,6 +145,7 @@ function CommentForm({
       return;
     }
 
+    const commentDraft = draft;
     onSaveDraft(undefined);
     setForceRender((s) => ++s);
 
@@ -156,13 +160,16 @@ function CommentForm({
       comments
     );
 
-    comment.id = uuidv4();
+    comment.id = crypto.randomUUID();
     comments.add(comment);
 
     comment
       .save()
       .then(() => onSubmit?.())
       .catch(() => {
+        onSaveDraft(commentDraft);
+        setForceRender((s) => ++s);
+
         comments.remove(comment.id);
         comment.isNew = true;
         toast.error(t("Error creating comment"));

@@ -85,6 +85,7 @@ export enum MentionType {
   Collection = "collection",
   Issue = "issue",
   PullRequest = "pull_request",
+  URL = "url",
 }
 
 export type PublicEnv = {
@@ -410,7 +411,7 @@ export const NotificationEventDefaults: Record<NotificationEventType, boolean> =
   };
 
 export enum UnfurlResourceType {
-  OEmbed = "oembed",
+  URL = "url",
   Mention = "mention",
   Document = "document",
   Issue = "issue",
@@ -418,9 +419,9 @@ export enum UnfurlResourceType {
 }
 
 export type UnfurlResponse = {
-  [UnfurlResourceType.OEmbed]: {
+  [UnfurlResourceType.URL]: {
     /** The resource type */
-    type: UnfurlResourceType.OEmbed;
+    type: UnfurlResourceType.URL;
     /** URL pointing to the resource */
     url: string;
     /** A text title, describing the resource */
@@ -429,6 +430,8 @@ export type UnfurlResponse = {
     description: string;
     /** A URL to a thumbnail image representing the resource */
     thumbnailUrl: string;
+    /** A URL to a favicon representing the resource */
+    faviconUrl: string;
   };
   [UnfurlResourceType.Mention]: {
     /** The resource type */

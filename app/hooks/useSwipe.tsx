@@ -26,13 +26,22 @@ export default function useSwipe({
     touchYEnd.current = undefined;
   };
 
-  const onTouchStart = (e: React.TouchEvent<HTMLImageElement>) => {
-    touchXStart.current = e.changedTouches[0].screenX;
-    touchYStart.current = e.changedTouches[0].screenY;
+  const onTouchStartCapture = (e: React.TouchEvent<HTMLImageElement>) => {
+    if (e.touches.length === 1) {
+      // Stop propagation only for single touch gestures, otherwise it prevents
+      // multi-touch gestures like pinch to zoom to take effect
+      e.stopPropagation();
+      touchXStart.current = e.changedTouches[0].screenX;
+      touchYStart.current = e.changedTouches[0].screenY;
+    }
   };
 
-  const onTouchMove = (e: React.TouchEvent<HTMLImageElement>) => {
-    if (isNumber(touchXStart.current) && isNumber(touchYStart.current)) {
+  const onTouchMoveCapture = (e: React.TouchEvent<HTMLImageElement>) => {
+    if (
+      isNumber(touchXStart.current) &&
+      isNumber(touchYStart.current) &&
+      e.touches.length === 1
+    ) {
       touchXEnd.current = e.changedTouches[0].screenX;
       touchYEnd.current = e.changedTouches[0].screenY;
       const dx = touchXEnd.current - touchXStart.current;
@@ -64,13 +73,13 @@ export default function useSwipe({
     }
   };
 
-  const onTouchCancel = () => {
+  const onTouchCancelCapture = () => {
     resetTouchPoints();
   };
 
   return {
-    onTouchStart,
-    onTouchMove,
-    onTouchCancel,
+    onTouchStartCapture,
+    onTouchMoveCapture,
+    onTouchCancelCapture,
   };
 }
