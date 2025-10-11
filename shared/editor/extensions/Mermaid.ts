@@ -57,7 +57,6 @@ class Cache {
 // Note: These are intentionally global since Mermaid itself is a singleton
 let mermaid: typeof MermaidUnsafe;
 let lastInitializedConfigHash = "";
-let elkLoadersRegistered = false;
 
 // Cache for frontmatter extraction to avoid re-parsing YAML on every render
 const frontMatterCache = new Map<string, ExtractedFrontMatter>();
@@ -72,7 +71,6 @@ const FRONTMATTER_REGEX = /^---\s*\n([\s\S]*?)\n---\s*\n/;
 export function resetMermaidState(): void {
   frontMatterCache.clear();
   lastInitializedConfigHash = "";
-  elkLoadersRegistered = false;
 }
 
 /**
@@ -178,11 +176,9 @@ class MermaidRenderer {
     let renderElement: HTMLElement | null = null;
 
     try {
-      const { metadata, text } = extractFrontMatter(originalText);
-
-      // Use stable hash for cache key
-      const configHash = metadata.config ? hashConfig(metadata.config) : '';
-      const cacheKey = `${isDark ? "dark" : "light"}-${configHash}-${originalText}`;
+      // Cache key based on theme and diagram text
+      // Note: originalText may include frontmatter which will be processed by Mermaid
+      const cacheKey = `${isDark ? "dark" : "light"}-${originalText}`;
       const cache = Cache.get(cacheKey);
       if (cache) {
         element.classList.remove("parse-error", "empty");
@@ -190,15 +186,19 @@ class MermaidRenderer {
         return;
       }
 
-      // Initialize Mermaid if needed
-      await this.initializeMermaid();
+      // Load Mermaid library if not already loaded
+      await this.ensureMermaidLoaded();
 
       if (!mermaid) {
         throw new Error("Failed to load Mermaid library");
       }
 
+      // Always register ELK and icon packs before rendering
+      // This is safe to call multiple times per Mermaid docs
+      await this.registerExtensions();
+
       // Validate text content
-      if (!text || text.trim().length === 0) {
+      if (!originalText || originalText.trim().length === 0) {
         element.innerText = "Empty diagram";
         element.classList.add("empty");
         element.classList.remove("parse-error");
@@ -215,8 +215,10 @@ class MermaidRenderer {
       renderElement.style.pointerEvents = "none";
       document.body.appendChild(renderElement);
 
-      // Build configuration
-      const defaultConfig = {
+      // Build base site-wide configuration
+      // Per Mermaid docs: mermaid.initialize() sets site-wide config,
+      // and diagram-specific frontmatter will override it per-diagram
+      const siteConfig = {
         startOnLoad: true,
         // TODO: Make dynamic based on the width of the editor or remove in
         // the future if Mermaid is able to handle this automatically.
@@ -230,30 +232,20 @@ class MermaidRenderer {
         securityLevel: "strict" as const, // Allow more diagram types
       };
 
-      // Merge frontmatter config if present, ensuring theme and darkMode are always set correctly
-      const finalConfig = {
-        ...defaultConfig,
-        ...(metadata.config || {}),
-        theme: (isDark ? "dark" : "default") as "dark" | "default",
-        darkMode: isDark,
-      };
-
-      // Re-initialize if config has changed OR if ELK loaders were just registered
-      // This ensures ELK is available after registration, matching server-side export behavior
-      const finalConfigHash = hashConfig(finalConfig);
-      const configChanged = finalConfigHash !== lastInitializedConfigHash;
-      const needsInitForElk = elkLoadersRegistered && lastInitializedConfigHash === "";
-
-      if (configChanged || needsInitForElk) {
-        mermaid.initialize(finalConfig);
-        lastInitializedConfigHash = finalConfigHash;
+      // Only re-initialize if the base config (primarily theme) has changed
+      // Don't include diagram-specific frontmatter in initialize() - Mermaid handles that internally
+      const siteConfigHash = hashConfig(siteConfig);
+      if (siteConfigHash !== lastInitializedConfigHash) {
+        mermaid.initialize(siteConfig);
+        lastInitializedConfigHash = siteConfigHash;
       }
 
-      // Render the diagram
+      // Render the diagram with original text INCLUDING frontmatter
+      // Per Mermaid docs: mermaid.render() expects and processes frontmatter internally
       // Use off-screen element only if the main element is not visible
       const result = await mermaid.render(
         `mermaid-diagram-${this.diagramId}`,
-        text,
+        originalText,
         element.offsetParent === null ? renderElement : element
       );
 
@@ -265,7 +257,7 @@ class MermaidRenderer {
       const { svg, bindFunctions } = result;
 
       // Cache the rendered SVG so we won't need to calculate it again in the same session
-      if (text && svg) {
+      if (originalText && svg) {
         Cache.set(cacheKey, svg);
       }
 
@@ -295,40 +287,38 @@ class MermaidRenderer {
     return this._rendererFunc;
   }
 
-  private async initializeMermaid(): Promise<void> {
-    // Dynamic import
+  private async ensureMermaidLoaded(): Promise<void> {
+    // Dynamic import mermaid library once
     if (!mermaid) {
       mermaid = (await import("mermaid")).default;
     }
+  }
 
-    // Always register ELK layout loaders to ensure they're available
-    // Re-registering is safe and ensures loaders are available after page navigation
+  private async registerExtensions(): Promise<void> {
+    // Always register ELK layout loaders before each render
+    // Per Mermaid docs: "can be called multiple times safely"
+    // This ensures ELK is available regardless of page navigation order
     try {
       const elkLayouts = await import("@mermaid-js/layout-elk");
       if (elkLayouts.default && mermaid.registerLayoutLoaders) {
         mermaid.registerLayoutLoaders(elkLayouts.default);
-        // Mark that ELK was just registered so we force initialization
-        if (!elkLoadersRegistered) {
-          elkLoadersRegistered = true;
-        }
       }
     } catch {
-      // ELK layout package not available
+      // ELK layout package not available - diagrams will fall back to dagre
     }
 
-    // Always register icon packs if configs provided
-    if (this.iconPackConfigs && this.iconPackConfigs.length > 0) {
+    // Always register icon packs if configured
+    // Per Mermaid docs: "can be called multiple times safely"
+    // This ensures icons work regardless of page navigation order
+    if (this.iconPackConfigs && this.iconPackConfigs.length > 0 && mermaid.registerIconPacks) {
       try {
-        if (mermaid.registerIconPacks) {
-          // Use the loader pattern to fetch icon packs dynamically
-          const iconPacks = this.iconPackConfigs.map((config) => ({
-            name: config.name,
-            loader: () => fetch(config.url).then((res) => res.json()),
-          }));
-          mermaid.registerIconPacks(iconPacks);
-        }
+        const iconPacks = this.iconPackConfigs.map((config) => ({
+          name: config.name,
+          loader: () => fetch(config.url).then((res) => res.json()),
+        }));
+        mermaid.registerIconPacks(iconPacks);
       } catch {
-        // Icon packs not available
+        // Icon packs registration failed
       }
     }
   }
