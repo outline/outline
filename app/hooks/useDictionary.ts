@@ -32,6 +32,7 @@ export default function useDictionary() {
       comment: t("Comment"),
       copy: t("Copy"),
       createLink: t("Create link"),
+      editImageUrl: t("Edit image URL"),
       createLinkError: t("Sorry, an error occurred creating the link"),
       createNewDoc: t("Create a new doc"),
       createNewChildDoc: t("Create a new child doc"),
@@ -108,6 +109,7 @@ export default function useDictionary() {
       untitled: t("Untitled"),
       none: t("None"),
       deleteEmbed: t("Delete embed"),
+      uploadImage: t("Upload an image"),
     }),
     [t]
   );
