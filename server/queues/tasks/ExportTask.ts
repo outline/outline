@@ -90,7 +90,7 @@ export default abstract class ExportTask extends BaseTask<Props> {
         state: FileOperationState.Creating,
       });
 
-      filePath = await this.export(collections, fileOperation);
+      filePath = await this.export(collections, fileOperation, team);
 
       Logger.info("task", `ExportTask uploading data for ${fileOperationId}`);
 
@@ -149,11 +149,14 @@ export default abstract class ExportTask extends BaseTask<Props> {
    * Transform the data in all of the passed collections into a single Buffer.
    *
    * @param collections The collections to export
+   * @param fileOperation The file operation
+   * @param team The team object for preferences
    * @returns A promise that resolves to a temporary file path
    */
   protected abstract export(
     collections: Collection[],
-    fileOperation: FileOperation
+    fileOperation: FileOperation,
+    team: Team
   ): Promise<string>;
 
   /**

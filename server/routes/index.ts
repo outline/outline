@@ -27,7 +27,7 @@ const router = new Router();
 koa.use<BaseContext, UserAgentContext>(userAgent);
 
 // serve public assets
-router.use(["/images/*", "/email/*", "/fonts/*"], async (ctx, next) => {
+router.use(["/images/*", "/email/*", "/fonts/*", "/excalidraw/*"], async (ctx, next) => {
   let done;
 
   if (ctx.method === "HEAD" || ctx.method === "GET") {

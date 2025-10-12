@@ -1,6 +1,7 @@
 import debounce from "lodash/debounce";
 import last from "lodash/last";
 import sortBy from "lodash/sortBy";
+import { load as loadYaml, JSON_SCHEMA } from "js-yaml";
 import type MermaidUnsafe from "mermaid";
 import { Node } from "prosemirror-model";
 import {
@@ -23,6 +24,18 @@ type MermaidState = {
   isDark: boolean;
 };
 
+type FrontMatterMetadata = {
+  title?: string;
+  displayMode?: string;
+  config?: Record<string, unknown>;
+  [key: string]: unknown;
+};
+
+type ExtractedFrontMatter = {
+  metadata: FrontMatterMetadata;
+  text: string;
+};
+
 class Cache {
   static get(key: string) {
     return this.data.get(key);
@@ -40,27 +53,118 @@ class Cache {
   private static data: Map<string, string> = new Map();
 }
 
+// Module-level state for Mermaid library management
+// Note: These are intentionally global since Mermaid itself is a singleton
 let mermaid: typeof MermaidUnsafe;
+let lastInitializedConfigHash = "";
 
-type RendererFunc = (
-  block: { node: Node; pos: number },
-  isDark: boolean
-) => void;
+// Cache for frontmatter extraction to avoid re-parsing YAML on every render
+const frontMatterCache = new Map<string, ExtractedFrontMatter>();
+
+// Regex for extracting YAML frontmatter from Mermaid diagrams
+const FRONTMATTER_REGEX = /^---\s*\n([\s\S]*?)\n---\s*\n/;
+
+/**
+ * Reset all caches and flags - useful for testing
+ * @internal
+ */
+export function resetMermaidState(): void {
+  frontMatterCache.clear();
+  lastInitializedConfigHash = "";
+}
+
+/**
+ * Generate a stable hash for a config object
+ * Sorts keys to ensure consistent hashing
+ */
+function hashConfig(config: Record<string, unknown>): string {
+  if (!config || Object.keys(config).length === 0) {
+    return "";
+  }
+  const sortedKeys = Object.keys(config).sort();
+  const sortedConfig = sortedKeys.reduce((acc, key) => {
+    acc[key] = config[key];
+    return acc;
+  }, {} as Record<string, unknown>);
+  return JSON.stringify(sortedConfig);
+}
+
+/**
+ * Extract Frontmatter configuration from Mermaid diagram text
+ * Results are cached to avoid re-parsing YAML on every render
+ */
+function extractFrontMatter(text: string): ExtractedFrontMatter {
+  // Check cache first
+  if (frontMatterCache.has(text)) {
+    return frontMatterCache.get(text)!;
+  }
+
+  const match = text.match(FRONTMATTER_REGEX);
+
+  if (!match) {
+    const result = { metadata: {}, text };
+    frontMatterCache.set(text, result);
+    return result;
+  }
+
+  // Extract cleaned text once from the match instead of using replace
+  const cleanedText = text.slice(match[0].length);
+
+  try {
+    const yamlContent = match[1];
+    const metadata = (loadYaml(yamlContent, { schema: JSON_SCHEMA }) as FrontMatterMetadata) || {};
+
+    const result = {
+      metadata,
+      text: cleanedText,
+    };
+
+    // Cache with size limit
+    if (frontMatterCache.size > 50) {
+      const firstKey = frontMatterCache.keys().next().value;
+      frontMatterCache.delete(firstKey);
+    }
+    frontMatterCache.set(text, result);
+
+    return result;
+  } catch {
+    // If YAML parsing fails, return text without frontmatter
+    const result = {
+      metadata: {},
+      text: cleanedText,
+    };
+    frontMatterCache.set(text, result);
+    return result;
+  }
+}
+
 
 class MermaidRenderer {
   readonly diagramId: string;
-  readonly element: HTMLElement;
+  private _element: HTMLElement | null = null;
   readonly elementId: string;
   readonly editor: Editor;
+  readonly iconPackConfigs?: Array<{ name: string; url: string }>;
+  private _rendererFunc?: (block: { node: Node; pos: number }, isDark: boolean) => void;
 
-  constructor(editor: Editor) {
+  constructor(editor: Editor, iconPackConfigs?: Array<{ name: string; url: string }>) {
     this.diagramId = uuidv4();
     this.elementId = `mermaid-diagram-wrapper-${this.diagramId}`;
-    this.element =
-      document.getElementById(this.elementId) || document.createElement("div");
-    this.element.id = this.elementId;
-    this.element.classList.add("mermaid-diagram-wrapper");
     this.editor = editor;
+    this.iconPackConfigs = iconPackConfigs;
+  }
+
+  get element(): HTMLElement {
+    if (!this._element) {
+      // Safety check - only create elements when document is ready
+      if (typeof document === 'undefined') {
+        throw new Error('Document not available');
+      }
+      this._element = document.getElementById(this.elementId) || document.createElement("div");
+      this._element.id = this.elementId;
+      this._element.classList.add("mermaid-diagram-wrapper");
+    }
+    return this._element;
   }
 
   renderImmediately = async (
@@ -68,79 +172,172 @@ class MermaidRenderer {
     isDark: boolean
   ) => {
     const element = this.element;
-    const text = block.node.textContent;
-
-    const cacheKey = `${isDark ? "dark" : "light"}-${text}`;
-    const cache = Cache.get(cacheKey);
-    if (cache) {
-      element.classList.remove("parse-error", "empty");
-      element.innerHTML = cache;
-      return;
-    }
-
-    // Create a temporary element that will render the diagram off-screen. This is necessary
-    // as Mermaid will error if the element is not visible, such as if the heading is collapsed
-    const renderElement = document.createElement("div");
-    renderElement.style.position = "absolute";
-    renderElement.style.left = "-9999px";
-    renderElement.style.top = "-9999px";
-    document.body.appendChild(renderElement);
+    const originalText = block.node.textContent;
+    let renderElement: HTMLElement | null = null;
 
     try {
-      mermaid ??= (await import("mermaid")).default;
-      mermaid.initialize({
+      // Cache key based on theme and diagram text
+      // Note: originalText may include frontmatter which will be processed by Mermaid
+      const cacheKey = `${isDark ? "dark" : "light"}-${originalText}`;
+      const cache = Cache.get(cacheKey);
+      if (cache) {
+        element.classList.remove("parse-error", "empty");
+        element.innerHTML = cache;
+        return;
+      }
+
+      // Load Mermaid library if not already loaded
+      await this.ensureMermaidLoaded();
+
+      if (!mermaid) {
+        throw new Error("Failed to load Mermaid library");
+      }
+
+      // Always register ELK and icon packs before rendering
+      // This is safe to call multiple times per Mermaid docs
+      await this.registerExtensions();
+
+      // Validate text content
+      if (!originalText || originalText.trim().length === 0) {
+        element.innerText = "Empty diagram";
+        element.classList.add("empty");
+        element.classList.remove("parse-error");
+        return;
+      }
+
+      // Create a temporary element that will render the diagram off-screen. This is necessary
+      // as Mermaid will error if the element is not visible, such as if the heading is collapsed
+      renderElement = document.createElement("div");
+      renderElement.style.position = "absolute";
+      renderElement.style.left = "-9999px";
+      renderElement.style.top = "-9999px";
+      renderElement.style.visibility = "hidden";
+      renderElement.style.pointerEvents = "none";
+      document.body.appendChild(renderElement);
+
+      // Build base site-wide configuration
+      // Per Mermaid docs: mermaid.initialize() sets site-wide config,
+      // and diagram-specific frontmatter will override it per-diagram
+      const siteConfig = {
         startOnLoad: true,
         // TODO: Make dynamic based on the width of the editor or remove in
         // the future if Mermaid is able to handle this automatically.
         gantt: { useWidth: 700 },
         pie: { useWidth: 700 },
+        elk: { mergeEdges: true },
         fontFamily: getComputedStyle(this.element).fontFamily || "inherit",
-        theme: isDark ? "dark" : "default",
+        theme: (isDark ? "dark" : "default") as "dark" | "default",
         darkMode: isDark,
-      });
+        logLevel: "error" as const, // Reduce console noise
+        securityLevel: "strict" as const, // Allow more diagram types
+      };
 
-      const { svg, bindFunctions } = await mermaid.render(
+      // Only re-initialize if the base config (primarily theme) has changed
+      // Don't include diagram-specific frontmatter in initialize() - Mermaid handles that internally
+      const siteConfigHash = hashConfig(siteConfig);
+      if (siteConfigHash !== lastInitializedConfigHash) {
+        mermaid.initialize(siteConfig);
+        lastInitializedConfigHash = siteConfigHash;
+      }
+
+      // Render the diagram with original text INCLUDING frontmatter
+      // Per Mermaid docs: mermaid.render() expects and processes frontmatter internally
+      // Use off-screen element only if the main element is not visible
+      const result = await mermaid.render(
         `mermaid-diagram-${this.diagramId}`,
-        text,
-        // If the element is not visible we use an off-screen element to render the diagram
+        originalText,
         element.offsetParent === null ? renderElement : element
       );
-      this.currentTextContent = text;
+
+      // Check if result is valid
+      if (!result || !result.svg) {
+        throw new Error("Mermaid render returned invalid result");
+      }
+
+      const { svg, bindFunctions } = result;
 
       // Cache the rendered SVG so we won't need to calculate it again in the same session
-      if (text) {
+      if (originalText && svg) {
         Cache.set(cacheKey, svg);
       }
+
+      // Update element
       element.classList.remove("parse-error", "empty");
       element.innerHTML = svg;
 
       // Allow the user to interact with the diagram
-      bindFunctions?.(element);
-    } catch (error) {
-      const isEmpty = block.node.textContent.trim().length === 0;
-
-      if (isEmpty) {
-        element.innerText = "Empty diagram";
-        element.classList.add("empty");
-      } else {
-        element.innerText = error;
-        element.classList.add("parse-error");
+      if (bindFunctions && typeof bindFunctions === 'function') {
+        bindFunctions(element);
       }
+
+    } catch (error) {
+      this.handleRenderError(element, originalText, error);
     } finally {
-      renderElement.remove();
+      // Always clean up the render element
+      if (renderElement && renderElement.parentNode) {
+        renderElement.parentNode.removeChild(renderElement);
+      }
     }
   };
 
-  get render(): RendererFunc {
-    if (this._rendererFunc) {
-      return this._rendererFunc;
+  get render() {
+    if (!this._rendererFunc) {
+      this._rendererFunc = debounce(this.renderImmediately.bind(this), 250);
     }
-    this._rendererFunc = debounce<RendererFunc>(this.renderImmediately, 250);
-    return this.renderImmediately;
+    return this._rendererFunc;
   }
 
-  private currentTextContent = "";
-  private _rendererFunc?: RendererFunc;
+  private async ensureMermaidLoaded(): Promise<void> {
+    // Dynamic import mermaid library once
+    if (!mermaid) {
+      mermaid = (await import("mermaid")).default;
+    }
+  }
+
+  private async registerExtensions(): Promise<void> {
+    // Always register ELK layout loaders before each render
+    // Per Mermaid docs: "can be called multiple times safely"
+    // This ensures ELK is available regardless of page navigation order
+    try {
+      const elkLayouts = await import("@mermaid-js/layout-elk");
+      if (elkLayouts.default && mermaid.registerLayoutLoaders) {
+        mermaid.registerLayoutLoaders(elkLayouts.default);
+      }
+    } catch {
+      // ELK layout package not available - diagrams will fall back to dagre
+    }
+
+    // Always register icon packs if configured
+    // Per Mermaid docs: "can be called multiple times safely"
+    // This ensures icons work regardless of page navigation order
+    if (this.iconPackConfigs && this.iconPackConfigs.length > 0 && mermaid.registerIconPacks) {
+      try {
+        const iconPacks = this.iconPackConfigs.map((config) => ({
+          name: config.name,
+          loader: () => fetch(config.url).then((res) => res.json()),
+        }));
+        mermaid.registerIconPacks(iconPacks);
+      } catch {
+        // Icon packs registration failed
+      }
+    }
+  }
+
+  handleRenderError(element: HTMLElement, originalText: string, error: unknown): void {
+    const isEmpty = originalText.trim().length === 0;
+
+    element.classList.remove("empty");
+
+    if (isEmpty) {
+      element.innerText = "Empty diagram";
+      element.classList.add("empty");
+    } else {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      element.innerText = `Failed to render Mermaid diagram: ${errorMessage}`;
+      element.classList.add("parse-error");
+    }
+  }
+
 }
 
 function overlap(
@@ -180,11 +377,13 @@ function getNewState({
   name,
   pluginState,
   editor,
+  iconPackConfigs,
 }: {
   doc: Node;
   name: string;
   pluginState: MermaidState;
   editor: Editor;
+  iconPackConfigs?: Array<{ name: string; url: string }>;
 }): MermaidState {
   const decorations: Decoration[] = [];
 
@@ -207,12 +406,12 @@ function getNewState({
     );
 
     const renderer: MermaidRenderer =
-      bestDecoration?.spec?.renderer ?? new MermaidRenderer(editor);
+      bestDecoration?.spec?.renderer ?? new MermaidRenderer(editor, iconPackConfigs);
 
     const diagramDecoration = Decoration.widget(
       block.pos + block.node.nodeSize,
       () => {
-        void renderer.render(block, pluginState.isDark);
+        renderer.render(block, pluginState.isDark);
         return renderer.element;
       },
       {
@@ -246,10 +445,12 @@ export default function Mermaid({
   name,
   isDark,
   editor,
+  iconPackConfigs,
 }: {
   name: string;
   isDark: boolean;
   editor: Editor;
+  iconPackConfigs?: Array<{ name: string; url: string }>;
 }) {
   return new Plugin({
     key: new PluginKey("mermaid"),
@@ -264,6 +465,7 @@ export default function Mermaid({
           name,
           pluginState,
           editor,
+          iconPackConfigs,
         });
       },
       apply: (
@@ -295,6 +497,7 @@ export default function Mermaid({
             name,
             pluginState,
             editor,
+            iconPackConfigs,
           });
         }
 

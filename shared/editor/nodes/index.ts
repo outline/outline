@@ -23,6 +23,7 @@ import CodeFence from "./CodeFence";
 import Doc from "./Doc";
 import Embed from "./Embed";
 import Emoji from "./Emoji";
+import ExcalidrawBlock from "./ExcalidrawBlock";
 import HardBreak from "./HardBreak";
 import Heading from "./Heading";
 import HorizontalRule from "./HorizontalRule";
@@ -106,6 +107,7 @@ export const richExtensions: Nodes = [
   Math,
   MathBlock,
   Mention,
+  ExcalidrawBlock,
   // Container type nodes should be last so that key handlers are registered for content inside
   // the container nodes first.
   ...listExtensions,

@@ -24,6 +24,48 @@ type SocketWithAuth = IO.Socket & {
   };
 };
 
+// Excalidraw collaboration types
+interface ExcalidrawCollaborator {
+  socketId: string;
+  userId: string;
+  name: string;
+}
+
+interface ExcalidrawRoom {
+  roomId: string;
+  documentId: string;
+  excalidrawDataId: string;
+  collaborators: Map<string, ExcalidrawCollaborator>; // socket ID -> collaborator info
+  createdAt: Date;
+  lastActivity: Date;
+  lastSaved: Date;
+  pendingSave: boolean;
+}
+
+// Global state for Excalidraw rooms
+const excalidrawRooms = new Map<string, ExcalidrawRoom>();
+
+// Helper function to get or create an Excalidraw room
+function getOrCreateExcalidrawRoom(roomId: string, documentId: string, excalidrawDataId: string): ExcalidrawRoom {
+  let room = excalidrawRooms.get(roomId);
+  if (!room) {
+    const now = new Date();
+    room = {
+      roomId,
+      documentId,
+      excalidrawDataId,
+      collaborators: new Map(),
+      createdAt: now,
+      lastActivity: now,
+      lastSaved: now,
+      pendingSave: false,
+    };
+    excalidrawRooms.set(roomId, room);
+  }
+  room.lastActivity = new Date();
+  return room;
+}
+
 export default function init(
   app: Koa,
   server: http.Server,
@@ -90,6 +132,29 @@ export default function init(
     Metrics.gaugePerInstance("websockets.count", 0);
   });
 
+  // Periodic cleanup of inactive Excalidraw rooms to prevent memory leaks
+  const ROOM_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
+  const ROOM_INACTIVITY_TIMEOUT = 60 * 60 * 1000; // 1 hour
+
+  const roomCleanupInterval = setInterval(() => {
+    const now = Date.now();
+
+    for (const [roomId, room] of excalidrawRooms.entries()) {
+      const inactiveTime = now - room.lastActivity.getTime();
+
+      // Clean up rooms that have been inactive for more than 1 hour
+      if (inactiveTime > ROOM_INACTIVITY_TIMEOUT) {
+        excalidrawRooms.delete(roomId);
+      }
+    }
+  }, ROOM_CLEANUP_INTERVAL);
+
+  // Clean up interval on shutdown
+  ShutdownHelper.add("excalidraw-rooms", ShutdownOrder.normal, async () => {
+    clearInterval(roomCleanupInterval);
+    excalidrawRooms.clear();
+  });
+
   io.adapter(
     createAdapter({
       pubClient: Redis.defaultClient,
@@ -128,7 +193,6 @@ export default function init(
       await authenticate(socket);
       Logger.debug("websockets", `Authenticated socket ${socket.id}`);
 
-      socket.emit("authenticated", true);
       void authenticated(io, socket);
     } catch (err) {
       Logger.debug("websockets", `Authentication error socket ${socket.id}`, {
@@ -220,8 +284,237 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
     }
   });
 
+  // Excalidraw collaboration event handlers
+
+  // Join an Excalidraw room
+  socket.on("join-excalidraw-room", async (event: { roomId: string; documentId: string; excalidrawDataId: string }) => {
+    try {
+      const { roomId, documentId, excalidrawDataId } = event;
+      if (!roomId || !documentId || !excalidrawDataId) {
+        socket.emit("excalidraw-error", { message: "Missing roomId, documentId, or excalidrawDataId" });
+        return;
+      }
+
+      const { user } = socket.client;
+      if (!user) {
+        socket.emit("excalidraw-error", { message: "User not authenticated" });
+        return;
+      }
+
+      // Validate all IDs are valid UUIDs (roomId is now just the diagram UUID)
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(roomId)) {
+        Logger.debug("websockets", `Invalid roomId format: ${roomId}`);
+        socket.emit("excalidraw-error", { message: "Invalid roomId format" });
+        return;
+      }
+
+      if (!uuidRegex.test(documentId)) {
+        Logger.debug("websockets", `Invalid documentId format: ${documentId}`);
+        socket.emit("excalidraw-error", { message: "Invalid documentId format" });
+        return;
+      }
+
+      // Validate excalidrawDataId is a valid UUID (should match roomId now)
+      if (!uuidRegex.test(excalidrawDataId)) {
+        Logger.debug("websockets", `Invalid excalidrawDataId format: ${excalidrawDataId}`);
+        socket.emit("excalidraw-error", { message: "Invalid excalidrawDataId format" });
+        return;
+      }
+
+      // Get or create collaboration room
+      const room = getOrCreateExcalidrawRoom(roomId, documentId, excalidrawDataId);
+      const isFirstInRoom = room.collaborators.size === 0;
+
+      // Add user to room with user information
+      const collaborator: ExcalidrawCollaborator = {
+        socketId: socket.id,
+        userId: user.id,
+        name: user.name,
+      };
+      room.collaborators.set(socket.id, collaborator);
+      await socket.join(`excalidraw-${roomId}`);
+
+      // Notify user they joined the room
+      socket.emit("excalidraw-joined-room", {
+        roomId,
+        documentId,
+        collaborators: Array.from(room.collaborators.values()),
+        isFirstInRoom,
+      });
+
+      if (isFirstInRoom) {
+        socket.emit("excalidraw-first-in-room");
+      } else {
+        // Notify other users in the room about new user
+        socket.to(`excalidraw-${roomId}`).emit("excalidraw-new-user", {
+          socketId: socket.id,
+          user: { id: user.id, name: user.name }
+        });
+      }
+
+      // Send updated collaborators list to all room members
+      socket.nsp.to(`excalidraw-${roomId}`).emit("excalidraw-room-user-change", {
+        collaborators: Array.from(room.collaborators.values()),
+      });
+
+    } catch (error) {
+      Logger.error("Error joining Excalidraw room", error);
+      socket.emit("excalidraw-error", { message: "Failed to join room" });
+    }
+  });
+
+  // Leave an Excalidraw room
+  socket.on("leave-excalidraw-room", async (event: { roomId: string }) => {
+    try {
+      const { roomId } = event;
+      if (!roomId) {
+        return;
+      }
+
+      const room = excalidrawRooms.get(roomId);
+      if (room) {
+        room.collaborators.delete(socket.id);
+        await socket.leave(`excalidraw-${roomId}`);
+
+        // Notify other users in the room
+        socket.to(`excalidraw-${roomId}`).emit("excalidraw-user-left", { socketId: socket.id });
+
+        // Send updated collaborators list to remaining room members
+        socket.nsp.to(`excalidraw-${roomId}`).emit("excalidraw-room-user-change", {
+          collaborators: Array.from(room.collaborators.values()),
+        });
+
+        // Clean up empty rooms
+        if (room.collaborators.size === 0) {
+          excalidrawRooms.delete(roomId);
+        }
+      }
+
+    } catch (error) {
+      Logger.error("Error leaving Excalidraw room", error);
+    }
+  });
+
+  // Broadcast collaboration data (plain JSON over WSS)
+  socket.on("excalidraw-broadcast", (event: {
+    roomId: string;
+    payload: unknown;
+  }) => {
+    try {
+      const { roomId, payload } = event;
+      if (!roomId) {
+        return;
+      }
+
+      const room = excalidrawRooms.get(roomId);
+      if (!room || !room.collaborators.has(socket.id)) {
+        socket.emit("excalidraw-error", { message: "Not in room or room not found" });
+        return;
+      }
+
+      room.lastActivity = new Date();
+
+      // Broadcast to all other users in the room
+      socket.to(`excalidraw-${roomId}`).emit("excalidraw-client-broadcast", {
+        payload,
+        socketId: socket.id,
+      });
+
+    } catch (error) {
+      Logger.error("Error broadcasting Excalidraw data", error);
+    }
+  });
+
+  // Note: Scene data is now saved directly to node attributes via ProseMirror transactions on the client
+  // No server-side save handler needed
+
+  // Note: Cursor updates now use encrypted broadcast channel (excalidraw-broadcast)
+  // instead of separate excalidraw-cursor events
+
+  // Handle user idle status
+  socket.on("excalidraw-idle-status", async (event: {
+    roomId: string;
+    userState: "active" | "idle";
+  }) => {
+    try {
+      const { roomId, userState } = event;
+      if (!roomId) {
+        return;
+      }
+
+      const room = excalidrawRooms.get(roomId);
+      if (!room || !room.collaborators.has(socket.id)) {
+        return;
+      }
+
+      // Broadcast idle status to other users in the room
+      socket.to(`excalidraw-${roomId}`).emit("excalidraw-idle-status-change", {
+        socketId: socket.id,
+        userState,
+      });
+
+    } catch (error) {
+      Logger.error("Error handling idle status", error);
+    }
+  });
+
+  // Handle user following
+  socket.on("excalidraw-follow", async (event: {
+    roomId: string;
+    followUserId?: string;
+  }) => {
+    try {
+      const { roomId, followUserId } = event;
+      if (!roomId) {
+        return;
+      }
+
+      const room = excalidrawRooms.get(roomId);
+      if (!room || !room.collaborators.has(socket.id)) {
+        return;
+      }
+
+      // Broadcast follow event to room
+      socket.nsp.to(`excalidraw-${roomId}`).emit("excalidraw-user-follow-change", {
+        followerId: socket.id,
+        followUserId,
+      });
+
+    } catch (error) {
+      Logger.error("Error handling follow event", error);
+    }
+  });
+
+  // Handle disconnect - clean up Excalidraw rooms
+  socket.on("disconnect", () => {
+    // Clean up user from all Excalidraw rooms
+    for (const [roomId, room] of excalidrawRooms.entries()) {
+      if (room.collaborators.has(socket.id)) {
+        room.collaborators.delete(socket.id);
+
+        // Notify other users in the room
+        socket.to(`excalidraw-${roomId}`).emit("excalidraw-user-left", { socketId: socket.id });
+
+        // Send updated collaborators list
+        socket.nsp.to(`excalidraw-${roomId}`).emit("excalidraw-room-user-change", {
+          collaborators: Array.from(room.collaborators.values()),
+        });
+
+        // Clean up empty rooms
+        if (room.collaborators.size === 0) {
+          excalidrawRooms.delete(roomId);
+        }
+      }
+    }
+  });
+
   // join all of the rooms at once
   await socket.join(rooms);
+
+  // Emit authenticated event AFTER all event listeners are registered AND rooms are joined
+  // This prevents race conditions where client emits events before setup is complete
+  socket.emit("authenticated", true);
 }
 
 /**

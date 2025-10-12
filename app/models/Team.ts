@@ -1,6 +1,6 @@
 import { computed, observable } from "mobx";
 import { TeamPreferenceDefaults } from "@shared/constants";
-import { TeamPreference, TeamPreferences, UserRole } from "@shared/types";
+import { TeamPreferences, UserRole } from "@shared/types";
 import { stringToColor } from "@shared/utils/color";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
@@ -113,7 +113,10 @@ class Team extends Model {
    * @param key The TeamPreference key to retrieve
    * @param value The value to set
    */
-  setPreference(key: TeamPreference, value: boolean) {
+  setPreference<T extends keyof TeamPreferences>(
+    key: T,
+    value: TeamPreferences[T]
+  ) {
     this.preferences = {
       ...this.preferences,
       [key]: value,

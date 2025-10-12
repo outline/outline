@@ -30,6 +30,8 @@ export type HTMLOptions = {
   includeStyles?: boolean;
   /** Whether to include mermaidjs scripts in the generated HTML (defaults to false) */
   includeMermaid?: boolean;
+  /** Icon pack configurations for Mermaid diagrams */
+  iconPackConfigs?: Array<{ name: string; url: string }>;
   /** Whether to include head tags in the generated HTML (defaults to true) */
   includeHead?: boolean;
   /** Whether to include styles to center diff (defaults to true) */
@@ -503,14 +505,55 @@ export class ProsemirrorHelper {
     const doc = dom.window.document;
     const target = doc.getElementById("content");
 
-    DOMSerializer.fromSchema(schema).serializeFragment(
-      node.content,
-      {
-        document: doc,
-      },
-      // @ts-expect-error incorrect library type, third argument is target node
-      target
-    );
+    // Temporarily set JSDOM's document and window as globals for SSR
+    // This allows node toDOM methods to use document.createElement, window.DOMParser, etc.
+    // oxlint-disable-next-line no-explicit-any
+    const originalDocument = (global as any).document;
+    // oxlint-disable-next-line no-explicit-any
+    const originalWindow = (global as any).window;
+    // oxlint-disable-next-line no-explicit-any
+    const originalDOMParser = (global as any).DOMParser;
+
+    try {
+      // oxlint-disable-next-line no-explicit-any
+      (global as any).document = doc;
+      // oxlint-disable-next-line no-explicit-any
+      (global as any).window = dom.window;
+      // oxlint-disable-next-line no-explicit-any
+      (global as any).DOMParser = dom.window.DOMParser;
+
+      DOMSerializer.fromSchema(schema).serializeFragment(
+        node.content,
+        {
+          document: doc,
+        },
+        // @ts-expect-error incorrect library type, third argument is target node
+        target
+      );
+    } finally {
+      // Restore original globals
+      if (originalDocument === undefined) {
+        // oxlint-disable-next-line no-explicit-any
+        delete (global as any).document;
+      } else {
+        // oxlint-disable-next-line no-explicit-any
+        (global as any).document = originalDocument;
+      }
+      if (originalWindow === undefined) {
+        // oxlint-disable-next-line no-explicit-any
+        delete (global as any).window;
+      } else {
+        // oxlint-disable-next-line no-explicit-any
+        (global as any).window = originalWindow;
+      }
+      if (originalDOMParser === undefined) {
+        // oxlint-disable-next-line no-explicit-any
+        delete (global as any).DOMParser;
+      } else {
+        // oxlint-disable-next-line no-explicit-any
+        (global as any).DOMParser = originalDOMParser;
+      }
+    }
 
     // Convert relative urls to absolute
     if (options?.baseUrl) {
@@ -545,11 +588,28 @@ export class ProsemirrorHelper {
 
       // Inject Mermaid script
       if (mermaidElements.length) {
+        const iconPacksCode = options?.iconPackConfigs?.length
+          ? `
+          // Register icon packs
+          const iconPacks = ${JSON.stringify(options.iconPackConfigs)}.map((config) => ({
+            name: config.name,
+            loader: () => fetch(config.url).then((res) => res.json()),
+          }));
+          mermaid.registerIconPacks(iconPacks);
+          `
+          : '';
+
         element.innerHTML = `
           import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+
+          // Import and register ELK layout
+          import elkLayouts from 'https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk@0/dist/mermaid-layout-elk.esm.min.mjs';
+          mermaid.registerLayoutLoaders(elkLayouts);
+          ${iconPacksCode}
           mermaid.initialize({
             startOnLoad: true,
             fontFamily: "inherit",
+            elk: { mergeEdges: true },
           });
           window.status = "ready";
         `;

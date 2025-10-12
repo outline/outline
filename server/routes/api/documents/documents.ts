@@ -13,7 +13,7 @@ import uniq from "lodash/uniq";
 import mime from "mime-types";
 import { Op, ScopeOptions, Sequelize, WhereOptions } from "sequelize";
 import { randomUUID } from "crypto";
-import { NavigationNode, StatusFilter, UserRole } from "@shared/types";
+import { NavigationNode, StatusFilter, TeamPreference, UserRole } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
 import documentCreator from "@server/commands/documentCreator";
@@ -573,7 +573,7 @@ router.post(
     });
 
     let document: Document | null;
-    let serializedDocument: Record<string, any> | undefined;
+    let serializedDocument: Record<string, unknown> | undefined;
     let isPublic = false;
 
     if (shareId) {
@@ -761,10 +761,13 @@ router.post(
     let content: string;
 
     if (accept?.includes("text/html")) {
+      const team = await user.$get("team");
+
       contentType = "text/html";
       content = await DocumentHelper.toHTML(document, {
         centered: true,
         includeMermaid: true,
+        iconPackConfigs: team?.getPreference(TeamPreference.MermaidIconPacks) as Array<{ name: string; url: string }> | undefined,
       });
     } else if (accept?.includes("application/pdf")) {
       throw IncorrectEditionError(
