@@ -1,5 +1,4 @@
 import fetchMock from "jest-fetch-mock";
-import { v4 as uuidv4 } from "uuid";
 import { WebhookDelivery } from "@server/models";
 import {
   buildUser,
@@ -99,7 +98,7 @@ describe("DeliverWebhookTask", () => {
       url: "http://example.com",
       events: ["*"],
     });
-    const deletedUserId = uuidv4();
+    const deletedUserId = crypto.randomUUID();
     const signedInUser = await buildUser({ teamId: subscription.teamId });
 
     const task = new DeliverWebhookTask();
