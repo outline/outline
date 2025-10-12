@@ -48,7 +48,7 @@ class Revision extends ParanoidModel<
   })
   @Column
   @SkipChangeset
-  editorVersion: string;
+  editorVersion: string | null;
 
   /** The document title at the time of the revision */
   @Length({

@@ -72,16 +72,24 @@ export default async function documentCollaborativeUpdater({
       ...pudIds,
     ]);
 
+    // Either the client or server version could be null, or they could both be
+    // set. In that case we want to use the greater (newer) version.
+    const editorVersion =
+      document.editorVersion && clientVersion
+        ? semver.gt(clientVersion, document.editorVersion)
+          ? clientVersion
+          : document.editorVersion
+        : clientVersion
+          ? clientVersion
+          : document.editorVersion;
+
     await document.update(
       {
         content,
         state: Buffer.from(state),
         lastModifiedById,
         collaboratorIds,
-        editorVersion:
-          clientVersion && semver.gt(clientVersion, document.editorVersion)
-            ? clientVersion
-            : document.editorVersion,
+        editorVersion,
       },
       {
         transaction,
