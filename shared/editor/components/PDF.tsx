@@ -19,8 +19,8 @@ export default function PdfViewer(props: Props) {
     {
       width: node.attrs.width,
       height: node.attrs.height,
-      naturalWidth: 730,
-      naturalHeight: 1033,
+      naturalWidth: 300,
+      naturalHeight: 424,
       gridSnap: 5,
       onChangeSize,
       ref: iframeRef,
@@ -28,14 +28,11 @@ export default function PdfViewer(props: Props) {
   );
 
   useEffect(() => {
-    fetch(href + "&preview=true")
+    const url = href + (href.includes("?") ? "&" : "?") + "preview=true";
+    fetch(url)
       .then((res) => res.json())
       .then((res) => {
         setData(res.url);
-      })
-      .catch(() => {
-        // don't really need to do anything here
-        // the browser already handles it quite well
       });
   }, [href]);
 
