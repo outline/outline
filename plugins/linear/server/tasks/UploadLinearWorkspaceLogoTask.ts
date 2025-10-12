@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import { Integration } from "@server/models";
 import { Buckets } from "@server/models/helpers/AttachmentHelper";
@@ -27,7 +26,7 @@ export default class UploadLinearWorkspaceLogoTask extends BaseTask<Props> {
 
     const res = await FileStorage.storeFromUrl(
       props.logoUrl,
-      `${Buckets.avatars}/${integration.teamId}/${uuidv4()}`,
+      `${Buckets.avatars}/${integration.teamId}/${crypto.randomUUID()}`,
       "public-read",
       {
         headers: {

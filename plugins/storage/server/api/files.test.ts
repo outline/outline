@@ -3,7 +3,6 @@ import { readFile } from "fs/promises";
 import path from "path";
 import FormData from "form-data";
 import { ensureDirSync } from "fs-extra";
-import { v4 as uuidV4 } from "uuid";
 import { FileOperationState, FileOperationType } from "@shared/types";
 import env from "@server/env";
 import { Buckets } from "@server/models/helpers/AttachmentHelper";
@@ -135,7 +134,7 @@ describe("#files.get", () => {
   it("should fail with status 404 if existing file is requested with key", async () => {
     const user = await buildUser();
     const fileName = "images.docx";
-    const key = path.join("uploads", user.id, uuidV4(), fileName);
+    const key = path.join("uploads", user.id, crypto.randomUUID(), fileName);
 
     ensureDirSync(
       path.dirname(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key))
@@ -153,7 +152,7 @@ describe("#files.get", () => {
   it("should fail with status 404 if non-existing file is requested with key", async () => {
     const user = await buildUser();
     const fileName = "images.docx";
-    const key = path.join("uploads", user.id, uuidV4(), fileName);
+    const key = path.join("uploads", user.id, crypto.randomUUID(), fileName);
     const res = await server.get(`/api/files.get?key=${key}`);
     expect(res.status).toEqual(404);
   });
@@ -279,7 +278,7 @@ describe("#files.get", () => {
 
   it("should succeed with status 200 ok when avatar is requested using key", async () => {
     const user = await buildUser();
-    const key = path.join("avatars", user.id, uuidV4());
+    const key = path.join("avatars", user.id, crypto.randomUUID());
     const attachment = await buildAttachment({
       key,
       teamId: user.teamId,
@@ -308,7 +307,7 @@ describe("#files.get", () => {
 
   it("should succeed with status 200 ok when avatar is requested using key", async () => {
     const user = await buildUser();
-    const key = path.join("avatars", user.id, uuidV4());
+    const key = path.join("avatars", user.id, crypto.randomUUID());
     await buildAttachment({
       key,
       teamId: user.teamId,
@@ -335,7 +334,7 @@ describe("#files.get", () => {
   it("should succeed with status 200 ok when exported file is requested using signature", async () => {
     const user = await buildUser();
     const fileName = "export-markdown.zip";
-    const key = `${Buckets.uploads}/${user.teamId}/${uuidV4()}/${fileName}`;
+    const key = `${Buckets.uploads}/${user.teamId}/${crypto.randomUUID()}/${fileName}`;
 
     await buildFileOperation({
       userId: user.id,
