@@ -120,7 +120,13 @@ export default function blockMenuItems(
     {
       name: "attachment-pdf",
       title: dictionary.pdf,
-      icon: <FontAwesomeIcon icon={faFilePdf} />,
+      icon: (
+        <FontAwesomeIcon
+          icon={faFilePdf}
+          size="lg"
+          style={{ marginLeft: "2px" }}
+        />
+      ),
       keywords: "pdf upload attach",
     },
     {
