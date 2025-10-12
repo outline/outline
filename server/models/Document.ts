@@ -315,7 +315,7 @@ class Document extends ArchivableModel<
     msg: `editorVersion must be 255 characters or less`,
   })
   @Column
-  editorVersion: string;
+  editorVersion: string | null;
 
   /** An icon to use as the document icon. */
   @Length({
