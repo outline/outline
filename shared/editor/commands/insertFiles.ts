@@ -1,7 +1,6 @@
 import * as Sentry from "@sentry/react";
 import { EditorView } from "prosemirror-view";
 import { toast } from "sonner";
-import { v4 as uuidv4 } from "uuid";
 import type { Dictionary } from "~/hooks/useDictionary";
 import FileHelper from "../lib/FileHelper";
 import uploadPlaceholderPlugin, {
@@ -72,7 +71,7 @@ const insertFiles = async function (
           : undefined;
 
       return {
-        id: `upload-${uuidv4()}`,
+        id: `upload-${crypto.randomUUID()}`,
         dimensions: await getDimensions?.(file),
         isImage,
         isVideo,
