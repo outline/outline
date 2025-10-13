@@ -312,7 +312,7 @@
     "@types/markdown-it-emoji": "^3.0.1",
     "@types/mime-types": "^3.0.1",
     "@types/natural-sort": "^0.0.24",
-    "@types/node": "20.17.30",
+    "@types/node": "20.19.21",
     "@types/node-fetch": "^2.6.9",
     "@types/nodemailer": "^6.4.17",
     "@types/passport-oauth2": "^1.8.0",
