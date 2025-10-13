@@ -158,7 +158,7 @@ const useSettingsConfig = () => {
         path: settingsPath("templates"),
         component: Templates.Component,
         preload: Templates.preload,
-        enabled: can.readTemplate,
+        enabled: can.updateTemplate,
         group: t("Workspace"),
         icon: ShapesIcon,
       },
