@@ -3,7 +3,11 @@ import * as React from "react";
 import scrollIntoView from "scroll-into-view-if-needed";
 import styled from "styled-components";
 import { usePortalContext } from "~/components/Portal";
-import { MenuButton, MenuLabel } from "~/components/primitives/components/Menu";
+import {
+  MenuButton,
+  MenuIconWrapper,
+  MenuLabel,
+} from "~/components/primitives/components/Menu";
 
 export type Props = {
   /** Whether the item is selected */
@@ -60,7 +64,7 @@ function SuggestionsMenuItem({
       onPointerMove={disabled ? undefined : onPointerMove}
       $active={selected}
     >
-      {icon}
+      <MenuIconWrapper>{icon}</MenuIconWrapper>
       <MenuLabel>
         {title}
         {subtitle && (

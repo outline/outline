@@ -28,6 +28,7 @@ import {
 } from "../../types";
 import { cn } from "../styles/utils";
 import { ComponentProps } from "../types";
+import { sanitizeUrl } from "@shared/utils/urls";
 
 type Attrs = {
   className: string;
@@ -141,6 +142,64 @@ type IssuePrProps = ComponentProps & {
       | UnfurlResponse[UnfurlResourceType.Issue]
       | UnfurlResponse[UnfurlResourceType.PR]
   ) => void;
+};
+
+export const MentionURL = (props: ComponentProps) => {
+  const { unfurls } = useStores();
+  const isMounted = useIsMounted();
+  const [loaded, setLoaded] = React.useState(false);
+
+  const { isSelected, node } = props;
+  const {
+    className,
+    unfurl: unfurlAttr,
+    ...attrs
+  } = getAttributesFromNode(node);
+
+  const unfurl = unfurls.get(attrs.href)?.data ?? unfurlAttr;
+
+  React.useEffect(() => {
+    const fetchUnfurl = async () => {
+      await unfurls.fetchUnfurl({ url: attrs.href });
+
+      if (!isMounted()) {
+        return;
+      }
+
+      setLoaded(true);
+    };
+
+    void fetchUnfurl();
+  }, [unfurls, attrs.href, isMounted]);
+
+  if (!unfurl) {
+    return !loaded ? (
+      <MentionLoading className={className} />
+    ) : (
+      <MentionError className={className} />
+    );
+  }
+
+  return (
+    <a
+      {...attrs}
+      className={cn(className, {
+        "ProseMirror-selectednode": isSelected,
+      })}
+      href={attrs.href as string}
+      target="_blank"
+      rel="noopener noreferrer nofollow"
+    >
+      <Flex align="center" gap={6}>
+        {unfurl.faviconUrl ? (
+          <Logo src={sanitizeUrl(unfurl.faviconUrl)} alt="" />
+        ) : null}
+        <Text>
+          <Backticks content={unfurl.title} />
+        </Text>
+      </Flex>
+    </a>
+  );
 };
 
 export const MentionIssue = observer((props: IssuePrProps) => {
@@ -315,4 +374,9 @@ const MentionError = ({ className }: { className: string }) => {
 
 const StyledWarningIcon = styled(WarningIcon)`
   margin: 0 -2px;
+`;
+
+const Logo = styled.img`
+  width: 16px;
+  height: 16px;
 `;

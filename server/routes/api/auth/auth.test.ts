@@ -1,9 +1,9 @@
 import { faker } from "@faker-js/faker";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import { buildUser, buildTeam } from "@server/test/factories";
 import { getTestServer, setSelfHosted } from "@server/test/support";
 
-const mockTeamInSessionId = uuidv4();
+const mockTeamInSessionId = randomUUID();
 
 jest.mock("@server/utils/authentication", () => ({
   getSessionsInCookie() {
@@ -107,7 +107,7 @@ describe("#auth.config", () => {
       authenticationProviders: [
         {
           name: "slack",
-          providerId: uuidv4(),
+          providerId: randomUUID(),
         },
       ],
     });
@@ -130,7 +130,7 @@ describe("#auth.config", () => {
       authenticationProviders: [
         {
           name: "slack",
-          providerId: uuidv4(),
+          providerId: randomUUID(),
         },
       ],
     });
@@ -153,7 +153,7 @@ describe("#auth.config", () => {
       authenticationProviders: [
         {
           name: "slack",
-          providerId: uuidv4(),
+          providerId: randomUUID(),
         },
       ],
     });
@@ -177,7 +177,7 @@ describe("#auth.config", () => {
       authenticationProviders: [
         {
           name: "slack",
-          providerId: uuidv4(),
+          providerId: randomUUID(),
           enabled: false,
         },
       ],
@@ -201,7 +201,7 @@ describe("#auth.config", () => {
         authenticationProviders: [
           {
             name: "slack",
-            providerId: uuidv4(),
+            providerId: randomUUID(),
           },
         ],
       });
@@ -220,7 +220,7 @@ describe("#auth.config", () => {
         authenticationProviders: [
           {
             name: "slack",
-            providerId: uuidv4(),
+            providerId: randomUUID(),
           },
         ],
       });

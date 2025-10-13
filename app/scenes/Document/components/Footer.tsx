@@ -10,9 +10,9 @@ type Props = {
 
 export const Footer = ({ document }: Props) => (
   <FooterWrapper>
-    <KeyboardShortcutsButton />
     <ConnectionStatus />
     <SizeWarning document={document} />
+    <KeyboardShortcutsButton />
   </FooterWrapper>
 );
 

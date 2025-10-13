@@ -48,11 +48,7 @@ function usePosition({
   const { view } = useEditor();
   const { selection } = view.state;
   const menuWidth = menuRef.current?.offsetWidth ?? 0;
-  const menuHeight = menuRef.current?.offsetHeight ?? 0;
-
-  if (!active || !menuRef.current) {
-    return defaultPosition;
-  }
+  const menuHeight = 36;
 
   // based on the start and end of the selection calculate the position at
   // the center top
@@ -74,7 +70,7 @@ function usePosition({
     right: Math.max(fromPos.right, toPos.right),
   };
 
-  const offsetParent = menuRef.current.offsetParent
+  const offsetParent = menuRef.current?.offsetParent
     ? menuRef.current.offsetParent.getBoundingClientRect()
     : ({
         width: window.innerWidth,
@@ -99,10 +95,14 @@ function usePosition({
     if (position !== null) {
       const element = view.nodeDOM(position);
       const bounds = (element as HTMLElement).getBoundingClientRect();
-      selectionBounds.top = bounds.top;
+      selectionBounds.top = bounds.top + menuHeight;
       selectionBounds.left = bounds.right;
       selectionBounds.right = bounds.right;
     }
+  }
+
+  if (!active || !menuRef.current || !menuHeight) {
+    return defaultPosition;
   }
 
   // tables are an oddity, and need their own positioning logic
@@ -166,6 +166,8 @@ function usePosition({
         top: Math.round(top - menuHeight - offsetParent.top),
         offset: 0,
         visible: true,
+        blockSelection: false,
+        maxWidth: width,
       };
     }
   }
@@ -210,8 +212,12 @@ function usePosition({
     top: Math.round(top - offsetParent.top),
     offset: Math.round(offset),
     maxWidth: Math.min(window.innerWidth, offsetParent.width) - margin * 2,
-    blockSelection:
-      codeBlock || isColSelection || isRowSelection || noticeBlock,
+    blockSelection: !!(
+      codeBlock ||
+      isColSelection ||
+      isRowSelection ||
+      noticeBlock
+    ),
     visible: true,
   };
 }

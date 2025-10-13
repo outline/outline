@@ -5,7 +5,6 @@ import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
-import { v4 } from "uuid";
 import Icon from "@shared/components/Icon";
 import { MenuItem } from "@shared/editor/types";
 import { MentionType } from "@shared/types";
@@ -92,7 +91,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
               section: UserSection,
               appendSpace: true,
               attrs: {
-                id: v4(),
+                id: crypto.randomUUID(),
                 type: MentionType.User,
                 modelId: user.id,
                 actorId,
@@ -124,7 +123,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
                   section: DocumentsSection,
                   appendSpace: true,
                   attrs: {
-                    id: v4(),
+                    id: crypto.randomUUID(),
                     type: MentionType.Document,
                     modelId: doc.id,
                     actorId,
@@ -152,7 +151,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
                   section: CollectionsSection,
                   appendSpace: true,
                   attrs: {
-                    id: v4(),
+                    id: crypto.randomUUID(),
                     type: MentionType.Collection,
                     modelId: collection.id,
                     actorId,
@@ -172,9 +171,9 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
             priority: -1,
             appendSpace: true,
             attrs: {
-              id: v4(),
+              id: crypto.randomUUID(),
               type: MentionType.Document,
-              modelId: v4(),
+              modelId: crypto.randomUUID(),
               actorId,
               label: search,
             },
