@@ -11,7 +11,6 @@ import {
   Transaction,
 } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import { v4 as uuidv4 } from "uuid";
 import { isCode } from "../lib/isCode";
 import { isRemoteTransaction } from "../lib/multiplayer";
 import { findBlockNodes } from "../queries/findChildren";
@@ -148,7 +147,7 @@ class MermaidRenderer {
   private _rendererFunc?: (block: { node: Node; pos: number }, isDark: boolean) => void;
 
   constructor(editor: Editor, iconPackConfigs?: Array<{ name: string; url: string }>) {
-    this.diagramId = uuidv4();
+    this.diagramId = crypto.randomUUID();
     this.elementId = `mermaid-diagram-wrapper-${this.diagramId}`;
     this.editor = editor;
     this.iconPackConfigs = iconPackConfigs;
