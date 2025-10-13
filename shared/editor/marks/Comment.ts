@@ -1,7 +1,6 @@
 import { toggleMark } from "prosemirror-commands";
 import { MarkSpec, MarkType, Schema, Mark as PMMark } from "prosemirror-model";
 import { Command, Plugin } from "prosemirror-state";
-import { v4 as uuidv4 } from "uuid";
 import { addMark } from "../commands/addMark";
 import { collapseSelection } from "../commands/collapseSelection";
 import { chainTransactions } from "../lib/chainTransactions";
@@ -82,7 +81,7 @@ export default class Comment extends Mark {
 
             chainTransactions(
               toggleMark(type, {
-                id: uuidv4(),
+                id: crypto.randomUUID(),
                 userId: this.options.userId,
                 draft: true,
               }),
@@ -112,7 +111,7 @@ export default class Comment extends Mark {
 
           chainTransactions(
             addMark(type, {
-              id: uuidv4(),
+              id: crypto.randomUUID(),
               userId: this.options.userId,
               draft: true,
             }),

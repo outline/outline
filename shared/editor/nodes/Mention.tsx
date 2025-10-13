@@ -12,9 +12,7 @@ import {
   Plugin,
   TextSelection,
 } from "prosemirror-state";
-import * as React from "react";
 import { Primitive } from "utility-types";
-import { v4 as uuidv4 } from "uuid";
 import env from "../../env";
 import { MentionType, UnfurlResourceType, UnfurlResponse } from "../../types";
 import {
@@ -172,7 +170,7 @@ export default class Mention extends Node {
               node.type.name === this.name &&
               (!nodeId || existingIds.has(nodeId))
             ) {
-              nodeId = uuidv4();
+              nodeId = crypto.randomUUID();
               modified = true;
               tr.setNodeAttribute(pos, "id", nodeId);
             }
