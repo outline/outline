@@ -13086,17 +13086,17 @@ rollup-plugin-node-resolve@^3.0.0:
     is-module "^1.0.0"
     resolve "^1.1.6"
 
-rollup-plugin-stats@1.5.0:
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/rollup-plugin-stats/-/rollup-plugin-stats-1.5.0.tgz#f23c1e30ebaff970eaa33e93ea69853ca1529437"
-  integrity sha512-TsWaV7ulwPA9JhqGJemrDJkvXNeNQb60lB13gIcT2kVDXlBM/PQD3GqVyhCJpvn43Y4YT5+VmWDRsbIAbuilBA==
+rollup-plugin-stats@1.5.1:
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/rollup-plugin-stats/-/rollup-plugin-stats-1.5.1.tgz#dd66c6cb881aeed89f9d6cb91933e5509b3df62e"
+  integrity sha512-WXx9F3i57DLKkB8mt6Zw3jN9sS8YOqTsfvuOG8RW0D95Wn5KHt2e9POh8sYWODgmTsiKK0Nm54ZjxLnp7yeCDw==
 
-rollup-plugin-webpack-stats@2.1.3:
-  version "2.1.3"
-  resolved "https://registry.yarnpkg.com/rollup-plugin-webpack-stats/-/rollup-plugin-webpack-stats-2.1.3.tgz#3ae79db5b6af191c8d26a701f3cd47dde61038fe"
-  integrity sha512-OOhpuwwoxW8J5pVd+RdokSbaVa21/4/mV1EsBBLfmcmc2hjL5VMFkytN0YTFGfPWcluWBCxrpA+8SP7P3xvloQ==
+rollup-plugin-webpack-stats@2.1.6:
+  version "2.1.6"
+  resolved "https://registry.yarnpkg.com/rollup-plugin-webpack-stats/-/rollup-plugin-webpack-stats-2.1.6.tgz#bff2772f7a9ada327763e6a098456f78cf066479"
+  integrity sha512-njKotmo0lWIbrTKJ5CrIPk9DuDsQziOo73rE3aQIAhecJj5o0ECBbE0vxgMor37o6TQ/IEAK8pDxzs4CqLdIJw==
   dependencies:
-    rollup-plugin-stats "1.5.0"
+    rollup-plugin-stats "1.5.1"
 
 rollup@^0.41.4:
   version "0.41.6"
