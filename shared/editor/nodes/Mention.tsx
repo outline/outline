@@ -145,7 +145,12 @@ export default class Mention extends Node {
           />
         );
       case MentionType.URL:
-        return <MentionURL {...props} />;
+        return (
+          <MentionURL
+            {...props}
+            onChangeUnfurl={this.handleChangeUnfurl(props)}
+          />
+        );
       default:
         return null;
     }
@@ -323,7 +328,8 @@ export default class Mention extends Node {
 
       const label =
         unfurl.type === UnfurlResourceType.Issue ||
-        unfurl.type === UnfurlResourceType.PR
+        unfurl.type === UnfurlResourceType.PR ||
+        unfurl.type === UnfurlResourceType.URL
           ? unfurl.title
           : undefined;
 

@@ -144,10 +144,15 @@ type IssuePrProps = ComponentProps & {
   ) => void;
 };
 
-export const MentionURL = (props: ComponentProps) => {
+type IssueUrlProps = ComponentProps & {
+  onChangeUnfurl: (unfurl: UnfurlResponse[UnfurlResourceType.URL]) => void;
+};
+
+export const MentionURL = (props: IssueUrlProps) => {
   const { unfurls } = useStores();
   const isMounted = useIsMounted();
   const [loaded, setLoaded] = React.useState(false);
+  const onChangeUnfurl = React.useRef(props.onChangeUnfurl).current; // stable reference to callback function.
 
   const { isSelected, node } = props;
   const {
@@ -162,16 +167,20 @@ export const MentionURL = (props: ComponentProps) => {
   React.useEffect(() => {
     const fetchUnfurl = async () => {
       try {
-        const res = await unfurls.fetchUnfurl({ url });
+        const unfurlModel = await unfurls.fetchUnfurl({ url });
 
         if (!isMounted()) {
           return;
         }
 
-        // If we didn't get a result back, we still want to add a basic unfurl
-        // to avoid refetching again in future. This will just show the URL
-        // with a generic link icon.
-        if (!res) {
+        if (unfurlModel) {
+          onChangeUnfurl(
+            unfurlModel.data satisfies UnfurlResponse[UnfurlResourceType.URL]
+          );
+        } else {
+          // If we didn't get a result back, we still want to add a basic unfurl
+          // to avoid refetching again in future. This will just show the URL
+          // with a generic link icon.
           unfurls.add({
             id: url,
             type: UnfurlResourceType.URL,
