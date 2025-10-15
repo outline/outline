@@ -541,6 +541,7 @@ router.post(
     ctx.body = {
       data: {
         sent: response.sent,
+        unsent: response.unsent,
         users: response.users.map((user) =>
           presentUser(user, { includeEmail: !!can(user, "readEmail", user) })
         ),
