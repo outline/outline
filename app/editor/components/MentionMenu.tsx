@@ -118,7 +118,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
               section: GroupSection,
               appendSpace: true,
               attrs: {
-                id: v4(),
+                id: crypto.randomUUID(),
                 type: MentionType.Group,
                 modelId: group.id,
                 actorId,

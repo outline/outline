@@ -83,6 +83,7 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
       }
     }
 
+    // send notifications to users in mentioned groups
     const oldGroupMentions = before
       ? DocumentHelper.parseMentions(before, { type: MentionType.Group })
       : [];
@@ -95,7 +96,11 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
       oldGroupMentions,
       "id"
     );
+    const mentionedGroup: string[] = [];
     for (const group of groupMentions) {
+      if (mentionedGroup.includes(group.modelId)) {
+        continue;
+      }
       const usersFromMentionedGroup = await GroupUser.findAll({
         where: {
           groupId: group.modelId,
@@ -114,12 +119,13 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
           recipient &&
           recipient.id !== group.actorId &&
           recipient.subscribedToEventType(
-            NotificationEventType.MentionedInDocument
+            NotificationEventType.GroupMentionedInDocument
           ) &&
           (await canUserAccessDocument(recipient, document.id))
         ) {
           await Notification.create({
-            event: NotificationEventType.MentionedInDocument,
+            event: NotificationEventType.GroupMentionedInDocument,
+            groupId: group.modelId,
             userId: recipient.id,
             revisionId: event.modelId,
             actorId: group.actorId,
@@ -127,9 +133,11 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
             documentId: document.id,
           });
 
-          mentionedUser.push(recipient.id);
+          mentionedUser.push(user.userId);
         }
       }
+
+      mentionedGroup.push(group.modelId);
     }
 
     const recipients = (
