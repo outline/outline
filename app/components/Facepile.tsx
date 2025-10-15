@@ -5,6 +5,7 @@ import styled from "styled-components";
 import User from "~/models/User";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Flex from "~/components/Flex";
+import { s } from "@shared/styles";
 
 type Props = {
   /** The users to display */
@@ -21,6 +22,8 @@ type Props = {
       model: User;
     }
   >;
+  /** Whether to show tooltips on hover, defaults to true */
+  showTooltip?: boolean;
 };
 
 function Facepile({
@@ -29,6 +32,7 @@ function Facepile({
   size = AvatarSize.Large,
   limit = 8,
   renderAvatar = Avatar,
+  showTooltip = true,
   ...rest
 }: Props) {
   const { t } = useTranslation();
@@ -51,6 +55,7 @@ function Facepile({
           <Component
             key={model.id}
             {...{
+              showTooltip,
               model,
               size,
               style: {
@@ -101,6 +106,11 @@ const Avatars = styled(Flex)`
   align-items: center;
   flex-direction: row-reverse;
   cursor: var(--pointer);
+
+  *:hover {
+    clip-path: none !important;
+    box-shadow: 0 0 0 2px ${s("background")};
+  }
 `;
 
 export default observer(Facepile);
