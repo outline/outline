@@ -6,6 +6,8 @@ type DialogDefinition = {
   content: React.ReactNode;
   isOpen: boolean;
   style?: React.CSSProperties;
+  width?: number | string;
+  height?: number | string;
   onClose?: () => void;
 };
 
@@ -48,14 +50,12 @@ export default class DialogsStore {
     content,
     replace,
     style,
+    width,
+    height,
     onClose,
-  }: {
+  }: Omit<DialogDefinition, "isOpen"> & {
     id?: string;
-    title: string;
-    content: React.ReactNode;
-    style?: React.CSSProperties;
     replace?: boolean;
-    onClose?: () => void;
   }) => {
     setTimeout(
       action(() => {
@@ -69,6 +69,8 @@ export default class DialogsStore {
           title,
           content,
           style,
+          width,
+          height,
           isOpen: true,
           onClose,
         });
