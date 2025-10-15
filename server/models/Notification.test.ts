@@ -49,7 +49,7 @@ describe("Notification", () => {
       });
     });
 
-    describe("should return mention reference", () => {
+    describe.only("should return mention reference", () => {
       it("mentioned in document", async () => {
         const document = await buildDocument();
         const notification = await buildNotification({
@@ -77,6 +77,36 @@ describe("Notification", () => {
 
         const expectedReference = Notification.emailMessageId(
           `${document.id}-mentions`
+        );
+        expect(references?.length).toBe(1);
+        expect(references![0]).toBe(expectedReference);
+      });
+
+      it("group mentioned in document", async () => {
+        const document = await buildDocument();
+        const notification = await buildNotification({
+          event: NotificationEventType.GroupMentionedInDocument,
+          documentId: document.id,
+        });
+
+        const references = await Notification.emailReferences(notification);
+        const expectedReference = Notification.emailMessageId(
+          `${document.id}-group-mentions`
+        );
+        expect(references?.length).toBe(1);
+        expect(references![0]).toBe(expectedReference);
+      });
+
+      it("group mentioned in comment", async () => {
+        const document = await buildDocument();
+        const notification = await buildNotification({
+          event: NotificationEventType.GroupMentionedInComment,
+          documentId: document.id,
+        });
+
+        const references = await Notification.emailReferences(notification);
+        const expectedReference = Notification.emailMessageId(
+          `${document.id}-group-mentions`
         );
         expect(references?.length).toBe(1);
         expect(references![0]).toBe(expectedReference);
