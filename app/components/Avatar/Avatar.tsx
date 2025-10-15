@@ -2,6 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 import useBoolean from "~/hooks/useBoolean";
 import Initials from "./Initials";
+import Tooltip from "../Tooltip";
 
 export enum AvatarSize {
   Small = 16,
@@ -42,6 +43,8 @@ type Props = {
   className?: string;
   /** Optional style */
   style?: React.CSSProperties;
+  /** Whether to show a tooltip */
+  showTooltip?: boolean;
 };
 
 function Avatar(props: Props) {
@@ -50,12 +53,13 @@ function Avatar(props: Props) {
     style,
     variant = AvatarVariant.Round,
     className,
+    showTooltip,
     ...rest
   } = props;
   const src = props.src || model?.avatarUrl;
   const [error, handleError] = useBoolean(false);
 
-  return (
+  const content = (
     <Relative
       style={style}
       $variant={variant}
@@ -72,6 +76,12 @@ function Avatar(props: Props) {
         <Initials {...rest} />
       )}
     </Relative>
+  );
+
+  return showTooltip ? (
+    <Tooltip content={props.alt || model?.name || ""}>{content}</Tooltip>
+  ) : (
+    content
   );
 }
 
