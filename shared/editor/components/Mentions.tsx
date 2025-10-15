@@ -22,13 +22,13 @@ import useStores from "../../hooks/useStores";
 import theme from "../../styles/theme";
 import {
   IntegrationService,
+  UnfurlResourceType,
   type JSONValue,
-  type UnfurlResourceType,
   type UnfurlResponse,
 } from "../../types";
 import { cn } from "../styles/utils";
 import { ComponentProps } from "../types";
-import { sanitizeUrl } from "@shared/utils/urls";
+import { toDisplayUrl, cdnPath } from "../../utils/urls";
 
 type Attrs = {
   className: string;
@@ -144,10 +144,15 @@ type IssuePrProps = ComponentProps & {
   ) => void;
 };
 
-export const MentionURL = (props: ComponentProps) => {
+type IssueUrlProps = ComponentProps & {
+  onChangeUnfurl: (unfurl: UnfurlResponse[UnfurlResourceType.URL]) => void;
+};
+
+export const MentionURL = (props: IssueUrlProps) => {
   const { unfurls } = useStores();
   const isMounted = useIsMounted();
   const [loaded, setLoaded] = React.useState(false);
+  const onChangeUnfurl = React.useRef(props.onChangeUnfurl).current; // stable reference to callback function.
 
   const { isSelected, node } = props;
   const {
@@ -156,17 +161,39 @@ export const MentionURL = (props: ComponentProps) => {
     ...attrs
   } = getAttributesFromNode(node);
 
+  const url = String(attrs.href);
   const unfurl = unfurls.get(attrs.href)?.data ?? unfurlAttr;
 
   React.useEffect(() => {
     const fetchUnfurl = async () => {
-      await unfurls.fetchUnfurl({ url: attrs.href });
+      try {
+        const unfurlModel = await unfurls.fetchUnfurl({ url });
 
-      if (!isMounted()) {
-        return;
+        if (!isMounted()) {
+          return;
+        }
+
+        if (unfurlModel) {
+          onChangeUnfurl(
+            unfurlModel.data satisfies UnfurlResponse[UnfurlResourceType.URL]
+          );
+        } else {
+          // If we didn't get a result back, we still want to add a basic unfurl
+          // to avoid refetching again in future. This will just show the URL
+          // with a generic link icon.
+          unfurls.add({
+            id: url,
+            type: UnfurlResourceType.URL,
+            fetchedAt: new Date().toISOString(),
+            data: {
+              title: toDisplayUrl(url),
+              faviconUrl: cdnPath("/images/link.png"),
+            },
+          });
+        }
+      } finally {
+        setLoaded(true);
       }
-
-      setLoaded(true);
     };
 
     void fetchUnfurl();
@@ -191,9 +218,7 @@ export const MentionURL = (props: ComponentProps) => {
       rel="noopener noreferrer nofollow"
     >
       <Flex align="center" gap={6}>
-        {unfurl.faviconUrl ? (
-          <Logo src={sanitizeUrl(unfurl.faviconUrl)} alt="" />
-        ) : null}
+        {unfurl.faviconUrl ? <Logo src={unfurl.faviconUrl} alt="" /> : null}
         <Text>
           <Backticks content={unfurl.title} />
         </Text>
