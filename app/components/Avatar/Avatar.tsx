@@ -23,6 +23,7 @@ export interface IAvatar {
   avatarUrl: string | null;
   color?: string;
   initial?: string;
+  name?: string;
   id?: string;
 }
 
