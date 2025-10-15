@@ -167,7 +167,7 @@ function usePosition({
         offset: 0,
         visible: true,
         blockSelection: false,
-        maxWidth: width,
+        maxWidth: "100%",
       };
     }
   }
