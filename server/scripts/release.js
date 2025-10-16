@@ -42,7 +42,7 @@ fs.writeFileSync(path.resolve(root, "LICENSE"), newLicense);
 
 execSync(`git add package.json`, opts);
 execSync(`git add LICENSE`, opts);
-execSync(`git commit -m "v${newVersion}"`, opts);
+execSync(`git commit -m "v${newVersion}" --no-verify`, opts);
 execSync(`git tag v${newVersion}`, opts);
 execSync(`git push origin v${newVersion}`, opts);
 execSync(`git push origin main`, opts);
