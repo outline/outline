@@ -16,9 +16,15 @@ if (input.length === 0) {
 const root = path.resolve(__dirname, "..", "..");
 const opts = {
   cwd: root,
+  stdio: "inherit",
 };
 
-execSync(`npm version ${input.join(" ")} --no-git-tag-version`, opts);
+try {
+  execSync(`npm version ${input.join(" ")} --no-git-tag-version`, opts);
+} catch (err) {
+  console.log("Error updating version:", err.message);
+  exit(1);
+}
 
 const package = require(path.resolve(root, "package.json"));
 
@@ -42,8 +48,8 @@ fs.writeFileSync(path.resolve(root, "LICENSE"), newLicense);
 
 execSync(`git add package.json`, opts);
 execSync(`git add LICENSE`, opts);
-execSync(`git commit -m "v${newVersion}"`, opts);
-execSync(`git tag v${newVersion}`, opts);
+execSync(`git commit -m "v${newVersion}" --no-verify`, opts);
+execSync(`git tag v${newVersion} -m v${newVersion}`, opts);
 execSync(`git push origin v${newVersion}`, opts);
 execSync(`git push origin main`, opts);
 
