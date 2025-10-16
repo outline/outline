@@ -24,6 +24,7 @@ type Props = {
   active?: boolean;
   children: React.ReactNode;
   width?: number;
+  minWidth?: number;
   forwardedRef?: React.RefObject<HTMLDivElement> | null;
 };
 
@@ -283,6 +284,7 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
         $offset={position.offset}
         style={{
           width: props.width,
+          minWidth: props.minWidth,
           maxWidth: `${position.maxWidth}px`,
           top: `${position.top}px`,
           left: `${position.left}px`,

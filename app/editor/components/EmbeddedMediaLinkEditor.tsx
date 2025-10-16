@@ -87,23 +87,21 @@ export function EmbeddedMediaLinkEditor({ node, view, dictionary }: Props) {
         onKeyDown={handleKeyDown}
         readOnly={!view.editable}
       />
-      <Tooltip content={dictionary.openLink}>
-        <ToolbarButton onClick={openLink} disabled={!localUrl}>
-          <OpenIcon />
-        </ToolbarButton>
-      </Tooltip>
-      {view.editable && (
-        <Tooltip
-          content={
-            node.type.name === "image"
-              ? dictionary.deleteImage
-              : dictionary.deleteEmbed
-          }
-        >
-          <ToolbarButton onClick={remove}>
-            <TrashIcon />
-          </ToolbarButton>
-        </Tooltip>
+      {node.type.name === "embed" && (
+        <>
+          <Tooltip content={dictionary.openLink}>
+            <ToolbarButton onClick={openLink} disabled={!localUrl}>
+              <OpenIcon />
+            </ToolbarButton>
+          </Tooltip>
+          {view.editable && (
+            <Tooltip content={dictionary.deleteEmbed}>
+              <ToolbarButton onClick={remove}>
+                <TrashIcon />
+              </ToolbarButton>
+            </Tooltip>
+          )}
+        </>
       )}
     </Wrapper>
   );

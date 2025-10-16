@@ -263,6 +263,7 @@ export default function SelectionToolbar(props: Props) {
       align={align}
       active={isActive}
       ref={menuRef}
+      minWidth={350}
       width={showLinkToolbar || isEmbedSelection ? 336 : undefined}
     >
       {showLinkToolbar ? (
