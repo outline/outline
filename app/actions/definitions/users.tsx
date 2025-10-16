@@ -22,6 +22,7 @@ export const inviteUser = createAction({
   perform: ({ t }) => {
     stores.dialogs.openModal({
       title: t("Invite to workspace"),
+      width: "500px",
       content: <Invite onSubmit={stores.dialogs.closeAllModals} />,
     });
   },

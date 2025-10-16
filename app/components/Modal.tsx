@@ -22,6 +22,8 @@ type Props = {
   isOpen: boolean;
   title?: React.ReactNode;
   style?: React.CSSProperties;
+  width?: number | string;
+  height?: number | string;
   onRequestClose: () => void;
 };
 
@@ -30,6 +32,8 @@ const Modal: React.FC<Props> = ({
   isOpen,
   title = "Untitled",
   style,
+  width,
+  height,
   onRequestClose,
 }: Props) => {
   const wasOpen = usePrevious(isOpen);
@@ -57,7 +61,7 @@ const Modal: React.FC<Props> = ({
         >
           {isMobile ? (
             <Mobile>
-              <Content>
+              <MobileContent>
                 <Centered onClick={(ev) => ev.stopPropagation()} column>
                   {title && (
                     <Text size="xlarge" weight="bold">
@@ -66,7 +70,7 @@ const Modal: React.FC<Props> = ({
                   )}
                   <ErrorBoundary>{children}</ErrorBoundary>
                 </Centered>
-              </Content>
+              </MobileContent>
               <Close onClick={onRequestClose}>
                 <CloseIcon size={32} />
               </Close>
@@ -76,7 +80,7 @@ const Modal: React.FC<Props> = ({
               </Back>
             </Mobile>
           ) : (
-            <Small>
+            <Wrapper $width={width} $height={height}>
               <Centered
                 onClick={(ev) => ev.stopPropagation()}
                 // maxHeight needed for proper overflow behavior in Safari
@@ -84,9 +88,9 @@ const Modal: React.FC<Props> = ({
                 column
                 reverse
               >
-                <SmallContent style={style} shadow>
+                <DesktopContent style={style} shadow>
                   <ErrorBoundary component="div">{children}</ErrorBoundary>
-                </SmallContent>
+                </DesktopContent>
                 <Header>
                   {title && <Text size="large">{title}</Text>}
                   <NudeButton onClick={onRequestClose}>
@@ -94,7 +98,7 @@ const Modal: React.FC<Props> = ({
                   </NudeButton>
                 </Header>
               </Centered>
-            </Small>
+            </Wrapper>
           )}
         </StyledContent>
       </Dialog.Portal>
@@ -142,13 +146,17 @@ const Mobile = styled.div`
   outline: none;
 `;
 
-const Content = styled(Scrollable)`
+const MobileContent = styled(Scrollable)`
   width: 100%;
   padding: 8vh 12px;
 
   ${breakpoint("tablet")`
     padding: 13vh 2rem 2rem;
   `};
+`;
+
+const DesktopContent = styled(Scrollable)`
+  padding: 8px 24px 24px;
 `;
 
 const Centered = styled(Flex)`
@@ -207,14 +215,17 @@ const Header = styled(Flex)`
   padding: 24px 24px 12px;
 `;
 
-const Small = styled.div`
+const Wrapper = styled.div<{
+  $width?: number | string;
+  $height?: number | string;
+}>`
   animation: ${fadeAndScaleIn} 250ms ease;
 
   margin: 25vh auto auto auto;
   width: 75vw;
   min-width: 350px;
-  max-width: 450px;
-  max-height: 65vh;
+  max-width: ${(props) => props.$width || "450px"};
+  max-height: ${(props) => props.$height || "70vh"};
   z-index: ${depths.modal};
   display: flex;
   justify-content: center;
@@ -235,10 +246,6 @@ const Small = styled.div`
   ${Header} {
     align-items: start;
   }
-`;
-
-const SmallContent = styled(Scrollable)`
-  padding: 8px 24px 24px;
 `;
 
 export default observer(Modal);
