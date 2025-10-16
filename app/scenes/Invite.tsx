@@ -58,7 +58,9 @@ function Invite({ onSubmit }: Props) {
         onSubmit();
 
         if (response.length > 0) {
-          toast.success(t("We sent out your invites!"));
+          toast.success(
+            t("{{ count }} invites sent", { count: response.length })
+          );
         } else {
           toast.message(t("Those email addresses are already invited"));
         }
@@ -223,6 +225,8 @@ function Invite({ onSubmit }: Props) {
                   labelHidden={index !== 0}
                   onKeyDown={handleKeyDown}
                   onChange={(ev) => handleChange(ev, index)}
+                  autoComplete="off"
+                  data-1p-ignore
                   value={invite.name}
                   required={!!invite.email}
                   flex
