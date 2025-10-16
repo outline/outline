@@ -179,7 +179,7 @@ export default class Document extends ArchivableModel implements Searchable {
   /**
    * Parent document that this is a child of, if any.
    */
-  @Relation(() => Document, { onArchive: "cascade" })
+  @Relation(() => Document, { onArchive: "cascade", onDelete: "cascade" })
   parentDocument?: Document;
 
   @observable
