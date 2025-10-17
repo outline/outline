@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Close unsigned PRs
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: |
             const now = new Date();
