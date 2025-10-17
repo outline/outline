@@ -285,6 +285,7 @@
   "You will receive an email when it's complete.": "Du erhältst eine E-Mail, sobald der Vorgang abgeschlossen ist.",
   "Include attachments": "Anhänge beifügen",
   "Including uploaded images and files in the exported data": "Einbeziehung hochgeladener Bilder und Dateien in die exportierten Daten",
+  "Include private collections": "Include private collections",
   "{{count}} more user": "{{count}} mehr Nutzer",
   "{{count}} more user_plural": "{{count}} weitere Nutzer",
   "Filter options": "Filteroptionen",
