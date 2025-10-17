@@ -48,174 +48,174 @@ export default class TableCell extends Node {
     };
   }
 
-  get plugins() {
-    function buildAddRowDecoration(pos: number, index: number) {
-      const className = cn(EditorStyleHelper.tableAddRow, {
-        first: index === 0,
-      });
+  // get plugins() {
+  //   function buildAddRowDecoration(pos: number, index: number) {
+  //     const className = cn(EditorStyleHelper.tableAddRow, {
+  //       first: index === 0,
+  //     });
 
-      return Decoration.widget(
-        pos + 1,
-        () => {
-          const plus = document.createElement("a");
-          plus.role = "button";
-          plus.className = className;
-          plus.dataset.index = index.toString();
-          return plus;
-        },
-        {
-          key: cn(className, index),
-        }
-      );
-    }
+  //     return Decoration.widget(
+  //       pos + 1,
+  //       () => {
+  //         const plus = document.createElement("a");
+  //         plus.role = "button";
+  //         plus.className = className;
+  //         plus.dataset.index = index.toString();
+  //         return plus;
+  //       },
+  //       {
+  //         key: cn(className, index),
+  //       }
+  //     );
+  //   }
 
-    return [
-      new Plugin({
-        props: {
-          transformCopied: (slice) => {
-            // check if the copied selection is a single table, with a single row, with a single cell. If so,
-            // copy the cell content only – not a table with a single cell. This leads to more predictable pasting
-            // behavior, both in and outside the app.
-            if (slice.content.childCount === 1) {
-              const table = slice.content.firstChild;
-              if (
-                table?.type.spec.tableRole === "table" &&
-                table.childCount === 1
-              ) {
-                const row = table.firstChild;
-                if (
-                  row?.type.spec.tableRole === "row" &&
-                  row.childCount === 1
-                ) {
-                  const cell = row.firstChild;
-                  if (cell?.type.spec.tableRole === "cell") {
-                    return new Slice(
-                      cell.content,
-                      slice.openStart,
-                      slice.openEnd
-                    );
-                  }
-                }
-              }
-            }
+  //   return [
+  //     new Plugin({
+  //       props: {
+  //         transformCopied: (slice) => {
+  //           // check if the copied selection is a single table, with a single row, with a single cell. If so,
+  //           // copy the cell content only – not a table with a single cell. This leads to more predictable pasting
+  //           // behavior, both in and outside the app.
+  //           if (slice.content.childCount === 1) {
+  //             const table = slice.content.firstChild;
+  //             if (
+  //               table?.type.spec.tableRole === "table" &&
+  //               table.childCount === 1
+  //             ) {
+  //               const row = table.firstChild;
+  //               if (
+  //                 row?.type.spec.tableRole === "row" &&
+  //                 row.childCount === 1
+  //               ) {
+  //                 const cell = row.firstChild;
+  //                 if (cell?.type.spec.tableRole === "cell") {
+  //                   return new Slice(
+  //                     cell.content,
+  //                     slice.openStart,
+  //                     slice.openEnd
+  //                   );
+  //                 }
+  //               }
+  //             }
+  //           }
 
-            return slice;
-          },
-          handleDOMEvents: {
-            mousedown: (view, event) => {
-              if (!(event.target instanceof HTMLElement)) {
-                return false;
-              }
+  //           return slice;
+  //         },
+  //         handleDOMEvents: {
+  //           mousedown: (view, event) => {
+  //             if (!(event.target instanceof HTMLElement)) {
+  //               return false;
+  //             }
 
-              const targetAddRow = event.target.closest(
-                `.${EditorStyleHelper.tableAddRow}`
-              );
-              if (targetAddRow) {
-                event.preventDefault();
-                event.stopImmediatePropagation();
-                const index = Number(targetAddRow.getAttribute("data-index"));
+  //             const targetAddRow = event.target.closest(
+  //               `.${EditorStyleHelper.tableAddRow}`
+  //             );
+  //             if (targetAddRow) {
+  //               event.preventDefault();
+  //               event.stopImmediatePropagation();
+  //               const index = Number(targetAddRow.getAttribute("data-index"));
 
-                addRowBefore({ index })(view.state, view.dispatch);
-                return true;
-              }
+  //               addRowBefore({ index })(view.state, view.dispatch);
+  //               return true;
+  //             }
 
-              const targetGrip = event.target.closest(
-                `.${EditorStyleHelper.tableGrip}`
-              );
-              if (targetGrip) {
-                event.preventDefault();
-                event.stopImmediatePropagation();
-                selectTable()(view.state, view.dispatch);
-                return true;
-              }
+  //             const targetGrip = event.target.closest(
+  //               `.${EditorStyleHelper.tableGrip}`
+  //             );
+  //             if (targetGrip) {
+  //               event.preventDefault();
+  //               event.stopImmediatePropagation();
+  //               selectTable()(view.state, view.dispatch);
+  //               return true;
+  //             }
 
-              const targetGripRow = event.target.closest(
-                `.${EditorStyleHelper.tableGripRow}`
-              );
-              if (targetGripRow) {
-                event.preventDefault();
-                event.stopImmediatePropagation();
+  //             const targetGripRow = event.target.closest(
+  //               `.${EditorStyleHelper.tableGripRow}`
+  //             );
+  //             if (targetGripRow) {
+  //               event.preventDefault();
+  //               event.stopImmediatePropagation();
 
-                selectRow(
-                  Number(targetGripRow.getAttribute("data-index")),
-                  event.metaKey || event.shiftKey
-                )(view.state, view.dispatch);
-                return true;
-              }
+  //               selectRow(
+  //                 Number(targetGripRow.getAttribute("data-index")),
+  //                 event.metaKey || event.shiftKey
+  //               )(view.state, view.dispatch);
+  //               return true;
+  //             }
 
-              return false;
-            },
-          },
-          decorations: (state) => {
-            if (!this.editor.view?.editable) {
-              return;
-            }
+  //             return false;
+  //           },
+  //         },
+  //         decorations: (state) => {
+  //           if (!this.editor.view?.editable) {
+  //             return;
+  //           }
 
-            const { doc } = state;
-            const decorations: Decoration[] = [];
-            const rows = getCellsInColumn(0)(state);
+  //           const { doc } = state;
+  //           const decorations: Decoration[] = [];
+  //           const rows = getCellsInColumn(0)(state);
 
-            if (rows) {
-              rows.forEach((pos, visualIndex) => {
-                const actualRowIndex = getRowIndexInMap(visualIndex, state);
-                const index =
-                  actualRowIndex !== -1 ? actualRowIndex : visualIndex;
-                if (index === 0) {
-                  const className = cn(EditorStyleHelper.tableGrip, {
-                    selected: isTableSelected(state),
-                  });
+  //           if (rows) {
+  //             rows.forEach((pos, visualIndex) => {
+  //               const actualRowIndex = getRowIndexInMap(visualIndex, state);
+  //               const index =
+  //                 actualRowIndex !== -1 ? actualRowIndex : visualIndex;
+  //               if (index === 0) {
+  //                 const className = cn(EditorStyleHelper.tableGrip, {
+  //                   selected: isTableSelected(state),
+  //                 });
 
-                  decorations.push(
-                    Decoration.widget(
-                      pos + 1,
-                      () => {
-                        const grip = document.createElement("a");
-                        grip.role = "button";
-                        grip.className = className;
-                        return grip;
-                      },
-                      {
-                        key: className,
-                      }
-                    )
-                  );
-                }
+  //                 decorations.push(
+  //                   Decoration.widget(
+  //                     pos + 1,
+  //                     () => {
+  //                       const grip = document.createElement("a");
+  //                       grip.role = "button";
+  //                       grip.className = className;
+  //                       return grip;
+  //                     },
+  //                     {
+  //                       key: className,
+  //                     }
+  //                   )
+  //                 );
+  //               }
 
-                const className = cn(EditorStyleHelper.tableGripRow, {
-                  selected:
-                    isRowSelected(index)(state) || isTableSelected(state),
-                  first: index === 0,
-                  last: visualIndex === rows.length - 1,
-                });
+  //               const className = cn(EditorStyleHelper.tableGripRow, {
+  //                 selected:
+  //                   isRowSelected(index)(state) || isTableSelected(state),
+  //                 first: index === 0,
+  //                 last: visualIndex === rows.length - 1,
+  //               });
 
-                decorations.push(
-                  Decoration.widget(
-                    pos + 1,
-                    () => {
-                      const grip = document.createElement("a");
-                      grip.role = "button";
-                      grip.className = className;
-                      grip.dataset.index = index.toString();
-                      return grip;
-                    },
-                    {
-                      key: cn(className, index),
-                    }
-                  )
-                );
+  //               decorations.push(
+  //                 Decoration.widget(
+  //                   pos + 1,
+  //                   () => {
+  //                     const grip = document.createElement("a");
+  //                     grip.role = "button";
+  //                     grip.className = className;
+  //                     grip.dataset.index = index.toString();
+  //                     return grip;
+  //                   },
+  //                   {
+  //                     key: cn(className, index),
+  //                   }
+  //                 )
+  //               );
 
-                if (index === 0) {
-                  decorations.push(buildAddRowDecoration(pos, index));
-                }
+  //               if (index === 0) {
+  //                 decorations.push(buildAddRowDecoration(pos, index));
+  //               }
 
-                decorations.push(buildAddRowDecoration(pos, index + 1));
-              });
-            }
+  //               decorations.push(buildAddRowDecoration(pos, index + 1));
+  //             });
+  //           }
 
-            return DecorationSet.create(doc, decorations);
-          },
-        },
-      }),
-    ];
-  }
+  //           return DecorationSet.create(doc, decorations);
+  //         },
+  //       },
+  //     }),
+  //   ];
+  // }
 }

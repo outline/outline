@@ -39,8 +39,6 @@ function DocumentDelete({ document, onSubmit }: Props) {
       setDeleting(true);
 
       try {
-        await document.delete();
-
         // only redirect if we're currently viewing the document that's deleted
         if (ui.activeDocumentId === document.id) {
           // If the document has a parent and it's available in the store then
@@ -63,6 +61,7 @@ function DocumentDelete({ document, onSubmit }: Props) {
           history.push(path);
         }
 
+        await document.delete();
         onSubmit();
       } catch (err) {
         toast.error(err.message);

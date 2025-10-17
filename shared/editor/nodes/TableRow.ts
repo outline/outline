@@ -1,5 +1,11 @@
-import { NodeSpec } from "prosemirror-model";
+import { NodeSpec, Slice } from "prosemirror-model";
 import Node from "./Node";
+import { cn } from "../styles/utils";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
+import { Decoration, DecorationSet } from "prosemirror-view";
+import { Plugin } from "prosemirror-state";
+import { addRowBefore, selectRow, selectTable } from "../commands/table";
+import { getCellsInColumn, getRowIndexInMap, getRowsInTable, isRowSelected, isTableSelected } from "../queries/table";
 
 export default class TableRow extends Node {
   get name() {
@@ -15,6 +21,150 @@ export default class TableRow extends Node {
         return ["tr", 0];
       },
     };
+  }
+
+  get plugins() {
+    function buildAddRowDecoration(pos: number, index: number) {
+      const className = cn(EditorStyleHelper.tableAddRow, {
+        first: index === 0,
+      });
+
+      return Decoration.widget(
+        pos + 1,
+        () => {
+          const plus = document.createElement("a");
+          plus.role = "button";
+          plus.className = className;
+          plus.dataset.index = index.toString();
+          return plus;
+        },
+        {
+          key: cn(className, index),
+        }
+      );
+    }
+
+    return [
+      new Plugin({
+        props: {
+          handleDOMEvents: {
+            mousedown: (view, event) => {
+              if (!(event.target instanceof HTMLElement)) {
+                return false;
+              }
+
+              const targetAddRow = event.target.closest(
+                `.${EditorStyleHelper.tableAddRow}`
+              );
+              if (targetAddRow) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                const index = Number(targetAddRow.getAttribute("data-index"));
+
+                addRowBefore({ index })(view.state, view.dispatch);
+                return true;
+              }
+
+              const tableGrip = event.target.closest(
+                `.${EditorStyleHelper.tableGrip}`
+              );
+              if (tableGrip) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                selectTable()(view.state, view.dispatch);
+                return true;
+              }
+
+              const targetGripRow = event.target.closest(
+                `.${EditorStyleHelper.tableGripRow}`
+              );
+              if (targetGripRow) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+
+                selectRow(
+                  Number(targetGripRow.getAttribute("data-index")),
+                  event.metaKey || event.shiftKey
+                )(view.state, view.dispatch);
+                return true;
+              }
+
+              return false;
+            },
+          },
+          decorations: (state) => {
+            if (!this.editor.view?.editable) {
+              return;
+            }
+
+            const { doc } = state;
+            const decorations: Decoration[] = [];
+            const rows = getRowsInTable(state);
+
+            if (rows) {
+              rows.forEach((pos, visualIndex) => {
+                const actualRowIndex = getRowIndexInMap(visualIndex, state);
+                const index = visualIndex;  //actualRowIndex !== -1 ? actualRowIndex : visualIndex;
+
+                console.log({actualRowIndex,visualIndex});
+
+                if (index === 0) {
+                  const className = cn(EditorStyleHelper.tableGrip, {
+                    selected: isTableSelected(state),
+                  });
+
+                  decorations.push(
+                    Decoration.widget(
+                      pos + 1,
+                      () => {
+                        const grip = document.createElement("a");
+                        grip.role = "button";
+                        grip.className = className;
+                        return grip;
+                      },
+                      {
+                        key: className,
+                      }
+                    )
+                  );
+                }
+
+                const className = cn(EditorStyleHelper.tableGripRow, {
+                  selected:
+                    isRowSelected(index)(state) || isTableSelected(state),
+                  first: index === 0,
+                  last: visualIndex === rows.length - 1,
+                });
+
+                decorations.push(
+                  Decoration.widget(
+                    pos,
+                    () => {
+                      const grip = document.createElement("a");
+                      grip.role = "button";
+                      grip.className = className;
+                      grip.dataset.index = index.toString();
+                      return grip;
+                    },
+                    {
+                      key: cn(className, index),
+                    }
+                  )
+                );
+
+                if (index === 0) {
+                  decorations.push(buildAddRowDecoration(pos, index));
+                }
+
+                decorations.push(buildAddRowDecoration(pos, index + 1));
+              });
+            }
+
+            return DecorationSet.create(doc, decorations);
+          },
+        },
+      }),
+    ];
   }
 
   toMarkdown() {
