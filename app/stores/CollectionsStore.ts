@@ -247,9 +247,9 @@ export default class CollectionsStore extends Store<Collection> {
     await this.rootStore.documents.fetchRecentlyViewed();
   }
 
-  export = (format: FileOperationFormat, includeAttachments: boolean) =>
-    client.post("/collections.export_all", {
-      format,
-      includeAttachments,
-    });
+  export = (options: {
+    format: FileOperationFormat;
+    includeAttachments: boolean;
+    includePrivate: boolean;
+  }) => client.post("/collections.export_all", options);
 }

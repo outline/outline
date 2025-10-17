@@ -25,6 +25,7 @@ function ExportDialog({ collection, onSubmit }: Props) {
   );
   const [includeAttachments, setIncludeAttachments] =
     React.useState<boolean>(true);
+  const [includePrivate, setIncludePrivate] = React.useState<boolean>(true);
   const user = useCurrentUser();
   const { collections } = useStores();
   const { t } = useTranslation();
@@ -44,6 +45,13 @@ function ExportDialog({ collection, onSubmit }: Props) {
     []
   );
 
+  const handleIncludePrivateChange = React.useCallback(
+    (ev: React.ChangeEvent<HTMLInputElement>) => {
+      setIncludePrivate(ev.target.checked);
+    },
+    []
+  );
+
   const handleSubmit = async () => {
     if (collection) {
       await collection.export(format, includeAttachments);
@@ -59,7 +67,7 @@ function ExportDialog({ collection, onSubmit }: Props) {
         },
       });
     } else {
-      await collections.export(format, includeAttachments);
+      await collections.export({ format, includeAttachments, includePrivate });
       toast.success(t("Export started"));
     }
     onSubmit();
@@ -123,36 +131,61 @@ function ExportDialog({ collection, onSubmit }: Props) {
               <Text as="p" size="small" weight="bold">
                 {item.title}
               </Text>
-              <Text size="small">{item.description}</Text>
+              <Text size="small" type="secondary">
+                {item.description}
+              </Text>
             </div>
           </Option>
         ))}
       </Flex>
-      <hr />
-      <Option>
-        <input
-          type="checkbox"
-          name="includeAttachments"
-          checked={includeAttachments}
-          onChange={handleIncludeAttachmentsChange}
-        />
-        <div>
-          <Text as="p" size="small" weight="bold">
-            {t("Include attachments")}
-          </Text>
-          <Text size="small">
-            {t("Including uploaded images and files in the exported data")}.
-          </Text>{" "}
-        </div>
-      </Option>
+      <HR />
+      <Flex gap={12} column>
+        <Option>
+          <input
+            type="checkbox"
+            name="includeAttachments"
+            checked={includeAttachments}
+            onChange={handleIncludeAttachmentsChange}
+          />
+          <div>
+            <Text as="p" size="small" weight="bold">
+              {t("Include attachments")}
+            </Text>
+            <Text size="small" type="secondary">
+              {t("Including uploaded images and files in the exported data")}.
+            </Text>{" "}
+          </div>
+        </Option>
+        <Option>
+          <input
+            type="checkbox"
+            name="includePrivate"
+            checked={includePrivate}
+            onChange={handleIncludePrivateChange}
+          />
+          <div>
+            <Text as="p" size="small" weight="bold">
+              {t("Include private collections")}
+            </Text>
+          </div>
+        </Option>
+      </Flex>
     </ConfirmationDialog>
   );
 }
 
+const HR = styled.hr`
+  margin: 16px 0;
+`;
+
 const Option = styled.label`
   display: flex;
-  align-items: center;
+  align-items: start;
   gap: 16px;
+
+  input {
+    margin-top: 4px;
+  }
 
   p {
     margin: 0;

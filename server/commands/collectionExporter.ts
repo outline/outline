@@ -15,6 +15,7 @@ type Props = {
   user: User;
   format?: FileOperationFormat;
   includeAttachments?: boolean;
+  includePrivate?: boolean;
   ctx: APIContext;
 };
 
@@ -34,6 +35,7 @@ async function collectionExporter({
   user,
   format = FileOperationFormat.MarkdownZip,
   includeAttachments = true,
+  includePrivate = true,
   ctx,
 }: Props) {
   const collectionId = collection?.id;
@@ -52,6 +54,7 @@ async function collectionExporter({
     collectionId,
     options: {
       includeAttachments,
+      includePrivate,
     },
     userId: user.id,
     teamId: user.teamId,

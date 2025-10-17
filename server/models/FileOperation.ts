@@ -28,6 +28,7 @@ import Fix from "./decorators/Fix";
 
 export type FileOperationOptions = {
   includeAttachments?: boolean;
+  includePrivate?: boolean;
   permission?: CollectionPermission | null;
 };
 
