@@ -285,6 +285,7 @@
   "You will receive an email when it's complete.": "完了するとメールが届きます",
   "Include attachments": "添付ファイルを含める",
   "Including uploaded images and files in the exported data": "エクスポートデータにアップロードされた画像とファイルを含む",
+  "Include private collections": "Include private collections",
   "{{count}} more user": "{{count}} more user",
   "{{count}} more user_plural": "{{count}} more users",
   "Filter options": "Filter options",
