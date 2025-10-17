@@ -49,6 +49,7 @@ import {
   ReactZoomPanPinchRef,
 } from "react-zoom-pan-pinch";
 import { transparentize } from "polished";
+import { mergeRefs } from "react-merge-refs";
 
 export enum LightboxStatus {
   READY_TO_OPEN,
@@ -106,11 +107,16 @@ const ZoomablePannablePinchable = forwardRef<
   ZoomablePannablePinchableProps
 >(({ children, panningDisabled, disabled, onClose }, ref) => {
   const { isPanning, ...panningHandlers } = usePanning();
+  const wrapperRef = useRef<ReactZoomPanPinchRef>(null);
+  const scale = wrapperRef.current?.instance.transformState.scale ?? 1;
 
   const wrapperProps = useMemo(
     () =>
       ({
         onClick: (event) => {
+          if (scale > 1) {
+            return;
+          }
           if (event.defaultPrevented) {
             return;
           }
@@ -124,13 +130,13 @@ const ZoomablePannablePinchable = forwardRef<
           onClose?.();
         },
       }) satisfies HTMLAttributes<HTMLDivElement>,
-    [onClose]
+    [onClose, scale]
   );
 
   return (
     <ZoomPanPinchContext.Provider value={{ isImagePanning: isPanning }}>
       <TransformWrapper
-        ref={ref}
+        ref={mergeRefs([ref, wrapperRef])}
         disabled={disabled}
         doubleClick={{ disabled: true }}
         minScale={1}
@@ -141,14 +147,17 @@ const ZoomablePannablePinchable = forwardRef<
         {...panningHandlers}
       >
         <TransformComponent
-          wrapperStyle={{ width: "100%", height: "100%" }}
+          wrapperStyle={{
+            width: "100%",
+            height: "100%",
+            cursor: isPanning ? "grabbing" : scale > 1 ? "grab" : "zoom-out",
+          }}
           contentStyle={{
             width: "100%",
             height: "100%",
             padding: "56px",
             justifyContent: "center",
             alignItems: "center",
-            cursor: "zoom-out",
           }}
           wrapperProps={wrapperProps}
         >
@@ -165,10 +174,7 @@ function usePanning() {
 
   const onPanningStart: ComponentProps<
     typeof TransformWrapper
-  >["onPanningStart"] = (ref, event) => {
-    if (!(event.target instanceof HTMLImageElement)) {
-      return;
-    }
+  >["onPanningStart"] = (ref) => {
     const zoomedIn = ref.state.scale > 1;
     if (zoomedIn) {
       setPanning(ref.instance.isPanning);
@@ -183,10 +189,7 @@ function usePanning() {
 
   const onPanningStop: ComponentProps<
     typeof TransformWrapper
-  >["onPanningStop"] = (ref, event) => {
-    if (!(event.target instanceof HTMLImageElement)) {
-      return;
-    }
+  >["onPanningStop"] = (ref) => {
     setPanning(ref.instance.isPanning);
     if (dragged.current) {
       dragged.current = false;
@@ -1026,7 +1029,7 @@ const StyledImg = styled.img<{
   object-fit: contain;
   cursor: ${(props) =>
     props.$panning
-      ? "grab"
+      ? "grabbing"
       : props.$zoomedOut
         ? "zoom-in"
         : props.$zoomedIn
