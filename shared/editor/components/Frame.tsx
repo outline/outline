@@ -1,4 +1,4 @@
-import { OpenIcon, EditIcon } from "outline-icons";
+import { OpenIcon } from "outline-icons";
 import * as React from "react";
 import { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
@@ -39,7 +39,6 @@ const Frame = ({
   icon,
   title,
   canonicalUrl,
-  editUrl,
   isSelected,
   referrerPolicy,
   className = "",
@@ -67,7 +66,7 @@ const Frame = ({
     };
   }, []);
 
-  const showBottomBar = !!(icon || canonicalUrl || editUrl);
+  const showBottomBar = !!(icon || canonicalUrl);
 
   return (
     <Rounded
@@ -101,11 +100,6 @@ const Frame = ({
             <Open href={canonicalUrl} target="_blank" rel="noopener noreferrer">
               <OpenIcon size={18} /> Open
             </Open>
-          )}
-          {editUrl && (
-            <Edit href={editUrl} target="_blank" rel="noopener noreferrer">
-              <EditIcon size={18} /> Edit
-            </Edit>
           )}
         </Bar>
       )}
@@ -142,17 +136,6 @@ const Open = styled.a`
   display: flex;
   position: absolute;
   right: 0;
-  padding: 0 8px;
-`;
-
-const Edit = styled.a`
-  color: ${s("textSecondary")} !important;
-  font-size: 14px;
-  font-weight: 500;
-  align-items: center;
-  display: flex;
-  position: absolute;
-  right: 60px;
   padding: 0 8px;
 `;
 

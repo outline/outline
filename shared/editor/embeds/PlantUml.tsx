@@ -5,7 +5,7 @@ import { EmbedProps as Props } from ".";
 
 function PlantUmlDiagrams({ matches, ...props }: Props) {
   const title = props.attrs.href.split("/uml/")[1];
-  var finalUrl = "https://img.plantuml.biz/plantuml/svg/" + title;
+  var finalUrl = "https://www.plantuml.com/plantuml/svg/" + title;
   return (
     <Frame
       {...props}
@@ -13,13 +13,12 @@ function PlantUmlDiagrams({ matches, ...props }: Props) {
       icon={
         <Image
           src="/images/plantuml.png"
-          alt="Diagrams.net"
+          alt="PlantUml"
           width={16}
           height={16}
         />
       }
       canonicalUrl={finalUrl}
-      editUrl={props.attrs.href}
       border
     />
   );
