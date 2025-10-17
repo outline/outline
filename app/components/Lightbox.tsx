@@ -5,10 +5,12 @@ import {
   ComponentProps,
   createContext,
   forwardRef,
+  HTMLAttributes,
   ReactNode,
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -96,12 +98,35 @@ type ZoomablePannablePinchableProps = {
   children: ReactNode;
   panningDisabled: boolean;
   disabled: boolean;
+  onClose?: () => void;
 };
+
 const ZoomablePannablePinchable = forwardRef<
   ReactZoomPanPinchRef,
   ZoomablePannablePinchableProps
->(({ children, panningDisabled, disabled }, ref) => {
+>(({ children, panningDisabled, disabled, onClose }, ref) => {
   const { isPanning, ...panningHandlers } = usePanning();
+
+  const wrapperProps = useMemo(
+    () =>
+      ({
+        onClick: (event) => {
+          if (event.defaultPrevented) {
+            return;
+          }
+          if (
+            ["IMG", "INPUT", "BUTTON", "A"].includes(
+              (event.target as Element).tagName
+            )
+          ) {
+            return;
+          }
+          onClose?.();
+        },
+      }) satisfies HTMLAttributes<HTMLDivElement>,
+    [onClose]
+  );
+
   return (
     <ZoomPanPinchContext.Provider value={{ isImagePanning: isPanning }}>
       <TransformWrapper
@@ -123,7 +148,9 @@ const ZoomablePannablePinchable = forwardRef<
             padding: "56px",
             justifyContent: "center",
             alignItems: "center",
+            cursor: "zoom-out",
           }}
+          wrapperProps={wrapperProps}
         >
           {children}
         </TransformComponent>
@@ -758,6 +785,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
             }
             disabled={status.image === ImageStatus.ERROR}
             ref={zoomPanPinchRef}
+            onClose={close}
           >
             <Image
               ref={imgRef}
