@@ -40,7 +40,7 @@ jobs:
        github.event.pull_request.head.repo.full_name == github.repository)
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v5
       - name: Compress Images
         id: calibre
         uses: calibreapp/image-actions@main
