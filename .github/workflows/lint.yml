@@ -25,6 +25,6 @@ jobs:
       - run: yarn lint --fix
 
       - name: Commit changes
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "Applied automatic fixes"
