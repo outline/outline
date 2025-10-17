@@ -285,6 +285,7 @@
   "You will receive an email when it's complete.": "Po zakończeniu otrzymasz wiadomość e-mail.",
   "Include attachments": "Dołącz załączniki",
   "Including uploaded images and files in the exported data": "Uwzględnianie przesłanych obrazów i plików w eksportowanych danych",
+  "Include private collections": "Include private collections",
   "{{count}} more user": "{{count}} więcej użytkownika",
   "{{count}} more user_plural": "{{count}} więcej użytkowników",
   "Filter options": "Filter options",
