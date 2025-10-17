@@ -19,6 +19,7 @@ import fileOperationPresenter from "@server/presenters/fileOperation";
 import FileStorage from "@server/storage/files";
 import BaseTask, { TaskPriority } from "./BaseTask";
 import { Op } from "sequelize";
+import { WhereOptions } from "sequelize";
 
 type Props = {
   fileOperationId: string;
@@ -41,16 +42,26 @@ export default abstract class ExportTask extends BaseTask<Props> {
       User.findByPk(fileOperation.userId, { rejectOnEmpty: true }),
     ]);
 
-    const where = fileOperation.collectionId
+    const where: WhereOptions<Collection> = fileOperation.collectionId
       ? {
           teamId: user.teamId,
           id: fileOperation.collectionId,
+          permission: fileOperation.options?.includePrivate
+            ? undefined
+            : {
+                [Op.ne]: null,
+              },
         }
       : {
           teamId: user.teamId,
           archivedAt: {
             [Op.eq]: null,
           },
+          permission: fileOperation.options?.includePrivate
+            ? undefined
+            : {
+                [Op.ne]: null,
+              },
         };
 
     const collections = await Collection.scope("withDocumentStructure").findAll(
