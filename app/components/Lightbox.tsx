@@ -189,11 +189,11 @@ function usePanning() {
 
   const onPanningStop: ComponentProps<
     typeof TransformWrapper
-  >["onPanningStop"] = (ref) => {
+  >["onPanningStop"] = (ref, event) => {
     setPanning(ref.instance.isPanning);
     if (dragged.current) {
       dragged.current = false;
-    } else {
+    } else if (event.target instanceof HTMLImageElement) {
       const zoomedOut = Math.abs(ref.state.scale - 1) < 0.001;
       if (zoomedOut) {
         ref.zoomIn();
