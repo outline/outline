@@ -285,6 +285,7 @@
   "You will receive an email when it's complete.": "完成后，你将收到一封电子邮件。",
   "Include attachments": "包含附件",
   "Including uploaded images and files in the exported data": "导出数据中包含上传的图片和文件",
+  "Include private collections": "Include private collections",
   "{{count}} more user": "{{count}} 个用户",
   "{{count}} more user_plural": "{{count}} 个用户",
   "Filter options": "过滤选项",
