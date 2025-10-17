@@ -285,6 +285,7 @@
   "You will receive an email when it's complete.": "완료 시점에 메일을 수신받게 됩니다.",
   "Include attachments": "첨부파일 포함",
   "Including uploaded images and files in the exported data": "내보낼 데이터에 업로드된 이미지 및 파일 포함",
+  "Include private collections": "Include private collections",
   "{{count}} more user": "{{count}}명의 추가 사용자",
   "{{count}} more user_plural": "{{count}}명의 추가 사용자",
   "Filter options": "필터 옵션",
