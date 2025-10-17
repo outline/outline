@@ -285,6 +285,7 @@
   "You will receive an email when it's complete.": "Egy e-mail-t fog kapni, mikor elkészült.",
   "Include attachments": "Csatolmányokkal együtt",
   "Including uploaded images and files in the exported data": "A feltöltött képek és fájlok is exportálva lesznek",
+  "Include private collections": "Include private collections",
   "{{count}} more user": "licat",
   "{{count}} more user_plural": "{{count}} more users",
   "Filter options": "Szűrési lehetőségek",
