@@ -285,6 +285,7 @@
   "You will receive an email when it's complete.": "Po dokončení obdržíte e-mail.",
   "Include attachments": "Zahrnout přílohy",
   "Including uploaded images and files in the exported data": "Zahrnout nahrané obrázky a soubory do exportovaných dat",
+  "Include private collections": "Include private collections",
   "{{count}} more user": "{{count}} more user",
   "{{count}} more user_plural": "{{count}} more users",
   "Filter options": "Filter options",
