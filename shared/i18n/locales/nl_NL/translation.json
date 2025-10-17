@@ -285,6 +285,7 @@
   "You will receive an email when it's complete.": "Je ontvangt een e-mail als het voltooid is.",
   "Include attachments": "Bijlagen toevoegen",
   "Including uploaded images and files in the exported data": "Geüploade afbeeldingen en bestanden worden aan de geëxporteerde data toegevoegd",
+  "Include private collections": "Include private collections",
   "{{count}} more user": "{{count}} gebruiker meer",
   "{{count}} more user_plural": "{{count}} gebruikers meer",
   "Filter options": "Filter opties",
