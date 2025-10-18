@@ -15,7 +15,6 @@ import useBoolean from "~/hooks/useBoolean";
 import useDictionary from "~/hooks/useDictionary";
 import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
-import usePrevious from "~/hooks/usePrevious";
 import getAttachmentMenuItems from "../menus/attachment";
 import getCodeMenuItems from "../menus/code";
 import getDividerMenuItems from "../menus/divider";
@@ -70,7 +69,6 @@ export function SelectionToolbar(props: Props) {
   const isMobile = useMobile();
   const isActive = props.isActive || isMobile;
   const isDragging = useIsDragging();
-  const previousIsActive = usePrevious(isActive);
 
   React.useEffect(() => {
     const handleClickOutside = (ev: MouseEvent): void => {
@@ -104,7 +102,7 @@ export function SelectionToolbar(props: Props) {
     return () => {
       window.removeEventListener("mouseup", handleClickOutside);
     };
-  }, [isActive, previousIsActive, readOnly, view]);
+  }, [isActive, readOnly, view]);
 
   const handleOnSelectLink = ({
     href,
