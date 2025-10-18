@@ -63,7 +63,7 @@ function useIsDragging() {
 }
 
 export function SelectionToolbar(props: Props) {
-  const { readOnly } = props;
+  const { readOnly = false } = props;
   const { view, commands } = useEditor();
   const dictionary = useDictionary();
   const menuRef = React.useRef<HTMLDivElement | null>(null);
@@ -155,19 +155,22 @@ export function SelectionToolbar(props: Props) {
     items = getCodeMenuItems(state, readOnly, dictionary);
     align = "end";
   } else if (isTableSelected(state)) {
-    items = readOnly ? [] : getTableMenuItems(state, dictionary);
+    items = getTableMenuItems(state, readOnly, dictionary);
   } else if (colIndex !== undefined) {
-    items = readOnly
-      ? []
-      : getTableColMenuItems(state, colIndex, rtl, dictionary);
+    items = getTableColMenuItems(state, readOnly, dictionary, {
+      index: colIndex,
+      rtl,
+    });
   } else if (rowIndex !== undefined) {
-    items = readOnly ? [] : getTableRowMenuItems(state, rowIndex, dictionary);
+    items = getTableRowMenuItems(state, readOnly, dictionary, {
+      index: rowIndex,
+    });
   } else if (isImageSelection) {
-    items = readOnly ? [] : getImageMenuItems(state, dictionary);
+    items = getImageMenuItems(state, readOnly, dictionary);
   } else if (isAttachmentSelection) {
-    items = readOnly ? [] : getAttachmentMenuItems(state, dictionary);
+    items = getAttachmentMenuItems(state, readOnly, dictionary);
   } else if (isDividerSelection) {
-    items = getDividerMenuItems(state, dictionary);
+    items = getDividerMenuItems(state, readOnly, dictionary);
   } else if (readOnly) {
     items = getReadOnlyMenuItems(state, !!canUpdate, dictionary);
   } else if (isNoticeSelection && selection.empty) {

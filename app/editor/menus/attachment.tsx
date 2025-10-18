@@ -5,8 +5,12 @@ import { Dictionary } from "~/hooks/useDictionary";
 
 export default function attachmentMenuItems(
   state: EditorState,
+  readOnly: boolean,
   dictionary: Dictionary
 ): MenuItem[] {
+  if (readOnly) {
+    return [];
+  }
   return [
     {
       name: "replaceAttachment",
