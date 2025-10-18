@@ -177,16 +177,16 @@ export const toggleDebugLogging = createAction({
 });
 
 export const toggleDebugSafeArea = createAction({
-  name: ({ t }) => t("Toggle menu safe area debugging"),
+  name: () => "Toggle menu safe area debugging",
   icon: <ToolsIcon />,
   section: DeveloperSection,
   visible: () => env.ENVIRONMENT === "development",
-  perform: ({ stores, t }) => {
+  perform: ({ stores }) => {
     stores.ui.toggleDebugSafeArea();
     toast.message(
       stores.ui.debugSafeArea
-        ? t("Menu safe area debugging enabled")
-        : t("Menu safe area debugging disabled")
+        ? "Menu safe area debugging enabled"
+        : "Menu safe area debugging disabled"
     );
   },
 });
