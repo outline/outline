@@ -25,10 +25,18 @@ import { ArrowLeftIcon, ArrowRightIcon } from "~/components/Icons/ArrowIcon";
 
 export default function tableColMenuItems(
   state: EditorState,
-  index: number,
-  rtl: boolean,
-  dictionary: Dictionary
+  readOnly: boolean,
+  dictionary: Dictionary,
+  options: {
+    index: number;
+    rtl: boolean;
+  }
 ): MenuItem[] {
+  if (readOnly) {
+    return [];
+  }
+
+  const { index, rtl } = options;
   const { schema, selection } = state;
 
   if (!(selection instanceof CellSelection)) {

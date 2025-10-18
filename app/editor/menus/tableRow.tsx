@@ -19,9 +19,17 @@ import { ArrowDownIcon, ArrowUpIcon } from "~/components/Icons/ArrowIcon";
 
 export default function tableRowMenuItems(
   state: EditorState,
-  index: number,
-  dictionary: Dictionary
+  readOnly: boolean,
+  dictionary: Dictionary,
+  options: {
+    index: number;
+  }
 ): MenuItem[] {
+  if (readOnly) {
+    return [];
+  }
+
+  const { index } = options;
   const { selection } = state;
 
   if (!(selection instanceof CellSelection)) {
