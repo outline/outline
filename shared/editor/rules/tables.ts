@@ -47,9 +47,7 @@ export default function markdownTables(md: MarkdownIt): void {
               }
             });
           } else {
-            const token = new state.Token("text", "", 1);
-            token.content = content;
-            tokens[i].children?.push(token);
+            tokens[i].children?.push(child);
           }
         });
       }
