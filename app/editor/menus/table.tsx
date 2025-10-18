@@ -6,8 +6,12 @@ import { Dictionary } from "~/hooks/useDictionary";
 
 export default function tableMenuItems(
   state: EditorState,
+  readOnly: boolean,
   dictionary: Dictionary
 ): MenuItem[] {
+  if (readOnly) {
+    return [];
+  }
   const { schema } = state;
   const isFullWidth = isNodeActive(schema.nodes.table, {
     layout: TableLayout.fullWidth,

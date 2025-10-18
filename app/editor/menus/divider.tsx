@@ -6,8 +6,12 @@ import { Dictionary } from "~/hooks/useDictionary";
 
 export default function dividerMenuItems(
   state: EditorState,
+  readOnly: boolean,
   dictionary: Dictionary
 ): MenuItem[] {
+  if (readOnly) {
+    return [];
+  }
   const { schema } = state;
 
   return [

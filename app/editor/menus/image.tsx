@@ -14,8 +14,12 @@ import { Dictionary } from "~/hooks/useDictionary";
 
 export default function imageMenuItems(
   state: EditorState,
+  readOnly: boolean,
   dictionary: Dictionary
 ): MenuItem[] {
+  if (readOnly) {
+    return [];
+  }
   const { schema } = state;
   const isLeftAligned = isNodeActive(schema.nodes.image, {
     layoutClass: "left-50",
