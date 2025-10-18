@@ -281,30 +281,36 @@ function InnerDocumentLink(
     [setExpanded, setCollapsed, hasChildren, expanded]
   );
 
+  const newChildTitleRef = React.useRef<RefHandle>(null);
   const [isAddingNewChild, setIsAddingNewChild, closeAddingNewChild] =
     useBoolean();
 
   const handleNewDoc = React.useCallback(
     async (input) => {
-      const newDocument = await documents.create(
-        {
-          collectionId: collection?.id,
-          parentDocumentId: node.id,
-          fullWidth:
-            doc?.fullWidth ??
-            user.getPreference(UserPreference.FullWidthDocuments),
-          title: input,
-          data: ProsemirrorHelper.getEmptyDocument(),
-        },
-        { publish: true }
-      );
-      collection?.addDocument(newDocument, node.id);
+      try {
+        newChildTitleRef.current?.setIsEditing(false);
+        const newDocument = await documents.create(
+          {
+            collectionId: collection?.id,
+            parentDocumentId: node.id,
+            fullWidth:
+              doc?.fullWidth ??
+              user.getPreference(UserPreference.FullWidthDocuments),
+            title: input,
+            data: ProsemirrorHelper.getEmptyDocument(),
+          },
+          { publish: true }
+        );
+        collection?.addDocument(newDocument, node.id);
 
-      closeAddingNewChild();
-      history.push({
-        pathname: documentEditPath(newDocument),
-        state: { sidebarContext },
-      });
+        closeAddingNewChild();
+        history.push({
+          pathname: documentEditPath(newDocument),
+          state: { sidebarContext },
+        });
+      } catch (_err) {
+        newChildTitleRef.current?.setIsEditing(true);
+      }
     },
     [
       documents,
@@ -414,6 +420,7 @@ function InnerDocumentLink(
               onCancel={closeAddingNewChild}
               onSubmit={handleNewDoc}
               maxLength={DocumentValidation.maxTitleLength}
+              ref={newChildTitleRef}
             />
           }
         />

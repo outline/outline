@@ -86,27 +86,33 @@ const CollectionLink: React.FC<Props> = ({
     editableTitleRef.current?.setIsEditing(true);
   }, [editableTitleRef]);
 
+  const newChildTitleRef = React.useRef<RefHandle>(null);
   const [isAddingNewChild, setIsAddingNewChild, closeAddingNewChild] =
     useBoolean();
 
   const handleNewDoc = React.useCallback(
     async (input) => {
-      const newDocument = await documents.create(
-        {
-          collectionId: collection.id,
-          title: input,
-          fullWidth: user.getPreference(UserPreference.FullWidthDocuments),
-          data: ProsemirrorHelper.getEmptyDocument(),
-        },
-        { publish: true }
-      );
-      collection?.addDocument(newDocument);
+      try {
+        newChildTitleRef.current?.setIsEditing(false);
+        const newDocument = await documents.create(
+          {
+            collectionId: collection.id,
+            title: input,
+            fullWidth: user.getPreference(UserPreference.FullWidthDocuments),
+            data: ProsemirrorHelper.getEmptyDocument(),
+          },
+          { publish: true }
+        );
+        collection?.addDocument(newDocument);
 
-      closeAddingNewChild();
-      history.push({
-        pathname: documentEditPath(newDocument),
-        state: { sidebarContext },
-      });
+        closeAddingNewChild();
+        history.push({
+          pathname: documentEditPath(newDocument),
+          state: { sidebarContext },
+        });
+      } catch (_err) {
+        newChildTitleRef.current?.setIsEditing(true);
+      }
     },
     [user, sidebarContext, closeAddingNewChild, history, collection, documents]
   );
@@ -192,6 +198,7 @@ const CollectionLink: React.FC<Props> = ({
               onCancel={closeAddingNewChild}
               onSubmit={handleNewDoc}
               maxLength={DocumentValidation.maxTitleLength}
+              ref={newChildTitleRef}
             />
           }
         />
