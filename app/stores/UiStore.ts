@@ -86,6 +86,9 @@ class UiStore {
   @observable
   multiplayerErrorCode?: number;
 
+  @observable
+  debugSafeArea = false;
+
   rootStore: RootStore;
 
   constructor(rootStore: RootStore) {
@@ -246,6 +249,11 @@ class UiStore {
   @action
   hideMobileSidebar = () => {
     this.mobileSidebarVisible = false;
+  };
+
+  @action
+  toggleDebugSafeArea = () => {
+    this.debugSafeArea = !this.debugSafeArea;
   };
 
   @computed
