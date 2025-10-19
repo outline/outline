@@ -79,9 +79,18 @@ export default function imageMenuItems(
       visible: !!fetch,
     },
     {
-      name: "replaceImage",
       tooltip: dictionary.replaceImage,
       icon: <ReplaceIcon />,
+      children: [
+        {
+          name: "replaceImage",
+          label: dictionary.uploadImage,
+        },
+        {
+          name: "editImageUrl",
+          label: dictionary.editImageUrl,
+        },
+      ],
     },
     {
       name: "deleteImage",
