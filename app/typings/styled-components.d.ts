@@ -150,7 +150,6 @@ declare module "styled-components" {
     menuItemSelected: string;
     menuBackground: string;
     menuShadow: string;
-    menuBorder?: string;
     divider: string;
     titleBarDivider: string;
     inputBorder: string;

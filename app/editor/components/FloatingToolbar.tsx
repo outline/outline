@@ -47,8 +47,18 @@ function usePosition({
 }) {
   const { view } = useEditor();
   const { selection } = view.state;
-  const menuWidth = menuRef.current?.offsetWidth ?? 0;
+  const [menuWidth, setMenuWidth] = React.useState(0);
   const menuHeight = 36;
+
+  // Measure the menu width after DOM updates to ensure accurate positioning
+  React.useLayoutEffect(() => {
+    if (menuRef.current) {
+      const width = menuRef.current.offsetWidth;
+      if (width !== menuWidth) {
+        setMenuWidth(width);
+      }
+    }
+  });
 
   // based on the start and end of the selection calculate the position at
   // the center top
@@ -309,7 +319,7 @@ type WrapperProps = {
 const arrow = (props: WrapperProps) =>
   props.arrow
     ? css`
-        &::before {
+        &::after {
           content: "";
           display: block;
           width: 24px;
@@ -317,11 +327,14 @@ const arrow = (props: WrapperProps) =>
           transform: translateX(-50%) rotate(45deg);
           background: ${s("menuBackground")};
           border-radius: 3px;
-          z-index: -1;
+          z-index: 0;
           position: absolute;
-          bottom: -3px;
+          bottom: -2px;
           left: calc(50% - ${props.$offset || 0}px);
           pointer-events: none;
+
+          // clip to show only the bottom right corner
+          clip-path: polygon(100% 50%, 100% 100%, 50% 100%);
         }
       `
     : "";

@@ -1,11 +1,9 @@
-import some from "lodash/some";
-import { EditorState, NodeSelection, TextSelection } from "prosemirror-state";
+import { Selection, NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { getMarkRange } from "@shared/editor/queries/getMarkRange";
 import { isInCode } from "@shared/editor/queries/isInCode";
 import { isInNotice } from "@shared/editor/queries/isInNotice";
-import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import {
   getColumnIndex,
@@ -17,7 +15,6 @@ import useBoolean from "~/hooks/useBoolean";
 import useDictionary from "~/hooks/useDictionary";
 import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
-import usePrevious from "~/hooks/usePrevious";
 import getAttachmentMenuItems from "../menus/attachment";
 import getCodeMenuItems from "../menus/code";
 import getDividerMenuItems from "../menus/divider";
@@ -35,64 +32,26 @@ import LinkEditor from "./LinkEditor";
 import ToolbarMenu from "./ToolbarMenu";
 
 type Props = {
+  /** Whether the text direction is right-to-left */
   rtl: boolean;
+  /** Whether the current document is a template */
   isTemplate: boolean;
+  /** Whether the toolbar is currently active/visible */
+  isActive: boolean;
+  /** The current selection */
+  selection?: Selection;
+  /** Whether the editor is in read-only mode */
   readOnly?: boolean;
+  /** Whether the user has permission to add comments */
   canComment?: boolean;
+  /** Whether the user has permission to update the document */
   canUpdate?: boolean;
-  onOpen: () => void;
-  onClose: () => void;
+  /** Callback function when a link is clicked */
   onClickLink: (
     href: string,
     event: MouseEvent | React.MouseEvent<HTMLButtonElement>
   ) => void;
 };
-
-function useIsActive(state: EditorState) {
-  const { selection, doc } = state;
-
-  if (isMarkActive(state.schema.marks.link)(state)) {
-    return true;
-  }
-  if (
-    (isNodeActive(state.schema.nodes.code_block)(state) ||
-      isNodeActive(state.schema.nodes.code_fence)(state)) &&
-    selection.from > 0
-  ) {
-    return true;
-  }
-
-  if (isInNotice(state) && selection.from > 0) {
-    return true;
-  }
-
-  if (!selection || selection.empty) {
-    return false;
-  }
-  if (selection instanceof NodeSelection && selection.node.type.name === "hr") {
-    return true;
-  }
-  if (
-    selection instanceof NodeSelection &&
-    ["image", "attachment", "embed"].includes(selection.node.type.name)
-  ) {
-    return true;
-  }
-  if (selection instanceof NodeSelection) {
-    return false;
-  }
-
-  const selectionText = doc.cut(selection.from, selection.to).textContent;
-  if (selection instanceof TextSelection && !selectionText) {
-    return false;
-  }
-
-  const slice = selection.content();
-  const fragment = slice.content;
-  const nodes = (fragment as any).content;
-
-  return some(nodes, (n) => n.content.size);
-}
 
 function useIsDragging() {
   const [isDragging, setDragging, setNotDragging] = useBoolean();
@@ -102,25 +61,14 @@ function useIsDragging() {
   return isDragging;
 }
 
-export default function SelectionToolbar(props: Props) {
-  const { onClose, readOnly = false, onOpen } = props;
+export function SelectionToolbar(props: Props) {
+  const { readOnly = false } = props;
   const { view, commands } = useEditor();
   const dictionary = useDictionary();
   const menuRef = React.useRef<HTMLDivElement | null>(null);
   const isMobile = useMobile();
-  const isActive = useIsActive(view.state) || isMobile;
+  const isActive = props.isActive || isMobile;
   const isDragging = useIsDragging();
-  const previousIsActive = usePrevious(isActive);
-
-  React.useEffect(() => {
-    // Trigger callbacks when the toolbar is opened or closed
-    if (previousIsActive && !isActive) {
-      onClose();
-    }
-    if (!previousIsActive && isActive) {
-      onOpen();
-    }
-  }, [isActive, onClose, onOpen, previousIsActive]);
 
   React.useEffect(() => {
     const handleClickOutside = (ev: MouseEvent): void => {
@@ -154,7 +102,7 @@ export default function SelectionToolbar(props: Props) {
     return () => {
       window.removeEventListener("mouseup", handleClickOutside);
     };
-  }, [isActive, previousIsActive, readOnly, view]);
+  }, [isActive, readOnly, view]);
 
   const handleOnSelectLink = ({
     href,
@@ -176,13 +124,13 @@ export default function SelectionToolbar(props: Props) {
     );
   };
 
-  const { isTemplate, rtl, canComment, canUpdate, ...rest } = props;
-  const { state } = view;
-  const { selection } = state;
-
   if (isDragging) {
     return null;
   }
+
+  const { isTemplate, rtl, canComment, canUpdate, ...rest } = props;
+  const { state } = view;
+  const { selection } = state;
 
   const isDividerSelection = isNodeActive(state.schema.nodes.hr)(state);
   const colIndex = getColumnIndex(state);

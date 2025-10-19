@@ -52,7 +52,7 @@ import Logger from "~/utils/Logger";
 import ComponentView from "./components/ComponentView";
 import EditorContext from "./components/EditorContext";
 import { NodeViewRenderer } from "./components/NodeViewRenderer";
-import SelectionToolbar from "./components/SelectionToolbar";
+
 import WithTheme from "./components/WithTheme";
 import isNull from "lodash/isNull";
 import { map } from "lodash";
@@ -150,8 +150,6 @@ type State = {
   isRTL: boolean;
   /** If the editor is currently focused */
   isEditorFocused: boolean;
-  /** If the toolbar for a text selection is visible */
-  selectionToolbarOpen: boolean;
   /** Image that's being currently viewed in Lightbox */
   activeLightboxImage: LightboxImage | null;
 };
@@ -182,7 +180,6 @@ export class Editor extends React.PureComponent<
   state: State = {
     isRTL: false,
     isEditorFocused: false,
-    selectionToolbarOpen: false,
     activeLightboxImage: null,
   };
 
@@ -270,19 +267,12 @@ export class Editor extends React.PureComponent<
       this.calculateDir();
     }
 
-    if (
-      !this.isBlurred &&
-      !this.state.isEditorFocused &&
-      !this.state.selectionToolbarOpen
-    ) {
+    if (!this.isBlurred && !this.state.isEditorFocused) {
       this.isBlurred = true;
       this.props.onBlur?.();
     }
 
-    if (
-      this.isBlurred &&
-      (this.state.isEditorFocused || this.state.selectionToolbarOpen)
-    ) {
+    if (this.isBlurred && this.state.isEditorFocused) {
       this.isBlurred = false;
       this.props.onFocus?.();
     }
@@ -791,23 +781,6 @@ export class Editor extends React.PureComponent<
     return false;
   };
 
-  private handleOpenSelectionToolbar = () => {
-    this.setState((state) => ({
-      ...state,
-      selectionToolbarOpen: true,
-    }));
-  };
-
-  private handleCloseSelectionToolbar = () => {
-    if (!this.state.selectionToolbarOpen) {
-      return;
-    }
-    this.setState((state) => ({
-      ...state,
-      selectionToolbarOpen: false,
-    }));
-  };
-
   public render() {
     const { readOnly, canUpdate, grow, style, className, onKeyDown } =
       this.props;
@@ -837,18 +810,7 @@ export class Editor extends React.PureComponent<
               ref={this.elementRef}
               lang=""
             />
-            {this.view && (
-              <SelectionToolbar
-                rtl={isRTL}
-                readOnly={readOnly}
-                canUpdate={this.props.canUpdate}
-                canComment={this.props.canComment}
-                isTemplate={this.props.template === true}
-                onOpen={this.handleOpenSelectionToolbar}
-                onClose={this.handleCloseSelectionToolbar}
-                onClickLink={this.props.onClickLink}
-              />
-            )}
+
             {this.widgets &&
               Object.values(this.widgets).map((Widget, index) => (
                 <Widget key={String(index)} rtl={isRTL} readOnly={readOnly} />
