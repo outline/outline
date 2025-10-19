@@ -533,7 +533,7 @@ router.post(
   validate(T.CollectionsExportAllSchema),
   transaction(),
   async (ctx: APIContext<T.CollectionsExportAllReq>) => {
-    const { format, includeAttachments } = ctx.input.body;
+    const { format, includeAttachments, includePrivate } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
     const team = await Team.findByPk(user.teamId, { transaction });
@@ -544,6 +544,7 @@ router.post(
       team,
       format,
       includeAttachments,
+      includePrivate,
       ctx,
     });
 

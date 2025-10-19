@@ -12,16 +12,16 @@ import {
   Plugin,
   TextSelection,
 } from "prosemirror-state";
-import * as React from "react";
 import { Primitive } from "utility-types";
-import { v4 as uuidv4 } from "uuid";
 import env from "../../env";
 import { MentionType, UnfurlResourceType, UnfurlResponse } from "../../types";
 import {
   MentionCollection,
   MentionDocument,
+  MentionGroup,
   MentionIssue,
   MentionPullRequest,
+  MentionURL,
   MentionUser,
 } from "../components/Mentions";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
@@ -127,6 +127,8 @@ export default class Mention extends Node {
     switch (props.node.attrs.type) {
       case MentionType.User:
         return <MentionUser {...props} />;
+      case MentionType.Group:
+        return <MentionGroup {...props} />;
       case MentionType.Document:
         return <MentionDocument {...props} />;
       case MentionType.Collection:
@@ -141,6 +143,13 @@ export default class Mention extends Node {
       case MentionType.PullRequest:
         return (
           <MentionPullRequest
+            {...props}
+            onChangeUnfurl={this.handleChangeUnfurl(props)}
+          />
+        );
+      case MentionType.URL:
+        return (
+          <MentionURL
             {...props}
             onChangeUnfurl={this.handleChangeUnfurl(props)}
           />
@@ -169,7 +178,7 @@ export default class Mention extends Node {
               node.type.name === this.name &&
               (!nodeId || existingIds.has(nodeId))
             ) {
-              nodeId = uuidv4();
+              nodeId = crypto.randomUUID();
               modified = true;
               tr.setNodeAttribute(pos, "id", nodeId);
             }
@@ -322,7 +331,8 @@ export default class Mention extends Node {
 
       const label =
         unfurl.type === UnfurlResourceType.Issue ||
-        unfurl.type === UnfurlResourceType.PR
+        unfurl.type === UnfurlResourceType.PR ||
+        unfurl.type === UnfurlResourceType.URL
           ? unfurl.title
           : undefined;
 

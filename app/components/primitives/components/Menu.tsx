@@ -57,7 +57,7 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
     box-shadow: none;
     cursor: var(--pointer);
 
-    svg {
+    svg:not([data-fixed-color]) {
       color: ${props.theme.accentText};
       fill: ${props.theme.accentText};
     }
@@ -78,7 +78,7 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
           box-shadow: none;
           cursor: var(--pointer);
 
-          svg {
+          svg:not([data-fixed-color]) {
             color: ${props.theme.accentText};
             fill: ${props.theme.accentText};
           }

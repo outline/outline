@@ -48,12 +48,18 @@ function usePosition({
 }) {
   const { view } = useEditor();
   const { selection } = view.state;
-  const menuWidth = menuRef.current?.offsetWidth ?? 0;
-  const menuHeight = menuRef.current?.offsetHeight ?? 0;
+  const [menuWidth, setMenuWidth] = React.useState(0);
+  const menuHeight = 36;
 
-  if (!active || !menuRef.current) {
-    return defaultPosition;
-  }
+  // Measure the menu width after DOM updates to ensure accurate positioning
+  React.useLayoutEffect(() => {
+    if (menuRef.current) {
+      const width = menuRef.current.offsetWidth;
+      if (width !== menuWidth) {
+        setMenuWidth(width);
+      }
+    }
+  });
 
   // based on the start and end of the selection calculate the position at
   // the center top
@@ -75,7 +81,7 @@ function usePosition({
     right: Math.max(fromPos.right, toPos.right),
   };
 
-  const offsetParent = menuRef.current.offsetParent
+  const offsetParent = menuRef.current?.offsetParent
     ? menuRef.current.offsetParent.getBoundingClientRect()
     : ({
         width: window.innerWidth,
@@ -100,10 +106,14 @@ function usePosition({
     if (position !== null) {
       const element = view.nodeDOM(position);
       const bounds = (element as HTMLElement).getBoundingClientRect();
-      selectionBounds.top = bounds.top;
+      selectionBounds.top = bounds.top + menuHeight;
       selectionBounds.left = bounds.right;
       selectionBounds.right = bounds.right;
     }
+  }
+
+  if (!active || !menuRef.current || !menuHeight) {
+    return defaultPosition;
   }
 
   // tables are an oddity, and need their own positioning logic
@@ -167,6 +177,8 @@ function usePosition({
         top: Math.round(top - menuHeight - offsetParent.top),
         offset: 0,
         visible: true,
+        blockSelection: false,
+        maxWidth: "100%",
       };
     }
   }
@@ -211,8 +223,12 @@ function usePosition({
     top: Math.round(top - offsetParent.top),
     offset: Math.round(offset),
     maxWidth: Math.min(window.innerWidth, offsetParent.width) - margin * 2,
-    blockSelection:
-      codeBlock || isColSelection || isRowSelection || noticeBlock,
+    blockSelection: !!(
+      codeBlock ||
+      isColSelection ||
+      isRowSelection ||
+      noticeBlock
+    ),
     visible: true,
   };
 }
@@ -305,7 +321,7 @@ type WrapperProps = {
 const arrow = (props: WrapperProps) =>
   props.arrow
     ? css`
-        &::before {
+        &::after {
           content: "";
           display: block;
           width: 24px;
@@ -313,11 +329,14 @@ const arrow = (props: WrapperProps) =>
           transform: translateX(-50%) rotate(45deg);
           background: ${s("menuBackground")};
           border-radius: 3px;
-          z-index: -1;
+          z-index: 0;
           position: absolute;
-          bottom: -3px;
+          bottom: -2px;
           left: calc(50% - ${props.$offset || 0}px);
           pointer-events: none;
+
+          // clip to show only the bottom right corner
+          clip-path: polygon(100% 50%, 100% 100%, 50% 100%);
         }
       `
     : "";

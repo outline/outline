@@ -295,10 +295,10 @@ const Pointer = styled.div<{ top: number; left: number; direction: Direction }>`
 
   &:before {
     border: 8px solid transparent;
-    ${({ direction, theme }) =>
+    ${({ direction }) =>
       direction === Direction.UP
-        ? `border-bottom-color: ${theme.menuBorder || "rgba(0, 0, 0, 0.1)"}`
-        : `border-top-color: ${theme.menuBorder || "rgba(0, 0, 0, 0.1)"}`};
+        ? `border-bottom-color: rgba(0, 0, 0, 0.1)`
+        : `border-top-color: rgba(0, 0, 0, 0.1)`};
     ${({ direction }) =>
       direction === Direction.UP ? "right: -1px" : "left: -1px"};
   }

@@ -2,7 +2,6 @@ import { LocationDescriptor } from "history";
 import flattenDeep from "lodash/flattenDeep";
 import { toast } from "sonner";
 import { Optional } from "utility-types";
-import { v4 as uuidv4 } from "uuid";
 import {
   Action,
   ActionContext,
@@ -46,7 +45,7 @@ export function createAction(definition: Optional<Action, "id">): Action {
           return definition.perform?.(context);
         }
       : undefined,
-    id: definition.id ?? uuidv4(),
+    id: definition.id ?? crypto.randomUUID(),
   };
 }
 
@@ -202,7 +201,7 @@ export function createActionV2(
           return definition.perform(context);
         }
       : () => {},
-    id: definition.id ?? uuidv4(),
+    id: definition.id ?? crypto.randomUUID(),
   };
 }
 
@@ -213,7 +212,7 @@ export function createInternalLinkActionV2(
     ...definition,
     type: "action",
     variant: "internal_link",
-    id: definition.id ?? uuidv4(),
+    id: definition.id ?? crypto.randomUUID(),
   };
 }
 
@@ -224,7 +223,7 @@ export function createExternalLinkActionV2(
     ...definition,
     type: "action",
     variant: "external_link",
-    id: definition.id ?? uuidv4(),
+    id: definition.id ?? crypto.randomUUID(),
   };
 }
 
@@ -235,7 +234,7 @@ export function createActionV2WithChildren(
     ...definition,
     type: "action",
     variant: "action_with_children",
-    id: definition.id ?? uuidv4(),
+    id: definition.id ?? crypto.randomUUID(),
   };
 }
 
@@ -252,7 +251,7 @@ export function createRootMenuAction(
   actions: (ActionV2Variant | ActionV2Group | TActionV2Separator)[]
 ): ActionV2WithChildren {
   return {
-    id: uuidv4(),
+    id: crypto.randomUUID(),
     type: "action",
     variant: "action_with_children",
     name: "root_action",

@@ -26,6 +26,7 @@ export function GroupAvatar({
   return (
     <Squircle color={color ?? theme.text} size={size} className={className}>
       <GroupIcon
+        data-fixed-color
         color={backgroundColor ?? theme.background}
         size={size * 0.75}
       />

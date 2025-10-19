@@ -32,6 +32,7 @@ function EditableTitle(
   const [isEditing, setIsEditing] = React.useState(rest.isEditing || false);
   const [originalValue, setOriginalValue] = React.useState(title);
   const [value, setValue] = React.useState(title);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   React.useImperativeHandle(ref, () => ({
     setIsEditing,
@@ -65,6 +66,10 @@ function EditableTitle(
       ev.preventDefault();
       ev.stopPropagation();
 
+      if (isSubmitting) {
+        return;
+      }
+
       const trimmedValue = value.trim();
 
       if (trimmedValue === originalValue || trimmedValue.length === 0) {
@@ -74,18 +79,22 @@ function EditableTitle(
         return;
       }
 
+      setIsSubmitting(true);
       try {
         await onSubmit(trimmedValue);
         setOriginalValue(trimmedValue);
+        setIsEditing(false);
       } catch (error) {
-        setValue(originalValue);
+        setValue(value);
+        setIsEditing(true);
+
         toast.error(error.message);
         throw error;
       } finally {
-        setIsEditing(false);
+        setIsSubmitting(false);
       }
     },
-    [originalValue, value, onCancel, onSubmit]
+    [originalValue, value, onCancel, onSubmit, isSubmitting]
   );
 
   const handleKeyDown = React.useCallback(

@@ -1,7 +1,5 @@
 "use strict";
 
-const { v4 } = require("uuid");
-
 module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.sequelize.transaction(async (transaction) => {
@@ -80,7 +78,7 @@ module.exports = {
                 `,
                 {
                   replacements: {
-                    id: v4(),
+                    id: crypto.randomUUID(),
                     teamId: team.id,
                     createdById: adminUserID,
                     name: domain,

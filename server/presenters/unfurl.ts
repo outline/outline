@@ -19,18 +19,19 @@ async function presentUnfurl(
     case UnfurlResourceType.Issue:
       return presentIssue(data);
     default:
-      return presentOEmbed(data);
+      return presentURL(data);
   }
 }
 
-const presentOEmbed = (
+const presentURL = (
   data: Record<string, any>
-): UnfurlResponse[UnfurlResourceType.OEmbed] => ({
-  type: UnfurlResourceType.OEmbed,
+): UnfurlResponse[UnfurlResourceType.URL] => ({
+  type: UnfurlResourceType.URL,
   url: data.url,
-  title: data.title,
-  description: data.description,
-  thumbnailUrl: data.thumbnail_url,
+  title: data.meta.title,
+  description: data.meta.description,
+  thumbnailUrl: (data.links.thumbnail ?? [])[0]?.href ?? "",
+  faviconUrl: (data.links.icon ?? [])[0]?.href ?? "",
 });
 
 const presentMention = async (
