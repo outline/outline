@@ -36,43 +36,36 @@ export default abstract class ExportTask extends BaseTask<Props> {
     const fileOperation = await FileOperation.findByPk(fileOperationId, {
       rejectOnEmpty: true,
     });
-
     const [team, user] = await Promise.all([
       Team.findByPk(fileOperation.teamId, { rejectOnEmpty: true }),
       User.findByPk(fileOperation.userId, { rejectOnEmpty: true }),
     ]);
 
-    const where: WhereOptions<Collection> = fileOperation.collectionId
-      ? {
-          teamId: user.teamId,
-          id: fileOperation.collectionId,
-          permission: fileOperation.options?.includePrivate
-            ? undefined
-            : {
-                [Op.ne]: null,
-              },
-        }
-      : {
-          teamId: user.teamId,
-          archivedAt: {
-            [Op.eq]: null,
-          },
-          permission: fileOperation.options?.includePrivate
-            ? undefined
-            : {
-                [Op.ne]: null,
-              },
-        };
-
-    const collections = await Collection.scope("withDocumentStructure").findAll(
-      {
-        where,
-      }
-    );
-
     let filePath: string | undefined;
 
     try {
+      const where: WhereOptions<Collection> = {
+        teamId: user.teamId,
+      };
+
+      if (!fileOperation.options?.includePrivate) {
+        where.permission = {
+          [Op.ne]: null,
+        };
+      }
+
+      if (fileOperation.collectionId) {
+        where.id = fileOperation.collectionId;
+      } else {
+        where.archivedAt = {
+          [Op.eq]: null,
+        };
+      }
+
+      const collections = await Collection.scope(
+        "withDocumentStructure"
+      ).findAll({ where });
+
       if (!fileOperation.collectionId) {
         const totalAttachmentsSize = await Attachment.getTotalSizeForTeam(
           user.teamId
