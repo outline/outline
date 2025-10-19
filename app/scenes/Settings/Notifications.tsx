@@ -74,7 +74,7 @@ function Notifications() {
     {
       event: NotificationEventType.GroupMentionedInDocument,
       icon: <GroupIcon />,
-      title: t("Group Mentions"),
+      title: t("Group mentions"),
       description: t(
         "Receive a notification when someone mentions a group you are a member of in a document or comment"
       ),

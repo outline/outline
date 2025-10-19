@@ -49,7 +49,7 @@ describe("Notification", () => {
       });
     });
 
-    describe.only("should return mention reference", () => {
+    describe("should return mention reference", () => {
       it("mentioned in document", async () => {
         const document = await buildDocument();
         const notification = await buildNotification({

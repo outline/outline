@@ -99,12 +99,12 @@ export default class GroupCommentMentionedEmail extends BaseEmail<
     return;
   }
 
-  protected subject({ document }: Props) {
-    return `Your group was mentioned in “${document.titleWithDefault}”`;
+  protected subject({ document, groupName }: Props) {
+    return `The ${groupName} group was mentioned in “${document.titleWithDefault}”`;
   }
 
   protected preview({ actorName, groupName }: Props): string {
-    return `${actorName} mentioned your group, "${groupName}", in a thread`;
+    return `${actorName} mentioned the "${groupName}" group in a thread`;
   }
 
   protected fromName({ actorName }: Props): string {
@@ -120,7 +120,7 @@ export default class GroupCommentMentionedEmail extends BaseEmail<
     groupName,
   }: Props): string {
     return `
-${actorName} mentioned your group, "${groupName}", in a comment on "${document.titleWithDefault}"${
+${actorName} mentioned the "${groupName}" group in a comment on "${document.titleWithDefault}"${
       collection.name ? ` in the ${collection.name} collection` : ""
     }.
 
@@ -151,7 +151,7 @@ Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
         <Body>
           <Heading>{document.titleWithDefault}</Heading>
           <p>
-            {actorName} mentioned your group, "{groupName}", in a comment on{" "}
+            {actorName} mentioned the "{groupName}" group in a comment on{" "}
             <a href={threadLink}>{document.titleWithDefault}</a>{" "}
             {collection.name ? ` in the ${collection.name} collection` : ""}.
           </p>

@@ -1104,7 +1104,7 @@
   "Receive a notification when a document you are subscribed to or a thread you participated in receives a comment": "Receive a notification when a document you are subscribed to or a thread you participated in receives a comment",
   "Mentioned": "Mentioned",
   "Receive a notification when someone mentions you in a document or comment": "Receive a notification when someone mentions you in a document or comment",
-  "Group Mentions": "Group Mentions",
+  "Group mentions": "Group mentions",
   "Receive a notification when someone mentions a group you are a member of in a document or comment": "Receive a notification when someone mentions a group you are a member of in a document or comment",
   "Receive a notification when a comment thread you were involved in is resolved": "Receive a notification when a comment thread you were involved in is resolved",
   "Reaction added": "Reaction added",

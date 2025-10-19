@@ -97,12 +97,12 @@ export default class GroupDocumentMentionedEmail extends BaseEmail<
     return { document, body, groupName: group.name };
   }
 
-  protected subject({ document }: Props) {
-    return `Your group was mentioned in “${document.titleWithDefault}”`;
+  protected subject({ document, groupName }: Props) {
+    return `The ${groupName} group was mentioned in “${document.titleWithDefault}”`;
   }
 
   protected preview({ actorName, groupName }: Props): string {
-    return `${actorName} mentioned your group, "${groupName}"`;
+    return `${actorName} mentioned the "${groupName}" group`;
   }
 
   protected fromName({ actorName }: Props) {
@@ -125,9 +125,7 @@ export default class GroupDocumentMentionedEmail extends BaseEmail<
     groupName,
   }: Props): string {
     return `
-Your group was mentioned.
-
-${actorName} mentioned your group, “${groupName}”, in the document “${document.titleWithDefault}”.
+${actorName} mentioned the “${groupName}” group in the document “${document.titleWithDefault}”.
 
 Open Document: ${teamUrl}${document.url}
 `;
@@ -147,7 +145,7 @@ Open Document: ${teamUrl}${document.url}
         <Body>
           <Heading>Your group was mentioned</Heading>
           <p>
-            {actorName} mentioned your group, "{groupName}", in the document{" "}
+            {actorName} mentioned the "{groupName}" group in the document{" "}
             <a href={documentLink}>{document.titleWithDefault}</a>.
           </p>
           {body && (
