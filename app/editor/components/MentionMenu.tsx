@@ -258,7 +258,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
         const group = groups.get(item.attrs.modelId);
         toast.message(
           t(
-            'members of "{{ groupName }}" that have access to this document will be notified',
+            `Members of "{{ groupName }}" that have access to this document will be notified`,
             {
               groupName: item.attrs.label,
             }
