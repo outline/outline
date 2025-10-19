@@ -9,13 +9,14 @@ import Icon from "@shared/components/Icon";
 import { MenuItem } from "@shared/editor/types";
 import { MentionType } from "@shared/types";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
-import { Avatar, AvatarSize } from "~/components/Avatar";
+import { Avatar, AvatarSize, GroupAvatar } from "~/components/Avatar";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import Flex from "~/components/Flex";
 import {
   DocumentsSection,
   UserSection,
   CollectionsSection,
+  GroupSection,
 } from "~/actions/sections";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
@@ -44,7 +45,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
   const [loaded, setLoaded] = useState(false);
   const [items, setItems] = useState<MentionItem[]>([]);
   const { t } = useTranslation();
-  const { auth, documents, users, collections } = useStores();
+  const { auth, documents, users, collections, groups } = useStores();
   const actorId = auth.currentUserId;
   const location = useLocation();
   const documentId = parseDocumentSlug(location.pathname);
@@ -98,6 +99,32 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
                 label: user.name,
               },
             }) as MentionItem
+        )
+        .concat(
+          groups
+            .findByQuery(search, { maxResults: maxResultsInSection })
+            .map((group) => ({
+              name: "mention",
+              icon: (
+                <Flex
+                  align="center"
+                  justify="center"
+                  style={{ width: 24, height: 24, marginRight: 4 }}
+                >
+                  <GroupAvatar group={group} size={AvatarSize.Small} />
+                </Flex>
+              ),
+              title: group.name,
+              section: GroupSection,
+              appendSpace: true,
+              attrs: {
+                id: crypto.randomUUID(),
+                type: MentionType.Group,
+                modelId: group.id,
+                actorId,
+                label: group.name,
+              },
+            }))
         )
         .concat(
           documents
@@ -183,7 +210,17 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
       setItems(items);
       setLoaded(true);
     }
-  }, [t, actorId, loading, search, users, documents, maxResultsInSection]);
+  }, [
+    t,
+    actorId,
+    loading,
+    search,
+    users,
+    documents,
+    maxResultsInSection,
+    groups,
+    collections,
+  ]);
 
   const handleSelect = useCallback(
     async (item: MentionItem) => {
@@ -196,29 +233,44 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
       if (!documentId) {
         return;
       }
-      // Check if the mentioned user has access to the document
-      const res = await client.post("/documents.users", {
-        id: documentId,
-        userId: item.attrs.modelId,
-      });
-
-      if (!res.data.length) {
-        const user = users.get(item.attrs.modelId);
+      if (item.attrs.type === MentionType.User) {
+        // Check if the mentioned user has access to the document
+        const res = await client.post("/documents.users", {
+          id: documentId,
+          userId: item.attrs.modelId,
+        });
+        if (!res.data.length) {
+          const user = users.get(item.attrs.modelId);
+          toast.message(
+            t(
+              "{{ userName }} won't be notified, as they do not have access to this document",
+              {
+                userName: item.attrs.label,
+              }
+            ),
+            {
+              icon: <Avatar model={user} size={AvatarSize.Toast} />,
+              duration: 10000,
+            }
+          );
+        }
+      } else if (item.attrs.type === MentionType.Group) {
+        const group = groups.get(item.attrs.modelId);
         toast.message(
           t(
-            "{{ userName }} won't be notified, as they do not have access to this document",
+            `Members of "{{ groupName }}" that have access to this document will be notified`,
             {
-              userName: item.attrs.label,
+              groupName: item.attrs.label,
             }
           ),
           {
-            icon: <Avatar model={user} size={AvatarSize.Toast} />,
+            icon: group ? <GroupAvatar group={group} /> : undefined,
             duration: 10000,
           }
         );
       }
     },
-    [t, users, documentId]
+    [t, users, documentId, groups]
   );
 
   // Prevent showing the menu until we have data otherwise it will be positioned

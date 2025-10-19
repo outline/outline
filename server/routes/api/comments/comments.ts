@@ -250,7 +250,20 @@ router.post(
         { type: MentionType.User }
       ).map((mention) => mention.id);
 
-      newMentionIds = difference(updatedMentionIds, existingMentionIds);
+      const existingGroupMentionIds = ProsemirrorHelper.parseMentions(
+        ProsemirrorHelper.toProsemirror(comment.data),
+        { type: MentionType.Group }
+      ).map((mention) => mention.id);
+      const updatedGroupMentionIds = ProsemirrorHelper.parseMentions(
+        ProsemirrorHelper.toProsemirror(data),
+        { type: MentionType.Group }
+      ).map((mention) => mention.id);
+
+      newMentionIds = [
+        ...difference(updatedMentionIds, existingMentionIds),
+        ...difference(updatedGroupMentionIds, existingGroupMentionIds),
+      ];
+
       comment.data = data;
     }
 

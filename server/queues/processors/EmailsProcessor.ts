@@ -11,6 +11,8 @@ import DocumentSharedEmail from "@server/emails/templates/DocumentSharedEmail";
 import { Notification } from "@server/models";
 import { Event, NotificationEvent } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
+import GroupDocumentMentionedEmail from "@server/emails/templates/GroupDocumentMentionedEmail";
+import GroupCommentMentionedEmail from "@server/emails/templates/GroupCommentMentionedEmail";
 
 export default class EmailsProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = ["notifications.create"];
@@ -83,6 +85,21 @@ export default class EmailsProcessor extends BaseProcessor {
         return;
       }
 
+      case NotificationEventType.GroupMentionedInDocument: {
+        await new GroupDocumentMentionedEmail(
+          {
+            to: notification.user.email,
+            documentId: notification.documentId,
+            revisionId: notification.revisionId,
+            groupId: notification.groupId,
+            teamUrl: notification.team.url,
+            actorName: notification.actor.name,
+          },
+          { notificationId }
+        ).schedule();
+        return;
+      }
+
       case NotificationEventType.MentionedInDocument: {
         // No need to delay email here as the notification itself is already delayed
         await new DocumentMentionedEmail(
@@ -96,6 +113,24 @@ export default class EmailsProcessor extends BaseProcessor {
           },
           { notificationId }
         ).schedule();
+        return;
+      }
+
+      case NotificationEventType.GroupMentionedInComment: {
+        await new GroupCommentMentionedEmail(
+          {
+            to: notification.user.email,
+            userId: notification.userId,
+            documentId: notification.documentId,
+            teamUrl: notification.team.url,
+            actorName: notification.actor.name,
+            commentId: notification.commentId,
+            groupId: notification.groupId,
+          },
+          { notificationId }
+        ).schedule({
+          delay: Minute.ms,
+        });
         return;
       }
 
