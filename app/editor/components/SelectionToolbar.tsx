@@ -26,7 +26,7 @@ import getTableMenuItems from "../menus/table";
 import getTableColMenuItems from "../menus/tableCol";
 import getTableRowMenuItems from "../menus/tableRow";
 import { useEditor } from "./EditorContext";
-import { EmbedLinkEditor } from "./EmbedLinkEditor";
+import { MediaLinkEditor } from "./MediaLinkEditor";
 import FloatingToolbar from "./FloatingToolbar";
 import LinkEditor from "./LinkEditor";
 import ToolbarMenu from "./ToolbarMenu";
@@ -69,6 +69,11 @@ export function SelectionToolbar(props: Props) {
   const isMobile = useMobile();
   const isActive = props.isActive || isMobile;
   const isDragging = useIsDragging();
+  const [isEditingImgUrl, setIsEditingImgUrl] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsEditingImgUrl(false);
+  }, [isActive]);
 
   React.useEffect(() => {
     const handleClickOutside = (ev: MouseEvent): void => {
@@ -90,6 +95,8 @@ export function SelectionToolbar(props: Props) {
       if (!window.getSelection()?.isCollapsed) {
         return;
       }
+
+      setIsEditingImgUrl(false);
 
       const { dispatch } = view;
       dispatch(
@@ -203,11 +210,15 @@ export function SelectionToolbar(props: Props) {
   const showLinkToolbar =
     link && link.from === selection.from && link.to === selection.to;
 
+  const isEditingMedia =
+    isEmbedSelection || (isImageSelection && isEditingImgUrl);
+
   return (
     <FloatingToolbar
       align={align}
       active={isActive}
       ref={menuRef}
+      minWidth={350}
       width={showLinkToolbar || isEmbedSelection ? 336 : undefined}
     >
       {showLinkToolbar ? (
@@ -221,15 +232,21 @@ export function SelectionToolbar(props: Props) {
           onClickLink={props.onClickLink}
           onSelectLink={handleOnSelectLink}
         />
-      ) : isEmbedSelection ? (
-        <EmbedLinkEditor
+      ) : isEditingMedia ? (
+        <MediaLinkEditor
           key={`embed-${selection.from}`}
-          node={(selection as NodeSelection).node}
+          node={selection.node}
           view={view}
           dictionary={dictionary}
         />
       ) : (
-        <ToolbarMenu items={items} {...rest} />
+        <ToolbarMenu
+          items={items}
+          {...rest}
+          handlers={{
+            editImageUrl: () => setIsEditingImgUrl(true),
+          }}
+        />
       )}
     </FloatingToolbar>
   );
