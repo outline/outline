@@ -29,7 +29,7 @@ import getTableMenuItems from "../menus/table";
 import getTableColMenuItems from "../menus/tableCol";
 import getTableRowMenuItems from "../menus/tableRow";
 import { useEditor } from "./EditorContext";
-import { EmbeddedMediaLinkEditor } from "./EmbeddedMediaLinkEditor";
+import { MediaLinkEditor } from "./MediaLinkEditor";
 import FloatingToolbar from "./FloatingToolbar";
 import LinkEditor from "./LinkEditor";
 import ToolbarMenu from "./ToolbarMenu";
@@ -117,6 +117,7 @@ export default function SelectionToolbar(props: Props) {
     // Trigger callbacks when the toolbar is opened or closed
     if (previousIsActive && !isActive) {
       onClose();
+      setIsEditingImgUrl(false);
     }
     if (!previousIsActive && isActive) {
       onOpen();
@@ -125,8 +126,6 @@ export default function SelectionToolbar(props: Props) {
 
   React.useEffect(() => {
     const handleClickOutside = (ev: MouseEvent): void => {
-      setIsEditingImgUrl(false);
-
       if (
         ev.target instanceof HTMLElement &&
         menuRef.current &&
@@ -145,6 +144,8 @@ export default function SelectionToolbar(props: Props) {
       if (!window.getSelection()?.isCollapsed) {
         return;
       }
+
+      setIsEditingImgUrl(false);
 
       const { dispatch } = view;
       dispatch(
@@ -278,7 +279,7 @@ export default function SelectionToolbar(props: Props) {
           onSelectLink={handleOnSelectLink}
         />
       ) : isEditingMedia ? (
-        <EmbeddedMediaLinkEditor
+        <MediaLinkEditor
           key={`embed-${selection.from}`}
           node={selection.node}
           view={view}

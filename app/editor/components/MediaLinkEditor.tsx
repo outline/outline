@@ -16,7 +16,7 @@ type Props = {
   dictionary: Dictionary;
 };
 
-export function EmbeddedMediaLinkEditor({ node, view, dictionary }: Props) {
+export function MediaLinkEditor({ node, view, dictionary }: Props) {
   const url = (node.attrs.href ?? node.attrs.src) as string;
   const [localUrl, setLocalUrl] = useState(url);
 
@@ -87,21 +87,23 @@ export function EmbeddedMediaLinkEditor({ node, view, dictionary }: Props) {
         onKeyDown={handleKeyDown}
         readOnly={!view.editable}
       />
-      {node.type.name === "embed" && (
-        <>
-          <Tooltip content={dictionary.openLink}>
-            <ToolbarButton onClick={openLink} disabled={!localUrl}>
-              <OpenIcon />
-            </ToolbarButton>
-          </Tooltip>
-          {view.editable && (
-            <Tooltip content={dictionary.deleteEmbed}>
-              <ToolbarButton onClick={remove}>
-                <TrashIcon />
-              </ToolbarButton>
-            </Tooltip>
-          )}
-        </>
+      <Tooltip content={dictionary.openLink}>
+        <ToolbarButton onClick={openLink} disabled={!localUrl}>
+          <OpenIcon />
+        </ToolbarButton>
+      </Tooltip>
+      {view.editable && (
+        <Tooltip
+          content={
+            node.type.name === "embed"
+              ? dictionary.deleteEmbed
+              : dictionary.deleteImage
+          }
+        >
+          <ToolbarButton onClick={remove}>
+            <TrashIcon />
+          </ToolbarButton>
+        </Tooltip>
       )}
     </Wrapper>
   );
