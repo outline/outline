@@ -111,7 +111,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
                   justify="center"
                   style={{ width: 24, height: 24, marginRight: 4 }}
                 >
-                  <GroupAvatar group={group} />
+                  <GroupAvatar group={group} size={AvatarSize.Small} />
                 </Flex>
               ),
               title: group.name,
