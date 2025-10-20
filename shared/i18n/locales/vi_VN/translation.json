@@ -1094,7 +1094,7 @@
   "Import data": "Nhập dữ liệu",
   "Import a JSON data file exported from another {{ appName }} instance": "Nhập tệp dữ liệu JSON được xuất từ một phiên bản {{ appName }} khác",
   "Import pages from a Confluence instance": "Nhập các trang từ Confluence",
-  "Enterprise": "Doanh nghiệp",
+  "Enterprise": "Enterprise",
   "Quickly transfer your existing documents, pages, and files from other tools and services into {{appName}}. You can also drag and drop any HTML, Markdown, and text documents directly into Collections in the app.": "Chuyển nhanh các tài liệu, trang và tệp hiện có của bạn từ các công cụ và dịch vụ khác sang {{appName}}. Bạn cũng có thể kéo và thả bất kỳ tài liệu HTML, Markdown và văn bản nào trực tiếp vào Bộ sưu tập trong ứng dụng.",
   "Recent imports": "Kết xuất gần đây",
   "Configure a variety of integrations with third-party services.": "Configure a variety of integrations with third-party services.",
