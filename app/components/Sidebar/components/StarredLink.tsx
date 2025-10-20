@@ -85,11 +85,8 @@ function StarredDocumentLink({
   const { collections, documents } = useStores();
 
   const document = documents.get(documentId);
-  if (!document) {
-    return null;
-  }
 
-  const documentCollection = document.collectionId
+  const documentCollection = document?.collectionId
     ? collections.get(document.collectionId)
     : undefined;
   const childDocuments = documentCollection
@@ -97,7 +94,11 @@ function StarredDocumentLink({
     : [];
   const hasChildDocuments = childDocuments.length > 0;
   const displayChildDocuments = expanded && !isDragging;
-  const contextMenuAction = useDocumentMenuAction({ documentId: document.id });
+  const contextMenuAction = useDocumentMenuAction({ documentId });
+
+  if (!document) {
+    return null;
+  }
 
   return (
     <ActionContextProvider
