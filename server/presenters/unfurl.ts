@@ -1,8 +1,9 @@
 import { differenceInMinutes, formatDistanceToNowStrict } from "date-fns";
 import { t } from "i18next";
 import { UnfurlResourceType, UnfurlResponse } from "@shared/types";
+import { MAX_AVATAR_DISPLAY } from "@shared/constants";
 import { dateLocale } from "@shared/utils/date";
-import { Document, User, View } from "@server/models";
+import { Document, User, View, Group } from "@server/models";
 import { opts } from "@server/utils/i18n";
 
 async function presentUnfurl(
@@ -12,6 +13,8 @@ async function presentUnfurl(
   switch (data.type) {
     case UnfurlResourceType.Mention:
       return presentMention(data, options);
+    case UnfurlResourceType.Group:
+      return presentGroup(data);
     case UnfurlResourceType.Document:
       return presentDocument(data);
     case UnfurlResourceType.PR:
@@ -51,6 +54,29 @@ const presentMention = async (
     avatarUrl: user.avatarUrl,
     color: user.color,
     lastActive: `${lastOnlineInfo} • ${lastViewedInfo}`,
+  };
+};
+
+const presentGroup = (
+  data: Record<string, any>
+): UnfurlResponse[UnfurlResourceType.Group] => {
+  const group: Group = data.group;
+  const users: User[] = data.users || [];
+
+  // Limit the number of users displayed
+  const displayUsers = users.slice(0, MAX_AVATAR_DISPLAY);
+  const overflow = Math.max(0, group.memberCount - displayUsers.length);
+
+  return {
+    type: UnfurlResourceType.Group,
+    name: group.name,
+    memberCount: group.memberCount,
+    members: displayUsers.map((user) => ({
+      name: user.name,
+      avatarUrl: user.avatarUrl,
+      color: user.color,
+    })),
+    overflow,
   };
 };
 

@@ -412,6 +412,7 @@ export const NotificationEventDefaults: Record<NotificationEventType, boolean> =
 export enum UnfurlResourceType {
   URL = "url",
   Mention = "mention",
+  Group = "group",
   Document = "document",
   Issue = "issue",
   PR = "pull",
@@ -445,6 +446,22 @@ export type UnfurlResponse = {
     color: string;
     /** Mentiond user's recent activity */
     lastActive: string;
+  };
+  [UnfurlResourceType.Group]: {
+    /** The resource type */
+    type: UnfurlResourceType.Group;
+    /** Group name */
+    name: string;
+    /** Number of members in the group */
+    memberCount: number;
+    /** Array of group members (limited to display count) */
+    members: Array<{
+      name: string;
+      avatarUrl: string | null;
+      color: string;
+    }>;
+    /** Number of additional members not shown in members array */
+    overflow: number;
   };
   [UnfurlResourceType.Document]: {
     /** The resource type */
