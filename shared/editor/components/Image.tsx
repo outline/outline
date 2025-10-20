@@ -197,7 +197,7 @@ export const Error = styled(Flex)`
   color: ${s("textTertiary")};
   font-size: 14px;
   background: ${s("backgroundSecondary")};
-  border-radius: 4px;
+  border-radius: ${EditorStyleHelper.blockRadius};
   min-width: 33vw;
   height: 80px;
   align-items: center;
