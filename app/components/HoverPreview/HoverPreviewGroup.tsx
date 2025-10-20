@@ -2,6 +2,7 @@ import * as React from "react";
 import { GroupIcon } from "outline-icons";
 import { UnfurlResourceType, UnfurlResponse } from "@shared/types";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
+import User from "~/models/User";
 import Facepile from "~/components/Facepile";
 import Flex from "~/components/Flex";
 import { Preview, Title, Info, Card, CardContent } from "./Components";
@@ -37,11 +38,16 @@ const HoverPreviewGroup = React.forwardRef(function _HoverPreviewGroup(
               {members.length > 0 && (
                 <Flex align="center" gap={8}>
                   <Facepile
-                    users={members.map((member) => ({
-                      name: member.name,
-                      avatarUrl: member.avatarUrl,
-                      color: member.color,
-                    }))}
+                    users={members.map(
+                      (member, index) =>
+                        ({
+                          id: `group-member-${index}`,
+                          name: member.name,
+                          avatarUrl: member.avatarUrl,
+                          color: member.color,
+                          initial: member.name ? member.name[0] : "?",
+                        }) as User
+                    )}
                     overflow={overflow}
                     limit={MAX_AVATAR_DISPLAY}
                   />
