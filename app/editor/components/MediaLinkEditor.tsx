@@ -113,4 +113,5 @@ const Wrapper = styled(Flex)`
   pointer-events: all;
   gap: 6px;
   padding: 6px;
+  min-width: 350px;
 `;
