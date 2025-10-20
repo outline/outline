@@ -41,7 +41,7 @@ export const Header: React.FC<Props> = ({ id, title, children }: Props) => {
       <H3>
         <Button onClick={handleClick} disabled={!id}>
           {title}
-          {id && <Disclosure expanded={expanded} size={20} />}
+          {id && <Disclosure $expanded={expanded} size={20} />}
         </Button>
       </H3>
       {expanded && (firstRender ? children : <Fade>{children}</Fade>)}
@@ -91,12 +91,12 @@ const Button = styled.button`
   }
 `;
 
-const Disclosure = styled(CollapsedIcon)<{ expanded?: boolean }>`
+const Disclosure = styled(CollapsedIcon)<{ $expanded?: boolean }>`
   transition:
     opacity 100ms ease,
     transform 100ms ease,
     fill 50ms !important;
-  ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
+  ${(props) => !props.$expanded && "transform: rotate(-90deg);"};
   opacity: 0;
 `;
 

@@ -22,7 +22,7 @@ function Disclosure({ onClick, root, expanded, ...rest }: Props) {
       aria-label={expanded ? t("Collapse") : t("Expand")}
       {...rest}
     >
-      <StyledCollapsedIcon expanded={expanded} size={20} />
+      <StyledCollapsedIcon $expanded={expanded} size={20} />
     </Button>
   );
 }
@@ -52,13 +52,13 @@ const Button = styled(NudeButton)<{ $root?: boolean }>`
 `;
 
 const StyledCollapsedIcon = styled(CollapsedIcon)<{
-  expanded?: boolean;
+  $expanded?: boolean;
 }>`
   transition:
     opacity 100ms ease,
     transform 100ms ease,
     fill 50ms !important;
-  ${(props) => !props.expanded && "transform: rotate(-90deg);"};
+  ${(props) => !props.$expanded && "transform: rotate(-90deg);"};
 `;
 
 // Enables identifying this component within styled components
