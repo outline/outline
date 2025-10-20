@@ -363,7 +363,7 @@
     "oxlint-tsgolint": "^0.1.6",
     "postinstall-postinstall": "^2.1.0",
     "prettier": "^3.6.2",
-    "react-refresh": "^0.17.0",
+    "react-refresh": "^0.18.0",
     "rimraf": "^2.5.4",
     "rollup-plugin-webpack-stats": "2.1.6",
     "terser": "^5.43.1",
