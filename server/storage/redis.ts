@@ -15,7 +15,7 @@ const defaultOptions: RedisOptions = {
 
   retryStrategy(times: number) {
     Logger.warn(`Retrying redis connection: attempt ${times}`);
-    return Math.min(times * 100, 3000);
+    return Math.min(times * 500, 3000);
   },
 
   reconnectOnError(err) {
@@ -72,6 +72,14 @@ export default class RedisAdapter extends Redis {
     // we're running. Increase the max here to prevent a warning in the console:
     // https://github.com/OptimalBits/bull/issues/1192
     this.setMaxListeners(100);
+
+    this.on("error", (err) => {
+      if (err.name === "MaxRetriesPerRequestError") {
+        Logger.fatal("Redis maximum retries exceeded", err);
+      } else {
+        Logger.error("Redis error", err);
+      }
+    });
   }
 
   private static client: RedisAdapter;
