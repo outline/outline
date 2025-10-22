@@ -98,8 +98,12 @@ router.post(
     // There can be only one subscription with these props.
     const subscription = await Subscription.findOne({
       where,
-      rejectOnEmpty: true,
     });
+
+    if (!subscription) {
+      ctx.response.status = 204;
+      return;
+    }
 
     ctx.body = {
       data: presentSubscription(subscription),

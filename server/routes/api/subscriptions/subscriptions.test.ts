@@ -300,7 +300,7 @@ describe("#subscriptions.info", () => {
     );
   });
 
-  it("should throw 404 if no subscription found", async () => {
+  it("should return 204 if no subscription for input", async () => {
     const author = await buildUser();
     const subscriber = await buildUser({ teamId: author.teamId });
     const document = await buildDocument({
@@ -316,7 +316,7 @@ describe("#subscriptions.info", () => {
       },
     });
 
-    expect(res.status).toEqual(404);
+    expect(res.status).toEqual(204);
   });
 
   it("should not allow outsiders to gain info about a subscription", async () => {

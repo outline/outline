@@ -77,8 +77,12 @@ router.post(
         createdById: user.id,
         teamId: user.teamId,
       },
-      rejectOnEmpty: true,
     });
+
+    if (!pin) {
+      ctx.response.status = 204;
+      return;
+    }
 
     ctx.body = {
       data: presentPin(pin),

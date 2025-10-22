@@ -34,6 +34,9 @@ export default class SubscriptionsStore extends Store<Subscription> {
 
     try {
       const res = await client.post(`/${this.apiEndpoint}.info`, options);
+      if (!res) {
+        return;
+      }
       invariant(res?.data, "Data should be available");
       return this.add(res.data);
     } catch (err) {
