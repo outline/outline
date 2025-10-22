@@ -150,16 +150,18 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
       // Delete the code after successful verification
       await VerificationCode.delete(email);
     } else {
-      ctx.redirect("/?notice=auth-error");
+      ctx.redirect("/?notice=auth-error&description=Missing%20token");
       return;
     }
   } catch (err) {
     Logger.debug("authentication", err);
-    return ctx.redirect("/?notice=auth-error");
+    return ctx.redirect(`/?notice=auth-error&description=${err.message}`);
   }
 
   if (!user.team.emailSigninEnabled) {
-    return ctx.redirect("/?notice=auth-error");
+    return ctx.redirect(
+      "/?notice=auth-error&description=Disabled%20signin%20method"
+    );
   }
 
   if (user.isSuspended) {
@@ -195,13 +197,13 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
 };
 router.get(
   "email.callback",
-  rateLimiter(RateLimiterStrategy.TenPerHour),
+  rateLimiter(RateLimiterStrategy.FivePerMinute),
   validate(T.EmailCallbackSchema),
   emailCallback
 );
 router.post(
   "email.callback",
-  rateLimiter(RateLimiterStrategy.TenPerHour),
+  rateLimiter(RateLimiterStrategy.FivePerMinute),
   validate(T.EmailCallbackSchema),
   emailCallback
 );
