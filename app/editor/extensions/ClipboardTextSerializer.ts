@@ -1,6 +1,5 @@
 import { Plugin, PluginKey } from "prosemirror-state";
 import Extension from "@shared/editor/lib/Extension";
-import { isList } from "@shared/editor/queries/isList";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 
 /**
@@ -19,33 +18,32 @@ export default class ClipboardTextSerializer extends Extension {
       new Plugin({
         key: new PluginKey("clipboardTextSerializer"),
         props: {
-          clipboardTextSerializer: (slice, view) => {
-            const isMultiline = slice.content.childCount > 1;
+          clipboardTextSerializer: (slice) => {
+            // Check if the only node is a code block
+            const isSingleCodeBlock =
+              slice.content.childCount === 1 &&
+              (slice.content.firstChild?.type.name === "code_block" ||
+                slice.content.firstChild?.type.name === "code_fence");
 
-            // This is a cheap way to determine if the content is "complex",
-            // aka it has multiple marks or formatting. In which case we'll use
-            // markdown formatting
-            const hasMultipleListItems = slice.content.content
-              .filter((node) => node.content.content.length > 1)
-              .some((node) => isList(node, view.state.schema));
-            const hasMultipleBlockTypes =
-              [
-                ...new Set(
-                  slice.content.content
-                    .filter((node) => node.content.content.length > 1)
-                    .map((node) => node.type.name)
-                ),
-              ].length > 1;
-            const copyAsMarkdown =
-              isMultiline || hasMultipleBlockTypes || hasMultipleListItems;
+            // Check if the only mark is a code mark
+            const marks = new Set<string>();
+            slice.content.descendants((node) => {
+              node.marks.forEach((mark) => marks.add(mark.type.name));
+            });
+            const hasOnlyCodeMark =
+              marks.size === 1 && marks.has("code_inline");
+            
 
-            return copyAsMarkdown
-              ? mdSerializer.serialize(slice.content, {
-                  softBreak: true,
-                })
-              : slice.content.content
+            // Use plain text serializer only for code-only content
+            const usePlainText = isSingleCodeBlock || hasOnlyCodeMark;
+
+            return usePlainText
+              ? slice.content.content
                   .map((node) => ProsemirrorHelper.toPlainText(node))
-                  .join("");
+                  .join("")
+              : mdSerializer.serialize(slice.content, {
+                  softBreak: true,
+                });
           },
         },
       }),
