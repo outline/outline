@@ -1,7 +1,6 @@
 import { differenceInMinutes, formatDistanceToNowStrict } from "date-fns";
 import { t } from "i18next";
 import { UnfurlResourceType, UnfurlResponse } from "@shared/types";
-import { MAX_AVATAR_DISPLAY } from "@shared/constants";
 import { dateLocale } from "@shared/utils/date";
 import { Document, User, View, Group } from "@server/models";
 import { opts } from "@server/utils/i18n";
@@ -61,17 +60,13 @@ const presentGroup = async (
   data: Record<string, any>
 ): Promise<UnfurlResponse[UnfurlResourceType.Group]> => {
   const group: Group = data.group;
-  const users: User[] = data.users || [];
   const memberCount = await group.memberCount;
-
-  // Limit the number of users displayed
-  const displayUsers = users.slice(0, MAX_AVATAR_DISPLAY);
 
   return {
     type: UnfurlResourceType.Group,
     name: group.name,
     memberCount,
-    users: displayUsers.map((user) => ({
+    users: (data.users as User[]).map((user) => ({
       id: user.id,
       name: user.name,
       avatarUrl: user.avatarUrl,

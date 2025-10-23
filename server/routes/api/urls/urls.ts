@@ -17,6 +17,7 @@ import { CacheHelper } from "@server/utils/CacheHelper";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import * as T from "./schema";
+import { MAX_AVATAR_DISPLAY } from "@shared/constants";
 
 const router = new Router();
 const plugins = PluginManager.getHooks(Hook.UnfurlProvider);
@@ -87,7 +88,7 @@ router.post(
               as: "user",
             },
           ],
-          limit: 10, // Limit to prevent performance issues
+          limit: MAX_AVATAR_DISPLAY,
         });
 
         const users = groupUsers.map((gu) => gu.user).filter(Boolean);
