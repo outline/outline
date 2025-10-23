@@ -134,6 +134,13 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
     []
   );
 
+  const handleDisableMentionsChange = React.useCallback(
+    (ev: React.ChangeEvent<HTMLInputElement>) => {
+      setDisableMentions(ev.target.checked);
+    },
+    []
+  );
+
   return (
     <form onSubmit={handleSubmit}>
       <Text as="p" type="secondary">
@@ -159,7 +166,7 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
           type="checkbox"
           label={t("Disable mentions")}
           checked={disableMentions}
-          onChange={(e) => setDisableMentions(e.target.checked)}
+          onChange={handleDisableMentionsChange}
         />
       </Flex>
       <Text as="p" type="secondary">
