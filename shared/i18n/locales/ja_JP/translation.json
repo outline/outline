@@ -998,6 +998,8 @@
   "Groups are for organizing your team. They work best when centered around a function or a responsibility — Support or Engineering for example.": "グループはユーザーを整理するためのものです。例えば「サポート」と「開発」のように、ユーザーの機能や責任を基に分けると上手くいくでしょう。",
   "You’ll be able to add people to the group next.": "このあと、ユーザーを追加できます。",
   "You can edit the name of this group at any time, however doing so too often might confuse your team mates.": "グループの名前はいつでも編集できますが、頻繁に編集するとチームメイトが混乱する可能性があります。",
+  "Disable mentions": "Disable mentions",
+  "Prevent this group from being mentionable in documents or comments": "Prevent this group from being mentionable in documents or comments",
   "Are you sure about that? Deleting the <em>{{groupName}}</em> group will cause its members to lose access to collections and documents that it is associated with.": "グループ「<em>{{groupName}}</em>」 を削除するとそのメンバーは、関連付けられている全てのコレクションとドキュメントにアクセスできなくなります。削除しますか？",
   "Add people to {{groupName}}": "ユーザーを {{groupName}} に追加",
   "{{userName}} was removed from the group": "{{userName}} をグループから除外しました",
