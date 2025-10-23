@@ -998,6 +998,8 @@
   "Groups are for organizing your team. They work best when centered around a function or a responsibility — Support or Engineering for example.": "群组旨在帮助您有效地组织团队。我们建议您依据职能（如“支持组”或“工程组”）或责任来创建群组以实现最佳效果。",
   "You’ll be able to add people to the group next.": "接下来，您将能够将成员添加到群组中。",
   "You can edit the name of this group at any time, however doing so too often might confuse your team mates.": "您可以随时编辑此群组的名称，但过于频繁的更改可能会造成团队成员的困惑。",
+  "Disable mentions": "Disable mentions",
+  "Prevent this group from being mentionable in documents or comments": "Prevent this group from being mentionable in documents or comments",
   "Are you sure about that? Deleting the <em>{{groupName}}</em> group will cause its members to lose access to collections and documents that it is associated with.": "你确定吗？删除 <em>{{groupName}}</em> 组将使其成员无法访问它所关联的文档集和文档。",
   "Add people to {{groupName}}": "添加用户到 {{groupName}}",
   "{{userName}} was removed from the group": "从群组中移除 {{userName}}。",
