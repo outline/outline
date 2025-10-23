@@ -29,6 +29,7 @@ import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelec
 import { GroupPermission } from "@shared/types";
 import { EmptySelectValue, Permission } from "~/types";
 import GroupUser from "~/models/GroupUser";
+import Switch from "~/components/Switch";
 
 type Props = {
   group: Group;
@@ -134,13 +135,6 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
     []
   );
 
-  const handleDisableMentionsChange = React.useCallback(
-    (ev: React.ChangeEvent<HTMLInputElement>) => {
-      setDisableMentions(ev.target.checked);
-    },
-    []
-  );
-
   return (
     <form onSubmit={handleSubmit}>
       <Text as="p" type="secondary">
@@ -149,7 +143,7 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
           often might confuse your team mates.
         </Trans>
       </Text>
-      <Flex>
+      <Flex column>
         <Input
           type="text"
           label={t("Name")}
@@ -159,22 +153,16 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
           autoFocus
           flex
         />
-      </Flex>
-
-      <Flex>
-        <Input
-          type="checkbox"
+        <Switch
+          id="mentions"
           label={t("Disable mentions")}
+          note={t(
+            "Prevent this group from being mentionable in documents or comments"
+          )}
           checked={disableMentions}
-          onChange={handleDisableMentionsChange}
+          onChange={setDisableMentions}
         />
       </Flex>
-      <Text as="p" type="secondary">
-        <Trans>
-          When enabled, this group will not appear in mention suggestions and
-          cannot be mentioned in documents or comments.
-        </Trans>
-      </Text>
 
       <Button type="submit" disabled={isSaving || !name}>
         {isSaving ? `${t("Saving")}…` : t("Save")}
