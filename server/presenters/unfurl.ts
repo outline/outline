@@ -14,7 +14,7 @@ async function presentUnfurl(
     case UnfurlResourceType.Mention:
       return presentMention(data, options);
     case UnfurlResourceType.Group:
-      return await presentGroup(data);
+      return presentGroup(data);
     case UnfurlResourceType.Document:
       return presentDocument(data);
     case UnfurlResourceType.PR:
@@ -62,24 +62,21 @@ const presentGroup = async (
 ): Promise<UnfurlResponse[UnfurlResourceType.Group]> => {
   const group: Group = data.group;
   const users: User[] = data.users || [];
-
-  // Get the actual member count (it's a Promise)
   const memberCount = await group.memberCount;
 
   // Limit the number of users displayed
   const displayUsers = users.slice(0, MAX_AVATAR_DISPLAY);
-  const overflow = Math.max(0, memberCount - displayUsers.length);
 
   return {
     type: UnfurlResourceType.Group,
     name: group.name,
     memberCount,
-    members: displayUsers.map((user) => ({
+    users: displayUsers.map((user) => ({
+      id: user.id,
       name: user.name,
       avatarUrl: user.avatarUrl,
       color: user.color,
     })),
-    overflow,
   };
 };
 

@@ -455,13 +455,12 @@ export type UnfurlResponse = {
     /** Number of members in the group */
     memberCount: number;
     /** Array of group members (limited to display count) */
-    members: Array<{
+    users: Array<{
+      id: string;
       name: string;
       avatarUrl: string | null;
       color: string;
     }>;
-    /** Number of additional members not shown in members array */
-    overflow: number;
   };
   [UnfurlResourceType.Document]: {
     /** The resource type */

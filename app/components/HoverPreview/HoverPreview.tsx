@@ -138,8 +138,7 @@ const HoverPreviewDesktop = observer(
                   ref={cardRef}
                   name={data.name}
                   memberCount={data.memberCount}
-                  members={data.members}
-                  overflow={data.overflow}
+                  users={data.users}
                 />
               ) : data.type === UnfurlResourceType.Document ? (
                 <HoverPreviewDocument
