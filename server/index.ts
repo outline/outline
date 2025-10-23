@@ -6,7 +6,7 @@ import "./logging/tracer"; // must come before importing any instrumented module
 
 import http from "http";
 import https from "https";
-import Koa from "koa";
+import Koa, { Context } from "koa";
 import helmet from "koa-helmet";
 import logger from "koa-logger";
 import Router from "koa-router";
@@ -90,6 +90,7 @@ async function start(_id: number, disconnect: () => void) {
 
   /** Perform a redirect on the browser so that the user's auth cookies are included in the request. */
   app.context.redirectOnClient = function (
+    this: Context,
     /** The URL to redirect to */
     url: string,
     /**
@@ -113,6 +114,13 @@ async function start(_id: number, disconnect: () => void) {
         )}" value="${escape(value)}" />`;
       });
 
+      if (this.userAgent.isBot) {
+        formFields += `
+          <p>If you are not redirected automatically, please click the button below.</p>
+          <input type="submit" value="Continue" />
+        `;
+      }
+
       this.body = `
 <html>
 <head>
@@ -123,7 +131,7 @@ async function start(_id: number, disconnect: () => void) {
     ${formFields}
   </form>
   <script nonce="${this.state.cspNonce}">
-    document.getElementById('redirect-form').submit();
+    ${!this.userAgent.isBot} && document.getElementById('redirect-form').submit();
   </script>
 </body>
 </html>`;
