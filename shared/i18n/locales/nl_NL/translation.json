@@ -998,6 +998,8 @@
   "Groups are for organizing your team. They work best when centered around a function or a responsibility — Support or Engineering for example.": "Groepen zijn voor het organiseren van je team. Ze werken het beste als ze zijn gebaseerd op een functie of verantwoordelijkheid, bijv. Ondersteuning of Ontwikkeling.",
   "You’ll be able to add people to the group next.": "Je kunt hierna personen aan de groep toevoegen.",
   "You can edit the name of this group at any time, however doing so too often might confuse your team mates.": "Wijzig de groepsnaam wanneer nodig, maar voorkom verwarring door dit niet te vaak te doen.",
+  "Disable mentions": "Disable mentions",
+  "Prevent this group from being mentionable in documents or comments": "Prevent this group from being mentionable in documents or comments",
   "Are you sure about that? Deleting the <em>{{groupName}}</em> group will cause its members to lose access to collections and documents that it is associated with.": "Weet je dat zeker? Bij het verwijderen van de groep <em>{{groupName}}</em> verliezen de leden van de groep de toegang tot de verzamelingen en documenten van de groep.",
   "Add people to {{groupName}}": "Personen toevoegen aan {{groupName}}",
   "{{userName}} was removed from the group": "{{userName}} is verwijderd uit de groep",
