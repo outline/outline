@@ -2,7 +2,7 @@ import { differenceInMinutes, formatDistanceToNowStrict } from "date-fns";
 import { t } from "i18next";
 import { UnfurlResourceType, UnfurlResponse } from "@shared/types";
 import { dateLocale } from "@shared/utils/date";
-import { Document, User, View } from "@server/models";
+import { Document, User, View, Group } from "@server/models";
 import { opts } from "@server/utils/i18n";
 
 async function presentUnfurl(
@@ -12,6 +12,8 @@ async function presentUnfurl(
   switch (data.type) {
     case UnfurlResourceType.Mention:
       return presentMention(data, options);
+    case UnfurlResourceType.Group:
+      return presentGroup(data);
     case UnfurlResourceType.Document:
       return presentDocument(data);
     case UnfurlResourceType.PR:
@@ -51,6 +53,25 @@ const presentMention = async (
     avatarUrl: user.avatarUrl,
     color: user.color,
     lastActive: `${lastOnlineInfo} • ${lastViewedInfo}`,
+  };
+};
+
+const presentGroup = async (
+  data: Record<string, any>
+): Promise<UnfurlResponse[UnfurlResourceType.Group]> => {
+  const group: Group = data.group;
+  const memberCount = await group.memberCount;
+
+  return {
+    type: UnfurlResourceType.Group,
+    name: group.name,
+    memberCount,
+    users: (data.users as User[]).map((user) => ({
+      id: user.id,
+      name: user.name,
+      avatarUrl: user.avatarUrl,
+      color: user.color,
+    })),
   };
 };
 
