@@ -13,6 +13,8 @@ import { UnfurlIssueOrPR, UnfurlSignature } from "@server/types";
 import { LinearUtils } from "../shared/LinearUtils";
 import env from "./env";
 import { Minute } from "@shared/utils/time";
+import { opts } from "@server/utils/i18n";
+import { t } from "i18next";
 
 const AccessTokenResponseSchema = z.object({
   access_token: z.string(),
@@ -149,7 +151,7 @@ export class Linear {
         issue.paginate(issue.labels, {}),
       ]);
 
-      if (!author || !state || !labels) {
+      if (!state || !labels) {
         return { error: "Failed to fetch auxiliary data from Linear" };
       }
 
@@ -166,8 +168,12 @@ export class Linear {
         title: issue.title,
         description: issue.description ?? null,
         author: {
-          name: author.name,
-          avatarUrl: author.avatarUrl ?? "",
+          name:
+            author?.name ??
+            issue.botActor?.userDisplayName ??
+            issue.botActor?.name ??
+            t("Unknown", opts(actor)),
+          avatarUrl: author?.avatarUrl ?? "",
         },
         labels: labels.map((label) => ({
           name: label.name,
