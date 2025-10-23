@@ -998,6 +998,8 @@
   "Groups are for organizing your team. They work best when centered around a function or a responsibility — Support or Engineering for example.": "Grupper er for å organisere teamet ditt. De fungerer best når de er sentrert rundt en funksjon eller et ansvar — for eksempel Kundestøtte eller Utvikling.",
   "You’ll be able to add people to the group next.": "Du vil kunne legge til personer i gruppen neste.",
   "You can edit the name of this group at any time, however doing so too often might confuse your team mates.": "Du kan redigere navnet på denne gruppen når som helst, men å gjøre det for ofte kan forvirre lagkameratene dine.",
+  "Disable mentions": "Disable mentions",
+  "Prevent this group from being mentionable in documents or comments": "Prevent this group from being mentionable in documents or comments",
   "Are you sure about that? Deleting the <em>{{groupName}}</em> group will cause its members to lose access to collections and documents that it is associated with.": "Er du sikker? Sletting av <em>{{groupName}}</em>-gruppen vil føre til at medlemmene mister tilgang til samlinger og dokumenter som den er assosiert med.",
   "Add people to {{groupName}}": "Legg til personer i {{groupName}}",
   "{{userName}} was removed from the group": "{{userName}} ble fjernet fra gruppen",
