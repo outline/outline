@@ -111,17 +111,24 @@ export class Linear {
       return;
     }
 
-    const integration = (await Integration.scope("withAuthentication").findOne({
-      where: {
-        service: IntegrationService.Linear,
-        teamId: actor.teamId,
-        "settings.linear.workspace.key": resource.workspaceKey,
-      },
-    })) as Integration<IntegrationType.Embed>;
+    const integrations = (await Integration.scope("withAuthentication").findAll(
+      {
+        where: {
+          service: IntegrationService.Linear,
+          teamId: actor.teamId,
+        },
+      }
+    )) as Integration<IntegrationType.Embed>[];
 
-    if (!integration) {
+    if (integrations.length === 0) {
       return;
     }
+
+    // Prefer integration with matching workspaceKey, otherwise pick the first one
+    const integration =
+      integrations.find(
+        (int) => int.settings.linear?.workspace.key === resource.workspaceKey
+      ) ?? integrations[0];
 
     try {
       const accessToken = await integration.authentication.refreshTokenIfNeeded(
