@@ -998,6 +998,8 @@
   "Groups are for organizing your team. They work best when centered around a function or a responsibility — Support or Engineering for example.": "Grup adalah untuk mengatur tim Anda. Grup bekerja paling baik ketika berpusat di sekitar fungsi atau tanggung jawab — Dukungan atau Teknik misalnya.",
   "You’ll be able to add people to the group next.": "Anda dapat menambahkan orang ke grup berikutnya.",
   "You can edit the name of this group at any time, however doing so too often might confuse your team mates.": "Anda dapat menyunting nama grup ini kapan saja, namun melakukan ini terlalu sering mungkin dapat membuat rekan tim Anda bingung.",
+  "Disable mentions": "Disable mentions",
+  "Prevent this group from being mentionable in documents or comments": "Prevent this group from being mentionable in documents or comments",
   "Are you sure about that? Deleting the <em>{{groupName}}</em> group will cause its members to lose access to collections and documents that it is associated with.": "Apa kamu yakin akan hal itu? Menghapus grup <em>{{groupName}}</em> akan menyebabkan anggotanya kehilangan akses ke koleksi dan dokumen yang terkait dengannya.",
   "Add people to {{groupName}}": "Tambahkan orang ke {{groupName}}",
   "{{userName}} was removed from the group": "{{userName}} dikeluarkan dari grup",
