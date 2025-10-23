@@ -69,6 +69,11 @@ class User extends ParanoidModel implements Searchable {
   }
 
   @computed
+  get searchSuppressed(): boolean {
+    return this.isDeleted;
+  }
+
+  @computed
   get initial(): string {
     return (this.name ? this.name[0] : "?").toUpperCase();
   }

@@ -1,6 +1,6 @@
 import { MentionType, NotificationEventType } from "@shared/types";
 import { createSubscriptionsForDocument } from "@server/commands/subscriptionCreator";
-import { Document, Notification, User, GroupUser } from "@server/models";
+import { Document, Group, Notification, User, GroupUser } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import NotificationHelper from "@server/models/helpers/NotificationHelper";
 import { DocumentEvent } from "@server/types";
@@ -59,6 +59,13 @@ export default class DocumentPublishedNotificationsTask extends BaseTask<Documen
       if (mentionedGroup.includes(group.modelId)) {
         continue;
       }
+
+      // Check if the group has mentions disabled
+      const groupModel = await Group.findByPk(group.modelId);
+      if (groupModel?.disableMentions) {
+        continue;
+      }
+
       const usersFromMentionedGroup = await GroupUser.findAll({
         where: {
           groupId: group.modelId,

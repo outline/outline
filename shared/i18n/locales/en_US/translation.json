@@ -998,6 +998,8 @@
   "Groups are for organizing your team. They work best when centered around a function or a responsibility — Support or Engineering for example.": "Groups are for organizing your team. They work best when centered around a function or a responsibility — Support or Engineering for example.",
   "You’ll be able to add people to the group next.": "You’ll be able to add people to the group next.",
   "You can edit the name of this group at any time, however doing so too often might confuse your team mates.": "You can edit the name of this group at any time, however doing so too often might confuse your team mates.",
+  "Disable mentions": "Disable mentions",
+  "Prevent this group from being mentionable in documents or comments": "Prevent this group from being mentionable in documents or comments",
   "Are you sure about that? Deleting the <em>{{groupName}}</em> group will cause its members to lose access to collections and documents that it is associated with.": "Are you sure about that? Deleting the <em>{{groupName}}</em> group will cause its members to lose access to collections and documents that it is associated with.",
   "Add people to {{groupName}}": "Add people to {{groupName}}",
   "{{userName}} was removed from the group": "{{userName}} was removed from the group",

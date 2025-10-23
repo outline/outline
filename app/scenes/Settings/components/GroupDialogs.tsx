@@ -29,6 +29,7 @@ import InputMemberPermissionSelect from "~/components/InputMemberPermissionSelec
 import { GroupPermission } from "@shared/types";
 import { EmptySelectValue, Permission } from "~/types";
 import GroupUser from "~/models/GroupUser";
+import Switch from "~/components/Switch";
 
 type Props = {
   group: Group;
@@ -103,6 +104,9 @@ export function CreateGroupDialog() {
 export function EditGroupDialog({ group, onSubmit }: Props) {
   const { t } = useTranslation();
   const [name, setName] = React.useState(group.name);
+  const [disableMentions, setDisableMentions] = React.useState(
+    group.disableMentions || false
+  );
   const [isSaving, setIsSaving] = React.useState(false);
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
@@ -112,6 +116,7 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
       try {
         await group.save({
           name,
+          disableMentions,
         });
         onSubmit();
       } catch (err) {
@@ -120,7 +125,7 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
         setIsSaving(false);
       }
     },
-    [group, onSubmit, name]
+    [group, onSubmit, name, disableMentions]
   );
 
   const handleNameChange = React.useCallback(
@@ -138,7 +143,7 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
           often might confuse your team mates.
         </Trans>
       </Text>
-      <Flex>
+      <Flex column>
         <Input
           type="text"
           label={t("Name")}
@@ -147,6 +152,15 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
           required
           autoFocus
           flex
+        />
+        <Switch
+          id="mentions"
+          label={t("Disable mentions")}
+          note={t(
+            "Prevent this group from being mentionable in documents or comments"
+          )}
+          checked={disableMentions}
+          onChange={setDisableMentions}
         />
       </Flex>
 

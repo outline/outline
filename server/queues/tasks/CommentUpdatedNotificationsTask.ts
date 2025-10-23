@@ -4,6 +4,7 @@ import { MentionType, NotificationEventType } from "@shared/types";
 import {
   Comment,
   Document,
+  Group,
   GroupUser,
   Notification,
   User,
@@ -86,6 +87,13 @@ export default class CommentUpdatedNotificationsTask extends BaseTask<CommentEve
       if (mentionedGroup.includes(group.modelId)) {
         continue;
       }
+
+      // Check if the group has mentions disabled
+      const groupModel = await Group.findByPk(group.modelId);
+      if (groupModel?.disableMentions) {
+        continue;
+      }
+
       const usersFromMentionedGroup = await GroupUser.findAll({
         where: {
           groupId: group.modelId,

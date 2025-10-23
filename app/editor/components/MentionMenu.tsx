@@ -58,6 +58,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
       res.data.documents.map(documents.add);
       res.data.users.map(users.add);
       res.data.collections.map(collections.add);
+      res.data.groups.map(groups.add);
     }, [search, documents, users, collections])
   );
 

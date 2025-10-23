@@ -6,6 +6,7 @@ export default async function presentGroup(group: Group) {
     name: group.name,
     externalId: group.externalId,
     memberCount: await group.memberCount,
+    disableMentions: group.disableMentions,
     createdAt: group.createdAt,
     updatedAt: group.updatedAt,
   };

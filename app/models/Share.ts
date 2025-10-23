@@ -106,6 +106,11 @@ class Share extends Model implements Searchable {
   }
 
   @computed
+  get searchSuppressed(): boolean {
+    return false;
+  }
+
+  @computed
   get sharedCache() {
     return (
       this.store.sharedCache.get(this.id) ??

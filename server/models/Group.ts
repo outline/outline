@@ -68,6 +68,9 @@ class Group extends ParanoidModel<
   @Column
   externalId: string;
 
+  @Column(DataType.BOOLEAN)
+  disableMentions: boolean;
+
   static filterByMember(userId: string | undefined) {
     return userId
       ? this.scope({ method: ["withMembership", userId] })
