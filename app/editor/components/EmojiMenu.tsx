@@ -1,5 +1,5 @@
 import capitalize from "lodash/capitalize";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { emojiMartToGemoji, snakeCase } from "@shared/editor/lib/emoji";
 import { search as emojiSearch } from "@shared/utils/emoji";
 import EmojiMenuItem from "./EmojiMenuItem";
@@ -45,18 +45,23 @@ const EmojiMenu = (props: Props) => {
     [search]
   );
 
+  const renderMenuItem = useCallback(
+    (item, _index, options) => (
+      <EmojiMenuItem
+        onClick={options.onClick}
+        selected={options.selected}
+        title={item.description}
+        emoji={item.emoji}
+      />
+    ),
+    []
+  );
+
   return (
     <SuggestionsMenu
       {...props}
       filterable={false}
-      renderMenuItem={(item, _index, options) => (
-        <EmojiMenuItem
-          onClick={options.onClick}
-          selected={options.selected}
-          title={item.description}
-          emoji={item.emoji}
-        />
-      )}
+      renderMenuItem={renderMenuItem}
       items={items}
     />
   );
