@@ -20,11 +20,6 @@ export default class GroupsStore extends Store<Group> {
     return naturalSort(Array.from(this.data.values()), "name");
   }
 
-  @computed
-  get mentionableData(): Group[] {
-    return this.orderedData.filter((group) => !group.disableMentions);
-  }
-
   @action
   fetchPage = async (params: FetchPageParams | undefined): Promise<Group[]> => {
     this.isFetching = true;
