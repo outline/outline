@@ -89,6 +89,11 @@ export default class Document extends ArchivableModel implements Searchable {
     return this.title;
   }
 
+  @computed
+  get searchSuppressed(): boolean {
+    return this.isDeleted || this.isArchived;
+  }
+
   /**
    * The name of the original data source, if imported.
    */

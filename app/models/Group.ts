@@ -3,8 +3,9 @@ import GroupMembership from "./GroupMembership";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
 import { GroupPermission } from "@shared/types";
+import { Searchable } from "./interfaces/Searchable";
 
-class Group extends Model {
+class Group extends Model implements Searchable {
   static modelName = "Group";
 
   @Field
@@ -16,6 +17,10 @@ class Group extends Model {
 
   @observable
   memberCount: number;
+
+  @Field
+  @observable
+  disableMentions: boolean;
 
   /**
    * Returns the users that are members of this group.
@@ -29,6 +34,11 @@ class Group extends Model {
   @computed
   get searchContent(): string[] {
     return [this.name].filter(Boolean);
+  }
+
+  @computed
+  get searchSuppressed(): boolean {
+    return this.disableMentions;
   }
 
   @computed
