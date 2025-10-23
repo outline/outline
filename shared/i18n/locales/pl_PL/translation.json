@@ -998,6 +998,8 @@
   "Groups are for organizing your team. They work best when centered around a function or a responsibility — Support or Engineering for example.": "Grupy służą do organizacji Twojego zespołu. Pracują najlepiej, gdy skupiają się wokół funkcji lub zadania, na przykład Obsługa Klienta lub Inżynieria.",
   "You’ll be able to add people to the group next.": "Następnie będziesz mógł dodać ludzi do grupy.",
   "You can edit the name of this group at any time, however doing so too often might confuse your team mates.": "Możesz edytować nazwę tej grupy w dowolnym momencie, jednak zbyt częste zmiany mogą zdezorientować twoich kolegów z zespołu.",
+  "Disable mentions": "Disable mentions",
+  "Prevent this group from being mentionable in documents or comments": "Prevent this group from being mentionable in documents or comments",
   "Are you sure about that? Deleting the <em>{{groupName}}</em> group will cause its members to lose access to collections and documents that it is associated with.": "Czy jesteś pewien co do tego? Usunięcie grupy <em>{{groupName}}</em> spowoduje utratę przez jej członków dostępu do kolekcji i dokumentów, z którymi jest powiązana.",
   "Add people to {{groupName}}": "Dodaj osoby do {{groupName}}",
   "{{userName}} was removed from the group": "{{userName}} został usunięty z grupy",
