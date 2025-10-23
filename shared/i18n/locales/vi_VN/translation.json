@@ -998,6 +998,8 @@
   "Groups are for organizing your team. They work best when centered around a function or a responsibility — Support or Engineering for example.": "Nhóm là để tổ chức nhóm của bạn. Chúng hoạt động tốt nhất khi tập trung vào một chức năng hoặc một trách nhiệm - chẳng hạn như Hỗ trợ hoặc Kỹ thuật.",
   "You’ll be able to add people to the group next.": "Bạn sẽ có thể thêm người tham gia vào nhóm tiếp theo.",
   "You can edit the name of this group at any time, however doing so too often might confuse your team mates.": "Bạn có thể chỉnh sửa tên của nhóm này bất kỳ lúc nào, tuy nhiên làm như vậy quá thường xuyên có thể gây nhầm lẫn cho các thành viên trong nhóm của bạn.",
+  "Disable mentions": "Disable mentions",
+  "Prevent this group from being mentionable in documents or comments": "Prevent this group from being mentionable in documents or comments",
   "Are you sure about that? Deleting the <em>{{groupName}}</em> group will cause its members to lose access to collections and documents that it is associated with.": "Bạn có chắc chắn về điều đó không? Xóa nhóm <em>{{groupName}}</em> sẽ khiến các thành viên của nhóm đó mất quyền truy cập vào các bộ sưu tập và tài liệu được liên kết với nó.",
   "Add people to {{groupName}}": "Thêm người vào {{groupName}}",
   "{{userName}} was removed from the group": "{{userName}} đã bị xóa khỏi nhóm",
