@@ -13,6 +13,7 @@ import useStores from "~/hooks/useStores";
 import LoadingIndicator from "../LoadingIndicator";
 import { CARD_MARGIN } from "./Components";
 import HoverPreviewDocument from "./HoverPreviewDocument";
+import HoverPreviewGroup from "./HoverPreviewGroup";
 import HoverPreviewIssue from "./HoverPreviewIssue";
 import HoverPreviewLink from "./HoverPreviewLink";
 import HoverPreviewMention from "./HoverPreviewMention";
@@ -131,6 +132,13 @@ const HoverPreviewDesktop = observer(
                   color={data.color}
                   lastActive={data.lastActive}
                   email={data.email}
+                />
+              ) : data.type === UnfurlResourceType.Group ? (
+                <HoverPreviewGroup
+                  ref={cardRef}
+                  name={data.name}
+                  memberCount={data.memberCount}
+                  users={data.users}
                 />
               ) : data.type === UnfurlResourceType.Document ? (
                 <HoverPreviewDocument
