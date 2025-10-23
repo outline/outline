@@ -17,6 +17,10 @@ class Group extends Model {
   @observable
   memberCount: number;
 
+  @Field
+  @observable
+  disableMentions: boolean;
+
   /**
    * Returns the users that are members of this group.
    */

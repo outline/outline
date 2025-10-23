@@ -20,6 +20,11 @@ export default class GroupsStore extends Store<Group> {
     return naturalSort(Array.from(this.data.values()), "name");
   }
 
+  @computed
+  get mentionableData(): Group[] {
+    return this.orderedData.filter((group) => !group.disableMentions);
+  }
+
   @action
   fetchPage = async (params: FetchPageParams | undefined): Promise<Group[]> => {
     this.isFetching = true;
@@ -101,6 +106,70 @@ export default class GroupsStore extends Store<Group> {
     );
 
     return query ? queriedGroups(groups, query) : groups;
+  };
+
+  /**
+   * Override the base findByQuery to filter out groups with disableMentions: true
+   */
+  findByQuery = (query: string, options?: { maxResults: number }): Group[] => {
+    const normalized = query?.trim().toLocaleLowerCase() || "";
+
+    if (!normalized) {
+      return this.mentionableData
+        .filter((item) => {
+          if ("deletedAt" in item && item.deletedAt) {
+            return false;
+          }
+          if ("archivedAt" in item && item.archivedAt) {
+            return false;
+          }
+          return true;
+        })
+        .slice(0, options?.maxResults);
+    }
+
+    return this.mentionableData
+      .filter((item) => {
+        if ("deletedAt" in item && item.deletedAt) {
+          return false;
+        }
+        if ("archivedAt" in item && item.archivedAt) {
+          return false;
+        }
+        if ("searchContent" in item) {
+          const searchables =
+            typeof item.searchContent === "string"
+              ? [item.searchContent]
+              : item.searchContent;
+          return searchables.some((searchable) =>
+            searchable.toLocaleLowerCase().includes(normalized)
+          );
+        }
+        return false;
+      })
+      .map((item) => {
+        const searchables =
+          typeof item.searchContent === "string"
+            ? [item.searchContent]
+            : item.searchContent;
+
+        return {
+          score:
+            searchables
+              .map((searchable) => {
+                let score = 0;
+                if (searchable.toLocaleLowerCase().includes(normalized)) {
+                  score = 1;
+                }
+                return score;
+              })
+              .reduce((a, b) => a + b, 0) / searchables.length,
+          item,
+        };
+      })
+      .sort((a, b) => b.score - a.score)
+      .map((result) => result.item)
+      .slice(0, options?.maxResults);
   };
 }
 

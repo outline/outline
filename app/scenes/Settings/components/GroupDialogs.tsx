@@ -103,6 +103,9 @@ export function CreateGroupDialog() {
 export function EditGroupDialog({ group, onSubmit }: Props) {
   const { t } = useTranslation();
   const [name, setName] = React.useState(group.name);
+  const [disableMentions, setDisableMentions] = React.useState(
+    group.disableMentions || false
+  );
   const [isSaving, setIsSaving] = React.useState(false);
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
@@ -112,6 +115,7 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
       try {
         await group.save({
           name,
+          disableMentions,
         });
         onSubmit();
       } catch (err) {
@@ -120,7 +124,7 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
         setIsSaving(false);
       }
     },
-    [group, onSubmit, name]
+    [group, onSubmit, name, disableMentions]
   );
 
   const handleNameChange = React.useCallback(
@@ -149,6 +153,21 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
           flex
         />
       </Flex>
+
+      <Flex>
+        <Input
+          type="checkbox"
+          label={t("Disable mentions")}
+          checked={disableMentions}
+          onChange={(e) => setDisableMentions(e.target.checked)}
+        />
+      </Flex>
+      <Text as="p" type="secondary">
+        <Trans>
+          When enabled, this group will not appear in mention suggestions and
+          cannot be mentioned in documents or comments.
+        </Trans>
+      </Text>
 
       <Button type="submit" disabled={isSaving || !name}>
         {isSaving ? `${t("Saving")}…` : t("Save")}
