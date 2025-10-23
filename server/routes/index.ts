@@ -1,10 +1,9 @@
 import crypto from "crypto";
 import path from "path";
 import { formatRFC7231 } from "date-fns";
-import Koa, { BaseContext } from "koa";
+import Koa from "koa";
 import Router from "koa-router";
 import send from "koa-send";
-import userAgent, { UserAgentContext } from "koa-useragent";
 import { languages } from "@shared/i18n";
 import { IntegrationType, TeamPreference } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
@@ -23,8 +22,6 @@ import errors from "./errors";
 
 const koa = new Koa();
 const router = new Router();
-
-koa.use<BaseContext, UserAgentContext>(userAgent);
 
 // serve public assets
 router.use(["/images/*", "/email/*", "/fonts/*"], async (ctx, next) => {
