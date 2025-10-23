@@ -998,6 +998,8 @@
   "Groups are for organizing your team. They work best when centered around a function or a responsibility — Support or Engineering for example.": "그룹은 팀을 구성하기 위한 것입니다. 기능이나 책임(예: 지원 또는 엔지니어링) 을 중심으로 할 때 가장 잘 작동합니다.",
   "You’ll be able to add people to the group next.": "다음에 그룹에 사람들을 추가할 수 있습니다.",
   "You can edit the name of this group at any time, however doing so too often might confuse your team mates.": "그룹의 이름은 언제라도 수정할 수 있지만, 팀원들에게 혼란을 줄 수 있습니다.",
+  "Disable mentions": "Disable mentions",
+  "Prevent this group from being mentionable in documents or comments": "Prevent this group from being mentionable in documents or comments",
   "Are you sure about that? Deleting the <em>{{groupName}}</em> group will cause its members to lose access to collections and documents that it is associated with.": "정말로 <em>{{groupName}}</em> 그룹을 삭제하시겠습니까? 그룹을 삭제하면 해당 구성원이 연결된 컬렉션 및 문서에 액세스할 수 없게 됩니다.",
   "Add people to {{groupName}}": "{{groupName}}에 사용자 추가",
   "{{userName}} was removed from the group": "{{userName}} 이(가) 그룹에서 제외되었습니다",
