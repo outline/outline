@@ -998,6 +998,8 @@
   "Groups are for organizing your team. They work best when centered around a function or a responsibility — Support or Engineering for example.": "Групи призначені для організації вашої команди. Вони найкраще працюють, коли зосереджені навколо функції чи відповідальності — наприклад, Техпідтримка чи Розробники.",
   "You’ll be able to add people to the group next.": "Далі ви зможете додавати людей до групи.",
   "You can edit the name of this group at any time, however doing so too often might confuse your team mates.": "Ви можете змінити назву цієї групи в будь-який час, однак занадто часті дії можуть заплутати ваших товаришів по команді.",
+  "Disable mentions": "Disable mentions",
+  "Prevent this group from being mentionable in documents or comments": "Prevent this group from being mentionable in documents or comments",
   "Are you sure about that? Deleting the <em>{{groupName}}</em> group will cause its members to lose access to collections and documents that it is associated with.": "Ви впевнені в цьому? Видалення групи <em>{{groupName}}</em> призведе до того, що її члени втратять доступ до колекцій і документів, з якими вона пов’язана.",
   "Add people to {{groupName}}": "Додати учасників до {{groupName}}",
   "{{userName}} was removed from the group": "{{userName}} видалено з групи",
