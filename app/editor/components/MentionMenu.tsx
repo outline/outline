@@ -54,7 +54,10 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
 
   const { loading, request } = useRequest(
     useCallback(async () => {
-      const res = await client.post("/suggestions.mention", { query: search });
+      const res = await client.post("/suggestions.mention", {
+        query: search,
+        limit: maxResultsInSection,
+      });
 
       runInAction(() => {
         res.data.documents.map(documents.add);
