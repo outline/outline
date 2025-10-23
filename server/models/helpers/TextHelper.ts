@@ -9,6 +9,7 @@ import FileStorage from "@server/storage/files";
 import { APIContext } from "@server/types";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import parseImages from "@server/utils/parseImages";
+import { isInternalUrl } from "@shared/utils/urls";
 
 @trace()
 export class TextHelper {
@@ -81,6 +82,10 @@ export class TextHelper {
           try {
             new URL(image.src);
           } catch (_e) {
+            return;
+          }
+
+          if (isInternalUrl(image.src)) {
             return;
           }
 
