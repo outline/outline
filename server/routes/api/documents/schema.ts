@@ -235,7 +235,7 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     text: z.string().optional(),
 
     /** Icon displayed alongside doc title */
-    icon: zodIconType().nullish(),
+    icon: z.string().nullish(),
 
     /** Icon color */
     color: z
