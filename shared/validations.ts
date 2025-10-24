@@ -124,3 +124,8 @@ export const WebhookSubscriptionValidation = {
   /** The maximum number of webhooks per team */
   maxSubscriptions: 10,
 };
+
+export const EmojiValidation = {
+  /** The maximum length of the emoji name */
+  maxNameLength: 25,
+};
