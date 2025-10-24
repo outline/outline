@@ -1,5 +1,4 @@
 import { Token } from "markdown-it";
-import { wrappingInputRule } from "prosemirror-inputrules";
 import {
   NodeSpec,
   NodeType,
@@ -8,6 +7,7 @@ import {
 } from "prosemirror-model";
 import toggleList from "../commands/toggleList";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { listWrappingInputRule } from "../lib/listInputRule";
 import Node from "./Node";
 
 export default class OrderedList extends Node {
@@ -79,14 +79,14 @@ export default class OrderedList extends Node {
 
   inputRules({ type }: { type: NodeType }) {
     return [
-      wrappingInputRule(
+      listWrappingInputRule(
         /^(\d+)\.\s$/,
         type,
         (match) => ({ order: +match[1], listStyle: "number" }),
         (match, node) => node.childCount + node.attrs.order === +match[1]
       ),
 
-      wrappingInputRule(
+      listWrappingInputRule(
         /^([a-z])\.\s$/,
         type,
         (match) => ({
@@ -101,7 +101,7 @@ export default class OrderedList extends Node {
         }
       ),
 
-      wrappingInputRule(
+      listWrappingInputRule(
         /^([A-Z])\.\s$/,
         type,
         (match) => ({
