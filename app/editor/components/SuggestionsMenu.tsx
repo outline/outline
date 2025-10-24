@@ -641,6 +641,10 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                     }
                   };
 
+                  const handleOnClick = () => {
+                    handleClickItem(item);
+                  };
+
                   const currentHeading =
                     "section" in item ? item.section?.({ t }) : undefined;
 
@@ -657,7 +661,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                       >
                         {props.renderMenuItem(item as any, index, {
                           selected: index === selectedIndex,
-                          onClick: () => handleClickItem(item),
+                          onClick: handleOnClick,
                         })}
                       </ListItem>
                     </React.Fragment>

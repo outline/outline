@@ -16,6 +16,7 @@ import { client } from "~/utils/ApiClient";
 import User from "./User";
 import Field from "./decorators/Field";
 import { AfterChange } from "./decorators/Lifecycle";
+import isEqual from "lodash/isEqual";
 
 export default class Collection extends ParanoidModel {
   static modelName = "Collection";
@@ -156,7 +157,7 @@ export default class Collection extends ParanoidModel {
     return this.sort.field === "index";
   }
 
-  @computed
+  @computed({ equals: isEqual })
   get sortedDocuments(): NavigationNode[] | undefined {
     if (!this.documents) {
       return undefined;

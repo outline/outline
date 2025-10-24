@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import { EmailIcon, LinkIcon } from "outline-icons";
-import React from "react";
+import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { EmbedDescriptor } from "@shared/editor/embeds";
 import { MenuItem } from "@shared/editor/types";
@@ -26,6 +26,18 @@ type Props = Omit<
 export const PasteMenu = observer(({ pastedText, embeds, ...props }: Props) => {
   const items = useItems({ pastedText, embeds });
 
+  const renderMenuItem = useCallback(
+    (item, _index, options) => (
+      <SuggestionsMenuItem
+        onClick={options.onClick}
+        selected={options.selected}
+        title={item.title}
+        icon={item.icon}
+      />
+    ),
+    []
+  );
+
   if (!items) {
     props.onClose();
     return null;
@@ -36,14 +48,7 @@ export const PasteMenu = observer(({ pastedText, embeds, ...props }: Props) => {
       {...props}
       trigger=""
       filterable={false}
-      renderMenuItem={(item, _index, options) => (
-        <SuggestionsMenuItem
-          onClick={options.onClick}
-          selected={options.selected}
-          title={item.title}
-          icon={item.icon}
-        />
-      )}
+      renderMenuItem={renderMenuItem}
       items={items}
     />
   );
