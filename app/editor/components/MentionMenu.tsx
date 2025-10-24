@@ -25,6 +25,7 @@ import SuggestionsMenu, {
   Props as SuggestionsMenuProps,
 } from "./SuggestionsMenu";
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
+import { runInAction } from "mobx";
 
 interface MentionItem extends MenuItem {
   attrs: {
@@ -53,12 +54,17 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
 
   const { loading, request } = useRequest(
     useCallback(async () => {
-      const res = await client.post("/suggestions.mention", { query: search });
+      const res = await client.post("/suggestions.mention", {
+        query: search,
+        limit: maxResultsInSection,
+      });
 
-      res.data.documents.map(documents.add);
-      res.data.users.map(users.add);
-      res.data.collections.map(collections.add);
-      res.data.groups.map(groups.add);
+      runInAction(() => {
+        res.data.documents.map(documents.add);
+        res.data.users.map(users.add);
+        res.data.collections.map(collections.add);
+        res.data.groups.map(groups.add);
+      });
     }, [search, documents, users, collections])
   );
 
@@ -274,6 +280,19 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
     [t, users, documentId, groups]
   );
 
+  const renderMenuItem = useCallback(
+    (item, _index, options) => (
+      <SuggestionsMenuItem
+        onClick={options.onClick}
+        selected={options.selected}
+        subtitle={item.subtitle}
+        title={item.title}
+        icon={item.icon}
+      />
+    ),
+    []
+  );
+
   // Prevent showing the menu until we have data otherwise it will be positioned
   // incorrectly due to the height being unknown.
   if (!loaded) {
@@ -287,15 +306,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
       filterable={false}
       search={search}
       onSelect={handleSelect}
-      renderMenuItem={(item, _index, options) => (
-        <SuggestionsMenuItem
-          onClick={options.onClick}
-          selected={options.selected}
-          subtitle={item.subtitle}
-          title={item.title}
-          icon={item.icon}
-        />
-      )}
+      renderMenuItem={renderMenuItem}
       items={items}
     />
   );

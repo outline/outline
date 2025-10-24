@@ -6,6 +6,7 @@ import Logger from "~/utils/Logger";
 import { getFieldsForModel } from "../decorators/Field";
 import { LifecycleManager } from "../decorators/Lifecycle";
 import { getRelationsForModelClass } from "../decorators/Relation";
+import { isEqual } from "lodash";
 
 export default abstract class Model {
   static modelName: string;
@@ -144,6 +145,10 @@ export default abstract class Model {
       try {
         // Some models are serialized with the initialized flag, this should be ignored.
         if (key === "initialized") {
+          continue;
+        }
+        // @ts-expect-error TODO
+        if (isEqual(this[key], data[key])) {
           continue;
         }
         // @ts-expect-error TODO

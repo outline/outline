@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import useDictionary from "~/hooks/useDictionary";
 import getMenuItems from "../menus/block";
 import { useEditor } from "./EditorContext";
@@ -13,20 +14,25 @@ function BlockMenu(props: Props) {
   const dictionary = useDictionary();
   const { elementRef } = useEditor();
 
+  const renderMenuItem = useCallback(
+    (item, _index, options) => (
+      <SuggestionsMenuItem
+        onClick={options.onClick}
+        selected={options.selected}
+        icon={item.icon}
+        title={item.title}
+        shortcut={item.shortcut}
+      />
+    ),
+    []
+  );
+
   return (
     <SuggestionsMenu
       {...props}
       filterable
       trigger="/"
-      renderMenuItem={(item, _index, options) => (
-        <SuggestionsMenuItem
-          onClick={options.onClick}
-          selected={options.selected}
-          icon={item.icon}
-          title={item.title}
-          shortcut={item.shortcut}
-        />
-      )}
+      renderMenuItem={renderMenuItem}
       items={getMenuItems(dictionary, elementRef)}
     />
   );
