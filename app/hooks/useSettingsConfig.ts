@@ -15,6 +15,7 @@ import {
   Icon,
   PlusIcon,
   InternetIcon,
+  SmileyIcon,
 } from "outline-icons";
 import { ComponentProps, useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -44,6 +45,7 @@ const Profile = lazy(() => import("~/scenes/Settings/Profile"));
 const Security = lazy(() => import("~/scenes/Settings/Security"));
 const Shares = lazy(() => import("~/scenes/Settings/Shares"));
 const Templates = lazy(() => import("~/scenes/Settings/Templates"));
+const CustomEmojis = lazy(() => import("~/scenes/Settings/CustomEmojis"));
 
 export type ConfigItem = {
   name: string;
@@ -161,6 +163,15 @@ const useSettingsConfig = () => {
         enabled: can.updateTemplate,
         group: t("Workspace"),
         icon: ShapesIcon,
+      },
+      {
+        name: t("Custom Emojis"),
+        path: settingsPath("custom-emojis"),
+        component: CustomEmojis.Component,
+        preload: CustomEmojis.preload,
+        enabled: can.update,
+        group: t("Workspace"),
+        icon: SmileyIcon,
       },
       {
         name: t("API Keys"),

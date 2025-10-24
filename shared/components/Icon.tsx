@@ -10,6 +10,7 @@ import { determineIconType } from "../utils/icon";
 import EmojiIcon from "./EmojiIcon";
 // import Logger from "~/utils/Logger";
 import Flex from "./Flex";
+import { EmojiImage } from "./customEmojis";
 
 export type Props = {
   /** The icon to render */
@@ -58,6 +59,10 @@ const Icon = ({
           forceColor={forceColor}
         />
       );
+    }
+
+    if (iconType === IconType.Custom) {
+      return <EmojiImage src={icon} />;
     }
 
     return <EmojiIcon emoji={icon} size={size} className={className} />;
