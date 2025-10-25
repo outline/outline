@@ -2,7 +2,7 @@ import { addDays, differenceInDays } from "date-fns";
 import i18n, { t } from "i18next";
 import capitalize from "lodash/capitalize";
 import floor from "lodash/floor";
-import { action, autorun, computed, observable, set } from "mobx";
+import { action, autorun, comparer, computed, observable, set } from "mobx";
 import type {
   JSONObject,
   NavigationNode,
@@ -652,7 +652,7 @@ export default class Document extends ArchivableModel implements Searchable {
     );
   }
 
-  @computed
+  @computed({ equals: comparer.structural })
   get asNavigationNode(): NavigationNode {
     return {
       type: NavigationNodeType.Document,

@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import { action, computed, observable, runInAction } from "mobx";
+import { action, comparer, computed, observable, runInAction } from "mobx";
 import {
   CollectionPermission,
   FileOperationFormat,
@@ -16,7 +16,6 @@ import { client } from "~/utils/ApiClient";
 import User from "./User";
 import Field from "./decorators/Field";
 import { AfterChange } from "./decorators/Lifecycle";
-import isEqual from "lodash/isEqual";
 
 export default class Collection extends ParanoidModel {
   static modelName = "Collection";
@@ -157,7 +156,7 @@ export default class Collection extends ParanoidModel {
     return this.sort.field === "index";
   }
 
-  @computed({ equals: isEqual })
+  @computed({ equals: comparer.structural })
   get sortedDocuments(): NavigationNode[] | undefined {
     if (!this.documents) {
       return undefined;
