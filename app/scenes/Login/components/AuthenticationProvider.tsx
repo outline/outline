@@ -3,7 +3,6 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { Client } from "@shared/types";
-import { isPWA } from "@shared/utils/browser";
 import ButtonLarge from "~/components/ButtonLarge";
 import InputLarge from "~/components/InputLarge";
 import PluginIcon from "~/components/PluginIcon";
@@ -17,6 +16,7 @@ type Props = React.ComponentProps<typeof ButtonLarge> & {
   authUrl: string;
   isCreate: boolean;
   onEmailSuccess: (email: string) => void;
+  preferOTP: boolean;
 };
 
 type AuthState = "initial" | "email" | "code";
@@ -28,7 +28,6 @@ function AuthenticationProvider(props: Props) {
   const [email, setEmail] = React.useState("");
   const { isCreate, id, name, authUrl, onEmailSuccess, ...rest } = props;
   const clientType = Desktop.isElectron() ? Client.Desktop : Client.Web;
-  const preferOTP = isPWA;
 
   const handleChangeEmail = (event: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(event.target.value);
@@ -46,7 +45,7 @@ function AuthenticationProvider(props: Props) {
         const response = await client.post(event.currentTarget.action, {
           email,
           client: clientType,
-          preferOTP,
+          preferOTP: props.preferOTP,
         });
 
         if (response.redirect) {

@@ -587,7 +587,7 @@ router.post(
         "email",
         `Sign in immediately: ${
           env.URL
-        }/auth/email.callback?token=${user.getEmailSigninToken()}`
+        }/auth/email.callback?token=${user.getEmailSigninToken(ctx)}`
       );
     }
 

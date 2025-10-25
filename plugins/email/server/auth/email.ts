@@ -72,7 +72,7 @@ router.post(
     }
 
     // Generate both a link token and a 6-digit verification code
-    const token = preferOTP ? undefined : user.getEmailSigninToken();
+    const token = preferOTP ? undefined : user.getEmailSigninToken(ctx);
     const verificationCode = preferOTP
       ? await user.getEmailVerificationCode()
       : undefined;
@@ -131,7 +131,7 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
 
   try {
     if (token) {
-      user = await getUserForEmailSigninToken(token as string);
+      user = await getUserForEmailSigninToken(ctx, token as string);
     } else if (code && email) {
       user = await User.scope("withTeam").findOne({
         rejectOnEmpty: true,

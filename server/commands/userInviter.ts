@@ -108,7 +108,7 @@ export default async function userInviter(
         "email",
         `Sign in immediately: ${
           env.URL
-        }/auth/email.callback?token=${newUser.getEmailSigninToken()}`
+        }/auth/email.callback?token=${newUser.getEmailSigninToken(ctx)}`
       );
     }
   }
