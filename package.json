@@ -41,7 +41,7 @@
     "url": "https://github.com/sponsors/outline"
   },
   "engines": {
-    "node": "20 || 22"
+    "node": ">=20.12 <21 || 22"
   },
   "repository": {
     "type": "git",
