@@ -1,5 +1,5 @@
 import pick from "lodash/pick";
-import { observable, action } from "mobx";
+import { observable, action, toJS } from "mobx";
 import { JSONObject } from "@shared/types";
 import type Store from "~/stores/base/Store";
 import Logger from "~/utils/Logger";
@@ -148,7 +148,7 @@ export default abstract class Model {
           continue;
         }
         // @ts-expect-error TODO
-        if (isEqual(this[key], data[key])) {
+        if (isEqual(toJS(this[key]), data[key])) {
           continue;
         }
         // @ts-expect-error TODO
