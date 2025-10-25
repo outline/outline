@@ -102,25 +102,31 @@ router.post(
       throw AuthenticationError("Authentication required");
     }
 
-    const { share, parentShare } = await loadShareWithParent({
-      collectionId,
-      documentId,
-      user,
-    });
+    try {
+      const { share, parentShare } = await loadShareWithParent({
+        collectionId,
+        documentId,
+        user,
+      });
 
-    const shares = [share, parentShare].filter(Boolean) as Share[];
+      const shares = [share, parentShare].filter(Boolean) as Share[];
+      if (!shares.length) {
+        throw NotFoundError();
+      }
 
-    if (!shares.length) {
-      ctx.response.status = 204;
-      return;
+      ctx.body = {
+        data: {
+          shares: shares.map((s) => presentShare(s, user.isAdmin ?? false)),
+        },
+        policies: presentPolicies(user, shares),
+      };
+    } catch (err) {
+      if (err.id === "not_found") {
+        ctx.response.status = 204;
+        return;
+      }
+      throw err;
     }
-
-    ctx.body = {
-      data: {
-        shares: shares.map((s) => presentShare(s, user.isAdmin ?? false)),
-      },
-      policies: presentPolicies(user, shares),
-    };
   }
 );
 

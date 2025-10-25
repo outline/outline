@@ -9,7 +9,7 @@ import { NotFoundError, ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import validate from "@server/middlewares/validate";
-import { Document, Share, Team, User } from "@server/models";
+import { Document, Share, Team, User, Group, GroupUser } from "@server/models";
 import { authorize, can } from "@server/policies";
 import presentUnfurl from "@server/presenters/unfurl";
 import { APIContext, Unfurl } from "@server/types";
@@ -17,6 +17,7 @@ import { CacheHelper } from "@server/utils/CacheHelper";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import * as T from "./schema";
+import { MAX_AVATAR_DISPLAY } from "@shared/constants";
 
 const router = new Router();
 const plugins = PluginManager.getHooks(Hook.UnfurlProvider);
@@ -38,7 +39,6 @@ router.post(
       }
       const { modelId, mentionType } = parseMentionUrl(url);
 
-      // TODO: Add support for other mention types
       if (mentionType === MentionType.User) {
         const [user, document] = await Promise.all([
           User.findByPk(modelId),
@@ -63,6 +63,41 @@ router.post(
           },
           { includeEmail: !!can(actor, "readEmail", user) }
         );
+      } else if (mentionType === MentionType.Group) {
+        const [group, document] = await Promise.all([
+          Group.findByPk(modelId),
+          Document.findByPk(documentId, {
+            userId: actor.id,
+          }),
+        ]);
+        if (!group) {
+          throw NotFoundError("Mentioned group does not exist");
+        }
+        if (!document) {
+          throw NotFoundError("Document does not exist");
+        }
+        authorize(actor, "read", group);
+        authorize(actor, "read", document);
+
+        // Get group members for display
+        const groupUsers = await GroupUser.findAll({
+          where: { groupId: group.id },
+          include: [
+            {
+              model: User,
+              as: "user",
+            },
+          ],
+          limit: MAX_AVATAR_DISPLAY,
+        });
+
+        const users = groupUsers.map((gu) => gu.user).filter(Boolean);
+
+        ctx.body = await presentUnfurl({
+          type: UnfurlResourceType.Group,
+          group,
+          users,
+        });
       }
       return;
     }

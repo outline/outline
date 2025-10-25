@@ -1,4 +1,3 @@
-import { wrappingInputRule } from "prosemirror-inputrules";
 import {
   Schema,
   NodeType,
@@ -7,6 +6,7 @@ import {
 } from "prosemirror-model";
 import toggleList from "../commands/toggleList";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { listWrappingInputRule } from "../lib/listInputRule";
 import Node from "./Node";
 
 export default class BulletList extends Node {
@@ -34,7 +34,7 @@ export default class BulletList extends Node {
   }
 
   inputRules({ type }: { type: NodeType }) {
-    return [wrappingInputRule(/^\s*([-+*])\s$/, type)];
+    return [listWrappingInputRule(/^\s*([-+*])\s$/, type)];
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorModel) {

@@ -41,7 +41,7 @@
     "url": "https://github.com/sponsors/outline"
   },
   "engines": {
-    "node": "20 || 22"
+    "node": ">=20.12 <21 || 22"
   },
   "repository": {
     "type": "git",
@@ -51,11 +51,11 @@
     "> 0.25%, not dead"
   ],
   "dependencies": {
-    "@aws-sdk/client-s3": "3.908.0",
-    "@aws-sdk/lib-storage": "3.908.0",
-    "@aws-sdk/s3-presigned-post": "3.908.0",
-    "@aws-sdk/s3-request-presigner": "3.908.0",
-    "@aws-sdk/signature-v4-crt": "^3.908.0",
+    "@aws-sdk/client-s3": "3.913.0",
+    "@aws-sdk/lib-storage": "3.913.0",
+    "@aws-sdk/s3-presigned-post": "3.913.0",
+    "@aws-sdk/s3-request-presigner": "3.913.0",
+    "@aws-sdk/signature-v4-crt": "^3.911.0",
     "@babel/core": "^7.28.4",
     "@babel/plugin-proposal-decorators": "^7.28.0",
     "@babel/plugin-transform-class-properties": "^7.27.1",
@@ -156,7 +156,7 @@
     "jszip": "^3.10.1",
     "katex": "^0.16.22",
     "kbar": "0.1.0-beta.48",
-    "koa": "^3.0.1",
+    "koa": "^3.0.3",
     "koa-body": "^6.0.1",
     "koa-compress": "^5.1.1",
     "koa-helmet": "^6.1.0",
@@ -181,13 +181,13 @@
     "node-fetch": "2.7.0",
     "nodemailer": "^7.0.7",
     "octokit": "^3.2.2",
-    "outline-icons": "^3.13.0",
+    "outline-icons": "^3.13.1",
     "oy-vey": "^0.12.1",
     "passport": "^0.7.0",
     "passport-google-oauth2": "^0.2.0",
     "passport-oauth2": "^1.8.0",
     "passport-slack-oauth2": "^1.2.0",
-    "patch-package": "^8.0.0",
+    "patch-package": "^8.0.1",
     "pg": "^8.16.3",
     "pg-tsquery": "^8.4.2",
     "pluralize": "^8.0.0",
@@ -350,7 +350,7 @@
     "babel-plugin-tsconfig-paths-module-resolver": "^1.0.4",
     "browserslist-to-esbuild": "^1.2.0",
     "concurrently": "^8.2.2",
-    "discord-api-types": "^0.38.20",
+    "discord-api-types": "^0.38.30",
     "husky": "^8.0.3",
     "i18next-parser": "^8.13.0",
     "ioredis-mock": "^8.9.0",
@@ -363,7 +363,7 @@
     "oxlint-tsgolint": "^0.1.6",
     "postinstall-postinstall": "^2.1.0",
     "prettier": "^3.6.2",
-    "react-refresh": "^0.17.0",
+    "react-refresh": "^0.18.0",
     "rimraf": "^2.5.4",
     "rollup-plugin-webpack-stats": "2.1.6",
     "terser": "^5.43.1",

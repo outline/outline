@@ -51,6 +51,8 @@ export const GroupsCreateSchema = z.object({
     name: z.string(),
     /** Optionally link this group to an external source. */
     externalId: z.string().optional(),
+    /** Whether mentions are disabled for this group */
+    disableMentions: z.boolean().optional().default(false),
   }),
 });
 
@@ -62,6 +64,8 @@ export const GroupsUpdateSchema = z.object({
     name: z.string().optional(),
     /** Optionally link this group to an external source. */
     externalId: z.string().optional(),
+    /** Whether mentions are disabled for this group */
+    disableMentions: z.boolean().optional(),
   }),
 });
 

@@ -14,8 +14,12 @@ import { Dictionary } from "~/hooks/useDictionary";
 
 export default function imageMenuItems(
   state: EditorState,
+  readOnly: boolean,
   dictionary: Dictionary
 ): MenuItem[] {
+  if (readOnly) {
+    return [];
+  }
   const { schema } = state;
   const isLeftAligned = isNodeActive(schema.nodes.image, {
     layoutClass: "left-50",
@@ -75,9 +79,18 @@ export default function imageMenuItems(
       visible: !!fetch,
     },
     {
-      name: "replaceImage",
       tooltip: dictionary.replaceImage,
       icon: <ReplaceIcon />,
+      children: [
+        {
+          name: "replaceImage",
+          label: dictionary.uploadImage,
+        },
+        {
+          name: "editImageUrl",
+          label: dictionary.editImageUrl,
+        },
+      ],
     },
     {
       name: "deleteImage",
