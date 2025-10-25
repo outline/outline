@@ -33,7 +33,7 @@ import TrashLink from "./components/TrashLink";
 
 function AppSidebar() {
   const { t } = useTranslation();
-  const { documents, ui, collections } = useStores();
+  const { documents, ui, collections, emojis } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const can = usePolicy(team);
@@ -43,6 +43,7 @@ function AppSidebar() {
 
     if (!user.isViewer) {
       void documents.fetchDrafts();
+      void emojis.fetchAll();
     }
   }, [documents, collections, user.isViewer]);
 

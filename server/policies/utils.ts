@@ -55,6 +55,9 @@ export function isOwner(
   if ("userId" in model) {
     return actor.id === model.userId;
   }
+  if ("createdById" in model) {
+    return actor.id === model.createdById;
+  }
   return false;
 }
 
