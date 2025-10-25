@@ -55,7 +55,7 @@ type Props = Omit<EditorProps, "editorStyle"> & {
  * The main document editor includes an editable title with metadata below it,
  * and support for commenting.
  */
-function DocumentEditor(props: Props, ref: React.RefObject<any>) {
+function DocumentEditor(props: Props, ref: React.RefObject<unknown>) {
   const titleRef = React.useRef<RefHandle>(null);
   const { t } = useTranslation();
   const match = useRouteMatch();
@@ -79,6 +79,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   } = props;
   const can = usePolicy(document);
   const commentingEnabled = !!team?.getPreference(TeamPreference.Commenting);
+  const mermaidIconPacks = team?.getPreference(TeamPreference.MermaidIconPacks) || undefined;
 
   const iconColor = document.color ?? (first(colorPalette) as string);
   const childRef = React.useRef<HTMLDivElement>(null);
@@ -99,7 +100,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       }
       ui.set({ commentsExpanded: true });
     }
-  }, [focusedComment, ui, document.id, params]);
+  }, [focusedComment, ui, document.id, params, setFocusedCommentId]);
 
   // Save document when blurring title, but delay so that if clicking on a
   // button this is allowed to execute first.
@@ -141,7 +142,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       comments.add(comment);
       setFocusedCommentId(commentId);
     },
-    [comments, user?.id, props.id]
+    [comments, user?.id, props.id, setFocusedCommentId]
   );
 
   // Soft delete the Comment model when associated mark is totally removed.
@@ -250,6 +251,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         onChange={updateDocState}
         extensions={extensions}
         editorStyle={editorStyle}
+        mermaidIconPacks={mermaidIconPacks}
         {...rest}
       />
       <div ref={childRef}>{children}</div>

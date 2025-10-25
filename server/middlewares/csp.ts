@@ -55,6 +55,7 @@ export default function createCSPMiddleware() {
         mediaSrc: ["*", "data:", "blob:"],
         imgSrc: ["*", "data:", "blob:"],
         frameSrc: ["*", "data:"],
+        fontSrc: ["'self'", "data:", "https://esm.sh"], // Required for Excalidraw fonts
         // Do not use connect-src: because self + websockets does not work in
         // Safari, ref: https://bugs.webkit.org/show_bug.cgi?id=201591
         connectSrc: ["*"],

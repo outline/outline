@@ -136,6 +136,8 @@ export type Props = {
   embeds: EmbedDescriptor[];
   /** Display preferences for the logged in user, if any. */
   userPreferences?: UserPreferences | null;
+  /** Mermaid icon pack configurations from team preferences */
+  mermaidIconPacks?: Array<{ name: string; url: string }>;
   /** Whether embeds should be rendered without an iframe */
   embedsDisabled?: boolean;
   className?: string;

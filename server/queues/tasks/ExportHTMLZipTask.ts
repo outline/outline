@@ -4,14 +4,19 @@ import { Collection, FileOperation } from "@server/models";
 import ExportDocumentTreeTask from "./ExportDocumentTreeTask";
 
 export default class ExportHTMLZipTask extends ExportDocumentTreeTask {
-  public async export(collections: Collection[], fileOperation: FileOperation) {
+  public async export(
+    collections: Collection[],
+    fileOperation: FileOperation,
+    team: import("@server/models").Team
+  ) {
     const zip = new JSZip();
 
     return await this.addCollectionsToArchive(
       zip,
       collections,
       FileOperationFormat.HTMLZip,
-      fileOperation.options?.includeAttachments ?? true
+      fileOperation.options?.includeAttachments ?? true,
+      team
     );
   }
 }

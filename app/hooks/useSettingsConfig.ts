@@ -32,6 +32,7 @@ const ApiKeys = lazy(() => import("~/scenes/Settings/ApiKeys"));
 const Applications = lazy(() => import("~/scenes/Settings/Applications"));
 const APIAndApps = lazy(() => import("~/scenes/Settings/APIAndApps"));
 const Details = lazy(() => import("~/scenes/Settings/Details"));
+const Editor = lazy(() => import("~/scenes/Settings/Editor"));
 const Export = lazy(() => import("~/scenes/Settings/Export"));
 const Features = lazy(() => import("~/scenes/Settings/Features"));
 const Groups = lazy(() => import("~/scenes/Settings/Groups"));
@@ -134,6 +135,15 @@ const useSettingsConfig = () => {
         enabled: can.update,
         group: t("Workspace"),
         icon: BeakerIcon,
+      },
+      {
+        name: t("Editor"),
+        path: settingsPath("editor"),
+        component: Editor.Component,
+        preload: Editor.preload,
+        enabled: can.update,
+        group: t("Workspace"),
+        icon: SettingsIcon,
       },
       {
         name: t("Members"),

@@ -19,7 +19,11 @@ import packageJson from "../../../package.json";
 import ExportTask from "./ExportTask";
 
 export default class ExportJSONTask extends ExportTask {
-  public async export(collections: Collection[], fileOperation: FileOperation) {
+  public async export(
+    collections: Collection[],
+    fileOperation: FileOperation,
+    _team: import("@server/models").Team
+  ) {
     const zip = new JSZip();
 
     // serial to avoid overloading, slow and steady wins the race

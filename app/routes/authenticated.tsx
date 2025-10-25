@@ -26,6 +26,7 @@ const Archive = lazy(() => import("~/scenes/Archive"));
 const Collection = lazy(() => import("~/scenes/Collection"));
 const Document = lazy(() => import("~/scenes/Document"));
 const Drafts = lazy(() => import("~/scenes/Drafts"));
+const ExcalidrawViewer = lazy(() => import("~/scenes/ExcalidrawViewer"));
 const Home = lazy(() => import("~/scenes/Home"));
 const Search = lazy(() => import("~/scenes/Search"));
 const Trash = lazy(() => import("~/scenes/Trash"));
@@ -96,6 +97,11 @@ function AuthenticatedRoutes() {
 
               <Route exact path={`/doc/${slug}/edit`} component={Document} />
               <Route path={`/doc/${slug}`} component={Document} />
+              <Route
+                exact
+                path="/excalidraw/:id"
+                component={ExcalidrawViewer}
+              />
               <Route
                 exact
                 path={`${searchPath()}/:query?`}

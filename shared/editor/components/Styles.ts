@@ -1463,6 +1463,44 @@ mark {
     font-family: ${props.theme.fontFamilyMono};
     font-size: 14px;
     color: ${props.theme.brand.red};
+
+    .mermaid-error {
+      text-align: center;
+      padding: 16px;
+
+      .error-title {
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 14px;
+      }
+
+      .error-message {
+        font-size: 12px;
+        opacity: 0.8;
+        margin-bottom: 12px;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .error-retry {
+        background: ${props.theme.brand.red};
+        color: ${props.theme.white};
+        border: none;
+        border-radius: 4px;
+        padding: 6px 12px;
+        font-size: 12px;
+        cursor: pointer;
+        font-family: ${props.theme.fontFamily};
+
+        &:hover {
+          background: ${props.theme.brand.red}dd;
+        }
+
+        &:active {
+          background: ${props.theme.brand.red}bb;
+        }
+      }
+    }
   }
 }
 
