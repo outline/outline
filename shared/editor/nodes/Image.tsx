@@ -16,6 +16,9 @@ import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { ComponentProps } from "../types";
 import SimpleImage from "./SimpleImage";
 import { LightboxImageFactory } from "../lib/Lightbox";
+import { Decoration } from "prosemirror-view";
+import { DecorationSet } from "prosemirror-view";
+import { addComment } from "../commands/comment";
 
 const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
 
@@ -113,6 +116,9 @@ export default class Image extends SimpleImage {
         title: {
           default: null,
           validate: "string|null",
+        },
+        marks: {
+          default: undefined,
         },
       },
       content: "text*",
@@ -224,8 +230,50 @@ export default class Image extends SimpleImage {
   }
 
   get plugins() {
+    const getAnchors = (doc: ProsemirrorNode) => {
+      const decorations: Decoration[] = [];
+
+      doc.descendants((node, pos) => {
+        if (Array.isArray(node.attrs?.marks)) {
+          node.attrs.marks.forEach((mark: any) => {
+            if (mark?.type === "comment" && mark?.attrs?.id) {
+              decorations.push(
+                Decoration.widget(
+                  pos,
+                  () => {
+                    const anchor = document.createElement("a");
+                    anchor.id = `comment-${mark.attrs.id}`;
+                    anchor.className = "heading-name";
+                    return anchor;
+                  },
+                  {
+                    side: -1,
+                    key: mark.attrs.id,
+                  }
+                )
+              );
+            }
+          });
+        }
+      });
+
+      return DecorationSet.create(doc, decorations);
+    };
+
+    const plugin: Plugin = new Plugin({
+      state: {
+        init: (config, state) => getAnchors(state.doc),
+        apply: (tr, oldState) =>
+          tr.docChanged ? getAnchors(tr.doc) : oldState,
+      },
+      props: {
+        decorations: (state) => plugin.getState(state),
+      },
+    });
+
     return [
       ...super.plugins,
+      plugin,
       new Plugin({
         props: {
           handleKeyDown: (view, event) => {
@@ -412,6 +460,12 @@ export default class Image extends SimpleImage {
     };
   }
 
+  keys(): Record<string, Command> {
+    return {
+      "Mod-Alt-m": addComment({ userId: this.options.userId }),
+    };
+  }
+
   commands({ type }: { type: NodeType }) {
     return {
       ...super.commands({ type }),
@@ -503,6 +557,8 @@ export default class Image extends SimpleImage {
           dispatch?.(tr.setSelection(new NodeSelection($pos)));
           return true;
         },
+      commentOnImage: (): Command =>
+        addComment({ userId: this.options.userId }),
     };
   }
 

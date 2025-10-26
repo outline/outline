@@ -187,6 +187,16 @@ export class ProsemirrorHelper {
         }
       });
 
+      (node.attrs.marks ?? []).forEach((mark: any) => {
+        if (mark.type === "comment") {
+          comments.push({
+            ...mark.attrs,
+            // For image nodes, we don't have any text content, so we set it to an empty string
+            text: "",
+          } as CommentMark);
+        }
+      });
+
       return true;
     });
 

@@ -55,7 +55,7 @@ import { NodeViewRenderer } from "./components/NodeViewRenderer";
 
 import WithTheme from "./components/WithTheme";
 import isNull from "lodash/isNull";
-import { map } from "lodash";
+import { isArray, map } from "lodash";
 import {
   LightboxImage,
   LightboxImageFactory,
@@ -683,13 +683,33 @@ export class Editor extends React.PureComponent<
       }
     });
 
+    state.doc.descendants((node, pos) => {
+      const mark = (node.attrs.marks ?? []).find(
+        (m: any) =>
+          m.type === state.schema.marks.comment.name && m.attrs.id === commentId
+      );
+
+      if (mark) {
+        const existingMarks = node.attrs.marks ?? [];
+        const updatedMarks = existingMarks.filter(
+          (m: any) => m.attrs.id !== mark.attrs.id
+        );
+
+        const attrs = {
+          ...node.attrs,
+          marks: updatedMarks,
+        };
+        tr.setNodeMarkup(pos, undefined, attrs);
+      }
+    });
+
     dispatch(tr);
   };
 
   /**
    * Update all marks related to a specific comment in the document.
    *
-   * @param commentId The id of the comment to remove
+   * @param commentId The id of the comment to update
    * @param attrs The attributes to update
    */
   public updateComment = (
@@ -715,8 +735,23 @@ export class Editor extends React.PureComponent<
           ...mark.attrs,
           ...attrs,
         });
-
         tr.removeMark(from, to, mark).addMark(from, to, newMark);
+      }
+    });
+
+    state.doc.descendants((node, pos) => {
+      if (isArray(node.attrs?.marks)) {
+        const existingMarks = node.attrs.marks;
+        const updatedMarks = existingMarks.map((mark: any) =>
+          mark.type === "comment" && mark.attrs.id === commentId
+            ? { ...mark, attrs: { ...mark.attrs, ...attrs } }
+            : mark
+        );
+        const newAttrs = {
+          ...node.attrs,
+          marks: updatedMarks,
+        };
+        tr.setNodeMarkup(pos, undefined, newAttrs);
       }
     });
 
@@ -842,9 +877,14 @@ const EditorContainer = styled(Styles)<{
   ${(props) =>
     props.focusedCommentId &&
     css`
-      #comment-${props.focusedCommentId} {
+      span#comment-${props.focusedCommentId} {
         background: ${transparentize(0.5, props.theme.brand.marine)};
         border-bottom: 2px solid ${props.theme.commentMarkBackground};
+      }
+      a#comment-${props.focusedCommentId}
+        ~ span.component-image
+        div.image-wrapper {
+        outline: ${props.theme.commentMarkBackground} solid 2px;
       }
     `}
 
