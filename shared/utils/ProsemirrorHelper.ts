@@ -228,7 +228,7 @@ export class ProsemirrorHelper {
       previouslySeen[slug] =
         previouslySeen[slug] !== undefined ? previouslySeen[slug] + 1 : 1;
 
-      anchors.push({ pos, id, className: "heading-name" });
+      anchors.push({ pos, id, className: "scroll-to-anchor-heading" });
     });
     return anchors;
   }
@@ -242,7 +242,7 @@ export class ProsemirrorHelper {
             anchors.push({
               pos,
               id: `comment-${mark.attrs.id}`,
-              className: "heading-name",
+              className: "scroll-to-anchor-image",
             });
           }
         });

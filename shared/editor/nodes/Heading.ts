@@ -20,8 +20,6 @@ import { findCollapsedNodes } from "../queries/findCollapsedNodes";
 import Node from "./Node";
 
 export default class Heading extends Node {
-  className = "heading-name";
-
   get name() {
     return "heading";
   }
@@ -181,7 +179,7 @@ export default class Heading extends Node {
       (event.currentTarget.parentNode?.parentNode
         ?.previousSibling as HTMLElement);
 
-    if (!anchor || !anchor.className.includes(this.className)) {
+    if (!anchor || !anchor.className.includes("scroll-to-anchor-heading")) {
       throw new Error("Did not find anchor as previous sibling of heading");
     }
     const hash = `#${anchor.id}`;
