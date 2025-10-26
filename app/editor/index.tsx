@@ -61,6 +61,7 @@ import {
   LightboxImageFactory,
 } from "@shared/editor/lib/Lightbox";
 import Lightbox from "~/components/Lightbox";
+import { anchorPlugin } from "@shared/editor/plugins/anchorPlugin";
 
 export type Props = {
   /** An optional identifier for the editor context. It is used to persist local settings */
@@ -406,6 +407,7 @@ export class Editor extends React.PureComponent<
       plugins: [
         ...this.keymaps,
         ...this.plugins,
+        anchorPlugin(),
         dropCursor({
           color: this.props.theme.cursor,
         }),
