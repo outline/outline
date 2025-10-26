@@ -6,8 +6,9 @@ import {
   AlignImageRightIcon,
   AlignImageCenterIcon,
   AlignFullWidthIcon,
+  EditIcon,
 } from "outline-icons";
-import { EditorState } from "prosemirror-state";
+import { EditorState, NodeSelection } from "prosemirror-state";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
@@ -79,8 +80,20 @@ export default function imageMenuItems(
       visible: !!fetch,
     },
     {
+      name: "editImage",
+      tooltip: "Edit diagram",
+      icon: <EditIcon />,
+      visible:
+        state.selection instanceof NodeSelection &&
+        state.selection.node.attrs.source === "drawio",
+    },
+    {
       tooltip: dictionary.replaceImage,
       icon: <ReplaceIcon />,
+      visible: !(
+        state.selection instanceof NodeSelection &&
+        state.selection.node.attrs.source === "drawio"
+      ),
       children: [
         {
           name: "replaceImage",

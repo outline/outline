@@ -16,6 +16,8 @@ import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { ComponentProps } from "../types";
 import SimpleImage from "./SimpleImage";
 import { LightboxImageFactory } from "../lib/Lightbox";
+import { uploadFile, uploadFileFromUrl } from "~/utils/files";
+import { AttachmentPreset } from "@shared/types";
 
 const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
 
@@ -103,6 +105,10 @@ export default class Image extends SimpleImage {
           default: undefined,
         },
         alt: {
+          default: null,
+          validate: "string|null",
+        },
+        source: {
           default: null,
           validate: "string|null",
         },
@@ -415,6 +421,103 @@ export default class Image extends SimpleImage {
   commands({ type }: { type: NodeType }) {
     return {
       ...super.commands({ type }),
+      editImage: (): Command => (state, dispatch) => {
+        const { node } = state.selection;
+
+        var url =
+          "https://embed.diagrams.net/?embed=1&ui=atlas&spin=1&modified=unsavedChanges&proto=json";
+        var source = node.attrs.src;
+        var drawIoWindow = null;
+
+        if (drawIoWindow == null || drawIoWindow.closed) {
+          // Implements protocol for loading and exporting with embedded XML
+          var receive = function (evt) {
+            if (evt.data.length > 0 && evt.source == drawIoWindow) {
+              var msg = JSON.parse(evt.data);
+
+              // Received if the editor is ready
+              if (msg.event == "init") {
+                // Download the image as a data URI
+                fetch(source)
+                  .then((response) => response.blob())
+                  .then((blob) => {
+                    const reader = new FileReader();
+                    reader.onloadend = function () {
+                      const base64data = reader.result;
+                      // Strips the "data:<mime-type>;base64," prefix
+                      const base64 = (base64data as string).split(",")[1];
+                      // Sends the data URI with embedded XML to editor
+                      drawIoWindow.postMessage(
+                        JSON.stringify({
+                          action: "load",
+                          xmlpng: base64,
+                        }),
+                        "*"
+                      );
+                    };
+                    reader.readAsDataURL(blob);
+                  });
+              }
+              // Received if the user clicks save
+              else if (msg.event == "save") {
+                // Sends a request to export the diagram as XML with embedded PNG
+                drawIoWindow.postMessage(
+                  JSON.stringify({
+                    action: "export",
+                    format: "xmlpng",
+                    spinKey: "saving",
+                  }),
+                  "*"
+                );
+              }
+              // Received if the export request was processed
+              else if (msg.event == "export") {
+                // Updates the data URI of the image
+                // source.setAttribute('src', msg.data);
+                const base64 = msg.data.split(",")[1];
+
+                // Convert msg.data from data:image/png;base64, format to File object
+                const file = new File(
+                  [Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))],
+                  "diagram.png",
+                  {
+                    type: "image/png",
+                  }
+                );
+
+                uploadFile(file, {
+                  preset: AttachmentPreset.DocumentAttachment,
+                }).then((uploadedFile) => {
+                  const attrs = {
+                    ...state.selection.node.attrs,
+                    src: uploadedFile?.url,
+                    source: "drawio",
+                  };
+                  const { selection } = state;
+                  dispatch?.(
+                    state.tr.setNodeMarkup(selection.from, undefined, attrs)
+                  );
+                });
+              }
+
+              // Received if the user clicks exit or after export
+              if (msg.event == "exit" || msg.event == "export") {
+                // Closes the editor
+                window.removeEventListener("message", receive);
+                drawIoWindow.close();
+                drawIoWindow = null;
+              }
+            }
+          };
+
+          // Opens the editor
+          window.addEventListener("message", receive);
+          drawIoWindow = window.open(url);
+        } else {
+          // Shows existing editor window
+          drawIoWindow.focus();
+        }
+      },
       downloadImage: (): Command => (state) => {
         if (!(state.selection instanceof NodeSelection)) {
           return false;
