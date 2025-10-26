@@ -66,7 +66,11 @@ export class TextHelper {
   static async replaceImagesWithAttachments(
     ctx: APIContext,
     markdown: string,
-    user: User
+    user: User,
+    options: {
+      /** If true, only process base64 encoded images */
+      base64Only?: boolean;
+    } = {}
   ) {
     let output = markdown;
     const images = parseImages(markdown);
@@ -86,6 +90,9 @@ export class TextHelper {
           }
 
           if (isInternalUrl(image.src)) {
+            return;
+          }
+          if (options.base64Only && !image.src.startsWith("data:")) {
             return;
           }
 

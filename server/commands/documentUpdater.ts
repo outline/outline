@@ -88,7 +88,9 @@ export default async function documentUpdater(
   if (text !== undefined) {
     document = DocumentHelper.applyMarkdownToDocument(
       document,
-      await TextHelper.replaceImagesWithAttachments(ctx, text, user),
+      await TextHelper.replaceImagesWithAttachments(ctx, text, user, {
+        base64Only: true,
+      }),
       append
     );
   }
