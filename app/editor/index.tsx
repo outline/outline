@@ -707,6 +707,8 @@ export class Editor extends React.PureComponent<
           markRemoved = true;
         }
       }
+
+      return;
     });
 
     dispatch(tr);
@@ -762,6 +764,8 @@ export class Editor extends React.PureComponent<
           markUpdated = true;
         }
       }
+
+      return;
     });
 
     dispatch(tr);
