@@ -329,7 +329,7 @@
     "@types/react-router-dom": "^5.3.3",
     "@types/react-virtualized-auto-sizer": "^1.0.8",
     "@types/react-window": "^1.8.8",
-    "@types/readable-stream": "^4.0.21",
+    "@types/readable-stream": "^4.0.22",
     "@types/redis-info": "^3.0.3",
     "@types/refractor": "^3.4.1",
     "@types/resolve-path": "^1.4.3",
