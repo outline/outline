@@ -9,7 +9,6 @@ import Text from "~/components/Text";
 import { TRANSLATED_CATEGORIES } from "../utils";
 import Grid from "./Grid";
 import { IconButton } from "./IconButton";
-import { EmojiImage } from "@shared/components/customEmojis";
 
 /**
  * icon/emoji size is 24px; and we add 4px padding on all sides,
@@ -25,7 +24,7 @@ type OutlineNode = {
 };
 
 type EmojiNode = {
-  type: IconType.Emoji | IconType.Custom;
+  type: IconType.Emoji;
   id: string;
   value: string;
 };
@@ -86,13 +85,9 @@ const GridTemplate = (
             key={item.id}
             onClick={() => onIconSelect({ id: item.id, value: item.value })}
           >
-            {item.type === IconType.Custom ? (
-              <EmojiImage src={item.value} />
-            ) : (
-              <Emoji width={24} height={24}>
-                {item.value}
-              </Emoji>
-            )}
+            <Emoji width={24} height={24}>
+              {item.value}
+            </Emoji>
           </IconButton>
         );
       });

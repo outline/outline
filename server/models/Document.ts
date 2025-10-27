@@ -318,6 +318,10 @@ class Document extends ArchivableModel<
   editorVersion: string | null;
 
   /** An icon to use as the document icon. */
+  @Length({
+    max: 50,
+    msg: `icon must be 50 characters or less`,
+  })
   @Column
   icon: string | null;
 
