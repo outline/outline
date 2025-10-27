@@ -6,6 +6,7 @@ import { TextHelper } from "./TextHelper";
 import env from "../env";
 import { findChildren } from "@shared/editor/queries/findChildren";
 import { isLightboxNode } from "@shared/editor/lib/Lightbox";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 
 export type Heading = {
   /* The heading in plain text */
@@ -228,7 +229,11 @@ export class ProsemirrorHelper {
       previouslySeen[slug] =
         previouslySeen[slug] !== undefined ? previouslySeen[slug] + 1 : 1;
 
-      anchors.push({ pos, id, className: "scroll-to-anchor-heading" });
+      anchors.push({
+        pos,
+        id,
+        className: EditorStyleHelper.headingPositionAnchor,
+      });
     });
     return anchors;
   }
@@ -242,7 +247,7 @@ export class ProsemirrorHelper {
             anchors.push({
               pos,
               id: `comment-${mark.attrs.id}`,
-              className: "scroll-to-anchor-image",
+              className: EditorStyleHelper.imagePositionAnchor,
             });
           }
         });

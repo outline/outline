@@ -18,6 +18,7 @@ import { headingToPersistenceKey } from "../lib/headingToSlug";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { findCollapsedNodes } from "../queries/findCollapsedNodes";
 import Node from "./Node";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
 export default class Heading extends Node {
   get name() {
@@ -179,7 +180,10 @@ export default class Heading extends Node {
       (event.currentTarget.parentNode?.parentNode
         ?.previousSibling as HTMLElement);
 
-    if (!anchor || !anchor.className.includes("scroll-to-anchor-heading")) {
+    if (
+      !anchor ||
+      !anchor.className.includes(EditorStyleHelper.headingPositionAnchor)
+    ) {
       throw new Error("Did not find anchor as previous sibling of heading");
     }
     const hash = `#${anchor.id}`;

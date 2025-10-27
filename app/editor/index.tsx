@@ -670,38 +670,42 @@ export class Editor extends React.PureComponent<
   public removeComment = (commentId: string) => {
     const { state, dispatch } = this.view;
     const tr = state.tr;
+    let markRemoved = false;
 
     state.doc.descendants((node, pos) => {
-      if (!node.isInline) {
-        return;
+      if (markRemoved) {
+        return false;
       }
-
-      const mark = node.marks.find(
-        (m) => m.type === state.schema.marks.comment && m.attrs.id === commentId
-      );
-
-      if (mark) {
-        tr.removeMark(pos, pos + node.nodeSize, mark);
-      }
-    });
-
-    state.doc.descendants((node, pos) => {
-      const mark = (node.attrs.marks ?? []).find(
-        (m: any) =>
-          m.type === state.schema.marks.comment.name && m.attrs.id === commentId
-      );
-
-      if (mark) {
-        const existingMarks = node.attrs.marks ?? [];
-        const updatedMarks = existingMarks.filter(
-          (m: any) => m.attrs.id !== mark.attrs.id
+      if (node.isInline) {
+        const mark = node.marks.find(
+          (m) =>
+            m.type === state.schema.marks.comment && m.attrs.id === commentId
         );
 
-        const attrs = {
-          ...node.attrs,
-          marks: updatedMarks,
-        };
-        tr.setNodeMarkup(pos, undefined, attrs);
+        if (mark) {
+          tr.removeMark(pos, pos + node.nodeSize, mark);
+          markRemoved = true;
+        }
+      } else {
+        const mark = (node.attrs.marks ?? []).find(
+          (m: any) =>
+            m.type === state.schema.marks.comment.name &&
+            m.attrs.id === commentId
+        );
+
+        if (mark) {
+          const existingMarks = node.attrs.marks ?? [];
+          const updatedMarks = existingMarks.filter(
+            (m: any) => m.attrs.id !== mark.attrs.id
+          );
+
+          const attrs = {
+            ...node.attrs,
+            marks: updatedMarks,
+          };
+          tr.setNodeMarkup(pos, undefined, attrs);
+          markRemoved = true;
+        }
       }
     });
 
@@ -720,40 +724,43 @@ export class Editor extends React.PureComponent<
   ) => {
     const { state, dispatch } = this.view;
     const tr = state.tr;
+    let markUpdated = false;
 
     state.doc.descendants((node, pos) => {
-      if (!node.isInline) {
-        return;
+      if (markUpdated) {
+        return false;
       }
-
-      const mark = node.marks.find(
-        (m) => m.type === state.schema.marks.comment && m.attrs.id === commentId
-      );
-
-      if (mark) {
-        const from = pos;
-        const to = pos + node.nodeSize;
-        const newMark = state.schema.marks.comment.create({
-          ...mark.attrs,
-          ...attrs,
-        });
-        tr.removeMark(from, to, mark).addMark(from, to, newMark);
-      }
-    });
-
-    state.doc.descendants((node, pos) => {
-      if (isArray(node.attrs?.marks)) {
-        const existingMarks = node.attrs.marks;
-        const updatedMarks = existingMarks.map((mark: any) =>
-          mark.type === "comment" && mark.attrs.id === commentId
-            ? { ...mark, attrs: { ...mark.attrs, ...attrs } }
-            : mark
+      if (node.isInline) {
+        const mark = node.marks.find(
+          (m) =>
+            m.type === state.schema.marks.comment && m.attrs.id === commentId
         );
-        const newAttrs = {
-          ...node.attrs,
-          marks: updatedMarks,
-        };
-        tr.setNodeMarkup(pos, undefined, newAttrs);
+
+        if (mark) {
+          const from = pos;
+          const to = pos + node.nodeSize;
+          const newMark = state.schema.marks.comment.create({
+            ...mark.attrs,
+            ...attrs,
+          });
+          tr.removeMark(from, to, mark).addMark(from, to, newMark);
+          markUpdated = true;
+        }
+      } else {
+        if (isArray(node.attrs?.marks)) {
+          const existingMarks = node.attrs.marks;
+          const updatedMarks = existingMarks.map((mark: any) =>
+            mark.type === "comment" && mark.attrs.id === commentId
+              ? { ...mark, attrs: { ...mark.attrs, ...attrs } }
+              : mark
+          );
+          const newAttrs = {
+            ...node.attrs,
+            marks: updatedMarks,
+          };
+          tr.setNodeMarkup(pos, undefined, newAttrs);
+          markUpdated = true;
+        }
       }
     });
 

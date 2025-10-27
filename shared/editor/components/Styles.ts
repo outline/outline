@@ -733,7 +733,7 @@ img.ProseMirror-separator {
   }
 }
 
-.scroll-to-anchor-heading, .scroll-to-anchor-image {
+.${EditorStyleHelper.headingPositionAnchor}, .${EditorStyleHelper.imagePositionAnchor} {
   color: ${props.theme.text};
   pointer-events: none;
   display: block;
@@ -746,11 +746,11 @@ img.ProseMirror-separator {
   }
 }
 
-.scroll-to-anchor-heading:first-child,
+.${EditorStyleHelper.headingPositionAnchor}:first-child,
 // Edge case where multiplayer cursor is between start of cell and heading
-.scroll-to-anchor-heading:first-child + .ProseMirror-yjs-cursor,
+.${EditorStyleHelper.headingPositionAnchor}:first-child + .ProseMirror-yjs-cursor,
 // Edge case where table grips are between start of cell and heading
-.scroll-to-anchor-heading:first-child + [role=button] + [role=button] {
+.${EditorStyleHelper.headingPositionAnchor}:first-child + [role=button] + [role=button] {
   & + h1,
   & + h2,
   & + h3,
