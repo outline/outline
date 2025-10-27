@@ -676,36 +676,27 @@ export class Editor extends React.PureComponent<
       if (markRemoved) {
         return false;
       }
-      if (node.isInline) {
-        const mark = node.marks.find(
-          (m) =>
-            m.type === state.schema.marks.comment && m.attrs.id === commentId
+      const mark = node.marks.find(
+        (m) => m.type === state.schema.marks.comment && m.attrs.id === commentId
+      );
+
+      if (mark) {
+        tr.removeMark(pos, pos + node.nodeSize, mark);
+        markRemoved = true;
+        return;
+      }
+
+      if (isArray(node.attrs?.marks)) {
+        const existingMarks = node.attrs.marks;
+        const updatedMarks = existingMarks.filter(
+          (mark: any) => mark.attrs.id !== commentId
         );
-
-        if (mark) {
-          tr.removeMark(pos, pos + node.nodeSize, mark);
-          markRemoved = true;
-        }
-      } else {
-        const mark = (node.attrs.marks ?? []).find(
-          (m: any) =>
-            m.type === state.schema.marks.comment.name &&
-            m.attrs.id === commentId
-        );
-
-        if (mark) {
-          const existingMarks = node.attrs.marks ?? [];
-          const updatedMarks = existingMarks.filter(
-            (m: any) => m.attrs.id !== mark.attrs.id
-          );
-
-          const attrs = {
-            ...node.attrs,
-            marks: updatedMarks,
-          };
-          tr.setNodeMarkup(pos, undefined, attrs);
-          markRemoved = true;
-        }
+        const attrs = {
+          ...node.attrs,
+          marks: updatedMarks,
+        };
+        tr.setNodeMarkup(pos, undefined, attrs);
+        markRemoved = true;
       }
 
       return;
@@ -732,37 +723,36 @@ export class Editor extends React.PureComponent<
       if (markUpdated) {
         return false;
       }
-      if (node.isInline) {
-        const mark = node.marks.find(
-          (m) =>
-            m.type === state.schema.marks.comment && m.attrs.id === commentId
-        );
 
-        if (mark) {
-          const from = pos;
-          const to = pos + node.nodeSize;
-          const newMark = state.schema.marks.comment.create({
-            ...mark.attrs,
-            ...attrs,
-          });
-          tr.removeMark(from, to, mark).addMark(from, to, newMark);
-          markUpdated = true;
-        }
-      } else {
-        if (isArray(node.attrs?.marks)) {
-          const existingMarks = node.attrs.marks;
-          const updatedMarks = existingMarks.map((mark: any) =>
-            mark.type === "comment" && mark.attrs.id === commentId
-              ? { ...mark, attrs: { ...mark.attrs, ...attrs } }
-              : mark
-          );
-          const newAttrs = {
-            ...node.attrs,
-            marks: updatedMarks,
-          };
-          tr.setNodeMarkup(pos, undefined, newAttrs);
-          markUpdated = true;
-        }
+      const mark = node.marks.find(
+        (m) => m.type === state.schema.marks.comment && m.attrs.id === commentId
+      );
+
+      if (mark) {
+        const from = pos;
+        const to = pos + node.nodeSize;
+        const newMark = state.schema.marks.comment.create({
+          ...mark.attrs,
+          ...attrs,
+        });
+        tr.removeMark(from, to, mark).addMark(from, to, newMark);
+        markUpdated = true;
+        return;
+      }
+
+      if (isArray(node.attrs?.marks)) {
+        const existingMarks = node.attrs.marks;
+        const updatedMarks = existingMarks.map((mark: any) =>
+          mark.type === "comment" && mark.attrs.id === commentId
+            ? { ...mark, attrs: { ...mark.attrs, ...attrs } }
+            : mark
+        );
+        const newAttrs = {
+          ...node.attrs,
+          marks: updatedMarks,
+        };
+        tr.setNodeMarkup(pos, undefined, newAttrs);
+        markUpdated = true;
       }
 
       return;
