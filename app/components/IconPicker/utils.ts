@@ -18,7 +18,6 @@ export const TRANSLATED_CATEGORIES = {
   Objects: i18next.t("Objects"),
   Symbols: i18next.t("Symbols"),
   Flags: i18next.t("Flags"),
-  Custom: i18next.t("Custom"),
 };
 
 export const FREQUENTLY_USED_COUNT = {

@@ -558,7 +558,6 @@ export type ProsemirrorDoc = {
 export enum IconType {
   SVG = "svg",
   Emoji = "emoji",
-  Custom = "custom",
 }
 
 export enum EmojiCategory {
