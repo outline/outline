@@ -1,5 +1,6 @@
 import { isEmail } from "class-validator";
 import { observer } from "mobx-react";
+import { v4 as uuidv4 } from "uuid";
 import { DocumentIcon, PlusIcon, CollectionIcon } from "outline-icons";
 import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -99,7 +100,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
               section: UserSection,
               appendSpace: true,
               attrs: {
-                id: crypto.randomUUID(),
+                id: uuidv4(),
                 type: MentionType.User,
                 modelId: user.id,
                 actorId,
@@ -125,7 +126,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
               section: GroupSection,
               appendSpace: true,
               attrs: {
-                id: crypto.randomUUID(),
+                id: uuidv4(),
                 type: MentionType.Group,
                 modelId: group.id,
                 actorId,
@@ -157,7 +158,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
                   section: DocumentsSection,
                   appendSpace: true,
                   attrs: {
-                    id: crypto.randomUUID(),
+                    id: uuidv4(),
                     type: MentionType.Document,
                     modelId: doc.id,
                     actorId,
@@ -185,7 +186,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
                   section: CollectionsSection,
                   appendSpace: true,
                   attrs: {
-                    id: crypto.randomUUID(),
+                    id: uuidv4(),
                     type: MentionType.Collection,
                     modelId: collection.id,
                     actorId,
@@ -205,9 +206,9 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
             priority: -1,
             appendSpace: true,
             attrs: {
-              id: crypto.randomUUID(),
+              id: uuidv4(),
               type: MentionType.Document,
-              modelId: crypto.randomUUID(),
+              modelId: uuidv4(),
               actorId,
               label: search,
             },
