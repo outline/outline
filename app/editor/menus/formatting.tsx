@@ -254,7 +254,7 @@ export default function formattingMenuItems(
       visible: !isCodeBlock,
     },
     {
-      name: "link",
+      name: "addLink",
       tooltip: dictionary.createLink,
       shortcut: `${metaDisplay}+K`,
       icon: <LinkIcon />,

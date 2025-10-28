@@ -5,7 +5,6 @@ import { Selection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
 import { hideScrollbars, s } from "@shared/styles";
@@ -23,36 +22,53 @@ import SuggestionsMenuItem from "./SuggestionsMenuItem";
 import ToolbarButton from "./ToolbarButton";
 import Tooltip from "./Tooltip";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
+import { MenuItem } from "@shared/editor/types";
+import { useEditor } from "./EditorContext";
 
 type Props = {
   mark?: Mark;
-  from: number;
   to: number;
   dictionary: Dictionary;
-  onSelectLink: (options: {
-    href: string;
-    title?: string;
-    from: number;
-    to: number;
-  }) => void;
-  onClickLink: (
-    href: string,
-    event: React.MouseEvent<HTMLButtonElement>
-  ) => void;
   view: EditorView;
 };
 
-const LinkEditor: React.FC<Props> = ({
-  mark,
-  from,
-  to,
-  dictionary,
-  onSelectLink,
-  onClickLink,
-  view,
-}) => {
+enum Action {
+  OPEN_LINK = "openLink",
+  UPDATE_LINK = "updateLink",
+  REMOVE_LINK = "removeLink",
+}
+
+type ActionDetails = {
+  [key in Action]: MenuItem;
+};
+
+const getActions = (
+  view: EditorView,
+  query: string,
+  dictionary: Dictionary
+): ActionDetails => {
+  const isInternal = isInternalUrl(query);
+  return {
+    [Action.OPEN_LINK]: {
+      tooltip: isInternal ? dictionary.goToLink : dictionary.openLink,
+      icon: isInternal ? <ArrowIcon /> : <OpenIcon />,
+      disabled: !query,
+    },
+    [Action.REMOVE_LINK]: {
+      tooltip: dictionary.removeLink,
+      icon: <CloseIcon />,
+      visible: view.editable,
+    },
+    [Action.UPDATE_LINK]: {
+      visible: false,
+    },
+  };
+};
+
+const LinkEditor: React.FC<Props> = ({ mark, to, dictionary, view }) => {
   const getHref = () => sanitizeUrl(mark?.attrs.href) ?? "";
   const initialValue = getHref();
+  const { commands } = useEditor();
   const inputRef = useRef<HTMLInputElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState(initialValue);
@@ -78,30 +94,32 @@ const LinkEditor: React.FC<Props> = ({
   }, [trimmedQuery, request]);
 
   useOnClickOutside(wrapperRef, () => {
-    // If the link in input is non-empty and same as it was when the editor opened, nothing to do
-    if (trimmedQuery.length && trimmedQuery === initialValue) {
-      return;
-    }
-
     // If the link is totally empty or only spaces then remove the mark
     if (!trimmedQuery) {
-      return handleRemoveLink();
+      return removeLink();
     }
 
-    save(trimmedQuery, trimmedQuery);
-  });
-
-  const save = (href: string, title?: string) => {
-    href = href.trim();
-
-    if (href.length === 0) {
+    // If the link in input is non-empty and same as it was when the editor opened, nothing to do
+    if (trimmedQuery === initialValue) {
       return;
     }
 
-    href = sanitizeUrl(href) ?? "";
+    updateLink(trimmedQuery);
+  });
 
-    onSelectLink({ href, title, from, to });
-    moveSelectionToEnd();
+  const openLink = React.useCallback(() => {
+    commands[Action.OPEN_LINK]();
+  }, []);
+
+  const removeLink = React.useCallback(() => {
+    commands[Action.REMOVE_LINK]();
+  }, []);
+
+  const updateLink = (link: string) => {
+    if (!link) {
+      return;
+    }
+    commands[Action.UPDATE_LINK]({ href: sanitizeUrl(link) ?? "" });
   };
 
   const moveSelectionToEnd = () => {
@@ -132,10 +150,11 @@ const LinkEditor: React.FC<Props> = ({
 
         if (selectedIndex >= 0 && results[selectedIndex]) {
           const selectedDoc = results[selectedIndex];
-          const href = selectedDoc.url;
-          save(href, selectedDoc.title);
+          updateLink(selectedDoc.url);
+        } else if (!trimmedQuery) {
+          removeLink();
         } else {
-          save(trimmedQuery, trimmedQuery);
+          updateLink(trimmedQuery);
         }
 
         return;
@@ -144,7 +163,7 @@ const LinkEditor: React.FC<Props> = ({
         event.preventDefault();
 
         if (!initialValue) {
-          handleRemoveLink();
+          return removeLink();
         }
 
         // Moving selection to end causes editor state to change,
@@ -164,29 +183,12 @@ const LinkEditor: React.FC<Props> = ({
   };
 
   const handlePaste = () => {
-    setTimeout(() => save(query, query), 0);
+    setTimeout(() => updateLink(query), 0);
   };
 
-  const handleOpenLink = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-
-    try {
-      onClickLink(getHref(), event);
-    } catch (_err) {
-      toast.error(dictionary.openLinkError);
-    }
-  };
-
-  const handleRemoveLink = () => {
-    const { state, dispatch } = view;
-    if (mark) {
-      dispatch(state.tr.removeMark(from, to, mark));
-    }
-    moveSelectionToEnd();
-  };
-
-  const isInternal = isInternalUrl(query);
   const hasResults = !!results.length;
+
+  const actions = getActions(view, query, dictionary);
 
   return (
     <div ref={wrapperRef}>
@@ -202,17 +204,21 @@ const LinkEditor: React.FC<Props> = ({
           autoFocus={getHref() === ""}
           readOnly={!view.editable}
         />
-        <Tooltip
-          content={isInternal ? dictionary.goToLink : dictionary.openLink}
-        >
-          <ToolbarButton onClick={handleOpenLink} disabled={!query}>
-            {isInternal ? <ArrowIcon /> : <OpenIcon />}
+        <Tooltip content={actions[Action.OPEN_LINK].tooltip}>
+          <ToolbarButton
+            onClick={openLink}
+            disabled={actions[Action.OPEN_LINK].disabled}
+          >
+            {actions[Action.OPEN_LINK].icon}
           </ToolbarButton>
         </Tooltip>
-        {view.editable && (
-          <Tooltip content={dictionary.removeLink}>
-            <ToolbarButton onClick={handleRemoveLink}>
-              <CloseIcon />
+        {actions[Action.REMOVE_LINK].visible && (
+          <Tooltip content={actions[Action.REMOVE_LINK].tooltip}>
+            <ToolbarButton
+              onClick={removeLink}
+              disabled={actions[Action.REMOVE_LINK].disabled}
+            >
+              {actions[Action.REMOVE_LINK].icon}
             </ToolbarButton>
           </Tooltip>
         )}
@@ -224,7 +230,7 @@ const LinkEditor: React.FC<Props> = ({
               {results.map((doc, index) => (
                 <SuggestionsMenuItem
                   onClick={() => {
-                    save(doc.url, doc.title);
+                    updateLink(doc.url);
                   }}
                   onPointerMove={() => setSelectedIndex(index)}
                   selected={index === selectedIndex}
