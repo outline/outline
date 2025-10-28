@@ -22,6 +22,7 @@ import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { getJWTPayload } from "@server/utils/jwt";
 import * as T from "./schema";
+import { getBaseDomain } from "@shared/utils/domains";
 
 const router = new Router();
 
@@ -95,6 +96,7 @@ router.get(
       "application/octet-stream";
 
     ctx.set("Accept-Ranges", "bytes");
+    ctx.set("Access-Control-Allow-Origin", "*");
     ctx.set("Cache-Control", cacheHeader);
     ctx.set("Content-Type", contentType);
     ctx.set("Content-Security-Policy", "sandbox");

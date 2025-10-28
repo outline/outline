@@ -80,7 +80,7 @@ export default function imageMenuItems(
       visible: !!fetch,
     },
     {
-      name: "editImage",
+      name: "editDiagram",
       tooltip: "Edit diagram",
       icon: <EditIcon />,
       visible:

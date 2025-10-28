@@ -16,8 +16,8 @@ import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { ComponentProps } from "../types";
 import SimpleImage from "./SimpleImage";
 import { LightboxImageFactory } from "../lib/Lightbox";
-import { uploadFile, uploadFileFromUrl } from "~/utils/files";
 import { AttachmentPreset } from "@shared/types";
+import FileHelper from "../lib/FileHelper";
 
 const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
 
@@ -419,14 +419,19 @@ export default class Image extends SimpleImage {
   }
 
   commands({ type }: { type: NodeType }) {
+    const { uploadFile } = this.editor.props;
+
     return {
       ...super.commands({ type }),
-      editImage: (): Command => (state, dispatch) => {
+      editDiagram: (): Command => (state, dispatch) => {
         const { node } = state.selection;
+
+        const emptyImage =
+          "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAADz3RFWHRteGZpbGUAJTNDbXhmaWxlJTIwaG9zdCUzRCUyMmFwcC5kaWFncmFtcy5uZXQlMjIlMjBhZ2VudCUzRCUyMk1vemlsbGElMkY1LjAlMjAoTWFjaW50b3NoJTNCJTIwSW50ZWwlMjBNYWMlMjBPUyUyMFglMjAxMF8xNV83KSUyMEFwcGxlV2ViS2l0JTJGNTM3LjM2JTIwKEtIVE1MJTJDJTIwbGlrZSUyMEdlY2tvKSUyMENocm9tZSUyRjEzOS4wLjAuMCUyMFNhZmFyaSUyRjUzNy4zNiUyMiUyMHZlcnNpb24lM0QlMjIyOC4yLjglMjIlMjBzY2FsZSUzRCUyMjElMjIlMjBib3JkZXIlM0QlMjIwJTIyJTNFJTBBJTIwJTIwJTNDZGlhZ3JhbSUyMG5hbWUlM0QlMjJQYWdlLTElMjIlMjBpZCUzRCUyMloxN1hHdVRjUnQteXp1N2xJbm1ZJTIyJTNFJTBBJTIwJTIwJTIwJTIwJTNDbXhHcmFwaE1vZGVsJTIwZHglM0QlMjIxMjE2JTIyJTIwZHklM0QlMjI3NzIlMjIlMjBncmlkJTNEJTIyMSUyMiUyMGdyaWRTaXplJTNEJTIyMTAlMjIlMjBndWlkZXMlM0QlMjIxJTIyJTIwdG9vbHRpcHMlM0QlMjIxJTIyJTIwY29ubmVjdCUzRCUyMjElMjIlMjBhcnJvd3MlM0QlMjIxJTIyJTIwZm9sZCUzRCUyMjElMjIlMjBwYWdlJTNEJTIyMSUyMiUyMHBhZ2VTY2FsZSUzRCUyMjElMjIlMjBwYWdlV2lkdGglM0QlMjI4NTAlMjIlMjBwYWdlSGVpZ2h0JTNEJTIyMTEwMCUyMiUyMG1hdGglM0QlMjIwJTIyJTIwc2hhZG93JTNEJTIyMCUyMiUzRSUwQSUyMCUyMCUyMCUyMCUyMCUyMCUzQ3Jvb3QlM0UlMEElMjAlMjAlMjAlMjAlMjAlMjAlMjAlMjAlM0NteENlbGwlMjBpZCUzRCUyMjAlMjIlMjAlMkYlM0UlMEElMjAlMjAlMjAlMjAlMjAlMjAlMjAlMjAlM0NteENlbGwlMjBpZCUzRCUyMjElMjIlMjBwYXJlbnQlM0QlMjIwJTIyJTIwJTJGJTNFJTBBJTIwJTIwJTIwJTIwJTIwJTIwJTNDJTJGcm9vdCUzRSUwQSUyMCUyMCUyMCUyMCUzQyUyRm14R3JhcGhNb2RlbCUzRSUwQSUyMCUyMCUzQyUyRmRpYWdyYW0lM0UlMEElM0MlMkZteGZpbGUlM0UlMEGDoGKLAAAADUlEQVR4AWJiYGRkAAAAAP//LRIDJAAAAAZJREFUAwAAFAAF3SeUTQAAAABJRU5ErkJggg==";
 
         var url =
           "https://embed.diagrams.net/?embed=1&ui=atlas&spin=1&modified=unsavedChanges&proto=json";
-        var source = node.attrs.src;
+        var source = node?.attrs.src;
         var drawIoWindow = null;
 
         if (drawIoWindow == null || drawIoWindow.closed) {
@@ -437,6 +442,15 @@ export default class Image extends SimpleImage {
 
               // Received if the editor is ready
               if (msg.event == "init") {
+                if (!source) {
+                  drawIoWindow.postMessage(
+                    JSON.stringify({
+                      action: "load",
+                      xmlpng: emptyImage,
+                    }),
+                    "*"
+                  );
+                }
                 // Download the image as a data URI
                 fetch(source)
                   .then((response) => response.blob())
@@ -485,18 +499,37 @@ export default class Image extends SimpleImage {
                   }
                 );
 
-                uploadFile(file, {
-                  preset: AttachmentPreset.DocumentAttachment,
-                }).then((uploadedFile) => {
-                  const attrs = {
-                    ...state.selection.node.attrs,
-                    src: uploadedFile?.url,
-                    source: "drawio",
-                  };
-                  const { selection } = state;
-                  dispatch?.(
-                    state.tr.setNodeMarkup(selection.from, undefined, attrs)
-                  );
+                FileHelper.getImageDimensions(file).then((dimensions) => {
+                  uploadFile(file, {
+                    preset: AttachmentPreset.DocumentAttachment,
+                  }).then((uploadedFile) => {
+                    if (state.selection.node?.type.name === "image") {
+                      const attrs = {
+                        ...state.selection.node.attrs,
+                        ...dimensions,
+                        src: uploadedFile,
+                        source: "drawio",
+                      };
+                      const { selection } = state;
+                      dispatch?.(
+                        state.tr.setNodeMarkup(selection.from, undefined, attrs)
+                      );
+                      return;
+                    }
+
+                    // insert image.
+                    const imageNode = type.create({
+                      ...dimensions,
+                      src: uploadedFile,
+                      source: "drawio",
+                    });
+                    const { tr } = state;
+                    const transaction = tr.insert(
+                      state.selection.from,
+                      imageNode
+                    );
+                    dispatch?.(transaction);
+                  });
                 });
               }
 
