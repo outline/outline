@@ -1,4 +1,5 @@
 import { observer } from "mobx-react";
+import { v4 as uuidv4 } from "uuid";
 import queryString from "query-string";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -104,7 +105,7 @@ function Search() {
     // without a flash of loading.
     if (query) {
       searches.add({
-        id: crypto.randomUUID(),
+        id: uuidv4(),
         query,
         createdAt: new Date().toISOString(),
       });

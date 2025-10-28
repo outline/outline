@@ -1,5 +1,6 @@
 import { Attrs } from "prosemirror-model";
 import { Command, NodeSelection, TextSelection } from "prosemirror-state";
+import { v4 as uuidv4 } from "uuid";
 import { isMarkActive } from "../queries/isMarkActive";
 import { chainTransactions } from "../lib/chainTransactions";
 import { addMark } from "./addMark";
@@ -20,7 +21,7 @@ const addCommentNodeSelection =
     const newMark = {
       type: "comment",
       attrs: {
-        id: crypto.randomUUID(),
+        id: uuidv4(),
         userId: attrs.userId,
         draft: true,
       },
@@ -54,7 +55,7 @@ const addCommentTextSelection =
 
     chainTransactions(
       addMark(state.schema.marks.comment, {
-        id: crypto.randomUUID(),
+        id: uuidv4(),
         userId: attrs.userId,
         draft: true,
       }),

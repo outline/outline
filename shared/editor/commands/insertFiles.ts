@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/react";
+import { v4 as uuidv4 } from "uuid";
 import { EditorView } from "prosemirror-view";
 import { toast } from "sonner";
 import type { Dictionary } from "~/hooks/useDictionary";
@@ -71,7 +72,7 @@ const insertFiles = async function (
           : undefined;
 
       return {
-        id: `upload-${crypto.randomUUID()}`,
+        id: `upload-${uuidv4()}`,
         dimensions: await getDimensions?.(file),
         isImage,
         isVideo,

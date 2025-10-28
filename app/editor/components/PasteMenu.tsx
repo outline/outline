@@ -1,4 +1,5 @@
 import { observer } from "mobx-react";
+import { v4 as uuidv4 } from "uuid";
 import { EmailIcon, LinkIcon } from "outline-icons";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -101,11 +102,11 @@ function useItems({
         icon: <EmailIcon />,
         visible: !!mentionType,
         attrs: {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           type: mentionType,
           label: pastedText,
           href: pastedText,
-          modelId: crypto.randomUUID(),
+          modelId: uuidv4(),
           actorId: user?.id,
         },
         appendSpace: true,

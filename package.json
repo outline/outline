@@ -262,6 +262,7 @@
     "ukkonen": "^2.2.0",
     "umzug": "^3.8.2",
     "utility-types": "^3.11.0",
+    "uuid": "^11.1.0",
     "validator": "13.15.20",
     "vaul": "^1.1.2",
     "vite": "npm:rolldown-vite@latest",

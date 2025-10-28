@@ -1,4 +1,5 @@
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+import { v4 as uuidv4 } from "uuid";
 import { m } from "framer-motion";
 import { action } from "mobx";
 import { observer } from "mobx-react";
@@ -160,7 +161,7 @@ function CommentForm({
       comments
     );
 
-    comment.id = crypto.randomUUID();
+    comment.id = uuidv4();
     comments.add(comment);
 
     comment

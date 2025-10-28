@@ -1,4 +1,5 @@
 import { action, observable } from "mobx";
+import { v4 as uuidv4 } from "uuid";
 import { toggleMark } from "prosemirror-commands";
 import { Node, Slice } from "prosemirror-model";
 import {
@@ -143,7 +144,7 @@ export default class PasteHandler extends Extension {
                                   type: MentionType.Document,
                                   modelId: document.id,
                                   label: document.titleWithDefault,
-                                  id: crypto.randomUUID(),
+                                  id: uuidv4(),
                                 })
                               )
                             );
@@ -188,7 +189,7 @@ export default class PasteHandler extends Extension {
                                   type: MentionType.Collection,
                                   modelId: collection.id,
                                   label: collection.name,
-                                  id: crypto.randomUUID(),
+                                  id: uuidv4(),
                                 })
                               )
                             );
