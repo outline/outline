@@ -1,12 +1,12 @@
 import { toggleMark } from "prosemirror-commands";
-import { MarkSpec, MarkType, Schema, Mark as PMMark } from "prosemirror-model";
+import { MarkSpec, MarkType, Mark as PMMark } from "prosemirror-model";
 import { Command, Plugin } from "prosemirror-state";
-import { addMark } from "../commands/addMark";
 import { collapseSelection } from "../commands/collapseSelection";
 import { chainTransactions } from "../lib/chainTransactions";
 import { isMarkActive } from "../queries/isMarkActive";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import Mark from "./Mark";
+import { addComment } from "../commands/comment";
 
 export default class Comment extends Mark {
   get name() {
@@ -94,32 +94,9 @@ export default class Comment extends Mark {
       : {};
   }
 
-  commands({ type }: { type: MarkType; schema: Schema }) {
+  commands() {
     return this.options.onCreateCommentMark
-      ? (): Command => (state, dispatch) => {
-          if (
-            isMarkActive(
-              state.schema.marks.comment,
-              {
-                resolved: false,
-              },
-              { exact: true }
-            )(state)
-          ) {
-            return false;
-          }
-
-          chainTransactions(
-            addMark(type, {
-              id: crypto.randomUUID(),
-              userId: this.options.userId,
-              draft: true,
-            }),
-            collapseSelection()
-          )(state, dispatch);
-
-          return true;
-        }
+      ? (): Command => addComment({ userId: this.options.userId })
       : undefined;
   }
 

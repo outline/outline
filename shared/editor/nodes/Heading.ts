@@ -14,14 +14,13 @@ import Storage from "../../utils/Storage";
 import backspaceToParagraph from "../commands/backspaceToParagraph";
 import splitHeading from "../commands/splitHeading";
 import toggleBlockType from "../commands/toggleBlockType";
-import headingToSlug, { headingToPersistenceKey } from "../lib/headingToSlug";
+import { headingToPersistenceKey } from "../lib/headingToSlug";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { findCollapsedNodes } from "../queries/findCollapsedNodes";
 import Node from "./Node";
+import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 
 export default class Heading extends Node {
-  className = "heading-name";
-
   get name() {
     return "heading";
   }
@@ -181,7 +180,10 @@ export default class Heading extends Node {
       (event.currentTarget.parentNode?.parentNode
         ?.previousSibling as HTMLElement);
 
-    if (!anchor || !anchor.className.includes(this.className)) {
+    if (
+      !anchor ||
+      !anchor.className.includes(EditorStyleHelper.headingPositionAnchor)
+    ) {
       throw new Error("Did not find anchor as previous sibling of heading");
     }
     const hash = `#${anchor.id}`;
@@ -219,61 +221,6 @@ export default class Heading extends Node {
   }
 
   get plugins() {
-    const getAnchors = (doc: ProsemirrorNode) => {
-      const decorations: Decoration[] = [];
-      const previouslySeen: Record<string, number> = {};
-
-      doc.descendants((node, pos) => {
-        if (node.type.name !== this.name) {
-          return;
-        }
-
-        // calculate the optimal id
-        const slug = headingToSlug(node);
-        let id = slug;
-
-        // check if we've already used it, and if so how many times?
-        // Make the new id based on that number ensuring that we have
-        // unique ID's even when headings are identical
-        if (previouslySeen[slug] > 0) {
-          id = headingToSlug(node, previouslySeen[slug]);
-        }
-
-        // record that we've seen this slug for the next loop
-        previouslySeen[slug] =
-          previouslySeen[slug] !== undefined ? previouslySeen[slug] + 1 : 1;
-
-        decorations.push(
-          Decoration.widget(
-            pos,
-            () => {
-              const anchor = document.createElement("a");
-              anchor.id = id;
-              anchor.className = this.className;
-              return anchor;
-            },
-            {
-              side: -1,
-              key: id,
-            }
-          )
-        );
-      });
-
-      return DecorationSet.create(doc, decorations);
-    };
-
-    const plugin: Plugin = new Plugin({
-      state: {
-        init: (config, state) => getAnchors(state.doc),
-        apply: (tr, oldState) =>
-          tr.docChanged ? getAnchors(tr.doc) : oldState,
-      },
-      props: {
-        decorations: (state) => plugin.getState(state),
-      },
-    });
-
     const foldPlugin: Plugin = new Plugin({
       props: {
         decorations: (state) => {
@@ -290,7 +237,7 @@ export default class Heading extends Node {
       },
     });
 
-    return [foldPlugin, plugin];
+    return [foldPlugin];
   }
 
   inputRules({ type }: { type: NodeType }) {

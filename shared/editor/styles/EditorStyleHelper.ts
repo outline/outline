@@ -12,6 +12,12 @@ export class EditorStyleHelper {
 
   static readonly imageCaption = "caption";
 
+  static readonly imagePositionAnchor = "image-position-anchor";
+
+  // Headings
+
+  static readonly headingPositionAnchor = "heading-position-anchor";
+
   // Comments
 
   static readonly comment = "comment-marker";

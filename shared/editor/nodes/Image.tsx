@@ -16,6 +16,7 @@ import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { ComponentProps } from "../types";
 import SimpleImage from "./SimpleImage";
 import { LightboxImageFactory } from "../lib/Lightbox";
+import { addComment } from "../commands/comment";
 
 const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
 
@@ -113,6 +114,9 @@ export default class Image extends SimpleImage {
         title: {
           default: null,
           validate: "string|null",
+        },
+        marks: {
+          default: undefined,
         },
       },
       content: "text*",
@@ -412,6 +416,12 @@ export default class Image extends SimpleImage {
     };
   }
 
+  keys(): Record<string, Command> {
+    return {
+      "Mod-Alt-m": addComment({ userId: this.options.userId }),
+    };
+  }
+
   commands({ type }: { type: NodeType }) {
     return {
       ...super.commands({ type }),
@@ -503,6 +513,8 @@ export default class Image extends SimpleImage {
           dispatch?.(tr.setSelection(new NodeSelection($pos)));
           return true;
         },
+      commentOnImage: (): Command =>
+        addComment({ userId: this.options.userId }),
     };
   }
 

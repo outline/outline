@@ -17,7 +17,7 @@ import Node from "./Node";
 import { LightboxImageFactory } from "../lib/Lightbox";
 
 export default class SimpleImage extends Node {
-  options: Options;
+  options: Options & { userId?: string };
 
   get name() {
     return "image";
