@@ -1,4 +1,5 @@
 import { observable, action } from "mobx";
+import { v4 as uuidv4 } from "uuid";
 import * as React from "react";
 
 type DialogDefinition = {
@@ -65,7 +66,7 @@ export default class DialogsStore {
           this.modalStack.clear();
         }
 
-        this.modalStack.set(id ?? replaceId ?? crypto.randomUUID(), {
+        this.modalStack.set(id ?? replaceId ?? uuidv4(), {
           title,
           content,
           style,
