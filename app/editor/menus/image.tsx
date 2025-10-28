@@ -75,15 +75,6 @@ export default function imageMenuItems(
       name: "separator",
     },
     {
-      name: "commentOnImage",
-      tooltip: dictionary.comment,
-      shortcut: `${metaDisplay}+⌥+M`,
-      icon: <CommentIcon />,
-    },
-    {
-      name: "separator",
-    },
-    {
       name: "downloadImage",
       tooltip: dictionary.downloadImage,
       icon: <DownloadIcon />,
@@ -107,6 +98,15 @@ export default function imageMenuItems(
       name: "deleteImage",
       tooltip: dictionary.deleteImage,
       icon: <TrashIcon />,
+    },
+    {
+      name: "separator",
+    },
+    {
+      name: "commentOnImage",
+      tooltip: dictionary.comment,
+      shortcut: `${metaDisplay}+⌥+M`,
+      icon: <CommentIcon />,
     },
   ];
 }
