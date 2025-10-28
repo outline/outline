@@ -1,6 +1,7 @@
 import { toggleMark } from "prosemirror-commands";
 import { MarkSpec, MarkType, Mark as PMMark } from "prosemirror-model";
 import { Command, Plugin } from "prosemirror-state";
+import { v4 as uuidv4 } from "uuid";
 import { collapseSelection } from "../commands/collapseSelection";
 import { addComment } from "../commands/comment";
 import { chainTransactions } from "../lib/chainTransactions";
