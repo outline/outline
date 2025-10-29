@@ -28,6 +28,7 @@ export default class Emoji extends Extension {
           default: "grey_question",
           validate: "string",
         },
+        type: { default: "emoji", validate: "string" },
       },
       inline: true,
       content: "text*",
@@ -48,15 +49,29 @@ export default class Emoji extends Extension {
       ],
       toDOM: (node) => {
         const name = node.attrs["data-name"];
+        const type = node.attrs.type;
 
-        return [
-          "strong",
-          {
-            class: `emoji ${name}`,
-            "data-name": name,
-          },
-          getEmojiFromName(name),
-        ];
+        if (type === "custom") {
+          return [
+            "img",
+            {
+              class: `emoji custom-emoji ${name}`,
+              "data-name": name,
+              src: name,
+              style:
+                "width: 1.2em; height: 1.2em; vertical-align: text-bottom; display: inline-block;",
+            },
+          ];
+        } else {
+          return [
+            "strong",
+            {
+              class: `emoji ${name}`,
+              "data-name": name,
+            },
+            getEmojiFromName(name),
+          ];
+        }
       },
       leafText: (node) => getEmojiFromName(node.attrs["data-name"]),
     };
