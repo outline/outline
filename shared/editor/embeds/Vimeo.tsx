@@ -15,7 +15,7 @@ function Vimeo({ matches, ...props }: Props) {
       title={`Vimeo Embed (${videoId})`}
       height="412px"
       border={false}
-      referrerPolicy="origin"
+      referrerPolicy="strict-origin-when-cross-origin"
     />
   );
 }

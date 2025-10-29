@@ -103,7 +103,7 @@ const InnerEmbed = React.forwardRef<HTMLIFrameElement, Props>(
           isSelected={isSelected}
           canonicalUrl={embed.hideToolbar ? undefined : node.attrs.href}
           title={embed.title}
-          referrerPolicy="origin"
+          referrerPolicy="strict-origin-when-cross-origin"
           border
         />
       );
