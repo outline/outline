@@ -77,6 +77,7 @@ export default class Emoji extends Extension {
     };
   }
 
+  // to do: custom emoji rules
   get rulePlugins() {
     return [emojiRule];
   }
@@ -100,6 +101,7 @@ export default class Emoji extends Extension {
       };
   }
 
+  // to do: custom emoji conversion
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     const name = node.attrs["data-name"];
     if (name) {
@@ -107,6 +109,7 @@ export default class Emoji extends Extension {
     }
   }
 
+  // to do: custom emoji conversion
   parseMarkdown() {
     return {
       node: "emoji",
