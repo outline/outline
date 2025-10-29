@@ -298,7 +298,7 @@ const FloatingToolbar = React.forwardRef(function FloatingToolbar_(
         ref={menuRef}
         $offset={position.offset}
         style={{
-          width: props.width,
+          minWidth: props.width,
           maxWidth: `${position.maxWidth}px`,
           top: `${position.top}px`,
           left: `${position.left}px`,
