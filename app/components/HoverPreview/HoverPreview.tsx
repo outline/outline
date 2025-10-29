@@ -137,6 +137,7 @@ const HoverPreviewDesktop = observer(
                 <HoverPreviewGroup
                   ref={cardRef}
                   name={data.name}
+                  description={data.description}
                   memberCount={data.memberCount}
                   users={data.users}
                 />
