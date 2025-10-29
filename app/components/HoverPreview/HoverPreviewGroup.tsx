@@ -17,7 +17,7 @@ import ErrorBoundary from "../ErrorBoundary";
 type Props = Omit<UnfurlResponse[UnfurlResourceType.Group], "type">;
 
 const HoverPreviewGroup = React.forwardRef(function _HoverPreviewGroup(
-  { name, memberCount, users }: Props,
+  { name, description, memberCount, users }: Props,
   ref: React.Ref<HTMLDivElement>
 ) {
   return (
@@ -27,6 +27,9 @@ const HoverPreviewGroup = React.forwardRef(function _HoverPreviewGroup(
           <ErrorBoundary showTitle={false} reloadOnChunkMissing={false}>
             <Flex column gap={2} align="start">
               <Title>{name}</Title>
+              {description && (
+                <Description>{description}</Description>
+              )}
               <Info>
                 {memberCount === 1 ? "1 member" : `${memberCount} members`}
               </Info>

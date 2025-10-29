@@ -65,6 +65,10 @@ class Group extends ParanoidModel<
   @Column
   name: string;
 
+  @Length({ min: 0, max: 2000, msg: "description must be 2000 characters or less" })
+  @Column(DataType.TEXT)
+  description: string;
+
   @Column
   externalId: string;
 
