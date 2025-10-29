@@ -2,7 +2,7 @@ import * as React from "react";
 import useMeasure from "react-use-measure";
 
 export const MeasuredContainer = <T extends React.ElementType>({
-  as: As,
+  as: As = "div",
   name,
   children,
   ...rest
