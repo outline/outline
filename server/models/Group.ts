@@ -9,6 +9,7 @@ import {
   DataType,
   Scopes,
 } from "sequelize-typescript";
+import { GroupValidation } from "@shared/validations";
 import GroupMembership from "./GroupMembership";
 import GroupUser from "./GroupUser";
 import Team from "./Team";
@@ -65,7 +66,7 @@ class Group extends ParanoidModel<
   @Column
   name: string;
 
-  @Length({ min: 0, max: 2000, msg: "description must be 2000 characters or less" })
+  @Length({ min: 0, max: GroupValidation.maxDescriptionLength, msg: `description must be ${GroupValidation.maxDescriptionLength} characters or less` })
   @Column(DataType.TEXT)
   description: string;
 
