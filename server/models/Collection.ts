@@ -238,10 +238,6 @@ class Collection extends ParanoidModel<
   content: ProsemirrorData | null;
 
   /** An icon (or) emoji to use as the collection icon. */
-  @Length({
-    max: 50,
-    msg: `icon must be 50 characters or less`,
-  })
   @Column
   icon: string | null;
 
