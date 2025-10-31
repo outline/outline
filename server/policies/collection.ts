@@ -81,23 +81,22 @@ allow(User, "share", Collection, (user, collection) => {
   }
 
   // Check if user has explicit membership permissions
-  const hasExplicitMembershipPermissions = hasExplicitMembership(collection);
   const hasWritePermission = includesMembership(collection, [
     CollectionPermission.ReadWrite,
     CollectionPermission.Admin,
   ]);
 
   // If user has explicit membership permissions, respect those permissions
-  if (hasExplicitMembershipPermissions) {
-    return hasWritePermission;
+  if (hasWritePermission) {
+    return true;
   }
 
-  // For private collections without explicit membership, deny access
+  // For private collections, deny access if no explicit membership
   if (collection.isPrivate) {
     return false;
   }
 
-  // For public collections without explicit membership, check default permission and admin bypass
+  // For public collections, check default permission and admin bypass
   if (
     collection.permission !== CollectionPermission.ReadWrite ||
     user.isViewer
@@ -115,23 +114,22 @@ allow(User, "updateDocument", Collection, (user, collection) => {
   }
 
   // Check if user has explicit membership permissions
-  const hasExplicitMembershipPermissions = hasExplicitMembership(collection);
   const hasWritePermission = includesMembership(collection, [
     CollectionPermission.ReadWrite,
     CollectionPermission.Admin,
   ]);
 
   // If user has explicit membership permissions, respect those permissions
-  if (hasExplicitMembershipPermissions) {
-    return hasWritePermission;
+  if (hasWritePermission) {
+    return true;
   }
 
-  // For private collections without explicit membership, deny access
+  // For private collections, deny access if no explicit membership
   if (collection.isPrivate) {
     return false;
   }
 
-  // For public collections without explicit membership, check default permission and admin bypass
+  // For public collections, check default permission and admin bypass
   if (
     collection.permission !== CollectionPermission.ReadWrite ||
     user.isViewer ||
@@ -159,23 +157,22 @@ allow(
     }
 
     // Check if user has explicit membership permissions
-    const hasExplicitMembershipPermissions = hasExplicitMembership(collection);
     const hasWritePermission = includesMembership(collection, [
       CollectionPermission.ReadWrite,
       CollectionPermission.Admin,
     ]);
 
     // If user has explicit membership permissions, respect those permissions
-    if (hasExplicitMembershipPermissions) {
-      return hasWritePermission;
+    if (hasWritePermission) {
+      return true;
     }
 
-    // For private collections without explicit membership, deny access
+    // For private collections, deny access if no explicit membership
     if (collection.isPrivate) {
       return false;
     }
 
-    // For public collections without explicit membership, check default permission and admin bypass
+    // For public collections, check default permission and admin bypass
     if (
       collection.permission !== CollectionPermission.ReadWrite ||
       user.isViewer ||
@@ -245,23 +242,4 @@ function includesMembership(
   ).map((m) => m.id);
 
   return membershipIds.length > 0 ? membershipIds : false;
-}
-
-function hasExplicitMembership(collection: Collection | null) {
-  if (!collection) {
-    return false;
-  }
-
-  invariant(
-    collection.memberships,
-    "Development: collection memberships not preloaded, did you forget `withMembership` scope?"
-  );
-  invariant(
-    collection.groupMemberships,
-    "Development: collection groupMemberships not preloaded, did you forget `withMembership` scope?"
-  );
-
-  return (
-    collection.memberships.length > 0 || collection.groupMemberships.length > 0
-  );
 }
