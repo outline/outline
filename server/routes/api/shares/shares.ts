@@ -86,7 +86,7 @@ router.post(
       ctx.body = {
         data: {
           shares: [presentShare(share, user?.isAdmin ?? false)],
-          sharedTree: sharedTree,
+          sharedTree,
           team: serializedTeam,
           collection: serializedCollection,
           document: serializedDocument,

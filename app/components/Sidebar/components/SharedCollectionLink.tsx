@@ -6,6 +6,7 @@ import useStores from "~/hooks/useStores";
 import { sharedModelPath } from "~/utils/routeHelpers";
 import { SharedDocumentLink } from "./SharedDocumentLink";
 import SidebarLink from "./SidebarLink";
+import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 
 type Props = {
   node: NavigationNode;
@@ -14,31 +15,37 @@ type Props = {
 
 function CollectionLink({ node, shareId }: Props) {
   const { t } = useTranslation();
-  const { documents, ui } = useStores();
+  const { documents, collections, ui } = useStores();
+  const collection = collections.get(node.id);
 
   const icon = node.icon ?? node.emoji;
+  const showCollectionRoot = collection
+    ? !ProsemirrorHelper.isEmptyData(collection?.data)
+    : true;
 
   return (
     <>
-      <SidebarLink
-        to={{
-          pathname: sharedModelPath(shareId),
-          state: {
-            title: node.title,
-          },
-        }}
-        icon={icon && <Icon value={icon} color={node.color} />}
-        label={node.title || t("Untitled")}
-        depth={0}
-        exact={false}
-        scrollIntoViewIfNeeded={true}
-        isActive={() => ui.activeCollectionId === node.id}
-      />
+      {showCollectionRoot && (
+        <SidebarLink
+          to={{
+            pathname: sharedModelPath(shareId),
+            state: {
+              title: node.title,
+            },
+          }}
+          icon={icon && <Icon value={icon} color={node.color} />}
+          label={node.title || t("Untitled")}
+          depth={0}
+          exact={false}
+          scrollIntoViewIfNeeded={true}
+          isActive={() => ui.activeCollectionId === node.id}
+        />
+      )}
       {node.children.map((childNode, index) => (
         <SharedDocumentLink
           key={childNode.id}
           index={index}
-          depth={2}
+          depth={showCollectionRoot ? 2 : 0}
           shareId={shareId}
           node={childNode}
           prefetchDocument={documents.prefetchDocument}
