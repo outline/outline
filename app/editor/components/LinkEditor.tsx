@@ -22,13 +22,13 @@ import Input from "./Input";
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
 import ToolbarButton from "./ToolbarButton";
 import Tooltip from "./Tooltip";
+import useOnClickOutside from "~/hooks/useOnClickOutside";
 
 type Props = {
   mark?: Mark;
   from: number;
   to: number;
   dictionary: Dictionary;
-  onRemoveLink?: () => void;
   onSelectLink: (options: {
     href: string;
     title?: string;
@@ -47,16 +47,14 @@ const LinkEditor: React.FC<Props> = ({
   from,
   to,
   dictionary,
-  onRemoveLink,
   onSelectLink,
   onClickLink,
   view,
 }) => {
   const getHref = () => sanitizeUrl(mark?.attrs.href) ?? "";
   const initialValue = getHref();
-  const initialSelectionLength = to - from;
   const inputRef = useRef<HTMLInputElement>(null);
-  const discardRef = useRef(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState(initialValue);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const { documents } = useStores();
@@ -79,35 +77,19 @@ const LinkEditor: React.FC<Props> = ({
     }
   }, [trimmedQuery, request]);
 
-  useEffect(() => {
-    const handleGlobalKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "k" && event.metaKey) {
-        inputRef.current?.select();
-      }
-    };
+  useOnClickOutside(wrapperRef, () => {
+    // If the link in input is non-empty and same as it was when the editor opened, nothing to do
+    if (trimmedQuery.length && trimmedQuery === initialValue) {
+      return;
+    }
 
-    window.addEventListener("keydown", handleGlobalKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleGlobalKeyDown);
+    // If the link is totally empty or only spaces then remove the mark
+    if (!trimmedQuery) {
+      return handleRemoveLink();
+    }
 
-      // If we discarded the changes then nothing to do
-      if (discardRef.current) {
-        return;
-      }
-
-      // If the link is the same as it was when the editor opened, nothing to do
-      if (trimmedQuery === initialValue) {
-        return;
-      }
-
-      // If the link is totally empty or only spaces then remove the mark
-      if (!trimmedQuery) {
-        return handleRemoveLink();
-      }
-
-      save(trimmedQuery, trimmedQuery);
-    };
-  }, [trimmedQuery, initialValue]);
+    save(trimmedQuery, trimmedQuery);
+  });
 
   const save = (href: string, title?: string) => {
     href = href.trim();
@@ -116,10 +98,10 @@ const LinkEditor: React.FC<Props> = ({
       return;
     }
 
-    discardRef.current = true;
     href = sanitizeUrl(href) ?? "";
 
     onSelectLink({ href, title, from, to });
+    moveSelectionToEnd();
   };
 
   const moveSelectionToEnd = () => {
@@ -156,20 +138,20 @@ const LinkEditor: React.FC<Props> = ({
           save(trimmedQuery, trimmedQuery);
         }
 
-        if (initialSelectionLength) {
-          moveSelectionToEnd();
-        }
         return;
       }
       case "Escape": {
         event.preventDefault();
 
-        if (initialValue) {
-          setQuery(initialValue);
-          moveSelectionToEnd();
-        } else {
+        if (!initialValue) {
           handleRemoveLink();
         }
+
+        // Moving selection to end causes editor state to change,
+        // forcing a re-render of the top-level editor component. As
+        // a result, the new selection, being devoid of any link mark,
+        // prevents LinkEditor from re-rendering.
+        moveSelectionToEnd();
         return;
       }
     }
@@ -196,23 +178,19 @@ const LinkEditor: React.FC<Props> = ({
   };
 
   const handleRemoveLink = () => {
-    discardRef.current = true;
-
     const { state, dispatch } = view;
     if (mark) {
       dispatch(state.tr.removeMark(from, to, mark));
     }
-
-    onRemoveLink?.();
-    view.focus();
+    moveSelectionToEnd();
   };
 
   const isInternal = isInternalUrl(query);
   const hasResults = !!results.length;
 
   return (
-    <>
-      <Wrapper>
+    <div ref={wrapperRef}>
+      <InputWrapper ref={wrapperRef}>
         <Input
           ref={inputRef}
           value={query}
@@ -238,7 +216,7 @@ const LinkEditor: React.FC<Props> = ({
             </ToolbarButton>
           </Tooltip>
         )}
-      </Wrapper>
+      </InputWrapper>
       <SearchResults $hasResults={hasResults}>
         <ResizingHeightContainer>
           {hasResults && (
@@ -247,9 +225,6 @@ const LinkEditor: React.FC<Props> = ({
                 <SuggestionsMenuItem
                   onClick={() => {
                     save(doc.url, doc.title);
-                    if (initialSelectionLength) {
-                      moveSelectionToEnd();
-                    }
                   }}
                   onPointerMove={() => setSelectedIndex(index)}
                   selected={index === selectedIndex}
@@ -276,11 +251,11 @@ const LinkEditor: React.FC<Props> = ({
           )}
         </ResizingHeightContainer>
       </SearchResults>
-    </>
+    </div>
   );
 };
 
-const Wrapper = styled(Flex)`
+const InputWrapper = styled(Flex)`
   pointer-events: all;
   gap: 6px;
   padding: 6px;
