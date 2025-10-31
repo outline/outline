@@ -417,6 +417,18 @@ class DocumentScene extends React.Component<Props> {
     void this.onSave();
   });
 
+  handleSelectTemplate = async (template: Document | Revision) => {
+    const doc = this.editor.current?.view.state.doc;
+    if (!doc) {
+      return;
+    }
+
+    return this.replaceSelection(
+      template,
+      ProsemirrorHelper.isEmpty(doc) ? new AllSelection(doc) : undefined
+    );
+  };
+
   goBack = () => {
     if (!this.props.readOnly) {
       this.props.history.push({
@@ -533,7 +545,7 @@ class DocumentScene extends React.Component<Props> {
               }
               savingIsDisabled={document.isSaving || this.isEmpty}
               sharedTree={this.props.sharedTree}
-              onSelectTemplate={this.replaceSelection}
+              onSelectTemplate={this.handleSelectTemplate}
               onSave={this.onSave}
             />
             <Main
