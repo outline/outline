@@ -481,6 +481,8 @@
   "Image height": "Image height",
   "Height": "Height",
   "Profile picture": "Ảnh đại diện",
+  "{{ count }} members": "{{ count }} member",
+  "{{ count }} members_plural": "{{ count }} members",
   "Create a new doc": "Tạo một tài liệu mới",
   "{{ userName }} won't be notified, as they do not have access to this document": "{{ userName }} sẽ không được thông báo, bởi vì họ không có quyền truy cập tài liệu này",
   "Members of \"{{ groupName }}\" that have access to this document will be notified": "Members of \"{{ groupName }}\" that have access to this document will be notified",
