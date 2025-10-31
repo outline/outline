@@ -47,7 +47,7 @@ function SharedSidebar({ share }: Props) {
   }
 
   return (
-    <StyledSidebar $hoverTransition={!teamAvailable}>
+    <StyledSidebar $hoverTransition={!teamAvailable} canResize={false}>
       {teamAvailable && (
         <SidebarButton
           title={team.name}
@@ -57,9 +57,7 @@ function SharedSidebar({ share }: Props) {
           onClick={() =>
             history.push(user ? homePath() : sharedModelPath(shareId))
           }
-        >
-          <ToggleSidebar />
-        </SidebarButton>
+        />
       )}
       <ScrollContainer topShadow flex>
         <TopSection>
