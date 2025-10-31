@@ -146,6 +146,7 @@ const LinkEditor: React.FC<Props> = ({
         if (!initialValue) {
           handleRemoveLink();
         }
+        moveSelectionToEnd();
         return;
       }
     }
