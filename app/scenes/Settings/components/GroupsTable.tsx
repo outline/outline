@@ -72,6 +72,18 @@ export function GroupsTable(props: Props) {
         },
         {
           type: "data",
+          id: "description",
+          header: t("Description"),
+          accessor: (group) => group.description || "",
+          component: (group) => (
+            <Text type="secondary" size="small" weight="normal">
+              {group.description || "—"}
+            </Text>
+          ),
+          width: "2fr",
+        },
+        {
+          type: "data",
           id: "members",
           header: t("Members"),
           accessor: (group) => `${group.memberCount} members`,
