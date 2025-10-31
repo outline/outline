@@ -146,6 +146,11 @@ const LinkEditor: React.FC<Props> = ({
         if (!initialValue) {
           handleRemoveLink();
         }
+
+        // Moving selection to end causes editor state to change,
+        // forcing a re-render of the top-level editor component. As
+        // a result, the new selection, being devoid of any link mark,
+        // prevents LinkEditor from re-rendering.
         moveSelectionToEnd();
         return;
       }
