@@ -95,7 +95,7 @@ export function CreateGroupDialog() {
         <Input
           type="textarea"
           label="Description"
-          placeholder={t("Optional description for this group")}
+          placeholder={t("Optional")}
           onChange={(e) => setDescription(e.target.value)}
           value={description || ""}
           maxLength={GroupValidation.maxDescriptionLength}
@@ -170,7 +170,7 @@ export function EditGroupDialog({ group, onSubmit }: Props) {
         <Input
           type="textarea"
           label={t("Description")}
-          placeholder={t("Optional description for this group")}
+          placeholder={t("Optional")}
           onChange={(e) => setDescription(e.target.value)}
           value={description}
           maxLength={GroupValidation.maxDescriptionLength}

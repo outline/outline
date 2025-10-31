@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { UnfurlResourceType, UnfurlResponse } from "@shared/types";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
 import User from "~/models/User";
@@ -20,21 +21,27 @@ const HoverPreviewGroup = React.forwardRef(function _HoverPreviewGroup(
   { name, description, memberCount, users }: Props,
   ref: React.Ref<HTMLDivElement>
 ) {
+  const { t } = useTranslation();
+
   return (
     <Preview as="div">
       <Card fadeOut={false} ref={ref}>
         <CardContent>
           <ErrorBoundary showTitle={false} reloadOnChunkMissing={false}>
             <Flex column gap={2} align="start">
-              <Title>{name}</Title>
-              {description && (
-                <Description>{description}</Description>
-              )}
-              <Info>
-                {memberCount === 1 ? "1 member" : `${memberCount} members`}
-              </Info>
-              {users.length > 0 && (
-                <Description>
+              <Flex
+                justify="space-between"
+                gap={4}
+                style={{ width: "100%" }}
+                auto
+              >
+                <Flex column align="start">
+                  <Title>{name}</Title>
+                  <Info>
+                    {t("{{ count }} members", { count: memberCount })}
+                  </Info>
+                </Flex>
+                {users.length > 0 && (
                   <Facepile
                     users={users.map(
                       (member) =>
@@ -49,8 +56,9 @@ const HoverPreviewGroup = React.forwardRef(function _HoverPreviewGroup(
                     overflow={Math.max(0, memberCount - users.length)}
                     limit={MAX_AVATAR_DISPLAY}
                   />
-                </Description>
-              )}
+                )}
+              </Flex>
+              {description && <Description>{description}</Description>}
             </Flex>
           </ErrorBoundary>
         </CardContent>
