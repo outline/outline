@@ -1354,7 +1354,7 @@ code {
   border: 1px solid ${props.theme.codeBorder};
   background: ${props.theme.codeBackground};
   padding: 3px 4px;
-  color: ${props.theme.text};
+  color: ${props.theme.code};
   font-family: ${props.theme.fontFamilyMono};
   font-size: 90%;
 
