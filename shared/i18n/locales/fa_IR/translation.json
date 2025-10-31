@@ -481,6 +481,8 @@
   "Image height": "ارتفاع تصویر",
   "Height": "ارتفاع",
   "Profile picture": "تصویر پروفایل",
+  "{{ count }} members": "{{ count }} member",
+  "{{ count }} members_plural": "{{ count }} members",
   "Create a new doc": "ایجاد سند جدید",
   "{{ userName }} won't be notified, as they do not have access to this document": "{{ userName }} مطلع نخواهد شد، زیرا به این سند دسترسی ندارد",
   "Members of \"{{ groupName }}\" that have access to this document will be notified": "اعضای «{{ groupName }}» که به این سند دسترسی دارند، مطلع خواهند شد",
