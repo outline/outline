@@ -169,7 +169,10 @@ class DocumentScene extends React.Component<Props> {
     );
 
     if (doc) {
-      view.dispatch(view.state.tr.setSelection(sel).replaceSelectionWith(doc));
+      // Replace the entire document content with the template content
+      // instead of trying to insert the document node itself
+      const tr = view.state.tr.replace(0, view.state.doc.content.size, doc.content);
+      view.dispatch(tr);
     }
 
     this.isEditorDirty = true;
