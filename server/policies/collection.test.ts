@@ -49,7 +49,7 @@ describe("admin", () => {
     expect(abilities.archive).toBeTruthy();
   });
 
-  it("should allow updating documents in view only collection", async () => {
+  it("should respect view only collection permissions for admin", async () => {
     const team = await buildTeam();
     const user = await buildAdmin({
       teamId: team.id,
@@ -64,9 +64,9 @@ describe("admin", () => {
     });
     const abilities = serialize(user, reloaded);
     expect(abilities.readDocument).toBeTruthy();
-    expect(abilities.updateDocument).toBeTruthy();
-    expect(abilities.createDocument).toBeTruthy();
-    expect(abilities.share).toBeTruthy();
+    expect(abilities.updateDocument).toBe(false);
+    expect(abilities.createDocument).toBe(false);
+    expect(abilities.share).toBe(false);
     expect(abilities.read).toBeTruthy();
     expect(abilities.update).toBeTruthy();
     expect(abilities.archive).toBeTruthy();
