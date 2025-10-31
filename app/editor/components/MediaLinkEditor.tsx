@@ -14,9 +14,10 @@ type Props = {
   node: Node;
   view: EditorView;
   dictionary: Dictionary;
+  autoFocus?: boolean;
 };
 
-export function MediaLinkEditor({ node, view, dictionary }: Props) {
+export function MediaLinkEditor({ node, view, dictionary, autoFocus }: Props) {
   const url = (node.attrs.href ?? node.attrs.src) as string;
   const [localUrl, setLocalUrl] = useState(url);
 
@@ -80,7 +81,7 @@ export function MediaLinkEditor({ node, view, dictionary }: Props) {
   return (
     <Wrapper>
       <Input
-        autoFocus
+        autoFocus={autoFocus}
         value={localUrl}
         placeholder={dictionary.pasteLink}
         onChange={(e) => setLocalUrl(e.target.value)}
