@@ -163,13 +163,13 @@ const codeBlockStyle = (props: Props) => css`
     opacity: 0.7;
   }
 
-  .token.operator,
   .token.boolean,
   .token.number {
     color: ${props.theme.codeNumber};
   }
 
-  .token.property {
+  .token.property,
+  .token.variable {
     color: ${props.theme.codeProperty};
   }
 
@@ -177,6 +177,8 @@ const codeBlockStyle = (props: Props) => css`
     color: ${props.theme.codeTag};
   }
 
+  .token.char,
+  .token.builtin,
   .token.string {
     color: ${props.theme.codeString};
   }
@@ -186,7 +188,20 @@ const codeBlockStyle = (props: Props) => css`
   }
 
   .token.attr-name {
-    color: ${props.theme.codeAttr};
+    color: ${props.theme.codeAttrName};
+  }
+
+  .token.attr-value,
+  .token.attr-value .token.punctuation {
+    color: ${props.theme.codeAttrValue};
+  }
+
+  .token.operator {
+    color: ${props.theme.codeOperator};
+  }
+
+  .token.namespace {
+    opacity: 0.8;
   }
 
   .token.entity,
@@ -240,6 +255,14 @@ const codeBlockStyle = (props: Props) => css`
   .token.important,
   .token.bold {
     font-weight: bold;
+  }
+
+  .token.constant {
+    color: ${props.theme.codeConstant};
+  }
+
+  .token.parameter {
+    color: ${props.theme.codeParameter};
   }
 
   .token.important {
@@ -1331,7 +1354,7 @@ code {
   border: 1px solid ${props.theme.codeBorder};
   background: ${props.theme.codeBackground};
   padding: 3px 4px;
-  color: ${props.theme.codeString};
+  color: ${props.theme.code};
   font-family: ${props.theme.fontFamilyMono};
   font-size: 90%;
 
