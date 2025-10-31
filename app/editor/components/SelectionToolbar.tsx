@@ -237,6 +237,7 @@ export function SelectionToolbar(props: Props) {
           node={selection.node}
           view={view}
           dictionary={dictionary}
+          autoFocus={isEditingImgUrl}
         />
       ) : (
         <ToolbarMenu
