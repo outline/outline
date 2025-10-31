@@ -71,7 +71,7 @@ function Avatar(props: Props) {
         <Image onError={handleError} src={src} {...rest} />
       ) : model ? (
         <Initials color={model.color} {...rest}>
-          {model.initial}
+          {model.initial?.toUpperCase()}
         </Initials>
       ) : (
         <Initials {...rest} />

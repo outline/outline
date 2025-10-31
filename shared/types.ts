@@ -452,6 +452,8 @@ export type UnfurlResponse = {
     type: UnfurlResourceType.Group;
     /** Group name */
     name: string;
+    /** Group description */
+    description: string | null;
     /** Number of members in the group */
     memberCount: number;
     /** Array of group members (limited to display count) */

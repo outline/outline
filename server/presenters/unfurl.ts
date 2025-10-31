@@ -65,6 +65,7 @@ const presentGroup = async (
   return {
     type: UnfurlResourceType.Group,
     name: group.name,
+    description: group.description,
     memberCount,
     users: (data.users as User[]).map((user) => ({
       id: user.id,

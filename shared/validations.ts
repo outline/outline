@@ -54,6 +54,11 @@ export const DocumentValidation = {
   maxRecommendedLength: 250000,
 };
 
+export const GroupValidation = {
+  /** The maximum length of the group description */
+  maxDescriptionLength: 2000,
+};
+
 export const ImportValidation = {
   /** The maximum length of the import name */
   maxNameLength: 100,

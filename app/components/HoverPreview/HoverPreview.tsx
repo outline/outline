@@ -117,11 +117,30 @@ const HoverPreviewDesktop = observer(
         <Position top={cardTop} left={cardLeft} aria-hidden>
           {isVisible ? (
             <Animate
-              initial={{ opacity: 0, y: -20, pointerEvents: "none" }}
+              initial={{
+                opacity: 0,
+                y: -20,
+                filter: "blur(5px)",
+                pointerEvents: "none",
+              }}
               animate={{
                 opacity: 1,
                 y: 0,
+                filter: "blur(0px)",
                 transitionEnd: { pointerEvents: "auto" },
+              }}
+              transition={{
+                y: {
+                  type: "spring",
+                  stiffness: 400,
+                  damping: 25,
+                },
+                opacity: {
+                  duration: 0.2,
+                },
+                filter: {
+                  duration: 0.2,
+                },
               }}
             >
               {data.type === UnfurlResourceType.Mention ? (
@@ -137,6 +156,7 @@ const HoverPreviewDesktop = observer(
                 <HoverPreviewGroup
                   ref={cardRef}
                   name={data.name}
+                  description={data.description}
                   memberCount={data.memberCount}
                   users={data.users}
                 />

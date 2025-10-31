@@ -12,6 +12,10 @@ class Group extends Model implements Searchable {
   @observable
   name: string;
 
+  @Field
+  @observable
+  description: string;
+
   @observable
   externalId: string | undefined;
 
@@ -33,7 +37,7 @@ class Group extends Model implements Searchable {
 
   @computed
   get searchContent(): string[] {
-    return [this.name].filter(Boolean);
+    return [this.name, this.description].filter(Boolean);
   }
 
   @computed
