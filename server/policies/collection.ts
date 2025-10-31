@@ -79,21 +79,28 @@ allow(User, "share", Collection, (user, collection) => {
   if (!collection.sharing) {
     return false;
   }
-  if (!collection.isPrivate && user.isAdmin) {
-    return true;
+
+  // Check if user has explicit membership permissions first
+  const hasWritePermission = includesMembership(collection, [
+    CollectionPermission.ReadWrite,
+    CollectionPermission.Admin,
+  ]);
+
+  // For private collections or when user has explicit permissions, respect those permissions
+  if (collection.isPrivate || hasWritePermission) {
+    return hasWritePermission;
   }
 
+  // For public collections, check the collection's default permission
   if (
     collection.permission !== CollectionPermission.ReadWrite ||
     user.isViewer
   ) {
-    return includesMembership(collection, [
-      CollectionPermission.ReadWrite,
-      CollectionPermission.Admin,
-    ]);
+    return false;
   }
 
-  return true;
+  // Only allow admin bypass for public collections with ReadWrite default permission
+  return !collection.isPrivate && user.isAdmin;
 });
 
 allow(User, "updateDocument", Collection, (user, collection) => {
@@ -101,22 +108,28 @@ allow(User, "updateDocument", Collection, (user, collection) => {
     return false;
   }
 
-  if (!collection.isPrivate && user.isAdmin) {
-    return true;
+  // Check if user has explicit membership permissions first
+  const hasWritePermission = includesMembership(collection, [
+    CollectionPermission.ReadWrite,
+    CollectionPermission.Admin,
+  ]);
+
+  // For private collections or when user has explicit permissions, respect those permissions
+  if (collection.isPrivate || hasWritePermission) {
+    return hasWritePermission;
   }
 
+  // For public collections, check the collection's default permission
   if (
     collection.permission !== CollectionPermission.ReadWrite ||
     user.isViewer ||
     user.isGuest
   ) {
-    return includesMembership(collection, [
-      CollectionPermission.ReadWrite,
-      CollectionPermission.Admin,
-    ]);
+    return false;
   }
 
-  return true;
+  // Only allow admin bypass for public collections with ReadWrite default permission
+  return !collection.isPrivate && user.isAdmin;
 });
 
 allow(
@@ -133,22 +146,28 @@ allow(
       return false;
     }
 
-    if (!collection.isPrivate && user.isAdmin) {
-      return true;
+    // Check if user has explicit membership permissions first
+    const hasWritePermission = includesMembership(collection, [
+      CollectionPermission.ReadWrite,
+      CollectionPermission.Admin,
+    ]);
+
+    // For private collections or when user has explicit permissions, respect those permissions
+    if (collection.isPrivate || hasWritePermission) {
+      return hasWritePermission;
     }
 
+    // For public collections, check the collection's default permission
     if (
       collection.permission !== CollectionPermission.ReadWrite ||
       user.isViewer ||
       user.isGuest
     ) {
-      return includesMembership(collection, [
-        CollectionPermission.ReadWrite,
-        CollectionPermission.Admin,
-      ]);
+      return false;
     }
 
-    return true;
+    // Only allow admin bypass for public collections with ReadWrite default permission
+    return !collection.isPrivate && user.isAdmin;
   }
 );
 
