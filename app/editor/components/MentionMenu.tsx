@@ -123,6 +123,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
                 </Flex>
               ),
               title: group.name,
+              subtitle: t("{{ count }} members", { count: group.memberCount }),
               section: GroupSection,
               appendSpace: true,
               attrs: {
