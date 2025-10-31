@@ -481,6 +481,8 @@
   "Image height": "Altezza immagine",
   "Height": "Altezza",
   "Profile picture": "Immagine del profilo",
+  "{{ count }} members": "{{ count }} member",
+  "{{ count }} members_plural": "{{ count }} members",
   "Create a new doc": "Crea un nuovo documento",
   "{{ userName }} won't be notified, as they do not have access to this document": "{{ userName }} Non verrà notificato, in quanto Non",
   "Members of \"{{ groupName }}\" that have access to this document will be notified": "Members of \"{{ groupName }}\" that have access to this document will be notified",
