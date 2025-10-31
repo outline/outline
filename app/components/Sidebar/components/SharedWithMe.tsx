@@ -30,7 +30,9 @@ function SharedWithMe() {
   const history = useHistory();
   const locationSidebarContext = useLocationSidebarContext();
 
-  usePaginatedRequest<GroupMembership>(groupMemberships.fetchAll);
+  const gmResponse = usePaginatedRequest<GroupMembership>(
+    groupMemberships.fetchAll
+  );
 
   const { loading, next, end, error, page } =
     usePaginatedRequest<UserMembership>(userMemberships.fetchPage, {
@@ -108,7 +110,7 @@ function SharedWithMe() {
       <Flex column>
         <Header id="shared" title={t("Shared with me")}>
           {user.groupsWithDocumentMemberships.map((group) => (
-            <GroupLink key={group.id} group={group} />
+            <GroupLink key={group.id} group={group} response={gmResponse} />
           ))}
           <Relative>
             {reorderProps.isDragging && (

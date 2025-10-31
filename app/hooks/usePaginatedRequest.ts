@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { PaginationParams } from "~/types";
 import useRequest from "./useRequest";
 
-type RequestResponse<T> = {
+export type RequestResponse<T> = {
   /** The return value of the paginated request function. */
   data: T[] | undefined;
   /** The request error, if any. */
