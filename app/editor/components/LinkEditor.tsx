@@ -183,8 +183,8 @@ const LinkEditor: React.FC<Props> = ({
   const hasResults = !!results.length;
 
   return (
-    <>
-      <Wrapper ref={wrapperRef}>
+    <div ref={wrapperRef}>
+      <InputWrapper ref={wrapperRef}>
         <Input
           ref={inputRef}
           value={query}
@@ -210,7 +210,7 @@ const LinkEditor: React.FC<Props> = ({
             </ToolbarButton>
           </Tooltip>
         )}
-      </Wrapper>
+      </InputWrapper>
       <SearchResults $hasResults={hasResults}>
         <ResizingHeightContainer>
           {hasResults && (
@@ -245,11 +245,11 @@ const LinkEditor: React.FC<Props> = ({
           )}
         </ResizingHeightContainer>
       </SearchResults>
-    </>
+    </div>
   );
 };
 
-const Wrapper = styled(Flex)`
+const InputWrapper = styled(Flex)`
   pointer-events: all;
   gap: 6px;
   padding: 6px;
