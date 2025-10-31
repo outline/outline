@@ -3,7 +3,7 @@ import debounce from "lodash/debounce";
 import isEqual from "lodash/isEqual";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
-import { Node } from "prosemirror-model";
+import { Node, Slice } from "prosemirror-model";
 import { AllSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import { WithTranslation, withTranslation } from "react-i18next";
@@ -150,7 +150,7 @@ class DocumentScene extends React.Component<Props> {
    */
   replaceSelection = (
     template: Document | Revision,
-    selection?: TextSelection | AllSelection
+    _selection?: TextSelection | AllSelection
   ) => {
     const editorRef = this.editor.current;
 
@@ -159,7 +159,6 @@ class DocumentScene extends React.Component<Props> {
     }
 
     const { view, schema } = editorRef;
-    const sel = selection ?? TextSelection.near(view.state.doc.resolve(0));
     const doc = Node.fromJSON(
       schema,
       ProsemirrorHelper.replaceTemplateVariables(
@@ -171,7 +170,11 @@ class DocumentScene extends React.Component<Props> {
     if (doc) {
       // Replace the entire document content with the template content
       // instead of trying to insert the document node itself
-      const tr = view.state.tr.replace(0, view.state.doc.content.size, doc.content);
+      const tr = view.state.tr.replace(
+        0,
+        view.state.doc.content.size,
+        new Slice(doc.content, 0, 0)
+      );
       view.dispatch(tr);
     }
 
