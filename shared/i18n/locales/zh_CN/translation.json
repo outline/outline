@@ -481,6 +481,8 @@
   "Image height": "图像高度",
   "Height": "高",
   "Profile picture": "个人头像",
+  "{{ count }} members": "{{ count }} member",
+  "{{ count }} members_plural": "{{ count }} members",
   "Create a new doc": "新建文档",
   "{{ userName }} won't be notified, as they do not have access to this document": "{{ userName }} 不会被通知，因为他们没有访问此文档的权限",
   "Members of \"{{ groupName }}\" that have access to this document will be notified": "Members of \"{{ groupName }}\" that have access to this document will be notified",
