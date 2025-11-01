@@ -79,7 +79,12 @@ export default async function documentDuplicator({
       ctx
     );
 
-    for (const childDocument of childDocuments) {
+    const sorted = DocumentHelper.sortDocumentsByStructure(
+      childDocuments,
+      original.collection?.getDocumentTree(original.id)?.children ?? []
+    ).reverse(); // reversing since the child documents will be added in reverse order
+
+    for (const childDocument of sorted) {
       const duplicatedChildDocument = await documentCreator({
         parentDocumentId: duplicatedDocument.id,
         icon: childDocument.icon,

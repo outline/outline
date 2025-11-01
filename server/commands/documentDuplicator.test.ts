@@ -60,6 +60,7 @@ describe("documentDuplicator", () => {
       userId: user.id,
       teamId: user.teamId,
       icon: "👋",
+      title: "doc 1",
     });
 
     await buildDocument({
@@ -67,6 +68,23 @@ describe("documentDuplicator", () => {
       teamId: user.teamId,
       parentDocumentId: original.id,
       collection: original.collection,
+      title: "doc 1.1",
+    });
+
+    await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      parentDocumentId: original.id,
+      collection: original.collection,
+      title: "doc 1.2",
+    });
+
+    await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      parentDocumentId: original.id,
+      collection: original.collection,
+      title: "doc 1.3",
     });
 
     const response = await sequelize.transaction((transaction) =>
@@ -78,8 +96,10 @@ describe("documentDuplicator", () => {
         ctx: createContext({ user, transaction }),
       })
     );
+    const docTitles = response.map((res) => res.title);
 
-    expect(response).toHaveLength(2);
+    expect(response).toHaveLength(4);
+    expect(docTitles).toStrictEqual(["doc 1", "doc 1.3", "doc 1.2", "doc 1.1"]);
   });
 
   it("should duplicate existing document as draft", async () => {
