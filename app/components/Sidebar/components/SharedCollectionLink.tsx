@@ -6,26 +6,21 @@ import useStores from "~/hooks/useStores";
 import { sharedModelPath } from "~/utils/routeHelpers";
 import { SharedDocumentLink } from "./SharedDocumentLink";
 import SidebarLink from "./SidebarLink";
-import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 
 type Props = {
   node: NavigationNode;
   shareId: string;
+  hideRootNode?: boolean;
 };
 
-function CollectionLink({ node, shareId }: Props) {
+function CollectionLink({ node, shareId, hideRootNode }: Props) {
   const { t } = useTranslation();
-  const { documents, collections, ui } = useStores();
-  const collection = collections.get(node.id);
-
+  const { documents, ui } = useStores();
   const icon = node.icon ?? node.emoji;
-  const showCollectionRoot = collection
-    ? !ProsemirrorHelper.isEmptyData(collection?.data)
-    : true;
 
   return (
     <>
-      {showCollectionRoot && (
+      {!hideRootNode && (
         <SidebarLink
           to={{
             pathname: sharedModelPath(shareId),
@@ -45,7 +40,7 @@ function CollectionLink({ node, shareId }: Props) {
         <SharedDocumentLink
           key={childNode.id}
           index={index}
-          depth={showCollectionRoot ? 2 : 0}
+          depth={hideRootNode ? 0 : 2}
           shareId={shareId}
           node={childNode}
           prefetchDocument={documents.prefetchDocument}
