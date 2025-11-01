@@ -99,7 +99,6 @@ const Button = styled(Flex)<{
   text-decoration: none;
   text-align: left;
   user-select: none;
-  cursor: var(--pointer);
   position: relative;
 
   ${undraggableOnDesktop()}
@@ -110,6 +109,7 @@ const Button = styled(Flex)<{
   &:not(:disabled)[aria-expanded="true"] {
     color: ${s("sidebarText")};
     background: ${s("sidebarActiveBackground")};
+    cursor: var(--pointer);
   }
 
   &:last-child {
