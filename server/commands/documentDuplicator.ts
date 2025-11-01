@@ -62,6 +62,14 @@ export default async function documentDuplicator({
   duplicated.collection = collection ?? null;
   newDocuments.push(duplicated);
 
+  const originalCollection = document?.collectionId
+    ? await Collection.findByPk(document.collectionId, {
+        attributes: {
+          include: ["documentStructure"],
+        },
+      })
+    : null;
+
   async function duplicateChildDocuments(
     original: Document,
     duplicatedDocument: Document
@@ -76,23 +84,12 @@ export default async function documentDuplicator({
               [Op.eq]: null,
             },
       },
-      {
-        ...ctx,
-        include: {
-          model: Collection.scope([
-            { method: ["withMembership", user.id] },
-            "withDocumentStructure",
-          ]),
-          required: true,
-          as: "collection",
-        },
-      }
+      ctx
     );
 
     const sorted = DocumentHelper.sortDocumentsByStructure(
       childDocuments,
-      childDocuments[0]?.collection?.getDocumentTree(original.id)?.children ??
-        []
+      originalCollection?.getDocumentTree(original.id)?.children ?? []
     ).reverse(); // we have to reverse since the child documents will be added in reverse order
 
     for (const childDocument of sorted) {
