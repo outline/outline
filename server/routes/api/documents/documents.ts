@@ -1336,6 +1336,14 @@ router.post(
     const document = await Document.findByPk(id, {
       userId: user.id,
       transaction,
+      include: {
+        model: Collection.scope([
+          { method: ["withMembership", user.id] },
+          "withDocumentStructure",
+        ]),
+        required: true,
+        as: "collection",
+      },
     });
     authorize(user, "read", document);
 
