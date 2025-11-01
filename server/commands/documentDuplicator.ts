@@ -76,13 +76,24 @@ export default async function documentDuplicator({
               [Op.eq]: null,
             },
       },
-      ctx
+      {
+        ...ctx,
+        include: {
+          model: Collection.scope([
+            { method: ["withMembership", user.id] },
+            "withDocumentStructure",
+          ]),
+          required: true,
+          as: "collection",
+        },
+      }
     );
 
     const sorted = DocumentHelper.sortDocumentsByStructure(
       childDocuments,
-      original.collection?.getDocumentTree(original.id)?.children ?? []
-    ).reverse(); // reversing since the child documents will be added in reverse order
+      childDocuments[0]?.collection?.getDocumentTree(original.id)?.children ??
+        []
+    ).reverse(); // we have to reverse since the child documents will be added in reverse order
 
     for (const childDocument of sorted) {
       const duplicatedChildDocument = await documentCreator({
