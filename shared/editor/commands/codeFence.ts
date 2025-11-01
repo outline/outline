@@ -1,12 +1,12 @@
 import { exitCode } from "prosemirror-commands";
-import { Command, TextSelection } from "prosemirror-state";
+import { Command, EditorState, TextSelection } from "prosemirror-state";
 import { findNextNewline, findPreviousNewline } from "../queries/findNewlines";
 import { isInCode } from "../queries/isInCode";
 import { findParentNode } from "../queries/findParentNode";
 import { isCode } from "../lib/isCode";
+import { languagesWithFourSpaceIndent } from "../lib/code";
 
 const newline = "\n";
-const tabSize = 2;
 
 /**
  * Moves the current selection to the previous newline, this is used inside
@@ -93,6 +93,7 @@ export const indentInCode: Command = (state, dispatch) => {
     return false;
   }
 
+  const tabSize = getTabSize(state);
   const spaces = " ".repeat(tabSize);
   const { tr, selection } = state;
   const { $from, from, to } = selection;
@@ -155,6 +156,7 @@ export const outdentInCode: Command = (state, dispatch) => {
     let totalSpacesRemoved = 0;
     let spacesRemovedOnFirstLine = 0;
     const startOfFirstLine = findPreviousNewline($from);
+    const tabSize = getTabSize(state);
 
     while (index >= startOfFirstLine - line * tabSize) {
       const newLineBefore =
@@ -268,3 +270,18 @@ export const splitCodeBlockOnTripleBackticks: Command = (state, dispatch) => {
 
   return true;
 };
+
+function getTabSize(state: EditorState): number {
+  const codeBlock = findParentNode(isCode)(state.selection);
+  if (!codeBlock) {
+    return 2;
+  }
+
+  if (languagesWithFourSpaceIndent.includes(codeBlock.node.attrs.language)) {
+    return 4;
+  }
+
+  const existingText = codeBlock.node.textContent;
+  const usesFourSpaces = existingText.includes("    ");
+  return usesFourSpaces ? 4 : 2;
+}

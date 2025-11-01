@@ -30,9 +30,10 @@ const Theme: React.FC = ({ children }: Props) => {
     <ThemeProvider theme={theme}>
       <>
         <GlobalStyles
-          useCursorPointer={auth.user?.getPreference(
-            UserPreference.UseCursorPointer
-          )}
+          useCursorPointer={
+            // Default to showing the cursor pointer if no user is logged in (public share)
+            auth.user?.getPreference(UserPreference.UseCursorPointer) ?? true
+          }
         />
         {children}
       </>

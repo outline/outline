@@ -1360,6 +1360,7 @@ code {
 
   .${EditorStyleHelper.codeWord} {
     white-space: nowrap;
+    color: ${props.theme.codeKeyword};
   }
 }
 

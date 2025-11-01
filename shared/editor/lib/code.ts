@@ -425,3 +425,11 @@ export const getFrequentCodeLanguages = () => {
 
 const sortFrequencies = <T>(freqs: [T, number][]) =>
   freqs.sort((a, b) => (a[1] >= b[1] ? -1 : 1));
+
+export const languagesWithFourSpaceIndent = [
+  "python",
+  "java",
+  "cpp",
+  "csharp",
+  "rust",
+];
