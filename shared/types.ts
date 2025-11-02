@@ -83,6 +83,7 @@ export enum MentionType {
   User = "user",
   Document = "document",
   Collection = "collection",
+  Group = "group",
   Issue = "issue",
   PullRequest = "pull_request",
   URL = "url",
@@ -367,6 +368,8 @@ export enum NotificationEventType {
   ReactionsCreate = "reactions.create",
   MentionedInDocument = "documents.mentioned",
   MentionedInComment = "comments.mentioned",
+  GroupMentionedInDocument = "documents.group_mentioned",
+  GroupMentionedInComment = "comments.group_mentioned",
   InviteAccepted = "emails.invite_accepted",
   Onboarding = "emails.onboarding",
   Features = "emails.features",
@@ -402,6 +405,8 @@ export const NotificationEventDefaults: Record<NotificationEventType, boolean> =
     [NotificationEventType.CreateRevision]: false,
     [NotificationEventType.MentionedInDocument]: true,
     [NotificationEventType.MentionedInComment]: true,
+    [NotificationEventType.GroupMentionedInDocument]: true,
+    [NotificationEventType.GroupMentionedInComment]: true,
     [NotificationEventType.InviteAccepted]: true,
     [NotificationEventType.Onboarding]: true,
     [NotificationEventType.Features]: true,
@@ -413,6 +418,7 @@ export const NotificationEventDefaults: Record<NotificationEventType, boolean> =
 export enum UnfurlResourceType {
   URL = "url",
   Mention = "mention",
+  Group = "group",
   Document = "document",
   Issue = "issue",
   PR = "pull",
@@ -446,6 +452,23 @@ export type UnfurlResponse = {
     color: string;
     /** Mentiond user's recent activity */
     lastActive: string;
+  };
+  [UnfurlResourceType.Group]: {
+    /** The resource type */
+    type: UnfurlResourceType.Group;
+    /** Group name */
+    name: string;
+    /** Group description */
+    description: string | null;
+    /** Number of members in the group */
+    memberCount: number;
+    /** Array of group members (limited to display count) */
+    users: Array<{
+      id: string;
+      name: string;
+      avatarUrl: string | null;
+      color: string;
+    }>;
   };
   [UnfurlResourceType.Document]: {
     /** The resource type */

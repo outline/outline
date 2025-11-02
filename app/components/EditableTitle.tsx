@@ -83,13 +83,15 @@ function EditableTitle(
       try {
         await onSubmit(trimmedValue);
         setOriginalValue(trimmedValue);
+        setIsEditing(false);
       } catch (error) {
-        setValue(originalValue);
+        setValue(value);
+        setIsEditing(true);
+
         toast.error(error.message);
         throw error;
       } finally {
         setIsSubmitting(false);
-        setIsEditing(false);
       }
     },
     [originalValue, value, onCancel, onSubmit, isSubmitting]

@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import { action, computed, observable, runInAction } from "mobx";
+import { action, comparer, computed, observable, runInAction } from "mobx";
 import {
   CollectionPermission,
   FileOperationFormat,
@@ -156,7 +156,7 @@ export default class Collection extends ParanoidModel {
     return this.sort.field === "index";
   }
 
-  @computed
+  @computed({ equals: comparer.structural })
   get sortedDocuments(): NavigationNode[] | undefined {
     if (!this.documents) {
       return undefined;

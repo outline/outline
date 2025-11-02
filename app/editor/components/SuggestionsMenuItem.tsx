@@ -92,4 +92,4 @@ const Shortcut = styled.span<{ $active?: boolean }>`
   text-align: right;
 `;
 
-export default SuggestionsMenuItem;
+export default React.memo(SuggestionsMenuItem);

@@ -5,6 +5,7 @@ import {
   sinkListItem,
   liftListItem,
 } from "prosemirror-schema-list";
+import { v4 as uuidv4 } from "uuid";
 import toggleCheckboxItem from "../commands/toggleCheckboxItem";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import checkboxRule from "../rules/checkboxes";
@@ -34,7 +35,7 @@ export default class CheckboxItem extends Node {
         },
       ],
       toDOM: (node) => {
-        const id = `checkbox-${crypto.randomUUID()}`;
+        const id = `checkbox-${uuidv4()}`;
         const checked = node.attrs.checked.toString();
         let input;
         if (typeof document !== "undefined") {

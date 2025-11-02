@@ -32,6 +32,8 @@ function Dialogs() {
           }}
           title={modal.title}
           style={modal.style}
+          width={modal.width}
+          height={modal.height}
         >
           {modal.content}
         </Modal>

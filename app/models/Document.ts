@@ -2,7 +2,7 @@ import { addDays, differenceInDays } from "date-fns";
 import i18n, { t } from "i18next";
 import capitalize from "lodash/capitalize";
 import floor from "lodash/floor";
-import { action, autorun, computed, observable, set } from "mobx";
+import { action, autorun, comparer, computed, observable, set } from "mobx";
 import type {
   JSONObject,
   NavigationNode,
@@ -87,6 +87,11 @@ export default class Document extends ArchivableModel implements Searchable {
   @computed
   get searchContent(): string {
     return this.title;
+  }
+
+  @computed
+  get searchSuppressed(): boolean {
+    return this.isDeleted || this.isArchived;
   }
 
   /**
@@ -179,7 +184,7 @@ export default class Document extends ArchivableModel implements Searchable {
   /**
    * Parent document that this is a child of, if any.
    */
-  @Relation(() => Document, { onArchive: "cascade" })
+  @Relation(() => Document, { onArchive: "cascade", onDelete: "cascade" })
   parentDocument?: Document;
 
   @observable
@@ -647,7 +652,7 @@ export default class Document extends ArchivableModel implements Searchable {
     );
   }
 
-  @computed
+  @computed({ equals: comparer.structural })
   get asNavigationNode(): NavigationNode {
     return {
       type: NavigationNodeType.Document,

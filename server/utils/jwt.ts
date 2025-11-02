@@ -3,6 +3,7 @@ import JWT from "jsonwebtoken";
 import { FindOptions } from "sequelize";
 import { Team, User } from "@server/models";
 import { AuthenticationError } from "../errors";
+import { Context } from "koa";
 
 export function getJWTPayload(token: string) {
   let payload;
@@ -74,7 +75,10 @@ export async function getUserForJWT(
   return user;
 }
 
-export async function getUserForEmailSigninToken(token: string): Promise<User> {
+export async function getUserForEmailSigninToken(
+  ctx: Context,
+  token: string
+): Promise<User> {
   const payload = getJWTPayload(token);
 
   if (payload.type !== "email-signin") {
@@ -88,15 +92,13 @@ export async function getUserForEmailSigninToken(token: string): Promise<User> {
     }
   }
 
+  if (payload.ip !== ctx.request.ip) {
+    throw AuthenticationError("Token mismatch");
+  }
+
   const user = await User.scope("withTeam").findByPk(payload.id, {
     rejectOnEmpty: true,
   });
-
-  if (user.lastSignedInAt) {
-    if (user.lastSignedInAt > new Date(payload.createdAt)) {
-      throw AuthenticationError("Expired token");
-    }
-  }
 
   try {
     JWT.verify(token, user.jwtSecret);

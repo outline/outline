@@ -2,6 +2,7 @@ import debounce from "lodash/debounce";
 import last from "lodash/last";
 import sortBy from "lodash/sortBy";
 import { load as loadYaml, JSON_SCHEMA } from "js-yaml";
+import { v4 as uuidv4 } from "uuid";
 import type MermaidUnsafe from "mermaid";
 import { Node } from "prosemirror-model";
 import {
@@ -147,7 +148,7 @@ class MermaidRenderer {
   private _rendererFunc?: (block: { node: Node; pos: number }, isDark: boolean) => void;
 
   constructor(editor: Editor, iconPackConfigs?: Array<{ name: string; url: string }>) {
-    this.diagramId = crypto.randomUUID();
+    this.diagramId = uuidv4();
     this.elementId = `mermaid-diagram-wrapper-${this.diagramId}`;
     this.editor = editor;
     this.iconPackConfigs = iconPackConfigs;

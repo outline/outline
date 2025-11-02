@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { GroupPermission } from "@shared/types";
+import { GroupValidation } from "@shared/validations";
 import { Group } from "@server/models";
 
 const BaseIdSchema = z.object({
@@ -49,8 +50,12 @@ export const GroupsCreateSchema = z.object({
   body: z.object({
     /** Group name */
     name: z.string(),
+    /** Group description */
+    description: z.string().max(GroupValidation.maxDescriptionLength).optional(),
     /** Optionally link this group to an external source. */
     externalId: z.string().optional(),
+    /** Whether mentions are disabled for this group */
+    disableMentions: z.boolean().optional().default(false),
   }),
 });
 
@@ -60,8 +65,12 @@ export const GroupsUpdateSchema = z.object({
   body: BaseIdSchema.extend({
     /** Group name */
     name: z.string().optional(),
+    /** Group description */
+    description: z.string().max(GroupValidation.maxDescriptionLength).optional(),
     /** Optionally link this group to an external source. */
     externalId: z.string().optional(),
+    /** Whether mentions are disabled for this group */
+    disableMentions: z.boolean().optional(),
   }),
 });
 

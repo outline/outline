@@ -22,6 +22,7 @@ import { Searchable } from "~/models/interfaces/Searchable";
 import type { PaginationParams, PartialExcept, Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
+import ParanoidModel from "~/models/base/ParanoidModel";
 
 export enum RPCAction {
   Info = "info",
@@ -100,24 +101,13 @@ export default abstract class Store<T extends Model> {
 
     if (!normalized) {
       return this.orderedData
-        .filter((item) => {
-          if ("deletedAt" in item && item.deletedAt) {
-            return false;
-          }
-          if ("archivedAt" in item && item.archivedAt) {
-            return false;
-          }
-          return true;
-        })
+        .filter((item: T & Searchable) => !item.searchSuppressed)
         .slice(0, options?.maxResults);
     }
 
     return this.orderedData
       .filter((item: T & Searchable) => {
-        if ("deletedAt" in item && item.deletedAt) {
-          return false;
-        }
-        if ("archivedAt" in item && item.archivedAt) {
+        if (item.searchSuppressed) {
           return false;
         }
         if ("searchContent" in item) {
@@ -212,7 +202,13 @@ export default abstract class Store<T extends Model> {
     }
 
     LifecycleManager.executeHooks(model.constructor, "beforeRemove", model);
-    this.data.delete(id);
+
+    if (model instanceof ParanoidModel) {
+      model.deletedAt = new Date().toISOString();
+    } else {
+      this.data.delete(id);
+    }
+
     LifecycleManager.executeHooks(model.constructor, "afterRemove", model);
   }
 

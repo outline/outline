@@ -5,7 +5,14 @@ import { MentionType, NotificationEventType } from "@shared/types";
 import { createSubscriptionsForDocument } from "@server/commands/subscriptionCreator";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
-import { Document, Revision, Notification, User, View } from "@server/models";
+import {
+  Document,
+  Revision,
+  Notification,
+  User,
+  View,
+  GroupUser,
+} from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import NotificationHelper from "@server/models/helpers/NotificationHelper";
 import { RevisionEvent } from "@server/types";
@@ -38,20 +45,23 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
 
     // Send notifications to mentioned users first
     const oldMentions = before
-      ? DocumentHelper.parseMentions(before, { type: MentionType.User })
+      ? [...DocumentHelper.parseMentions(before, { type: MentionType.User })]
       : [];
-    const newMentions = DocumentHelper.parseMentions(document, {
-      type: MentionType.User,
-    });
+    const newMentions = [
+      ...DocumentHelper.parseMentions(document, {
+        type: MentionType.User,
+      }),
+    ];
+
     const mentions = differenceBy(newMentions, oldMentions, "id");
     const userIdsMentioned: string[] = [];
-
     for (const mention of mentions) {
       if (userIdsMentioned.includes(mention.modelId)) {
         continue;
       }
 
       const recipient = await User.findByPk(mention.modelId);
+
       if (
         recipient &&
         recipient.id !== mention.actorId &&
@@ -68,8 +78,66 @@ export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionE
           teamId: document.teamId,
           documentId: document.id,
         });
+
         userIdsMentioned.push(recipient.id);
       }
+    }
+
+    // send notifications to users in mentioned groups
+    const oldGroupMentions = before
+      ? DocumentHelper.parseMentions(before, { type: MentionType.Group })
+      : [];
+    const newGroupMentions = DocumentHelper.parseMentions(document, {
+      type: MentionType.Group,
+    });
+
+    const groupMentions = differenceBy(
+      newGroupMentions,
+      oldGroupMentions,
+      "id"
+    );
+    const mentionedGroup: string[] = [];
+    for (const group of groupMentions) {
+      if (mentionedGroup.includes(group.modelId)) {
+        continue;
+      }
+      const usersFromMentionedGroup = await GroupUser.findAll({
+        where: {
+          groupId: group.modelId,
+        },
+        order: [["permission", "ASC"]],
+      });
+
+      const mentionedUser: string[] = [];
+      for (const user of usersFromMentionedGroup) {
+        if (mentionedUser.includes(user.userId)) {
+          continue;
+        }
+
+        const recipient = await User.findByPk(user.userId);
+        if (
+          recipient &&
+          recipient.id !== group.actorId &&
+          recipient.subscribedToEventType(
+            NotificationEventType.GroupMentionedInDocument
+          ) &&
+          (await canUserAccessDocument(recipient, document.id))
+        ) {
+          await Notification.create({
+            event: NotificationEventType.GroupMentionedInDocument,
+            groupId: group.modelId,
+            userId: recipient.id,
+            revisionId: event.modelId,
+            actorId: group.actorId,
+            teamId: document.teamId,
+            documentId: document.id,
+          });
+
+          mentionedUser.push(user.userId);
+        }
+      }
+
+      mentionedGroup.push(group.modelId);
     }
 
     const recipients = (

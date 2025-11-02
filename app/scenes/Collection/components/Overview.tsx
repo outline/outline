@@ -13,6 +13,7 @@ import Document from "~/models/Document";
 import Editor from "~/components/Editor";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import Text from "~/components/Text";
+import { MeasuredContainer } from "~/components/MeasuredContainer";
 import { withUIExtensions } from "~/editor/extensions";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
@@ -81,20 +82,22 @@ function Overview({ collection, shareId }: Props) {
       {collections.isSaving && <LoadingIndicator />}
       {(collection.hasDescription || can.update) && (
         <Suspense fallback={<Placeholder>Loading…</Placeholder>}>
-          <Editor
-            defaultValue={collection.data}
-            onChange={handleSave}
-            placeholder={`${t("Add a description")}…`}
-            extensions={extensions}
-            maxLength={CollectionValidation.maxDescriptionLength}
-            onCreateLink={onCreateLink}
-            canUpdate={can.update}
-            readOnly={!can.update || !!shareId}
-            userId={user?.id}
-            editorStyle={editorStyle}
-            shareId={shareId}
-          />
-          <div ref={childRef} />
+          <MeasuredContainer name="document">
+            <Editor
+              defaultValue={collection.data}
+              onChange={handleSave}
+              placeholder={`${t("Add a description")}…`}
+              extensions={extensions}
+              maxLength={CollectionValidation.maxDescriptionLength}
+              onCreateLink={onCreateLink}
+              canUpdate={can.update}
+              readOnly={!can.update || !!shareId}
+              userId={user?.id}
+              editorStyle={editorStyle}
+              shareId={shareId}
+            />
+            <div ref={childRef} />
+          </MeasuredContainer>
         </Suspense>
       )}
     </>

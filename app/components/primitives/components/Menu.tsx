@@ -57,7 +57,7 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
     box-shadow: none;
     cursor: var(--pointer);
 
-    svg {
+    svg:not([data-fixed-color]) {
       color: ${props.theme.accentText};
       fill: ${props.theme.accentText};
     }
@@ -66,22 +66,18 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
   ${(props) =>
     !props.disabled &&
     `
-    @media (hover: hover) {
-        &:hover,
-        &:focus,
-        &:focus-visible {
-          color: ${props.theme.accentText};
-          background: ${props.$dangerous ? props.theme.danger : props.theme.accent};
-          outline-color: ${
-            props.$dangerous ? props.theme.danger : props.theme.accent
-          };
-          box-shadow: none;
-          cursor: var(--pointer);
+      &:focus-visible {
+        color: ${props.theme.accentText};
+        background: ${props.$dangerous ? props.theme.danger : props.theme.accent};
+        outline-color: ${
+          props.$dangerous ? props.theme.danger : props.theme.accent
+        };
+        box-shadow: none;
+        cursor: var(--pointer);
 
-          svg {
-            color: ${props.theme.accentText};
-            fill: ${props.theme.accentText};
-          }
+        svg:not([data-fixed-color]) {
+          color: ${props.theme.accentText};
+          fill: ${props.theme.accentText};
         }
       }
   `}

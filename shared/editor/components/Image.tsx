@@ -94,7 +94,11 @@ const Image = (props: Props) => {
     <div contentEditable={false} className={className} ref={ref}>
       <ImageWrapper
         isFullWidth={isFullWidth}
-        className={isSelected || dragging ? "ProseMirror-selectednode" : ""}
+        className={
+          isSelected || dragging
+            ? "image-wrapper ProseMirror-selectednode"
+            : "image-wrapper"
+        }
         style={widthStyle}
       >
         {!dragging && width > 60 && isDownloadable && (
@@ -197,7 +201,7 @@ export const Error = styled(Flex)`
   color: ${s("textTertiary")};
   font-size: 14px;
   background: ${s("backgroundSecondary")};
-  border-radius: 4px;
+  border-radius: ${EditorStyleHelper.blockRadius};
   min-width: 33vw;
   height: 80px;
   align-items: center;
