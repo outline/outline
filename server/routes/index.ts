@@ -24,7 +24,7 @@ const koa = new Koa();
 const router = new Router();
 
 // serve public assets
-router.use(["/images/*", "/email/*", "/fonts/*"], async (ctx, next) => {
+router.use(["/images/*", "/email/*", "/fonts/*", "/excalidraw/*"], async (ctx, next) => {
   let done;
 
   if (ctx.method === "HEAD" || ctx.method === "GET") {
