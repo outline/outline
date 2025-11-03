@@ -7,6 +7,9 @@ import Document from "../Document";
 export default abstract class NavigableModel extends ParanoidModel {
   private isFetching = false;
 
+  /** The document ID associated with this model. */
+  documentId?: string;
+
   @observable
   node?: NavigationNode;
 
@@ -130,6 +133,10 @@ export default abstract class NavigableModel extends ParanoidModel {
   addDocument(document: Document, parentDocumentId: string) {
     if (!this.documents || !document || !parentDocumentId?.trim()) {
       return;
+    }
+
+    if (this.documentId && parentDocumentId === this.documentId) {
+      this.documents = [document.asNavigationNode, ...(this.documents ?? [])];
     }
 
     const travelNodes = (nodes: NavigationNode[]) =>
