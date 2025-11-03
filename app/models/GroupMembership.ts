@@ -1,9 +1,5 @@
-import { action, observable } from "mobx";
-import {
-  CollectionPermission,
-  DocumentPermission,
-  NavigationNode,
-} from "@shared/types";
+import { observable } from "mobx";
+import { CollectionPermission, DocumentPermission } from "@shared/types";
 import Collection from "./Collection";
 import Document from "./Document";
 import Group from "./Group";
@@ -50,32 +46,6 @@ class GroupMembership extends NavigableModel {
   permission: CollectionPermission | DocumentPermission;
 
   // methods
-
-  /**
-   * Adds the document identified by the given id to the group membership in
-   * memory. Does not add the document to the database or store.
-   *
-   * @param document The document to add.
-   * @param parentDocumentId The id of the document to add the new document to.
-   */
-  @action
-  addDocument(document: Document, parentDocumentId?: string) {
-    if (!this.documents || !document || !parentDocumentId?.trim()) {
-      return;
-    }
-
-    const travelNodes = (nodes: NavigationNode[]) =>
-      nodes.forEach((node) => {
-        if (node.id === parentDocumentId) {
-          node.children = [document.asNavigationNode, ...(node.children ?? [])];
-        } else {
-          travelNodes(node.children);
-        }
-      });
-
-    travelNodes(this.documents);
-  }
-
   /**
    * Fetches the child documents structure from the server.
    */

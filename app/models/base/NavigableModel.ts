@@ -1,7 +1,8 @@
-import { computed, observable, runInAction } from "mobx";
+import { action, computed, observable, runInAction } from "mobx";
 import { JSONObject, type NavigationNode } from "@shared/types";
 import { client } from "~/utils/ApiClient";
 import ParanoidModel from "./ParanoidModel";
+import Document from "../Document";
 
 export default abstract class NavigableModel extends ParanoidModel {
   private isFetching = false;
@@ -43,6 +44,14 @@ export default abstract class NavigableModel extends ParanoidModel {
   @computed
   get documents(): NavigationNode[] | undefined {
     return this.node?.children;
+  }
+
+  set documents(value: NavigationNode[] | undefined) {
+    runInAction(() => {
+      if (this.node && value) {
+        this.node.children = value;
+      }
+    });
   }
 
   /**
@@ -108,5 +117,55 @@ export default abstract class NavigableModel extends ParanoidModel {
     }
 
     return result;
+  }
+
+  /**
+   * Adds the document identified by the given id to the model in
+   * memory. Does not add the document to the database or store.
+   *
+   * @param document The document to add.
+   * @param parentDocumentId The id of the document to add the new document to.
+   */
+  @action
+  addDocument(document: Document, parentDocumentId: string) {
+    if (!this.documents || !document || !parentDocumentId?.trim()) {
+      return;
+    }
+
+    const travelNodes = (nodes: NavigationNode[]) =>
+      nodes.forEach((node) => {
+        if (node.id === parentDocumentId) {
+          node.children = [document.asNavigationNode, ...(node.children ?? [])];
+        } else {
+          travelNodes(node.children);
+        }
+      });
+
+    travelNodes(this.documents);
+  }
+
+  /**
+   * Removes the document identified by the given id from the model in
+   * memory. Does not remove the document from the database.
+   *
+   * @param documentId The id of the document to remove.
+   */
+  @action
+  removeDocument(documentId: string) {
+    if (!this.documents) {
+      return;
+    }
+
+    this.documents = this.documents.filter(function f(node): boolean {
+      if (node.id === documentId) {
+        return false;
+      }
+
+      if (node.children) {
+        node.children = node.children.filter(f);
+      }
+
+      return true;
+    });
   }
 }

@@ -1,5 +1,5 @@
-import { action, observable } from "mobx";
-import { DocumentPermission, NavigationNode } from "@shared/types";
+import { observable } from "mobx";
+import { DocumentPermission } from "@shared/types";
 import type UserMembershipsStore from "~/stores/UserMembershipsStore";
 import Document from "./Document";
 import User from "./User";
@@ -51,31 +51,6 @@ class UserMembership extends NavigableModel {
   store: UserMembershipsStore;
 
   // methods
-
-  /**
-   * Adds the document identified by the given id to the user membership in
-   * memory. Does not add the document to the database or store.
-   *
-   * @param document The document to add.
-   * @param parentDocumentId The id of the document to add the new document to.
-   */
-  @action
-  addDocument(document: Document, parentDocumentId: string) {
-    if (!this.documents || !document || !parentDocumentId?.trim()) {
-      return;
-    }
-
-    const travelNodes = (nodes: NavigationNode[]) =>
-      nodes.forEach((node) => {
-        if (node.id === parentDocumentId) {
-          node.children = [document.asNavigationNode, ...(node.children ?? [])];
-        } else {
-          travelNodes(node.children);
-        }
-      });
-
-    travelNodes(this.documents);
-  }
 
   /**
    * Fetches the child documents structure from the server.
