@@ -185,10 +185,6 @@ const LinkEditor: React.FC<Props> = ({ mark, dictionary, view }) => {
     setSelectedIndex(-1);
   };
 
-  const handlePaste = () => {
-    setTimeout(() => updateLink(query), 0);
-  };
-
   const hasResults = !!results.length;
 
   const actions = getActions(view, query, dictionary);
@@ -201,7 +197,6 @@ const LinkEditor: React.FC<Props> = ({ mark, dictionary, view }) => {
           value={query}
           placeholder={dictionary.searchOrPasteLink}
           onKeyDown={handleKeyDown}
-          onPaste={handlePaste}
           onChange={handleSearch}
           onFocus={handleSearch}
           autoFocus={getHref() === ""}
