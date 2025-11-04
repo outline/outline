@@ -38,7 +38,7 @@ export class CacheHelper {
     const lockKey = `lock:${key}`;
     try {
       try {
-        lock = await MutexLock.lock.acquire([lockKey], lockTimeout);
+        lock = await MutexLock.acquire(lockKey, lockTimeout);
       } catch (err) {
         Logger.error(`Could not acquire lock for ${key}`, err);
       }
@@ -54,8 +54,8 @@ export class CacheHelper {
       }
       return value;
     } finally {
-      if (lock && lock.expiration > new Date().getTime()) {
-        await lock.release();
+      if (lock) {
+        await MutexLock.release(lock);
       }
     }
   }

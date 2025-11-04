@@ -6,9 +6,13 @@ import AuthenticationProvider from "@server/models/AuthenticationProvider";
 import Team from "@server/models/Team";
 import { migrations } from "@server/storage/database";
 import { getArg } from "./args";
+import { MutexLock } from "./MutexLock";
+import { Minute } from "@shared/utils/time";
 
 export async function checkPendingMigrations() {
+  let lock;
   try {
+    lock = await MutexLock.acquire("migrations", 10 * Minute.ms);
     const pending = await migrations.pending();
     if (!isEmpty(pending)) {
       if (getArg("no-migrate")) {
@@ -35,6 +39,10 @@ export async function checkPendingMigrations() {
       Logger.warn(chalk.red(err.message));
     }
     process.exit(1);
+  } finally {
+    if (lock) {
+      await MutexLock.release(lock);
+    }
   }
 }
 
