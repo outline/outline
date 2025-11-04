@@ -88,6 +88,7 @@ export const uploadFile = async (
     xhr.addEventListener("loadend", () => {
       resolve(xhr.readyState === 4 && xhr.status >= 200 && xhr.status < 400);
     });
+    xhr.withCredentials = true;
     xhr.open("POST", data.uploadUrl, true);
     xhr.send(formData);
   });
