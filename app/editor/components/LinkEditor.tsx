@@ -27,7 +27,6 @@ import { useEditor } from "./EditorContext";
 
 type Props = {
   mark?: Mark;
-  to: number;
   dictionary: Dictionary;
   view: EditorView;
 };
@@ -65,7 +64,7 @@ const getActions = (
   };
 };
 
-const LinkEditor: React.FC<Props> = ({ mark, to, dictionary, view }) => {
+const LinkEditor: React.FC<Props> = ({ mark, dictionary, view }) => {
   const getHref = () => sanitizeUrl(mark?.attrs.href) ?? "";
   const initialValue = getHref();
   const { commands } = useEditor();
@@ -124,7 +123,11 @@ const LinkEditor: React.FC<Props> = ({ mark, to, dictionary, view }) => {
 
   const moveSelectionToEnd = () => {
     const { state, dispatch } = view;
-    const nextSelection = Selection.findFrom(state.tr.doc.resolve(to), 1, true);
+    const nextSelection = Selection.findFrom(
+      state.tr.doc.resolve(state.selection.to),
+      1,
+      true
+    );
     if (nextSelection) {
       dispatch(state.tr.setSelection(nextSelection));
     }

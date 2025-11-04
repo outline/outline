@@ -201,7 +201,6 @@ export function SelectionToolbar(props: Props) {
           dictionary={dictionary}
           view={view}
           mark={link.mark}
-          to={link.to}
         />
       ) : isEditingMedia ? (
         <MediaLinkEditor
