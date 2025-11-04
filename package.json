@@ -203,7 +203,7 @@
     "prosemirror-markdown": "^1.13.2",
     "prosemirror-model": "^1.25.2",
     "prosemirror-schema-list": "^1.5.1",
-    "prosemirror-state": "^1.4.3",
+    "prosemirror-state": "^1.4.4",
     "prosemirror-tables": "^1.8.1",
     "prosemirror-transform": "1.10.0",
     "prosemirror-view": "^1.41.2",
