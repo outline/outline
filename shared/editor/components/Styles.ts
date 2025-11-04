@@ -351,16 +351,6 @@ const textStyle = () => css`
     }
   }
 
-  /* East Asian scripts */
-  :lang(zh),  /* Chinese */
-    :lang(ja),  /* Japanese */
-    :lang(ko) {
-    /* Korean */
-    p {
-      line-height: 1.5;
-    }
-  }
-
   /* Ethiopic and other complex scripts */
   :lang(am),  /* Amharic */
     :lang(mn) {
