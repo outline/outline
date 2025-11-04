@@ -144,6 +144,7 @@ export type Props = {
   style?: React.CSSProperties;
   /** Optional style overrides for the contenteeditable */
   editorStyle?: React.CSSProperties;
+  lang?: string;
 };
 
 type State = {
@@ -846,7 +847,7 @@ export class Editor extends React.PureComponent<
               editorStyle={this.props.editorStyle}
               commenting={!!this.props.onClickCommentMark}
               ref={this.elementRef}
-              lang=""
+              lang={this.props.lang ?? ""}
             />
 
             {this.widgets &&

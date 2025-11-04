@@ -4,7 +4,7 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.addColumn("documents", "language", {
-      type: Sequelize.STRING(3),
+      type: Sequelize.STRING(2),
       allowNull: true,
     });
   },
