@@ -164,6 +164,11 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
         if (ev.event.code === EditorUpdateError.code) {
           setEditorVersionBehind(true);
         }
+        if (ev.event.code === 4403) {
+          void auth.fetchAuth().catch(() => {
+            history.replace(homePath());
+          });
+        }
       }
     });
 
