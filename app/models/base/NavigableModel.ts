@@ -2,7 +2,7 @@ import { action, computed, observable, runInAction } from "mobx";
 import { JSONObject, type NavigationNode } from "@shared/types";
 import { client } from "~/utils/ApiClient";
 import ParanoidModel from "./ParanoidModel";
-import Document from "../Document";
+import type Document from "../Document";
 
 export default abstract class NavigableModel extends ParanoidModel {
   private isFetching = false;
@@ -49,12 +49,11 @@ export default abstract class NavigableModel extends ParanoidModel {
     return this.node?.children;
   }
 
-  set documents(value: NavigationNode[] | undefined) {
-    runInAction(() => {
-      if (this.node && value) {
-        this.node.children = value;
-      }
-    });
+  @action
+  setDocuments(value: NavigationNode[] | undefined) {
+    if (this.node && value) {
+      this.node.children = value;
+    }
   }
 
   /**
@@ -136,7 +135,7 @@ export default abstract class NavigableModel extends ParanoidModel {
     }
 
     if (this.documentId && parentDocumentId === this.documentId) {
-      this.documents = [document.asNavigationNode, ...(this.documents ?? [])];
+      this.setDocuments([document.asNavigationNode, ...(this.documents ?? [])]);
     }
 
     const travelNodes = (nodes: NavigationNode[]) =>
@@ -163,16 +162,18 @@ export default abstract class NavigableModel extends ParanoidModel {
       return;
     }
 
-    this.documents = this.documents.filter(function f(node): boolean {
-      if (node.id === documentId) {
-        return false;
-      }
+    this.setDocuments(
+      this.documents.filter(function f(node): boolean {
+        if (node.id === documentId) {
+          return false;
+        }
 
-      if (node.children) {
-        node.children = node.children.filter(f);
-      }
+        if (node.children) {
+          node.children = node.children.filter(f);
+        }
 
-      return true;
-    });
+        return true;
+      })
+    );
   }
 }
