@@ -53,6 +53,7 @@ export default function formattingMenuItems(
   const isEmpty = state.selection.empty;
   const isMobile = isMobileDevice();
   const isTouch = isTouchDevice();
+  const isList = isInList(state);
   const isTableCell = state.selection instanceof CellSelection;
 
   const highlight = getMarksBetween(
@@ -201,7 +202,7 @@ export default function formattingMenuItems(
       icon: <TodoListIcon />,
       keywords: "checklist checkbox task",
       active: isNodeActive(schema.nodes.checkbox_list),
-      visible: !isCodeBlock && !isTableCell && (!isMobile || isEmpty),
+      visible: !isCodeBlock && !isTableCell && !isList,
     },
     {
       name: "bullet_list",
@@ -209,7 +210,7 @@ export default function formattingMenuItems(
       shortcut: `⇧+Ctrl+8`,
       icon: <BulletedListIcon />,
       active: isNodeActive(schema.nodes.bullet_list),
-      visible: !isCodeBlock && !isTableCell && (!isMobile || isEmpty),
+      visible: !isCodeBlock && !isTableCell && !isList,
     },
     {
       name: "ordered_list",
@@ -217,23 +218,21 @@ export default function formattingMenuItems(
       shortcut: `⇧+Ctrl+9`,
       icon: <OrderedListIcon />,
       active: isNodeActive(schema.nodes.ordered_list),
-      visible: !isCodeBlock && !isTableCell && (!isMobile || isEmpty),
+      visible: !isCodeBlock && !isTableCell && !isList,
     },
     {
       name: "outdentList",
       tooltip: dictionary.outdent,
       shortcut: `⇧+Tab`,
       icon: <OutdentIcon />,
-      visible:
-        isTouch && isInList(state, { types: ["ordered_list", "bullet_list"] }),
+      visible: isTouch && isList,
     },
     {
       name: "indentList",
       tooltip: dictionary.indent,
       shortcut: `Tab`,
       icon: <IndentIcon />,
-      visible:
-        isTouch && isInList(state, { types: ["ordered_list", "bullet_list"] }),
+      visible: isTouch && isList,
     },
     {
       name: "outdentCheckboxList",

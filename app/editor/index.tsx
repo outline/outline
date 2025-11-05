@@ -851,7 +851,12 @@ export class Editor extends React.PureComponent<
 
             {this.widgets &&
               Object.values(this.widgets).map((Widget, index) => (
-                <Widget key={String(index)} rtl={isRTL} readOnly={readOnly} />
+                <Widget
+                  key={String(index)}
+                  rtl={isRTL}
+                  readOnly={readOnly}
+                  selection={this.view.state.selection}
+                />
               ))}
             <Observer>
               {() => (
