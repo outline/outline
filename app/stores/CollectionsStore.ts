@@ -10,7 +10,6 @@ import {
   SubscriptionType,
 } from "@shared/types";
 import Collection from "~/models/Collection";
-import Document from "~/models/Document";
 import { PaginationParams, Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
 import RootStore from "./RootStore";
@@ -83,25 +82,6 @@ export default class CollectionsStore extends Store<Collection> {
       Array.from(this.data.values()),
       (collection) => collection.name
     );
-  }
-
-  @computed
-  get flatDocuments(): Document[] {
-    const collection = this.active;
-    if (!collection?.sortedDocuments) {return [];}
-
-    const flatten = (docs: Document[]): Document[] => {
-      const result: Document[] = [];
-      for (const doc of docs) {
-        result.push(doc);
-        if (doc.children && doc.children.length > 0) {
-          result.push(...flatten(doc.children as Document[]));
-        }
-      }
-      return result;
-    };
-
-    return flatten(collection.sortedDocuments as Document[]);
   }
 
   @action

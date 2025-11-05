@@ -7,7 +7,6 @@ import useStores from "~/hooks/useStores";
 import DataLoader from "./components/DataLoader";
 import Document from "./components/Document";
 import { Footer } from "./components/Footer";
-import NavigationButtons from "./components/NavigationButtons";
 
 type Params = {
   documentSlug: string;
@@ -69,8 +68,6 @@ export default function DocumentScene(props: Props) {
     >
       {(rest) => (
         <Document {...rest}>
-          {rest.document.collection?.displayPreferences
-            ?.showFooterNavigation && <NavigationButtons />}
           <Footer document={rest.document} />
         </Document>
       )}

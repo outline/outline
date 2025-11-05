@@ -239,6 +239,25 @@ export default class Collection extends ParanoidModel {
     }
   };
 
+  get flatDocuments(): Document[] {
+    if (!this?.sortedDocuments) {
+      return [];
+    }
+
+    const flatten = (docs: Document[]): Document[] => {
+      const result: Document[] = [];
+      for (const doc of docs) {
+        result.push(doc);
+        if (doc.children && doc.children.length > 0) {
+          result.push(...flatten(doc.children as Document[]));
+        }
+      }
+      return result;
+    };
+
+    return flatten(this.sortedDocuments as Document[]);
+  }
+
   /**
    * Updates the document identified by the given id in the collection in memory.
    * Does not update the document in the database.

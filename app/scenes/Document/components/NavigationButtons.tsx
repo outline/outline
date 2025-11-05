@@ -3,59 +3,54 @@ import React, { useMemo } from "react";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import { css } from "styled-components";
-import { RealButton } from "~/components/Button";
+import { RealButton, RealProps } from "~/components/Button";
 import useStores from "~/hooks/useStores";
 import Document from "~/models/Document";
+import breakpoint from "styled-components-breakpoint";
 import {
   faChevronLeft,
   faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { observer } from "mobx-react";
 
-const NavigationButtons = () => {
-  const { collections, documents, ui } = useStores();
-  const activeCollection = collections.active;
-  const activeDocument = documents.active;
+const NavigationButtons = ({ document }: { document: Document }) => {
+  const { ui } = useStores();
   const history = useHistory();
 
   const docs = useMemo(() => {
+    const { collection } = document;
     let navDocs: Record<string, Document | null> = {
       prevDoc: null,
       nextDoc: null,
     };
 
-    const currentIndex = collections.flatDocuments.findIndex(
-      (doc) => doc.id === activeDocument?.id
-    );
+    if (collection && collection.flatDocuments) {
+      const currentIndex = collection.flatDocuments.findIndex(
+        (doc) => doc.id === document?.id
+      );
 
-    if (
-      currentIndex !== undefined &&
-      currentIndex !== -1 &&
-      activeCollection?.documents
-    ) {
-      const nextIdx = currentIndex + 1;
-      if (nextIdx < collections.flatDocuments.length) {
-        navDocs.nextDoc = collections.flatDocuments[nextIdx];
-      }
+      if (currentIndex !== undefined && currentIndex !== -1) {
+        const nextIdx = currentIndex + 1;
+        if (nextIdx < collection.flatDocuments.length) {
+          navDocs.nextDoc = collection.flatDocuments[nextIdx];
+        }
 
-      const prevIdx = currentIndex - 1;
-      if (prevIdx > -1) {
-        navDocs.prevDoc = collections.flatDocuments[prevIdx];
+        const prevIdx = currentIndex - 1;
+        if (prevIdx > -1) {
+          navDocs.prevDoc = collection.flatDocuments[prevIdx];
+        }
       }
     }
 
     return navDocs;
-  }, [activeDocument]);
+  }, [document.collection?.sortedDocuments, document.collection]);
 
   const handleNavigate = (doc: Document | null) => {
     if (doc) {
       history.push(doc.url);
     }
   };
-
-  if (!docs.prevDoc && !docs.nextDoc) {
-    return null;
-  }
 
   return (
     <Wrapper
@@ -103,42 +98,20 @@ const Wrapper = styled.div<
     sidebarOpen?: boolean;
   }
 >`
-  position: fixed;
-  bottom: 12px;
-  margin-left: 20px;
+  position: sticky;
+  margin-bottom: 100px;
+  width: 100%;
   display: flex;
-  flex-direction: row;
-  gap: 20px;
-  left: 50%;
-  transform: translateX(-50%);
+  flex-direction: column;
+  gap: 10px;
 
-  ${(props) => css`
-    width: ${props.fullwidth ? "35%" : "45%"};
+  ${breakpoint("tablet")`
+    margin: 20px 0;
   `}
 
-  ${(props) =>
-    props.sidebarOpen &&
-    css`
-      @media (max-width: 1100px) {
-        left: 55%;
-      }
-
-      @media (max-width: 900px) {
-        left: 65%;
-      }
-    `}
-
-  @media (max-width: 900px) {
-    flex-direction: column;
-    width: 60%;
-    margin-left: 0;
-    gap: 10px;
-  }
-
-  @media (max-width: 735px) {
-    width: 90%;
-    left: 50%;
-  }
+  ${breakpoint("desktop")`
+    flex-direction: row;
+  `}
 `;
 
 const NavButton = styled(RealButton)`
@@ -148,22 +121,19 @@ const NavButton = styled(RealButton)`
   color: ${s("text")};
   border-radius: 2px;
   line-height: 18px;
-  width: 60%;
   background: none;
-  shadow: 0 0 0 0 black;
+  width: 100%;
 
   &:hover {
     opacity: 1;
     background: none;
   }
 
-  ${(props) => css`
-    width: ${props.$fullwidth ? "100%" : "50%"};
+  ${breakpoint("desktop")`
+    ${(props: RealProps) => css`
+      width: ${props.$fullwidth ? "100%" : "50%"};
+    `}
   `}
-
-  @media (max-width: 900px) {
-    width: 100%;
-  }
 `;
 
 const ButtonContent = styled.div`
@@ -184,4 +154,4 @@ const ButtonText = styled.div`
   font-weight: bold;
 `;
 
-export default NavigationButtons;
+export default observer(NavigationButtons);

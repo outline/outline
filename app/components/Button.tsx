@@ -9,7 +9,7 @@ import ActionButton, {
 } from "~/components/ActionButton";
 import { undraggableOnDesktop } from "~/styles";
 
-type RealProps = {
+export type RealProps = {
   $fullwidth?: boolean;
   $borderOnHover?: boolean;
   $neutral?: boolean;
