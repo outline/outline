@@ -8,6 +8,7 @@ import {
   AlignFullWidthIcon,
   EditIcon,
   CommentIcon,
+  LinkIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
@@ -122,6 +123,12 @@ export default function imageMenuItems(
     },
     {
       name: "separator",
+    },
+    {
+      name: "linkOnImage",
+      tooltip: dictionary.createLink,
+      shortcut: `${metaDisplay}+K`,
+      icon: <LinkIcon />,
     },
     {
       name: "commentOnImage",
