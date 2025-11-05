@@ -1,4 +1,5 @@
 import { ResolvedPos, MarkType } from "prosemirror-model";
+import { NodeSelection } from "prosemirror-state";
 
 export function getMarkRange($pos?: ResolvedPos, type?: MarkType) {
   if (!$pos || !type) {
@@ -37,4 +38,19 @@ export function getMarkRange($pos?: ResolvedPos, type?: MarkType) {
   }
 
   return { from: startPos, to: endPos, mark };
+}
+
+export function getMarkRangeNodeSelection(
+  selection: NodeSelection,
+  type: MarkType
+) {
+  const mark = (selection.node.attrs.marks ?? []).find(
+    (mark: any) => mark.type === type.name
+  );
+
+  if (!mark) {
+    return false;
+  }
+
+  return { from: selection.from, to: selection.to, mark };
 }

@@ -17,6 +17,7 @@ import { ComponentProps } from "../types";
 import SimpleImage from "./SimpleImage";
 import { LightboxImageFactory } from "../lib/Lightbox";
 import { addComment } from "../commands/comment";
+import { addLink } from "../commands/link";
 
 const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
 
@@ -515,6 +516,7 @@ export default class Image extends SimpleImage {
         },
       commentOnImage: (): Command =>
         addComment({ userId: this.options.userId }),
+      linkOnImage: (): Command => addLink({ href: "" }),
     };
   }
 
