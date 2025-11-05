@@ -64,6 +64,7 @@ const NavigationButtons = () => {
     >
       {docs.prevDoc && (
         <NavButton
+          $neutral
           $fullwidth={!docs.nextDoc}
           onClick={() => handleNavigate(docs.prevDoc)}
         >
@@ -79,6 +80,7 @@ const NavigationButtons = () => {
 
       {docs.nextDoc && (
         <NavButton
+          $neutral
           $fullwidth={!docs.prevDoc}
           onClick={() => handleNavigate(docs.nextDoc)}
         >
@@ -147,9 +149,12 @@ const NavButton = styled(RealButton)`
   border-radius: 2px;
   line-height: 18px;
   width: 60%;
+  background: none;
+  shadow: 0 0 0 0 black;
 
   &:hover {
     opacity: 1;
+    background: none;
   }
 
   ${(props) => css`
