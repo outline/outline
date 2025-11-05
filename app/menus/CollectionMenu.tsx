@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { CollectionDisplayPreference, SubscriptionType } from "@shared/types";
+import { SubscriptionType } from "@shared/types";
 import Collection from "~/models/Collection";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
 import { OverflowMenuButton } from "~/components/Menu/OverflowMenuButton";
@@ -9,12 +9,6 @@ import { ActionContextProvider } from "~/hooks/useActionContext";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import { useCollectionMenuAction } from "~/hooks/useCollectionMenuAction";
-import usePolicy from "~/hooks/usePolicy";
-import { MenuSeparator } from "~/components/primitives/components/Menu";
-import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
-import Switch from "~/components/Switch";
-import { s } from "@shared/styles";
 
 type Props = {
   collection: Collection;
@@ -35,7 +29,6 @@ function CollectionMenu({
 }: Props) {
   const { subscriptions } = useStores();
   const { t } = useTranslation();
-  const can = usePolicy(collection);
 
   const {
     loading: subscriptionLoading,
@@ -59,40 +52,6 @@ function CollectionMenu({
     onRename,
   });
 
-  const handleFooterNavToggle = React.useCallback((checked: boolean) => {
-    collection.setPreference(
-      CollectionDisplayPreference.showFooterNavigation,
-      checked
-    );
-  }, []);
-
-  const toggleSwitches = React.useMemo<React.ReactNode>(() => {
-    if (!can.update) {return;}
-
-    return (
-      <>
-        <MenuSeparator />
-        <DisplayOptions>
-          <Style>
-            <ToggleMenuItem
-              width={26}
-              height={14}
-              label={t("Show footer navigation")}
-              labelPosition="left"
-              checked={collection.displayPreferences?.showFooterNavigation}
-              onChange={handleFooterNavToggle}
-            />
-          </Style>
-        </DisplayOptions>
-      </>
-    );
-  }, [
-    t,
-    can.update,
-    handleFooterNavToggle,
-    collection.displayPreferences?.showFooterNavigation,
-  ]);
-
   return (
     <ActionContextProvider value={{ activeCollectionId: collection.id }}>
       <DropdownMenu
@@ -101,7 +60,6 @@ function CollectionMenu({
         onOpen={onOpen}
         onClose={onClose}
         ariaLabel={t("Collection menu")}
-        append={toggleSwitches}
       >
         <OverflowMenuButton
           neutral={neutral}
@@ -111,25 +69,5 @@ function CollectionMenu({
     </ActionContextProvider>
   );
 }
-
-const ToggleMenuItem = styled(Switch)`
-  * {
-    font-weight: normal;
-    color: ${s("textSecondary")};
-  }
-`;
-
-const DisplayOptions = styled.div`
-  padding: 8px 0 0;
-`;
-
-const Style = styled.div`
-  padding: 12px;
-
-  ${breakpoint("tablet")`
-    padding: 4px 12px;
-    font-size: 14px;
-  `};
-`;
 
 export default observer(CollectionMenu);

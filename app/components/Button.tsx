@@ -16,7 +16,7 @@ type RealProps = {
   $danger?: boolean;
 };
 
-const RealButton = styled(ActionButton)<RealProps>`
+export const RealButton = styled(ActionButton)<RealProps>`
   display: ${(props) => (props.$fullwidth ? "block" : "inline-block")};
   width: ${(props) => (props.$fullwidth ? "100%" : "auto")};
   margin: 0;
