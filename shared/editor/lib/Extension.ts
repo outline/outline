@@ -1,12 +1,16 @@
 import { PluginSimple } from "markdown-it";
 import { InputRule } from "prosemirror-inputrules";
 import { NodeType, MarkType, Schema } from "prosemirror-model";
-import { Command, Plugin } from "prosemirror-state";
+import { Command, Plugin, Selection } from "prosemirror-state";
 import type { Editor } from "../../../app/editor";
 
 export type CommandFactory = (attrs?: unknown) => Command;
 
-export type WidgetProps = { rtl: boolean; readOnly: boolean | undefined };
+export type WidgetProps = {
+  rtl: boolean;
+  readOnly: boolean | undefined;
+  selection?: Selection;
+};
 
 export default class Extension {
   options: any;
