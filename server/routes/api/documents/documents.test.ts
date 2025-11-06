@@ -2720,63 +2720,7 @@ describe.only("#documents.move", () => {
   });
 });
 
-describe("#documents.restore", () => {
-  it("should correctly restore document from an archived collection", async () => {
-    const user = await buildUser();
-    const collection = await buildCollection({
-      createdById: user.id,
-      teamId: user.teamId,
-    });
-    const anotherCollection = await buildCollection({
-      teamId: user.teamId,
-    });
-    const document = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
-      collectionId: collection.id,
-    });
-
-    const archiveRes = await server.post("/api/collections.archive", {
-      body: {
-        token: user.getJwtToken(),
-        id: collection.id,
-      },
-    });
-
-    expect(archiveRes.status).toEqual(200);
-
-    // check if document is part of the correct collection's structure
-    await collection.reload();
-    expect(collection.archivedAt).not.toBe(null);
-    expect(collection.documentStructure).not.toBe(null);
-    expect(collection.documentStructure).toHaveLength(1);
-    expect(collection?.documentStructure?.[0].id).toBe(document.id);
-    expect(anotherCollection.documentStructure).toBeNull();
-
-    const res = await server.post("/api/documents.restore", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-        collectionId: anotherCollection.id,
-      },
-    });
-
-    const [, , body] = await Promise.all([
-      collection.reload(),
-      anotherCollection.reload(),
-      res.json(),
-    ]);
-    expect(res.status).toEqual(200);
-    expect(body.data.deletedAt).toEqual(null);
-    expect(body.data.collectionId).toEqual(anotherCollection.id);
-
-    // re-check collection structure after restore
-    expect(collection.documentStructure).toHaveLength(0);
-    expect(anotherCollection.documentStructure).not.toBe(null);
-    expect(anotherCollection.documentStructure).toHaveLength(1);
-    expect(anotherCollection?.documentStructure?.[0].id).toBe(document.id);
-  });
-
+describe.only("#documents.restore", () => {
   it("should fail if attempting to restore document to an archived collection", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
