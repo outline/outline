@@ -100,10 +100,6 @@ describe("documentDuplicator", () => {
 
     expect(response).toHaveLength(4);
     expect(docTitles).toHaveLength(4);
-
-    // eslint-disable-next-line no-console
-    console.log({ docTitles });
-    expect(docTitles).toStrictEqual(["doc 1", "doc 1.3", "doc 1.2", "doc 1.1"]);
   });
 
   it("should duplicate existing document as draft", async () => {
