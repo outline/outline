@@ -1,11 +1,9 @@
-import { Event, Document, User } from "@server/models";
+import { Event, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
 import { APIContext } from "@server/types";
 
 type Props = {
-  /** The user updating the document */
-  user: User;
   /** The existing document */
   document: Document;
   /** The new title */
@@ -44,7 +42,6 @@ type Props = {
 export default async function documentUpdater(
   ctx: APIContext,
   {
-    user,
     document,
     title,
     icon,
@@ -60,8 +57,8 @@ export default async function documentUpdater(
     done,
   }: Props
 ): Promise<Document> {
+  const { user } = ctx.state.auth;
   const { transaction } = ctx.state;
-  const previousTitle = document.title;
   const cId = collectionId || document.collectionId;
 
   if (title !== undefined) {
@@ -96,53 +93,29 @@ export default async function documentUpdater(
   }
 
   const changed = document.changed();
+  const eventData = done !== undefined ? { done } : undefined;
 
   const event = {
     name: "documents.update",
     documentId: document.id,
     collectionId: cId,
-    data: {
-      done,
-      title: document.title,
-    },
+    data: eventData,
   };
 
   if (publish && (document.template || cId)) {
     if (!document.collectionId) {
       document.collectionId = cId;
     }
-    await document.publish(user, cId, { transaction });
-
-    await Event.createFromContext(ctx, {
-      ...event,
-      name: "documents.publish",
-    });
+    await document.publish(ctx, { collectionId: cId, data: eventData });
   } else if (changed) {
     document.lastModifiedById = user.id;
     document.updatedBy = user;
-    await document.save({ transaction });
-
-    await Event.createFromContext(ctx, event);
+    await document.saveWithCtx(ctx, undefined, { data: eventData });
   } else if (done) {
     await Event.schedule({
       ...event,
       actorId: user.id,
       teamId: document.teamId,
-    });
-  }
-
-  if (document.title !== previousTitle) {
-    await Event.schedule({
-      name: "documents.title_change",
-      documentId: document.id,
-      collectionId: cId,
-      teamId: document.teamId,
-      actorId: user.id,
-      data: {
-        previousTitle,
-        title: document.title,
-      },
-      ip: ctx.request.ip,
     });
   }
 
