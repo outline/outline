@@ -2458,7 +2458,7 @@ describe("#documents.viewed", () => {
   });
 });
 
-describe("#documents.move", () => {
+describe.only("#documents.move", () => {
   it("should fail if attempting to nest doc within itself", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -2603,12 +2603,14 @@ describe("#documents.move", () => {
 
   it("should move the document", async () => {
     const user = await buildUser();
+    // const admin = await buildAdmin({ teamId: user.teamId });
     const document = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
     });
     const collection = await buildCollection({
       teamId: user.teamId,
+      userId: user.id,
     });
     const res = await server.post("/api/documents.move", {
       body: {
@@ -2644,6 +2646,7 @@ describe("#documents.move", () => {
     const user = await buildAdmin();
     const collection = await buildCollection({
       teamId: user.teamId,
+      userId: user.id,
     });
     const document = await buildDocument({
       userId: user.id,
@@ -2669,6 +2672,7 @@ describe("#documents.move", () => {
     const user = await buildUser();
     const collection = await buildCollection({
       teamId: user.teamId,
+      userId: user.id,
     });
     const document = await buildDocument({
       userId: user.id,
