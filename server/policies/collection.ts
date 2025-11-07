@@ -96,9 +96,33 @@ allow(User, "share", Collection, (user, collection) => {
   return true;
 });
 
+allow(User, "updateDocument", Collection, (user, collection) => {
+  if (!collection || !isTeamModel(user, collection) || !isTeamMutable(user)) {
+    return false;
+  }
+
+  if (
+    !collection.isPrivate ||
+    collection.permission !== CollectionPermission.ReadWrite ||
+    user.isViewer ||
+    user.isGuest
+  ) {
+    return includesMembership(collection, [
+      CollectionPermission.ReadWrite,
+      CollectionPermission.Admin,
+    ]);
+  }
+
+  if (collection.isPrivate) {
+    return false;
+  }
+
+  return true;
+});
+
 allow(
   User,
-  ["createDocument", "deleteDocument", "updateDocument"],
+  ["createDocument", "deleteDocument"],
   Collection,
   (user, collection) => {
     if (

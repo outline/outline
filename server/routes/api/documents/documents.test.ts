@@ -2458,7 +2458,7 @@ describe("#documents.viewed", () => {
   });
 });
 
-describe.only("#documents.move", () => {
+describe("#documents.move", () => {
   it("should fail if attempting to nest doc within itself", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -2720,7 +2720,7 @@ describe.only("#documents.move", () => {
   });
 });
 
-describe.only("#documents.restore", () => {
+describe("#documents.restore", () => {
   it("should fail if attempting to restore document to an archived collection", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -3901,6 +3901,7 @@ describe("#documents.update", () => {
     const user = await buildUser();
     const collection = await buildCollection({
       teamId: user.teamId,
+      userId: user.id,
     });
     const template = await buildDocument({
       teamId: user.teamId,
@@ -4288,9 +4289,14 @@ describe("#documents.archive", () => {
   it("should allow archiving document", async () => {
     const admin = await buildAdmin();
     const user = await buildUser({ teamId: admin.teamId });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const document = await buildDocument({
       userId: admin.id,
       teamId: user.teamId,
+      collectionId: collection.id,
     });
     const res = await server.post("/api/documents.archive", {
       body: {
