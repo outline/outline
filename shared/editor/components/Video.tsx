@@ -18,17 +18,22 @@ export default function Video(props: Props) {
   const ref = React.useRef<HTMLDivElement>(null);
   const isResizable = !!onChangeSize;
 
-  const { width, height, setSize, handlePointerDown, dragging } = useDragResize(
-    {
-      width: node.attrs.width ?? naturalWidth,
-      height: node.attrs.height ?? naturalHeight,
-      naturalWidth,
-      naturalHeight,
-      gridSnap: 5,
-      onChangeSize,
-      ref,
-    }
-  );
+  const {
+    width,
+    height,
+    setSize,
+    handlePointerDown,
+    handleDoubleClick,
+    dragging,
+  } = useDragResize({
+    width: node.attrs.width ?? naturalWidth,
+    height: node.attrs.height ?? naturalHeight,
+    naturalWidth,
+    naturalHeight,
+    gridSnap: 5,
+    onChangeSize,
+    ref,
+  });
 
   React.useEffect(() => {
     if (node.attrs.width && node.attrs.width !== width) {
@@ -37,7 +42,7 @@ export default function Video(props: Props) {
         height: node.attrs.height,
       });
     }
-  }, [node.attrs.width]);
+  }, [node.attrs.width, node.attrs.height, width, setSize]);
 
   const style: React.CSSProperties = {
     width: width || "auto",
@@ -61,10 +66,12 @@ export default function Video(props: Props) {
           <>
             <ResizeLeft
               onPointerDown={handlePointerDown("left")}
+              onDoubleClick={handleDoubleClick}
               $dragging={!!dragging}
             />
             <ResizeRight
               onPointerDown={handlePointerDown("right")}
+              onDoubleClick={handleDoubleClick}
               $dragging={!!dragging}
             />
           </>
