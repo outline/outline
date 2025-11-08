@@ -128,6 +128,10 @@ const FilterOptions = ({
         return;
       }
 
+      // Stop all keyboard events from propagating to prevent Radix UI menu
+      // from handling them and potentially moving focus
+      ev.stopPropagation();
+
       switch (ev.key) {
         case "Escape":
           setOpen(false);
