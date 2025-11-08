@@ -106,7 +106,7 @@ export function GroupsTable(props: Props) {
               </GroupMembers>
             );
           },
-          width: "1fr",
+          width: "1.5fr",
           sortable: false,
         },
         {
