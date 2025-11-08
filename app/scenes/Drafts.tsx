@@ -104,9 +104,10 @@ const Filters = styled(Flex)`
   opacity: 0.85;
   transition: opacity 100ms ease-in-out;
   position: absolute;
-  right: -8px;
+  right: 0;
   bottom: 0;
   padding: 0 0 6px;
+  gap: 4px;
 
   &:hover {
     opacity: 1;
