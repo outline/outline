@@ -1,8 +1,11 @@
 import { createContext } from "@server/context";
 import { sequelize } from "@server/storage/database";
-import { buildDocument, buildUser } from "@server/test/factories";
+import {
+  buildCollection,
+  buildDocument,
+  buildUser,
+} from "@server/test/factories";
 import documentDuplicator from "./documentDuplicator";
-import { Collection } from "@server/models";
 
 describe("documentDuplicator", () => {
   it("should duplicate existing document", async () => {
@@ -55,40 +58,48 @@ describe("documentDuplicator", () => {
     expect(response[0].publishedAt).toBeInstanceOf(Date);
   });
 
-  it("should duplicate child documents with recursive=true", async () => {
+  it("should duplicate child documents, in the correct order with recursive=true", async () => {
     const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
     const original = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
       icon: "👋",
       title: "doc 1",
+      collectionId: collection.id,
     });
 
-    await buildDocument({
+    const child1 = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
       parentDocumentId: original.id,
-      collection: original.collection,
       title: "doc 1.1",
     });
 
-    await buildDocument({
+    const child2 = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
       parentDocumentId: original.id,
-      collection: original.collection,
       title: "doc 1.2",
     });
 
-    await buildDocument({
+    const child3 = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
       parentDocumentId: original.id,
-      collection: original.collection,
       title: "doc 1.3",
     });
 
-    const response = await sequelize.transaction((transaction) =>
+    await collection.addDocumentToStructure(original);
+    await collection.addDocumentToStructure(child1);
+    await collection.addDocumentToStructure(child2);
+    await collection.addDocumentToStructure(child3);
+
+    await sequelize.transaction((transaction) =>
       documentDuplicator({
         title: "duplicate",
         document: original,
@@ -98,22 +109,16 @@ describe("documentDuplicator", () => {
         ctx: createContext({ user, transaction }),
       })
     );
-    expect(response).toHaveLength(4);
 
-    const reloadedCollection = original.collectionId
-      ? await Collection.findByPk(original.collectionId, {
-          attributes: {
-            include: ["documentStructure"],
-          },
-        })
-      : null;
-    const childrenDocTitles =
-      reloadedCollection?.documentStructure?.[0].children.map(
-        (doc) => doc.title
-      );
-    expect(childrenDocTitles?.[0]).toEqual("doc 1.1");
-    expect(childrenDocTitles?.[1]).toEqual("doc 1.2");
-    expect(childrenDocTitles?.[2]).toEqual("doc 1.3");
+    await collection.reload();
+    const duplicate = collection.documentStructure![0];
+    const childTitles = duplicate.children!.map((child) => child.title);
+
+    expect(duplicate.title).toEqual("duplicate");
+    expect(childTitles.length).toBe(3);
+    expect(childTitles[0]).toBe(child1.title);
+    expect(childTitles[1]).toBe(child2.title);
+    expect(childTitles[2]).toBe(child3.title);
   });
 
   it("should duplicate existing document as draft", async () => {
