@@ -20,9 +20,6 @@ class GroupMembership extends NavigableModel {
   @Relation(() => Group, { onDelete: "cascade" })
   group: Group;
 
-  /** The document ID that this membership grants the group access to. */
-  documentId: string | undefined;
-
   /** The document that this membership grants the group access to. */
   @Relation(() => Document, { onDelete: "cascade" })
   document: Document | undefined;
@@ -46,7 +43,6 @@ class GroupMembership extends NavigableModel {
   permission: CollectionPermission | DocumentPermission;
 
   // methods
-
   /**
    * Fetches the child documents structure from the server.
    */

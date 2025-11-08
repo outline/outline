@@ -25,7 +25,8 @@ function DocumentNew({ template }: Props) {
   const user = useCurrentUser();
   const match = useRouteMatch<{ id?: string }>();
   const { t } = useTranslation();
-  const { documents, collections } = useStores();
+  const { documents, collections, userMemberships, groupMemberships } =
+    useStores();
   const id = match.params.id || query.get("collectionId");
 
   useEffect(() => {
@@ -54,6 +55,16 @@ function DocumentNew({ template }: Props) {
           },
           { publish: collection?.id || parentDocumentId ? true : undefined }
         );
+
+        if (parentDocumentId) {
+          userMemberships
+            .getByDocumentId(document.id)
+            ?.addDocument(document, parentDocumentId);
+
+          groupMemberships
+            .getByDocumentId(document.id)
+            ?.addDocument(document, parentDocumentId);
+        }
 
         history.replace(
           template || !user.separateEditMode

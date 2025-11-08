@@ -20,9 +20,6 @@ class UserMembership extends NavigableModel {
   @observable
   permission: DocumentPermission;
 
-  /** The document ID that this membership grants the user access to. */
-  documentId?: string;
-
   /** The document that this membership grants the user access to. */
   @Relation(() => Document, { onDelete: "cascade" })
   document?: Document;

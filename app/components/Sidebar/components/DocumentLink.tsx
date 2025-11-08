@@ -302,6 +302,7 @@ function InnerDocumentLink(
           { publish: true }
         );
         collection?.addDocument(newDocument, node.id);
+        membership?.addDocument(newDocument, node.id);
 
         closeAddingNewChild();
         history.push({

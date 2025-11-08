@@ -21,7 +21,8 @@ type Props = {
 
 function DocumentDelete({ document, onSubmit }: Props) {
   const { t } = useTranslation();
-  const { ui, documents, collections } = useStores();
+  const { ui, documents, collections, userMemberships, groupMemberships } =
+    useStores();
   const history = useHistory();
   const [isDeleting, setDeleting] = React.useState(false);
   const [isArchiving, setArchiving] = React.useState(false);
@@ -40,6 +41,13 @@ function DocumentDelete({ document, onSubmit }: Props) {
 
       try {
         await document.delete();
+
+        userMemberships
+          .getByDocumentId(document.id)
+          ?.removeDocument(document.id);
+        groupMemberships
+          .getByDocumentId(document.id)
+          ?.removeDocument(document.id);
 
         // only redirect if we're currently viewing the document that's deleted
         if (ui.activeDocumentId === document.id) {
