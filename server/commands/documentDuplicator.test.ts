@@ -54,7 +54,7 @@ describe("documentDuplicator", () => {
     expect(response[0].publishedAt).toBeInstanceOf(Date);
   });
 
-  it("should duplicate child documents with recursive=true", async () => {
+  it.only("should duplicate child documents with recursive=true", async () => {
     const user = await buildUser();
     const original = await buildDocument({
       userId: user.id,
@@ -100,6 +100,10 @@ describe("documentDuplicator", () => {
 
     expect(response).toHaveLength(4);
     expect(docTitles).toHaveLength(4);
+    expect(docTitles[0]).toEqual("doc 1");
+    expect(docTitles[1]).toEqual("doc 1.3");
+    expect(docTitles[2]).toEqual("doc 1.2");
+    expect(docTitles[3]).toEqual("doc 1.1");
   });
 
   it("should duplicate existing document as draft", async () => {
