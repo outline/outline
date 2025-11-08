@@ -111,7 +111,9 @@ describe("documentDuplicator", () => {
       reloadedCollection?.documentStructure?.[0].children.map(
         (doc) => doc.title
       );
-    expect(childrenDocTitles).toEqual(["doc 1.1", "doc 1.2", "doc 1.3"]);
+    expect(childrenDocTitles?.[0]).toEqual("doc 1.1");
+    expect(childrenDocTitles?.[1]).toEqual("doc 1.2");
+    expect(childrenDocTitles?.[2]).toEqual("doc 1.3");
   });
 
   it("should duplicate existing document as draft", async () => {
