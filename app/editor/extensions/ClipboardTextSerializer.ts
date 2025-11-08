@@ -1,6 +1,7 @@
 import { Plugin, PluginKey } from "prosemirror-state";
 import Extension from "@shared/editor/lib/Extension";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { isList } from "@shared/editor/queries/isList";
 
 /**
  * A plugin that allows overriding the default behavior of the editor to allow
@@ -18,7 +19,7 @@ export default class ClipboardTextSerializer extends Extension {
       new Plugin({
         key: new PluginKey("clipboardTextSerializer"),
         props: {
-          clipboardTextSerializer: (slice) => {
+          clipboardTextSerializer: (slice, view) => {
             // Check if the only node is a code block
             const isSingleCodeBlock =
               slice.content.childCount === 1 &&
@@ -32,10 +33,24 @@ export default class ClipboardTextSerializer extends Extension {
             });
             const hasOnlyCodeMark =
               marks.size === 1 && marks.has("code_inline");
-            
 
-            // Use plain text serializer only for code-only content
-            const usePlainText = isSingleCodeBlock || hasOnlyCodeMark;
+            const hasMultipleListItems = slice.content.content
+              .filter((node) => node.content.content.length > 1)
+              .some((node) => isList(node, view.state.schema));
+            const hasSingleBlockType =
+              [
+                ...new Set(
+                  slice.content.content
+                    .filter((node) => node.content.content.length > 1)
+                    .map((node) => node.type.name)
+                ),
+              ].length <= 1;
+
+            // Use plain text serializer only for "simple" content
+            const usePlainText =
+              isSingleCodeBlock ||
+              hasOnlyCodeMark ||
+              (hasSingleBlockType && !hasMultipleListItems);
 
             return usePlainText
               ? slice.content.content
