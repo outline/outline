@@ -311,9 +311,9 @@ export default class Mention extends Node {
 
     // Use regular links for document and collection mentions
     if (mType === MentionType.Document) {
-      state.write(`[${label}](${env.URL}/doc/${mId})`);
+      state.write(`[${label}](/doc/${mId})`);
     } else if (mType === MentionType.Collection) {
-      state.write(`[${label}](${env.URL}/collection/${mId})`);
+      state.write(`[${label}](/collection/${mId})`);
     } else {
       // Keep the existing mention:// format for other types (user, group, issue, pull_request, url)
       state.write(`@[${label}](mention://${id}/${mType}/${mId})`);
