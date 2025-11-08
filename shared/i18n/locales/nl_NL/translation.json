@@ -481,6 +481,8 @@
   "Image height": "Afbeelding hoogte",
   "Height": "Hoogte",
   "Profile picture": "Profielfoto",
+  "{{ count }} members": "{{ count }} member",
+  "{{ count }} members_plural": "{{ count }} members",
   "Create a new doc": "Maak een nieuw document",
   "{{ userName }} won't be notified, as they do not have access to this document": "{{ userName }} wordt niet verwittigd omdat ze geen toegang hebben tot dit document",
   "Members of \"{{ groupName }}\" that have access to this document will be notified": "Leden van \"{{ groupName }}\" die toegang hebben tot dit document worden op de hoogte gebracht",
