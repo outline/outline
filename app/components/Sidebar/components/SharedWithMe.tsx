@@ -30,7 +30,11 @@ function SharedWithMe() {
   const history = useHistory();
   const locationSidebarContext = useLocationSidebarContext();
 
-  usePaginatedRequest<GroupMembership>(groupMemberships.fetchAll);
+  const {
+    loading: groupLoading,
+    next: groupNext,
+    end: groupEnd,
+  } = usePaginatedRequest<GroupMembership>(groupMemberships.fetchAll);
 
   const { loading, next, end, error, page } =
     usePaginatedRequest<UserMembership>(userMemberships.fetchPage, {
@@ -123,15 +127,22 @@ function SharedWithMe() {
               .map((membership) => (
                 <SharedWithMeLink key={membership.id} membership={membership} />
               ))}
-            {!end && (
+            {(!end || !groupEnd) && (
               <SidebarLink
-                onClick={next}
+                onClick={() => {
+                  if (!end) {
+                    next();
+                  }
+                  if (!groupEnd) {
+                    groupNext();
+                  }
+                }}
                 label={`${t("Show more")}…`}
-                disabled={loading}
+                disabled={loading || groupLoading}
                 depth={0}
               />
             )}
-            {loading && (
+            {(loading || groupLoading) && (
               <Flex column>
                 <DelayedMount>
                   <PlaceholderCollections />
