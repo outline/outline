@@ -481,6 +481,8 @@
   "Image height": "이미지 높이",
   "Height": "높이",
   "Profile picture": "프로필 사진",
+  "{{ count }} members": "{{ count }} member",
+  "{{ count }} members_plural": "{{ count }} members",
   "Create a new doc": "새 문서 만들기",
   "{{ userName }} won't be notified, as they do not have access to this document": "{{ userName }} 은(는) 이 문서에 대한 액세스 권한이 없으므로 알림을 받지 않습니다.",
   "Members of \"{{ groupName }}\" that have access to this document will be notified": "Members of \"{{ groupName }}\" that have access to this document will be notified",
