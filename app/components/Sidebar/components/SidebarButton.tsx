@@ -44,7 +44,6 @@ const SidebarButton = React.forwardRef<HTMLButtonElement, SidebarButtonProps>(
           as="button"
           ref={ref}
           role="button"
-          disabled={!onClick}
         >
           <Content gap={8} align="center">
             {image}
@@ -104,12 +103,14 @@ const Button = styled(Flex)<{
   ${undraggableOnDesktop()}
   ${extraArea(4)}
 
-  &:not(:disabled):active,
-  &:not(:disabled):${hover},
-  &:not(:disabled)[aria-expanded="true"] {
-    color: ${s("sidebarText")};
-    background: ${s("sidebarActiveBackground")};
-    cursor: var(--pointer);
+  &:not(:disabled) {
+    &:active,
+    &:${hover},
+    &[aria-expanded="true"] {
+      color: ${s("sidebarText")};
+      background: ${s("sidebarActiveBackground")};
+      cursor: var(--pointer);
+    }
   }
 
   &:last-child {

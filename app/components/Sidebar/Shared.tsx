@@ -59,6 +59,7 @@ function SharedSidebar({ share }: Props) {
           image={
             <TeamLogo model={team} size={AvatarSize.XLarge} alt={t("Logo")} />
           }
+          disabled={hideRootNode}
           onClick={
             hideRootNode
               ? undefined
