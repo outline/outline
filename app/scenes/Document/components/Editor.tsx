@@ -229,6 +229,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       )}
       <EditorComponent
         ref={mergeRefs([ref, handleRefChanged])}
+        lang={document.language}
         autoFocus={!!document.title && !props.defaultValue}
         placeholder={t("Type '/' to insert, or start writing…")}
         scrollTo={decodeURIComponentSafe(window.location.hash)}
