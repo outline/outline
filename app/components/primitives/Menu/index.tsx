@@ -276,7 +276,7 @@ const MenuButton = React.forwardRef<
         <Components.MenuLabel>{label}</Components.MenuLabel>
         {selected !== undefined && (
           <Components.SelectedIconWrapper aria-hidden>
-            {selected ? <CheckmarkIcon /> : null}
+            {selected ? <CheckmarkIcon size={18} /> : null}
           </Components.SelectedIconWrapper>
         )}
       </Components.MenuButton>

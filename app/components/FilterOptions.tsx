@@ -10,6 +10,7 @@ import Input, { NativeInput, Outline } from "./Input";
 import PaginatedList, { PaginatedItem } from "./PaginatedList";
 import { MenuProvider } from "./primitives/Menu/MenuContext";
 import { Menu, MenuContent, MenuTrigger, MenuButton } from "./primitives/Menu";
+import { MenuIconWrapper } from "./primitives/components/Menu";
 
 interface TFilterOption extends PaginatedItem {
   key: string;
@@ -55,7 +56,11 @@ const FilterOptions = ({
     (option) => (
       <MenuButton
         key={option.key}
-        icon={option.icon}
+        icon={
+          option.icon ? (
+            <MenuIconWrapper aria-hidden>{option.icon}</MenuIconWrapper>
+          ) : undefined
+        }
         label={option.label}
         onClick={() => {
           onSelect(option.key);
@@ -77,36 +82,55 @@ const FilterOptions = ({
   const filteredOptions = React.useMemo(() => {
     const normalizedQuery = deburr(query.toLowerCase());
 
-    return query
-      ? options
-          .filter((option) =>
-            deburr(option.label).toLowerCase().includes(normalizedQuery)
-          )
-          // sort options starting with query first
-          .sort((a, b) => {
-            const aStartsWith = deburr(a.label)
-              .toLowerCase()
-              .startsWith(normalizedQuery);
-            const bStartsWith = deburr(b.label)
-              .toLowerCase()
-              .startsWith(normalizedQuery);
-
-            if (aStartsWith && !bStartsWith) {
-              return -1;
-            }
-            if (!aStartsWith && bStartsWith) {
-              return 1;
-            }
-            return 0;
-          })
+    const filtered = query
+      ? options.filter((option) =>
+          deburr(option.label).toLowerCase().includes(normalizedQuery)
+        )
       : options;
-  }, [options, query]);
+
+    return filtered.sort((a, b) => {
+      const aSelected = selectedKeys.includes(a.key);
+      const bSelected = selectedKeys.includes(b.key);
+
+      // Selected items come first
+      if (aSelected && !bSelected) {
+        return -1;
+      }
+      if (!aSelected && bSelected) {
+        return 1;
+      }
+
+      // If both have the same selection state and there's a query,
+      // sort options starting with query first
+      if (query) {
+        const aStartsWith = deburr(a.label)
+          .toLowerCase()
+          .startsWith(normalizedQuery);
+        const bStartsWith = deburr(b.label)
+          .toLowerCase()
+          .startsWith(normalizedQuery);
+
+        if (aStartsWith && !bStartsWith) {
+          return -1;
+        }
+        if (!aStartsWith && bStartsWith) {
+          return 1;
+        }
+      }
+
+      return 0;
+    });
+  }, [options, query, selectedKeys]);
 
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent) => {
       if (ev.nativeEvent.isComposing || ev.shiftKey) {
         return;
       }
+
+      // Stop all keyboard events from propagating to prevent Radix UI menu
+      // from handling them and potentially moving focus
+      ev.stopPropagation();
 
       switch (ev.key) {
         case "Escape":
