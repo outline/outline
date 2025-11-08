@@ -309,7 +309,15 @@ export default class Mention extends Node {
     const label = node.attrs.label;
     const id = node.attrs.id;
 
-    state.write(`@[${label}](mention://${id}/${mType}/${mId})`);
+    // Use regular links for document and collection mentions
+    if (mType === MentionType.Document) {
+      state.write(`[${label}](/doc/${mId})`);
+    } else if (mType === MentionType.Collection) {
+      state.write(`[${label}](/collection/${mId})`);
+    } else {
+      // Keep the existing mention:// format for other types (user, group, issue, pull_request, url)
+      state.write(`@[${label}](mention://${id}/${mType}/${mId})`);
+    }
   }
 
   parseMarkdown() {
