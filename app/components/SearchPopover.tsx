@@ -58,7 +58,7 @@ function SearchPopover({ shareId, className }: Props) {
         });
 
         if (response.length) {
-          setSearchResults(response);
+          setSearchResults((state) => [...(state ?? []), ...response]);
         }
 
         return response;
