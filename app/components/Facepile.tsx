@@ -6,6 +6,7 @@ import User from "~/models/User";
 import { Avatar, AvatarSize } from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import { s } from "@shared/styles";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 type Props = {
   /** The users to display */
@@ -68,7 +69,9 @@ function Facepile({
           />
         );
       })}
-      <FacepileClip size={size} />
+      <VisuallyHidden>
+        <FacepileClip size={size} />
+      </VisuallyHidden>
     </Avatars>
   );
 }
