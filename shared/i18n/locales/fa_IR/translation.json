@@ -354,6 +354,8 @@
   "Reaction picker": "انتخابگر واکنش",
   "Could not load reactions": "امکان بارگذاری واکنش‌ها وجود ندارد",
   "Reaction": "واکنش",
+  "{{ hours }}h {{ minutes }}m read": "{{ hours }}h {{ minutes }}m read",
+  "{{ hours }}h read": "{{ hours }}h read",
   "{{ minutes }}m read": "{{ minutes }} دقیقه مطالعه",
   "Revision deleted": "نسخه حذف شد",
   "Current version": "نسخه فعلی",
