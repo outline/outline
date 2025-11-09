@@ -64,7 +64,7 @@ const Image = (props: Props) => {
         height: node.attrs.height,
       });
     }
-  }, [node.attrs.width, node.attrs.height, width, setSize]);
+  }, [node.attrs.width]);
 
   const sanitizedSrc = sanitizeUrl(src);
 

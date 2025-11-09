@@ -51,7 +51,6 @@ export default function useDragResize(props: Params): ReturnValue {
   const [offset, setOffset] = React.useState(0);
   const [sizeAtDragStart, setSizeAtDragStart] = React.useState(size);
   const [dragging, setDragging] = React.useState<DragDirection>();
-  const [isAtFitWidth, setIsAtFitWidth] = React.useState(false);
   const isResizable = !!props.onChangeSize;
 
   const constrainWidth = (width: number, max: number) => {
@@ -130,37 +129,13 @@ export default function useDragResize(props: Params): ReturnValue {
       return;
     }
 
-    // Calculate container width constraints
-    const max = props.ref.current
-      ? parseInt(
-          getComputedStyle(props.ref.current).getPropertyValue(
-            "--document-width"
-          )
-        ) -
-        EditorStyleHelper.padding * 2
-      : Infinity;
-
-    if (isAtFitWidth) {
-      // Resize to original size
-      const newSize = {
-        width: props.naturalWidth,
-        height: props.naturalHeight,
-      };
-      setSize(newSize);
-      setIsAtFitWidth(false);
-      props.onChangeSize?.(newSize);
-    } else {
-      // Resize to fit width (container width or natural width, whichever is smaller)
-      const fitWidth = Math.min(max, props.naturalWidth);
-      const aspectRatio = props.naturalHeight / props.naturalWidth;
-      const newSize = {
-        width: fitWidth,
-        height: Math.round(fitWidth * aspectRatio),
-      };
-      setSize(newSize);
-      setIsAtFitWidth(true);
-      props.onChangeSize?.(newSize);
-    }
+    // Resize to original size
+    const newSize = {
+      width: props.naturalWidth,
+      height: props.naturalHeight,
+    };
+    setSize(newSize);
+    props.onChangeSize?.(newSize);
   };
 
   const handlePointerDown =
@@ -196,13 +171,6 @@ export default function useDragResize(props: Params): ReturnValue {
       return;
     }
 
-    const cleanup = () => {
-      document.body.style.cursor = "initial";
-      document.removeEventListener("keydown", handleKeyDown);
-      document.removeEventListener("pointermove", handlePointerMove);
-      document.removeEventListener("pointerup", handlePointerUp);
-    };
-
     if (dragging) {
       document.body.style.cursor =
         dragging === "left" || dragging === "right" ? "ew-resize" : "ns-resize";
@@ -211,9 +179,13 @@ export default function useDragResize(props: Params): ReturnValue {
       document.addEventListener("pointerup", handlePointerUp);
     }
 
-    return cleanup;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dragging, isResizable]);
+    return () => {
+      document.body.style.cursor = "initial";
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("pointermove", handlePointerMove);
+      document.removeEventListener("pointerup", handlePointerUp);
+    };
+  }, [dragging, handlePointerMove, handlePointerUp, isResizable]);
 
   return {
     handlePointerDown,

@@ -42,7 +42,7 @@ export default function Video(props: Props) {
         height: node.attrs.height,
       });
     }
-  }, [node.attrs.width, node.attrs.height, width, setSize]);
+  }, [node.attrs.width]);
 
   const style: React.CSSProperties = {
     width: width || "auto",
