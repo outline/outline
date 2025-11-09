@@ -526,10 +526,7 @@ export const exportCollection = createActionV2({
       return false;
     }
 
-    return (
-      !!stores.policies.abilities(currentTeamId).createExport &&
-      !!stores.policies.abilities(activeCollectionId).export
-    );
+    return !!stores.policies.abilities(activeCollectionId).export;
   },
   perform: async ({ activeCollectionId, stores, t }) => {
     if (!activeCollectionId) {

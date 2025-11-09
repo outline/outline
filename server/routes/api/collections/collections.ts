@@ -498,9 +498,7 @@ router.post(
     const { id, format, includeAttachments } = ctx.input.body;
     const { transaction } = ctx.state;
     const { user } = ctx.state.auth;
-
-    const team = await Team.findByPk(user.teamId, { transaction });
-    authorize(user, "createExport", team);
+    const { team } = user;
 
     const collection = await Collection.findByPk(id, {
       userId: user.id,
@@ -510,8 +508,8 @@ router.post(
 
     const fileOperation = await collectionExporter({
       collection,
-      user,
       team,
+      user,
       format,
       includeAttachments,
       ctx,
