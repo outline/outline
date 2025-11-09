@@ -156,7 +156,6 @@ function SidebarLink(
                 expanded={expanded}
                 onMouseDown={onDisclosureClick}
                 onClick={preventDefault}
-                //size={depth === 0 ? 24 : undefined}
                 tabIndex={-1}
               />
             )}
@@ -178,6 +177,7 @@ export const IconWrapper = styled.span`
   height: 24px;
   overflow: hidden;
   flex-shrink: 0;
+  transition: opacity 200ms ease-in-out;
 `;
 
 const Content = styled.span`
@@ -276,7 +276,9 @@ const Link = styled(NavLink)<{
       display: block;
     }
     ${HiddenDisclosure} + ${IconWrapper} {
-      display: none;
+      visibility: hidden;
+      opacity: 0;
+      width: 0;
     }
   }
 
