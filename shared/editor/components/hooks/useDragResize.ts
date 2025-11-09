@@ -13,6 +13,8 @@ type ReturnValue = {
   handlePointerDown: (
     dragging: DragDirection
   ) => (event: React.PointerEvent<HTMLDivElement>) => void;
+  /** Event handler for double-click event on the resize handle. */
+  handleDoubleClick: () => void;
   /** Handler to set the new size of the element from outside. */
   setSize: React.Dispatch<React.SetStateAction<SizeState>>;
   /** Whether the element is currently being resized. */
@@ -122,6 +124,20 @@ export default function useDragResize(props: Params): ReturnValue {
     }
   };
 
+  const handleDoubleClick = () => {
+    if (!isResizable) {
+      return;
+    }
+
+    // Resize to original size
+    const newSize = {
+      width: props.naturalWidth,
+      height: props.naturalHeight,
+    };
+    setSize(newSize);
+    props.onChangeSize?.(newSize);
+  };
+
   const handlePointerDown =
     (dragDirection: "left" | "right") =>
     (event: React.PointerEvent<HTMLDivElement>) => {
@@ -173,6 +189,7 @@ export default function useDragResize(props: Params): ReturnValue {
 
   return {
     handlePointerDown,
+    handleDoubleClick,
     dragging: !!dragging,
     setSize,
     width: size.width,
