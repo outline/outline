@@ -156,19 +156,21 @@ function ExportDialog({ collection, onSubmit }: Props) {
             </Text>{" "}
           </div>
         </Option>
-        <Option>
-          <input
-            type="checkbox"
-            name="includePrivate"
-            checked={includePrivate}
-            onChange={handleIncludePrivateChange}
-          />
-          <div>
-            <Text as="p" size="small" weight="bold">
-              {t("Include private collections")}
-            </Text>
-          </div>
-        </Option>
+        {!collection && (
+          <Option>
+            <input
+              type="checkbox"
+              name="includePrivate"
+              checked={includePrivate}
+              onChange={handleIncludePrivateChange}
+            />
+            <div>
+              <Text as="p" size="small" weight="bold">
+                {t("Include private collections")}
+              </Text>
+            </div>
+          </Option>
+        )}
       </Flex>
     </ConfirmationDialog>
   );
