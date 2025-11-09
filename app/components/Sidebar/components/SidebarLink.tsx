@@ -3,7 +3,7 @@ import * as React from "react";
 import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
-import { s } from "@shared/styles";
+import { hover, s } from "@shared/styles";
 import { isMobile } from "@shared/utils/browser";
 import NudeButton from "~/components/NudeButton";
 import { UnreadBadge } from "~/components/UnreadBadge";
@@ -108,6 +108,20 @@ function SidebarLink(
   );
 
   const [openContextMenu, setOpen, setClosed] = useBoolean(false);
+  const DisclosureComponent = depth === 0 ? HiddenDisclosure : Disclosure;
+
+  const handleClickCapture = React.useCallback(
+    (event: React.MouseEvent<HTMLAnchorElement>) => {
+      if (event.altKey && onDisclosureClick && expanded !== undefined) {
+        event.preventDefault();
+        event.stopPropagation();
+        onDisclosureClick(
+          event as unknown as React.MouseEvent<HTMLButtonElement>
+        );
+      }
+    },
+    [onDisclosureClick, expanded]
+  );
 
   return (
     <>
@@ -123,6 +137,7 @@ function SidebarLink(
           $disabled={disabled}
           activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
           style={openContextMenu ? hoverStyle : active ? activeStyle : style}
+          onClickCapture={handleClickCapture}
           onClick={onClick}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
@@ -137,11 +152,11 @@ function SidebarLink(
         >
           <Content>
             {expanded !== undefined && (
-              <Disclosure
+              <DisclosureComponent
                 expanded={expanded}
                 onMouseDown={onDisclosureClick}
                 onClick={preventDefault}
-                root={depth === 0}
+                //size={depth === 0 ? 24 : undefined}
                 tabIndex={-1}
               />
             )}
@@ -156,18 +171,6 @@ function SidebarLink(
   );
 }
 
-const Content = styled.span`
-  display: flex;
-  align-items: start;
-  position: relative;
-  width: 100%;
-
-  ${Disclosure} {
-    margin-top: 2px;
-    margin-left: 2px;
-  }
-`;
-
 // accounts for whitespace around icon
 export const IconWrapper = styled.span`
   margin-left: -4px;
@@ -175,6 +178,13 @@ export const IconWrapper = styled.span`
   height: 24px;
   overflow: hidden;
   flex-shrink: 0;
+`;
+
+const Content = styled.span`
+  display: flex;
+  align-items: start;
+  position: relative;
+  width: 100%;
 `;
 
 const Actions = styled(EventBoundary)<{ showActions?: boolean }>`
@@ -201,6 +211,14 @@ const Actions = styled(EventBoundary)<{ showActions?: boolean }>`
       opacity: 0.75;
     }
   }
+`;
+
+const HiddenDisclosure = styled(Disclosure)`
+  position: inherit;
+  left: initial;
+  display: none;
+  margin-left: -2px;
+  margin-right: 6px;
 `;
 
 const Link = styled(NavLink)<{
@@ -253,8 +271,13 @@ const Link = styled(NavLink)<{
     transition: fill 50ms;
   }
 
-  &:hover svg {
-    display: inline;
+  &: ${hover} {
+    ${HiddenDisclosure} {
+      display: block;
+    }
+    ${HiddenDisclosure} + ${IconWrapper} {
+      display: none;
+    }
   }
 
   & + ${Actions} {
@@ -291,12 +314,6 @@ const Link = styled(NavLink)<{
     &:hover {
       color: ${(props) =>
         props.$isActiveDrop ? props.theme.white : props.theme.text};
-    }
-  }
-
-  &:hover {
-    ${Disclosure} {
-      opacity: 1;
     }
   }
 `;

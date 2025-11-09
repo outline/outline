@@ -46,7 +46,10 @@ function EditableTitle(
     setValue(event.target.value);
   }, []);
 
-  const handleDoubleClick = React.useCallback((event) => {
+  const handleDoubleClick = React.useCallback((event: MouseEvent) => {
+    if (event.altKey) {
+      return;
+    }
     event.preventDefault();
     event.stopPropagation();
     setIsEditing(true);
