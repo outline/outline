@@ -354,6 +354,8 @@
   "Reaction picker": "Reaction picker",
   "Could not load reactions": "Could not load reactions",
   "Reaction": "Reaction",
+  "{{ hours }}h {{ minutes }}m read": "{{ hours }}h {{ minutes }}m read",
+  "{{ hours }}h read": "{{ hours }}h read",
   "{{ minutes }}m read": "{{ minutes }}m read",
   "Revision deleted": "Revision deleted",
   "Current version": "Current version",
