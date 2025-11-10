@@ -15,6 +15,7 @@ import SuggestionsMenu, {
   Props as SuggestionsMenuProps,
 } from "./SuggestionsMenu";
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
+import { useEditor } from "./EditorContext";
 
 type Props = Omit<
   SuggestionsMenuProps,
@@ -26,6 +27,7 @@ type Props = Omit<
 
 export const PasteMenu = observer(({ pastedText, embeds, ...props }: Props) => {
   const items = useItems({ pastedText, embeds });
+  const { view } = useEditor();
 
   const renderMenuItem = useCallback(
     (item, _index, options) => (
@@ -51,6 +53,7 @@ export const PasteMenu = observer(({ pastedText, embeds, ...props }: Props) => {
       filterable={false}
       renderMenuItem={renderMenuItem}
       items={items}
+      cursorPos={view.state.selection.$from.pos}
     />
   );
 });

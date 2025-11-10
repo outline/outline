@@ -27,6 +27,7 @@ import SuggestionsMenu, {
 } from "./SuggestionsMenu";
 import SuggestionsMenuItem from "./SuggestionsMenuItem";
 import { runInAction } from "mobx";
+import { useEditor } from "./EditorContext";
 
 interface MentionItem extends MenuItem {
   attrs: {
@@ -52,6 +53,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
   const location = useLocation();
   const documentId = parseDocumentSlug(location.pathname);
   const maxResultsInSection = search ? 25 : 5;
+  const { view } = useEditor();
 
   const { loading, request } = useRequest(
     useCallback(async () => {
@@ -309,6 +311,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
       onSelect={handleSelect}
       renderMenuItem={renderMenuItem}
       items={items}
+      cursorPos={view.state.selection.$from.pos}
     />
   );
 }
