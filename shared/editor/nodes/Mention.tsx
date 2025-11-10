@@ -255,7 +255,7 @@ export default class Mention extends Node {
           }
 
           const node = type.create(attrs);
-          const transaction = state.tr.insert(position - 1, node); // subtract 1 from the position to prevent jumping to the next line
+          const transaction = state.tr.insert(position, node);
           dispatch?.(transaction);
           return true;
         },
