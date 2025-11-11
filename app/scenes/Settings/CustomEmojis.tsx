@@ -86,7 +86,7 @@ function Emojis() {
 
   useEffect(() => {
     if (error) {
-      toast.error(t("Could not load emoji"));
+      toast.error(t("Could not load emojis"));
     }
   }, [t, error]);
 
