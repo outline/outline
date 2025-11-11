@@ -22,7 +22,6 @@ import SuggestionsMenuItem from "./SuggestionsMenuItem";
 import ToolbarButton from "./ToolbarButton";
 import Tooltip from "./Tooltip";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
-import { MenuItem } from "@shared/editor/types";
 import { useEditor } from "./EditorContext";
 
 type Props = {
@@ -36,33 +35,6 @@ enum Action {
   UPDATE_LINK = "updateLink",
   REMOVE_LINK = "removeLink",
 }
-
-type ActionDetails = {
-  [key in Action]: MenuItem;
-};
-
-const getActions = (
-  view: EditorView,
-  query: string,
-  dictionary: Dictionary
-): ActionDetails => {
-  const isInternal = isInternalUrl(query);
-  return {
-    [Action.OPEN_LINK]: {
-      tooltip: isInternal ? dictionary.goToLink : dictionary.openLink,
-      icon: isInternal ? <ArrowIcon /> : <OpenIcon />,
-      disabled: !query,
-    },
-    [Action.REMOVE_LINK]: {
-      tooltip: dictionary.removeLink,
-      icon: <CloseIcon />,
-      visible: view.editable,
-    },
-    [Action.UPDATE_LINK]: {
-      visible: false,
-    },
-  };
-};
 
 const LinkEditor: React.FC<Props> = ({ mark, dictionary, view }) => {
   const getHref = () => sanitizeUrl(mark?.attrs.href) ?? "";
@@ -187,7 +159,23 @@ const LinkEditor: React.FC<Props> = ({ mark, dictionary, view }) => {
 
   const hasResults = !!results.length;
 
-  const actions = getActions(view, query, dictionary);
+  const isInternal = isInternalUrl(query);
+  const actions = [
+    {
+      tooltip: isInternal ? dictionary.goToLink : dictionary.openLink,
+      icon: isInternal ? <ArrowIcon /> : <OpenIcon />,
+      visible: true,
+      disabled: !query,
+      handler: openLink,
+    },
+    {
+      tooltip: dictionary.removeLink,
+      icon: <CloseIcon />,
+      visible: view.editable,
+      disabled: false,
+      handler: removeLink,
+    },
+  ];
 
   return (
     <div ref={wrapperRef}>
@@ -202,24 +190,22 @@ const LinkEditor: React.FC<Props> = ({ mark, dictionary, view }) => {
           autoFocus={getHref() === ""}
           readOnly={!view.editable}
         />
-        <Tooltip content={actions[Action.OPEN_LINK].tooltip}>
-          <ToolbarButton
-            onClick={openLink}
-            disabled={actions[Action.OPEN_LINK].disabled}
-          >
-            {actions[Action.OPEN_LINK].icon}
-          </ToolbarButton>
-        </Tooltip>
-        {actions[Action.REMOVE_LINK].visible && (
-          <Tooltip content={actions[Action.REMOVE_LINK].tooltip}>
-            <ToolbarButton
-              onClick={removeLink}
-              disabled={actions[Action.REMOVE_LINK].disabled}
-            >
-              {actions[Action.REMOVE_LINK].icon}
-            </ToolbarButton>
-          </Tooltip>
-        )}
+        {actions.map((action, index) => {
+          if (!action.visible) {
+            return null;
+          }
+
+          return (
+            <Tooltip key={index} content={action.tooltip}>
+              <ToolbarButton
+                onClick={action.handler}
+                disabled={action.disabled}
+              >
+                {action.icon}
+              </ToolbarButton>
+            </Tooltip>
+          );
+        })}
       </InputWrapper>
       <SearchResults $hasResults={hasResults}>
         <ResizingHeightContainer>
