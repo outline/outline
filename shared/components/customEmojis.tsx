@@ -2,8 +2,8 @@ import { s } from "../styles";
 import styled from "styled-components";
 
 export const EmojiImage = styled.img`
-  width: 24px;
-  height: 24px;
+  width: 16px;
+  height: 16px;
   object-fit: contain;
 `;
 
