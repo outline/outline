@@ -83,107 +83,6 @@ const WEBHOOK_EVENTS = {
   views: ["views.create"],
 };
 
-const EventCheckboxLabel = styled.label`
-  display: flex;
-  align-items: center;
-  padding: 0.5em 0;
-  color: ${(props) => props.theme.textSecondary};
-  font-size: 13px;
-  font-family: ${(props) => props.theme.fontFamilyMono};
-  gap: 8px;
-`;
-
-const StyledDisclosureIcon = styled(DisclosureIcon)`
-  transition: transform 250ms ease-out;
-  flex-shrink: 0;
-  margin-right: -4px;
-`;
-
-const GroupEventCheckboxLabel = styled.button.attrs({ type: "button" })`
-  display: flex;
-  align-items: center;
-  font-weight: 500;
-  background: none;
-  border: none;
-  padding: 0.2em 0;
-  cursor: pointer;
-  width: 100%;
-  text-align: left;
-  color: inherit;
-  gap: 8px;
-
-  &[aria-expanded="false"] {
-    ${StyledDisclosureIcon} {
-      transform: rotate(-90deg);
-    }
-  }
-`;
-
-interface FieldProps {
-  disabled?: boolean;
-}
-const FieldSet = styled.fieldset<FieldProps>`
-  padding: 0;
-  margin: 0;
-  border: none;
-  margin-bottom: 1em;
-
-  ${({ disabled }) =>
-    disabled &&
-    `
-    opacity: 0.75;
-    `}
-`;
-
-interface MobileProps {
-  isMobile?: boolean;
-}
-
-const GroupWrapper = styled.div<MobileProps>`
-  margin-left: -4px;
-`;
-
-const CollapsibleContent = styled(Collapsible.Content)`
-  overflow: hidden;
-  padding-left: 48px;
-
-  &[data-state="open"] {
-    animation: slideDown 250ms ease-out;
-  }
-
-  &[data-state="closed"] {
-    animation: slideUp 250ms ease-out;
-  }
-
-  @keyframes slideDown {
-    from {
-      height: 0;
-      opacity: 0;
-    }
-    to {
-      height: var(--radix-collapsible-content-height);
-      opacity: 1;
-    }
-  }
-
-  @keyframes slideUp {
-    from {
-      height: var(--radix-collapsible-content-height);
-      opacity: 1;
-    }
-    to {
-      height: 0;
-      opacity: 0;
-    }
-  }
-`;
-
-const TextFields = styled.div`
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 1em;
-`;
-
 type Props = {
   handleSubmit: (data: FormData) => void;
   webhookSubscription?: WebhookSubscription;
@@ -311,7 +210,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
       <TextFields>
         <Input
           required
-          autoFocus
+          autoFocus={!webhookSubscription}
           flex
           label={t("Name")}
           placeholder={t("A memorable identifer")}
@@ -321,7 +220,6 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
         />
         <Input
           required
-          autoFocus
           flex
           pattern="https://.*"
           placeholder="https://…"
@@ -402,14 +300,117 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
             })}
         </Flex>
       </FieldSet>
-      <Button
-        type="submit"
-        disabled={formState.isSubmitting || !formState.isValid}
-      >
-        {formState.isSubmitting ? `${inProgressVerb}…` : verb}
-      </Button>
+      <Flex justify="flex-end">
+        <Button
+          type="submit"
+          disabled={formState.isSubmitting || !formState.isValid}
+        >
+          {formState.isSubmitting ? `${inProgressVerb}…` : verb}
+        </Button>
+      </Flex>
     </form>
   );
 }
+
+const EventCheckboxLabel = styled.label`
+  display: flex;
+  align-items: center;
+  padding: 0.5em 0;
+  color: ${(props) => props.theme.textSecondary};
+  font-size: 13px;
+  font-family: ${(props) => props.theme.fontFamilyMono};
+  gap: 8px;
+`;
+
+const StyledDisclosureIcon = styled(DisclosureIcon)`
+  transition: transform 250ms ease-out;
+  flex-shrink: 0;
+  margin-right: -4px;
+`;
+
+const GroupEventCheckboxLabel = styled.button.attrs({ type: "button" })`
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  background: none;
+  border: none;
+  padding: 0.2em 0;
+  cursor: var(--pointer);
+  width: 100%;
+  text-align: left;
+  color: inherit;
+  gap: 8px;
+
+  &[aria-expanded="false"] {
+    ${StyledDisclosureIcon} {
+      transform: rotate(-90deg);
+    }
+  }
+`;
+
+interface FieldProps {
+  disabled?: boolean;
+}
+const FieldSet = styled.fieldset<FieldProps>`
+  padding: 0;
+  margin: 0;
+  border: none;
+  margin-bottom: 1em;
+
+  ${({ disabled }) =>
+    disabled &&
+    `
+    opacity: 0.75;
+    `}
+`;
+
+interface MobileProps {
+  isMobile?: boolean;
+}
+
+const GroupWrapper = styled.div<MobileProps>`
+  margin-left: -4px;
+`;
+
+const CollapsibleContent = styled(Collapsible.Content)`
+  overflow: hidden;
+  padding-left: 48px;
+
+  &[data-state="open"] {
+    animation: slideDown 250ms ease-out;
+  }
+
+  &[data-state="closed"] {
+    animation: slideUp 250ms ease-out;
+  }
+
+  @keyframes slideDown {
+    from {
+      height: 0;
+      opacity: 0;
+    }
+    to {
+      height: var(--radix-collapsible-content-height);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      height: var(--radix-collapsible-content-height);
+      opacity: 1;
+    }
+    to {
+      height: 0;
+      opacity: 0;
+    }
+  }
+`;
+
+const TextFields = styled.div`
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1em;
+`;
 
 export default WebhookSubscriptionForm;
