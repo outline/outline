@@ -1,4 +1,4 @@
-import { observable } from "mobx";
+import { computed, observable } from "mobx";
 import User from "./User";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
@@ -10,7 +10,7 @@ class Emoji extends Model {
   /** The name of the emoji */
   @Field
   @observable
-  name: string;
+  private _name: string;
 
   /** The URL of the emoji image */
   @Field
@@ -26,6 +26,18 @@ class Emoji extends Model {
   @Field
   @observable
   createdById: string;
+
+  /**
+   * emoji name
+   */
+  @computed
+  get name() {
+    return this._name;
+  }
+
+  set name(value: string) {
+    this._name = value;
+  }
 }
 
 export default Emoji;

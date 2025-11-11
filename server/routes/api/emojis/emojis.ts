@@ -122,10 +122,11 @@ router.post(
       createdById: user.id,
       createdBy: user,
     });
+    emoji.createdBy = user;
 
     ctx.body = {
-      data: presentEmoji(emoji!),
-      policies: presentPolicies(user, [emoji!]),
+      data: presentEmoji(emoji),
+      policies: presentPolicies(user, [emoji]),
     };
   }
 );
@@ -138,10 +139,12 @@ router.post(
   async (ctx: APIContext<T.EmojisDeleteReq>) => {
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
 
     const emoji = await Emoji.findByPk(id, {
       transaction: ctx.state.transaction,
       rejectOnEmpty: true,
+      lock: transaction.LOCK.UPDATE,
     });
     authorize(user, "delete", emoji);
 

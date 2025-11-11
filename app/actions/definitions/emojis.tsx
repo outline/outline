@@ -5,7 +5,7 @@ import stores from "~/stores";
 import { EmojiCreateDialog } from "~/components/EmojiCreateDialog";
 
 export const createEmoji = createAction({
-  name: ({ t }) => `${t("Add emoji")}…`,
+  name: ({ t }) => `${t("New emoji")}…`,
   analyticsName: "Create emoji",
   icon: <PlusIcon />,
   keywords: "emoji custom upload image",
@@ -14,7 +14,7 @@ export const createEmoji = createAction({
     stores.policies.abilities(stores.auth.team?.id || "").createEmoji,
   perform: ({ t }) => {
     stores.dialogs.openModal({
-      title: t("Add custom emoji"),
+      title: t("Upload emoji"),
       content: <EmojiCreateDialog onSubmit={stores.dialogs.closeAllModals} />,
     });
   },

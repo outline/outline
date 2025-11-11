@@ -165,8 +165,8 @@ const useSettingsConfig = () => {
         icon: ShapesIcon,
       },
       {
-        name: t("Custom Emojis"),
-        path: settingsPath("custom-emojis"),
+        name: t("Emojis"),
+        path: settingsPath("emojis"),
         component: CustomEmojis.Component,
         preload: CustomEmojis.preload,
         enabled: can.update,

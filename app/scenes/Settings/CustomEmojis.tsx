@@ -37,7 +37,7 @@ function Emojis() {
   const reqParams = useMemo(
     () => ({
       query: params.get("query") || undefined,
-      sort: params.get("sort") || "name",
+      sort: params.get("sort") || "createdAt",
       direction: (params.get("direction") || "asc").toUpperCase() as
         | "ASC"
         | "DESC",
@@ -86,7 +86,7 @@ function Emojis() {
 
   useEffect(() => {
     if (error) {
-      toast.error(t("Could not load emojis"));
+      toast.error(t("Could not load emoji"));
     }
   }, [t, error]);
 
@@ -112,7 +112,7 @@ function Emojis() {
                 context={context}
                 icon={<PlusIcon />}
               >
-                {t("Add emoji")}…
+                {t("New emoji")}…
               </Button>
             </Action>
           )}

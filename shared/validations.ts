@@ -133,4 +133,6 @@ export const WebhookSubscriptionValidation = {
 export const EmojiValidation = {
   /** The maximum length of the emoji name */
   maxNameLength: 25,
+  /* the allow characters in the name */
+  allowedNameCharacters: /^[a-z0-9_]*$/,
 };
