@@ -102,7 +102,7 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-toolbar": "^1.1.11",
     "@radix-ui/react-tooltip": "^1.2.8",
-    "@radix-ui/react-visually-hidden": "^1.2.2",
+    "@radix-ui/react-visually-hidden": "^1.2.4",
     "@sentry/node": "^7.120.4",
     "@sentry/react": "^7.120.4",
     "@tanstack/react-table": "^8.21.3",
