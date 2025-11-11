@@ -33,7 +33,7 @@ const EmojisTable = observer(function EmojisTable({
       compact([
         {
           type: "data",
-          id: "emoji",
+          id: "name",
           header: t("Emoji"),
           accessor: (emoji) => emoji.url,
           component: (emoji) => (
@@ -67,10 +67,7 @@ const EmojisTable = observer(function EmojisTable({
           id: "createdAt",
           header: t("Date added"),
           accessor: (emoji) => emoji.createdAt,
-          component: (emoji) =>
-            emoji.createdAt ? (
-              <Time dateTime={emoji.createdAt} addSuffix />
-            ) : null,
+          component: (emoji) => <Time dateTime={emoji.createdAt} addSuffix />,
           width: "1fr",
         },
         // to do: emoji menu

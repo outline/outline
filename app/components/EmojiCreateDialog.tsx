@@ -13,6 +13,7 @@ import useStores from "~/hooks/useStores";
 import { uploadFile } from "~/utils/files";
 import { compressImage } from "~/utils/compressImage";
 import Logger from "~/utils/Logger";
+import { EmojiValidation } from "@shared/validations";
 
 type Props = {
   onSubmit: () => void;
@@ -61,12 +62,12 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
         preset: AttachmentPreset.DocumentAttachment,
       });
 
-      await emojis.create({
+      const emoji = await emojis.create({
         name: name.trim(),
         url: attachment.url,
       });
 
-      // to do: update with optimistic state
+      emojis.add(emoji);
       toast.success(t("Emoji created successfully"));
       onSubmit();
     } catch (error) {
@@ -78,14 +79,12 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
   };
 
   const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value
-      .toLowerCase()
-      .replace(/[^a-z0-9_]/g, "")
-      .slice(0, 32);
+    const { value } = event.target;
     setName(value);
   };
 
-  const isValid = name.trim().length > 0 && file;
+  const isValidName = EmojiValidation.allowedNameCharacters.test(name);
+  const isValid = name.trim().length > 0 && file && isValidName;
 
   return (
     <ConfirmationDialog
@@ -107,6 +106,13 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
         placeholder="my_custom_emoji"
         autoFocus
         required
+        error={
+          !isValidName
+            ? t(
+                "name can only should lowercase letters, numbers, and underscores."
+              )
+            : undefined
+        }
       />
 
       <DropZone {...getRootProps()}>
@@ -115,17 +121,19 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
           {file ? (
             <>
               <PreviewImage src={URL.createObjectURL(file)} alt="Preview" />
-              <Text>{file.name}</Text>
-              <Text type="secondary">{t("Click or drag to replace")}</Text>
+              <Text size="medium">{file.name}</Text>
+              <Text size="medium" type="secondary">
+                {t("Click or drag to replace")}
+              </Text>
             </>
           ) : (
             <>
-              <Text>
+              <Text size="medium">
                 {isDragActive
                   ? t("Drop the image here")
                   : t("Click or drag an image here")}
               </Text>
-              <Text type="secondary">
+              <Text size="medium" type="secondary">
                 {t("PNG, JPG, GIF, or WebP up to 1MB")}
               </Text>
             </>
@@ -133,10 +141,12 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
         </Flex>
       </DropZone>
 
-      {name && (
-        <Text type="secondary">
-          {t("This emoji will be available as")} <code>:{name}:</code>
-        </Text>
+      {name.trim() && isValidName && (
+        <div style={{ marginTop: "8px" }}>
+          <Text type="secondary">
+            {t("This emoji will be available as")} <code>:{name}:</code>
+          </Text>
+        </div>
       )}
     </ConfirmationDialog>
   );

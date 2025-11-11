@@ -5,6 +5,7 @@ import {
 } from "sequelize";
 import {
   BeforeCreate,
+  BeforeDestroy,
   BelongsTo,
   Column,
   DataType,
@@ -19,6 +20,9 @@ import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
+import { Matches } from "class-validator";
+import FileStorage from "@server/storage/files";
+import Attachment from "./Attachment";
 
 @Table({ tableName: "emojis", modelName: "emoji" })
 @Fix
@@ -29,6 +33,10 @@ class Emoji extends IdModel<
   @Length({
     max: EmojiValidation.maxNameLength,
     msg: `emoji name must be  less than ${EmojiValidation.maxNameLength} characters`,
+  })
+  @Matches(EmojiValidation.allowedNameCharacters, {
+    message:
+      "emoji name can only contain lowercase letters, numbers, and underscores",
   })
   @Column(DataType.STRING)
   name: string;
@@ -68,6 +76,19 @@ class Emoji extends IdModel<
 
     if (existingEmoji) {
       throw ValidationError(`Emoji with name "${model.name}" already exists.`);
+    }
+  }
+
+  @BeforeDestroy
+  static async deleteAttachmentFromS3(model: Emoji) {
+    const attachment = await Attachment.findOne({
+      where: {
+        key: model.url,
+      },
+    });
+
+    if (attachment) {
+      await FileStorage.deleteFile(attachment.key);
     }
   }
 }
