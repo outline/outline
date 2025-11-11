@@ -10,6 +10,7 @@ import { getMarkRange } from "../queries/getMarkRange";
 import { toast } from "sonner";
 import { sanitizeUrl } from "@shared/utils/urls";
 import { addMark } from "./addMark";
+import { getMarkRangeNodeSelection } from "../queries/getMarkRange";
 
 const addLinkTextSelection =
   (attrs: Attrs): Command =>
@@ -117,18 +118,27 @@ const updateLinkNodeSelection =
       return false;
     }
 
+    const markRange = getMarkRangeNodeSelection(
+      state.selection,
+      state.schema.marks.link
+    );
+    if (!markRange) {
+      return false;
+    }
+
     const existingMarks = state.selection.node.attrs.marks ?? [];
     const updatedMarks = existingMarks.map((mark: any) =>
       mark.type === "link"
         ? { ...mark, attrs: { ...mark.attrs, ...attrs } }
         : mark
     );
-    const updatedAttrs = {
-      ...state.selection.node.attrs,
-      marks: updatedMarks,
-    };
+    const nextValidSelection =
+      Selection.findFrom(state.doc.resolve(markRange.to), 1, true) ??
+      TextSelection.create(state.tr.doc, 0);
     dispatch?.(
-      state.tr.setNodeMarkup(state.selection.from, undefined, updatedAttrs)
+      state.tr
+        .setSelection(nextValidSelection)
+        .setNodeAttribute(state.selection.from, "marks", updatedMarks)
     );
     return true;
   };
@@ -157,15 +167,27 @@ const removeLinkNodeSelection = (): Command => (state, dispatch) => {
     return false;
   }
 
+  const markRange = getMarkRangeNodeSelection(
+    state.selection,
+    state.schema.marks.link
+  );
+  if (!markRange) {
+    return false;
+  }
+
   const existingMarks = state.selection.node.attrs.marks ?? [];
   const updatedMarks = existingMarks.filter(
     (mark: any) => mark.type !== "link"
   );
-  const attrs = {
-    ...state.selection.node.attrs,
-    marks: updatedMarks,
-  };
-  dispatch?.(state.tr.setNodeMarkup(state.selection.from, undefined, attrs));
+
+  const nextValidSelection =
+    Selection.findFrom(state.doc.resolve(markRange.to), 1, true) ??
+    TextSelection.create(state.tr.doc, 0);
+  dispatch?.(
+    state.tr
+      .setSelection(nextValidSelection)
+      .setNodeAttribute(state.selection.from, "marks", updatedMarks)
+  );
   return true;
 };
 
