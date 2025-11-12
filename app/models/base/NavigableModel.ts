@@ -1,10 +1,10 @@
 import { action, computed, observable, runInAction } from "mobx";
 import { JSONObject, type NavigationNode } from "@shared/types";
 import { client } from "~/utils/ApiClient";
-import ParanoidModel from "./ParanoidModel";
+import Model from "./Model";
 import type Document from "../Document";
 
-export default abstract class NavigableModel extends ParanoidModel {
+export default abstract class NavigableModel extends Model {
   private isFetching = false;
 
   /** The document ID associated with this model. */
