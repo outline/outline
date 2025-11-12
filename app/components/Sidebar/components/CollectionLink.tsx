@@ -27,6 +27,7 @@ import { SidebarContextType, useSidebarContext } from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
 import { useCollectionMenuAction } from "~/hooks/useCollectionMenuAction";
 import { ActionContextProvider } from "~/hooks/useActionContext";
+import CollectionLinkChildren from "./CollectionLinkChildren";
 
 type Props = {
   collection: Collection;
@@ -185,7 +186,7 @@ const CollectionLink: React.FC<Props> = ({
           />
         </DropToImport>
       </Relative>
-      {isAddingNewChild && (
+      {isAddingNewChild ? (
         <SidebarLink
           depth={2}
           isActive={() => true}
@@ -201,6 +202,12 @@ const CollectionLink: React.FC<Props> = ({
               ref={newChildTitleRef}
             />
           }
+        />
+      ) : (
+        <CollectionLinkChildren
+          collection={collection}
+          expanded={!!expanded}
+          prefetchDocument={documents.prefetchDocument}
         />
       )}
     </ActionContextProvider>
