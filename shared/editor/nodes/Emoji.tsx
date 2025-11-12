@@ -112,7 +112,13 @@ export default class Emoji extends Extension {
     const url = node.attrs["data-url"];
 
     if (url) {
-      state.write(`:${name}-custom:`);
+      const alt = node.attrs["data-name"] || "";
+      const prefix = state.inList ? "" : " ";
+      const escapedAlt = state.esc(alt, false);
+      const escapedUrl = state.esc(url, false);
+
+      const markdown = `${prefix}![${escapedAlt}](${escapedUrl} "custom-emoji")`;
+      state.write(markdown);
     } else if (name) {
       state.write(`:${name}:`);
     }
@@ -120,9 +126,19 @@ export default class Emoji extends Extension {
 
   // to do: custom emoji conversion
   parseMarkdown() {
+    // const url =
     return {
       node: "emoji",
-      getAttrs: (tok: Token) => ({ "data-name": tok.markup.trim() }),
+      getAttrs: (tok: Token) => {
+        if (tok.attrGet("data-url")) {
+          return {
+            "data-name": tok.markup.trim(),
+            "data-url": tok.attrGet("data-url"),
+            type: "custom",
+          };
+        }
+        return { "data-name": tok.markup.trim() };
+      },
     };
   }
 }
