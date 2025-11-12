@@ -86,17 +86,20 @@ function DataLoader({ match, children }: Props) {
   const isEditing = isEditRoute || !user?.separateEditMode;
   const can = usePolicy(document);
   const location = useLocation<LocationState>();
+  const missingPolicy = !can || Object.keys(can).length === 0;
 
   React.useEffect(() => {
     async function fetchDocument() {
       try {
-        await documents.fetch(documentSlug);
+        await documents.fetch(documentSlug, {
+          force: missingPolicy,
+        });
       } catch (err) {
         setError(err);
       }
     }
     void fetchDocument();
-  }, [ui, documents, documentSlug]);
+  }, [ui, documents, missingPolicy, documentSlug]);
 
   React.useEffect(() => {
     async function fetchRevision() {
