@@ -66,6 +66,7 @@ const WebhookSubscriptionListItem = ({ webhook }: Props) => {
             title={t("Edit webhook")}
             onRequestClose={handleEditModalClose}
             isOpen={editModalOpen}
+            width="480px"
           >
             <WebhookSubscriptionEdit
               onSubmit={handleEditModalClose}
