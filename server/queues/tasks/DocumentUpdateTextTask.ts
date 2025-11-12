@@ -17,7 +17,9 @@ export default class DocumentUpdateTextTask extends BaseTask<DocumentEvent> {
     const node = Node.fromJSON(schema, document.content);
     document.text = serializer.serialize(node);
 
-    const language = franc(DocumentHelper.toPlainText(document));
+    const language = franc(DocumentHelper.toPlainText(document), {
+      minLength: 50,
+    });
     document.language = iso6393To1[language];
 
     await document.save({ silent: true });

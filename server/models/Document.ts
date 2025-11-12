@@ -340,7 +340,7 @@ class Document extends ArchivableModel<
   @Column(DataType.TEXT)
   text: string;
 
-  /** The likely language of the content. */
+  /** The likely language of the content, in ISO 639-1 format. */
   @Column(DataType.STRING(2))
   @MaxLength(2)
   language: string;
