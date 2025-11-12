@@ -92,7 +92,6 @@ function Collections() {
                   key={item.id}
                   collection={item}
                   activeDocument={documents.active}
-                  prefetchDocument={documents.prefetchDocument}
                   belowCollection={orderedCollections[index + 1]}
                 />
               )}

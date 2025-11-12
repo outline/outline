@@ -18,7 +18,6 @@ import {
 } from "../hooks/useDragAndDrop";
 import { useSidebarLabelAndIcon } from "../hooks/useSidebarLabelAndIcon";
 import CollectionLink from "./CollectionLink";
-import CollectionLinkChildren from "./CollectionLinkChildren";
 import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import Folder from "./Folder";
@@ -185,13 +184,7 @@ function StarredCollectionLink({
           isDraggingAnyCollection={reorderStarProps.isDragging}
         />
       </Draggable>
-      <Relative>
-        <CollectionLinkChildren
-          collection={collection}
-          expanded={displayChildDocuments}
-        />
-        {cursor}
-      </Relative>
+      <Relative>{cursor}</Relative>
     </SidebarContext.Provider>
   );
 }
