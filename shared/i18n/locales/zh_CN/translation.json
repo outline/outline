@@ -1357,7 +1357,6 @@
   "New webhook": "新建 Webhook",
   "Webhooks can be used to notify your application when events happen in {{appName}}. Events are sent as a https request with a JSON payload in near real-time.": "Webhook 可用于让您的应用订阅 {{appName}} 内的事件动态。当事件发生时，相关信息会以 HTTPS 请求的形式，携带 JSON 格式的有效载荷，以近实时的方式发送至您的应用。",
   "Inactive": "未激活",
-  "Create a webhook": "创建一个 Webhook",
   "Zapier is a platform that allows {{appName}} to easily integrate with thousands of other business tools. Automate your workflows, sync data, and more.": "Zapier 是一个平台，可以让 {{appName}} 轻松地与数以千计的其它业务工具集成。自动化您的工作流程、同步数据等。",
   "Never logged in": "从未登录",
   "Online now": "当前在线",
