@@ -41,6 +41,7 @@ export type MenuItem = {
   active?: (state: EditorState) => boolean;
   appendSpace?: boolean;
   skipIcon?: boolean;
+  disabled?: boolean;
 };
 
 export type ComponentProps = {

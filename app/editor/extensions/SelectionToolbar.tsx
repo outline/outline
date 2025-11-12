@@ -109,7 +109,6 @@ export default class SelectionToolbarExtension extends Extension {
         canUpdate={editorProps.canUpdate}
         canComment={editorProps.canComment}
         isTemplate={editorProps.template === true}
-        onClickLink={editorProps.onClickLink}
       />
     );
   };
