@@ -521,7 +521,7 @@ router.post(
 
 router.post(
   "users.invite",
-  rateLimiter(RateLimiterStrategy.TenPerHour),
+  rateLimiter(RateLimiterStrategy.FiftyPerHour),
   auth(),
   validate(T.UsersInviteSchema),
   transaction(),
