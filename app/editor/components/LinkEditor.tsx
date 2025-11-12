@@ -30,12 +30,6 @@ type Props = {
   view: EditorView;
 };
 
-enum Action {
-  OPEN_LINK = "openLink",
-  UPDATE_LINK = "updateLink",
-  REMOVE_LINK = "removeLink",
-}
-
 const LinkEditor: React.FC<Props> = ({ mark, dictionary, view }) => {
   const getHref = () => sanitizeUrl(mark?.attrs.href) ?? "";
   const initialValue = getHref();
@@ -79,18 +73,18 @@ const LinkEditor: React.FC<Props> = ({ mark, dictionary, view }) => {
   });
 
   const openLink = React.useCallback(() => {
-    commands[Action.OPEN_LINK]();
+    commands["openLink"]();
   }, []);
 
   const removeLink = React.useCallback(() => {
-    commands[Action.REMOVE_LINK]();
+    commands["removeLink"]();
   }, []);
 
   const updateLink = (link: string) => {
     if (!link) {
       return;
     }
-    commands[Action.UPDATE_LINK]({ href: sanitizeUrl(link) ?? "" });
+    commands["updateLink"]({ href: sanitizeUrl(link) ?? "" });
   };
 
   const moveSelectionToEnd = () => {
