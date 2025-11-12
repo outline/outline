@@ -1357,7 +1357,6 @@
   "New webhook": "Neuer Webhook",
   "Webhooks can be used to notify your application when events happen in {{appName}}. Events are sent as a https request with a JSON payload in near real-time.": "Webhooks können verwendet werden, um andere Anwendungen zu benachrichtigen, wenn Ereignisse in {{appName}} auftreten. Ereignisse werden als HTTPS-Anfrage mit einer JSON-Nachricht, annähernd in Echtzeit verschickt.",
   "Inactive": "Nicht aktiv",
-  "Create a webhook": "Webhook erstellen",
   "Zapier is a platform that allows {{appName}} to easily integrate with thousands of other business tools. Automate your workflows, sync data, and more.": "Zapier ist eine Plattform, die es {{appName}} ermöglicht, sich einfach mit Tausenden anderer Business-Tools zu verbinden. Automatisiere deine Arbeitsabläufe, synchronisieren deine Daten und mehr.",
   "Never logged in": "Nie angemeldet",
   "Online now": "Jetzt online",
