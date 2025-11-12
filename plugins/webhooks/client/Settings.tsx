@@ -68,9 +68,10 @@ function Webhooks() {
         )}
       />
       <Modal
-        title={t("Create a webhook")}
+        title={t("New webhook")}
         onRequestClose={handleNewModalClose}
         isOpen={newModalOpen}
+        width="480px"
       >
         <WebhookSubscriptionNew onSubmit={handleNewModalClose} />
       </Modal>
