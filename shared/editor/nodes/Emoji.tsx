@@ -11,6 +11,7 @@ import Extension from "../lib/Extension";
 import { getEmojiFromName } from "../lib/emoji";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import emojiRule from "../rules/emoji";
+import { isInternalUrl } from "@shared/utils/urls";
 
 export default class Emoji extends Extension {
   get type() {
@@ -27,6 +28,10 @@ export default class Emoji extends Extension {
         "data-name": {
           default: "grey_question",
           validate: "string",
+        },
+        "data-url": {
+          default: null,
+          validate: (url: string) => !url || isInternalUrl(url),
         },
         type: { default: "emoji", validate: "string" },
       },
@@ -49,15 +54,16 @@ export default class Emoji extends Extension {
       ],
       toDOM: (node) => {
         const name = node.attrs["data-name"];
+        const url = node.attrs["data-url"];
         const type = node.attrs.type;
 
-        if (type === "custom") {
+        if (type === "custom" && !!url) {
           return [
             "img",
             {
               class: `emoji custom-emoji ${name}`,
               "data-name": name,
-              src: name,
+              src: url,
               style:
                 "width: 1.2em; height: 1.2em; vertical-align: text-bottom; display: inline-block;",
             },
@@ -101,10 +107,13 @@ export default class Emoji extends Extension {
       };
   }
 
-  // to do: custom emoji conversion
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     const name = node.attrs["data-name"];
-    if (name) {
+    const url = node.attrs["data-url"];
+
+    if (url) {
+      state.write(`:${name}-custom:`);
+    } else if (name) {
       state.write(`:${name}:`);
     }
   }

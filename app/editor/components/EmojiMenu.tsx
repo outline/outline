@@ -14,7 +14,7 @@ type Emoji = {
   title: string;
   emoji: string;
   description: string;
-  attrs: { markup: string; "data-name": string };
+  attrs: { markup: string; "data-name": string; "data-url"?: string };
 };
 
 type Props = Omit<
@@ -43,7 +43,8 @@ const EmojiMenu = (props: Props) => {
             emoji,
             attrs: {
               markup: shortcode,
-              "data-name": isInternalUrl(emoji) ? emoji : shortcode,
+              "data-name": !isInternalUrl(emoji) ? shortcode : item.name,
+              "data-url": isInternalUrl(emoji) ? emoji : undefined,
               type: isInternalUrl(emoji) ? "custom" : "emoji",
             },
           };

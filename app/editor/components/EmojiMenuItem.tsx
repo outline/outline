@@ -22,11 +22,9 @@ export default function EmojiMenuItem({ emoji, ...rest }: EmojiMenuItemProps) {
     <SuggestionsMenuItem
       {...rest}
       icon={
-        isInternalUrl(emoji) ? (
-          <EmojiImage src={emoji} />
-        ) : (
-          <Emoji className="emoji">{emoji}</Emoji>
-        )
+        <Emoji className="emoji">
+          {isInternalUrl(emoji) ? <EmojiImage src={emoji} /> : emoji}
+        </Emoji>
       }
     />
   );
