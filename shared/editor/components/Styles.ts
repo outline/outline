@@ -304,6 +304,12 @@ const emailStyle = (props: Props) => css`
   }
 `;
 
+/**
+ * Adjustments to line-height and paragraph margins for complex scripts. If adding
+ * scripts here you also need to update the `getLangFor` method.
+ *
+ * @returns The CSS styles for complex scripts.
+ */
 const textStyle = () => css`
   /* Southeast Asian scripts */
   :lang(th),  /* Thai */
@@ -312,7 +318,9 @@ const textStyle = () => css`
     :lang(my) {
     /* Burmese */
     p {
-      line-height: 1.8;
+      line-height: 1.7;
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
     }
   }
 
@@ -330,6 +338,8 @@ const textStyle = () => css`
     /* Sinhala */
     p {
       line-height: 1.7;
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
     }
   }
 
@@ -337,6 +347,8 @@ const textStyle = () => css`
   :lang(bo) {
     p {
       line-height: 1.8;
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
     }
   }
 
@@ -357,6 +369,8 @@ const textStyle = () => css`
     /* Mongolian */
     p {
       line-height: 1.7;
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
     }
   }
 `;
