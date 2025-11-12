@@ -117,16 +117,14 @@ export default class Emoji extends Extension {
       const escapedAlt = state.esc(alt, false);
       const escapedUrl = state.esc(url, false);
 
-      const markdown = `${prefix}![${escapedAlt}](${escapedUrl} "custom-emoji")`;
+      const markdown = `${prefix}![:${escapedAlt}:](${escapedUrl} "custom-emoji")`;
       state.write(markdown);
     } else if (name) {
       state.write(`:${name}:`);
     }
   }
 
-  // to do: custom emoji conversion
   parseMarkdown() {
-    // const url =
     return {
       node: "emoji",
       getAttrs: (tok: Token) => {
