@@ -80,7 +80,6 @@ async function teamPermanentDeleter(team: Team) {
         const userIds = users.map((user) => user.id);
         await UserAuthentication.destroy({
           where: {
-            teamId,
             userId: userIds,
           },
           force: true,
@@ -103,6 +102,7 @@ async function teamPermanentDeleter(team: Team) {
         });
         await Event.destroy({
           where: {
+            teamId,
             actorId: userIds,
           },
           force: true,
