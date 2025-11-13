@@ -32,7 +32,7 @@ describe("admin", () => {
     expect(abilities.archive).toBeTruthy();
   });
 
-  it("should correct permissions in view only collection", async () => {
+  it("should have correct permissions in view only collection", async () => {
     const team = await buildTeam();
     const user = await buildAdmin({
       teamId: team.id,
