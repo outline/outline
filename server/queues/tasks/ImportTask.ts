@@ -161,6 +161,8 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
       return result;
     } catch (error) {
+      Logger.error(`ImportTask failed for ${fileOperationId}`, error);
+
       await this.updateFileOperation(
         fileOperation,
         FileOperationState.Error,

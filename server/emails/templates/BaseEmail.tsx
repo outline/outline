@@ -24,6 +24,7 @@ export enum EmailMessageCategory {
   Invitation = "invitation",
   Notification = "notification",
   Marketing = "marketing",
+  Internal = "internal",
 }
 
 export interface EmailProps {
