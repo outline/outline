@@ -86,13 +86,13 @@ const GridTemplate = (
             key={item.id}
             onClick={() => onIconSelect({ id: item.id, value: item.value })}
           >
-            {item.type === IconType.Custom ? (
-              <EmojiImage src={item.value} />
-            ) : (
-              <Emoji width={24} height={24}>
-                {item.value}
-              </Emoji>
-            )}
+            <Emoji width={24} height={24}>
+              {item.type === IconType.Custom ? (
+                <EmojiImage src={item.value} />
+              ) : (
+                item.value
+              )}
+            </Emoji>
           </IconButton>
         );
       });
