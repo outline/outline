@@ -128,7 +128,8 @@ export default class Emoji extends Extension {
     return {
       node: "emoji",
       getAttrs: (tok: Token) => {
-        if (tok.attrGet("data-url")) {
+        const url = tok.attrGet("data-url");
+        if (url && isInternalUrl(url)) {
           return {
             "data-name": tok.markup.trim(),
             "data-url": tok.attrGet("data-url"),
