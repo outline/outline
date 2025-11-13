@@ -186,30 +186,30 @@ const CollectionLink: React.FC<Props> = ({
           />
         </DropToImport>
       </Relative>
-      {isAddingNewChild ? (
-        <SidebarLink
-          depth={2}
-          isActive={() => true}
-          label={
-            <EditableTitle
-              title=""
-              canUpdate
-              isEditing
-              placeholder={`${t("New doc")}…`}
-              onCancel={closeAddingNewChild}
-              onSubmit={handleNewDoc}
-              maxLength={DocumentValidation.maxTitleLength}
-              ref={newChildTitleRef}
-            />
-          }
-        />
-      ) : (
-        <CollectionLinkChildren
-          collection={collection}
-          expanded={!!expanded}
-          prefetchDocument={documents.prefetchDocument}
-        />
-      )}
+      <CollectionLinkChildren
+        collection={collection}
+        expanded={!!expanded}
+        prefetchDocument={documents.prefetchDocument}
+      >
+        {isAddingNewChild ? (
+          <SidebarLink
+            depth={2}
+            isActive={() => true}
+            label={
+              <EditableTitle
+                title=""
+                canUpdate
+                isEditing
+                placeholder={`${t("New doc")}…`}
+                onCancel={closeAddingNewChild}
+                onSubmit={handleNewDoc}
+                maxLength={DocumentValidation.maxTitleLength}
+                ref={newChildTitleRef}
+              />
+            }
+          />
+        ) : undefined}
+      </CollectionLinkChildren>
     </ActionContextProvider>
   );
 };
