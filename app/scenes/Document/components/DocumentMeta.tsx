@@ -92,6 +92,8 @@ const InsightsButton = styled(NudeButton)`
   background: none;
   border: none;
   padding: 0;
+  width: auto;
+  height: auto;
   color: inherit;
   font: inherit;
   text-decoration: none;
