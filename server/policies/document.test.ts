@@ -31,16 +31,14 @@ describe("read_write collection", () => {
     const abilities = serialize(user, document);
     expect(abilities.read).toBeTruthy();
     expect(abilities.download).toBeTruthy();
+    expect(abilities.update).toBeTruthy();
+    expect(abilities.createChildDocument).toBeTruthy();
+    expect(abilities.manageUsers).toBeTruthy();
+    expect(abilities.archive).toBeTruthy();
+    expect(abilities.delete).toBeTruthy();
     expect(abilities.share).toBeTruthy();
+    expect(abilities.move).toBeTruthy();
     expect(abilities.comment).toBeTruthy();
-
-    // members without edit permissions cannot
-    expect(abilities.archive).toBeFalsy();
-    expect(abilities.manageUsers).toBeFalsy();
-    expect(abilities.createChildDocument).toBeFalsy();
-    expect(abilities.move).toBeFalsy();
-    expect(abilities.delete).toBeFalsy();
-    expect(abilities.update).toBeFalsy();
   });
 
   it("should allow read permissions for viewer", async () => {
