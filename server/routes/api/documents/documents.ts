@@ -1771,8 +1771,8 @@ router.post(
       }),
     ]);
 
-    authorize(actor, "read", user);
     authorize(actor, "manageUsers", document);
+    authorize(actor, "read", user);
 
     const UserMemberships = await UserMembership.findAll({
       where: {
@@ -1893,7 +1893,7 @@ router.post(
         transaction,
       }),
     ]);
-    authorize(user, "update", document);
+    authorize(user, "manageUsers", document);
     authorize(user, "read", group);
 
     const [membership, created] = await GroupMembership.findOrCreate({
@@ -1947,7 +1947,7 @@ router.post(
         transaction,
       }),
     ]);
-    authorize(user, "update", document);
+    authorize(user, "manageUsers", document);
     authorize(user, "read", group);
 
     const membership = await GroupMembership.findOne({
