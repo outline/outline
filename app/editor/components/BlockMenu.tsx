@@ -12,7 +12,7 @@ type Props = Omit<SuggestionsMenuProps, "renderMenuItem" | "items"> &
 
 function BlockMenu(props: Props) {
   const dictionary = useDictionary();
-  const { elementRef } = useEditor();
+  const { elementRef, view } = useEditor();
 
   const renderMenuItem = useCallback(
     (item, _index, options) => (
@@ -33,6 +33,7 @@ function BlockMenu(props: Props) {
       filterable
       trigger="/"
       renderMenuItem={renderMenuItem}
+      cursorPos={view.state.selection.$from.pos}
       items={getMenuItems(dictionary, elementRef)}
     />
   );

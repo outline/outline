@@ -21,6 +21,7 @@ import Logger from "~/utils/Logger";
 import { useEditor } from "./EditorContext";
 import Input from "./Input";
 import { MenuHeader } from "~/components/primitives/components/Menu";
+import { TextSelection } from "prosemirror-state";
 
 type TopAnchor = {
   top: number;
@@ -67,6 +68,7 @@ export type Props<T extends MenuItem = MenuItem> = {
   /** Optional callback when a suggestion is selected */
   onSelect?: (item: MenuItem) => void;
   embeds?: EmbedDescriptor[];
+  cursorPos?: number;
   renderMenuItem: (
     item: T,
     index: number,
@@ -250,9 +252,20 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     [commands, handleClearSearch, props, view]
   );
 
+  const refocus = React.useCallback(() => {
+    if (props.cursorPos !== undefined) {
+      const { state, dispatch } = view;
+      const safePos = Math.min(props.cursorPos, state.doc.content.size);
+      dispatch(state.tr.setSelection(TextSelection.create(state.doc, safePos)));
+    }
+
+    view.focus();
+  }, [props.cursorPos, view]);
+
   const handleClickItem = React.useCallback(
     (item) => {
       props.onSelect?.(item);
+      refocus();
 
       switch (item.name) {
         case "link":
@@ -369,7 +382,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     // Re-focus the editor as it loses focus when file picker is opened on iOS
-    view.focus();
+    refocus();
 
     const { uploadFile, onFileUploadStart, onFileUploadStop } = props;
     const files = getEventFiles(event);

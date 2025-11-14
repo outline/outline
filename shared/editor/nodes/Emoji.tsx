@@ -79,7 +79,15 @@ export default class Emoji extends Extension {
         }
 
         const node = type.create(attrs);
-        const transaction = state.tr.insert(position, node);
+        const transaction = state.tr.replaceRangeWith(
+          position,
+          position + 1,
+          node
+        );
+        transaction.setSelection(
+          TextSelection.create(transaction.doc, position + node.nodeSize)
+        );
+
         dispatch?.(transaction);
         return true;
       };

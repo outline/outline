@@ -6,6 +6,7 @@ import EmojiMenuItem from "./EmojiMenuItem";
 import SuggestionsMenu, {
   Props as SuggestionsMenuProps,
 } from "./SuggestionsMenu";
+import { useEditor } from "./EditorContext";
 
 type Emoji = {
   name: string;
@@ -22,6 +23,7 @@ type Props = Omit<
 
 const EmojiMenu = (props: Props) => {
   const { search = "" } = props;
+  const { view } = useEditor();
 
   const items = useMemo(
     () =>
@@ -63,6 +65,7 @@ const EmojiMenu = (props: Props) => {
       filterable={false}
       renderMenuItem={renderMenuItem}
       items={items}
+      cursorPos={view.state.selection.$from.pos}
     />
   );
 };
