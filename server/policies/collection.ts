@@ -102,7 +102,6 @@ allow(User, "updateDocument", Collection, (user, collection) => {
   }
 
   if (
-    !collection.isPrivate ||
     collection.permission !== CollectionPermission.ReadWrite ||
     user.isViewer ||
     user.isGuest
@@ -111,10 +110,6 @@ allow(User, "updateDocument", Collection, (user, collection) => {
       CollectionPermission.ReadWrite,
       CollectionPermission.Admin,
     ]);
-  }
-
-  if (collection.isPrivate) {
-    return false;
   }
 
   return true;
@@ -135,7 +130,6 @@ allow(
     }
 
     if (
-      !collection.isPrivate ||
       collection.permission !== CollectionPermission.ReadWrite ||
       user.isViewer ||
       user.isGuest
@@ -144,10 +138,6 @@ allow(
         CollectionPermission.ReadWrite,
         CollectionPermission.Admin,
       ]);
-    }
-
-    if (collection.isPrivate) {
-      return false;
     }
 
     return true;
