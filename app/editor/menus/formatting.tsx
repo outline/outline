@@ -202,7 +202,7 @@ export default function formattingMenuItems(
       icon: <TodoListIcon />,
       keywords: "checklist checkbox task",
       active: isNodeActive(schema.nodes.checkbox_list),
-      visible: !isCodeBlock && !isTableCell && !isList,
+      visible: !isCodeBlock && !isTableCell && (!isList || !isTouch),
     },
     {
       name: "bullet_list",
@@ -210,7 +210,7 @@ export default function formattingMenuItems(
       shortcut: `⇧+Ctrl+8`,
       icon: <BulletedListIcon />,
       active: isNodeActive(schema.nodes.bullet_list),
-      visible: !isCodeBlock && !isTableCell && !isList,
+      visible: !isCodeBlock && !isTableCell && (!isList || !isTouch),
     },
     {
       name: "ordered_list",
@@ -218,7 +218,7 @@ export default function formattingMenuItems(
       shortcut: `⇧+Ctrl+9`,
       icon: <OrderedListIcon />,
       active: isNodeActive(schema.nodes.ordered_list),
-      visible: !isCodeBlock && !isTableCell && !isList,
+      visible: !isCodeBlock && !isTableCell && (!isList || !isTouch),
     },
     {
       name: "outdentList",
