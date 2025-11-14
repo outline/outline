@@ -157,7 +157,11 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
 
     provider.on("close", (ev: MessageEvent) => {
       if ("code" in ev.event) {
-        provider.shouldConnect = false;
+        // Note other close code are handled internally by the library
+        if (ev.event.code === EditorUpdateError.code) {
+          provider.shouldConnect = false;
+        }
+
         ui.setMultiplayerStatus("disconnected", ev.event.code);
 
         if (ev.event.code === EditorUpdateError.code) {
