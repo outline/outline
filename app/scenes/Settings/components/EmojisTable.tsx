@@ -14,6 +14,7 @@ import { type Column as TableColumn } from "~/components/Table";
 import Time from "~/components/Time";
 import { FILTER_HEIGHT } from "./StickyFilters";
 import { EmojiImage, EmojiPreview } from "@shared/components/customEmojis";
+import EmojisMenu from "~/menus/EmojisMenu";
 
 const ROW_HEIGHT = 60;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
@@ -70,7 +71,12 @@ const EmojisTable = observer(function EmojisTable({
           component: (emoji) => <Time dateTime={emoji.createdAt} addSuffix />,
           width: "1fr",
         },
-        // to do: emoji menu
+        {
+          type: "action",
+          id: "action",
+          component: (emoji) => <EmojisMenu emoji={emoji} />,
+          width: "50px",
+        },
       ]),
     [t, canManage]
   );
