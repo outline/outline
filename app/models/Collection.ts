@@ -2,6 +2,8 @@ import invariant from "invariant";
 import { action, comparer, computed, observable, runInAction } from "mobx";
 import {
   CollectionPermission,
+  CollectionDisplayPreference,
+  type CollectionDisplayPreferences,
   FileOperationFormat,
   type NavigationNode,
   NavigationNodeType,
@@ -98,6 +100,12 @@ export default class Collection extends ParanoidModel {
    */
   @observable
   archivedBy?: User;
+
+  /**
+   * Display preferences for the collection.
+   */
+  @observable
+  displayPreferences: CollectionDisplayPreferences;
 
   @computed
   get searchContent(): string {
@@ -230,6 +238,25 @@ export default class Collection extends ParanoidModel {
       this.isFetching = false;
     }
   };
+
+  get flatDocuments(): Document[] {
+    if (!this?.sortedDocuments) {
+      return [];
+    }
+
+    const flatten = (docs: Document[]): Document[] => {
+      const result: Document[] = [];
+      for (const doc of docs) {
+        result.push(doc);
+        if (doc.children && doc.children.length > 0) {
+          result.push(...flatten(doc.children as Document[]));
+        }
+      }
+      return result;
+    };
+
+    return flatten(this.sortedDocuments as Document[]);
+  }
 
   /**
    * Updates the document identified by the given id in the collection in memory.
@@ -450,6 +477,23 @@ export default class Collection extends ParanoidModel {
         policies.remove(document.id);
       });
     }
+  }
+
+  /**
+   * Set the value for a specific display preference key.
+   *
+   * @param key The DisplayPreference key to retrieve
+   * @param value The value to set
+   */
+  setPreference(key: CollectionDisplayPreference, value: boolean) {
+    this.displayPreferences = {
+      ...this.displayPreferences,
+      [key]: value,
+    };
+
+    void this.save({
+      displayPreferences: this.displayPreferences,
+    });
   }
 
   private isFetching = false;
