@@ -101,10 +101,6 @@ allow(User, "updateDocument", Collection, (user, collection) => {
     return false;
   }
 
-  if (!collection.isPrivate && user.isAdmin) {
-    return true;
-  }
-
   if (
     collection.permission !== CollectionPermission.ReadWrite ||
     user.isViewer ||
@@ -131,10 +127,6 @@ allow(
       !isTeamMutable(user)
     ) {
       return false;
-    }
-
-    if (!collection.isPrivate && user.isAdmin) {
-      return true;
     }
 
     if (

@@ -9,23 +9,6 @@ import {
 import { serialize } from "./index";
 
 describe("admin", () => {
-  it("should allow team admin to archive collection", async () => {
-    const team = await buildTeam();
-    const admin = await buildAdmin({ teamId: team.id });
-    const collection = await buildCollection({ teamId: team.id });
-    // reload to get membership
-    const reloaded = await Collection.findByPk(collection.id, {
-      userId: admin.id,
-    });
-    const abilities = serialize(admin, reloaded);
-    expect(abilities.read).toBeTruthy();
-    expect(abilities.update).toBeTruthy();
-    expect(abilities.readDocument).toBeTruthy();
-    expect(abilities.updateDocument).toBeTruthy();
-    expect(abilities.createDocument).toBeTruthy();
-    expect(abilities.archive).toBeTruthy();
-  });
-
   it("should allow updating collection but not reading documents", async () => {
     const team = await buildTeam();
     const user = await buildAdmin({
@@ -49,7 +32,7 @@ describe("admin", () => {
     expect(abilities.archive).toBeTruthy();
   });
 
-  it("should allow updating documents in view only collection", async () => {
+  it("should have correct permissions in view only collection", async () => {
     const team = await buildTeam();
     const user = await buildAdmin({
       teamId: team.id,
@@ -64,12 +47,14 @@ describe("admin", () => {
     });
     const abilities = serialize(user, reloaded);
     expect(abilities.readDocument).toBeTruthy();
-    expect(abilities.updateDocument).toBeTruthy();
-    expect(abilities.createDocument).toBeTruthy();
     expect(abilities.share).toBeTruthy();
     expect(abilities.read).toBeTruthy();
     expect(abilities.update).toBeTruthy();
     expect(abilities.archive).toBeTruthy();
+
+    // admins should not be able to update documents when all users have view only access
+    expect(abilities.updateDocument).toBeFalsy();
+    expect(abilities.createDocument).toBeFalsy();
   });
 });
 
