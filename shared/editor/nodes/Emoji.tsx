@@ -33,7 +33,6 @@ export default class Emoji extends Extension {
           default: null,
           validate: (url: string) => !url || isInternalUrl(url),
         },
-        type: { default: "emoji", validate: "string" },
       },
       inline: true,
       content: "text*",
@@ -55,17 +54,14 @@ export default class Emoji extends Extension {
       toDOM: (node) => {
         const name = node.attrs["data-name"];
         const url = node.attrs["data-url"];
-        const type = node.attrs.type;
 
-        if (type === "custom" && !!url) {
+        if (url) {
           return [
             "img",
             {
               class: `emoji custom-emoji ${name}`,
               "data-name": name,
               src: url,
-              style:
-                "width: 1.2em; height: 1.2em; vertical-align: text-bottom; display: inline-block;",
             },
           ];
         } else {
@@ -117,7 +113,7 @@ export default class Emoji extends Extension {
       const escapedAlt = state.esc(alt, false);
       const escapedUrl = state.esc(url, false);
 
-      const markdown = `${prefix}![:${escapedAlt}:](${escapedUrl} "custom-emoji")`;
+      const markdown = `${prefix}![${escapedAlt}](${escapedUrl})`;
       state.write(markdown);
     } else if (name) {
       state.write(`:${name}:`);
@@ -127,17 +123,7 @@ export default class Emoji extends Extension {
   parseMarkdown() {
     return {
       node: "emoji",
-      getAttrs: (tok: Token) => {
-        const url = tok.attrGet("data-url");
-        if (url && isInternalUrl(url)) {
-          return {
-            "data-name": tok.markup.trim(),
-            "data-url": tok.attrGet("data-url"),
-            type: "custom",
-          };
-        }
-        return { "data-name": tok.markup.trim() };
-      },
+      getAttrs: (tok: Token) => ({ "data-name": tok.markup.trim() }),
     };
   }
 }

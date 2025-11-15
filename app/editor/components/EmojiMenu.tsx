@@ -45,7 +45,6 @@ const EmojiMenu = (props: Props) => {
               markup: shortcode,
               "data-name": !isInternalUrl(emoji) ? shortcode : item.name,
               "data-url": isInternalUrl(emoji) ? emoji : undefined,
-              type: isInternalUrl(emoji) ? "custom" : "emoji",
             },
           };
         })

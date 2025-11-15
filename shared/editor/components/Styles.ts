@@ -828,6 +828,13 @@ h6:not(.placeholder)::before {
   margin-${props.rtl ? "right" : "left"}: -1em;
 }
 
+.emoji.custom-emoji {
+  width: 1.2em; 
+  height: 1.2em; 
+  vertical-align: text-bottom; 
+  display: inline-block; 
+}
+
 .heading-anchor,
 .heading-fold {
   display: inline-block;
