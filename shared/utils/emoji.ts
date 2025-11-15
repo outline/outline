@@ -1,10 +1,16 @@
 import RawData from "@emoji-mart/data";
-import type { EmojiMartData, Skin } from "@emoji-mart/data";
+import type {
+  EmojiMartData,
+  Skin,
+  Emoji as EmojiMartType,
+} from "@emoji-mart/data";
 import { init, Data } from "emoji-mart";
 import FuzzySearch from "fuzzy-search";
 import capitalize from "lodash/capitalize";
 import sortBy from "lodash/sortBy";
 import { Emoji, EmojiCategory, EmojiSkinTone, EmojiVariants } from "../types";
+import { client } from "~/utils/ApiClient";
+import Logger from "~/utils/Logger";
 
 init({ data: RawData });
 
@@ -99,10 +105,11 @@ const Emojis = allowFlagEmoji
       )
     );
 
-const searcher = new FuzzySearch(Object.values(Emojis), ["search"], {
-  caseSensitive: false,
-  sort: true,
-});
+const searcher = (emojis: EmojiMartType[]) =>
+  new FuzzySearch(emojis, ["search"], {
+    caseSensitive: false,
+    sort: true,
+  });
 
 // Codes defined by unicode.org
 const SKINTONE_CODE_TO_ENUM = {
@@ -156,6 +163,23 @@ const CATEGORY_TO_EMOJI_IDS: Record<EmojiCategory, string[]> =
     {} as Record<EmojiCategory, string[]>
   );
 
+export const getCustomEmojis = async (
+  search: string
+): Promise<EmojiMartType[] | null> => {
+  try {
+    const response = await client.post("/emojis.list", { query: search });
+    return response.data.map((d: any) => ({
+      id: d.id,
+      name: d.name,
+      search: d.name,
+      value: d.url,
+    }));
+  } catch (error) {
+    Logger.error("Failed to fetch custom emojis:", error);
+    return null;
+  }
+};
+
 export const getEmojis = ({
   ids,
   skinTone,
@@ -194,24 +218,54 @@ export const getEmojiVariants = ({ id }: { id: string }) =>
 export const search = ({
   query,
   skinTone,
+  onUpdate,
 }: {
   query: string;
   skinTone?: EmojiSkinTone;
-}) => {
+  onUpdate?: (results: any[]) => void;
+}): Emoji[] => {
   const queryLowercase = query.toLowerCase();
   const emojiSkinTone = skinTone ?? EmojiSkinTone.Default;
 
-  const matchedEmojis = searcher
-    .search(queryLowercase)
-    .map(
-      (emoji) =>
-        EMOJI_ID_TO_VARIANTS[emoji.id][emojiSkinTone] ??
-        EMOJI_ID_TO_VARIANTS[emoji.id][EmojiSkinTone.Default]
-    );
-  return sortBy(matchedEmojis, (emoji) => {
-    const nlc = emoji.name.toLowerCase();
-    return query === nlc ? -1 : nlc.startsWith(queryLowercase) ? 0 : 1;
-  });
+  const processEmojis = (emojis: EmojiMartType[]) => {
+    const matchedEmojis = searcher(emojis)
+      .search(queryLowercase)
+      .map((emoji) => {
+        if (!emoji.skins) {
+          return emoji;
+        }
+
+        return (
+          EMOJI_ID_TO_VARIANTS[emoji.id][emojiSkinTone] ??
+          EMOJI_ID_TO_VARIANTS[emoji.id][EmojiSkinTone.Default]
+        );
+      });
+
+    return sortBy(matchedEmojis, (emoji) => {
+      const nlc = emoji.name.toLowerCase();
+      return query === nlc ? -1 : nlc.startsWith(queryLowercase) ? 0 : 1;
+    });
+  };
+
+  // Return standard emojis immediately
+  const standardResults = processEmojis(Object.values(Emojis));
+
+  // Load custom emojis asynchronously and update results
+  getCustomEmojis(query)
+    .then((customEmojis) => {
+      if (customEmojis) {
+        const combinedResults = processEmojis([
+          ...Object.values(Emojis),
+          ...customEmojis,
+        ]);
+        onUpdate?.(combinedResults);
+      }
+    })
+    .catch((error) => {
+      Logger.error("Failed to load custom emojis:", error);
+    });
+
+  return standardResults as Emoji[];
 };
 
 /**
@@ -221,4 +275,4 @@ export const search = ({
  * @returns The emoji id, if found.
  */
 export const getEmojiId = (emoji: string): string | undefined =>
-  searcher.search(emoji)[0]?.id;
+  searcher(Object.values(Emojis)).search(emoji)[0]?.id;

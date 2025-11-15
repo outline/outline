@@ -11,6 +11,7 @@ import Extension from "../lib/Extension";
 import { getEmojiFromName } from "../lib/emoji";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import emojiRule from "../rules/emoji";
+import { isInternalUrl } from "@shared/utils/urls";
 
 export default class Emoji extends Extension {
   get type() {
@@ -27,6 +28,10 @@ export default class Emoji extends Extension {
         "data-name": {
           default: "grey_question",
           validate: "string",
+        },
+        "data-url": {
+          default: null,
+          validate: (url: string) => !url || isInternalUrl(url),
         },
       },
       inline: true,
@@ -48,20 +53,33 @@ export default class Emoji extends Extension {
       ],
       toDOM: (node) => {
         const name = node.attrs["data-name"];
+        const url = node.attrs["data-url"];
 
-        return [
-          "strong",
-          {
-            class: `emoji ${name}`,
-            "data-name": name,
-          },
-          getEmojiFromName(name),
-        ];
+        if (url) {
+          return [
+            "img",
+            {
+              class: `emoji custom-emoji ${name}`,
+              "data-name": name,
+              src: url,
+            },
+          ];
+        } else {
+          return [
+            "strong",
+            {
+              class: `emoji ${name}`,
+              "data-name": name,
+            },
+            getEmojiFromName(name),
+          ];
+        }
       },
       leafText: (node) => getEmojiFromName(node.attrs["data-name"]),
     };
   }
 
+  // to do: custom emoji rules
   get rulePlugins() {
     return [emojiRule];
   }
@@ -87,7 +105,17 @@ export default class Emoji extends Extension {
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     const name = node.attrs["data-name"];
-    if (name) {
+    const url = node.attrs["data-url"];
+
+    if (url) {
+      const alt = node.attrs["data-name"] || "";
+      const prefix = state.inList ? "" : " ";
+      const escapedAlt = state.esc(alt, false);
+      const escapedUrl = state.esc(url, false);
+
+      const markdown = `${prefix}![${escapedAlt}](${escapedUrl})`;
+      state.write(markdown);
+    } else if (name) {
       state.write(`:${name}:`);
     }
   }
