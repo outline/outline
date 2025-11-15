@@ -54,55 +54,50 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
-rl.question(
-  "Do you want to proceed with this release? (yes/no): ",
-  (answer) => {
-    rl.close();
+rl.question("Do you want to proceed with this release? (Y/n): ", (answer) => {
+  rl.close();
 
-    if (answer.toLowerCase() !== "yes" && answer.toLowerCase() !== "y") {
-      console.log("Release cancelled.");
-      exit(0);
-    }
-
-    try {
-      // Update package.json
-      packageJson.version = newVersion;
-      fs.writeFileSync(
-        packagePath,
-        JSON.stringify(packageJson, null, 2) + "\n"
-      );
-      console.log("Updated package.json");
-
-      // Update LICENSE
-      const license = fs.readFileSync(path.resolve(root, "LICENSE"), "utf8");
-      const newDate = addYears(new Date(), 4).toISOString().split("T")[0];
-
-      const newLicense = license
-        // Update version number
-        .replace(
-          /Licensed Work: {8}Outline (.*)/,
-          `Licensed Work:        Outline ${newVersion}`
-        )
-        // Update change date
-        .replace(/Change Date: {9}(.*)/, `Change Date:          ${newDate}`)
-        // Update current year
-        .replace(/\(c\) \d{4}/, `(c) ${new Date().getFullYear()}`);
-
-      fs.writeFileSync(path.resolve(root, "LICENSE"), newLicense);
-      console.log("Updated LICENSE");
-
-      // Git operations
-      execSync(`git add package.json`, opts);
-      execSync(`git add LICENSE`, opts);
-      execSync(`git commit -m "v${newVersion}" --no-verify`, opts);
-      execSync(`git tag v${newVersion} -m v${newVersion}`, opts);
-      execSync(`git push origin v${newVersion}`, opts);
-      execSync(`git push origin main`, opts);
-
-      console.log(`\nReleased v${newVersion} 🚀`);
-    } catch (err) {
-      console.log("Error during release:", err.message);
-      exit(1);
-    }
+  const response = answer.trim().toLowerCase();
+  if (response === "n" || response === "no") {
+    console.log("Release cancelled.");
+    exit(0);
   }
-);
+
+  try {
+    // Update package.json
+    packageJson.version = newVersion;
+    fs.writeFileSync(packagePath, JSON.stringify(packageJson, null, 2) + "\n");
+    console.log("Updated package.json");
+
+    // Update LICENSE
+    const license = fs.readFileSync(path.resolve(root, "LICENSE"), "utf8");
+    const newDate = addYears(new Date(), 4).toISOString().split("T")[0];
+
+    const newLicense = license
+      // Update version number
+      .replace(
+        /Licensed Work: {8}Outline (.*)/,
+        `Licensed Work:        Outline ${newVersion}`
+      )
+      // Update change date
+      .replace(/Change Date: {9}(.*)/, `Change Date:          ${newDate}`)
+      // Update current year
+      .replace(/\(c\) \d{4}/, `(c) ${new Date().getFullYear()}`);
+
+    fs.writeFileSync(path.resolve(root, "LICENSE"), newLicense);
+    console.log("Updated LICENSE");
+
+    // Git operations
+    execSync(`git add package.json`, opts);
+    execSync(`git add LICENSE`, opts);
+    execSync(`git commit -m "v${newVersion}" --no-verify`, opts);
+    execSync(`git tag v${newVersion} -m v${newVersion}`, opts);
+    execSync(`git push origin v${newVersion}`, opts);
+    execSync(`git push origin main`, opts);
+
+    console.log(`\nReleased v${newVersion} 🚀`);
+  } catch (err) {
+    console.log("Error during release:", err.message);
+    exit(1);
+  }
+});
