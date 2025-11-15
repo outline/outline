@@ -16,12 +16,16 @@ import { EditorState } from "prosemirror-state";
 import { CellSelection, selectedRect } from "prosemirror-tables";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import {
+  getAllSelectedColumns,
   isMergedCellSelection,
   isMultipleCellSelection,
 } from "@shared/editor/queries/table";
-import { MenuItem } from "@shared/editor/types";
+import { MenuItem, TableLayout } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
 import { ArrowLeftIcon, ArrowRightIcon } from "~/components/Icons/ArrowIcon";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrows } from "@fortawesome/free-solid-svg-icons";
+import useStores from "~/hooks/useStores";
 
 export default function tableColMenuItems(
   state: EditorState,
@@ -38,6 +42,12 @@ export default function tableColMenuItems(
 
   const { index, rtl } = options;
   const { schema, selection } = state;
+
+  const { documents } = useStores();
+  const isFullWidth = isNodeActive(schema.nodes.table, {
+    layout: TableLayout.fullWidth,
+  })(state);
+  const selectedCols = getAllSelectedColumns(state);
 
   if (!(selection instanceof CellSelection)) {
     return [];
@@ -155,6 +165,19 @@ export default function tableColMenuItems(
           dangerous: true,
           label: dictionary.deleteColumn,
           icon: <TrashIcon />,
+        },
+        {
+          name: "separator",
+        },
+        {
+          name: "spaceColumnsEvenly",
+          label: dictionary.spaceColumnsEvenly,
+          visible: selectedCols.length > 1,
+          attrs: {
+            isFullWidth,
+            documentIsFullWidth: documents.active?.fullWidth,
+          },
+          icon: <FontAwesomeIcon icon={faArrows} />,
         },
       ],
     },
