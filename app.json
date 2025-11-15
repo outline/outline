@@ -194,6 +194,11 @@
       "description": "Use a secure SMTP connection (optional)",
       "required": false
     },
+    "SMTP_DISABLE_STARTTLS": {
+      "value": "false",
+      "description": "Disable STARTTLS even if the server supports it (optional)",
+      "required": false
+    },
     "SMTP_TLS_CIPHERS": {
       "description": "Override SMTP cipher configuration (optional)",
       "required": false
