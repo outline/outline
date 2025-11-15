@@ -184,77 +184,77 @@ export function spaceColumnsEvenly({
   documentIsFullWidth?: boolean;
 }): Command {
   return (state, dispatch, view) => {
-    if (!isInTable(state)) {
+    if (!isInTable(state) || !dispatch) {
       return false;
     }
 
-    if (dispatch) {
-      const rect = selectedRect(state);
-      const { tr } = state;
-      const { map } = rect;
+    const rect = selectedRect(state);
+    const { tr } = state;
+    const { map } = rect;
+    const columnCount = map.width;
 
-      const selectedColumns = getAllSelectedColumns(state).sort(
-        (a, b) => a - b
-      );
+    const selectedColumns = getAllSelectedColumns(state).sort((a, b) => a - b);
 
-      const columnCount = map.width;
-      const isLastColSelected = selectedColumns.includes(columnCount - 1);
-      const totalSelectedWidth = Math.max(
-        getTotalWidthFromDom({
-          state,
-          view,
-          selectedColumns,
-        }),
-        getTotalWidthFromNode({ state, selectedColumns })
-      );
-
-      if (totalSelectedWidth > 0 && selectedColumns.length > 1) {
-        const evenWidth = totalSelectedWidth / selectedColumns.length;
-
-        for (let row = 0; row < map.height; row++) {
-          const cellsInRow = getCellsInRow(row)(state);
-
-          if (cellsInRow) {
-            cellsInRow.forEach((pos, colIndex) => {
-              if (!selectedColumns.includes(colIndex)) {
-                return;
-              }
-
-              const cell = tr.doc.nodeAt(pos);
-              if (cell) {
-                const isActualLastColumn = colIndex === columnCount - 1;
-                const shouldApplyLastColLogic =
-                  isActualLastColumn && isLastColSelected;
-
-                let colwidth: null | [number] = [evenWidth];
-
-                if (shouldApplyLastColLogic) {
-                  const lastColHasBeenStretched =
-                    isFullWidth ||
-                    (documentIsFullWidth && !cell.attrs.colwidth);
-
-                  if (lastColHasBeenStretched) {
-                    colwidth = null;
-                  }
-                }
-
-                const newAttrs = {
-                  ...cell.attrs,
-                  colwidth,
-                };
-
-                tr.setNodeMarkup(pos, undefined, newAttrs);
-              }
-            });
-          }
-        }
-      }
-
+    if (selectedColumns.length <= 1) {
       dispatch(tr);
+      return true;
     }
 
+    const isLastColSelected = selectedColumns.includes(columnCount - 1);
+    const hasNullWidth = selectedColumns.some((colIndex) =>
+      isColumnWidthNull(state, colIndex)
+    );
+
+    const totalSelectedWidth = hasNullWidth
+      ? getTotalWidthFromDom({ state, view, selectedColumns })
+      : getTotalWidthFromNode({ state, selectedColumns });
+
+    if (totalSelectedWidth <= 0) {
+      dispatch(tr);
+      return true;
+    }
+
+    const evenWidth = totalSelectedWidth / selectedColumns.length;
+
+    for (let row = 0; row < map.height; row++) {
+      const cellsInRow = getCellsInRow(row)(state);
+      if (!cellsInRow) {continue;}
+
+      selectedColumns.forEach((colIndex) => {
+        const pos = cellsInRow[colIndex];
+        const cell = pos !== undefined ? tr.doc.nodeAt(pos) : null;
+        if (!cell) {return;}
+
+        const isActualLastColumn = colIndex === columnCount - 1;
+        const shouldKeepLastColNull =
+          isActualLastColumn &&
+          isLastColSelected &&
+          (isFullWidth || (documentIsFullWidth && !cell.attrs.colwidth));
+
+        const colwidth = shouldKeepLastColNull ? null : [evenWidth];
+
+        tr.setNodeMarkup(pos, undefined, {
+          ...cell.attrs,
+          colwidth,
+        });
+      });
+    }
+
+    dispatch(tr);
     return true;
   };
+}
+
+function isColumnWidthNull(state: EditorState, colIndex: number): boolean {
+  const firstRowCells = getCellsInRow(0)(state);
+  if (!firstRowCells || firstRowCells[colIndex] === undefined) {
+    return false;
+  }
+
+  const cell = state.doc.nodeAt(firstRowCells[colIndex]);
+  const colwidth = cell?.attrs.colwidth;
+
+  return !colwidth || (Array.isArray(colwidth) && !colwidth[0]);
 }
 
 const getTotalWidthFromDom = ({
