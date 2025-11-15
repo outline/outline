@@ -418,6 +418,15 @@ export class Environment {
   public SMTP_SECURE = this.toBoolean(environment.SMTP_SECURE ?? "true");
 
   /**
+   * If true then STARTTLS is disabled even if the server supports it.
+   * If false (the default) then STARTTLS is used if server supports it.
+   *
+   * Setting secure to false therefore does not mean that you would not use an
+   * encrypted connection.
+   */
+  public SMTP_DISABLE_STARTTLS = this.toBoolean(environment.SMTP_DISABLE_STARTTLS ?? "false");
+
+  /**
    * Dropbox app key for embedding Dropbox files
    */
   @Public
