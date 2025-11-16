@@ -285,8 +285,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
   const renderMenuItem = useCallback(
     (item, _index, options) => (
       <SuggestionsMenuItem
-        onClick={options.onClick}
-        selected={options.selected}
+        {...options}
         subtitle={item.subtitle}
         title={item.title}
         icon={item.icon}

@@ -47,12 +47,7 @@ const EmojiMenu = (props: Props) => {
 
   const renderMenuItem = useCallback(
     (item, _index, options) => (
-      <EmojiMenuItem
-        onClick={options.onClick}
-        selected={options.selected}
-        title={item.description}
-        emoji={item.emoji}
-      />
+      <EmojiMenuItem {...options} title={item.description} emoji={item.emoji} />
     ),
     []
   );

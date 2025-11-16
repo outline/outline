@@ -29,12 +29,7 @@ export const PasteMenu = observer(({ pastedText, embeds, ...props }: Props) => {
 
   const renderMenuItem = useCallback(
     (item, _index, options) => (
-      <SuggestionsMenuItem
-        onClick={options.onClick}
-        selected={options.selected}
-        title={item.title}
-        icon={item.icon}
-      />
+      <SuggestionsMenuItem {...options} title={item.title} icon={item.icon} />
     ),
     []
   );
