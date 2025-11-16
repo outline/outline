@@ -207,7 +207,7 @@ const LinkEditor: React.FC<Props> = ({ mark, dictionary, view }) => {
             <>
               {results.map((doc, index) => (
                 <SuggestionsMenuItem
-                  onClick={() => {
+                  onPointerDown={() => {
                     updateLink(doc.url);
                   }}
                   onPointerMove={() => setSelectedIndex(index)}
