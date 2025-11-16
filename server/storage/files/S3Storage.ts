@@ -7,6 +7,7 @@ import {
   ObjectCannedACL,
   HeadObjectCommand,
   CopyObjectCommand,
+  PutObjectCommand,
 } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import "@aws-sdk/signature-v4-crt"; // https://github.com/aws/aws-sdk-js-v3#functionality-requiring-aws-common-runtime-crt
@@ -21,7 +22,7 @@ import compact from "lodash/compact";
 import tmp from "tmp";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
-import BaseStorage from "./BaseStorage";
+import BaseStorage, { PresignedUpload } from "./BaseStorage";
 import { AppContext } from "@server/types";
 
 export default class S3Storage extends BaseStorage {
@@ -42,7 +43,36 @@ export default class S3Storage extends BaseStorage {
     acl: string,
     maxUploadSize: number,
     contentType = "image"
-  ) {
+  ): Promise<PresignedUpload> {
+    if (env.S3_SUPPORT_PUT_UPLOAD) {
+      const headers = {
+        "Cache-Control": "max-age=31557600",
+        "Content-Type": contentType,
+        "Content-Disposition": this.getContentDisposition(contentType),
+        "x-amz-acl": acl,
+      };
+
+      const command = new PutObjectCommand({
+        Bucket: env.AWS_S3_UPLOAD_BUCKET_NAME as string,
+        Key: key,
+        ACL: acl as ObjectCannedACL,
+        CacheControl: headers["Cache-Control"],
+        ContentDisposition: headers["Content-Disposition"],
+        ContentType: contentType,
+      });
+
+      const url = await getSignedUrl(this.client, command, {
+        expiresIn: 3600,
+      });
+
+      return {
+        url,
+        method: "PUT",
+        headers,
+        fields: {},
+      };
+    }
+
     const params: PresignedPostOptions = {
       Bucket: env.AWS_S3_UPLOAD_BUCKET_NAME as string,
       Key: key,
@@ -59,7 +89,11 @@ export default class S3Storage extends BaseStorage {
       Expires: 3600,
     };
 
-    return createPresignedPost(this.client, params);
+    const post = await createPresignedPost(this.client, params);
+    return {
+      ...post,
+      method: "POST",
+    };
   }
 
   private getPublicEndpoint(isServerUpload?: boolean) {
@@ -88,9 +122,8 @@ export default class S3Storage extends BaseStorage {
       return host;
     }
 
-    return `${host}/${isServerUpload && isDocker ? "s3/" : ""}${
-      env.AWS_S3_UPLOAD_BUCKET_NAME
-    }`;
+    return `${host}/${isServerUpload && isDocker ? "s3/" : ""}${env.AWS_S3_UPLOAD_BUCKET_NAME
+      }`;
   }
 
   public getUploadUrl(isServerUpload?: boolean) {

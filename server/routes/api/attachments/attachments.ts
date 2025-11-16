@@ -142,14 +142,34 @@ router.post(
       contentType
     );
 
+    const uploadMethod = presignedPost.method ?? "POST";
+    const uploadUrl =
+      uploadMethod === "PUT" && presignedPost.url
+        ? presignedPost.url
+        : FileStorage.getUploadUrl();
+    const form =
+      uploadMethod === "PUT"
+        ? {}
+        : {
+            "Cache-Control": "max-age=31557600",
+            "Content-Type": contentType,
+            ...presignedPost.fields,
+          };
+
+    const headers =
+      uploadMethod === "PUT"
+        ? (presignedPost.headers ?? {
+            "Cache-Control": "max-age=31557600",
+            "Content-Type": contentType,
+          })
+        : undefined;
+
     ctx.body = {
       data: {
-        uploadUrl: FileStorage.getUploadUrl(),
-        form: {
-          "Cache-Control": "max-age=31557600",
-          "Content-Type": contentType,
-          ...presignedPost.fields,
-        },
+        uploadUrl,
+        method: uploadMethod,
+        form,
+        headers,
         attachment: {
           ...presentAttachment(attachment),
           // always use the redirect url for document attachments, as the serializer
