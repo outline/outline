@@ -1,16 +1,10 @@
 import RawData from "@emoji-mart/data";
-import type {
-  EmojiMartData,
-  Skin,
-  Emoji as EmojiMartType,
-} from "@emoji-mart/data";
+import type { EmojiMartData, Skin } from "@emoji-mart/data";
 import { init, Data } from "emoji-mart";
 import FuzzySearch from "fuzzy-search";
 import capitalize from "lodash/capitalize";
 import sortBy from "lodash/sortBy";
 import { Emoji, EmojiCategory, EmojiSkinTone, EmojiVariants } from "../types";
-import { client } from "~/utils/ApiClient";
-import Logger from "~/utils/Logger";
 
 init({ data: RawData });
 
@@ -218,23 +212,6 @@ export const search = ({
     const nlc = emoji.name.toLowerCase();
     return query === nlc ? -1 : nlc.startsWith(queryLowercase) ? 0 : 1;
   });
-};
-
-export const getCustomEmojis = async (
-  search: string
-): Promise<EmojiMartType[] | null> => {
-  try {
-    const response = await client.post("/emojis.list", { query: search });
-    return response.data.map((d: any) => ({
-      id: d.id,
-      name: d.name,
-      search: d.name,
-      value: d.url,
-    }));
-  } catch (error) {
-    Logger.error("Failed to fetch custom emojis:", error);
-    return null;
-  }
 };
 
 /**

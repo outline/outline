@@ -62,7 +62,11 @@ const Icon = ({
     }
 
     if (iconType === IconType.Custom) {
-      return <EmojiImage src={icon} style={{ width: 18, height: 18 }} />;
+      return (
+        <EmojiImageWrapper>
+          <EmojiImage src={icon} />
+        </EmojiImageWrapper>
+      );
     }
 
     return <EmojiIcon emoji={icon} size={size} className={className} />;
@@ -120,6 +124,23 @@ export const IconTitleWrapper = styled(Flex)<{ dir?: string }>`
 
   ${(props: { dir?: string }) =>
     props.dir === "rtl" ? "right: -44px" : "left: -44px"};
+`;
+
+const EmojiImageWrapper = styled(Flex)`
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+
+  ${IconTitleWrapper} & {
+    width: auto;
+    height: auto;
+
+    ${EmojiImage} {
+      width: 26px;
+      height: 26px;
+    }
+  }
 `;
 
 export default Icon;

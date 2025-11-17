@@ -2,13 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Flex from "~/components/Flex";
 import useStores from "~/hooks/useStores";
-import GridTemplate, { DataNode } from "./GridTemplate";
+import GridTemplate, { DataNode, EmojiNode } from "./GridTemplate";
 import { IconType } from "@shared/types";
 import { DisplayCategory } from "../utils";
-import { getCustomEmojis } from "@shared/utils/emoji";
 import { isInternalUrl } from "@shared/utils/urls";
 import { StyledInputSearch, UserInputContainer } from "./Components";
 import { useIconState } from "../useIconState";
+import Emoji from "~/models/Emoji";
 
 const GRID_HEIGHT = 410;
 
@@ -43,29 +43,62 @@ const CustomEmojiPanel = ({
     (event: React.ChangeEvent<HTMLInputElement>) => {
       onQueryChange(event.target.value);
     },
-    [onQueryChange, getCustomEmojis]
+    [onQueryChange]
   );
 
   useEffect(() => {
     if (query) {
-      getCustomEmojis(query).then((data) => {
-        if (data?.length) {
-          setSearchData([
-            {
-              category: DisplayCategory.Search,
-              icons: data?.map((icon) => ({
-                type: IconType.Custom,
-                id: icon.name,
-                value: icon.value,
-              })),
-            },
-          ]);
-          return;
-        }
-      });
-    }
+      const initialData = emojis.findByQuery(query);
+      if (initialData.length) {
+        setSearchData([
+          {
+            category: DisplayCategory.Search,
+            icons: initialData?.map((icon) => ({
+              type: IconType.Custom,
+              id: icon.name,
+              value: icon.url,
+            })),
+          },
+        ]);
+      }
 
-    setSearchData([]);
+      emojis
+        .fetchAll({
+          query,
+        })
+        .then((data) => {
+          if (data.length) {
+            const toIcon = (emoji: Emoji): EmojiNode => ({
+              type: IconType.Custom,
+              id: emoji.name,
+              value: emoji.url,
+            });
+
+            const iconMap = new Map([
+              ...initialData.map((emoji): [string, EmojiNode] => [
+                emoji.name,
+                toIcon(emoji),
+              ]),
+              ...data.map((emoji): [string, EmojiNode] => [
+                emoji.name,
+                toIcon(emoji),
+              ]),
+            ]);
+
+            setSearchData([
+              {
+                category: DisplayCategory.Search,
+                icons: Array.from(iconMap.values()),
+              },
+            ]);
+            return;
+          }
+
+          setSearchData([]);
+        });
+    } else {
+      setSearchData([]);
+    }
   }, [query]);
 
   const handleEmojiSelection = React.useCallback(

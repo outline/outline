@@ -24,7 +24,7 @@ type OutlineNode = {
   delay: number;
 };
 
-type EmojiNode = {
+export type EmojiNode = {
   type: IconType.Emoji | IconType.Custom;
   id: string;
   value: string;
