@@ -1,4 +1,4 @@
-import { CrossIcon, DownloadIcon, GlobeIcon } from "outline-icons";
+import { CrossIcon, DownloadIcon, GlobeIcon, ZoomInIcon } from "outline-icons";
 import type { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";
@@ -10,12 +10,15 @@ import { ComponentProps } from "../types";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
 import { useTranslation } from "react-i18next";
+import some from "lodash/some";
 
 type Props = ComponentProps & {
   /** Callback triggered when the image is clicked */
   onClick: () => void;
   /** Callback triggered when the download button is clicked */
   onDownload?: (event: React.MouseEvent<HTMLButtonElement>) => Promise<void>;
+  /** Callback triggered when the zoom in button is clicked */
+  onZoomIn?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   /** Callback triggered when the image is resized */
   onChangeSize?: (props: { width: number; height?: number }) => void;
   /** The editor view */
@@ -66,6 +69,7 @@ const Image = (props: Props) => {
   }, [node.attrs.width]);
 
   const sanitizedSrc = sanitizeUrl(src);
+  const hasLink = some(node.attrs.marks ?? [], (mark) => mark.type === "link");
 
   const handleOpen = React.useCallback(() => {
     window.open(sanitizedSrc, "_blank");
@@ -124,6 +128,11 @@ const Image = (props: Props) => {
                 <GlobeIcon />
               </Button>
             )}
+            {hasLink && !props.isEditable && (
+              <Button onClick={props.onZoomIn} aria-label={t("Zoom In")}>
+                <ZoomInIcon />
+              </Button>
+            )}
             <Button
               onClick={handleDownload}
               aria-label={t("Download")}
@@ -144,6 +153,7 @@ const Image = (props: Props) => {
               style={{
                 ...widthStyle,
                 display: loaded ? "block" : "none",
+                cursor: hasLink && !props.isEditable ? "pointer" : "zoom-in",
                 pointerEvents:
                   dragging || (!props.isSelected && props.isEditable)
                     ? "none"
