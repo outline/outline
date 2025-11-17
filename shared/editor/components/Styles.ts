@@ -785,9 +785,6 @@ img.ProseMirror-separator {
 .component-image + img.ProseMirror-separator + br.ProseMirror-trailingBreak {
   display: none;
 }
-.component-image img {
-  cursor: zoom-in;
-}
 
 .${EditorStyleHelper.imageCaption} {
   border: 0;
