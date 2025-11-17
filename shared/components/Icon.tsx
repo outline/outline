@@ -62,7 +62,7 @@ const Icon = ({
     }
 
     if (iconType === IconType.Custom) {
-      return <EmojiImage src={icon} style={{ width: 24, height: 24 }} />;
+      return <EmojiImage src={icon} style={{ width: 18, height: 18 }} />;
     }
 
     return <EmojiIcon emoji={icon} size={size} className={className} />;
