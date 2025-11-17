@@ -72,8 +72,6 @@ export const useIconState = (type: IconType) => {
       .map(([emoji, _]) => emoji);
 
     const isLastPresent = emojis.includes(lastIcon ?? "");
-
-    // Add last emoji if not present
     if (lastIcon && !isLastPresent) {
       emojis.pop();
       emojis.push(lastIcon);
