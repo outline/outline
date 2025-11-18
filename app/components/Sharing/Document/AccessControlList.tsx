@@ -69,7 +69,7 @@ export const AccessControlList = observer(
     const containerRef = React.useRef<HTMLDivElement | null>(null);
     const { maxHeight, calcMaxHeight } = useMaxHeight({
       elementRef: containerRef,
-      maxViewportPercentage: 65,
+      maxViewportPercentage: 45,
       margin: 24,
     });
 
@@ -109,97 +109,99 @@ export const AccessControlList = observer(
     });
 
     return (
-      <ScrollableContainer
-        ref={containerRef}
-        hiddenScrollbars
-        style={{ maxHeight }}
-      >
-        {showLoading ? (
-          <Placeholder />
-        ) : (
-          <>
-            {collection && canCollection.readDocument ? (
-              <>
-                {collection.permission ? (
+      <Wrapper>
+        <ScrollableContainer
+          ref={containerRef}
+          hiddenScrollbars
+          style={{ maxHeight }}
+        >
+          {showLoading ? (
+            <Placeholder />
+          ) : (
+            <>
+              {collection && canCollection.readDocument ? (
+                <>
+                  {collection.permission ? (
+                    <ListItem
+                      image={
+                        <Squircle color={theme.accent} size={AvatarSize.Medium}>
+                          <UserIcon color={theme.accentText} size={16} />
+                        </Squircle>
+                      }
+                      title={t("All members")}
+                      subtitle={t("Everyone in the workspace")}
+                      actions={
+                        <AccessTooltip>
+                          {collection?.permission ===
+                          CollectionPermission.ReadWrite
+                            ? t("Can edit")
+                            : t("Can view")}
+                        </AccessTooltip>
+                      }
+                    />
+                  ) : usersInCollection ? (
+                    <ListItem
+                      image={<CollectionSquircle collection={collection} />}
+                      title={collection.name}
+                      subtitle={t("Everyone in the collection")}
+                      actions={<AccessTooltip>{t("Can view")}</AccessTooltip>}
+                    />
+                  ) : (
+                    <ListItem
+                      image={<Avatar model={user} />}
+                      title={user.name}
+                      subtitle={t("You have full access")}
+                      actions={<AccessTooltip>{t("Can edit")}</AccessTooltip>}
+                    />
+                  )}
+                  <DocumentMemberList
+                    document={document}
+                    invitedInSession={invitedInSession}
+                  />
+                </>
+              ) : document.isDraft ? (
+                <>
                   <ListItem
-                    image={
-                      <Squircle color={theme.accent} size={AvatarSize.Medium}>
-                        <UserIcon color={theme.accentText} size={16} />
-                      </Squircle>
-                    }
-                    title={t("All members")}
-                    subtitle={t("Everyone in the workspace")}
+                    image={<Avatar model={document.createdBy} />}
+                    title={document.createdBy?.name}
                     actions={
-                      <AccessTooltip>
-                        {collection?.permission ===
-                        CollectionPermission.ReadWrite
-                          ? t("Can edit")
-                          : t("Can view")}
+                      <AccessTooltip content={t("Created the document")}>
+                        {t("Can edit")}
                       </AccessTooltip>
                     }
                   />
-                ) : usersInCollection ? (
-                  <ListItem
-                    image={<CollectionSquircle collection={collection} />}
-                    title={collection.name}
-                    subtitle={t("Everyone in the collection")}
-                    actions={<AccessTooltip>{t("Can view")}</AccessTooltip>}
+                  <DocumentMemberList
+                    document={document}
+                    invitedInSession={invitedInSession}
                   />
-                ) : (
-                  <ListItem
-                    image={<Avatar model={user} />}
-                    title={user.name}
-                    subtitle={t("You have full access")}
-                    actions={<AccessTooltip>{t("Can edit")}</AccessTooltip>}
+                </>
+              ) : (
+                <>
+                  <DocumentMemberList
+                    document={document}
+                    invitedInSession={invitedInSession}
                   />
-                )}
-                <DocumentMemberList
-                  document={document}
-                  invitedInSession={invitedInSession}
-                />
-              </>
-            ) : document.isDraft ? (
-              <>
-                <ListItem
-                  image={<Avatar model={document.createdBy} />}
-                  title={document.createdBy?.name}
-                  actions={
-                    <AccessTooltip content={t("Created the document")}>
-                      {t("Can edit")}
-                    </AccessTooltip>
-                  }
-                />
-                <DocumentMemberList
-                  document={document}
-                  invitedInSession={invitedInSession}
-                />
-              </>
-            ) : (
-              <>
-                <DocumentMemberList
-                  document={document}
-                  invitedInSession={invitedInSession}
-                />
-                <ListItem
-                  image={
-                    <Squircle color={theme.accent} size={AvatarSize.Medium}>
-                      <MoreIcon color={theme.accentText} size={16} />
-                    </Squircle>
-                  }
-                  title={t("Other people")}
-                  subtitle={t("Other workspace members may have access")}
-                  actions={
-                    <AccessTooltip
-                      content={t(
-                        "This document may be shared with more workspace members through a parent document or collection you do not have access to"
-                      )}
-                    />
-                  }
-                />
-              </>
-            )}
-          </>
-        )}
+                  <ListItem
+                    image={
+                      <Squircle color={theme.accent} size={AvatarSize.Medium}>
+                        <MoreIcon color={theme.accentText} size={16} />
+                      </Squircle>
+                    }
+                    title={t("Other people")}
+                    subtitle={t("Other workspace members may have access")}
+                    actions={
+                      <AccessTooltip
+                        content={t(
+                          "This document may be shared with more workspace members through a parent document or collection you do not have access to"
+                        )}
+                      />
+                    }
+                  />
+                </>
+              )}
+            </>
+          )}
+        </ScrollableContainer>
         {team.sharing && can.share && !collectionSharingDisabled && visible && (
           <Sticky>
             {document.members.length ? <Separator /> : null}
@@ -211,7 +213,7 @@ export const AccessControlList = observer(
             />
           </Sticky>
         )}
-      </ScrollableContainer>
+      </Wrapper>
     );
   }
 );
@@ -276,10 +278,14 @@ function useUsersInCollection(collection?: Collection) {
     : false;
 }
 
+const Wrapper = styled(Flex)`
+  flex-direction: column;
+`;
+
 const Sticky = styled.div`
   background: ${s("menuBackground")};
   position: sticky;
-  bottom: -12px;
+  bottom: 0;
 `;
 
 const ScrollableContainer = styled(Scrollable)`
