@@ -273,14 +273,3 @@ export function isMergedCellSelection(state: EditorState): boolean {
 
   return false;
 }
-
-export function getAllSelectedColumns(state: EditorState): number[] {
-  const rect = selectedRect(state);
-
-  const selectedColumns: number[] = [];
-  for (let col = rect.left; col < rect.right; col++) {
-    selectedColumns.push(col);
-  }
-
-  return selectedColumns;
-}
