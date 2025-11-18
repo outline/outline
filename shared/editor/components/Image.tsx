@@ -11,6 +11,7 @@ import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
 import { useTranslation } from "react-i18next";
 import some from "lodash/some";
+import find from "lodash/find";
 
 type Props = ComponentProps & {
   /** Callback triggered when the image is clicked */
@@ -70,6 +71,9 @@ const Image = (props: Props) => {
 
   const sanitizedSrc = sanitizeUrl(src);
   const hasLink = some(node.attrs.marks ?? [], (mark) => mark.type === "link");
+  const imgLink =
+    find(node.attrs.marks ?? [], (mark) => mark.type === "link")?.attrs.href ??
+    "";
 
   const handleOpen = React.useCallback(() => {
     window.open(sanitizedSrc, "_blank");
@@ -146,14 +150,19 @@ const Image = (props: Props) => {
           <Error style={widthStyle} className={EditorStyleHelper.imageHandle}>
             <CrossIcon size={16} /> Image failed to load
           </Error>
-        ) : (
-          <>
+        ) : imgLink && !props.isSelected ? (
+          <a
+            href={imgLink}
+            className="use-hover-preview"
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+          >
             <img
               className={EditorStyleHelper.imageHandle}
               style={{
                 ...widthStyle,
                 display: loaded ? "block" : "none",
-                cursor: hasLink && !props.isEditable ? "pointer" : "zoom-in",
+                cursor: !props.isEditable ? "pointer" : "zoom-in",
                 pointerEvents:
                   dragging || (!props.isSelected && props.isEditable)
                     ? "none"
@@ -185,18 +194,56 @@ const Image = (props: Props) => {
               onClick={handleImageClick}
               onTouchStart={handleImageTouchStart}
             />
-            {!loaded && width && height && (
-              <img
-                style={{
-                  ...widthStyle,
-                  display: "block",
-                }}
-                src={`data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-                  getPlaceholder(width, height)
-                )}`}
-              />
-            )}
-          </>
+          </a>
+        ) : (
+          <img
+            className={EditorStyleHelper.imageHandle}
+            style={{
+              ...widthStyle,
+              display: loaded ? "block" : "none",
+              cursor: "zoom-in",
+              pointerEvents:
+                dragging || (!props.isSelected && props.isEditable)
+                  ? "none"
+                  : "all",
+            }}
+            src={sanitizedSrc}
+            alt={node.attrs.alt || ""}
+            onError={() => {
+              setError(true);
+              setLoaded(true);
+            }}
+            onLoad={(ev: React.SyntheticEvent<HTMLImageElement>) => {
+              // For some SVG's Firefox does not provide the naturalWidth, in this
+              // rare case we need to provide a default so that the image can be
+              // seen and is not sized to 0px
+              const nw = (ev.target as HTMLImageElement).naturalWidth || 300;
+              const nh = (ev.target as HTMLImageElement).naturalHeight;
+              setNaturalWidth(nw);
+              setNaturalHeight(nh);
+              setLoaded(true);
+
+              if (!node.attrs.width) {
+                setSize((state) => ({
+                  ...state,
+                  width: nw,
+                }));
+              }
+            }}
+            onClick={handleImageClick}
+            onTouchStart={handleImageTouchStart}
+          />
+        )}
+        {!loaded && width && height && (
+          <img
+            style={{
+              ...widthStyle,
+              display: "block",
+            }}
+            src={`data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
+              getPlaceholder(width, height)
+            )}`}
+          />
         )}
         {isEditable && !isFullWidth && isResizable && (
           <>
