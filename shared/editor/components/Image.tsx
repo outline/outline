@@ -10,7 +10,6 @@ import { ComponentProps } from "../types";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
 import { useTranslation } from "react-i18next";
-import some from "lodash/some";
 import find from "lodash/find";
 
 type Props = ComponentProps & {
@@ -70,7 +69,6 @@ const Image = (props: Props) => {
   }, [node.attrs.width]);
 
   const sanitizedSrc = sanitizeUrl(src);
-  const hasLink = some(node.attrs.marks ?? [], (mark) => mark.type === "link");
   const imgLink =
     find(node.attrs.marks ?? [], (mark) => mark.type === "link")?.attrs.href ??
     "";
@@ -132,7 +130,7 @@ const Image = (props: Props) => {
                 <GlobeIcon />
               </Button>
             )}
-            {hasLink && !props.isEditable && (
+            {imgLink && !props.isEditable && (
               <Button onClick={props.onZoomIn} aria-label={t("Zoom In")}>
                 <ZoomInIcon />
               </Button>
