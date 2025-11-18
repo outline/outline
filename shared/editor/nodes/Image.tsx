@@ -18,7 +18,6 @@ import SimpleImage from "./SimpleImage";
 import { LightboxImageFactory } from "../lib/Lightbox";
 import { addComment } from "../commands/comment";
 import { addLink } from "../commands/link";
-import find from "lodash/find";
 
 const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
 
@@ -339,20 +338,6 @@ export default class Image extends SimpleImage {
   handleClick =
     ({ getPos, view }: ComponentProps) =>
     () => {
-      // in readonly mode, if the image node has an href, navigate to it upon click
-      if (!view.editable) {
-        const node = view.state.doc.nodeAt(getPos());
-        const linkMark = find(
-          node?.attrs.marks ?? [],
-          (mark) => mark.type === "link"
-        );
-        if (linkMark) {
-          this.options.onClickLink(linkMark.attrs.href);
-          return;
-        }
-      }
-
-      // else zoom in image into the lightbox
       this.editor.updateActiveLightboxImage(
         LightboxImageFactory.createLightboxImage(view, getPos())
       );
