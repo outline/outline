@@ -26,14 +26,14 @@ const ANIMATION_MS = 250;
 
 type Props = {
   hidden?: boolean;
-  /**  Whether the sidebar can be resized and collapsed, defaults to true. */
-  canResize?: boolean;
+  /**  Whether the sidebar can be collapsed, defaults to true. */
+  canCollapse?: boolean;
   className?: string;
   children: React.ReactNode;
 };
 
 const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
-  { children, hidden = false, canResize = true, className }: Props,
+  { children, hidden = false, canCollapse = true, className }: Props,
   ref: React.RefObject<HTMLDivElement>
 ) {
   const [isCollapsing, setCollapsing] = React.useState(false);
@@ -45,7 +45,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
   const user = useCurrentUser({ rejectOnEmpty: false });
   const isMobile = useMobile();
   const width = ui.sidebarWidth;
-  const collapsed = ui.sidebarIsClosed && canResize;
+  const collapsed = ui.sidebarIsClosed && canCollapse;
   const maxWidth = theme.sidebarMaxWidth;
   const minWidth = theme.sidebarMinWidth + 16; // padding
 
@@ -66,11 +66,15 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
       const newWidth = Math.min(event.pageX - offset, maxWidth);
       const isSmallerThanCollapsePoint = newWidth < minWidth / 2;
 
-      ui.set({
-        sidebarWidth: isSmallerThanCollapsePoint
-          ? theme.sidebarCollapsedWidth
-          : newWidth,
-      });
+      if (canCollapse) {
+        ui.set({
+          sidebarWidth: isSmallerThanCollapsePoint
+            ? theme.sidebarCollapsedWidth
+            : newWidth,
+        });
+      } else {
+        ui.set({ sidebarWidth: Math.max(newWidth, minWidth) });
+      }
     },
     [ui, theme, offset, minWidth, maxWidth]
   );
@@ -85,7 +89,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
     if (isSmallerThanMinimum) {
       const isSmallerThanCollapsePoint = width < minWidth / 2;
 
-      if (isSmallerThanCollapsePoint) {
+      if (isSmallerThanCollapsePoint && canCollapse) {
         setAnimating(false);
         setCollapsing(true);
         ui.collapseSidebar();
@@ -256,12 +260,10 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(function _Sidebar(
             </SidebarButton>
           </AccountMenu>
         )}
-        {canResize && (
-          <ResizeBorder
-            onMouseDown={handleMouseDown}
-            onDoubleClick={ui.sidebarIsClosed ? undefined : handleReset}
-          />
-        )}
+        <ResizeBorder
+          onMouseDown={handleMouseDown}
+          onDoubleClick={ui.sidebarIsClosed ? undefined : handleReset}
+        />
       </Container>
       {ui.mobileSidebarVisible && <Backdrop onClick={ui.toggleMobileSidebar} />}
     </TooltipProvider>

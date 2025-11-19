@@ -52,7 +52,7 @@ function SharedSidebar({ share }: Props) {
   }
 
   return (
-    <StyledSidebar $hoverTransition={!teamAvailable} canResize={false}>
+    <StyledSidebar $hoverTransition={!teamAvailable} canCollapse={false}>
       {teamAvailable && (
         <SidebarButton
           title={team.name}
