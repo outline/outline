@@ -3,11 +3,11 @@ import { type ProsemirrorData } from "@shared/types";
 import { isRTL } from "@shared/utils/rtl";
 import Document from "./Document";
 import User from "./User";
-import ParanoidModel from "./base/ParanoidModel";
+import Model from "./base/Model";
 import Field from "./decorators/Field";
 import Relation from "./decorators/Relation";
 
-class Revision extends ParanoidModel {
+class Revision extends Model {
   static modelName = "Revision";
 
   /** The document ID that the revision is related to */
