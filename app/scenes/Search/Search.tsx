@@ -126,8 +126,11 @@ function Search() {
   });
 
   const updateLocation = (query: string) => {
+    // If query came from route params, navigate to base search path
+    const pathname = routeMatch.params.query ? searchPath() : location.pathname;
+
     history.replace({
-      pathname: location.pathname,
+      pathname,
       search: queryString.stringify(
         { ...queryString.parse(location.search), q: query },
         {
