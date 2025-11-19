@@ -55,6 +55,7 @@ export default class Heading extends Node {
         `h${node.attrs.level + (this.options.offset || 0)}`,
         {
           dir: "auto",
+          class: "heading-content",
         },
         0,
       ],
@@ -220,8 +221,11 @@ export default class Heading extends Node {
               container.appendChild(fold);
 
               decorations.push(
-                Decoration.widget(pos + 1, container, {
-                  side: -1,
+                Decoration.widget(pos + node.nodeSize - 1, container, {
+                  side: 1,
+                  ignoreSelection: true,
+                  relaxedSide: true,
+                  key: pos.toString(),
                 })
               );
             }
