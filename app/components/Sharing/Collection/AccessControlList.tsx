@@ -23,6 +23,7 @@ import { Separator } from "../components";
 import { ListItem } from "../components/ListItem";
 import { Placeholder } from "../components/Placeholder";
 import { PublicAccess } from "./PublicAccess";
+import Flex from "@shared/components/Flex";
 
 type Props = {
   /** Collection to which team members are supposed to be invited */
@@ -77,9 +78,12 @@ export const AccessControlList = observer(
     }, [fetchMemberships, fetchGroupMemberships]);
 
     const containerRef = React.useRef<HTMLDivElement | null>(null);
+    const publicAccessRef = React.useRef<HTMLDivElement | null>(null);
+    const publicAccessHeight = publicAccessRef.current?.clientHeight || 0;
     const { maxHeight, calcMaxHeight } = useMaxHeight({
       elementRef: containerRef,
       maxViewportPercentage: 70,
+      margin: 24,
     });
 
     React.useEffect(() => {
@@ -111,161 +115,176 @@ export const AccessControlList = observer(
     );
 
     return (
-      <ScrollableContainer
-        ref={containerRef}
-        hiddenScrollbars
-        style={{ maxHeight }}
-      >
-        {showLoading ? (
-          <Placeholder count={2} />
-        ) : (
-          <>
-            <ListItem
-              image={
-                <Squircle color={theme.accent} size={AvatarSize.Medium}>
-                  <UserIcon color={theme.accentText} size={16} />
-                </Squircle>
-              }
-              title={t("All members")}
-              subtitle={t("Everyone in the workspace")}
-              actions={
-                <div style={{ marginRight: -8 }}>
-                  <InputSelectPermission
-                    onChange={(
-                      value: CollectionPermission | typeof EmptySelectValue
-                    ) => {
-                      void collection.save({
-                        permission: value === EmptySelectValue ? null : value,
-                      });
-                    }}
-                    disabled={!can.update}
-                    value={collection?.permission}
-                    hideLabel
-                    nude
-                    shrink
-                  />
-                </div>
-              }
-            />
-            {groupMembershipsInCollection
-              .filter((membership) => membership.group)
-              .sort((a, b) =>
-                (
-                  (invitedInSession.includes(a.group.id) ? "_" : "") +
-                  a.group.name
-                ).localeCompare(b.group.name)
-              )
-              .map((membership) => (
-                <ListItem
-                  key={membership.id}
-                  image={
-                    <GroupAvatar
-                      group={membership.group}
-                      backgroundColor={theme.modalBackground}
+      <Wrapper>
+        <ScrollableContainer
+          ref={containerRef}
+          hiddenScrollbars
+          style={{
+            maxHeight: maxHeight ? maxHeight - publicAccessHeight : undefined,
+          }}
+        >
+          {showLoading ? (
+            <Placeholder count={2} />
+          ) : (
+            <>
+              <ListItem
+                image={
+                  <Squircle color={theme.accent} size={AvatarSize.Medium}>
+                    <UserIcon color={theme.accentText} size={16} />
+                  </Squircle>
+                }
+                title={t("All members")}
+                subtitle={t("Everyone in the workspace")}
+                actions={
+                  <div style={{ marginRight: -8 }}>
+                    <InputSelectPermission
+                      onChange={(
+                        value: CollectionPermission | typeof EmptySelectValue
+                      ) => {
+                        void collection.save({
+                          permission: value === EmptySelectValue ? null : value,
+                        });
+                      }}
+                      disabled={!can.update}
+                      value={collection?.permission}
+                      hideLabel
+                      nude
+                      shrink
                     />
-                  }
-                  title={membership.group.name}
-                  subtitle={t("{{ count }} member", {
-                    count: membership.group.memberCount,
-                  })}
-                  actions={
-                    <div style={{ marginRight: -8 }}>
-                      <InputMemberPermissionSelect
-                        permissions={permissions}
-                        onChange={async (
-                          permission:
-                            | CollectionPermission
-                            | typeof EmptySelectValue
-                        ) => {
-                          try {
-                            if (permission === EmptySelectValue) {
-                              await groupMemberships.delete({
-                                collectionId: collection.id,
-                                groupId: membership.groupId,
-                              });
-                            } else {
-                              await groupMemberships.create({
-                                collectionId: collection.id,
-                                groupId: membership.groupId,
-                                permission,
-                              });
-                            }
-                          } catch (err) {
-                            toast.error(err.message);
-                            return false;
-                          }
-                          return true;
-                        }}
-                        disabled={!can.update}
-                        value={membership.permission}
+                  </div>
+                }
+              />
+              {groupMembershipsInCollection
+                .filter((membership) => membership.group)
+                .sort((a, b) =>
+                  (
+                    (invitedInSession.includes(a.group.id) ? "_" : "") +
+                    a.group.name
+                  ).localeCompare(b.group.name)
+                )
+                .map((membership) => (
+                  <ListItem
+                    key={membership.id}
+                    image={
+                      <GroupAvatar
+                        group={membership.group}
+                        backgroundColor={theme.modalBackground}
                       />
-                    </div>
-                  }
-                />
-              ))}
-            {membershipsInCollection
-              .filter((membership) => membership.user)
-              .sort((a, b) =>
-                (
-                  (invitedInSession.includes(a.user.id) ? "_" : "") +
-                  a.user.name
-                ).localeCompare(b.user.name)
-              )
-              .map((membership) => (
-                <ListItem
-                  key={membership.id}
-                  image={
-                    <Avatar model={membership.user} size={AvatarSize.Medium} />
-                  }
-                  title={membership.user.name}
-                  subtitle={membership.user.email}
-                  actions={
-                    <div style={{ marginRight: -8 }}>
-                      <InputMemberPermissionSelect
-                        permissions={permissions}
-                        onChange={async (
-                          permission:
-                            | CollectionPermission
-                            | typeof EmptySelectValue
-                        ) => {
-                          try {
-                            if (permission === EmptySelectValue) {
-                              await memberships.delete({
-                                collectionId: collection.id,
-                                userId: membership.userId,
-                              });
-                            } else {
-                              await memberships.create({
-                                collectionId: collection.id,
-                                userId: membership.userId,
-                                permission,
-                              });
+                    }
+                    title={membership.group.name}
+                    subtitle={t("{{ count }} member", {
+                      count: membership.group.memberCount,
+                    })}
+                    actions={
+                      <div style={{ marginRight: -8 }}>
+                        <InputMemberPermissionSelect
+                          permissions={permissions}
+                          onChange={async (
+                            permission:
+                              | CollectionPermission
+                              | typeof EmptySelectValue
+                          ) => {
+                            try {
+                              if (permission === EmptySelectValue) {
+                                await groupMemberships.delete({
+                                  collectionId: collection.id,
+                                  groupId: membership.groupId,
+                                });
+                              } else {
+                                await groupMemberships.create({
+                                  collectionId: collection.id,
+                                  groupId: membership.groupId,
+                                  permission,
+                                });
+                              }
+                            } catch (err) {
+                              toast.error(err.message);
+                              return false;
                             }
-                          } catch (err) {
-                            toast.error(err.message);
-                            return false;
-                          }
-                          return true;
-                        }}
-                        disabled={!can.update}
-                        value={membership.permission}
+                            return true;
+                          }}
+                          disabled={!can.update}
+                          value={membership.permission}
+                        />
+                      </div>
+                    }
+                  />
+                ))}
+              {membershipsInCollection
+                .filter((membership) => membership.user)
+                .sort((a, b) =>
+                  (
+                    (invitedInSession.includes(a.user.id) ? "_" : "") +
+                    a.user.name
+                  ).localeCompare(b.user.name)
+                )
+                .map((membership) => (
+                  <ListItem
+                    key={membership.id}
+                    image={
+                      <Avatar
+                        model={membership.user}
+                        size={AvatarSize.Medium}
                       />
-                    </div>
-                  }
-                />
-              ))}
-          </>
-        )}
+                    }
+                    title={membership.user.name}
+                    subtitle={membership.user.email}
+                    actions={
+                      <div style={{ marginRight: -8 }}>
+                        <InputMemberPermissionSelect
+                          permissions={permissions}
+                          onChange={async (
+                            permission:
+                              | CollectionPermission
+                              | typeof EmptySelectValue
+                          ) => {
+                            try {
+                              if (permission === EmptySelectValue) {
+                                await memberships.delete({
+                                  collectionId: collection.id,
+                                  userId: membership.userId,
+                                });
+                              } else {
+                                await memberships.create({
+                                  collectionId: collection.id,
+                                  userId: membership.userId,
+                                  permission,
+                                });
+                              }
+                            } catch (err) {
+                              toast.error(err.message);
+                              return false;
+                            }
+                            return true;
+                          }}
+                          disabled={!can.update}
+                          value={membership.permission}
+                        />
+                      </div>
+                    }
+                  />
+                ))}
+            </>
+          )}
+        </ScrollableContainer>
         {team.sharing && can.share && collection.sharing && visible && (
           <Sticky>
             {collection.members.length ? <Separator /> : null}
-            <PublicAccess collection={collection} share={share} />
+            <PublicAccess
+              ref={publicAccessRef}
+              collection={collection}
+              share={share}
+            />
           </Sticky>
         )}
-      </ScrollableContainer>
+      </Wrapper>
     );
   }
 );
+
+const Wrapper = styled(Flex)`
+  flex-direction: column;
+`;
 
 const ScrollableContainer = styled(Scrollable)`
   padding: 12px 24px;

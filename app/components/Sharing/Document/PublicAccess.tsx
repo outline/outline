@@ -37,7 +37,10 @@ type Props = {
   onRequestClose?: () => void;
 };
 
-function PublicAccess({ document, share, sharedParent }: Props) {
+function PublicAccess(
+  { document, share, sharedParent }: Props,
+  ref: React.RefObject<HTMLDivElement>
+) {
   const { t } = useTranslation();
   const theme = useTheme();
   const [validationError, setValidationError] = React.useState("");
@@ -153,7 +156,7 @@ function PublicAccess({ document, share, sharedParent }: Props) {
   );
 
   return (
-    <Wrapper>
+    <Wrapper ref={ref}>
       <ListItem
         title={t("Web")}
         subtitle={
@@ -353,4 +356,4 @@ const StyledLink = styled(Link)`
   text-decoration: underline;
 `;
 
-export default observer(PublicAccess);
+export default observer(React.forwardRef(PublicAccess));

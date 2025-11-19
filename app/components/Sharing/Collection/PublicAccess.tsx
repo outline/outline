@@ -2,7 +2,7 @@ import debounce from "lodash/debounce";
 import isEmpty from "lodash/isEmpty";
 import { observer } from "mobx-react";
 import { CopyIcon, GlobeIcon, InfoIcon, QuestionMarkIcon } from "outline-icons";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import styled, { useTheme } from "styled-components";
@@ -31,21 +31,24 @@ type Props = {
   share: Share | null | undefined;
 };
 
-function InnerPublicAccess({ collection, share }: Props) {
+function InnerPublicAccess(
+  { collection, share }: Props,
+  ref: React.RefObject<HTMLDivElement>
+) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const [validationError, setValidationError] = useState("");
-  const [urlId, setUrlId] = useState(share?.urlId);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [validationError, setValidationError] = React.useState("");
+  const [urlId, setUrlId] = React.useState(share?.urlId);
+  const inputRef = React.useRef<HTMLInputElement>(null);
   const can = usePolicy(share);
   const collectionAbilities = usePolicy(collection);
   const canPublish = can.update && collectionAbilities.share;
 
-  useEffect(() => {
+  React.useEffect(() => {
     setUrlId(share?.urlId);
   }, [share?.urlId]);
 
-  const handleIndexingChanged = useCallback(
+  const handleIndexingChanged = React.useCallback(
     async (checked: boolean) => {
       try {
         await share?.save({
@@ -58,7 +61,7 @@ function InnerPublicAccess({ collection, share }: Props) {
     [share]
   );
 
-  const handleShowLastModifiedChanged = useCallback(
+  const handleShowLastModifiedChanged = React.useCallback(
     async (checked: boolean) => {
       try {
         await share?.save({
@@ -71,7 +74,7 @@ function InnerPublicAccess({ collection, share }: Props) {
     [share]
   );
 
-  const handleShowTOCChanged = useCallback(
+  const handleShowTOCChanged = React.useCallback(
     async (checked: boolean) => {
       try {
         await share?.save({
@@ -84,7 +87,7 @@ function InnerPublicAccess({ collection, share }: Props) {
     [share]
   );
 
-  const handlePublishedChange = useCallback(
+  const handlePublishedChange = React.useCallback(
     async (checked: boolean) => {
       try {
         await share?.save({
@@ -97,7 +100,7 @@ function InnerPublicAccess({ collection, share }: Props) {
     [share]
   );
 
-  const handleUrlChange = useMemo(
+  const handleUrlChange = React.useMemo(
     () =>
       debounce(async (ev) => {
         if (!share) {
@@ -128,7 +131,7 @@ function InnerPublicAccess({ collection, share }: Props) {
     [t, share]
   );
 
-  const handleCopied = useCallback(() => {
+  const handleCopied = React.useCallback(() => {
     toast.success(t("Public link copied to clipboard"));
   }, [t]);
 
@@ -143,7 +146,7 @@ function InnerPublicAccess({ collection, share }: Props) {
   );
 
   return (
-    <Wrapper>
+    <Wrapper ref={ref}>
       <ListItem
         title={t("Web")}
         subtitle={<>{t("Allow anyone with the link to access")}</>}
@@ -302,4 +305,4 @@ const StyledInfoIcon = styled(InfoIcon)`
   flex-shrink: 0;
 `;
 
-export const PublicAccess = observer(InnerPublicAccess);
+export const PublicAccess = observer(React.forwardRef(InnerPublicAccess));
