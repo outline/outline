@@ -67,6 +67,8 @@ export const AccessControlList = observer(
     const documentId = document.id;
 
     const containerRef = React.useRef<HTMLDivElement | null>(null);
+    const publicAccessRef = React.useRef<HTMLDivElement | null>(null);
+    const publicAccessHeight = publicAccessRef.current?.clientHeight || 0;
     const { maxHeight, calcMaxHeight } = useMaxHeight({
       elementRef: containerRef,
       maxViewportPercentage: 45,
@@ -113,7 +115,9 @@ export const AccessControlList = observer(
         <ScrollableContainer
           ref={containerRef}
           hiddenScrollbars
-          style={{ maxHeight }}
+          style={{
+            maxHeight: maxHeight ? maxHeight - publicAccessHeight : undefined,
+          }}
         >
           {showLoading ? (
             <Placeholder />
@@ -206,6 +210,7 @@ export const AccessControlList = observer(
           <Sticky>
             {document.members.length ? <Separator /> : null}
             <PublicAccess
+              ref={publicAccessRef}
               document={document}
               share={share}
               sharedParent={sharedParent}

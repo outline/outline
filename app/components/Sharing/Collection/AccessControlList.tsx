@@ -78,9 +78,12 @@ export const AccessControlList = observer(
     }, [fetchMemberships, fetchGroupMemberships]);
 
     const containerRef = React.useRef<HTMLDivElement | null>(null);
+    const publicAccessRef = React.useRef<HTMLDivElement | null>(null);
+    const publicAccessHeight = publicAccessRef.current?.clientHeight || 0;
     const { maxHeight, calcMaxHeight } = useMaxHeight({
       elementRef: containerRef,
       maxViewportPercentage: 70,
+      margin: 24,
     });
 
     React.useEffect(() => {
@@ -116,7 +119,9 @@ export const AccessControlList = observer(
         <ScrollableContainer
           ref={containerRef}
           hiddenScrollbars
-          style={{ maxHeight }}
+          style={{
+            maxHeight: maxHeight ? maxHeight - publicAccessHeight : undefined,
+          }}
         >
           {showLoading ? (
             <Placeholder count={2} />
@@ -265,7 +270,11 @@ export const AccessControlList = observer(
         {team.sharing && can.share && collection.sharing && visible && (
           <Sticky>
             {collection.members.length ? <Separator /> : null}
-            <PublicAccess collection={collection} share={share} />
+            <PublicAccess
+              ref={publicAccessRef}
+              collection={collection}
+              share={share}
+            />
           </Sticky>
         )}
       </Wrapper>
