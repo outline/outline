@@ -10,6 +10,7 @@ import { determineIconType } from "../utils/icon";
 import EmojiIcon from "./EmojiIcon";
 // import Logger from "~/utils/Logger";
 import Flex from "./Flex";
+import { EmojiImage } from "./customEmojis";
 
 export type Props = {
   /** The icon to render */
@@ -57,6 +58,14 @@ const Icon = ({
           className={className}
           forceColor={forceColor}
         />
+      );
+    }
+
+    if (iconType === IconType.Custom) {
+      return (
+        <EmojiImageWrapper>
+          <EmojiImage src={icon} />
+        </EmojiImageWrapper>
       );
     }
 
@@ -115,6 +124,23 @@ export const IconTitleWrapper = styled(Flex)<{ dir?: string }>`
 
   ${(props: { dir?: string }) =>
     props.dir === "rtl" ? "right: -44px" : "left: -44px"};
+`;
+
+const EmojiImageWrapper = styled(Flex)`
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+
+  ${IconTitleWrapper} & {
+    width: auto;
+    height: auto;
+
+    ${EmojiImage} {
+      width: 26px;
+      height: 26px;
+    }
+  }
 `;
 
 export default Icon;
