@@ -5,8 +5,8 @@ export default function present(emoji: Emoji) {
   return {
     id: emoji.id,
     name: emoji.name,
-    url: emoji.url,
     teamId: emoji.teamId,
+    url: emoji.attachment?.url,
     createdBy: emoji.createdBy ? presentUser(emoji.createdBy) : undefined,
     createdById: emoji.createdById,
     createdAt: emoji.createdAt,

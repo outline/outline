@@ -16,9 +16,14 @@ module.exports = {
             type: Sequelize.STRING,
             allowNull: false,
           },
-          url: {
-            type: Sequelize.STRING,
+          attachmentId: {
+            type: Sequelize.UUID,
             allowNull: false,
+            references: {
+              model: "attachments",
+              key: "id",
+            },
+            onDelete: "CASCADE",
           },
           teamId: {
             type: Sequelize.UUID,
@@ -52,6 +57,9 @@ module.exports = {
 
       await queryInterface.addIndex("emojis", ["teamId"], { transaction });
       await queryInterface.addIndex("emojis", ["createdById"], { transaction });
+      await queryInterface.addIndex("emojis", ["attachmentId"], {
+        transaction,
+      });
       await queryInterface.addIndex("emojis", ["teamId", "name"], {
         unique: true,
         transaction,

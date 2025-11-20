@@ -4,7 +4,7 @@ import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Emoji, User } from "@server/models";
+import { Emoji, User, Attachment } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentEmoji, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
@@ -26,6 +26,11 @@ router.post(
       {
         model: User,
         as: "createdBy",
+        paranoid: false,
+      },
+      {
+        model: Attachment,
+        as: "attachment",
         paranoid: false,
       },
     ];
@@ -87,6 +92,11 @@ router.post(
             as: "createdBy",
             paranoid: false,
           },
+          {
+            model: Attachment,
+            as: "attachment",
+            paranoid: false,
+          },
         ],
         order: [["createdAt", "DESC"]],
         offset: ctx.state.pagination.offset,
@@ -112,17 +122,25 @@ router.post(
   validate(T.EmojisCreateSchema),
   transaction(),
   async (ctx: APIContext<T.EmojisCreateReq>) => {
-    const { name, url } = ctx.input.body;
+    const { name, attachmentId } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
+
+    const attachment = await Attachment.findByPk(attachmentId, {
+      transaction,
+      rejectOnEmpty: true,
+    });
+    authorize(user, "read", attachment);
 
     const emoji = await Emoji.createWithCtx(ctx, {
       name,
-      url,
+      attachmentId,
       teamId: user.teamId,
       createdById: user.id,
       createdBy: user,
     });
     emoji.createdBy = user;
+    emoji.attachment = attachment;
 
     ctx.body = {
       data: presentEmoji(emoji),
