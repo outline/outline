@@ -5,7 +5,6 @@ import useStores from "~/hooks/useStores";
 import GridTemplate, { DataNode, EmojiNode } from "./GridTemplate";
 import { IconType } from "@shared/types";
 import { DisplayCategory } from "../utils";
-import { isInternalUrl } from "@shared/utils/urls";
 import { StyledInputSearch, UserInputContainer } from "./Components";
 import { useIconState } from "../useIconState";
 import Emoji from "~/models/Emoji";
@@ -33,6 +32,7 @@ const CustomEmojiPanel = ({
   const searchRef = React.useRef<HTMLInputElement | null>(null);
   const scrollableRef = React.useRef<HTMLDivElement | null>(null);
   const [searchData, setSearchData] = useState<DataNode[]>([]);
+  const [freqEmojis, setFreqEmojis] = useState<EmojiNode[]>([]);
   const { getFrequentIcons, incrementIconCount } = useIconState(
     IconType.Custom
   );
@@ -68,12 +68,6 @@ const CustomEmojiPanel = ({
         })
         .then((data) => {
           if (data.length) {
-            const toIcon = (emoji: Emoji): EmojiNode => ({
-              type: IconType.Custom,
-              id: emoji.name,
-              value: emoji.url,
-            });
-
             const iconMap = new Map([
               ...initialData.map((emoji): [string, EmojiNode] => [
                 emoji.name,
@@ -101,45 +95,50 @@ const CustomEmojiPanel = ({
     }
   }, [query]);
 
+  useEffect(() => {
+    getFrequentIcons().forEach((id) => {
+      emojis
+        .fetch(id)
+        .then((emoji) => {
+          setFreqEmojis((prev) => {
+            if (prev.some((item) => item.id === id)) {
+              return prev;
+            }
+            return [...prev, { type: IconType.Custom, id, value: emoji.url }];
+          });
+        })
+        .catch(() => {
+          // ignore
+        });
+    });
+  }, [getFrequentIcons]);
+
   const handleEmojiSelection = React.useCallback(
     // eslint-disable-next-line
     ({ id, value }: { id: string; value: string }) => {
       onEmojiChange(value);
-      incrementIconCount(id + "-" + value);
+      incrementIconCount(id);
     },
     [onEmojiChange, incrementIconCount]
   );
 
-  const templateData: DataNode[] = React.useMemo(() => {
-    const freqEmoji = getFrequentIcons()
-      .map((nameUrl) => {
-        const index = nameUrl.indexOf("-");
-        const id = nameUrl.substring(0, index);
-        const value = nameUrl.substring(index + 1);
-
-        return {
-          type: IconType.Custom as IconType.Custom | IconType.Custom,
-          id,
-          value,
-        };
-      })
-      .filter((emoji) => isInternalUrl(emoji.value));
-
-    return [
+  const templateData: DataNode[] = React.useMemo(
+    () => [
       {
         category: DisplayCategory.Frequent,
-        icons: freqEmoji,
+        icons: freqEmojis,
       },
       {
         category: DisplayCategory.All,
         icons: emojis.orderedData.map((emoji) => ({
           type: IconType.Custom,
-          id: emoji.name,
+          id: emoji.id,
           value: emoji.url,
         })),
       },
-    ];
-  }, [emojis.orderedData, getFrequentIcons]);
+    ],
+    [emojis.orderedData, freqEmojis]
+  );
 
   React.useLayoutEffect(() => {
     if (!panelActive) {
@@ -169,5 +168,11 @@ const CustomEmojiPanel = ({
     </Flex>
   );
 };
+
+const toIcon = (emoji: Emoji): EmojiNode => ({
+  type: IconType.Custom,
+  id: emoji.name,
+  value: emoji.url,
+});
 
 export default CustomEmojiPanel;
