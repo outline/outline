@@ -2,11 +2,21 @@
  * Class names and values used by the editor.
  */
 export class EditorStyleHelper {
+  // Blocks
+
+  static readonly blockRadius = "6px";
+
   // Images
 
   static readonly imageHandle = "image-handle";
 
   static readonly imageCaption = "caption";
+
+  static readonly imagePositionAnchor = "image-position-anchor";
+
+  // Headings
+
+  static readonly headingPositionAnchor = "heading-position-anchor";
 
   // Comments
 

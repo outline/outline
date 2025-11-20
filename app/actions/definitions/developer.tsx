@@ -176,6 +176,21 @@ export const toggleDebugLogging = createAction({
   },
 });
 
+export const toggleDebugSafeArea = createAction({
+  name: () => "Toggle menu safe area debugging",
+  icon: <ToolsIcon />,
+  section: DeveloperSection,
+  visible: () => env.ENVIRONMENT === "development",
+  perform: ({ stores }) => {
+    stores.ui.toggleDebugSafeArea();
+    toast.message(
+      stores.ui.debugSafeArea
+        ? "Menu safe area debugging enabled"
+        : "Menu safe area debugging disabled"
+    );
+  },
+});
+
 export const toggleFeatureFlag = createAction({
   name: "Toggle feature flag",
   icon: <BeakerIcon />,
@@ -209,6 +224,7 @@ export const developer = createAction({
   children: [
     copyId,
     toggleDebugLogging,
+    toggleDebugSafeArea,
     toggleFeatureFlag,
     createToast,
     createTestUsers,

@@ -3,12 +3,19 @@ import { toggleMark } from "prosemirror-commands";
 import { InputRule } from "prosemirror-inputrules";
 import { MarkdownSerializerState } from "prosemirror-markdown";
 import {
+  Attrs,
   MarkSpec,
   MarkType,
   Node,
   Mark as ProsemirrorMark,
 } from "prosemirror-model";
-import { Command, EditorState, Plugin, TextSelection } from "prosemirror-state";
+import {
+  Command,
+  EditorState,
+  Plugin,
+  Selection,
+  TextSelection,
+} from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { toast } from "sonner";
 import { isUrl, sanitizeUrl } from "../../utils/urls";
@@ -16,6 +23,7 @@ import { getMarkRange } from "../queries/getMarkRange";
 import { isMarkActive } from "../queries/isMarkActive";
 import Mark from "./Mark";
 import { isInCode } from "../queries/isInCode";
+import { addMark } from "../commands/addMark";
 
 const LINK_INPUT_REGEX = /\[([^[]+)]\((\S+)\)$/;
 
@@ -132,6 +140,72 @@ export default class Link extends Mark {
             }
             return true;
           }
+        }
+        return false;
+      },
+    };
+  }
+
+  commands({ type }: { type: MarkType }) {
+    return {
+      addLink: (attrs: Attrs): Command => addMark(type, attrs),
+      updateLink:
+        (attrs: Attrs): Command =>
+        (state, dispatch) => {
+          const range = getMarkRange(
+            state.selection.$from,
+            state.schema.marks.link
+          );
+
+          if (range && range.mark) {
+            const nextSelection =
+              Selection.findFrom(state.doc.resolve(range.to), 1, true) ??
+              TextSelection.create(state.tr.doc, 0);
+            dispatch?.(
+              state.tr
+                .setSelection(nextSelection)
+                .removeMark(range.from, range.to, state.schema.marks.link)
+                .addMark(
+                  range.from,
+                  range.to,
+                  state.schema.marks.link.create(attrs)
+                )
+            );
+            return true;
+          }
+          return false;
+        },
+      openLink: (): Command => (state) => {
+        const range = getMarkRange(
+          state.selection.$from,
+          state.schema.marks.link
+        );
+        if (range && range.mark && this.options.onClickLink) {
+          try {
+            const event = new KeyboardEvent("keydown", { metaKey: false });
+            this.options.onClickLink(sanitizeUrl(range.mark.attrs.href), event);
+          } catch (_err) {
+            toast.error(this.options.dictionary.openLinkError);
+          }
+          return true;
+        }
+        return false;
+      },
+      removeLink: (): Command => (state, dispatch) => {
+        const range = getMarkRange(
+          state.selection.$from,
+          state.schema.marks.link
+        );
+        if (range && range.mark) {
+          const nextSelection =
+            Selection.findFrom(state.doc.resolve(range.to), 1, true) ??
+            TextSelection.create(state.tr.doc, 0);
+          dispatch?.(
+            state.tr
+              .setSelection(nextSelection)
+              .removeMark(range.from, range.to, range.mark)
+          );
+          return true;
         }
         return false;
       },
@@ -270,7 +344,9 @@ export default class Link extends Mark {
             }
 
             // check if there is a code mark at the current cursor position
-            const hasCodeMark = schema.marks.code_inline.isInSet(selection.$from.marks());
+            const hasCodeMark = schema.marks.code_inline.isInSet(
+              selection.$from.marks()
+            );
             if (hasCodeMark) {
               return false;
             }

@@ -1,6 +1,7 @@
 import debounce from "lodash/debounce";
 import last from "lodash/last";
 import sortBy from "lodash/sortBy";
+import { v4 as uuidv4 } from "uuid";
 import type MermaidUnsafe from "mermaid";
 import { Node } from "prosemirror-model";
 import {
@@ -53,7 +54,7 @@ class MermaidRenderer {
   readonly editor: Editor;
 
   constructor(editor: Editor) {
-    this.diagramId = crypto.randomUUID();
+    this.diagramId = uuidv4();
     this.elementId = `mermaid-diagram-wrapper-${this.diagramId}`;
     this.element =
       document.getElementById(this.elementId) || document.createElement("div");

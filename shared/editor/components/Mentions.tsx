@@ -70,6 +70,27 @@ export const MentionUser = observer(function MentionUser_(
   );
 });
 
+export const MentionGroup = observer(function MentionGroup_(
+  props: ComponentProps
+) {
+  const { isSelected, node } = props;
+  const { groups } = useStores();
+  const group = groups.get(node.attrs.modelId);
+  const { className, ...attrs } = getAttributesFromNode(node);
+
+  return (
+    <span
+      {...attrs}
+      className={cn(className, {
+        "ProseMirror-selectednode": isSelected,
+      })}
+    >
+      <EmailIcon size={18} />
+      {group?.name || node.attrs.label}
+    </span>
+  );
+});
+
 export const MentionDocument = observer(function MentionDocument_(
   props: ComponentProps
 ) {

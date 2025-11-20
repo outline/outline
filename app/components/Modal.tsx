@@ -88,7 +88,7 @@ const Modal: React.FC<Props> = ({
                 column
                 reverse
               >
-                <DesktopContent style={style} shadow>
+                <DesktopContent style={style} topShadow>
                   <ErrorBoundary component="div">{children}</ErrorBoundary>
                 </DesktopContent>
                 <Header>
@@ -213,6 +213,7 @@ const Header = styled(Flex)`
   justify-content: space-between;
   font-weight: 600;
   padding: 24px 24px 12px;
+  flex-shrink: 0;
 `;
 
 const Wrapper = styled.div<{

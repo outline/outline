@@ -3,19 +3,28 @@ import GroupMembership from "./GroupMembership";
 import Model from "./base/Model";
 import Field from "./decorators/Field";
 import { GroupPermission } from "@shared/types";
+import { Searchable } from "./interfaces/Searchable";
 
-class Group extends Model {
+class Group extends Model implements Searchable {
   static modelName = "Group";
 
   @Field
   @observable
   name: string;
 
+  @Field
+  @observable
+  description: string;
+
   @observable
   externalId: string | undefined;
 
   @observable
   memberCount: number;
+
+  @Field
+  @observable
+  disableMentions: boolean;
 
   /**
    * Returns the users that are members of this group.
@@ -24,6 +33,16 @@ class Group extends Model {
   get users() {
     const { users } = this.store.rootStore;
     return users.inGroup(this.id);
+  }
+
+  @computed
+  get searchContent(): string[] {
+    return [this.name, this.description].filter(Boolean);
+  }
+
+  @computed
+  get searchSuppressed(): boolean {
+    return this.disableMentions;
   }
 
   @computed

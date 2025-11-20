@@ -2,7 +2,10 @@ import * as React from "react";
 import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
-function YouTube({ matches, ...props }: Props) {
+function YouTube(
+  { matches, ...props }: Props,
+  ref: React.Ref<HTMLIFrameElement>
+) {
   const videoId = matches[1];
 
   let src;
@@ -28,7 +31,15 @@ function YouTube({ matches, ...props }: Props) {
     // noop
   }
 
-  return <Frame {...props} src={src} title={`YouTube (${videoId})`} />;
+  return (
+    <Frame
+      {...props}
+      referrerPolicy="strict-origin-when-cross-origin"
+      src={src}
+      title={`YouTube (${videoId})`}
+      ref={ref}
+    />
+  );
 }
 
-export default YouTube;
+export default React.forwardRef(YouTube);

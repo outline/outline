@@ -169,6 +169,14 @@ export default class LocalStorage extends BaseStorage {
     return fs.stat(this.getFilePath(key));
   }
 
+  public getFileExists(key: string) {
+    return fs.pathExists(this.getFilePath(key));
+  }
+
+  public moveFile(fromKey: string, toKey: string): Promise<void> {
+    return fs.move(this.getFilePath(fromKey), this.getFilePath(toKey));
+  }
+
   private getFilePath(key: string) {
     invariant(
       env.FILE_STORAGE_LOCAL_ROOT_DIR,

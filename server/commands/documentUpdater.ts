@@ -1,5 +1,6 @@
 import { Event, Document, User } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import { TextHelper } from "@server/models/helpers/TextHelper";
 import { APIContext } from "@server/types";
 
 type Props = {
@@ -85,7 +86,13 @@ export default async function documentUpdater(
     document.insightsEnabled = insightsEnabled;
   }
   if (text !== undefined) {
-    document = DocumentHelper.applyMarkdownToDocument(document, text, append);
+    document = DocumentHelper.applyMarkdownToDocument(
+      document,
+      await TextHelper.replaceImagesWithAttachments(ctx, text, user, {
+        base64Only: true,
+      }),
+      append
+    );
   }
 
   const changed = document.changed();

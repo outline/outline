@@ -1,6 +1,6 @@
 /* oxlint-disable @typescript-eslint/no-var-requires */
 import { Server } from "https";
-import Koa from "koa";
+import Koa, { BaseContext } from "koa";
 import compress from "koa-compress";
 import { dnsPrefetchControl, referrerPolicy } from "koa-helmet";
 import mount from "koa-mount";
@@ -20,6 +20,7 @@ import routes from "../routes";
 import api from "../routes/api";
 import auth from "../routes/auth";
 import oauth from "../routes/oauth";
+import userAgent, { UserAgentContext } from "koa-useragent";
 
 export default function init(app: Koa = new Koa(), server?: Server) {
   void initI18n();
@@ -44,6 +45,9 @@ export default function init(app: Koa = new Koa(), server?: Server) {
     // trust header fields set by our proxy. eg X-Forwarded-For
     app.proxy = true;
   }
+
+  // Make `ctx.userAgent` available
+  app.use<BaseContext, UserAgentContext>(userAgent);
 
   app.use(compress());
 

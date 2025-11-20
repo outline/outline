@@ -41,6 +41,7 @@ import PlaceholderDocument from "~/components/PlaceholderDocument";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
 import withStores from "~/components/withStores";
+import { MeasuredContainer } from "~/components/MeasuredContainer";
 import type { Editor as TEditor } from "~/editor";
 import { Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -54,7 +55,6 @@ import Container from "./Container";
 import Contents from "./Contents";
 import Editor from "./Editor";
 import Header from "./Header";
-import { MeasuredContainer } from "./MeasuredContainer";
 import Notices from "./Notices";
 import PublicReferences from "./PublicReferences";
 import References from "./References";
@@ -417,6 +417,18 @@ class DocumentScene extends React.Component<Props> {
     void this.onSave();
   });
 
+  handleSelectTemplate = async (template: Document | Revision) => {
+    const doc = this.editor.current?.view.state.doc;
+    if (!doc) {
+      return;
+    }
+
+    return this.replaceSelection(
+      template,
+      ProsemirrorHelper.isEmpty(doc) ? new AllSelection(doc) : undefined
+    );
+  };
+
   goBack = () => {
     if (!this.props.readOnly) {
       this.props.history.push({
@@ -533,7 +545,7 @@ class DocumentScene extends React.Component<Props> {
               }
               savingIsDisabled={document.isSaving || this.isEmpty}
               sharedTree={this.props.sharedTree}
-              onSelectTemplate={this.replaceSelection}
+              onSelectTemplate={this.handleSelectTemplate}
               onSave={this.onSave}
             />
             <Main

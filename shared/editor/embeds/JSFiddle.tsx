@@ -14,7 +14,7 @@ function JSFiddle({ matches, ...props }: Props) {
         theme.isDark ? "dark/" : ""
       }`}
       title="JSFiddle Embed"
-      referrerPolicy="origin"
+      referrerPolicy="strict-origin-when-cross-origin"
       border
     />
   );

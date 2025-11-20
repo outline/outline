@@ -154,6 +154,7 @@ export const CollectionsExportAllSchema = BaseSchema.extend({
       .nativeEnum(FileOperationFormat)
       .default(FileOperationFormat.MarkdownZip),
     includeAttachments: z.boolean().default(true),
+    includePrivate: z.boolean().default(true),
   }),
 });
 

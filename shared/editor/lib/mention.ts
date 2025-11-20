@@ -1,5 +1,6 @@
 import { Node, Schema } from "prosemirror-model";
 import { Primitive } from "utility-types";
+import { v4 as uuidv4 } from "uuid";
 import { isList } from "../queries/isList";
 
 export function transformListToMentions(
@@ -33,11 +34,11 @@ function transformListItemToMentions(
           node.type.create(
             node.attrs,
             schema.nodes.mention.create({
-              id: crypto.randomUUID(),
+              id: uuidv4(),
               type: mentionType,
               label: link,
               href: link,
-              modelId: crypto.randomUUID(),
+              modelId: uuidv4(),
               actorId: attrs.actorId,
             })
           )

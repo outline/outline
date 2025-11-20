@@ -5,7 +5,14 @@ import {
 } from "@shared/types";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { createContext } from "@server/context";
-import { Comment, Document, Notification, User } from "@server/models";
+import {
+  Comment,
+  Document,
+  Group,
+  GroupUser,
+  Notification,
+  User,
+} from "@server/models";
 import NotificationHelper from "@server/models/helpers/NotificationHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
@@ -75,6 +82,65 @@ export default class CommentCreatedNotificationsTask extends BaseTask<CommentEve
         });
         userIdsMentioned.push(recipient.id);
       }
+    }
+
+    // send notifications to users in mentioned groups
+    const groupMentions = ProsemirrorHelper.parseMentions(
+      ProsemirrorHelper.toProsemirror(comment.data),
+      {
+        type: MentionType.Group,
+      }
+    );
+
+    const mentionedGroup: string[] = [];
+    for (const group of groupMentions) {
+      if (mentionedGroup.includes(group.modelId)) {
+        continue;
+      }
+
+      // Check if the group has mentions disabled
+      const groupModel = await Group.findByPk(group.modelId);
+      if (groupModel?.disableMentions) {
+        continue;
+      }
+
+      const usersFromMentionedGroup = await GroupUser.findAll({
+        where: {
+          groupId: group.modelId,
+        },
+        order: [["permission", "ASC"]],
+      });
+
+      const mentionedUser: string[] = [];
+      for (const user of usersFromMentionedGroup) {
+        if (mentionedUser.includes(user.userId)) {
+          continue;
+        }
+
+        const recipient = await User.findByPk(user.userId);
+        if (
+          recipient &&
+          recipient.id !== group.actorId &&
+          recipient.subscribedToEventType(
+            NotificationEventType.GroupMentionedInComment
+          ) &&
+          (await canUserAccessDocument(recipient, document.id))
+        ) {
+          await Notification.create({
+            event: NotificationEventType.GroupMentionedInComment,
+            groupId: group.modelId,
+            userId: recipient.id,
+            actorId: group.actorId,
+            teamId: document.teamId,
+            documentId: document.id,
+            commentId: comment.id,
+          });
+
+          mentionedUser.push(user.userId);
+        }
+      }
+
+      mentionedGroup.push(group.modelId);
     }
 
     const recipients = (

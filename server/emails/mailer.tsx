@@ -215,13 +215,17 @@ export class Mailer {
       name: env.SMTP_NAME,
       host: env.SMTP_HOST,
       port: env.SMTP_PORT,
+      // If not explicitly configured we default to using TLS in production
       secure: env.SMTP_SECURE ?? env.isProduction,
+      // Allow connections with no authentication if no username is provided
       auth: env.SMTP_USERNAME
         ? {
             user: env.SMTP_USERNAME,
             pass: env.SMTP_PASSWORD,
           }
         : undefined,
+      // Disable STARTTLS entirely when SMTP_DISABLE_STARTTLS is set to true
+      ignoreTLS: env.SMTP_DISABLE_STARTTLS,
       tls: env.SMTP_SECURE
         ? env.SMTP_TLS_CIPHERS
           ? {

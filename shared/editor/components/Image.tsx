@@ -36,17 +36,22 @@ const Image = (props: Props) => {
   const [naturalHeight, setNaturalHeight] = React.useState(node.attrs.height);
   const lastTapTimeRef = React.useRef(0);
   const ref = React.useRef<HTMLDivElement>(null);
-  const { width, height, setSize, handlePointerDown, dragging } = useDragResize(
-    {
-      width: node.attrs.width ?? naturalWidth,
-      height: node.attrs.height ?? naturalHeight,
-      naturalWidth,
-      naturalHeight,
-      gridSnap: 5,
-      onChangeSize,
-      ref,
-    }
-  );
+  const {
+    width,
+    height,
+    setSize,
+    handlePointerDown,
+    handleDoubleClick,
+    dragging,
+  } = useDragResize({
+    width: node.attrs.width ?? naturalWidth,
+    height: node.attrs.height ?? naturalHeight,
+    naturalWidth,
+    naturalHeight,
+    gridSnap: 5,
+    onChangeSize,
+    ref,
+  });
 
   const isFullWidth = layoutClass === "full-width";
   const isResizable = !!props.onChangeSize && !error;
@@ -94,7 +99,11 @@ const Image = (props: Props) => {
     <div contentEditable={false} className={className} ref={ref}>
       <ImageWrapper
         isFullWidth={isFullWidth}
-        className={isSelected || dragging ? "ProseMirror-selectednode" : ""}
+        className={
+          isSelected || dragging
+            ? "image-wrapper ProseMirror-selectednode"
+            : "image-wrapper"
+        }
         style={widthStyle}
       >
         {!dragging && width > 60 && isDownloadable && (
@@ -172,10 +181,12 @@ const Image = (props: Props) => {
           <>
             <ResizeLeft
               onPointerDown={handlePointerDown("left")}
+              onDoubleClick={handleDoubleClick}
               $dragging={!!dragging}
             />
             <ResizeRight
               onPointerDown={handlePointerDown("right")}
+              onDoubleClick={handleDoubleClick}
               $dragging={!!dragging}
             />
           </>
@@ -197,7 +208,7 @@ export const Error = styled(Flex)`
   color: ${s("textTertiary")};
   font-size: 14px;
   background: ${s("backgroundSecondary")};
-  border-radius: 4px;
+  border-radius: ${EditorStyleHelper.blockRadius};
   min-width: 33vw;
   height: 80px;
   align-items: center;

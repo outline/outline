@@ -20,11 +20,6 @@ export default class AuthenticationExtension implements Extension {
     }
 
     const user = await getUserForJWT(token, ["session", "collaboration"]);
-
-    if (user.isSuspended) {
-      throw AuthenticationError("Account suspended");
-    }
-
     const document = await Document.findByPk(documentId, {
       userId: user.id,
     });

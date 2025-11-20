@@ -72,7 +72,7 @@ router.post(
     }
 
     // Generate both a link token and a 6-digit verification code
-    const token = preferOTP ? undefined : user.getEmailSigninToken();
+    const token = preferOTP ? undefined : user.getEmailSigninToken(ctx);
     const verificationCode = preferOTP
       ? await user.getEmailVerificationCode()
       : undefined;
@@ -131,7 +131,7 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
 
   try {
     if (token) {
-      user = await getUserForEmailSigninToken(token as string);
+      user = await getUserForEmailSigninToken(ctx, token as string);
     } else if (code && email) {
       user = await User.scope("withTeam").findOne({
         rejectOnEmpty: true,
@@ -150,16 +150,18 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
       // Delete the code after successful verification
       await VerificationCode.delete(email);
     } else {
-      ctx.redirect("/?notice=auth-error");
+      ctx.redirect("/?notice=auth-error&description=Missing%20token");
       return;
     }
   } catch (err) {
     Logger.debug("authentication", err);
-    return ctx.redirect("/?notice=auth-error");
+    return ctx.redirect(`/?notice=auth-error&description=${err.message}`);
   }
 
   if (!user.team.emailSigninEnabled) {
-    return ctx.redirect("/?notice=auth-error");
+    return ctx.redirect(
+      "/?notice=auth-error&description=Disabled%20signin%20method"
+    );
   }
 
   if (user.isSuspended) {
@@ -195,13 +197,13 @@ const emailCallback = async (ctx: APIContext<T.EmailCallbackReq>) => {
 };
 router.get(
   "email.callback",
-  rateLimiter(RateLimiterStrategy.TenPerHour),
+  rateLimiter(RateLimiterStrategy.FivePerMinute),
   validate(T.EmailCallbackSchema),
   emailCallback
 );
 router.post(
   "email.callback",
-  rateLimiter(RateLimiterStrategy.TenPerHour),
+  rateLimiter(RateLimiterStrategy.FivePerMinute),
   validate(T.EmailCallbackSchema),
   emailCallback
 );

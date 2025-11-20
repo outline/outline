@@ -6,6 +6,7 @@ import { TextHelper } from "./TextHelper";
 import env from "../env";
 import { findChildren } from "@shared/editor/queries/findChildren";
 import { isLightboxNode } from "@shared/editor/lib/Lightbox";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 
 export type Heading = {
   /* The heading in plain text */
@@ -24,6 +25,8 @@ export type CommentMark = {
   /* The text of the comment */
   text: string;
 };
+
+export type NodeAnchor = { pos: number; id: string; className: string };
 
 export type Task = {
   /* The text of the task */
@@ -187,10 +190,78 @@ export class ProsemirrorHelper {
         }
       });
 
+      (node.attrs.marks ?? []).forEach((mark: any) => {
+        if (mark.type === "comment") {
+          comments.push({
+            ...mark.attrs,
+            // For image nodes, we don't have any text content, so we set it to an empty string
+            text: "",
+          } as CommentMark);
+        }
+      });
+
       return true;
     });
 
     return comments;
+  }
+
+  private static getAnchorsForHeadingNodes(doc: Node): NodeAnchor[] {
+    const previouslySeen: Record<string, number> = {};
+    const anchors: NodeAnchor[] = [];
+    doc.descendants((node, pos) => {
+      if (node.type.name !== "heading") {
+        return;
+      }
+
+      // calculate the optimal id
+      const slug = headingToSlug(node);
+      let id = slug;
+
+      // check if we've already used it, and if so how many times?
+      // Make the new id based on that number ensuring that we have
+      // unique ID's even when headings are identical
+      if (previouslySeen[slug] > 0) {
+        id = headingToSlug(node, previouslySeen[slug]);
+      }
+
+      // record that we've seen this slug for the next loop
+      previouslySeen[slug] =
+        previouslySeen[slug] !== undefined ? previouslySeen[slug] + 1 : 1;
+
+      anchors.push({
+        pos,
+        id,
+        className: EditorStyleHelper.headingPositionAnchor,
+      });
+    });
+    return anchors;
+  }
+
+  private static getAnchorsForImageNodes(doc: Node): NodeAnchor[] {
+    const anchors: NodeAnchor[] = [];
+    doc.descendants((node, pos) => {
+      if (Array.isArray(node.attrs?.marks)) {
+        node.attrs.marks.forEach((mark: any) => {
+          if (mark?.type === "comment" && mark?.attrs?.id) {
+            anchors.push({
+              pos,
+              id: `comment-${mark.attrs.id}`,
+              className: EditorStyleHelper.imagePositionAnchor,
+            });
+          }
+        });
+      }
+    });
+
+    return anchors;
+  }
+
+  static getAnchors(doc: Node): NodeAnchor[] {
+    return [
+      ...ProsemirrorHelper.getAnchorsForHeadingNodes(doc),
+      ...ProsemirrorHelper.getAnchorsForImageNodes(doc),
+    ];
   }
 
   /**

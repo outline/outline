@@ -87,6 +87,7 @@ async function teamPermanentDeleter(team: Team) {
         });
         await Attachment.destroy({
           where: {
+            teamId,
             userId: userIds,
           },
           force: true,
@@ -101,6 +102,7 @@ async function teamPermanentDeleter(team: Team) {
         });
         await Event.destroy({
           where: {
+            teamId,
             actorId: userIds,
           },
           force: true,

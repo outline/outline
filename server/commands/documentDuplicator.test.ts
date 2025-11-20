@@ -1,6 +1,10 @@
 import { createContext } from "@server/context";
 import { sequelize } from "@server/storage/database";
-import { buildDocument, buildUser } from "@server/test/factories";
+import {
+  buildCollection,
+  buildDocument,
+  buildUser,
+} from "@server/test/factories";
 import documentDuplicator from "./documentDuplicator";
 
 describe("documentDuplicator", () => {
@@ -54,23 +58,50 @@ describe("documentDuplicator", () => {
     expect(response[0].publishedAt).toBeInstanceOf(Date);
   });
 
-  it("should duplicate child documents with recursive=true", async () => {
+  it("should duplicate child documents, in the correct order with recursive=true", async () => {
     const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+
     const original = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
       icon: "👋",
+      title: "doc 1",
+      collectionId: collection.id,
     });
 
-    await buildDocument({
+    const child1 = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
       parentDocumentId: original.id,
-      collection: original.collection,
+      title: "doc 1.1",
     });
 
-    const response = await sequelize.transaction((transaction) =>
+    const child2 = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      parentDocumentId: original.id,
+      title: "doc 1.2",
+    });
+
+    const child3 = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      parentDocumentId: original.id,
+      title: "doc 1.3",
+    });
+
+    await collection.addDocumentToStructure(original);
+    await collection.addDocumentToStructure(child1);
+    await collection.addDocumentToStructure(child2);
+    await collection.addDocumentToStructure(child3);
+
+    await sequelize.transaction((transaction) =>
       documentDuplicator({
+        title: "duplicate",
         document: original,
         collection: original.collection,
         user,
@@ -79,7 +110,15 @@ describe("documentDuplicator", () => {
       })
     );
 
-    expect(response).toHaveLength(2);
+    await collection.reload();
+    const duplicate = collection.documentStructure![0];
+    const childTitles = duplicate.children!.map((child) => child.title);
+
+    expect(duplicate.title).toEqual("duplicate");
+    expect(childTitles.length).toBe(3);
+    expect(childTitles[0]).toBe(child1.title);
+    expect(childTitles[1]).toBe(child2.title);
+    expect(childTitles[2]).toBe(child3.title);
   });
 
   it("should duplicate existing document as draft", async () => {

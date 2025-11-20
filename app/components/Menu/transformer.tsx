@@ -11,9 +11,12 @@ import {
 } from "~/components/primitives/Menu";
 import * as Components from "~/components/primitives/components/Menu";
 import { MenuItem } from "~/types";
+import { MouseSafeArea } from "~/components/MouseSafeArea";
+import { createRef } from "react";
 
 export function toMenuItems(items: MenuItem[]) {
   const filteredItems = filterMenuItems(items);
+  const parentRef = createRef<HTMLDivElement>();
 
   if (!filteredItems.length) {
     return null;
@@ -88,7 +91,10 @@ export function toMenuItems(items: MenuItem[]) {
               icon={icon}
               disabled={item.disabled}
             />
-            <SubMenuContent>{submenuItems}</SubMenuContent>
+            <SubMenuContent ref={parentRef}>
+              <MouseSafeArea parentRef={parentRef} />
+              {submenuItems}
+            </SubMenuContent>
           </SubMenu>
         );
       }
@@ -160,7 +166,7 @@ export function toMobileMenuItems(
             <Components.MenuLabel>{item.title}</Components.MenuLabel>
             {item.selected !== undefined && (
               <Components.SelectedIconWrapper aria-hidden>
-                {item.selected ? <CheckmarkIcon /> : null}
+                {item.selected ? <CheckmarkIcon size={18} /> : null}
               </Components.SelectedIconWrapper>
             )}
           </Components.MenuButton>

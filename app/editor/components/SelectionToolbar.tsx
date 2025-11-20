@@ -1,11 +1,9 @@
-import some from "lodash/some";
-import { EditorState, NodeSelection, TextSelection } from "prosemirror-state";
+import { Selection, NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { getMarkRange } from "@shared/editor/queries/getMarkRange";
 import { isInCode } from "@shared/editor/queries/isInCode";
 import { isInNotice } from "@shared/editor/queries/isInNotice";
-import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import {
   getColumnIndex,
@@ -17,7 +15,6 @@ import useBoolean from "~/hooks/useBoolean";
 import useDictionary from "~/hooks/useDictionary";
 import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
-import usePrevious from "~/hooks/usePrevious";
 import getAttachmentMenuItems from "../menus/attachment";
 import getCodeMenuItems from "../menus/code";
 import getDividerMenuItems from "../menus/divider";
@@ -29,70 +26,27 @@ import getTableMenuItems from "../menus/table";
 import getTableColMenuItems from "../menus/tableCol";
 import getTableRowMenuItems from "../menus/tableRow";
 import { useEditor } from "./EditorContext";
-import { EmbedLinkEditor } from "./EmbedLinkEditor";
+import { MediaLinkEditor } from "./MediaLinkEditor";
 import FloatingToolbar from "./FloatingToolbar";
 import LinkEditor from "./LinkEditor";
 import ToolbarMenu from "./ToolbarMenu";
 
 type Props = {
+  /** Whether the text direction is right-to-left */
   rtl: boolean;
+  /** Whether the current document is a template */
   isTemplate: boolean;
+  /** Whether the toolbar is currently active/visible */
+  isActive: boolean;
+  /** The current selection */
+  selection?: Selection;
+  /** Whether the editor is in read-only mode */
   readOnly?: boolean;
+  /** Whether the user has permission to add comments */
   canComment?: boolean;
+  /** Whether the user has permission to update the document */
   canUpdate?: boolean;
-  onOpen: () => void;
-  onClose: () => void;
-  onClickLink: (
-    href: string,
-    event: MouseEvent | React.MouseEvent<HTMLButtonElement>
-  ) => void;
 };
-
-function useIsActive(state: EditorState) {
-  const { selection, doc } = state;
-
-  if (isMarkActive(state.schema.marks.link)(state)) {
-    return true;
-  }
-  if (
-    (isNodeActive(state.schema.nodes.code_block)(state) ||
-      isNodeActive(state.schema.nodes.code_fence)(state)) &&
-    selection.from > 0
-  ) {
-    return true;
-  }
-
-  if (isInNotice(state) && selection.from > 0) {
-    return true;
-  }
-
-  if (!selection || selection.empty) {
-    return false;
-  }
-  if (selection instanceof NodeSelection && selection.node.type.name === "hr") {
-    return true;
-  }
-  if (
-    selection instanceof NodeSelection &&
-    ["image", "attachment", "embed"].includes(selection.node.type.name)
-  ) {
-    return true;
-  }
-  if (selection instanceof NodeSelection) {
-    return false;
-  }
-
-  const selectionText = doc.cut(selection.from, selection.to).textContent;
-  if (selection instanceof TextSelection && !selectionText) {
-    return false;
-  }
-
-  const slice = selection.content();
-  const fragment = slice.content;
-  const nodes = (fragment as any).content;
-
-  return some(nodes, (n) => n.content.size);
-}
 
 function useIsDragging() {
   const [isDragging, setDragging, setNotDragging] = useBoolean();
@@ -102,25 +56,19 @@ function useIsDragging() {
   return isDragging;
 }
 
-export default function SelectionToolbar(props: Props) {
-  const { onClose, readOnly, onOpen } = props;
+export function SelectionToolbar(props: Props) {
+  const { readOnly = false } = props;
   const { view, commands } = useEditor();
   const dictionary = useDictionary();
   const menuRef = React.useRef<HTMLDivElement | null>(null);
   const isMobile = useMobile();
-  const isActive = useIsActive(view.state) || isMobile;
+  const isActive = props.isActive || isMobile;
   const isDragging = useIsDragging();
-  const previousIsActive = usePrevious(isActive);
+  const [isEditingImgUrl, setIsEditingImgUrl] = React.useState(false);
 
   React.useEffect(() => {
-    // Trigger callbacks when the toolbar is opened or closed
-    if (previousIsActive && !isActive) {
-      onClose();
-    }
-    if (!previousIsActive && isActive) {
-      onOpen();
-    }
-  }, [isActive, onClose, onOpen, previousIsActive]);
+    setIsEditingImgUrl(false);
+  }, [isActive]);
 
   React.useEffect(() => {
     const handleClickOutside = (ev: MouseEvent): void => {
@@ -143,6 +91,8 @@ export default function SelectionToolbar(props: Props) {
         return;
       }
 
+      setIsEditingImgUrl(false);
+
       const { dispatch } = view;
       dispatch(
         view.state.tr.setSelection(new TextSelection(view.state.doc.resolve(0)))
@@ -154,35 +104,15 @@ export default function SelectionToolbar(props: Props) {
     return () => {
       window.removeEventListener("mouseup", handleClickOutside);
     };
-  }, [isActive, previousIsActive, readOnly, view]);
-
-  const handleOnSelectLink = ({
-    href,
-    from,
-    to,
-  }: {
-    href: string;
-    from: number;
-    to: number;
-  }): void => {
-    const { state, dispatch } = view;
-
-    const markType = state.schema.marks.link;
-
-    dispatch(
-      state.tr
-        .removeMark(from, to, markType)
-        .addMark(from, to, markType.create({ href }))
-    );
-  };
-
-  const { isTemplate, rtl, canComment, canUpdate, ...rest } = props;
-  const { state } = view;
-  const { selection } = state;
+  }, [isActive, readOnly, view]);
 
   if (isDragging) {
     return null;
   }
+
+  const { isTemplate, rtl, canComment, canUpdate, ...rest } = props;
+  const { state } = view;
+  const { selection } = state;
 
   const isDividerSelection = isNodeActive(state.schema.nodes.hr)(state);
   const colIndex = getColumnIndex(state);
@@ -205,19 +135,22 @@ export default function SelectionToolbar(props: Props) {
     items = getCodeMenuItems(state, readOnly, dictionary);
     align = "end";
   } else if (isTableSelected(state)) {
-    items = readOnly ? [] : getTableMenuItems(state, dictionary);
+    items = getTableMenuItems(state, readOnly, dictionary);
   } else if (colIndex !== undefined) {
-    items = readOnly
-      ? []
-      : getTableColMenuItems(state, colIndex, rtl, dictionary);
+    items = getTableColMenuItems(state, readOnly, dictionary, {
+      index: colIndex,
+      rtl,
+    });
   } else if (rowIndex !== undefined) {
-    items = readOnly ? [] : getTableRowMenuItems(state, rowIndex, dictionary);
+    items = getTableRowMenuItems(state, readOnly, dictionary, {
+      index: rowIndex,
+    });
   } else if (isImageSelection) {
-    items = readOnly ? [] : getImageMenuItems(state, dictionary);
+    items = getImageMenuItems(state, readOnly, dictionary);
   } else if (isAttachmentSelection) {
-    items = readOnly ? [] : getAttachmentMenuItems(state, dictionary);
+    items = getAttachmentMenuItems(state, readOnly, dictionary);
   } else if (isDividerSelection) {
-    items = getDividerMenuItems(state, dictionary);
+    items = getDividerMenuItems(state, readOnly, dictionary);
   } else if (readOnly) {
     items = getReadOnlyMenuItems(state, !!canUpdate, dictionary);
   } else if (isNoticeSelection && selection.empty) {
@@ -252,6 +185,9 @@ export default function SelectionToolbar(props: Props) {
   const showLinkToolbar =
     link && link.from === selection.from && link.to === selection.to;
 
+  const isEditingMedia =
+    isEmbedSelection || (isImageSelection && isEditingImgUrl);
+
   return (
     <FloatingToolbar
       align={align}
@@ -265,20 +201,23 @@ export default function SelectionToolbar(props: Props) {
           dictionary={dictionary}
           view={view}
           mark={link.mark}
-          from={link.from}
-          to={link.to}
-          onClickLink={props.onClickLink}
-          onSelectLink={handleOnSelectLink}
         />
-      ) : isEmbedSelection ? (
-        <EmbedLinkEditor
+      ) : isEditingMedia ? (
+        <MediaLinkEditor
           key={`embed-${selection.from}`}
-          node={(selection as NodeSelection).node}
+          node={selection.node}
           view={view}
           dictionary={dictionary}
+          autoFocus={isEditingImgUrl}
         />
       ) : (
-        <ToolbarMenu items={items} {...rest} />
+        <ToolbarMenu
+          items={items}
+          {...rest}
+          handlers={{
+            editImageUrl: () => setIsEditingImgUrl(true),
+          }}
+        />
       )}
     </FloatingToolbar>
   );

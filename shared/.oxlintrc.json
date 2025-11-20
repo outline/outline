@@ -5,6 +5,13 @@
     {
       "files": ["**/*.{js,jsx,ts,tsx}"],
       "rules": {
+        "no-restricted-globals": [
+          "error",
+          {
+            "name": "crypto",
+            "message": "Do not use, does not work in environments without SSL."
+          }
+        ],
         "no-restricted-imports": [
           "error",
           {

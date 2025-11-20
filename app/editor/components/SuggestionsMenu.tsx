@@ -72,6 +72,7 @@ export type Props<T extends MenuItem = MenuItem> = {
     index: number,
     options: {
       selected: boolean;
+      onPointerDown: (event: React.SyntheticEvent) => void;
       onClick: (event: React.SyntheticEvent) => void;
     }
   ) => React.ReactNode;
@@ -641,6 +642,17 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                     }
                   };
 
+                  const handleOnClick = (ev: React.MouseEvent) => {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    handleClickItem(item);
+                  };
+
+                  const stopPropagation = (ev: React.MouseEvent) => {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                  };
+
                   const currentHeading =
                     "section" in item ? item.section?.({ t }) : undefined;
 
@@ -657,7 +669,8 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
                       >
                         {props.renderMenuItem(item as any, index, {
                           selected: index === selectedIndex,
-                          onClick: () => handleClickItem(item),
+                          onPointerDown: handleOnClick,
+                          onClick: stopPropagation,
                         })}
                       </ListItem>
                     </React.Fragment>
