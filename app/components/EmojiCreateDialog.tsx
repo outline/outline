@@ -64,7 +64,7 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
 
       const emoji = await emojis.create({
         name: name.trim(),
-        url: attachment.url,
+        attachmentId: attachment.id,
       });
 
       emojis.add(emoji);

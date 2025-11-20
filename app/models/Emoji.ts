@@ -17,6 +17,11 @@ class Emoji extends Model {
   @observable
   url: string;
 
+  /** The ID  */
+  @Field
+  @observable
+  attachmentId: string;
+
   /** The user who created this emoji */
   @Relation(() => User)
   @observable

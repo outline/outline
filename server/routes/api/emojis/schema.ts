@@ -27,7 +27,7 @@ export const EmojisCreateSchema = BaseSchema.extend({
     /** Name/shortcode for the emoji (e.g., "awesome") */
     name: z.string().min(1).max(EmojiValidation.maxNameLength),
     /** URL to the emoji image */
-    url: z.string(),
+    attachmentId: z.string().uuid(),
   }),
 });
 

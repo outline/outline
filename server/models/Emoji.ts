@@ -18,7 +18,6 @@ import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
-import IsUrlOrRelativePath from "./validators/IsUrlOrRelativePath";
 import Length from "./validators/Length";
 import { Matches } from "class-validator";
 import FileStorage from "@server/storage/files";
@@ -32,7 +31,7 @@ class Emoji extends IdModel<
 > {
   @Length({
     max: EmojiValidation.maxNameLength,
-    msg: `emoji name must be  less than ${EmojiValidation.maxNameLength} characters`,
+    msg: `emoji name must be less than ${EmojiValidation.maxNameLength} characters`,
   })
   @Matches(EmojiValidation.allowedNameCharacters, {
     message:
@@ -41,11 +40,14 @@ class Emoji extends IdModel<
   @Column(DataType.STRING)
   name: string;
 
-  @IsUrlOrRelativePath
-  @Column(DataType.STRING)
-  url: string;
-
   // associations
+  @BelongsTo(() => Attachment, "attachmentId")
+  attachment: Attachment;
+
+  @ForeignKey(() => Attachment)
+  @Column(DataType.UUID)
+  attachmentId: string;
+
   @BelongsTo(() => Team, "teamId")
   team: Team;
 
@@ -81,12 +83,7 @@ class Emoji extends IdModel<
 
   @BeforeDestroy
   static async deleteAttachmentFromS3(model: Emoji) {
-    const attachment = await Attachment.findOne({
-      where: {
-        key: model.url,
-      },
-    });
-
+    const attachment = await Attachment.findByPk(model.attachmentId);
     if (attachment) {
       await FileStorage.deleteFile(attachment.key);
     }
