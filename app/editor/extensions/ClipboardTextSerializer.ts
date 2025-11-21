@@ -55,7 +55,7 @@ export default class ClipboardTextSerializer extends Extension {
             return usePlainText
               ? slice.content.content
                   .map((node) => ProsemirrorHelper.toPlainText(node))
-                  .join("")
+                  .join("\n")
               : mdSerializer.serialize(slice.content, {
                   softBreak: true,
                 });
