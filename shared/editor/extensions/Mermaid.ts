@@ -1,4 +1,3 @@
-import debounce from "lodash/debounce";
 import last from "lodash/last";
 import sortBy from "lodash/sortBy";
 import { v4 as uuidv4 } from "uuid";
@@ -42,11 +41,6 @@ class Cache {
 
 let mermaid: typeof MermaidUnsafe;
 
-type RendererFunc = (
-  block: { node: Node; pos: number },
-  isDark: boolean
-) => void;
-
 class MermaidRenderer {
   readonly diagramId: string;
   readonly element: HTMLElement;
@@ -63,10 +57,7 @@ class MermaidRenderer {
     this.editor = editor;
   }
 
-  renderImmediately = async (
-    block: { node: Node; pos: number },
-    isDark: boolean
-  ) => {
+  render = async (block: { node: Node; pos: number }, isDark: boolean) => {
     const element = this.element;
     const text = block.node.textContent;
 
@@ -105,7 +96,6 @@ class MermaidRenderer {
         // If the element is not visible we use an off-screen element to render the diagram
         element.offsetParent === null ? renderElement : element
       );
-      this.currentTextContent = text;
 
       // Cache the rendered SVG so we won't need to calculate it again in the same session
       if (text) {
@@ -130,17 +120,6 @@ class MermaidRenderer {
       renderElement.remove();
     }
   };
-
-  get render(): RendererFunc {
-    if (this._rendererFunc) {
-      return this._rendererFunc;
-    }
-    this._rendererFunc = debounce<RendererFunc>(this.renderImmediately, 250);
-    return this.renderImmediately;
-  }
-
-  private currentTextContent = "";
-  private _rendererFunc?: RendererFunc;
 }
 
 function overlap(
