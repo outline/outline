@@ -1,7 +1,10 @@
 import { Selection, NodeSelection, TextSelection } from "prosemirror-state";
 import * as React from "react";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
-import { getMarkRange } from "@shared/editor/queries/getMarkRange";
+import {
+  getMarkRange,
+  getMarkRangeNodeSelection,
+} from "@shared/editor/queries/getMarkRange";
 import { isInCode } from "@shared/editor/queries/isInCode";
 import { isInNotice } from "@shared/editor/queries/isInNotice";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
@@ -117,7 +120,6 @@ export function SelectionToolbar(props: Props) {
   const isDividerSelection = isNodeActive(state.schema.nodes.hr)(state);
   const colIndex = getColumnIndex(state);
   const rowIndex = getRowIndex(state);
-  const link = getMarkRange(selection.$from, state.schema.marks.link);
   const isImageSelection =
     selection instanceof NodeSelection && selection.node.type.name === "image";
   const isAttachmentSelection =
@@ -127,6 +129,10 @@ export function SelectionToolbar(props: Props) {
     selection instanceof NodeSelection && selection.node.type.name === "embed";
   const isCodeSelection = isInCode(state, { onlyBlock: true });
   const isNoticeSelection = isInNotice(state);
+  const link =
+    selection instanceof NodeSelection
+      ? getMarkRangeNodeSelection(selection, state.schema.marks.link)
+      : getMarkRange(selection.$from, state.schema.marks.link);
 
   let items: MenuItem[] = [];
   let align: "center" | "start" | "end" = "center";
