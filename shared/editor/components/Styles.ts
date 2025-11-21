@@ -818,13 +818,6 @@ img.ProseMirror-separator {
   }
 }
 
-.heading-content {
-  &::before {
-    content: "​";
-    display: inline;
-  }
-}
-
 .${EditorStyleHelper.headingPositionAnchor}, .${EditorStyleHelper.imagePositionAnchor} {
   color: ${props.theme.text};
   pointer-events: none;
@@ -935,8 +928,9 @@ h6:not(.placeholder)::before {
   margin-left: -26px;
   flex-direction: row;
   display: none;
-  position: relative;
-  top: -2px;
+  position: absolute;
+  left: 0;
+  top: calc(.5em - 6px);
   width: 26px;
   height: 24px;
 
@@ -1182,6 +1176,10 @@ strong {
 p {
   margin: 0;
   min-height: 1.6em;
+}
+
+.heading-content {
+  position: relative;
 }
 
 .heading-content a,
