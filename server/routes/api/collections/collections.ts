@@ -64,6 +64,7 @@ router.post(
       sort,
       index,
       commenting,
+      displayPreferences,
     } = ctx.input.body;
 
     const { user } = ctx.state.auth;
@@ -82,6 +83,7 @@ router.post(
       sort,
       index,
       commenting,
+      displayPreferences,
     });
 
     if (data) {
@@ -573,6 +575,7 @@ router.post(
       sort,
       sharing,
       commenting,
+      displayPreferences,
     } = ctx.input.body;
 
     const { user } = ctx.state.auth;
@@ -645,6 +648,10 @@ router.post(
 
     if (commenting !== undefined) {
       collection.commenting = commenting;
+    }
+
+    if (displayPreferences !== undefined) {
+      collection.displayPreferences = displayPreferences;
     }
 
     await collection.saveWithCtx(ctx);

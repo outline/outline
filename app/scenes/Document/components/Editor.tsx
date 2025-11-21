@@ -34,6 +34,7 @@ import DocumentMeta from "./DocumentMeta";
 import DocumentTitle from "./DocumentTitle";
 import first from "lodash/first";
 import { getLangFor } from "~/utils/language";
+import NavigationButtons from "./NavigationButtons";
 
 const extensions = withUIExtensions(withComments(richExtensions));
 
@@ -255,6 +256,9 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         {...rest}
       />
       <div ref={childRef}>{children}</div>
+      {document.collection?.displayPreferences?.showFooterNavigation && (
+        <NavigationButtons document={document} />
+      )}
     </Flex>
   );
 }

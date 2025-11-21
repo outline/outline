@@ -2,6 +2,7 @@ import isUndefined from "lodash/isUndefined";
 import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
 import {
+  CollectionDisplayPreference,
   CollectionPermission,
   CollectionStatusFilter,
   FileOperationFormat,
@@ -46,6 +47,9 @@ export const CollectionsCreateSchema = BaseSchema.extend({
       })
       .optional(),
     commenting: z.boolean().nullish(),
+    displayPreferences: z
+      .record(z.nativeEnum(CollectionDisplayPreference), z.boolean())
+      .optional(),
   }),
 });
 
@@ -181,6 +185,9 @@ export const CollectionsUpdateSchema = BaseSchema.extend({
       .optional(),
     sharing: z.boolean().optional(),
     commenting: z.boolean().nullish(),
+    displayPreferences: z
+      .record(z.nativeEnum(CollectionDisplayPreference), z.boolean())
+      .optional(),
   }),
 });
 
