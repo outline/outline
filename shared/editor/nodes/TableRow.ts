@@ -12,13 +12,7 @@ export default class TableRow extends Node {
       tableRole: "row",
       parseDOM: [{ tag: "tr" }],
       toDOM() {
-        return [
-          "tr",
-          {
-            style: "word-break: break-word;",
-          },
-          0,
-        ];
+        return ["tr", 0];
       },
     };
   }

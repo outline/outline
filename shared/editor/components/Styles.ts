@@ -1896,6 +1896,11 @@ table {
   padding-right: ${EditorStyleHelper.padding}px;
   transition: border 250ms ease-in-out 0s;
 
+  table {
+    table-layout: fixed;
+    word-break: break-word;
+  }
+
   &:hover {
     scrollbar-color: ${props.theme.scrollbarThumb} ${
       props.theme.scrollbarBackground
