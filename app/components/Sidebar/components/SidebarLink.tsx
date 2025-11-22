@@ -77,10 +77,10 @@ function SidebarLink(
   const { handleMouseEnter, handleMouseLeave } = useClickIntent(onClickIntent);
   const style = React.useMemo(
     () => ({
-      paddingLeft: `${(depth || 0) * 16 + 12}px`,
+      paddingLeft: `${(depth || 0) * 16 + (icon ? -8 : 12)}px`,
       paddingRight: unreadBadge ? "32px" : undefined,
     }),
-    [depth]
+    [depth, icon, unreadBadge]
   );
 
   const unreadStyle = React.useMemo(
@@ -108,7 +108,7 @@ function SidebarLink(
   );
 
   const [openContextMenu, setOpen, setClosed] = useBoolean(false);
-  const DisclosureComponent = depth === 0 ? HiddenDisclosure : Disclosure;
+  const DisclosureComponent = icon ? HiddenDisclosure : Disclosure;
 
   const handleClickCapture = React.useCallback(
     (event: React.MouseEvent<HTMLAnchorElement>) => {
@@ -173,7 +173,6 @@ function SidebarLink(
 // accounts for whitespace around icon
 export const IconWrapper = styled.span`
   margin-left: -4px;
-  margin-right: 2px;
   height: 24px;
   overflow: hidden;
   flex-shrink: 0;
@@ -302,7 +301,7 @@ const Link = styled(NavLink)<{
   }
 
   ${breakpoint("tablet")`
-    padding: 3px 8px 3px 16px;
+    padding: 3px 8px 3px 12px;
     font-size: 14px;
   `}
 
@@ -326,6 +325,7 @@ const Label = styled.div`
   position: relative;
   width: 100%;
   line-height: 24px;
+  margin-left: 2px;
   ${ellipsis()}
 
   * {
