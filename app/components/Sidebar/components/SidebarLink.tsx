@@ -3,7 +3,7 @@ import * as React from "react";
 import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
-import { hover, s } from "@shared/styles";
+import { ellipsis, hover, s } from "@shared/styles";
 import { isMobile } from "@shared/utils/browser";
 import NudeButton from "~/components/NudeButton";
 import { UnreadBadge } from "~/components/UnreadBadge";
@@ -160,7 +160,7 @@ function SidebarLink(
               />
             )}
             {icon && <IconWrapper>{icon}</IconWrapper>}
-            <Label>{label}</Label>
+            <Label $ellipsis={typeof label === "string"}>{label}</Label>
             {unreadBadge && <UnreadBadge style={unreadStyle} />}
           </Content>
         </Link>
@@ -321,11 +321,12 @@ const Link = styled(NavLink)<{
   }
 `;
 
-const Label = styled.div`
+const Label = styled.div<{ $ellipsis: boolean }>`
   position: relative;
   width: 100%;
   line-height: 24px;
   margin-left: 2px;
+  ${(props) => props.$ellipsis && ellipsis()}
 
   * {
     unicode-bidi: plaintext;
