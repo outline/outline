@@ -183,7 +183,9 @@ export function exportTable({
  */
 export function spaceColumnsEvenly(): Command {
   return (state, dispatch, view) => {
-    if (!isInTable(state) || !dispatch) {return false;}
+    if (!isInTable(state) || !dispatch) {
+      return false;
+    }
 
     const rect = selectedRect(state);
     const { tr, doc } = state;
@@ -217,12 +219,16 @@ export function spaceColumnsEvenly(): Command {
 
     for (let row = 0; row < map.height; row++) {
       const cellsInRow = getCellsInRow(row)(state);
-      if (!cellsInRow) {continue;}
+      if (!cellsInRow) {
+        continue;
+      }
 
       selectedColumns.forEach((colIndex) => {
         const pos = cellsInRow[colIndex];
         const cell = pos !== undefined ? doc.nodeAt(pos) : null;
-        if (!cell) {return;}
+        if (!cell) {
+          return;
+        }
 
         const isLastColumn = colIndex === map.width - 1;
         const shouldKeepNull =
@@ -252,9 +258,9 @@ function isNullWidth({
     firstRowCells?.[colIndex] !== undefined
       ? state.doc.nodeAt(firstRowCells[colIndex])
       : null;
-  const colwidth = cell?.attrs.colwidth;
 
-  return !colwidth || (Array.isArray(colwidth) && !colwidth[0]);
+  const colwidth = cell?.attrs.colwidth;
+  return !colwidth[0];
 }
 
 function getWidthFromDom({
@@ -266,11 +272,15 @@ function getWidthFromDom({
   rect: TableRect;
   selectedColumns: number[];
 }): number {
-  if (!view) {return 0;}
+  if (!view) {
+    return 0;
+  }
 
   const tableDOM = view.domAtPos(rect.tableStart).node as HTMLElement;
   const firstRow = tableDOM.closest("table")?.querySelector("tr");
-  if (!firstRow) {return 0;}
+  if (!firstRow) {
+    return 0;
+  }
 
   const cells = firstRow.querySelectorAll("td, th");
   return selectedColumns.reduce((total, colIndex) => {
@@ -287,7 +297,9 @@ function getWidthFromNodes({
   selectedColumns: number[];
 }): number {
   const firstRowCells = getCellsInRow(0)(state);
-  if (!firstRowCells) {return 0;}
+  if (!firstRowCells) {
+    return 0;
+  }
 
   return selectedColumns.reduce((total, colIndex) => {
     const cell =
