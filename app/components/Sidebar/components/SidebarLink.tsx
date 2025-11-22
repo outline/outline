@@ -124,50 +124,48 @@ function SidebarLink(
   );
 
   return (
-    <>
-      <ContextMenu
-        action={contextAction}
-        ariaLabel={t("Link options")}
-        onOpen={setOpen}
-        onClose={setClosed}
+    <ContextMenu
+      action={contextAction}
+      ariaLabel={t("Link options")}
+      onOpen={setOpen}
+      onClose={setClosed}
+    >
+      <Link
+        $isActiveDrop={isActiveDrop}
+        $isDraft={isDraft}
+        $disabled={disabled}
+        activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
+        style={openContextMenu ? hoverStyle : active ? activeStyle : style}
+        onClickCapture={handleClickCapture}
+        onClick={onClick}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onDragEnter={handleMouseEnter}
+        // @ts-expect-error exact does not exist on div
+        exact={exact !== false}
+        to={to}
+        as={to ? undefined : href ? "a" : "div"}
+        href={href}
+        className={className}
+        ref={ref}
+        {...rest}
       >
-        <Link
-          $isActiveDrop={isActiveDrop}
-          $isDraft={isDraft}
-          $disabled={disabled}
-          activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
-          style={openContextMenu ? hoverStyle : active ? activeStyle : style}
-          onClickCapture={handleClickCapture}
-          onClick={onClick}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-          onDragEnter={handleMouseEnter}
-          // @ts-expect-error exact does not exist on div
-          exact={exact !== false}
-          to={to}
-          as={to ? undefined : href ? "a" : "div"}
-          href={href}
-          className={className}
-          ref={ref}
-          {...rest}
-        >
-          <Content>
-            {expanded !== undefined && (
-              <DisclosureComponent
-                expanded={expanded}
-                onMouseDown={onDisclosureClick}
-                onClick={preventDefault}
-                tabIndex={-1}
-              />
-            )}
-            {icon && <IconWrapper>{icon}</IconWrapper>}
-            <Label $ellipsis={typeof label === "string"}>{label}</Label>
-            {unreadBadge && <UnreadBadge style={unreadStyle} />}
-          </Content>
-        </Link>
-      </ContextMenu>
-      {menu && <Actions showActions={showActions}>{menu}</Actions>}
-    </>
+        <Content>
+          {expanded !== undefined && (
+            <DisclosureComponent
+              expanded={expanded}
+              onMouseDown={onDisclosureClick}
+              onClick={preventDefault}
+              tabIndex={-1}
+            />
+          )}
+          {icon && <IconWrapper>{icon}</IconWrapper>}
+          <Label $ellipsis={typeof label === "string"}>{label}</Label>
+          {unreadBadge && <UnreadBadge style={unreadStyle} />}
+        </Content>
+        {menu && <Actions showActions={showActions}>{menu}</Actions>}
+      </Link>
+    </ContextMenu>
   );
 }
 
@@ -197,6 +195,7 @@ const Actions = styled(EventBoundary)<{ showActions?: boolean }>`
   color: ${s("textTertiary")};
   transition: opacity 50ms;
   height: 24px;
+  background: var(--background);
 
   svg {
     color: ${s("textSecondary")};
@@ -226,6 +225,17 @@ const Link = styled(NavLink)<{
   $isDraft?: boolean;
   $disabled?: boolean;
 }>`
+  &:hover,
+  &:active {
+    --background: ${s("sidebarHoverBackground")};
+  }
+
+  &[aria-current="page"] ${Actions} {
+    --background: ${s("sidebarActiveBackground")};
+  }
+
+  ${(props) => props.$isActiveDrop && `--background: ${props.theme.slateDark};`}
+
   display: flex;
   position: relative;
   text-overflow: ellipsis;
@@ -236,8 +246,7 @@ const Link = styled(NavLink)<{
   user-select: none;
   white-space: nowrap;
   margin-top: 1px;
-  background: ${(props) =>
-    props.$isActiveDrop ? props.theme.slateDark : "inherit"};
+  background: var(--background);
   color: ${(props) =>
     props.$isActiveDrop ? props.theme.white : props.theme.sidebarText};
   font-size: 16px;
@@ -284,30 +293,13 @@ const Link = styled(NavLink)<{
     }
   }
 
-  & + ${Actions} {
-    background: ${s("sidebarBackground")};
-
-    ${NudeButton} {
-      background: transparent;
-
-      &:hover,
-      &[aria-expanded="true"] {
-        background: ${s("sidebarControlHoverBackground")};
-      }
-    }
-  }
-
-  &[aria-current="page"] + ${Actions} {
-    background: ${s("sidebarActiveBackground")};
-  }
-
   ${breakpoint("tablet")`
     padding: 3px 8px 3px 12px;
     font-size: 14px;
   `}
 
   @media (hover: hover) {
-    &:hover + ${Actions}, &:active + ${Actions} {
+    &:hover ${Actions}, &:active ${Actions} {
       visibility: visible;
 
       svg {
@@ -318,6 +310,17 @@ const Link = styled(NavLink)<{
     &:hover {
       color: ${(props) =>
         props.$isActiveDrop ? props.theme.white : props.theme.text};
+    }
+  }
+
+  & ${Actions} {
+    ${NudeButton} {
+      background: transparent;
+
+      &:hover,
+      &[aria-expanded="true"] {
+        background: ${s("sidebarControlHoverBackground")};
+      }
     }
   }
 `;
