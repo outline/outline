@@ -21,8 +21,8 @@ type Props = Omit<NavLinkProps, "to"> & {
   innerRef?: (ref: HTMLElement | null | undefined) => void;
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
   /** Callback when we expect the user to click on the link. Used for prefetching data. */
-  onClickIntent?: () => void;
-  onDisclosureClick?: React.MouseEventHandler<HTMLButtonElement>;
+  onClickIntent?: React.MouseEventHandler<HTMLElement>;
+  onDisclosureClick?: React.MouseEventHandler<HTMLElement>;
   icon?: React.ReactNode;
   label?: React.ReactNode;
   menu?: React.ReactNode;
@@ -110,19 +110,6 @@ function SidebarLink(
   const [openContextMenu, setOpen, setClosed] = useBoolean(false);
   const DisclosureComponent = icon ? HiddenDisclosure : Disclosure;
 
-  const handleClickCapture = React.useCallback(
-    (event: React.MouseEvent<HTMLAnchorElement>) => {
-      if (event.altKey && onDisclosureClick && expanded !== undefined) {
-        event.preventDefault();
-        event.stopPropagation();
-        onDisclosureClick(
-          event as unknown as React.MouseEvent<HTMLButtonElement>
-        );
-      }
-    },
-    [onDisclosureClick, expanded]
-  );
-
   return (
     <ContextMenu
       action={contextAction}
@@ -136,7 +123,7 @@ function SidebarLink(
         $disabled={disabled}
         activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
         style={openContextMenu ? hoverStyle : active ? activeStyle : style}
-        onClickCapture={handleClickCapture}
+        onClickCapture={onDisclosureClick}
         onClick={onClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
@@ -154,7 +141,6 @@ function SidebarLink(
           {expanded !== undefined && (
             <DisclosureComponent
               expanded={expanded}
-              onMouseDown={onDisclosureClick}
               onClick={preventDefault}
               tabIndex={-1}
             />
