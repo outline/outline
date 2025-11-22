@@ -398,7 +398,7 @@ function InnerDocumentLink(
           onKeyDown={handleKeyDown}
         >
           <div ref={dropToReparent}>
-            <DropToImport documentId={node.id} activeClassName="activeDropZone">
+            <DropToImport documentId={node.id}>
               <SidebarLink
                 // @ts-expect-error react-router type is wrong, string component is fine.
                 component={isEditing ? "div" : undefined}
