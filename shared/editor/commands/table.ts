@@ -19,7 +19,6 @@ import {
   deleteTable,
   mergeCells,
   splitCell,
-  TableRect,
 } from "prosemirror-tables";
 import { ProsemirrorHelper } from "../../utils/ProsemirrorHelper";
 import { CSVHelper } from "../../utils/csv";
@@ -30,12 +29,13 @@ import {
   getCellsInRow,
   isHeaderEnabled,
   isTableSelected,
+  getWidthFromDom,
+  getWidthFromNodes,
 } from "../queries/table";
 import { TableLayout } from "../types";
 import { collapseSelection } from "./collapseSelection";
 import { RowSelection } from "../selection/RowSelection";
 import { ColumnSelection } from "../selection/ColumnSelection";
-import { EditorView } from "prosemirror-view";
 
 export function createTable({
   rowsCount,
@@ -181,7 +181,7 @@ export function exportTable({
  * distributes the width of selected columns evenly between them
  *
  */
-export function spaceColumnsEvenly(): Command {
+export function distributeWidthEvenly(): Command {
   return (state, dispatch, view) => {
     if (!isInTable(state) || !dispatch) {
       return false;
@@ -190,7 +190,7 @@ export function spaceColumnsEvenly(): Command {
     const rect = selectedRect(state);
     const { tr, doc } = state;
     const { map } = rect;
-    const selectedColumns = getAllSelectedColumns(state).sort((a, b) => a - b);
+    const selectedColumns = getAllSelectedColumns(state);
     if (selectedColumns.length <= 1) {
       dispatch(tr);
       return true;
@@ -200,15 +200,14 @@ export function spaceColumnsEvenly(): Command {
       isNullWidth({ state, colIndex })
     );
 
-    // whenever we can we want to take the column width that prose-mirror sets
+    // whenever we can, we want to take the column width that prose-mirror sets
     // since that will always be accurate, when set
     const totalWidth = hasNullWidth
       ? getWidthFromDom({ view, rect, selectedColumns })
       : getWidthFromNodes({ state, selectedColumns });
 
-    if (totalWidth <= 0) {
-      dispatch(tr);
-      return true;
+    if (totalWidth < 1) {
+      return false;
     }
 
     const evenWidth = totalWidth / selectedColumns.length;
@@ -219,7 +218,7 @@ export function spaceColumnsEvenly(): Command {
 
     for (let row = 0; row < map.height; row++) {
       const cellsInRow = getCellsInRow(row)(state);
-      if (!cellsInRow) {
+      if (!cellsInRow || cellsInRow.length < 1) {
         continue;
       }
 
@@ -260,55 +259,7 @@ function isNullWidth({
       : null;
 
   const colwidth = cell?.attrs.colwidth;
-  return !colwidth[0];
-}
-
-function getWidthFromDom({
-  view,
-  rect,
-  selectedColumns,
-}: {
-  view?: EditorView;
-  rect: TableRect;
-  selectedColumns: number[];
-}): number {
-  if (!view) {
-    return 0;
-  }
-
-  const tableDOM = view.domAtPos(rect.tableStart).node as HTMLElement;
-  const firstRow = tableDOM.closest("table")?.querySelector("tr");
-  if (!firstRow) {
-    return 0;
-  }
-
-  const cells = firstRow.querySelectorAll("td, th");
-  return selectedColumns.reduce((total, colIndex) => {
-    const cell = cells[colIndex] as HTMLElement | undefined;
-    return total + (cell?.getBoundingClientRect().width ?? 0);
-  }, 0);
-}
-
-function getWidthFromNodes({
-  state,
-  selectedColumns,
-}: {
-  state: EditorState;
-  selectedColumns: number[];
-}): number {
-  const firstRowCells = getCellsInRow(0)(state);
-  if (!firstRowCells) {
-    return 0;
-  }
-
-  return selectedColumns.reduce((total, colIndex) => {
-    const cell =
-      firstRowCells[colIndex] !== undefined
-        ? state.doc.nodeAt(firstRowCells[colIndex])
-        : null;
-    const colwidth = cell?.attrs.colwidth;
-    return total + colwidth[0];
-  }, 0);
+  return !colwidth?.[0];
 }
 
 export function sortTable({
