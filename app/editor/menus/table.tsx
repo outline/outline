@@ -5,7 +5,6 @@ import { MenuItem, TableLayout } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
 import { faArrows } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import useStores from "~/hooks/useStores";
 
 export default function tableMenuItems(
   state: EditorState,
@@ -16,7 +15,6 @@ export default function tableMenuItems(
     return [];
   }
   const { schema } = state;
-  const { documents } = useStores();
 
   const isFullWidth = isNodeActive(schema.nodes.table, {
     layout: TableLayout.fullWidth,
@@ -57,7 +55,6 @@ export default function tableMenuItems(
       name: "spaceColumnsEvenly",
       tooltip: dictionary.spaceColumnsEvenly,
       label: "space evenly",
-      attrs: { isFullWidth, documentIsFullWidth: documents.active?.fullWidth },
       icon: <FontAwesomeIcon icon={faArrows} />,
     },
   ];
