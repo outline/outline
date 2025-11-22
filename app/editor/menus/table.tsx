@@ -3,7 +3,7 @@ import { EditorState } from "prosemirror-state";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import { MenuItem, TableLayout } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
-import { faArrows } from "@fortawesome/free-solid-svg-icons";
+import { faArrowsLeftRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export default function tableMenuItems(
@@ -52,10 +52,9 @@ export default function tableMenuItems(
       name: "separator",
     },
     {
-      name: "spaceColumnsEvenly",
-      tooltip: dictionary.spaceColumnsEvenly,
-      label: "space evenly",
-      icon: <FontAwesomeIcon icon={faArrows} />,
+      name: "distributeWidthEvenly",
+      tooltip: dictionary.distributeWidthEvenly,
+      icon: <FontAwesomeIcon icon={faArrowsLeftRight} />,
     },
   ];
 }
