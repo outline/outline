@@ -19,6 +19,7 @@ import {
   deleteTable,
   mergeCells,
   splitCell,
+  TableRect,
 } from "prosemirror-tables";
 import { ProsemirrorHelper } from "../../utils/ProsemirrorHelper";
 import { CSVHelper } from "../../utils/csv";
@@ -176,45 +177,43 @@ export function exportTable({
   };
 }
 
-export function spaceColumnsEvenly({
-  isFullWidth,
-  documentIsFullWidth,
-}: {
-  isFullWidth?: boolean;
-  documentIsFullWidth?: boolean;
-}): Command {
+/**
+ * distributes the width of selected columns evenly between them
+ *
+ */
+export function spaceColumnsEvenly(): Command {
   return (state, dispatch, view) => {
-    if (!isInTable(state) || !dispatch) {
-      return false;
-    }
+    if (!isInTable(state) || !dispatch) {return false;}
 
     const rect = selectedRect(state);
-    const { tr } = state;
+    const { tr, doc } = state;
     const { map } = rect;
-    const columnCount = map.width;
-
     const selectedColumns = getAllSelectedColumns(state).sort((a, b) => a - b);
-
     if (selectedColumns.length <= 1) {
       dispatch(tr);
       return true;
     }
 
-    const isLastColSelected = selectedColumns.includes(columnCount - 1);
     const hasNullWidth = selectedColumns.some((colIndex) =>
-      isColumnWidthNull(state, colIndex)
+      isNullWidth({ state, colIndex })
     );
 
-    const totalSelectedWidth = hasNullWidth
-      ? getTotalWidthFromDom({ state, view, selectedColumns })
-      : getTotalWidthFromNode({ state, selectedColumns });
+    // whenever we can we want to take the column width that prose-mirror sets
+    // since that will always be accurate, when set
+    const totalWidth = hasNullWidth
+      ? getWidthFromDom({ view, rect, selectedColumns })
+      : getWidthFromNodes({ state, selectedColumns });
 
-    if (totalSelectedWidth <= 0) {
+    if (totalWidth <= 0) {
       dispatch(tr);
       return true;
     }
 
-    const evenWidth = totalSelectedWidth / selectedColumns.length;
+    const evenWidth = totalWidth / selectedColumns.length;
+    const isLastColSelected = selectedColumns.includes(map.width - 1);
+
+    const tableNode = doc.nodeAt(rect.tableStart - 1);
+    const isFullWidth = tableNode?.attrs.layout === TableLayout.fullWidth;
 
     for (let row = 0; row < map.height; row++) {
       const cellsInRow = getCellsInRow(row)(state);
@@ -222,20 +221,16 @@ export function spaceColumnsEvenly({
 
       selectedColumns.forEach((colIndex) => {
         const pos = cellsInRow[colIndex];
-        const cell = pos !== undefined ? tr.doc.nodeAt(pos) : null;
+        const cell = pos !== undefined ? doc.nodeAt(pos) : null;
         if (!cell) {return;}
 
-        const isActualLastColumn = colIndex === columnCount - 1;
-        const shouldKeepLastColNull =
-          isActualLastColumn &&
-          isLastColSelected &&
-          (isFullWidth || (documentIsFullWidth && !cell.attrs.colwidth));
-
-        const colwidth = shouldKeepLastColNull ? null : [evenWidth];
+        const isLastColumn = colIndex === map.width - 1;
+        const shouldKeepNull =
+          isLastColumn && isLastColSelected && isFullWidth && hasNullWidth;
 
         tr.setNodeMarkup(pos, undefined, {
           ...cell.attrs,
-          colwidth,
+          colwidth: shouldKeepNull ? null : [evenWidth],
         });
       });
     }
@@ -245,74 +240,64 @@ export function spaceColumnsEvenly({
   };
 }
 
-function isColumnWidthNull(state: EditorState, colIndex: number): boolean {
+function isNullWidth({
+  state,
+  colIndex,
+}: {
+  state: EditorState;
+  colIndex: number;
+}): boolean {
   const firstRowCells = getCellsInRow(0)(state);
-  if (!firstRowCells || firstRowCells[colIndex] === undefined) {
-    return false;
-  }
-
-  const cell = state.doc.nodeAt(firstRowCells[colIndex]);
+  const cell =
+    firstRowCells?.[colIndex] !== undefined
+      ? state.doc.nodeAt(firstRowCells[colIndex])
+      : null;
   const colwidth = cell?.attrs.colwidth;
 
   return !colwidth || (Array.isArray(colwidth) && !colwidth[0]);
 }
 
-const getTotalWidthFromDom = ({
-  state,
+function getWidthFromDom({
   view,
+  rect,
   selectedColumns,
 }: {
-  state: EditorState;
   view?: EditorView;
+  rect: TableRect;
   selectedColumns: number[];
-}) => {
-  const rect = selectedRect(state);
+}): number {
+  if (!view) {return 0;}
 
-  let totalWidth = 0;
-  if (view) {
-    const tableDOM = view.domAtPos(rect.tableStart).node as HTMLElement;
-    const tableElement = tableDOM.closest("table");
+  const tableDOM = view.domAtPos(rect.tableStart).node as HTMLElement;
+  const firstRow = tableDOM.closest("table")?.querySelector("tr");
+  if (!firstRow) {return 0;}
 
-    if (tableElement) {
-      const firstRow = tableElement.querySelector("tr");
-      if (firstRow) {
-        const cells = firstRow.querySelectorAll("td, th");
-        selectedColumns.forEach((colIndex) => {
-          if (cells[colIndex]) {
-            totalWidth += (cells[colIndex] as HTMLElement).offsetWidth;
-          }
-        });
-      }
-    }
-  }
+  const cells = firstRow.querySelectorAll("td, th");
+  return selectedColumns.reduce((total, colIndex) => {
+    const cell = cells[colIndex] as HTMLElement | undefined;
+    return total + (cell?.getBoundingClientRect().width ?? 0);
+  }, 0);
+}
 
-  return totalWidth;
-};
-
-const getTotalWidthFromNode = ({
+function getWidthFromNodes({
   state,
   selectedColumns,
 }: {
   state: EditorState;
   selectedColumns: number[];
-}) => {
+}): number {
   const firstRowCells = getCellsInRow(0)(state);
+  if (!firstRowCells) {return 0;}
 
-  let totalWidth = 0;
-  if (firstRowCells) {
-    selectedColumns.forEach((colIndex) => {
-      if (firstRowCells[colIndex] !== undefined) {
-        const cell = state.doc.nodeAt(firstRowCells[colIndex]);
-        const colwidth = cell?.attrs.colwidth;
-        if (colwidth && Array.isArray(colwidth) && colwidth[0]) {
-          totalWidth += colwidth[0];
-        }
-      }
-    });
-  }
-
-  return totalWidth;
-};
+  return selectedColumns.reduce((total, colIndex) => {
+    const cell =
+      firstRowCells[colIndex] !== undefined
+        ? state.doc.nodeAt(firstRowCells[colIndex])
+        : null;
+    const colwidth = cell?.attrs.colwidth;
+    return total + colwidth[0];
+  }, 0);
+}
 
 export function sortTable({
   index,
