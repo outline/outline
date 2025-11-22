@@ -168,7 +168,7 @@ function EditableTitle(
   );
 }
 
-const Text = styled.span`
+const Text = styled.div`
   ${ellipsis()}
 `;
 
