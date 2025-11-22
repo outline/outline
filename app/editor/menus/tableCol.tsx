@@ -23,8 +23,8 @@ import {
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
 import { ArrowLeftIcon, ArrowRightIcon } from "~/components/Icons/ArrowIcon";
+import { faArrowsLeftRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrows } from "@fortawesome/free-solid-svg-icons";
 
 export default function tableColMenuItems(
   state: EditorState,
@@ -164,10 +164,10 @@ export default function tableColMenuItems(
           name: "separator",
         },
         {
-          name: "spaceColumnsEvenly",
-          label: dictionary.spaceColumnsEvenly,
+          name: "distributeWidthEvenly",
           visible: selectedCols.length > 1,
-          icon: <FontAwesomeIcon icon={faArrows} />,
+          label: dictionary.distributeWidthEvenly,
+          icon: <FontAwesomeIcon icon={faArrowsLeftRight} />,
         },
       ],
     },
