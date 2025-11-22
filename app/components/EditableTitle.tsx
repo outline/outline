@@ -1,7 +1,7 @@
 import * as React from "react";
 import { toast } from "sonner";
 import styled from "styled-components";
-import { s, truncateMultiline } from "@shared/styles";
+import { s, ellipsis } from "@shared/styles";
 
 type Props = Omit<React.HTMLAttributes<HTMLInputElement>, "onSubmit"> & {
   /** A callback when the title is submitted. */
@@ -169,7 +169,7 @@ function EditableTitle(
 }
 
 const Text = styled.span`
-  ${truncateMultiline(3)}
+  ${ellipsis()}
 `;
 
 const Input = styled.input`

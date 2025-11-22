@@ -3,7 +3,7 @@ import * as React from "react";
 import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
-import { hover, s } from "@shared/styles";
+import { ellipsis, hover, s } from "@shared/styles";
 import { isMobile } from "@shared/utils/browser";
 import NudeButton from "~/components/NudeButton";
 import { UnreadBadge } from "~/components/UnreadBadge";
@@ -173,7 +173,7 @@ function SidebarLink(
 // accounts for whitespace around icon
 export const IconWrapper = styled.span`
   margin-left: -4px;
-  margin-right: 4px;
+  margin-right: 2px;
   height: 24px;
   overflow: hidden;
   flex-shrink: 0;
@@ -191,7 +191,7 @@ const Actions = styled(EventBoundary)<{ showActions?: boolean }>`
   display: inline-flex;
   visibility: ${(props) => (props.showActions ? "visible" : "hidden")};
   position: absolute;
-  top: 4px;
+  top: 3px;
   right: 4px;
   gap: 4px;
   color: ${s("textTertiary")};
@@ -232,8 +232,10 @@ const Link = styled(NavLink)<{
   font-weight: 475;
   padding: ${isMobile() ? 12 : 6}px 16px;
   border-radius: 4px;
-  min-height: 32px;
+  min-height: 30px;
   user-select: none;
+  white-space: nowrap;
+  margin-top: 1px;
   background: ${(props) =>
     props.$isActiveDrop ? props.theme.slateDark : "inherit"};
   color: ${(props) =>
@@ -300,7 +302,7 @@ const Link = styled(NavLink)<{
   }
 
   ${breakpoint("tablet")`
-    padding: 4px 8px 4px 16px;
+    padding: 3px 8px 3px 16px;
     font-size: 14px;
   `}
 
@@ -324,6 +326,7 @@ const Label = styled.div`
   position: relative;
   width: 100%;
   line-height: 24px;
+  ${ellipsis()}
 
   * {
     unicode-bidi: plaintext;
