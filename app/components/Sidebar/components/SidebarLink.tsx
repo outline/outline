@@ -3,7 +3,7 @@ import * as React from "react";
 import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
-import { hover, s } from "@shared/styles";
+import { ellipsis, hover, s } from "@shared/styles";
 import { isMobile } from "@shared/utils/browser";
 import NudeButton from "~/components/NudeButton";
 import { UnreadBadge } from "~/components/UnreadBadge";
@@ -77,10 +77,10 @@ function SidebarLink(
   const { handleMouseEnter, handleMouseLeave } = useClickIntent(onClickIntent);
   const style = React.useMemo(
     () => ({
-      paddingLeft: `${(depth || 0) * 16 + 12}px`,
+      paddingLeft: `${(depth || 0) * 16 + (icon ? -8 : 12)}px`,
       paddingRight: unreadBadge ? "32px" : undefined,
     }),
-    [depth]
+    [depth, icon, unreadBadge]
   );
 
   const unreadStyle = React.useMemo(
@@ -108,7 +108,7 @@ function SidebarLink(
   );
 
   const [openContextMenu, setOpen, setClosed] = useBoolean(false);
-  const DisclosureComponent = depth === 0 ? HiddenDisclosure : Disclosure;
+  const DisclosureComponent = icon ? HiddenDisclosure : Disclosure;
 
   const handleClickCapture = React.useCallback(
     (event: React.MouseEvent<HTMLAnchorElement>) => {
@@ -160,7 +160,7 @@ function SidebarLink(
               />
             )}
             {icon && <IconWrapper>{icon}</IconWrapper>}
-            <Label>{label}</Label>
+            <Label $ellipsis={typeof label === "string"}>{label}</Label>
             {unreadBadge && <UnreadBadge style={unreadStyle} />}
           </Content>
         </Link>
@@ -173,7 +173,6 @@ function SidebarLink(
 // accounts for whitespace around icon
 export const IconWrapper = styled.span`
   margin-left: -4px;
-  margin-right: 4px;
   height: 24px;
   overflow: hidden;
   flex-shrink: 0;
@@ -191,7 +190,7 @@ const Actions = styled(EventBoundary)<{ showActions?: boolean }>`
   display: inline-flex;
   visibility: ${(props) => (props.showActions ? "visible" : "hidden")};
   position: absolute;
-  top: 4px;
+  top: 3px;
   right: 4px;
   gap: 4px;
   color: ${s("textTertiary")};
@@ -232,8 +231,10 @@ const Link = styled(NavLink)<{
   font-weight: 475;
   padding: ${isMobile() ? 12 : 6}px 16px;
   border-radius: 4px;
-  min-height: 32px;
+  min-height: 30px;
   user-select: none;
+  white-space: nowrap;
+  margin-top: 1px;
   background: ${(props) =>
     props.$isActiveDrop ? props.theme.slateDark : "inherit"};
   color: ${(props) =>
@@ -300,7 +301,7 @@ const Link = styled(NavLink)<{
   }
 
   ${breakpoint("tablet")`
-    padding: 4px 8px 4px 16px;
+    padding: 3px 8px 3px 12px;
     font-size: 14px;
   `}
 
@@ -320,10 +321,12 @@ const Link = styled(NavLink)<{
   }
 `;
 
-const Label = styled.div`
+const Label = styled.div<{ $ellipsis: boolean }>`
   position: relative;
   width: 100%;
   line-height: 24px;
+  margin-left: 2px;
+  ${(props) => props.$ellipsis && ellipsis()}
 
   * {
     unicode-bidi: plaintext;
