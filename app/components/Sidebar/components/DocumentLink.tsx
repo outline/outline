@@ -130,17 +130,13 @@ function InnerDocumentLink(
     }
   }, [setCollapsed, expanded, hasChildDocuments]);
 
-  const handleDisclosureClick = React.useCallback(
-    (ev) => {
-      ev?.preventDefault();
-      if (expanded) {
-        setCollapsed();
-      } else {
-        setExpanded();
-      }
-    },
-    [setCollapsed, setExpanded, expanded]
-  );
+  const handleDisclosureClick = React.useCallback(() => {
+    if (expanded) {
+      setCollapsed();
+    } else {
+      setExpanded();
+    }
+  }, [setCollapsed, setExpanded, expanded]);
 
   const handlePrefetch = React.useCallback(() => {
     void prefetchDocument?.(node.id);

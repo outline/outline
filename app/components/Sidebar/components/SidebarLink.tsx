@@ -14,7 +14,6 @@ import NavLink, { Props as NavLinkProps } from "./NavLink";
 import { ActionV2WithChildren } from "~/types";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { useTranslation } from "react-i18next";
-import useBoolean from "~/hooks/useBoolean";
 
 type Props = Omit<NavLinkProps, "to"> & {
   to?: LocationDescriptor;
@@ -45,6 +44,7 @@ const activeDropStyle = {
 
 const preventDefault = (ev: React.MouseEvent) => {
   ev.preventDefault();
+  ev.stopPropagation();
 };
 
 function SidebarLink(
@@ -99,32 +99,37 @@ function SidebarLink(
     [theme.text, theme.sidebarActiveBackground, style]
   );
 
-  const hoverStyle = React.useMemo(
-    () => ({
-      color: theme.text,
-      ...style,
-    }),
-    [theme.text, style]
+  const handleClick = React.useCallback(
+    (ev: React.MouseEvent<HTMLAnchorElement>) => {
+      onDisclosureClick?.(ev);
+
+      if (onClick && !disabled && ev.isDefaultPrevented() === false) {
+        onClick(ev);
+      }
+    },
+    [onClick, disabled, expanded]
   );
 
-  const [openContextMenu, setOpen, setClosed] = useBoolean(false);
+  const handleDisclosureClick = React.useCallback(
+    (ev: React.MouseEvent<HTMLElement>) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      onDisclosureClick?.(ev);
+    },
+    [onDisclosureClick]
+  );
+
   const DisclosureComponent = icon ? HiddenDisclosure : Disclosure;
 
   return (
-    <ContextMenu
-      action={contextAction}
-      ariaLabel={t("Link options")}
-      onOpen={setOpen}
-      onClose={setClosed}
-    >
+    <ContextMenu action={contextAction} ariaLabel={t("Link options")}>
       <Link
         $isActiveDrop={isActiveDrop}
         $isDraft={isDraft}
         $disabled={disabled}
+        style={style}
         activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
-        style={openContextMenu ? hoverStyle : active ? activeStyle : style}
-        onClickCapture={onDisclosureClick}
-        onClick={onClick}
+        onClick={handleClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onDragEnter={handleMouseEnter}
@@ -142,6 +147,7 @@ function SidebarLink(
             <DisclosureComponent
               expanded={expanded}
               onClick={preventDefault}
+              onPointerDown={handleDisclosureClick}
               tabIndex={-1}
             />
           )}
