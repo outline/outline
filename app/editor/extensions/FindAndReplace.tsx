@@ -2,7 +2,13 @@ import deburr from "lodash/deburr";
 import escapeRegExp from "lodash/escapeRegExp";
 import { observable } from "mobx";
 import { Node } from "prosemirror-model";
-import { Command, Plugin, PluginKey } from "prosemirror-state";
+import {
+  Command,
+  EditorState,
+  Plugin,
+  PluginKey,
+  Transaction,
+} from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import scrollIntoView from "scroll-into-view-if-needed";
 import Extension, { WidgetProps } from "@shared/editor/lib/Extension";
@@ -145,6 +151,7 @@ export default class FindAndReplaceExtension extends Extension {
       this.currentResultIndex = 0;
 
       dispatch?.(state.tr.setMeta(pluginKey, {}));
+      this.expandHeadings({ state, dispatch });
       return true;
     };
   }
@@ -189,26 +196,8 @@ export default class FindAndReplaceExtension extends Extension {
         }
       }
 
-      const currentResult = this.results[this.currentResultIndex];
-      if (currentResult) {
-        const parentHeadings = this.findFoldingHeadings(
-          state.doc,
-          currentResult.from
-        );
-
-        const tr = state.tr;
-
-        parentHeadings.forEach(({ node, pos }) => {
-          tr.setNodeMarkup(pos, undefined, {
-            ...node.attrs,
-            collapsed: false,
-          });
-        });
-
-        dispatch?.(tr);
-      }
-
       dispatch?.(state.tr.setMeta(pluginKey, {}));
+      this.expandHeadings({ state, dispatch });
 
       const element = window.document.querySelector(
         `.${this.options.resultCurrentClassName}`
@@ -337,6 +326,32 @@ export default class FindAndReplaceExtension extends Extension {
       : DecorationSet.empty;
   }
 
+  private expandHeadings({
+    state,
+    dispatch,
+  }: {
+    state: EditorState;
+    dispatch?: (tr: Transaction) => void;
+  }) {
+    const currentResult = this.results[this.currentResultIndex];
+    if (!currentResult) {return;}
+
+    const parentHeadings = this.findFoldingHeadings(
+      state.doc,
+      currentResult.from
+    );
+    if (parentHeadings.length === 0) {return;}
+
+    const tr = state.tr;
+    parentHeadings.forEach(({ node, pos }) => {
+      if (node.attrs.collapsed) {
+        tr.setNodeMarkup(pos, undefined, { ...node.attrs, collapsed: false });
+      }
+    });
+
+    dispatch?.(tr);
+  }
+
   private findFoldingHeadings(
     doc: Node,
     targetPos: number
@@ -344,25 +359,24 @@ export default class FindAndReplaceExtension extends Extension {
     const headings: Array<{ node: Node; pos: number }> = [];
 
     doc.nodesBetween(0, targetPos, (node, pos) => {
-      if (node.type.name === "heading" && pos < targetPos) {
-        const level = node.attrs.level;
-        const headingEnd = pos + node.nodeSize;
+      if (node.type.name !== "heading" || pos >= targetPos) {return;}
 
-        let foldEnd = doc.content.size;
-        doc.nodesBetween(headingEnd, doc.content.size, (nextNode, nextPos) => {
-          if (
-            nextNode.type.name === "heading" &&
-            nextNode.attrs.level <= level
-          ) {
-            foldEnd = nextPos;
-            return false;
-          }
-          return true;
-        });
+      const headingEnd = pos + node.nodeSize;
 
-        if (targetPos > headingEnd && targetPos <= foldEnd) {
-          headings.push({ node, pos });
+      let foldEnd = doc.content.size;
+      doc.nodesBetween(headingEnd, doc.content.size, (nextNode, nextPos) => {
+        if (
+          nextNode.type.name === "heading" &&
+          nextNode.attrs.level <= node.attrs.level
+        ) {
+          foldEnd = nextPos;
+          return false;
         }
+        return true;
+      });
+
+      if (targetPos > headingEnd && targetPos <= foldEnd) {
+        headings.push({ node, pos });
       }
     });
 
