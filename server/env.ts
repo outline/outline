@@ -613,6 +613,14 @@ export class Environment {
   public AWS_S3_ACL = environment.AWS_S3_ACL ?? "private";
 
   /**
+   * Enable presigned PUT uploads for S3-compatible providers (e.g. Cloudflare R2)
+   */
+  @IsOptional()
+  public S3_SUPPORT_PUT_UPLOAD = this.toBoolean(
+    environment.S3_SUPPORT_PUT_UPLOAD ?? "false"
+  );
+
+  /**
    * Which file storage system to use
    */
   @IsIn(["local", "s3"])

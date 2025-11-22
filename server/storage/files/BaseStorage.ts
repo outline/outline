@@ -9,6 +9,11 @@ import Logger from "@server/logging/Logger";
 import fetch, { chromeUserAgent, RequestInit } from "@server/utils/fetch";
 import { AppContext } from "@server/types";
 
+export type PresignedUpload = Partial<PresignedPost> & {
+  method?: "POST" | "PUT";
+  headers?: Record<string, string>;
+};
+
 export default abstract class BaseStorage {
   /** The default number of seconds until a signed URL expires. */
   public static defaultSignedUrlExpires = 300;
@@ -29,7 +34,7 @@ export default abstract class BaseStorage {
     acl: string,
     maxUploadSize: number,
     contentType: string
-  ): Promise<Partial<PresignedPost>>;
+  ): Promise<PresignedUpload>;
 
   /**
    * Returns a promise that resolves with a stream for reading a file from the storage provider.
