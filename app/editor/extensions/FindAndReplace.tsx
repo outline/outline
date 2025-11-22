@@ -189,6 +189,25 @@ export default class FindAndReplaceExtension extends Extension {
         }
       }
 
+      const currentResult = this.results[this.currentResultIndex];
+      if (currentResult) {
+        const parentHeadings = this.findFoldingHeadings(
+          state.doc,
+          currentResult.from
+        );
+
+        const tr = state.tr;
+
+        parentHeadings.forEach(({ node, pos }) => {
+          tr.setNodeMarkup(pos, undefined, {
+            ...node.attrs,
+            collapsed: false,
+          });
+        });
+
+        dispatch?.(tr);
+      }
+
       dispatch?.(state.tr.setMeta(pluginKey, {}));
 
       const element = window.document.querySelector(
@@ -316,6 +335,38 @@ export default class FindAndReplaceExtension extends Extension {
     return this.decorations
       ? DecorationSet.create(doc, this.decorations)
       : DecorationSet.empty;
+  }
+
+  private findFoldingHeadings(
+    doc: Node,
+    targetPos: number
+  ): Array<{ node: Node; pos: number }> {
+    const headings: Array<{ node: Node; pos: number }> = [];
+
+    doc.nodesBetween(0, targetPos, (node, pos) => {
+      if (node.type.name === "heading" && pos < targetPos) {
+        const level = node.attrs.level;
+        const headingEnd = pos + node.nodeSize;
+
+        let foldEnd = doc.content.size;
+        doc.nodesBetween(headingEnd, doc.content.size, (nextNode, nextPos) => {
+          if (
+            nextNode.type.name === "heading" &&
+            nextNode.attrs.level <= level
+          ) {
+            foldEnd = nextPos;
+            return false;
+          }
+          return true;
+        });
+
+        if (targetPos > headingEnd && targetPos <= foldEnd) {
+          headings.push({ node, pos });
+        }
+      }
+    });
+
+    return headings;
   }
 
   get allowInReadOnly() {
