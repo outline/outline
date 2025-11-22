@@ -141,6 +141,7 @@ function SidebarLink(
           onClick={onClick}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
+          onDragEnter={handleMouseEnter}
           // @ts-expect-error exact does not exist on div
           exact={exact !== false}
           to={to}
