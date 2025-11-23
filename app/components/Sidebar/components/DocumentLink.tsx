@@ -130,17 +130,13 @@ function InnerDocumentLink(
     }
   }, [setCollapsed, expanded, hasChildDocuments]);
 
-  const handleDisclosureClick = React.useCallback(
-    (ev) => {
-      ev?.preventDefault();
-      if (expanded) {
-        setCollapsed();
-      } else {
-        setExpanded();
-      }
-    },
-    [setCollapsed, setExpanded, expanded]
-  );
+  const handleDisclosureClick = React.useCallback(() => {
+    if (expanded) {
+      setCollapsed();
+    } else {
+      setExpanded();
+    }
+  }, [setCollapsed, setExpanded, expanded]);
 
   const handlePrefetch = React.useCallback(() => {
     void prefetchDocument?.(node.id);
@@ -418,7 +414,7 @@ function InnerDocumentLink(
           onKeyDown={handleKeyDown}
         >
           <div ref={dropToReparent}>
-            <DropToImport documentId={node.id} activeClassName="activeDropZone">
+            <DropToImport documentId={node.id}>
               <SidebarLink
                 // @ts-expect-error react-router type is wrong, string component is fine.
                 component={isEditing ? "div" : undefined}

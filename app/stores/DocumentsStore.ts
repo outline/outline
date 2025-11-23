@@ -70,6 +70,11 @@ export default class DocumentsStore extends Store<Document> {
   }
 
   @computed
+  get importFileTypesString(): string {
+    return this.importFileTypes.join(",");
+  }
+
+  @computed
   get all(): Document[] {
     return filter(
       this.orderedData,

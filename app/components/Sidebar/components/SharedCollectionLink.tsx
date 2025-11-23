@@ -40,7 +40,7 @@ function CollectionLink({ node, shareId, hideRootNode }: Props) {
         <SharedDocumentLink
           key={childNode.id}
           index={index}
-          depth={hideRootNode ? 0 : 2}
+          depth={hideRootNode ? 1 : 2}
           shareId={shareId}
           node={childNode}
           prefetchDocument={documents.prefetchDocument}

@@ -32,7 +32,7 @@ import CollectionLinkChildren from "./CollectionLinkChildren";
 type Props = {
   collection: Collection;
   expanded?: boolean;
-  onDisclosureClick: (ev?: React.MouseEvent<HTMLButtonElement>) => void;
+  onDisclosureClick: (ev?: React.MouseEvent<HTMLElement>) => void;
   activeDocument: Document | undefined;
   isDraggingAnyCollection?: boolean;
   depth?: number;

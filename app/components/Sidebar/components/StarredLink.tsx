@@ -41,7 +41,7 @@ type StarredDocumentLinkProps = {
   expanded: boolean;
   sidebarContext: SidebarContextType;
   isDragging: boolean;
-  handleDisclosureClick: (ev?: React.MouseEvent<HTMLButtonElement>) => void;
+  handleDisclosureClick: React.MouseEventHandler<HTMLElement>;
   handlePrefetch: () => void;
   icon: React.ReactNode;
   label: React.ReactNode;
@@ -234,7 +234,7 @@ function StarredLink({ star }: Props) {
   }, [documentId, documents]);
 
   const handleDisclosureClick = React.useCallback(
-    (ev?: React.MouseEvent<HTMLButtonElement>) => {
+    (ev?: React.MouseEvent<HTMLElement>) => {
       ev?.preventDefault();
       ev?.stopPropagation();
       setExpanded((prevExpanded) => !prevExpanded);

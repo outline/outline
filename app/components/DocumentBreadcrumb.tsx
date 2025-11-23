@@ -99,7 +99,12 @@ function DocumentBreadcrumb(
         return createInternalLinkActionV2({
           name: node.icon ? (
             <>
-              <StyledIcon value={node.icon} color={node.color} /> {title}
+              <StyledIcon
+                value={node.icon}
+                color={node.color}
+                initial={node.title.charAt(0).toUpperCase()}
+              />{" "}
+              {title}
             </>
           ) : (
             title
