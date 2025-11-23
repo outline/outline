@@ -78,12 +78,12 @@ export default class PersistenceExtension implements Extension {
   async onChange({ context, documentName }: withContext<onChangePayload>) {
     const [, documentId] = documentName.split(".");
 
-    Logger.debug(
-      "multiplayer",
-      `${context.user?.name} changed ${documentName}`
-    );
-
     if (context.user) {
+      Logger.debug(
+        "multiplayer",
+        `${context.user.name} changed ${documentName}`
+      );
+
       const key = Document.getCollaboratorKey(documentId);
       await Redis.defaultClient.sadd(key, context.user.id);
     }
