@@ -27,13 +27,14 @@ const InputColor: React.FC<Props> = ({ value, onChange, ...rest }: Props) => (
       maxLength={7}
       {...rest}
     />
-    <PositionedSwatchButton color={value} onChange={onChange} />
+    <PositionedSwatchButton color={value} onChange={onChange} size={22} />
   </Relative>
 );
 
 const PositionedSwatchButton = styled(SwatchButton)`
+  border: 1px solid ${(props) => props.theme.inputBorder};
   position: absolute;
-  bottom: 20px;
+  bottom: 21px;
   right: 6px;
 `;
 
