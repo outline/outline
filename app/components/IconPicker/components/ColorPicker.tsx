@@ -1,4 +1,5 @@
 import * as React from "react";
+import debounce from "lodash/debounce";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { colorPalette } from "@shared/utils/collections";
@@ -13,16 +14,41 @@ type Props = {
 };
 
 const ColorPicker = ({ activeColor, onSelect }: Props) => {
-  const isBuiltInColor = colorPalette.includes(activeColor);
-  const color = isBuiltInColor ? undefined : activeColor;
+  const [selectedColor, setSelectedColor] = React.useState(activeColor);
+  const isBuiltInColor = colorPalette.includes(selectedColor);
+  const color = isBuiltInColor ? undefined : selectedColor;
+
+  const debouncedOnSelect = React.useMemo(
+    () =>
+      debounce((color: string) => {
+        onSelect(color);
+      }, 250),
+    [onSelect]
+  );
+
+  React.useEffect(
+    () => () => {
+      debouncedOnSelect.cancel();
+    },
+    [debouncedOnSelect]
+  );
+
+  React.useEffect(() => {
+    setSelectedColor(activeColor);
+  }, [activeColor]);
+
+  const handleSelect = (color: string) => {
+    setSelectedColor(color);
+    debouncedOnSelect(color);
+  };
 
   return (
-    <BuiltinColors activeColor={activeColor} onClick={onSelect}>
+    <BuiltinColors activeColor={selectedColor} onClick={handleSelect}>
       <Divider />
       <SwatchButton
         color={color}
         active={!isBuiltInColor}
-        onChange={onSelect}
+        onChange={handleSelect}
         pickerInModal
       />
     </BuiltinColors>
