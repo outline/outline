@@ -2,6 +2,7 @@ import emojiRegex from "emoji-regex";
 import { z } from "zod";
 import { IconLibrary } from "@shared/utils/IconLibrary";
 import { UrlHelper } from "@shared/utils/UrlHelper";
+import { isInternalUrl } from "@shared/utils/urls";
 
 export function zodEnumFromObjectKeys<
   TI extends Record<string, any>,
@@ -20,6 +21,7 @@ export const zodIconType = () =>
   z.union([
     z.string().regex(emojiRegex()),
     zodEnumFromObjectKeys(IconLibrary.mapping),
+    z.string().refine(isInternalUrl),
   ]);
 
 export const zodTimezone = () =>
