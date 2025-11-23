@@ -816,8 +816,8 @@ describe("#documents.list", () => {
       }),
     ]);
     await Promise.all([
-      await withAPIContext(user, (ctx) => docs[0].archiveWithCtx(ctx)),
-      await withAPIContext(user, (ctx) => docs[1].archiveWithCtx(ctx)),
+      withAPIContext(user, (ctx) => docs[0].archiveWithCtx(ctx)),
+      withAPIContext(user, (ctx) => docs[1].archiveWithCtx(ctx)),
     ]);
     const res = await server.post("/api/documents.list", {
       body: {
@@ -2130,10 +2130,10 @@ describe("#documents.archived", () => {
       ]);
 
     await Promise.all([
-      await withAPIContext(user, (ctx) =>
+      withAPIContext(user, (ctx) =>
         documentInFirstCollection.archiveWithCtx(ctx)
       ),
-      await withAPIContext(user, (ctx) =>
+      withAPIContext(user, (ctx) =>
         documentInSecondCollection.archiveWithCtx(ctx)
       ),
     ]);
@@ -2173,10 +2173,10 @@ describe("#documents.archived", () => {
       ]);
 
     await Promise.all([
-      await withAPIContext(user, (ctx) =>
+      withAPIContext(user, (ctx) =>
         documentInFirstCollection.archiveWithCtx(ctx)
       ),
-      await withAPIContext(user, (ctx) =>
+      withAPIContext(user, (ctx) =>
         documentInSecondCollection.archiveWithCtx(ctx)
       ),
     ]);

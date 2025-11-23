@@ -51,7 +51,7 @@ describe("documentMover", () => {
       title: "Child document",
       text: "content",
     });
-    const response = await await withAPIContext(user, (ctx) =>
+    const response = await withAPIContext(user, (ctx) =>
       documentMover(ctx, {
         document,
         collectionId: collection.id,
@@ -89,7 +89,7 @@ describe("documentMover", () => {
       text: "content",
     });
     await collection.addDocumentToStructure(newDocument);
-    const response = await await withAPIContext(user, (ctx) =>
+    const response = await withAPIContext(user, (ctx) =>
       documentMover(ctx, {
         document,
         collectionId: collection.id,
@@ -130,7 +130,7 @@ describe("documentMover", () => {
       text: "content",
     });
     await collection.addDocumentToStructure(newDocument);
-    const response = await await withAPIContext(user, (ctx) =>
+    const response = await withAPIContext(user, (ctx) =>
       documentMover(ctx, {
         document,
         collectionId: newCollection.id,
