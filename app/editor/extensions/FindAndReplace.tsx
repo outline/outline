@@ -338,7 +338,7 @@ export default class FindAndReplaceExtension extends Extension {
       return;
     }
 
-    const parentHeadings = this.findFoldingHeadings({
+    const parentHeadings = this.findFoldedHeadings({
       doc: state.doc,
       targetPos: currentResult.from,
     });
@@ -353,7 +353,7 @@ export default class FindAndReplaceExtension extends Extension {
     dispatch?.(tr);
   }
 
-  private findFoldingHeadings({
+  private findFoldedHeadings({
     doc,
     targetPos,
   }: {
