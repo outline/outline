@@ -145,6 +145,7 @@ declare module "styled-components" {
     placeholder: string;
     commentMarkBackground: string;
     sidebarBackground: string;
+    sidebarHoverBackground: string;
     sidebarActiveBackground: string;
     sidebarControlHoverBackground: string;
     sidebarDraftBorder: string;

@@ -197,7 +197,7 @@ const CollectionScene = observer(function _CollectionScene() {
       }
     >
       <DropToImport
-        accept={documents.importFileTypes.join(", ")}
+        accept={documents.importFileTypesString}
         disabled={!can.createDocument}
         collectionId={collection.id}
       >

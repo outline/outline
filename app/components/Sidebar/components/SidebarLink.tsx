@@ -3,7 +3,7 @@ import * as React from "react";
 import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
-import { hover, s } from "@shared/styles";
+import { ellipsis, hover, s } from "@shared/styles";
 import { isMobile } from "@shared/utils/browser";
 import NudeButton from "~/components/NudeButton";
 import { UnreadBadge } from "~/components/UnreadBadge";
@@ -14,15 +14,14 @@ import NavLink, { Props as NavLinkProps } from "./NavLink";
 import { ActionV2WithChildren } from "~/types";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { useTranslation } from "react-i18next";
-import useBoolean from "~/hooks/useBoolean";
 
 type Props = Omit<NavLinkProps, "to"> & {
   to?: LocationDescriptor;
   innerRef?: (ref: HTMLElement | null | undefined) => void;
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
   /** Callback when we expect the user to click on the link. Used for prefetching data. */
-  onClickIntent?: () => void;
-  onDisclosureClick?: React.MouseEventHandler<HTMLButtonElement>;
+  onClickIntent?: React.MouseEventHandler<HTMLElement>;
+  onDisclosureClick?: React.MouseEventHandler<HTMLElement>;
   icon?: React.ReactNode;
   label?: React.ReactNode;
   menu?: React.ReactNode;
@@ -45,6 +44,7 @@ const activeDropStyle = {
 
 const preventDefault = (ev: React.MouseEvent) => {
   ev.preventDefault();
+  ev.stopPropagation();
 };
 
 function SidebarLink(
@@ -77,10 +77,10 @@ function SidebarLink(
   const { handleMouseEnter, handleMouseLeave } = useClickIntent(onClickIntent);
   const style = React.useMemo(
     () => ({
-      paddingLeft: `${(depth || 0) * 16 + 12}px`,
+      paddingLeft: `${(depth || 0) * 16 + (icon ? -8 : 12)}px`,
       paddingRight: unreadBadge ? "32px" : undefined,
     }),
-    [depth]
+    [depth, icon, unreadBadge]
   );
 
   const unreadStyle = React.useMemo(
@@ -99,81 +99,71 @@ function SidebarLink(
     [theme.text, theme.sidebarActiveBackground, style]
   );
 
-  const hoverStyle = React.useMemo(
-    () => ({
-      color: theme.text,
-      ...style,
-    }),
-    [theme.text, style]
-  );
+  const handleClick = React.useCallback(
+    (ev: React.MouseEvent<HTMLAnchorElement>) => {
+      onDisclosureClick?.(ev);
 
-  const [openContextMenu, setOpen, setClosed] = useBoolean(false);
-  const DisclosureComponent = depth === 0 ? HiddenDisclosure : Disclosure;
-
-  const handleClickCapture = React.useCallback(
-    (event: React.MouseEvent<HTMLAnchorElement>) => {
-      if (event.altKey && onDisclosureClick && expanded !== undefined) {
-        event.preventDefault();
-        event.stopPropagation();
-        onDisclosureClick(
-          event as unknown as React.MouseEvent<HTMLButtonElement>
-        );
+      if (onClick && !disabled && ev.isDefaultPrevented() === false) {
+        onClick(ev);
       }
     },
-    [onDisclosureClick, expanded]
+    [onClick, disabled, expanded]
   );
 
+  const handleDisclosureClick = React.useCallback(
+    (ev: React.MouseEvent<HTMLElement>) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      onDisclosureClick?.(ev);
+    },
+    [onDisclosureClick]
+  );
+
+  const DisclosureComponent = icon ? HiddenDisclosure : Disclosure;
+
   return (
-    <>
-      <ContextMenu
-        action={contextAction}
-        ariaLabel={t("Link options")}
-        onOpen={setOpen}
-        onClose={setClosed}
+    <ContextMenu action={contextAction} ariaLabel={t("Link options")}>
+      <Link
+        $isActiveDrop={isActiveDrop}
+        $isDraft={isDraft}
+        $disabled={disabled}
+        style={style}
+        activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
+        onClick={handleClick}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onDragEnter={handleMouseEnter}
+        // @ts-expect-error exact does not exist on div
+        exact={exact !== false}
+        to={to}
+        as={to ? undefined : href ? "a" : "div"}
+        href={href}
+        className={className}
+        ref={ref}
+        {...rest}
       >
-        <Link
-          $isActiveDrop={isActiveDrop}
-          $isDraft={isDraft}
-          $disabled={disabled}
-          activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
-          style={openContextMenu ? hoverStyle : active ? activeStyle : style}
-          onClickCapture={handleClickCapture}
-          onClick={onClick}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-          // @ts-expect-error exact does not exist on div
-          exact={exact !== false}
-          to={to}
-          as={to ? undefined : href ? "a" : "div"}
-          href={href}
-          className={className}
-          ref={ref}
-          {...rest}
-        >
-          <Content>
-            {expanded !== undefined && (
-              <DisclosureComponent
-                expanded={expanded}
-                onMouseDown={onDisclosureClick}
-                onClick={preventDefault}
-                tabIndex={-1}
-              />
-            )}
-            {icon && <IconWrapper>{icon}</IconWrapper>}
-            <Label>{label}</Label>
-            {unreadBadge && <UnreadBadge style={unreadStyle} />}
-          </Content>
-        </Link>
-      </ContextMenu>
-      {menu && <Actions showActions={showActions}>{menu}</Actions>}
-    </>
+        <Content>
+          {expanded !== undefined && (
+            <DisclosureComponent
+              expanded={expanded}
+              onClick={preventDefault}
+              onPointerDown={handleDisclosureClick}
+              tabIndex={-1}
+            />
+          )}
+          {icon && <IconWrapper>{icon}</IconWrapper>}
+          <Label $ellipsis={typeof label === "string"}>{label}</Label>
+          {unreadBadge && <UnreadBadge style={unreadStyle} />}
+        </Content>
+        {menu && <Actions showActions={showActions}>{menu}</Actions>}
+      </Link>
+    </ContextMenu>
   );
 }
 
 // accounts for whitespace around icon
 export const IconWrapper = styled.span`
   margin-left: -4px;
-  margin-right: 4px;
   height: 24px;
   overflow: hidden;
   flex-shrink: 0;
@@ -191,12 +181,13 @@ const Actions = styled(EventBoundary)<{ showActions?: boolean }>`
   display: inline-flex;
   visibility: ${(props) => (props.showActions ? "visible" : "hidden")};
   position: absolute;
-  top: 4px;
+  top: 3px;
   right: 4px;
   gap: 4px;
   color: ${s("textTertiary")};
   transition: opacity 50ms;
   height: 24px;
+  background: var(--background);
 
   svg {
     color: ${s("textSecondary")};
@@ -226,16 +217,28 @@ const Link = styled(NavLink)<{
   $isDraft?: boolean;
   $disabled?: boolean;
 }>`
+  &:hover,
+  &:active {
+    --background: ${s("sidebarHoverBackground")};
+  }
+
+  &[aria-current="page"] ${Actions} {
+    --background: ${s("sidebarActiveBackground")};
+  }
+
+  ${(props) => props.$isActiveDrop && `--background: ${props.theme.slateDark};`}
+
   display: flex;
   position: relative;
   text-overflow: ellipsis;
   font-weight: 475;
   padding: ${isMobile() ? 12 : 6}px 16px;
   border-radius: 4px;
-  min-height: 32px;
+  min-height: 30px;
   user-select: none;
-  background: ${(props) =>
-    props.$isActiveDrop ? props.theme.slateDark : "inherit"};
+  white-space: nowrap;
+  margin-top: 1px;
+  background: var(--background);
   color: ${(props) =>
     props.$isActiveDrop ? props.theme.white : props.theme.sidebarText};
   font-size: 16px;
@@ -282,30 +285,13 @@ const Link = styled(NavLink)<{
     }
   }
 
-  & + ${Actions} {
-    background: ${s("sidebarBackground")};
-
-    ${NudeButton} {
-      background: transparent;
-
-      &:hover,
-      &[aria-expanded="true"] {
-        background: ${s("sidebarControlHoverBackground")};
-      }
-    }
-  }
-
-  &[aria-current="page"] + ${Actions} {
-    background: ${s("sidebarActiveBackground")};
-  }
-
   ${breakpoint("tablet")`
-    padding: 4px 8px 4px 16px;
+    padding: 3px 8px 3px 12px;
     font-size: 14px;
   `}
 
   @media (hover: hover) {
-    &:hover + ${Actions}, &:active + ${Actions} {
+    &:hover ${Actions}, &:active ${Actions} {
       visibility: visible;
 
       svg {
@@ -318,12 +304,25 @@ const Link = styled(NavLink)<{
         props.$isActiveDrop ? props.theme.white : props.theme.text};
     }
   }
+
+  & ${Actions} {
+    ${NudeButton} {
+      background: transparent;
+
+      &:hover,
+      &[aria-expanded="true"] {
+        background: ${s("sidebarControlHoverBackground")};
+      }
+    }
+  }
 `;
 
-const Label = styled.div`
+const Label = styled.div<{ $ellipsis: boolean }>`
   position: relative;
   width: 100%;
   line-height: 24px;
+  margin-left: 2px;
+  ${(props) => props.$ellipsis && ellipsis()}
 
   * {
     unicode-bidi: plaintext;
