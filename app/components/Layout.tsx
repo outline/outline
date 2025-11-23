@@ -4,20 +4,21 @@ import { Helmet } from "react-helmet-async";
 import styled, { DefaultTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
-import { isModKey } from "@shared/utils/keyboard";
 import Flex from "~/components/Flex";
 import { LoadingIndicatorBar } from "~/components/LoadingIndicator";
 import SkipNavContent from "~/components/SkipNavContent";
 import SkipNavLink from "~/components/SkipNavLink";
 import env from "~/env";
-import useAutoRefresh from "~/hooks/useAutoRefresh";
-import useKeyDown from "~/hooks/useKeyDown";
 import useStores from "~/hooks/useStores";
 
 type Props = {
+  /** Main content to render in the layout. */
   children?: React.ReactNode;
+  /** Page title to display in the browser tab. Defaults to app name if not provided. */
   title?: string;
+  /** Left sidebar content. */
   sidebar?: React.ReactNode;
+  /** Right sidebar content. */
   sidebarRight?: React.ReactNode;
 };
 
@@ -27,14 +28,6 @@ const Layout = React.forwardRef(function Layout_(
 ) {
   const { ui } = useStores();
   const sidebarCollapsed = !sidebar || ui.sidebarIsClosed;
-
-  useAutoRefresh();
-
-  useKeyDown(".", (event) => {
-    if (isModKey(event)) {
-      ui.toggleCollapsedSidebar();
-    }
-  });
 
   return (
     <Container column auto ref={ref}>
