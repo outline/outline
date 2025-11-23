@@ -20,7 +20,11 @@ function Trash() {
       title={t("Trash")}
       actions={
         documents.deleted.length > 0 && (
-          <Button neutral action={permanentlyDeleteDocumentsInTrash}>
+          <Button
+            neutral
+            action={permanentlyDeleteDocumentsInTrash}
+            hideOnActionDisabled
+          >
             {t("Empty trash")}
           </Button>
         )

@@ -30,19 +30,19 @@ const ActionButton = React.forwardRef<HTMLButtonElement, Props>(
     });
     const isMounted = useIsMounted();
     const [executing, setExecuting] = React.useState(false);
-    const disabled = rest.disabled;
 
     if (!actionContext || !action) {
       return <button {...rest} ref={ref} />;
     }
 
-    if (
-      action.visible &&
-      !resolve<boolean>(action.visible, actionContext) &&
-      hideOnActionDisabled
-    ) {
+    const actionIsDisabled =
+      action.visible && !resolve<boolean>(action.visible, actionContext);
+
+    if (actionIsDisabled && hideOnActionDisabled) {
       return null;
     }
+
+    const disabled = rest.disabled || actionIsDisabled;
 
     const label =
       rest["aria-label"] ??
