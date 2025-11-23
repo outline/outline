@@ -85,6 +85,7 @@ class MermaidRenderer {
       mermaid ??= (await import("mermaid")).default;
       mermaid.initialize({
         startOnLoad: true,
+        suppressErrorRendering: true,
         // TODO: Make dynamic based on the width of the editor or remove in
         // the future if Mermaid is able to handle this automatically.
         gantt: { useWidth: 700 },
