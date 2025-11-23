@@ -3,7 +3,6 @@ import { Minute } from "@shared/utils/time";
 import Logger from "~/utils/Logger";
 import useIdle from "./useIdle";
 import useInterval from "./useInterval";
-import usePageVisibility from "./usePageVisibility";
 
 // The case of isReloaded=true should never be hit as the app will reload
 // before the hook is called again, however seems like the only possible
@@ -15,24 +14,18 @@ let isReloaded = false;
  */
 export default function useAutoRefresh() {
   const [minutes, setMinutes] = useState(0);
-  const isVisible = usePageVisibility();
-  const isIdle = useIdle(15 * Minute.ms);
+  const isIdle = useIdle(5 * Minute.ms);
 
   useInterval(() => {
     setMinutes((prev) => prev + 1);
 
     if (minutes >= 60 * 24) {
-      if (isVisible) {
-        Logger.debug("lifecycle", "Skipping reload due to app visible");
-        return;
-      }
       if (!isIdle) {
         Logger.debug("lifecycle", "Skipping reload due to user activity");
         return;
       }
       if (isReloaded) {
         Logger.warn("Attempted to reload twice");
-        return;
       }
 
       Logger.debug("lifecycle", "Auto-reloading app…");
