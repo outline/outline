@@ -70,8 +70,12 @@ class MermaidRenderer {
     }
 
     // Create a temporary element that will render the diagram off-screen. This is necessary
-    // as Mermaid will error if the element is not visible, such as if the heading is collapsed
+    // as Mermaid will error if the element is not visible or the element is removed while the
+    // diagram is being rendered.
     const renderElement = document.createElement("div");
+    const tempId =
+      "offscreen-mermaid-" + Math.random().toString(36).substr(2, 9);
+    renderElement.id = tempId;
     renderElement.style.position = "absolute";
     renderElement.style.left = "-9999px";
     renderElement.style.top = "-9999px";
@@ -90,12 +94,7 @@ class MermaidRenderer {
         darkMode: isDark,
       });
 
-      const { svg, bindFunctions } = await mermaid.render(
-        `mermaid-diagram-${this.diagramId}`,
-        text,
-        // If the element is not visible we use an off-screen element to render the diagram
-        element.offsetParent === null ? renderElement : element
-      );
+      const { svg, bindFunctions } = await mermaid.render(tempId, text);
 
       // Cache the rendered SVG so we won't need to calculate it again in the same session
       if (text) {
