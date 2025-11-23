@@ -29,18 +29,33 @@ const normalizeToLocation = (
 const joinClassnames = (...classnames: (string | undefined)[]) =>
   classnames.filter((i) => i).join(" ");
 
+/**
+ * Props for the NavLink component.
+ * Extends standard anchor element attributes with React Router navigation functionality.
+ */
 export interface Props extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+  /** CSS class name to apply when the link is active */
   activeClassName?: string;
+  /** Inline styles to apply when the link is active */
   activeStyle?: React.CSSProperties;
+  /** Whether to automatically scroll the link into view when it becomes active */
   scrollIntoViewIfNeeded?: boolean;
+  /** If true, only matches when the path matches the location.pathname exactly */
   exact?: boolean;
+  /** If true, use history.replace instead of history.push when navigating */
   replace?: boolean;
+  /** Custom function to determine if the link is active */
   isActive?: (match: match | null, location: Location) => boolean;
+  /** The location to match against. Defaults to the current history location */
   location?: Location;
+  /** If true, trailing slashes on the path will be considered when matching */
   strict?: boolean;
+  /** The location to navigate to. Can be a string path or location descriptor object */
   to: LocationDescriptor;
+  /** Custom component to use instead of the default anchor element */
   component?: React.ComponentType;
-  onBeforeClick?: () => void;
+  /** Callback fired when an active link is clicked */
+  onActiveClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
 }
 
 /**
@@ -59,7 +74,7 @@ const NavLink = ({
   style: styleProp,
   scrollIntoViewIfNeeded,
   onClick,
-  onBeforeClick,
+  onActiveClick,
   to,
   ...rest
 }: Props) => {
@@ -126,6 +141,10 @@ const NavLink = ({
     (event: React.MouseEvent<HTMLAnchorElement>) => {
       onClick?.(event);
 
+      if (isActive) {
+        onActiveClick?.(event);
+      }
+
       if (shouldFastClick(event)) {
         event.currentTarget.focus();
 
@@ -138,7 +157,7 @@ const NavLink = ({
         });
       }
     },
-    [onClick, navigateTo, shouldFastClick]
+    [onClick, navigateTo, isActive, shouldFastClick]
   );
 
   React.useEffect(() => {
