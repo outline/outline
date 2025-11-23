@@ -8,6 +8,7 @@ import env from "~/env";
 import useQueryNotices from "~/hooks/useQueryNotices";
 import lazy from "~/utils/lazyWithRetry";
 import { matchDocumentSlug as documentSlug } from "~/utils/routeHelpers";
+import useAutoRefresh from "~/hooks/useAutoRefresh";
 
 const Authenticated = lazy(() => import("~/components/Authenticated"));
 const AuthenticatedRoutes = lazy(() => import("./authenticated"));
@@ -18,6 +19,7 @@ const OAuthAuthorize = lazy(() => import("~/scenes/Login/OAuthAuthorize"));
 
 export default function Routes() {
   useQueryNotices();
+  useAutoRefresh();
 
   return (
     <Suspense
