@@ -1,4 +1,5 @@
 import has from "lodash/has";
+import isEqual from "lodash/isEqual";
 import { TeamPreference } from "@shared/types";
 import env from "@server/env";
 import { Team, TeamDomain, User } from "@server/models";
@@ -55,9 +56,12 @@ const teamUpdater = async (ctx: APIContext, { params, user, team }: Props) => {
   }
 
   if (preferences) {
-    for (const value of Object.values(TeamPreference)) {
-      if (has(preferences, value)) {
-        team.setPreference(value, preferences[value]);
+    for (const key of Object.values(TeamPreference)) {
+      if (
+        has(preferences, key) &&
+        !isEqual(preferences[key], team.getPreference(key))
+      ) {
+        team.setPreference(key, preferences[key]);
       }
     }
   }
