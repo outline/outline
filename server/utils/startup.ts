@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import { styleText } from "node:util";
 import isEmpty from "lodash/isEmpty";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -17,7 +17,8 @@ export async function checkPendingMigrations() {
     if (!isEmpty(pending)) {
       if (getArg("no-migrate")) {
         Logger.warn(
-          chalk.red(
+          styleText(
+            "red",
             `Database migrations are pending and were not ran because --no-migrate flag was passed.\nRun the migrations with "yarn db:migrate".`
           )
         );
@@ -31,12 +32,13 @@ export async function checkPendingMigrations() {
   } catch (err) {
     if (err.message.includes("ECONNREFUSED")) {
       Logger.warn(
-        chalk.red(
+        styleText(
+          "red",
           `Could not connect to the database. Please check your connection settings.`
         )
       );
     } else {
-      Logger.warn(chalk.red(err.message));
+      Logger.warn(styleText("red", err.message));
     }
     process.exit(1);
   } finally {
@@ -75,15 +77,20 @@ export async function printEnv() {
   if (env.isProduction) {
     Logger.info(
       "lifecycle",
-      chalk.green(`
+      styleText(
+        "green",
+        `
 Is your team enjoying Outline? Consider supporting future development by sponsoring the project:\n\nhttps://github.com/sponsors/outline
-`)
+`
+      )
     );
   } else if (env.isDevelopment) {
     Logger.warn(
-      `Running Outline in ${chalk.bold(
+      `Running Outline in ${styleText(
+        "bold",
         "development mode"
-      )}. To run Outline in production mode set the ${chalk.bold(
+      )}. To run Outline in production mode set the ${styleText(
+        "bold",
         "NODE_ENV"
       )} env variable to "production"`
     );
