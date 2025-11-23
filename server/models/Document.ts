@@ -295,6 +295,7 @@ class Document extends ArchivableModel<
     msg: `Document summary must be ${DocumentValidation.maxSummaryLength} characters or less`,
   })
   @Column
+  @SkipChangeset
   summary: string;
 
   @Column(DataType.ARRAY(DataType.STRING))
