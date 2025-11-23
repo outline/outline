@@ -334,13 +334,14 @@ export default class FindAndReplaceExtension extends Extension {
     dispatch?: (tr: Transaction) => void;
   }) {
     const currentResult = this.results[this.currentResultIndex];
-    if (!currentResult) {return;}
+    if (!currentResult) {
+      return;
+    }
 
-    const parentHeadings = this.findFoldingHeadings(
-      state.doc,
-      currentResult.from
-    );
-    if (parentHeadings.length === 0) {return;}
+    const parentHeadings = this.findFoldingHeadings({
+      doc: state.doc,
+      targetPos: currentResult.from,
+    });
 
     const tr = state.tr;
     parentHeadings.forEach(({ node, pos }) => {
@@ -352,30 +353,29 @@ export default class FindAndReplaceExtension extends Extension {
     dispatch?.(tr);
   }
 
-  private findFoldingHeadings(
-    doc: Node,
-    targetPos: number
-  ): Array<{ node: Node; pos: number }> {
+  private findFoldingHeadings({
+    doc,
+    targetPos,
+  }: {
+    doc: Node;
+    targetPos: number;
+  }): Array<{ node: Node; pos: number }> {
     const headings: Array<{ node: Node; pos: number }> = [];
 
     doc.nodesBetween(0, targetPos, (node, pos) => {
-      if (node.type.name !== "heading" || pos >= targetPos) {return;}
+      if (node.type.name !== "heading" || pos >= targetPos) {
+        return;
+      }
 
-      const headingEnd = pos + node.nodeSize;
+      const level = node.attrs.level;
+      while (
+        headings.length > 0 &&
+        headings[headings.length - 1].node.attrs.level >= level
+      ) {
+        headings.pop();
+      }
 
-      let foldEnd = doc.content.size;
-      doc.nodesBetween(headingEnd, doc.content.size, (nextNode, nextPos) => {
-        if (
-          nextNode.type.name === "heading" &&
-          nextNode.attrs.level <= node.attrs.level
-        ) {
-          foldEnd = nextPos;
-          return false;
-        }
-        return true;
-      });
-
-      if (targetPos > headingEnd && targetPos <= foldEnd) {
+      if (node.attrs.collapsed) {
         headings.push({ node, pos });
       }
     });
