@@ -21,10 +21,12 @@ type Props = ComponentProps & {
   /** The editor view */
   view: EditorView;
   children?: React.ReactElement;
+  isDownloading?: boolean;
 };
 
 const Image = (props: Props) => {
-  const { isSelected, node, isEditable, onChangeSize, onClick } = props;
+  const { isSelected, node, isEditable, onChangeSize, onClick, isDownloading } =
+    props;
   const { src, layoutClass } = node.attrs;
   const { t } = useTranslation();
   const className = layoutClass ? `image image-${layoutClass}` : "image";
@@ -34,17 +36,22 @@ const Image = (props: Props) => {
   const [naturalHeight, setNaturalHeight] = React.useState(node.attrs.height);
   const lastTapTimeRef = React.useRef(0);
   const ref = React.useRef<HTMLDivElement>(null);
-  const { width, height, setSize, handlePointerDown, dragging } = useDragResize(
-    {
-      width: node.attrs.width ?? naturalWidth,
-      height: node.attrs.height ?? naturalHeight,
-      naturalWidth,
-      naturalHeight,
-      gridSnap: 5,
-      onChangeSize,
-      ref,
-    }
-  );
+  const {
+    width,
+    height,
+    setSize,
+    handlePointerDown,
+    handleDoubleClick,
+    dragging,
+  } = useDragResize({
+    width: node.attrs.width ?? naturalWidth,
+    height: node.attrs.height ?? naturalHeight,
+    naturalWidth,
+    naturalHeight,
+    gridSnap: 5,
+    onChangeSize,
+    ref,
+  });
 
   const isFullWidth = layoutClass === "full-width";
   const isResizable = !!props.onChangeSize && !error;
@@ -92,7 +99,11 @@ const Image = (props: Props) => {
     <div contentEditable={false} className={className} ref={ref}>
       <ImageWrapper
         isFullWidth={isFullWidth}
-        className={isSelected || dragging ? "ProseMirror-selectednode" : ""}
+        className={
+          isSelected || dragging
+            ? "image-wrapper ProseMirror-selectednode"
+            : "image-wrapper"
+        }
         style={widthStyle}
       >
         {!dragging && width > 60 && isDownloadable && (
@@ -102,7 +113,11 @@ const Image = (props: Props) => {
                 <GlobeIcon />
               </Button>
             )}
-            <Button onClick={props.onDownload} aria-label={t("Download")}>
+            <Button
+              onClick={props.onDownload}
+              aria-label={t("Download")}
+              disabled={isDownloading}
+            >
               <DownloadIcon />
             </Button>
           </Actions>
@@ -166,10 +181,12 @@ const Image = (props: Props) => {
           <>
             <ResizeLeft
               onPointerDown={handlePointerDown("left")}
+              onDoubleClick={handleDoubleClick}
               $dragging={!!dragging}
             />
             <ResizeRight
               onPointerDown={handlePointerDown("right")}
+              onDoubleClick={handleDoubleClick}
               $dragging={!!dragging}
             />
           </>
@@ -191,7 +208,7 @@ export const Error = styled(Flex)`
   color: ${s("textTertiary")};
   font-size: 14px;
   background: ${s("backgroundSecondary")};
-  border-radius: 4px;
+  border-radius: ${EditorStyleHelper.blockRadius};
   min-width: 33vw;
   height: 80px;
   align-items: center;
@@ -224,7 +241,7 @@ const Button = styled.button`
   width: 24px;
   height: 24px;
   display: inline-block;
-  cursor: var(--pointer) !important;
+  cursor: var(--pointer);
   transition: opacity 150ms ease-in-out;
 
   &:first-child:not(:last-child) {
@@ -243,6 +260,20 @@ const Button = styled.button`
 
   &:hover {
     color: ${s("text")};
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: wait;
+    pointer-events: none;
+
+    &:hover {
+      color: ${s("textSecondary")};
+    }
+
+    &:active {
+      transform: none;
+    }
   }
 `;
 

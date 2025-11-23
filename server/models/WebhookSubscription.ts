@@ -26,6 +26,7 @@ import ParanoidModel from "./base/ParanoidModel";
 import Encrypted from "./decorators/Encrypted";
 import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
+import { randomString } from "@shared/random";
 
 @DefaultScope(() => ({
   include: [
@@ -98,7 +99,14 @@ class WebhookSubscription extends ParanoidModel<
     }
   }
 
-  // methods
+  // instance methods
+
+  /**
+   * Rotate the secret value. Does not persist to database.
+   */
+  public rotateSecret() {
+    this.secret = `ol_whs_${randomString(32)}`;
+  }
 
   /**
    * Disables the webhook subscription

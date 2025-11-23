@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/react";
+import { v4 as uuidv4 } from "uuid";
 import { EditorView } from "prosemirror-view";
 import { toast } from "sonner";
-import { v4 as uuidv4 } from "uuid";
 import type { Dictionary } from "~/hooks/useDictionary";
 import FileHelper from "../lib/FileHelper";
 import uploadPlaceholderPlugin, {

@@ -60,6 +60,7 @@ api.use(
       ),
       maxFieldsSize: 10 * 1024 * 1024,
     },
+    jsonLimit: 5 * 1024 * 1024, // 5MB limit for JSON payloads
   })
 );
 api.use(coalesceBody());

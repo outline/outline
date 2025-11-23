@@ -31,6 +31,9 @@ export default styled.button.attrs((props) => ({
 
   &:hover {
     opacity: 1;
+
+    // extraArea overlaps slightly, this ensures the currently hovered button is on top
+    z-index: 1;
   }
 
   ${(props) =>
@@ -44,7 +47,7 @@ export default styled.button.attrs((props) => ({
     cursor: default;
   }
 
-  ${extraArea(4)}
+  ${extraArea(5)}
 
   ${(props) =>
     props.active &&

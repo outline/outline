@@ -6,6 +6,7 @@ import { useLastVisitedPath } from "~/hooks/useLastVisitedPath";
 import useStores from "~/hooks/useStores";
 import DataLoader from "./components/DataLoader";
 import Document from "./components/Document";
+import { Footer } from "./components/Footer";
 
 type Params = {
   documentSlug: string;
@@ -65,7 +66,11 @@ export default function DocumentScene(props: Props) {
       history={props.history}
       location={props.location}
     >
-      {(rest) => <Document {...rest} />}
+      {(rest) => (
+        <Document {...rest}>
+          <Footer document={rest.document} />
+        </Document>
+      )}
     </DataLoader>
   );
 }

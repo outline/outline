@@ -1,12 +1,21 @@
-import { useEditor } from "~/editor/components/EditorContext";
 import { observer } from "mobx-react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { findChildren } from "@shared/editor/queries/findChildren";
-import findIndex from "lodash/findIndex";
 import styled, { css, Keyframes, keyframes } from "styled-components";
-import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
-import { sanitizeUrl } from "@shared/utils/urls";
-import { Error } from "@shared/editor/components/Image";
+import {
+  ComponentProps,
+  createContext,
+  forwardRef,
+  HTMLAttributes,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { isInternalUrl } from "@shared/utils/urls";
+import { Error as ImageError } from "@shared/editor/components/Image";
 import {
   BackIcon,
   CloseIcon,
@@ -14,12 +23,13 @@ import {
   DownloadIcon,
   LinkIcon,
   NextIcon,
+  ZoomInIcon,
+  ZoomOutIcon,
 } from "outline-icons";
 import { depths, extraArea, s } from "@shared/styles";
 import NudeButton from "./NudeButton";
 import useIdle from "~/hooks/useIdle";
 import { Second } from "@shared/utils/time";
-import { downloadImageNode } from "@shared/editor/nodes/Image";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { useTranslation } from "react-i18next";
 import Tooltip from "~/components/Tooltip";
@@ -29,6 +39,17 @@ import Button from "./Button";
 import CopyToClipboard from "./CopyToClipboard";
 import { Separator } from "./Actions";
 import useSwipe from "~/hooks/useSwipe";
+import { toast } from "sonner";
+import { findIndex } from "lodash";
+import { LightboxImage } from "@shared/editor/lib/Lightbox";
+import {
+  TransformWrapper,
+  TransformComponent,
+  useTransformEffect,
+  ReactZoomPanPinchRef,
+} from "react-zoom-pan-pinch";
+import { transparentize } from "polished";
+import { mergeRefs } from "react-merge-refs";
 
 export enum LightboxStatus {
   READY_TO_OPEN,
@@ -43,6 +64,9 @@ export enum ImageStatus {
   LOADING,
   ERROR,
   LOADED,
+  MIN_ZOOM,
+  MAX_ZOOM,
+  ZOOMED,
 }
 type Status = {
   lightbox: LightboxStatus | null;
@@ -60,46 +84,152 @@ type Animation = {
 const ANIMATION_DURATION = 0.3 * Second.ms;
 
 type Props = {
-  /** Callback triggered when the active image position is updated */
-  onUpdate: (pos: number | null) => void;
+  /** List of allowed images */
+  images: LightboxImage[];
   /** The position of the currently active image in the document */
-  activePos: number | null;
+  activeImage: LightboxImage;
+  /** Callback triggered when the active image is updated */
+  onUpdate: (activeImage: LightboxImage | null) => void;
+  /** Callback triggered when Lightbox closes */
+  onClose: () => void;
 };
 
-function Lightbox({ onUpdate, activePos }: Props) {
-  const { view } = useEditor();
+const ZoomPanPinchContext = createContext({ isImagePanning: false });
+type ZoomablePannablePinchableProps = {
+  children: ReactNode;
+  panningDisabled: boolean;
+  disabled: boolean;
+  onClose?: () => void;
+};
+
+const ZoomablePannablePinchable = forwardRef<
+  ReactZoomPanPinchRef,
+  ZoomablePannablePinchableProps
+>(({ children, panningDisabled, disabled, onClose }, ref) => {
+  const { isPanning, ...panningHandlers } = usePanning();
+  const wrapperRef = useRef<ReactZoomPanPinchRef>(null);
+  const scale = wrapperRef.current?.instance.transformState.scale ?? 1;
+
+  const wrapperProps = useMemo(
+    () =>
+      ({
+        onClick: (event) => {
+          if (scale > 1) {
+            return;
+          }
+          if (event.defaultPrevented) {
+            return;
+          }
+          if (
+            ["IMG", "INPUT", "BUTTON", "A"].includes(
+              (event.target as Element).tagName
+            )
+          ) {
+            return;
+          }
+          onClose?.();
+        },
+      }) satisfies HTMLAttributes<HTMLDivElement>,
+    [onClose, scale]
+  );
+
+  return (
+    <ZoomPanPinchContext.Provider value={{ isImagePanning: isPanning }}>
+      <TransformWrapper
+        ref={mergeRefs([ref, wrapperRef])}
+        disabled={disabled}
+        doubleClick={{ disabled: true }}
+        minScale={1}
+        maxScale={8}
+        panning={{
+          disabled: panningDisabled,
+        }}
+        {...panningHandlers}
+      >
+        <TransformComponent
+          wrapperStyle={{
+            width: "100%",
+            height: "100%",
+            cursor: isPanning ? "grabbing" : scale > 1 ? "grab" : "zoom-out",
+          }}
+          contentStyle={{
+            width: "100%",
+            height: "100%",
+            padding: "56px",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+          wrapperProps={wrapperProps}
+        >
+          {children}
+        </TransformComponent>
+      </TransformWrapper>
+    </ZoomPanPinchContext.Provider>
+  );
+});
+
+function usePanning() {
+  const [isPanning, setPanning] = useState(false);
+  const dragged = useRef(false);
+
+  const onPanningStart: ComponentProps<
+    typeof TransformWrapper
+  >["onPanningStart"] = (ref) => {
+    const zoomedIn = ref.state.scale > 1;
+    if (zoomedIn) {
+      setPanning(ref.instance.isPanning);
+    }
+  };
+
+  const onPanning: ComponentProps<
+    typeof TransformWrapper
+  >["onPanning"] = () => {
+    dragged.current = true;
+  };
+
+  const onPanningStop: ComponentProps<
+    typeof TransformWrapper
+  >["onPanningStop"] = (ref, event) => {
+    setPanning(ref.instance.isPanning);
+    if (dragged.current) {
+      dragged.current = false;
+    } else if (event.target instanceof HTMLImageElement) {
+      const zoomedOut = Math.abs(ref.state.scale - 1) < 0.001;
+      if (zoomedOut) {
+        ref.zoomIn();
+      } else {
+        ref.resetTransform();
+      }
+    }
+  };
+
+  return {
+    isPanning,
+    onPanningStart,
+    onPanning,
+    onPanningStop,
+  };
+}
+
+function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
   const isIdle = useIdle(3 * Second.ms);
   const { t } = useTranslation();
   const imgRef = useRef<HTMLImageElement | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
   const [status, setStatus] = useState<Status>({ lightbox: null, image: null });
-  const [imageElements] = useState(
-    view?.dom.querySelectorAll(".component-image img")
-  );
   const animation = useRef<Animation | null>(null);
   const finalImage = useRef<{
     center: { x: number; y: number };
     width: number;
     height: number;
   } | null>(null);
+  const zoomPanPinchRef = useRef<ReactZoomPanPinchRef>(null);
 
-  const imageNodes = useMemo(
-    () =>
-      view
-        ? findChildren(
-            view.state.doc,
-            (child) => child.type === view.state.schema.nodes.image,
-            true
-          )
-        : [],
-    [view]
-  );
   const currentImageIndex = findIndex(
-    imageNodes,
-    (node) => node.pos === activePos
+    images,
+    (img) => img.getPos() === activeImage.getPos()
   );
-  const currentImageNode =
-    currentImageIndex >= 0 ? imageNodes[currentImageIndex].node : undefined;
 
   // Debugging status changes
   // useEffect(() => {
@@ -108,15 +238,21 @@ function Lightbox({ onUpdate, activePos }: Props) {
   //   );
   // }, [status]);
 
-  useEffect(() => () => view.focus(), []);
+  useEffect(
+    () => () => {
+      if (status.lightbox === LightboxStatus.CLOSED) {
+        onClose();
+      }
+    },
+    [status.lightbox]
+  );
 
   useEffect(() => {
-    !!activePos &&
-      setStatus({
-        lightbox: LightboxStatus.READY_TO_OPEN,
-        image: status.image,
-      });
-  }, [!!activePos]);
+    setStatus({
+      lightbox: LightboxStatus.READY_TO_OPEN,
+      image: status.image,
+    });
+  }, []);
 
   useEffect(() => {
     if (status.image === ImageStatus.LOADED) {
@@ -140,6 +276,18 @@ function Lightbox({ onUpdate, activePos }: Props) {
   }, [status.image, status.lightbox]);
 
   useEffect(() => {
+    if (
+      status.lightbox === LightboxStatus.OPENED &&
+      status.image === ImageStatus.LOADED
+    ) {
+      setStatus({
+        lightbox: LightboxStatus.OPENED,
+        image: ImageStatus.MIN_ZOOM,
+      });
+    }
+  }, [status.lightbox, status.image]);
+
+  useEffect(() => {
     if (status.lightbox === LightboxStatus.READY_TO_CLOSE) {
       setupFadeOut();
       setupZoomOut();
@@ -155,6 +303,15 @@ function Lightbox({ onUpdate, activePos }: Props) {
       onUpdate(null);
     }
   }, [status.lightbox]);
+
+  useEffect(() => {
+    if (status.image === ImageStatus.MIN_ZOOM) {
+      // It was observed that focus went to `body` as the zoom out button was disabled
+      // upon clicking it. This stopped navigating to next/previous image using arrow keys.
+      // So focusing the content div here to restore the functionality.
+      contentRef.current?.focus();
+    }
+  }, [status.image]);
 
   const rememberImagePosition = () => {
     if (imgRef.current) {
@@ -179,11 +336,10 @@ function Lightbox({ onUpdate, activePos }: Props) {
   const setupZoomIn = () => {
     if (imgRef.current) {
       // in editor
-      const editorImageEl = imageElements[currentImageIndex];
+      const editorImageEl = activeImage.getElement();
       if (!editorImageEl) {
         return;
       }
-
       const editorImgDOMRect = editorImageEl.getBoundingClientRect();
       const {
         top: editorImgTop,
@@ -270,7 +426,13 @@ function Lightbox({ onUpdate, activePos }: Props) {
   };
 
   const setupZoomOut = () => {
-    if (imgRef.current) {
+    if (
+      imgRef.current &&
+      !(
+        status.image === ImageStatus.ZOOMED ||
+        status.image === ImageStatus.MAX_ZOOM
+      )
+    ) {
       // in lightbox
       const lightboxImgDOMRect = imgRef.current.getBoundingClientRect();
       const {
@@ -289,7 +451,7 @@ function Lightbox({ onUpdate, activePos }: Props) {
       };
 
       // in editor
-      const editorImageEl = imageElements[currentImageIndex];
+      const editorImageEl = activeImage.getElement();
       let to;
       if (editorImageEl?.isConnected) {
         const editorImgDOMRect = editorImageEl.getBoundingClientRect();
@@ -364,33 +526,31 @@ function Lightbox({ onUpdate, activePos }: Props) {
     }
   };
 
-  if (!activePos) {
-    return null;
-  }
-
   const prev = () => {
-    if (status.lightbox === LightboxStatus.OPENED) {
-      if (!activePos) {
-        return;
-      }
+    if (
+      status.lightbox === LightboxStatus.OPENED &&
+      (status.image === ImageStatus.MIN_ZOOM ||
+        status.image === ImageStatus.ERROR)
+    ) {
       const prevIndex = currentImageIndex - 1;
       if (prevIndex < 0) {
         return;
       }
-      onUpdate(imageNodes[prevIndex].pos);
+      onUpdate(images[prevIndex]);
     }
   };
 
   const next = () => {
-    if (status.lightbox === LightboxStatus.OPENED) {
-      if (!activePos) {
-        return;
-      }
+    if (
+      status.lightbox === LightboxStatus.OPENED &&
+      (status.image === ImageStatus.MIN_ZOOM ||
+        status.image === ImageStatus.ERROR)
+    ) {
       const nextIndex = currentImageIndex + 1;
-      if (nextIndex >= imageNodes.length) {
+      if (nextIndex >= images.length) {
         return;
       }
-      onUpdate(imageNodes[nextIndex].pos);
+      onUpdate(images[nextIndex]);
     }
   };
 
@@ -406,11 +566,62 @@ function Lightbox({ onUpdate, activePos }: Props) {
     }
   };
 
-  const download = () => {
-    if (currentImageNode && status.lightbox === LightboxStatus.OPENED) {
-      void downloadImageNode(currentImageNode);
+  const svgDataURLToBlob = (dataURL: string) => {
+    // Match the SVG data URL format
+    const match = dataURL.match(/^data:image\/svg\+xml,(.*)$/i);
+    if (!match) {
+      return;
     }
+
+    const encodedSVGData = match[1];
+    const decodedSVGData = decodeURIComponent(encodedSVGData);
+
+    // Convert string to Uint8Array
+    const uint8 = new Uint8Array(decodedSVGData.length);
+    for (let i = 0; i < decodedSVGData.length; ++i) {
+      uint8[i] = decodedSVGData.charCodeAt(i);
+    }
+
+    // Create and return the Blob
+    return new Blob([uint8], { type: "image/svg+xml" });
   };
+
+  const downloadImage = async (src: string, saveAs: string) => {
+    let imageBlob;
+    if (isInternalUrl(src)) {
+      const image = await fetch(src);
+      imageBlob = await image.blob();
+    } else {
+      // Assuming it's a mermaid svg
+      imageBlob = svgDataURLToBlob(src);
+    }
+
+    if (!imageBlob) {
+      toast.error(t("Unable to download image"));
+      return;
+    }
+
+    const imageURL = URL.createObjectURL(imageBlob);
+    const name = saveAs || "image";
+    const extension = imageBlob.type.split(/\/|\+/g)[1];
+
+    // create a temporary link node and click it with our image data
+    const link = document.createElement("a");
+    link.href = imageURL;
+    link.download = `${name}.${extension}`;
+    document.body.appendChild(link);
+    link.click();
+
+    // cleanup
+    document.body.removeChild(link);
+    URL.revokeObjectURL(imageURL);
+  };
+
+  const download = useCallback(() => {
+    if (activeImage && status.lightbox === LightboxStatus.OPENED) {
+      void downloadImage(activeImage.getSrc(), activeImage.getAlt());
+    }
+  }, [activeImage, status.lightbox]);
 
   const handleKeyDown = (ev: React.KeyboardEvent<HTMLDivElement>) => {
     ev.preventDefault();
@@ -459,14 +670,8 @@ function Lightbox({ onUpdate, activePos }: Props) {
     }
   };
 
-  if (!currentImageNode) {
-    return null;
-  }
-
-  const src = sanitizeUrl(currentImageNode.attrs.src) ?? "";
-
   return (
-    <Dialog.Root open={!!activePos}>
+    <Dialog.Root open={true}>
       <Dialog.Portal>
         <StyledOverlay
           ref={overlayRef}
@@ -474,7 +679,7 @@ function Lightbox({ onUpdate, activePos }: Props) {
           onAnimationStart={handleFadeStart}
           onAnimationEnd={handleFadeEnd}
         />
-        <StyledContent onKeyDown={handleKeyDown}>
+        <StyledContent onKeyDown={handleKeyDown} ref={contentRef}>
           <VisuallyHidden.Root>
             <Dialog.Title>{t("Lightbox")}</Dialog.Title>
             <Dialog.Description>
@@ -482,10 +687,52 @@ function Lightbox({ onUpdate, activePos }: Props) {
             </Dialog.Description>
           </VisuallyHidden.Root>
           <Actions animation={animation.current}>
+            <Tooltip content={t("Zoom in")} placement="bottom">
+              <ActionButton
+                tabIndex={-1}
+                disabled={
+                  status.image === ImageStatus.MAX_ZOOM ||
+                  status.image === ImageStatus.ERROR
+                }
+                onClick={() => {
+                  if (zoomPanPinchRef.current) {
+                    zoomPanPinchRef.current.zoomIn();
+                  }
+                }}
+                aria-label={t("Zoom in")}
+                size={32}
+                icon={<ZoomInIcon />}
+                borderOnHover
+                neutral
+              />
+            </Tooltip>
+            <Tooltip content={t("Zoom out")} placement="bottom">
+              <ActionButton
+                tabIndex={-1}
+                disabled={
+                  !(
+                    status.image === ImageStatus.ZOOMED ||
+                    status.image === ImageStatus.MAX_ZOOM
+                  )
+                }
+                onClick={() => {
+                  if (zoomPanPinchRef.current) {
+                    zoomPanPinchRef.current.zoomOut();
+                  }
+                }}
+                aria-label={t("Zoom out")}
+                size={32}
+                icon={<ZoomOutIcon />}
+                borderOnHover
+                neutral
+              />
+            </Tooltip>
+            <Separator />
             <Tooltip content={t("Copy link")} placement="bottom">
               <CopyToClipboard text={imgRef.current?.src ?? ""}>
-                <Button
+                <ActionButton
                   tabIndex={-1}
+                  disabled={status.image === ImageStatus.ERROR}
                   aria-label={t("Copy link")}
                   size={32}
                   icon={<LinkIcon />}
@@ -495,8 +742,9 @@ function Lightbox({ onUpdate, activePos }: Props) {
               </CopyToClipboard>
             </Tooltip>
             <Tooltip content={t("Download")} placement="bottom">
-              <Button
+              <ActionButton
                 tabIndex={-1}
+                disabled={status.image === ImageStatus.ERROR}
                 onClick={download}
                 aria-label={t("Download")}
                 size={32}
@@ -508,7 +756,7 @@ function Lightbox({ onUpdate, activePos }: Props) {
             <Separator />
             <Dialog.Close asChild>
               <Tooltip content={t("Close")} shortcut="Esc" placement="bottom">
-                <Button
+                <ActionButton
                   tabIndex={-1}
                   onClick={close}
                   aria-label={t("Close")}
@@ -520,49 +768,87 @@ function Lightbox({ onUpdate, activePos }: Props) {
               </Tooltip>
             </Dialog.Close>
           </Actions>
-          {currentImageIndex > 0 && (
-            <Nav dir="left" $hidden={isIdle} animation={animation.current}>
-              <NavButton onClick={prev} size={32} aria-label={t("Previous")}>
-                <BackIcon size={32} />
-              </NavButton>
-            </Nav>
-          )}
-          <Image
-            ref={imgRef}
-            src={src}
-            alt={currentImageNode.attrs.alt ?? ""}
-            onLoading={() =>
-              setStatus({
-                lightbox: status.lightbox,
-                image: ImageStatus.LOADING,
-              })
+          {currentImageIndex > 0 &&
+            !(
+              status.image === ImageStatus.ZOOMED ||
+              status.image === ImageStatus.MAX_ZOOM
+            ) && (
+              <Nav dir="left" $hidden={isIdle} animation={animation.current}>
+                <NavButton onClick={prev} size={32} aria-label={t("Previous")}>
+                  <BackIcon size={32} />
+                </NavButton>
+              </Nav>
+            )}
+          <ZoomablePannablePinchable
+            panningDisabled={
+              !(
+                status.image === ImageStatus.ZOOMED ||
+                status.image === ImageStatus.MAX_ZOOM
+              )
             }
-            onLoad={() =>
-              setStatus({
-                lightbox: status.lightbox,
-                image: ImageStatus.LOADED,
-              })
-            }
-            onError={() =>
-              setStatus({
-                lightbox: status.lightbox,
-                image: ImageStatus.ERROR,
-              })
-            }
-            onSwipeRight={prev}
-            onSwipeLeft={next}
-            onSwipeUp={close}
-            onSwipeDown={close}
-            status={status}
-            animation={animation.current}
-          />
-          {currentImageIndex < imageNodes.length - 1 && (
-            <Nav dir="right" $hidden={isIdle} animation={animation.current}>
-              <NavButton onClick={next} size={32} aria-label={t("Next")}>
-                <NextIcon size={32} />
-              </NavButton>
-            </Nav>
-          )}
+            disabled={status.image === ImageStatus.ERROR}
+            ref={zoomPanPinchRef}
+            onClose={close}
+          >
+            <Image
+              ref={imgRef}
+              src={activeImage.getSrc()}
+              alt={activeImage.getAlt()}
+              onLoading={() =>
+                setStatus({
+                  lightbox: status.lightbox,
+                  image: ImageStatus.LOADING,
+                })
+              }
+              onLoad={() =>
+                setStatus({
+                  lightbox: status.lightbox,
+                  image: ImageStatus.LOADED,
+                })
+              }
+              onError={() =>
+                setStatus({
+                  lightbox: status.lightbox,
+                  image: ImageStatus.ERROR,
+                })
+              }
+              onSwipeRight={prev}
+              onSwipeLeft={next}
+              onSwipeUp={close}
+              onSwipeDown={close}
+              status={status}
+              animation={animation.current}
+              onMinZoom={() => {
+                setStatus({
+                  lightbox: status.lightbox,
+                  image: ImageStatus.MIN_ZOOM,
+                });
+              }}
+              onZoom={() =>
+                setStatus({
+                  lightbox: status.lightbox,
+                  image: ImageStatus.ZOOMED,
+                })
+              }
+              onMaxZoom={() =>
+                setStatus({
+                  lightbox: status.lightbox,
+                  image: ImageStatus.MAX_ZOOM,
+                })
+              }
+            />
+          </ZoomablePannablePinchable>
+          {currentImageIndex < images.length - 1 &&
+            !(
+              status.image === ImageStatus.ZOOMED ||
+              status.image === ImageStatus.MAX_ZOOM
+            ) && (
+              <Nav dir="right" $hidden={isIdle} animation={animation.current}>
+                <NavButton onClick={next} size={32} aria-label={t("Next")}>
+                  <NextIcon size={32} />
+                </NavButton>
+              </Nav>
+            )}
         </StyledContent>
       </Dialog.Portal>
     </Dialog.Root>
@@ -581,6 +867,9 @@ type ImageProps = {
   onSwipeDown: () => void;
   status: Status;
   animation: Animation | null;
+  onMinZoom: () => void;
+  onZoom: () => void;
+  onMaxZoom: () => void;
 };
 
 const Image = forwardRef<HTMLImageElement, ImageProps>(function _Image(
@@ -596,6 +885,9 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function _Image(
     onSwipeDown,
     status,
     animation,
+    onMinZoom,
+    onZoom,
+    onMaxZoom,
   }: ImageProps,
   ref
 ) {
@@ -606,6 +898,25 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function _Image(
     onSwipeLeft,
     onSwipeUp,
     onSwipeDown,
+  });
+
+  const { isImagePanning } = useContext(ZoomPanPinchContext);
+
+  useTransformEffect(({ state, instance }) => {
+    const minScale = instance.props.minScale ?? 1;
+    const maxScale = instance.props.maxScale ?? 8;
+    const { scale } = state;
+    if (scale === minScale && status.image === ImageStatus.ZOOMED) {
+      onMinZoom();
+    } else if (scale === maxScale && status.image === ImageStatus.ZOOMED) {
+      onMaxZoom();
+    } else if (
+      scale > minScale &&
+      scale < maxScale &&
+      status.image !== ImageStatus.ZOOMED
+    ) {
+      onZoom();
+    }
   });
 
   const [hidden, setHidden] = useState(
@@ -642,9 +953,15 @@ const Image = forwardRef<HTMLImageElement, ImageProps>(function _Image(
           onError={onError}
           onLoad={onLoad}
           $hidden={hidden}
+          $zoomedIn={
+            status.image === ImageStatus.ZOOMED ||
+            status.image === ImageStatus.MAX_ZOOM
+          }
+          $zoomedOut={status.image === ImageStatus.MIN_ZOOM}
+          $panning={isImagePanning}
         />
         <Caption>
-          {status.image === ImageStatus.LOADED &&
+          {status.image === ImageStatus.MIN_ZOOM &&
           status.lightbox === LightboxStatus.OPENED ? (
             <Fade>{alt}</Fade>
           ) : null}
@@ -700,12 +1017,25 @@ const StyledOverlay = styled(Dialog.Overlay)<{
 
 const StyledImg = styled.img<{
   $hidden: boolean;
+  $zoomedIn: boolean;
+  $zoomedOut: boolean;
+  $panning: boolean;
   animation: Animation | null;
 }>`
   visibility: ${(props) => (props.$hidden ? "hidden" : "visible")};
+  pointer-events: auto !important;
   max-width: 100%;
   min-height: 0;
   object-fit: contain;
+  cursor: ${(props) =>
+    props.$panning
+      ? "grabbing"
+      : props.$zoomedOut
+        ? "zoom-in"
+        : props.$zoomedIn
+          ? "zoom-out"
+          : "default"};
+
   ${(props) =>
     props.animation?.zoomIn
       ? css`
@@ -717,7 +1047,12 @@ const StyledImg = styled.img<{
             animation: ${props.animation.zoomOut.apply()}
               ${props.animation.zoomOut.duration}ms;
           `
-        : ""}
+        : props.animation?.fadeOut
+          ? css`
+              animation: ${props.animation.fadeOut.apply()}
+                ${props.animation.fadeOut.duration}ms;
+            `
+          : ""}
 `;
 
 const StyledContent = styled(Dialog.Content)`
@@ -728,7 +1063,10 @@ const StyledContent = styled(Dialog.Content)`
   justify-content: center;
   align-items: center;
   outline: none;
-  padding: 56px;
+`;
+
+const ActionButton = styled(Button)`
+  background: transparent;
 `;
 
 const Actions = styled.div<{
@@ -741,6 +1079,10 @@ const Actions = styled.div<{
   display: flex;
   align-items: center;
   gap: 8px;
+  z-index: ${depths.modal};
+  background: ${(props) => transparentize(0.2, props.theme.background)};
+  backdrop-filter: blur(4px);
+  border-radius: 6px;
 
   ${(props) =>
     props.animation === null
@@ -768,6 +1110,7 @@ const Nav = styled.div<{
   position: absolute;
   ${(props) => (props.dir === "left" ? "left: 0;" : "right: 0;")}
   transition: opacity 500ms ease-in-out;
+  z-index: ${depths.modal};
   ${(props) => props.$hidden && "opacity: 0;"}
   ${(props) =>
     props.animation === null
@@ -787,7 +1130,7 @@ const Nav = styled.div<{
           : ""}
 `;
 
-const StyledError = styled(Error)<{
+const StyledError = styled(ImageError)<{
   animation: Animation | null;
 }>`
   ${(props) =>

@@ -1,6 +1,7 @@
 import addressparser, { EmailAddress } from "addressparser";
 import Bull from "bull";
 import invariant from "invariant";
+import { subMinutes } from "date-fns";
 import { Node } from "prosemirror-model";
 import { randomString } from "@shared/random";
 import { TeamPreference } from "@shared/types";
@@ -23,6 +24,7 @@ export enum EmailMessageCategory {
   Invitation = "invitation",
   Notification = "notification",
   Marketing = "marketing",
+  Internal = "internal",
 }
 
 export interface EmailProps {
@@ -143,12 +145,21 @@ export default abstract class BaseEmail<
       ? await Notification.emailReferences(notification)
       : undefined;
 
+    // Check if notification is considerably delayed and annotate
+    // the subject. This is incase of extended downtime or queue backlogs
+    let subject = this.subject(data);
+    if (notification) {
+      if (notification.createdAt < subMinutes(new Date(), 30)) {
+        subject = `Delayed notification: ${subject}`;
+      }
+    }
+
     try {
       await mailer.sendMail({
         to: this.props.to,
         replyTo: this.replyTo?.(data),
         from: this.from(data),
-        subject: this.subject(data),
+        subject,
         messageId,
         references,
         previewText: this.preview(data),

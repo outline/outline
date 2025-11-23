@@ -22,12 +22,13 @@ import useStores from "../../hooks/useStores";
 import theme from "../../styles/theme";
 import {
   IntegrationService,
+  UnfurlResourceType,
   type JSONValue,
-  type UnfurlResourceType,
   type UnfurlResponse,
 } from "../../types";
 import { cn } from "../styles/utils";
 import { ComponentProps } from "../types";
+import { toDisplayUrl, cdnPath } from "../../utils/urls";
 
 type Attrs = {
   className: string;
@@ -65,6 +66,27 @@ export const MentionUser = observer(function MentionUser_(
     >
       <EmailIcon size={18} />
       {user?.name || node.attrs.label}
+    </span>
+  );
+});
+
+export const MentionGroup = observer(function MentionGroup_(
+  props: ComponentProps
+) {
+  const { isSelected, node } = props;
+  const { groups } = useStores();
+  const group = groups.get(node.attrs.modelId);
+  const { className, ...attrs } = getAttributesFromNode(node);
+
+  return (
+    <span
+      {...attrs}
+      className={cn(className, {
+        "ProseMirror-selectednode": isSelected,
+      })}
+    >
+      <EmailIcon size={18} />
+      {group?.name || node.attrs.label}
     </span>
   );
 });
@@ -141,6 +163,89 @@ type IssuePrProps = ComponentProps & {
       | UnfurlResponse[UnfurlResourceType.Issue]
       | UnfurlResponse[UnfurlResourceType.PR]
   ) => void;
+};
+
+type IssueUrlProps = ComponentProps & {
+  onChangeUnfurl: (unfurl: UnfurlResponse[UnfurlResourceType.URL]) => void;
+};
+
+export const MentionURL = (props: IssueUrlProps) => {
+  const { unfurls } = useStores();
+  const isMounted = useIsMounted();
+  const [loaded, setLoaded] = React.useState(false);
+  const onChangeUnfurl = React.useRef(props.onChangeUnfurl).current; // stable reference to callback function.
+
+  const { isSelected, node } = props;
+  const {
+    className,
+    unfurl: unfurlAttr,
+    ...attrs
+  } = getAttributesFromNode(node);
+
+  const url = String(attrs.href);
+  const unfurl = unfurls.get(attrs.href)?.data ?? unfurlAttr;
+
+  React.useEffect(() => {
+    const fetchUnfurl = async () => {
+      try {
+        const unfurlModel = await unfurls.fetchUnfurl({ url });
+
+        if (!isMounted()) {
+          return;
+        }
+
+        if (unfurlModel) {
+          onChangeUnfurl(
+            unfurlModel.data satisfies UnfurlResponse[UnfurlResourceType.URL]
+          );
+        } else {
+          // If we didn't get a result back, we still want to add a basic unfurl
+          // to avoid refetching again in future. This will just show the URL
+          // with a generic link icon.
+          unfurls.add({
+            id: url,
+            type: UnfurlResourceType.URL,
+            fetchedAt: new Date().toISOString(),
+            data: {
+              title: toDisplayUrl(url),
+              faviconUrl: cdnPath("/images/link.png"),
+            },
+          });
+        }
+      } finally {
+        setLoaded(true);
+      }
+    };
+
+    void fetchUnfurl();
+  }, [unfurls, attrs.href, isMounted]);
+
+  if (!unfurl) {
+    return !loaded ? (
+      <MentionLoading className={className} />
+    ) : (
+      <MentionError className={className} />
+    );
+  }
+
+  return (
+    <a
+      {...attrs}
+      className={cn(className, {
+        "ProseMirror-selectednode": isSelected,
+      })}
+      href={attrs.href as string}
+      target="_blank"
+      rel="noopener noreferrer nofollow"
+    >
+      <Flex align="center" gap={6}>
+        {unfurl.faviconUrl ? <Logo src={unfurl.faviconUrl} alt="" /> : null}
+        <Text>
+          <Backticks content={unfurl.title} />
+        </Text>
+      </Flex>
+    </a>
+  );
 };
 
 export const MentionIssue = observer((props: IssuePrProps) => {
@@ -315,4 +420,9 @@ const MentionError = ({ className }: { className: string }) => {
 
 const StyledWarningIcon = styled(WarningIcon)`
   margin: 0 -2px;
+`;
+
+const Logo = styled.img`
+  width: 16px;
+  height: 16px;
 `;

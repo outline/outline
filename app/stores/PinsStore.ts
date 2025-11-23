@@ -37,6 +37,9 @@ export default class PinsStore extends Store<Pin> {
         documentId,
         collectionId,
       });
+      if (!res) {
+        return;
+      }
       invariant(res?.data, "Data should be available");
       return this.add(res.data);
     } catch (err) {

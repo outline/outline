@@ -1,3 +1,4 @@
+import * as React from "react";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
 import env from "~/env";
@@ -44,4 +45,4 @@ const Link = styled.a`
   }
 `;
 
-export default Branding;
+export default React.memo(Branding);

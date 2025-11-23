@@ -6,16 +6,22 @@ import {
   AlignImageRightIcon,
   AlignImageCenterIcon,
   AlignFullWidthIcon,
+  CommentIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
+import { metaDisplay } from "@shared/utils/keyboard";
 
 export default function imageMenuItems(
   state: EditorState,
+  readOnly: boolean,
   dictionary: Dictionary
 ): MenuItem[] {
+  if (readOnly) {
+    return [];
+  }
   const { schema } = state;
   const isLeftAligned = isNodeActive(schema.nodes.image, {
     layoutClass: "left-50",
@@ -75,14 +81,32 @@ export default function imageMenuItems(
       visible: !!fetch,
     },
     {
-      name: "replaceImage",
       tooltip: dictionary.replaceImage,
       icon: <ReplaceIcon />,
+      children: [
+        {
+          name: "replaceImage",
+          label: dictionary.uploadImage,
+        },
+        {
+          name: "editImageUrl",
+          label: dictionary.editImageUrl,
+        },
+      ],
     },
     {
       name: "deleteImage",
       tooltip: dictionary.deleteImage,
       icon: <TrashIcon />,
+    },
+    {
+      name: "separator",
+    },
+    {
+      name: "commentOnImage",
+      tooltip: dictionary.comment,
+      shortcut: `${metaDisplay}+⌥+M`,
+      icon: <CommentIcon />,
     },
   ];
 }

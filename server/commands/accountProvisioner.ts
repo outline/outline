@@ -95,8 +95,8 @@ async function accountProvisioner(
 
   try {
     result = await teamProvisioner(ctx, {
-      name: "Wiki",
       ...teamParams,
+      name: teamParams.name || "Wiki",
       authenticationProvider: authenticationProviderParams,
     });
   } catch (err) {

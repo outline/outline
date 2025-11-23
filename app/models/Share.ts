@@ -75,6 +75,10 @@ class Share extends Model implements Searchable {
   @observable
   showLastUpdated: boolean;
 
+  @Field
+  @observable
+  showTOC: boolean;
+
   @observable
   views: number;
 
@@ -99,6 +103,11 @@ class Share extends Model implements Searchable {
   @computed
   get searchContent(): string[] {
     return [this.title];
+  }
+
+  @computed
+  get searchSuppressed(): boolean {
+    return false;
   }
 
   @computed

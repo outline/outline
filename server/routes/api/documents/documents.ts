@@ -12,7 +12,7 @@ import remove from "lodash/remove";
 import uniq from "lodash/uniq";
 import mime from "mime-types";
 import { Op, ScopeOptions, Sequelize, WhereOptions } from "sequelize";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import { NavigationNode, StatusFilter, UserRole } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import slugify from "@shared/utils/slugify";
@@ -1533,7 +1533,7 @@ router.post(
 
     const key = AttachmentHelper.getKey({
       acl,
-      id: uuidv4(),
+      id: randomUUID(),
       name: fileName,
       userId: user.id,
     });
@@ -1695,8 +1695,8 @@ router.post(
       }),
     ]);
 
-    authorize(actor, "read", user);
     authorize(actor, "manageUsers", document);
+    authorize(actor, "read", user);
 
     const UserMemberships = await UserMembership.findAll({
       where: {
@@ -1817,7 +1817,7 @@ router.post(
         transaction,
       }),
     ]);
-    authorize(user, "update", document);
+    authorize(user, "manageUsers", document);
     authorize(user, "read", group);
 
     const [membership, created] = await GroupMembership.findOrCreate({
@@ -1871,7 +1871,7 @@ router.post(
         transaction,
       }),
     ]);
-    authorize(user, "update", document);
+    authorize(user, "manageUsers", document);
     authorize(user, "read", group);
 
     const membership = await GroupMembership.findOne({

@@ -41,6 +41,7 @@ import {
   Unique,
   AfterUpdate,
 } from "sequelize-typescript";
+import { MaxLength } from "class-validator";
 import isUUID from "validator/lib/isUUID";
 import type {
   NavigationNode,
@@ -53,6 +54,7 @@ import slugify from "@shared/utils/slugify";
 import { DocumentValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
 import { generateUrlId } from "@server/utils/url";
+import { createContext } from "@server/context";
 import Collection from "./Collection";
 import FileOperation from "./FileOperation";
 import Group from "./Group";
@@ -74,7 +76,6 @@ import Length from "./validators/Length";
 import { APIContext } from "@server/types";
 import { SkipChangeset } from "./decorators/Changeset";
 import { HookContext } from "./base/Model";
-import { createContext } from "@server/context";
 
 export const DOCUMENT_VERSION = 2;
 
@@ -320,7 +321,7 @@ class Document extends ArchivableModel<
     msg: `editorVersion must be 255 characters or less`,
   })
   @Column
-  editorVersion: string;
+  editorVersion: string | null;
 
   /** An icon to use as the document icon. */
   @Length({
@@ -344,6 +345,11 @@ class Document extends ArchivableModel<
   @Column(DataType.TEXT)
   @SkipChangeset
   text: string;
+
+  /** The likely language of the content, in ISO 639-1 format. */
+  @Column(DataType.STRING(2))
+  @MaxLength(2)
+  language: string;
 
   /**
    * The content of the document as JSON, this is a snapshot at the last time the state was saved.

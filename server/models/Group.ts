@@ -9,6 +9,7 @@ import {
   DataType,
   Scopes,
 } from "sequelize-typescript";
+import { GroupValidation } from "@shared/validations";
 import GroupMembership from "./GroupMembership";
 import GroupUser from "./GroupUser";
 import Team from "./Team";
@@ -65,8 +66,19 @@ class Group extends ParanoidModel<
   @Column
   name: string;
 
+  @Length({
+    min: 0,
+    max: GroupValidation.maxDescriptionLength,
+    msg: `description must be ${GroupValidation.maxDescriptionLength} characters or less`,
+  })
+  @Column(DataType.TEXT)
+  description: string;
+
   @Column
   externalId: string;
+
+  @Column(DataType.BOOLEAN)
+  disableMentions: boolean;
 
   static filterByMember(userId: string | undefined) {
     return userId

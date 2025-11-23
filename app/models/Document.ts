@@ -2,10 +2,7 @@ import { addDays, differenceInDays } from "date-fns";
 import i18n, { t } from "i18next";
 import capitalize from "lodash/capitalize";
 import floor from "lodash/floor";
-import { action, autorun, computed, observable, set } from "mobx";
-import { Node, Schema } from "prosemirror-model";
-import ExtensionManager from "@shared/editor/lib/ExtensionManager";
-import { richExtensions, withComments } from "@shared/editor/nodes";
+import { action, autorun, comparer, computed, observable, set } from "mobx";
 import type {
   JSONObject,
   NavigationNode,
@@ -17,7 +14,6 @@ import {
   NavigationNodeType,
   NotificationEventType,
 } from "@shared/types";
-import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import Storage from "@shared/utils/Storage";
 import { isRTL } from "@shared/utils/rtl";
 import slugify from "@shared/utils/slugify";
@@ -93,6 +89,11 @@ export default class Document extends ArchivableModel implements Searchable {
     return this.title;
   }
 
+  @computed
+  get searchSuppressed(): boolean {
+    return this.isDeleted || this.isArchived;
+  }
+
   /**
    * The name of the original data source, if imported.
    */
@@ -132,6 +133,9 @@ export default class Document extends ArchivableModel implements Searchable {
   @Field
   @observable
   title: string;
+
+  /** The likely language of the document, in ISO 639-1 format.  */
+  language: string | undefined;
 
   /**
    * An icon (or) emoji to use as the document icon.
@@ -183,7 +187,7 @@ export default class Document extends ArchivableModel implements Searchable {
   /**
    * Parent document that this is a child of, if any.
    */
-  @Relation(() => Document, { onArchive: "cascade" })
+  @Relation(() => Document, { onArchive: "cascade", onDelete: "cascade" })
   parentDocument?: Document;
 
   @observable
@@ -651,7 +655,7 @@ export default class Document extends ArchivableModel implements Searchable {
     );
   }
 
-  @computed
+  @computed({ equals: comparer.structural })
   get asNavigationNode(): NavigationNode {
     return {
       type: NavigationNodeType.Document,
@@ -686,47 +690,6 @@ export default class Document extends ArchivableModel implements Searchable {
       []
     );
   }
-
-  /**
-   * Returns the markdown representation of the document derived from the ProseMirror data.
-   *
-   * @returns The markdown representation of the document as a string.
-   */
-  toMarkdown = () => {
-    const extensionManager = new ExtensionManager(withComments(richExtensions));
-    const serializer = extensionManager.serializer();
-    const schema = new Schema({
-      nodes: extensionManager.nodes,
-      marks: extensionManager.marks,
-    });
-
-    const doc = Node.fromJSON(
-      schema,
-      ProsemirrorHelper.attachmentsToAbsoluteUrls(this.data)
-    );
-
-    const markdown = serializer.serialize(doc, {
-      softBreak: true,
-    });
-    return markdown;
-  };
-
-  /**
-   * Returns the plain text representation of the document derived from the ProseMirror data.
-   *
-   * @returns The plain text representation of the document as a string.
-   */
-  toPlainText = () => {
-    const extensionManager = new ExtensionManager(withComments(richExtensions));
-    const schema = new Schema({
-      nodes: extensionManager.nodes,
-      marks: extensionManager.marks,
-    });
-    const text = ProsemirrorHelper.toPlainText(
-      Node.fromJSON(schema, this.data)
-    );
-    return text;
-  };
 
   download = (contentType: ExportContentType) =>
     client.post(

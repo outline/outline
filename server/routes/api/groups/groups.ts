@@ -73,25 +73,30 @@ router.post(
       };
     }
 
-    const groups = await Group.findAll({
-      where,
-      include: [
-        {
-          model: GroupUser,
-          as: "groupUsers",
-          required: false,
-          where: {
-            userId: user.id,
+    const [groups, total] = await Promise.all([
+      Group.findAll({
+        where,
+        include: [
+          {
+            model: GroupUser,
+            as: "groupUsers",
+            required: false,
+            where: {
+              userId: user.id,
+            },
           },
-        },
-      ],
-      order: [[sort, direction]],
-      offset: ctx.state.pagination.offset,
-      limit: ctx.state.pagination.limit,
-    });
+        ],
+        order: [[sort, direction]],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      }),
+      Group.count({
+        where,
+      }),
+    ]);
 
     ctx.body = {
-      pagination: ctx.state.pagination,
+      pagination: { ...ctx.state.pagination, total },
       data: {
         groups: await Promise.all(groups.map(presentGroup)),
         // TODO: Deprecated, will remove in the future as language conflicts with GroupMembership
@@ -163,13 +168,14 @@ router.post(
   validate(T.GroupsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.GroupsCreateReq>) => {
-    const { name, externalId } = ctx.input.body;
+    const { name, externalId, disableMentions } = ctx.input.body;
     const { user } = ctx.state.auth;
     authorize(user, "createGroup", user.team);
 
     const group = await Group.createWithCtx(ctx, {
       name,
       externalId,
+      disableMentions,
       teamId: user.teamId,
       createdById: user.id,
     });

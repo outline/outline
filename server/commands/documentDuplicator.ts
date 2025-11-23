@@ -50,6 +50,14 @@ export default async function documentDuplicator(
   duplicated.collection = collection ?? null;
   newDocuments.push(duplicated);
 
+  const originalCollection = document?.collectionId
+    ? await Collection.findByPk(document.collectionId, {
+        attributes: {
+          include: ["documentStructure"],
+        },
+      })
+    : null;
+
   async function duplicateChildDocuments(
     original: Document,
     duplicatedDocument: Document
@@ -67,7 +75,12 @@ export default async function documentDuplicator(
       ctx
     );
 
-    for (const childDocument of childDocuments) {
+    const sorted = DocumentHelper.sortDocumentsByStructure(
+      childDocuments,
+      originalCollection?.getDocumentTree(original.id)?.children ?? []
+    ).reverse(); // we have to reverse since the child documents will be added in reverse order
+
+    for (const childDocument of sorted) {
       const duplicatedChildDocument = await documentCreator(ctx, {
         parentDocumentId: duplicatedDocument.id,
         icon: childDocument.icon,

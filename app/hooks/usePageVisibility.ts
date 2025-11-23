@@ -7,7 +7,7 @@ import useEventListener from "./useEventListener";
  * @returns boolean if the page is visible
  */
 export default function usePageVisibility(): boolean {
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(!document.hidden);
 
   useEventListener(
     "visibilitychange",

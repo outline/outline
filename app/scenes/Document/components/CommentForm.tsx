@@ -1,4 +1,5 @@
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+import { v4 as uuidv4 } from "uuid";
 import { m } from "framer-motion";
 import { action } from "mobx";
 import { observer } from "mobx-react";
@@ -7,7 +8,6 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useTheme } from "styled-components";
-import { v4 as uuidv4 } from "uuid";
 import { ProsemirrorData } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import { AttachmentValidation, CommentValidation } from "@shared/validations";
@@ -22,9 +22,11 @@ import type { Editor as SharedEditor } from "~/editor";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 import useStores from "~/hooks/useStores";
-import CommentEditor from "./CommentEditor";
 import { Bubble } from "./CommentThreadItem";
 import { HighlightedText } from "./HighlightText";
+import lazyWithRetry from "~/utils/lazyWithRetry";
+
+const CommentEditor = lazyWithRetry(() => import("./CommentEditor"));
 
 type Props = {
   /** Callback when the form is submitted. */
@@ -105,6 +107,7 @@ function CommentForm({
     setForceRender((s) => ++s);
     setInputFocused(false);
 
+    const commentDraft = draft;
     const comment =
       thread ??
       new Comment(
@@ -124,6 +127,9 @@ function CommentForm({
       })
       .then(() => onSubmit?.())
       .catch(() => {
+        onSaveDraft(commentDraft);
+        setForceRender((s) => ++s);
+
         comment.isNew = true;
         toast.error(t("Error creating comment"));
       });
@@ -140,6 +146,7 @@ function CommentForm({
       return;
     }
 
+    const commentDraft = draft;
     onSaveDraft(undefined);
     setForceRender((s) => ++s);
 
@@ -161,6 +168,9 @@ function CommentForm({
       .save()
       .then(() => onSubmit?.())
       .catch(() => {
+        onSaveDraft(commentDraft);
+        setForceRender((s) => ++s);
+
         comments.remove(comment.id);
         comment.isNew = true;
         toast.error(t("Error creating comment"));

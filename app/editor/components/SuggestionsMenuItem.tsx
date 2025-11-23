@@ -2,8 +2,12 @@ import { transparentize } from "polished";
 import * as React from "react";
 import scrollIntoView from "scroll-into-view-if-needed";
 import styled from "styled-components";
-import MenuItem from "~/components/ContextMenu/MenuItem";
 import { usePortalContext } from "~/components/Portal";
+import {
+  MenuButton,
+  MenuIconWrapper,
+  MenuLabel,
+} from "~/components/primitives/components/Menu";
 
 export type Props = {
   /** Whether the item is selected */
@@ -11,7 +15,7 @@ export type Props = {
   /** Whether the item is disabled */
   disabled?: boolean;
   /** Callback when the item is clicked */
-  onClick: (event: React.SyntheticEvent) => void;
+  onPointerDown: (event: React.SyntheticEvent) => void;
   /** Callback when the item is hovered */
   onPointerMove?: (event: React.SyntheticEvent) => void;
   /** An optional icon for the item */
@@ -27,7 +31,7 @@ export type Props = {
 function SuggestionsMenuItem({
   selected,
   disabled,
-  onClick,
+  onPointerDown,
   onPointerMove,
   title,
   subtitle,
@@ -53,17 +57,22 @@ function SuggestionsMenuItem({
   );
 
   return (
-    <MenuItem
+    <MenuButton
       ref={ref}
-      active={selected}
-      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      onPointerDown={onPointerDown}
       onPointerMove={disabled ? undefined : onPointerMove}
-      icon={icon}
+      $active={selected}
     >
-      {title}
-      {subtitle && <Subtitle $active={selected}>&middot; {subtitle}</Subtitle>}
-      {shortcut && <Shortcut $active={selected}>{shortcut}</Shortcut>}
-    </MenuItem>
+      <MenuIconWrapper>{icon}</MenuIconWrapper>
+      <MenuLabel>
+        {title}
+        {subtitle && (
+          <Subtitle $active={selected}>&middot; {subtitle}</Subtitle>
+        )}
+        {shortcut && <Shortcut $active={selected}>{shortcut}</Shortcut>}
+      </MenuLabel>
+    </MenuButton>
   );
 }
 
@@ -83,4 +92,4 @@ const Shortcut = styled.span<{ $active?: boolean }>`
   text-align: right;
 `;
 
-export default SuggestionsMenuItem;
+export default React.memo(SuggestionsMenuItem);

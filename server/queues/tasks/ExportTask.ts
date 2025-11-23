@@ -18,6 +18,8 @@ import {
 import fileOperationPresenter from "@server/presenters/fileOperation";
 import FileStorage from "@server/storage/files";
 import BaseTask, { TaskPriority } from "./BaseTask";
+import { Op } from "sequelize";
+import { WhereOptions } from "sequelize";
 
 type Props = {
   fileOperationId: string;
@@ -34,27 +36,36 @@ export default abstract class ExportTask extends BaseTask<Props> {
     const fileOperation = await FileOperation.findByPk(fileOperationId, {
       rejectOnEmpty: true,
     });
-
     const [team, user] = await Promise.all([
       Team.findByPk(fileOperation.teamId, { rejectOnEmpty: true }),
       User.findByPk(fileOperation.userId, { rejectOnEmpty: true }),
     ]);
 
-    const collectionIds = fileOperation.collectionId
-      ? [fileOperation.collectionId]
-      : await user.collectionIds();
-
-    const collections = await Collection.scope("withDocumentStructure").findAll(
-      {
-        where: {
-          id: collectionIds,
-        },
-      }
-    );
-
     let filePath: string | undefined;
 
     try {
+      const where: WhereOptions<Collection> = {
+        teamId: user.teamId,
+      };
+
+      if (!fileOperation.options?.includePrivate) {
+        where.permission = {
+          [Op.ne]: null,
+        };
+      }
+
+      if (fileOperation.collectionId) {
+        where.id = fileOperation.collectionId;
+      } else {
+        where.archivedAt = {
+          [Op.eq]: null,
+        };
+      }
+
+      const collections = await Collection.scope(
+        "withDocumentStructure"
+      ).findAll({ where });
+
       if (!fileOperation.collectionId) {
         const totalAttachmentsSize = await Attachment.getTotalSizeForTeam(
           user.teamId

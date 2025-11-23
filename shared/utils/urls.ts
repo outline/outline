@@ -91,6 +91,15 @@ export function isCollectionUrl(url: string) {
   }
 }
 
+type UrlOptions = {
+  /** Require the url to have a hostname. */
+  requireHostname?: boolean;
+  /** Require the url not to use HTTP, custom protocols are ok. */
+  requireHttps?: boolean;
+  /** Require the url to have a protocol. */
+  requireProtocol?: boolean;
+};
+
 /**
  * Returns true if the given string is a url.
  *
@@ -100,15 +109,19 @@ export function isCollectionUrl(url: string) {
  */
 export function isUrl(
   text: string,
-  options?: {
-    /** Require the url to have a hostname. */
-    requireHostname?: boolean;
-    /** Require the url not to use HTTP, custom protocols are ok. */
-    requireHttps?: boolean;
-  }
+  { requireProtocol = true, requireHostname, requireHttps }: UrlOptions = {}
 ) {
   if (text.match(/\n/)) {
     return false;
+  }
+
+  if (!requireProtocol && text.startsWith("www.")) {
+    const parts = text.split(".");
+    if (parts.length < 2) {
+      return false;
+    }
+
+    text = `https://${text}`;
   }
 
   try {
@@ -121,14 +134,14 @@ export function isUrl(
     if (url.hostname) {
       return true;
     }
-    if (options?.requireHttps && url.protocol === "http:") {
+    if (requireHttps && url.protocol === "http:") {
       return false;
     }
 
     return (
       url.protocol !== "" &&
       (url.pathname.startsWith("//") || url.pathname.startsWith("http")) &&
-      !options?.requireHostname
+      !requireHostname
     );
   } catch (_err) {
     return false;
@@ -216,4 +229,19 @@ export function urlRegex(url: string | null | undefined): RegExp | undefined {
  */
 export function getUrls(text: string) {
   return Array.from(text.match(/(?:https?):\/\/[^\s]+/gi) || []);
+}
+
+/**
+ * Converts a url to a display friendly format, removing the protocol and trailing slash.
+ *
+ * @param url The url to convert.
+ * @returns The display friendly url.
+ */
+export function toDisplayUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    return parsed.host + (parsed.pathname === "/" ? "" : parsed.pathname);
+  } catch {
+    return url;
+  }
 }

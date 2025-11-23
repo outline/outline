@@ -40,8 +40,12 @@ import { BackButton } from "./components/BackButton";
 import { Background } from "./components/Background";
 import { Centered } from "./components/Centered";
 import { Notices } from "./components/Notices";
-import WorkspaceSetup from "./components/WorkspaceSetup";
 import { getRedirectUrl, navigateToSubdomain } from "./urls";
+import lazyWithRetry from "~/utils/lazyWithRetry";
+
+const WorkspaceSetup = lazyWithRetry(
+  () => import("./components/WorkspaceSetup")
+);
 
 type Props = {
   children?: (config?: Config) => React.ReactNode;
@@ -52,6 +56,7 @@ function Login({ children, onBack }: Props) {
   const location = useLocation();
   const query = useQuery();
   const notice = query.get("notice");
+  const forceOTP = query.get("forceOTP");
 
   const { t } = useTranslation();
   const user = useCurrentUser({ rejectOnEmpty: false });
@@ -202,10 +207,14 @@ function Login({ children, onBack }: Props) {
     (provider) => provider.id === auth.lastSignedIn && !isCreate
   );
   const clientType = Desktop.isElectron() ? Client.Desktop : Client.Web;
-  const preferOTP = isPWA;
+  const preferOTP = isPWA || !!forceOTP;
 
   if (firstRun) {
-    return <WorkspaceSetup onBack={onBack} />;
+    return (
+      <React.Suspense fallback={null}>
+        <WorkspaceSetup onBack={onBack} />
+      </React.Suspense>
+    );
   }
 
   if (emailLinkSentTo) {
@@ -316,6 +325,7 @@ function Login({ children, onBack }: Props) {
             <AuthenticationProvider
               isCreate={isCreate}
               onEmailSuccess={handleEmailSuccess}
+              preferOTP={preferOTP}
               {...defaultProvider}
             />
             {hasMultipleProviders && (
@@ -340,6 +350,7 @@ function Login({ children, onBack }: Props) {
               key={provider.id}
               isCreate={isCreate}
               onEmailSuccess={handleEmailSuccess}
+              preferOTP={preferOTP}
               neutral={defaultProvider && hasMultipleProviders}
               {...provider}
             />

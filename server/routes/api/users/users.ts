@@ -521,7 +521,7 @@ router.post(
 
 router.post(
   "users.invite",
-  rateLimiter(RateLimiterStrategy.TenPerHour),
+  rateLimiter(RateLimiterStrategy.FiftyPerHour),
   auth(),
   validate(T.UsersInviteSchema),
   transaction(),
@@ -541,6 +541,7 @@ router.post(
     ctx.body = {
       data: {
         sent: response.sent,
+        unsent: response.unsent,
         users: response.users.map((user) =>
           presentUser(user, { includeEmail: !!can(user, "readEmail", user) })
         ),
@@ -586,7 +587,7 @@ router.post(
         "email",
         `Sign in immediately: ${
           env.URL
-        }/auth/email.callback?token=${user.getEmailSigninToken()}`
+        }/auth/email.callback?token=${user.getEmailSigninToken(ctx)}`
       );
     }
 

@@ -85,12 +85,15 @@ function TitleDocumentMeta({ to, document, revision, ...rest }: Props) {
 const CommentLink = styled(Link)`
   display: inline-flex;
   align-items: center;
+  gap: 2px;
 `;
 
 const InsightsButton = styled(NudeButton)`
   background: none;
   border: none;
   padding: 0;
+  width: auto;
+  height: auto;
   color: inherit;
   font: inherit;
   text-decoration: none;

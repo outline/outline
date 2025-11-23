@@ -9,6 +9,8 @@ import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import Button, { Inner } from "~/components/Button";
 import Flex from "~/components/Flex";
+import Text from "~/components/Text";
+import { transparentize } from "polished";
 
 export const SelectItem = forwardRef<
   HTMLDivElement,
@@ -113,6 +115,10 @@ const ItemContainer = styled(Flex)`
       svg {
         color: ${s("accentText")};
         fill: ${s("accentText")};
+      }
+
+      ${Text} {
+        color: ${(props) => transparentize(0.5, props.theme.accentText)};
       }
     }
   }

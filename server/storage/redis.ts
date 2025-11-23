@@ -15,7 +15,7 @@ const defaultOptions: RedisOptions = {
 
   retryStrategy(times: number) {
     Logger.warn(`Retrying redis connection: attempt ${times}`);
-    return Math.min(times * 100, 3000);
+    return Math.min(times * 500, 3000);
   },
 
   reconnectOnError(err) {
@@ -47,7 +47,7 @@ export default class RedisAdapter extends Redis {
 
     if (!url || !url.startsWith("ioredis://")) {
       super(
-        env.REDIS_URL ?? "",
+        url || env.REDIS_URL || "",
         defaults(options, { connectionName }, defaultOptions)
       );
     } else {
@@ -72,10 +72,19 @@ export default class RedisAdapter extends Redis {
     // we're running. Increase the max here to prevent a warning in the console:
     // https://github.com/OptimalBits/bull/issues/1192
     this.setMaxListeners(100);
+
+    this.on("error", (err) => {
+      if (err.name === "MaxRetriesPerRequestError") {
+        Logger.fatal("Redis maximum retries exceeded", err);
+      } else {
+        Logger.error("Redis error", err);
+      }
+    });
   }
 
   private static client: RedisAdapter;
   private static subscriber: RedisAdapter;
+  private static collabClient: RedisAdapter;
 
   public static get defaultClient(): RedisAdapter {
     return (
@@ -100,9 +109,13 @@ export default class RedisAdapter extends Redis {
    * A Redis adapter for collaboration-related operations.
    */
   public static get collaborationClient(): RedisAdapter {
+    if (!env.REDIS_COLLABORATION_URL) {
+      return this.defaultClient;
+    }
+
     return (
-      this.client ||
-      (this.client = new this(env.REDIS_COLLABORATION_URL, {
+      this.collabClient ||
+      (this.collabClient = new this(env.REDIS_COLLABORATION_URL, {
         connectionNameSuffix: "collab",
       }))
     );

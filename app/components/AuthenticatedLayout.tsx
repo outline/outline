@@ -13,7 +13,6 @@ import ErrorSuspended from "~/scenes/Errors/ErrorSuspended";
 import Layout from "~/components/Layout";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import Sidebar from "~/components/Sidebar";
-import SettingsSidebar from "~/components/Sidebar/Settings";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import { usePostLoginPath } from "~/hooks/useLastVisitedPath";
 import usePolicy from "~/hooks/usePolicy";
@@ -30,6 +29,7 @@ import {
 import { DocumentContextProvider } from "./DocumentContext";
 import Fade from "./Fade";
 import { PortalContext } from "./Portal";
+import CommandBar from "./CommandBar";
 
 const DocumentComments = lazyWithRetry(
   () => import("~/scenes/Document/components/Comments")
@@ -37,8 +37,9 @@ const DocumentComments = lazyWithRetry(
 const DocumentHistory = lazyWithRetry(
   () => import("~/scenes/Document/components/History")
 );
-
-const CommandBar = lazyWithRetry(() => import("~/components/CommandBar"));
+const SettingsSidebar = lazyWithRetry(
+  () => import("~/components/Sidebar/Settings")
+);
 
 type Props = {
   children?: React.ReactNode;
@@ -130,9 +131,7 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
           <RegisterKeyDown trigger="t" handler={goToSearch} />
           <RegisterKeyDown trigger="/" handler={goToSearch} />
           {children}
-          <React.Suspense fallback={null}>
-            <CommandBar />
-          </React.Suspense>
+          <CommandBar />
         </Layout>
       </PortalContext.Provider>
     </DocumentContextProvider>

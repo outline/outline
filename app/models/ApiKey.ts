@@ -1,11 +1,11 @@
 import { isPast } from "date-fns";
 import { computed, observable } from "mobx";
-import ParanoidModel from "./base/ParanoidModel";
+import Model from "./base/Model";
 import Field from "./decorators/Field";
 import User from "./User";
 import Relation from "./decorators/Relation";
 
-class ApiKey extends ParanoidModel {
+class ApiKey extends Model {
   static modelName = "ApiKey";
 
   /** The human-readable name of this API key */

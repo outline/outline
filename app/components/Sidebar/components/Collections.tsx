@@ -18,10 +18,14 @@ import PlaceholderCollections from "./PlaceholderCollections";
 import Relative from "./Relative";
 import SidebarAction from "./SidebarAction";
 import SidebarContext from "./SidebarContext";
+import SidebarLink from "./SidebarLink";
+import Text from "@shared/components/Text";
+import usePolicy from "~/hooks/usePolicy";
 
 function Collections() {
-  const { documents, collections } = useStores();
+  const { documents, auth, collections } = useStores();
   const { t } = useTranslation();
+  const can = usePolicy(auth.team?.id);
   const orderedCollections = collections.allActive;
 
   const params = useMemo(
@@ -57,7 +61,7 @@ function Collections() {
             <PaginatedList<Collection>
               options={params}
               aria-label={t("Collections")}
-              items={collections.allActive}
+              items={orderedCollections}
               loading={<PlaceholderCollections />}
               heading={
                 isDraggingAnyCollection ? (
@@ -68,13 +72,26 @@ function Collections() {
                   />
                 ) : undefined
               }
+              empty={
+                // No need for empty state if we're displaying the createCollection action
+                can.createCollection ? null : (
+                  <SidebarLink
+                    label={
+                      <Text type="tertiary" size="small" italic>
+                        {t("No collections")}
+                      </Text>
+                    }
+                    onClick={() => {}}
+                    depth={1.5}
+                  />
+                )
+              }
               renderError={(props) => <StyledError {...props} />}
               renderItem={(item, index) => (
                 <DraggableCollectionLink
                   key={item.id}
                   collection={item}
                   activeDocument={documents.active}
-                  prefetchDocument={documents.prefetchDocument}
                   belowCollection={orderedCollections[index + 1]}
                 />
               )}

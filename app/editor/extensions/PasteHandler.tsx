@@ -1,4 +1,5 @@
 import { action, observable } from "mobx";
+import { v4 as uuidv4 } from "uuid";
 import { toggleMark } from "prosemirror-commands";
 import { Node, Slice } from "prosemirror-model";
 import {
@@ -8,7 +9,6 @@ import {
   TextSelection,
 } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import { v4 } from "uuid";
 import Extension, { WidgetProps } from "@shared/editor/lib/Extension";
 import { codeLanguages } from "@shared/editor/lib/code";
 import isMarkdown from "@shared/editor/lib/isMarkdown";
@@ -144,7 +144,7 @@ export default class PasteHandler extends Extension {
                                   type: MentionType.Document,
                                   modelId: document.id,
                                   label: document.titleWithDefault,
-                                  id: v4(),
+                                  id: uuidv4(),
                                 })
                               )
                             );
@@ -189,7 +189,7 @@ export default class PasteHandler extends Extension {
                                   type: MentionType.Collection,
                                   modelId: collection.id,
                                   label: collection.name,
-                                  id: v4(),
+                                  id: uuidv4(),
                                 })
                               )
                             );

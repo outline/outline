@@ -1,5 +1,5 @@
 import { differenceInMilliseconds } from "date-fns";
-import { action } from "mobx";
+import { runInAction } from "mobx";
 import { observer } from "mobx-react";
 import { DoneIcon } from "outline-icons";
 import { darken } from "polished";
@@ -179,18 +179,18 @@ function CommentThreadItem({
     );
   }, []);
 
-  const handleSubmit = action(async (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
     try {
       handleSetReadOnly();
-      comment.data = data;
+      runInAction(() => (comment.data = data));
       await comment.save();
     } catch (_err) {
       setEditing();
       toast.error(t("Error updating comment"));
     }
-  });
+  };
 
   const handleCancel = () => {
     setData(comment.data);

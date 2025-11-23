@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import { UserRole } from "@shared/types";
 import { TeamDomain } from "@server/models";
 import {
@@ -60,7 +60,7 @@ describe("userProvisioner", () => {
       teamId: existing.teamId,
       authentication: {
         authenticationProviderId: authenticationProvider.id,
-        providerId: uuidv4(),
+        providerId: randomUUID(),
         accessToken: "123",
         scopes: ["read"],
       },
@@ -94,7 +94,7 @@ describe("userProvisioner", () => {
       teamId: existing.teamId,
       authentication: {
         authenticationProviderId: authenticationProvider.id,
-        providerId: uuidv4(),
+        providerId: randomUUID(),
         accessToken: "123",
         scopes: ["read"],
       },
@@ -148,7 +148,7 @@ describe("userProvisioner", () => {
         email: "test@example.com",
         teamId: existing.teamId,
         authentication: {
-          authenticationProviderId: uuidv4(),
+          authenticationProviderId: randomUUID(),
           providerId: existingAuth.providerId,
           accessToken: "123",
           scopes: ["read"],
@@ -186,7 +186,7 @@ describe("userProvisioner", () => {
     expect(isNewUser).toEqual(true);
   });
 
-  it("should prefer isAdmin argument over defaultUserRole", async () => {
+  it("should prefer role argument over defaultUserRole", async () => {
     const team = await buildTeam({
       defaultUserRole: UserRole.Viewer,
     });
@@ -208,7 +208,7 @@ describe("userProvisioner", () => {
     expect(user.role).toEqual(UserRole.Admin);
   });
 
-  it("should prefer defaultUserRole when isAdmin is undefined or false", async () => {
+  it("should prefer defaultUserRole when role is undefined or false", async () => {
     const team = await buildTeam({
       defaultUserRole: UserRole.Viewer,
     });

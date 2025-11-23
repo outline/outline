@@ -29,12 +29,15 @@ type Props = {
   expanded: boolean;
   /** Function to prefetch a document by ID. */
   prefetchDocument?: (documentId: string) => Promise<Document | void>;
+  /** Element to display above the child documents */
+  children?: React.ReactNode;
 };
 
 function CollectionLinkChildren({
   collection,
   expanded,
   prefetchDocument,
+  children,
 }: Props) {
   const pageSize = DEFAULT_PAGE_SIZE;
   const { documents } = useStores();
@@ -58,6 +61,7 @@ function CollectionLinkChildren({
     <Folder expanded={expanded}>
       <DynamicDropCursor collection={collection} />
       <DocumentsLoader collection={collection} enabled={expanded}>
+        {children}
         {!childDocuments && (
           <ResizingHeightContainer hideOverflow>
             <Loading />
@@ -75,7 +79,7 @@ function CollectionLinkChildren({
             index={index}
           />
         ))}
-        {childDocuments?.length === 0 && (
+        {childDocuments?.length === 0 && !children && (
           <SidebarLink
             label={
               <Text type="tertiary" size="small" italic>

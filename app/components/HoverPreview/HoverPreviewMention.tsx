@@ -7,7 +7,7 @@ import { Preview, Title, Info, Card, CardContent } from "./Components";
 type Props = Omit<UnfurlResponse[UnfurlResourceType.Mention], "type">;
 
 const HoverPreviewMention = React.forwardRef(function _HoverPreviewMention(
-  { avatarUrl, name, lastActive, color, email }: Props,
+  { avatarUrl, name, lastActive, color }: Props,
   ref: React.Ref<HTMLDivElement>
 ) {
   return (
@@ -25,7 +25,6 @@ const HoverPreviewMention = React.forwardRef(function _HoverPreviewMention(
             />
             <Flex column gap={2} justify="center">
               <Title>{name}</Title>
-              {email && <Info>{email}</Info>}
               <Info>{lastActive}</Info>
             </Flex>
           </Flex>

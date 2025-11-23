@@ -17,6 +17,8 @@ import {
   IndentIcon,
   CopyIcon,
   Heading3Icon,
+  TableMergeCellsIcon,
+  TableSplitCellsIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import styled from "styled-components";
@@ -34,6 +36,11 @@ import {
   isMobile as isMobileDevice,
   isTouchDevice,
 } from "@shared/utils/browser";
+import {
+  isMergedCellSelection,
+  isMultipleCellSelection,
+} from "@shared/editor/queries/table";
+import { CellSelection } from "prosemirror-tables";
 
 export default function formattingMenuItems(
   state: EditorState,
@@ -46,6 +53,8 @@ export default function formattingMenuItems(
   const isEmpty = state.selection.empty;
   const isMobile = isMobileDevice();
   const isTouch = isTouchDevice();
+  const isList = isInList(state);
+  const isTableCell = state.selection instanceof CellSelection;
 
   const highlight = getMarksBetween(
     state.selection.from,
@@ -166,11 +175,25 @@ export default function formattingMenuItems(
       icon: <BlockQuoteIcon />,
       active: isNodeActive(schema.nodes.blockquote),
       attrs: { level: 2 },
-      visible: !isCodeBlock && (!isMobile || isEmpty),
+      visible: !isCodeBlock && !isTableCell && (!isMobile || isEmpty),
     },
     {
       name: "separator",
-      visible: !isCodeBlock,
+    },
+    {
+      name: "mergeCells",
+      tooltip: dictionary.mergeCells,
+      icon: <TableMergeCellsIcon />,
+      visible: isMultipleCellSelection(state),
+    },
+    {
+      name: "splitCell",
+      tooltip: dictionary.splitCell,
+      icon: <TableSplitCellsIcon />,
+      visible: isMergedCellSelection(state),
+    },
+    {
+      name: "separator",
     },
     {
       name: "checkbox_list",
@@ -179,7 +202,7 @@ export default function formattingMenuItems(
       icon: <TodoListIcon />,
       keywords: "checklist checkbox task",
       active: isNodeActive(schema.nodes.checkbox_list),
-      visible: !isCodeBlock && (!isMobile || isEmpty),
+      visible: !isCodeBlock && !isTableCell && (!isList || !isTouch),
     },
     {
       name: "bullet_list",
@@ -187,7 +210,7 @@ export default function formattingMenuItems(
       shortcut: `⇧+Ctrl+8`,
       icon: <BulletedListIcon />,
       active: isNodeActive(schema.nodes.bullet_list),
-      visible: !isCodeBlock && (!isMobile || isEmpty),
+      visible: !isCodeBlock && !isTableCell && (!isList || !isTouch),
     },
     {
       name: "ordered_list",
@@ -195,23 +218,21 @@ export default function formattingMenuItems(
       shortcut: `⇧+Ctrl+9`,
       icon: <OrderedListIcon />,
       active: isNodeActive(schema.nodes.ordered_list),
-      visible: !isCodeBlock && (!isMobile || isEmpty),
+      visible: !isCodeBlock && !isTableCell && (!isList || !isTouch),
     },
     {
       name: "outdentList",
       tooltip: dictionary.outdent,
       shortcut: `⇧+Tab`,
       icon: <OutdentIcon />,
-      visible:
-        isTouch && isInList(state, { types: ["ordered_list", "bullet_list"] }),
+      visible: isTouch && isList,
     },
     {
       name: "indentList",
       tooltip: dictionary.indent,
       shortcut: `Tab`,
       icon: <IndentIcon />,
-      visible:
-        isTouch && isInList(state, { types: ["ordered_list", "bullet_list"] }),
+      visible: isTouch && isList,
     },
     {
       name: "outdentCheckboxList",
@@ -232,7 +253,7 @@ export default function formattingMenuItems(
       visible: !isCodeBlock,
     },
     {
-      name: "link",
+      name: "addLink",
       tooltip: dictionary.createLink,
       shortcut: `${metaDisplay}+K`,
       icon: <LinkIcon />,

@@ -72,6 +72,18 @@ export function GroupsTable(props: Props) {
         },
         {
           type: "data",
+          id: "description",
+          header: t("Description"),
+          accessor: (group) => group.description || "",
+          component: (group) => (
+            <Text type="secondary" size="small" weight="normal">
+              {group.description}
+            </Text>
+          ),
+          width: "2fr",
+        },
+        {
+          type: "data",
           id: "members",
           header: t("Members"),
           accessor: (group) => `${group.memberCount} members`,
@@ -94,31 +106,7 @@ export function GroupsTable(props: Props) {
               </GroupMembers>
             );
           },
-          width: "1fr",
-          sortable: false,
-        },
-        {
-          type: "data",
-          id: "admins",
-          header: t("Admins"),
-          accessor: (group) => `${group.memberCount} admins`,
-          component: (group) => {
-            const users = group.admins.slice(0, MAX_AVATAR_DISPLAY);
-
-            if (users.length === 0) {
-              return null;
-            }
-
-            return (
-              <GroupMembers
-                onClick={() => handleViewMembers(group)}
-                width={users.length * AvatarSize.Large}
-              >
-                <Facepile users={users} />
-              </GroupMembers>
-            );
-          },
-          width: "1fr",
+          width: "1.5fr",
           sortable: false,
         },
         {

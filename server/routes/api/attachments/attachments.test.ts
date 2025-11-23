@@ -158,7 +158,10 @@ describe("#attachments.create", () => {
 
     it("should allow attachment creation for documents", async () => {
       const user = await buildUser();
-      const document = await buildDocument({ teamId: user.teamId });
+      const document = await buildDocument({
+        teamId: user.teamId,
+        userId: user.id,
+      });
 
       const res = await server.post("/api/attachments.create", {
         body: {

@@ -27,16 +27,13 @@ import {
 } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { TextHelper } from "@shared/utils/TextHelper";
-import { parseDomain } from "@shared/utils/domains";
 import { determineIconType } from "@shared/utils/icon";
 import { isModKey } from "@shared/utils/keyboard";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
-import ConnectionStatus from "~/scenes/Document/components/ConnectionStatus";
 import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPublish from "~/scenes/DocumentPublish";
-import Branding from "~/components/Branding";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import PageTitle from "~/components/PageTitle";
@@ -44,6 +41,7 @@ import PlaceholderDocument from "~/components/PlaceholderDocument";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
 import withStores from "~/components/withStores";
+import { MeasuredContainer } from "~/components/MeasuredContainer";
 import type { Editor as TEditor } from "~/editor";
 import { Properties } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -57,13 +55,10 @@ import Container from "./Container";
 import Contents from "./Contents";
 import Editor from "./Editor";
 import Header from "./Header";
-import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
-import { MeasuredContainer } from "./MeasuredContainer";
 import Notices from "./Notices";
 import PublicReferences from "./PublicReferences";
 import References from "./References";
 import RevisionViewer from "./RevisionViewer";
-import { SizeWarning } from "./SizeWarning";
 
 const AUTOSAVE_DELAY = 3000;
 
@@ -422,6 +417,18 @@ class DocumentScene extends React.Component<Props> {
     void this.onSave();
   });
 
+  handleSelectTemplate = async (template: Document | Revision) => {
+    const doc = this.editor.current?.view.state.doc;
+    if (!doc) {
+      return;
+    }
+
+    return this.replaceSelection(
+      template,
+      ProsemirrorHelper.isEmpty(doc) ? new AllSelection(doc) : undefined
+    );
+  };
+
   goBack = () => {
     if (!this.props.readOnly) {
       this.props.history.push({
@@ -433,6 +440,7 @@ class DocumentScene extends React.Component<Props> {
 
   render() {
     const {
+      children,
       document,
       revision,
       readOnly,
@@ -537,7 +545,7 @@ class DocumentScene extends React.Component<Props> {
               }
               savingIsDisabled={document.isSaving || this.isEmpty}
               sharedTree={this.props.sharedTree}
-              onSelectTemplate={this.replaceSelection}
+              onSelectTemplate={this.handleSelectTemplate}
               onSave={this.onSave}
             />
             <Main
@@ -633,19 +641,8 @@ class DocumentScene extends React.Component<Props> {
                 )}
               </React.Suspense>
             </Main>
-            {isShare &&
-              !parseDomain(window.location.origin).custom &&
-              !auth.user && (
-                <Branding href="//www.getoutline.com?ref=sharelink" />
-              )}
+            {children}
           </Container>
-          {!isShare && (
-            <Footer>
-              <KeyboardShortcutsButton />
-              <ConnectionStatus />
-              <SizeWarning document={document} />
-            </Footer>
-          )}
         </MeasuredContainer>
       </ErrorBoundary>
     );
@@ -752,16 +749,6 @@ const RevisionContainer = styled.div<RevisionContainerProps>`
     grid-column: ${({ docFullWidth }: RevisionContainerProps) =>
       docFullWidth ? "1 / -1" : 2};
   `}
-`;
-
-const Footer = styled.div`
-  position: fixed;
-  bottom: 12px;
-  right: 20px;
-  text-align: right;
-  display: flex;
-  justify-content: flex-end;
-  gap: 20px;
 `;
 
 const Background = styled(Container)`

@@ -46,20 +46,22 @@ class ErrorBoundary extends React.Component<Props> {
 
   componentDidCatch(error: Error) {
     this.error = error;
+    this.trackError();
 
     if (
       this.props.reloadOnChunkMissing &&
       error.message &&
-      error.message.match(/dynamically imported module/)
+      error.message.match(/dynamically imported module/) &&
+      !this.isRepeatedError
     ) {
       // If the editor bundle fails to load then reload the entire window. This
       // can happen if a deploy happens between the user loading the initial JS
       // bundle and the async-loaded editor JS bundle as the hash will change.
+      // Don't reload if this is a repeated error to avoid infinite reload loops.
       window.location.reload();
       return;
     }
 
-    this.trackError();
     Logger.error("ErrorBoundary", error);
   }
 

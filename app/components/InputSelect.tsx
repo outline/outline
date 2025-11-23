@@ -1,12 +1,10 @@
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { QuestionMarkIcon } from "outline-icons";
-import { transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import Text from "~/components/Text";
 import useMobile from "~/hooks/useMobile";
-import Separator from "./ContextMenu/Separator";
 import Flex from "./Flex";
 import { LabelText } from "./Input";
 import NudeButton from "./NudeButton";
@@ -219,9 +217,9 @@ const MobileSelect = React.forwardRef<HTMLButtonElement, MobileSelectProps>(
     );
 
     const renderOption = React.useCallback(
-      (option: Option) => {
+      (option: Option, idx: number) => {
         if (option.type === "separator") {
-          return <Separator />;
+          return <InputSelectSeparator key={`separator-${idx}`} />;
         }
 
         const isSelected = option === selectedOption;
@@ -343,9 +341,9 @@ function Option({
       {option.description && (
         <>
           &nbsp;
-          <Description type="tertiary" size="small" ellipsis>
+          <Text type="tertiary" size="small" ellipsis>
             – {option.description}
-          </Description>
+          </Text>
         </>
       )}
     </OptionContainer>
@@ -359,15 +357,6 @@ const Wrapper = styled.label<{ short?: boolean }>`
 
 const OptionContainer = styled(Flex)`
   min-height: 24px;
-`;
-
-const Description = styled(Text)`
-  @media (hover: hover) {
-    &:hover,
-    &:focus {
-      color: ${(props) => transparentize(0.5, props.theme.accentText)};
-    }
-  }
 `;
 
 const IconWrapper = styled.span`

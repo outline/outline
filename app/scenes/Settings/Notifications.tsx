@@ -13,6 +13,7 @@ import {
   SmileyIcon,
   StarredIcon,
   UserIcon,
+  GroupIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
@@ -68,6 +69,14 @@ function Notifications() {
       title: t("Mentioned"),
       description: t(
         "Receive a notification when someone mentions you in a document or comment"
+      ),
+    },
+    {
+      event: NotificationEventType.GroupMentionedInDocument,
+      icon: <GroupIcon />,
+      title: t("Group mentions"),
+      description: t(
+        "Receive a notification when someone mentions a group you are a member of in a document or comment"
       ),
     },
     {

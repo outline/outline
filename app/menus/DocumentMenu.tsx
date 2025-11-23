@@ -126,7 +126,7 @@ function DocumentMenu({
   );
 
   const rootAction = useDocumentMenuAction({
-    document,
+    documentId: document.id,
     onFindAndReplace,
     onRename,
     onSelectTemplate,

@@ -24,7 +24,7 @@ function ApiKeyNew({ onSubmit }: Props) {
   const [name, setName] = React.useState("");
   const [scope, setScope] = React.useState("");
   const [expiryType, setExpiryType] = React.useState<ExpiryType>(
-    ExpiryType.Week
+    ExpiryType.Month
   );
   const currentDate = React.useRef<Date>(new Date());
   const [expiresAt, setExpiresAt] = React.useState<Date | undefined>(() =>

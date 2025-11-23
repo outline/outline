@@ -37,7 +37,10 @@ type Props = {
   onRequestClose?: () => void;
 };
 
-function PublicAccess({ document, share, sharedParent }: Props) {
+function PublicAccess(
+  { document, share, sharedParent }: Props,
+  ref: React.RefObject<HTMLDivElement>
+) {
   const { t } = useTranslation();
   const theme = useTheme();
   const [validationError, setValidationError] = React.useState("");
@@ -69,6 +72,19 @@ function PublicAccess({ document, share, sharedParent }: Props) {
       try {
         await share?.save({
           showLastUpdated: checked,
+        });
+      } catch (err) {
+        toast.error(err.message);
+      }
+    },
+    [share]
+  );
+
+  const handleShowTOCChanged = React.useCallback(
+    async (checked: boolean) => {
+      try {
+        await share?.save({
+          showTOC: checked,
         });
       } catch (err) {
         toast.error(err.message);
@@ -140,7 +156,7 @@ function PublicAccess({ document, share, sharedParent }: Props) {
   );
 
   return (
-    <Wrapper>
+    <Wrapper ref={ref}>
       <ListItem
         title={t("Web")}
         subtitle={
@@ -241,6 +257,31 @@ function PublicAccess({ document, share, sharedParent }: Props) {
                 />
               }
             />
+            <ListItem
+              title={
+                <Text type="tertiary" as={Flex}>
+                  {t("Show table of contents")}&nbsp;
+                  <Tooltip
+                    content={t(
+                      "Display the table of contents on documents by default"
+                    )}
+                  >
+                    <NudeButton size={18}>
+                      <QuestionMarkIcon size={18} />
+                    </NudeButton>
+                  </Tooltip>
+                </Text>
+              }
+              actions={
+                <Switch
+                  aria-label={t("Show table of contents")}
+                  checked={share?.showTOC ?? false}
+                  onChange={handleShowTOCChanged}
+                  width={26}
+                  height={14}
+                />
+              }
+            />
           </>
         )}
 
@@ -315,4 +356,4 @@ const StyledLink = styled(Link)`
   text-decoration: underline;
 `;
 
-export default observer(PublicAccess);
+export default observer(React.forwardRef(PublicAccess));

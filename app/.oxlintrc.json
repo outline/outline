@@ -5,6 +5,13 @@
     {
       "files": ["**/*.{jsx,tsx}"],
       "rules": {
+        "no-restricted-globals": [
+          "error",
+          {
+            "name": "crypto",
+            "message": "Do not use, does not work in environments without SSL."
+          }
+        ],
         "no-restricted-imports": [
           "error",
           {
@@ -12,13 +19,6 @@
               {
                 "group": ["mime-types"],
                 "message": "Do not use the mime-types package in the browser."
-              }
-            ],
-            "paths": [
-              {
-                "name": "reakit/Menu",
-                "importNames": ["useMenuState"],
-                "message": "Do not use useMenuState from reakit/Menu. Use useMenuState instead."
               }
             ]
           }
