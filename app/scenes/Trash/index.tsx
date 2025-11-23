@@ -19,11 +19,9 @@ function Trash() {
       icon={<TrashIcon />}
       title={t("Trash")}
       actions={
-        documents.deleted.length > 0 && (
-          <Button neutral action={permanentlyDeleteDocumentsInTrash}>
-            {t("Empty trash")}
-          </Button>
-        )
+        <Button neutral action={permanentlyDeleteDocumentsInTrash}>
+          {t("Empty trash")}
+        </Button>
       }
     >
       <Heading>{t("Trash")}</Heading>
