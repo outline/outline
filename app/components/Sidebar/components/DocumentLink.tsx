@@ -217,6 +217,19 @@ function InnerDocumentLink(
     useDropToReparentDocument(node, setExpanded, parentRef);
 
   // Drop to reorder
+  const [{ isOverReorder: isOverReorderAbove }, dropToReorderAbove] =
+    useDropToReorderDocument(node, collection, (item) => {
+      if (!collection) {
+        return;
+      }
+      return {
+        documentId: item.id,
+        collectionId: collection.id,
+        parentDocumentId: parentId,
+        index,
+      };
+    });
+
   const [{ isOverReorder, isDraggingAnyDocument }, dropToReorder] =
     useDropToReorderDocument(node, collection, (item) => {
       if (!collection) {
@@ -390,6 +403,13 @@ function InnerDocumentLink(
       }}
     >
       <Relative ref={parentRef}>
+        {isDraggingAnyDocument && collection?.isManualSort && index === 0 && (
+          <DropCursor
+            isActiveDrop={isOverReorderAbove}
+            innerRef={dropToReorderAbove}
+            position="top"
+          />
+        )}
         <Draggable
           key={node.id}
           ref={drag}
