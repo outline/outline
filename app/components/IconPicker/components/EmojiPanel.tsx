@@ -1,76 +1,16 @@
 import concat from "lodash/concat";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
 import { EmojiCategory, EmojiSkinTone, IconType } from "@shared/types";
 import { getEmojis, getEmojisWithCategory, search } from "@shared/utils/emoji";
 import Flex from "~/components/Flex";
-import InputSearch from "~/components/InputSearch";
-import usePersistedState from "~/hooks/usePersistedState";
-import {
-  FREQUENTLY_USED_COUNT,
-  DisplayCategory,
-  emojiSkinToneKey,
-  emojisFreqKey,
-  lastEmojiKey,
-  sortFrequencies,
-} from "../utils";
+import { DisplayCategory } from "../utils";
 import GridTemplate, { DataNode } from "./GridTemplate";
 import SkinTonePicker from "./SkinTonePicker";
+import { StyledInputSearch, UserInputContainer } from "./Components";
+import { useIconState } from "../useIconState";
 
 const GRID_HEIGHT = 410;
-
-const useEmojiState = () => {
-  const [emojiSkinTone, setEmojiSkinTone] = usePersistedState<EmojiSkinTone>(
-    emojiSkinToneKey,
-    EmojiSkinTone.Default
-  );
-  const [emojisFreq, setEmojisFreq] = usePersistedState<Record<string, number>>(
-    emojisFreqKey,
-    {}
-  );
-  const [lastEmoji, setLastEmoji] = usePersistedState<string | undefined>(
-    lastEmojiKey,
-    undefined
-  );
-
-  const incrementEmojiCount = React.useCallback(
-    (emoji: string) => {
-      emojisFreq[emoji] = (emojisFreq[emoji] ?? 0) + 1;
-      setEmojisFreq({ ...emojisFreq });
-      setLastEmoji(emoji);
-    },
-    [emojisFreq, setEmojisFreq, setLastEmoji]
-  );
-
-  const getFreqEmojis = React.useCallback(() => {
-    const freqs = Object.entries(emojisFreq);
-
-    if (freqs.length > FREQUENTLY_USED_COUNT.Track) {
-      sortFrequencies(freqs).splice(FREQUENTLY_USED_COUNT.Track);
-      setEmojisFreq(Object.fromEntries(freqs));
-    }
-
-    const emojis = sortFrequencies(freqs)
-      .slice(0, FREQUENTLY_USED_COUNT.Get)
-      .map(([emoji, _]) => emoji);
-
-    const isLastPresent = emojis.includes(lastEmoji ?? "");
-    if (lastEmoji && !isLastPresent) {
-      emojis.pop();
-      emojis.push(lastEmoji);
-    }
-
-    return emojis;
-  }, [emojisFreq, setEmojisFreq, lastEmoji]);
-
-  return {
-    emojiSkinTone,
-    setEmojiSkinTone,
-    incrementEmojiCount,
-    getFreqEmojis,
-  };
-};
 
 type Props = {
   panelWidth: number;
@@ -97,11 +37,14 @@ const EmojiPanel = ({
   const {
     emojiSkinTone: skinTone,
     setEmojiSkinTone,
-    incrementEmojiCount,
-    getFreqEmojis,
-  } = useEmojiState();
+    incrementIconCount,
+    getFrequentIcons,
+  } = useIconState(IconType.Emoji);
 
-  const freqEmojis = React.useMemo(() => getFreqEmojis(), [getFreqEmojis]);
+  const freqEmojis = React.useMemo(
+    () => getFrequentIcons(),
+    [getFrequentIcons]
+  );
 
   const handleFilter = React.useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -120,9 +63,9 @@ const EmojiPanel = ({
   const handleEmojiSelection = React.useCallback(
     ({ id, value }: { id: string; value: string }) => {
       onEmojiChange(value);
-      incrementEmojiCount(id);
+      incrementIconCount(id);
     },
-    [onEmojiChange, incrementEmojiCount]
+    [onEmojiChange, incrementIconCount]
   );
 
   const isSearch = query !== "";
@@ -195,7 +138,7 @@ const getAllEmojis = ({
 }): DataNode[] => {
   const emojisWithCategory = getEmojisWithCategory({ skinTone });
 
-  const getFrequentEmojis = (): DataNode => {
+  const getFrequentIcons = (): DataNode => {
     const emojis = getEmojis({ ids: freqEmojis, skinTone });
     return {
       category: DisplayCategory.Frequent,
@@ -220,7 +163,7 @@ const getAllEmojis = ({
   };
 
   return concat(
-    getFrequentEmojis(),
+    getFrequentIcons(),
     getCategoryData(EmojiCategory.People),
     getCategoryData(EmojiCategory.Nature),
     getCategoryData(EmojiCategory.Foods),
@@ -231,14 +174,5 @@ const getAllEmojis = ({
     getCategoryData(EmojiCategory.Flags)
   );
 };
-
-const UserInputContainer = styled(Flex)`
-  height: 48px;
-  padding: 6px 12px 0px;
-`;
-
-const StyledInputSearch = styled(InputSearch)`
-  flex-grow: 1;
-`;
 
 export default EmojiPanel;

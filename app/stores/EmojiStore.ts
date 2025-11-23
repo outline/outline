@@ -4,6 +4,7 @@ import Store, { RPCAction } from "./base/Store";
 
 export default class EmojisStore extends Store<Emoji> {
   actions = [
+    RPCAction.Info,
     RPCAction.List,
     RPCAction.Create,
     RPCAction.Update,
