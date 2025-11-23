@@ -66,7 +66,11 @@ class Group extends ParanoidModel<
   @Column
   name: string;
 
-  @Length({ min: 0, max: GroupValidation.maxDescriptionLength, msg: `description must be ${GroupValidation.maxDescriptionLength} characters or less` })
+  @Length({
+    min: 0,
+    max: GroupValidation.maxDescriptionLength,
+    msg: `description must be ${GroupValidation.maxDescriptionLength} characters or less`,
+  })
   @Column(DataType.TEXT)
   description: string;
 

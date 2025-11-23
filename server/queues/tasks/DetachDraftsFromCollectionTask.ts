@@ -3,6 +3,7 @@ import documentMover from "@server/commands/documentMover";
 import { Collection, Document, User } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import BaseTask from "./BaseTask";
+import { createContext } from "@server/context";
 
 type Props = {
   collectionId: string;
@@ -39,13 +40,16 @@ export default class DetachDraftsFromCollectionTask extends BaseTask<Props> {
     });
 
     return sequelize.transaction(async (transaction) => {
+      const ctx = createContext({
+        user: actor,
+        ip: props.ip,
+        transaction,
+      });
+
       for (const document of documents) {
-        await documentMover({
+        await documentMover(ctx, {
           document,
-          user: actor,
-          ip: props.ip,
           collectionId: null,
-          transaction,
         });
       }
     });

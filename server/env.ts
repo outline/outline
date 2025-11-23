@@ -424,7 +424,9 @@ export class Environment {
    * Setting secure to false therefore does not mean that you would not use an
    * encrypted connection.
    */
-  public SMTP_DISABLE_STARTTLS = this.toBoolean(environment.SMTP_DISABLE_STARTTLS ?? "false");
+  public SMTP_DISABLE_STARTTLS = this.toBoolean(
+    environment.SMTP_DISABLE_STARTTLS ?? "false"
+  );
 
   /**
    * Dropbox app key for embedding Dropbox files

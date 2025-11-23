@@ -21,6 +21,7 @@ import { sequelize } from "@server/storage/database";
 import teamProvisioner from "./teamProvisioner";
 import userProvisioner from "./userProvisioner";
 import { APIContext } from "@server/types";
+import { createContext } from "@server/context";
 import { addSeconds } from "date-fns";
 
 type Props = {
@@ -246,9 +247,9 @@ async function provisionFirstCollection(team: Team, user: User) {
 
       document.content = await DocumentHelper.toJSON(document);
 
-      await document.publish(user, collection.id, {
+      await document.publish(createContext({ user, transaction }), {
+        collectionId: collection.id,
         silent: true,
-        transaction,
       });
     }
   });
