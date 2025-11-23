@@ -15,9 +15,11 @@ type Props = {
  * in a way that can be used wherever an Icon would be.
  */
 export default function EmojiIcon({ size = 24, emoji, ...rest }: Props) {
+  const isUrl = emoji.includes("/");
+
   return (
     <Span $size={size} {...rest}>
-      <SVG size={size} emoji={emoji} />
+      <SVG size={size} emoji={isUrl ? "�" : emoji} />
     </Span>
   );
 }
