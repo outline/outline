@@ -4,16 +4,20 @@ import styled from "styled-components";
 import { s } from "@shared/styles";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 import DelayedMount from "./DelayedMount";
-import NudeButton from "./NudeButton";
 import { Popover, PopoverTrigger, PopoverContent } from "./primitives/Popover";
 import Text from "./Text";
+import { ColorButton } from "./ColorButton";
 
 /**
  * Props for the SwatchButton component.
  */
 type SwatchButtonProps = {
-  /** The current color value in hex format */
+  /** The current color value in hex format. If no color is passed a radial gradient will be shown */
   color?: string;
+  /** Whether the swatch button is currently active/selected */
+  active?: boolean;
+  /** The size of the button in pixels */
+  size?: number;
   /** Callback function invoked when the color is changed */
   onChange: (color: string) => void;
   /** Additional CSS class name to apply to the button */
@@ -24,19 +28,22 @@ type SwatchButtonProps = {
 
 export const SwatchButton: React.FC<SwatchButtonProps> = ({
   color,
+  active = false,
+  size = 24,
   onChange,
   className,
   pickerInModal = true,
 }) => {
   const { t } = useTranslation();
-
   return (
     <Popover modal={pickerInModal}>
       <PopoverTrigger>
-        <StyledSwatchButton
+        <ColorButton
           aria-label={t("Select a color")}
           className={className}
-          style={{ background: color }}
+          color={color}
+          active={active}
+          size={size}
         />
       </PopoverTrigger>
       <StyledContent
@@ -62,12 +69,6 @@ export const SwatchButton: React.FC<SwatchButtonProps> = ({
     </Popover>
   );
 };
-
-const StyledSwatchButton = styled(NudeButton)`
-  background: ${s("menuBackground")};
-  border: 1px solid ${s("inputBorder")};
-  border-radius: 50%;
-`;
 
 const StyledContent = styled(PopoverContent)`
   width: auto;
