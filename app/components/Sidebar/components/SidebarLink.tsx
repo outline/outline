@@ -15,26 +15,46 @@ import { ActionV2WithChildren } from "~/types";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { useTranslation } from "react-i18next";
 
+/**
+ * Props for the SidebarLink component.
+ * Extends NavLink props with additional sidebar-specific functionality.
+ */
 type Props = Omit<NavLinkProps, "to"> & {
+  /** The location to navigate to when the link is clicked */
   to?: LocationDescriptor;
+  /** Ref callback to access the underlying HTML element */
   innerRef?: (ref: HTMLElement | null | undefined) => void;
+  /** Callback fired when the link is clicked */
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
   /** Callback when we expect the user to click on the link. Used for prefetching data. */
   onClickIntent?: React.MouseEventHandler<HTMLElement>;
+  /** Callback fired when the disclosure icon is clicked */
   onDisclosureClick?: React.MouseEventHandler<HTMLElement>;
+  /** Icon to display on the left side of the link */
   icon?: React.ReactNode;
+  /** Text label or content to display for the link */
   label?: React.ReactNode;
+  /** Optional menu to display on hover or interaction */
   menu?: React.ReactNode;
+  /** Whether to show an unread badge indicator */
   unreadBadge?: boolean;
+  /** Whether to show action buttons on hover */
   showActions?: boolean;
+  /** Whether the link is disabled and non-interactive */
   disabled?: boolean;
+  /** Whether the link is currently active */
   active?: boolean;
   /** If set, a disclosure will be rendered to the left of any icon */
   expanded?: boolean;
+  /** Whether this link is the current active drop target for drag and drop */
   isActiveDrop?: boolean;
+  /** Whether this link represents a draft document */
   isDraft?: boolean;
+  /** Nesting depth level for indentation (0-based) */
   depth?: number;
+  /** Whether to automatically scroll this link into view if needed */
   scrollIntoViewIfNeeded?: boolean;
+  /** Optional context menu action to display */
   contextAction?: ActionV2WithChildren;
 };
 
@@ -72,6 +92,7 @@ function SidebarLink(
   }: Props,
   ref: React.RefObject<HTMLAnchorElement>
 ) {
+  const hasDisclosure = expanded !== undefined;
   const { t } = useTranslation();
   const theme = useTheme();
   const { handleMouseEnter, handleMouseLeave } = useClickIntent(onClickIntent);
@@ -101,8 +122,6 @@ function SidebarLink(
 
   const handleClick = React.useCallback(
     (ev: React.MouseEvent<HTMLAnchorElement>) => {
-      onDisclosureClick?.(ev);
-
       if (onClick && !disabled && ev.isDefaultPrevented() === false) {
         onClick(ev);
       }
@@ -112,6 +131,9 @@ function SidebarLink(
 
   const handleDisclosureClick = React.useCallback(
     (ev: React.MouseEvent<HTMLElement>) => {
+      if (!hasDisclosure) {
+        return;
+      }
       ev.preventDefault();
       ev.stopPropagation();
       onDisclosureClick?.(ev);
@@ -130,6 +152,7 @@ function SidebarLink(
         style={style}
         activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
         onClick={handleClick}
+        onActiveClick={handleDisclosureClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onDragEnter={handleMouseEnter}
@@ -143,7 +166,7 @@ function SidebarLink(
         {...rest}
       >
         <Content>
-          {expanded !== undefined && (
+          {hasDisclosure && (
             <DisclosureComponent
               expanded={expanded}
               onClick={preventDefault}
