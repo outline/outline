@@ -912,45 +912,19 @@ router.post(
 
     if (document.deletedAt && document.isWorkspaceTemplate) {
       authorize(user, "restore", document);
-
-      await document.restore({ transaction });
-      await Event.createFromContext(ctx, {
-        name: "documents.restore",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        data: {
-          title: document.title,
-        },
-      });
+      await document.restoreWithCtx(ctx, { name: "restore" });
     } else if (document.deletedAt) {
       authorize(user, "restore", document);
       authorize(user, "updateDocument", destCollection);
 
       // restore a previously deleted document
-      await document.restoreTo(destCollectionId!, { transaction, user }); // destCollectionId is guaranteed to be defined here
-      await Event.createFromContext(ctx, {
-        name: "documents.restore",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        data: {
-          title: document.title,
-        },
-      });
+      await document.restoreTo(ctx, { collectionId: destCollectionId! }); // destCollectionId is guaranteed to be defined here
     } else if (document.archivedAt) {
       authorize(user, "unarchive", document);
       authorize(user, "updateDocument", destCollection);
 
       // restore a previously archived document
-      await document.restoreTo(destCollectionId!, { transaction, user }); // destCollectionId is guaranteed to be defined here
-      await Event.createFromContext(ctx, {
-        name: "documents.unarchive",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        data: {
-          title: document.title,
-          sourceCollectionId,
-        },
-      });
+      await document.restoreTo(ctx, { collectionId: destCollectionId! }); // destCollectionId is guaranteed to be defined here
     } else if (revisionId) {
       // restore a document to a specific revision
       authorize(user, "update", document);
@@ -958,16 +932,7 @@ router.post(
       authorize(document, "restore", revision);
 
       document.restoreFromRevision(revision);
-      await document.save({ transaction });
-
-      await Event.createFromContext(ctx, {
-        name: "documents.restore",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        data: {
-          title: document.title,
-        },
-      });
+      await document.saveWithCtx(ctx, undefined, { name: "restore" });
     } else {
       assertPresent(revisionId, "revisionId is required");
     }
@@ -1204,33 +1169,19 @@ router.post(
       authorize(user, "createTemplate", user.team);
     }
 
-    const document = await Document.create(
-      {
-        editorVersion: original.editorVersion,
-        collectionId,
-        teamId: user.teamId,
-        publishedAt: publish ? new Date() : null,
-        lastModifiedById: user.id,
-        createdById: user.id,
-        template: true,
-        icon: original.icon,
-        color: original.color,
-        title: original.title,
-        text: original.text,
-        content: original.content,
-      },
-      {
-        transaction,
-      }
-    );
-    await Event.createFromContext(ctx, {
-      name: "documents.create",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      data: {
-        title: document.title,
-        template: true,
-      },
+    const document = await Document.createWithCtx(ctx, {
+      editorVersion: original.editorVersion,
+      collectionId,
+      teamId: user.teamId,
+      publishedAt: publish ? new Date() : null,
+      lastModifiedById: user.id,
+      createdById: user.id,
+      template: true,
+      icon: original.icon,
+      color: original.color,
+      title: original.title,
+      text: original.text,
+      content: original.content,
     });
 
     // reload to get all of the data needed to present (user, collection etc)
@@ -1307,7 +1258,6 @@ router.post(
 
     document = await documentUpdater(ctx, {
       document,
-      user,
       ...input,
       publish,
       collectionId,
@@ -1364,15 +1314,13 @@ router.post(
       }
     }
 
-    const response = await documentDuplicator({
-      user,
+    const response = await documentDuplicator(ctx, {
       collection,
       document,
       title,
       publish,
       recursive,
       parentDocumentId,
-      ctx,
     });
 
     ctx.body = {
@@ -1427,14 +1375,11 @@ router.post(
       }
     }
 
-    const { documents, collectionChanged } = await documentMover({
-      user,
+    const { documents, collectionChanged } = await documentMover(ctx, {
       document,
       collectionId: collectionId ?? null,
       parentDocumentId,
       index,
-      ip: ctx.request.ip,
-      transaction,
     });
 
     ctx.body = {
@@ -1467,15 +1412,7 @@ router.post(
     });
     authorize(user, "archive", document);
 
-    await document.archive(user, { transaction });
-    await Event.createFromContext(ctx, {
-      name: "documents.archive",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      data: {
-        title: document.title,
-      },
-    });
+    await document.archiveWithCtx(ctx);
 
     ctx.body = {
       data: await presentDocument(ctx, document),
@@ -1516,14 +1453,6 @@ router.post(
       authorize(user, "delete", document);
 
       await document.delete(user);
-      await Event.createFromContext(ctx, {
-        name: "documents.delete",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        data: {
-          title: document.title,
-        },
-      });
     }
 
     ctx.body = {
@@ -1536,35 +1465,32 @@ router.post(
   "documents.unpublish",
   auth(),
   validate(T.DocumentsUnpublishSchema),
+  transaction(),
   async (ctx: APIContext<T.DocumentsUnpublishReq>) => {
     const { id, detach } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
 
     const document = await Document.findByPk(id, {
       userId: user.id,
     });
     authorize(user, "unpublish", document);
 
-    const childDocumentIds = await document.findAllChildDocumentIds({
-      archivedAt: {
-        [Op.eq]: null,
+    const childDocumentIds = await document.findAllChildDocumentIds(
+      {
+        archivedAt: {
+          [Op.eq]: null,
+        },
       },
-    });
+      { transaction }
+    );
     if (childDocumentIds.length > 0) {
       throw InvalidRequestError(
         "Cannot unpublish document with child documents"
       );
     }
 
-    // detaching would unset collectionId from document, so save a ref to the affected collectionId.
-    const collectionId = document.collectionId;
-
-    await document.unpublish(user, { detach });
-    await Event.createFromContext(ctx, {
-      name: "documents.unpublish",
-      documentId: document.id,
-      collectionId,
-    });
+    await document.unpublishWithCtx(ctx, { detach });
 
     ctx.body = {
       data: await presentDocument(ctx, document),
@@ -1713,7 +1639,7 @@ router.post(
       authorize(user, "read", templateDocument);
     }
 
-    const document = await documentCreator({
+    const document = await documentCreator(ctx, {
       id,
       title,
       text: !isNil(text)
@@ -1728,9 +1654,7 @@ router.post(
       templateDocument,
       template,
       fullWidth,
-      user,
       editorVersion,
-      ctx,
     });
 
     if (collection) {

@@ -1,13 +1,11 @@
 import { Op } from "sequelize";
-import { User, Collection, Document } from "@server/models";
+import { Collection, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { APIContext } from "@server/types";
 import documentCreator from "./documentCreator";
 
 type Props = {
-  /** The user who is creating the document */
-  user: User;
   /** The document to duplicate */
   document: Document;
   /** The collection to add the duplicated document to */
@@ -20,29 +18,19 @@ type Props = {
   publish?: boolean;
   /** Whether to duplicate child documents */
   recursive?: boolean;
-  /** The request context */
-  ctx: APIContext;
 };
 
-export default async function documentDuplicator({
-  user,
-  document,
-  collection,
-  parentDocumentId,
-  title,
-  publish,
-  recursive,
-  ctx,
-}: Props): Promise<Document[]> {
+export default async function documentDuplicator(
+  ctx: APIContext,
+  { document, collection, parentDocumentId, title, publish, recursive }: Props
+): Promise<Document[]> {
   const newDocuments: Document[] = [];
   const sharedProperties = {
-    user,
     collectionId: collection?.id,
     publish: publish ?? !!document.publishedAt,
-    ctx,
   };
 
-  const duplicated = await documentCreator({
+  const duplicated = await documentCreator(ctx, {
     parentDocumentId,
     icon: document.icon,
     color: document.color,
@@ -93,7 +81,7 @@ export default async function documentDuplicator({
     ).reverse(); // we have to reverse since the child documents will be added in reverse order
 
     for (const childDocument of sorted) {
-      const duplicatedChildDocument = await documentCreator({
+      const duplicatedChildDocument = await documentCreator(ctx, {
         parentDocumentId: duplicatedDocument.id,
         icon: childDocument.icon,
         color: childDocument.color,

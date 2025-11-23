@@ -31,9 +31,6 @@ describe("documents.publish", () => {
       collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
-      data: {
-        title: document.title,
-      },
       ip,
     });
     expect(spy).not.toHaveBeenCalled();
@@ -55,9 +52,6 @@ describe("documents.publish", () => {
       collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
-      data: {
-        title: document.title,
-      },
       ip,
     });
     expect(spy).toHaveBeenCalled();
@@ -95,9 +89,6 @@ describe("documents.publish", () => {
       collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
-      data: {
-        title: document.title,
-      },
       ip,
     });
     expect(spy).toHaveBeenCalledTimes(1);
@@ -124,9 +115,6 @@ describe("documents.publish", () => {
       collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
-      data: {
-        title: document.title,
-      },
       ip,
     });
     expect(spy).not.toHaveBeenCalled();

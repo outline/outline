@@ -537,7 +537,9 @@ export class DocumentHelper {
     documents: Document[],
     documentStructure: NavigationNode[]
   ): Document[] {
-    if (!documentStructure.length) {return documents;}
+    if (!documentStructure.length) {
+      return documents;
+    }
 
     const orderMap = new Map<string, number>();
     documentStructure.forEach((node, index) => {

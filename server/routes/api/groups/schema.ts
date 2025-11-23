@@ -51,7 +51,10 @@ export const GroupsCreateSchema = z.object({
     /** Group name */
     name: z.string(),
     /** Group description */
-    description: z.string().max(GroupValidation.maxDescriptionLength).optional(),
+    description: z
+      .string()
+      .max(GroupValidation.maxDescriptionLength)
+      .optional(),
     /** Optionally link this group to an external source. */
     externalId: z.string().optional(),
     /** Whether mentions are disabled for this group */
@@ -66,7 +69,10 @@ export const GroupsUpdateSchema = z.object({
     /** Group name */
     name: z.string().optional(),
     /** Group description */
-    description: z.string().max(GroupValidation.maxDescriptionLength).optional(),
+    description: z
+      .string()
+      .max(GroupValidation.maxDescriptionLength)
+      .optional(),
     /** Optionally link this group to an external source. */
     externalId: z.string().optional(),
     /** Whether mentions are disabled for this group */

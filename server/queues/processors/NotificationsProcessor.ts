@@ -63,11 +63,7 @@ export default class NotificationsProcessor extends BaseProcessor {
 
   async documentPublished(event: DocumentEvent) {
     // never send notifications when batch importing
-    if (
-      "data" in event &&
-      "source" in event.data &&
-      event.data.source === "import"
-    ) {
+    if (event.name === "documents.publish" && event.data?.source === "import") {
       return;
     }
 

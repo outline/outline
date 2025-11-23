@@ -53,7 +53,7 @@ export default class WebsocketsProcessor {
         }
         if (
           event.name === "documents.create" &&
-          event.data.source === "import"
+          event.data?.source === "import"
         ) {
           return;
         }
@@ -94,18 +94,25 @@ export default class WebsocketsProcessor {
         const channels = await this.getDocumentEventChannels(event, document);
 
         // We need to add the collection channel to let the members update the doc structure.
-        channels.push(`collection-${event.collectionId}`);
+        // In case draft is detached from a collection, fallback to previous attribute to get the right one.
+        const collectionId =
+          event.collectionId ?? event.changes?.previous.collectionId;
+
+        channels.push(`collection-${collectionId}`);
 
         return socketio.to(channels).emit(event.name, {
           document: documentToPresent,
-          collectionId: event.collectionId,
+          collectionId,
         });
       }
 
       case "documents.unarchive": {
+        const srcCollectionId =
+          event.changes?.previous.collectionId ?? event.collectionId;
+
         const [document, srcCollection] = await Promise.all([
           Document.findByPk(event.documentId, { paranoid: false }),
-          Collection.findByPk(event.data.sourceCollectionId, {
+          Collection.findByPk(srcCollectionId, {
             paranoid: false,
           }),
         ]);

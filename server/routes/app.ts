@@ -195,7 +195,8 @@ export const renderShare = async (ctx: Context, next: Next) => {
   }
 
   // Allow shares to be embedded in iframes on other websites unless prevented by team preference
-  const preventEmbedding = team?.getPreference(TeamPreference.PreventDocumentEmbedding) ?? false;
+  const preventEmbedding =
+    team?.getPreference(TeamPreference.PreventDocumentEmbedding) ?? false;
   if (!preventEmbedding) {
     ctx.remove("X-Frame-Options");
   }

@@ -14,7 +14,6 @@ describe("documentUpdater", () => {
       documentUpdater(ctx, {
         text: "Changed",
         document,
-        user,
       })
     );
 
@@ -36,7 +35,6 @@ describe("documentUpdater", () => {
       documentUpdater(ctx, {
         title: document.title,
         document,
-        user,
       })
     );
 
@@ -53,7 +51,6 @@ describe("documentUpdater", () => {
       documentUpdater(ctx, {
         text: "Changed",
         document,
-        user,
       })
     );
 
