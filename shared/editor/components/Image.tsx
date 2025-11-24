@@ -70,9 +70,10 @@ const Image = (props: Props) => {
 
   const sanitizedSrc = sanitizeUrl(src);
   const imgLink =
-    find(node.attrs.marks ?? [], (mark) => mark.type === "link")?.attrs.href ??
-    "";
-
+    find(node.attrs.marks ?? [], (mark) => mark.type === "link")?.attrs.href ||
+    // Coalescing to `undefined` to avoid empty string in href because empty string
+    // in href still shows pointer on hover and click navigates to nowhere
+    undefined;
   const handleOpen = React.useCallback(() => {
     window.open(sanitizedSrc, "_blank");
   }, [sanitizedSrc]);
@@ -148,10 +149,11 @@ const Image = (props: Props) => {
           <Error style={widthStyle} className={EditorStyleHelper.imageHandle}>
             <CrossIcon size={16} /> Image failed to load
           </Error>
-        ) : imgLink && !props.isSelected ? (
+        ) : (
           <a
             href={imgLink}
-            className="use-hover-preview"
+            // Do not show hover preview when the image is selected
+            className={!isSelected ? "use-hover-preview" : ""}
             target="_blank"
             rel="noopener noreferrer nofollow"
           >
@@ -160,11 +162,6 @@ const Image = (props: Props) => {
               style={{
                 ...widthStyle,
                 display: loaded ? "block" : "none",
-                cursor: !props.isEditable ? "pointer" : "zoom-in",
-                pointerEvents:
-                  dragging || (!props.isSelected && props.isEditable)
-                    ? "none"
-                    : "all",
               }}
               src={sanitizedSrc}
               alt={node.attrs.alt || ""}
@@ -193,44 +190,6 @@ const Image = (props: Props) => {
               onTouchStart={handleImageTouchStart}
             />
           </a>
-        ) : (
-          <img
-            className={EditorStyleHelper.imageHandle}
-            style={{
-              ...widthStyle,
-              display: loaded ? "block" : "none",
-              cursor: "zoom-in",
-              pointerEvents:
-                dragging || (!props.isSelected && props.isEditable)
-                  ? "none"
-                  : "all",
-            }}
-            src={sanitizedSrc}
-            alt={node.attrs.alt || ""}
-            onError={() => {
-              setError(true);
-              setLoaded(true);
-            }}
-            onLoad={(ev: React.SyntheticEvent<HTMLImageElement>) => {
-              // For some SVG's Firefox does not provide the naturalWidth, in this
-              // rare case we need to provide a default so that the image can be
-              // seen and is not sized to 0px
-              const nw = (ev.target as HTMLImageElement).naturalWidth || 300;
-              const nh = (ev.target as HTMLImageElement).naturalHeight;
-              setNaturalWidth(nw);
-              setNaturalHeight(nh);
-              setLoaded(true);
-
-              if (!node.attrs.width) {
-                setSize((state) => ({
-                  ...state,
-                  width: nw,
-                }));
-              }
-            }}
-            onClick={handleImageClick}
-            onTouchStart={handleImageTouchStart}
-          />
         )}
         {!loaded && width && height && (
           <img
