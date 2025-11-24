@@ -50,12 +50,12 @@ const CollectionLink: React.FC<Props> = ({
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const [isEditing, setIsEditing] = React.useState(false);
   const { documents } = useStores();
+  const { pathname } = useLocation();
   const history = useHistory();
   const can = usePolicy(collection);
   const { t } = useTranslation();
   const sidebarContext = useSidebarContext();
   const user = useCurrentUser();
-  const { pathname } = useLocation();
   const editableTitleRef = React.useRef<RefHandle>(null);
 
   const handleTitleChange = React.useCallback(
@@ -122,24 +122,14 @@ const CollectionLink: React.FC<Props> = ({
   const contextMenuAction = useCollectionMenuAction({
     collectionId: collection.id,
   });
-
   const onPage = pathname.startsWith(collection.path);
-  const handleClick = React.useCallback(
-    (e: React.MouseEvent) => {
-      onClick?.();
-      if (onPage) {
-        onDisclosureClick(e as React.MouseEvent<HTMLButtonElement>);
-      }
-    },
-    [onClick, onPage, onDisclosureClick]
-  );
 
   return (
     <ActionContextProvider value={{ activeCollectionId: collection.id }}>
       <Relative ref={mergeRefs([parentRef, dropRef])}>
         <DropToImport collectionId={collection.id}>
           <SidebarLink
-            onClick={handleClick}
+            onClick={onClick}
             to={
               onPage
                 ? undefined
@@ -149,7 +139,7 @@ const CollectionLink: React.FC<Props> = ({
                   }
             }
             expanded={expanded}
-            onDisclosureClick={onPage ? undefined : onDisclosureClick}
+            onDisclosureClick={onDisclosureClick}
             onClickIntent={handlePrefetch}
             contextAction={contextMenuAction}
             icon={
