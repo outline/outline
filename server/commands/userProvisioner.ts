@@ -9,6 +9,7 @@ import {
 } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { Team, User, UserAuthentication } from "@server/models";
+import UploadUserAvatarTask from "@server/queues/tasks/UploadUserAvatarTask";
 import { sequelize } from "@server/storage/database";
 import { APIContext } from "@server/types";
 
@@ -139,7 +140,6 @@ export default async function userProvisioner(
         {
           name,
           avatarUrl,
-          sourceAvatarUrl: avatarUrl,
           lastActiveAt: new Date(),
           lastActiveIp: ctx.ip,
         },
@@ -161,6 +161,15 @@ export default async function userProvisioner(
         }
       );
     });
+
+    // Schedule avatar sync task if user has an avatar URL and hasn't manually changed it
+    if (avatarUrl && !existingUser.getFlag("avatarChanged")) {
+      await new UploadUserAvatarTask().schedule({
+        userId: existingUser.id,
+        avatarUrl,
+        isSync: true,
+      });
+    }
 
     if (isInvite) {
       const inviter = await existingUser.$get("invitedBy");
@@ -219,7 +228,6 @@ export default async function userProvisioner(
         role: role ?? team?.defaultUserRole,
         teamId,
         avatarUrl,
-        sourceAvatarUrl: avatarUrl,
         authentications: authentication ? [authentication] : [],
         lastActiveAt: new Date(),
         lastActiveIp: ctx.ip,

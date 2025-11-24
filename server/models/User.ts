@@ -223,15 +223,6 @@ class User extends ParanoidModel<
     this.setDataValue("avatarUrl", value);
   }
 
-  @AllowNull
-  @IsUrlOrRelativePath
-  @Length({
-    max: 4096,
-    msg: "sourceAvatarUrl must be less than 4096 characters",
-  })
-  @Column(DataType.STRING)
-  sourceAvatarUrl: string | null;
-
   // associations
   @BelongsTo(() => User, "suspendedById")
   suspendedBy: User | null;
