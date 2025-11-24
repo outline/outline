@@ -221,8 +221,8 @@ export default class Heading extends Node {
               container.appendChild(fold);
 
               decorations.push(
-                Decoration.widget(pos + node.nodeSize - 1, container, {
-                  side: 1,
+                Decoration.widget(pos + 1, container, {
+                  side: -1,
                   ignoreSelection: true,
                   relaxedSide: true,
                   key: pos.toString(),
