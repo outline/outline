@@ -139,6 +139,7 @@ export default async function userProvisioner(
         {
           name,
           avatarUrl,
+          sourceAvatarUrl: avatarUrl,
           lastActiveAt: new Date(),
           lastActiveIp: ctx.ip,
         },
@@ -218,6 +219,7 @@ export default async function userProvisioner(
         role: role ?? team?.defaultUserRole,
         teamId,
         avatarUrl,
+        sourceAvatarUrl: avatarUrl,
         authentications: authentication ? [authentication] : [],
         lastActiveAt: new Date(),
         lastActiveIp: ctx.ip,

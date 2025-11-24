@@ -1,7 +1,10 @@
-import { randomUUID } from "crypto";
 import { User } from "@server/models";
 import { Buckets } from "@server/models/helpers/AttachmentHelper";
 import FileStorage from "@server/storage/files";
+import {
+  generateAvatarFilename,
+  shouldUpdateAvatar,
+} from "@server/utils/avatarUtils";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {
@@ -9,6 +12,8 @@ type Props = {
   userId: string;
   /** The original avatarUrl from the SSO provider */
   avatarUrl: string;
+  /** Whether this is a sync operation (should check for changes) */
+  isSync?: boolean;
 };
 
 /**
@@ -21,14 +26,33 @@ export default class UploadUserAvatarTask extends BaseTask<Props> {
       rejectOnEmpty: true,
     });
 
+    // If this is a sync operation, check if we need to update
+    if (props.isSync) {
+      // Check if user has manually changed their avatar
+      if (user.getFlag("avatarChanged")) {
+        return; // Don't override user's manual avatar choice
+      }
+
+      // Check if the avatar has actually changed
+      if (!shouldUpdateAvatar(user.avatarUrl, props.avatarUrl)) {
+        return; // No change needed
+      }
+    }
+
+    // Use deterministic filename for change detection
+    const filename = generateAvatarFilename(user.id, props.avatarUrl);
+
     const res = await FileStorage.storeFromUrl(
       props.avatarUrl,
-      `${Buckets.avatars}/${user.id}/${randomUUID()}`,
+      `${Buckets.avatars}/${filename}`,
       "public-read"
     );
 
     if (res?.url) {
-      await user.update({ avatarUrl: res.url });
+      await user.update({
+        avatarUrl: res.url,
+        sourceAvatarUrl: props.avatarUrl,
+      });
     }
   }
 

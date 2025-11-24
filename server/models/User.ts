@@ -77,6 +77,7 @@ export enum UserFlag {
   Desktop = "desktop",
   DesktopWeb = "desktopWeb",
   MobileWeb = "mobileWeb",
+  AvatarChanged = "avatarChanged",
 }
 
 @Scopes(() => ({
@@ -221,6 +222,15 @@ class User extends ParanoidModel<
   set avatarUrl(value: string | null) {
     this.setDataValue("avatarUrl", value);
   }
+
+  @AllowNull
+  @IsUrlOrRelativePath
+  @Length({
+    max: 4096,
+    msg: "sourceAvatarUrl must be less than 4096 characters",
+  })
+  @Column(DataType.STRING)
+  sourceAvatarUrl: string | null;
 
   // associations
   @BelongsTo(() => User, "suspendedById")
