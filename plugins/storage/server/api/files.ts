@@ -22,7 +22,6 @@ import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { getJWTPayload } from "@server/utils/jwt";
 import * as T from "./schema";
-import { getBaseDomain } from "@shared/utils/domains";
 
 const router = new Router();
 

@@ -36,7 +36,9 @@ export async function detectDrawioPngFromFile(
     // Check for text chunks where Draw.io embeds metadata
     if (type === "zTXt" || type === "iTXt" || type === "tEXt") {
       const nullIndex = data.indexOf(0);
-      if (nullIndex < 0) continue;
+      if (nullIndex < 0) {
+        continue;
+      }
       const keyword = new TextDecoder().decode(data.slice(0, nullIndex));
 
       if (keyword.includes("mxfile")) {
