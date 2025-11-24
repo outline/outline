@@ -17,7 +17,6 @@ import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { ComponentProps } from "../types";
 import SimpleImage from "./SimpleImage";
 import { LightboxImageFactory } from "../lib/Lightbox";
-import { AttachmentPreset } from "@shared/types";
 import FileHelper from "../lib/FileHelper";
 
 const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
@@ -434,132 +433,132 @@ export default class Image extends SimpleImage {
     return {
       ...super.commands({ type }),
       editDiagram: (): Command => (state, dispatch) => {
+        if (!(state.selection instanceof NodeSelection)) {
+          return false;
+        }
         const { node } = state.selection;
 
         const emptyImage =
           "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAADz3RFWHRteGZpbGUAJTNDbXhmaWxlJTIwaG9zdCUzRCUyMmFwcC5kaWFncmFtcy5uZXQlMjIlMjBhZ2VudCUzRCUyMk1vemlsbGElMkY1LjAlMjAoTWFjaW50b3NoJTNCJTIwSW50ZWwlMjBNYWMlMjBPUyUyMFglMjAxMF8xNV83KSUyMEFwcGxlV2ViS2l0JTJGNTM3LjM2JTIwKEtIVE1MJTJDJTIwbGlrZSUyMEdlY2tvKSUyMENocm9tZSUyRjEzOS4wLjAuMCUyMFNhZmFyaSUyRjUzNy4zNiUyMiUyMHZlcnNpb24lM0QlMjIyOC4yLjglMjIlMjBzY2FsZSUzRCUyMjElMjIlMjBib3JkZXIlM0QlMjIwJTIyJTNFJTBBJTIwJTIwJTNDZGlhZ3JhbSUyMG5hbWUlM0QlMjJQYWdlLTElMjIlMjBpZCUzRCUyMloxN1hHdVRjUnQteXp1N2xJbm1ZJTIyJTNFJTBBJTIwJTIwJTIwJTIwJTNDbXhHcmFwaE1vZGVsJTIwZHglM0QlMjIxMjE2JTIyJTIwZHklM0QlMjI3NzIlMjIlMjBncmlkJTNEJTIyMSUyMiUyMGdyaWRTaXplJTNEJTIyMTAlMjIlMjBndWlkZXMlM0QlMjIxJTIyJTIwdG9vbHRpcHMlM0QlMjIxJTIyJTIwY29ubmVjdCUzRCUyMjElMjIlMjBhcnJvd3MlM0QlMjIxJTIyJTIwZm9sZCUzRCUyMjElMjIlMjBwYWdlJTNEJTIyMSUyMiUyMHBhZ2VTY2FsZSUzRCUyMjElMjIlMjBwYWdlV2lkdGglM0QlMjI4NTAlMjIlMjBwYWdlSGVpZ2h0JTNEJTIyMTEwMCUyMiUyMG1hdGglM0QlMjIwJTIyJTIwc2hhZG93JTNEJTIyMCUyMiUzRSUwQSUyMCUyMCUyMCUyMCUyMCUyMCUzQ3Jvb3QlM0UlMEElMjAlMjAlMjAlMjAlMjAlMjAlMjAlMjAlM0NteENlbGwlMjBpZCUzRCUyMjAlMjIlMjAlMkYlM0UlMEElMjAlMjAlMjAlMjAlMjAlMjAlMjAlMjAlM0NteENlbGwlMjBpZCUzRCUyMjElMjIlMjBwYXJlbnQlM0QlMjIwJTIyJTIwJTJGJTNFJTBBJTIwJTIwJTIwJTIwJTIwJTIwJTNDJTJGcm9vdCUzRSUwQSUyMCUyMCUyMCUyMCUzQyUyRm14R3JhcGhNb2RlbCUzRSUwQSUyMCUyMCUzQyUyRmRpYWdyYW0lM0UlMEElM0MlMkZteGZpbGUlM0UlMEGDoGKLAAAADUlEQVR4AWJiYGRkAAAAAP//LRIDJAAAAAZJREFUAwAAFAAF3SeUTQAAAABJRU5ErkJggg==";
 
-        var url =
+        const url =
           "https://embed.diagrams.net/?embed=1&ui=atlas&spin=1&modified=unsavedChanges&proto=json";
-        var source = node?.attrs.src;
-        var drawIoWindow = null;
+        const source = node?.attrs.src;
+        let drawIoWindow: Window | null = null;
 
-        if (drawIoWindow == null || drawIoWindow.closed) {
-          // Implements protocol for loading and exporting with embedded XML
-          var receive = function (evt) {
-            if (evt.data.length > 0 && evt.source == drawIoWindow) {
-              var msg = JSON.parse(evt.data);
+        // Implements protocol for loading and exporting with embedded XML
+        const receive = function (event: MessageEvent) {
+          if (event.data.length > 0 && event.source === drawIoWindow) {
+            const parsed = JSON.parse(event.data);
 
-              // Received if the editor is ready
-              if (msg.event == "init") {
-                if (!source) {
-                  drawIoWindow.postMessage(
-                    JSON.stringify({
-                      action: "load",
-                      xmlpng: emptyImage,
-                    }),
-                    "*"
-                  );
-                }
-                // Download the image as a data URI
-                fetch(source)
-                  .then((response) => response.blob())
-                  .then((blob) => {
-                    const reader = new FileReader();
-                    reader.onloadend = function () {
-                      const base64data = reader.result;
-                      // Strips the "data:<mime-type>;base64," prefix
-                      const base64 = (base64data as string).split(",")[1];
-                      // Sends the data URI with embedded XML to editor
-                      drawIoWindow.postMessage(
-                        JSON.stringify({
-                          action: "load",
-                          xmlpng: base64,
-                        }),
-                        "*"
-                      );
-                    };
-                    reader.readAsDataURL(blob);
-                  });
-              }
-              // Received if the user clicks save
-              else if (msg.event == "save") {
-                // Sends a request to export the diagram as XML with embedded PNG
-                drawIoWindow.postMessage(
+            // Received if the editor is ready
+            if (parsed.event === "init") {
+              if (!source) {
+                drawIoWindow?.postMessage(
                   JSON.stringify({
-                    action: "export",
-                    format: "xmlpng",
-                    spinKey: "saving",
+                    action: "load",
+                    xmlpng: emptyImage,
                   }),
                   "*"
                 );
               }
-              // Received if the export request was processed
-              else if (msg.event == "export") {
-                // Updates the data URI of the image
-                // source.setAttribute('src', msg.data);
-                const base64 = msg.data.split(",")[1];
+              // Download the image as a data URI
+              fetch(source)
+                .then((response) => response.blob())
+                .then((blob) => {
+                  const reader = new FileReader();
+                  reader.onloadend = function () {
+                    const base64data = reader.result;
+                    // Strips the "data:<mime-type>;base64," prefix
+                    const base64 = (base64data as string).split(",")[1];
+                    // Sends the data URI with embedded XML to editor
+                    drawIoWindow?.postMessage(
+                      JSON.stringify({
+                        action: "load",
+                        xmlpng: base64,
+                      }),
+                      "*"
+                    );
+                  };
+                  reader.readAsDataURL(blob);
+                });
+            }
+            // Received if the user clicks save
+            else if (parsed.event === "save") {
+              // Sends a request to export the diagram as XML with embedded PNG
+              drawIoWindow?.postMessage(
+                JSON.stringify({
+                  action: "export",
+                  format: "xmlpng",
+                  spinKey: "saving",
+                }),
+                "*"
+              );
+            }
+            // Received if the export request was processed
+            else if (parsed.event === "export") {
+              // Updates the data URI of the image
+              // source.setAttribute('src', parsed.data);
+              const base64 = parsed.data.split(",")[1];
 
-                // Convert msg.data from data:image/png;base64, format to File object
-                const file = new File(
-                  [Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))],
-                  "diagram.png",
-                  {
-                    type: "image/png",
-                  }
-                );
+              // Convert parsed.data from data:image/png;base64, format to File object
+              const file = new File(
+                [Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))],
+                "diagram.png",
+                {
+                  type: "image/png",
+                }
+              );
 
-                FileHelper.getImageDimensions(file).then((dimensions) => {
-                  uploadFile(file, {
-                    preset: AttachmentPreset.DocumentAttachment,
-                  }).then((uploadedFile) => {
-                    if (state.selection.node?.type.name === "image") {
-                      const attrs = {
-                        ...state.selection.node.attrs,
-                        ...dimensions,
-                        src: uploadedFile,
-                        source: "drawio",
-                      };
-                      const { selection } = state;
-                      dispatch?.(
-                        state.tr.setNodeMarkup(selection.from, undefined, attrs)
-                      );
-                      return;
-                    }
-
-                    // insert image.
-                    const imageNode = type.create({
+              FileHelper.getImageDimensions(file).then((dimensions) => {
+                uploadFile?.(file).then((uploadedFile) => {
+                  if (
+                    state.selection instanceof NodeSelection &&
+                    state.selection.node?.type.name === "image"
+                  ) {
+                    const attrs = {
+                      ...state.selection.node.attrs,
                       ...dimensions,
                       src: uploadedFile,
                       source: "drawio",
-                    });
-                    const { tr } = state;
-                    const transaction = tr.insert(
-                      state.selection.from,
-                      imageNode
+                    };
+                    const { selection } = state;
+                    dispatch?.(
+                      state.tr.setNodeMarkup(selection.from, undefined, attrs)
                     );
-                    dispatch?.(transaction);
+                    return;
+                  }
+
+                  // insert image.
+                  const imageNode = type.create({
+                    ...dimensions,
+                    src: uploadedFile,
+                    source: "drawio",
                   });
+                  const { tr } = state;
+                  const transaction = tr.insert(
+                    state.selection.from,
+                    imageNode
+                  );
+                  dispatch?.(transaction);
                 });
-              }
-
-              // Received if the user clicks exit or after export
-              if (msg.event == "exit" || msg.event == "export") {
-                // Closes the editor
-                window.removeEventListener("message", receive);
-                drawIoWindow.close();
-                drawIoWindow = null;
-              }
+              });
             }
-          };
 
-          // Opens the editor
-          window.addEventListener("message", receive);
-          drawIoWindow = window.open(url);
-        } else {
-          // Shows existing editor window
-          drawIoWindow.focus();
-        }
+            // Received if the user clicks exit or after export
+            if (parsed.event === "exit" || parsed.event === "export") {
+              // Closes the editor
+              window.removeEventListener("message", receive);
+              drawIoWindow?.close();
+              drawIoWindow = null;
+            }
+          }
+        };
+
+        // Opens the editor
+        window.addEventListener("message", receive);
+        drawIoWindow = window.open(url);
+        return true;
       },
       downloadImage: (): Command => (state) => {
         if (!(state.selection instanceof NodeSelection)) {
