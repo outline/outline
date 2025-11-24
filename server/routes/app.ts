@@ -96,6 +96,11 @@ export const renderApp = async (
     </script>
   `;
 
+  const sitemapTag =
+    options.rootShareId || shareId
+      ? `<link rel="sitemap" type="application/xml" href="/api/shares.sitemap?id=${options.rootShareId || shareId}">`
+      : "";
+
   const noIndexTag = allowIndexing
     ? ""
     : '<meta name="robots" content="noindex, nofollow">';
@@ -134,7 +139,7 @@ export const renderApp = async (
     .replace(/\{canonical-url\}/g, canonical)
     .replace(/\{shortcut-icon-url\}/g, shortcutIcon)
     .replace(/\{cdn-url\}/g, env.CDN_URL || "")
-    .replace(/\{prefetch\}/g, shareId ? "" : prefetchTags)
+    .replace(/\{prefetch\}/g, shareId ? sitemapTag : prefetchTags)
     .replace(/\{slack-app-id\}/g, env.public.SLACK_APP_ID || "")
     .replace(/\{script-tags\}/g, scriptTags)
     .replace(/\{csp-nonce\}/g, ctx.state.cspNonce);
