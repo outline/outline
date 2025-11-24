@@ -195,6 +195,19 @@ export default class Link extends Mark {
               return false;
             }
 
+            // If an image is selected in write mode, disallow navigation to its href
+            const selectedDOMNode = view.nodeDOM(view.state.selection.from);
+            if (
+              view.editable &&
+              selectedDOMNode &&
+              selectedDOMNode instanceof HTMLSpanElement &&
+              selectedDOMNode.classList.contains("component-image") &&
+              event.target instanceof HTMLImageElement &&
+              selectedDOMNode.contains(event.target)
+            ) {
+              return false;
+            }
+
             // clicking a link while editing should show the link toolbar,
             // clicking in read-only will navigate
             if (!view.editable || (view.editable && !view.hasFocus())) {
@@ -205,7 +218,7 @@ export default class Link extends Mark {
                   : "");
 
               try {
-                if (this.options.onClickLink) {
+                if (this.options.onClickLink && href) {
                   event.stopPropagation();
                   event.preventDefault();
                   this.options.onClickLink(sanitizeUrl(href), event);
