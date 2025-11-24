@@ -395,7 +395,7 @@ router.get(
       teamId: team?.id,
     });
 
-    const baseUrl = `${process.env.URL}/s/${id}`;
+    const baseUrl = `${team?.url ?? process.env.URL}/s/${id}`;
 
     ctx.set("Content-Type", "application/xml");
     ctx.body = navigationNodeToSitemap(
