@@ -19,11 +19,6 @@ import { LightboxImageFactory } from "../lib/Lightbox";
 export default class SimpleImage extends Node {
   options: Options & {
     userId?: string;
-    /** Callback when user clicks on an image with link */
-    onClickLink: (
-      href: string,
-      event?: MouseEvent | React.MouseEvent<HTMLButtonElement>
-    ) => void;
   };
 
   get name() {
