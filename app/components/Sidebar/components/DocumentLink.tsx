@@ -392,7 +392,6 @@ function InnerDocumentLink(
     ]
   );
 
-  const onPage = document?.path === documents.active?.path;
   return (
     <ActionContextProvider
       value={{
@@ -423,7 +422,7 @@ function InnerDocumentLink(
                 onDisclosureClick={handleDisclosureClick}
                 onClickIntent={handlePrefetch}
                 contextAction={contextMenuAction}
-                to={onPage ? undefined : toPath}
+                to={toPath}
                 icon={iconElement}
                 label={labelElement}
                 isActive={isActiveCheck}

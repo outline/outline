@@ -160,6 +160,16 @@ const NavLink = ({
     [onClick, navigateTo, isActive, shouldFastClick]
   );
 
+  const handleClick = React.useCallback(
+    (event: React.MouseEvent<HTMLAnchorElement>) => {
+      const toPathname = typeof to === "string" ? to : to?.pathname;
+      if (toPathname === location.pathname) {
+        event.preventDefault();
+      }
+    },
+    [to, location.pathname]
+  );
+
   React.useEffect(() => {
     setPreActive(undefined);
   }, [currentLocation]);
@@ -181,6 +191,7 @@ const NavLink = ({
       // Note do not use `onPointerDown` here as it makes the mobile sidebar unscrollable
       onMouseDown={handleMouseDown}
       onKeyDown={handleKeyDown}
+      onClick={handleClick}
       aria-current={(isActive && ariaCurrent) || undefined}
       className={className}
       style={style}

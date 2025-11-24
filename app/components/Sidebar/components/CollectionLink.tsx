@@ -4,7 +4,7 @@ import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
-import { useHistory, useLocation } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import { UserPreference } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { CollectionValidation, DocumentValidation } from "@shared/validations";
@@ -50,7 +50,6 @@ const CollectionLink: React.FC<Props> = ({
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const [isEditing, setIsEditing] = React.useState(false);
   const { documents } = useStores();
-  const { pathname } = useLocation();
   const history = useHistory();
   const can = usePolicy(collection);
   const { t } = useTranslation();
@@ -122,7 +121,6 @@ const CollectionLink: React.FC<Props> = ({
   const contextMenuAction = useCollectionMenuAction({
     collectionId: collection.id,
   });
-  const onPage = pathname.startsWith(collection.path);
 
   return (
     <ActionContextProvider value={{ activeCollectionId: collection.id }}>
@@ -130,14 +128,10 @@ const CollectionLink: React.FC<Props> = ({
         <DropToImport collectionId={collection.id}>
           <SidebarLink
             onClick={onClick}
-            to={
-              onPage
-                ? undefined
-                : {
-                    pathname: collection.path,
-                    state: { sidebarContext },
-                  }
-            }
+            to={{
+              pathname: collection.path,
+              state: { sidebarContext },
+            }}
             expanded={expanded}
             onDisclosureClick={onDisclosureClick}
             onClickIntent={handlePrefetch}
