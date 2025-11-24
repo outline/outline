@@ -4,7 +4,7 @@ import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import { UserPreference } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
 import { CollectionValidation, DocumentValidation } from "@shared/validations";
@@ -55,6 +55,7 @@ const CollectionLink: React.FC<Props> = ({
   const { t } = useTranslation();
   const sidebarContext = useSidebarContext();
   const user = useCurrentUser();
+  const { pathname } = useLocation();
   const editableTitleRef = React.useRef<RefHandle>(null);
 
   const handleTitleChange = React.useCallback(
@@ -122,18 +123,33 @@ const CollectionLink: React.FC<Props> = ({
     collectionId: collection.id,
   });
 
+  const onPage = pathname.startsWith(collection.path);
+  const handleClick = React.useCallback(
+    (e: React.MouseEvent) => {
+      onClick?.();
+      if (onPage) {
+        onDisclosureClick(e as React.MouseEvent<HTMLButtonElement>);
+      }
+    },
+    [onClick, onPage, onDisclosureClick]
+  );
+
   return (
     <ActionContextProvider value={{ activeCollectionId: collection.id }}>
       <Relative ref={mergeRefs([parentRef, dropRef])}>
         <DropToImport collectionId={collection.id}>
           <SidebarLink
-            onClick={onClick}
-            to={{
-              pathname: collection.path,
-              state: { sidebarContext },
-            }}
+            onClick={handleClick}
+            to={
+              onPage
+                ? undefined
+                : {
+                    pathname: collection.path,
+                    state: { sidebarContext },
+                  }
+            }
             expanded={expanded}
-            onDisclosureClick={onDisclosureClick}
+            onDisclosureClick={onPage ? undefined : onDisclosureClick}
             onClickIntent={handlePrefetch}
             contextAction={contextMenuAction}
             icon={

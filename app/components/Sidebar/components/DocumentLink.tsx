@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
 import { NavigationNode, UserPreference } from "@shared/types";
@@ -77,6 +77,7 @@ function InnerDocumentLink(
   const editableTitleRef = React.useRef<RefHandle>(null);
   const sidebarContext = useSidebarContext();
   const user = useCurrentUser();
+  const { pathname } = useLocation();
 
   React.useEffect(() => {
     if (
@@ -392,6 +393,7 @@ function InnerDocumentLink(
     ]
   );
 
+  const onPage = pathname.startsWith(toPath.pathname);
   return (
     <ActionContextProvider
       value={{
@@ -418,11 +420,12 @@ function InnerDocumentLink(
               <SidebarLink
                 // @ts-expect-error react-router type is wrong, string component is fine.
                 component={isEditing ? "div" : undefined}
+                onClick={onPage ? handleDisclosureClick : undefined}
                 expanded={hasChildren ? isExpanded : undefined}
-                onDisclosureClick={handleDisclosureClick}
+                onDisclosureClick={onPage ? undefined : handleDisclosureClick}
                 onClickIntent={handlePrefetch}
                 contextAction={contextMenuAction}
-                to={toPath}
+                to={onPage ? undefined : toPath}
                 icon={iconElement}
                 label={labelElement}
                 isActive={isActiveCheck}
