@@ -46,11 +46,6 @@ type Props = {
   canComment?: boolean;
   /** Whether the user has permission to update the document */
   canUpdate?: boolean;
-  /** Callback function when a link is clicked */
-  onClickLink: (
-    href: string,
-    event: MouseEvent | React.MouseEvent<HTMLButtonElement>
-  ) => void;
 };
 
 function useIsDragging() {
@@ -110,26 +105,6 @@ export function SelectionToolbar(props: Props) {
       window.removeEventListener("mouseup", handleClickOutside);
     };
   }, [isActive, readOnly, view]);
-
-  const handleOnSelectLink = ({
-    href,
-    from,
-    to,
-  }: {
-    href: string;
-    from: number;
-    to: number;
-  }): void => {
-    const { state, dispatch } = view;
-
-    const markType = state.schema.marks.link;
-
-    dispatch(
-      state.tr
-        .removeMark(from, to, markType)
-        .addMark(from, to, markType.create({ href }))
-    );
-  };
 
   if (isDragging) {
     return null;
@@ -226,10 +201,6 @@ export function SelectionToolbar(props: Props) {
           dictionary={dictionary}
           view={view}
           mark={link.mark}
-          from={link.from}
-          to={link.to}
-          onClickLink={props.onClickLink}
-          onSelectLink={handleOnSelectLink}
         />
       ) : isEditingMedia ? (
         <MediaLinkEditor
@@ -237,6 +208,7 @@ export function SelectionToolbar(props: Props) {
           node={selection.node}
           view={view}
           dictionary={dictionary}
+          autoFocus={isEditingImgUrl}
         />
       ) : (
         <ToolbarMenu

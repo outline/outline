@@ -27,11 +27,12 @@ import { SidebarContextType, useSidebarContext } from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
 import { useCollectionMenuAction } from "~/hooks/useCollectionMenuAction";
 import { ActionContextProvider } from "~/hooks/useActionContext";
+import CollectionLinkChildren from "./CollectionLinkChildren";
 
 type Props = {
   collection: Collection;
   expanded?: boolean;
-  onDisclosureClick: (ev?: React.MouseEvent<HTMLButtonElement>) => void;
+  onDisclosureClick: (ev?: React.MouseEvent<HTMLElement>) => void;
   activeDocument: Document | undefined;
   isDraggingAnyCollection?: boolean;
   depth?: number;
@@ -185,24 +186,30 @@ const CollectionLink: React.FC<Props> = ({
           />
         </DropToImport>
       </Relative>
-      {isAddingNewChild && (
-        <SidebarLink
-          depth={2}
-          isActive={() => true}
-          label={
-            <EditableTitle
-              title=""
-              canUpdate
-              isEditing
-              placeholder={`${t("New doc")}…`}
-              onCancel={closeAddingNewChild}
-              onSubmit={handleNewDoc}
-              maxLength={DocumentValidation.maxTitleLength}
-              ref={newChildTitleRef}
-            />
-          }
-        />
-      )}
+      <CollectionLinkChildren
+        collection={collection}
+        expanded={!!expanded}
+        prefetchDocument={documents.prefetchDocument}
+      >
+        {isAddingNewChild ? (
+          <SidebarLink
+            depth={2}
+            isActive={() => true}
+            label={
+              <EditableTitle
+                title=""
+                canUpdate
+                isEditing
+                placeholder={`${t("New doc")}…`}
+                onCancel={closeAddingNewChild}
+                onSubmit={handleNewDoc}
+                maxLength={DocumentValidation.maxTitleLength}
+                ref={newChildTitleRef}
+              />
+            }
+          />
+        ) : undefined}
+      </CollectionLinkChildren>
     </ActionContextProvider>
   );
 };

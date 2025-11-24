@@ -17,8 +17,7 @@ function BlockMenu(props: Props) {
   const renderMenuItem = useCallback(
     (item, _index, options) => (
       <SuggestionsMenuItem
-        onClick={options.onClick}
-        selected={options.selected}
+        {...options}
         icon={item.icon}
         title={item.title}
         shortcut={item.shortcut}

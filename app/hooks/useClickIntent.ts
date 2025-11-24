@@ -7,7 +7,7 @@ import useUnmount from "./useUnmount";
  * and clears the timer on mouse leave or component unmount.
  */
 export default function useClickIntent(
-  onClickIntent?: () => void,
+  onClickIntent?: React.MouseEventHandler<HTMLElement>,
   delay = 100
 ) {
   const timer = React.useRef<number>();

@@ -66,22 +66,19 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
   ${(props) =>
     !props.disabled &&
     `
-    @media (hover: hover) {
-        &:hover,
-        &:focus,
-        &:focus-visible {
-          color: ${props.theme.accentText};
-          background: ${props.$dangerous ? props.theme.danger : props.theme.accent};
-          outline-color: ${
-            props.$dangerous ? props.theme.danger : props.theme.accent
-          };
-          box-shadow: none;
-          cursor: var(--pointer);
+      &[data-highlighted],
+      &:focus-visible {
+        color: ${props.theme.accentText};
+        background: ${props.$dangerous ? props.theme.danger : props.theme.accent};
+        outline-color: ${
+          props.$dangerous ? props.theme.danger : props.theme.accent
+        };
+        box-shadow: none;
+        cursor: var(--pointer);
 
-          svg:not([data-fixed-color]) {
-            color: ${props.theme.accentText};
-            fill: ${props.theme.accentText};
-          }
+        svg:not([data-fixed-color]) {
+          color: ${props.theme.accentText};
+          fill: ${props.theme.accentText};
         }
       }
   `}
@@ -147,6 +144,9 @@ export const MenuIconWrapper = styled.span`
   margin-left: -4px;
   color: ${s("textSecondary")};
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 export const SelectedIconWrapper = styled.span`
@@ -155,6 +155,9 @@ export const SelectedIconWrapper = styled.span`
   margin-right: -6px;
   color: ${s("textSecondary")};
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 export const MenuContent = styled(Scrollable)<{

@@ -12,11 +12,7 @@ import { useHistory } from "react-router-dom";
 import { toast } from "sonner";
 import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
-import {
-  AuthenticationFailed,
-  DocumentTooLarge,
-  EditorUpdateError,
-} from "@shared/collaboration/CloseEvents";
+import { EditorUpdateError } from "@shared/collaboration/CloseEvents";
 import EDITOR_VERSION from "@shared/editor/version";
 import { supportsPassiveListener } from "@shared/utils/browser";
 import Editor, { Props as EditorProps } from "~/components/Editor";
@@ -109,9 +105,15 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     );
 
     provider.on("authenticationFailed", () => {
-      void auth.fetchAuth().catch(() => {
-        history.replace(homePath());
-      });
+      void auth
+        .fetchAuth()
+        .then(() => {
+          provider.setConfiguration({ token: auth.collaborationToken });
+          provider.connect();
+        })
+        .catch(() => {
+          history.replace(homePath());
+        });
     });
 
     provider.on("awarenessChange", (event: AwarenessChangeEvent) => {
@@ -155,10 +157,11 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
 
     provider.on("close", (ev: MessageEvent) => {
       if ("code" in ev.event) {
-        provider.shouldConnect =
-          ev.event.code !== DocumentTooLarge.code &&
-          ev.event.code !== AuthenticationFailed.code &&
-          ev.event.code !== EditorUpdateError.code;
+        // Note other close code are handled internally by the library
+        if (ev.event.code === EditorUpdateError.code) {
+          provider.shouldConnect = false;
+        }
+
         ui.setMultiplayerStatus("disconnected", ev.event.code);
 
         if (ev.event.code === EditorUpdateError.code) {
@@ -210,7 +213,6 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     ui,
     presence,
     ydoc,
-    token,
     currentUser.id,
     isMounted,
     auth,

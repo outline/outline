@@ -51,7 +51,6 @@ const mathStyle = (props: Props) => css`
   .math-node {
     min-width: 1em;
     min-height: 1em;
-    font-size: 0.95em;
     font-family: ${props.theme.fontFamilyMono};
     cursor: auto;
     white-space: pre-wrap;
@@ -96,7 +95,6 @@ const mathStyle = (props: Props) => css`
 
   math-inline .math-render {
     display: inline-block;
-    font-size: 0.85em;
   }
 
   math-inline .math-src .ProseMirror {
@@ -165,13 +163,13 @@ const codeBlockStyle = (props: Props) => css`
     opacity: 0.7;
   }
 
-  .token.operator,
   .token.boolean,
   .token.number {
     color: ${props.theme.codeNumber};
   }
 
-  .token.property {
+  .token.property,
+  .token.variable {
     color: ${props.theme.codeProperty};
   }
 
@@ -179,6 +177,8 @@ const codeBlockStyle = (props: Props) => css`
     color: ${props.theme.codeTag};
   }
 
+  .token.char,
+  .token.builtin,
   .token.string {
     color: ${props.theme.codeString};
   }
@@ -188,7 +188,20 @@ const codeBlockStyle = (props: Props) => css`
   }
 
   .token.attr-name {
-    color: ${props.theme.codeAttr};
+    color: ${props.theme.codeAttrName};
+  }
+
+  .token.attr-value,
+  .token.attr-value .token.punctuation {
+    color: ${props.theme.codeAttrValue};
+  }
+
+  .token.operator {
+    color: ${props.theme.codeOperator};
+  }
+
+  .token.namespace {
+    opacity: 0.8;
   }
 
   .token.entity,
@@ -244,6 +257,14 @@ const codeBlockStyle = (props: Props) => css`
     font-weight: bold;
   }
 
+  .token.constant {
+    color: ${props.theme.codeConstant};
+  }
+
+  .token.parameter {
+    color: ${props.theme.codeParameter};
+  }
+
   .token.important {
     color: ${props.theme.codeImportant};
   }
@@ -280,6 +301,77 @@ const emailStyle = (props: Props) => css`
   .image > img {
     width: auto;
     height: auto;
+  }
+`;
+
+/**
+ * Adjustments to line-height and paragraph margins for complex scripts. If adding
+ * scripts here you also need to update the `getLangFor` method.
+ *
+ * @returns The CSS styles for complex scripts.
+ */
+const textStyle = () => css`
+  /* Southeast Asian scripts */
+  :lang(th),  /* Thai */
+    :lang(lo),  /* Lao */
+    :lang(km),  /* Khmer */
+    :lang(my) {
+    /* Burmese */
+    p {
+      line-height: 1.7;
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
+    }
+  }
+
+  /* South Asian scripts */
+  :lang(hi),  /* Hindi */
+    :lang(mr),  /* Marathi */
+    :lang(ne),  /* Nepali */
+    :lang(bn),  /* Bengali */
+    :lang(gu),  /* Gujarati */
+    :lang(pa),  /* Punjabi */
+    :lang(te),  /* Telugu */
+    :lang(ta),  /* Tamil */
+    :lang(ml),  /* Malayalam */
+    :lang(si) {
+    /* Sinhala */
+    p {
+      line-height: 1.7;
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
+    }
+  }
+
+  /* Tibetan and related scripts */
+  :lang(bo) {
+    p {
+      line-height: 1.8;
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
+    }
+  }
+
+  /* Middle Eastern scripts */
+  :lang(ar),  /* Arabic */
+    :lang(fa),  /* Persian */
+    :lang(ur),  /* Urdu */
+    :lang(he) {
+    /* Hebrew */
+    p {
+      line-height: 1.6;
+    }
+  }
+
+  /* Ethiopic and other complex scripts */
+  :lang(am),  /* Amharic */
+    :lang(mn) {
+    /* Mongolian */
+    p {
+      line-height: 1.7;
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
+    }
   }
 `;
 
@@ -726,14 +818,7 @@ img.ProseMirror-separator {
   }
 }
 
-.heading-content {
-  &::before {
-    content: "​";
-    display: inline;
-  }
-}
-
-.heading-name {
+.${EditorStyleHelper.headingPositionAnchor}, .${EditorStyleHelper.imagePositionAnchor} {
   color: ${props.theme.text};
   pointer-events: none;
   display: block;
@@ -746,11 +831,11 @@ img.ProseMirror-separator {
   }
 }
 
-.heading-name:first-child,
+.${EditorStyleHelper.headingPositionAnchor}:first-child,
 // Edge case where multiplayer cursor is between start of cell and heading
-.heading-name:first-child + .ProseMirror-yjs-cursor,
+.${EditorStyleHelper.headingPositionAnchor}:first-child + .ProseMirror-yjs-cursor,
 // Edge case where table grips are between start of cell and heading
-.heading-name:first-child + [role=button] + [role=button] {
+.${EditorStyleHelper.headingPositionAnchor}:first-child + [role=button] + [role=button] {
   & + h1,
   & + h2,
   & + h3,
@@ -843,8 +928,9 @@ h6:not(.placeholder)::before {
   margin-left: -26px;
   flex-direction: row;
   display: none;
-  position: relative;
-  top: -2px;
+  position: absolute;
+  left: 0;
+  top: calc(.5em - 6px);
   width: 26px;
   height: 24px;
 
@@ -1092,6 +1178,10 @@ p {
   min-height: 1.6em;
 }
 
+.heading-content {
+  position: relative;
+}
+
 .heading-content a,
 p a {
   color: ${props.theme.text};
@@ -1333,12 +1423,13 @@ code {
   border: 1px solid ${props.theme.codeBorder};
   background: ${props.theme.codeBackground};
   padding: 3px 4px;
-  color: ${props.theme.codeString};
+  color: ${props.theme.code};
   font-family: ${props.theme.fontFamilyMono};
   font-size: 90%;
 
   .${EditorStyleHelper.codeWord} {
     white-space: nowrap;
+    color: ${props.theme.codeKeyword};
   }
 }
 
@@ -1995,6 +2086,7 @@ const EditorContainer = styled.div<Props>`
   ${codeBlockStyle}
   ${findAndReplaceStyle}
   ${emailStyle}
+  ${textStyle}
 `;
 
 export default EditorContainer;

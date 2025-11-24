@@ -163,7 +163,7 @@ export const importDocument = createActionV2({
     const { documents } = stores;
     const input = document.createElement("input");
     input.type = "file";
-    input.accept = documents.importFileTypes.join(", ");
+    input.accept = documents.importFileTypesString;
 
     input.onchange = async (ev) => {
       const files = getEventFiles(ev);
@@ -526,10 +526,7 @@ export const exportCollection = createActionV2({
       return false;
     }
 
-    return (
-      !!stores.policies.abilities(currentTeamId).createExport &&
-      !!stores.policies.abilities(activeCollectionId).export
-    );
+    return !!stores.policies.abilities(activeCollectionId).export;
   },
   perform: async ({ activeCollectionId, stores, t }) => {
     if (!activeCollectionId) {

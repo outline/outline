@@ -38,6 +38,7 @@ const PopoverContent = React.forwardRef<
   ContentProps
 >((props, forwardedRef) => {
   const ref = React.useRef<React.ElementRef<typeof PopoverPrimitive.Content>>();
+  const timeoutRef = React.useRef<NodeJS.Timeout>();
 
   const {
     width = 380,
@@ -50,6 +51,9 @@ const PopoverContent = React.forwardRef<
   } = props;
 
   const enablePointerEvents = React.useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
     if (ref.current) {
       ref.current.style.pointerEvents = "auto";
     }
@@ -59,7 +63,11 @@ const PopoverContent = React.forwardRef<
     if (ref.current) {
       ref.current.style.pointerEvents = "none";
     }
-  }, []);
+    // Fallback: re-enable pointer events after 500ms, onAnimationEnd is not always called.
+    timeoutRef.current = setTimeout(() => {
+      enablePointerEvents();
+    }, 500);
+  }, [enablePointerEvents]);
 
   return (
     <PopoverPrimitive.Portal>

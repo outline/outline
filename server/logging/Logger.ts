@@ -1,6 +1,6 @@
 /* oxlint-disable no-console */
 import { IncomingMessage } from "http";
-import chalk from "chalk";
+import { styleText } from "node:util";
 import isArray from "lodash/isArray";
 import isEmpty from "lodash/isEmpty";
 import isObject from "lodash/isObject";
@@ -60,7 +60,7 @@ class Logger {
               winston.format.printf(
                 ({ message, level, label, ...extra }) =>
                   `${level}: ${
-                    label ? chalk.bold("[" + label + "] ") : ""
+                    label ? styleText("bold", `[${label}] `) : ""
                   }${message} ${isEmpty(extra) ? "" : JSON.stringify(extra)}`
               )
             ),

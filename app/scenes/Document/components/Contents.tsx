@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import { transparentize } from "polished";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -18,6 +18,7 @@ function Contents() {
     throttle: 100,
   });
   const { headings } = useDocumentContext();
+  const itemRefs = useRef<Record<string, HTMLLIElement | null>>({});
 
   useEffect(() => {
     let activeId = headings.length > 0 ? headings[0].id : undefined;
@@ -40,7 +41,17 @@ function Contents() {
     if (activeSlug !== activeId) {
       setActiveSlug(activeId);
     }
-  }, [scrollPosition, headings]);
+  }, [scrollPosition, headings, activeSlug]);
+
+  useEffect(() => {
+    const activeItem = activeSlug ? itemRefs.current[activeSlug] : undefined;
+
+    if (activeItem) {
+      activeItem.scrollIntoView({
+        block: "nearest",
+      });
+    }
+  }, [activeSlug]);
 
   // calculate the minimum heading level and adjust all the headings to make
   // that the top-most. This prevents the contents from being weirdly indented
@@ -65,6 +76,7 @@ function Contents() {
           .map((heading) => (
             <ListItem
               key={heading.id}
+              ref={(el) => (itemRefs.current[heading.id] = el)}
               level={heading.level - headingAdjustment}
               active={activeSlug === heading.id}
             >

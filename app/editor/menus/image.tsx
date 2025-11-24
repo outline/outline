@@ -7,11 +7,13 @@ import {
   AlignImageCenterIcon,
   AlignFullWidthIcon,
   EditIcon,
+  CommentIcon,
 } from "outline-icons";
 import { EditorState, NodeSelection } from "prosemirror-state";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
+import { metaDisplay } from "@shared/utils/keyboard";
 
 export default function imageMenuItems(
   state: EditorState,
@@ -109,6 +111,15 @@ export default function imageMenuItems(
       name: "deleteImage",
       tooltip: dictionary.deleteImage,
       icon: <TrashIcon />,
+    },
+    {
+      name: "separator",
+    },
+    {
+      name: "commentOnImage",
+      tooltip: dictionary.comment,
+      shortcut: `${metaDisplay}+⌥+M`,
+      icon: <CommentIcon />,
     },
   ];
 }

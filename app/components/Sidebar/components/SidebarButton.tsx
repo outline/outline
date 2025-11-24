@@ -25,6 +25,7 @@ const SidebarButton = React.forwardRef<HTMLButtonElement, SidebarButtonProps>(
       image,
       title,
       children,
+      onClick,
       ...rest
     }: SidebarButtonProps,
     ref
@@ -38,6 +39,7 @@ const SidebarButton = React.forwardRef<HTMLButtonElement, SidebarButtonProps>(
       >
         <Button
           {...rest}
+          onClick={onClick}
           $position={position}
           as="button"
           ref={ref}
@@ -96,17 +98,19 @@ const Button = styled(Flex)<{
   text-decoration: none;
   text-align: left;
   user-select: none;
-  cursor: var(--pointer);
   position: relative;
 
   ${undraggableOnDesktop()}
   ${extraArea(4)}
 
-  &:active,
-  &:${hover},
-  &[aria-expanded="true"] {
-    color: ${s("sidebarText")};
-    background: ${s("sidebarActiveBackground")};
+  &:not(:disabled) {
+    &:active,
+    &:${hover},
+    &[aria-expanded="true"] {
+      color: ${s("sidebarText")};
+      background: ${s("sidebarActiveBackground")};
+      cursor: var(--pointer);
+    }
   }
 
   &:last-child {

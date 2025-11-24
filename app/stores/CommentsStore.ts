@@ -91,7 +91,7 @@ export default class CommentsStore extends Store<Comment> {
   }
 
   /**
-   * Returns the total number of unresolbed comments in the given document.
+   * Returns the total number of unresolved comments in the given document.
    *
    * @param documentId ID of the document to get comments for
    * @returns A number of comments

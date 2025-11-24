@@ -126,6 +126,7 @@ describe("#revisions.update", () => {
     const admin = await buildAdmin();
     const document = await buildDocument({
       teamId: admin.teamId,
+      userId: admin.id,
     });
     const revision = await Revision.createFromDocument(
       createContext({ user: admin }),

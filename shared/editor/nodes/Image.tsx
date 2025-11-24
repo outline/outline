@@ -11,6 +11,7 @@ import * as React from "react";
 import { sanitizeUrl } from "../../utils/urls";
 import Caption from "../components/Caption";
 import ImageComponent from "../components/Image";
+import { addComment } from "../commands/comment";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { ComponentProps } from "../types";
@@ -119,6 +120,9 @@ export default class Image extends SimpleImage {
         title: {
           default: null,
           validate: "string|null",
+        },
+        marks: {
+          default: undefined,
         },
       },
       content: "text*",
@@ -418,6 +422,12 @@ export default class Image extends SimpleImage {
     };
   }
 
+  keys(): Record<string, Command> {
+    return {
+      "Mod-Alt-m": addComment({ userId: this.options.userId }),
+    };
+  }
+
   commands({ type }: { type: NodeType }) {
     const { uploadFile } = this.editor.props;
 
@@ -639,6 +649,8 @@ export default class Image extends SimpleImage {
           dispatch?.(tr.setSelection(new NodeSelection($pos)));
           return true;
         },
+      commentOnImage: (): Command =>
+        addComment({ userId: this.options.userId }),
     };
   }
 

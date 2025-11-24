@@ -130,17 +130,13 @@ function InnerDocumentLink(
     }
   }, [setCollapsed, expanded, hasChildDocuments]);
 
-  const handleDisclosureClick = React.useCallback(
-    (ev) => {
-      ev?.preventDefault();
-      if (expanded) {
-        setCollapsed();
-      } else {
-        setExpanded();
-      }
-    },
-    [setCollapsed, setExpanded, expanded]
-  );
+  const handleDisclosureClick = React.useCallback(() => {
+    if (expanded) {
+      setCollapsed();
+    } else {
+      setExpanded();
+    }
+  }, [setCollapsed, setExpanded, expanded]);
 
   const handlePrefetch = React.useCallback(() => {
     void prefetchDocument?.(node.id);
@@ -217,6 +213,19 @@ function InnerDocumentLink(
     useDropToReparentDocument(node, setExpanded, parentRef);
 
   // Drop to reorder
+  const [{ isOverReorder: isOverReorderAbove }, dropToReorderAbove] =
+    useDropToReorderDocument(node, collection, (item) => {
+      if (!collection) {
+        return;
+      }
+      return {
+        documentId: item.id,
+        collectionId: collection.id,
+        parentDocumentId: parentId,
+        index,
+      };
+    });
+
   const [{ isOverReorder, isDraggingAnyDocument }, dropToReorder] =
     useDropToReorderDocument(node, collection, (item) => {
       if (!collection) {
@@ -302,6 +311,7 @@ function InnerDocumentLink(
           { publish: true }
         );
         collection?.addDocument(newDocument, node.id);
+        membership?.addDocument(newDocument, node.id);
 
         closeAddingNewChild();
         history.push({
@@ -389,6 +399,13 @@ function InnerDocumentLink(
       }}
     >
       <Relative ref={parentRef}>
+        {isDraggingAnyDocument && collection?.isManualSort && index === 0 && (
+          <DropCursor
+            isActiveDrop={isOverReorderAbove}
+            innerRef={dropToReorderAbove}
+            position="top"
+          />
+        )}
         <Draggable
           key={node.id}
           ref={drag}
@@ -397,7 +414,7 @@ function InnerDocumentLink(
           onKeyDown={handleKeyDown}
         >
           <div ref={dropToReparent}>
-            <DropToImport documentId={node.id} activeClassName="activeDropZone">
+            <DropToImport documentId={node.id}>
               <SidebarLink
                 // @ts-expect-error react-router type is wrong, string component is fine.
                 component={isEditing ? "div" : undefined}

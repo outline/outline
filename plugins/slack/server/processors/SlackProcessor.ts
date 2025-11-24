@@ -82,8 +82,7 @@ export default class SlackProcessor extends BaseProcessor {
 
   async documentUpdated(event: DocumentEvent | RevisionEvent) {
     // never send notifications when batch importing documents
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'data' does not exist on type 'DocumentEv... Remove this comment to see the full error message
-    if (event.data && event.data.source === "import") {
+    if (event.name === "documents.publish" && event.data?.source === "import") {
       return;
     }
     const [document, team] = await Promise.all([

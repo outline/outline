@@ -30,15 +30,13 @@ export const ContextMenu = observer(
       isMenu: true,
     });
 
-    const menuItems = useComputed(() => {
-      if (!open) {
-        return [];
-      }
-
-      return ((action?.children as ActionV2Variant[]) ?? []).map(
-        (childAction) => actionV2ToMenuItem(childAction, actionContext)
-      );
-    }, [open, action?.children, actionContext]);
+    const menuItems = useComputed(
+      () =>
+        ((action?.children as ActionV2Variant[]) ?? []).map((childAction) =>
+          actionV2ToMenuItem(childAction, actionContext)
+        ),
+      [action?.children, actionContext]
+    );
 
     const handleOpenChange = React.useCallback(
       (open: boolean) => {
@@ -48,7 +46,7 @@ export const ContextMenu = observer(
           onClose?.();
         }
       },
-      [onOpen, onClose]
+      [open, onOpen, onClose]
     );
 
     const enablePointerEvents = React.useCallback(() => {

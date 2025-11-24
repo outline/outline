@@ -134,6 +134,9 @@ export default class Document extends ArchivableModel implements Searchable {
   @observable
   title: string;
 
+  /** The likely language of the document, in ISO 639-1 format.  */
+  language: string | undefined;
+
   /**
    * An icon (or) emoji to use as the document icon.
    */

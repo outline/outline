@@ -33,6 +33,7 @@ import MultiplayerEditor from "./AsyncMultiplayerEditor";
 import DocumentMeta from "./DocumentMeta";
 import DocumentTitle from "./DocumentTitle";
 import first from "lodash/first";
+import { getLangFor } from "~/utils/language";
 
 const extensions = withUIExtensions(withComments(richExtensions));
 
@@ -229,6 +230,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       )}
       <EditorComponent
         ref={mergeRefs([ref, handleRefChanged])}
+        lang={getLangFor(document.language)}
         autoFocus={!!document.title && !props.defaultValue}
         placeholder={t("Type '/' to insert, or start writing…")}
         scrollTo={decodeURIComponentSafe(window.location.hash)}

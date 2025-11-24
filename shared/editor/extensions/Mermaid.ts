@@ -1,6 +1,6 @@
-import debounce from "lodash/debounce";
 import last from "lodash/last";
 import sortBy from "lodash/sortBy";
+import { v4 as uuidv4 } from "uuid";
 import type MermaidUnsafe from "mermaid";
 import { Node } from "prosemirror-model";
 import {
@@ -41,11 +41,6 @@ class Cache {
 
 let mermaid: typeof MermaidUnsafe;
 
-type RendererFunc = (
-  block: { node: Node; pos: number },
-  isDark: boolean
-) => void;
-
 class MermaidRenderer {
   readonly diagramId: string;
   readonly element: HTMLElement;
@@ -53,7 +48,7 @@ class MermaidRenderer {
   readonly editor: Editor;
 
   constructor(editor: Editor) {
-    this.diagramId = crypto.randomUUID();
+    this.diagramId = uuidv4();
     this.elementId = `mermaid-diagram-wrapper-${this.diagramId}`;
     this.element =
       document.getElementById(this.elementId) || document.createElement("div");
@@ -62,10 +57,7 @@ class MermaidRenderer {
     this.editor = editor;
   }
 
-  renderImmediately = async (
-    block: { node: Node; pos: number },
-    isDark: boolean
-  ) => {
+  render = async (block: { node: Node; pos: number }, isDark: boolean) => {
     const element = this.element;
     const text = block.node.textContent;
 
@@ -78,8 +70,12 @@ class MermaidRenderer {
     }
 
     // Create a temporary element that will render the diagram off-screen. This is necessary
-    // as Mermaid will error if the element is not visible, such as if the heading is collapsed
+    // as Mermaid will error if the element is not visible or the element is removed while the
+    // diagram is being rendered.
     const renderElement = document.createElement("div");
+    const tempId =
+      "offscreen-mermaid-" + Math.random().toString(36).substr(2, 9);
+    renderElement.id = tempId;
     renderElement.style.position = "absolute";
     renderElement.style.left = "-9999px";
     renderElement.style.top = "-9999px";
@@ -89,6 +85,7 @@ class MermaidRenderer {
       mermaid ??= (await import("mermaid")).default;
       mermaid.initialize({
         startOnLoad: true,
+        suppressErrorRendering: true,
         // TODO: Make dynamic based on the width of the editor or remove in
         // the future if Mermaid is able to handle this automatically.
         gantt: { useWidth: 700 },
@@ -98,13 +95,7 @@ class MermaidRenderer {
         darkMode: isDark,
       });
 
-      const { svg, bindFunctions } = await mermaid.render(
-        `mermaid-diagram-${this.diagramId}`,
-        text,
-        // If the element is not visible we use an off-screen element to render the diagram
-        element.offsetParent === null ? renderElement : element
-      );
-      this.currentTextContent = text;
+      const { svg, bindFunctions } = await mermaid.render(tempId, text);
 
       // Cache the rendered SVG so we won't need to calculate it again in the same session
       if (text) {
@@ -129,17 +120,6 @@ class MermaidRenderer {
       renderElement.remove();
     }
   };
-
-  get render(): RendererFunc {
-    if (this._rendererFunc) {
-      return this._rendererFunc;
-    }
-    this._rendererFunc = debounce<RendererFunc>(this.renderImmediately, 250);
-    return this.renderImmediately;
-  }
-
-  private currentTextContent = "";
-  private _rendererFunc?: RendererFunc;
 }
 
 function overlap(

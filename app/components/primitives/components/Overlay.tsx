@@ -5,7 +5,7 @@ export const Overlay = styled.div`
   position: fixed;
   inset: 0;
   background: ${s("backdrop")};
-  z-index: ${depths.overlay};
+  z-index: ${depths.menu};
   transition: opacity 50ms ease-in-out;
   opacity: 0;
 

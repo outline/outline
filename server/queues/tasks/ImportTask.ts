@@ -161,6 +161,8 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
       return result;
     } catch (error) {
+      Logger.error(`ImportTask failed for ${fileOperationId}`, error);
+
       await this.updateFileOperation(
         fileOperation,
         FileOperationState.Error,
@@ -433,7 +435,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
               );
             }
 
-            const document = await documentCreator({
+            const document = await documentCreator(ctx, {
               sourceMetadata: {
                 fileName: path.basename(item.path),
                 mimeType: item.mimeType,
@@ -453,8 +455,6 @@ export default abstract class ImportTask extends BaseTask<Props> {
               publishedAt: item.updatedAt ?? item.createdAt ?? new Date(),
               parentDocumentId: item.parentDocumentId,
               importId: fileOperation.id,
-              user,
-              ctx: createContext({ user, transaction }),
             });
             documents.set(item.id, document);
 

@@ -175,7 +175,7 @@ const FlexibleWrapper = styled.div`
 
   ${breakpoint("mobile", "tablet")`
     justify-content: space-evenly;
-    align-items: baseline;
+    align-items: center;
   `}
 `;
 

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { toast } from "sonner";
 import styled from "styled-components";
-import { s, truncateMultiline } from "@shared/styles";
+import { s, ellipsis } from "@shared/styles";
 
 type Props = Omit<React.HTMLAttributes<HTMLInputElement>, "onSubmit"> & {
   /** A callback when the title is submitted. */
@@ -42,27 +42,47 @@ function EditableTitle(
     setValue(title);
   }, [title]);
 
-  const handleChange = React.useCallback((event) => {
-    setValue(event.target.value);
-  }, []);
+  const handleChange = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setValue(event.target.value);
+    },
+    []
+  );
 
-  const handleDoubleClick = React.useCallback((event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setIsEditing(true);
-  }, []);
+  const handleDoubleClick = React.useCallback(
+    (event: React.MouseEvent<HTMLSpanElement>) => {
+      if (event.altKey) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      setIsEditing(true);
+    },
+    []
+  );
 
-  const stopPropagation = React.useCallback((event) => {
-    event.preventDefault();
-    event.stopPropagation();
-  }, []);
+  const stopPropagation = React.useCallback(
+    (event: React.MouseEvent<HTMLSpanElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+    },
+    []
+  );
 
-  const handleFocus = React.useCallback((event) => {
-    event.target.select();
-  }, []);
+  const handleFocus = React.useCallback(
+    (event: React.FocusEvent<HTMLInputElement>) => {
+      event.target.select();
+    },
+    []
+  );
 
   const handleSave = React.useCallback(
-    async (ev) => {
+    async (
+      ev:
+        | React.FocusEvent<HTMLInputElement>
+        | React.KeyboardEvent<HTMLInputElement>
+        | React.FormEvent<HTMLFormElement>
+    ) => {
       ev.preventDefault();
       ev.stopPropagation();
 
@@ -98,7 +118,7 @@ function EditableTitle(
   );
 
   const handleKeyDown = React.useCallback(
-    async (ev) => {
+    async (ev: React.KeyboardEvent<HTMLInputElement>) => {
       if (ev.nativeEvent.isComposing) {
         return;
       }
@@ -148,8 +168,8 @@ function EditableTitle(
   );
 }
 
-const Text = styled.span`
-  ${truncateMultiline(3)}
+const Text = styled.div`
+  ${ellipsis()}
 `;
 
 const Input = styled.input`

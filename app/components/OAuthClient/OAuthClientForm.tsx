@@ -10,6 +10,7 @@ import Flex from "~/components/Flex";
 import Input, { LabelText } from "~/components/Input";
 import isCloudHosted from "~/utils/isCloudHosted";
 import Switch from "../Switch";
+import EventBoundary from "@shared/components/EventBoundary";
 
 export interface FormData {
   name: string;
@@ -62,17 +63,19 @@ export const OAuthClientForm = observer(function OAuthClientForm_({
             control={control}
             name="avatarUrl"
             render={({ field }) => (
-              <ImageInput
-                alt={t("OAuth client icon")}
-                onSuccess={(url) => field.onChange(url)}
-                onError={(err) => setError("avatarUrl", { message: err })}
-                model={{
-                  id: oauthClient?.id,
-                  avatarUrl: field.value,
-                  initial: getValues().name[0],
-                }}
-                borderRadius={0}
-              />
+              <EventBoundary>
+                <ImageInput
+                  alt={t("OAuth client icon")}
+                  onSuccess={(url) => field.onChange(url)}
+                  onError={(err) => setError("avatarUrl", { message: err })}
+                  model={{
+                    id: oauthClient?.id,
+                    avatarUrl: field.value,
+                    initial: getValues().name[0],
+                  }}
+                  borderRadius={0}
+                />
+              </EventBoundary>
             )}
           />
         </label>
