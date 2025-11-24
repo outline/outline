@@ -12,8 +12,6 @@ type Props = {
   userId: string;
   /** The original avatarUrl from the SSO provider */
   avatarUrl: string;
-  /** Whether this is a sync operation (should check for changes) */
-  isSync?: boolean;
 };
 
 /**
@@ -26,17 +24,14 @@ export default class UploadUserAvatarTask extends BaseTask<Props> {
       rejectOnEmpty: true,
     });
 
-    // If this is a sync operation, check if we need to update
-    if (props.isSync) {
-      // Check if user has manually changed their avatar
-      if (user.getFlag(UserFlag.AvatarChanged)) {
-        return; // Don't override user's manual avatar choice
-      }
+    // Check if user has manually changed their avatar
+    if (user.getFlag(UserFlag.AvatarChanged)) {
+      return; // Don't override user's manual avatar choice
+    }
 
-      // Check if the avatar has actually changed
-      if (!shouldUpdateAvatar(user.avatarUrl, props.avatarUrl)) {
-        return; // No change needed
-      }
+    // Check if the avatar has actually changed
+    if (!shouldUpdateAvatar(user.avatarUrl, props.avatarUrl)) {
+      return; // No change needed
     }
 
     // Use deterministic filename for change detection
