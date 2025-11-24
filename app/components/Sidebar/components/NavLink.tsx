@@ -164,7 +164,7 @@ const NavLink = ({
     (event: React.MouseEvent<HTMLAnchorElement>) => {
       const toPathname = typeof to === "string" ? to : to?.pathname;
 
-      if (toPathname?.startsWith(location.pathname)) {
+      if (toPathname && location.pathname?.startsWith(toPathname)) {
         event.preventDefault();
       }
     },
