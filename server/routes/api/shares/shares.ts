@@ -395,6 +395,11 @@ router.get(
       teamId: team?.id,
     });
 
+    if (!share.allowIndexing) {
+      ctx.status = 404;
+      return;
+    }
+
     const baseUrl = `${team?.url ?? process.env.URL}/s/${id}`;
 
     ctx.set("Content-Type", "application/xml");
