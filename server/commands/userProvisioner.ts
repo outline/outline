@@ -8,7 +8,7 @@ import {
   InviteRequiredError,
 } from "@server/errors";
 import Logger from "@server/logging/Logger";
-import { Team, User, UserAuthentication } from "@server/models";
+import { Team, User, UserAuthentication, UserFlag } from "@server/models";
 import UploadUserAvatarTask from "@server/queues/tasks/UploadUserAvatarTask";
 import { sequelize } from "@server/storage/database";
 import { APIContext } from "@server/types";
@@ -163,7 +163,7 @@ export default async function userProvisioner(
     });
 
     // Schedule avatar sync task if user has an avatar URL and hasn't manually changed it
-    if (avatarUrl && !existingUser.getFlag("avatarChanged")) {
+    if (avatarUrl && !existingUser.getFlag(UserFlag.AvatarChanged)) {
       await new UploadUserAvatarTask().schedule({
         userId: existingUser.id,
         avatarUrl,

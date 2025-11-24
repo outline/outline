@@ -323,7 +323,7 @@ router.post(
       user.avatarUrl = avatarUrl;
       // Mark that the user has manually changed their avatar
       // This prevents automatic syncing from identity providers
-      user.setFlag("avatarChanged", 1);
+      user.setFlag(UserFlag.AvatarChanged, 1);
     }
     if (language) {
       user.language = language;

@@ -1,4 +1,4 @@
-import { User } from "@server/models";
+import { User, UserFlag } from "@server/models";
 import { Buckets } from "@server/models/helpers/AttachmentHelper";
 import FileStorage from "@server/storage/files";
 import {
@@ -29,7 +29,7 @@ export default class UploadUserAvatarTask extends BaseTask<Props> {
     // If this is a sync operation, check if we need to update
     if (props.isSync) {
       // Check if user has manually changed their avatar
-      if (user.getFlag("avatarChanged")) {
+      if (user.getFlag(UserFlag.AvatarChanged)) {
         return; // Don't override user's manual avatar choice
       }
 
