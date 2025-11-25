@@ -51,12 +51,9 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
 
     const now = new Date();
     const activityThreshold = subWeeks(now, ACTIVITY_THRESHOLD_WEEKS);
-    let updatedCount = 0;
-    let offset = 0;
 
-    // Process documents in batches
-    while (true) {
-      const documents = await Document.unscoped().findAll({
+    const updatedCount = await Document.findAllInBatches<Document>(
+      {
         attributes: ["id"],
         where: {
           publishedAt: {
@@ -69,65 +66,61 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
             [Op.gte]: activityThreshold,
           },
         },
-        limit: BATCH_SIZE,
-        offset,
+        batchLimit: BATCH_SIZE,
         order: [["id", "ASC"]],
-      });
+      },
+      async (documents) => {
+        const documentIds = documents.map((doc) => doc.id);
 
-      if (documents.length === 0) {
-        break;
-      }
-
-      const documentIds = documents.map((doc) => doc.id);
-
-      // Fetch all revisions for this batch of documents within the lookback period
-      const revisions = await Revision.unscoped().findAll({
-        attributes: ["documentId", "createdAt"],
-        where: {
-          documentId: {
-            [Op.in]: documentIds,
+        // Fetch all revisions for this batch of documents within the activity period
+        const revisions = await Revision.unscoped().findAll({
+          attributes: ["documentId", "createdAt"],
+          where: {
+            documentId: {
+              [Op.in]: documentIds,
+            },
+            createdAt: {
+              [Op.gte]: activityThreshold,
+            },
           },
-          createdAt: {
-            [Op.gte]: activityThreshold,
-          },
-        },
-        order: [["documentId", "ASC"]],
-      });
+          order: [["documentId", "ASC"]],
+        });
 
-      // Group revisions by document and calculate scores
-      const scoresByDocument = new Map<string, number>();
+        // Group revisions by document and calculate scores
+        const scoresByDocument = new Map<string, number>();
 
-      // Initialize all documents with 0 score
-      for (const docId of documentIds) {
-        scoresByDocument.set(docId, 0);
-      }
+        // Initialize all documents with 0 score
+        for (const docId of documentIds) {
+          scoresByDocument.set(docId, 0);
+        }
 
-      // Sum up revision contributions for each document
-      for (const revision of revisions) {
-        const currentScore = scoresByDocument.get(revision.documentId) || 0;
-        const revisionScore = calculateRevisionScore(revision.createdAt, now);
-        scoresByDocument.set(revision.documentId, currentScore + revisionScore);
-      }
+        // Sum up revision contributions for each document
+        for (const revision of revisions) {
+          const currentScore = scoresByDocument.get(revision.documentId) || 0;
+          const revisionScore = calculateRevisionScore(revision.createdAt, now);
+          scoresByDocument.set(
+            revision.documentId,
+            currentScore + revisionScore
+          );
+        }
 
-      // Batch update documents with their new scores
-      for (const [documentId, score] of scoresByDocument) {
-        await Document.unscoped().update(
-          { popularityScore: score },
-          {
-            where: { id: documentId },
-            silent: true, // Don't update updatedAt
-          }
+        // Batch update documents with their new scores
+        for (const [documentId, score] of scoresByDocument) {
+          await Document.unscoped().update(
+            { popularityScore: score },
+            {
+              where: { id: documentId },
+              silent: true, // Don't update updatedAt
+            }
+          );
+        }
+
+        Logger.debug(
+          "task",
+          `Updated popularity scores for ${documents.length} documents…`
         );
-        updatedCount++;
       }
-
-      offset += BATCH_SIZE;
-
-      Logger.debug(
-        "task",
-        `Updated popularity scores for ${updatedCount} documents…`
-      );
-    }
+    );
 
     Logger.info(
       "task",
