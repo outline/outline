@@ -42,17 +42,17 @@ const ACTIVITY_THRESHOLD_WEEKS = 2;
 /**
  * Batch size for processing updates - kept small to minimize lock duration
  */
-const BATCH_SIZE = 100;
+const BATCH_SIZE = 50;
 
 /**
  * Maximum retries for failed batch operations
  */
-const MAX_RETRIES = 3;
+const MAX_RETRIES = 2;
 
 /**
  * Statement timeout for individual queries to prevent runaway locks
  */
-const STATEMENT_TIMEOUT_MS = 10000;
+const STATEMENT_TIMEOUT_MS = 30000;
 
 /**
  * Base name for the working table used to track documents to process
@@ -123,7 +123,7 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
           );
 
           // Add delay between batches to reduce database contention
-          await sleep(1000);
+          await sleep(10);
         } catch (error) {
           totalErrors++;
           Logger.error(`Batch ${batchNumber} failed after retries`, error);
@@ -359,7 +359,6 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
     for (const { documentId, score } of scores) {
       await sequelize.query(
         `
-        SET LOCAL statement_timeout = '${STATEMENT_TIMEOUT_MS}ms';
         UPDATE documents
         SET "popularityScore" = :score
         WHERE id = :documentId
