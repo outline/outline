@@ -57,6 +57,7 @@ const ShareButton = lazyWithRetry(() => import("./components/ShareButton"));
 enum CollectionPath {
   Overview = "overview",
   Recent = "recent",
+  Popular = "popular",
   Updated = "updated",
   Published = "published",
   Old = "old",
@@ -242,6 +243,9 @@ const CollectionScene = observer(function _CollectionScene() {
               <Tab {...tabProps(CollectionPath.Recent)}>{t("Documents")}</Tab>
               {!collection.isArchived && (
                 <>
+                  <Tab {...tabProps(CollectionPath.Popular)}>
+                    {t("Popular")}
+                  </Tab>
                   <Tab {...tabProps(CollectionPath.Updated)}>
                     {t("Recently updated")}
                   </Tab>
@@ -348,6 +352,21 @@ const CollectionScene = observer(function _CollectionScene() {
                         collection.id
                       )}
                       fetch={documents.fetchRecentlyUpdated}
+                      options={{
+                        collectionId: collection.id,
+                      }}
+                    />
+                  </Route>
+                  <Route
+                    path={collectionPath(
+                      collection.path,
+                      CollectionPath.Popular
+                    )}
+                  >
+                    <PaginatedDocumentList
+                      key="popular"
+                      documents={documents.popularInCollection(collection.id)}
+                      fetch={documents.fetchPopular}
                       options={{
                         collectionId: collection.id,
                       }}

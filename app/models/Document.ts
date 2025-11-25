@@ -203,6 +203,9 @@ export default class Document extends ArchivableModel implements Searchable {
   @observable
   publishedAt: string | undefined;
 
+  @observable
+  popularityScore: number;
+
   /**
    * @deprecated Use path instead
    */
