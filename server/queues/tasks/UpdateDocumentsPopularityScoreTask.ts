@@ -4,6 +4,7 @@ import { QueryTypes } from "sequelize";
 import Logger from "@server/logging/Logger";
 import BaseTask, { TaskSchedule } from "./BaseTask";
 import { sequelize } from "@server/storage/database";
+import { sleep } from "@server/utils/timers";
 
 type Props = Record<string, never>;
 
@@ -39,9 +40,9 @@ const ACTIVITY_WEIGHTS = {
 const ACTIVITY_THRESHOLD_WEEKS = 2;
 
 /**
- * Batch size for processing updates - each batch is an independent transaction
+ * Batch size for processing updates - kept small to minimize lock duration
  */
-const BATCH_SIZE = 500;
+const BATCH_SIZE = 100;
 
 /**
  * Maximum retries for failed batch operations
@@ -49,14 +50,19 @@ const BATCH_SIZE = 500;
 const MAX_RETRIES = 3;
 
 /**
- * Delay between retries in milliseconds
+ * Statement timeout for individual queries to prevent runaway locks
  */
-const RETRY_DELAY_MS = 1000;
+const STATEMENT_TIMEOUT_MS = 10000;
 
 /**
  * Base name for the working table used to track documents to process
  */
 const WORKING_TABLE_PREFIX = "popularity_score_working";
+
+interface DocumentScore {
+  documentId: string;
+  score: number;
+}
 
 export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> {
   /**
@@ -115,6 +121,9 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
             "task",
             `Batch ${batchNumber}: updated ${updated} documents, ${remaining - updated} remaining`
           );
+
+          // Add delay between batches to reduce database contention
+          await sleep(1000);
         } catch (error) {
           totalErrors++;
           Logger.error(`Batch ${batchNumber} failed after retries`, error);
@@ -200,7 +209,6 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
 
   /**
    * Processes a batch of documents with retry logic.
-   * Each batch is an independent transaction that commits on success.
    */
   private async processBatchWithRetry(
     activityThreshold: Date,
@@ -208,127 +216,174 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
     attempt = 1
   ): Promise<number> {
     try {
-      return await sequelize.transaction(async (transaction) => {
-        // Select and lock a batch of unprocessed documents
-        const batch = await sequelize.query<{ documentId: string }>(
-          `
-          SELECT "documentId" FROM ${this.workingTable}
-          WHERE NOT processed
-          ORDER BY "documentId"
-          LIMIT :limit
-          FOR UPDATE SKIP LOCKED
-          `,
-          {
-            replacements: { limit: BATCH_SIZE },
-            type: QueryTypes.SELECT,
-            transaction,
-          }
-        );
-
-        if (batch.length === 0) {
-          return 0;
+      // Step 1: Get batch of document IDs to process
+      const batch = await sequelize.query<{ documentId: string }>(
+        `
+        SELECT "documentId" FROM ${this.workingTable}
+        WHERE NOT processed
+        ORDER BY "documentId"
+        LIMIT :limit
+        `,
+        {
+          replacements: { limit: BATCH_SIZE },
+          type: QueryTypes.SELECT,
         }
+      );
 
-        const documentIds = batch.map((b) => b.documentId);
+      if (batch.length === 0) {
+        return 0;
+      }
 
-        // Build VALUES clause for the batch, sequelize did not like array parameters in casted in clause.
-        const valuesClause = documentIds
-          .map((id) => `('${id}'::uuid)`)
-          .join(", ");
+      const documentIds = batch.map((b) => b.documentId);
 
-        // Calculate and update scores using JOINs (no IN clause with large arrays)
-        await sequelize.query(
-          `
-          WITH batch_docs AS (
-            SELECT * FROM (VALUES ${valuesClause}) AS t(id)
-          ),
-          revision_scores AS (
-            SELECT
-              r."documentId",
-              SUM(:revisionWeight / POWER(
-                GREATEST(EXTRACT(EPOCH FROM (:now::timestamp - r."createdAt")) / 3600 + :timeOffset, 0.1),
-                :gravity
-              )) as score
-            FROM revisions r
-            INNER JOIN batch_docs bd ON r."documentId" = bd.id
-            WHERE r."createdAt" >= :threshold
-            GROUP BY r."documentId"
-          ),
-          comment_scores AS (
-            SELECT
-              c."documentId",
-              SUM(:commentWeight / POWER(
-                GREATEST(EXTRACT(EPOCH FROM (:now::timestamp - c."createdAt")) / 3600 + :timeOffset, 0.1),
-                :gravity
-              )) as score
-            FROM comments c
-            INNER JOIN batch_docs bd ON c."documentId" = bd.id
-            WHERE c."createdAt" >= :threshold
-            GROUP BY c."documentId"
-          ),
-          view_scores AS (
-            SELECT
-              v."documentId",
-              SUM(:viewWeight / POWER(
-                GREATEST(EXTRACT(EPOCH FROM (:now::timestamp - v."updatedAt")) / 3600 + :timeOffset, 0.1),
-                :gravity
-              )) as score
-            FROM views v
-            INNER JOIN batch_docs bd ON v."documentId" = bd.id
-            WHERE v."updatedAt" >= :threshold
-            GROUP BY v."documentId"
-          ),
-          combined_scores AS (
-            SELECT
-              bd.id as "documentId",
-              COALESCE(rs.score, 0) + COALESCE(cs.score, 0) + COALESCE(vs.score, 0) as total_score
-            FROM batch_docs bd
-            LEFT JOIN revision_scores rs ON bd.id = rs."documentId"
-            LEFT JOIN comment_scores cs ON bd.id = cs."documentId"
-            LEFT JOIN view_scores vs ON bd.id = vs."documentId"
-          )
-          UPDATE documents
-          SET "popularityScore" = combined_scores.total_score
-          FROM combined_scores
-          WHERE documents.id = combined_scores."documentId"
-          `,
-          {
-            replacements: {
-              threshold: activityThreshold,
-              now,
-              gravity: GRAVITY,
-              timeOffset: TIME_OFFSET_HOURS,
-              revisionWeight: ACTIVITY_WEIGHTS.revision,
-              commentWeight: ACTIVITY_WEIGHTS.comment,
-              viewWeight: ACTIVITY_WEIGHTS.view,
-            },
-            transaction,
-          }
-        );
+      // Step 2: Calculate scores outside of a transaction
+      const scores = await this.calculateScoresForDocuments(
+        documentIds,
+        activityThreshold,
+        now
+      );
 
-        // Mark batch as processed
-        await sequelize.query(
-          `
-          UPDATE ${this.workingTable}
-          SET processed = TRUE
-          WHERE "documentId" IN (SELECT id FROM (VALUES ${valuesClause}) AS t(id))
-          `,
-          { transaction }
-        );
+      // Step 3: Update document scores
+      await this.updateDocumentScores(scores);
 
-        return documentIds.length;
-      });
+      // Step 4: Mark batch as processed
+      await this.markBatchProcessed(documentIds);
+
+      return documentIds.length;
     } catch (error) {
       if (attempt < MAX_RETRIES) {
         Logger.warn(
           `Batch update failed, retrying (attempt ${attempt + 1}/${MAX_RETRIES})`,
           { error }
         );
-        await this.sleep(RETRY_DELAY_MS * attempt);
+        await sleep(1000 * attempt);
         return this.processBatchWithRetry(activityThreshold, now, attempt + 1);
       }
       throw error;
     }
+  }
+
+  /**
+   * Calculates popularity scores for a set of documents.
+   * This is a read-only operation that doesn't require locks.
+   */
+  private async calculateScoresForDocuments(
+    documentIds: string[],
+    activityThreshold: Date,
+    now: Date
+  ): Promise<DocumentScore[]> {
+    // Build VALUES clause for the batch
+    const valuesClause = documentIds.map((id) => `('${id}'::uuid)`).join(", ");
+
+    const results = await sequelize.query<{
+      documentId: string;
+      total_score: string;
+    }>(
+      `
+      SET LOCAL statement_timeout = '${STATEMENT_TIMEOUT_MS}ms';
+
+      WITH batch_docs AS (
+        SELECT * FROM (VALUES ${valuesClause}) AS t(id)
+      ),
+      revision_scores AS (
+        SELECT
+          r."documentId",
+          SUM(:revisionWeight / POWER(
+            GREATEST(EXTRACT(EPOCH FROM (:now::timestamp - r."createdAt")) / 3600 + :timeOffset, 0.1),
+            :gravity
+          )) as score
+        FROM revisions r
+        INNER JOIN batch_docs bd ON r."documentId" = bd.id
+        WHERE r."createdAt" >= :threshold
+        GROUP BY r."documentId"
+      ),
+      comment_scores AS (
+        SELECT
+          c."documentId",
+          SUM(:commentWeight / POWER(
+            GREATEST(EXTRACT(EPOCH FROM (:now::timestamp - c."createdAt")) / 3600 + :timeOffset, 0.1),
+            :gravity
+          )) as score
+        FROM comments c
+        INNER JOIN batch_docs bd ON c."documentId" = bd.id
+        WHERE c."createdAt" >= :threshold
+        GROUP BY c."documentId"
+      ),
+      view_scores AS (
+        SELECT
+          v."documentId",
+          SUM(:viewWeight / POWER(
+            GREATEST(EXTRACT(EPOCH FROM (:now::timestamp - v."updatedAt")) / 3600 + :timeOffset, 0.1),
+            :gravity
+          )) as score
+        FROM views v
+        INNER JOIN batch_docs bd ON v."documentId" = bd.id
+        WHERE v."updatedAt" >= :threshold
+        GROUP BY v."documentId"
+      )
+      SELECT
+        bd.id as "documentId",
+        COALESCE(rs.score, 0) + COALESCE(cs.score, 0) + COALESCE(vs.score, 0) as total_score
+      FROM batch_docs bd
+      LEFT JOIN revision_scores rs ON bd.id = rs."documentId"
+      LEFT JOIN comment_scores cs ON bd.id = cs."documentId"
+      LEFT JOIN view_scores vs ON bd.id = vs."documentId"
+      `,
+      {
+        replacements: {
+          threshold: activityThreshold,
+          now,
+          gravity: GRAVITY,
+          timeOffset: TIME_OFFSET_HOURS,
+          revisionWeight: ACTIVITY_WEIGHTS.revision,
+          commentWeight: ACTIVITY_WEIGHTS.comment,
+          viewWeight: ACTIVITY_WEIGHTS.view,
+        },
+        type: QueryTypes.SELECT,
+      }
+    );
+
+    return results.map((r) => ({
+      documentId: r.documentId,
+      score: parseFloat(r.total_score) || 0,
+    }));
+  }
+
+  /**
+   * Updates document scores in a minimal transaction.
+   * Uses individual updates to minimize lock duration and contention.
+   */
+  private async updateDocumentScores(scores: DocumentScore[]): Promise<void> {
+    // Update documents one at a time with short statement timeout
+    // This prevents any single update from holding locks for too long
+    for (const { documentId, score } of scores) {
+      await sequelize.query(
+        `
+        SET LOCAL statement_timeout = '${STATEMENT_TIMEOUT_MS}ms';
+        UPDATE documents
+        SET "popularityScore" = :score
+        WHERE id = :documentId
+        `,
+        {
+          replacements: { documentId, score },
+        }
+      );
+    }
+  }
+
+  /**
+   * Marks documents as processed in the working table
+   */
+  private async markBatchProcessed(documentIds: string[]): Promise<void> {
+    const valuesClause = documentIds.map((id) => `('${id}'::uuid)`).join(", ");
+
+    await sequelize.query(
+      `
+      UPDATE ${this.workingTable}
+      SET processed = TRUE
+      WHERE "documentId" IN (SELECT id FROM (VALUES ${valuesClause}) AS t(id))
+      `
+    );
   }
 
   /**
@@ -362,9 +417,5 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
     } catch (error) {
       Logger.warn("Failed to clean up working table", { error });
     }
-  }
-
-  private sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
