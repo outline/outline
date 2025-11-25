@@ -58,6 +58,9 @@ function Home() {
           <Tab to="/home" exact>
             {t("Recently viewed")}
           </Tab>
+          <Tab to="/home/popular" exact>
+            {t("Popular")}
+          </Tab>
           <Tab to="/home/recent" exact>
             {t("Recently updated")}
           </Tab>
@@ -68,7 +71,20 @@ function Home() {
             <PaginatedDocumentList
               documents={documents.recentlyUpdated}
               fetch={documents.fetchRecentlyUpdated}
-              empty={<Empty>{t("Weird, this shouldn’t ever be empty")}</Empty>}
+              empty={<Empty>{t("Weird, this shouldn't ever be empty")}</Empty>}
+              showCollection
+            />
+          </Route>
+          <Route path="/home/popular">
+            <PaginatedDocumentList
+              key="popular"
+              documents={documents.popular}
+              fetch={documents.fetchPopular}
+              empty={
+                <Empty>
+                  {t("Documents with recent activity will appear here")}
+                </Empty>
+              }
               showCollection
             />
           </Route>
