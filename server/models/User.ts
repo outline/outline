@@ -77,6 +77,7 @@ export enum UserFlag {
   Desktop = "desktop",
   DesktopWeb = "desktopWeb",
   MobileWeb = "mobileWeb",
+  AvatarUpdated = "avatarUpdated",
 }
 
 @Scopes(() => ({

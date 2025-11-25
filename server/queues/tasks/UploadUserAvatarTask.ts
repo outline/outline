@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { createHash, randomUUID } from "crypto";
 import { User } from "@server/models";
 import { Buckets } from "@server/models/helpers/AttachmentHelper";
 import FileStorage from "@server/storage/files";
@@ -21,9 +21,16 @@ export default class UploadUserAvatarTask extends BaseTask<Props> {
       rejectOnEmpty: true,
     });
 
+    const hash = createHash("sha256").update(props.avatarUrl).digest("hex");
+
+    // If the user's avatar URL already contains this hash, skip the upload
+    if (user.avatarUrl?.includes(hash)) {
+      return;
+    }
+
     const res = await FileStorage.storeFromUrl(
       props.avatarUrl,
-      `${Buckets.avatars}/${user.id}/${randomUUID()}`,
+      `${Buckets.avatars}/${user.id}/${randomUUID()}/${hash}`,
       "public-read"
     );
 

@@ -182,20 +182,17 @@ export const assertCollectionPermission = (
 export class ValidateKey {
   /**
    * Checks if key is valid. A valid key is of the form
-   * <bucket>/<uuid>/<uuid>/<name>
+   * <bucket>/<uuid>/<uuid>/<name>?
    *
    * @param key
    * @returns true if key is valid, false otherwise
    */
   public static isValid = (key: string) => {
     let parts = key.split("/");
-    const bucket = parts[0];
-
-    // Avatars do not have a file name at the end of the key
-    parts = bucket === Buckets.avatars ? parts : parts.slice(0, -1);
 
     return (
-      parts.length === 3 &&
+      parts.length >= 3 &&
+      parts.length <= 4 &&
       isIn(parts[0], Object.values(Buckets)) &&
       isUUID(parts[1]) &&
       isUUID(parts[2])
@@ -218,7 +215,7 @@ export class ValidateKey {
       .concat(`/${sanitize(filename.replace(/#/g, ""))}`);
   };
 
-  public static message = "Must be of the form <bucket>/<uuid>/<uuid>/<name>";
+  public static message = "Must be of the form <bucket>/<uuid>/<uuid>/<name>?";
 }
 
 export class ValidateDocumentId {
