@@ -11,6 +11,7 @@ import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import useDragResize from "./hooks/useDragResize";
 import { useTranslation } from "react-i18next";
 import find from "lodash/find";
+import { Separator } from "~/components/Actions";
 
 type Props = ComponentProps & {
   /** Callback triggered when the image is clicked */
@@ -116,19 +117,25 @@ const Image = (props: Props) => {
         {!dragging && width > 60 && isDownloadable && (
           <Actions>
             {isExternalUrl(src) && (
-              <Button onClick={handleOpen} aria-label={t("Open")}>
-                <GlobeIcon />
-              </Button>
+              <>
+                <Button onClick={handleOpen} aria-label={t("Open")}>
+                  <GlobeIcon />
+                </Button>
+                <Separator height={24} />
+              </>
             )}
             {imgLink && !isSelected && (
-              <Button
-                // `mousedown` on ancestor `div.ProseMirror` was preventing the `onClick` handler from firing
-                onMouseDown={(e) => e.stopPropagation()}
-                onClick={props.onZoomIn}
-                aria-label={t("Zoom In")}
-              >
-                <ZoomInIcon />
-              </Button>
+              <>
+                <Button
+                  // `mousedown` on ancestor `div.ProseMirror` was preventing the `onClick` handler from firing
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={props.onZoomIn}
+                  aria-label={t("Zoom In")}
+                >
+                  <ZoomInIcon />
+                </Button>
+                <Separator height={24} />
+              </>
             )}
             <Button
               // `mousedown` on ancestor `div.ProseMirror` was preventing the `onClick` handler from firing
@@ -241,7 +248,6 @@ const Actions = styled.div`
   display: flex;
   align-items: center;
   position: absolute;
-  gap: 1px;
   top: 8px;
   right: 8px;
   opacity: 0;
