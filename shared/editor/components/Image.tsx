@@ -131,13 +131,20 @@ const Image = (props: Props) => {
                 <GlobeIcon />
               </Button>
             )}
-            {imgLink && !props.isEditable && (
-              <Button onClick={props.onZoomIn} aria-label={t("Zoom In")}>
+            {imgLink && !isSelected && (
+              <Button
+                // `mousedown` on ancestor `div.ProseMirror` was preventing the `onClick` handler from firing
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={props.onZoomIn}
+                aria-label={t("Zoom In")}
+              >
                 <ZoomInIcon />
               </Button>
             )}
             <Button
               onClick={handleDownload}
+              // `mousedown` on ancestor `div.ProseMirror` was preventing the `onClick` handler from firing
+              onMouseDown={(e) => e.stopPropagation()}
               aria-label={t("Download")}
               disabled={isDownloading}
             >
