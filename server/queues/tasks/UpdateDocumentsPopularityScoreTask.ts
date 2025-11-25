@@ -63,7 +63,7 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
    * Unique table name for this task run to prevent conflicts with concurrent runs
    */
   private workingTable: string = "";
-  static cron = TaskSchedule.Day;
+  static cron = TaskSchedule.Hour;
 
   public async perform() {
     Logger.info("task", "Updating document popularity scores…");
