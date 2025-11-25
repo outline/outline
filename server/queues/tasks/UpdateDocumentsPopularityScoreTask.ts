@@ -272,9 +272,6 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
     activityThreshold: Date,
     now: Date
   ): Promise<DocumentScore[]> {
-    // Build VALUES clause for the batch
-    const valuesClause = documentIds.map((id) => `('${id}'::uuid)`).join(", ");
-
     const results = await sequelizeReadOnly.query<{
       documentId: string;
       total_score: string;
@@ -283,7 +280,7 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
       SET LOCAL statement_timeout = '${STATEMENT_TIMEOUT_MS}ms';
 
       WITH batch_docs AS (
-        SELECT * FROM (VALUES ${valuesClause}) AS t(id)
+        SELECT unnest(ARRAY[:documentIds]::uuid[]) AS id
       ),
       revision_scores AS (
         SELECT
@@ -331,6 +328,7 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
       `,
       {
         replacements: {
+          documentIds,
           threshold: activityThreshold,
           now,
           gravity: GRAVITY,
@@ -374,14 +372,15 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
    * Marks documents as processed in the working table
    */
   private async markBatchProcessed(documentIds: string[]): Promise<void> {
-    const valuesClause = documentIds.map((id) => `('${id}'::uuid)`).join(", ");
-
     await sequelize.query(
       `
       UPDATE ${this.workingTable}
       SET processed = TRUE
-      WHERE "documentId" IN (SELECT id FROM (VALUES ${valuesClause}) AS t(id))
-      `
+      WHERE "documentId" IN (SELECT unnest(ARRAY[:documentIds]::uuid[]))
+      `,
+      {
+        replacements: { documentIds },
+      }
     );
   }
 
