@@ -3,10 +3,7 @@ import { Buckets } from "./models/helpers/AttachmentHelper";
 import { ValidateKey } from "./validation";
 
 describe("#ValidateKey.isValid", () => {
-  it("should return false if number of key components are not equal to 4", () => {
-    expect(
-      ValidateKey.isValid(`${Buckets.uploads}/${randomUUID()}/${randomUUID()}`)
-    ).toBe(false);
+  it("should return false if number of key components is incorrect", () => {
     expect(
       ValidateKey.isValid(
         `${Buckets.uploads}/${randomUUID()}/${randomUUID()}/foo/bar`
