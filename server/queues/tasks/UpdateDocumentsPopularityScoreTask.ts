@@ -1,7 +1,7 @@
 import { subWeeks } from "date-fns";
 import { Op } from "sequelize";
 import Logger from "@server/logging/Logger";
-import { Document, Revision } from "@server/models";
+import { Comment, Document, Revision, View } from "@server/models";
 import BaseTask, { TaskSchedule } from "./BaseTask";
 
 type Props = Record<string, never>;
@@ -19,6 +19,15 @@ const GRAVITY = 1.8;
 const TIME_OFFSET_HOURS = 2;
 
 /**
+ * Weight multipliers for different activity types relative to base score
+ */
+const ACTIVITY_WEIGHTS = {
+  revision: 1.0,
+  comment: 1.2,
+  view: 0.5,
+};
+
+/**
  * Only recalculate scores for documents updated within this period,
  * and how far back to look for revisions when calculating scores
  */
@@ -30,16 +39,16 @@ const ACTIVITY_THRESHOLD_WEEKS = 2;
 const BATCH_SIZE = 100;
 
 /**
- * Calculates a time-decayed score contribution for a single revision
+ * Calculates a time-decayed score contribution for a single activity
  * using the Hacker News algorithm: 1 / (hours + offset)^gravity
  *
- * @param revisionDate The date of the revision
+ * @param activityDate The date of the activity
  * @param now The current timestamp
- * @returns The score contribution for this revision
+ * @returns The score contribution for this activity
  */
-function calculateRevisionScore(revisionDate: Date, now: Date): number {
+function calculateActivityScore(activityDate: Date, now: Date): number {
   const ageInHours =
-    (now.getTime() - revisionDate.getTime()) / (1000 * 60 * 60);
+    (now.getTime() - activityDate.getTime()) / (1000 * 60 * 60);
   return 1 / Math.pow(ageInHours + TIME_OFFSET_HOURS, GRAVITY);
 }
 
@@ -51,42 +60,136 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
 
     const now = new Date();
     const activityThreshold = subWeeks(now, ACTIVITY_THRESHOLD_WEEKS);
+    const activeDocumentIds = new Set<string>();
 
+    // Collect document IDs with recent revisions (paginated)
+    await Revision.unscoped().findAllInBatches<Revision>(
+      {
+        attributes: ["documentId"],
+        where: {
+          createdAt: {
+            [Op.gte]: activityThreshold,
+          },
+        },
+        group: ["documentId"],
+        batchLimit: BATCH_SIZE,
+      },
+      async (revisions) => {
+        for (const revision of revisions) {
+          activeDocumentIds.add(revision.documentId);
+        }
+      }
+    );
+
+    // Collect document IDs with recent comments (paginated)
+    await Comment.unscoped().findAllInBatches<Comment>(
+      {
+        attributes: ["documentId"],
+        where: {
+          createdAt: {
+            [Op.gte]: activityThreshold,
+          },
+        },
+        group: ["documentId"],
+        batchLimit: BATCH_SIZE,
+      },
+      async (comments) => {
+        for (const comment of comments) {
+          activeDocumentIds.add(comment.documentId);
+        }
+      }
+    );
+
+    // Collect document IDs with recent views (paginated)
+    await View.unscoped().findAllInBatches<View>(
+      {
+        attributes: ["documentId"],
+        where: {
+          updatedAt: {
+            [Op.gte]: activityThreshold,
+          },
+        },
+        group: ["documentId"],
+        batchLimit: BATCH_SIZE,
+      },
+      async (views) => {
+        for (const view of views) {
+          activeDocumentIds.add(view.documentId);
+        }
+      }
+    );
+
+    if (activeDocumentIds.size === 0) {
+      Logger.info("task", "No documents with recent activity found");
+      return;
+    }
+
+    Logger.debug(
+      "task",
+      `Found ${activeDocumentIds.size} documents with recent activity`
+    );
+
+    // Process documents in batches
     const updatedCount = await Document.findAllInBatches<Document>(
       {
         attributes: ["id"],
         where: {
+          id: {
+            [Op.in]: [...activeDocumentIds],
+          },
           publishedAt: {
             [Op.ne]: null,
           },
           deletedAt: {
             [Op.is]: null,
           },
-          updatedAt: {
-            [Op.gte]: activityThreshold,
-          },
         },
         batchLimit: BATCH_SIZE,
-        order: [["id", "ASC"]],
       },
       async (documents) => {
         const documentIds = documents.map((doc) => doc.id);
 
-        // Fetch all revisions for this batch of documents within the activity period
-        const revisions = await Revision.unscoped().findAll({
-          attributes: ["documentId", "createdAt"],
-          where: {
-            documentId: {
-              [Op.in]: documentIds,
+        // Fetch all revisions, comments, and views for this batch within the activity period
+        const [revisions, comments, views] = await Promise.all([
+          Revision.unscoped().findAll({
+            attributes: ["documentId", "createdAt"],
+            where: {
+              documentId: {
+                [Op.in]: documentIds,
+              },
+              createdAt: {
+                [Op.gte]: activityThreshold,
+              },
             },
-            createdAt: {
-              [Op.gte]: activityThreshold,
+            order: [["documentId", "ASC"]],
+          }),
+          Comment.unscoped().findAll({
+            attributes: ["documentId", "createdAt"],
+            where: {
+              documentId: {
+                [Op.in]: documentIds,
+              },
+              createdAt: {
+                [Op.gte]: activityThreshold,
+              },
             },
-          },
-          order: [["documentId", "ASC"]],
-        });
+            order: [["documentId", "ASC"]],
+          }),
+          View.unscoped().findAll({
+            attributes: ["documentId", "updatedAt"],
+            where: {
+              documentId: {
+                [Op.in]: documentIds,
+              },
+              updatedAt: {
+                [Op.gte]: activityThreshold,
+              },
+            },
+            order: [["documentId", "ASC"]],
+          }),
+        ]);
 
-        // Group revisions by document and calculate scores
+        // Group by document and calculate scores
         const scoresByDocument = new Map<string, number>();
 
         // Initialize all documents with 0 score
@@ -97,16 +200,35 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
         // Sum up revision contributions for each document
         for (const revision of revisions) {
           const currentScore = scoresByDocument.get(revision.documentId) || 0;
-          const revisionScore = calculateRevisionScore(revision.createdAt, now);
+          const revisionScore =
+            calculateActivityScore(revision.createdAt, now) *
+            ACTIVITY_WEIGHTS.revision;
           scoresByDocument.set(
             revision.documentId,
             currentScore + revisionScore
           );
         }
 
+        // Sum up comment contributions for each document
+        for (const comment of comments) {
+          const currentScore = scoresByDocument.get(comment.documentId) || 0;
+          const commentScore =
+            calculateActivityScore(comment.createdAt, now) *
+            ACTIVITY_WEIGHTS.comment;
+          scoresByDocument.set(comment.documentId, currentScore + commentScore);
+        }
+
+        // Sum up view contributions for each document
+        for (const view of views) {
+          const currentScore = scoresByDocument.get(view.documentId) || 0;
+          const viewScore =
+            calculateActivityScore(view.updatedAt, now) * ACTIVITY_WEIGHTS.view;
+          scoresByDocument.set(view.documentId, currentScore + viewScore);
+        }
+
         // Batch update documents with their new scores
         for (const [documentId, score] of scoresByDocument) {
-          await Document.unscoped().update(
+          await Document.update(
             { popularityScore: score },
             {
               where: { id: documentId },
