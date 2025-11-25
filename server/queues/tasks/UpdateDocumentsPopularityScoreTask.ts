@@ -1,20 +1,26 @@
+import crypto from "crypto";
 import { subWeeks } from "date-fns";
-import { Op } from "sequelize";
+import { QueryTypes } from "sequelize";
 import Logger from "@server/logging/Logger";
-import { Comment, Document, Revision, View } from "@server/models";
 import BaseTask, { TaskSchedule } from "./BaseTask";
+import { sequelize } from "@server/storage/database";
 
 type Props = Record<string, never>;
 
 /**
- * Gravity constant for time decay (Hacker News uses 1.8)
- * Higher values cause faster decay of older content
+ * Gravity constant for time decay. Higher values cause faster decay of older content.
+ * With `GRAVITY = 0.7`:
+ * - Content from **1 day ago** retains ~30% of its score
+ * - Content from **3 days ago** retains ~15% of its score
+ * - Content from **1 week ago** retains ~8% of its score
+ * - Content from **2 weeks ago** retains ~4% of its score
  */
-const GRAVITY = 1.8;
+const GRAVITY = 0.7;
 
 /**
- * Number of hours to add to age to prevent division issues
- * and give new content a slight boost
+ * Number of hours to add to age to smooth the decay curve,
+ * preventing brand new content from having disproportionately
+ * high scores compared to content just a few hours old.
  */
 const TIME_OFFSET_HOURS = 2;
 
@@ -28,31 +34,35 @@ const ACTIVITY_WEIGHTS = {
 };
 
 /**
- * Only recalculate scores for documents updated within this period,
- * and how far back to look for revisions when calculating scores
+ * Only recalculate scores for activity within this period.
  */
 const ACTIVITY_THRESHOLD_WEEKS = 2;
 
 /**
- * Batch size for processing documents
+ * Batch size for processing updates - each batch is an independent transaction
  */
-const BATCH_SIZE = 100;
+const BATCH_SIZE = 500;
 
 /**
- * Calculates a time-decayed score contribution for a single activity
- * using the Hacker News algorithm: 1 / (hours + offset)^gravity
- *
- * @param activityDate The date of the activity
- * @param now The current timestamp
- * @returns The score contribution for this activity
+ * Maximum retries for failed batch operations
  */
-function calculateActivityScore(activityDate: Date, now: Date): number {
-  const ageInHours =
-    (now.getTime() - activityDate.getTime()) / (1000 * 60 * 60);
-  return 1 / Math.pow(ageInHours + TIME_OFFSET_HOURS, GRAVITY);
-}
+const MAX_RETRIES = 3;
+
+/**
+ * Delay between retries in milliseconds
+ */
+const RETRY_DELAY_MS = 1000;
+
+/**
+ * Base name for the working table used to track documents to process
+ */
+const WORKING_TABLE_PREFIX = "popularity_score_working";
 
 export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> {
+  /**
+   * Unique table name for this task run to prevent conflicts with concurrent runs
+   */
+  private workingTable: string = "";
   static cron = TaskSchedule.Day;
 
   public async perform() {
@@ -60,193 +70,301 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
 
     const now = new Date();
     const activityThreshold = subWeeks(now, ACTIVITY_THRESHOLD_WEEKS);
-    const activeDocumentIds = new Set<string>();
 
-    // Collect document IDs with recent revisions (paginated)
-    await Revision.unscoped().findAllInBatches<Revision>(
-      {
-        attributes: ["documentId"],
-        where: {
-          createdAt: {
-            [Op.gte]: activityThreshold,
-          },
-        },
-        group: ["documentId"],
-        batchLimit: BATCH_SIZE,
-      },
-      async (revisions) => {
-        for (const revision of revisions) {
-          activeDocumentIds.add(revision.documentId);
+    // Generate unique table name for this run to prevent conflicts
+    const uniqueId = crypto.randomBytes(8).toString("hex");
+    this.workingTable = `${WORKING_TABLE_PREFIX}_${uniqueId}`;
+
+    try {
+      // Setup: Create working table and populate with active document IDs
+      await this.setupWorkingTable(activityThreshold);
+
+      const activeCount = await this.getWorkingTableCount();
+
+      if (activeCount === 0) {
+        Logger.info("task", "No documents with recent activity found");
+        return;
+      }
+
+      Logger.info(
+        "task",
+        `Found ${activeCount} documents with recent activity`
+      );
+
+      // Process documents in independent batches
+      let totalUpdated = 0;
+      let totalErrors = 0;
+      let batchNumber = 0;
+
+      while (true) {
+        const remaining = await this.getWorkingTableCount();
+        if (remaining === 0) {
+          break;
+        }
+
+        batchNumber++;
+
+        try {
+          const updated = await this.processBatchWithRetry(
+            activityThreshold,
+            now
+          );
+          totalUpdated += updated;
+
+          Logger.debug(
+            "task",
+            `Batch ${batchNumber}: updated ${updated} documents, ${remaining - updated} remaining`
+          );
+        } catch (error) {
+          totalErrors++;
+          Logger.error(`Batch ${batchNumber} failed after retries`, error);
+
+          // Remove failed batch from working table to prevent infinite loop
+          await this.skipCurrentBatch();
         }
       }
-    );
 
-    // Collect document IDs with recent comments (paginated)
-    await Comment.unscoped().findAllInBatches<Comment>(
-      {
-        attributes: ["documentId"],
-        where: {
-          createdAt: {
-            [Op.gte]: activityThreshold,
-          },
-        },
-        group: ["documentId"],
-        batchLimit: BATCH_SIZE,
-      },
-      async (comments) => {
-        for (const comment of comments) {
-          activeDocumentIds.add(comment.documentId);
-        }
-      }
-    );
-
-    // Collect document IDs with recent views (paginated)
-    await View.unscoped().findAllInBatches<View>(
-      {
-        attributes: ["documentId"],
-        where: {
-          updatedAt: {
-            [Op.gte]: activityThreshold,
-          },
-        },
-        group: ["documentId"],
-        batchLimit: BATCH_SIZE,
-      },
-      async (views) => {
-        for (const view of views) {
-          activeDocumentIds.add(view.documentId);
-        }
-      }
-    );
-
-    if (activeDocumentIds.size === 0) {
-      Logger.info("task", "No documents with recent activity found");
-      return;
+      Logger.info(
+        "task",
+        `Completed updating popularity scores: ${totalUpdated} documents updated, ${totalErrors} batch errors`
+      );
+    } catch (error) {
+      Logger.error("Failed to update document popularity scores", error);
+      throw error;
+    } finally {
+      // Always clean up the working table
+      await this.cleanupWorkingTable();
     }
+  }
 
-    Logger.debug(
-      "task",
-      `Found ${activeDocumentIds.size} documents with recent activity`
+  /**
+   * Creates an unlogged working table and populates it with document IDs
+   * that have recent activity. Unlogged tables are faster because they
+   * skip WAL logging, and data loss on crash is acceptable here.
+   */
+  private async setupWorkingTable(activityThreshold: Date): Promise<void> {
+    // Drop any existing table first to avoid type conflicts from previous crashed runs
+    await sequelize.query(`DROP TABLE IF EXISTS ${this.workingTable} CASCADE`);
+
+    // Create unlogged table - faster than regular tables as it skips WAL logging
+    await sequelize.query(`
+      CREATE UNLOGGED TABLE ${this.workingTable} (
+        "documentId" UUID PRIMARY KEY,
+        processed BOOLEAN DEFAULT FALSE
+      )
+    `);
+
+    // Populate with documents that have recent activity and are valid
+    // (published, not deleted). Using JOINs to filter upfront.
+    await sequelize.query(
+      `
+      INSERT INTO ${this.workingTable} ("documentId")
+      SELECT DISTINCT d.id
+      FROM documents d
+      WHERE d."publishedAt" IS NOT NULL
+        AND d."deletedAt" IS NULL
+        AND (
+          EXISTS (
+            SELECT 1 FROM revisions r
+            WHERE r."documentId" = d.id AND r."createdAt" >= :threshold
+          )
+          OR EXISTS (
+            SELECT 1 FROM comments c
+            WHERE c."documentId" = d.id AND c."createdAt" >= :threshold
+          )
+          OR EXISTS (
+            SELECT 1 FROM views v
+            WHERE v."documentId" = d.id AND v."updatedAt" >= :threshold
+          )
+        )
+      `,
+      { replacements: { threshold: activityThreshold } }
     );
 
-    // Process documents in batches
-    const updatedCount = await Document.findAllInBatches<Document>(
-      {
-        attributes: ["id"],
-        where: {
-          id: {
-            [Op.in]: [...activeDocumentIds],
-          },
-          publishedAt: {
-            [Op.ne]: null,
-          },
-          deletedAt: {
-            [Op.is]: null,
-          },
-        },
-        batchLimit: BATCH_SIZE,
-      },
-      async (documents) => {
-        const documentIds = documents.map((doc) => doc.id);
+    // Create index on processed column for efficient batch selection
+    await sequelize.query(`
+      CREATE INDEX ON ${this.workingTable} (processed) WHERE NOT processed
+    `);
+  }
 
-        // Fetch all revisions, comments, and views for this batch within the activity period
-        const [revisions, comments, views] = await Promise.all([
-          Revision.unscoped().findAll({
-            attributes: ["documentId", "createdAt"],
-            where: {
-              documentId: {
-                [Op.in]: documentIds,
-              },
-              createdAt: {
-                [Op.gte]: activityThreshold,
-              },
-            },
-            order: [["documentId", "ASC"]],
-          }),
-          Comment.unscoped().findAll({
-            attributes: ["documentId", "createdAt"],
-            where: {
-              documentId: {
-                [Op.in]: documentIds,
-              },
-              createdAt: {
-                [Op.gte]: activityThreshold,
-              },
-            },
-            order: [["documentId", "ASC"]],
-          }),
-          View.unscoped().findAll({
-            attributes: ["documentId", "updatedAt"],
-            where: {
-              documentId: {
-                [Op.in]: documentIds,
-              },
-              updatedAt: {
-                [Op.gte]: activityThreshold,
-              },
-            },
-            order: [["documentId", "ASC"]],
-          }),
-        ]);
+  /**
+   * Returns count of unprocessed documents in working table
+   */
+  private async getWorkingTableCount(): Promise<number> {
+    const [result] = await sequelize.query<{ count: string }>(
+      `SELECT COUNT(*) as count FROM ${this.workingTable} WHERE NOT processed`,
+      { type: QueryTypes.SELECT }
+    );
+    return parseInt(result.count, 10);
+  }
 
-        // Group by document and calculate scores
-        const scoresByDocument = new Map<string, number>();
-
-        // Initialize all documents with 0 score
-        for (const docId of documentIds) {
-          scoresByDocument.set(docId, 0);
-        }
-
-        // Sum up revision contributions for each document
-        for (const revision of revisions) {
-          const currentScore = scoresByDocument.get(revision.documentId) || 0;
-          const revisionScore =
-            calculateActivityScore(revision.createdAt, now) *
-            ACTIVITY_WEIGHTS.revision;
-          scoresByDocument.set(
-            revision.documentId,
-            currentScore + revisionScore
-          );
-        }
-
-        // Sum up comment contributions for each document
-        for (const comment of comments) {
-          const currentScore = scoresByDocument.get(comment.documentId) || 0;
-          const commentScore =
-            calculateActivityScore(comment.createdAt, now) *
-            ACTIVITY_WEIGHTS.comment;
-          scoresByDocument.set(comment.documentId, currentScore + commentScore);
-        }
-
-        // Sum up view contributions for each document
-        for (const view of views) {
-          const currentScore = scoresByDocument.get(view.documentId) || 0;
-          const viewScore =
-            calculateActivityScore(view.updatedAt, now) * ACTIVITY_WEIGHTS.view;
-          scoresByDocument.set(view.documentId, currentScore + viewScore);
-        }
-
-        // Batch update documents with their new scores
-        for (const [documentId, score] of scoresByDocument) {
-          await Document.update(
-            { popularityScore: score },
-            {
-              where: { id: documentId },
-              silent: true, // Don't update updatedAt
-            }
-          );
-        }
-
-        Logger.debug(
-          "task",
-          `Updated popularity scores for ${documents.length} documents…`
+  /**
+   * Processes a batch of documents with retry logic.
+   * Each batch is an independent transaction that commits on success.
+   */
+  private async processBatchWithRetry(
+    activityThreshold: Date,
+    now: Date,
+    attempt = 1
+  ): Promise<number> {
+    try {
+      return await sequelize.transaction(async (transaction) => {
+        // Select and lock a batch of unprocessed documents
+        const batch = await sequelize.query<{ documentId: string }>(
+          `
+          SELECT "documentId" FROM ${this.workingTable}
+          WHERE NOT processed
+          ORDER BY "documentId"
+          LIMIT :limit
+          FOR UPDATE SKIP LOCKED
+          `,
+          {
+            replacements: { limit: BATCH_SIZE },
+            type: QueryTypes.SELECT,
+            transaction,
+          }
         );
-      }
-    );
 
-    Logger.info(
-      "task",
-      `Completed updating popularity scores for ${updatedCount} documents`
+        if (batch.length === 0) {
+          return 0;
+        }
+
+        const documentIds = batch.map((b) => b.documentId);
+
+        // Build VALUES clause for the batch, sequelize did not like array parameters in casted in clause.
+        const valuesClause = documentIds
+          .map((id) => `('${id}'::uuid)`)
+          .join(", ");
+
+        // Calculate and update scores using JOINs (no IN clause with large arrays)
+        await sequelize.query(
+          `
+          WITH batch_docs AS (
+            SELECT * FROM (VALUES ${valuesClause}) AS t(id)
+          ),
+          revision_scores AS (
+            SELECT
+              r."documentId",
+              SUM(:revisionWeight / POWER(
+                GREATEST(EXTRACT(EPOCH FROM (:now::timestamp - r."createdAt")) / 3600 + :timeOffset, 0.1),
+                :gravity
+              )) as score
+            FROM revisions r
+            INNER JOIN batch_docs bd ON r."documentId" = bd.id
+            WHERE r."createdAt" >= :threshold
+            GROUP BY r."documentId"
+          ),
+          comment_scores AS (
+            SELECT
+              c."documentId",
+              SUM(:commentWeight / POWER(
+                GREATEST(EXTRACT(EPOCH FROM (:now::timestamp - c."createdAt")) / 3600 + :timeOffset, 0.1),
+                :gravity
+              )) as score
+            FROM comments c
+            INNER JOIN batch_docs bd ON c."documentId" = bd.id
+            WHERE c."createdAt" >= :threshold
+            GROUP BY c."documentId"
+          ),
+          view_scores AS (
+            SELECT
+              v."documentId",
+              SUM(:viewWeight / POWER(
+                GREATEST(EXTRACT(EPOCH FROM (:now::timestamp - v."updatedAt")) / 3600 + :timeOffset, 0.1),
+                :gravity
+              )) as score
+            FROM views v
+            INNER JOIN batch_docs bd ON v."documentId" = bd.id
+            WHERE v."updatedAt" >= :threshold
+            GROUP BY v."documentId"
+          ),
+          combined_scores AS (
+            SELECT
+              bd.id as "documentId",
+              COALESCE(rs.score, 0) + COALESCE(cs.score, 0) + COALESCE(vs.score, 0) as total_score
+            FROM batch_docs bd
+            LEFT JOIN revision_scores rs ON bd.id = rs."documentId"
+            LEFT JOIN comment_scores cs ON bd.id = cs."documentId"
+            LEFT JOIN view_scores vs ON bd.id = vs."documentId"
+          )
+          UPDATE documents
+          SET "popularityScore" = combined_scores.total_score
+          FROM combined_scores
+          WHERE documents.id = combined_scores."documentId"
+          `,
+          {
+            replacements: {
+              threshold: activityThreshold,
+              now,
+              gravity: GRAVITY,
+              timeOffset: TIME_OFFSET_HOURS,
+              revisionWeight: ACTIVITY_WEIGHTS.revision,
+              commentWeight: ACTIVITY_WEIGHTS.comment,
+              viewWeight: ACTIVITY_WEIGHTS.view,
+            },
+            transaction,
+          }
+        );
+
+        // Mark batch as processed
+        await sequelize.query(
+          `
+          UPDATE ${this.workingTable}
+          SET processed = TRUE
+          WHERE "documentId" IN (SELECT id FROM (VALUES ${valuesClause}) AS t(id))
+          `,
+          { transaction }
+        );
+
+        return documentIds.length;
+      });
+    } catch (error) {
+      if (attempt < MAX_RETRIES) {
+        Logger.warn(
+          `Batch update failed, retrying (attempt ${attempt + 1}/${MAX_RETRIES})`,
+          { error }
+        );
+        await this.sleep(RETRY_DELAY_MS * attempt);
+        return this.processBatchWithRetry(activityThreshold, now, attempt + 1);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Marks current batch as processed without updating scores.
+   * Used when a batch fails repeatedly to prevent infinite loops.
+   */
+  private async skipCurrentBatch(): Promise<void> {
+    await sequelize.query(
+      `
+      UPDATE ${this.workingTable}
+      SET processed = TRUE
+      WHERE "documentId" IN (
+        SELECT "documentId" FROM ${this.workingTable}
+        WHERE NOT processed
+        ORDER BY "documentId"
+        LIMIT :limit
+      )
+      `,
+      { replacements: { limit: BATCH_SIZE } }
     );
+  }
+
+  /**
+   * Removes the working table
+   */
+  private async cleanupWorkingTable(): Promise<void> {
+    try {
+      await sequelize.query(
+        `DROP TABLE IF EXISTS ${this.workingTable} CASCADE`
+      );
+    } catch (error) {
+      Logger.warn("Failed to clean up working table", { error });
+    }
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
