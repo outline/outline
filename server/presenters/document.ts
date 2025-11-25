@@ -94,7 +94,7 @@ async function presentDocument(
     res.templateId = document.templateId;
     res.template = document.template;
     res.insightsEnabled = document.insightsEnabled;
-    res.popularityScore = document.popularityScore ?? 0;
+    res.popularityScore = document.popularityScore;
     res.sourceMetadata = document.sourceMetadata
       ? {
           importedAt: source?.createdAt ?? document.createdAt,

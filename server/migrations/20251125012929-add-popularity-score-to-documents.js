@@ -5,7 +5,8 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.addColumn("documents", "popularityScore", {
       type: Sequelize.FLOAT,
-      allowNull: true,
+      allowNull: false,
+      defaultValue: 0,
     });
   },
 
