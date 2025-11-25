@@ -162,13 +162,11 @@ const NavLink = ({
 
   const handleClick = React.useCallback(
     (event: React.MouseEvent<HTMLAnchorElement>) => {
-      const toPathname = typeof to === "string" ? to : to?.pathname;
-
-      if (toPathname && location.pathname?.startsWith(toPathname)) {
+      if (isActive) {
         event.preventDefault();
       }
     },
-    [to, location.pathname]
+    [isActive]
   );
 
   React.useEffect(() => {
