@@ -97,6 +97,11 @@ export default class DocumentsStore extends Store<Document> {
   }
 
   @computed
+  get popular(): Document[] {
+    return orderBy(this.all, "popularityScore", "desc");
+  }
+
+  @computed
   get templates(): Document[] {
     return orderBy(
       filter(
@@ -385,6 +390,14 @@ export default class DocumentsStore extends Store<Document> {
   fetchRecentlyViewed = async (
     options?: PaginationParams
   ): Promise<Document[]> => this.fetchNamedPage("viewed", options);
+
+  @action
+  fetchPopular = async (options?: PaginationParams): Promise<Document[]> =>
+    this.fetchNamedPage("list", {
+      sort: "popularityScore",
+      direction: "DESC",
+      ...options,
+    });
 
   @action
   fetchStarred = (options?: PaginationParams): Promise<Document[]> =>

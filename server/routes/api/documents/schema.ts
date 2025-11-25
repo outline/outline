@@ -13,7 +13,14 @@ const DocumentsSortParamsSchema = z.object({
   sort: z
     .string()
     .refine((val) =>
-      ["createdAt", "updatedAt", "publishedAt", "index", "title"].includes(val)
+      [
+        "createdAt",
+        "updatedAt",
+        "publishedAt",
+        "index",
+        "title",
+        "popularityScore",
+      ].includes(val)
     )
     .default("updatedAt"),
 
