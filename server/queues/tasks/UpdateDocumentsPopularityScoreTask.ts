@@ -3,7 +3,7 @@ import { subWeeks } from "date-fns";
 import { QueryTypes } from "sequelize";
 import Logger from "@server/logging/Logger";
 import BaseTask, { TaskSchedule } from "./BaseTask";
-import { sequelize } from "@server/storage/database";
+import { sequelize, sequelizeReadOnly } from "@server/storage/database";
 import { sleep } from "@server/utils/timers";
 
 type Props = Record<string, never>;
@@ -275,7 +275,7 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
     // Build VALUES clause for the batch
     const valuesClause = documentIds.map((id) => `('${id}'::uuid)`).join(", ");
 
-    const results = await sequelize.query<{
+    const results = await sequelizeReadOnly.query<{
       documentId: string;
       total_score: string;
     }>(

@@ -95,6 +95,20 @@ export class Environment {
   public DATABASE_URL = this.toOptionalString(environment.DATABASE_URL);
 
   /**
+   * Optional database URL for read replica to distribute read queries
+   * and reduce load on primary database.
+   */
+  @IsOptional()
+  @IsUrl({
+    require_tld: false,
+    allow_underscores: true,
+    protocols: ["postgres", "postgresql"],
+  })
+  public DATABASE_URL_READ_ONLY = this.toOptionalString(
+    environment.DATABASE_URL_READ_ONLY
+  );
+
+  /**
    * Database host for individual component configuration.
    */
   @IsOptional()
