@@ -213,6 +213,10 @@ export default class DocumentsStore extends Store<Document> {
     return naturalSort(this.inCollection(collectionId), "title");
   }
 
+  popularInCollection(collectionId: string): Document[] {
+    return orderBy(this.inCollection(collectionId), "popularityScore", "desc");
+  }
+
   get(id: string): Document | undefined {
     return id
       ? (this.data.get(id) ??
