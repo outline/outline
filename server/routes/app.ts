@@ -96,15 +96,6 @@ export const renderApp = async (
     </script>
   `;
 
-  const sitemapTag =
-    options.rootShareId || shareId
-      ? `<link rel="sitemap" type="application/xml" href="/api/shares.sitemap?id=${options.rootShareId || shareId}">`
-      : "";
-
-  const noIndexTag = allowIndexing
-    ? ""
-    : '<meta name="robots" content="noindex, nofollow">';
-
   const scriptTags = env.isProduction
     ? `<script type="module" nonce="${ctx.state.cspNonce}" src="${
         env.CDN_URL || ""
@@ -120,6 +111,40 @@ export const renderApp = async (
       <script type="module" nonce="${ctx.state.cspNonce}" src="${viteHost}/static/${entry}"></script>
     `;
 
+  let headTags = `
+    <meta name="robots" content="${allowIndexing ? "index, follow" : "noindex, nofollow"}" />
+    <link rel="canonical" href="${canonical}" />
+    <link
+      rel="shortcut icon"
+      type="image/png"
+      href="${shortcutIcon}"
+      sizes="32x32"
+    />
+    `;
+
+  if (options.isShare) {
+    headTags += `
+    <link rel="sitemap" type="application/xml" href="/api/shares.sitemap?id=${options.rootShareId || shareId}">
+    `;
+  } else {
+    headTags += prefetchTags;
+    headTags += `
+    <link rel="manifest" href="/static/manifest.webmanifest" />
+    <link
+      rel="apple-touch-icon"
+      type="image/png"
+      href="${env.CDN_URL ?? ""}/images/apple-touch-icon.png"
+      sizes="192x192"
+    />
+    <link
+      rel="search"
+      type="application/opensearchdescription+xml"
+      href="/opensearch.xml"
+      title="Outline"
+    />
+    `;
+  }
+
   // Ensure no caching is performed
   ctx.response.set("Cache-Control", "no-cache, must-revalidate");
   ctx.response.set("Expires", "-1");
@@ -131,15 +156,8 @@ export const renderApp = async (
     .replace(/\{title\}/g, escape(title))
     .replace(/\{description\}/g, escape(description))
     .replace(/\{content\}/g, content)
-    .replace(/\{noindex\}/g, noIndexTag)
-    .replace(
-      /\{manifest-url\}/g,
-      options.isShare ? "" : "/static/manifest.webmanifest"
-    )
-    .replace(/\{canonical-url\}/g, canonical)
-    .replace(/\{shortcut-icon-url\}/g, shortcutIcon)
     .replace(/\{cdn-url\}/g, env.CDN_URL || "")
-    .replace(/\{prefetch\}/g, shareId ? sitemapTag : prefetchTags)
+    .replace(/\{head-tags\}/g, headTags)
     .replace(/\{slack-app-id\}/g, env.public.SLACK_APP_ID || "")
     .replace(/\{script-tags\}/g, scriptTags)
     .replace(/\{csp-nonce\}/g, ctx.state.cspNonce);
