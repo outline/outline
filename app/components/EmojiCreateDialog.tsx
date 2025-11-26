@@ -13,7 +13,7 @@ import useStores from "~/hooks/useStores";
 import { uploadFile } from "~/utils/files";
 import { compressImage } from "~/utils/compressImage";
 import Logger from "~/utils/Logger";
-import { EmojiValidation } from "@shared/validations";
+import { AttachmentValidation, EmojiValidation } from "@shared/validations";
 
 type Props = {
   onSubmit: () => void;
@@ -34,7 +34,7 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDropAccepted: onDrop,
-    accept: [".png", ".jpg", ".jpeg", ".gif", ".webp"],
+    accept: AttachmentValidation.emojiContentTypes,
     maxFiles: 1,
     maxSize: 1024 * 1024, // 1MB
   });
@@ -109,7 +109,7 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
         error={
           !isValidName
             ? t(
-                "name can only should lowercase letters, numbers, and underscores."
+                "name can only contain lowercase letters, numbers, and underscores."
               )
             : undefined
         }

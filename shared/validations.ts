@@ -2,6 +2,15 @@ export const AttachmentValidation = {
   /** The limited allowable mime-types for user and team avatars */
   avatarContentTypes: ["image/jpg", "image/jpeg", "image/png"],
 
+  /** The most widely supported mime-types across modern browsers */
+  emojiContentTypes: [
+    "image/png",
+    "image/webp",
+    "image/gif",
+    "image/jpeg",
+    "image/jpg",
+  ],
+
   /** Image mime-types commonly supported by modern browsers */
   imageContentTypes: [
     "image/jpg",
@@ -133,6 +142,6 @@ export const WebhookSubscriptionValidation = {
 export const EmojiValidation = {
   /** The maximum length of the emoji name */
   maxNameLength: 25,
-  /* the allow characters in the name */
+  /* the characters allowed in the name */
   allowedNameCharacters: /^[a-z0-9_]*$/,
 };

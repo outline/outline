@@ -47,7 +47,7 @@ const CustomEmojiPanel = ({
   );
 
   useEffect(() => {
-    if (query) {
+    if (query.trim()) {
       const initialData = emojis.findByQuery(query);
       if (initialData.length) {
         setSearchData([
@@ -93,7 +93,7 @@ const CustomEmojiPanel = ({
     } else {
       setSearchData([]);
     }
-  }, [query]);
+  }, [query, emojis]);
 
   useEffect(() => {
     getFrequentIcons().forEach((id) => {
@@ -111,10 +111,9 @@ const CustomEmojiPanel = ({
           // ignore
         });
     });
-  }, [getFrequentIcons]);
+  }, [getFrequentIcons, emojis]);
 
   const handleEmojiSelection = React.useCallback(
-    // eslint-disable-next-line
     ({ id, value }: { id: string; value: string }) => {
       onEmojiChange(value);
       incrementIconCount(id);

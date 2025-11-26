@@ -17,7 +17,7 @@ class Emoji extends Model {
   @observable
   url: string;
 
-  /** The ID  */
+  /** The ID of the related attachment */
   @Field
   @observable
   attachmentId: string;
