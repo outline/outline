@@ -99,10 +99,11 @@ const Emojis = allowFlagEmoji
       )
     );
 
-const searcher = new FuzzySearch(Object.values(Emojis), ["search"], {
-  caseSensitive: false,
-  sort: true,
-});
+const searcher = (emojis: searchEmojis[]) =>
+  new FuzzySearch(emojis, ["search"], {
+    caseSensitive: false,
+    sort: true,
+  });
 
 // Codes defined by unicode.org
 const SKINTONE_CODE_TO_ENUM = {
@@ -191,27 +192,39 @@ export const getEmojisWithCategory = ({
 export const getEmojiVariants = ({ id }: { id: string }) =>
   EMOJI_ID_TO_VARIANTS[id];
 
+type searchEmojis = Emoji & {
+  search?: string;
+  skins?: Skin[];
+};
+
 export const search = ({
+  emojis = [],
   query,
   skinTone,
 }: {
+  emojis?: searchEmojis[];
   query: string;
   skinTone?: EmojiSkinTone;
-}) => {
-  const queryLowercase = query.toLowerCase();
-  const emojiSkinTone = skinTone ?? EmojiSkinTone.Default;
+}): Emoji[] => {
+  const matchedEmojis = searcher([...Object.values(Emojis), ...emojis])
+    .search(query.toLowerCase())
+    .map((emoji) => {
+      if (!emoji.skins) {
+        return emoji;
+      }
 
-  const matchedEmojis = searcher
-    .search(queryLowercase)
-    .map(
-      (emoji) =>
+      const emojiSkinTone = skinTone ?? EmojiSkinTone.Default;
+
+      return (
         EMOJI_ID_TO_VARIANTS[emoji.id][emojiSkinTone] ??
         EMOJI_ID_TO_VARIANTS[emoji.id][EmojiSkinTone.Default]
-    );
+      );
+    });
+
   return sortBy(matchedEmojis, (emoji) => {
     const nlc = emoji.name.toLowerCase();
-    return query === nlc ? -1 : nlc.startsWith(queryLowercase) ? 0 : 1;
-  });
+    return query === nlc ? -1 : nlc.startsWith(query) ? 0 : 1;
+  }) as Emoji[];
 };
 
 /**
@@ -221,4 +234,4 @@ export const search = ({
  * @returns The emoji id, if found.
  */
 export const getEmojiId = (emoji: string): string | undefined =>
-  searcher.search(emoji)[0]?.id;
+  searcher(Object.values(Emojis)).search(emoji)[0]?.id;
