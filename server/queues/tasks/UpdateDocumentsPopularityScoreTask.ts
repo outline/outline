@@ -1,22 +1,13 @@
 import crypto from "crypto";
 import { subWeeks } from "date-fns";
 import { QueryTypes } from "sequelize";
+import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import BaseTask, { TaskSchedule } from "./BaseTask";
-import { sequelize } from "@server/storage/database";
+import { sequelize, sequelizeReadOnly } from "@server/storage/database";
 import { sleep } from "@server/utils/timers";
 
 type Props = Record<string, never>;
-
-/**
- * Gravity constant for time decay. Higher values cause faster decay of older content.
- * With `GRAVITY = 0.7`:
- * - Content from **1 day ago** retains ~30% of its score
- * - Content from **3 days ago** retains ~15% of its score
- * - Content from **1 week ago** retains ~8% of its score
- * - Content from **2 weeks ago** retains ~4% of its score
- */
-const GRAVITY = 0.7;
 
 /**
  * Number of hours to add to age to smooth the decay curve,
@@ -35,24 +26,19 @@ const ACTIVITY_WEIGHTS = {
 };
 
 /**
- * Only recalculate scores for activity within this period.
- */
-const ACTIVITY_THRESHOLD_WEEKS = 2;
-
-/**
  * Batch size for processing updates - kept small to minimize lock duration
  */
-const BATCH_SIZE = 100;
+const BATCH_SIZE = 50;
 
 /**
  * Maximum retries for failed batch operations
  */
-const MAX_RETRIES = 3;
+const MAX_RETRIES = 2;
 
 /**
  * Statement timeout for individual queries to prevent runaway locks
  */
-const STATEMENT_TIMEOUT_MS = 10000;
+const STATEMENT_TIMEOUT_MS = 30000;
 
 /**
  * Base name for the working table used to track documents to process
@@ -75,7 +61,7 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
     Logger.info("task", "Updating document popularity scores…");
 
     const now = new Date();
-    const activityThreshold = subWeeks(now, ACTIVITY_THRESHOLD_WEEKS);
+    const threshold = subWeeks(now, env.POPULARITY_ACTIVITY_THRESHOLD_WEEKS);
 
     // Generate unique table name for this run to prevent conflicts
     const uniqueId = crypto.randomBytes(8).toString("hex");
@@ -83,7 +69,7 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
 
     try {
       // Setup: Create working table and populate with active document IDs
-      await this.setupWorkingTable(activityThreshold);
+      await this.setupWorkingTable(threshold);
 
       const activeCount = await this.getWorkingTableCount();
 
@@ -111,10 +97,7 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
         batchNumber++;
 
         try {
-          const updated = await this.processBatchWithRetry(
-            activityThreshold,
-            now
-          );
+          const updated = await this.processBatchWithRetry(threshold, now);
           totalUpdated += updated;
 
           Logger.debug(
@@ -123,7 +106,7 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
           );
 
           // Add delay between batches to reduce database contention
-          await sleep(1000);
+          await sleep(10);
         } catch (error) {
           totalErrors++;
           Logger.error(`Batch ${batchNumber} failed after retries`, error);
@@ -151,7 +134,7 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
    * that have recent activity. Unlogged tables are faster because they
    * skip WAL logging, and data loss on crash is acceptable here.
    */
-  private async setupWorkingTable(activityThreshold: Date): Promise<void> {
+  private async setupWorkingTable(threshold: Date): Promise<void> {
     // Drop any existing table first to avoid type conflicts from previous crashed runs
     await sequelize.query(`DROP TABLE IF EXISTS ${this.workingTable} CASCADE`);
 
@@ -187,7 +170,7 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
           )
         )
       `,
-      { replacements: { threshold: activityThreshold } }
+      { replacements: { threshold } }
     );
 
     // Create index on processed column for efficient batch selection
@@ -211,7 +194,7 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
    * Processes a batch of documents with retry logic.
    */
   private async processBatchWithRetry(
-    activityThreshold: Date,
+    threshold: Date,
     now: Date,
     attempt = 1
   ): Promise<number> {
@@ -239,7 +222,7 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
       // Step 2: Calculate scores outside of a transaction
       const scores = await this.calculateScoresForDocuments(
         documentIds,
-        activityThreshold,
+        threshold,
         now
       );
 
@@ -257,7 +240,7 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
           { error }
         );
         await sleep(1000 * attempt);
-        return this.processBatchWithRetry(activityThreshold, now, attempt + 1);
+        return this.processBatchWithRetry(threshold, now, attempt + 1);
       }
       throw error;
     }
@@ -269,13 +252,10 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
    */
   private async calculateScoresForDocuments(
     documentIds: string[],
-    activityThreshold: Date,
+    threshold: Date,
     now: Date
   ): Promise<DocumentScore[]> {
-    // Build VALUES clause for the batch
-    const valuesClause = documentIds.map((id) => `('${id}'::uuid)`).join(", ");
-
-    const results = await sequelize.query<{
+    const results = await sequelizeReadOnly.query<{
       documentId: string;
       total_score: string;
     }>(
@@ -283,7 +263,7 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
       SET LOCAL statement_timeout = '${STATEMENT_TIMEOUT_MS}ms';
 
       WITH batch_docs AS (
-        SELECT * FROM (VALUES ${valuesClause}) AS t(id)
+        SELECT unnest(ARRAY[:documentIds]::uuid[]) AS id
       ),
       revision_scores AS (
         SELECT
@@ -331,9 +311,10 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
       `,
       {
         replacements: {
-          threshold: activityThreshold,
+          documentIds,
+          threshold,
           now,
-          gravity: GRAVITY,
+          gravity: env.POPULARITY_GRAVITY,
           timeOffset: TIME_OFFSET_HOURS,
           revisionWeight: ACTIVITY_WEIGHTS.revision,
           commentWeight: ACTIVITY_WEIGHTS.comment,
@@ -359,7 +340,6 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
     for (const { documentId, score } of scores) {
       await sequelize.query(
         `
-        SET LOCAL statement_timeout = '${STATEMENT_TIMEOUT_MS}ms';
         UPDATE documents
         SET "popularityScore" = :score
         WHERE id = :documentId
@@ -375,14 +355,15 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
    * Marks documents as processed in the working table
    */
   private async markBatchProcessed(documentIds: string[]): Promise<void> {
-    const valuesClause = documentIds.map((id) => `('${id}'::uuid)`).join(", ");
-
     await sequelize.query(
       `
       UPDATE ${this.workingTable}
       SET processed = TRUE
-      WHERE "documentId" IN (SELECT id FROM (VALUES ${valuesClause}) AS t(id))
-      `
+      WHERE "documentId" IN (SELECT unnest(ARRAY[:documentIds]::uuid[]))
+      `,
+      {
+        replacements: { documentIds },
+      }
     );
   }
 

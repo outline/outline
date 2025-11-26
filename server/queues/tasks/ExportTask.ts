@@ -20,6 +20,7 @@ import FileStorage from "@server/storage/files";
 import BaseTask, { TaskPriority } from "./BaseTask";
 import { Op } from "sequelize";
 import { WhereOptions } from "sequelize";
+import { sequelizeReadOnly } from "@server/storage/database";
 
 type Props = {
   fileOperationId: string;
@@ -68,6 +69,7 @@ export default abstract class ExportTask extends BaseTask<Props> {
 
       if (!fileOperation.collectionId) {
         const totalAttachmentsSize = await Attachment.getTotalSizeForTeam(
+          sequelizeReadOnly,
           user.teamId
         );
 
