@@ -14,7 +14,9 @@ const router = new Router();
 const receivedPeriods = new Set<TaskSchedule>();
 
 const cronHandler = async (ctx: APIContext<T.CronSchemaReq>) => {
-  const period = Object.keys(TaskSchedule).includes(ctx.params.period)
+  const period = Object.values(TaskSchedule).includes(
+    ctx.params.period as TaskSchedule
+  )
     ? (ctx.params.period as TaskSchedule)
     : TaskSchedule.Day;
   const token = (ctx.input.body.token ?? ctx.input.query.token) as string;
