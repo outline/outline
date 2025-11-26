@@ -6,6 +6,7 @@ import {
   InferCreationAttributes,
   QueryTypes,
   FindOptions,
+  Sequelize,
 } from "sequelize";
 import {
   BeforeDestroy,
@@ -182,11 +183,15 @@ class Attachment extends IdModel<
   /**
    * Get the total size of all attachments for a given team.
    *
+   * @param connection - The Sequelize connection to use for the query.
    * @param teamId - The ID of the team to get the total size for.
    * @returns A promise resolving to the total size of all attachments for the given team in bytes.
    */
-  static async getTotalSizeForTeam(teamId: string): Promise<number> {
-    const result = await this.sequelize!.query<{ total: string }>(
+  static async getTotalSizeForTeam(
+    connection: Sequelize,
+    teamId: string
+  ): Promise<number> {
+    const result = await connection.query<{ total: string }>(
       `
       SELECT SUM(size) as total
       FROM attachments

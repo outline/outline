@@ -1,5 +1,6 @@
 import { Attachment, Team } from "@server/models";
 import BaseTask, { TaskPriority } from "./BaseTask";
+import { sequelizeReadOnly } from "@server/storage/database";
 
 type Props = {
   /** The teamId to operate on */
@@ -11,7 +12,10 @@ type Props = {
  */
 export default class UpdateTeamAttachmentsSizeTask extends BaseTask<Props> {
   public async perform({ teamId }: Props) {
-    const sizeInBytes = await Attachment.getTotalSizeForTeam(teamId);
+    const sizeInBytes = await Attachment.getTotalSizeForTeam(
+      sequelizeReadOnly,
+      teamId
+    );
     if (!sizeInBytes) {
       return;
     }
