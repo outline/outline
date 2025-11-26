@@ -45,7 +45,7 @@ function AppSidebar() {
       void documents.fetchDrafts();
       void emojis.fetchAll();
     }
-  }, [documents, collections, user.isViewer]);
+  }, [documents, collections, user.isViewer, emojis]);
 
   const [dndArea, setDndArea] = useState();
   const handleSidebarRef = useCallback((node) => setDndArea(node), []);

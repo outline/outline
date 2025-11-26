@@ -265,7 +265,7 @@
   "Add emoji": "Add emoji",
   "Upload an image to create a custom emoji. The name should be unique and contain only lowercase letters, numbers, and underscores.": "Upload an image to create a custom emoji. The name should be unique and contain only lowercase letters, numbers, and underscores.",
   "Emoji name": "Emoji name",
-  "name can only should lowercase letters, numbers, and underscores.": "name can only should lowercase letters, numbers, and underscores.",
+  "name can only contain lowercase letters, numbers, and underscores.": "name can only contain lowercase letters, numbers, and underscores.",
   "Click or drag to replace": "Click or drag to replace",
   "Drop the image here": "Drop the image here",
   "Click or drag an image here": "Click or drag an image here",
