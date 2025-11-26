@@ -47,6 +47,7 @@ import {
 import isUUID from "validator/lib/isUUID";
 import type {
   CollectionSort,
+  CollectionDisplayPreferences,
   ProsemirrorData,
   SourceMetadata,
 } from "@shared/types";
@@ -313,6 +314,10 @@ class Collection extends ParanoidModel<
   @AllowNull
   @Column(DataType.JSONB)
   sourceMetadata: SourceMetadata | null;
+
+  @Default({})
+  @Column(DataType.JSONB)
+  displayPreferences: CollectionDisplayPreferences | null;
 
   // getters
 
