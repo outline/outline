@@ -293,7 +293,7 @@ export default class FindAndReplaceExtension extends Extension {
 
           // Prevent wrap around matches when the regex matches at the end of the deburred
           // string and continues matching at the start of the original string
-          if (i + this.searchTerm.length > text.length) {
+          if (i + m[0].length > text.length) {
             continue;
           }
 
