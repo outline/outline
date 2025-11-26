@@ -113,18 +113,18 @@ export const renderApp = async (
 
   let headTags = `
     <meta name="robots" content="${allowIndexing ? "index, follow" : "noindex, nofollow"}" />
-    <link rel="canonical" href="${canonical}" />
+    <link rel="canonical" href="${escape(canonical)}" />
     <link
       rel="shortcut icon"
       type="image/png"
-      href="${shortcutIcon}"
+      href="${escape(shortcutIcon)}"
       sizes="32x32"
     />
     `;
 
   if (options.isShare) {
     headTags += `
-    <link rel="sitemap" type="application/xml" href="/api/shares.sitemap?id=${options.rootShareId || shareId}">
+    <link rel="sitemap" type="application/xml" href="/api/shares.sitemap?id=${escape(options.rootShareId || shareId)}">
     `;
   } else {
     headTags += prefetchTags;
