@@ -60,6 +60,16 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
   public async perform() {
     Logger.info("task", "Updating document popularity scores…");
 
+    // Only run every 6 hours (at hours 0, 6, 12, 18)
+    const currentHour = new Date().getHours();
+    if (currentHour % 6 !== 0) {
+      Logger.debug(
+        "task",
+        `Skipping popularity score update, will run at next 6-hour interval (current hour: ${currentHour})`
+      );
+      return;
+    }
+
     const now = new Date();
     const threshold = subWeeks(now, env.POPULARITY_ACTIVITY_THRESHOLD_WEEKS);
 
