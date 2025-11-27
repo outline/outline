@@ -5,7 +5,7 @@ import { schema, serializer } from "@server/editor";
 import { Document } from "@server/models";
 import { DocumentEvent } from "@server/types";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
-import BaseTask from "./base/BaseTask";
+import { BaseTask } from "./base/BaseTask";
 
 export default class DocumentUpdateTextTask extends BaseTask<DocumentEvent> {
   public async perform(event: DocumentEvent) {

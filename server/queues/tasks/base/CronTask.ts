@@ -1,5 +1,5 @@
 import { Op, WhereOptions } from "sequelize";
-import BaseTask from "./BaseTask";
+import { BaseTask } from "./BaseTask";
 
 export enum TaskInterval {
   Day = "daily",

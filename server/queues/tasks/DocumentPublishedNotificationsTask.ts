@@ -5,7 +5,7 @@ import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import NotificationHelper from "@server/models/helpers/NotificationHelper";
 import { DocumentEvent } from "@server/types";
 import { canUserAccessDocument } from "@server/utils/permissions";
-import BaseTask, { TaskPriority } from "./base/BaseTask";
+import { BaseTask, TaskPriority } from "./base/BaseTask";
 
 export default class DocumentPublishedNotificationsTask extends BaseTask<DocumentEvent> {
   public async perform(event: DocumentEvent) {

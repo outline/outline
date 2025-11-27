@@ -1,5 +1,5 @@
 import { Attachment, Team } from "@server/models";
-import BaseTask, { TaskPriority } from "./base/BaseTask";
+import { BaseTask, TaskPriority } from "./base/BaseTask";
 import { sequelizeReadOnly } from "@server/storage/database";
 
 type Props = {

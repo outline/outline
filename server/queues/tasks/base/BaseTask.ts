@@ -8,7 +8,7 @@ export enum TaskPriority {
   High = 10,
 }
 
-export default abstract class BaseTask<T extends Record<string, any>> {
+export abstract class BaseTask<T extends Record<string, any>> {
   /**
    * Schedule this task type to be processed asynchronously by a worker.
    *

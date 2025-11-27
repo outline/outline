@@ -5,7 +5,7 @@ import { createContext } from "@server/context";
 import { User } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import FileStorage from "@server/storage/files";
-import BaseTask, { TaskPriority } from "./base/BaseTask";
+import { BaseTask, TaskPriority } from "./base/BaseTask";
 
 type Props = {
   userId: string;

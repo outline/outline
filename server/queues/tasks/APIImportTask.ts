@@ -23,7 +23,7 @@ import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
 import { PagePerImportTask } from "../processors/ImportsProcessor";
-import BaseTask, { TaskPriority } from "./base/BaseTask";
+import { BaseTask, TaskPriority } from "./base/BaseTask";
 import UploadAttachmentsForImportTask from "./UploadAttachmentsForImportTask";
 
 export type ProcessOutput<T extends ImportableIntegrationService> = {

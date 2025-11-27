@@ -42,7 +42,7 @@ import {
   presentGroupMembership,
   presentComment,
 } from "@server/presenters";
-import BaseTask from "@server/queues/tasks/base/BaseTask";
+import { BaseTask } from "@server/queues/tasks/base/BaseTask";
 import {
   CollectionEvent,
   CollectionGroupEvent,

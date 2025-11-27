@@ -2,7 +2,7 @@ import { Op } from "sequelize";
 import documentMover from "@server/commands/documentMover";
 import { Collection, Document, User } from "@server/models";
 import { sequelize } from "@server/storage/database";
-import BaseTask from "./base/BaseTask";
+import { BaseTask } from "./base/BaseTask";
 import { createContext } from "@server/context";
 
 type Props = {
