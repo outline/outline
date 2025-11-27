@@ -1,6 +1,6 @@
 import { Day, Hour, Second } from "@shared/utils/time";
 import tasks from "@server/queues/tasks";
-import { TaskInterval } from "@server/queues/tasks/base/CronTask";
+import { CronTask, TaskInterval } from "@server/queues/tasks/base/CronTask";
 
 export default function init() {
   async function run(schedule: TaskInterval) {
@@ -11,13 +11,12 @@ export default function init() {
 
     for (const name in tasks) {
       const TaskClass = tasks[name];
-      // @ts-expect-error We won't instantiate an abstract class
-      const taskInstance = new TaskClass();
-
-      // Check if this task has a cron getter (is a CronTask)
-      if (!("cron" in taskInstance && typeof taskInstance.cron === "object")) {
+      if (!(TaskClass.prototype instanceof CronTask)) {
         continue;
       }
+
+      // @ts-expect-error We won't instantiate an abstract class
+      const taskInstance = new TaskClass() as CronTask;
 
       if (taskInstance.cron.interval === schedule) {
         await taskInstance.schedule({ limit: 10000, partition });

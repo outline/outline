@@ -29,6 +29,10 @@ const cronHandler = async (ctx: APIContext<T.CronSchemaReq>) => {
 
   for (const name in tasks) {
     const TaskClass = tasks[name];
+    if (!(TaskClass.prototype instanceof CronTask)) {
+      continue;
+    }
+
     // @ts-expect-error We won't instantiate an abstract class
     const taskInstance = new TaskClass() as CronTask;
 
