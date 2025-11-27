@@ -60,7 +60,7 @@ const cronHandler = async (ctx: APIContext<T.CronSchemaReq>) => {
             "task",
             `Scheduling partitioned task ${name} (partition ${
               i + 1
-            }/${partitions}) with delay of ${delay}ms`
+            }/${partitions}) with delay of ${delay / 1000}s`
           );
 
           // @ts-expect-error We won't instantiate an abstract class

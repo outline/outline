@@ -4,15 +4,10 @@ import { FileOperationState } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { FileOperation } from "@server/models";
 import BaseTask, {
-  PartitionInfo,
+  CronTaskProps as Props,
   TaskPriority,
   TaskSchedule,
 } from "./BaseTask";
-
-type Props = {
-  limit: number;
-  partition?: PartitionInfo;
-};
 
 export default class CleanupExpiredFileOperationsTask extends BaseTask<Props> {
   static cron = TaskSchedule.Hour;
@@ -33,7 +28,6 @@ export default class CleanupExpiredFileOperationsTask extends BaseTask<Props> {
         state: {
           [Op.ne]: FileOperationState.Expired,
         },
-        ...this.getPartitionWhereClause("id", partition),
       },
       limit,
     });

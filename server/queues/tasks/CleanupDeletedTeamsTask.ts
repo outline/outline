@@ -3,19 +3,19 @@ import { Op } from "sequelize";
 import { Minute } from "@shared/utils/time";
 import Logger from "@server/logging/Logger";
 import { Team } from "@server/models";
-import BaseTask, { TaskPriority, TaskSchedule } from "./BaseTask";
+import BaseTask, {
+  CronTaskProps as Props,
+  TaskPriority,
+  TaskSchedule,
+} from "./BaseTask";
 import CleanupDeletedTeamTask from "./CleanupDeletedTeamTask";
-
-type Props = {
-  limit: number;
-};
 
 export default class CleanupDeletedTeamsTask extends BaseTask<Props> {
   static cron = TaskSchedule.Hour;
 
   static cronPartitionWindow = 15 * Minute.ms;
 
-  public async perform({ limit }: Props) {
+  public async perform({ limit, partition }: Props) {
     Logger.info(
       "task",
       `Permanently destroying upto ${limit} teams older than 30 days…`
@@ -26,6 +26,7 @@ export default class CleanupDeletedTeamsTask extends BaseTask<Props> {
         deletedAt: {
           [Op.lt]: subDays(new Date(), 30),
         },
+        ...this.getPartitionWhereClause("id", partition),
       },
       paranoid: false,
       limit,

@@ -4,11 +4,16 @@ import { TaskSchedule } from "@server/queues/tasks/BaseTask";
 
 export default function init() {
   async function run(schedule: TaskSchedule) {
+    const partition = {
+      partitionIndex: 0,
+      partitionCount: 1,
+    };
+
     for (const name in tasks) {
       const TaskClass = tasks[name];
       if (TaskClass.cron === schedule) {
         // @ts-expect-error We won't instantiate an abstract class
-        await new TaskClass().schedule({ limit: 10000 });
+        await new TaskClass().schedule({ limit: 10000, partition });
       }
     }
   }

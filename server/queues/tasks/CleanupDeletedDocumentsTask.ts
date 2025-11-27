@@ -4,20 +4,16 @@ import documentPermanentDeleter from "@server/commands/documentPermanentDeleter"
 import Logger from "@server/logging/Logger";
 import { Document } from "@server/models";
 import BaseTask, {
-  PartitionInfo,
+  CronTaskProps as Props,
   TaskPriority,
   TaskSchedule,
 } from "./BaseTask";
-
-type Props = {
-  limit: number;
-  partition?: PartitionInfo;
-};
+import { Minute } from "@shared/utils/time";
 
 export default class CleanupDeletedDocumentsTask extends BaseTask<Props> {
   static cron = TaskSchedule.Hour;
 
-  static cronPartitionWindow = 15 * 60 * 1000; // 15 minutes
+  static cronPartitionWindow = 15 * Minute.ms;
 
   public async perform({ limit, partition }: Props) {
     Logger.info(

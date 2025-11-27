@@ -1,11 +1,11 @@
 import { Op } from "sequelize";
 import Logger from "@server/logging/Logger";
 import { Attachment } from "@server/models";
-import BaseTask, { TaskPriority, TaskSchedule } from "./BaseTask";
-
-type Props = {
-  limit: number;
-};
+import BaseTask, {
+  CronTaskProps as Props,
+  TaskPriority,
+  TaskSchedule,
+} from "./BaseTask";
 
 export default class CleanupExpiredAttachmentsTask extends BaseTask<Props> {
   static cron = TaskSchedule.Hour;

@@ -4,11 +4,13 @@ import { QueryTypes } from "sequelize";
 import { Minute } from "@shared/utils/time";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
-import BaseTask, { TaskSchedule } from "./BaseTask";
+import BaseTask, {
+  PartitionInfo,
+  CronTaskProps as Props,
+  TaskSchedule,
+} from "./BaseTask";
 import { sequelize, sequelizeReadOnly } from "@server/storage/database";
 import { sleep } from "@server/utils/timers";
-
-type Props = Record<string, never>;
 
 /**
  * Number of hours to add to age to smooth the decay curve,
@@ -56,17 +58,12 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
    * Unique table name for this task run to prevent conflicts with concurrent runs
    */
   private workingTable: string = "";
+
   static cron = TaskSchedule.Hour;
 
-  /**
-   * Partition the execution of this task over 10 minutes to prevent
-   * overwhelming the database with concurrent popularity score calculations.
-   */
-  static cronPartitionWindow = 10 * Minute.ms;
+  static cronPartitionWindow = 30 * Minute.ms;
 
-  public async perform() {
-    Logger.info("task", "Updating document popularity scores…");
-
+  public async perform({ partition }: Props) {
     // Only run every 6 hours (at hours 0, 6, 12, 18)
     const currentHour = new Date().getHours();
     if (currentHour % 6 !== 0) {
@@ -86,7 +83,7 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
 
     try {
       // Setup: Create working table and populate with active document IDs
-      await this.setupWorkingTable(threshold);
+      await this.setupWorkingTable(threshold, partition);
 
       const activeCount = await this.getWorkingTableCount();
 
@@ -151,7 +148,10 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
    * that have recent activity. Unlogged tables are faster because they
    * skip WAL logging, and data loss on crash is acceptable here.
    */
-  private async setupWorkingTable(threshold: Date): Promise<void> {
+  private async setupWorkingTable(
+    threshold: Date,
+    partition: PartitionInfo
+  ): Promise<void> {
     // Drop any existing table first to avoid type conflicts from previous crashed runs
     await sequelize.query(`DROP TABLE IF EXISTS ${this.workingTable} CASCADE`);
 
@@ -162,6 +162,8 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
         processed BOOLEAN DEFAULT FALSE
       )
     `);
+
+    const [startUuid, endUuid] = this.getPartitionBounds(partition);
 
     // Populate with documents that have recent activity and are valid
     // (published, not deleted). Using JOINs to filter upfront.
@@ -186,6 +188,7 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
             WHERE v."documentId" = d.id AND v."updatedAt" >= :threshold
           )
         )
+        ${startUuid && endUuid ? `AND d.id >= '${startUuid}' AND d.id <= '${endUuid}'` : ""}
       `,
       { replacements: { threshold } }
     );
