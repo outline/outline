@@ -1,6 +1,6 @@
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 import { requireDirectory } from "@server/utils/fs";
-import BaseTask from "./BaseTask";
+import { BaseTask } from "./base/BaseTask";
 
 const tasks: Record<string, typeof BaseTask> = {};
 

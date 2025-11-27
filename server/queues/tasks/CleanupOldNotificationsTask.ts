@@ -2,14 +2,12 @@ import { subMonths } from "date-fns";
 import { Op } from "sequelize";
 import Logger from "@server/logging/Logger";
 import { Notification } from "@server/models";
-import BaseTask, { TaskPriority, TaskSchedule } from "./BaseTask";
+import { TaskPriority } from "./base/BaseTask";
+import { Minute } from "@shared/utils/time";
+import { CronTask, Props, TaskInterval } from "./base/CronTask";
 
-type Props = Record<string, never>;
-
-export default class CleanupOldNotificationsTask extends BaseTask<Props> {
-  static cron = TaskSchedule.Hour;
-
-  public async perform() {
+export default class CleanupOldNotificationsTask extends CronTask {
+  public async perform({ partition }: Props) {
     Logger.info("task", `Permanently destroying old notifications…`);
     let count;
 
@@ -18,6 +16,7 @@ export default class CleanupOldNotificationsTask extends BaseTask<Props> {
         createdAt: {
           [Op.lt]: subMonths(new Date(), 12),
         },
+        ...this.getPartitionWhereClause("id", partition),
       },
     });
 
@@ -34,6 +33,7 @@ export default class CleanupOldNotificationsTask extends BaseTask<Props> {
         createdAt: {
           [Op.lt]: subMonths(new Date(), 6),
         },
+        ...this.getPartitionWhereClause("id", partition),
       },
     });
 
@@ -41,6 +41,13 @@ export default class CleanupOldNotificationsTask extends BaseTask<Props> {
       "task",
       `Destroyed ${count} viewed notifications older than 6 months…`
     );
+  }
+
+  public get cron() {
+    return {
+      interval: TaskInterval.Hour,
+      partitionWindow: 15 * Minute.ms,
+    };
   }
 
   public get options() {

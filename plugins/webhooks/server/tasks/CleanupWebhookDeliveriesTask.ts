@@ -2,26 +2,33 @@ import { subDays } from "date-fns";
 import { Op } from "sequelize";
 import Logger from "@server/logging/Logger";
 import { WebhookDelivery } from "@server/models";
-import BaseTask, {
-  TaskPriority,
-  TaskSchedule,
-} from "@server/queues/tasks/BaseTask";
+import { TaskPriority } from "@server/queues/tasks/base/BaseTask";
+import {
+  CronTask,
+  TaskInterval,
+  Props,
+} from "@server/queues/tasks/base/CronTask";
+import { Hour } from "@shared/utils/time";
 
-type Props = Record<string, never>;
-
-export default class CleanupWebhookDeliveriesTask extends BaseTask<Props> {
-  static cron = TaskSchedule.Day;
-
-  public async perform() {
+export default class CleanupWebhookDeliveriesTask extends CronTask {
+  public async perform({ partition }: Props) {
     Logger.info("task", `Deleting WebhookDeliveries older than one week…`);
     const count = await WebhookDelivery.unscoped().destroy({
       where: {
         createdAt: {
           [Op.lt]: subDays(new Date(), 7),
         },
+        ...this.getPartitionWhereClause("id", partition),
       },
     });
     Logger.info("task", `${count} old WebhookDeliveries deleted.`);
+  }
+
+  public get cron() {
+    return {
+      interval: TaskInterval.Day,
+      partitionWindow: Hour.ms,
+    };
   }
 
   public get options() {

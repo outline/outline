@@ -3,6 +3,14 @@ import { Document } from "@server/models";
 import { buildDocument, buildTeam } from "@server/test/factories";
 import CleanupDeletedDocumentsTask from "./CleanupDeletedDocumentsTask";
 
+const props = {
+  limit: 100,
+  partition: {
+    partitionIndex: 0,
+    partitionCount: 1,
+  },
+};
+
 describe("CleanupDeletedDocumentsTask", () => {
   it("should not destroy documents not deleted", async () => {
     const team = await buildTeam();
@@ -12,7 +20,7 @@ describe("CleanupDeletedDocumentsTask", () => {
     });
 
     const task = new CleanupDeletedDocumentsTask();
-    await task.perform({ limit: 100 });
+    await task.perform(props);
 
     expect(
       await Document.unscoped().count({
@@ -33,7 +41,7 @@ describe("CleanupDeletedDocumentsTask", () => {
     });
 
     const task = new CleanupDeletedDocumentsTask();
-    await task.perform({ limit: 100 });
+    await task.perform(props);
 
     expect(
       await Document.unscoped().count({
@@ -54,7 +62,7 @@ describe("CleanupDeletedDocumentsTask", () => {
     });
 
     const task = new CleanupDeletedDocumentsTask();
-    await task.perform({ limit: 100 });
+    await task.perform(props);
 
     expect(
       await Document.unscoped().count({
@@ -75,7 +83,7 @@ describe("CleanupDeletedDocumentsTask", () => {
     });
 
     const task = new CleanupDeletedDocumentsTask();
-    await task.perform({ limit: 100 });
+    await task.perform(props);
 
     expect(
       await Document.unscoped().count({

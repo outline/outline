@@ -3,15 +3,10 @@ import { Op } from "sequelize";
 import { FileOperationState } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { FileOperation } from "@server/models";
-import BaseTask, { TaskPriority, TaskSchedule } from "./BaseTask";
+import { TaskPriority } from "./base/BaseTask";
+import { CronTask, TaskInterval, Props } from "./base/CronTask";
 
-type Props = {
-  limit: number;
-};
-
-export default class ErrorTimedOutFileOperationsTask extends BaseTask<Props> {
-  static cron = TaskSchedule.Hour;
-
+export default class ErrorTimedOutFileOperationsTask extends CronTask {
   public async perform({ limit }: Props) {
     Logger.info("task", `Error file operations running longer than 12 hours…`);
     const fileOperations = await FileOperation.unscoped().findAll({
@@ -38,6 +33,12 @@ export default class ErrorTimedOutFileOperationsTask extends BaseTask<Props> {
       })
     );
     Logger.info("task", `Updated ${fileOperations.length} file operations`);
+  }
+
+  public get cron() {
+    return {
+      interval: TaskInterval.Hour,
+    };
   }
 
   public get options() {

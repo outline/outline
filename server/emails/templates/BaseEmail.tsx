@@ -16,7 +16,7 @@ import HTMLHelper from "@server/models/helpers/HTMLHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
 import { taskQueue } from "@server/queues";
-import { TaskPriority } from "@server/queues/tasks/BaseTask";
+import { TaskPriority } from "@server/queues/tasks/base/BaseTask";
 import { NotificationMetadata } from "@server/types";
 
 export enum EmailMessageCategory {

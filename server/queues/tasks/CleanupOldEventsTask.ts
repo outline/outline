@@ -2,17 +2,12 @@ import { subDays } from "date-fns";
 import { Op } from "sequelize";
 import Logger from "@server/logging/Logger";
 import { Event } from "@server/models";
-import BaseTask, {
-  TaskPriority,
-  TaskSchedule,
-} from "@server/queues/tasks/BaseTask";
+import { TaskPriority } from "./base/BaseTask";
+import { CronTask, Props, TaskInterval } from "./base/CronTask";
+import { Minute } from "@shared/utils/time";
 
-type Props = Record<string, never>;
-
-export default class CleanupOldEventsTask extends BaseTask<Props> {
-  static cron = TaskSchedule.Hour;
-
-  public async perform() {
+export default class CleanupOldEventsTask extends CronTask {
+  public async perform({ partition }: Props) {
     // TODO: Hardcoded right now, configurable later
     const retentionDays = 365;
     const cutoffDate = subDays(new Date(), retentionDays);
@@ -27,6 +22,7 @@ export default class CleanupOldEventsTask extends BaseTask<Props> {
             createdAt: {
               [Op.lt]: cutoffDate,
             },
+            ...this.getPartitionWhereClause("id", partition),
           },
           batchLimit: 1000,
           totalLimit: maxEventsPerTask,
@@ -49,6 +45,13 @@ export default class CleanupOldEventsTask extends BaseTask<Props> {
         });
       }
     }
+  }
+
+  public get cron() {
+    return {
+      interval: TaskInterval.Hour,
+      partitionWindow: 15 * Minute.ms,
+    };
   }
 
   public get options() {

@@ -4,13 +4,10 @@ import InviteReminderEmail from "@server/emails/templates/InviteReminderEmail";
 import { User } from "@server/models";
 import { UserFlag } from "@server/models/User";
 import { sequelize } from "@server/storage/database";
-import BaseTask, { TaskPriority, TaskSchedule } from "./BaseTask";
+import { TaskPriority } from "./base/BaseTask";
+import { CronTask, TaskInterval } from "./base/CronTask";
 
-type Props = Record<string, never>;
-
-export default class InviteReminderTask extends BaseTask<Props> {
-  static cron = TaskSchedule.Day;
-
+export default class InviteReminderTask extends CronTask {
   public async perform() {
     const users = await User.scope("invited").findAll({
       attributes: ["id"],
@@ -56,6 +53,12 @@ export default class InviteReminderTask extends BaseTask<Props> {
         }
       });
     }
+  }
+
+  public get cron() {
+    return {
+      interval: TaskInterval.Day,
+    };
   }
 
   public get options() {

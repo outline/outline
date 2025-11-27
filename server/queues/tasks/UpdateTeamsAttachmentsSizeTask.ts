@@ -3,16 +3,15 @@ import { Op } from "sequelize";
 import Logger from "@server/logging/Logger";
 import { Attachment } from "@server/models";
 import { sequelize } from "@server/storage/database";
-import BaseTask, { TaskPriority, TaskSchedule } from "./BaseTask";
+import { TaskPriority } from "./base/BaseTask";
+import { CronTask, TaskInterval } from "./base/CronTask";
 import UpdateTeamAttachmentsSizeTask from "./UpdateTeamAttachmentsSizeTask";
 
 type Props = {
   limit: number;
 };
 
-export default class UpdateTeamsAttachmentsSizeTask extends BaseTask<Props> {
-  static cron = TaskSchedule.Day;
-
+export default class UpdateTeamsAttachmentsSizeTask extends CronTask {
   public async perform({ limit }: Props) {
     Logger.info(
       "task",
@@ -42,6 +41,12 @@ export default class UpdateTeamsAttachmentsSizeTask extends BaseTask<Props> {
         }
       }
     );
+  }
+
+  public get cron() {
+    return {
+      interval: TaskInterval.Day,
+    };
   }
 
   public get options() {

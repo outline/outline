@@ -2,7 +2,7 @@ import { randomUUID } from "crypto";
 import { Team } from "@server/models";
 import { Buckets } from "@server/models/helpers/AttachmentHelper";
 import FileStorage from "@server/storage/files";
-import BaseTask, { TaskPriority } from "./BaseTask";
+import { BaseTask, TaskPriority } from "./base/BaseTask";
 
 type Props = {
   /** The teamId to operate on */

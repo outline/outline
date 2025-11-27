@@ -1,5 +1,5 @@
 import { Job, JobOptions } from "bull";
-import { taskQueue } from "../";
+import { taskQueue } from "../../";
 
 export enum TaskPriority {
   Background = 40,
@@ -8,18 +8,7 @@ export enum TaskPriority {
   High = 10,
 }
 
-export enum TaskSchedule {
-  Day = "daily",
-  Hour = "hourly",
-  Minute = "minute",
-}
-
-export default abstract class BaseTask<T extends Record<string, any>> {
-  /**
-   * An optional schedule for this task to be run automatically.
-   */
-  static cron: TaskSchedule | undefined;
-
+export abstract class BaseTask<T extends Record<string, any>> {
   /**
    * Schedule this task type to be processed asynchronously by a worker.
    *
@@ -57,7 +46,7 @@ export default abstract class BaseTask<T extends Record<string, any>> {
   }
 
   /**
-   * Job options such as priority and retry strategy, as defined by Bull.
+   * Job options such as priority and retry strategy.
    */
   public get options(): JobOptions {
     return {

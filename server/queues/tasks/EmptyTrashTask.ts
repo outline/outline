@@ -1,7 +1,7 @@
 import { Op } from "sequelize";
 import documentPermanentDeleter from "@server/commands/documentPermanentDeleter";
 import { Document } from "@server/models";
-import BaseTask from "./BaseTask";
+import { BaseTask } from "./base/BaseTask";
 
 type Props = {
   documentIds: string[];
