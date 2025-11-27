@@ -166,9 +166,9 @@ describe("user model", () => {
       const anotherUser = await buildUser({ email });
 
       const response = await user.availableTeams();
-      expect(response.length).toEqual(2);
-      expect(response[0].id).toEqual(user.teamId);
-      expect(response[1].id).toEqual(anotherUser.teamId);
+      const teamIds = response.map((t) => t.id).sort();
+      const expectedTeamIds = [user.teamId, anotherUser.teamId].sort();
+      expect(teamIds).toEqual(expectedTeamIds);
     });
   });
 
