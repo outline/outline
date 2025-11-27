@@ -12,7 +12,7 @@ import {
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { CommentEvent, CommentUpdateEvent } from "@server/types";
 import { canUserAccessDocument } from "@server/utils/permissions";
-import BaseTask, { TaskPriority } from "./BaseTask";
+import { BaseTask, TaskPriority } from "./base/BaseTask";
 
 export default class CommentUpdatedNotificationsTask extends BaseTask<CommentEvent> {
   public async perform(event: CommentUpdateEvent) {

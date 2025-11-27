@@ -1,13 +1,12 @@
 import crypto from "crypto";
 import { subWeeks } from "date-fns";
 import { QueryTypes } from "sequelize";
+import { Minute } from "@shared/utils/time";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
-import BaseTask, { TaskSchedule } from "./BaseTask";
+import { TaskPriority } from "./base/BaseTask";
+import { CronTask, PartitionInfo, Props, TaskInterval } from "./base/CronTask";
 import { sequelize, sequelizeReadOnly } from "@server/storage/database";
-import { sleep } from "@server/utils/timers";
-
-type Props = Record<string, never>;
 
 /**
  * Number of hours to add to age to smooth the decay curve,
@@ -26,14 +25,9 @@ const ACTIVITY_WEIGHTS = {
 };
 
 /**
- * Batch size for processing updates - kept small to minimize lock duration
+ * Batch size for processing updates - kept small to minimize query duration
  */
 const BATCH_SIZE = 50;
-
-/**
- * Maximum retries for failed batch operations
- */
-const MAX_RETRIES = 2;
 
 /**
  * Statement timeout for individual queries to prevent runaway locks
@@ -50,16 +44,13 @@ interface DocumentScore {
   score: number;
 }
 
-export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> {
+export default class UpdateDocumentsPopularityScoreTask extends CronTask {
   /**
    * Unique table name for this task run to prevent conflicts with concurrent runs
    */
   private workingTable: string = "";
-  static cron = TaskSchedule.Hour;
 
-  public async perform() {
-    Logger.info("task", "Updating document popularity scores…");
-
+  public async perform({ partition }: Props) {
     // Only run every 6 hours (at hours 0, 6, 12, 18)
     const currentHour = new Date().getHours();
     if (currentHour % 6 !== 0) {
@@ -79,7 +70,7 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
 
     try {
       // Setup: Create working table and populate with active document IDs
-      await this.setupWorkingTable(threshold);
+      await this.setupWorkingTable(threshold, partition);
 
       const activeCount = await this.getWorkingTableCount();
 
@@ -107,16 +98,13 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
         batchNumber++;
 
         try {
-          const updated = await this.processBatchWithRetry(threshold, now);
+          const updated = await this.processBatch(threshold, now);
           totalUpdated += updated;
 
           Logger.debug(
             "task",
             `Batch ${batchNumber}: updated ${updated} documents, ${remaining - updated} remaining`
           );
-
-          // Add delay between batches to reduce database contention
-          await sleep(10);
         } catch (error) {
           totalErrors++;
           Logger.error(`Batch ${batchNumber} failed after retries`, error);
@@ -144,7 +132,10 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
    * that have recent activity. Unlogged tables are faster because they
    * skip WAL logging, and data loss on crash is acceptable here.
    */
-  private async setupWorkingTable(threshold: Date): Promise<void> {
+  private async setupWorkingTable(
+    threshold: Date,
+    partition: PartitionInfo
+  ): Promise<void> {
     // Drop any existing table first to avoid type conflicts from previous crashed runs
     await sequelize.query(`DROP TABLE IF EXISTS ${this.workingTable} CASCADE`);
 
@@ -155,6 +146,8 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
         processed BOOLEAN DEFAULT FALSE
       )
     `);
+
+    const [startUuid, endUuid] = this.getPartitionBounds(partition);
 
     // Populate with documents that have recent activity and are valid
     // (published, not deleted). Using JOINs to filter upfront.
@@ -179,8 +172,9 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
             WHERE v."documentId" = d.id AND v."updatedAt" >= :threshold
           )
         )
+        ${startUuid && endUuid ? "AND d.id >= :startUuid AND d.id <= :endUuid" : ""}
       `,
-      { replacements: { threshold } }
+      { replacements: { threshold, startUuid, endUuid } }
     );
 
     // Create index on processed column for efficient batch selection
@@ -203,57 +197,41 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
   /**
    * Processes a batch of documents with retry logic.
    */
-  private async processBatchWithRetry(
-    threshold: Date,
-    now: Date,
-    attempt = 1
-  ): Promise<number> {
-    try {
-      // Step 1: Get batch of document IDs to process
-      const batch = await sequelize.query<{ documentId: string }>(
-        `
+  private async processBatch(threshold: Date, now: Date): Promise<number> {
+    // Step 1: Get batch of document IDs to process
+    const batch = await sequelize.query<{ documentId: string }>(
+      `
         SELECT "documentId" FROM ${this.workingTable}
         WHERE NOT processed
         ORDER BY "documentId"
         LIMIT :limit
         `,
-        {
-          replacements: { limit: BATCH_SIZE },
-          type: QueryTypes.SELECT,
-        }
-      );
-
-      if (batch.length === 0) {
-        return 0;
+      {
+        replacements: { limit: BATCH_SIZE },
+        type: QueryTypes.SELECT,
       }
+    );
 
-      const documentIds = batch.map((b) => b.documentId);
-
-      // Step 2: Calculate scores outside of a transaction
-      const scores = await this.calculateScoresForDocuments(
-        documentIds,
-        threshold,
-        now
-      );
-
-      // Step 3: Update document scores
-      await this.updateDocumentScores(scores);
-
-      // Step 4: Mark batch as processed
-      await this.markBatchProcessed(documentIds);
-
-      return documentIds.length;
-    } catch (error) {
-      if (attempt < MAX_RETRIES) {
-        Logger.warn(
-          `Batch update failed, retrying (attempt ${attempt + 1}/${MAX_RETRIES})`,
-          { error }
-        );
-        await sleep(1000 * attempt);
-        return this.processBatchWithRetry(threshold, now, attempt + 1);
-      }
-      throw error;
+    if (batch.length === 0) {
+      return 0;
     }
+
+    const documentIds = batch.map((b) => b.documentId);
+
+    // Step 2: Calculate scores outside of a transaction
+    const scores = await this.calculateScoresForDocuments(
+      documentIds,
+      threshold,
+      now
+    );
+
+    // Step 3: Update document scores
+    await this.updateDocumentScores(scores);
+
+    // Step 4: Mark batch as processed
+    await this.markBatchProcessed(documentIds);
+
+    return documentIds.length;
   }
 
   /**
@@ -408,5 +386,19 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
     } catch (error) {
       Logger.warn("Failed to clean up working table", { error });
     }
+  }
+
+  public get cron() {
+    return {
+      interval: TaskInterval.Hour,
+      partitionWindow: 30 * Minute.ms,
+    };
+  }
+
+  public get options() {
+    return {
+      attempts: 1,
+      priority: TaskPriority.Background,
+    };
   }
 }

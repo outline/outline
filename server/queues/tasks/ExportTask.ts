@@ -17,7 +17,7 @@ import {
 } from "@server/models";
 import fileOperationPresenter from "@server/presenters/fileOperation";
 import FileStorage from "@server/storage/files";
-import BaseTask, { TaskPriority } from "./BaseTask";
+import { BaseTask, TaskPriority } from "./base/BaseTask";
 import { Op } from "sequelize";
 import { WhereOptions } from "sequelize";
 import { sequelizeReadOnly } from "@server/storage/database";

@@ -3,15 +3,10 @@ import { Op } from "sequelize";
 import { FileOperationState } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { FileOperation } from "@server/models";
-import BaseTask, { TaskPriority, TaskSchedule } from "./BaseTask";
+import { TaskPriority } from "./base/BaseTask";
+import { CronTask, Props, TaskInterval } from "./base/CronTask";
 
-type Props = {
-  limit: number;
-};
-
-export default class CleanupExpiredFileOperationsTask extends BaseTask<Props> {
-  static cron = TaskSchedule.Hour;
-
+export default class CleanupExpiredFileOperationsTask extends CronTask {
   public async perform({ limit }: Props) {
     Logger.info("task", `Expiring file operations older than 15 days…`);
     const fileOperations = await FileOperation.unscoped().findAll({
@@ -29,6 +24,12 @@ export default class CleanupExpiredFileOperationsTask extends BaseTask<Props> {
       fileOperations.map((fileOperation) => fileOperation.expire())
     );
     Logger.info("task", `Expired ${fileOperations.length} file operations`);
+  }
+
+  public get cron() {
+    return {
+      interval: TaskInterval.Hour,
+    };
   }
 
   public get options() {
