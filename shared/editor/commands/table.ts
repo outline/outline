@@ -178,8 +178,10 @@ export function exportTable({
 }
 
 /**
- * distributes the width of selected columns evenly between them
+ * A Commands that distributes the width of all selected columns evenly between them in the current table selection.
  *
+ *
+ * @returns {Command}
  */
 export function distributeWidthEvenly(): Command {
   return (state, dispatch, view) => {
@@ -192,8 +194,7 @@ export function distributeWidthEvenly(): Command {
     const { map } = rect;
     const selectedColumns = getAllSelectedColumns(state);
     if (selectedColumns.length <= 1) {
-      dispatch(tr);
-      return true;
+      return false;
     }
 
     const hasNullWidth = selectedColumns.some((colIndex) =>
@@ -245,6 +246,14 @@ export function distributeWidthEvenly(): Command {
   };
 }
 
+/**
+ * Determines whether the width of a specified column is null.
+ *
+ * @param state - The current editor state.
+ * @param colIndex - The index of the column to check.
+ *
+ * @returns {boolean} True if the column width is null, false otherwise.
+ */
 function isNullWidth({
   state,
   colIndex,
