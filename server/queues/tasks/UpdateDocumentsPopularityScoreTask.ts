@@ -188,9 +188,9 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
             WHERE v."documentId" = d.id AND v."updatedAt" >= :threshold
           )
         )
-        ${startUuid && endUuid ? `AND d.id >= '${startUuid}' AND d.id <= '${endUuid}'` : ""}
+        ${startUuid && endUuid ? "AND d.id >= :startUuid AND d.id <= :endUuid" : ""}
       `,
-      { replacements: { threshold } }
+      { replacements: { threshold, startUuid, endUuid } }
     );
 
     // Create index on processed column for efficient batch selection

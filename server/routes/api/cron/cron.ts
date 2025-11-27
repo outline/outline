@@ -46,7 +46,7 @@ const cronHandler = async (ctx: APIContext<T.CronSchemaReq>) => {
     if (shouldSchedule) {
       if (partitionWindow && partitionWindow > 0) {
         // Split the task into partitions to spread work across time window
-        // by diving the partitionWindow into minutes and scheduling a delayed
+        // by dividing the partitionWindow into minutes and scheduling a delayed
         // task for each minute.
         const partitions = Math.ceil(partitionWindow / 60000);
         for (let i = 0; i < partitions; i++) {
