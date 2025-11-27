@@ -1,4 +1,5 @@
 import { isMac } from "./browser";
+import { isUrl } from "./urls";
 
 /**
  * Converts bytes to human readable string for display
@@ -45,11 +46,36 @@ export function getDataTransferImage(
   const untrustedHTML = dt?.getData("text/html");
 
   try {
-    return untrustedHTML
+    const src = untrustedHTML
       ? new DOMParser()
           .parseFromString(untrustedHTML, "text/html")
           .querySelector("img")?.src
       : dt?.getData("url");
+
+    // Validate URL to prevent XSS attacks
+    if (src && typeof src === "string") {
+      // Allow relative URLs starting with /
+      if (src.startsWith("/")) {
+        return src;
+      }
+
+      // Allow data URLs only for images
+      if (src.toLowerCase().startsWith("data:image/")) {
+        return src;
+      }
+
+      // For all other URLs, use isUrl which blocks dangerous protocols
+      if (
+        isUrl(src, {
+          requireProtocol: false,
+          requireHostname: false,
+        })
+      ) {
+        return src;
+      }
+    }
+
+    return;
   } catch (_err) {
     return;
   }
