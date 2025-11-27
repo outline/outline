@@ -1,15 +1,10 @@
 import { Op } from "sequelize";
 import Logger from "@server/logging/Logger";
 import { Attachment } from "@server/models";
-import BaseTask, {
-  CronTaskProps as Props,
-  TaskPriority,
-  TaskSchedule,
-} from "./BaseTask";
+import { TaskPriority } from "./base/BaseTask";
+import { CronTask, Props, TaskInterval } from "./base/CronTask";
 
-export default class CleanupExpiredAttachmentsTask extends BaseTask<Props> {
-  static cron = TaskSchedule.Hour;
-
+export default class CleanupExpiredAttachmentsTask extends CronTask {
   public async perform({ limit }: Props) {
     Logger.info("task", `Deleting expired attachments…`);
     const attachments = await Attachment.unscoped().findAll({
@@ -22,6 +17,12 @@ export default class CleanupExpiredAttachmentsTask extends BaseTask<Props> {
     });
     await Promise.all(attachments.map((attachment) => attachment.destroy()));
     Logger.info("task", `Removed ${attachments.length} attachments`);
+  }
+
+  public get cron() {
+    return {
+      interval: TaskInterval.Hour,
+    };
   }
 
   public get options() {

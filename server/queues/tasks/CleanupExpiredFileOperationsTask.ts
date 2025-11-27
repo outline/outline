@@ -3,15 +3,10 @@ import { Op } from "sequelize";
 import { FileOperationState } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { FileOperation } from "@server/models";
-import BaseTask, {
-  CronTaskProps as Props,
-  TaskPriority,
-  TaskSchedule,
-} from "./BaseTask";
+import { TaskPriority } from "./base/BaseTask";
+import { CronTask, Props, TaskInterval } from "./base/CronTask";
 
-export default class CleanupExpiredFileOperationsTask extends BaseTask<Props> {
-  static cron = TaskSchedule.Hour;
-
+export default class CleanupExpiredFileOperationsTask extends CronTask {
   public async perform({ limit, partition }: Props) {
     const partitionInfo = partition
       ? ` (partition ${partition.partitionIndex + 1}/${partition.partitionCount})`
@@ -38,6 +33,12 @@ export default class CleanupExpiredFileOperationsTask extends BaseTask<Props> {
       "task",
       `Expired ${fileOperations.length} file operations${partitionInfo}`
     );
+  }
+
+  public get cron() {
+    return {
+      interval: TaskInterval.Hour,
+    };
   }
 
   public get options() {

@@ -28,7 +28,7 @@ import {
 import { sequelize } from "@server/storage/database";
 import ZipHelper from "@server/utils/ZipHelper";
 import { generateUrlId } from "@server/utils/url";
-import BaseTask, { TaskPriority } from "./BaseTask";
+import BaseTask, { TaskPriority } from "./base/BaseTask";
 import env from "@server/env";
 
 type Props = {

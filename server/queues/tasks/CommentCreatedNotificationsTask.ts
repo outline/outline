@@ -18,7 +18,7 @@ import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { sequelize } from "@server/storage/database";
 import { CommentEvent } from "@server/types";
 import { canUserAccessDocument } from "@server/utils/permissions";
-import BaseTask, { TaskPriority } from "./BaseTask";
+import BaseTask, { TaskPriority } from "./base/BaseTask";
 
 export default class CommentCreatedNotificationsTask extends BaseTask<CommentEvent> {
   public async perform(event: CommentEvent) {

@@ -2,18 +2,11 @@ import { subDays } from "date-fns";
 import { Op } from "sequelize";
 import Logger from "@server/logging/Logger";
 import { Event } from "@server/models";
-import BaseTask, {
-  CronTaskProps as Props,
-  TaskPriority,
-  TaskSchedule,
-} from "@server/queues/tasks/BaseTask";
+import { TaskPriority } from "./base/BaseTask";
+import { CronTask, Props, TaskInterval } from "./base/CronTask";
 import { Minute } from "@shared/utils/time";
 
-export default class CleanupOldEventsTask extends BaseTask<Props> {
-  static cron = TaskSchedule.Hour;
-
-  static cronPartitionWindow = 15 * Minute.ms;
-
+export default class CleanupOldEventsTask extends CronTask {
   public async perform({ partition }: Props) {
     // TODO: Hardcoded right now, configurable later
     const retentionDays = 365;
@@ -52,6 +45,13 @@ export default class CleanupOldEventsTask extends BaseTask<Props> {
         });
       }
     }
+  }
+
+  public get cron() {
+    return {
+      interval: TaskInterval.Hour,
+      partitionWindow: 15 * Minute.ms,
+    };
   }
 
   public get options() {

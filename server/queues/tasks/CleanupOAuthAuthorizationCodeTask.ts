@@ -2,13 +2,10 @@ import { subMonths } from "date-fns";
 import { Op } from "sequelize";
 import Logger from "@server/logging/Logger";
 import { OAuthAuthorizationCode } from "@server/models";
-import BaseTask, { TaskPriority, TaskSchedule } from "./BaseTask";
+import { TaskPriority } from "./base/BaseTask";
+import { CronTask, TaskInterval } from "./base/CronTask";
 
-type Props = Record<string, never>;
-
-export default class CleanupOAuthAuthorizationCodeTask extends BaseTask<Props> {
-  static cron = TaskSchedule.Day;
-
+export default class CleanupOAuthAuthorizationCodeTask extends CronTask {
   public async perform() {
     Logger.info(
       "task",
@@ -22,6 +19,12 @@ export default class CleanupOAuthAuthorizationCodeTask extends BaseTask<Props> {
       },
     });
     Logger.info("task", `${count} expired OAuth authorization codes deleted.`);
+  }
+
+  public get cron() {
+    return {
+      interval: TaskInterval.Day,
+    };
   }
 
   public get options() {

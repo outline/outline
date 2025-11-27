@@ -1,15 +1,15 @@
 import { Op } from "sequelize";
-import BaseTask, { PartitionInfo, TaskPriority } from "./BaseTask";
+import { CronTask, PartitionInfo, TaskInterval } from "./CronTask";
 
-// Create a concrete implementation of BaseTask for testing
-class TestTask extends BaseTask<{ limit: number; partition?: PartitionInfo }> {
+// Create a concrete implementation of CronTask for testing
+class TestTask extends CronTask {
   public async perform() {
     // Not used in these tests
   }
 
-  public get options() {
+  public get cron() {
     return {
-      priority: TaskPriority.Normal,
+      interval: TaskInterval.Day,
     };
   }
 
@@ -21,7 +21,7 @@ class TestTask extends BaseTask<{ limit: number; partition?: PartitionInfo }> {
   }
 }
 
-describe("BaseTask", () => {
+describe("CronTask", () => {
   let task: TestTask;
 
   beforeEach(() => {

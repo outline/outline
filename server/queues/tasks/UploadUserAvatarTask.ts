@@ -2,7 +2,7 @@ import { createHash, randomUUID } from "crypto";
 import { User } from "@server/models";
 import { Buckets } from "@server/models/helpers/AttachmentHelper";
 import FileStorage from "@server/storage/files";
-import BaseTask, { TaskPriority } from "./BaseTask";
+import BaseTask, { TaskPriority } from "./base/BaseTask";
 
 type Props = {
   /** The userId to operate on */

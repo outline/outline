@@ -3,18 +3,11 @@ import { Op } from "sequelize";
 import documentPermanentDeleter from "@server/commands/documentPermanentDeleter";
 import Logger from "@server/logging/Logger";
 import { Document } from "@server/models";
-import BaseTask, {
-  CronTaskProps as Props,
-  TaskPriority,
-  TaskSchedule,
-} from "./BaseTask";
+import { TaskPriority } from "./base/BaseTask";
 import { Minute } from "@shared/utils/time";
+import { CronTask, Props, TaskInterval } from "./base/CronTask";
 
-export default class CleanupDeletedDocumentsTask extends BaseTask<Props> {
-  static cron = TaskSchedule.Hour;
-
-  static cronPartitionWindow = 15 * Minute.ms;
-
+export default class CleanupDeletedDocumentsTask extends CronTask {
   public async perform({ limit, partition }: Props) {
     Logger.info(
       "task",
@@ -41,6 +34,13 @@ export default class CleanupDeletedDocumentsTask extends BaseTask<Props> {
     return {
       attempts: 1,
       priority: TaskPriority.Background,
+    };
+  }
+
+  public get cron() {
+    return {
+      interval: TaskInterval.Hour,
+      partitionWindow: 15 * Minute.ms,
     };
   }
 }

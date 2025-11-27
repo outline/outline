@@ -1,7 +1,7 @@
 import { Integration } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
-import BaseTask from "./BaseTask";
+import BaseTask from "./base/BaseTask";
 
 type Props = {
   integrationId: string;

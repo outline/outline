@@ -4,22 +4,20 @@ import { AuthenticationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import validate from "@server/middlewares/validate";
 import tasks from "@server/queues/tasks";
-import { TaskSchedule } from "@server/queues/tasks/BaseTask";
+import { CronTask, TaskInterval } from "@server/queues/tasks/base/CronTask";
 import { APIContext } from "@server/types";
 import { safeEqual } from "@server/utils/crypto";
 import * as T from "./schema";
 
 const router = new Router();
-
-/** Whether the minutely cron job has been received */
-const receivedPeriods = new Set<TaskSchedule>();
+const receivedPeriods = new Set<TaskInterval>();
 
 const cronHandler = async (ctx: APIContext<T.CronSchemaReq>) => {
-  const period = Object.values(TaskSchedule).includes(
-    ctx.params.period as TaskSchedule
+  const period = Object.values(TaskInterval).includes(
+    ctx.params.period as TaskInterval
   )
-    ? (ctx.params.period as TaskSchedule)
-    : TaskSchedule.Day;
+    ? (ctx.params.period as TaskInterval)
+    : TaskInterval.Day;
   const token = (ctx.input.body.token ?? ctx.input.query.token) as string;
   const limit = ctx.input.body.limit ?? ctx.input.query.limit;
 
@@ -31,17 +29,18 @@ const cronHandler = async (ctx: APIContext<T.CronSchemaReq>) => {
 
   for (const name in tasks) {
     const TaskClass = tasks[name];
-    const partitionWindow = TaskClass.cronPartitionWindow;
+    // @ts-expect-error We won't instantiate an abstract class
+    const taskInstance = new TaskClass() as CronTask;
+
+    const cronConfig = taskInstance.cron;
+    const partitionWindow = cronConfig.partitionWindow;
     const shouldSchedule =
-      TaskClass.cron === period ||
+      cronConfig.interval === period ||
       // Backwards compatibility for installations that have not set up
       // cron jobs periods other than daily.
-      (TaskClass.cron === TaskSchedule.Minute &&
-        !receivedPeriods.has(TaskSchedule.Minute) &&
-        (period === TaskSchedule.Hour || period === TaskSchedule.Day)) ||
-      (TaskClass.cron === TaskSchedule.Hour &&
-        !receivedPeriods.has(TaskSchedule.Hour) &&
-        period === TaskSchedule.Day);
+      (cronConfig.interval === TaskInterval.Hour &&
+        !receivedPeriods.has(TaskInterval.Hour) &&
+        period === TaskInterval.Day);
 
     if (shouldSchedule) {
       if (partitionWindow && partitionWindow > 0) {
@@ -63,12 +62,16 @@ const cronHandler = async (ctx: APIContext<T.CronSchemaReq>) => {
             }/${partitions}) with delay of ${delay / 1000}s`
           );
 
-          // @ts-expect-error We won't instantiate an abstract class
-          await new TaskClass().schedule({ limit, partition }, { delay });
+          await taskInstance.schedule({ limit, partition }, { delay });
         }
       } else {
-        // @ts-expect-error We won't instantiate an abstract class
-        await new TaskClass().schedule({ limit });
+        await taskInstance.schedule({
+          limit,
+          partition: {
+            partitionIndex: 0,
+            partitionCount: 1,
+          },
+        });
       }
     }
   }

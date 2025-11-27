@@ -2,7 +2,7 @@ import { Sema } from "async-sema";
 import Logger from "@server/logging/Logger";
 import { Attachment } from "@server/models";
 import FileStorage from "@server/storage/files";
-import BaseTask, { TaskPriority } from "./BaseTask";
+import BaseTask, { TaskPriority } from "./base/BaseTask";
 import env from "@server/env";
 
 const ConcurrentUploads = 5;

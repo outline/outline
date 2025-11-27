@@ -4,11 +4,8 @@ import { QueryTypes } from "sequelize";
 import { Minute } from "@shared/utils/time";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
-import BaseTask, {
-  PartitionInfo,
-  CronTaskProps as Props,
-  TaskSchedule,
-} from "./BaseTask";
+import { TaskPriority } from "./base/BaseTask";
+import { CronTask, PartitionInfo, Props, TaskInterval } from "./base/CronTask";
 import { sequelize, sequelizeReadOnly } from "@server/storage/database";
 
 /**
@@ -47,15 +44,11 @@ interface DocumentScore {
   score: number;
 }
 
-export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> {
+export default class UpdateDocumentsPopularityScoreTask extends CronTask {
   /**
    * Unique table name for this task run to prevent conflicts with concurrent runs
    */
   private workingTable: string = "";
-
-  static cron = TaskSchedule.Hour;
-
-  static cronPartitionWindow = 30 * Minute.ms;
 
   public async perform({ partition }: Props) {
     // Only run every 6 hours (at hours 0, 6, 12, 18)
@@ -393,5 +386,19 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
     } catch (error) {
       Logger.warn("Failed to clean up working table", { error });
     }
+  }
+
+  public get cron() {
+    return {
+      interval: TaskInterval.Hour,
+      partitionWindow: 30 * Minute.ms,
+    };
+  }
+
+  public get options() {
+    return {
+      attempts: 1,
+      priority: TaskPriority.Background,
+    };
   }
 }

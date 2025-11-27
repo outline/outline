@@ -1,7 +1,7 @@
 import { createContext } from "@server/context";
 import { Attachment } from "@server/models";
 import FileStorage from "@server/storage/files";
-import BaseTask, { TaskPriority } from "./BaseTask";
+import BaseTask, { TaskPriority } from "./base/BaseTask";
 import { sequelize } from "@server/storage/database";
 
 type Props = {

@@ -1,19 +1,38 @@
-import { Job, JobOptions } from "bull";
 import { Op, WhereOptions } from "sequelize";
-import { taskQueue } from "../";
+import BaseTask from "./BaseTask";
 
-export enum TaskPriority {
-  Background = 40,
-  Low = 30,
-  Normal = 20,
-  High = 10,
-}
-
-export enum TaskSchedule {
+export enum TaskInterval {
   Day = "daily",
   Hour = "hourly",
-  Minute = "minute",
 }
+
+export type TaskSchedule = {
+  /** The interval at which to run this task */
+  interval: TaskInterval;
+  /**
+   * An optional time window (in milliseconds) over which to spread the START time
+   * of this task when triggered by cron.
+   *
+   * **Important**: This only delays when tasks START - it does NOT partition the work.
+   * To distribute work across multiple workers, tasks must also use the `partition`
+   * prop and implement partitioned queries using `getPartitionWhereClause()`.
+   *
+   * When set, each task gets a deterministic delay based on its name, ensuring
+   * consistent scheduling across runs and preventing all tasks from starting
+   * simultaneously.
+   *
+   * @example
+   * // Run hourly, but spread task start times over 10 minutes
+   * interval: TaskInterval.Hour,
+   * partitionWindow: 10 * Minute.ms // 10 minutes
+   *
+   * @example
+   * // Run daily, but spread task start times over 1 hour
+   * interval: TaskInterval.Day,
+   * partitionWindow: 60 * Minute.ms // 1 hour
+   */
+  partitionWindow?: number;
+};
 
 /**
  * Partition information for distributing work across multiple worker instances.
@@ -32,90 +51,14 @@ export type PartitionInfo = {
 /**
  * Properties for cron-scheduled tasks.
  */
-export type CronTaskProps = {
+export type Props = {
   limit: number;
   partition: PartitionInfo;
 };
 
-export default abstract class BaseTask<T extends Record<string, any>> {
-  /**
-   * An optional schedule for this task to be run automatically.
-   */
-  static cron: TaskSchedule | undefined;
-
-  /**
-   * An optional time window (in milliseconds) over which to spread the START time
-   * of this task when triggered by cron.
-   *
-   * **Important**: This only delays when tasks START - it does NOT partition the work.
-   * To distribute work across multiple workers, tasks must also use the `partition`
-   * prop and implement partitioned queries using `getPartitionWhereClause()`.
-   *
-   * When set, each task gets a deterministic delay based on its name, ensuring
-   * consistent scheduling across runs and preventing all tasks from starting
-   * simultaneously.
-   *
-   * @example
-   * // Run hourly, but spread task start times over 10 minutes
-   * static cron = TaskSchedule.Hour;
-   * static cronPartitionWindow = 10 * 60 * 1000; // 10 minutes
-   *
-   * @example
-   * // Run daily, but spread task start times over 1 hour
-   * static cron = TaskSchedule.Day;
-   * static cronPartitionWindow = 60 * 60 * 1000; // 1 hour
-   */
-  static cronPartitionWindow: number | undefined;
-
-  /**
-   * Schedule this task type to be processed asynchronously by a worker.
-   *
-   * @param props Properties to be used by the task
-   * @param options Job options such as priority and retry strategy, as defined by Bull.
-   * @returns A promise that resolves once the job is placed on the task queue
-   */
-  public schedule(props: T, options?: JobOptions): Promise<Job> {
-    return taskQueue.add(
-      {
-        name: this.constructor.name,
-        props,
-      },
-      { ...options, ...this.options }
-    );
-  }
-
-  /**
-   * Execute the task.
-   *
-   * @param props Properties to be used by the task
-   * @returns A promise that resolves once the task has completed.
-   */
-  public abstract perform(props: T): Promise<any>;
-
-  /**
-   * Handle failure when all attempts are exhausted for the task.
-   *
-   * @param props Properties to be used by the task
-   * @returns A promise that resolves once the task handles the failure.
-   */
-  // oxlint-disable-next-line @typescript-eslint/no-unused-vars
-  public onFailed(props: T): Promise<void> {
-    return Promise.resolve();
-  }
-
-  /**
-   * Job options such as priority and retry strategy, as defined by Bull.
-   */
-  public get options(): JobOptions {
-    return {
-      priority: TaskPriority.Normal,
-      attempts: 5,
-      backoff: {
-        type: "exponential",
-        delay: 60 * 1000,
-      },
-    };
-  }
+export abstract class CronTask extends BaseTask<Props> {
+  /** The schedule configuration for this cron task */
+  public abstract get cron(): TaskSchedule;
 
   /**
    * Optimized partitioning method for UUID primary keys using range-based distribution.

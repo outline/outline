@@ -1,6 +1,6 @@
 import teamPermanentDeleter from "@server/commands/teamPermanentDeleter";
 import { Team } from "@server/models";
-import BaseTask, { TaskPriority } from "./BaseTask";
+import BaseTask, { TaskPriority } from "./base/BaseTask";
 
 type Props = {
   /** The team ID to permanantly destroy */

@@ -3,18 +3,11 @@ import { Op } from "sequelize";
 import { Minute } from "@shared/utils/time";
 import Logger from "@server/logging/Logger";
 import { Team } from "@server/models";
-import BaseTask, {
-  CronTaskProps as Props,
-  TaskPriority,
-  TaskSchedule,
-} from "./BaseTask";
+import { TaskPriority } from "./base/BaseTask";
 import CleanupDeletedTeamTask from "./CleanupDeletedTeamTask";
+import { CronTask, TaskInterval, Props } from "./base/CronTask";
 
-export default class CleanupDeletedTeamsTask extends BaseTask<Props> {
-  static cron = TaskSchedule.Hour;
-
-  static cronPartitionWindow = 15 * Minute.ms;
-
+export default class CleanupDeletedTeamsTask extends CronTask {
   public async perform({ limit, partition }: Props) {
     Logger.info(
       "task",
@@ -37,6 +30,13 @@ export default class CleanupDeletedTeamsTask extends BaseTask<Props> {
         teamId: team.id,
       });
     }
+  }
+
+  public get cron() {
+    return {
+      interval: TaskInterval.Hour,
+      partitionWindow: 15 * Minute.ms,
+    };
   }
 
   public get options() {

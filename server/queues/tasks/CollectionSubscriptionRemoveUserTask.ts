@@ -6,7 +6,7 @@ import { Collection, Subscription, User } from "@server/models";
 import { can } from "@server/policies";
 import { sequelize } from "@server/storage/database";
 import { CollectionUserEvent } from "@server/types";
-import BaseTask from "./BaseTask";
+import BaseTask from "./base/BaseTask";
 
 export default class CollectionSubscriptionRemoveUserTask extends BaseTask<CollectionUserEvent> {
   public async perform(event: CollectionUserEvent) {
