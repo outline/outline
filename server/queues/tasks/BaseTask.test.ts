@@ -13,7 +13,7 @@ class TestTask extends BaseTask<{ limit: number; partition?: PartitionInfo }> {
     };
   }
 
-  public testGetPartitionWhereClauseOptimized(
+  public testPartitionWhereClause(
     idField: string,
     partition: PartitionInfo | undefined
   ) {
@@ -30,12 +30,12 @@ describe("BaseTask", () => {
 
   describe("getPartitionWhereClause", () => {
     it("should return empty object when partition is undefined", () => {
-      const where = task.testGetPartitionWhereClauseOptimized("id", undefined);
+      const where = task.testPartitionWhereClause("id", undefined);
       expect(where).toEqual({});
     });
 
     it("should generate range WHERE clause for valid partition", () => {
-      const where = task.testGetPartitionWhereClauseOptimized("id", {
+      const where = task.testPartitionWhereClause("id", {
         partitionIndex: 0,
         partitionCount: 3,
       }) as any;
@@ -47,17 +47,17 @@ describe("BaseTask", () => {
     });
 
     it("should generate correct UUID ranges for 3 partitions", () => {
-      const where0 = task.testGetPartitionWhereClauseOptimized("id", {
+      const where0 = task.testPartitionWhereClause("id", {
         partitionIndex: 0,
         partitionCount: 3,
       }) as any;
 
-      const where1 = task.testGetPartitionWhereClauseOptimized("id", {
+      const where1 = task.testPartitionWhereClause("id", {
         partitionIndex: 1,
         partitionCount: 3,
       }) as any;
 
-      const where2 = task.testGetPartitionWhereClauseOptimized("id", {
+      const where2 = task.testPartitionWhereClause("id", {
         partitionIndex: 2,
         partitionCount: 3,
       }) as any;
@@ -76,12 +76,12 @@ describe("BaseTask", () => {
     });
 
     it("should generate correct UUID ranges for 2 partitions", () => {
-      const where0 = task.testGetPartitionWhereClauseOptimized("id", {
+      const where0 = task.testPartitionWhereClause("id", {
         partitionIndex: 0,
         partitionCount: 2,
       }) as any;
 
-      const where1 = task.testGetPartitionWhereClauseOptimized("id", {
+      const where1 = task.testPartitionWhereClause("id", {
         partitionIndex: 1,
         partitionCount: 2,
       }) as any;
@@ -100,7 +100,7 @@ describe("BaseTask", () => {
       const ranges: Array<{ start: string; end: string }> = [];
 
       for (let i = 0; i < partitionCount; i++) {
-        const where = task.testGetPartitionWhereClauseOptimized("id", {
+        const where = task.testPartitionWhereClause("id", {
           partitionIndex: i,
           partitionCount,
         }) as any;
@@ -129,7 +129,7 @@ describe("BaseTask", () => {
     });
 
     it("should handle single partition (no partitioning)", () => {
-      const where = task.testGetPartitionWhereClauseOptimized("id", {
+      const where = task.testPartitionWhereClause("id", {
         partitionIndex: 0,
         partitionCount: 1,
       }) as any;
@@ -141,21 +141,21 @@ describe("BaseTask", () => {
 
     it("should throw error for invalid partition info", () => {
       expect(() => {
-        task.testGetPartitionWhereClauseOptimized("id", {
+        task.testPartitionWhereClause("id", {
           partitionIndex: -1,
           partitionCount: 3,
         });
       }).toThrow("Invalid partition info: index -1, count 3");
 
       expect(() => {
-        task.testGetPartitionWhereClauseOptimized("id", {
+        task.testPartitionWhereClause("id", {
           partitionIndex: 3,
           partitionCount: 3,
         });
       }).toThrow("Invalid partition info: index 3, count 3");
 
       expect(() => {
-        task.testGetPartitionWhereClauseOptimized("id", {
+        task.testPartitionWhereClause("id", {
           partitionIndex: 0,
           partitionCount: 0,
         });
@@ -163,12 +163,12 @@ describe("BaseTask", () => {
     });
 
     it("should work with different field names", () => {
-      const where1 = task.testGetPartitionWhereClauseOptimized("id", {
+      const where1 = task.testPartitionWhereClause("id", {
         partitionIndex: 0,
         partitionCount: 2,
       }) as any;
 
-      const where2 = task.testGetPartitionWhereClauseOptimized("documentId", {
+      const where2 = task.testPartitionWhereClause("documentId", {
         partitionIndex: 0,
         partitionCount: 2,
       }) as any;
@@ -184,7 +184,7 @@ describe("BaseTask", () => {
       const ranges: Array<{ start: string; end: string }> = [];
 
       for (let i = 0; i < partitionCount; i++) {
-        const where = task.testGetPartitionWhereClauseOptimized("id", {
+        const where = task.testPartitionWhereClause("id", {
           partitionIndex: i,
           partitionCount,
         }) as any;
@@ -206,7 +206,7 @@ describe("BaseTask", () => {
 
     it("should calculate correct hex values for partition boundaries", () => {
       // Test specific calculations
-      const where = task.testGetPartitionWhereClauseOptimized("id", {
+      const where = task.testPartitionWhereClause("id", {
         partitionIndex: 1,
         partitionCount: 16, // 16 partitions = 0x10000000 per partition
       }) as any;
@@ -234,7 +234,7 @@ describe("BaseTask", () => {
         let matchedPartition = -1;
 
         for (let i = 0; i < partitionCount; i++) {
-          const where = task.testGetPartitionWhereClauseOptimized("id", {
+          const where = task.testPartitionWhereClause("id", {
             partitionIndex: i,
             partitionCount,
           }) as any;
@@ -264,7 +264,7 @@ describe("BaseTask", () => {
 
         // Get all partition ranges
         for (let i = 0; i < partitionCount; i++) {
-          const where = task.testGetPartitionWhereClauseOptimized("id", {
+          const where = task.testPartitionWhereClause("id", {
             partitionIndex: i,
             partitionCount,
           }) as any;
