@@ -10,7 +10,6 @@ import BaseTask, {
   TaskSchedule,
 } from "./BaseTask";
 import { sequelize, sequelizeReadOnly } from "@server/storage/database";
-import { sleep } from "@server/utils/timers";
 
 /**
  * Number of hours to add to age to smooth the decay curve,
@@ -29,14 +28,9 @@ const ACTIVITY_WEIGHTS = {
 };
 
 /**
- * Batch size for processing updates - kept small to minimize lock duration
+ * Batch size for processing updates - kept small to minimize query duration
  */
 const BATCH_SIZE = 50;
-
-/**
- * Maximum retries for failed batch operations
- */
-const MAX_RETRIES = 2;
 
 /**
  * Statement timeout for individual queries to prevent runaway locks
@@ -111,16 +105,13 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
         batchNumber++;
 
         try {
-          const updated = await this.processBatchWithRetry(threshold, now);
+          const updated = await this.processBatch(threshold, now);
           totalUpdated += updated;
 
           Logger.debug(
             "task",
             `Batch ${batchNumber}: updated ${updated} documents, ${remaining - updated} remaining`
           );
-
-          // Add delay between batches to reduce database contention
-          await sleep(10);
         } catch (error) {
           totalErrors++;
           Logger.error(`Batch ${batchNumber} failed after retries`, error);
@@ -213,57 +204,41 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
   /**
    * Processes a batch of documents with retry logic.
    */
-  private async processBatchWithRetry(
-    threshold: Date,
-    now: Date,
-    attempt = 1
-  ): Promise<number> {
-    try {
-      // Step 1: Get batch of document IDs to process
-      const batch = await sequelize.query<{ documentId: string }>(
-        `
+  private async processBatch(threshold: Date, now: Date): Promise<number> {
+    // Step 1: Get batch of document IDs to process
+    const batch = await sequelize.query<{ documentId: string }>(
+      `
         SELECT "documentId" FROM ${this.workingTable}
         WHERE NOT processed
         ORDER BY "documentId"
         LIMIT :limit
         `,
-        {
-          replacements: { limit: BATCH_SIZE },
-          type: QueryTypes.SELECT,
-        }
-      );
-
-      if (batch.length === 0) {
-        return 0;
+      {
+        replacements: { limit: BATCH_SIZE },
+        type: QueryTypes.SELECT,
       }
+    );
 
-      const documentIds = batch.map((b) => b.documentId);
-
-      // Step 2: Calculate scores outside of a transaction
-      const scores = await this.calculateScoresForDocuments(
-        documentIds,
-        threshold,
-        now
-      );
-
-      // Step 3: Update document scores
-      await this.updateDocumentScores(scores);
-
-      // Step 4: Mark batch as processed
-      await this.markBatchProcessed(documentIds);
-
-      return documentIds.length;
-    } catch (error) {
-      if (attempt < MAX_RETRIES) {
-        Logger.warn(
-          `Batch update failed, retrying (attempt ${attempt + 1}/${MAX_RETRIES})`,
-          { error }
-        );
-        await sleep(1000 * attempt);
-        return this.processBatchWithRetry(threshold, now, attempt + 1);
-      }
-      throw error;
+    if (batch.length === 0) {
+      return 0;
     }
+
+    const documentIds = batch.map((b) => b.documentId);
+
+    // Step 2: Calculate scores outside of a transaction
+    const scores = await this.calculateScoresForDocuments(
+      documentIds,
+      threshold,
+      now
+    );
+
+    // Step 3: Update document scores
+    await this.updateDocumentScores(scores);
+
+    // Step 4: Mark batch as processed
+    await this.markBatchProcessed(documentIds);
+
+    return documentIds.length;
   }
 
   /**
