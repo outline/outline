@@ -1,5 +1,6 @@
 import { subDays } from "date-fns";
 import { Op } from "sequelize";
+import { Minute } from "@shared/utils/time";
 import Logger from "@server/logging/Logger";
 import { Team } from "@server/models";
 import BaseTask, { TaskPriority, TaskSchedule } from "./BaseTask";
@@ -11,6 +12,8 @@ type Props = {
 
 export default class CleanupDeletedTeamsTask extends BaseTask<Props> {
   static cron = TaskSchedule.Hour;
+
+  static cronPartitionWindow = 15 * Minute.ms;
 
   public async perform({ limit }: Props) {
     Logger.info(

@@ -3,16 +3,23 @@ import { Op } from "sequelize";
 import documentPermanentDeleter from "@server/commands/documentPermanentDeleter";
 import Logger from "@server/logging/Logger";
 import { Document } from "@server/models";
-import BaseTask, { TaskPriority, TaskSchedule } from "./BaseTask";
+import BaseTask, {
+  PartitionInfo,
+  TaskPriority,
+  TaskSchedule,
+} from "./BaseTask";
 
 type Props = {
   limit: number;
+  partition?: PartitionInfo;
 };
 
 export default class CleanupDeletedDocumentsTask extends BaseTask<Props> {
   static cron = TaskSchedule.Hour;
 
-  public async perform({ limit }: Props) {
+  static cronPartitionWindow = 15 * 60 * 1000; // 15 minutes
+
+  public async perform({ limit, partition }: Props) {
     Logger.info(
       "task",
       `Permanently destroying upto ${limit} documents older than 30 days…`
@@ -25,6 +32,7 @@ export default class CleanupDeletedDocumentsTask extends BaseTask<Props> {
         deletedAt: {
           [Op.lt]: subDays(new Date(), 30),
         },
+        ...this.getPartitionWhereClause("id", partition),
       },
       paranoid: false,
       limit,

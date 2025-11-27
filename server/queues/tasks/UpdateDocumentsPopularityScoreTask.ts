@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { subWeeks } from "date-fns";
 import { QueryTypes } from "sequelize";
+import { Minute } from "@shared/utils/time";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import BaseTask, { TaskSchedule } from "./BaseTask";
@@ -56,6 +57,12 @@ export default class UpdateDocumentsPopularityScoreTask extends BaseTask<Props> 
    */
   private workingTable: string = "";
   static cron = TaskSchedule.Hour;
+
+  /**
+   * Partition the execution of this task over 10 minutes to prevent
+   * overwhelming the database with concurrent popularity score calculations.
+   */
+  static cronPartitionWindow = 10 * Minute.ms;
 
   public async perform() {
     Logger.info("task", "Updating document popularity scores…");

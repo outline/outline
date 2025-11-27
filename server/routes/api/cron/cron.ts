@@ -1,6 +1,7 @@
 import Router from "koa-router";
 import env from "@server/env";
 import { AuthenticationError } from "@server/errors";
+import Logger from "@server/logging/Logger";
 import validate from "@server/middlewares/validate";
 import tasks from "@server/queues/tasks";
 import { TaskSchedule } from "@server/queues/tasks/BaseTask";
@@ -30,26 +31,45 @@ const cronHandler = async (ctx: APIContext<T.CronSchemaReq>) => {
 
   for (const name in tasks) {
     const TaskClass = tasks[name];
-    if (TaskClass.cron === period) {
-      // @ts-expect-error We won't instantiate an abstract class
-      await new TaskClass().schedule({ limit });
-
+    const partitionWindow = TaskClass.cronPartitionWindow;
+    const shouldSchedule =
+      TaskClass.cron === period ||
       // Backwards compatibility for installations that have not set up
       // cron jobs periods other than daily.
-    } else if (
-      TaskClass.cron === TaskSchedule.Minute &&
-      !receivedPeriods.has(TaskSchedule.Minute) &&
-      (period === TaskSchedule.Hour || period === TaskSchedule.Day)
-    ) {
-      // @ts-expect-error We won't instantiate an abstract class
-      await new TaskClass().schedule({ limit });
-    } else if (
-      TaskClass.cron === TaskSchedule.Hour &&
-      !receivedPeriods.has(TaskSchedule.Hour) &&
-      period === TaskSchedule.Day
-    ) {
-      // @ts-expect-error We won't instantiate an abstract class
-      await new TaskClass().schedule({ limit });
+      (TaskClass.cron === TaskSchedule.Minute &&
+        !receivedPeriods.has(TaskSchedule.Minute) &&
+        (period === TaskSchedule.Hour || period === TaskSchedule.Day)) ||
+      (TaskClass.cron === TaskSchedule.Hour &&
+        !receivedPeriods.has(TaskSchedule.Hour) &&
+        period === TaskSchedule.Day);
+
+    if (shouldSchedule) {
+      if (partitionWindow && partitionWindow > 0) {
+        // Split the task into partitions to spread work across time window
+        // by diving the partitionWindow into minutes and scheduling a delayed
+        // task for each minute.
+        const partitions = Math.ceil(partitionWindow / 60000);
+        for (let i = 0; i < partitions; i++) {
+          const delay = Math.floor((partitionWindow / partitions) * i);
+          const partition = {
+            partitionIndex: i,
+            partitionCount: partitions,
+          };
+
+          Logger.debug(
+            "task",
+            `Scheduling partitioned task ${name} (partition ${
+              i + 1
+            }/${partitions}) with delay of ${delay}ms`
+          );
+
+          // @ts-expect-error We won't instantiate an abstract class
+          await new TaskClass().schedule({ limit, partition }, { delay });
+        }
+      } else {
+        // @ts-expect-error We won't instantiate an abstract class
+        await new TaskClass().schedule({ limit });
+      }
     }
   }
 
@@ -57,7 +77,6 @@ const cronHandler = async (ctx: APIContext<T.CronSchemaReq>) => {
     success: true,
   };
 };
-
 router.get("cron.:period", validate(T.CronSchema), cronHandler);
 router.post("cron.:period", validate(T.CronSchema), cronHandler);
 
