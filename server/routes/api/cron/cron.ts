@@ -8,6 +8,7 @@ import { CronTask, TaskInterval } from "@server/queues/tasks/base/CronTask";
 import { APIContext } from "@server/types";
 import { safeEqual } from "@server/utils/crypto";
 import * as T from "./schema";
+import { Minute } from "@shared/utils/time";
 
 const router = new Router();
 const receivedPeriods = new Set<TaskInterval>();
@@ -51,7 +52,7 @@ const cronHandler = async (ctx: APIContext<T.CronSchemaReq>) => {
         // Split the task into partitions to spread work across time window
         // by dividing the partitionWindow into minutes and scheduling a delayed
         // task for each minute.
-        const partitions = Math.ceil(partitionWindow / 60000);
+        const partitions = Math.ceil(partitionWindow / Minute.ms);
         for (let i = 0; i < partitions; i++) {
           const delay = Math.floor((partitionWindow / partitions) * i);
           const partition = {

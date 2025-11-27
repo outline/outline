@@ -7,14 +7,8 @@ import { TaskPriority } from "./base/BaseTask";
 import { CronTask, Props, TaskInterval } from "./base/CronTask";
 
 export default class CleanupExpiredFileOperationsTask extends CronTask {
-  public async perform({ limit, partition }: Props) {
-    const partitionInfo = partition
-      ? ` (partition ${partition.partitionIndex + 1}/${partition.partitionCount})`
-      : "";
-    Logger.info(
-      "task",
-      `Expiring file operations older than 15 days${partitionInfo}…`
-    );
+  public async perform({ limit }: Props) {
+    Logger.info("task", `Expiring file operations older than 15 days…`);
     const fileOperations = await FileOperation.unscoped().findAll({
       where: {
         createdAt: {
@@ -29,10 +23,7 @@ export default class CleanupExpiredFileOperationsTask extends CronTask {
     await Promise.all(
       fileOperations.map((fileOperation) => fileOperation.expire())
     );
-    Logger.info(
-      "task",
-      `Expired ${fileOperations.length} file operations${partitionInfo}`
-    );
+    Logger.info("task", `Expired ${fileOperations.length} file operations`);
   }
 
   public get cron() {
