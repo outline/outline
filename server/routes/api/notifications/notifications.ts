@@ -165,7 +165,7 @@ router.get(
       if (user) {
         await notification.updateWithCtx(
           createContext({
-            ...ctx,
+            ip: ctx.request.ip,
             transaction,
             user,
           }),
