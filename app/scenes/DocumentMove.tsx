@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
@@ -14,28 +14,58 @@ import useCollectionTrees from "~/hooks/useCollectionTrees";
 import useStores from "~/hooks/useStores";
 
 type Props = {
-  document: Document;
+  documents: string[]; // Array of document IDs
 };
 
-function DocumentMove({ document }: Props) {
-  const { dialogs, policies } = useStores();
+function DocumentMove({ documents }: Props) {
+  const { dialogs, policies, documents: documentStore } = useStores();
   const { t } = useTranslation();
   const collectionTrees = useCollectionTrees();
   const [selectedPath, selectPath] = useState<NavigationNode | null>(null);
+  const [fetchedDocuments, setFetchedDocuments] = useState<Document[]>([]);
+
+  // Fetch all documents
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        const promises = documents.map((id) => documentStore.fetch(id));
+        const docs = await Promise.all(promises);
+        const validDocs = docs.filter(Boolean) as Document[];
+        setFetchedDocuments(validDocs);
+      } catch {
+        // any errors are handled on move
+        setFetchedDocuments([]);
+      }
+    };
+
+    fetchDocuments();
+  }, [documents, documentStore]);
 
   const items = useMemo(() => {
-    // Recursively filter out the document itself and its existing parent doc, if any.
-    const filterSourceDocument = (node: NavigationNode): NavigationNode => ({
+    if (fetchedDocuments.length === 0) {
+      return [];
+    }
+
+    // Get all document IDs and parent IDs to filter out
+    const documentIdsSet = new Set(fetchedDocuments.map((doc) => doc.id));
+    const parentDocumentIds = new Set(
+      fetchedDocuments
+        .map((doc) => doc.parentDocumentId)
+        .filter(Boolean) as string[]
+    );
+
+    // Recursively filter out the documents themselves and their existing parent docs
+    const filterSourceDocuments = (node: NavigationNode): NavigationNode => ({
       ...node,
       children: node.children
         ?.filter(
-          (c) => c.id !== document.id && c.id !== document.parentDocumentId
+          (c) => !documentIdsSet.has(c.id) && !parentDocumentIds.has(c.id)
         )
-        .map(filterSourceDocument),
+        .map(filterSourceDocuments),
     });
 
     const nodes = collectionTrees
-      .map(filterSourceDocument)
+      .map(filterSourceDocuments)
       // Filter out collections that we don't have permission to create documents in.
       .filter((node) =>
         node.collectionId
@@ -43,21 +73,16 @@ function DocumentMove({ document }: Props) {
           : true
       );
 
-    // If the document we're moving is a template, only show collections as
+    // If any of the documents we're moving are templates, only show collections as
     // move targets.
-    if (document.isTemplate) {
+    const hasTemplates = fetchedDocuments.some((doc) => doc.isTemplate);
+    if (hasTemplates) {
       return nodes
         .filter((node) => node.type === "collection")
         .map((node) => ({ ...node, children: [] }));
     }
     return nodes;
-  }, [
-    policies,
-    collectionTrees,
-    document.id,
-    document.parentDocumentId,
-    document.isTemplate,
-  ]);
+  }, [policies, collectionTrees, fetchedDocuments]);
 
   const move = async () => {
     if (!selectedPath) {
@@ -65,22 +90,61 @@ function DocumentMove({ document }: Props) {
       return;
     }
 
+    if (fetchedDocuments.length === 0) {
+      const isPlural = documents.length > 1;
+      toast.error(
+        isPlural
+          ? t("Couldn't move the documents, try again?")
+          : t("Couldn't move the document, try again?")
+      );
+      return;
+    }
+
+    // Check if user has permission to move all documents
+    const hasPermissionIssue = fetchedDocuments.some(
+      (doc) => !policies.abilities(doc.id).update
+    );
+
+    if (hasPermissionIssue) {
+      const isPlural = fetchedDocuments.length > 1;
+      toast.error(
+        isPlural
+          ? t("You don't have permission to move these documents")
+          : t("You don't have permission to move this document")
+      );
+      return;
+    }
+
     try {
       const { type, id: parentDocumentId } = selectedPath;
-
       const collectionId = selectedPath.collectionId as string;
 
-      if (type === "document") {
-        await document.move({ collectionId, parentDocumentId });
-      } else {
-        await document.move({ collectionId });
-      }
+      // Move all documents
+      const movePromises = fetchedDocuments.map((document) => {
+        if (type === "document") {
+          return document.move({ collectionId, parentDocumentId });
+        } else {
+          return document.move({ collectionId });
+        }
+      });
 
-      toast.success(t("Document moved"));
+      await Promise.all(movePromises);
+
+      const count = fetchedDocuments.length;
+      toast.success(
+        count === 1
+          ? t("Document moved")
+          : t("{{count}} documents moved", { count })
+      );
 
       dialogs.closeAllModals();
     } catch (_err) {
-      toast.error(t("Couldn’t move the document, try again?"));
+      const count = fetchedDocuments.length;
+      toast.error(
+        count === 1
+          ? t("Couldn't move the document, try again?")
+          : t("Couldn't move the documents, try again?")
+      );
     }
   };
 
@@ -91,8 +155,13 @@ function DocumentMove({ document }: Props) {
         <StyledText type="secondary">
           {selectedPath ? (
             <Trans
-              defaults="Move to <em>{{ location }}</em>"
+              defaults={
+                fetchedDocuments.length === 1
+                  ? "Move document to <em>{{ location }}</em>"
+                  : "Move {{count}} documents to <em>{{ location }}</em>"
+              }
               values={{
+                count: fetchedDocuments.length,
                 location: selectedPath.title || t("Untitled"),
               }}
               components={{
