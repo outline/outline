@@ -1370,5 +1370,6 @@
   "{{ user }} created {{ timeAgo }}": "{{ user }} created {{ timeAgo }}",
   "Caption": "Caption",
   "Open": "Open",
+  "Zoom In": "Zoom In",
   "Error loading data": "Error loading data"
 }
