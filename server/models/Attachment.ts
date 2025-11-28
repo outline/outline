@@ -31,6 +31,7 @@ import IdModel from "./base/IdModel";
 import { SkipChangeset } from "./decorators/Changeset";
 import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
+import Logger from "@server/logging/Logger";
 
 @Table({ tableName: "attachments", modelName: "attachment" })
 @Fix
@@ -161,7 +162,19 @@ class Attachment extends IdModel<
 
   @BeforeDestroy
   static async deleteAttachmentFromS3(model: Attachment) {
-    await FileStorage.deleteFile(model.key);
+    try {
+      await FileStorage.deleteFile(model.key);
+    } catch (err) {
+      // do not block deletion of the database record if S3 deletion fails
+      Logger.warn(
+        `Failed to delete attachment file ${model.key} from storage`,
+        {
+          id: model.id,
+          teamId: model.teamId,
+          message: err.message,
+        }
+      );
+    }
   }
 
   // static methods
