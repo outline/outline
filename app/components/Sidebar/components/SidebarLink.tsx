@@ -14,6 +14,8 @@ import NavLink, { Props as NavLinkProps } from "./NavLink";
 import { ActionWithChildren } from "~/types";
 import { ContextMenu } from "~/components/Menu/ContextMenu";
 import { useTranslation } from "react-i18next";
+import { CheckboxIcon } from "outline-icons";
+import { IconButton } from "~/components/IconPicker/components/IconButton";
 
 /**
  * Props for the SidebarLink component.
@@ -56,6 +58,11 @@ type Props = Omit<NavLinkProps, "to"> & {
   scrollIntoViewIfNeeded?: boolean;
   /** Optional context menu action to display */
   contextAction?: ActionWithChildren;
+  /** Whether the checkbox should be displayed*/
+  selected?: boolean;
+  /** Callback for checkbox click*/
+  onCheckToggle?: () => void;
+  showCheckbox?: boolean;
 };
 
 const activeDropStyle = {
@@ -88,6 +95,9 @@ function SidebarLink(
     disabled,
     unreadBadge,
     contextAction,
+    selected,
+    onCheckToggle,
+    showCheckbox,
     ...rest
   }: Props,
   ref: React.RefObject<HTMLAnchorElement>
@@ -134,8 +144,6 @@ function SidebarLink(
       if (!hasDisclosure) {
         return;
       }
-      ev.preventDefault();
-      ev.stopPropagation();
       onDisclosureClick?.(ev);
     },
     [onDisclosureClick]
@@ -166,6 +174,17 @@ function SidebarLink(
         {...rest}
       >
         <Content>
+          {onCheckToggle && (
+            <CheckBox
+              show={showCheckbox ?? false}
+              checked={selected}
+              onClick={preventDefault}
+              onToggle={(ev) => {
+                preventDefault(ev);
+                onCheckToggle?.();
+              }}
+            />
+          )}
           {hasDisclosure && (
             <DisclosureComponent
               expanded={expanded}
@@ -183,6 +202,24 @@ function SidebarLink(
     </ContextMenu>
   );
 }
+
+const CheckBox = ({
+  checked,
+  show,
+  onToggle,
+  onClick,
+}: {
+  checked?: boolean;
+  show: boolean;
+  onToggle?: (ev: React.MouseEvent) => void;
+  onClick?: (ev: React.MouseEvent) => void;
+}) => (
+  <CheckBoxWrapper checked={checked || show} onClick={onClick}>
+    <IconButton onClick={onToggle} style={{ marginTop: "-3px" }}>
+      <CheckboxIcon checked={checked ?? false} />
+    </IconButton>
+  </CheckBoxWrapper>
+);
 
 // accounts for whitespace around icon
 export const IconWrapper = styled.span`
@@ -350,6 +387,19 @@ const Label = styled.div<{ $ellipsis: boolean }>`
   * {
     unicode-bidi: plaintext;
   }
+`;
+
+const CheckBoxWrapper = styled.span<{ checked?: boolean }>`
+  opacity: ${(props) => (props.checked ? 1 : 0)};
+  transition: opacity 0.15s ease-in-out;
+
+  ${(props) =>
+    !props.checked &&
+    `
+    ${Link}:hover & {
+      opacity: 1;
+    }
+  `}
 `;
 
 export default React.forwardRef<HTMLAnchorElement, Props>(SidebarLink);

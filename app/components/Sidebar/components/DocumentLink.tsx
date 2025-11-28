@@ -48,6 +48,7 @@ type Props = {
   depth: number;
   index: number;
   parentId?: string;
+  onCheckToggle?: (id?: string) => void;
 };
 
 function InnerDocumentLink(
@@ -61,6 +62,7 @@ function InnerDocumentLink(
     depth,
     index,
     parentId,
+    onCheckToggle,
   }: Props,
   ref: React.RefObject<HTMLAnchorElement>
 ) {
@@ -196,7 +198,7 @@ function InnerDocumentLink(
   const iconElement = React.useMemo(
     () =>
       icon ? <Icon value={icon} color={color} initial={initial} /> : undefined,
-    [icon, color]
+    [icon, color, initial]
   );
 
   // Draggable
@@ -416,6 +418,9 @@ function InnerDocumentLink(
           <div ref={dropToReparent}>
             <DropToImport documentId={node.id}>
               <SidebarLink
+                selected={documents.selectedDocs.has(document?.id || "")}
+                showCheckbox={documents.selectedDocs.size > 0}
+                onCheckToggle={onCheckToggle}
                 // @ts-expect-error react-router type is wrong, string component is fine.
                 component={isEditing ? "div" : undefined}
                 expanded={hasChildren ? isExpanded : undefined}
@@ -463,6 +468,7 @@ function InnerDocumentLink(
       <Folder expanded={expanded && !isDragging}>
         {nodeChildren.map((childNode, childIndex) => (
           <DocumentLink
+            onCheckToggle={onCheckToggle}
             key={childNode.id}
             collection={collection}
             membership={membership}
