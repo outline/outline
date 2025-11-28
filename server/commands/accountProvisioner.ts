@@ -21,8 +21,8 @@ import { sequelize } from "@server/storage/database";
 import teamProvisioner from "./teamProvisioner";
 import userProvisioner from "./userProvisioner";
 import { APIContext } from "@server/types";
-import { createContext } from "@server/context";
 import { addSeconds } from "date-fns";
+import { createContext } from "@server/context";
 
 type Props = {
   /** Details of the user logging in from SSO provider */
@@ -206,7 +206,11 @@ async function provisionFirstCollection(
   user: User
 ) {
   await sequelize.transaction(async (transaction) => {
-    const context = createContext({ user, transaction, ip: ctx.request.ip });
+    const context = createContext({
+      ...ctx,
+      transaction,
+      user,
+    });
 
     const collection = await Collection.createWithCtx(context, {
       name: "Welcome",
