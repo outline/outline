@@ -129,15 +129,25 @@ router.get("/embeds/github", renderEmbed);
 router.get("/embeds/dropbox", renderEmbed);
 router.get("/embeds/pinterest", renderEmbed);
 
-router.get("/doc/:documentSlug", shareDomains(), async (ctx, next) => {
+router.use(shareDomains());
+
+router.get("/doc/:documentSlug", async (ctx, next) => {
   if (ctx.state?.rootShare) {
     return renderShare(ctx, next);
   }
   return next();
 });
 
+router.get("/sitemap.xml", async (ctx) => {
+  if (ctx.state?.rootShare) {
+    ctx.redirect(`/api/shares.sitemap?id=${ctx.state?.rootShare.id}`);
+  } else {
+    ctx.status = 404;
+  }
+});
+
 // catch all for application
-router.get("*", shareDomains(), async (ctx, next) => {
+router.get("*", async (ctx, next) => {
   if (ctx.state?.rootShare) {
     return renderShare(ctx, next);
   }
