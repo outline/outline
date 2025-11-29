@@ -1370,6 +1370,8 @@
   "You created {{ timeAgo }}": "You created {{ timeAgo }}",
   "{{ user }} created {{ timeAgo }}": "{{ user }} created {{ timeAgo }}",
   "Caption": "Caption",
+  "Empty diagram": "Empty diagram",
+  "Double click to edit": "Double click to edit",
   "Open": "Open",
   "Error loading data": "Error loading data"
 }

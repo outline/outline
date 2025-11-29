@@ -18,6 +18,7 @@ import { ComponentProps } from "../types";
 import SimpleImage from "./SimpleImage";
 import { LightboxImageFactory } from "../lib/Lightbox";
 import FileHelper from "../lib/FileHelper";
+import { DiagramPlaceholder } from "../components/DiagramPlaceholder";
 
 const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
 
@@ -339,30 +340,39 @@ export default class Image extends SimpleImage {
       );
     };
 
+  handleDownload =
+    ({ node }: ComponentProps) =>
+    (event: React.MouseEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      return downloadImageNode(node);
+    };
+
+  handleEditDiagam =
+    ({ getPos, view }: ComponentProps) =>
+    () => {
+      const { commands } = this.editor;
+      const pos = getPos();
+      const $pos = view.state.doc.resolve(pos);
+      view.dispatch(view.state.tr.setSelection(new NodeSelection($pos)));
+      commands.editDiagram();
+    };
+
   component = (props: ComponentProps) => {
-    const [isDownloading, setIsDownloading] = React.useState(false);
-
-    const handleDownload = React.useCallback(
-      async (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();
-        event.stopPropagation();
-
-        if (isDownloading) {
-          return;
-        }
-        setIsDownloading(true);
-        await downloadImageNode(props.node);
-        setIsDownloading(false);
-      },
-      [isDownloading, props]
-    );
+    if (props.node.attrs.source === "drawio" && !props.node.attrs.src) {
+      return (
+        <DiagramPlaceholder
+          onDoubleClick={this.handleEditDiagam(props)}
+          {...props}
+        />
+      );
+    }
 
     return (
       <ImageComponent
         {...props}
-        isDownloading={isDownloading}
         onClick={this.handleClick(props)}
-        onDownload={handleDownload}
+        onDownload={this.handleDownload(props)}
         onChangeSize={this.handleChangeSize(props)}
       >
         <Caption
@@ -441,19 +451,52 @@ export default class Image extends SimpleImage {
         const emptyImage =
           "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAADz3RFWHRteGZpbGUAJTNDbXhmaWxlJTIwaG9zdCUzRCUyMmFwcC5kaWFncmFtcy5uZXQlMjIlMjBhZ2VudCUzRCUyMk1vemlsbGElMkY1LjAlMjAoTWFjaW50b3NoJTNCJTIwSW50ZWwlMjBNYWMlMjBPUyUyMFglMjAxMF8xNV83KSUyMEFwcGxlV2ViS2l0JTJGNTM3LjM2JTIwKEtIVE1MJTJDJTIwbGlrZSUyMEdlY2tvKSUyMENocm9tZSUyRjEzOS4wLjAuMCUyMFNhZmFyaSUyRjUzNy4zNiUyMiUyMHZlcnNpb24lM0QlMjIyOC4yLjglMjIlMjBzY2FsZSUzRCUyMjElMjIlMjBib3JkZXIlM0QlMjIwJTIyJTNFJTBBJTIwJTIwJTNDZGlhZ3JhbSUyMG5hbWUlM0QlMjJQYWdlLTElMjIlMjBpZCUzRCUyMloxN1hHdVRjUnQteXp1N2xJbm1ZJTIyJTNFJTBBJTIwJTIwJTIwJTIwJTNDbXhHcmFwaE1vZGVsJTIwZHglM0QlMjIxMjE2JTIyJTIwZHklM0QlMjI3NzIlMjIlMjBncmlkJTNEJTIyMSUyMiUyMGdyaWRTaXplJTNEJTIyMTAlMjIlMjBndWlkZXMlM0QlMjIxJTIyJTIwdG9vbHRpcHMlM0QlMjIxJTIyJTIwY29ubmVjdCUzRCUyMjElMjIlMjBhcnJvd3MlM0QlMjIxJTIyJTIwZm9sZCUzRCUyMjElMjIlMjBwYWdlJTNEJTIyMSUyMiUyMHBhZ2VTY2FsZSUzRCUyMjElMjIlMjBwYWdlV2lkdGglM0QlMjI4NTAlMjIlMjBwYWdlSGVpZ2h0JTNEJTIyMTEwMCUyMiUyMG1hdGglM0QlMjIwJTIyJTIwc2hhZG93JTNEJTIyMCUyMiUzRSUwQSUyMCUyMCUyMCUyMCUyMCUyMCUzQ3Jvb3QlM0UlMEElMjAlMjAlMjAlMjAlMjAlMjAlMjAlMjAlM0NteENlbGwlMjBpZCUzRCUyMjAlMjIlMjAlMkYlM0UlMEElMjAlMjAlMjAlMjAlMjAlMjAlMjAlMjAlM0NteENlbGwlMjBpZCUzRCUyMjElMjIlMjBwYXJlbnQlM0QlMjIwJTIyJTIwJTJGJTNFJTBBJTIwJTIwJTIwJTIwJTIwJTIwJTNDJTJGcm9vdCUzRSUwQSUyMCUyMCUyMCUyMCUzQyUyRm14R3JhcGhNb2RlbCUzRSUwQSUyMCUyMCUzQyUyRmRpYWdyYW0lM0UlMEElM0MlMkZteGZpbGUlM0UlMEGDoGKLAAAADUlEQVR4AWJiYGRkAAAAAP//LRIDJAAAAAZJREFUAwAAFAAF3SeUTQAAAABJRU5ErkJggg==";
 
+        if (!node) {
+          const { tr } = state;
+          const transaction = tr.insert(
+            state.selection.from,
+            type.create({
+              src: "",
+              source: "drawio",
+            })
+          );
+          dispatch?.(transaction);
+        }
+
         const url =
           "https://embed.diagrams.net/?embed=1&ui=atlas&spin=1&modified=unsavedChanges&proto=json";
-        const source = node?.attrs.src;
+        const source = node?.attrs.src ?? emptyImage;
         let drawIoWindow: Window | null = null;
 
         // Implements protocol for loading and exporting with embedded XML
-        const receive = function (event: MessageEvent) {
+        const receive = (event: MessageEvent) => {
           if (event.data.length > 0 && event.source === drawIoWindow) {
             const parsed = JSON.parse(event.data);
 
             // Received if the editor is ready
             if (parsed.event === "init") {
-              if (!source) {
+              if (source) {
+                // Download the image as a data URI
+                fetch(source)
+                  .then((response) => response.blob())
+                  .then((blob) => {
+                    const reader = new FileReader();
+                    reader.onloadend = function () {
+                      const base64data = reader.result;
+                      // Strips the "data:<mime-type>;base64," prefix
+                      const base64 = (base64data as string).split(",")[1];
+                      // Sends the data URI with embedded XML to editor
+                      drawIoWindow?.postMessage(
+                        JSON.stringify({
+                          action: "load",
+                          xmlpng: base64,
+                        }),
+                        "*"
+                      );
+                    };
+                    reader.readAsDataURL(blob);
+                  });
+              } else {
                 drawIoWindow?.postMessage(
                   JSON.stringify({
                     action: "load",
@@ -462,26 +505,6 @@ export default class Image extends SimpleImage {
                   "*"
                 );
               }
-              // Download the image as a data URI
-              fetch(source)
-                .then((response) => response.blob())
-                .then((blob) => {
-                  const reader = new FileReader();
-                  reader.onloadend = function () {
-                    const base64data = reader.result;
-                    // Strips the "data:<mime-type>;base64," prefix
-                    const base64 = (base64data as string).split(",")[1];
-                    // Sends the data URI with embedded XML to editor
-                    drawIoWindow?.postMessage(
-                      JSON.stringify({
-                        action: "load",
-                        xmlpng: base64,
-                      }),
-                      "*"
-                    );
-                  };
-                  reader.readAsDataURL(blob);
-                });
             }
             // Received if the user clicks save
             else if (parsed.event === "save") {
@@ -512,6 +535,7 @@ export default class Image extends SimpleImage {
 
               FileHelper.getImageDimensions(file).then((dimensions) => {
                 uploadFile?.(file).then((uploadedFile) => {
+                  const { state } = this.editor.view;
                   if (
                     state.selection instanceof NodeSelection &&
                     state.selection.node?.type.name === "image"
