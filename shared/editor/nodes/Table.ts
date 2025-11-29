@@ -34,7 +34,7 @@ import {
   mergeCellsAndCollapse,
 } from "../commands/table";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
-import { FixTablesPlugin } from "../plugins/FixTables";
+import { FixTablesPlugin } from "../plugins/FixTablesPlugin";
 import { TableLayoutPlugin } from "../plugins/TableLayoutPlugin";
 import tablesRule from "../rules/tables";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
