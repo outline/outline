@@ -196,6 +196,9 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
       linear?: {
         workspace: { id: string; name: string; key: string; logoUrl?: string };
       };
+      diagrams?: {
+        url: string;
+      };
     }
   : T extends IntegrationType.Analytics
     ? { measurementId: string; instanceUrl?: string; scriptName?: string }
@@ -219,6 +222,9 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
                         avatarUrl?: string;
                       };
                     };
+                  };
+                  diagrams?: {
+                    url: string;
                   };
                 }
               | { url: string; channel: string; channelId: string }

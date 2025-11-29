@@ -6,6 +6,7 @@ import {
   AlignImageRightIcon,
   AlignImageCenterIcon,
   AlignFullWidthIcon,
+  EditIcon,
   CommentIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
@@ -13,6 +14,7 @@ import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
 import { metaDisplay } from "@shared/utils/keyboard";
+import { ImageSource } from "@shared/editor/lib/FileHelper";
 
 export default function imageMenuItems(
   state: EditorState,
@@ -32,6 +34,13 @@ export default function imageMenuItems(
   const isFullWidthAligned = isNodeActive(schema.nodes.image, {
     layoutClass: "full-width",
   });
+  const isDiagram = isNodeActive(schema.nodes.image, {
+    source: ImageSource.DiagramsNet,
+  });
+  const isEmptyDiagram = isNodeActive(schema.nodes.image, {
+    source: ImageSource.DiagramsNet,
+    src: "",
+  });
 
   return [
     {
@@ -39,6 +48,7 @@ export default function imageMenuItems(
       tooltip: dictionary.alignLeft,
       icon: <AlignImageLeftIcon />,
       active: isLeftAligned,
+      visible: !isEmptyDiagram(state),
     },
     {
       name: "alignCenter",
@@ -49,18 +59,21 @@ export default function imageMenuItems(
         !isLeftAligned(state) &&
         !isRightAligned(state) &&
         !isFullWidthAligned(state),
+      visible: !isEmptyDiagram(state),
     },
     {
       name: "alignRight",
       tooltip: dictionary.alignRight,
       icon: <AlignImageRightIcon />,
       active: isRightAligned,
+      visible: !isEmptyDiagram(state),
     },
     {
       name: "alignFullWidth",
       tooltip: dictionary.alignFullWidth,
       icon: <AlignFullWidthIcon />,
       active: isFullWidthAligned,
+      visible: !isEmptyDiagram(state),
     },
     {
       name: "separator",
@@ -68,21 +81,28 @@ export default function imageMenuItems(
     {
       name: "dimensions",
       tooltip: dictionary.dimensions,
-      visible: !isFullWidthAligned(state),
+      visible: !isFullWidthAligned(state) && !isEmptyDiagram(state),
       skipIcon: true,
     },
     {
       name: "separator",
     },
     {
+      name: "editDiagram",
+      tooltip: "Edit diagram",
+      icon: <EditIcon />,
+      visible: isDiagram(state),
+    },
+    {
       name: "downloadImage",
       tooltip: dictionary.downloadImage,
       icon: <DownloadIcon />,
-      visible: !!fetch,
+      visible: !!fetch && !isEmptyDiagram(state),
     },
     {
       tooltip: dictionary.replaceImage,
       icon: <ReplaceIcon />,
+      visible: !isDiagram(state),
       children: [
         {
           name: "replaceImage",

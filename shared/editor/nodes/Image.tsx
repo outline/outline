@@ -11,12 +11,14 @@ import * as React from "react";
 import { sanitizeUrl } from "../../utils/urls";
 import Caption from "../components/Caption";
 import ImageComponent from "../components/Image";
+import { addComment } from "../commands/comment";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { ComponentProps } from "../types";
 import SimpleImage from "./SimpleImage";
 import { LightboxImageFactory } from "../lib/Lightbox";
-import { addComment } from "../commands/comment";
+import { ImageSource } from "../lib/FileHelper";
+import { DiagramPlaceholder } from "../components/DiagramPlaceholder";
 
 const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
 
@@ -104,6 +106,10 @@ export default class Image extends SimpleImage {
           default: undefined,
         },
         alt: {
+          default: null,
+          validate: "string|null",
+        },
+        source: {
           default: null,
           validate: "string|null",
         },
@@ -334,30 +340,42 @@ export default class Image extends SimpleImage {
       );
     };
 
+  handleDownload =
+    ({ node }: ComponentProps) =>
+    (event: React.MouseEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      return downloadImageNode(node);
+    };
+
+  handleEditDiagram =
+    ({ getPos, view }: ComponentProps) =>
+    () => {
+      const { commands } = this.editor;
+      const pos = getPos();
+      const $pos = view.state.doc.resolve(pos);
+      view.dispatch(view.state.tr.setSelection(new NodeSelection($pos)));
+      commands.editDiagram();
+    };
+
   component = (props: ComponentProps) => {
-    const [isDownloading, setIsDownloading] = React.useState(false);
-
-    const handleDownload = React.useCallback(
-      async (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();
-        event.stopPropagation();
-
-        if (isDownloading) {
-          return;
-        }
-        setIsDownloading(true);
-        await downloadImageNode(props.node);
-        setIsDownloading(false);
-      },
-      [isDownloading, props]
-    );
+    if (
+      props.node.attrs.source === ImageSource.DiagramsNet &&
+      !props.node.attrs.src
+    ) {
+      return (
+        <DiagramPlaceholder
+          onDoubleClick={this.handleEditDiagram(props)}
+          {...props}
+        />
+      );
+    }
 
     return (
       <ImageComponent
         {...props}
-        isDownloading={isDownloading}
         onClick={this.handleClick(props)}
-        onDownload={handleDownload}
+        onDownload={this.handleDownload(props)}
         onChangeSize={this.handleChangeSize(props)}
       >
         <Caption

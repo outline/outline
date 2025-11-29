@@ -74,6 +74,7 @@ const insertFiles = async function (
       return {
         id: `upload-${uuidv4()}`,
         dimensions: await getDimensions?.(file),
+        source: await FileHelper.getImageSourceAttr(file),
         isImage,
         isVideo,
         file,
@@ -122,6 +123,7 @@ const insertFiles = async function (
                   to || from,
                   schema.nodes.image.create({
                     src,
+                    source: upload.source,
                     ...(upload.dimensions ?? {}),
                     ...options.attrs,
                   })
