@@ -348,7 +348,7 @@ export default class Image extends SimpleImage {
       return downloadImageNode(node);
     };
 
-  handleEditDiagam =
+  handleEditDiagram =
     ({ getPos, view }: ComponentProps) =>
     () => {
       const { commands } = this.editor;
@@ -365,7 +365,7 @@ export default class Image extends SimpleImage {
     ) {
       return (
         <DiagramPlaceholder
-          onDoubleClick={this.handleEditDiagam(props)}
+          onDoubleClick={this.handleEditDiagram(props)}
           {...props}
         />
       );
