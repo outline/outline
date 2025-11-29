@@ -4,6 +4,14 @@ import { FileOperation } from "@server/models";
 import { buildFileOperation, buildTeam } from "@server/test/factories";
 import CleanupExpiredFileOperationsTask from "./CleanupExpiredFileOperationsTask";
 
+const props = {
+  limit: 100,
+  partition: {
+    partitionIndex: 0,
+    partitionCount: 1,
+  },
+};
+
 describe("CleanupExpiredFileOperationsTask", () => {
   it("should expire exports older than 15 days ago", async () => {
     const team = await buildTeam();
@@ -20,7 +28,7 @@ describe("CleanupExpiredFileOperationsTask", () => {
     });
 
     const task = new CleanupExpiredFileOperationsTask();
-    await task.perform({ limit: 100 });
+    await task.perform(props);
 
     const data = await FileOperation.count({
       where: {
@@ -47,7 +55,7 @@ describe("CleanupExpiredFileOperationsTask", () => {
     });
 
     const task = new CleanupExpiredFileOperationsTask();
-    await task.perform({ limit: 100 });
+    await task.perform(props);
 
     const data = await FileOperation.count({
       where: {

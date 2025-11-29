@@ -4,6 +4,14 @@ import { FileOperation } from "@server/models";
 import { buildFileOperation, buildTeam } from "@server/test/factories";
 import ErrorTimedOutFileOperationsTask from "./ErrorTimedOutFileOperationsTask";
 
+const props = {
+  limit: 100,
+  partition: {
+    partitionIndex: 0,
+    partitionCount: 1,
+  },
+};
+
 describe("ErrorTimedOutFileOperationsTask", () => {
   it("should error exports older than 12 hours", async () => {
     const team = await buildTeam();
@@ -20,7 +28,7 @@ describe("ErrorTimedOutFileOperationsTask", () => {
     });
 
     const task = new ErrorTimedOutFileOperationsTask();
-    await task.perform({ limit: 100 });
+    await task.perform(props);
 
     const data = await FileOperation.count({
       where: {
@@ -41,7 +49,7 @@ describe("ErrorTimedOutFileOperationsTask", () => {
     });
 
     const task = new ErrorTimedOutFileOperationsTask();
-    await task.perform({ limit: 100 });
+    await task.perform(props);
 
     const data = await FileOperation.count({
       where: {

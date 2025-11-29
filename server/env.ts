@@ -95,6 +95,20 @@ export class Environment {
   public DATABASE_URL = this.toOptionalString(environment.DATABASE_URL);
 
   /**
+   * Optional database URL for read replica to distribute read queries
+   * and reduce load on primary database.
+   */
+  @IsOptional()
+  @IsUrl({
+    require_tld: false,
+    allow_underscores: true,
+    protocols: ["postgres", "postgresql"],
+  })
+  public DATABASE_URL_READ_ONLY = this.toOptionalString(
+    environment.DATABASE_URL_READ_ONLY
+  );
+
+  /**
    * Database host for individual component configuration.
    */
   @IsOptional()
@@ -753,6 +767,24 @@ export class Environment {
    */
   @Public
   public APP_NAME = "Outline";
+
+  /**
+   * Gravity constant for time decay in popularity scoring. Higher values cause
+   * faster decay of older content. Default is 0.7.
+   */
+  @IsOptional()
+  @IsNumber()
+  public POPULARITY_GRAVITY =
+    this.toOptionalNumber(environment.POPULARITY_GRAVITY) ?? 0.7;
+
+  /**
+   * Number of weeks of activity to consider when calculating popularity scores.
+   * Default is 2 weeks.
+   */
+  @IsOptional()
+  @IsNumber()
+  public POPULARITY_ACTIVITY_THRESHOLD_WEEKS =
+    this.toOptionalNumber(environment.POPULARITY_ACTIVITY_THRESHOLD_WEEKS) ?? 2;
 
   /**
    * Returns true if the current installation is the cloud hosted version at

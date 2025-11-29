@@ -3,7 +3,7 @@ import Logger from "@server/logging/Logger";
 import { Notification, User } from "@server/models";
 import { DocumentUserEvent } from "@server/types";
 import { isElevatedPermission } from "@server/utils/permissions";
-import BaseTask, { TaskPriority } from "./BaseTask";
+import { BaseTask, TaskPriority } from "./base/BaseTask";
 
 export default class DocumentAddUserNotificationsTask extends BaseTask<DocumentUserEvent> {
   public async perform(event: DocumentUserEvent) {

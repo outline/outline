@@ -47,10 +47,12 @@ export function createDatabaseInstance(
       InferAttributes<Model>,
       InferCreationAttributes<Model>
     >;
-  }
+  },
+  options?: { readOnly?: boolean }
 ): Sequelize {
   try {
     let instance;
+    const isReadOnly = options?.readOnly ?? false;
 
     // Common options for both URL and object configurations
     const commonOptions: SequelizeOptions = {
@@ -70,17 +72,21 @@ export function createDatabaseInstance(
       },
       models: Object.values(input),
       pool: {
-        max: poolMax,
+        // Read-only connections can have larger pools since there's no write contention
+        max: isReadOnly ? poolMax * 2 : poolMax,
         min: poolMin,
         acquire: 30000,
         idle: 10000,
       },
-      retry: {
-        match: [/deadlock/i],
-        max: 3,
-        backoffBase: 200,
-        backoffExponent: 1.5,
-      },
+      // Only retry on deadlocks for write connections
+      retry: isReadOnly
+        ? undefined
+        : {
+            match: [/deadlock/i],
+            max: 3,
+            backoffBase: 200,
+            backoffExponent: 1.5,
+          },
       schema,
     };
 
@@ -92,6 +98,29 @@ export function createDatabaseInstance(
     }
 
     sequelizeStrictAttributes(instance);
+
+    // Add hooks to warn about write operations on read-only connections
+    if (isReadOnly) {
+      const warnWriteOperation = (operation: string) => {
+        Logger.warn(
+          `Attempted ${operation} operation on read-only database connection`
+        );
+      };
+
+      instance.addHook("beforeCreate", () => warnWriteOperation("CREATE"));
+      instance.addHook("beforeUpdate", () => warnWriteOperation("UPDATE"));
+      instance.addHook("beforeDestroy", () => warnWriteOperation("DELETE"));
+      instance.addHook("beforeBulkCreate", () =>
+        warnWriteOperation("BULK CREATE")
+      );
+      instance.addHook("beforeBulkUpdate", () =>
+        warnWriteOperation("BULK UPDATE")
+      );
+      instance.addHook("beforeBulkDestroy", () =>
+        warnWriteOperation("BULK DELETE")
+      );
+    }
+
     return instance;
   } catch (_err) {
     Logger.fatal(
@@ -177,6 +206,20 @@ export function createMigrationRunner(
 }
 
 export const sequelize = createDatabaseInstance(databaseConfig, models);
+
+/**
+ * Read-only database connection for read replicas.
+ * Falls back to the main connection if DATABASE_URL_READ_ONLY is not set.
+ */
+export const sequelizeReadOnly = env.DATABASE_URL_READ_ONLY
+  ? createDatabaseInstance(
+      env.DATABASE_URL_READ_ONLY,
+      {},
+      {
+        readOnly: true,
+      }
+    )
+  : sequelize;
 
 export const migrations = createMigrationRunner(sequelize, [
   "migrations/*.js",

@@ -1,5 +1,5 @@
 import { IntegrationService } from "@shared/types";
-import BaseTask from "@server/queues/tasks/BaseTask";
+import { BaseTask } from "@server/queues/tasks/base/BaseTask";
 import { Hook, PluginManager } from "@server/utils/PluginManager";
 
 type Props = {

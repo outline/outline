@@ -43,7 +43,7 @@ export default class SigninEmail extends BaseEmail<Props, void> {
       return `
 Use the link below to sign in:
 
-${this.signinLink(token, client)}
+${this.signinLink(teamUrl, token, client)}
 
 If the link expired you can request a new one from your team's
 signin page at: ${teamUrl}
@@ -63,7 +63,7 @@ signin page at: ${teamUrl}
       if (token) {
         logger.debug(
           "email",
-          `Sign-In link: ${this.signinLink(token, client)}`
+          `Sign-In link: ${this.signinLink(teamUrl, token, client)}`
         );
       }
       if (verificationCode) {
@@ -76,7 +76,7 @@ signin page at: ${teamUrl}
         previewText={this.preview()}
         goToAction={
           token
-            ? { url: this.signinLink(token, client), name: "Sign In" }
+            ? { url: this.signinLink(teamUrl, token, client), name: "Sign In" }
             : undefined
         }
       >
@@ -88,7 +88,9 @@ signin page at: ${teamUrl}
             <p>Click the button below to sign in to {env.APP_NAME}.</p>
             <EmptySpace height={10} />
             <p>
-              <Button href={this.signinLink(token, client)}>Sign In</Button>
+              <Button href={this.signinLink(teamUrl, token, client)}>
+                Sign In
+              </Button>
             </p>
             <EmptySpace height={20} />
             <p>
@@ -125,7 +127,7 @@ signin page at: ${teamUrl}
     );
   }
 
-  private signinLink(token: string, client: Client): string {
-    return `${env.URL}/auth/email.callback?token=${token}&client=${client}`;
+  private signinLink(teamUrl: string, token: string, client: Client): string {
+    return `${teamUrl}/auth/email.callback?token=${token}&client=${client}`;
   }
 }

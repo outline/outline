@@ -7,7 +7,7 @@ import type BaseEmail from "@server/emails/templates/BaseEmail";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import type BaseProcessor from "@server/queues/processors/BaseProcessor";
-import type BaseTask from "@server/queues/tasks/BaseTask";
+import type { BaseTask } from "@server/queues/tasks/base/BaseTask";
 import { UnfurlSignature, UninstallSignature } from "@server/types";
 import { BaseIssueProvider } from "./BaseIssueProvider";
 

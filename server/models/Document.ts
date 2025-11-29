@@ -40,6 +40,7 @@ import {
   BelongsToMany,
   Unique,
   AfterUpdate,
+  IsFloat,
 } from "sequelize-typescript";
 import { MaxLength } from "class-validator";
 import isUUID from "validator/lib/isUUID";
@@ -381,6 +382,13 @@ class Document extends ArchivableModel<
   @Default(0)
   @Column(DataType.INTEGER)
   revisionCount: number;
+
+  /** A score representing the popularity of this document based on views and engagement. */
+  @IsFloat
+  @Default(0)
+  @Column(DataType.FLOAT)
+  @SkipChangeset
+  popularityScore: number;
 
   /** Whether the document is published, and if so when. */
   @IsDate
