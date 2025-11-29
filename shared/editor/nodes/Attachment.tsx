@@ -48,7 +48,7 @@ export default class Attachment extends Node {
         height: {
           default: 424,
         },
-        type: {
+        contentType: {
           default: null,
           validate: "string|null",
         },
@@ -120,7 +120,7 @@ export default class Attachment extends Node {
 
   component = (props: ComponentProps) => {
     const { isSelected, isEditable, theme, node } = props;
-    return node.attrs.preview && node.attrs.type === "pdf" ? (
+    return node.attrs.preview && node.attrs.contentType === "pdf" ? (
       <PdfViewer {...props} onChangeSize={this.handleChangeSize(props)} />
     ) : (
       <Widget
@@ -176,7 +176,7 @@ export default class Attachment extends Node {
         }
 
         const accept =
-          node.attrs.type === "pdf"
+          node.attrs.contentType === "pdf"
             ? ".pdf"
             : node.type.name === "attachment"
               ? "*"
@@ -250,29 +250,8 @@ export default class Attachment extends Node {
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     state.ensureNewLine();
-
-    const attrs = [
-      `href="${node.attrs.href}"`,
-      `title="${node.attrs.title}"`,
-      `size="${node.attrs.size}"`,
-    ];
-
-    if (node.attrs.preview) {
-      attrs.push(`preview="${node.attrs.preview}"`);
-
-      if (node.attrs.width) {
-        attrs.push(`width="${node.attrs.width}"`);
-      }
-      if (node.attrs.height) {
-        attrs.push(`height="${node.attrs.height}"`);
-      }
-      if (node.attrs.layoutClass) {
-        attrs.push(`layoutClass="${node.attrs.layoutClass}"`);
-      }
-    }
-
     state.write(
-      `[${node.attrs.title}](${node.attrs.href}){${attrs.join(" ")}}\n\n`
+      `[${node.attrs.title} ${node.attrs.size}](${node.attrs.href})\n\n`
     );
     state.ensureNewLine();
   }
@@ -284,10 +263,6 @@ export default class Attachment extends Node {
         href: tok.attrGet("href"),
         title: tok.attrGet("title"),
         size: tok.attrGet("size"),
-        width: tok.attrGet("width"),
-        height: tok.attrGet("height"),
-        preview: tok.attrGet("preview"),
-        layoutClass: tok.attrGet("layoutClass"),
       }),
     };
   }
