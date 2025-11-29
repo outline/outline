@@ -88,16 +88,16 @@ export default function imageMenuItems(
       name: "separator",
     },
     {
-      name: "downloadImage",
-      tooltip: dictionary.downloadImage,
-      icon: <DownloadIcon />,
-      visible: !!fetch && !isEmptyDiagram(state),
-    },
-    {
       name: "editDiagram",
       tooltip: "Edit diagram",
       icon: <EditIcon />,
       visible: isDiagram(state),
+    },
+    {
+      name: "downloadImage",
+      tooltip: dictionary.downloadImage,
+      icon: <DownloadIcon />,
+      visible: !!fetch && !isEmptyDiagram(state),
     },
     {
       tooltip: dictionary.replaceImage,
