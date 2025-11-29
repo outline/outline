@@ -25,6 +25,13 @@ export default function useEditorClickHandlers({ shareId }: Params) {
 
       let navigateTo = href;
 
+      // Middle-click events in Firefox are not prevented in the same way as other browsers
+      // so we need to explicitly return here to prevent two tabs from being opened when
+      // middle-clicking a link (#10083).
+      if (event?.button === 1 && isFirefox()) {
+        return;
+      }
+
       if (isInternalUrl(href)) {
         // probably absolute
         if (href[0] !== "/") {
@@ -79,12 +86,6 @@ export default function useEditorClickHandlers({ shareId }: Params) {
           window.open(navigateTo, "_blank");
         }
       } else {
-        // Middle-click events in Firefox are not prevented in the same way as other browsers
-        // so we need to explicitly return here to prevent two tabs from being opened when
-        // middle-clicking a link (#10083).
-        if (event?.button === 1 && isFirefox()) {
-          return;
-        }
         window.open(href, "_blank");
       }
     },
