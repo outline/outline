@@ -19,6 +19,7 @@ import SimpleImage from "./SimpleImage";
 import { LightboxImageFactory } from "../lib/Lightbox";
 import FileHelper, { ImageSource } from "../lib/FileHelper";
 import { DiagramPlaceholder } from "../components/DiagramPlaceholder";
+import { IntegrationService } from "../../types";
 
 const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
 
@@ -468,8 +469,11 @@ export default class Image extends SimpleImage {
 
         let previousSrc = node?.attrs.src ?? "";
 
-        const url =
-          "https://embed.diagrams.net/?embed=1&ui=atlas&spin=1&modified=unsavedChanges&proto=json";
+        const integration = this.editor.props.embeds?.find(
+          (integ) => integ.name === IntegrationService.Diagrams
+        );
+
+        const url = `${integration?.settings?.diagrams?.url ?? "https://embed.diagrams.net/"}?embed=1&ui=atlas&spin=1&modified=unsavedChanges&proto=json`;
         const source = node?.attrs.src ?? emptyImage;
         let drawIoWindow: Window | null = null;
 
