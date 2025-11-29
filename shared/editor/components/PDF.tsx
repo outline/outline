@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import useDragResize from "./hooks/useDragResize";
 import { ResizeLeft, ResizeRight } from "./ResizeHandle";
 import { ComponentProps } from "../types";
@@ -11,8 +11,7 @@ type Props = ComponentProps & {
 export default function PdfViewer(props: Props) {
   const { node, isEditable, onChangeSize, isSelected } = props;
   const { href, name, layoutClass } = node.attrs;
-  const [data, setData] = useState<string>();
-  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const embedRef = useRef<HTMLEmbedElement>(null);
   const isFullWidth = layoutClass === "full-width";
 
   const { width, height, setSize, handlePointerDown, dragging } = useDragResize(
@@ -23,18 +22,9 @@ export default function PdfViewer(props: Props) {
       naturalHeight: 424,
       gridSnap: 5,
       onChangeSize,
-      ref: iframeRef,
+      ref: embedRef,
     }
   );
-
-  useEffect(() => {
-    const url = href + (href.includes("?") ? "&" : "?") + "preview=true";
-    fetch(url)
-      .then((res) => res.json())
-      .then((res) => {
-        setData(res.url);
-      });
-  }, [href]);
 
   useEffect(() => {
     if (node.attrs.width && node.attrs.width !== width) {
@@ -51,10 +41,11 @@ export default function PdfViewer(props: Props) {
       className={layoutClass ? `pdf pdf-${layoutClass}` : "pdf"}
       contentEditable={false}
     >
-      <iframe
-        ref={iframeRef}
+      <embed
+        ref={embedRef}
         title={name}
-        src={data}
+        src={href}
+        type="application/pdf"
         width={isFullWidth ? "730px" : width}
         height={height}
         style={{ pointerEvents: isSelected ? "auto" : "none" }}
