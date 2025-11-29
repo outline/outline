@@ -11,6 +11,7 @@ export default function attachmentMenuItems(
   if (readOnly) {
     return [];
   }
+
   return [
     {
       name: "replaceAttachment",
