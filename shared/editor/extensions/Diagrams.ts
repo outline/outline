@@ -1,4 +1,5 @@
 import { Command, EditorState, NodeSelection } from "prosemirror-state";
+import { Node } from "prosemirror-model";
 import Extension, { CommandFactory } from "../lib/Extension";
 import FileHelper, { ImageSource } from "../lib/FileHelper";
 import { IntegrationService } from "../../types";
@@ -7,7 +8,7 @@ import {
   DiagramsNetClient,
   EMPTY_DIAGRAM_IMAGE,
 } from "../lib/DiagramsNetClient";
-import { Node } from "prosemirror-model";
+import { sanitizeUrl } from "../../utils/urls";
 
 /**
  * An editor extension that adds commands to insert and edit diagrams using diagrams.net.
@@ -214,8 +215,9 @@ export default class Diagrams extends Extension {
       (integ) => integ.name === IntegrationService.Diagrams
     );
     return (
-      (integration?.settings?.diagrams?.url ?? "https://embed.diagrams.net/") +
-      "?embed=1&ui=atlas&spin=1&modified=unsavedChanges&proto=json"
+      sanitizeUrl(
+        integration?.settings?.diagrams?.url ?? "https://embed.diagrams.net/"
+      ) + "?embed=1&ui=atlas&spin=1&modified=unsavedChanges&proto=json"
     );
   }
 
