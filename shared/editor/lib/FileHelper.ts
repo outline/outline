@@ -255,4 +255,62 @@ export default class FileHelper {
 
     return false;
   }
+
+  /**
+   * Converts an image URL to base64 encoded data.
+   *
+   * @param url - the URL of the image to convert.
+   * @returns promise resolving to base64 string (without data URI prefix).
+   * @throws Error if the image cannot be fetched or converted.
+   */
+  static async urlToBase64(url: string): Promise<string> {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.statusText}`);
+    }
+
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64data = reader.result as string;
+        // Extract just the base64 portion (remove "data:image/png;base64," prefix)
+        const base64 = base64data.split(",")[1];
+        resolve(base64);
+      };
+      reader.onerror = () => {
+        reject(new Error("Failed to read image as base64"));
+      };
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  /**
+   * Converts base64 encoded data to a File object.
+   *
+   * @param base64Data - base64 encoded string, optionally with data URI prefix.
+   * @param filename - name for the file.
+   * @param mimeType - MIME type for the file.
+   * @returns File object containing the decoded data.
+   */
+  static base64ToFile(
+    base64Data: string,
+    filename: string,
+    mimeType: string
+  ): File {
+    // Extract base64 portion if it includes data URI prefix
+    const base64 = base64Data.includes(",")
+      ? base64Data.split(",")[1]
+      : base64Data;
+
+    // Decode base64 to binary
+    const binaryString = atob(base64);
+    const bytes = new Uint8Array(binaryString.length);
+
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+
+    return new File([bytes], filename, { type: mimeType });
+  }
 }
