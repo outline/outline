@@ -52,10 +52,6 @@ export default class Attachment extends Node {
           default: null,
           validate: "string|null",
         },
-        layoutClass: {
-          default: null,
-          validate: "string|null",
-        },
       },
       group: "block",
       defining: true,

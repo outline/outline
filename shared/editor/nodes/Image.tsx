@@ -443,14 +443,11 @@ export default class Image extends SimpleImage {
         if (!(state.selection instanceof NodeSelection)) {
           return false;
         }
-
-        const { node } = state.selection;
         const attrs = {
-          ...node.attrs,
-          title: node.type.name === "attachment" ? node.attrs.title : null,
+          ...state.selection.node.attrs,
+          title: null,
           layoutClass: "right-50",
         };
-
         const { selection } = state;
         dispatch?.(state.tr.setNodeMarkup(selection.from, undefined, attrs));
         return true;
@@ -459,10 +456,9 @@ export default class Image extends SimpleImage {
         if (!(state.selection instanceof NodeSelection)) {
           return false;
         }
-        const { node } = state.selection;
         const attrs = {
-          ...node.attrs,
-          title: node.type.name === "attachment" ? node.attrs.title : null,
+          ...state.selection.node.attrs,
+          title: null,
           layoutClass: "left-50",
         };
         const { selection } = state;
@@ -477,10 +473,9 @@ export default class Image extends SimpleImage {
         if (state.selection.node.attrs.layoutClass === layoutClass) {
           layoutClass = null;
         }
-        const { node } = state.selection;
         const attrs = {
-          ...node.attrs,
-          title: node.type.name === "attachment" ? node.attrs.title : null,
+          ...state.selection.node.attrs,
+          title: null,
           layoutClass,
         };
         const { selection } = state;
@@ -491,12 +486,7 @@ export default class Image extends SimpleImage {
         if (!(state.selection instanceof NodeSelection)) {
           return false;
         }
-        const { node } = state.selection;
-        const attrs = {
-          ...node.attrs,
-          title: node.type.name === "attachment" ? node.attrs.title : null,
-          layoutClass: null,
-        };
+        const attrs = { ...state.selection.node.attrs, layoutClass: null };
         const { selection } = state;
         dispatch?.(state.tr.setNodeMarkup(selection.from, undefined, attrs));
         return true;
