@@ -7,7 +7,6 @@ import FileHelper from "../lib/FileHelper";
 import uploadPlaceholderPlugin, {
   findPlaceholder,
 } from "../lib/uploadPlaceholder";
-import { getSourceFromFile } from "@shared/utils/files";
 
 export type Options = {
   /** Dictionary object containing translation strings */
@@ -75,7 +74,7 @@ const insertFiles = async function (
       return {
         id: `upload-${uuidv4()}`,
         dimensions: await getDimensions?.(file),
-        source: await getSourceFromFile(file),
+        source: await FileHelper.getImageSourceAttr(file),
         isImage,
         isVideo,
         file,

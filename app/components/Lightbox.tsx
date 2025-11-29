@@ -53,6 +53,7 @@ import { transparentize } from "polished";
 import { mergeRefs } from "react-merge-refs";
 import { useEditor } from "~/editor/components/EditorContext";
 import { NodeSelection } from "prosemirror-state";
+import { ImageSource } from "@shared/editor/lib/FileHelper";
 
 export enum LightboxStatus {
   READY_TO_OPEN,
@@ -768,7 +769,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
                 neutral
               />
             </Tooltip>
-            {activeImage.source === "drawio" && (
+            {activeImage.source === ImageSource.DiagramsNet && (
               <Tooltip content={t("Edit diagram")} placement="bottom">
                 <ActionButton
                   tabIndex={-1}

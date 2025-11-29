@@ -17,7 +17,7 @@ import { EditorStyleHelper } from "../styles/EditorStyleHelper";
 import { ComponentProps, NodeWithPos } from "../types";
 import SimpleImage from "./SimpleImage";
 import { LightboxImageFactory } from "../lib/Lightbox";
-import FileHelper from "../lib/FileHelper";
+import FileHelper, { ImageSource } from "../lib/FileHelper";
 import { DiagramPlaceholder } from "../components/DiagramPlaceholder";
 
 const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
@@ -359,7 +359,10 @@ export default class Image extends SimpleImage {
     };
 
   component = (props: ComponentProps) => {
-    if (props.node.attrs.source === "drawio" && !props.node.attrs.src) {
+    if (
+      props.node.attrs.source === ImageSource.DiagramsNet &&
+      !props.node.attrs.src
+    ) {
       return (
         <DiagramPlaceholder
           onDoubleClick={this.handleEditDiagam(props)}
@@ -457,7 +460,7 @@ export default class Image extends SimpleImage {
             state.selection.from,
             type.create({
               src: "",
-              source: "drawio",
+              source: ImageSource.DiagramsNet,
             })
           );
           dispatch?.(transaction);
@@ -558,7 +561,7 @@ export default class Image extends SimpleImage {
                       ...$node.node.attrs,
                       ...dimensions,
                       src: uploadedFile,
-                      source: "drawio",
+                      source: ImageSource.DiagramsNet,
                     };
                     dispatch?.(
                       state.tr.setNodeMarkup($node.pos, undefined, attrs)
@@ -570,7 +573,7 @@ export default class Image extends SimpleImage {
                   const attrs = {
                     ...dimensions,
                     src: uploadedFile,
-                    source: "drawio",
+                    source: ImageSource.DiagramsNet,
                   };
                   const imageNode = type.create(attrs);
                   const { tr } = state;
