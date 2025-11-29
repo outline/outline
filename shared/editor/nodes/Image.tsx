@@ -14,7 +14,7 @@ import ImageComponent from "../components/Image";
 import { addComment } from "../commands/comment";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { EditorStyleHelper } from "../styles/EditorStyleHelper";
-import { ComponentProps } from "../types";
+import { ComponentProps, NodeWithPos } from "../types";
 import SimpleImage from "./SimpleImage";
 import { LightboxImageFactory } from "../lib/Lightbox";
 import FileHelper from "../lib/FileHelper";
@@ -463,6 +463,8 @@ export default class Image extends SimpleImage {
           dispatch?.(transaction);
         }
 
+        let previousSrc = node?.attrs.src ?? "";
+
         const url =
           "https://embed.diagrams.net/?embed=1&ui=atlas&spin=1&modified=unsavedChanges&proto=json";
         const source = node?.attrs.src ?? emptyImage;
@@ -536,19 +538,30 @@ export default class Image extends SimpleImage {
               FileHelper.getImageDimensions(file).then((dimensions) => {
                 uploadFile?.(file).then((uploadedFile) => {
                   const { state } = this.editor.view;
-                  if (
-                    state.selection instanceof NodeSelection &&
-                    state.selection.node?.type.name === "image"
-                  ) {
+
+                  // Find node based on previousSrc
+                  let $node: NodeWithPos | undefined;
+                  state.doc.descendants((n, pos) => {
+                    if (
+                      n.attrs.src === previousSrc &&
+                      n.type.name === "image"
+                    ) {
+                      $node = { node: n, pos };
+                      return false;
+                    }
+                    return true;
+                  });
+
+                  if ($node) {
+                    previousSrc = uploadedFile;
                     const attrs = {
-                      ...state.selection.node.attrs,
+                      ...$node.node.attrs,
                       ...dimensions,
                       src: uploadedFile,
                       source: "drawio",
                     };
-                    const { selection } = state;
                     dispatch?.(
-                      state.tr.setNodeMarkup(selection.from, undefined, attrs)
+                      state.tr.setNodeMarkup($node.pos, undefined, attrs)
                     );
                     return;
                   }
@@ -571,7 +584,7 @@ export default class Image extends SimpleImage {
             }
 
             // Received if the user clicks exit or after export
-            if (parsed.event === "exit" || parsed.event === "export") {
+            if (parsed.event === "exit") {
               // Closes the editor
               window.removeEventListener("message", receive);
               drawIoWindow?.close();

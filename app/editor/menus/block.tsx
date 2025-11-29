@@ -227,7 +227,7 @@ export default function blockMenuItems(
       name: "editDiagram",
       title: "Diagrams.net Diagram",
       icon: <Img src="/images/diagrams.png" alt="Diagrams.net Diagram" />,
-      keywords: "diagram flowchart",
+      keywords: "diagram flowchart draw.io",
     },
   ];
 }
