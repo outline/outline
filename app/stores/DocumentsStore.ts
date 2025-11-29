@@ -52,6 +52,9 @@ export default class DocumentsStore extends Store<Document> {
   @observable
   movingDocumentId: string | null | undefined;
 
+  @observable
+  selectedDocs: Set<string> = new Set();
+
   importFileTypes: string[] = [
     ".md",
     ".doc",
@@ -111,6 +114,14 @@ export default class DocumentsStore extends Store<Document> {
       "updatedAt",
       "desc"
     );
+  }
+
+  get selected() {
+    return Array.from(this.selectedDocs);
+  }
+
+  select(documentId: string) {
+    this.selectedDocs.add(documentId);
   }
 
   createdByUser(userId: string): Document[] {
