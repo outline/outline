@@ -247,6 +247,7 @@ const embeds: EmbedDescriptor[] = [
     regexMatch: [/^https:\/\/viewer\.diagrams\.net\/(?!proxy).*(title=\\w+)?/],
     icon: <Img src="/images/diagrams.png" alt="Diagrams.net" />,
     component: Diagrams,
+    visible: false,
   }),
   new EmbedDescriptor({
     title: "Descript",

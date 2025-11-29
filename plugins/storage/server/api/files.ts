@@ -95,6 +95,7 @@ router.get(
       "application/octet-stream";
 
     ctx.set("Accept-Ranges", "bytes");
+    ctx.set("Access-Control-Allow-Origin", "*");
     ctx.set("Cache-Control", cacheHeader);
     ctx.set("Content-Type", contentType);
     ctx.set("Content-Security-Policy", "sandbox");

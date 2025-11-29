@@ -4,17 +4,16 @@ import { EditorView } from "prosemirror-view";
 import { sanitizeUrl } from "@shared/utils/urls";
 
 export abstract class LightboxImage {
-  protected pos: number;
+  public pos: number;
+  public src: string;
+  public alt: string;
+  public source: string;
+
   protected element: Element;
-  protected src: string;
-  protected alt: string;
 
   constructor() {}
 
   public abstract getElement(): Element | null | undefined;
-  public abstract getSrc(): string;
-  public abstract getAlt(): string;
-  public abstract getPos(): number;
 }
 
 class LightboxRegularImage extends LightboxImage {
@@ -24,23 +23,12 @@ class LightboxRegularImage extends LightboxImage {
     const node = view.state.doc.nodeAt(pos);
     this.src = sanitizeUrl(node?.attrs.src) ?? "";
     this.alt = node?.attrs.alt ?? "";
+    this.source = node?.attrs.source;
     this.element = view.nodeDOM(pos) as HTMLSpanElement;
   }
 
   getElement() {
     return this.element.querySelector("img");
-  }
-
-  getSrc() {
-    return this.src;
-  }
-
-  getAlt() {
-    return this.alt;
-  }
-
-  getPos() {
-    return this.pos;
   }
 }
 
@@ -72,18 +60,6 @@ class LightboxMermaidImage extends LightboxImage {
 
   getElement() {
     return this.element.nextElementSibling?.firstElementChild;
-  }
-
-  getSrc() {
-    return this.src;
-  }
-
-  getAlt() {
-    return this.alt;
-  }
-
-  getPos() {
-    return this.pos;
   }
 }
 
