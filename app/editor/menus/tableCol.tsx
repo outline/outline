@@ -16,12 +16,15 @@ import { EditorState } from "prosemirror-state";
 import { CellSelection, selectedRect } from "prosemirror-tables";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import {
+  getAllSelectedColumns,
   isMergedCellSelection,
   isMultipleCellSelection,
 } from "@shared/editor/queries/table";
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
 import { ArrowLeftIcon, ArrowRightIcon } from "~/components/Icons/ArrowIcon";
+import { faArrowsLeftRight } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export default function tableColMenuItems(
   state: EditorState,
@@ -38,6 +41,7 @@ export default function tableColMenuItems(
 
   const { index, rtl } = options;
   const { schema, selection } = state;
+  const selectedCols = getAllSelectedColumns(state);
 
   if (!(selection instanceof CellSelection)) {
     return [];
@@ -155,6 +159,15 @@ export default function tableColMenuItems(
           dangerous: true,
           label: dictionary.deleteColumn,
           icon: <TrashIcon />,
+        },
+        {
+          name: "separator",
+        },
+        {
+          name: "distributeWidthEvenly",
+          visible: selectedCols.length > 1,
+          label: dictionary.distributeWidthEvenly,
+          icon: <FontAwesomeIcon icon={faArrowsLeftRight} />,
         },
       ],
     },
