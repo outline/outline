@@ -48,52 +48,6 @@ type Props = {
   canUpdate?: boolean;
 };
 
-function useIsActive(state: EditorState) {
-  const { selection, doc } = state;
-
-  if (isMarkActive(state.schema.marks.link)(state)) {
-    return true;
-  }
-  if (
-    (isNodeActive(state.schema.nodes.code_block)(state) ||
-      isNodeActive(state.schema.nodes.code_fence)(state)) &&
-    selection.from > 0
-  ) {
-    return true;
-  }
-
-  if (isInNotice(state) && selection.from > 0) {
-    return true;
-  }
-
-  if (!selection || selection.empty) {
-    return false;
-  }
-  if (selection instanceof NodeSelection && selection.node.type.name === "hr") {
-    return true;
-  }
-  if (
-    selection instanceof NodeSelection &&
-    ["image", "attachment", "embed"].includes(selection.node.type.name)
-  ) {
-    return true;
-  }
-  if (selection instanceof NodeSelection) {
-    return false;
-  }
-
-  const selectionText = doc.cut(selection.from, selection.to).textContent;
-  if (selection instanceof TextSelection && !selectionText) {
-    return false;
-  }
-
-  const slice = selection.content();
-  const fragment = slice.content;
-  const nodes = (fragment as any).content;
-
-  return some(nodes, (n) => n.content.size);
-}
-
 function useIsDragging() {
   const [isDragging, setDragging, setNotDragging] = useBoolean();
   useEventListener("dragstart", setDragging);
@@ -192,9 +146,9 @@ export function SelectionToolbar(props: Props) {
       index: rowIndex,
     });
   } else if (isImageSelection) {
-    items = readOnly ? [] : getImageMenuItems(state, dictionary);
+    items = getImageMenuItems(state, readOnly, dictionary);
   } else if (isAttachmentSelection) {
-    items = readOnly ? [] : getAttachmentMenuItems(state, dictionary);
+    items = getAttachmentMenuItems(state, readOnly, dictionary);
   } else if (isDividerSelection) {
     items = getDividerMenuItems(state, readOnly, dictionary);
   } else if (readOnly) {
