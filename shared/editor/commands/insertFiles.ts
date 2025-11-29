@@ -7,6 +7,7 @@ import FileHelper from "../lib/FileHelper";
 import uploadPlaceholderPlugin, {
   findPlaceholder,
 } from "../lib/uploadPlaceholder";
+import { getSourceFromFile } from "@shared/utils/files";
 
 export type Options = {
   /** Dictionary object containing translation strings */
@@ -74,6 +75,7 @@ const insertFiles = async function (
       return {
         id: `upload-${uuidv4()}`,
         dimensions: await getDimensions?.(file),
+        source: await getSourceFromFile(file),
         isImage,
         isVideo,
         file,
@@ -122,6 +124,7 @@ const insertFiles = async function (
                   to || from,
                   schema.nodes.image.create({
                     src,
+                    source: upload.source,
                     ...(upload.dimensions ?? {}),
                     ...options.attrs,
                   })

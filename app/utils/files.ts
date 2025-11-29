@@ -2,63 +2,6 @@ import invariant from "invariant";
 import { AttachmentPreset } from "@shared/types";
 import { client } from "./ApiClient";
 import Logger from "./Logger";
-import { inflate } from "pako";
-
-/**
- * Reads a PNG file (as ArrayBuffer) and detects if it contains embedded Draw.io data.
- * Returns { isDrawio, xml }.
- */
-export async function detectDrawioPngFromFile(
-  file: File
-): Promise<{ isDrawio: boolean; xml?: string }> {
-  const buffer = await file.arrayBuffer();
-  const bytes = new Uint8Array(buffer);
-
-  // Validate PNG signature
-  const pngSignature = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
-  if (!pngSignature.every((b, i) => bytes[i] === b)) {
-    throw new Error("Not a valid PNG file.");
-  }
-
-  let pos = 8; // skip PNG header
-
-  while (pos < bytes.length) {
-    // Read chunk length and type
-    const length =
-      (bytes[pos] << 24) |
-      (bytes[pos + 1] << 16) |
-      (bytes[pos + 2] << 8) |
-      bytes[pos + 3];
-    const type = String.fromCharCode(...bytes.slice(pos + 4, pos + 8));
-    const data = bytes.slice(pos + 8, pos + 8 + length);
-    pos += 12 + length; // advance to next chunk
-
-    // Check for text chunks where Draw.io embeds metadata
-    if (type === "zTXt" || type === "iTXt" || type === "tEXt") {
-      const nullIndex = data.indexOf(0);
-      if (nullIndex < 0) {
-        continue;
-      }
-      const keyword = new TextDecoder().decode(data.slice(0, nullIndex));
-
-      if (keyword.includes("mxfile")) {
-        try {
-          // Skip compression flag (1 byte after the null)
-          const compressed = data.slice(nullIndex + 2);
-          const decompressed = inflate(compressed, { to: "string" });
-
-          if (decompressed.includes("<mxfile")) {
-            return { isDrawio: true, xml: decompressed };
-          }
-        } catch {
-          // Ignore decompression errors and continue
-        }
-      }
-    }
-  }
-
-  return { isDrawio: false };
-}
 
 type UploadOptions = {
   /** The user facing name of the file */
