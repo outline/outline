@@ -10,10 +10,8 @@ type Props = ComponentProps & {
 
 export default function PdfViewer(props: Props) {
   const { node, isEditable, onChangeSize, isSelected } = props;
-  const { href, name, layoutClass } = node.attrs;
+  const { href, name } = node.attrs;
   const embedRef = useRef<HTMLEmbedElement>(null);
-  const isFullWidth = layoutClass === "full-width";
-
   const { width, height, setSize, handlePointerDown, dragging } = useDragResize(
     {
       width: node.attrs.width,
@@ -37,20 +35,17 @@ export default function PdfViewer(props: Props) {
   }, [node.attrs.width]);
 
   return (
-    <div
-      className={layoutClass ? `pdf pdf-${layoutClass}` : "pdf"}
-      contentEditable={false}
-    >
+    <div className="pdf" contentEditable={false}>
       <embed
         ref={embedRef}
         title={name}
         src={href}
         type="application/pdf"
-        width={isFullWidth ? "730px" : width}
+        width={width}
         height={height}
         style={{ pointerEvents: isSelected ? "auto" : "none" }}
       />
-      {isEditable && !!props.onChangeSize && !isFullWidth && (
+      {isEditable && !!props.onChangeSize && (
         <>
           <ResizeLeft
             onPointerDown={handlePointerDown("left")}
