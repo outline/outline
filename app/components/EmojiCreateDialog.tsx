@@ -35,8 +35,8 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDropAccepted: onDrop,
     accept: AttachmentValidation.emojiContentTypes,
+    maxSize: AttachmentValidation.emojiMaxFileSize,
     maxFiles: 1,
-    maxSize: 1024 * 1024, // 1MB
   });
 
   const handleSubmit = async () => {
@@ -59,15 +59,14 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
 
       const attachment = await uploadFile(compressed, {
         name: file.name,
-        preset: AttachmentPreset.DocumentAttachment,
+        preset: AttachmentPreset.Emoji,
       });
 
-      const emoji = await emojis.create({
+      await emojis.create({
         name: name.trim(),
         attachmentId: attachment.id,
       });
 
-      emojis.add(emoji);
       toast.success(t("Emoji created successfully"));
       onSubmit();
     } catch (error) {
@@ -153,15 +152,15 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
 }
 
 const DropZone = styled.div`
-  border: 2px dashed ${s("divider")};
+  border: 2px dashed ${s("inputBorder")};
   border-radius: 8px;
   padding: 24px;
   text-align: center;
-  cursor: pointer;
+  cursor: var(--pointer);
   transition: border-color 0.2s;
 
   &:hover {
-    border-color: ${s("accent")};
+    border-color: ${s("inputBorderFocused")};
   }
 `;
 

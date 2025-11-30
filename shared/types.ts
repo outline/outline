@@ -102,6 +102,7 @@ export enum AttachmentPreset {
   WorkspaceImport = "workspaceImport",
   Import = "import",
   Avatar = "avatar",
+  Emoji = "emoji",
 }
 
 export enum IntegrationType {

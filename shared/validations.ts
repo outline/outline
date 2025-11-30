@@ -11,6 +11,9 @@ export const AttachmentValidation = {
     "image/jpg",
   ],
 
+  /** The maximum file size for emoji uploads */
+  emojiMaxFileSize: 1 * 1024 * 1024,
+
   /** Image mime-types commonly supported by modern browsers */
   imageContentTypes: [
     "image/jpg",
