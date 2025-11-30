@@ -22,6 +22,7 @@ import {
   CannotUseWithout,
   CannotUseWithAny,
   IsInCaseInsensitive,
+  IsDatabaseUrl,
 } from "@server/utils/validators";
 import Deprecated from "./models/decorators/Deprecated";
 import { getArg } from "./utils/args";
@@ -80,7 +81,7 @@ export class Environment {
    * The url of the database.
    */
   @IsOptional()
-  @IsUrl({
+  @IsDatabaseUrl({
     require_tld: false,
     allow_underscores: true,
     protocols: ["postgres", "postgresql"],
@@ -99,7 +100,7 @@ export class Environment {
    * and reduce load on primary database.
    */
   @IsOptional()
-  @IsUrl({
+  @IsDatabaseUrl({
     require_tld: false,
     allow_underscores: true,
     protocols: ["postgres", "postgresql"],
@@ -156,7 +157,7 @@ export class Environment {
    * The url of the database pool.
    */
   @IsOptional()
-  @IsUrl({
+  @IsDatabaseUrl({
     require_tld: false,
     allow_underscores: true,
     protocols: ["postgres", "postgresql"],
