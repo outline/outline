@@ -668,11 +668,22 @@ iframe.embed {
   height: max-content;
   margin-right: auto;
   margin-left: auto;
+  max-width: 100%;
+  clear: both;
+  z-index: 1;
+  transition-property: width, height;
+  transition-duration: 80ms;
+  transition-timing-function: ease-in-out;
 
-  .pdf-full-width {
-    width: 100vw;
-    clear: both;
-    position: initial;
+  embed {
+    display: block;
+    max-width: 100%;
+    contain: strict,
+    content-visibility: auto,
+    backface-visibility: hidden,
+    transition-property: width, height;
+    transition-duration: 80ms;
+    transition-timing-function: ease-in-out;
   }
 }
 

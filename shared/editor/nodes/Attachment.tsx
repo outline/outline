@@ -100,7 +100,7 @@ export default class Attachment extends Node {
       }
 
       const { view } = this.editor;
-      const { tr } = view.state;
+      const { tr, doc } = view.state;
 
       const pos = getPos();
       const transaction = tr
@@ -110,7 +110,7 @@ export default class Attachment extends Node {
           height,
         })
         .setMeta("addToHistory", true);
-      const $pos = transaction.doc.resolve(getPos());
+      const $pos = doc.resolve(getPos());
       view.dispatch(transaction.setSelection(new NodeSelection($pos)));
     };
 
