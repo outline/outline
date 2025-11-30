@@ -53,11 +53,7 @@ const CustomEmojiPanel = ({
         setSearchData([
           {
             category: DisplayCategory.Search,
-            icons: initialData?.map((icon) => ({
-              type: IconType.Custom,
-              id: icon.name,
-              value: icon.url,
-            })),
+            icons: initialData?.map(toIcon),
           },
         ]);
       }
@@ -104,7 +100,7 @@ const CustomEmojiPanel = ({
             if (prev.some((item) => item.id === id)) {
               return prev;
             }
-            return [...prev, { type: IconType.Custom, id, value: emoji.id }];
+            return [...prev, toIcon(emoji)];
           });
         })
         .catch(() => {
@@ -129,11 +125,7 @@ const CustomEmojiPanel = ({
       },
       {
         category: DisplayCategory.All,
-        icons: emojis.orderedData.map((emoji) => ({
-          type: IconType.Custom,
-          id: emoji.id,
-          value: emoji.id,
-        })),
+        icons: emojis.orderedData.map(toIcon),
       },
     ],
     [emojis.orderedData, freqEmojis]
@@ -172,6 +164,7 @@ const toIcon = (emoji: Emoji): EmojiNode => ({
   type: IconType.Custom,
   id: emoji.id,
   value: emoji.id,
+  name: emoji.name,
 });
 
 export default CustomEmojiPanel;

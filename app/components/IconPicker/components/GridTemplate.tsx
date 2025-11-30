@@ -28,6 +28,7 @@ export type EmojiNode = {
   type: IconType.Emoji | IconType.Custom;
   id: string;
   value: string;
+  name?: string;
 };
 
 export type DataNode = {
@@ -88,7 +89,10 @@ const GridTemplate = (
           >
             <Emoji width={24} height={24}>
               {item.type === IconType.Custom ? (
-                <EmojiImage src={`/api/emojis.redirect?id=${item.value}`} />
+                <EmojiImage
+                  src={`/api/emojis.redirect?id=${item.value}`}
+                  title={item.name}
+                />
               ) : (
                 item.value
               )}
