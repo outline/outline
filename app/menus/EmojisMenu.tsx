@@ -1,5 +1,6 @@
 import { TrashIcon } from "outline-icons";
 import { Trans, useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import { IconButton } from "~/components/IconPicker/components/IconButton";
 import Tooltip from "~/components/Tooltip";
@@ -26,7 +27,7 @@ const EmojisMenu = ({ emoji }: { emoji: Emoji }) => {
   }
 
   return (
-    <Tooltip content={`${t("Delete Emoji")}…`}>
+    <Tooltip content={t("Delete Emoji")}>
       <IconButton onClick={handleDelete}>
         <TrashIcon />
       </IconButton>
@@ -47,6 +48,7 @@ const DeleteEmojiDialog = ({
     if (emoji) {
       await emoji.delete();
       onSubmit();
+      toast.success(t("Emoji deleted"));
     }
   };
 
