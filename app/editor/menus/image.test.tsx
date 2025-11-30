@@ -1,5 +1,6 @@
 import { EditorState } from "prosemirror-state";
 import { Schema } from "prosemirror-model";
+import { ImageSource } from "@shared/editor/lib/FileHelper";
 import Desktop from "~/utils/Desktop";
 import imageMenuItems from "./image";
 
