@@ -6,7 +6,11 @@ import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Icon from "@shared/components/Icon";
 import { randomElement } from "@shared/random";
-import { CollectionPermission, TeamPreference } from "@shared/types";
+import {
+  CollectionDisplayPreferences,
+  CollectionPermission,
+  TeamPreference,
+} from "@shared/types";
 import { IconLibrary } from "@shared/utils/IconLibrary";
 import { colorPalette } from "@shared/utils/collections";
 import { CollectionValidation } from "@shared/validations";
@@ -30,6 +34,7 @@ export interface FormData {
   icon: string;
   color: string | null;
   sharing: boolean;
+  displayPreferences: CollectionDisplayPreferences | undefined;
   permission: CollectionPermission | undefined;
   commenting?: boolean | null;
 }
@@ -86,6 +91,10 @@ export const CollectionForm = observer(function CollectionForm_({
       permission: collection?.permission,
       commenting: collection?.commenting ?? true,
       color: iconColor,
+      displayPreferences: {
+        showFooterNavigation:
+          collection?.displayPreferences?.showFooterNavigation ?? false,
+      },
     },
   });
 
@@ -215,6 +224,22 @@ export const CollectionForm = observer(function CollectionForm_({
           )}
         />
       )}
+
+      <Controller
+        control={control}
+        name="displayPreferences.showFooterNavigation"
+        render={({ field }) => (
+          <Switch
+            id="showFooterNavigation"
+            label={t("Show Footer Navigation")}
+            note={t(
+              "Show footer navigation on documents within this collection."
+            )}
+            checked={!!field.value}
+            onChange={field.onChange}
+          />
+        )}
+      />
 
       <Flex justify="flex-end">
         <Button

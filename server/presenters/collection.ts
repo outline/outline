@@ -49,6 +49,7 @@ export default async function presentCollection(
     updatedAt: collection.updatedAt,
     deletedAt: collection.deletedAt,
     archivedAt: collection.archivedAt,
+    displayPreferences: collection.displayPreferences,
     archivedBy: undefined,
   };
 

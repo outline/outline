@@ -252,6 +252,15 @@ export enum UserPreference {
 
 export type UserPreferences = { [key in UserPreference]?: boolean };
 
+export enum CollectionDisplayPreference {
+  /** Whether the previous and next document buttons at the bottom of the document should be shown */
+  showFooterNavigation = "showFooterNavigation",
+}
+
+export type CollectionDisplayPreferences = {
+  [key in CollectionDisplayPreference]?: boolean;
+};
+
 export type SourceMetadata = {
   /** The original source file name. */
   fileName?: string;
