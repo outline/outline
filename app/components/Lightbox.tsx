@@ -54,6 +54,7 @@ import { mergeRefs } from "react-merge-refs";
 import { useEditor } from "~/editor/components/EditorContext";
 import { NodeSelection } from "prosemirror-state";
 import { ImageSource } from "@shared/editor/lib/FileHelper";
+import Desktop from "~/utils/Desktop";
 
 export enum LightboxStatus {
   READY_TO_OPEN,
@@ -769,20 +770,21 @@ function Lightbox({ images, activeImage, onUpdate, onClose }: Props) {
                 neutral
               />
             </Tooltip>
-            {activeImage.source === ImageSource.DiagramsNet && (
-              <Tooltip content={t("Edit diagram")} placement="bottom">
-                <ActionButton
-                  tabIndex={-1}
-                  disabled={status.image === ImageStatus.ERROR}
-                  onClick={handleEditDiagram}
-                  aria-label={t("Edit diagram")}
-                  size={32}
-                  icon={<EditIcon />}
-                  borderOnHover
-                  neutral
-                />
-              </Tooltip>
-            )}
+            {activeImage.source === ImageSource.DiagramsNet &&
+              !Desktop.isElectron() && (
+                <Tooltip content={t("Edit diagram")} placement="bottom">
+                  <ActionButton
+                    tabIndex={-1}
+                    disabled={status.image === ImageStatus.ERROR}
+                    onClick={handleEditDiagram}
+                    aria-label={t("Edit diagram")}
+                    size={32}
+                    icon={<EditIcon />}
+                    borderOnHover
+                    neutral
+                  />
+                </Tooltip>
+              )}
             <Separator />
             <Dialog.Close asChild>
               <Tooltip content={t("Close")} shortcut="Esc" placement="bottom">

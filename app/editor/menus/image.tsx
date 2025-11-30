@@ -15,6 +15,7 @@ import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
 import { metaDisplay } from "@shared/utils/keyboard";
 import { ImageSource } from "@shared/editor/lib/FileHelper";
+import Desktop from "~/utils/Desktop";
 
 export default function imageMenuItems(
   state: EditorState,
@@ -91,7 +92,7 @@ export default function imageMenuItems(
       name: "editDiagram",
       tooltip: "Edit diagram",
       icon: <EditIcon />,
-      visible: isDiagram(state),
+      visible: isDiagram(state) && !Desktop.isElectron(),
     },
     {
       name: "downloadImage",
