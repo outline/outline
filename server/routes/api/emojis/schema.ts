@@ -1,7 +1,7 @@
-export type EmojisInfoReq = z.infer<typeof EmojisInfoSchema>;
 import { z } from "zod";
 import { EmojiValidation } from "@shared/validations";
 import { BaseSchema } from "../schema";
+import { zodShareIdType } from "@server/utils/zod";
 
 export const EmojisInfoSchema = BaseSchema.extend({
   body: z
@@ -37,6 +37,19 @@ export const EmojisDeleteSchema = BaseSchema.extend({
     id: z.string().uuid(),
   }),
 });
+
+export const EmojisRedirectSchema = BaseSchema.extend({
+  query: z.object({
+    /** Id of the emoji */
+    id: z.string().uuid(),
+    /** Share Id, if available */
+    shareId: zodShareIdType().optional(),
+  }),
+});
+
+export type EmojisRedirectReq = z.infer<typeof EmojisRedirectSchema>;
+
+export type EmojisInfoReq = z.infer<typeof EmojisInfoSchema>;
 
 export type EmojisListReq = z.infer<typeof EmojisListSchema>;
 

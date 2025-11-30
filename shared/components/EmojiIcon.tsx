@@ -1,4 +1,4 @@
-import * as React from "react";
+import { isUUID } from "validator";
 import styled from "styled-components";
 import { s } from "../styles";
 
@@ -15,11 +15,9 @@ type Props = {
  * in a way that can be used wherever an Icon would be.
  */
 export default function EmojiIcon({ size = 24, emoji, ...rest }: Props) {
-  const isUrl = emoji.includes("/");
-
   return (
     <Span $size={size} {...rest}>
-      <SVG size={size} emoji={isUrl ? "�" : emoji} />
+      <SVG size={size} emoji={isUUID(emoji) ? "�" : emoji} />
     </Span>
   );
 }

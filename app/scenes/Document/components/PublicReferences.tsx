@@ -4,16 +4,16 @@ import { useTranslation } from "react-i18next";
 import { NavigationNode } from "@shared/types";
 import Subheading from "~/components/Subheading";
 import ReferenceListItem from "./ReferenceListItem";
+import useShare from "@shared/hooks/useShare";
 
 type Props = {
-  shareId: string;
   documentId: string;
-  sharedTree?: NavigationNode;
 };
 
 function PublicReferences(props: Props) {
   const { t } = useTranslation();
-  const { shareId, documentId, sharedTree } = props;
+  const { sharedTree } = useShare();
+  const { documentId } = props;
 
   // The sharedTree is the entire document tree starting at the shared document
   // we must filter down the tree to only the part with the document we're
@@ -52,7 +52,7 @@ function PublicReferences(props: Props) {
     <>
       <Subheading>{t("Documents")}</Subheading>
       {children.map((node) => (
-        <ReferenceListItem key={node.id} document={node} shareId={shareId} />
+        <ReferenceListItem key={node.id} document={node} />
       ))}
     </>
   );

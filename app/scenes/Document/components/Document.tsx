@@ -535,7 +535,6 @@ class DocumentScene extends React.Component<Props> {
             <Header
               document={document}
               revision={revision}
-              shareId={shareId}
               isDraft={document.isDraft}
               isEditing={!readOnly && !!user?.separateEditMode}
               isSaving={this.isSaving}
@@ -544,7 +543,6 @@ class DocumentScene extends React.Component<Props> {
                 document.isSaving || this.isPublishing || this.isEmpty
               }
               savingIsDisabled={document.isSaving || this.isEmpty}
-              sharedTree={this.props.sharedTree}
               onSelectTemplate={this.handleSelectTemplate}
               onSave={this.onSave}
             />
@@ -593,7 +591,6 @@ class DocumentScene extends React.Component<Props> {
                         key={embedsDisabled ? "disabled" : "enabled"}
                         ref={this.editor}
                         multiplayer={multiplayerEditor}
-                        shareId={shareId}
                         isDraft={document.isDraft}
                         template={document.isTemplate}
                         document={document}
@@ -616,11 +613,7 @@ class DocumentScene extends React.Component<Props> {
                       >
                         {shareId ? (
                           <ReferencesWrapper>
-                            <PublicReferences
-                              shareId={shareId}
-                              documentId={document.id}
-                              sharedTree={this.props.sharedTree}
-                            />
+                            <PublicReferences documentId={document.id} />
                           </ReferencesWrapper>
                         ) : !revision ? (
                           <ReferencesWrapper>

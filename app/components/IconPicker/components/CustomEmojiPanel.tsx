@@ -104,7 +104,7 @@ const CustomEmojiPanel = ({
             if (prev.some((item) => item.id === id)) {
               return prev;
             }
-            return [...prev, { type: IconType.Custom, id, value: emoji.url }];
+            return [...prev, { type: IconType.Custom, id, value: emoji.id }];
           });
         })
         .catch(() => {
@@ -114,8 +114,8 @@ const CustomEmojiPanel = ({
   }, [getFrequentIcons, emojis]);
 
   const handleEmojiSelection = React.useCallback(
-    ({ id, value }: { id: string; value: string }) => {
-      onEmojiChange(value);
+    ({ id }: { id: string }) => {
+      onEmojiChange(id);
       incrementIconCount(id);
     },
     [onEmojiChange, incrementIconCount]
@@ -132,7 +132,7 @@ const CustomEmojiPanel = ({
         icons: emojis.orderedData.map((emoji) => ({
           type: IconType.Custom,
           id: emoji.id,
-          value: emoji.url,
+          value: emoji.id,
         })),
       },
     ],
@@ -170,8 +170,8 @@ const CustomEmojiPanel = ({
 
 const toIcon = (emoji: Emoji): EmojiNode => ({
   type: IconType.Custom,
-  id: emoji.name,
-  value: emoji.url,
+  id: emoji.id,
+  value: emoji.id,
 });
 
 export default CustomEmojiPanel;

@@ -88,7 +88,7 @@ const GridTemplate = (
           >
             <Emoji width={24} height={24}>
               {item.type === IconType.Custom ? (
-                <EmojiImage src={item.value} />
+                <EmojiImage src={`/api/emojis.redirect?id=${item.value}`} />
               ) : (
                 item.value
               )}

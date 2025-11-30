@@ -1,14 +1,13 @@
 import { observer } from "mobx-react";
 import { getLuminance } from "polished";
-import * as React from "react";
 import styled from "styled-components";
 import useStores from "../hooks/useStores";
+import useShare from "../hooks/useShare";
 import { IconType } from "../types";
 import { IconLibrary } from "../utils/IconLibrary";
 import { colorPalette } from "../utils/collections";
 import { determineIconType } from "../utils/icon";
 import EmojiIcon from "./EmojiIcon";
-// import Logger from "~/utils/Logger";
 import Flex from "./Flex";
 import { EmojiImage } from "./customEmojis";
 
@@ -38,6 +37,7 @@ const Icon = ({
   forceColor,
   className,
 }: Props) => {
+  const { shareId } = useShare();
   const iconType = determineIconType(icon);
 
   if (!iconType) {
@@ -64,7 +64,9 @@ const Icon = ({
     if (iconType === IconType.Custom) {
       return (
         <EmojiImageWrapper>
-          <EmojiImage src={icon} />
+          <EmojiImage
+            src={`/api/emojis.redirect?id=${icon}${shareId ? `&shareId=${shareId}` : ""}`}
+          />
         </EmojiImageWrapper>
       );
     }

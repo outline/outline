@@ -5,12 +5,17 @@ import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Emoji, User, Attachment } from "@server/models";
+import BaseStorage from "@server/storage/files/BaseStorage";
 import { authorize } from "@server/policies";
 import { presentEmoji, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
+import { getTeamFromContext } from "@server/utils/passport";
+import { loadPublicShare } from "@server/commands/shareLoader";
+import { AuthorizationError } from "@server/errors";
+import { flattenTree } from "@shared/utils/tree";
 
 const router = new Router();
 
@@ -58,6 +63,53 @@ router.post(
       data: presentEmoji(emoji),
       policies: presentPolicies(user, [emoji]),
     };
+  }
+);
+
+router.get(
+  "emojis.redirect",
+  auth({ optional: true }),
+  validate(T.EmojisRedirectSchema),
+  async (ctx: APIContext<T.EmojisRedirectReq>) => {
+    const { id, shareId } = ctx.input.query;
+    const { user } = ctx.state.auth;
+
+    const emoji = await Emoji.unscoped().findByPk(id, {
+      rejectOnEmpty: true,
+      include: [
+        {
+          model: Attachment,
+        },
+      ],
+    });
+
+    if (shareId) {
+      const teamFromCtx = await getTeamFromContext(ctx, {
+        includeStateCookie: false,
+      });
+
+      const { sharedTree } = await loadPublicShare({
+        id: shareId,
+        teamId: teamFromCtx?.id,
+      });
+
+      // collect all icons from sharedTree
+      const isEmojiInSharedTree =
+        sharedTree &&
+        flattenTree(sharedTree).some((node) => node.icon === emoji.id);
+
+      if (!isEmojiInSharedTree) {
+        throw AuthorizationError();
+      }
+    } else {
+      authorize(user, "read", emoji);
+    }
+
+    ctx.set(
+      "Cache-Control",
+      `max-age=${BaseStorage.defaultSignedUrlExpires}, immutable`
+    );
+    ctx.redirect(await emoji.attachment.signedUrl);
   }
 );
 
