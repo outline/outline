@@ -13,8 +13,10 @@ import {
 import { type Column as TableColumn } from "~/components/Table";
 import Time from "~/components/Time";
 import { FILTER_HEIGHT } from "./StickyFilters";
-import { EmojiImage, EmojiPreview } from "@shared/components/customEmojis";
+import { CustomEmoji } from "@shared/components/CustomEmoji";
 import EmojisMenu from "~/menus/EmojisMenu";
+import { s } from "@shared/styles";
+import styled from "styled-components";
 
 const ROW_HEIGHT = 60;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;
@@ -39,7 +41,7 @@ const EmojisTable = observer(function EmojisTable({
           accessor: (emoji) => emoji.url,
           component: (emoji) => (
             <EmojiPreview>
-              <EmojiImage src={emoji.url} alt={emoji.name} />
+              <CustomEmoji src={emoji.url} alt={emoji.name} size={28} />
               <span>:{emoji.name}:</span>
             </EmojiPreview>
           ),
@@ -90,5 +92,14 @@ const EmojisTable = observer(function EmojisTable({
     />
   );
 });
+
+export const EmojiPreview = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: monospace;
+  font-size: 14px;
+  color: ${s("textSecondary")};
+`;
 
 export default EmojisTable;

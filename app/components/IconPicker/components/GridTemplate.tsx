@@ -9,7 +9,7 @@ import Text from "~/components/Text";
 import { TRANSLATED_CATEGORIES } from "../utils";
 import Grid from "./Grid";
 import { IconButton } from "./IconButton";
-import { EmojiImage } from "@shared/components/customEmojis";
+import { CustomEmoji } from "@shared/components/CustomEmoji";
 
 /**
  * icon/emoji size is 24px; and we add 4px padding on all sides,
@@ -89,7 +89,7 @@ const GridTemplate = (
           >
             <Emoji width={24} height={24}>
               {item.type === IconType.Custom ? (
-                <EmojiImage
+                <CustomEmoji
                   src={`/api/emojis.redirect?id=${item.value}`}
                   title={item.name}
                 />

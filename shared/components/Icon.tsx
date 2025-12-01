@@ -9,7 +9,7 @@ import { colorPalette } from "../utils/collections";
 import { determineIconType } from "../utils/icon";
 import EmojiIcon from "./EmojiIcon";
 import Flex from "./Flex";
-import { EmojiImage } from "./customEmojis";
+import { CustomEmoji } from "./CustomEmoji";
 
 export type Props = {
   /** The icon to render */
@@ -64,7 +64,7 @@ const Icon = ({
     if (iconType === IconType.Custom) {
       return (
         <EmojiImageWrapper>
-          <EmojiImage
+          <CustomEmoji
             src={`/api/emojis.redirect?id=${icon}${shareId ? `&shareId=${shareId}` : ""}`}
           />
         </EmojiImageWrapper>
@@ -138,7 +138,7 @@ const EmojiImageWrapper = styled(Flex)`
     width: auto;
     height: auto;
 
-    ${EmojiImage} {
+    ${CustomEmoji} {
       width: 26px;
       height: 26px;
     }
