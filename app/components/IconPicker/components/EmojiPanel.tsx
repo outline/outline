@@ -9,7 +9,6 @@ import GridTemplate, { DataNode } from "./GridTemplate";
 import SkinTonePicker from "./SkinTonePicker";
 import { StyledInputSearch, UserInputContainer } from "./Components";
 import { useIconState } from "../useIconState";
-import useStores from "~/hooks/useStores";
 
 const GRID_HEIGHT = 410;
 
@@ -31,7 +30,6 @@ const EmojiPanel = ({
   height = GRID_HEIGHT,
 }: Props) => {
   const { t } = useTranslation();
-  const { emojis } = useStores();
 
   const searchRef = React.useRef<HTMLInputElement | null>(null);
   const scrollableRef = React.useRef<HTMLDivElement | null>(null);
@@ -75,7 +73,6 @@ const EmojiPanel = ({
     ? getSearchResults({
         query,
         skinTone,
-        customEmojis: emojis.orderedData,
       })
     : getAllEmojis({
         skinTone,
@@ -115,13 +112,11 @@ const EmojiPanel = ({
 const getSearchResults = ({
   query,
   skinTone,
-  customEmojis = [],
 }: {
   query: string;
   skinTone: EmojiSkinTone;
-  customEmojis?: Array<{ id: string; name: string; url: string }>;
 }): DataNode[] => {
-  const emojis = search({ query, skinTone, customEmojis });
+  const emojis = search({ query, skinTone });
   return [
     {
       category: DisplayCategory.Search,
