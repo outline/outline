@@ -22,6 +22,7 @@ import {
   CannotUseWithout,
   CannotUseWithAny,
   IsInCaseInsensitive,
+  IsDatabaseUrl,
 } from "@server/utils/validators";
 import Deprecated from "./models/decorators/Deprecated";
 import { getArg } from "./utils/args";
@@ -80,11 +81,7 @@ export class Environment {
    * The url of the database.
    */
   @IsOptional()
-  @IsUrl({
-    require_tld: false,
-    allow_underscores: true,
-    protocols: ["postgres", "postgresql"],
-  })
+  @IsDatabaseUrl()
   @CannotUseWithAny([
     "DATABASE_HOST",
     "DATABASE_PORT",
@@ -99,11 +96,7 @@ export class Environment {
    * and reduce load on primary database.
    */
   @IsOptional()
-  @IsUrl({
-    require_tld: false,
-    allow_underscores: true,
-    protocols: ["postgres", "postgresql"],
-  })
+  @IsDatabaseUrl()
   public DATABASE_URL_READ_ONLY = this.toOptionalString(
     environment.DATABASE_URL_READ_ONLY
   );
@@ -156,11 +149,7 @@ export class Environment {
    * The url of the database pool.
    */
   @IsOptional()
-  @IsUrl({
-    require_tld: false,
-    allow_underscores: true,
-    protocols: ["postgres", "postgresql"],
-  })
+  @IsDatabaseUrl()
   public DATABASE_CONNECTION_POOL_URL = this.toOptionalString(
     environment.DATABASE_CONNECTION_POOL_URL
   );
