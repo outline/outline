@@ -3,9 +3,9 @@ import * as React from "react";
 /**
  * Hook to check if component is still mounted
  *
- * @returns {boolean} true if the component is mounted, false otherwise
+ * @returns true if the component is mounted, false otherwise
  */
-export default function useIsMounted() {
+export default function useIsMounted(): () => boolean {
   const isMounted = React.useRef(false);
 
   React.useEffect(() => {

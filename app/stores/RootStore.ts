@@ -10,6 +10,7 @@ import DialogsStore from "./DialogsStore";
 import DocumentPresenceStore from "./DocumentPresenceStore";
 import DocumentsStore from "./DocumentsStore";
 import EventsStore from "./EventsStore";
+import EmojisStore from "./EmojiStore";
 import FileOperationsStore from "./FileOperationsStore";
 import GroupMembershipsStore from "./GroupMembershipsStore";
 import GroupUsersStore from "./GroupUsersStore";
@@ -44,6 +45,7 @@ export default class RootStore {
   comments: CommentsStore;
   dialogs: DialogsStore;
   documents: DocumentsStore;
+  emojis: EmojisStore;
   events: EventsStore;
   groups: GroupsStore;
   groupUsers: GroupUsersStore;
@@ -77,6 +79,7 @@ export default class RootStore {
     this.registerStore(GroupMembershipsStore);
     this.registerStore(CommentsStore);
     this.registerStore(DocumentsStore);
+    this.registerStore(EmojisStore);
     this.registerStore(EventsStore);
     this.registerStore(GroupsStore);
     this.registerStore(GroupUsersStore);

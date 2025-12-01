@@ -6,7 +6,6 @@ import { Link } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import Icon from "@shared/components/Icon";
 import useMeasure from "react-use-measure";
-import { NavigationNode } from "@shared/types";
 import { altDisplay, metaDisplay } from "@shared/utils/keyboard";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
@@ -40,12 +39,11 @@ import ObservingBanner from "./ObservingBanner";
 import PublicBreadcrumb from "./PublicBreadcrumb";
 import ShareButton from "./ShareButton";
 import { AppearanceAction } from "~/components/Sharing/components/Actions";
+import useShare from "@shared/hooks/useShare";
 
 type Props = {
   document: Document;
   revision: Revision | undefined;
-  sharedTree: NavigationNode | undefined;
-  shareId: string | null | undefined;
   isDraft: boolean;
   isEditing: boolean;
   isSaving: boolean;
@@ -63,14 +61,12 @@ type Props = {
 function DocumentHeader({
   document,
   revision,
-  shareId,
   isEditing,
   isDraft,
   isPublishing,
   isSaving,
   savingIsDisabled,
   publishingIsDisabled,
-  sharedTree,
   onSelectTemplate,
   onSave,
 }: Props) {
@@ -85,8 +81,8 @@ function DocumentHeader({
   const { hasHeadings, editor } = useDocumentContext();
   const sidebarContext = useLocationSidebarContext();
   const [measureRef, size] = useMeasure();
+  const { isShare, shareId, sharedTree } = useShare();
   const isMobile = isMobileMedia || size.width < 700;
-  const isShare = !!shareId;
 
   // We cache this value for as long as the component is mounted so that if you
   // apply a template there is still the option to replace it until the user

@@ -20,6 +20,13 @@ export const zodIconType = () =>
   z.union([
     z.string().regex(emojiRegex()),
     zodEnumFromObjectKeys(IconLibrary.mapping),
+    z.string().uuid(),
+  ]);
+
+export const zodShareIdType = () =>
+  z.union([
+    z.string().uuid(),
+    z.string().regex(UrlHelper.SHARE_URL_SLUG_REGEX),
   ]);
 
 export const zodTimezone = () =>

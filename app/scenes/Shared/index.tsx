@@ -32,6 +32,7 @@ import { Collection as CollectionScene } from "./Collection";
 import { Document as DocumentScene } from "./Document";
 import DelayedMount from "~/components/DelayedMount";
 import lazyWithRetry from "~/utils/lazyWithRetry";
+import { ShareContext } from "@shared/hooks/useShare";
 
 const Login = lazyWithRetry(() => import("../Login"));
 
@@ -229,7 +230,12 @@ function SharedScene() {
   const hasSidebar = !!share.tree?.children.length;
 
   return (
-    <>
+    <ShareContext.Provider
+      value={{
+        shareId,
+        sharedTree: share.tree,
+      }}
+    >
       <Helmet>
         <link
           rel="canonical"
@@ -244,20 +250,16 @@ function SharedScene() {
               sidebar={hasSidebar ? <Sidebar share={share} /> : null}
             >
               {model instanceof Document ? (
-                <DocumentScene
-                  document={model}
-                  shareId={shareId}
-                  sharedTree={share.tree}
-                />
+                <DocumentScene document={model} />
               ) : model instanceof Collection ? (
-                <CollectionScene collection={model} shareId={shareId} />
+                <CollectionScene collection={model} />
               ) : null}
             </Layout>
             <ClickablePadding minHeight="20vh" />
           </DocumentContextProvider>
         </ThemeProvider>
       </TeamContext.Provider>
-    </>
+    </ShareContext.Provider>
   );
 }
 

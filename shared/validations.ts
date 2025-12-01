@@ -2,6 +2,18 @@ export const AttachmentValidation = {
   /** The limited allowable mime-types for user and team avatars */
   avatarContentTypes: ["image/jpg", "image/jpeg", "image/png"],
 
+  /** The most widely supported mime-types across modern browsers */
+  emojiContentTypes: [
+    "image/png",
+    "image/webp",
+    "image/gif",
+    "image/jpeg",
+    "image/jpg",
+  ],
+
+  /** The maximum file size for emoji uploads */
+  emojiMaxFileSize: 1 * 1000 * 1000,
+
   /** Image mime-types commonly supported by modern browsers */
   imageContentTypes: [
     "image/jpg",
@@ -128,4 +140,11 @@ export const UserValidation = {
 export const WebhookSubscriptionValidation = {
   /** The maximum number of webhooks per team */
   maxSubscriptions: 10,
+};
+
+export const EmojiValidation = {
+  /** The maximum length of the emoji name */
+  maxNameLength: 25,
+  /* the characters allowed in the name */
+  allowedNameCharacters: /^[a-z0-9_]*$/,
 };

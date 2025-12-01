@@ -1,14 +1,12 @@
 import isUndefined from "lodash/isUndefined";
-import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
 import {
   CollectionPermission,
   CollectionStatusFilter,
   FileOperationFormat,
 } from "@shared/types";
-import { UrlHelper } from "@shared/utils/UrlHelper";
 import { Collection } from "@server/models";
-import { zodIconType, zodIdType } from "@server/utils/zod";
+import { zodIconType, zodIdType, zodShareIdType } from "@server/utils/zod";
 import { ValidateColor, ValidateIndex } from "@server/validation";
 import { BaseSchema, ProsemirrorSchema } from "../schema";
 
@@ -54,10 +52,7 @@ export type CollectionsCreateReq = z.infer<typeof CollectionsCreateSchema>;
 export const CollectionsInfoSchema = BaseSchema.extend({
   body: BaseIdSchema.extend({
     /** Share Id, if available */
-    shareId: z
-      .string()
-      .refine((val) => isUUID(val) || UrlHelper.SHARE_URL_SLUG_REGEX.test(val))
-      .optional(),
+    shareId: zodShareIdType().optional(),
   }),
 });
 
