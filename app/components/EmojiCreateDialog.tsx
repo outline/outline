@@ -12,8 +12,8 @@ import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import { uploadFile } from "~/utils/files";
 import { compressImage } from "~/utils/compressImage";
-import Logger from "~/utils/Logger";
 import { AttachmentValidation, EmojiValidation } from "@shared/validations";
+import { bytesToHumanReadable } from "@shared/utils/files";
 
 type Props = {
   onSubmit: () => void;
@@ -69,9 +69,6 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
 
       toast.success(t("Emoji created successfully"));
       onSubmit();
-    } catch (error) {
-      toast.error(t("Failed to create emoji"));
-      Logger.error("Failed to create emoji", error);
     } finally {
       setIsUploading(false);
     }
@@ -94,12 +91,12 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
     >
       <Text as="p" type="secondary">
         {t(
-          "Upload an image to create a custom emoji. The name should be unique and contain only lowercase letters, numbers, and underscores."
+          "The emoji name should be unique and contain only lowercase letters, numbers, and underscores."
         )}
       </Text>
 
       <Input
-        label={t("Emoji name")}
+        label={t("Name")}
         value={name}
         onChange={handleNameChange}
         placeholder="my_custom_emoji"
@@ -133,7 +130,11 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
                   : t("Click or drag an image here")}
               </Text>
               <Text size="medium" type="secondary">
-                {t("PNG, JPG, GIF, or WebP up to 1MB")}
+                {t("PNG, JPG, GIF, or WebP up to {{ size }}", {
+                  size: bytesToHumanReadable(
+                    AttachmentValidation.emojiMaxFileSize
+                  ),
+                })}
               </Text>
             </>
           )}
@@ -141,11 +142,9 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
       </DropZone>
 
       {name.trim() && isValidName && (
-        <div style={{ marginTop: "8px" }}>
-          <Text type="secondary">
-            {t("This emoji will be available as")} <code>:{name}:</code>
-          </Text>
-        </div>
+        <Text type="secondary" style={{ marginTop: "8px" }}>
+          {t("This emoji will be available as")} <code>:{name}:</code>
+        </Text>
       )}
     </ConfirmationDialog>
   );
