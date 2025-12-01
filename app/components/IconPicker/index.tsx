@@ -22,6 +22,7 @@ import EmojiPanel from "./components/EmojiPanel";
 import IconPanel from "./components/IconPanel";
 import { PopoverButton } from "./components/PopoverButton";
 import CustomEmojiPanel from "./components/CustomEmojiPanel";
+import useStores from "~/hooks/useStores";
 
 const TAB_NAMES = {
   Icon: "icon",
@@ -63,7 +64,7 @@ const IconPicker = ({
   children,
 }: Props) => {
   const { t } = useTranslation();
-
+  const { emojis } = useStores();
   const { width: windowWidth } = useWindowSize();
   const isMobile = useMobile();
 
@@ -169,6 +170,12 @@ const IconPicker = ({
   React.useEffect(() => {
     setActiveTab(defaultTab);
   }, [defaultTab]);
+
+  React.useEffect(() => {
+    if (open) {
+      void emojis.fetchAll();
+    }
+  }, [open]);
 
   if (isMobile) {
     return (

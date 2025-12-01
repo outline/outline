@@ -37,7 +37,7 @@ function Emojis() {
   const reqParams = useMemo(
     () => ({
       query: params.get("query") || undefined,
-      sort: params.get("sort") || "createdAt",
+      sort: params.get("sort") || "name",
       direction: (params.get("direction") || "asc").toUpperCase() as
         | "ASC"
         | "DESC",
