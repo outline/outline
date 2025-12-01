@@ -1,11 +1,13 @@
 import capitalize from "lodash/capitalize";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useEffect } from "react";
 import { emojiMartToGemoji, snakeCase } from "@shared/editor/lib/emoji";
 import { search as emojiSearch } from "@shared/utils/emoji";
 import EmojiMenuItem from "./EmojiMenuItem";
 import SuggestionsMenu, {
   Props as SuggestionsMenuProps,
 } from "./SuggestionsMenu";
+import useStores from "~/hooks/useStores";
+import { isUUID } from "validator";
 
 type Emoji = {
   name: string;
@@ -21,16 +23,24 @@ type Props = Omit<
 >;
 
 const EmojiMenu = (props: Props) => {
+  const { emojis } = useStores();
   const { search = "" } = props;
+
+  useEffect(() => {
+    if (search) {
+      void emojis.fetchPage({ query: search });
+    }
+  }, [emojis, search]);
 
   const items = useMemo(
     () =>
-      emojiSearch({ query: search })
+      emojiSearch({ customEmojis: emojis.orderedData, query: search })
         .map((item) => {
           // We snake_case the shortcode for backwards compatability with gemoji to
           // avoid multiple formats being written into documents.
           // @ts-expect-error emojiMartToGemoji key
-          const shortcode = snakeCase(emojiMartToGemoji[item.id] || item.id);
+          const id = emojiMartToGemoji[item.id] || item.id;
+          const shortcode = isUUID(id) ? id : snakeCase(id);
           const emoji = item.value;
 
           return {
@@ -42,7 +52,7 @@ const EmojiMenu = (props: Props) => {
           };
         })
         .slice(0, 15),
-    [search]
+    [search, emojis.orderedData]
   );
 
   const renderMenuItem = useCallback(

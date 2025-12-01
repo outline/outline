@@ -11,6 +11,7 @@ import Extension from "../lib/Extension";
 import { getEmojiFromName } from "../lib/emoji";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import emojiRule from "../rules/emoji";
+import { isUUID } from "validator";
 
 export default class Emoji extends Extension {
   get type() {
@@ -55,7 +56,9 @@ export default class Emoji extends Extension {
             class: `emoji ${name}`,
             "data-name": name,
           },
-          getEmojiFromName(name),
+          isUUID(name)
+            ? ["img", { src: `/api/emojis.redirect?id=${name}`, alt: name }]
+            : getEmojiFromName(name),
         ];
       },
       leafText: (node) => getEmojiFromName(node.attrs["data-name"]),
