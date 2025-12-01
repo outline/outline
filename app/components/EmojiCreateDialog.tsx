@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { AttachmentPreset } from "@shared/types";
+import { getDataTransferFiles } from "@shared/utils/files";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
@@ -26,11 +27,56 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
   const [file, setFile] = React.useState<File | null>(null);
   const [isUploading, setIsUploading] = React.useState(false);
 
-  const onDrop = React.useCallback((acceptedFiles: File[]) => {
-    if (acceptedFiles.length > 0) {
-      setFile(acceptedFiles[0]);
-    }
-  }, []);
+  const handleFileSelection = React.useCallback(
+    (file: File) => {
+      const isValidType = AttachmentValidation.emojiContentTypes.includes(
+        file.type
+      );
+
+      if (!isValidType) {
+        toast.error(
+          t("File type not supported. Please use PNG, JPG, GIF, or WebP.")
+        );
+        return;
+      }
+
+      // Validate file size
+      if (file.size > AttachmentValidation.emojiMaxFileSize) {
+        toast.error(
+          t("File size too large. Maximum size is {{ size }}.", {
+            size: bytesToHumanReadable(AttachmentValidation.emojiMaxFileSize),
+          })
+        );
+        return;
+      }
+
+      setFile(file);
+    },
+    [t]
+  );
+
+  const onDrop = React.useCallback(
+    (acceptedFiles: File[]) => {
+      if (acceptedFiles.length > 0) {
+        handleFileSelection(acceptedFiles[0]);
+      }
+    },
+    [handleFileSelection]
+  );
+
+  // Handle paste events
+  React.useEffect(() => {
+    const handlePaste = (event: ClipboardEvent) => {
+      const files = getDataTransferFiles(event);
+      if (files.length > 0) {
+        event.preventDefault();
+        handleFileSelection(files[0]);
+      }
+    };
+
+    document.addEventListener("paste", handlePaste);
+    return () => document.removeEventListener("paste", handlePaste);
+  }, [handleFileSelection]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDropAccepted: onDrop,
@@ -127,7 +173,7 @@ export function EmojiCreateDialog({ onSubmit }: Props) {
               <Text size="medium">
                 {isDragActive
                   ? t("Drop the image here")
-                  : t("Click or drag an image here")}
+                  : t("Click, drop, or paste an image here")}
               </Text>
               <Text size="medium" type="secondary">
                 {t("PNG, JPG, GIF, or WebP up to {{ size }}", {
